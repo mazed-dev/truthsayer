@@ -1,5 +1,7 @@
 import React from 'react';
 
+import logo from './logo.svg';
+
 // React router
 import {
   BrowserRouter as Router,
@@ -13,6 +15,8 @@ import {
 } from "react-router-dom";
 
 import './App.css';
+
+import {Card, Button} from 'react-bootstrap';
 
 // For the future:
 //    let history = useHistory();
@@ -39,38 +43,10 @@ class PrivateApp extends React.Component {
   render() {
     return (
       <div>
+        <Workspace />
         <Router>
           <div>
-            <ul>
-              <li>
-                <Link to="/">Search</Link>
-              </li>
-              <li>
-                <Link to="/about">About</Link>
-              </li>
-              <li>
-                <Link to="/thread">Thread</Link>
-              </li>
-              <li>
-                <Link to="/logout">Logout</Link>
-              </li>
-              <li>
-                <Link to="/account">Account</Link>
-              </li>
-              <li>
-                <Link to="/about">Account</Link>
-              </li>
-            </ul>
-
-            <hr />
-
-            {/*
-              A <Switch> looks through all its children <Route>
-              elements and renders the first one whose path
-              matches the current URL. Use a <Switch> any time
-              you have multiple routes, but you want only one
-              of them to render at a time
-            */}
+            <LeftSideBarMenu />
             <Switch>
               <Route exact path="/">
                 <Search />
@@ -190,6 +166,17 @@ function About() {
   return (
     <div>
       <h2>About</h2>
+      <Card style={{ width: '18rem' }}>
+        <Card.Img variant="top" src={logo} />
+        <Card.Body>
+          <Card.Title>Card Title</Card.Title>
+          <Card.Text>
+                        Some quick example text to build on the card title and make up the bulk of
+                        the card's content.
+                      </Card.Text>
+          <Button variant="primary">Go somewhere</Button>
+        </Card.Body>
+      </Card>
     </div>
   );
 }
@@ -271,6 +258,37 @@ function NoMatch() {
   return (
     <div>
       <h3>No match for <code>{location.pathname}</code></h3>
+    </div>
+  );
+}
+
+function Workspace() {
+  return (
+    <div>
+    </div>
+  );
+}
+
+function LeftSideBarMenu() {
+  return (
+    <div style={{float:"left"}}>
+      <ul style={{ listStyleType: "none", padding: 20 }}>
+        <li>
+          <Link to="/">search</Link>
+        </li>
+        <li>
+          <Link to="/thread">thread</Link>
+        </li>
+        <li>
+          <Link to="/logout">logout</Link>
+        </li>
+        <li>
+          <Link to="/account">account</Link>
+        </li>
+        <li>
+          <Link to="/about">about</Link>
+        </li>
+      </ul>
     </div>
   );
 }
