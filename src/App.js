@@ -18,7 +18,7 @@ import './App.css';
 
 import {Card, Button, Container} from 'react-bootstrap';
 
-import ThreadView from './ThreadView';
+import TreeView from './TreeView';
 
 // For the future:
 //    let history = useHistory();
@@ -58,7 +58,7 @@ class PrivateApp extends React.Component {
                 <NodeView />
               </Route>
               <Route path="/thread">
-                <ThreadView />
+                <TreeView />
               </Route>
               <Route path="/logout">
                 <Logout />
