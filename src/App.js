@@ -16,7 +16,9 @@ import {
 
 import './App.css';
 
-import {Card, Button} from 'react-bootstrap';
+import {Card, Button, Container} from 'react-bootstrap';
+
+import ThreadView from './ThreadView';
 
 // For the future:
 //    let history = useHistory();
@@ -42,6 +44,7 @@ class App extends React.Component {
 class PrivateApp extends React.Component {
   render() {
     return (
+      <Container>
       <div>
         <Workspace />
         <Router>
@@ -55,7 +58,7 @@ class PrivateApp extends React.Component {
                 <NodeView />
               </Route>
               <Route path="/thread">
-                <Thread />
+                <ThreadView />
               </Route>
               <Route path="/logout">
                 <Logout />
@@ -76,23 +79,34 @@ class PrivateApp extends React.Component {
           </div>
         </Router>
       </div>
+      </Container>
     );
   }
 }
 
-function Search() {
+function NodeCard() {
   return (
-    <div>
-      <h2>Search</h2>
-    </div>
-  );
+      <Card style={{ width: '25rem' }}>
+        <Card.Img variant="top" src={logo} />
+        <Card.Body>
+          <Card.Title>Card Title</Card.Title>
+          <Card.Text>
+                        Some quick example text to build on the card title and make up the bulk of
+                        the card's content.
+                      </Card.Text>
+          <Button variant="primary">Go somewhere</Button>
+        </Card.Body>
+      </Card>
+  )
 }
 
-function Thread() {
+function Search() {
   return (
-    <div>
-      <h2>Thread</h2>
-    </div>
+    <Container>
+      <NodeCard />
+      <NodeCard />
+      <NodeCard />
+    </Container>
   );
 }
 
@@ -164,9 +178,8 @@ function Signin() {
 
 function About() {
   return (
-    <div>
-      <h2>About</h2>
-      <Card style={{ width: '18rem' }}>
+    <Container>
+      <Card style={{ width: '25rem' }}>
         <Card.Img variant="top" src={logo} />
         <Card.Body>
           <Card.Title>Card Title</Card.Title>
@@ -177,7 +190,7 @@ function About() {
           <Button variant="primary">Go somewhere</Button>
         </Card.Body>
       </Card>
-    </div>
+    </Container>
   );
 }
 
