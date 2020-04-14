@@ -1,7 +1,6 @@
 import React from 'react';
-import './App.css';
 
-class EditTextNode extends React.Component {
+class NodeTextEdit extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -30,4 +29,4 @@ class EditTextNode extends React.Component {
   }
 }
 
-export default EditTextNode;
+export default NodeTextEdit;

@@ -26,53 +26,54 @@ class BarChart extends React.Component {
     super(props)
     this.createBarChart = this.createBarChart.bind(this)
     this.data = {
-      name: "flare",
+      name: "Flare",
       children: [
         {
-          name: "analytics", children: [
+          name: "Analytics", children: [
           ],
         },
         {
-          name: "animate", children: [
+          name: "Animate", children: [
           ],
         },
         {
-          name: "data", children: [
+          name: "Data", children: [
           ],
         },
         {
-          name: "display", children: [
+          name: "Display", children: [
           ],
         },
         {
-          name: "flex", children: [
+          name: "Flex", children: [
           ],
         },
         {
-          name: "physics", children: [
+          name: "Physics", children: [
           ],
         },
         {
-          name: "query", children: [
+          name: "Query", children: [
           ],
         },
         {
-          name: "scale", children: [
+          name: "Scale", children: [
           ],
         },
         {
-          name: "util", children: [
+          name: "Util", children: [
           ],
         },
         {
-          name: "vis", children: [
-            {name: "axis", children: []},
-            {name: "controls", children: []},
-            {name: "data", children: [
-              {
-                name: "util", children: [
-                ],
-              },
+          name: "Vis", children: [
+            {name: "Axis", children: []},
+            {name: "Controls", children: []},
+            {name: "Data", children: [
+              // Everythin deeper than 3 -> use smaler cards
+              // {
+              //   name: "util", children: [
+              //   ],
+              // },
             ]}
           ],
         },
@@ -90,12 +91,12 @@ class BarChart extends React.Component {
 
   createBarChart() {
     const ref = this.ref
-    const width = 960,
+    const width = 1260,
         height = 760;
 
     const tree = function(data, width, height) {
         const root = d3.hierarchy(data);
-        root.dx = 20;
+        root.dx = 80;
         root.dy = width / (root.height + 1);
         return d3.tree().nodeSize([root.dx, root.dy])(root);
     }
@@ -105,8 +106,8 @@ class BarChart extends React.Component {
     let x0 = Infinity;
     let x1 = -x0;
       root.each(d => {
-            if (d.x > x1) x1 = d.x;
-            if (d.x < x0) x0 = d.x;
+            x1 = Math.max(x1, d.x);
+            x0 = Math.min(x0, d.x);
           });
 
       const svg = d3.select(ref)
@@ -114,7 +115,7 @@ class BarChart extends React.Component {
 
       const g = svg.append("g")
           .attr("font-family", "sans-serif")
-          .attr("font-size", 10)
+          .attr("font-size", 14)
           .attr("transform", `translate(${root.dy / 3},${root.dx - x0})`);
 
       const link = g.append("g")
@@ -143,15 +144,17 @@ class BarChart extends React.Component {
 
       const color = d3.scaleOrdinal(d3.schemeCategory10)
       node.append("rect")
-          .attr("fill", d => color(d.height))
-          .attr("width", d => 60)
-          .attr("height", d => 15)
-          .attr("transform", d => `translate(0,-7)`);
+          .attr("fill", "white")
+          .attr("stroke", "black")
+          .attr("stroke-width", "1")
+          .attr("width", d => 256)
+          .attr("height", d => 64)
+          .attr("transform", d => `translate(0,-32)`);
 
       node.append("text")
-          .attr("dy", "0.31em")
-          .attr("x", d => d.children ? -6 : 6)
-          .attr("text-anchor", d => d.children ? "end" : "start")
+          .attr("dy", d => 16)
+          .attr("x", d => 6)
+          .attr("text-anchor", d => "start")
           .text(d => d.data.name)
         .clone(true).lower()
           .attr("stroke", "white");

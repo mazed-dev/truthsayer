@@ -1,6 +1,7 @@
 import React from 'react';
 
 import logo from './logo.svg';
+import history from './nav';
 
 // React router
 import {
@@ -9,6 +10,7 @@ import {
   Redirect,
   Route,
   Switch,
+  useHistory,
   useLocation,
   useParams,
   useRouteMatch,
@@ -44,7 +46,6 @@ class App extends React.Component {
 class PrivateApp extends React.Component {
   render() {
     return (
-      <Container>
       <div>
         <Workspace />
         <Router>
@@ -79,9 +80,23 @@ class PrivateApp extends React.Component {
           </div>
         </Router>
       </div>
-      </Container>
     );
   }
+}
+
+function NodeFullCard() {
+  return (
+      <Card style={{ width: '598px' }}>
+        <Card.Img variant="top" src={logo} />
+        <Card.Body>
+          <Card.Title>Card Title</Card.Title>
+          <Card.Text>
+                Some quick example text to build on the card title and make up the bulk of
+                the card's content.
+          </Card.Text>
+        </Card.Body>
+      </Card>
+  )
 }
 
 function NodeCard() {
@@ -91,10 +106,9 @@ function NodeCard() {
         <Card.Body>
           <Card.Title>Card Title</Card.Title>
           <Card.Text>
-                        Some quick example text to build on the card title and make up the bulk of
-                        the card's content.
-                      </Card.Text>
-          <Button variant="primary">Go somewhere</Button>
+            Some quick example text to build on the card title and make up the bulk of the card's content.
+          </Card.Text>
+          <Button variant="primary" href="/node/df">Go somewhere</Button>
         </Card.Body>
       </Card>
   )
@@ -210,31 +224,7 @@ function NodeView() {
 
   return (
     <div>
-      <h2>Node</h2>
-      <Switch>
-        <Route exact path={path}>
-          <ul>
-            <li>
-              <Link to={`${url}/edit`}>Edit</Link>
-            </li>
-          </ul>
-          <ReadNode  node_id={id}/>
-        </Route>
-        <Route path={`${path}/edit`}>
-          <ul>
-            <li>
-              <Link to={`${url}`}>Read</Link>
-            </li>
-          </ul>
-          <EditNode node_id={id}/>
-        </Route>
-        <Route path={`${path}/create`}>
-          <CreateNode />
-        </Route>
-        <Route path="*">
-          <NoMatch />
-        </Route>
-      </Switch>
+      <NodeFullCard />
     </div>
   );
 }
