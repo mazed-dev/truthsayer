@@ -1,7 +1,7 @@
 import React from 'react';
 
 import logo from './logo.svg';
-import history from './nav';
+import NodeTextEditor from './NodeTextEditor';
 
 // React router
 import {
@@ -221,10 +221,10 @@ function NodeView() {
   // the dynamic pieces of the URL.
   let { id } = useParams();
   let { path, url } = useRouteMatch();
-
+      // <NodeFullCard />
   return (
     <div>
-      <NodeFullCard />
+      <NodeTextEditor />
     </div>
   );
 }
