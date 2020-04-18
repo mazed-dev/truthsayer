@@ -46,9 +46,10 @@ class App extends React.Component {
 class PrivateApp extends React.Component {
   // f5f5f5
   // f0f0f0
+  // #696969
   render() {
     return (
-      <div style={{"background-color":"#1a4876"}}>
+      <div style={{"background-color":"#f2f4f1"}}>
         <Workspace />
         <Router>
           <div>
