@@ -2,7 +2,25 @@ import React from 'react';
 
 import maze from './maze.png';
 
-import {Card, Button, InputGroup, FormControl, Container} from 'react-bootstrap';
+import {Card, Button, InputGroup, FormControl, Container, Row, Col, CardColumns} from 'react-bootstrap';
+
+      // <Card style={{ width: '25rem' }}>
+function RefNodeCard() {
+  return (
+      <Card >
+        <Card.Body className="m-0">
+          <div className="d-flex justify-content-center">
+            <Card.Img variant="top" className="w-50 p-0 m-2" src={maze} />
+          </div>
+          <Card.Title>Card Title</Card.Title>
+          <Card.Text>
+            Some quick example text to build on the card title and make up the bulk of the card's content.
+          </Card.Text>
+          <Button variant="outline-secondary">See</Button>
+        </Card.Body>
+      </Card>
+  )
+}
 
 class TitleEditor extends React.Component {
     constructor(props) {
@@ -35,6 +53,7 @@ class TitleEditor extends React.Component {
             aria-label="Title"
             value={this.state.value}
             onChange={this.handleChange}
+            className="border-0"
           />
           </InputGroup>
       );
@@ -44,13 +63,20 @@ class TitleEditor extends React.Component {
 class TextEditor extends React.Component {
     constructor(props) {
       super(props);
-      this.state = {value: ''};
+      this.state = {
+        value: '',
+        height: 12,
+      };
       this.handleChange = this.handleChange.bind(this);
       this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     handleChange(event) {
-      this.setState({value: event.target.value});
+      const height = (event.target.value.match(/\n/g) || '').length + 2;
+      this.setState({
+        value: event.target.value,
+        height: Math.max(12, height * 1.6),
+      });
     }
 
     handleSubmit(event) {
@@ -62,7 +88,14 @@ class TextEditor extends React.Component {
       // <textarea name="text" value={this.state.value} onChange={this.handleChange} />
       return (
         <InputGroup>
-          <FormControl as="textarea" aria-label="With textarea" value={this.state.value} onChange={this.handleChange} />
+          <FormControl
+            as="textarea"
+            aria-label="With textarea"
+            className="border-0"
+            value={this.state.value}
+            onChange={this.handleChange}
+            style={{ height: this.state.height + 'em' }}
+          />
         </InputGroup>
       );
     }
@@ -79,15 +112,38 @@ class NodeTextEditor extends React.Component {
       event.preventDefault();
     }
 
-    render() {
+    render() { 
+      //style={{ width: '640px' }}
       return (
-        <Container>
-        <Card>
-          <Card.Img variant="top" src={maze} />
-            <TitleEditor />
-            <TextEditor />
-            <Button variant="outline-secondary">Button</Button>
-        </Card>
+        <Container fluid>
+          <Row className="d-flex justify-content-center">
+            <Col xl={5} lg={5} md={7}>
+              <Card className="border-0">
+                  <div className="d-flex justify-content-center mp-0">
+                    <Card.Img variant="top" className="w-25 p-3" src={maze} />
+                  </div>
+                  <TitleEditor />
+                  <TextEditor />
+                <Button variant="outline-secondary">Button</Button>
+              </Card>
+            </Col>
+            <Col xl={5} lg={2} md={4} sm={4}>
+              <CardColumns>
+                <RefNodeCard />
+                <RefNodeCard />
+                <RefNodeCard />
+                <RefNodeCard />
+                <RefNodeCard />
+                <RefNodeCard />
+                <RefNodeCard />
+                <RefNodeCard />
+                <RefNodeCard />
+                <RefNodeCard />
+                <RefNodeCard />
+                <RefNodeCard />
+              </CardColumns>
+            </Col>
+          </Row>
         </Container>
       );
         // <form onSubmit={this.handleSubmit}>
