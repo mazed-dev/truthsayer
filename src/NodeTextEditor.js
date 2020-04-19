@@ -2,6 +2,8 @@ import React from "react";
 
 import "./NodeTextEditor.css";
 
+import NodeSmallCard from "./NodeSmallCard";
+
 import maze from "./maze.png";
 
 import {
@@ -21,7 +23,7 @@ import {
 class RefNodeCard extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { title: this.props.title, hover: false };
+    this.state = { ref_txt: this.props.ref_txt, hover: false };
   }
 
   toggleHover = () => {
@@ -31,10 +33,10 @@ class RefNodeCard extends React.Component {
   render() {
     const title_el = (
       <Button variant="outline-danger" size="sm">
-        {this.state.title}
+        {this.state.ref_txt}
       </Button>
     );
-    var toolbar;
+    var toolbar = title_el;
     if (this.props.offer) {
       toolbar = (
         <ButtonGroup>
@@ -68,33 +70,22 @@ class RefNodeCard extends React.Component {
             </DropdownButton>
           </ButtonGroup>
         );
-      } else {
-        toolbar = title_el;
       }
     }
     return (
-      <Card
-        className="rounded"
+      <div
+        className="meta-fluid-container"
         onMouseEnter={this.toggleHover}
         onMouseLeave={this.toggleHover}
       >
+        <NodeSmallCard />
         <div className="meta-fluid-el-top-left">{toolbar}</div>
-        <Card.Body className="p-3 m-0">
-          <div className="d-flex justify-content-center">
-            <Card.Img variant="top" className="w-25 p-0 m-2" src={maze} />
-          </div>
-          <Card.Title>Card Title</Card.Title>
-          <Card.Text>
-            Some quick example text to build on the card title and make up the
-            bulk of the card's content.
-          </Card.Text>
-        </Card.Body>
-      </Card>
+      </div>
     );
   }
 }
 
-RefNodeCard.defaultProps = { offer: false, title: "..." };
+RefNodeCard.defaultProps = { offer: false, ref_txt: "..." };
 
 class ExtClickDetector extends React.Component {
   constructor(props) {
@@ -271,8 +262,8 @@ class TextEditor extends React.Component {
             onMouseEnter={this.toggleHover}
             onMouseLeave={this.toggleHover}
           >
-              {this.state.value}
-              {edit_btn}
+            {this.state.value}
+            {edit_btn}
           </Card.Text>
         </div>
       );
@@ -340,16 +331,16 @@ class NodeTextEditor extends React.Component {
             <CardColumns>
               <RefNodeCard offer={true} />
               <RefNodeCard offer={true} title={"Ref"} />
-              <RefNodeCard title={"Next"} />
-              <RefNodeCard title={"Data"} />
-              <RefNodeCard title={"Link"} />
-              <RefNodeCard title={"Any of the available button style"} />
-              <RefNodeCard title={"Source"} />
-              <RefNodeCard title={"Ref"} />
-              <RefNodeCard title={"Ref"} />
-              <RefNodeCard title={"Ref"} />
-              <RefNodeCard title={"Ref"} />
-              <RefNodeCard title={"Ref"} />
+              <RefNodeCard ref_txt={"Next"} />
+              <RefNodeCard ref_txt={"Data"} />
+              <RefNodeCard ref_txt={"Link"} />
+              <RefNodeCard ref_txt={"Any of the available button style"} />
+              <RefNodeCard ref_txt={"Source"} />
+              <RefNodeCard ref_txt={"Ref"} />
+              <RefNodeCard ref_txt={"Ref"} />
+              <RefNodeCard ref_txt={"Ref"} />
+              <RefNodeCard ref_txt={"Ref"} />
+              <RefNodeCard ref_txt={"Ref"} />
             </CardColumns>
           </Col>
         </Row>
