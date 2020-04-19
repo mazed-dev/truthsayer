@@ -16,6 +16,8 @@ import {
   CardColumns,
   DropdownButton,
   Dropdown,
+  Popover,
+  OverlayTrigger,
 } from "react-bootstrap";
 
 class RefNodeCard extends React.Component {
@@ -30,12 +32,12 @@ class RefNodeCard extends React.Component {
   }
 
   render() {
-    var toolbar;
     const title_el = (
       <Button variant="outline-danger" size="sm">
         {this.state.title}
       </Button>
     );
+    var toolbar;
     if (this.props.offer) {
       toolbar = (
         <ButtonGroup>
@@ -48,28 +50,26 @@ class RefNodeCard extends React.Component {
     } else {
       if (this.state.hover) {
         toolbar = (
-          <div>
+          <ButtonGroup>
             {title_el}
-            <ButtonGroup>
-              <Button variant="secondary" size="sm">
-                &#9998;
-              </Button>
-              <Button variant="secondary" size="sm">
-                &#9988;
-              </Button>
-              <DropdownButton
-                as={ButtonGroup}
-                title="&hellip;"
-                id="bg-vertical-dropdown-1"
-                variant="secondary"
-                size="sm"
-              >
-                <Dropdown.Item eventKey="1">H1</Dropdown.Item>
-                <Dropdown.Item eventKey="2">H2</Dropdown.Item>
-                <Dropdown.Item eventKey="3">H3</Dropdown.Item>
-              </DropdownButton>
-            </ButtonGroup>
-          </div>
+            <Button variant="outline-dark" size="sm">
+              &#9998;
+            </Button>
+            <Button variant="outline-dark" size="sm">
+              &#9988;
+            </Button>
+            <DropdownButton
+              as={ButtonGroup}
+              title="&#x22EE;&nbsp;"
+              id="bg-vertical-dropdown-1"
+              variant="outline-dark"
+              size="sm"
+            >
+              <Dropdown.Item eventKey="1">&#x2602;</Dropdown.Item>
+              <Dropdown.Item eventKey="2">&#x263C;</Dropdown.Item>
+              <Dropdown.Item eventKey="3">&#x263D;</Dropdown.Item>
+            </DropdownButton>
+          </ButtonGroup>
         );
       } else {
         toolbar = title_el;
@@ -81,7 +81,7 @@ class RefNodeCard extends React.Component {
         onMouseEnter={this.toggleHover}
         onMouseLeave={this.toggleHover}
       >
-        <div className="meta-fluid-element">{toolbar}</div>
+        <div className="meta-fluid-el-top-left">{toolbar}</div>
         <Card.Body className="p-3 m-0">
           <div className="d-flex justify-content-center">
             <Card.Img variant="top" className="w-25 p-0 m-2" src={maze} />
@@ -102,13 +102,21 @@ RefNodeCard.defaultProps = { offer: false, title: "..." };
 class TitleEditor extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { value: "" };
+    this.state = {
+      value: this.props.value,
+      edit: false,
+    };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleEditClick = this.handleEditClick.bind(this);
   }
 
   handleChange(event) {
     this.setState({ value: event.target.value });
+  }
+
+  handleEditClick(_event) {
+    this.setState({ edit: !this.state.edit });
   }
 
   handleSubmit(event) {
@@ -117,42 +125,71 @@ class TitleEditor extends React.Component {
   }
 
   render() {
-    // <div>
-    //   <input type="text" value={this.state.value} onChange={this.handleChange} />
-    // </div>
-    // <InputGroup.Prepend>
-    //   <InputGroup.Text>Title</InputGroup.Text>
-    // </InputGroup.Prepend>
-    return (
-      <InputGroup>
-        <FormControl
-          placeholder="Title"
-          aria-label="Title"
-          value={this.state.value}
-          onChange={this.handleChange}
-          className="border-0"
-        />
-      </InputGroup>
-    );
+    if (this.state.edit) {
+      return (
+        <InputGroup>
+          <FormControl
+            placeholder="Title"
+            aria-label="Title"
+            value={this.state.value}
+            onChange={this.handleChange}
+          />
+          <InputGroup.Append>
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              onClick={this.handleEditClick}
+            >
+              &#x2713;
+            </Button>
+          </InputGroup.Append>
+        </InputGroup>
+      );
+    } else {
+      return (
+        <div className="meta-fluid-container">
+          <Card.Title>{this.state.value}</Card.Title>
+          <Button
+            variant="outline-secondary"
+            className="meta-fluid-el-top-rigth"
+            size="sm"
+            onClick={this.handleEditClick}
+          >
+            &#9998;
+          </Button>
+        </div>
+      );
+    }
   }
 }
+
+TitleEditor.defaultProps = {
+  value: "San Diego Comic-Con is canceled for the first time in 50 years",
+};
 
 class TextEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      value: "",
+      value:
+        "Comic-Con, often referred to as SDCC, was scheduled to run from July 23 rd d d through July 26th. People who have already purchased badges for the convention will have the opportunity to either request a full refund or transfer their badges to Comic-Con 2021, according to the organizers. Those who booked hotels via onPeak, the service used in partnership with SDCC, will also see their deposits refunded.",
       height: 12,
+      edit: false,
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleEditClick = this.handleEditClick.bind(this);
   }
 
   handleChange(event) {
-    const height = (event.target.value.match(/\n/g) || "").length + 2;
+    // FIXME
+    var lines = 2;
+    event.target.value.split("\n").forEach(function (item, index) {
+      lines = lines + 1 + item.length / 80;
+    });
     this.setState({
       value: event.target.value,
-      height: Math.max(12, height * 1.6),
+      height: Math.max(12, lines * 1.5),
     });
   }
 
@@ -161,20 +198,48 @@ class TextEditor extends React.Component {
     event.preventDefault();
   }
 
+  handleEditClick(_event) {
+    this.setState({ edit: !this.state.edit });
+  }
+
   render() {
-    // <textarea name="text" value={this.state.value} onChange={this.handleChange} />
-    return (
-      <InputGroup>
-        <FormControl
-          as="textarea"
-          aria-label="With textarea"
-          className="border-0"
-          value={this.state.value}
-          onChange={this.handleChange}
-          style={{ height: this.state.height + "em" }}
-        />
-      </InputGroup>
-    );
+    if (this.state.edit) {
+      const popover = (
+        <Popover id="popover-markdown-toolbar">
+          <MarkdownToolBar />
+        </Popover>
+      );
+      return (
+        <OverlayTrigger trigger="focus" placement="left" overlay={popover}>
+          <InputGroup>
+            <FormControl
+              as="textarea"
+              aria-label="With textarea"
+              className="border-0"
+              value={this.state.value}
+              onChange={this.handleChange}
+              style={{ height: this.state.height + "em" }}
+            />
+          </InputGroup>
+        </OverlayTrigger>
+      );
+    } else {
+      return (
+        <Card.Text>
+          <div className="meta-fluid-container">
+            {this.state.value}
+            <Button
+              variant="outline-secondary"
+              className="meta-fluid-el-bottom-rigth"
+              size="sm"
+              onClick={this.handleEditClick}
+            >
+              &#9998;
+            </Button>
+          </div>
+        </Card.Text>
+      );
+    }
   }
 }
 
@@ -182,9 +247,14 @@ class MarkdownToolBar extends React.Component {
   render() {
     return (
       <ButtonGroup vertical>
-        <Button variant="light">&#9998;</Button>
-        <Button variant="light">&#128279;</Button>
-        <Button variant="light">URL</Button>
+        <Button variant="light">
+          <span role="img" aria-label="Link">
+            &#128279;
+          </span>
+        </Button>
+        <Button variant="light">&#x2381;</Button>
+        <Button variant="light">H2</Button>
+        <Button variant="light">H3</Button>
         <DropdownButton
           as={ButtonGroup}
           title="H2"
@@ -212,21 +282,24 @@ class NodeTextEditor extends React.Component {
   }
 
   render() {
-    //style={{ width: '640px' }}
+    // <Col xl={0} lg={0} md={0} xl={0}>
+    //   <MarkdownToolBar />
+    // </Col>
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">
-          <Col xl={0} lg={0} md={0} xl={0}>
-            <MarkdownToolBar />
-          </Col>
-          <Col xl={5} lg={5} md={7}>
+          <Col xl={4} lg={5} md={7}>
             <Card className="border-0">
-              <div className="d-flex justify-content-center mp-0">
-                <Card.Img variant="top" className="w-25 p-3" src={maze} />
-              </div>
-              <TitleEditor />
-              <TextEditor />
-              <Button variant="outline-secondary">Button</Button>
+              <Card.Body className="p-4">
+                <div className="d-flex justify-content-center mp-0">
+                  <Card.Img variant="top" className="w-25 p-3" src={maze} />
+                </div>
+                <TitleEditor />
+                <TextEditor />
+                <Card.Text className="text-right">
+                  <small className="text-muted">Last updated 3 mins ago</small>
+                </Card.Text>
+              </Card.Body>
             </Card>
           </Col>
           <Col xl={6} lg={2} md={4} sm={4}>

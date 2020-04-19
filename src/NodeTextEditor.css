@@ -2,6 +2,26 @@
   position: relative;
 }
 
-.meta-fluid-element {
+.meta-fluid-el-top-left {
   position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.meta-fluid-el-top-rigth {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.meta-fluid-el-bottom-left {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+
+.meta-fluid-el-bottom-rigth {
+  position: absolute;
+  right: 0;
+  bottom: 0;
 }
