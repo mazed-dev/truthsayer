@@ -16,20 +16,17 @@ import {
   CardColumns,
   DropdownButton,
   Dropdown,
-  Popover,
-  OverlayTrigger,
 } from "react-bootstrap";
 
 class RefNodeCard extends React.Component {
   constructor(props) {
     super(props);
     this.state = { title: this.props.title, hover: false };
-    this.toggleHover = this.toggleHover.bind(this);
   }
 
-  toggleHover() {
+  toggleHover = () => {
     this.setState({ hover: !this.state.hover });
-  }
+  };
 
   render() {
     const title_el = (
@@ -99,12 +96,36 @@ class RefNodeCard extends React.Component {
 
 RefNodeCard.defaultProps = { offer: false, title: "..." };
 
+class ExtClickDetector extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      handleClickOutside: this.props.callback,
+    };
+  }
+  componentWillMount() {
+    document.addEventListener("mousedown", this.handleClick, false);
+  }
+  componentWillUnmount() {
+    document.removeEventListener("mousedown", this.handleClick, false);
+  }
+  handleClick = (event) => {
+    if (!this.node.contains(event.target)) {
+      this.state.handleClickOutside(event);
+    }
+  };
+  render() {
+    return <div ref={(node) => (this.node = node)}>{this.props.children}</div>;
+  }
+}
+
 class TitleEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       value: this.props.value,
       edit: false,
+      hover: false,
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -124,31 +145,28 @@ class TitleEditor extends React.Component {
     event.preventDefault();
   }
 
+  toggleHover = () => {
+    this.setState({ hover: !this.state.hover });
+  };
+
   render() {
     if (this.state.edit) {
       return (
-        <InputGroup>
-          <FormControl
-            placeholder="Title"
-            aria-label="Title"
-            value={this.state.value}
-            onChange={this.handleChange}
-          />
-          <InputGroup.Append>
-            <Button
-              variant="outline-secondary"
-              size="sm"
-              onClick={this.handleEditClick}
-            >
-              &#x2713;
-            </Button>
-          </InputGroup.Append>
-        </InputGroup>
+        <ExtClickDetector callback={this.handleEditClick}>
+          <InputGroup>
+            <FormControl
+              placeholder="Title"
+              aria-label="Title"
+              value={this.state.value}
+              onChange={this.handleChange}
+            />
+          </InputGroup>
+        </ExtClickDetector>
       );
     } else {
-      return (
-        <div className="meta-fluid-container">
-          <Card.Title>{this.state.value}</Card.Title>
+      var edit_btn;
+      if (this.state.hover) {
+        edit_btn = (
           <Button
             variant="outline-secondary"
             className="meta-fluid-el-top-rigth"
@@ -157,6 +175,16 @@ class TitleEditor extends React.Component {
           >
             &#9998;
           </Button>
+        );
+      }
+      return (
+        <div
+          className="meta-fluid-container"
+          onMouseEnter={this.toggleHover}
+          onMouseLeave={this.toggleHover}
+        >
+          <Card.Title>{this.state.value}</Card.Title>
+          {edit_btn}
         </div>
       );
     }
@@ -175,6 +203,7 @@ class TextEditor extends React.Component {
         "Comic-Con, often referred to as SDCC, was scheduled to run from July 23 rd d d through July 26th. People who have already purchased badges for the convention will have the opportunity to either request a full refund or transfer their badges to Comic-Con 2021, according to the organizers. Those who booked hotels via onPeak, the service used in partnership with SDCC, will also see their deposits refunded.",
       height: 12,
       edit: false,
+      hover: false,
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -202,15 +231,14 @@ class TextEditor extends React.Component {
     this.setState({ edit: !this.state.edit });
   }
 
+  toggleHover = () => {
+    this.setState({ hover: !this.state.hover });
+  };
+
   render() {
     if (this.state.edit) {
-      const popover = (
-        <Popover id="popover-markdown-toolbar">
-          <MarkdownToolBar />
-        </Popover>
-      );
       return (
-        <OverlayTrigger trigger="focus" placement="left" overlay={popover}>
+        <ExtClickDetector callback={this.handleEditClick}>
           <InputGroup>
             <FormControl
               as="textarea"
@@ -221,23 +249,32 @@ class TextEditor extends React.Component {
               style={{ height: this.state.height + "em" }}
             />
           </InputGroup>
-        </OverlayTrigger>
+        </ExtClickDetector>
       );
     } else {
+      var edit_btn;
+      if (this.state.hover) {
+        edit_btn = (
+          <Button
+            variant="outline-secondary"
+            className="meta-fluid-el-bottom-rigth"
+            size="sm"
+            onClick={this.handleEditClick}
+          >
+            &#9998;
+          </Button>
+        );
+      }
       return (
-        <Card.Text>
-          <div className="meta-fluid-container">
-            {this.state.value}
-            <Button
-              variant="outline-secondary"
-              className="meta-fluid-el-bottom-rigth"
-              size="sm"
-              onClick={this.handleEditClick}
-            >
-              &#9998;
-            </Button>
-          </div>
-        </Card.Text>
+        <div className="meta-fluid-container">
+          <Card.Text
+            onMouseEnter={this.toggleHover}
+            onMouseLeave={this.toggleHover}
+          >
+              {this.state.value}
+              {edit_btn}
+          </Card.Text>
+        </div>
       );
     }
   }
@@ -282,23 +319,20 @@ class NodeTextEditor extends React.Component {
   }
 
   render() {
-    // <Col xl={0} lg={0} md={0} xl={0}>
-    //   <MarkdownToolBar />
-    // </Col>
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">
           <Col xl={4} lg={5} md={7}>
             <Card className="border-0">
-              <Card.Body className="p-4">
+              <Card.Body className="p-3">
                 <div className="d-flex justify-content-center mp-0">
-                  <Card.Img variant="top" className="w-25 p-3" src={maze} />
+                  <Card.Img variant="top" className="w-25 m-0" src={maze} />
                 </div>
-                <TitleEditor />
-                <TextEditor />
-                <Card.Text className="text-right">
+                <Card.Text className="text-right p-0">
                   <small className="text-muted">Last updated 3 mins ago</small>
                 </Card.Text>
+                <TitleEditor />
+                <TextEditor />
               </Card.Body>
             </Card>
           </Col>
@@ -321,9 +355,6 @@ class NodeTextEditor extends React.Component {
         </Row>
       </Container>
     );
-    // <form onSubmit={this.handleSubmit}>
-    //   <input type="submit" value="Submit" />
-    // </form>
   }
 }
 
