@@ -1,5 +1,5 @@
-import React from 'react';
-import './App.css';
+import React from "react";
+import "./App.css";
 
 /**
  * function tick() {
@@ -27,15 +27,13 @@ class NodeCard extends React.Component {
     return (
       <button
         className="square"
-        onClick={
-          () => {
-            if (this.state.value === "O") {
-              this.setState({value: 'X'})
-            } else {
-              this.setState({value: 'O'})
-            }
+        onClick={() => {
+          if (this.state.value === "O") {
+            this.setState({ value: "X" });
+          } else {
+            this.setState({ value: "O" });
           }
-        }
+        }}
       >
         NodeCard &nbsp;
         {this.state.value}

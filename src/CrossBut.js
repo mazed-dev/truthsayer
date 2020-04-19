@@ -1,5 +1,5 @@
-import React from 'react';
-import './App.css';
+import React from "react";
+import "./App.css";
 
 class CrossBut extends React.Component {
   constructor(props) {
@@ -13,15 +13,13 @@ class CrossBut extends React.Component {
     return (
       <button
         className="square"
-        onClick={
-          () => {
-            if (this.state.value === "O") {
-              this.setState({value: 'X'})
-            } else {
-              this.setState({value: 'O'})
-            }
+        onClick={() => {
+          if (this.state.value === "O") {
+            this.setState({ value: "X" });
+          } else {
+            this.setState({ value: "O" });
           }
-        }
+        }}
       >
         {this.state.value}
       </button>

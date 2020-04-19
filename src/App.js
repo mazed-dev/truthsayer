@@ -1,7 +1,7 @@
-import React from 'react';
+import React from "react";
 
-import logo from './logo.svg';
-import NodeTextEditor from './NodeTextEditor';
+import logo from "./logo.svg";
+import NodeTextEditor from "./NodeTextEditor";
 
 // React router
 import {
@@ -16,11 +16,11 @@ import {
   useRouteMatch,
 } from "react-router-dom";
 
-import './App.css';
+import "./App.css";
 
-import {Card, Button, Container} from 'react-bootstrap';
+import { Card, Button, Container } from "react-bootstrap";
 
-import TreeView from './TreeView';
+import TreeView from "./TreeView";
 
 // For the future:
 //    let history = useHistory();
@@ -32,13 +32,9 @@ class App extends React.Component {
   render() {
     const isAuthenticated = true; // Mock
     if (!isAuthenticated) {
-      return (
-        <HelloWorld />
-      );
+      return <HelloWorld />;
     } else {
-      return (
-        <PrivateApp />
-      );
+      return <PrivateApp />;
     }
   }
 }
@@ -49,7 +45,7 @@ class PrivateApp extends React.Component {
   // #696969
   render() {
     return (
-      <div style={{"background-color":"#f2f4f1"}}>
+      <div style={{ "background-color": "#f2f4f1" }}>
         <Workspace />
         <Router>
           <div>
@@ -75,9 +71,7 @@ class PrivateApp extends React.Component {
               </Route>
               <Route path="*">
                 <NoMatch />
-                <Redirect
-                  to={{ pathname: "/" }}
-                />
+                <Redirect to={{ pathname: "/" }} />
               </Route>
             </Switch>
           </div>
@@ -89,32 +83,35 @@ class PrivateApp extends React.Component {
 
 function NodeFullCard() {
   return (
-      <Card style={{ width: '598px' }}>
-        <Card.Img variant="top" src={logo} />
-        <Card.Body>
-          <Card.Title>Card Title</Card.Title>
-          <Card.Text>
-                Some quick example text to build on the card title and make up the bulk of
-                the card's content.
-          </Card.Text>
-        </Card.Body>
-      </Card>
-  )
+    <Card style={{ width: "598px" }}>
+      <Card.Img variant="top" src={logo} />
+      <Card.Body>
+        <Card.Title>Card Title</Card.Title>
+        <Card.Text>
+          Some quick example text to build on the card title and make up the
+          bulk of the card's content.
+        </Card.Text>
+      </Card.Body>
+    </Card>
+  );
 }
 
 function NodeCard() {
   return (
-      <Card style={{ width: '25rem' }}>
-        <Card.Img variant="top" src={logo} />
-        <Card.Body>
-          <Card.Title>Card Title</Card.Title>
-          <Card.Text>
-            Some quick example text to build on the card title and make up the bulk of the card's content.
-          </Card.Text>
-          <Button variant="primary" href="/node/df">Go somewhere</Button>
-        </Card.Body>
-      </Card>
-  )
+    <Card style={{ width: "25rem" }}>
+      <Card.Img variant="top" src={logo} />
+      <Card.Body>
+        <Card.Title>Card Title</Card.Title>
+        <Card.Text>
+          Some quick example text to build on the card title and make up the
+          bulk of the card's content.
+        </Card.Text>
+        <Button variant="primary" href="/node/df">
+          Go somewhere
+        </Button>
+      </Card.Body>
+    </Card>
+  );
 }
 
 function Search() {
@@ -145,42 +142,40 @@ function Login() {
 
 function HelloWorld() {
   return (
-      <div className="App">
-        <Router>
-          <div>
-            <ul>
-              <li>
-                <Link to="/login">Login</Link>
-              </li>
-              <li>
-                <Link to="/signin">Signin</Link>
-              </li>
-            </ul>
+    <div className="App">
+      <Router>
+        <div>
+          <ul>
+            <li>
+              <Link to="/login">Login</Link>
+            </li>
+            <li>
+              <Link to="/signin">Signin</Link>
+            </li>
+          </ul>
 
-            <hr />
+          <hr />
 
-            <Switch>
-              <Route exact path="/">
-                <h2>Hello world!</h2>
-              </Route>
-              <Route path="/login">
-                <Login />
-              </Route>
-              <Route path="/signin">
-                <Signin />
-              </Route>
-              <Route path="/about">
-                <About />
-              </Route>
-              <Route path="*">
-                <NoMatch />
-                <Redirect
-                  to={{ pathname: "/" }}
-                />
-              </Route>
-            </Switch>
-          </div>
-        </Router>
+          <Switch>
+            <Route exact path="/">
+              <h2>Hello world!</h2>
+            </Route>
+            <Route path="/login">
+              <Login />
+            </Route>
+            <Route path="/signin">
+              <Signin />
+            </Route>
+            <Route path="/about">
+              <About />
+            </Route>
+            <Route path="*">
+              <NoMatch />
+              <Redirect to={{ pathname: "/" }} />
+            </Route>
+          </Switch>
+        </div>
+      </Router>
     </div>
   );
 }
@@ -196,14 +191,14 @@ function Signin() {
 function About() {
   return (
     <Container>
-      <Card style={{ width: '25rem' }}>
+      <Card style={{ width: "25rem" }}>
         <Card.Img variant="top" src={logo} />
         <Card.Body>
           <Card.Title>Card Title</Card.Title>
           <Card.Text>
-                        Some quick example text to build on the card title and make up the bulk of
-                        the card's content.
-                      </Card.Text>
+            Some quick example text to build on the card title and make up the
+            bulk of the card's content.
+          </Card.Text>
           <Button variant="primary">Go somewhere</Button>
         </Card.Body>
       </Card>
@@ -224,7 +219,7 @@ function NodeView() {
   // the dynamic pieces of the URL.
   let { id } = useParams();
   let { path, url } = useRouteMatch();
-      // <NodeFullCard />
+  // <NodeFullCard />
   return (
     <div>
       <NodeTextEditor />
@@ -232,7 +227,7 @@ function NodeView() {
   );
 }
 
-function ReadNode({node_id}) {
+function ReadNode({ node_id }) {
   return (
     <div>
       <h3>Node title</h3>
@@ -243,12 +238,10 @@ function ReadNode({node_id}) {
 
 function CreateNode() {
   const id = "new+node+id";
-  return (
-    <EditNode node_id={id}/>
-  );
+  return <EditNode node_id={id} />;
 }
 
-function EditNode({node_id}) {
+function EditNode({ node_id }) {
   return (
     <div>
       <h3>Node title</h3>
@@ -257,27 +250,25 @@ function EditNode({node_id}) {
   );
 }
 
-
 function NoMatch() {
   let location = useLocation();
 
   return (
     <div>
-      <h3>No match for <code>{location.pathname}</code></h3>
+      <h3>
+        No match for <code>{location.pathname}</code>
+      </h3>
     </div>
   );
 }
 
 function Workspace() {
-  return (
-    <div>
-    </div>
-  );
+  return <div></div>;
 }
 
 function LeftSideBarMenu() {
   return (
-    <div style={{float:"left"}}>
+    <div style={{ float: "left" }}>
       <ul style={{ listStyleType: "none", padding: 20 }}>
         <li>
           <Link to="/">search</Link>
