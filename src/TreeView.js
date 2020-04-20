@@ -123,8 +123,7 @@ class BarChart extends React.Component {
       .attr("font-size", 14)
       .attr("transform", `translate(${root.dy / 3},${root.dx - x0})`);
 
-    const link = g
-      .append("g")
+    g.append("g")
       .attr("fill", "none")
       .attr("stroke", "#555")
       .attr("stroke-opacity", 0.4)
@@ -154,7 +153,7 @@ class BarChart extends React.Component {
       .attr("fill", (d) => (d.children ? "#555" : "#999"))
       .attr("r", 2.5);
 
-    const color = d3.scaleOrdinal(d3.schemeCategory10);
+    d3.scaleOrdinal(d3.schemeCategory10);
     node
       .append("rect")
       .attr("fill", "white")

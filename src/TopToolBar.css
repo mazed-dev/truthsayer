@@ -1,0 +1,27 @@
+.meta-top-sticky {
+  position: sticky;
+  left: 0;
+  top: 0;
+  z-index: 999;
+}
+
+.meta-toptoolbar-prepend {
+  background-color: white;
+  border-bottom: 1px solid grey;
+  border-top: 1px solid grey;
+  border-left: 1px solid grey;
+  border-right: none;
+}
+
+.meta-toptoolbar-input {
+  background-color: white;
+  border-bottom: 1px solid grey;
+  border-top: 1px solid grey;
+  border-right: 1px solid grey;
+  border-left: none;
+}
+
+textarea:focus,
+input:focus {
+  outline: none;
+}

@@ -26,8 +26,12 @@ class RefNodeCard extends React.Component {
     this.state = { ref_txt: this.props.ref_txt, hover: false };
   }
 
-  toggleHover = () => {
-    this.setState({ hover: !this.state.hover });
+  onHover = () => {
+    this.setState({ hover: true });
+  };
+
+  offHover = () => {
+    this.setState({ hover: false });
   };
 
   render() {
@@ -75,8 +79,8 @@ class RefNodeCard extends React.Component {
     return (
       <div
         className="meta-fluid-container"
-        onMouseEnter={this.toggleHover}
-        onMouseLeave={this.toggleHover}
+        onMouseEnter={this.onHover}
+        onMouseLeave={this.offHover}
       >
         <NodeSmallCard />
         <div className="meta-fluid-el-top-left">{toolbar}</div>
@@ -189,10 +193,11 @@ TitleEditor.defaultProps = {
 class TextEditor extends React.Component {
   constructor(props) {
     super(props);
+    const text =
+      "Comic-Con, often referred to as SDCC, was scheduled to run from July 23 rd d d through July 26th. People who have already purchased badges for the convention will have the opportunity to either request a full refund or transfer their badges to Comic-Con 2021, according to the organizers. Those who booked hotels via onPeak, the service used in partnership with SDCC, will also see their deposits refunded.";
     this.state = {
-      value:
-        "Comic-Con, often referred to as SDCC, was scheduled to run from July 23 rd d d through July 26th. People who have already purchased badges for the convention will have the opportunity to either request a full refund or transfer their badges to Comic-Con 2021, according to the organizers. Those who booked hotels via onPeak, the service used in partnership with SDCC, will also see their deposits refunded.",
-      height: 12,
+      value: text,
+      height: this.getHeightForText(text),
       edit: false,
       hover: false,
     };
@@ -202,15 +207,19 @@ class TextEditor extends React.Component {
   }
 
   handleChange(event) {
-    // FIXME
-    var lines = 2;
-    event.target.value.split("\n").forEach(function (item, index) {
-      lines = lines + 1 + item.length / 80;
-    });
     this.setState({
       value: event.target.value,
-      height: Math.max(12, lines * 1.5),
+      height: this.getHeightForText(event.target.value),
     });
+  }
+
+  getHeightForText(txt) {
+    // FIXME
+    var lines = 2;
+    txt.split("\n").forEach(function (item, index) {
+      lines = lines + 1 + item.length / 80;
+    });
+    return Math.max(16, lines * 1.7);
   }
 
   handleSubmit(event) {
@@ -222,8 +231,12 @@ class TextEditor extends React.Component {
     this.setState({ edit: !this.state.edit });
   }
 
-  toggleHover = () => {
-    this.setState({ hover: !this.state.hover });
+  onHover = () => {
+    this.setState({ hover: true });
+  };
+
+  offHover = () => {
+    this.setState({ hover: false });
   };
 
   render() {
@@ -258,10 +271,7 @@ class TextEditor extends React.Component {
       }
       return (
         <div className="meta-fluid-container">
-          <Card.Text
-            onMouseEnter={this.toggleHover}
-            onMouseLeave={this.toggleHover}
-          >
+          <Card.Text onMouseEnter={this.onHover} onMouseLeave={this.offHover}>
             {this.state.value}
             {edit_btn}
           </Card.Text>
@@ -271,32 +281,32 @@ class TextEditor extends React.Component {
   }
 }
 
-class MarkdownToolBar extends React.Component {
-  render() {
-    return (
-      <ButtonGroup vertical>
-        <Button variant="light">
-          <span role="img" aria-label="Link">
-            &#128279;
-          </span>
-        </Button>
-        <Button variant="light">&#x2381;</Button>
-        <Button variant="light">H2</Button>
-        <Button variant="light">H3</Button>
-        <DropdownButton
-          as={ButtonGroup}
-          title="H2"
-          id="bg-vertical-dropdown-1"
-          variant="light"
-        >
-          <Dropdown.Item eventKey="1">H1</Dropdown.Item>
-          <Dropdown.Item eventKey="2">H2</Dropdown.Item>
-          <Dropdown.Item eventKey="3">H3</Dropdown.Item>
-        </DropdownButton>
-      </ButtonGroup>
-    );
-  }
-}
+// class MarkdownToolBar extends React.Component {
+//   render() {
+//     return (
+//       <ButtonGroup vertical>
+//         <Button variant="light">
+//           <span role="img" aria-label="Link">
+//             &#128279;
+//           </span>
+//         </Button>
+//         <Button variant="light">&#x2381;</Button>
+//         <Button variant="light">H2</Button>
+//         <Button variant="light">H3</Button>
+//         <DropdownButton
+//           as={ButtonGroup}
+//           title="H2"
+//           id="bg-vertical-dropdown-1"
+//           variant="light"
+//         >
+//           <Dropdown.Item eventKey="1">H1</Dropdown.Item>
+//           <Dropdown.Item eventKey="2">H2</Dropdown.Item>
+//           <Dropdown.Item eventKey="3">H3</Dropdown.Item>
+//         </DropdownButton>
+//       </ButtonGroup>
+//     );
+//   }
+// }
 
 class NodeTextEditor extends React.Component {
   constructor(props) {

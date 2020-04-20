@@ -2,25 +2,9 @@ import React from "react";
 
 import maze from "./maze.png";
 
-import {
-  Card,
-  Button,
-  ButtonGroup,
-  InputGroup,
-  FormControl,
-  Container,
-  Row,
-  Col,
-  CardColumns,
-  DropdownButton,
-  Dropdown,
-} from "react-bootstrap";
+import { Card } from "react-bootstrap";
 
 class NodeSmallCard extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     return (
       <Card className="rounded">

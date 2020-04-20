@@ -11,7 +11,6 @@ import {
   Redirect,
   Route,
   Switch,
-  useHistory,
   useLocation,
   useParams,
   useRouteMatch,
@@ -22,6 +21,8 @@ import "./App.css";
 import { Card, Button, Container } from "react-bootstrap";
 
 import TreeView from "./TreeView";
+import Login from "./Login";
+import TopToolBar from "./TopToolBar";
 
 // For the future:
 //    let history = useHistory();
@@ -46,7 +47,8 @@ class PrivateApp extends React.Component {
   // #696969
   render() {
     return (
-      <div style={{ backgroundColor: "#f2f4f1" }}>
+      <Container fluid>
+        <TopToolBar />
         <Workspace />
         <Router>
           <div>
@@ -70,6 +72,12 @@ class PrivateApp extends React.Component {
               <Route path="/about">
                 <About />
               </Route>
+              <Route path="/login">
+                <Login />
+              </Route>
+              <Route path="/signin">
+                <Signin />
+              </Route>
               <Route path="*">
                 <NoMatch />
                 <Redirect to={{ pathname: "/" }} />
@@ -77,38 +85,15 @@ class PrivateApp extends React.Component {
             </Switch>
           </div>
         </Router>
-      </div>
+      </Container>
     );
   }
-}
-
-function NodeFullCard() {
-  return (
-    <Card style={{ width: "598px" }}>
-      <Card.Img variant="top" src={logo} />
-      <Card.Body>
-        <Card.Title>Card Title</Card.Title>
-        <Card.Text>
-          Some quick example text to build on the card title and make up the
-          bulk of the card's content.
-        </Card.Text>
-      </Card.Body>
-    </Card>
-  );
 }
 
 function Logout() {
   return (
     <div>
       <h2>Logout</h2>
-    </div>
-  );
-}
-
-function Login() {
-  return (
-    <div>
-      <h2>Login</h2>
     </div>
   );
 }
@@ -192,19 +177,9 @@ function NodeView() {
   // the dynamic pieces of the URL.
   let { id } = useParams();
   let { path, url } = useRouteMatch();
-  // <NodeFullCard />
   return (
     <div>
       <NodeTextEditor />
-    </div>
-  );
-}
-
-function ReadNode({ node_id }) {
-  return (
-    <div>
-      <h3>Node title</h3>
-      <p>Read node with ID: {node_id}</p>
     </div>
   );
 }
@@ -257,6 +232,15 @@ function LeftSideBarMenu() {
         </li>
         <li>
           <Link to="/about">about</Link>
+        </li>
+        <li>
+          <Link to="/node/id">node</Link>
+        </li>
+        <li>
+          <Link to="/login">login</Link>
+        </li>
+        <li>
+          <Link to="/signin">signin</Link>
         </li>
       </ul>
     </div>
