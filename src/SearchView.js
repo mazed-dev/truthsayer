@@ -2,12 +2,7 @@ import React from "react";
 
 import NodeSmallCard from "./NodeSmallCard";
 
-import {
-  Container,
-  CardColumns,
-  InputGroup,
-  FormControl,
-} from "react-bootstrap";
+import { Container, CardColumns } from "react-bootstrap";
 
 class SearchView extends React.Component {
   constructor(props) {
