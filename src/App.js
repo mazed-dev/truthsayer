@@ -60,7 +60,6 @@ class PrivateApp extends React.Component {
                 <SearchView q={""} />
               </Route>
               <Route path="/node/:id">
-                <TopToolBar />
                 <NodeView />
               </Route>
               <Route path="/thread">
@@ -181,9 +180,10 @@ function NodeView() {
   let { id } = useParams();
   let { path, url } = useRouteMatch();
   return (
-    <div>
+    <>
+      <TopToolBar />
       <NodeTextEditor />
-    </div>
+    </>
   );
 }
 

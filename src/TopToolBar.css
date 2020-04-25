@@ -7,21 +7,24 @@
 
 .meta-toptoolbar-prepend {
   background-color: white;
-  border-bottom: 1px solid grey;
-  border-top: 1px solid grey;
-  border-left: 1px solid grey;
-  border-right: none;
+  /* border-bottom: 1px solid grey; */
+  /* border-top: 1px solid grey;    */
+  /* border-left: 1px solid grey;   */
+  /* border-right: none;            */
+  border: none;
 }
 
 .meta-toptoolbar-input {
   background-color: white;
-  border-bottom: 1px solid grey;
-  border-top: 1px solid grey;
-  border-right: 1px solid grey;
-  border-left: none;
+  /* border-bottom: 1px solid grey; */
+  /* border-top: 1px solid grey;    */
+  /* border-right: 1px solid grey;  */
+  /* border-left: none;             */
+  border: none;
 }
 
 textarea:focus,
-input:focus {
+input:focus,
+select:focus {
   outline: none;
 }

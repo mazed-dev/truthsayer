@@ -1,14 +1,14 @@
 import React from "react";
 import { withRouter } from "react-router-dom";
 
-import NodeSmallCard from "./NodeSmallCard";
-import TopToolBar from "./TopToolBar";
-
-import { Container, CardColumns } from "react-bootstrap";
-
 import axios from "axios";
 import PropTypes from "prop-types";
 import queryString from "query-string";
+
+import { Container, CardColumns } from "react-bootstrap";
+
+import NodeSmallCard from "./NodeSmallCard";
+import TopToolBar from "./TopToolBar";
 
 class SearchView extends React.Component {
   static propTypes = {
@@ -28,11 +28,13 @@ class SearchView extends React.Component {
 
   handleChange = (q) => {
     this.setState({ q: q });
-    this.fetchData(q);
-    this.props.history.push({
-      pathname: "/search",
-      search: queryString.stringify({ q: q }),
-    });
+    if (q.length > 2) {
+      this.fetchData(q);
+      this.props.history.push({
+        pathname: "/search",
+        search: queryString.stringify({ q: q }),
+      });
+    }
   };
 
   componentDidMount() {
@@ -40,13 +42,13 @@ class SearchView extends React.Component {
   }
 
   fetchData = (q) => {
-    axios.get("/node/search?q=" + q).then((res) => {
+    axios.get("/node/search?" + queryString.stringify({ q: q })).then((res) => {
       this.setState({ nodes: res.data.nodes });
     });
   };
 
   render() {
-    const tl = this.state.nodes.map((nmeta) => {
+    const cards = this.state.nodes.map((nmeta) => {
       return (
         <NodeSmallCard
           nid={nmeta.id}
@@ -62,7 +64,7 @@ class SearchView extends React.Component {
       <>
         <TopToolBar callback={this.handleChange} value={this.state.q} />
         <Container>
-          <CardColumns>{tl}</CardColumns>
+          <CardColumns>{cards}</CardColumns>
         </Container>
       </>
     );

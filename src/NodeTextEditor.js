@@ -330,7 +330,7 @@ class NodeTextEditor extends React.Component {
                   <Card.Img variant="top" className="w-25 m-0" src={maze} />
                 </div>
                 <Card.Text className="text-right p-0">
-                  <small className="text-muted">Last updated 3 mins ago</small>
+                  <small className="text-muted">Updated 3 mins ago</small>
                 </Card.Text>
                 <TitleEditor />
                 <TextEditor />

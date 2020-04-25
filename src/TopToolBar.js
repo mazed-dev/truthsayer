@@ -1,6 +1,9 @@
 import React from "react";
 
 import { Container, InputGroup, FormControl } from "react-bootstrap";
+import PropTypes from "prop-types";
+import queryString from "query-string";
+import { withRouter } from "react-router-dom";
 
 import "./TopToolBar.css";
 
@@ -11,11 +14,24 @@ class TopToolBar extends React.Component {
       value: this.props.value,
       callback: this.props.callback,
     };
+
+    this.searchCmd = React.createRef();
+  }
+
+  componentDidMount() {
+    this.searchCmd.current.focus();
   }
 
   handleChange = (event) => {
     this.setState({ value: event.target.value });
-    this.state.callback(event.target.value);
+    if (this.state.callback !== null) {
+      this.state.callback(event.target.value);
+    } else {
+      this.props.history.push({
+        pathname: "/search",
+        search: queryString.stringify({ q: event.target.value }),
+      });
+    }
   };
 
   render() {
@@ -35,6 +51,7 @@ class TopToolBar extends React.Component {
             onChange={this.handleChange}
             value={this.state.value}
             className="meta-toptoolbar-input"
+            ref={this.searchCmd}
           />
         </InputGroup>
       </Container>
@@ -43,8 +60,8 @@ class TopToolBar extends React.Component {
 }
 
 TopToolBar.defaultProps = {
-  callback: (_) => {},
+  callback: null,
   value: "",
 };
 
-export default TopToolBar;
+export default withRouter(TopToolBar);
