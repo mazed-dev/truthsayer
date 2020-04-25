@@ -1,13 +1,6 @@
 import React from "react";
 
-import NodeSmallCard from "./NodeSmallCard";
-
-import {
-  Container,
-  CardColumns,
-  InputGroup,
-  FormControl,
-} from "react-bootstrap";
+import { Container, InputGroup, FormControl } from "react-bootstrap";
 
 import "./TopToolBar.css";
 
@@ -15,12 +8,14 @@ class TopToolBar extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      value: "",
+      value: this.props.value,
+      callback: this.props.callback,
     };
   }
 
   handleChange = (event) => {
     this.setState({ value: event.target.value });
+    this.state.callback(event.target.value);
   };
 
   render() {
@@ -46,5 +41,10 @@ class TopToolBar extends React.Component {
     );
   }
 }
+
+TopToolBar.defaultProps = {
+  callback: (_) => {},
+  value: "",
+};
 
 export default TopToolBar;

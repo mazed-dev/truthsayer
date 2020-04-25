@@ -48,16 +48,19 @@ class PrivateApp extends React.Component {
   render() {
     return (
       <Container fluid>
-        <TopToolBar />
         <Workspace />
         <Router>
           <div>
             <LeftSideBarMenu />
             <Switch>
               <Route exact path="/">
-                <SearchView />
+                <SearchView q={""} />
+              </Route>
+              <Route exact path="/search">
+                <SearchView q={""} />
               </Route>
               <Route path="/node/:id">
+                <TopToolBar />
                 <NodeView />
               </Route>
               <Route path="/thread">
