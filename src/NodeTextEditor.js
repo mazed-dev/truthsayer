@@ -6,6 +6,9 @@ import NodeSmallCard from "./NodeSmallCard";
 
 import maze from "./maze.png";
 
+import PropTypes from "prop-types";
+import { withRouter } from "react-router-dom";
+
 import {
   Card,
   Button,
@@ -96,13 +99,7 @@ class RefNodeCard extends React.Component {
 RefNodeCard.defaultProps = { offer: false, ref_txt: "..." };
 
 class ExtClickDetector extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      handleClickOutside: this.props.callback,
-    };
-  }
-  componentWillMount() {
+  componentDidMount() {
     document.addEventListener("mousedown", this.handleClick, false);
   }
   componentWillUnmount() {
@@ -110,7 +107,7 @@ class ExtClickDetector extends React.Component {
   }
   handleClick = (event) => {
     if (!this.node.contains(event.target)) {
-      this.state.handleClickOutside(event);
+      this.props.callback(event);
     }
   };
   render() {
@@ -126,20 +123,24 @@ class NodeTitleEditor extends React.Component {
     };
   }
 
-  handleChange = (event) => {
+  _handleChange = (event) => {
     this.setState({ value: event.target.value });
     this.props.onChange(event.target.value);
   };
 
+  _onExit = () => {
+    this.props.onExit(this.state.value);
+  };
+
   render() {
     return (
-      <ExtClickDetector callback={this.props.onExit}>
+      <ExtClickDetector callback={this._onExit}>
         <InputGroup>
           <FormControl
             placeholder="Title"
             aria-label="Title"
             value={this.state.value}
-            onChange={this.handleChange}
+            onChange={this._handleChange}
           />
         </InputGroup>
       </ExtClickDetector>
@@ -162,7 +163,7 @@ class NodeTitle extends React.Component {
     // TODO
   }
 
-  handleEditClick(_event) {
+  handleEditClick(value) {
     this.setState({ edit: !this.state.edit });
   }
 
@@ -234,9 +235,13 @@ class TextEditor extends React.Component {
     return Math.max(16, lines * 1.7);
   };
 
+  _onExit = () => {
+    this.props.onExit(this.state.value);
+  };
+
   render() {
     return (
-      <ExtClickDetector callback={this.props.onExit}>
+      <ExtClickDetector callback={this._onExit}>
         <InputGroup>
           <FormControl
             as="textarea"
@@ -263,8 +268,13 @@ class NodeText extends React.Component {
 
   handleChange = (value) => {};
 
-  handleEditClick = (_event) => {
-    this.setState({ edit: !this.state.edit });
+  onEditStart = (_event) => {
+    this.setState({ edit: true });
+  };
+
+  onEditExit_ = (value) => {
+    this.setState({ edit: false });
+    this.props.onChange(value);
   };
 
   onHover = () => {
@@ -280,7 +290,7 @@ class NodeText extends React.Component {
       return (
         <TextEditor
           value={this.props.value}
-          onExit={this.handleEditClick}
+          onExit={this.onEditExit_}
           onChange={this.handleChange}
         />
       );
@@ -290,7 +300,7 @@ class NodeText extends React.Component {
           variant="outline-secondary"
           className="meta-fluid-el-bottom-rigth"
           size="sm"
-          onClick={this.handleEditClick}
+          onClick={this.onEditStart}
         >
           &#9998;
         </Button>
@@ -335,10 +345,6 @@ class NodeText extends React.Component {
 // }
 
 class NodeRefs extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     return (
       <CardColumns>
@@ -371,21 +377,27 @@ class NodeTextEditor extends React.Component {
     };
   }
 
+  static propTypes = {
+    match: PropTypes.object.isRequired,
+    location: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired,
+  };
+
   componentDidMount() {
-    console.log("componentDidMount");
     this.fetchData();
   }
 
   fetchData = () => {
+    if (this.state.nid === "new") {
+      this.setState({
+        title: "...",
+        text: "...",
+      });
+      return;
+    }
     axios
       .get("/node?" + queryString.stringify({ nid: this.state.nid }))
       .then((res) => {
-        // "content-type": "text/plain; charset=utf-8"
-        // "last-modified": "Sun, 12 Apr 2020 10:46:18 GMT"
-        // "transfer-encoding": "chunked"
-        // "x-created-at": "Sun, 12 Apr 2020 10:46:18 GMT"
-        // "x-meta-title": "Node title SELECT FROM ;"
-        console.log(res);
         this.setState({
           title: res.headers["x-meta-title"],
           text: res.data,
@@ -393,6 +405,57 @@ class NodeTextEditor extends React.Component {
           upd: moment(res.headers["last-modified"]),
         });
       });
+  };
+
+  _onNodeChange = (value) => {
+    this.setState({
+      text: value,
+    });
+    const config = {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+      },
+    };
+    if (this.state.nid !== "new") {
+      axios
+        .patch(
+          "/node?" + queryString.stringify({ nid: this.state.nid }),
+          value,
+          config
+        )
+        .then((res) => {
+          console.log(res);
+        })
+        .catch(function (error) {
+          if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.headers);
+          } else if (error.request) {
+            // The request was made but no response was received
+            // `error.request` is an instance of XMLHttpRequest in the browser and
+            // an instance of http.ClientRequest in node.js
+            console.log(error.request);
+          } else {
+            // Something happened in setting up the request that triggered an Error
+            console.log("Error", error.message);
+          }
+          console.log(error.config);
+        });
+    } else {
+      axios.post("/node", value, config).then((res) => {
+        console.log(res);
+        const nid = res.data.nid;
+        this.setState({
+          nid: nid,
+        });
+        this.props.history.push({
+          pathname: "/node/" + nid,
+        });
+      });
+    }
   };
 
   render() {
@@ -409,7 +472,7 @@ class NodeTextEditor extends React.Component {
                   <Card.Img variant="top" className="w-25 m-0" src={maze} />
                 </div>
                 <NodeTitle value={title} />
-                <NodeText value={text} />
+                <NodeText value={text} onChange={this._onNodeChange} />
               </Card.Body>
               <footer className="text-right m-2">
                 <small className="text-muted">
@@ -427,4 +490,4 @@ class NodeTextEditor extends React.Component {
   }
 }
 
-export default NodeTextEditor;
+export default withRouter(NodeTextEditor);

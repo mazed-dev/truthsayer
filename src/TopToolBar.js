@@ -1,7 +1,6 @@
 import React from "react";
 
-import { Container, InputGroup, FormControl } from "react-bootstrap";
-import PropTypes from "prop-types";
+import { Container, InputGroup, FormControl, Button } from "react-bootstrap";
 import queryString from "query-string";
 import { withRouter } from "react-router-dom";
 
@@ -14,12 +13,13 @@ class TopToolBar extends React.Component {
       value: this.props.value,
       callback: this.props.callback,
     };
-
     this.searchCmd = React.createRef();
   }
 
   componentDidMount() {
-    this.searchCmd.current.focus();
+    if (this.props.inFocus) {
+      this.searchCmd.current.focus();
+    }
   }
 
   handleChange = (event) => {
@@ -35,19 +35,19 @@ class TopToolBar extends React.Component {
   };
 
   render() {
+    // <InputGroup.Prepend>
+    //   <InputGroup.Text className="meta-toptoolbar-prepend">
+    //     <span role="img" aria-label="Search">
+    //       &#x1F50D;
+    //     </span>
+    //   </InputGroup.Text>
+    // </InputGroup.Prepend>
     return (
       <Container className="meta-top-sticky mt-2 mb-2">
         <InputGroup className="mb-3 mt-0" size="sm">
-          <InputGroup.Prepend>
-            <InputGroup.Text className="meta-toptoolbar-prepend">
-              <span role="img" aria-label="Search">
-                &#x1F50D;
-              </span>
-            </InputGroup.Text>
-          </InputGroup.Prepend>
           <FormControl
             aria-label="Search"
-            placeholder="Search"
+            placeholder="&#x1F50D;"
             onChange={this.handleChange}
             value={this.state.value}
             className="meta-toptoolbar-input"

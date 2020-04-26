@@ -178,26 +178,11 @@ function NodeView() {
   // We can use the `useParams` hook here to access
   // the dynamic pieces of the URL.
   let { id } = useParams();
-  let { path, url } = useRouteMatch();
   return (
     <>
-      <TopToolBar />
+      <TopToolBar inFocus={false} />
       <NodeTextEditor nid={id} />
     </>
-  );
-}
-
-function CreateNode() {
-  const id = "new+node+id";
-  return <EditNode node_id={id} />;
-}
-
-function EditNode({ node_id }) {
-  return (
-    <div>
-      <h3>Node title</h3>
-      <p>Edit node with ID: {node_id}</p>
-    </div>
   );
 }
 
@@ -238,6 +223,9 @@ function LeftSideBarMenu() {
         </li>
         <li>
           <Link to="/node/id">node</Link>
+        </li>
+        <li>
+          <Link to="/node/new">new</Link>
         </li>
         <li>
           <Link to="/login">login</Link>

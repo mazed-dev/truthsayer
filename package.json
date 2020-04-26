@@ -9,6 +9,7 @@
     "axios": "^0.19.2",
     "bootstrap": "^4.4.1",
     "d3": "^5.15.1",
+    "form-data": "^3.0.0",
     "moment": "^2.24.0",
     "react": "^16.13.1",
     "react-bootstrap": "^1.0.0",

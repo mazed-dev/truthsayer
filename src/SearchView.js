@@ -62,7 +62,11 @@ class SearchView extends React.Component {
     });
     return (
       <>
-        <TopToolBar callback={this.handleChange} value={this.state.q} />
+        <TopToolBar
+          callback={this.handleChange}
+          value={this.state.q}
+          inFocus={true}
+        />
         <Container>
           <CardColumns>{cards}</CardColumns>
         </Container>
