@@ -23,6 +23,9 @@ import {
   Dropdown,
 } from "react-bootstrap";
 
+// https://github.com/rexxars/react-markdown
+import ReactMarkdown from "react-markdown";
+
 import axios from "axios";
 import moment from "moment";
 import queryString from "query-string";
@@ -298,7 +301,7 @@ class NodeText extends React.Component {
       var edit_btn = (
         <Button
           variant="outline-secondary"
-          className="meta-fluid-el-bottom-rigth"
+          className="meta-fluid-el-top-rigth"
           size="sm"
           onClick={this.onEditStart}
         >
@@ -308,7 +311,7 @@ class NodeText extends React.Component {
       return (
         <div className="meta-fluid-container">
           <Card.Text onMouseEnter={this.onHover} onMouseLeave={this.offHover}>
-            {this.props.value}
+            <ReactMarkdown source={this.props.value} />
             {this.state.hover && edit_btn}
           </Card.Text>
         </div>
@@ -460,7 +463,8 @@ class NodeTextEditor extends React.Component {
 
   render() {
     const upd = this.state.upd.fromNow();
-    const title = this.state.title;
+    // const title = this.state.title;
+    // <NodeTitle value={title} />
     const text = this.state.text;
     return (
       <Container fluid>
@@ -469,9 +473,8 @@ class NodeTextEditor extends React.Component {
             <Card className="border-0">
               <Card.Body className="p-3">
                 <div className="d-flex justify-content-center mp-0">
-                  <Card.Img variant="top" className="w-25 m-0" src={maze} />
+                  <Card.Img variant="top" className="w-25 p-2 m-2" src={maze} />
                 </div>
-                <NodeTitle value={title} />
                 <NodeText value={text} onChange={this._onNodeChange} />
               </Card.Body>
               <footer className="text-right m-2">
