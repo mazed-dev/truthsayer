@@ -264,7 +264,7 @@ class NodeText extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      edit: false,
+      edit: props.edit,
       hover: false,
     };
   }
@@ -368,12 +368,30 @@ class NodeRefs extends React.Component {
   }
 }
 
+function errorHander(error) {
+  if (error.response) {
+    // The request was made and the server responded with a status code
+    // that falls out of the range of 2xx
+    console.log(error.response.data);
+    console.log(error.response.status);
+    console.log(error.response.headers);
+  } else if (error.request) {
+    // The request was made but no response was received
+    // `error.request` is an instance of XMLHttpRequest in the browser and
+    // an instance of http.ClientRequest in node.js
+    console.log(error.request);
+  } else {
+    // Something happened in setting up the request that triggered an Error
+    console.log("Error", error.message);
+  }
+  console.log(error.config);
+}
+
 class NodeTextEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       nid: this.props.nid, // i64,
-      title: "",
       text: "",
       crtd: moment(), // SystemTime,
       upd: moment(), // SystemTime,
@@ -393,7 +411,6 @@ class NodeTextEditor extends React.Component {
   fetchData = () => {
     if (this.state.nid === "new") {
       this.setState({
-        title: "...",
         text: "...",
       });
       return;
@@ -402,7 +419,6 @@ class NodeTextEditor extends React.Component {
       .get("/node?" + queryString.stringify({ nid: this.state.nid }))
       .then((res) => {
         this.setState({
-          title: res.headers["x-meta-title"],
           text: res.data,
           crtd: moment(res.headers["x-created-at"]),
           upd: moment(res.headers["last-modified"]),
@@ -429,24 +445,7 @@ class NodeTextEditor extends React.Component {
         .then((res) => {
           console.log(res);
         })
-        .catch(function (error) {
-          if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.headers);
-          } else if (error.request) {
-            // The request was made but no response was received
-            // `error.request` is an instance of XMLHttpRequest in the browser and
-            // an instance of http.ClientRequest in node.js
-            console.log(error.request);
-          } else {
-            // Something happened in setting up the request that triggered an Error
-            console.log("Error", error.message);
-          }
-          console.log(error.config);
-        });
+        .catch(errorHander);
     } else {
       axios.post("/node", value, config).then((res) => {
         console.log(res);
@@ -457,7 +456,7 @@ class NodeTextEditor extends React.Component {
         this.props.history.push({
           pathname: "/node/" + nid,
         });
-      });
+      }).catch(errorHander);
     }
   };
 
@@ -475,7 +474,11 @@ class NodeTextEditor extends React.Component {
                 <div className="d-flex justify-content-center mp-0">
                   <Card.Img variant="top" className="w-25 p-2 m-2" src={maze} />
                 </div>
-                <NodeText value={text} onChange={this._onNodeChange} />
+                <NodeText
+                  value={text}
+                  onChange={this._onNodeChange}
+                  edit={this.state.nid === "new"}
+                />
               </Card.Body>
               <footer className="text-right m-2">
                 <small className="text-muted">

@@ -48,15 +48,14 @@ class SearchView extends React.Component {
   };
 
   render() {
-    const cards = this.state.nodes.map((nmeta) => {
+    const cards = this.state.nodes.map((meta) => {
       return (
         <NodeSmallCard
-          nid={nmeta.id}
-          title={nmeta.title}
-          preface={nmeta.preface}
-          crtd={nmeta.crtd}
-          upd={nmeta.upd}
-          key={nmeta.id}
+          nid={meta.nid}
+          preface={meta.preface}
+          crtd={meta.crtd}
+          upd={meta.upd}
+          key={meta.nid}
         />
       );
     });
