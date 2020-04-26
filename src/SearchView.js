@@ -29,11 +29,11 @@ class SearchView extends React.Component {
   handleChange = (q) => {
     this.setState({ q: q });
     if (q.length > 2) {
-      this.fetchData(q);
       this.props.history.push({
         pathname: "/search",
         search: queryString.stringify({ q: q }),
       });
+      this.fetchData(q);
     }
   };
 

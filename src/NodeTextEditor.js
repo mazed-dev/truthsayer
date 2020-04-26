@@ -20,6 +20,10 @@ import {
   Dropdown,
 } from "react-bootstrap";
 
+import axios from "axios";
+import moment from "moment";
+import queryString from "query-string";
+
 class RefNodeCard extends React.Component {
   constructor(props) {
     super(props);
@@ -114,117 +118,48 @@ class ExtClickDetector extends React.Component {
   }
 }
 
-class TitleEditor extends React.Component {
+class NodeTitleEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      value: this.props.value,
-      edit: false,
-      hover: false,
+      value: props.value,
     };
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleEditClick = this.handleEditClick.bind(this);
   }
 
-  handleChange(event) {
+  handleChange = (event) => {
     this.setState({ value: event.target.value });
-  }
-
-  handleEditClick(_event) {
-    this.setState({ edit: !this.state.edit });
-  }
-
-  handleSubmit(event) {
-    alert("A name was submitted: " + this.state.value);
-    event.preventDefault();
-  }
-
-  toggleHover = () => {
-    this.setState({ hover: !this.state.hover });
+    this.props.onChange(event.target.value);
   };
 
   render() {
-    if (this.state.edit) {
-      return (
-        <ExtClickDetector callback={this.handleEditClick}>
-          <InputGroup>
-            <FormControl
-              placeholder="Title"
-              aria-label="Title"
-              value={this.state.value}
-              onChange={this.handleChange}
-            />
-          </InputGroup>
-        </ExtClickDetector>
-      );
-    } else {
-      var edit_btn;
-      if (this.state.hover) {
-        edit_btn = (
-          <Button
-            variant="outline-secondary"
-            className="meta-fluid-el-top-rigth"
-            size="sm"
-            onClick={this.handleEditClick}
-          >
-            &#9998;
-          </Button>
-        );
-      }
-      return (
-        <div
-          className="meta-fluid-container"
-          onMouseEnter={this.toggleHover}
-          onMouseLeave={this.toggleHover}
-        >
-          <Card.Title>{this.state.value}</Card.Title>
-          {edit_btn}
-        </div>
-      );
-    }
+    return (
+      <ExtClickDetector callback={this.props.onExit}>
+        <InputGroup>
+          <FormControl
+            placeholder="Title"
+            aria-label="Title"
+            value={this.state.value}
+            onChange={this.handleChange}
+          />
+        </InputGroup>
+      </ExtClickDetector>
+    );
   }
 }
 
-TitleEditor.defaultProps = {
-  value: "San Diego Comic-Con is canceled for the first time in 50 years",
-};
-
-class TextEditor extends React.Component {
+class NodeTitle extends React.Component {
   constructor(props) {
     super(props);
-    const text =
-      "Comic-Con, often referred to as SDCC, was scheduled to run from July 23 rd d d through July 26th. People who have already purchased badges for the convention will have the opportunity to either request a full refund or transfer their badges to Comic-Con 2021, according to the organizers. Those who booked hotels via onPeak, the service used in partnership with SDCC, will also see their deposits refunded.";
     this.state = {
-      value: text,
-      height: this.getHeightForText(text),
       edit: false,
       hover: false,
     };
     this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
     this.handleEditClick = this.handleEditClick.bind(this);
   }
 
   handleChange(event) {
-    this.setState({
-      value: event.target.value,
-      height: this.getHeightForText(event.target.value),
-    });
-  }
-
-  getHeightForText(txt) {
-    // FIXME
-    var lines = 2;
-    txt.split("\n").forEach(function (item, index) {
-      lines = lines + 1 + item.length / 80;
-    });
-    return Math.max(16, lines * 1.7);
-  }
-
-  handleSubmit(event) {
-    alert("A name was submitted: " + this.state.value);
-    event.preventDefault();
+    // TODO
   }
 
   handleEditClick(_event) {
@@ -242,38 +177,129 @@ class TextEditor extends React.Component {
   render() {
     if (this.state.edit) {
       return (
-        <ExtClickDetector callback={this.handleEditClick}>
-          <InputGroup>
-            <FormControl
-              as="textarea"
-              aria-label="With textarea"
-              className="border-0"
-              value={this.state.value}
-              onChange={this.handleChange}
-              style={{ height: this.state.height + "em" }}
-            />
-          </InputGroup>
-        </ExtClickDetector>
+        <NodeTitleEditor
+          value={this.props.value}
+          onChange={this.handleChange}
+          onExit={this.handleEditClick}
+        />
       );
     } else {
-      var edit_btn;
-      if (this.state.hover) {
-        edit_btn = (
-          <Button
-            variant="outline-secondary"
-            className="meta-fluid-el-bottom-rigth"
-            size="sm"
-            onClick={this.handleEditClick}
-          >
-            &#9998;
-          </Button>
-        );
-      }
+      var edit_btn = (
+        <Button
+          variant="outline-secondary"
+          className="meta-fluid-el-top-rigth"
+          size="sm"
+          onClick={this.handleEditClick}
+        >
+          &#9998;
+        </Button>
+      );
+      return (
+        <div
+          className="meta-fluid-container"
+          onMouseEnter={this.onHover}
+          onMouseLeave={this.offHover}
+        >
+          <Card.Title>{this.props.value}</Card.Title>
+          {this.state.hover && edit_btn}
+        </div>
+      );
+    }
+  }
+}
+
+class TextEditor extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      value: this.props.value,
+      height: this.getHeightForText(this.props.value),
+    };
+  }
+
+  handleChange = (event) => {
+    this.setState({
+      value: event.target.value,
+      height: this.getHeightForText(event.target.value),
+    });
+    this.props.onChange(event.target.value);
+  };
+
+  getHeightForText = (txt) => {
+    // FIXME
+    var lines = 2;
+    txt.split("\n").forEach(function (item, index) {
+      lines = lines + 1 + item.length / 80;
+    });
+    return Math.max(16, lines * 1.7);
+  };
+
+  render() {
+    return (
+      <ExtClickDetector callback={this.props.onExit}>
+        <InputGroup>
+          <FormControl
+            as="textarea"
+            aria-label="With textarea"
+            className="border-0"
+            value={this.state.value}
+            onChange={this.handleChange}
+            style={{ height: this.state.height + "em" }}
+          />
+        </InputGroup>
+      </ExtClickDetector>
+    );
+  }
+}
+
+class NodeText extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      edit: false,
+      hover: false,
+    };
+  }
+
+  handleChange = (value) => {};
+
+  handleEditClick = (_event) => {
+    this.setState({ edit: !this.state.edit });
+  };
+
+  onHover = () => {
+    this.setState({ hover: true });
+  };
+
+  offHover = () => {
+    this.setState({ hover: false });
+  };
+
+  render() {
+    if (this.state.edit) {
+      return (
+        <TextEditor
+          value={this.props.value}
+          onExit={this.handleEditClick}
+          onChange={this.handleChange}
+        />
+      );
+    } else {
+      var edit_btn = (
+        <Button
+          variant="outline-secondary"
+          className="meta-fluid-el-bottom-rigth"
+          size="sm"
+          onClick={this.handleEditClick}
+        >
+          &#9998;
+        </Button>
+      );
       return (
         <div className="meta-fluid-container">
           <Card.Text onMouseEnter={this.onHover} onMouseLeave={this.offHover}>
-            {this.state.value}
-            {edit_btn}
+            {this.props.value}
+            {this.state.hover && edit_btn}
           </Card.Text>
         </div>
       );
@@ -336,9 +362,43 @@ class NodeRefs extends React.Component {
 class NodeTextEditor extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {
+      nid: this.props.nid, // i64,
+      title: "",
+      text: "",
+      crtd: moment(), // SystemTime,
+      upd: moment(), // SystemTime,
+    };
   }
 
+  componentDidMount() {
+    console.log("componentDidMount");
+    this.fetchData();
+  }
+
+  fetchData = () => {
+    axios
+      .get("/node?" + queryString.stringify({ nid: this.state.nid }))
+      .then((res) => {
+        // "content-type": "text/plain; charset=utf-8"
+        // "last-modified": "Sun, 12 Apr 2020 10:46:18 GMT"
+        // "transfer-encoding": "chunked"
+        // "x-created-at": "Sun, 12 Apr 2020 10:46:18 GMT"
+        // "x-meta-title": "Node title SELECT FROM ;"
+        console.log(res);
+        this.setState({
+          title: res.headers["x-meta-title"],
+          text: res.data,
+          crtd: moment(res.headers["x-created-at"]),
+          upd: moment(res.headers["last-modified"]),
+        });
+      });
+  };
+
   render() {
+    const upd = this.state.upd.fromNow();
+    const title = this.state.title;
+    const text = this.state.text;
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">
@@ -348,12 +408,12 @@ class NodeTextEditor extends React.Component {
                 <div className="d-flex justify-content-center mp-0">
                   <Card.Img variant="top" className="w-25 m-0" src={maze} />
                 </div>
-                <TitleEditor />
-                <TextEditor />
+                <NodeTitle value={title} />
+                <NodeText value={text} />
               </Card.Body>
               <footer className="text-right m-2">
                 <small className="text-muted">
-                  <i>Updated 3 mins ago</i>
+                  <i>Updated {upd}</i>
                 </small>
               </footer>
             </Card>

@@ -182,7 +182,7 @@ function NodeView() {
   return (
     <>
       <TopToolBar />
-      <NodeTextEditor />
+      <NodeTextEditor nid={id} />
     </>
   );
 }
