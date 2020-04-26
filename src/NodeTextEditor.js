@@ -447,16 +447,19 @@ class NodeTextEditor extends React.Component {
         })
         .catch(errorHander);
     } else {
-      axios.post("/node", value, config).then((res) => {
-        console.log(res);
-        const nid = res.data.nid;
-        this.setState({
-          nid: nid,
-        });
-        this.props.history.push({
-          pathname: "/node/" + nid,
-        });
-      }).catch(errorHander);
+      axios
+        .post("/node", value, config)
+        .then((res) => {
+          console.log(res);
+          const nid = res.data.nid;
+          this.setState({
+            nid: nid,
+          });
+          this.props.history.push({
+            pathname: "/node/" + nid,
+          });
+        })
+        .catch(errorHander);
     }
   };
 
