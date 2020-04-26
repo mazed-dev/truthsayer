@@ -308,15 +308,34 @@ class TextEditor extends React.Component {
 //   }
 // }
 
+class NodeRefs extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    return (
+      <CardColumns>
+        <RefNodeCard offer={true} />
+        <RefNodeCard offer={true} title={"Ref"} />
+        <RefNodeCard ref_txt={"Next"} />
+        <RefNodeCard ref_txt={"Data"} />
+        <RefNodeCard ref_txt={"Link"} />
+        <RefNodeCard ref_txt={"Any of the available button style"} />
+        <RefNodeCard ref_txt={"Source"} />
+        <RefNodeCard ref_txt={"Ref"} />
+        <RefNodeCard ref_txt={"Ref"} />
+        <RefNodeCard ref_txt={"Ref"} />
+        <RefNodeCard ref_txt={"Ref"} />
+        <RefNodeCard ref_txt={"Ref"} />
+      </CardColumns>
+    );
+  }
+}
+
 class NodeTextEditor extends React.Component {
   constructor(props) {
     super(props);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  handleSubmit(event) {
-    alert("A form was submitted: ");
-    event.preventDefault();
   }
 
   render() {
@@ -329,29 +348,18 @@ class NodeTextEditor extends React.Component {
                 <div className="d-flex justify-content-center mp-0">
                   <Card.Img variant="top" className="w-25 m-0" src={maze} />
                 </div>
-                <Card.Text className="text-right p-0">
-                  <small className="text-muted">Updated 3 mins ago</small>
-                </Card.Text>
                 <TitleEditor />
                 <TextEditor />
               </Card.Body>
+              <footer className="text-right m-2">
+                <small className="text-muted">
+                  <i>Updated 3 mins ago</i>
+                </small>
+              </footer>
             </Card>
           </Col>
           <Col xl={6} lg={2} md={4} sm={4}>
-            <CardColumns>
-              <RefNodeCard offer={true} />
-              <RefNodeCard offer={true} title={"Ref"} />
-              <RefNodeCard ref_txt={"Next"} />
-              <RefNodeCard ref_txt={"Data"} />
-              <RefNodeCard ref_txt={"Link"} />
-              <RefNodeCard ref_txt={"Any of the available button style"} />
-              <RefNodeCard ref_txt={"Source"} />
-              <RefNodeCard ref_txt={"Ref"} />
-              <RefNodeCard ref_txt={"Ref"} />
-              <RefNodeCard ref_txt={"Ref"} />
-              <RefNodeCard ref_txt={"Ref"} />
-              <RefNodeCard ref_txt={"Ref"} />
-            </CardColumns>
+            <NodeRefs />
           </Col>
         </Row>
       </Container>

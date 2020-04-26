@@ -41,12 +41,12 @@ class NodeSmallCard extends React.Component {
           </div>
           <Card.Title>{this.state.title}</Card.Title>
           <Card.Text>{this.state.preface}</Card.Text>
-          <footer className="text-muted text-right p-0">
-            <small className="text-muted">
-              <i>Updated {upd}</i>
-            </small>
-          </footer>
         </Card.Body>
+        <footer className="text-muted text-right p-2">
+          <small className="text-muted">
+            <i>Updated {upd}</i>
+          </small>
+        </footer>
       </Card>
     );
   }
