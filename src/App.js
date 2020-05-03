@@ -24,7 +24,7 @@ import TreeView from "./TreeView";
 import Login from "./Login";
 import Signin from "./Signin";
 import TopToolBar from "./TopToolBar";
-import authstatus from "./auth/status";
+import auth from "./auth/token";
 
 // For the future:
 //    let history = useHistory();
@@ -34,8 +34,9 @@ import authstatus from "./auth/status";
 
 class App extends React.Component {
   render() {
-    const d = authstatus();
-    if (!d) {
+    const tk = auth.get();
+    console.log(tk);
+    if (!tk) {
       return <HelloWorld />;
     } else {
       return <PrivateApp />;

@@ -15,6 +15,11 @@ import {
   Dropdown,
 } from "react-bootstrap";
 
+import axios from "axios";
+import queryString from "query-string";
+import remoteErrorHandler from "./remoteErrorHandler";
+import { withRouter } from "react-router-dom";
+
 class Signin extends React.Component {
   constructor(props) {
     super(props);
@@ -23,24 +28,62 @@ class Signin extends React.Component {
       email: this.props.email,
       password: "",
       consent: false,
+      isReady: false,
     };
+    this.consentRef = React.createRef();
+    this.emailRef = React.createRef();
   }
 
   handleNameChange = (event) => {
     this.setState({ name: event.target.value });
+    this.checkState();
   };
 
   handleEmailChange = (event) => {
     this.setState({ email: event.target.value });
+    this.checkState();
   };
 
   handlePasswordChange = (event) => {
     this.setState({ password: event.target.value });
+    this.checkState();
   };
 
   toggleConsent = (event) => {
-    console.log(event);
-    this.setState({ consent: !this.state.consent });
+    console.log(this.consentRef.current.checked);
+    this.setState({ consent: this.consentRef.current.checked });
+    this.checkState();
+  };
+
+  checkState = () => {
+    const isReady =
+      this.state.consent &&
+      this.state.name.length > 1 &&
+      this.emailRef.current.validity.valid &&
+      this.state.password.length > 8;
+    this.setState({ isReady: isReady });
+  };
+
+  onSubmit = (event) => {
+    event.preventDefault();
+    const value = {
+      name: this.state.name,
+      email: this.state.email,
+      password: this.state.password,
+    };
+    axios
+      .post("/auth", value)
+      .catch(function (err) {
+        alert("Error " + err);
+      })
+      .then((res) => {
+        console.log(res);
+        // if (res) {
+        //   this.props.history.push({
+        //     pathname: "/",
+        //   });
+        // }
+      });
   };
 
   render() {
@@ -50,8 +93,8 @@ class Signin extends React.Component {
         <Card className="border-0">
           <Card.Body className="p-3">
             <Card.Title>Creat an account</Card.Title>
-            <Form className="m-4">
-              <Form.Group as={Row} controlId="formLoginEmail">
+            <Form className="m-4" onSubmit={this.onSubmit}>
+              <Form.Group as={Row} controlId="formLoginName">
                 <Form.Label column sm="2">
                   Your name
                 </Form.Label>
@@ -72,9 +115,9 @@ class Signin extends React.Component {
                 <Col>
                   <Form.Control
                     type="email"
-                    placeholder="julius.caesar@rome.io"
                     value={this.state.email}
                     onChange={this.handleEmailChange}
+                    ref={this.emailRef}
                   />
                 </Col>
               </Form.Group>
@@ -86,29 +129,34 @@ class Signin extends React.Component {
                 <Col>
                   <Form.Control
                     type="password"
-                    placeholder="zx!y19%swd&"
                     value={this.state.password}
                     onChange={this.handlePasswordChange}
                   />
                 </Col>
               </Form.Group>
               <Card.Text>
-                This software is still under heavy active development, therefore
-                there is guarantie of any kind. Check here to indicate that you
-                understand potential risks of using it.
+                This website is still under active development, therefore there
+                is no guarantie of any kind.
               </Card.Text>
               <Form.Group as={Row} controlId="formCustomerAggreementCheckbox">
-                <Form.Label column></Form.Label>I understand
+                <Form.Label column sm="2">
+                  I agree{" "}
+                </Form.Label>
                 <Col sm="2">
                   <Form.Check
                     type="checkbox"
                     id={customer_agreement_checkbox_id}
                     onChange={this.toggleConsent}
+                    ref={this.consentRef}
                   />
                 </Col>
               </Form.Group>
-              <Button variant="secondary" type="submit">
-                Submit
+              <Button
+                variant="secondary"
+                type="submit"
+                disabled={!this.state.isReady}
+              >
+                Register
               </Button>
             </Form>
           </Card.Body>
@@ -123,4 +171,4 @@ Signin.defaultProps = {
   email: "",
 };
 
-export default Signin;
+export default withRouter(Signin);

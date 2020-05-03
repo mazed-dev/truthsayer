@@ -1,31 +1,128 @@
 import React from "react";
 
-import { Button, Container, Form } from "react-bootstrap";
+import {
+  Card,
+  Button,
+  ButtonGroup,
+  InputGroup,
+  FormControl,
+  Form,
+  Container,
+  Row,
+  Col,
+  CardColumns,
+  DropdownButton,
+  Dropdown,
+} from "react-bootstrap";
+
+import axios from "axios";
+import queryString from "query-string";
+import remoteErrorHandler from "./remoteErrorHandler";
+import { withRouter } from "react-router-dom";
+
+import auth from "./auth/token";
 
 class Login extends React.Component {
-  componentDidMount() {
-    document.cookie =
-      "11171360-122222-126543-026543-103335-071075-144001-117335-136560";
+  constructor(props) {
+    super(props);
+    this.state = {
+      email: this.props.email,
+      password: "",
+      isReady: false,
+    };
+    this.emailRef = React.createRef();
   }
 
-  render() {
-    return (
-      <Container className="meta-in-center">
-        <Form className="m-4">
-          <Form.Group controlId="formLoginEmail">
-            <Form.Control type="email" placeholder="email" />
-          </Form.Group>
+  handleEmailChange = (event) => {
+    this.setState({ email: event.target.value });
+    this.checkState();
+  };
 
-          <Form.Group controlId="formLoginPassword">
-            <Form.Control type="password" placeholder="password" />
-          </Form.Group>
-          <Button variant="secondary" type="submit">
-            Submit
-          </Button>
-        </Form>
+  handlePasswordChange = (event) => {
+    this.setState({ password: event.target.value });
+    this.checkState();
+  };
+
+  checkState = () => {
+    const isReady =
+      this.emailRef.current.validity.valid && this.state.password.length > 8;
+    this.setState({ isReady: isReady });
+  };
+
+  onSubmit = (event) => {
+    event.preventDefault();
+    const value = {
+      email: this.state.email,
+      pass: this.state.password,
+      permissions: 23,
+    };
+    axios
+      .post("/auth/session", value)
+      .catch(function (err) {
+        alert("Error " + err);
+      })
+      .then((res) => {
+        console.log(res);
+        if (res) {
+          auth.from_headers(res.headers);
+          this.props.history.push({
+            pathname: "/",
+          });
+        }
+      });
+  };
+
+  render() {
+    const customer_agreement_checkbox_id = "customer-agreement-check";
+    return (
+      <Container>
+        <Card className="border-0">
+          <Card.Body className="p-3">
+            <Card.Title>Log in</Card.Title>
+            <Form className="m-4" onSubmit={this.onSubmit}>
+              <Form.Group as={Row} controlId="formLoginEmail">
+                <Form.Label column sm="2">
+                  Email
+                </Form.Label>
+                <Col>
+                  <Form.Control
+                    type="email"
+                    value={this.state.email}
+                    onChange={this.handleEmailChange}
+                    ref={this.emailRef}
+                  />
+                </Col>
+              </Form.Group>
+
+              <Form.Group as={Row} controlId="formLoginPassword">
+                <Form.Label column sm="2">
+                  Password
+                </Form.Label>
+                <Col>
+                  <Form.Control
+                    type="password"
+                    value={this.state.password}
+                    onChange={this.handlePasswordChange}
+                  />
+                </Col>
+              </Form.Group>
+              <Button
+                variant="secondary"
+                type="submit"
+                disabled={!this.state.isReady}
+              >
+                Go
+              </Button>
+            </Form>
+          </Card.Body>
+        </Card>
       </Container>
     );
   }
 }
 
-export default Login;
+Login.defaultProps = {
+  email: "",
+};
+
+export default withRouter(Login);
