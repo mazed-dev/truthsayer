@@ -11,7 +11,6 @@ class TopToolBar extends React.Component {
     super(props);
     this.state = {
       value: this.props.value,
-      callback: this.props.callback,
     };
     this.searchCmd = React.createRef();
   }
@@ -24,8 +23,8 @@ class TopToolBar extends React.Component {
 
   handleChange = (event) => {
     this.setState({ value: event.target.value });
-    if (this.state.callback !== null) {
-      this.state.callback(event.target.value);
+    if (this.props.callback !== null) {
+      this.props.callback(event.target.value);
     } else {
       this.props.history.push({
         pathname: "/search",

@@ -10,6 +10,8 @@ import { Container, CardColumns } from "react-bootstrap";
 import NodeSmallCard from "./NodeSmallCard";
 import TopToolBar from "./TopToolBar";
 
+import remoteErrorHandler from "./remoteErrorHandler";
+
 class SearchView extends React.Component {
   static propTypes = {
     match: PropTypes.object.isRequired,
@@ -42,9 +44,12 @@ class SearchView extends React.Component {
   }
 
   fetchData = (q) => {
-    axios.get("/node/search?" + queryString.stringify({ q: q })).then((res) => {
-      this.setState({ nodes: res.data.nodes });
-    });
+    axios
+      .get("/node/search?" + queryString.stringify({ q: q }))
+      .then((res) => {
+        this.setState({ nodes: res.data.nodes });
+      })
+      .catch(remoteErrorHandler(this.props.history));
   };
 
   render() {

@@ -10,6 +10,7 @@
     "bootstrap": "^4.4.1",
     "d3": "^5.15.1",
     "form-data": "^3.0.0",
+    "http-status-codes": "^1.4.0",
     "moment": "^2.24.0",
     "react": "^16.13.1",
     "react-bootstrap": "^1.0.0",
@@ -17,14 +18,15 @@
     "react-markdown": "^4.3.1",
     "react-router": "^5.1.2",
     "react-router-dom": "^5.1.2",
-    "react-scripts": "3.4.1"
+    "react-scripts": "3.4.1",
+    "universal-cookie": "^4.0.3"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "fmt": "prettier --write src/**/*.css src/**/*.js"
+    "fmt": "prettier --write src/**.css src/**.js"
   },
   "eslintConfig": {
     "extends": "react-app"

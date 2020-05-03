@@ -9,6 +9,8 @@ import maze from "./maze.png";
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
+import remoteErrorHandler from "./remoteErrorHandler";
+
 import {
   Card,
   Button,
@@ -417,6 +419,7 @@ class NodeTextEditor extends React.Component {
     }
     axios
       .get("/node?" + queryString.stringify({ nid: this.state.nid }))
+      .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         this.setState({
           text: res.data,
@@ -442,6 +445,7 @@ class NodeTextEditor extends React.Component {
           value,
           config
         )
+        .catch(remoteErrorHandler(this.props.history))
         .then((res) => {
           console.log(res);
         })
@@ -449,6 +453,7 @@ class NodeTextEditor extends React.Component {
     } else {
       axios
         .post("/node", value, config)
+        .catch(remoteErrorHandler(this.props.history))
         .then((res) => {
           console.log(res);
           const nid = res.data.nid;

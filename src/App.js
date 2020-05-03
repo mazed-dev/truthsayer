@@ -22,7 +22,9 @@ import { Card, Button, Container } from "react-bootstrap";
 
 import TreeView from "./TreeView";
 import Login from "./Login";
+import Signin from "./Signin";
 import TopToolBar from "./TopToolBar";
+import authstatus from "./auth/status";
 
 // For the future:
 //    let history = useHistory();
@@ -32,8 +34,8 @@ import TopToolBar from "./TopToolBar";
 
 class App extends React.Component {
   render() {
-    const isAuthenticated = true; // Mock
-    if (!isAuthenticated) {
+    const d = authstatus();
+    if (!d) {
       return <HelloWorld />;
     } else {
       return <PrivateApp />;
@@ -136,14 +138,6 @@ function HelloWorld() {
           </Switch>
         </div>
       </Router>
-    </div>
-  );
-}
-
-function Signin() {
-  return (
-    <div>
-      <h2>Signin</h2>
     </div>
   );
 }
