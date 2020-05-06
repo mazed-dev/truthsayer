@@ -19,6 +19,7 @@ import axios from "axios";
 import queryString from "query-string";
 import remoteErrorHandler from "./remoteErrorHandler";
 import { withRouter } from "react-router-dom";
+import auth from "./auth/token";
 
 class Signin extends React.Component {
   constructor(props) {
@@ -77,12 +78,12 @@ class Signin extends React.Component {
         alert("Error " + err);
       })
       .then((res) => {
-        console.log(res);
-        // if (res) {
-        //   this.props.history.push({
-        //     pathname: "/",
-        //   });
-        // }
+        if (res) {
+          auth.from_headers(res.headers);
+          this.props.history.push({
+            pathname: "/",
+          });
+        }
       });
   };
 

@@ -35,7 +35,6 @@ class NodeSmallCard extends React.Component {
   };
 
   render() {
-    // <Card.Title>{this.state.title}</Card.Title>
     const upd = this.state.upd.fromNow();
     return (
       <Card className="rounded" onClick={this.onClick}>
@@ -43,9 +42,7 @@ class NodeSmallCard extends React.Component {
           <div className="d-flex justify-content-center">
             <Card.Img variant="top" className="w-25 p-0 m-2" src={maze} />
           </div>
-          <Card.Text>
-            <ReactMarkdown source={this.state.preface} />
-          </Card.Text>
+          <ReactMarkdown source={this.state.preface} />
         </Card.Body>
         <footer className="text-muted text-right p-2">
           <small className="text-muted">

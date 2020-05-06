@@ -104,6 +104,10 @@ class RefNodeCard extends React.Component {
 RefNodeCard.defaultProps = { offer: false, ref_txt: "..." };
 
 class ExtClickDetector extends React.Component {
+  constructor(props) {
+    super(props);
+    this.selfRef = React.createRef();
+  }
   componentDidMount() {
     document.addEventListener("mousedown", this.handleClick, false);
   }
@@ -111,106 +115,12 @@ class ExtClickDetector extends React.Component {
     document.removeEventListener("mousedown", this.handleClick, false);
   }
   handleClick = (event) => {
-    if (!this.node.contains(event.target)) {
+    if (!this.selfRef.current.contains(event.target)) {
       this.props.callback(event);
     }
   };
   render() {
-    return <div ref={(node) => (this.node = node)}>{this.props.children}</div>;
-  }
-}
-
-class NodeTitleEditor extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      value: props.value,
-    };
-  }
-
-  _handleChange = (event) => {
-    this.setState({ value: event.target.value });
-    this.props.onChange(event.target.value);
-  };
-
-  _onExit = () => {
-    this.props.onExit(this.state.value);
-  };
-
-  render() {
-    return (
-      <ExtClickDetector callback={this._onExit}>
-        <InputGroup>
-          <FormControl
-            placeholder="Title"
-            aria-label="Title"
-            value={this.state.value}
-            onChange={this._handleChange}
-          />
-        </InputGroup>
-      </ExtClickDetector>
-    );
-  }
-}
-
-class NodeTitle extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      edit: false,
-      hover: false,
-    };
-    this.handleChange = this.handleChange.bind(this);
-    this.handleEditClick = this.handleEditClick.bind(this);
-  }
-
-  handleChange(event) {
-    // TODO
-  }
-
-  handleEditClick(value) {
-    this.setState({ edit: !this.state.edit });
-  }
-
-  onHover = () => {
-    this.setState({ hover: true });
-  };
-
-  offHover = () => {
-    this.setState({ hover: false });
-  };
-
-  render() {
-    if (this.state.edit) {
-      return (
-        <NodeTitleEditor
-          value={this.props.value}
-          onChange={this.handleChange}
-          onExit={this.handleEditClick}
-        />
-      );
-    } else {
-      var edit_btn = (
-        <Button
-          variant="outline-secondary"
-          className="meta-fluid-el-top-rigth"
-          size="sm"
-          onClick={this.handleEditClick}
-        >
-          &#9998;
-        </Button>
-      );
-      return (
-        <div
-          className="meta-fluid-container"
-          onMouseEnter={this.onHover}
-          onMouseLeave={this.offHover}
-        >
-          <Card.Title>{this.props.value}</Card.Title>
-          {this.state.hover && edit_btn}
-        </div>
-      );
-    }
+    return <div ref={this.selfRef}>{this.props.children}</div>;
   }
 }
 
@@ -266,7 +176,7 @@ class NodeText extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      edit: props.edit,
+      edit: false,
       hover: false,
     };
   }
@@ -311,11 +221,9 @@ class NodeText extends React.Component {
         </Button>
       );
       return (
-        <div className="meta-fluid-container">
-          <Card.Text onMouseEnter={this.onHover} onMouseLeave={this.offHover}>
-            <ReactMarkdown source={this.props.value} />
-            {this.state.hover && edit_btn}
-          </Card.Text>
+        <div className="meta-fluid-container"  onMouseEnter={this.onHover} onMouseLeave={this.offHover}>
+          <ReactMarkdown source={this.props.value}/>
+          {this.state.hover && edit_btn}
         </div>
       );
     }
@@ -370,34 +278,15 @@ class NodeRefs extends React.Component {
   }
 }
 
-function errorHander(error) {
-  if (error.response) {
-    // The request was made and the server responded with a status code
-    // that falls out of the range of 2xx
-    console.log(error.response.data);
-    console.log(error.response.status);
-    console.log(error.response.headers);
-  } else if (error.request) {
-    // The request was made but no response was received
-    // `error.request` is an instance of XMLHttpRequest in the browser and
-    // an instance of http.ClientRequest in node.js
-    console.log(error.request);
-  } else {
-    // Something happened in setting up the request that triggered an Error
-    console.log("Error", error.message);
-  }
-  console.log(error.config);
-}
-
 class NodeTextEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      nid: this.props.nid, // i64,
       text: "",
       crtd: moment(), // SystemTime,
       upd: moment(), // SystemTime,
     };
+    console.log("NodeTextEditor::constructor " + props.nid);
   }
 
   static propTypes = {
@@ -406,30 +295,51 @@ class NodeTextEditor extends React.Component {
     history: PropTypes.object.isRequired,
   };
 
+  componentDidUpdate(prevProps) {
+    // Don't forget to compare props!
+    console.log("NodeTextEditor::componentDidUpdate " + this.props.nid + ", pref: " + prevProps.nid);
+    if (this.props.nid !== prevProps.nid) {
+      this.fetchData();
+    }
+  }
+
+  componentWillUnmount() {
+    console.log("NodeTextEditor::componentWillUnmount " + this.props.nid);
+  }
+
   componentDidMount() {
+    console.log("NodeTextEditor::componentDidMount " + this.props.nid);
     this.fetchData();
   }
 
   fetchData = () => {
-    if (this.state.nid === "new") {
-      this.setState({
-        text: "...",
-      });
-      return;
-    }
-    axios
-      .get("/node?" + queryString.stringify({ nid: this.state.nid }))
-      .catch(remoteErrorHandler(this.props.history))
-      .then((res) => {
-        this.setState({
-          text: res.data,
-          crtd: moment(res.headers["x-created-at"]),
-          upd: moment(res.headers["last-modified"]),
+    console.log("NodeTextEditor::fetchData " + this.props.nid);
+    // Use cancelation here: 
+    // https://github.com/axios/axios#cancellation
+    if (this.props.nid !== "--new--") {
+      axios
+        .get("/node?" + queryString.stringify({ nid: this.props.nid }))
+        .catch(remoteErrorHandler(this.props.history))
+        .then((res) => {
+          if (res) {
+            this.setState({
+              text: res.data,
+              crtd: moment(res.headers["x-created-at"]),
+              upd: moment(res.headers["last-modified"]),
+            });
+          }
         });
+    } else {
+      this.setState({
+        text: "",
+        crtd: moment(),
+        upd: moment(),
       });
+    }
   };
 
   _onNodeChange = (value) => {
+    console.log("NodeTextEditor::_onNodeChange ");
     this.setState({
       text: value,
     });
@@ -438,41 +348,42 @@ class NodeTextEditor extends React.Component {
         "Content-Type": "text/plain; charset=utf-8",
       },
     };
-    if (this.state.nid !== "new") {
+    if (this.props.nid !== "--new--") {
       axios
         .patch(
-          "/node?" + queryString.stringify({ nid: this.state.nid }),
+          "/node?" + queryString.stringify({ nid: this.props.nid }),
           value,
           config
         )
         .catch(remoteErrorHandler(this.props.history))
-        .then((res) => {
-          console.log(res);
-        })
-        .catch(errorHander);
+        .then((_res) => {});
     } else {
       axios
         .post("/node", value, config)
         .catch(remoteErrorHandler(this.props.history))
         .then((res) => {
-          console.log(res);
-          const nid = res.data.nid;
-          this.setState({
-            nid: nid,
-          });
-          this.props.history.push({
-            pathname: "/node/" + nid,
-          });
-        })
-        .catch(errorHander);
+          if (res) {
+            this.props.history.push({
+              pathname: "/node/" + res.data.nid,
+            });
+          }
+        });
     }
   };
 
   render() {
+    console.log("NodeTextEditor::render " + this.props.nid);
+    const toolbar = (
+      <ButtonGroup>
+        <Button variant="secondary" size="sm">
+          &#9998;
+        </Button>
+        <Button variant="secondary" size="sm">
+          &#x22EF;
+        </Button>
+      </ButtonGroup>
+    );
     const upd = this.state.upd.fromNow();
-    // const title = this.state.title;
-    // <NodeTitle value={title} />
-    const text = this.state.text;
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">
@@ -483,9 +394,8 @@ class NodeTextEditor extends React.Component {
                   <Card.Img variant="top" className="w-25 p-2 m-2" src={maze} />
                 </div>
                 <NodeText
-                  value={text}
+                  value={this.state.text}
                   onChange={this._onNodeChange}
-                  edit={this.state.nid === "new"}
                 />
               </Card.Body>
               <footer className="text-right m-2">

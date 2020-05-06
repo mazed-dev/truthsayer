@@ -13,7 +13,6 @@ import {
   Switch,
   useLocation,
   useParams,
-  useRouteMatch,
 } from "react-router-dom";
 
 import "./App.css";
@@ -34,59 +33,79 @@ import auth from "./auth/token";
 
 class App extends React.Component {
   render() {
-    const tk = auth.get();
-    console.log(tk);
-    if (!tk) {
-      return <HelloWorld />;
+    const authenticated = (auth.get() != null);
+    var toolbar;
+    var route;
+    if (authenticated) {
+      console.log("authenticated!");
+      toolbar = <LeftSideBarMenu />;
+      route = (<>
+        <Route exact path="/">
+          <SearchView q={""} />
+        </Route>
+        <Route exact path="/search">
+          <SearchView q={""} />
+        </Route>
+        <Route path="/node/:id">
+          <NodeView />
+        </Route>
+        <Route path="/thread">
+          <TreeView />
+        </Route>
+        <Route path="/logout">
+          <Logout />
+        </Route>
+        <Route path="/account">
+          <AccountView />
+        </Route>
+        <Route path="/about">
+          <About />
+        </Route>
+        <Route path="/login">
+          <Login />
+        </Route>
+        <Route path="/signin">
+          <Signin />
+        </Route>
+        <Route path="*">
+          <Redirect to={{ pathname: "/" }} />
+        </Route>
+      </>);
     } else {
-      return <PrivateApp />;
+      toolbar = (<ul>
+        <li>
+          <Link to="/login">Login</Link>
+        </li>
+        <li>
+          <Link to="/signin">Signin</Link>
+        </li>
+      </ul>);
+      route = (<>
+          <Route exact path="/">
+            <h2>Hello world!</h2>
+          </Route>
+          <Route path="/login">
+            <Login />
+          </Route>
+          <Route path="/signin">
+            <Signin />
+          </Route>
+          <Route path="/about">
+            <About />
+          </Route>
+          <Route path="*">
+            <NoMatch />
+            <Redirect to={{ pathname: "/" }} />
+          </Route>
+        </>);
     }
-  }
-}
-
-class PrivateApp extends React.Component {
-  // f5f5f5
-  // f0f0f0
-  // #696969
-  render() {
     return (
       <Container fluid>
-        <Workspace />
         <Router>
           <div>
-            <LeftSideBarMenu />
+            {toolbar}
             <Switch>
-              <Route exact path="/">
-                <SearchView q={""} />
-              </Route>
-              <Route exact path="/search">
-                <SearchView q={""} />
-              </Route>
-              <Route path="/node/:id">
-                <NodeView />
-              </Route>
-              <Route path="/thread">
-                <TreeView />
-              </Route>
-              <Route path="/logout">
-                <Logout />
-              </Route>
-              <Route path="/account">
-                <AccountView />
-              </Route>
-              <Route path="/about">
-                <About />
-              </Route>
-              <Route path="/login">
-                <Login />
-              </Route>
-              <Route path="/signin">
-                <Signin />
-              </Route>
-              <Route path="*">
-                <NoMatch />
-                <Redirect to={{ pathname: "/" }} />
-              </Route>
+              {route}
             </Switch>
           </div>
         </Router>
@@ -173,6 +192,7 @@ function NodeView() {
   // We can use the `useParams` hook here to access
   // the dynamic pieces of the URL.
   let { id } = useParams();
+  console.log("NodeView " + id);
   return (
     <>
       <TopToolBar inFocus={false} />
@@ -191,10 +211,6 @@ function NoMatch() {
       </h3>
     </div>
   );
-}
-
-function Workspace() {
-  return <div></div>;
 }
 
 function LeftSideBarMenu() {
@@ -220,7 +236,7 @@ function LeftSideBarMenu() {
           <Link to="/node/id">node</Link>
         </li>
         <li>
-          <Link to="/node/new">new</Link>
+          <Link to="/node/--new--">new</Link>
         </li>
         <li>
           <Link to="/login">login</Link>

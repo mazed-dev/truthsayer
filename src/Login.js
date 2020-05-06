@@ -62,7 +62,6 @@ class Login extends React.Component {
         alert("Error " + err);
       })
       .then((res) => {
-        console.log(res);
         if (res) {
           auth.from_headers(res.headers);
           this.props.history.push({
