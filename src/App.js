@@ -17,8 +17,15 @@ import {
 
 import "./App.css";
 
-import { Card, Button, Container } from "react-bootstrap";
+import {
+  Card,
+  Button,
+  Container,
+  ButtonGroup,
+  ListGroup,
+} from "react-bootstrap";
 
+import LeftToolbar from "./LeftToolbar";
 import TreeView from "./TreeView";
 import Login from "./Login";
 import Signin from "./Signin";
@@ -33,79 +40,97 @@ import auth from "./auth/token";
 
 class App extends React.Component {
   render() {
-    const authenticated = (auth.get() != null);
-    var toolbar;
-    var route;
+    const authenticated = auth.get() != null;
     if (authenticated) {
-      console.log("authenticated!");
-      toolbar = <LeftSideBarMenu />;
-      route = (<>
-        <Route exact path="/">
-          <SearchView q={""} />
-        </Route>
-        <Route exact path="/search">
-          <SearchView q={""} />
-        </Route>
-        <Route path="/node/:id">
-          <NodeView />
-        </Route>
-        <Route path="/thread">
-          <TreeView />
-        </Route>
-        <Route path="/logout">
-          <Logout />
-        </Route>
-        <Route path="/account">
-          <AccountView />
-        </Route>
-        <Route path="/about">
-          <About />
-        </Route>
-        <Route path="/login">
-          <Login />
-        </Route>
-        <Route path="/signin">
-          <Signin />
-        </Route>
-        <Route path="*">
-          <Redirect to={{ pathname: "/" }} />
-        </Route>
-      </>);
-    } else {
-      toolbar = (<ul>
-        <li>
-          <Link to="/login">Login</Link>
-        </li>
-        <li>
-          <Link to="/signin">Signin</Link>
-        </li>
-      </ul>);
-      route = (<>
-          <Route exact path="/">
-            <h2>Hello world!</h2>
-          </Route>
-          <Route path="/login">
-            <Login />
-          </Route>
-          <Route path="/signin">
-            <Signin />
-          </Route>
-          <Route path="/about">
-            <About />
-          </Route>
-          <Route path="*">
-            <NoMatch />
-            <Redirect to={{ pathname: "/" }} />
-          </Route>
-        </>);
+      return <PrivateApp />;
     }
+    return <HelloApp />;
+  }
+}
+
+class HelloApp extends React.Component {
+  render() {
     return (
       <Container fluid>
         <Router>
           <div>
-            {toolbar}
+            <LeftSideBarMenu />
             <Switch>
-              {route}
+              <Route exact path="/">
+                <SearchView q={""} />
+              </Route>
+              <Route exact path="/search">
+                <SearchView q={""} />
+              </Route>
+              <Route path="/node/:id">
+                <NodeView />
+              </Route>
+              <Route path="/thread">
+                <TreeView />
+              </Route>
+              <Route path="/logout">
+                <Logout />
+              </Route>
+              <Route path="/account">
+                <AccountView />
+              </Route>
+              <Route path="/about">
+                <About />
+              </Route>
+              <Route path="/login">
+                <Login />
+              </Route>
+              <Route path="/signin">
+                <Signin />
+              </Route>
+              <Route path="*">
+                <Redirect to={{ pathname: "/" }} />
+              </Route>
+            </Switch>
+          </div>
+        </Router>
+      </Container>
+    );
+  }
+}
+class PrivateApp extends React.Component {
+  render() {
+    return (
+      <Container fluid>
+        <Router>
+          <div>
+            <LeftToolbar />
+            <Switch>
+              <Route exact path="/">
+                <SearchView q={""} />
+              </Route>
+              <Route exact path="/search">
+                <SearchView q={""} />
+              </Route>
+              <Route path="/node/:id">
+                <NodeView />
+              </Route>
+              <Route path="/thread">
+                <TreeView />
+              </Route>
+              <Route path="/logout">
+                <Logout />
+              </Route>
+              <Route path="/account">
+                <AccountView />
+              </Route>
+              <Route path="/about">
+                <About />
+              </Route>
+              <Route path="/login">
+                <Login />
+              </Route>
+              <Route path="/signin">
+                <Signin />
+              </Route>
+              <Route path="*">
+                <Redirect to={{ pathname: "/" }} />
+              </Route>
             </Switch>
           </div>
         </Router>
@@ -118,46 +143,6 @@ function Logout() {
   return (
     <div>
       <h2>Logout</h2>
-    </div>
-  );
-}
-
-function HelloWorld() {
-  return (
-    <div className="App">
-      <Router>
-        <div>
-          <ul>
-            <li>
-              <Link to="/login">Login</Link>
-            </li>
-            <li>
-              <Link to="/signin">Signin</Link>
-            </li>
-          </ul>
-
-          <hr />
-
-          <Switch>
-            <Route exact path="/">
-              <h2>Hello world!</h2>
-            </Route>
-            <Route path="/login">
-              <Login />
-            </Route>
-            <Route path="/signin">
-              <Signin />
-            </Route>
-            <Route path="/about">
-              <About />
-            </Route>
-            <Route path="*">
-              <NoMatch />
-              <Redirect to={{ pathname: "/" }} />
-            </Route>
-          </Switch>
-        </div>
-      </Router>
     </div>
   );
 }
@@ -193,9 +178,9 @@ function NodeView() {
   // the dynamic pieces of the URL.
   let { id } = useParams();
   console.log("NodeView " + id);
+      // <TopToolBar inFocus={false} />
   return (
     <>
-      <TopToolBar inFocus={false} />
       <NodeTextEditor nid={id} />
     </>
   );

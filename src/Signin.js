@@ -1,23 +1,8 @@
 import React from "react";
 
-import {
-  Card,
-  Button,
-  ButtonGroup,
-  InputGroup,
-  FormControl,
-  Form,
-  Container,
-  Row,
-  Col,
-  CardColumns,
-  DropdownButton,
-  Dropdown,
-} from "react-bootstrap";
+import { Card, Button, Form, Container, Row, Col } from "react-bootstrap";
 
 import axios from "axios";
-import queryString from "query-string";
-import remoteErrorHandler from "./remoteErrorHandler";
 import { withRouter } from "react-router-dom";
 import auth from "./auth/token";
 

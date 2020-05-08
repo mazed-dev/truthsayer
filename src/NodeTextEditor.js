@@ -221,8 +221,12 @@ class NodeText extends React.Component {
         </Button>
       );
       return (
-        <div className="meta-fluid-container"  onMouseEnter={this.onHover} onMouseLeave={this.offHover}>
-          <ReactMarkdown source={this.props.value}/>
+        <div
+          className="meta-fluid-container"
+          onMouseEnter={this.onHover}
+          onMouseLeave={this.offHover}
+        >
+          <ReactMarkdown source={this.props.value} />
           {this.state.hover && edit_btn}
         </div>
       );
@@ -287,6 +291,7 @@ class NodeTextEditor extends React.Component {
       upd: moment(), // SystemTime,
     };
     console.log("NodeTextEditor::constructor " + props.nid);
+    this.fetchCancelToken = axios.CancelToken.source();
   }
 
   static propTypes = {
@@ -297,7 +302,12 @@ class NodeTextEditor extends React.Component {
 
   componentDidUpdate(prevProps) {
     // Don't forget to compare props!
-    console.log("NodeTextEditor::componentDidUpdate " + this.props.nid + ", pref: " + prevProps.nid);
+    console.log(
+      "NodeTextEditor::componentDidUpdate " +
+        this.props.nid +
+        ", pref: " +
+        prevProps.nid
+    );
     if (this.props.nid !== prevProps.nid) {
       this.fetchData();
     }
@@ -305,6 +315,7 @@ class NodeTextEditor extends React.Component {
 
   componentWillUnmount() {
     console.log("NodeTextEditor::componentWillUnmount " + this.props.nid);
+    this.fetchCancelToken.cancel("Operation canceled by the user.");
   }
 
   componentDidMount() {
@@ -314,11 +325,11 @@ class NodeTextEditor extends React.Component {
 
   fetchData = () => {
     console.log("NodeTextEditor::fetchData " + this.props.nid);
-    // Use cancelation here: 
-    // https://github.com/axios/axios#cancellation
     if (this.props.nid !== "--new--") {
       axios
-        .get("/node?" + queryString.stringify({ nid: this.props.nid }))
+        .get("/node?" + queryString.stringify({ nid: this.props.nid }), {
+          cancelToken: this.fetchCancelToken.token,
+        })
         .catch(remoteErrorHandler(this.props.history))
         .then((res) => {
           if (res) {
@@ -347,6 +358,7 @@ class NodeTextEditor extends React.Component {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
       },
+      cancelToken: this.fetchCancelToken.token,
     };
     if (this.props.nid !== "--new--") {
       axios
@@ -373,16 +385,6 @@ class NodeTextEditor extends React.Component {
 
   render() {
     console.log("NodeTextEditor::render " + this.props.nid);
-    const toolbar = (
-      <ButtonGroup>
-        <Button variant="secondary" size="sm">
-          &#9998;
-        </Button>
-        <Button variant="secondary" size="sm">
-          &#x22EF;
-        </Button>
-      </ButtonGroup>
-    );
     const upd = this.state.upd.fromNow();
     return (
       <Container fluid>

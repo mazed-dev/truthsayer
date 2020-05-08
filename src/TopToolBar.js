@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Container, InputGroup, FormControl, Button } from "react-bootstrap";
+import { Container, InputGroup, FormControl } from "react-bootstrap";
 import queryString from "query-string";
 import { withRouter } from "react-router-dom";
 

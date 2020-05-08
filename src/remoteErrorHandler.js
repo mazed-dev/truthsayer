@@ -1,5 +1,4 @@
 import HttpStatus from "http-status-codes";
-import axios from "axios";
 
 function remoteErrorHandler(history) {
   return (error) => {
