@@ -64,18 +64,18 @@ class SearchView extends React.Component {
         />
       );
     });
+      // <>
+      //   <TopToolBar
+      //     callback={this.handleChange}
+      //     value={this.state.q}
+      //     inFocus={true}
+      //   />
     return (
-      <>
-        <TopToolBar
-          callback={this.handleChange}
-          value={this.state.q}
-          inFocus={true}
-        />
-        <Container>
-          <CardColumns>{cards}</CardColumns>
-        </Container>
-      </>
+      <Container>
+        <CardColumns>{cards}</CardColumns>
+      </Container>
     );
+      // </>
   }
 }
 

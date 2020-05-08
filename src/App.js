@@ -26,6 +26,7 @@ import {
 } from "react-bootstrap";
 
 import LeftToolbar from "./LeftToolbar";
+import GlobalNavBar from "./GlobalNavBar";
 import TreeView from "./TreeView";
 import Login from "./Login";
 import Signin from "./Signin";
@@ -99,7 +100,7 @@ class PrivateApp extends React.Component {
       <Container fluid>
         <Router>
           <div>
-            <LeftToolbar />
+            <GlobalNavBar />
             <Switch>
               <Route exact path="/">
                 <SearchView q={""} />
@@ -178,7 +179,7 @@ function NodeView() {
   // the dynamic pieces of the URL.
   let { id } = useParams();
   console.log("NodeView " + id);
-      // <TopToolBar inFocus={false} />
+  // <TopToolBar inFocus={false} />
   return (
     <>
       <NodeTextEditor nid={id} />

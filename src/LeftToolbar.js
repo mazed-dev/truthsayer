@@ -16,9 +16,10 @@ import {
   Container,
   ButtonGroup,
   ListGroup,
-InputGroup, FormControl,
-    Popover,
-    OverlayTrigger,
+  InputGroup,
+  FormControl,
+  Popover,
+  OverlayTrigger,
 } from "react-bootstrap";
 
 import "./LeftToolbar.css";
@@ -75,37 +76,37 @@ class SearchTool extends React.Component {
 function LeftToolbar() {
   return (
     <>
-    <div className="meta-left-toolbar">
-      <ListGroup variant="flush">
-        <ListGroup.Item as={Link} to="/">
-          &#x1F50D;
-        </ListGroup.Item>
-        <ListGroup.Item as={Link} to="/thread">
-          thread
-        </ListGroup.Item>
-        <ListGroup.Item as={Link} to="/logout">
-          logout
-        </ListGroup.Item>
-        <ListGroup.Item as={Link} to="/account">
-          account
-        </ListGroup.Item>
-        <ListGroup.Item as={Link} to="/about">
-          about
-        </ListGroup.Item>
-        <ListGroup.Item as={Link} to="/node/id">
-          node
-        </ListGroup.Item>
-        <ListGroup.Item as={Link} to="/node/--new--">
-          new
-        </ListGroup.Item>
-        <ListGroup.Item as={Link} to="/login">
-          login
-        </ListGroup.Item>
-        <ListGroup.Item as={Link} to="/signin">
-          signin
-        </ListGroup.Item>
-      </ListGroup>
-    </div>
+      <div className="meta-left-toolbar">
+        <ListGroup variant="flush">
+          <ListGroup.Item as={Link} to="/">
+            &#x1F50D;
+          </ListGroup.Item>
+          <ListGroup.Item as={Link} to="/thread">
+            thread
+          </ListGroup.Item>
+          <ListGroup.Item as={Link} to="/logout">
+            logout
+          </ListGroup.Item>
+          <ListGroup.Item as={Link} to="/account">
+            account
+          </ListGroup.Item>
+          <ListGroup.Item as={Link} to="/about">
+            about
+          </ListGroup.Item>
+          <ListGroup.Item as={Link} to="/node/id">
+            node
+          </ListGroup.Item>
+          <ListGroup.Item as={Link} to="/node/--new--">
+            new
+          </ListGroup.Item>
+          <ListGroup.Item as={Link} to="/login">
+            login
+          </ListGroup.Item>
+          <ListGroup.Item as={Link} to="/signin">
+            signin
+          </ListGroup.Item>
+        </ListGroup>
+      </div>
     </>
   );
 }
