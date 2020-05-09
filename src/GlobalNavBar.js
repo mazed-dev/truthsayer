@@ -33,9 +33,17 @@ class SearchInputImpl extends React.Component {
     }
   };
 
+  handleSumbit = (event) => {
+    event.preventDefault();
+    this.props.history.push({
+      pathname: "/search",
+      search: queryString.stringify({ q: this.state.value }),
+    });
+  };
+
   render() {
     return (
-      <Form inline>
+      <Form inline onSubmit={this.handleSumbit}>
         <Form.Control
           aria-label="Search"
           onChange={this.handleChange}

@@ -38,13 +38,13 @@ class NodeSmallCard extends React.Component {
     const upd = this.state.upd.fromNow();
     return (
       <Card className="rounded" onClick={this.onClick}>
-        <Card.Body className="p-3 m-0">
+        <Card.Body className="px-3 py-0 pm-0">
           <div className="d-flex justify-content-center">
             <Card.Img variant="top" className="w-25 p-0 m-2" src={maze} />
           </div>
           <ReactMarkdown source={this.state.preface} />
         </Card.Body>
-        <footer className="text-muted text-right p-2">
+        <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">
           <small className="text-muted">
             <i>Updated {upd}</i>
           </small>

@@ -131,6 +131,11 @@ class TextEditor extends React.Component {
       value: this.props.value,
       height: this.getHeightForText(this.props.value),
     };
+    this.textAreaRef = React.createRef();
+  }
+
+  componentDidMount() {
+    this.textAreaRef.current.focus();
   }
 
   handleChange = (event) => {
@@ -165,6 +170,7 @@ class TextEditor extends React.Component {
             value={this.state.value}
             onChange={this.handleChange}
             style={{ height: this.state.height + "em" }}
+            ref={this.textAreaRef}
           />
         </InputGroup>
       </ExtClickDetector>
@@ -227,7 +233,7 @@ class NodeCardImpl extends React.Component {
       text: "",
       crtd: moment(), // SystemTime,
       upd: moment(), // SystemTime,
-      edit: false,
+      edit: this.isNew(),
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }

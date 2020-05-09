@@ -12,12 +12,12 @@ class TopToolBar extends React.Component {
     this.state = {
       value: this.props.value,
     };
-    this.searchCmd = React.createRef();
+    this.searchInputRef = React.createRef();
   }
 
   componentDidMount() {
     if (this.props.inFocus) {
-      this.searchCmd.current.focus();
+      this.searchInputRef.current.focus();
     }
   }
 
@@ -50,7 +50,7 @@ class TopToolBar extends React.Component {
             onChange={this.handleChange}
             value={this.state.value}
             className="meta-toptoolbar-input"
-            ref={this.searchCmd}
+            ref={this.searchInputRef}
           />
         </InputGroup>
       </Container>
