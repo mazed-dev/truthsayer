@@ -138,7 +138,7 @@ class TextEditor extends React.Component {
       value: event.target.value,
       height: this.getHeightForText(event.target.value),
     });
-    this.props.onChange(event.target.value);
+    // this.props.onChange(event.target.value);
   };
 
   getHeightForText = (txt) => {
@@ -172,68 +172,6 @@ class TextEditor extends React.Component {
   }
 }
 
-class NodeText extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      edit: false,
-      hover: false,
-    };
-  }
-
-  handleChange = (value) => {};
-
-  onEditStart = (_event) => {
-    this.setState({ edit: true });
-  };
-
-  onEditExit_ = (value) => {
-    this.setState({ edit: false });
-    this.props.onChange(value);
-  };
-
-  onHover = () => {
-    this.setState({ hover: true });
-  };
-
-  offHover = () => {
-    this.setState({ hover: false });
-  };
-
-  render() {
-    if (this.state.edit) {
-      return (
-        <TextEditor
-          value={this.props.value}
-          onExit={this.onEditExit_}
-          onChange={this.handleChange}
-        />
-      );
-    } else {
-      var edit_btn = (
-        <Button
-          variant="outline-secondary"
-          className="meta-fluid-el-top-rigth"
-          size="sm"
-          onClick={this.onEditStart}
-        >
-          &#9998;
-        </Button>
-      );
-      return (
-        <div
-          className="meta-fluid-container"
-          onMouseEnter={this.onHover}
-          onMouseLeave={this.offHover}
-        >
-          <ReactMarkdown source={this.props.value} />
-          {this.state.hover && edit_btn}
-        </div>
-      );
-    }
-  }
-}
-
 // class MarkdownToolBar extends React.Component {
 //   render() {
 //     return (
@@ -264,7 +202,7 @@ class NodeText extends React.Component {
 class NodeRefs extends React.Component {
   render() {
     return (
-      <CardColumns>
+      <CardColumns className="meta-node-refs">
         <RefNodeCard offer={true} />
         <RefNodeCard offer={true} title={"Ref"} />
         <RefNodeCard ref_txt={"Next"} />
@@ -282,15 +220,15 @@ class NodeRefs extends React.Component {
   }
 }
 
-class FullNodeView extends React.Component {
+class NodeCardImpl extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       text: "",
       crtd: moment(), // SystemTime,
       upd: moment(), // SystemTime,
+      edit: false,
     };
-    console.log("FullNodeView::constructor " + props.nid);
     this.fetchCancelToken = axios.CancelToken.source();
   }
 
@@ -315,9 +253,14 @@ class FullNodeView extends React.Component {
     this.fetchData();
   }
 
+  isNew() {
+    console.log("Is new " + this.props.nid);
+    return this.props.nid === "--new--";
+  }
+
   fetchData = () => {
     console.log("FullNodeView::fetchData " + this.props.nid);
-    if (this.props.nid !== "--new--") {
+    if (!this.isNew()) {
       axios
         .get("/node?" + queryString.stringify({ nid: this.props.nid }), {
           cancelToken: this.fetchCancelToken.token,
@@ -341,10 +284,10 @@ class FullNodeView extends React.Component {
     }
   };
 
-  _onNodeChange = (value) => {
-    console.log("FullNodeView::_onNodeChange ");
+  onEditExit_ = (value) => {
     this.setState({
       text: value,
+      edit: false,
     });
     const config = {
       headers: {
@@ -352,7 +295,7 @@ class FullNodeView extends React.Component {
       },
       cancelToken: this.fetchCancelToken.token,
     };
-    if (this.props.nid !== "--new--") {
+    if (!this.isNew()) {
       axios
         .patch(
           "/node?" + queryString.stringify({ nid: this.props.nid }),
@@ -375,31 +318,103 @@ class FullNodeView extends React.Component {
     }
   };
 
+  toggleEditMode = () => {
+    this.setState({ edit: !this.state.edit });
+  };
+
   render() {
     console.log("FullNodeView::render " + this.props.nid);
     const upd = this.state.upd.fromNow();
+    const toolbar = (
+      <ButtonGroup>
+        <Button
+          variant="outline-secondary"
+          size="sm"
+          disabled={this.state.edit}
+          onClick={this.toggleEditMode}
+        >
+          &#9998;
+        </Button>
+        <DropdownButton
+          as={ButtonGroup}
+          title="&#x22EE;&nbsp;"
+          id="bg-vertical-dropdown-1"
+          variant="outline-secondary"
+          size="sm"
+        >
+          <Dropdown.Item eventKey="1">&#x2602;</Dropdown.Item>
+          <Dropdown.Item eventKey="2">&#x263C;</Dropdown.Item>
+          <Dropdown.Item eventKey="3">&#x263D;</Dropdown.Item>
+        </DropdownButton>
+      </ButtonGroup>
+    );
+
+    var text_el;
+    if (this.state.edit) {
+      text_el = (
+        <TextEditor value={this.state.text} onExit={this.onEditExit_} />
+      );
+    } else {
+      text_el = <ReactMarkdown source={this.state.text} />;
+    }
+    return (
+      <Card className="meta-fluid-container">
+        <div className="meta-fluid-el-top-rigth">{toolbar}</div>
+        <Card.Body className="p-3">
+          <div className="d-flex justify-content-center mp-0">
+            <Card.Img variant="top" className="w-25 p-2 m-2" src={maze} />
+          </div>
+          {text_el}
+        </Card.Body>
+        <footer className="text-right m-2">
+          <small className="text-muted">
+            <i>Updated {upd}</i>
+          </small>
+        </footer>
+      </Card>
+    );
+  }
+}
+
+const NodeCard = withRouter(NodeCardImpl);
+
+class FullNodeView extends React.Component {
+  constructor(props) {
+    super(props);
+    this.fetchCancelToken = axios.CancelToken.source();
+  }
+
+  static propTypes = {
+    match: PropTypes.object.isRequired,
+    location: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired,
+  };
+
+  componentDidUpdate(prevProps) {
+    // Don't forget to compare props!
+    if (this.props.nid !== prevProps.nid) {
+      this.fetchData();
+    }
+  }
+
+  componentWillUnmount() {
+    this.fetchCancelToken.cancel("Operation canceled by the user.");
+  }
+
+  componentDidMount() {
+    this.fetchData();
+  }
+
+  fetchData = () => {};
+
+  render() {
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">
-          <Col xl={4} lg={5} md={7}>
-            <Card className="border-0">
-              <Card.Body className="p-3">
-                <div className="d-flex justify-content-center mp-0">
-                  <Card.Img variant="top" className="w-25 p-2 m-2" src={maze} />
-                </div>
-                <NodeText
-                  value={this.state.text}
-                  onChange={this._onNodeChange}
-                />
-              </Card.Body>
-              <footer className="text-right m-2">
-                <small className="text-muted">
-                  <i>Updated {upd}</i>
-                </small>
-              </footer>
-            </Card>
+          <Col xl={4} lg={6} md={8} sm={12} xs={12}>
+            <NodeCard nid={this.props.nid} />
           </Col>
-          <Col xl={6} lg={2} md={4} sm={4}>
+          <Col xl={6} lg={6} md={4} sm={8} xs={10}>
             <NodeRefs />
           </Col>
         </Row>

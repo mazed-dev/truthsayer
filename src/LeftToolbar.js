@@ -1,29 +1,10 @@
 import React from "react";
 
-import {
-  BrowserRouter as Router,
-  Link,
-  Redirect,
-  Route,
-  Switch,
-  useLocation,
-  useParams,
-} from "react-router-dom";
+import { Link } from "react-router-dom";
 
-import {
-  Card,
-  Button,
-  Container,
-  ButtonGroup,
-  ListGroup,
-  InputGroup,
-  FormControl,
-  Popover,
-  OverlayTrigger,
-} from "react-bootstrap";
+import { Container, ListGroup, InputGroup, FormControl } from "react-bootstrap";
 
 import "./LeftToolbar.css";
-import queryString from "query-string";
 
 class SearchTool extends React.Component {
   constructor(props) {
@@ -42,14 +23,6 @@ class SearchTool extends React.Component {
 
   handleChange = (event) => {
     this.setState({ value: event.target.value });
-    // if (this.props.callback !== null) {
-    //   this.props.callback(event.target.value);
-    // } else {
-    //   this.props.history.push({
-    //     pathname: "/search",
-    //     search: queryString.stringify({ q: event.target.value }),
-    //   });
-    // }
   };
 
   render() {

@@ -25,3 +25,43 @@
   right: 0;
   bottom: 0;
 }
+
+/**
+ * https://stackoverflow.com/questions/34140793/bootstrap-4-responsive-cards-in-card-columns
+ */
+/* xs */
+@media (min-width: 240px) {
+  .meta-node-refs {
+    column-count: 1;
+  }
+}
+/* sm */
+@media (min-width: 576px) {
+  .meta-node-refs {
+    column-count: 1;
+  }
+}
+/* md */
+@media (min-width: 768px) {
+  .meta-node-refs {
+    column-count: 1;
+  }
+}
+/* lg */
+@media (min-width: 992px) {
+  .meta-node-refs {
+    column-count: 2;
+  }
+}
+/* xl */
+@media (min-width: 1200px) {
+  .meta-node-refs {
+    column-count: 3;
+  }
+}
+/* xxl */
+@media (min-width: 2000px) {
+  .meta-node-refs {
+    column-count: 4;
+  }
+}

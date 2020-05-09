@@ -1,30 +1,9 @@
 import React from "react";
 
 // React router
-import {
-  BrowserRouter as Router,
-  Link,
-  Redirect,
-  Route,
-  Switch,
-  useLocation,
-  useParams,
-} from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
-import "./App.css";
-
-import {
-  Button,
-  ButtonGroup,
-  Card,
-  Container,
-  Form,
-  FormControl,
-  ListGroup,
-  Nav,
-  Navbar,
-  NavDropdown,
-} from "react-bootstrap";
+import { Form, Nav, NavDropdown, Navbar } from "react-bootstrap";
 
 import queryString from "query-string";
 import { withRouter } from "react-router-dom";
