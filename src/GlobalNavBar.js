@@ -23,11 +23,13 @@ import {
   ListGroup,
   Nav,
   Navbar,
+  NavDropdown,
 } from "react-bootstrap";
 
 import queryString from "query-string";
+import { withRouter } from "react-router-dom";
 
-class SearchInput extends React.Component {
+class SearchInputImpl extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -47,7 +49,7 @@ class SearchInput extends React.Component {
     if (event.target.value.length > 2) {
       this.props.history.push({
         pathname: "/search",
-        search: queryString.stringify({ q: eventq.target.value }),
+        search: queryString.stringify({ q: event.target.value }),
       });
     }
   };
@@ -68,34 +70,53 @@ class SearchInput extends React.Component {
   }
 }
 
-SearchInput.defaultProps = {
+SearchInputImpl.defaultProps = {
   callback: null,
   value: "",
 };
 
+const SearchInput = withRouter(SearchInputImpl);
+
 function GlobalNavBar() {
-        // <Nav.Link as={Link} to="/">search</Nav.Link>
-        // <Nav.Link as={Link} to="/node/id">node</Nav.Link>
   return (
     <Navbar bg="light" variant="light" size="sm" className="pt-0 pb-1">
-      <Navbar.Brand as={Link} to="/">Mazer</Navbar.Brand>
+      <Navbar.Brand as={Link} to="/">
+        Knotledge
+      </Navbar.Brand>
+      <SearchInput className="ml-auto" />
       <Nav>
-        <Nav.Link as={Link} to="/node/--new--">new</Nav.Link>
-        <Nav.Link as={Link} to="/thread">thread</Nav.Link>
+        <Nav.Link as={Link} to="/node/--new--">
+          + new
+        </Nav.Link>
       </Nav>
-      <SearchInput  className="ml-auto"/>
-      <Nav className="ml-auto">
-        <Nav.Link as={Link} to="/about">about</Nav.Link>
-        <Nav.Link as={Link} to="/account">account</Nav.Link>
-        <Nav.Link as={Link} to="/login">login</Nav.Link>
-        <Nav.Link as={Link} to="/logout">logout</Nav.Link>
-        <Nav.Link as={Link} to="/signin">Signin</Nav.Link>
-      </Nav>
+      <NavDropdown
+        title="&#9881; john@abc"
+        id="account-nav-dropdown"
+        className="ml-auto"
+      >
+        <NavDropdown.Item as={Link} to="/account">
+          Manage your account
+        </NavDropdown.Item>
+        <NavDropdown.Item as={Link} to="/setting">
+          Settings
+        </NavDropdown.Item>
+        <NavDropdown.Divider />
+        <NavDropdown.Item as={Link} to="/about">
+          About knotledge
+        </NavDropdown.Item>
+        <NavDropdown.Item as={Link} to="/privacy-policy">
+          Privacy Policy
+        </NavDropdown.Item>
+        <NavDropdown.Item as={Link} to="/terms-of-service">
+          Terms of Service
+        </NavDropdown.Item>
+        <NavDropdown.Divider />
+        <NavDropdown.Item as={Link} to="/logout">
+          log out
+        </NavDropdown.Item>
+      </NavDropdown>
     </Navbar>
   );
 }
-      // <Form inline>
-      //   <Form.Control type="text" placeholder="Search" size="sm" className="mr-sm-2" />
-      // </Form>
 
 export default withRouter(GlobalNavBar);

@@ -302,24 +302,16 @@ class NodeTextEditor extends React.Component {
 
   componentDidUpdate(prevProps) {
     // Don't forget to compare props!
-    console.log(
-      "NodeTextEditor::componentDidUpdate " +
-        this.props.nid +
-        ", pref: " +
-        prevProps.nid
-    );
     if (this.props.nid !== prevProps.nid) {
       this.fetchData();
     }
   }
 
   componentWillUnmount() {
-    console.log("NodeTextEditor::componentWillUnmount " + this.props.nid);
     this.fetchCancelToken.cancel("Operation canceled by the user.");
   }
 
   componentDidMount() {
-    console.log("NodeTextEditor::componentDidMount " + this.props.nid);
     this.fetchData();
   }
 

@@ -2,7 +2,7 @@ import React from "react";
 
 import logo from "./logo.svg";
 import NodeTextEditor from "./NodeTextEditor";
-import SearchView from "./SearchView";
+import SearchGrid from "./SearchGrid";
 
 // React router
 import {
@@ -24,6 +24,8 @@ import {
   ButtonGroup,
   ListGroup,
 } from "react-bootstrap";
+
+import queryString from "query-string";
 
 import LeftToolbar from "./LeftToolbar";
 import GlobalNavBar from "./GlobalNavBar";
@@ -178,13 +180,13 @@ function NodeView() {
   // We can use the `useParams` hook here to access
   // the dynamic pieces of the URL.
   let { id } = useParams();
-  console.log("NodeView " + id);
-  // <TopToolBar inFocus={false} />
-  return (
-    <>
-      <NodeTextEditor nid={id} />
-    </>
-  );
+  return <NodeTextEditor nid={id} />;
+}
+
+function SearchView() {
+  const location = useLocation();
+  const params = queryString.parse(location.search);
+  return <SearchGrid q={params.q} />;
 }
 
 function NoMatch() {

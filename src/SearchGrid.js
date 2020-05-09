@@ -12,7 +12,7 @@ import TopToolBar from "./TopToolBar";
 
 import remoteErrorHandler from "./remoteErrorHandler";
 
-class SearchView extends React.Component {
+class SearchGrid extends React.Component {
   static propTypes = {
     match: PropTypes.object.isRequired,
     location: PropTypes.object.isRequired,
@@ -21,31 +21,32 @@ class SearchView extends React.Component {
 
   constructor(props) {
     super(props);
-    const params = queryString.parse(this.props.location.search);
     this.state = {
-      q: params.q,
       nodes: [],
     };
+    this.fetchCancelToken = axios.CancelToken.source();
   }
-
-  handleChange = (q) => {
-    this.setState({ q: q });
-    if (q.length > 2) {
-      this.props.history.push({
-        pathname: "/search",
-        search: queryString.stringify({ q: q }),
-      });
-      this.fetchData(q);
-    }
-  };
 
   componentDidMount() {
-    this.fetchData(this.state.q);
+    this.fetchData();
   }
 
-  fetchData = (q) => {
+  componentDidUpdate(prevProps) {
+    if (this.props.q !== prevProps.q) {
+      this.fetchData();
+    }
+  }
+
+  componentWillUnmount() {
+    this.fetchCancelToken.cancel("Operation canceled by the user.");
+  }
+
+  fetchData = () => {
+    const q = this.props.q;
     axios
-      .get("/node/search?" + queryString.stringify({ q: q }))
+      .get("/node/search?" + queryString.stringify({ q: q }), {
+        cancelToken: this.fetchCancelToken.token,
+      })
       .then((res) => {
         this.setState({ nodes: res.data.nodes });
       })
@@ -64,19 +65,12 @@ class SearchView extends React.Component {
         />
       );
     });
-      // <>
-      //   <TopToolBar
-      //     callback={this.handleChange}
-      //     value={this.state.q}
-      //     inFocus={true}
-      //   />
     return (
       <Container>
         <CardColumns>{cards}</CardColumns>
       </Container>
     );
-      // </>
   }
 }
 
-export default withRouter(SearchView);
+export default withRouter(SearchGrid);
