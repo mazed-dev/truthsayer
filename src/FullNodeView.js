@@ -1,6 +1,6 @@
 import React from "react";
 
-import "./NodeTextEditor.css";
+import "./FullNodeView.css";
 
 import NodeSmallCard from "./NodeSmallCard";
 
@@ -282,7 +282,7 @@ class NodeRefs extends React.Component {
   }
 }
 
-class NodeTextEditor extends React.Component {
+class FullNodeView extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -290,7 +290,7 @@ class NodeTextEditor extends React.Component {
       crtd: moment(), // SystemTime,
       upd: moment(), // SystemTime,
     };
-    console.log("NodeTextEditor::constructor " + props.nid);
+    console.log("FullNodeView::constructor " + props.nid);
     this.fetchCancelToken = axios.CancelToken.source();
   }
 
@@ -316,7 +316,7 @@ class NodeTextEditor extends React.Component {
   }
 
   fetchData = () => {
-    console.log("NodeTextEditor::fetchData " + this.props.nid);
+    console.log("FullNodeView::fetchData " + this.props.nid);
     if (this.props.nid !== "--new--") {
       axios
         .get("/node?" + queryString.stringify({ nid: this.props.nid }), {
@@ -342,7 +342,7 @@ class NodeTextEditor extends React.Component {
   };
 
   _onNodeChange = (value) => {
-    console.log("NodeTextEditor::_onNodeChange ");
+    console.log("FullNodeView::_onNodeChange ");
     this.setState({
       text: value,
     });
@@ -376,7 +376,7 @@ class NodeTextEditor extends React.Component {
   };
 
   render() {
-    console.log("NodeTextEditor::render " + this.props.nid);
+    console.log("FullNodeView::render " + this.props.nid);
     const upd = this.state.upd.fromNow();
     return (
       <Container fluid>
@@ -408,4 +408,4 @@ class NodeTextEditor extends React.Component {
   }
 }
 
-export default withRouter(NodeTextEditor);
+export default withRouter(FullNodeView);

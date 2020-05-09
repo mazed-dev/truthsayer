@@ -1,7 +1,7 @@
 import React from "react";
 
 import logo from "./logo.svg";
-import NodeTextEditor from "./NodeTextEditor";
+import FullNodeView from "./FullNodeView";
 import SearchGrid from "./SearchGrid";
 
 // React router
@@ -47,11 +47,11 @@ class App extends React.Component {
     if (authenticated) {
       return <PrivateApp />;
     }
-    return <HelloApp />;
+    return <HelloWorldApp />;
   }
 }
 
-class HelloApp extends React.Component {
+class HelloWorldApp extends React.Component {
   render() {
     return (
       <Container fluid>
@@ -60,10 +60,10 @@ class HelloApp extends React.Component {
             <LeftSideBarMenu />
             <Switch>
               <Route exact path="/">
-                <SearchView q={""} />
+                <SearchView />
               </Route>
               <Route exact path="/search">
-                <SearchView q={""} />
+                <SearchView />
               </Route>
               <Route path="/node/:id">
                 <NodeView />
@@ -180,25 +180,13 @@ function NodeView() {
   // We can use the `useParams` hook here to access
   // the dynamic pieces of the URL.
   let { id } = useParams();
-  return <NodeTextEditor nid={id} />;
+  return <FullNodeView nid={id} />;
 }
 
 function SearchView() {
   const location = useLocation();
   const params = queryString.parse(location.search);
   return <SearchGrid q={params.q} />;
-}
-
-function NoMatch() {
-  let location = useLocation();
-
-  return (
-    <div>
-      <h3>
-        No match for <code>{location.pathname}</code>
-      </h3>
-    </div>
-  );
 }
 
 function LeftSideBarMenu() {
