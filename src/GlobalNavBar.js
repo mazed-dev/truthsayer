@@ -33,7 +33,7 @@ class SearchInputImpl extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      value: this.props.value,
+      value: this.props.from,
     };
     this.searchCmd = React.createRef();
   }
@@ -72,18 +72,24 @@ class SearchInputImpl extends React.Component {
 
 SearchInputImpl.defaultProps = {
   callback: null,
-  value: "",
+  from: "",
 };
 
 const SearchInput = withRouter(SearchInputImpl);
 
 function GlobalNavBar() {
+  const location = useLocation();
+  const params = queryString.parse(location.search);
+  var q = params["q"];
+  if (!q) {
+    q = "";
+  }
   return (
     <Navbar bg="light" variant="light" size="sm" className="pt-0 pb-1">
       <Navbar.Brand as={Link} to="/">
         Knotledge
       </Navbar.Brand>
-      <SearchInput className="ml-auto" />
+      <SearchInput className="ml-auto" from={q} />
       <Nav>
         <Nav.Link as={Link} to="/node/--new--">
           + new
