@@ -16,7 +16,7 @@ import {
   Button,
   ButtonGroup,
   InputGroup,
-  FormControl,
+  Form,
   Container,
   Row,
   Col,
@@ -163,7 +163,7 @@ class TextEditor extends React.Component {
     return (
       <ExtClickDetector callback={this._onExit}>
         <InputGroup>
-          <FormControl
+          <Form.Control
             as="textarea"
             aria-label="With textarea"
             className="border-0"
@@ -205,10 +205,29 @@ class TextEditor extends React.Component {
 //   }
 // }
 
+class AddRefToolkit extends React.Component {
+  render() {
+    return (
+      <Card className="rounded">
+        <InputGroup className="p-0">
+          <InputGroup.Prepend className="mx-2">&#x1f50d;</InputGroup.Prepend>
+          <Form.Control aria-describedby="basic-addon1" size="sm" />
+          <InputGroup.Append>
+            <Button variant="outline-secondary" size="sm">
+              +
+            </Button>
+          </InputGroup.Append>
+        </InputGroup>
+      </Card>
+    );
+  }
+}
+
 class NodeRefs extends React.Component {
   render() {
     return (
       <CardColumns className="meta-node-refs">
+        <AddRefToolkit />
         <RefNodeCard offer={true} />
         <RefNodeCard offer={true} title={"Ref"} />
         <RefNodeCard ref_txt={"Next"} />
