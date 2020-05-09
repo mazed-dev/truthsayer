@@ -1,0 +1,39 @@
+/**
+ * https://stackoverflow.com/questions/34140793/bootstrap-4-responsive-cards-in-card-columns
+ */
+/* xs */
+@media (min-width: 240px) {
+  .meta-search-card-columns {
+    column-count: 1;
+  }
+}
+/* sm */
+@media (min-width: 576px) {
+  .meta-search-card-columns {
+    column-count: 2;
+  }
+}
+/* md */
+@media (min-width: 768px) {
+  .meta-search-card-columns {
+    column-count: 3;
+  }
+}
+/* lg */
+@media (min-width: 992px) {
+  .meta-search-card-columns {
+    column-count: 4;
+  }
+}
+/* xl */
+@media (min-width: 1200px) {
+  .meta-search-card-columns {
+    column-count: 6;
+  }
+}
+/* xxl */
+@media (min-width: 2000px) {
+  .meta-search-card-columns {
+    column-count: 8;
+  }
+}

@@ -1,6 +1,8 @@
 import React from "react";
 import { withRouter } from "react-router-dom";
 
+import "./SearchGrid.css";
+
 import axios from "axios";
 import PropTypes from "prop-types";
 import queryString from "query-string";
@@ -8,7 +10,6 @@ import queryString from "query-string";
 import { Container, CardColumns } from "react-bootstrap";
 
 import NodeSmallCard from "./NodeSmallCard";
-import TopToolBar from "./TopToolBar";
 
 import remoteErrorHandler from "./remoteErrorHandler";
 
@@ -66,8 +67,8 @@ class SearchGrid extends React.Component {
       );
     });
     return (
-      <Container>
-        <CardColumns>{cards}</CardColumns>
+      <Container fluid>
+        <CardColumns className="meta-search-card-columns">{cards}</CardColumns>
       </Container>
     );
   }
