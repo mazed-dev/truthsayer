@@ -24,6 +24,10 @@ function remoteErrorHandler(history) {
         history.push({
           pathname: "/login",
         });
+      } else if (HttpStatus.NOT_FOUND === error.response.status) {
+        history.push({
+          pathname: "/search",
+        });
       }
     }
   };

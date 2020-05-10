@@ -57,7 +57,7 @@ class RefNodeCardImpl extends React.Component {
   }
 
   componentWillUnmount() {
-    this.fetchCancelToken.cancel("Operation canceled by the user.");
+    this.fetchCancelToken.cancel();
   }
 
   fetchData = () => {
@@ -260,7 +260,7 @@ class SearchNewRefToolkitImpl extends React.Component {
   }
 
   componentWillUnmount() {
-    this.fetchCancelToken.cancel("Operation canceled by the user.");
+    this.fetchCancelToken.cancel();
   }
 
   handleChange = (event) => {
@@ -289,106 +289,84 @@ class SearchNewRefToolkitImpl extends React.Component {
       .catch(remoteErrorHandler(this.props.history));
   };
 
-  handleNextClick = () => {};
+  handleNextClick = () => {
+    this.props.history.push("/node/--new--", {
+      from: this.props.from_nid,
+    });
+  };
 
   render() {
     // Flashlight: &#x1F526;
     return (
-      <InputGroup className="p-0">
-        <InputGroup.Prepend>
-          <Button variant="outline-secondary" onClick={this.handleSumbit}>
-            <span role="img" aria-label="next">
-              &#x1F50E; &#x2b;
-            </span>
-          </Button>
-        </InputGroup.Prepend>
-        <Form.Control
-          aria-label="Search-to-link"
-          aria-describedby="basic-addon1"
-          onChange={this.handleChange}
-          onSubmit={this.handleSumbit}
-          value={this.state.search_value}
-          placeholder="Search to offer"
-        />
-      </InputGroup>
+      <Card className="rounded">
+        <InputGroup className="p-0">
+          <InputGroup.Prepend>
+            <Button variant="outline-secondary" onClick={this.handleNextClick}>
+              <span role="img" aria-label="next">
+                &#x2192; &#x2b;
+              </span>
+            </Button>
+          </InputGroup.Prepend>
+          <Form.Control
+            aria-label="Search-to-link"
+            aria-describedby="basic-addon1"
+            onChange={this.handleChange}
+            onSubmit={this.handleSumbit}
+            value={this.state.search_value}
+            placeholder="Search to offer"
+          />
+        </InputGroup>
+      </Card>
     );
   }
 }
 const SearchNewRefToolkit = withRouter(SearchNewRefToolkitImpl);
-
-class AddNextRefToolkitImpl extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      value: "Next",
-    };
-    this.fetchCancelToken = axios.CancelToken.source();
-  }
-
-  componentWillUnmount() {
-    this.fetchCancelToken.cancel("Operation canceled by the user.");
-  }
-
-  handleChange = (event) => {
-    const value = event.target.value;
-    this.setState({ value: value });
-  };
-
-  handleSumbit = (event) => {
-    event.preventDefault();
-    // const req = {
-    //   from_nid: ,
-    //   to_nid: ,
-    //   txt: this.state.value,
-    //   weight: 128,
-    // };
-    // axios
-    //   .post("/edge", value, config)
-    //   .catch(remoteErrorHandler(this.props.history))
-    //   .then((res) => {
-    //     if (res) {
-    //       this.props.history.push({
-    //         pathname: "/node/" + res.data.nid,
-    //       });
-    //     }
-    //   });
-  };
-
-  render() {
-    return (
-      <InputGroup className="p-0">
-        <InputGroup.Prepend>
-          <Button variant="outline-secondary" onClick={this.handleSumbit}>
-            <span role="img" aria-label="next">
-              &#x2192; &#x2b;
-            </span>
-          </Button>
-        </InputGroup.Prepend>
-        <Form.Control
-          aria-label="Search-to-link"
-          aria-describedby="basic-addon1"
-          onChange={this.handleChange}
-          onSubmit={this.handleSumbit}
-          value={this.state.value}
-        />
-      </InputGroup>
-    );
-  }
-}
-const AddNextRefToolkit = withRouter(AddNextRefToolkitImpl);
 
 class NodeRefs extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       offers: [],
-      refs_from: [],
-      refs_to: [],
+      refs: [],
     };
+    this.fetchCancelToken = axios.CancelToken.source();
   }
 
+  componentDidMount() {
+    this.fetchData();
+  }
+
+  componentWillUnmount() {
+    this.fetchCancelToken.cancel();
+  }
+
+  componentDidUpdate(prevProps) {
+    // Don't forget to compare props!
+    if (this.props.from_nid !== prevProps.from_nid) {
+      this.fetchData();
+    }
+  }
+
+  fetchData = () => {
+    axios
+      .get(
+        "/edge/star?" + queryString.stringify({ nid: this.props.from_nid }),
+        {
+          cancelToken: this.fetchCancelToken.token,
+        }
+      )
+      .catch(remoteErrorHandler(this.props.history))
+      .then((res) => {
+        console.log(res);
+        if (res) {
+          this.setState({
+            refs: res.data.edges,
+          });
+        }
+      });
+  };
+
   addOffersCallback = (nodes) => {
-    console.log("NodeRefs::addOffersCallback for " + nodes.length);
     this.setState({
       offers: nodes.map((meta) => {
         return {
@@ -411,35 +389,33 @@ class NodeRefs extends React.Component {
         />
       );
     });
-    const refs_from = this.state.refs_from.map((item) => {
+    const refs = this.state.refs.map((item) => {
+      var to_nid, txt;
+      if (this.props.from_nid == item.to_nid) {
+        to_nid = item.from_nid;
+        txt = "<- prev";
+      } else {
+        to_nid = item.to_nid;
+        txt = "next ->";
+      }
       return (
         <RefNodeCard
-          nid={item.nid}
+          eid={item.eid}
+          nid={to_nid}
           from_nid={this.props.from_nid}
-          ref_txt={item.txt}
-          key={hash.sha1(item)}
-        />
-      );
-    });
-    const refs_to = this.state.refs_to.map((item) => {
-      return (
-        <RefNodeCard
-          nid={item.nid}
-          from_nid={this.props.from_nid}
-          ref_txt={item.txt}
+          ref_txt={txt}
           key={hash.sha1(item)}
         />
       );
     });
     return (
       <CardColumns className="meta-node-refs">
-        <Card className="rounded">
-          <AddNextRefToolkit from_nid={this.props.from_nid} />
-          <SearchNewRefToolkit offers_callback={this.addOffersCallback} />
-        </Card>
+        <SearchNewRefToolkit
+          from_nid={this.props.from_nid}
+          offers_callback={this.addOffersCallback}
+        />
         {offers}
-        {refs_from}
-        {refs_to}
+        {refs}
       </CardColumns>
     );
   }
@@ -471,7 +447,7 @@ class NodeCardImpl extends React.Component {
   }
 
   componentWillUnmount() {
-    this.fetchCancelToken.cancel("Operation canceled by the user.");
+    this.fetchCancelToken.cancel();
   }
 
   componentDidMount() {
@@ -479,12 +455,10 @@ class NodeCardImpl extends React.Component {
   }
 
   isNew() {
-    console.log("Is new " + this.props.nid);
     return this.props.nid === "--new--";
   }
 
   fetchData = () => {
-    console.log("FullNodeView::fetchData " + this.props.nid);
     if (!this.isNew()) {
       axios
         .get("/node?" + queryString.stringify({ nid: this.props.nid }), {
@@ -505,6 +479,7 @@ class NodeCardImpl extends React.Component {
         text: "",
         crtd: moment(),
         upd: moment(),
+        edit: true,
       });
     }
   };
@@ -535,9 +510,32 @@ class NodeCardImpl extends React.Component {
         .catch(remoteErrorHandler(this.props.history))
         .then((res) => {
           if (res) {
-            this.props.history.push({
-              pathname: "/node/" + res.data.nid,
-            });
+            const nid = res.data.nid;
+            if (this.props.location.state.from) {
+              // That means we have to add an edge
+              const req = {
+                from_nid: parseInt(this.props.location.state.from),
+                to_nid: parseInt(nid),
+                txt: "next",
+                weight: 100,
+              };
+              axios
+                .post("/edge", req, {
+                  cancelToken: this.fetchCancelToken.token,
+                })
+                .catch(remoteErrorHandler(this.props.history))
+                .then((res) => {
+                  if (res) {
+                    this.props.history.push({
+                      pathname: "/node/" + nid,
+                    });
+                  }
+                });
+            } else {
+              this.props.history.push({
+                pathname: "/node/" + nid,
+              });
+            }
           }
         });
     }
@@ -608,11 +606,11 @@ class FullNodeView extends React.Component {
     this.fetchCancelToken = axios.CancelToken.source();
   }
 
-  static propTypes = {
-    match: PropTypes.object.isRequired,
-    location: PropTypes.object.isRequired,
-    history: PropTypes.object.isRequired,
-  };
+  //  static propTypes = {
+  //    match: PropTypes.object.isRequired,
+  //    location: PropTypes.object.isRequired,
+  //    history: PropTypes.object.isRequired,
+  //  };
 
   componentDidUpdate(prevProps) {
     // Don't forget to compare props!
@@ -622,7 +620,7 @@ class FullNodeView extends React.Component {
   }
 
   componentWillUnmount() {
-    this.fetchCancelToken.cancel("Operation canceled by the user.");
+    this.fetchCancelToken.cancel();
   }
 
   componentDidMount() {
