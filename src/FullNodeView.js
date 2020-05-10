@@ -32,11 +32,57 @@ import axios from "axios";
 import moment from "moment";
 import queryString from "query-string";
 
-class RefNodeCard extends React.Component {
+const hash = require("object-hash");
+
+class RefNodeCardImpl extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { ref_txt: this.props.ref_txt, hover: false };
+    this.state = {
+      hover: false,
+      preface: "",
+      crtd: moment().unix(),
+      upd: moment().unix(),
+    };
+    this.fetchCancelToken = axios.CancelToken.source();
   }
+
+  componentDidMount() {
+    this.fetchData();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.nid !== prevProps.nid) {
+      this.fetchData();
+    }
+  }
+
+  componentWillUnmount() {
+    this.fetchCancelToken.cancel("Operation canceled by the user.");
+  }
+
+  fetchData = () => {
+    axios
+      .get(
+        "/node?" +
+          queryString.stringify({
+            nid: this.props.nid,
+            preview: true,
+          }),
+        {
+          cancelToken: this.fetchCancelToken.token,
+        }
+      )
+      .catch(remoteErrorHandler(this.props.history))
+      .then((res) => {
+        if (res) {
+          this.setState({
+            preface: res.data,
+            crtd: moment(res.headers["x-created-at"]).unix(),
+            upd: moment(res.headers["last-modified"]).unix(),
+          });
+        }
+      });
+  };
 
   onHover = () => {
     this.setState({ hover: true });
@@ -49,7 +95,7 @@ class RefNodeCard extends React.Component {
   render() {
     const title_el = (
       <Button variant="outline-danger" size="sm">
-        {this.state.ref_txt}
+        {this.props.ref_txt}
       </Button>
     );
     var toolbar = title_el;
@@ -94,14 +140,21 @@ class RefNodeCard extends React.Component {
         onMouseEnter={this.onHover}
         onMouseLeave={this.offHover}
       >
-        <NodeSmallCard />
+        <NodeSmallCard
+          nid={this.props.nid}
+          preface={this.state.preface}
+          crtd={this.state.crtd}
+          upd={this.state.upd}
+        />
         <div className="meta-fluid-el-top-left">{toolbar}</div>
       </div>
     );
   }
 }
 
-RefNodeCard.defaultProps = { offer: false, ref_txt: "..." };
+RefNodeCardImpl.defaultProps = { offer: false };
+
+const RefNodeCard = withRouter(RefNodeCardImpl);
 
 class ExtClickDetector extends React.Component {
   constructor(props) {
@@ -178,68 +231,182 @@ class TextEditor extends React.Component {
   }
 }
 
-// class MarkdownToolBar extends React.Component {
-//   render() {
-//     return (
-//       <ButtonGroup vertical>
-//         <Button variant="light">
-//           <span role="img" aria-label="Link">
-//             &#128279;
-//           </span>
-//         </Button>
-//         <Button variant="light">&#x2381;</Button>
-//         <Button variant="light">H2</Button>
-//         <Button variant="light">H3</Button>
-//         <DropdownButton
-//           as={ButtonGroup}
-//           title="H2"
-//           id="bg-vertical-dropdown-1"
-//           variant="light"
-//         >
-//           <Dropdown.Item eventKey="1">H1</Dropdown.Item>
-//           <Dropdown.Item eventKey="2">H2</Dropdown.Item>
-//           <Dropdown.Item eventKey="3">H3</Dropdown.Item>
-//         </DropdownButton>
-//       </ButtonGroup>
-//     );
-//   }
-// }
+class SearchNewRefToolkitImpl extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      search_value: "",
+    };
+    // this.props.offers_callback
+    this.fetchCancelToken = axios.CancelToken.source();
+  }
 
-class AddRefToolkit extends React.Component {
+  componentWillUnmount() {
+    this.fetchCancelToken.cancel("Operation canceled by the user.");
+  }
+
+  handleChange = (event) => {
+    const q = event.target.value;
+    this.setState({ search_value: q });
+    if (q.length > 2) {
+      this.fetchData(q);
+    }
+  };
+
+  handleSumbit = (event) => {
+    event.preventDefault();
+    this.fetchData(this.state.search_value);
+  };
+
+  fetchData = (q) => {
+    axios
+      .get("/node/search?" + queryString.stringify({ q: q }), {
+        cancelToken: this.fetchCancelToken.token,
+      })
+      .then((res) => {
+        if (res) {
+          this.props.offers_callback(res.data.nodes);
+        }
+      })
+      .catch(remoteErrorHandler(this.props.history));
+  };
+
+  handleNextClick = () => {};
+
   render() {
+    // Flashlight: &#x1F526;
     return (
-      <Card className="rounded">
-        <InputGroup className="p-0">
-          <InputGroup.Prepend className="mx-2">&#x1f50d;</InputGroup.Prepend>
-          <Form.Control aria-describedby="basic-addon1" size="sm" />
-          <InputGroup.Append>
-            <Button variant="outline-secondary" size="sm">
-              +
-            </Button>
-          </InputGroup.Append>
-        </InputGroup>
-      </Card>
+      <InputGroup className="p-0">
+        <InputGroup.Prepend>
+          <Button variant="outline-secondary" onClick={this.handleSumbit}>
+            <span role="img" aria-label="next">
+              &#x1F50E; &#x2b;
+            </span>
+          </Button>
+        </InputGroup.Prepend>
+        <Form.Control
+          aria-label="Search-to-link"
+          aria-describedby="basic-addon1"
+          onChange={this.handleChange}
+          onSubmit={this.handleSumbit}
+          value={this.state.search_value}
+          placeholder="Search to offer"
+        />
+      </InputGroup>
     );
   }
 }
+const SearchNewRefToolkit = withRouter(SearchNewRefToolkitImpl);
 
-class NodeRefs extends React.Component {
+class AddNextRefToolkitImpl extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      value: "Next",
+    };
+    this.fetchCancelToken = axios.CancelToken.source();
+  }
+
+  componentWillUnmount() {
+    this.fetchCancelToken.cancel("Operation canceled by the user.");
+  }
+
+  handleChange = (event) => {
+    const value = event.target.value;
+    this.setState({ value: value });
+  };
+
+  handleSumbit = (event) => {
+    event.preventDefault();
+  };
+
   render() {
     return (
+      <InputGroup className="p-0">
+        <InputGroup.Prepend>
+          <Button variant="outline-secondary" onClick={this.handleNextClick}>
+            <span role="img" aria-label="next">
+              &#x2192; &#x2b;
+            </span>
+          </Button>
+        </InputGroup.Prepend>
+        <Form.Control
+          aria-label="Search-to-link"
+          aria-describedby="basic-addon1"
+          onChange={this.handleChange}
+          onSubmit={this.handleSumbit}
+          value={this.state.value}
+        />
+      </InputGroup>
+    );
+  }
+}
+const AddNextRefToolkit = withRouter(AddNextRefToolkitImpl);
+
+class NodeRefs extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      offers: [
+        { nid: 13, txt: "Offer" },
+        { nid: 9, txt: "Offer" },
+        { nid: 23, txt: "Offer" },
+      ],
+      refs_from: [
+        { nid: 13, txt: "Next" },
+        { nid: 9, txt: "Next" },
+        { nid: 23, txt: "Next" },
+      ],
+      refs_to: [
+        { nid: 13, txt: "Prev" },
+        { nid: 9, txt: "Prev" },
+        { nid: 23, txt: "Prev" },
+      ],
+    };
+  }
+
+  addOffersCallback = (nodes) => {
+    console.log("NodeRefs::addOffersCallback for " + nodes.length);
+    this.setState({
+      offers: nodes.map((meta) => {
+        return {
+          nid: meta.nid,
+          txt: "Link",
+        };
+      }),
+    });
+  };
+
+  render() {
+    const offers = this.state.offers.map((item) => {
+      return (
+        <RefNodeCard
+          nid={item.nid}
+          offer={true}
+          ref_txt={item.txt}
+          key={hash.sha1(item)}
+        />
+      );
+    });
+    const refs_from = this.state.refs_from.map((item) => {
+      return (
+        <RefNodeCard nid={item.nid} ref_txt={item.txt} key={hash.sha1(item)} />
+      );
+    });
+    const refs_to = this.state.refs_to.map((item) => {
+      return (
+        <RefNodeCard nid={item.nid} ref_txt={item.txt} key={hash.sha1(item)} />
+      );
+    });
+    return (
       <CardColumns className="meta-node-refs">
-        <AddRefToolkit />
-        <RefNodeCard offer={true} />
-        <RefNodeCard offer={true} title={"Ref"} />
-        <RefNodeCard ref_txt={"Next"} />
-        <RefNodeCard ref_txt={"Data"} />
-        <RefNodeCard ref_txt={"Link"} />
-        <RefNodeCard ref_txt={"Any of the available button style"} />
-        <RefNodeCard ref_txt={"Source"} />
-        <RefNodeCard ref_txt={"Ref"} />
-        <RefNodeCard ref_txt={"Ref"} />
-        <RefNodeCard ref_txt={"Ref"} />
-        <RefNodeCard ref_txt={"Ref"} />
-        <RefNodeCard ref_txt={"Ref"} />
+        <Card className="rounded">
+          <AddNextRefToolkit />
+          <SearchNewRefToolkit offers_callback={this.addOffersCallback} />
+        </Card>
+        {offers}
+        {refs_from}
+        {refs_to}
       </CardColumns>
     );
   }
@@ -348,7 +515,6 @@ class NodeCardImpl extends React.Component {
   };
 
   render() {
-    console.log("FullNodeView::render " + this.props.nid);
     const upd = this.state.upd.fromNow();
     const toolbar = (
       <ButtonGroup>

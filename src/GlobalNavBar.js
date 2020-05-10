@@ -79,7 +79,10 @@ function GlobalNavBar() {
       <SearchInput className="ml-auto" from={q} />
       <Nav>
         <Nav.Link as={Link} to="/node/--new--">
-          + new
+          new
+          <span role="img" aria-label="next">
+            &#x2192;
+          </span>
         </Nav.Link>
       </Nav>
       <NavDropdown

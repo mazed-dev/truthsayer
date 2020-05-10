@@ -13,6 +13,7 @@
     "http-status-codes": "^1.4.0",
     "local-storage": "^2.0.0",
     "moment": "^2.24.0",
+    "object-hash": "^2.0.3",
     "react": "^16.13.1",
     "react-bootstrap": "^1.0.0",
     "react-dom": "^16.13.1",
