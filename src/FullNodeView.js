@@ -92,6 +92,24 @@ class RefNodeCardImpl extends React.Component {
     this.setState({ hover: false });
   };
 
+  linkOffer = () => {
+    const req = {
+      from_nid: parseInt(this.props.from_nid),
+      to_nid: parseInt(this.props.nid),
+      txt: this.props.ref_txt,
+      weight: 100,
+    };
+    axios
+      .post("/edge", req, {
+        cancelToken: this.fetchCancelToken.token,
+      })
+      .catch(remoteErrorHandler(this.props.history))
+      .then((res) => {
+        if (res) {
+        }
+      });
+  };
+
   render() {
     const title_el = (
       <Button variant="outline-danger" size="sm">
@@ -102,7 +120,7 @@ class RefNodeCardImpl extends React.Component {
     if (this.props.offer) {
       toolbar = (
         <ButtonGroup>
-          <Button variant="outline-success" size="sm">
+          <Button variant="outline-success" size="sm" onClick={this.linkOffer}>
             &#43;
           </Button>
           {title_el}
@@ -318,13 +336,29 @@ class AddNextRefToolkitImpl extends React.Component {
 
   handleSumbit = (event) => {
     event.preventDefault();
+    // const req = {
+    //   from_nid: ,
+    //   to_nid: ,
+    //   txt: this.state.value,
+    //   weight: 128,
+    // };
+    // axios
+    //   .post("/edge", value, config)
+    //   .catch(remoteErrorHandler(this.props.history))
+    //   .then((res) => {
+    //     if (res) {
+    //       this.props.history.push({
+    //         pathname: "/node/" + res.data.nid,
+    //       });
+    //     }
+    //   });
   };
 
   render() {
     return (
       <InputGroup className="p-0">
         <InputGroup.Prepend>
-          <Button variant="outline-secondary" onClick={this.handleNextClick}>
+          <Button variant="outline-secondary" onClick={this.handleSumbit}>
             <span role="img" aria-label="next">
               &#x2192; &#x2b;
             </span>
@@ -347,21 +381,9 @@ class NodeRefs extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      offers: [
-        { nid: 13, txt: "Offer" },
-        { nid: 9, txt: "Offer" },
-        { nid: 23, txt: "Offer" },
-      ],
-      refs_from: [
-        { nid: 13, txt: "Next" },
-        { nid: 9, txt: "Next" },
-        { nid: 23, txt: "Next" },
-      ],
-      refs_to: [
-        { nid: 13, txt: "Prev" },
-        { nid: 9, txt: "Prev" },
-        { nid: 23, txt: "Prev" },
-      ],
+      offers: [],
+      refs_from: [],
+      refs_to: [],
     };
   }
 
@@ -382,6 +404,7 @@ class NodeRefs extends React.Component {
       return (
         <RefNodeCard
           nid={item.nid}
+          from_nid={this.props.from_nid}
           offer={true}
           ref_txt={item.txt}
           key={hash.sha1(item)}
@@ -390,18 +413,28 @@ class NodeRefs extends React.Component {
     });
     const refs_from = this.state.refs_from.map((item) => {
       return (
-        <RefNodeCard nid={item.nid} ref_txt={item.txt} key={hash.sha1(item)} />
+        <RefNodeCard
+          nid={item.nid}
+          from_nid={this.props.from_nid}
+          ref_txt={item.txt}
+          key={hash.sha1(item)}
+        />
       );
     });
     const refs_to = this.state.refs_to.map((item) => {
       return (
-        <RefNodeCard nid={item.nid} ref_txt={item.txt} key={hash.sha1(item)} />
+        <RefNodeCard
+          nid={item.nid}
+          from_nid={this.props.from_nid}
+          ref_txt={item.txt}
+          key={hash.sha1(item)}
+        />
       );
     });
     return (
       <CardColumns className="meta-node-refs">
         <Card className="rounded">
-          <AddNextRefToolkit />
+          <AddNextRefToolkit from_nid={this.props.from_nid} />
           <SearchNewRefToolkit offers_callback={this.addOffersCallback} />
         </Card>
         {offers}
@@ -606,7 +639,7 @@ class FullNodeView extends React.Component {
             <NodeCard nid={this.props.nid} />
           </Col>
           <Col xl={6} lg={6} md={4} sm={8} xs={10}>
-            <NodeRefs />
+            <NodeRefs from_nid={this.props.nid} />
           </Col>
         </Row>
       </Container>
