@@ -34,11 +34,17 @@
   .meta-node-refs {
     column-count: 1;
   }
+  .meta-node-refs-left {
+    column-count: 1;
+  }
 }
 /* sm */
 @media (min-width: 576px) {
   .meta-node-refs {
-    column-count: 1;
+    column-count: 2;
+  }
+  .meta-node-refs-left {
+    column-count: 2;
   }
 }
 /* md */
@@ -46,22 +52,34 @@
   .meta-node-refs {
     column-count: 1;
   }
+  .meta-node-refs-left {
+    column-count: 1;
+  }
 }
 /* lg */
 @media (min-width: 992px) {
   .meta-node-refs {
-    column-count: 2;
+    column-count: 1;
+  }
+  .meta-node-refs-left {
+    column-count: 1;
   }
 }
 /* xl */
 @media (min-width: 1200px) {
   .meta-node-refs {
-    column-count: 3;
+    column-count: 2;
+  }
+  .meta-node-refs-left {
+    column-count: 1;
   }
 }
 /* xxl */
 @media (min-width: 2000px) {
   .meta-node-refs {
-    column-count: 4;
+    column-count: 3;
+  }
+  .meta-node-refs-left {
+    column-count: 1;
   }
 }

@@ -582,9 +582,9 @@ class NodeCardImpl extends React.Component {
     return (
       <Card className="meta-fluid-container">
         <div className="meta-fluid-el-top-rigth">{toolbar}</div>
-        <Card.Body className="p-3">
+        <Card.Body className="p-3 m-2">
           <div className="d-flex justify-content-center mp-0">
-            <Card.Img variant="top" className="w-25 p-2 m-2" src={maze} />
+            <Card.Img variant="top" className="w-25 p-3 m-1" src={maze} />
           </div>
           {text_el}
         </Card.Body>
@@ -633,10 +633,28 @@ class FullNodeView extends React.Component {
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">
-          <Col xl={4} lg={6} md={8} sm={12} xs={12}>
+          <Col xl={2} lg={3} md={3} sm={12} xs={10}>
+            <CardColumns className="meta-node-refs-left">
+              <RefNodeCard
+                eid={1}
+                nid={1}
+                from_nid={2}
+                ref_txt={"d"}
+                key={hash.sha1("asdfasdfas")}
+              />
+              <RefNodeCard
+                eid={1}
+                nid={1}
+                from_nid={2}
+                ref_txt={"d"}
+                key={hash.sha1("asdfasdfas")}
+              />
+            </CardColumns>
+          </Col>
+          <Col xl={4} lg={6} md={6} sm={12} xs={12}>
             <NodeCard nid={this.props.nid} />
           </Col>
-          <Col xl={6} lg={6} md={4} sm={8} xs={10}>
+          <Col xl={4} lg={3} md={3} sm={12} xs={10}>
             <NodeRefs from_nid={this.props.nid} />
           </Col>
         </Row>
