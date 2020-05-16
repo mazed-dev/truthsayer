@@ -62,16 +62,9 @@ class RefNodeCardImpl extends React.Component {
 
   fetchData = () => {
     axios
-      .get(
-        "/node?" +
-          queryString.stringify({
-            nid: this.props.nid,
-            preview: true,
-          }),
-        {
-          cancelToken: this.fetchCancelToken.token,
-        }
-      )
+      .get("/node/" + this.props.nid, {
+        cancelToken: this.fetchCancelToken.token,
+      })
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
@@ -278,7 +271,7 @@ class SearchNewRefToolkitImpl extends React.Component {
 
   fetchData = (q) => {
     axios
-      .get("/node/search?" + queryString.stringify({ q: q }), {
+      .get("/node-search?" + queryString.stringify({ q: q }), {
         cancelToken: this.fetchCancelToken.token,
       })
       .then((res) => {
@@ -349,12 +342,9 @@ class NodeRefs extends React.Component {
 
   fetchData = () => {
     axios
-      .get(
-        "/edge/star?" + queryString.stringify({ nid: this.props.from_nid }),
-        {
-          cancelToken: this.fetchCancelToken.token,
-        }
-      )
+      .get("/node/" + this.props.from_nid + "/from", {
+        cancelToken: this.fetchCancelToken.token,
+      })
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         console.log(res);
@@ -455,13 +445,14 @@ class NodeCardImpl extends React.Component {
   }
 
   isNew() {
+    console.log(this.props.nid);
     return this.props.nid === "--new--";
   }
 
   fetchData = () => {
     if (!this.isNew()) {
       axios
-        .get("/node?" + queryString.stringify({ nid: this.props.nid }), {
+        .get("/node/" + this.props.nid, {
           cancelToken: this.fetchCancelToken.token,
         })
         .catch(remoteErrorHandler(this.props.history))
@@ -497,21 +488,17 @@ class NodeCardImpl extends React.Component {
     };
     if (!this.isNew()) {
       axios
-        .patch(
-          "/node?" + queryString.stringify({ nid: this.props.nid }),
-          value,
-          config
-        )
+        .patch("/node/" + this.props.nid, value, config)
         .catch(remoteErrorHandler(this.props.history))
         .then((_res) => {});
     } else {
       axios
-        .post("/node", value, config)
+        .post("/node/new", value, config)
         .catch(remoteErrorHandler(this.props.history))
         .then((res) => {
           if (res) {
             const nid = res.data.nid;
-            if (this.props.location.state.from) {
+            if (this.props.location.state && this.props.location.state.from) {
               // That means we have to add an edge
               const req = {
                 from_nid: parseInt(this.props.location.state.from),
@@ -630,33 +617,17 @@ class FullNodeView extends React.Component {
   fetchData = () => {};
 
   render() {
+    // <NodeRefs from_nid={this.props.nid} />
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">
           <Col xl={2} lg={3} md={3} sm={12} xs={10}>
-            <CardColumns className="meta-node-refs-left">
-              <RefNodeCard
-                eid={1}
-                nid={1}
-                from_nid={2}
-                ref_txt={"d"}
-                key={hash.sha1("asdfasdfas")}
-              />
-              <RefNodeCard
-                eid={1}
-                nid={1}
-                from_nid={2}
-                ref_txt={"d"}
-                key={hash.sha1("asdfasdfas")}
-              />
-            </CardColumns>
+            <CardColumns className="meta-node-refs-left"></CardColumns>
           </Col>
           <Col xl={4} lg={6} md={6} sm={12} xs={12}>
             <NodeCard nid={this.props.nid} />
           </Col>
-          <Col xl={4} lg={3} md={3} sm={12} xs={10}>
-            <NodeRefs from_nid={this.props.nid} />
-          </Col>
+          <Col xl={4} lg={3} md={3} sm={12} xs={10}></Col>
         </Row>
       </Container>
     );
