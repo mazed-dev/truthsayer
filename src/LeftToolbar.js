@@ -69,7 +69,7 @@ function LeftToolbar() {
           <ListGroup.Item as={Link} to="/node/id">
             node
           </ListGroup.Item>
-          <ListGroup.Item as={Link} to="/node/--new--">
+          <ListGroup.Item as={Link} to="/node/.new">
             new
           </ListGroup.Item>
           <ListGroup.Item as={Link} to="/login">

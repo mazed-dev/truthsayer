@@ -34,6 +34,8 @@ import queryString from "query-string";
 
 const hash = require("object-hash");
 
+const NEW_NODE_FAKE_ID = ".new";
+
 class RefNodeCardImpl extends React.Component {
   constructor(props) {
     super(props);
@@ -61,10 +63,19 @@ class RefNodeCardImpl extends React.Component {
   }
 
   fetchData = () => {
+    if (this.props.nid === NEW_NODE_FAKE_ID) {
+      return;
+    }
     axios
-      .get("/node/" + this.props.nid, {
-        cancelToken: this.fetchCancelToken.token,
-      })
+      .get(
+        "/api/node/" +
+          this.props.nid +
+          "?" +
+          queryString.stringify({ preview: true }),
+        {
+          cancelToken: this.fetchCancelToken.token,
+        }
+      )
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
@@ -87,13 +98,12 @@ class RefNodeCardImpl extends React.Component {
 
   linkOffer = () => {
     const req = {
-      from_nid: parseInt(this.props.from_nid),
-      to_nid: parseInt(this.props.nid),
-      txt: this.props.ref_txt,
+      from_nid: this.props.from_nid,
+      txt: "next",
       weight: 100,
     };
     axios
-      .post("/edge", req, {
+      .post("/api/node/" + this.props.nid + "/to", req, {
         cancelToken: this.fetchCancelToken.token,
       })
       .catch(remoteErrorHandler(this.props.history))
@@ -104,26 +114,24 @@ class RefNodeCardImpl extends React.Component {
   };
 
   render() {
-    const title_el = (
-      <Button variant="outline-danger" size="sm">
-        {this.props.ref_txt}
-      </Button>
-    );
-    var toolbar = title_el;
+    //const title_el = (
+    //  <Button variant="outline-danger" size="sm">
+    //    {this.props.ref_txt}
+    //  </Button>
+    //);
+    var toolbar; // = title_el;
     if (this.props.offer) {
       toolbar = (
         <ButtonGroup>
           <Button variant="outline-success" size="sm" onClick={this.linkOffer}>
             &#43;
           </Button>
-          {title_el}
         </ButtonGroup>
       );
     } else {
       if (this.state.hover) {
         toolbar = (
           <ButtonGroup>
-            {title_el}
             <Button variant="outline-dark" size="sm">
               &#9998;
             </Button>
@@ -271,7 +279,7 @@ class SearchNewRefToolkitImpl extends React.Component {
 
   fetchData = (q) => {
     axios
-      .get("/node-search?" + queryString.stringify({ q: q }), {
+      .get("/api/node-search?" + queryString.stringify({ q: q }), {
         cancelToken: this.fetchCancelToken.token,
       })
       .then((res) => {
@@ -283,8 +291,8 @@ class SearchNewRefToolkitImpl extends React.Component {
   };
 
   handleNextClick = () => {
-    this.props.history.push("/node/--new--", {
-      from: this.props.from_nid,
+    this.props.history.push("/node/" + NEW_NODE_FAKE_ID, {
+      from: this.props.nid,
     });
   };
 
@@ -335,19 +343,25 @@ class NodeRefs extends React.Component {
 
   componentDidUpdate(prevProps) {
     // Don't forget to compare props!
-    if (this.props.from_nid !== prevProps.from_nid) {
+    if (this.props.nid !== prevProps.nid) {
       this.fetchData();
     }
   }
 
   fetchData = () => {
+    if (this.props.nid === NEW_NODE_FAKE_ID) {
+      this.setState({
+        refs: [],
+        offers: [],
+      });
+      return;
+    }
     axios
-      .get("/node/" + this.props.from_nid + "/from", {
+      .get("/api/node/" + this.props.nid + "/" + this.props.direction, {
         cancelToken: this.fetchCancelToken.token,
       })
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
-        console.log(res);
         if (res) {
           this.setState({
             refs: res.data.edges,
@@ -358,52 +372,64 @@ class NodeRefs extends React.Component {
 
   addOffersCallback = (nodes) => {
     this.setState({
-      offers: nodes.map((meta) => {
-        return {
-          nid: meta.nid,
-          txt: "Link",
-        };
-      }),
+      offers: nodes,
     });
   };
 
   render() {
     const offers = this.state.offers.map((item) => {
+      var to_nid, from_nid;
+      if (this.props.direction === "to") {
+        to_nid = this.props.nid;
+        from_nid = item.nid;
+      } else {
+        to_nid = item.nid;
+        from_nid = this.props.nid;
+      }
       return (
         <RefNodeCard
-          nid={item.nid}
-          from_nid={this.props.from_nid}
+          nid={to_nid}
+          from_nid={from_nid}
           offer={true}
-          ref_txt={item.txt}
-          key={hash.sha1(item)}
+          ref_txt={""}
+          key={"n:" + item.nid}
         />
       );
     });
     const refs = this.state.refs.map((item) => {
-      var to_nid, txt;
-      if (this.props.from_nid == item.to_nid) {
-        to_nid = item.from_nid;
-        txt = "<- prev";
+      var nid, from_nid;
+      if (this.props.direction === "to") {
+        nid = item.from_nid;
+        from_nid = item.to_nid;
       } else {
-        to_nid = item.to_nid;
-        txt = "next ->";
+        from_nid = item.from_nid;
+        nid = item.to_nid;
       }
+      console.log(item);
       return (
         <RefNodeCard
-          eid={item.eid}
-          nid={to_nid}
-          from_nid={this.props.from_nid}
-          ref_txt={txt}
-          key={hash.sha1(item)}
+          nid={nid}
+          from_nid={from_nid}
+          offer={false}
+          ref_txt={""}
+          key={item.eid}
         />
       );
     });
-    return (
-      <CardColumns className="meta-node-refs">
+
+    var new_ref_toolkit;
+    if (this.props.direction === "from") {
+      new_ref_toolkit = (
         <SearchNewRefToolkit
-          from_nid={this.props.from_nid}
+          nid={this.props.nid}
           offers_callback={this.addOffersCallback}
         />
+      );
+    }
+    const style_class = "meta-node-refs-" + this.props.direction;
+    return (
+      <CardColumns className={style_class}>
+        {new_ref_toolkit}
         {offers}
         {refs}
       </CardColumns>
@@ -445,14 +471,13 @@ class NodeCardImpl extends React.Component {
   }
 
   isNew() {
-    console.log(this.props.nid);
-    return this.props.nid === "--new--";
+    return this.props.nid === NEW_NODE_FAKE_ID;
   }
 
   fetchData = () => {
     if (!this.isNew()) {
       axios
-        .get("/node/" + this.props.nid, {
+        .get("/api/node/" + this.props.nid, {
           cancelToken: this.fetchCancelToken.token,
         })
         .catch(remoteErrorHandler(this.props.history))
@@ -488,12 +513,12 @@ class NodeCardImpl extends React.Component {
     };
     if (!this.isNew()) {
       axios
-        .patch("/node/" + this.props.nid, value, config)
+        .patch("/api/node/" + this.props.nid, value, config)
         .catch(remoteErrorHandler(this.props.history))
         .then((_res) => {});
     } else {
       axios
-        .post("/node/new", value, config)
+        .post("/api/node/new", value, config)
         .catch(remoteErrorHandler(this.props.history))
         .then((res) => {
           if (res) {
@@ -501,13 +526,12 @@ class NodeCardImpl extends React.Component {
             if (this.props.location.state && this.props.location.state.from) {
               // That means we have to add an edge
               const req = {
-                from_nid: parseInt(this.props.location.state.from),
-                to_nid: parseInt(nid),
+                from_nid: this.props.location.state.from,
                 txt: "next",
                 weight: 100,
               };
               axios
-                .post("/edge", req, {
+                .post("/api/node/" + nid + "/to", req, {
                   cancelToken: this.fetchCancelToken.token,
                 })
                 .catch(remoteErrorHandler(this.props.history))
@@ -622,12 +646,14 @@ class FullNodeView extends React.Component {
       <Container fluid>
         <Row className="d-flex justify-content-center">
           <Col xl={2} lg={3} md={3} sm={12} xs={10}>
-            <CardColumns className="meta-node-refs-left"></CardColumns>
+            <NodeRefs nid={this.props.nid} direction="to" />
           </Col>
           <Col xl={4} lg={6} md={6} sm={12} xs={12}>
             <NodeCard nid={this.props.nid} />
           </Col>
-          <Col xl={4} lg={3} md={3} sm={12} xs={10}></Col>
+          <Col xl={4} lg={3} md={3} sm={12} xs={10}>
+            <NodeRefs nid={this.props.nid} direction="from" />
+          </Col>
         </Row>
       </Container>
     );

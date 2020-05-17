@@ -45,7 +45,7 @@ class SearchGrid extends React.Component {
   fetchData = () => {
     const q = this.props.q;
     axios
-      .get("/node-search?" + queryString.stringify({ q: q }), {
+      .get("/api/node-search?" + queryString.stringify({ q: q }), {
         cancelToken: this.fetchCancelToken.token,
       })
       .then((res) => {

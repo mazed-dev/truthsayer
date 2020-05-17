@@ -12,7 +12,6 @@ function store(token) {
 }
 
 function from_headers(headers) {
-  console.log(headers);
   const token = headers[META_TOKEN_KEY];
   if (token) {
     store(token);
@@ -26,12 +25,13 @@ function drop() {
   delete axios.defaults.headers.common[META_TOKEN_KEY];
 }
 
-function get() {
-  const token = storage.get(META_TOKEN_KEY);
-  if (token != null) {
-    axios.defaults.headers.common[META_TOKEN_KEY] = token;
-  }
-  return storage.get(META_TOKEN_KEY);
+function get(callback) {
+  axios
+    .get("/auth/session")
+    .catch(function (err) {})
+    .then((res) => {
+      callback(res);
+    });
 }
 
 const auth = {

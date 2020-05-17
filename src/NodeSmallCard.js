@@ -35,7 +35,7 @@ class NodeSmallCard extends React.Component {
           <div className="d-flex justify-content-center">
             <Card.Img variant="top" className="w-25 p-0 m-2" src={maze} />
           </div>
-          <ReactMarkdown source={this.props.preface} />
+          <ReactMarkdown source={this.props.preface + "&hellip;"} />
         </Card.Body>
         <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">
           <small className="text-muted">

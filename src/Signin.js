@@ -58,7 +58,7 @@ class Signin extends React.Component {
       password: this.state.password,
     };
     axios
-      .post("/auth", value)
+      .post("/api/auth", value)
       .catch(function (err) {
         alert("Error " + err);
       })

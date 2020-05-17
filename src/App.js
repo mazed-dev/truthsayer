@@ -27,13 +27,16 @@ import {
 
 import queryString from "query-string";
 
+import axios from "axios";
+
 import LeftToolbar from "./LeftToolbar";
 import GlobalNavBar from "./GlobalNavBar";
 import TreeView from "./TreeView";
 import Login from "./Login";
 import Signin from "./Signin";
 import TopToolBar from "./TopToolBar";
-import auth from "./auth/token";
+
+import remoteErrorHandler from "./remoteErrorHandler";
 
 // For the future:
 //    let history = useHistory();
@@ -42,9 +45,60 @@ import auth from "./auth/token";
 //    history.replace(path, [state]);
 
 class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      authenticated: false,
+      auth_renewer: null,
+    };
+    this.fetchCancelToken = axios.CancelToken.source();
+  }
+
+  renew_authentication = () => {
+    axios
+      .patch("/api/auth/session", {
+        cancelToken: this.fetchCancelToken.token,
+      })
+      .catch(remoteErrorHandler(this.props.history))
+      .then((res) => {
+        if (res) {
+          console.log("Authenticated!");
+          const auth_renewer = setTimeout(this.renew_authentication, 600000);
+          this.setState({
+            auth_renewer: auth_renewer,
+          });
+        }
+      });
+  };
+
+  componentDidMount() {
+    axios
+      .get("/api/auth/session", {
+        cancelToken: this.fetchCancelToken.token,
+      })
+      .catch(function (err) {})
+      .then((res) => {
+        if (res) {
+          const auth_renewer = setTimeout(this.renew_authentication, 600000);
+          this.setState({
+            auth_renewer: auth_renewer,
+          });
+          this.setState({
+            authenticated: true,
+          });
+          console.log("Authenticated!");
+        }
+      });
+  }
+
+  componentWillUnmount() {
+    this.fetchCancelToken.cancel();
+    // https://javascript.info/settimeout-setinterval
+    clearTimeout(this.state.auth_renewer);
+  }
+
   render() {
-    const authenticated = auth.get() != null;
-    if (authenticated) {
+    if (this.state.authenticated) {
       return <PrivateApp />;
     }
     return <HelloWorldApp />;
@@ -212,7 +266,7 @@ function LeftSideBarMenu() {
           <Link to="/node/id">node</Link>
         </li>
         <li>
-          <Link to="/node/--new--">new</Link>
+          <Link to="/node/.new">new</Link>
         </li>
         <li>
           <Link to="/login">login</Link>
