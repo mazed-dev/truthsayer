@@ -278,8 +278,13 @@ class SearchNewRefToolkitImpl extends React.Component {
   };
 
   fetchData = (q) => {
+    const req = {
+      q: q,
+      upd_after: 512,
+      limit: 32,
+    };
     axios
-      .get("/api/node-search?" + queryString.stringify({ q: q }), {
+      .post("/api/node-search", req, {
         cancelToken: this.fetchCancelToken.token,
       })
       .then((res) => {
