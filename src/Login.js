@@ -42,7 +42,7 @@ class Login extends React.Component {
       permissions: 23,
     };
     axios
-      .post("/auth/session", value)
+      .post("/api/auth/session", value)
       .catch(function (err) {
         alert("Error " + err);
       })
