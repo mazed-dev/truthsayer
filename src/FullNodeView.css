@@ -83,3 +83,14 @@
     column-count: 1;
   }
 }
+
+/**
+ * SearchNewRefToolkit
+ */
+.connect-toolkit-btn-group {
+  display: flex;
+}
+
+.connect-toolkit-btn {
+  display: 1;
+}

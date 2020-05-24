@@ -41,6 +41,7 @@ class RefNodeCardImpl extends React.Component {
     super(props);
     this.state = {
       hover: false,
+      offer: this.props.offer,
       preface: "",
       crtd: moment().unix(),
       upd: moment().unix(),
@@ -109,18 +110,14 @@ class RefNodeCardImpl extends React.Component {
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
+          this.setState({ offer: false });
         }
       });
   };
 
   render() {
-    //const title_el = (
-    //  <Button variant="outline-danger" size="sm">
-    //    {this.props.ref_txt}
-    //  </Button>
-    //);
-    var toolbar; // = title_el;
-    if (this.props.offer) {
+    var toolbar;
+    if (this.state.offer) {
       toolbar = (
         <ButtonGroup>
           <Button variant="outline-success" size="sm" onClick={this.linkOffer}>
@@ -255,6 +252,7 @@ class SearchNewRefToolkitImpl extends React.Component {
     super(props);
     this.state = {
       search_value: "",
+      should_show_search: false,
     };
     // this.props.offers_callback
     this.fetchCancelToken = axios.CancelToken.source();
@@ -301,18 +299,19 @@ class SearchNewRefToolkitImpl extends React.Component {
     });
   };
 
+  handleShowSearchClick = () => {
+    if (this.state.should_show_search) {
+      this.props.offers_callback([]);
+    }
+    this.setState({ should_show_search: !this.state.should_show_search });
+  };
+
   render() {
     // Flashlight: &#x1F526;
-    return (
-      <Card className="rounded">
+    var search_input_group;
+    if (this.state.should_show_search) {
+      search_input_group = (
         <InputGroup className="p-0">
-          <InputGroup.Prepend>
-            <Button variant="outline-secondary" onClick={this.handleNextClick}>
-              <span role="img" aria-label="next">
-                &#x2192; &#x2b;
-              </span>
-            </Button>
-          </InputGroup.Prepend>
           <Form.Control
             aria-label="Search-to-link"
             aria-describedby="basic-addon1"
@@ -322,6 +321,34 @@ class SearchNewRefToolkitImpl extends React.Component {
             placeholder="Search to offer"
           />
         </InputGroup>
+      );
+    }
+    return (
+      <Card className="rounded">
+        <ButtonGroup
+          aria-label="connect-note-toolkit"
+          className="connect-toolkit-btn-group"
+        >
+          <Button
+            variant="outline-secondary"
+            onClick={this.handleNextClick}
+            className="connect-toolkit-btn"
+          >
+            <span role="img" aria-label="next">
+              &#x2192; &#x2b;
+            </span>
+          </Button>
+          <Button
+            variant="outline-secondary"
+            onClick={this.handleShowSearchClick}
+            className="connect-toolkit-btn"
+          >
+            <span role="img" aria-label="next">
+              &#x1F50D; &#x2b;
+            </span>
+          </Button>
+        </ButtonGroup>
+        {search_input_group}
       </Card>
     );
   }
