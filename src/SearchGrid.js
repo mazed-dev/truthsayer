@@ -5,7 +5,6 @@ import "./SearchGrid.css";
 
 import axios from "axios";
 import PropTypes from "prop-types";
-import queryString from "query-string";
 
 import { Container, CardColumns } from "react-bootstrap";
 

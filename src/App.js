@@ -29,10 +29,10 @@ import queryString from "query-string";
 
 import axios from "axios";
 
-import LeftToolbar from "./LeftToolbar";
 import GlobalNavBar from "./GlobalNavBar";
 import TreeView from "./TreeView";
 import Login from "./Login";
+import Logout from "./Logout";
 import Signin from "./Signin";
 import TopToolBar from "./TopToolBar";
 
@@ -194,14 +194,6 @@ class PrivateApp extends React.Component {
       </Container>
     );
   }
-}
-
-function Logout() {
-  return (
-    <div>
-      <h2>Logout</h2>
-    </div>
-  );
 }
 
 function About() {
