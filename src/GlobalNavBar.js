@@ -74,7 +74,10 @@ function GlobalNavBar() {
   return (
     <Navbar bg="light" variant="light" size="sm" className="pt-0 pb-1">
       <Navbar.Brand as={Link} to="/">
-        Knotledge
+        <span role="img" aria-label="next">
+          &#x1F9F5;
+        </span>
+        Knitext
       </Navbar.Brand>
       <SearchInput className="ml-auto" from={q} />
       <Nav>
@@ -93,8 +96,11 @@ function GlobalNavBar() {
         <NavDropdown.Item as={Link} to="/account">
           Manage your account
         </NavDropdown.Item>
-        <NavDropdown.Item as={Link} to="/setting">
+        <NavDropdown.Item as={Link} to="/settings">
           Settings
+        </NavDropdown.Item>
+        <NavDropdown.Item as={Link} to="/help">
+          Help
         </NavDropdown.Item>
         <NavDropdown.Divider />
         <NavDropdown.Item as={Link} to="/about">

@@ -14,7 +14,6 @@ class Signin extends React.Component {
       email: this.props.email,
       password: "",
       consent: false,
-      isReady: false,
     };
     this.consentRef = React.createRef();
     this.emailRef = React.createRef();
@@ -22,32 +21,27 @@ class Signin extends React.Component {
 
   handleNameChange = (event) => {
     this.setState({ name: event.target.value });
-    this.checkState();
   };
 
   handleEmailChange = (event) => {
     this.setState({ email: event.target.value });
-    this.checkState();
   };
 
   handlePasswordChange = (event) => {
     this.setState({ password: event.target.value });
-    this.checkState();
   };
 
   toggleConsent = (event) => {
-    console.log(this.consentRef.current.checked);
     this.setState({ consent: this.consentRef.current.checked });
-    this.checkState();
   };
 
-  checkState = () => {
+  isReadyToSubmit = () => {
     const isReady =
       this.state.consent &&
       this.state.name.length > 1 &&
       this.emailRef.current.validity.valid &&
-      this.state.password.length > 8;
-    this.setState({ isReady: isReady });
+      this.state.password.length > 6;
+    return isReady;
   };
 
   onSubmit = (event) => {
@@ -78,7 +72,7 @@ class Signin extends React.Component {
       <Container>
         <Card className="border-0">
           <Card.Body className="p-3">
-            <Card.Title>Creat an account</Card.Title>
+            <Card.Title>Register an account</Card.Title>
             <Form className="m-4" onSubmit={this.onSubmit}>
               <Form.Group as={Row} controlId="formLoginName">
                 <Form.Label column sm="2">
@@ -126,7 +120,7 @@ class Signin extends React.Component {
               </Card.Text>
               <Form.Group as={Row} controlId="formCustomerAggreementCheckbox">
                 <Form.Label column sm="2">
-                  I agree{" "}
+                  I agree, go on
                 </Form.Label>
                 <Col sm="2">
                   <Form.Check
@@ -140,7 +134,7 @@ class Signin extends React.Component {
               <Button
                 variant="secondary"
                 type="submit"
-                disabled={!this.state.isReady}
+                disabled={!this.isReadyToSubmit()}
               >
                 Register
               </Button>

@@ -30,19 +30,12 @@ import queryString from "query-string";
 import axios from "axios";
 
 import GlobalNavBar from "./GlobalNavBar";
+import PublicNavBar from "./PublicNavBar";
 import TreeView from "./TreeView";
 import Login from "./Login";
 import Logout from "./Logout";
 import Signin from "./Signin";
 import TopToolBar from "./TopToolBar";
-
-import remoteErrorHandler from "./remoteErrorHandler";
-
-// For the future:
-//    let history = useHistory();
-//    history.goBack();
-//    history.push(path, [state]);
-//    history.replace(path, [state]);
 
 class App extends React.Component {
   constructor(props) {
@@ -59,11 +52,10 @@ class App extends React.Component {
       .patch("/api/auth/session", {
         cancelToken: this.fetchCancelToken.token,
       })
-      .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
-          console.log("Authenticated!");
-          const auth_renewer = setTimeout(this.renew_authentication, 600000);
+          // console.log("Authenticated!");
+          const auth_renewer = setTimeout(this.renew_authentication, 3600000);
           this.setState({
             auth_renewer: auth_renewer,
           });
@@ -79,14 +71,14 @@ class App extends React.Component {
       .catch(function (err) {})
       .then((res) => {
         if (res) {
-          const auth_renewer = setTimeout(this.renew_authentication, 600000);
+          const auth_renewer = setTimeout(this.renew_authentication, 3600000);
           this.setState({
             auth_renewer: auth_renewer,
           });
           this.setState({
             authenticated: true,
           });
-          console.log("Authenticated!");
+          // console.log("Authenticated!");
         }
       });
   }
@@ -99,46 +91,48 @@ class App extends React.Component {
 
   render() {
     if (this.state.authenticated) {
+      console.log("Private App");
       return <PrivateApp />;
     }
-    return <HelloWorldApp />;
+    console.log("Public App");
+    return <PublicApp />;
   }
 }
 
-class HelloWorldApp extends React.Component {
+class PublicApp extends React.Component {
   render() {
     return (
       <Container fluid>
         <Router>
           <div>
-            <LeftSideBarMenu />
+            <PublicNavBar />
             <Switch>
               <Route exact path="/">
-                <SearchView />
-              </Route>
-              <Route exact path="/search">
-                <SearchView />
-              </Route>
-              <Route path="/node/:id">
-                <NodeView />
-              </Route>
-              <Route path="/thread">
-                <TreeView />
-              </Route>
-              <Route path="/logout">
-                <Logout />
-              </Route>
-              <Route path="/account">
-                <AccountView />
+                <HelloWorld />
               </Route>
               <Route path="/about">
                 <About />
+              </Route>
+              <Route path="/contacts">
+                <ContactUs />
               </Route>
               <Route path="/login">
                 <Login />
               </Route>
               <Route path="/signin">
                 <Signin />
+              </Route>
+              <Route path="/help">
+                <HelpInfo />
+              </Route>
+              <Route path="/about">
+                <About />
+              </Route>
+              <Route path="/privacy-policy">
+                <PrivacyPolicy />
+              </Route>
+              <Route path="/terms-of-service">
+                <TermsOfService />
               </Route>
               <Route path="*">
                 <Redirect to={{ pathname: "/" }} />
@@ -170,20 +164,26 @@ class PrivateApp extends React.Component {
               <Route path="/thread">
                 <TreeView />
               </Route>
-              <Route path="/logout">
-                <Logout />
-              </Route>
               <Route path="/account">
                 <AccountView />
+              </Route>
+              <Route path="/settings">
+                <Settings />
+              </Route>
+              <Route path="/help">
+                <HelpInfo />
               </Route>
               <Route path="/about">
                 <About />
               </Route>
-              <Route path="/login">
-                <Login />
+              <Route path="/contacts">
+                <ContactUs />
               </Route>
-              <Route path="/signin">
-                <Signin />
+              <Route path="/privacy-policy">
+                <PrivacyPolicy />
+              </Route>
+              <Route path="/terms-of-service">
+                <TermsOfService />
               </Route>
               <Route path="*">
                 <Redirect to={{ pathname: "/" }} />
@@ -196,18 +196,90 @@ class PrivateApp extends React.Component {
   }
 }
 
+function HelloWorld() {
+  return (
+    <Container>
+      <h1>Main page</h1>
+    </Container>
+  );
+}
+
+function HelpInfo() {
+  return (
+    <Container>
+      <h2>All support topics</h2>
+      <Card>
+        <Card.Body>
+          <Card.Title>To be done</Card.Title>
+          <Card.Text>To be done</Card.Text>
+        </Card.Body>
+      </Card>
+    </Container>
+  );
+}
+
 function About() {
   return (
     <Container>
-      <Card style={{ width: "25rem" }}>
+      <Card>
         <Card.Img variant="top" src={logo} />
         <Card.Body>
-          <Card.Title>Card Title</Card.Title>
-          <Card.Text>
-            Some quick example text to build on the card title and make up the
-            bulk of the card's content.
-          </Card.Text>
+          <Card.Title>To be done</Card.Title>
+          <Card.Text>To be done</Card.Text>
           <Button variant="primary">Go somewhere</Button>
+        </Card.Body>
+      </Card>
+    </Container>
+  );
+}
+
+function ContactUs() {
+  return (
+    <Container>
+      <h2>Contact us</h2>
+      <Card>
+        <Card.Body>
+          <Card.Title>Support</Card.Title>
+          <Card.Text>
+            To get help with Pocket or to request features, please visit our{" "}
+            <Link to={"/help"}>support page</Link>.
+          </Card.Text>
+        </Card.Body>
+      </Card>
+      <Card>
+        <Card.Body>
+          <Card.Title>Author</Card.Title>
+          <Card.Text>
+            For questions related to business, please contact me at{" "}
+            <a href="mailto:akindyakov@gmail.com">akindyakov@</a>
+          </Card.Text>
+        </Card.Body>
+      </Card>
+    </Container>
+  );
+}
+
+function PrivacyPolicy() {
+  return (
+    <Container>
+      <Card>
+        <Card.Img variant="top" src={logo} />
+        <Card.Body>
+          <Card.Title>Privacy policy</Card.Title>
+          <Card.Text>To be done soon</Card.Text>
+        </Card.Body>
+      </Card>
+    </Container>
+  );
+}
+
+function TermsOfService() {
+  return (
+    <Container>
+      <Card>
+        <Card.Body>
+          <Card.Title>Terms of service</Card.Title>
+          <Card.Text>To be done</Card.Text>
         </Card.Body>
       </Card>
     </Container>
@@ -222,6 +294,16 @@ function AccountView() {
   );
 }
 
+function Settings() {
+  return (
+    <>
+      <h2>Account</h2>
+      <p>To be done</p>
+      <Link to="/">Go back</Link>
+    </>
+  );
+}
+
 function NodeView() {
   // We can use the `useParams` hook here to access
   // the dynamic pieces of the URL.
@@ -233,42 +315,6 @@ function SearchView() {
   const location = useLocation();
   const params = queryString.parse(location.search);
   return <SearchGrid q={params.q} />;
-}
-
-function LeftSideBarMenu() {
-  return (
-    <div style={{ float: "left" }}>
-      <ul style={{ listStyleType: "none", padding: 20 }}>
-        <li>
-          <Link to="/">search</Link>
-        </li>
-        <li>
-          <Link to="/thread">thread</Link>
-        </li>
-        <li>
-          <Link to="/logout">logout</Link>
-        </li>
-        <li>
-          <Link to="/account">account</Link>
-        </li>
-        <li>
-          <Link to="/about">about</Link>
-        </li>
-        <li>
-          <Link to="/node/id">node</Link>
-        </li>
-        <li>
-          <Link to="/node/.new">new</Link>
-        </li>
-        <li>
-          <Link to="/login">login</Link>
-        </li>
-        <li>
-          <Link to="/signin">signin</Link>
-        </li>
-      </ul>
-    </div>
-  );
 }
 
 export default App;
