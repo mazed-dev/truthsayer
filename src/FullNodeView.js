@@ -97,14 +97,19 @@ class RefNodeCardImpl extends React.Component {
     this.setState({ hover: false });
   };
 
-  linkOffer = () => {
+  handleRefAdd = () => {
+    var to_nid = this.props.nid;
+    var from_nid = this.props.partner_nid;
+    if (this.props.direction === "to") {
+      [to_nid, from_nid] = [from_nid, to_nid];
+    }
     const req = {
-      from_nid: this.props.from_nid,
+      from_nid: from_nid,
       txt: "next",
       weight: 100,
     };
     axios
-      .post("/api/node/" + this.props.nid + "/to", req, {
+      .post("/api/node/" + to_nid + "/to", req, {
         cancelToken: this.fetchCancelToken.token,
       })
       .catch(remoteErrorHandler(this.props.history))
@@ -115,12 +120,38 @@ class RefNodeCardImpl extends React.Component {
       });
   };
 
+  handleRefCutOff = () => {
+    var to_nid = this.props.nid;
+    var from_nid = this.props.partner_nid;
+    if (this.props.direction === "to") {
+      [to_nid, from_nid] = [from_nid, to_nid];
+    }
+    const req = {
+      from: from_nid,
+    };
+    axios
+      .delete("/api/node/" + to_nid + "/to", {
+        cancelToken: this.fetchCancelToken.token,
+        data: req,
+      })
+      .catch(remoteErrorHandler(this.props.history))
+      .then((res) => {
+        if (res) {
+          this.setState({ offer: true });
+        }
+      });
+  };
+
   render() {
     var toolbar;
     if (this.state.offer) {
       toolbar = (
         <ButtonGroup>
-          <Button variant="outline-success" size="sm" onClick={this.linkOffer}>
+          <Button
+            variant="outline-success"
+            size="sm"
+            onClick={this.handleRefAdd}
+          >
             &#43;
           </Button>
         </ButtonGroup>
@@ -132,7 +163,11 @@ class RefNodeCardImpl extends React.Component {
             <Button variant="outline-dark" size="sm">
               &#9998;
             </Button>
-            <Button variant="outline-dark" size="sm">
+            <Button
+              variant="outline-dark"
+              size="sm"
+              onClick={this.handleRefCutOff}
+            >
               &#9988;
             </Button>
             <DropdownButton
@@ -410,18 +445,19 @@ class NodeRefs extends React.Component {
 
   render() {
     const offers = this.state.offers.map((item) => {
-      var to_nid, from_nid;
+      var nid, partner_nid;
       if (this.props.direction === "to") {
-        to_nid = this.props.nid;
-        from_nid = item.nid;
+        nid = this.props.nid;
+        partner_nid = item.nid;
       } else {
-        to_nid = item.nid;
-        from_nid = this.props.nid;
+        nid = item.nid;
+        partner_nid = this.props.nid;
       }
       return (
         <RefNodeCard
-          nid={to_nid}
-          from_nid={from_nid}
+          nid={nid}
+          partner_nid={partner_nid}
+          direction={this.props.direction}
           offer={true}
           ref_txt={""}
           key={"n:" + item.nid}
@@ -429,19 +465,20 @@ class NodeRefs extends React.Component {
       );
     });
     const refs = this.state.refs.map((item) => {
-      var nid, from_nid;
+      var nid, partner_nid;
       if (this.props.direction === "to") {
         nid = item.from_nid;
-        from_nid = item.to_nid;
+        partner_nid = item.to_nid;
       } else {
-        from_nid = item.from_nid;
+        partner_nid = item.from_nid;
         nid = item.to_nid;
       }
       console.log(item);
       return (
         <RefNodeCard
           nid={nid}
-          from_nid={from_nid}
+          partner_nid={partner_nid}
+          direction={this.props.direction}
           offer={false}
           ref_txt={""}
           key={item.eid}

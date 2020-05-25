@@ -39,7 +39,7 @@ class Login extends React.Component {
     const value = {
       email: this.state.email,
       pass: this.state.password,
-      permissions: 23,
+      permissions: 31,
     };
     axios
       .post("/api/auth/session", value)

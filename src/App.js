@@ -179,6 +179,9 @@ class PrivateApp extends React.Component {
               <Route path="/contacts">
                 <ContactUs />
               </Route>
+              <Route path="/logout">
+                <Logout />
+              </Route>
               <Route path="/privacy-policy">
                 <PrivacyPolicy />
               </Route>
