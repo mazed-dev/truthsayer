@@ -48,10 +48,7 @@ class Login extends React.Component {
       })
       .then((res) => {
         if (res) {
-          auth.from_headers(res.headers);
-          this.props.history.push({
-            pathname: "/",
-          });
+          this.props.onLogin();
         }
       });
   };

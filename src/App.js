@@ -41,11 +41,32 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      authenticated: false,
+      is_authenticated: false,
       auth_renewer: null,
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
+
+  handleSuccessfulLogin = () => {
+    if (!this.state.auth_renewer !== null) {
+      clearTimeout(this.state.auth_renewer);
+    }
+    const auth_renewer = setTimeout(this.renew_authentication, 3600000);
+    this.setState({
+      is_authenticated: true,
+      auth_renewer: auth_renewer,
+    });
+  };
+
+  handleLogout = () => {
+    if (!this.state.auth_renewer !== null) {
+      clearTimeout(this.state.auth_renewer);
+    }
+    this.setState({
+      is_authenticated: false,
+      auth_renewer: null,
+    });
+  };
 
   renew_authentication = () => {
     axios
@@ -54,11 +75,7 @@ class App extends React.Component {
       })
       .then((res) => {
         if (res) {
-          // console.log("Authenticated!");
-          const auth_renewer = setTimeout(this.renew_authentication, 3600000);
-          this.setState({
-            auth_renewer: auth_renewer,
-          });
+          this.handleSuccessfulLogin();
         }
       });
   };
@@ -71,14 +88,7 @@ class App extends React.Component {
       .catch(function (err) {})
       .then((res) => {
         if (res) {
-          const auth_renewer = setTimeout(this.renew_authentication, 3600000);
-          this.setState({
-            auth_renewer: auth_renewer,
-          });
-          this.setState({
-            authenticated: true,
-          });
-          // console.log("Authenticated!");
+          this.handleSuccessfulLogin();
         }
       });
   }
@@ -90,43 +100,85 @@ class App extends React.Component {
   }
 
   render() {
-    if (this.state.authenticated) {
+    var nav_bar;
+    var main_page;
+    if (this.state.is_authenticated) {
       console.log("Private App");
-      return <PrivateApp />;
+      nav_bar = <GlobalNavBar />;
+      main_page = <Redirect to={{ pathname: "/search" }} />;
+    } else {
+      console.log("Public App");
+      nav_bar = <PublicNavBar />;
+      main_page = <HelloWorld />;
     }
-    console.log("Public App");
-    return <PublicApp />;
-  }
-}
-
-class PublicApp extends React.Component {
-  render() {
     return (
       <Container fluid>
         <Router>
           <div>
-            <PublicNavBar />
+            {nav_bar}
             <Switch>
               <Route exact path="/">
-                <HelloWorld />
+                {main_page}
               </Route>
+              <PublicOnlyRoute
+                path="/login"
+                is_authenticated={this.state.is_authenticated}
+              >
+                <Login onLogin={this.handleSuccessfulLogin} />
+              </PublicOnlyRoute>
+              <PublicOnlyRoute
+                path="/signin"
+                is_authenticated={this.state.is_authenticated}
+              >
+                <Signin onLogin={this.handleSuccessfulLogin} />
+              </PublicOnlyRoute>
+              <PrivateRoute
+                path="/logout"
+                is_authenticated={this.state.is_authenticated}
+              >
+                <Logout onLogout={this.handleLogout} />
+              </PrivateRoute>
+              <PrivateRoute
+                path="/search"
+                is_authenticated={this.state.is_authenticated}
+              >
+                <SearchView />
+              </PrivateRoute>
+              <PrivateRoute
+                path="/node/:id"
+                is_authenticated={this.state.is_authenticated}
+              >
+                <NodeView />
+              </PrivateRoute>
+              <PrivateRoute
+                path="/thread"
+                is_authenticated={this.state.is_authenticated}
+              >
+                <TreeView />
+              </PrivateRoute>
+              <PrivateRoute
+                path="/account"
+                is_authenticated={this.state.is_authenticated}
+              >
+                <AccountView />
+              </PrivateRoute>
+              <PrivateRoute
+                path="/settings"
+                is_authenticated={this.state.is_authenticated}
+              >
+                <Settings />
+              </PrivateRoute>
+              <PrivateRoute
+                path="/help"
+                is_authenticated={this.state.is_authenticated}
+              >
+                <HelpInfo />
+              </PrivateRoute>
               <Route path="/about">
                 <About />
               </Route>
               <Route path="/contacts">
                 <ContactUs />
-              </Route>
-              <Route path="/login">
-                <Login />
-              </Route>
-              <Route path="/signin">
-                <Signin />
-              </Route>
-              <Route path="/help">
-                <HelpInfo />
-              </Route>
-              <Route path="/about">
-                <About />
               </Route>
               <Route path="/privacy-policy">
                 <PrivacyPolicy />
@@ -144,57 +196,35 @@ class PublicApp extends React.Component {
     );
   }
 }
-class PrivateApp extends React.Component {
-  render() {
+
+function PrivateRoute({ is_authenticated, children, ...rest }) {
+  const location = useLocation();
+  if (is_authenticated) {
+    return <Route {...rest}> {children} </Route>;
+  } else {
     return (
-      <Container fluid>
-        <Router>
-          <div>
-            <GlobalNavBar />
-            <Switch>
-              <Route exact path="/">
-                <SearchView q={""} />
-              </Route>
-              <Route exact path="/search">
-                <SearchView q={""} />
-              </Route>
-              <Route path="/node/:id">
-                <NodeView />
-              </Route>
-              <Route path="/thread">
-                <TreeView />
-              </Route>
-              <Route path="/account">
-                <AccountView />
-              </Route>
-              <Route path="/settings">
-                <Settings />
-              </Route>
-              <Route path="/help">
-                <HelpInfo />
-              </Route>
-              <Route path="/about">
-                <About />
-              </Route>
-              <Route path="/contacts">
-                <ContactUs />
-              </Route>
-              <Route path="/logout">
-                <Logout />
-              </Route>
-              <Route path="/privacy-policy">
-                <PrivacyPolicy />
-              </Route>
-              <Route path="/terms-of-service">
-                <TermsOfService />
-              </Route>
-              <Route path="*">
-                <Redirect to={{ pathname: "/" }} />
-              </Route>
-            </Switch>
-          </div>
-        </Router>
-      </Container>
+      <Redirect
+        to={{
+          pathname: "/",
+          state: { from: location },
+        }}
+      />
+    );
+  }
+}
+
+function PublicOnlyRoute({ is_authenticated, children, ...rest }) {
+  const location = useLocation();
+  if (!is_authenticated) {
+    return <Route {...rest}> {children} </Route>;
+  } else {
+    return (
+      <Redirect
+        to={{
+          pathname: "/",
+          state: { from: location },
+        }}
+      />
     );
   }
 }
