@@ -5,8 +5,6 @@ import { Card, Button, Form, Container, Row, Col } from "react-bootstrap";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
 
-import auth from "./auth/token";
-
 class Login extends React.Component {
   constructor(props) {
     super(props);

@@ -432,6 +432,7 @@ class NodeRefs extends React.Component {
         if (res) {
           this.setState({
             refs: res.data.edges,
+            offers: [],
           });
         }
       });
@@ -459,7 +460,6 @@ class NodeRefs extends React.Component {
           partner_nid={partner_nid}
           direction={this.props.direction}
           offer={true}
-          ref_txt={""}
           key={"n:" + item.nid}
         />
       );
@@ -473,14 +473,12 @@ class NodeRefs extends React.Component {
         partner_nid = item.from_nid;
         nid = item.to_nid;
       }
-      console.log(item);
       return (
         <RefNodeCard
           nid={nid}
           partner_nid={partner_nid}
           direction={this.props.direction}
           offer={false}
-          ref_txt={""}
           key={item.eid}
         />
       );
@@ -511,8 +509,8 @@ class NodeCardImpl extends React.Component {
     super(props);
     this.state = {
       text: "",
-      crtd: moment(), // SystemTime,
-      upd: moment(), // SystemTime,
+      crtd: moment(),
+      upd: moment(),
       edit: this.isNew(),
     };
     this.fetchCancelToken = axios.CancelToken.source();
@@ -686,12 +684,6 @@ class FullNodeView extends React.Component {
     this.fetchCancelToken = axios.CancelToken.source();
   }
 
-  //  static propTypes = {
-  //    match: PropTypes.object.isRequired,
-  //    location: PropTypes.object.isRequired,
-  //    history: PropTypes.object.isRequired,
-  //  };
-
   componentDidUpdate(prevProps) {
     // Don't forget to compare props!
     if (this.props.nid !== prevProps.nid) {
@@ -710,17 +702,37 @@ class FullNodeView extends React.Component {
   fetchData = () => {};
 
   render() {
-    // <NodeRefs from_nid={this.props.nid} />
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">
-          <Col xl={2} lg={3} md={3} sm={12} xs={10}>
+          <Col
+            xl={2}
+            lg={3}
+            md={3}
+            sm={12}
+            xs={10}
+            className="meta-refs-col-to"
+          >
             <NodeRefs nid={this.props.nid} direction="to" />
           </Col>
-          <Col xl={4} lg={6} md={6} sm={12} xs={12}>
+          <Col
+            xl={4}
+            lg={6}
+            md={6}
+            sm={12}
+            xs={12}
+            className="meta-refs-col-node"
+          >
             <NodeCard nid={this.props.nid} />
           </Col>
-          <Col xl={4} lg={3} md={3} sm={12} xs={10}>
+          <Col
+            xl={4}
+            lg={3}
+            md={3}
+            sm={12}
+            xs={10}
+            className="meta-refs-col-from"
+          >
             <NodeRefs nid={this.props.nid} direction="from" />
           </Col>
         </Row>

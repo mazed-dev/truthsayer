@@ -4,7 +4,6 @@ import { Card, Button, Form, Container, Row, Col } from "react-bootstrap";
 
 import axios from "axios";
 import { withRouter } from "react-router-dom";
-import auth from "./auth/token";
 
 class Signin extends React.Component {
   constructor(props) {

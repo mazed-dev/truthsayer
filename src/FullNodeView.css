@@ -77,7 +77,7 @@
 /* xxl */
 @media (min-width: 2000px) {
   .meta-node-refs-from {
-    column-count: 3;
+    column-count: 2;
   }
   .meta-node-refs-to {
     column-count: 1;

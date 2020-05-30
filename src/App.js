@@ -37,11 +37,13 @@ import Logout from "./Logout";
 import Signin from "./Signin";
 import TopToolBar from "./TopToolBar";
 
+import authcache from "./auth/cache";
+
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      is_authenticated: false,
+      is_authenticated: authcache.get(),
       auth_renewer: null,
     };
     this.fetchCancelToken = axios.CancelToken.source();
@@ -52,6 +54,7 @@ class App extends React.Component {
       clearTimeout(this.state.auth_renewer);
     }
     const auth_renewer = setTimeout(this.renew_authentication, 3600000);
+    authcache.set();
     this.setState({
       is_authenticated: true,
       auth_renewer: auth_renewer,
@@ -62,6 +65,7 @@ class App extends React.Component {
     if (!this.state.auth_renewer !== null) {
       clearTimeout(this.state.auth_renewer);
     }
+    authcache.drop();
     this.setState({
       is_authenticated: false,
       auth_renewer: null,
@@ -103,11 +107,11 @@ class App extends React.Component {
     var nav_bar;
     var main_page;
     if (this.state.is_authenticated) {
-      console.log("Private App");
+      console.log("Private App " + window.location.pathname);
       nav_bar = <GlobalNavBar />;
       main_page = <Redirect to={{ pathname: "/search" }} />;
     } else {
-      console.log("Public App");
+      console.log("Public App " + window.location.pathname);
       nav_bar = <PublicNavBar />;
       main_page = <HelloWorld />;
     }
