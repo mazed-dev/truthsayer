@@ -36,6 +36,7 @@ import Login from "./Login";
 import Logout from "./Logout";
 import Signin from "./Signin";
 import TopToolBar from "./TopToolBar";
+import UploadFile from "./UploadFile";
 
 import authcache from "./auth/cache";
 
@@ -136,12 +137,12 @@ class App extends React.Component {
               >
                 <Signin onLogin={this.handleSuccessfulLogin} />
               </PublicOnlyRoute>
-              <PrivateRoute
+              <Route
                 path="/logout"
                 is_authenticated={this.state.is_authenticated}
               >
                 <Logout onLogout={this.handleLogout} />
-              </PrivateRoute>
+              </Route>
               <PrivateRoute
                 path="/search"
                 is_authenticated={this.state.is_authenticated}
@@ -153,6 +154,12 @@ class App extends React.Component {
                 is_authenticated={this.state.is_authenticated}
               >
                 <NodeView />
+              </PrivateRoute>
+              <PrivateRoute
+                path="/upload-file"
+                is_authenticated={this.state.is_authenticated}
+              >
+                <UploadFile />
               </PrivateRoute>
               <PrivateRoute
                 path="/thread"

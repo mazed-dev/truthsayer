@@ -11,7 +11,7 @@ function get() {
 }
 
 function drop() {
-  storage.delete(_KEY);
+  storage.remove(_KEY);
 }
 
 const authcache = {

@@ -28,7 +28,7 @@ class Logout extends React.Component {
           this.props.onLogout();
         }
       })
-      .catch(remoteErrorHandler(this.props.history));
+      .catch(() => {});
   }
 
   render() {

@@ -3,7 +3,16 @@ import React from "react";
 // React router
 import { Link, useLocation } from "react-router-dom";
 
-import { Form, Nav, NavDropdown, Navbar } from "react-bootstrap";
+import {
+  Form,
+  Nav,
+  NavDropdown,
+  Navbar,
+  ButtonGroup,
+  Button,
+  Dropdown,
+  SplitButton,
+} from "react-bootstrap";
 
 import queryString from "query-string";
 import { withRouter } from "react-router-dom";
@@ -71,6 +80,34 @@ function GlobalNavBar() {
   if (!q) {
     q = "";
   }
+  // title="&#x27C7;"
+  // <Nav.Link as={Link} to="/node/.new">
+  //   new
+  //   <span role="img" aria-label="next">
+  //     &#x2192;
+  //   </span>
+  // </Nav.Link>
+  // <NavDropdown
+  //   id="account-nav-dropdown"
+  //   className="ml-auto"
+  //   toggle
+  // >
+  //   <NavDropdown.Item as={Link} to="/account">
+  //     Manage your account
+  //   </NavDropdown.Item>
+  // </NavDropdown>
+  // <SplitButton
+  //   title="new"
+  //   id="new-note-nav-dropdown"
+  //   size="sm"
+  //   variant="light"
+  //   as={Link}
+  //   to="/node/.new"
+  // >
+  //   <NavDropdown.Item as={Link} to="/upload-file">
+  //     Upload file
+  //   </NavDropdown.Item>
+  // </SplitButton>
   return (
     <Navbar bg="light" variant="light" size="sm" className="pt-0 pb-1">
       <Navbar.Brand as={Link} to="/">
@@ -80,14 +117,19 @@ function GlobalNavBar() {
         Knitext
       </Navbar.Brand>
       <SearchInput className="ml-auto" from={q} />
-      <Nav>
-        <Nav.Link as={Link} to="/node/.new">
+      <Dropdown as={ButtonGroup} size="sm">
+        <Button variant="secondary" as={Link} to="/node/.new">
           new
-          <span role="img" aria-label="next">
-            &#x2192;
-          </span>
-        </Nav.Link>
-      </Nav>
+        </Button>
+        <Dropdown.Toggle split variant="secondary" id="dropdown-custom-2" />
+        <Dropdown.Menu className="super-colors">
+          <Dropdown.Item eventKey="1" as={Link} to="/upload-file">
+            Upload file
+          </Dropdown.Item>
+          <Dropdown.Divider />
+          <Dropdown.Item eventKey="2">Import from gmail</Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown>
       <NavDropdown
         title="&#9881; john@abc"
         id="account-nav-dropdown"
