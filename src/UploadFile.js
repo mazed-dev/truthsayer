@@ -30,6 +30,9 @@ const FormData = require("form-data");
 class UploadFile extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {
+      uploaded_nids: [],
+    };
     this.fileInputRef = React.createRef();
   }
 
@@ -42,7 +45,7 @@ class UploadFile extends React.Component {
     let data = new FormData();
     for (var i = 0; i < files.length; i++) {
       let file = files.item(i);
-      data.append("images[" + i + "]", file, file.name);
+      data.append(i, file, file.name);
     }
     const config = {
       headers: { "content-type": "multipart/form-data" },
@@ -54,6 +57,19 @@ class UploadFile extends React.Component {
 
   render() {
     // TODO(akindyakov): Continue here
+    const rows = this.state.uploaded_nids.map((nid) => {
+      return (<Row className="m-4">
+        <Col>
+          <p>File</p>
+        </Col>
+        <Col>
+          <p>frst</p>
+        </Col>
+        <Col>
+          <p>second</p>
+        </Col>
+      </Row>);
+    });
     return (
       <Container>
         <Form>
@@ -66,17 +82,7 @@ class UploadFile extends React.Component {
             />
           </Form.File>
         </Form>
-        <Row className="m-4">
-          <Col>
-            <p>File</p>
-          </Col>
-          <Col>
-            <p>frst</p>
-          </Col>
-          <Col>
-            <p>second</p>
-          </Col>
-        </Row>
+        {rows}
       </Container>
     );
   }
