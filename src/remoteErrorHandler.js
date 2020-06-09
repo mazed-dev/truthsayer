@@ -29,7 +29,7 @@ function remoteErrorHandler(history) {
         });
       } else if (HttpStatus.NOT_FOUND === error.response.status) {
         history.push({
-          pathname: "/search",
+          pathname: "/",
         });
       }
     }

@@ -19,6 +19,7 @@ import {
   Navbar,
   Row,
   SplitButton,
+  ListGroup,
 } from "react-bootstrap";
 
 import axios from "axios";
@@ -29,6 +30,16 @@ import remoteErrorHandler from "./remoteErrorHandler";
 const hash = require("object-hash");
 
 const FormData = require("form-data");
+
+const Emoji = props => (
+      <span
+          className="emoji"
+          role="img"
+          aria-label={props.label ? props.label : ""}
+          aria-hidden={props.label ? "false" : "true"}
+      >
+          {props.symbol}
+      </span>);
 
 class UploadFile extends React.Component {
   constructor(props) {
@@ -86,16 +97,21 @@ class UploadFile extends React.Component {
 
   render() {
     // TODO(akindyakov): Continue here
-    const rows = this.state.uploads.map((item) => {
+    // Connect items button
+    // https://github.com/atlassian/react-beautiful-dnd
+    const uploads = this.state.uploads.map((item) => {
+      var status = (<Emoji symbol="⌛" label="upload in progress" />);
+      if (item.nid !== null) {
+        status = (<Emoji symbol="🌱" label="uploaded" />);
+      }
       return (
-        <Row className="m-4">
-          <Col>
-            <p>{item.filename}</p>
-          </Col>
-          <Col>
-            <p>{item.nid}</p>
-          </Col>
-        </Row>
+        <ListGroup.Item key={item.local_id}>
+          {item.filename}
+          ::
+          <span role="img" aria-label="status">
+            {status}
+          </span>
+        </ListGroup.Item>
       );
     });
     return (
@@ -110,7 +126,9 @@ class UploadFile extends React.Component {
             />
           </Form.File>
         </Form>
-        {rows}
+        <ListGroup>
+          {uploads}
+        </ListGroup>
       </Container>
     );
   }
