@@ -55,6 +55,8 @@ class UploadFile extends React.Component {
     this.submitFiles(this.fileInputRef.current.files);
   };
 
+  handleLinkUploads = () => {};
+
   submitFiles(files) {
     let new_uploads = [];
     let data = new FormData();
@@ -92,6 +94,8 @@ class UploadFile extends React.Component {
             });
           }
         }
+        // Reset file input
+        this.fileInputRef.current.value = null;
       })
       .catch(remoteErrorHandler(this.props.history));
   }
@@ -107,26 +111,37 @@ class UploadFile extends React.Component {
       }
       return (
         <ListGroup.Item key={item.local_id}>
-          {item.filename}
-          ::
-          <span role="img" aria-label="status">
+          <span role="img" aria-label="status" className="mx-4 my-1">
             {status}
           </span>
+          {item.filename}
         </ListGroup.Item>
       );
     });
+    const link_uploads_enabled = this.state.uploads.length !== 0 && false; // Not implemented, yet
     return (
       <Container>
         <Form>
-          <Form.File id="formcheck-api-regular">
+          <Form.File id="upload-notes-from-files" custom>
             <Form.File.Input
               multiple
-              isInvalid
+              isValid
               onChange={this.handleChange}
               ref={this.fileInputRef}
             />
+            <Form.File.Label data-browse="Button text">
+              Select local files to upload...
+            </Form.File.Label>
           </Form.File>
         </Form>
+        <Button
+          variant="secondary"
+          disabled={!link_uploads_enabled}
+          onClick={link_uploads_enabled ? this.handleLinkUploads : null}
+          className="m-2"
+        >
+          Connect uploaded
+        </Button>
         <ListGroup className="m-2">{uploads}</ListGroup>
       </Container>
     );
