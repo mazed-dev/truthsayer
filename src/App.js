@@ -125,12 +125,9 @@ class App extends React.Component {
               <Route exact path="/">
                 {main_page}
               </Route>
-              <PublicOnlyRoute
-                path="/login"
-                is_authenticated={this.state.is_authenticated}
-              >
+              <Route path="/login">
                 <Login onLogin={this.handleSuccessfulLogin} />
-              </PublicOnlyRoute>
+              </Route>
               <PublicOnlyRoute
                 path="/signin"
                 is_authenticated={this.state.is_authenticated}

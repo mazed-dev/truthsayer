@@ -31,15 +31,16 @@ const hash = require("object-hash");
 
 const FormData = require("form-data");
 
-const Emoji = props => (
-      <span
-          className="emoji"
-          role="img"
-          aria-label={props.label ? props.label : ""}
-          aria-hidden={props.label ? "false" : "true"}
-      >
-          {props.symbol}
-      </span>);
+const Emoji = (props) => (
+  <span
+    className="emoji"
+    role="img"
+    aria-label={props.label ? props.label : ""}
+    aria-hidden={props.label ? "false" : "true"}
+  >
+    {props.symbol}
+  </span>
+);
 
 class UploadFile extends React.Component {
   constructor(props) {
@@ -100,9 +101,9 @@ class UploadFile extends React.Component {
     // Connect items button
     // https://github.com/atlassian/react-beautiful-dnd
     const uploads = this.state.uploads.map((item) => {
-      var status = (<Emoji symbol="⌛" label="upload in progress" />);
+      var status = <Emoji symbol="⌛" label="upload in progress" />;
       if (item.nid !== null) {
-        status = (<Emoji symbol="🌱" label="uploaded" />);
+        status = <Emoji symbol="🌱" label="uploaded" />;
       }
       return (
         <ListGroup.Item key={item.local_id}>
@@ -126,9 +127,7 @@ class UploadFile extends React.Component {
             />
           </Form.File>
         </Form>
-        <ListGroup>
-          {uploads}
-        </ListGroup>
+        <ListGroup className="m-2">{uploads}</ListGroup>
       </Container>
     );
   }

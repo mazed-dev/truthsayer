@@ -14,6 +14,25 @@ class Login extends React.Component {
       isReady: false,
     };
     this.emailRef = React.createRef();
+    this.axiosCancelToken = axios.CancelToken.source();
+  }
+
+  componentDidMount() {
+    // Just in case we are already logged in
+    axios
+      .get("/api/auth/session", {
+        cancelToken: this.axiosCancelToken.token,
+      })
+      .then((res) => {
+        if (res) {
+          this.props.onLogin();
+          this.props.history.push("/");
+        }
+      });
+  }
+
+  componentWillUnmount() {
+    this.axiosCancelToken.cancel();
   }
 
   handleEmailChange = (event) => {
@@ -40,13 +59,16 @@ class Login extends React.Component {
       permissions: 31,
     };
     axios
-      .post("/api/auth/session", value)
+      .post("/api/auth/session", value, {
+        cancelToken: this.axiosCancelToken.token,
+      })
       .catch(function (err) {
         alert("Error " + err);
       })
       .then((res) => {
         if (res) {
           this.props.onLogin();
+          this.props.history.push("/");
         }
       });
   };
