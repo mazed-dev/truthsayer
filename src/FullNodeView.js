@@ -657,13 +657,13 @@ class NodeCardImpl extends React.Component {
     } else {
       text_el = <ReactMarkdown source={this.state.text} />;
     }
+          // <div className="d-flex justify-content-center mp-0">
+          //   <Card.Img variant="top" className="w-25 p-3 m-1" src={maze} />
+          // </div>
     return (
       <Card className="meta-fluid-container">
         <div className="meta-fluid-el-top-rigth">{toolbar}</div>
         <Card.Body className="p-3 m-2">
-          <div className="d-flex justify-content-center mp-0">
-            <Card.Img variant="top" className="w-25 p-3 m-1" src={maze} />
-          </div>
           {text_el}
         </Card.Body>
         <footer className="text-right m-2">

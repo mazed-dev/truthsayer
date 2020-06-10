@@ -29,12 +29,12 @@ class NodeSmallCard extends React.Component {
 
   render() {
     const upd = moment.unix(this.props.upd).fromNow();
+          // <div className="d-flex justify-content-center">
+          //   <Card.Img variant="top" className="w-25 p-0 m-2" src={maze} />
+          // </div>
     return (
       <Card className="rounded" onClick={this.onClick}>
-        <Card.Body className="px-3 py-0 pm-0">
-          <div className="d-flex justify-content-center">
-            <Card.Img variant="top" className="w-25 p-0 m-2" src={maze} />
-          </div>
+        <Card.Body className="px-3 py-3 pm-0">
           <ReactMarkdown source={this.props.preface + "&hellip;"} />
         </Card.Body>
         <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">
