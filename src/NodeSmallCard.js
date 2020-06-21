@@ -29,9 +29,9 @@ class NodeSmallCard extends React.Component {
 
   render() {
     const upd = moment.unix(this.props.upd).fromNow();
-          // <div className="d-flex justify-content-center">
-          //   <Card.Img variant="top" className="w-25 p-0 m-2" src={maze} />
-          // </div>
+    // <div className="d-flex justify-content-center">
+    //   <Card.Img variant="top" className="w-25 p-0 m-2" src={maze} />
+    // </div>
     return (
       <Card className="rounded" onClick={this.onClick}>
         <Card.Body className="px-3 py-3 pm-0">

@@ -1,5 +1,6 @@
 # Todo
 
+ - [ ] Show proper name on global nav bar, not john@
  - [ ] ----- Release it to public -----
  - [ ] Emoji as viniette for every note
  - [ ] Connect uploaded files

@@ -57,7 +57,11 @@ class Signin extends React.Component {
       })
       .then((res) => {
         if (res) {
-          this.props.onLogin();
+          if (res.data.permissions === 0) {
+            this.props.history.push("/waiting-list");
+          } else {
+            this.props.onLogin();
+          }
         }
       });
   };

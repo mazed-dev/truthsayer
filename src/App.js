@@ -30,13 +30,14 @@ import queryString from "query-string";
 import axios from "axios";
 
 import GlobalNavBar from "./GlobalNavBar";
-import PublicNavBar from "./PublicNavBar";
-import TreeView from "./TreeView";
 import Login from "./Login";
 import Logout from "./Logout";
+import PublicNavBar from "./PublicNavBar";
 import Signin from "./Signin";
 import TopToolBar from "./TopToolBar";
+import TreeView from "./TreeView";
 import UploadFile from "./UploadFile";
+import WaitingListStatus from "./WaitingListStatus";
 
 import authcache from "./auth/cache";
 
@@ -193,6 +194,9 @@ class App extends React.Component {
               </Route>
               <Route path="/terms-of-service">
                 <TermsOfService />
+              </Route>
+              <Route path="/waiting-list">
+                <WaitingListStatus />
               </Route>
               <Route path="*">
                 <Redirect to={{ pathname: "/" }} />

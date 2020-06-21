@@ -27,8 +27,10 @@ class Logout extends React.Component {
         if (res) {
           this.props.onLogout();
         }
+        this.props.history.push({ pathname: "/" });
       })
-      .catch(() => {});
+      // .catch(() => {});
+      .catch(remoteErrorHandler(this.props.history));
   }
 
   render() {
