@@ -38,6 +38,8 @@ import TopToolBar from "./TopToolBar";
 import TreeView from "./TreeView";
 import UploadFile from "./UploadFile";
 import WaitingListStatus from "./WaitingListStatus";
+import PasswordRecoverRequest from "./PasswordRecoverRequest";
+import PasswordRecoverForm from "./PasswordRecoverForm";
 
 import authcache from "./auth/cache";
 
@@ -198,6 +200,18 @@ class App extends React.Component {
               <Route path="/waiting-list">
                 <WaitingListStatus />
               </Route>
+              <PublicOnlyRoute
+                path="/password-recover-request"
+                is_authenticated={this.state.is_authenticated}
+              >
+                <PasswordRecoverRequest />
+              </PublicOnlyRoute>
+              <PublicOnlyRoute
+                path="/password-recover-reset/:token"
+                is_authenticated={this.state.is_authenticated}
+              >
+                <PasswordRecoverFormView />
+              </PublicOnlyRoute>
               <Route path="*">
                 <Redirect to={{ pathname: "/" }} />
               </Route>
@@ -347,6 +361,11 @@ function Settings() {
       <Link to="/">Go back</Link>
     </>
   );
+}
+
+function PasswordRecoverFormView() {
+  const { token } = useParams();
+  return <PasswordRecoverForm token={token} />;
 }
 
 function NodeView() {

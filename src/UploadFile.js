@@ -27,20 +27,22 @@ import queryString from "query-string";
 import { withRouter } from "react-router-dom";
 import remoteErrorHandler from "./remoteErrorHandler";
 
+import Emoji from "./Emoji";
+
 const hash = require("object-hash");
 
 const FormData = require("form-data");
 
-const Emoji = (props) => (
-  <span
-    className="emoji"
-    role="img"
-    aria-label={props.label ? props.label : ""}
-    aria-hidden={props.label ? "false" : "true"}
-  >
-    {props.symbol}
-  </span>
-);
+// const Emoji = (props) => (
+//   <span
+//     className="emoji"
+//     role="img"
+//     aria-label={props.label ? props.label : ""}
+//     aria-hidden={props.label ? "false" : "true"}
+//   >
+//     {props.symbol}
+//   </span>
+// );
 
 class UploadFile extends React.Component {
   constructor(props) {
