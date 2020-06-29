@@ -38,8 +38,9 @@ import TopToolBar from "./TopToolBar";
 import TreeView from "./TreeView";
 import UploadFile from "./UploadFile";
 import WaitingListStatus from "./WaitingListStatus";
-import PasswordRecoverRequest from "./PasswordRecoverRequest";
+import PasswordChange from "./PasswordChange";
 import PasswordRecoverForm from "./PasswordRecoverForm";
+import PasswordRecoverRequest from "./PasswordRecoverRequest";
 
 import authcache from "./auth/cache";
 
@@ -212,6 +213,12 @@ class App extends React.Component {
               >
                 <PasswordRecoverFormView />
               </PublicOnlyRoute>
+              <PrivateRoute
+                path="/password-recover-change"
+                is_authenticated={this.state.is_authenticated}
+              >
+                <PasswordChange />
+              </PrivateRoute>
               <Route path="*">
                 <Redirect to={{ pathname: "/" }} />
               </Route>

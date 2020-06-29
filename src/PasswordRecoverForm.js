@@ -22,7 +22,6 @@ class PasswordRecoverForm extends React.Component {
       isReady: false,
       is_validating: true,
     };
-    this.emailRef = React.createRef();
     this.axiosCancelToken = axios.CancelToken.source();
   }
 
