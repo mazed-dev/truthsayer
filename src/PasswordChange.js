@@ -1,13 +1,14 @@
 import React from "react";
 
 import {
-  Card,
+  Badge,
   Button,
-  Form,
-  Container,
-  Row,
-  Col,
   ButtonGroup,
+  Card,
+  Col,
+  Container,
+  Form,
+  Row,
 } from "react-bootstrap";
 
 import axios from "axios";
@@ -22,7 +23,8 @@ class PasswordChange extends React.Component {
       new_password: "",
       confirm_new_password: "",
       is_ready: false,
-      is_validating: true,
+      new_password_is_too_short: false,
+      new_password_is_not_confirmed: false,
     };
     this.axiosCancelToken = axios.CancelToken.source();
   }
@@ -37,17 +39,23 @@ class PasswordChange extends React.Component {
 
   handleNewPasswordChange = (event) => {
     this.setState({ new_password: event.target.value });
-    this.checkState();
+    this.verifyNewPassword(event.target.value, this.state.confirm_new_password);
   };
 
   handleConfirmNewPasswordChange = (event) => {
     this.setState({ confirm_new_password: event.target.value });
-    this.checkState();
+    this.verifyNewPassword(this.state.new_password, event.target.value);
   };
 
-  checkState = () => {
-    const is_ready = this.state.new_password.length > 6;
-    this.setState({ is_ready: is_ready });
+  verifyNewPassword = (new_password, confirm_new_password) => {
+    const new_password_is_too_short = new_password.length < 6;
+    const new_password_is_not_confirmed = new_password !== confirm_new_password;
+    console.log(new_password, confirm_new_password);
+    this.setState({
+      new_password_is_too_short: new_password_is_too_short,
+      new_password_is_not_confirmed: new_password_is_not_confirmed,
+      is_ready: !new_password_is_too_short && !new_password_is_not_confirmed,
+    });
   };
 
   onSubmit = (event) => {
@@ -71,6 +79,20 @@ class PasswordChange extends React.Component {
   };
 
   render() {
+    var new_password_badge;
+    if (this.state.new_password_is_too_short) {
+      new_password_badge = <Badge variant="danger">is too short</Badge>;
+    } else {
+      new_password_badge = <Badge variant="success">ok</Badge>;
+    }
+    var new_password_confirm_badge;
+    if (this.state.new_password_is_not_confirmed) {
+      new_password_confirm_badge = (
+        <Badge variant="danger">doesn't match</Badge>
+      );
+    } else {
+      new_password_confirm_badge = <Badge variant="success">ok</Badge>;
+    }
     return (
       <Container>
         <Card className="border-0">
@@ -91,7 +113,8 @@ class PasswordChange extends React.Component {
               </Form.Group>
               <Form.Group className="mb-1" as={Row} controlId="formNewPassword">
                 <Form.Label column sm="3">
-                  New password
+                  New password &nbsp;
+                  {new_password_badge}
                 </Form.Label>
                 <Col>
                   <Form.Control
@@ -103,7 +126,8 @@ class PasswordChange extends React.Component {
               </Form.Group>
               <Form.Group className="mt-2" as={Row} controlId="formNewPassword">
                 <Form.Label column sm="3">
-                  Confirm new password
+                  Confirm new password &nbsp;
+                  {new_password_confirm_badge}
                 </Form.Label>
                 <Col>
                   <Form.Control
