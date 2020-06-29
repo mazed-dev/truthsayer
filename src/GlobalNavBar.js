@@ -114,7 +114,7 @@ function GlobalNavBar() {
         <span role="img" aria-label="next">
           &#x1F9F5;
         </span>
-        Knitext
+        Mazed
       </Navbar.Brand>
       <SearchInput className="ml-auto" from={q} />
       <Dropdown as={ButtonGroup} size="sm">

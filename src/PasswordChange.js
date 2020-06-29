@@ -50,7 +50,6 @@ class PasswordChange extends React.Component {
   verifyNewPassword = (new_password, confirm_new_password) => {
     const new_password_is_too_short = new_password.length < 6;
     const new_password_is_not_confirmed = new_password !== confirm_new_password;
-    console.log(new_password, confirm_new_password);
     this.setState({
       new_password_is_too_short: new_password_is_too_short,
       new_password_is_not_confirmed: new_password_is_not_confirmed,
