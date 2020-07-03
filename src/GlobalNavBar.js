@@ -13,6 +13,7 @@ import {
   Button,
   Dropdown,
   SplitButton,
+  Image,
 } from "react-bootstrap";
 
 import axios from "axios";
@@ -20,6 +21,8 @@ import queryString from "query-string";
 import { withRouter } from "react-router-dom";
 
 import Emoji from "./Emoji";
+
+import user_default_pic from "./user-default-pic.png";
 
 class SearchInputImpl extends React.Component {
   constructor(props) {
@@ -97,7 +100,6 @@ class UserPic extends React.Component {
       })
       .then((res) => {
         if (res) {
-          console.log("Res ", res.data);
           this.setState({
             name: res.data.name,
             email: res.data.email,
@@ -114,7 +116,14 @@ class UserPic extends React.Component {
     // TODO: use custom user uploaded picture for userpic here
     return (
       <span>
-        <Emoji symbol="🙂" label="user pic" />
+        <Image
+          src={user_default_pic}
+          roundedCircle
+          fluid
+          width="18"
+          height="18"
+          className="mx-2"
+        />
         &nbsp;
         {this.state.name}
       </span>
@@ -161,11 +170,8 @@ function GlobalNavBar() {
         id="account-nav-dropdown"
         className="ml-auto userpic-dropdown px-4 mx-4"
       >
-        <NavDropdown.Item as={Link} to="/account">
+        <NavDropdown.Item as={Link} to="/user-preferences">
           Manage your account
-        </NavDropdown.Item>
-        <NavDropdown.Item as={Link} to="/settings">
-          Settings
         </NavDropdown.Item>
         <NavDropdown.Item as={Link} to="/help">
           Help

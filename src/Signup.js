@@ -5,13 +5,17 @@ import { Card, Button, Form, Container, Row, Col } from "react-bootstrap";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
 
-class Signin extends React.Component {
+class Signup extends React.Component {
   constructor(props) {
     super(props);
+    var email = "";
+    if (this.props.location.state.email) {
+      email = this.props.location.state.email;
+    }
     this.state = {
-      name: this.props.name,
-      email: this.props.email,
-      password: "",
+      name: "",
+      email: email,
+      // password: "",
       consent: false,
     };
     this.consentRef = React.createRef();
@@ -26,9 +30,9 @@ class Signin extends React.Component {
     this.setState({ email: event.target.value });
   };
 
-  handlePasswordChange = (event) => {
-    this.setState({ password: event.target.value });
-  };
+  //handlePasswordChange = (event) => {
+  //  this.setState({ password: event.target.value });
+  //};
 
   toggleConsent = (event) => {
     this.setState({ consent: this.consentRef.current.checked });
@@ -38,8 +42,8 @@ class Signin extends React.Component {
     const isReady =
       this.state.consent &&
       this.state.name.length > 1 &&
-      this.emailRef.current.validity.valid &&
-      this.state.password.length > 6;
+      this.emailRef.current.validity.valid; // &&
+    //    this.state.password.length > 6;
     return isReady;
   };
 
@@ -48,7 +52,7 @@ class Signin extends React.Component {
     const value = {
       name: this.state.name,
       email: this.state.email,
-      password: this.state.password,
+      // password: this.state.password,
     };
     axios
       .post("/api/auth", value)
@@ -57,7 +61,7 @@ class Signin extends React.Component {
       })
       .then((res) => {
         if (res) {
-          if (res.data.permissions === 0) {
+          if (res.data.wait) {
             this.props.history.push("/waiting-list");
           } else {
             this.props.onLogin();
@@ -101,22 +105,9 @@ class Signin extends React.Component {
                   />
                 </Col>
               </Form.Group>
-
-              <Form.Group as={Row} controlId="formLoginPassword">
-                <Form.Label column sm="2">
-                  Password
-                </Form.Label>
-                <Col>
-                  <Form.Control
-                    type="password"
-                    value={this.state.password}
-                    onChange={this.handlePasswordChange}
-                  />
-                </Col>
-              </Form.Group>
               <Card.Text>
-                This website is still under active development, therefore there
-                is no guarantie of any kind.
+                Mazed currently is under active development, therefore there is
+                no guarantie of any kind.
               </Card.Text>
               <Form.Group as={Row} controlId="formCustomerAggreementCheckbox">
                 <Form.Label column sm="2">
@@ -146,9 +137,17 @@ class Signin extends React.Component {
   }
 }
 
-Signin.defaultProps = {
-  name: "",
-  email: "",
-};
+//               <Form.Group as={Row} controlId="formLoginPassword">
+//                 <Form.Label column sm="2">
+//                   Password
+//                 </Form.Label>
+//                 <Col>
+//                   <Form.Control
+//                     type="password"
+//                     value={this.state.password}
+//                     onChange={this.handlePasswordChange}
+//                   />
+//                 </Col>
+//               </Form.Group>
 
-export default withRouter(Signin);
+export default withRouter(Signup);

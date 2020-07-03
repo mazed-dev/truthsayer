@@ -33,7 +33,7 @@ import GlobalNavBar from "./GlobalNavBar";
 import Login from "./Login";
 import Logout from "./Logout";
 import PublicNavBar from "./PublicNavBar";
-import Signin from "./Signin";
+import Signup from "./Signup";
 import TopToolBar from "./TopToolBar";
 import TreeView from "./TreeView";
 import UploadFile from "./UploadFile";
@@ -41,6 +41,8 @@ import WaitingListStatus from "./WaitingListStatus";
 import PasswordChange from "./PasswordChange";
 import PasswordRecoverForm from "./PasswordRecoverForm";
 import PasswordRecoverRequest from "./PasswordRecoverRequest";
+import UserPreferences from "./UserPreferences";
+import WelcomePage from "./WelcomePage";
 
 import authcache from "./auth/cache";
 
@@ -118,7 +120,7 @@ class App extends React.Component {
     } else {
       console.log("Public App " + window.location.pathname);
       nav_bar = <PublicNavBar />;
-      main_page = <HelloWorld />;
+      main_page = <WelcomePage />;
     }
     return (
       <Container fluid>
@@ -133,10 +135,10 @@ class App extends React.Component {
                 <Login onLogin={this.handleSuccessfulLogin} />
               </Route>
               <PublicOnlyRoute
-                path="/signin"
+                path="/signup"
                 is_authenticated={this.state.is_authenticated}
               >
-                <Signin onLogin={this.handleSuccessfulLogin} />
+                <Signup onLogin={this.handleSuccessfulLogin} />
               </PublicOnlyRoute>
               <Route
                 path="/logout"
@@ -175,10 +177,10 @@ class App extends React.Component {
                 <AccountView />
               </PrivateRoute>
               <PrivateRoute
-                path="/settings"
+                path="/user-preferences"
                 is_authenticated={this.state.is_authenticated}
               >
-                <Settings />
+                <UserPreferences />
               </PrivateRoute>
               <PrivateRoute
                 path="/help"
@@ -260,14 +262,6 @@ function PublicOnlyRoute({ is_authenticated, children, ...rest }) {
       />
     );
   }
-}
-
-function HelloWorld() {
-  return (
-    <Container>
-      <h1>Main page</h1>
-    </Container>
-  );
 }
 
 function HelpInfo() {
@@ -357,16 +351,6 @@ function AccountView() {
     <div>
       <h2>Account</h2>
     </div>
-  );
-}
-
-function Settings() {
-  return (
-    <>
-      <h2>Account</h2>
-      <p>To be done</p>
-      <Link to="/">Go back</Link>
-    </>
   );
 }
 

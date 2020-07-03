@@ -50,8 +50,7 @@ class Login extends React.Component {
   };
 
   checkState = () => {
-    const isReady =
-      this.emailRef.current.validity.valid && this.state.password.length > 8;
+    const isReady = this.emailRef.current.validity.valid;
     this.setState({ isReady: isReady });
   };
 

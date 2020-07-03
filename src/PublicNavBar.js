@@ -38,11 +38,11 @@ function PublicNavBar() {
           </Nav.Link>
         </Nav>
         <Nav className="ml-auto">
-          <Nav.Link as={Link} to="/signin">
-            Register
+          <Nav.Link as={Link} to="/signup">
+            Sign up
           </Nav.Link>
           <Nav.Link as={Link} to="/login">
-            Login
+            Log in
           </Nav.Link>
         </Nav>
       </Navbar.Collapse>
