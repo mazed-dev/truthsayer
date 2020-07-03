@@ -4,6 +4,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import {
+  Card,
   Form,
   Nav,
   NavDropdown,
@@ -14,8 +15,11 @@ import {
   SplitButton,
 } from "react-bootstrap";
 
+import axios from "axios";
 import queryString from "query-string";
 import { withRouter } from "react-router-dom";
+
+import Emoji from "./Emoji";
 
 class SearchInputImpl extends React.Component {
   constructor(props) {
@@ -71,6 +75,53 @@ SearchInputImpl.defaultProps = {
   from: "",
 };
 
+class UserPic extends React.Component {
+  // pub struct AccountInfo<'a> {
+  //     pub uid: &'a str,
+  //     pub name: &'a str,
+  //     pub email: &'a str,
+  // }
+  constructor(props) {
+    super(props);
+    this.axiosCancelToken = axios.CancelToken.source();
+    this.state = {
+      name: "user",
+      email: "email",
+    };
+  }
+
+  componentDidMount() {
+    axios
+      .get("/api/auth", {
+        cancelToken: this.axiosCancelToken.token,
+      })
+      .then((res) => {
+        if (res) {
+          console.log("Res ", res.data);
+          this.setState({
+            name: res.data.name,
+            email: res.data.email,
+          });
+        }
+      });
+  }
+
+  componentWillUnmount() {
+    this.axiosCancelToken.cancel();
+  }
+
+  render() {
+    // TODO: use custom user uploaded picture for userpic here
+    return (
+      <span>
+        <Emoji symbol="🙂" label="user pic" />
+        &nbsp;
+        {this.state.name}
+      </span>
+    );
+  }
+}
+
 const SearchInput = withRouter(SearchInputImpl);
 
 function GlobalNavBar() {
@@ -80,60 +131,35 @@ function GlobalNavBar() {
   if (!q) {
     q = "";
   }
-  // title="&#x27C7;"
-  // <Nav.Link as={Link} to="/node/.new">
-  //   new
-  //   <span role="img" aria-label="next">
-  //     &#x2192;
-  //   </span>
-  // </Nav.Link>
-  // <NavDropdown
-  //   id="account-nav-dropdown"
-  //   className="ml-auto"
-  //   toggle
-  // >
-  //   <NavDropdown.Item as={Link} to="/account">
-  //     Manage your account
-  //   </NavDropdown.Item>
-  // </NavDropdown>
-  // <SplitButton
-  //   title="new"
-  //   id="new-note-nav-dropdown"
-  //   size="sm"
-  //   variant="light"
-  //   as={Link}
-  //   to="/node/.new"
-  // >
-  //   <NavDropdown.Item as={Link} to="/upload-file">
-  //     Upload file
-  //   </NavDropdown.Item>
-  // </SplitButton>
+  const userpic = <UserPic />;
   return (
-    <Navbar bg="light" variant="light" size="sm" className="pt-0 pb-1">
-      <Navbar.Brand as={Link} to="/">
+    <Navbar bg="light" variant="light" size="sm" className="py-1">
+      <Navbar.Brand as={Link} to="/" className="px-4">
         <span role="img" aria-label="next">
           &#x1F9F5;
         </span>
         Mazed
       </Navbar.Brand>
-      <SearchInput className="ml-auto" from={q} />
-      <Dropdown as={ButtonGroup} size="sm">
-        <Button variant="secondary" as={Link} to="/node/.new">
-          new
+      <SearchInput className="ml-auto px-4" from={q} />
+      <Dropdown as={ButtonGroup} size="sm" className="px-2">
+        <Button variant="outline-success" as={Link} to="/node/.new">
+          add
         </Button>
-        <Dropdown.Toggle split variant="secondary" id="dropdown-custom-2" />
+        <Dropdown.Toggle
+          split
+          variant="outline-success"
+          id="dropdown-custom-2"
+        />
         <Dropdown.Menu className="super-colors">
           <Dropdown.Item eventKey="1" as={Link} to="/upload-file">
-            Upload file
+            Upload from file
           </Dropdown.Item>
-          <Dropdown.Divider />
-          <Dropdown.Item eventKey="2">Import from gmail</Dropdown.Item>
         </Dropdown.Menu>
       </Dropdown>
       <NavDropdown
-        title="&#9881; john@abc"
+        title={userpic}
         id="account-nav-dropdown"
-        className="ml-auto"
+        className="ml-auto userpic-dropdown px-4 mx-4"
       >
         <NavDropdown.Item as={Link} to="/account">
           Manage your account

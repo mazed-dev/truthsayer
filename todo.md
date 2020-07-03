@@ -1,6 +1,5 @@
 # Todo
 
- - [ ] Show proper name on global nav bar, not john@
  - [ ] ----- Release it to public -----
  - [ ] Emoji as viniette for every note
  - [ ] Connect uploaded files
@@ -16,3 +15,4 @@
  - [x] Add cutting a connection functionality
  - [x] Single route switch - for both private and public
  - [x] Fix bug. To reproduce: add ref by "search-and-add", click on added connection - you will see note connected to itself.
+ - [x] Show proper name on global nav bar, not john@

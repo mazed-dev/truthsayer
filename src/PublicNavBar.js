@@ -22,19 +22,19 @@ function PublicNavBar() {
         <span role="img" aria-label="next">
           &#x1F9F5;
         </span>
-        Knitext
+        Mazed
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="responsive-public-navbar" />
       <Navbar.Collapse id="responsive-public-navbar">
         <Nav>
-          <Nav.Link as={Link} to="/contacts">
-            Contact us
+          <Nav.Link as={Link} to="/terms-of-service">
+            Terms of service
           </Nav.Link>
           <Nav.Link as={Link} to="/privacy-policy">
             Privacy policy
           </Nav.Link>
-          <Nav.Link as={Link} to="/terms-of-service">
-            Terms of service
+          <Nav.Link as={Link} to="/contacts">
+            Contact us
           </Nav.Link>
         </Nav>
         <Nav className="ml-auto">
