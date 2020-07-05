@@ -1,6 +1,6 @@
 import React from "react";
 
-import logo from "./logo.svg";
+import DoodledBird from "./DoodledBird.svg";
 import FullNodeView from "./FullNodeView";
 import SearchGrid from "./SearchGrid";
 
@@ -182,12 +182,9 @@ class App extends React.Component {
               >
                 <UserPreferences />
               </PrivateRoute>
-              <PrivateRoute
-                path="/help"
-                is_authenticated={this.state.is_authenticated}
-              >
+              <Route path="/help">
                 <HelpInfo />
-              </PrivateRoute>
+              </Route>
               <Route path="/about">
                 <About />
               </Route>
@@ -282,7 +279,13 @@ function About() {
   return (
     <Container>
       <Card>
-        <Card.Img variant="top" src={logo} />
+        <Card.Img
+          variant="top"
+          className="mt-4"
+          src={DoodledBird}
+          width={300}
+          height={300}
+        />
         <Card.Body>
           <Card.Title>To be done</Card.Title>
           <Card.Text>To be done</Card.Text>
@@ -322,8 +325,14 @@ function ContactUs() {
 function PrivacyPolicy() {
   return (
     <Container>
-      <Card>
-        <Card.Img variant="top" src={logo} />
+      <Card border="light">
+        <Card.Img
+          variant="top"
+          className="mt-4"
+          src={DoodledBird}
+          width={300}
+          height={300}
+        />
         <Card.Body>
           <Card.Title>Privacy policy</Card.Title>
           <Card.Text>To be done soon</Card.Text>

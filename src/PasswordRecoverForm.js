@@ -30,13 +30,11 @@ class PasswordRecoverForm extends React.Component {
   }
 
   handlePasswordChange = (event) => {
-    this.setState({ password: event.target.value });
-    this.checkState();
-  };
-
-  checkState = () => {
-    const isReady = this.state.password.length > 6;
-    this.setState({ isReady: isReady });
+    const isReady = event.target.value.length > 6;
+    this.setState({
+      password: event.target.value,
+      isReady: isReady,
+    });
   };
 
   onSubmit = (event) => {

@@ -22,7 +22,7 @@ function PublicNavBar() {
         <span role="img" aria-label="next">
           &#x1F9F5;
         </span>
-        Mazed
+        &nbsp; Mazed
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="responsive-public-navbar" />
       <Navbar.Collapse id="responsive-public-navbar">

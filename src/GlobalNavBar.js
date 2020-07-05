@@ -147,7 +147,7 @@ function GlobalNavBar() {
         <span role="img" aria-label="next">
           &#x1F9F5;
         </span>
-        Mazed
+        &nbsp; Mazed
       </Navbar.Brand>
       <SearchInput className="ml-auto px-4" from={q} />
       <Dropdown as={ButtonGroup} size="sm" className="px-2">

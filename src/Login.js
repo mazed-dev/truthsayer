@@ -5,6 +5,8 @@ import { Card, Button, Form, Container, Row, Col } from "react-bootstrap";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
 
+import "./Signup.css";
+
 class Login extends React.Component {
   constructor(props) {
     super(props);
@@ -12,6 +14,7 @@ class Login extends React.Component {
       email: this.props.email,
       password: "",
       isReady: false,
+      server_error: null,
     };
     this.emailRef = React.createRef();
     this.axiosCancelToken = axios.CancelToken.source();
@@ -56,6 +59,9 @@ class Login extends React.Component {
 
   onSubmit = (event) => {
     event.preventDefault();
+    this.setState({
+      server_error: null,
+    });
     const value = {
       email: this.state.email,
       pass: this.state.password,
@@ -65,9 +71,7 @@ class Login extends React.Component {
       .post("/api/auth/session", value, {
         cancelToken: this.axiosCancelToken.token,
       })
-      .catch(function (err) {
-        alert("Error " + err);
-      })
+      .catch(this.handleSubmitError)
       .then((res) => {
         if (res) {
           if (res.data.permissions === 0) {
@@ -80,7 +84,31 @@ class Login extends React.Component {
       });
   };
 
+  handleSubmitError = (err) => {
+    console.log("Server error ", err);
+    if (err.response) {
+      // if (err.response.status === HttpStatus.FORBIDDEN) {
+      if (err.response.data && err.response.data.message) {
+        this.setState({
+          server_error: err.response.data.message,
+        });
+      } else {
+        this.setState({
+          server_error: err.response.stringify(),
+        });
+      }
+    } else {
+      this.setState({
+        server_error: "Server error",
+      });
+    }
+  };
+
   render() {
+    var server_error;
+    if (this.state.server_error) {
+      server_error = <p className="red_text">{this.state.server_error}</p>;
+    }
     return (
       <Container>
         <Card className="border-0">
@@ -113,13 +141,19 @@ class Login extends React.Component {
                   />
                 </Col>
               </Form.Group>
-              <Button
-                variant="secondary"
-                type="submit"
-                disabled={!this.state.isReady}
-              >
-                Go
-              </Button>
+              <Row>
+                <Col></Col>
+                <Col>
+                  <Button
+                    variant="secondary"
+                    type="submit"
+                    disabled={!this.state.isReady}
+                  >
+                    Log in
+                  </Button>
+                </Col>
+                <Col>{server_error}</Col>
+              </Row>
             </Form>
           </Card.Body>
         </Card>

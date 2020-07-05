@@ -17,8 +17,12 @@ import Emoji from "./Emoji";
 class PasswordRecoverRequest extends React.Component {
   constructor(props) {
     super(props);
+    var email = "";
+    if (this.props.location.state.email) {
+      email = this.props.location.state.email;
+    }
     this.state = {
-      email: this.props.email,
+      email: email,
       reset_request_is_sent: false,
     };
     this.emailRef = React.createRef();
@@ -154,9 +158,5 @@ class PasswordRecoverRequest extends React.Component {
     );
   }
 }
-
-PasswordRecoverRequest.defaultProps = {
-  email: "",
-};
 
 export default withRouter(PasswordRecoverRequest);

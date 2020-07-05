@@ -1,21 +1,33 @@
 import React from "react";
 
-import { Card, Button, Form, Container, Row, Col } from "react-bootstrap";
+import {
+  Card,
+  Button,
+  Form,
+  Container,
+  Row,
+  Col,
+  Modal,
+} from "react-bootstrap";
+
+import "./Signup.css";
 
 import axios from "axios";
-import { withRouter } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
+import HttpStatus from "http-status-codes";
 
 class Signup extends React.Component {
   constructor(props) {
     super(props);
     var email = "";
-    if (this.props.location.state.email) {
+    if (this.props.location.state && this.props.location.state.email) {
       email = this.props.location.state.email;
     }
     this.state = {
       name: "",
       email: email,
       consent: false,
+      show_account_exists_error: false,
     };
     this.consentRef = React.createRef();
     this.emailInputRef = React.createRef();
@@ -54,6 +66,9 @@ class Signup extends React.Component {
 
   onSubmit = (event) => {
     event.preventDefault();
+    this.setState({
+      show_account_exists_error: false,
+    });
     const value = {
       name: this.state.name,
       email: this.state.email,
@@ -62,9 +77,7 @@ class Signup extends React.Component {
       .post("/api/auth", value, {
         cancelToken: this.axiosCancelToken.token,
       })
-      .catch(function (err) {
-        alert("Error " + err);
-      })
+      .catch(this.handleSubmitError)
       .then((res) => {
         if (res) {
           if (res.data.wait) {
@@ -79,16 +92,73 @@ class Signup extends React.Component {
       });
   };
 
+  handleSubmitError = (err) => {
+    console.log("Server error ", err);
+    if (err.response) {
+      if (err.response.status === HttpStatus.CONFLICT) {
+        this.setState({
+          show_account_exists_error: true,
+        });
+      } else {
+        console.log(err.response);
+      }
+    }
+  };
+
   render() {
+    var email_error;
+    if (this.state.show_account_exists_error) {
+      email_error = (
+        <Row className="my-2">
+          <Col></Col>
+          <Col className="red_text">
+            Account with such email already exists.
+          </Col>
+          <Col>
+            <Link
+              to={{
+                pathname: "/password-recover-request",
+                state: { email: this.state.email },
+              }}
+            >
+              Forgot your password?
+            </Link>
+          </Col>
+        </Row>
+      );
+    }
     return (
       <Container>
         <Card className="border-0">
           <Card.Body className="p-3">
-            <Card.Title>Register an account</Card.Title>
+            <Card.Title>Sign up</Card.Title>
             <Form className="m-4" onSubmit={this.onSubmit}>
+              <Row className="m-2">
+                By continuing, you agree to our
+                <Link to={"/terms-of-service"}>
+                  &nbsp; Terms Of Service &nbsp;
+                </Link>
+                and
+                <Link to={"/privacy-policy"}>&nbsp; Privacy Policy &nbsp;</Link>
+              </Row>
+              <Form.Group
+                as={Row}
+                className="m-2"
+                controlId="formCustomerAggreementCheckbox"
+              >
+                <Form.Check
+                  type="checkbox"
+                  onChange={this.toggleConsent}
+                  ref={this.consentRef}
+                />
+                <Form.Label sm="2">
+                  I am aware that Mazed currently is under active development,
+                  therefore there is no guarantie of any kind
+                </Form.Label>
+              </Form.Group>
               <Form.Group as={Row} controlId="formLoginName">
                 <Form.Label column sm="2">
-                  Your name
+                  Name
                 </Form.Label>
                 <Col>
                   <Form.Control
@@ -100,7 +170,6 @@ class Signup extends React.Component {
                   />
                 </Col>
               </Form.Group>
-
               <Form.Group as={Row} controlId="formLoginEmail">
                 <Form.Label column sm="2">
                   Email
@@ -114,22 +183,7 @@ class Signup extends React.Component {
                   />
                 </Col>
               </Form.Group>
-              <Card.Text>
-                Mazed currently is under active development, therefore there is
-                no guarantie of any kind.
-              </Card.Text>
-              <Form.Group as={Row} controlId="formCustomerAggreementCheckbox">
-                <Form.Label column sm="2">
-                  I agree, go on
-                </Form.Label>
-                <Col sm="2">
-                  <Form.Check
-                    type="checkbox"
-                    onChange={this.toggleConsent}
-                    ref={this.consentRef}
-                  />
-                </Col>
-              </Form.Group>
+              {email_error}
               <Button
                 variant="secondary"
                 type="submit"
