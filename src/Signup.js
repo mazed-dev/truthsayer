@@ -15,11 +15,21 @@ class Signup extends React.Component {
     this.state = {
       name: "",
       email: email,
-      // password: "",
       consent: false,
     };
     this.consentRef = React.createRef();
-    this.emailRef = React.createRef();
+    this.emailInputRef = React.createRef();
+    this.nameInputRef = React.createRef();
+
+    this.axiosCancelToken = axios.CancelToken.source();
+  }
+
+  componentDidMount() {
+    this.nameInputRef.current.focus();
+  }
+
+  componentWillUnmount() {
+    this.axiosCancelToken.cancel();
   }
 
   handleNameChange = (event) => {
@@ -30,10 +40,6 @@ class Signup extends React.Component {
     this.setState({ email: event.target.value });
   };
 
-  //handlePasswordChange = (event) => {
-  //  this.setState({ password: event.target.value });
-  //};
-
   toggleConsent = (event) => {
     this.setState({ consent: this.consentRef.current.checked });
   };
@@ -42,8 +48,7 @@ class Signup extends React.Component {
     const isReady =
       this.state.consent &&
       this.state.name.length > 1 &&
-      this.emailRef.current.validity.valid; // &&
-    //    this.state.password.length > 6;
+      this.emailInputRef.current.validity.valid;
     return isReady;
   };
 
@@ -52,17 +57,21 @@ class Signup extends React.Component {
     const value = {
       name: this.state.name,
       email: this.state.email,
-      // password: this.state.password,
     };
     axios
-      .post("/api/auth", value)
+      .post("/api/auth", value, {
+        cancelToken: this.axiosCancelToken.token,
+      })
       .catch(function (err) {
         alert("Error " + err);
       })
       .then((res) => {
         if (res) {
           if (res.data.wait) {
-            this.props.history.push("/waiting-list");
+            this.props.history.push("/waiting-list", {
+              name: this.state.name,
+              email: this.state.email,
+            });
           } else {
             this.props.onLogin();
           }
@@ -71,7 +80,6 @@ class Signup extends React.Component {
   };
 
   render() {
-    const customer_agreement_checkbox_id = "customer-agreement-check";
     return (
       <Container>
         <Card className="border-0">
@@ -88,6 +96,7 @@ class Signup extends React.Component {
                     placeholder="Gaius Julius Caesar"
                     value={this.state.name}
                     onChange={this.handleNameChange}
+                    ref={this.nameInputRef}
                   />
                 </Col>
               </Form.Group>
@@ -101,7 +110,7 @@ class Signup extends React.Component {
                     type="email"
                     value={this.state.email}
                     onChange={this.handleEmailChange}
-                    ref={this.emailRef}
+                    ref={this.emailInputRef}
                   />
                 </Col>
               </Form.Group>
@@ -116,7 +125,6 @@ class Signup extends React.Component {
                 <Col sm="2">
                   <Form.Check
                     type="checkbox"
-                    id={customer_agreement_checkbox_id}
                     onChange={this.toggleConsent}
                     ref={this.consentRef}
                   />
@@ -136,18 +144,5 @@ class Signup extends React.Component {
     );
   }
 }
-
-//               <Form.Group as={Row} controlId="formLoginPassword">
-//                 <Form.Label column sm="2">
-//                   Password
-//                 </Form.Label>
-//                 <Col>
-//                   <Form.Control
-//                     type="password"
-//                     value={this.state.password}
-//                     onChange={this.handlePasswordChange}
-//                   />
-//                 </Col>
-//               </Form.Group>
 
 export default withRouter(Signup);

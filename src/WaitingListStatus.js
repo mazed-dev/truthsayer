@@ -10,14 +10,18 @@ class WaitingListStatus extends React.Component {
     super(props);
     var name = "";
     var email = "";
-    if (this.props.location.state.email) {
-      email = this.props.location.state.email;
+    if (this.props.location.state) {
+      if (this.props.location.state.email) {
+        email = this.props.location.state.email;
+      }
+      if (this.props.location.state.name) {
+        name = this.props.location.state.name;
+      }
     }
-    if (this.props.location.state.name) {
-      name = this.props.location.state.name;
-    }
-    // TODO(akindyakov): propagate the user name here to make it more personal
-    // this.props.name
+    this.state = {
+      name: name,
+      email: email,
+    };
   }
 
   render() {
@@ -27,9 +31,13 @@ class WaitingListStatus extends React.Component {
           <Card.Body className="p-3">
             <Card.Title>Submited</Card.Title>
             <Card.Text>
-              Thank you for your interest in Mazed! We received your application
-              to join early users of Mazed. We will carefully consider it and
-              will contact you as soon as possible.
+              Thank you <b>{this.state.name}</b> for your interest in Mazed!
+            </Card.Text>
+            <Card.Text>
+              We are happy to confirm we received your application to join early
+              users of Mazed. Further instructions will be sent to your email
+              address <i>{this.state.email}</i> as soon as tool is ready to
+              accept more customers.
             </Card.Text>
             <Card.Text>Mazed team</Card.Text>
           </Card.Body>
@@ -39,5 +47,4 @@ class WaitingListStatus extends React.Component {
   }
 }
 
-// <Card.Text>Apologises for the inconvenience.</Card.Text>
 export default withRouter(WaitingListStatus);
