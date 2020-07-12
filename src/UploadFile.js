@@ -82,7 +82,7 @@ class UploadFile extends React.Component {
       .post("/api/batch/node", data, config)
       .then((res) => {
         if (res) {
-          for (let local_id in res.data.nameToNid) {
+          for (let local_id in res.data.name_to_nid) {
             let uploads = this.state.uploads;
             let ind = uploads.findIndex((item) => {
               return item.local_id === local_id;
@@ -90,7 +90,7 @@ class UploadFile extends React.Component {
             if (ind < 0) {
               continue;
             }
-            uploads[ind].nid = res.data.nameToNid[local_id];
+            uploads[ind].nid = res.data.name_to_nid[local_id];
             this.setState({
               uploads: uploads,
             });
