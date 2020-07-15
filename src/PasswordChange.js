@@ -11,9 +11,10 @@ import {
   Row,
 } from "react-bootstrap";
 
+import Emoji from "./Emoji";
+import PropTypes from "prop-types";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
-import Emoji from "./Emoji";
 
 class PasswordChange extends React.Component {
   constructor(props) {
@@ -28,6 +29,10 @@ class PasswordChange extends React.Component {
     };
     this.axiosCancelToken = axios.CancelToken.source();
   }
+
+  static propTypes = {
+    history: PropTypes.object.isRequired,
+  };
 
   componentWillUnmount() {
     this.axiosCancelToken.cancel();

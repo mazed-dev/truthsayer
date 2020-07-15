@@ -49,6 +49,11 @@ class RefNodeCardImpl extends React.Component {
     this.fetchCancelToken = axios.CancelToken.source();
   }
 
+  static propTypes = {
+    location: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired,
+  };
+
   componentDidMount() {
     this.fetchData();
   }
@@ -292,6 +297,11 @@ class SearchNewRefToolkitImpl extends React.Component {
     // this.props.offers_callback
     this.fetchCancelToken = axios.CancelToken.source();
   }
+
+  static propTypes = {
+    location: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired,
+  };
 
   componentWillUnmount() {
     this.fetchCancelToken.cancel();

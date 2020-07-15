@@ -1,9 +1,8 @@
 import React from "react";
 
+import PropTypes from "prop-types";
 import axios from "axios";
-
 import { Redirect } from "react-router-dom";
-
 import { withRouter } from "react-router-dom";
 
 import remoteErrorHandler from "./remoteErrorHandler";
@@ -13,6 +12,11 @@ class Logout extends React.Component {
     super(props);
     this.fetchCancelToken = axios.CancelToken.source();
   }
+
+  static propTypes = {
+    location: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired,
+  };
 
   componentWillUnmount() {
     this.fetchCancelToken.cancel();

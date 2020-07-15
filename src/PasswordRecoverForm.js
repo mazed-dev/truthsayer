@@ -10,9 +10,10 @@ import {
   ButtonGroup,
 } from "react-bootstrap";
 
+import Emoji from "./Emoji";
+import PropTypes from "prop-types";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
-import Emoji from "./Emoji";
 
 class PasswordRecoverForm extends React.Component {
   constructor(props) {
@@ -24,6 +25,10 @@ class PasswordRecoverForm extends React.Component {
     };
     this.axiosCancelToken = axios.CancelToken.source();
   }
+
+  static propTypes = {
+    history: PropTypes.object.isRequired,
+  };
 
   componentWillUnmount() {
     this.axiosCancelToken.cancel();

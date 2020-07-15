@@ -22,15 +22,15 @@ import {
   ListGroup,
 } from "react-bootstrap";
 
+import PropTypes from "prop-types";
 import axios from "axios";
 import queryString from "query-string";
 import { withRouter } from "react-router-dom";
-import remoteErrorHandler from "./remoteErrorHandler";
 
 import Emoji from "./Emoji";
+import remoteErrorHandler from "./remoteErrorHandler";
 
 const hash = require("object-hash");
-
 const FormData = require("form-data");
 
 // const Emoji = (props) => (
@@ -52,6 +52,10 @@ class UploadFile extends React.Component {
     };
     this.fileInputRef = React.createRef();
   }
+
+  static propTypes = {
+    history: PropTypes.object.isRequired,
+  };
 
   handleChange = () => {
     this.submitFiles(this.fileInputRef.current.files);

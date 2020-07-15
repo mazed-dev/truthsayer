@@ -1,7 +1,8 @@
 import React from "react";
 
-import { Container, InputGroup, FormControl } from "react-bootstrap";
+import PropTypes from "prop-types";
 import queryString from "query-string";
+import { Container, InputGroup, FormControl } from "react-bootstrap";
 import { withRouter } from "react-router-dom";
 
 import "./TopToolBar.css";
@@ -14,6 +15,10 @@ class TopToolBar extends React.Component {
     };
     this.searchInputRef = React.createRef();
   }
+
+  static propTypes = {
+    history: PropTypes.object.isRequired,
+  };
 
   componentDidMount() {
     if (this.props.inFocus) {

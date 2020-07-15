@@ -12,6 +12,7 @@ import {
 
 import "./Signup.css";
 
+import PropTypes from "prop-types";
 import axios from "axios";
 import { Link, withRouter } from "react-router-dom";
 import HttpStatus from "http-status-codes";
@@ -20,7 +21,11 @@ class Signup extends React.Component {
   constructor(props) {
     super(props);
     var email = "";
-    if (this.props.location.state && this.props.location.state.email) {
+    if (
+      this.props.location &&
+      this.props.location.state &&
+      this.props.location.state.email
+    ) {
       email = this.props.location.state.email;
     }
     this.state = {
@@ -35,6 +40,11 @@ class Signup extends React.Component {
 
     this.axiosCancelToken = axios.CancelToken.source();
   }
+
+  static propTypes = {
+    location: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired,
+  };
 
   componentDidMount() {
     this.nameInputRef.current.focus();

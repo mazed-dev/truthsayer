@@ -16,6 +16,7 @@ import {
   Image,
 } from "react-bootstrap";
 
+import PropTypes from "prop-types";
 import axios from "axios";
 import queryString from "query-string";
 import { withRouter } from "react-router-dom";
@@ -32,6 +33,10 @@ class SearchInputImpl extends React.Component {
     };
     this.searchCmd = React.createRef();
   }
+
+  static propTypes = {
+    history: PropTypes.object.isRequired,
+  };
 
   componentDidMount() {
     if (this.props.inFocus) {

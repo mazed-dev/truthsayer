@@ -1,24 +1,16 @@
 import React from "react";
-import { withRouter } from "react-router-dom";
 
 import "./SearchGrid.css";
 
-import axios from "axios";
 import PropTypes from "prop-types";
-
+import axios from "axios";
 import { Container, CardColumns } from "react-bootstrap";
+import { withRouter } from "react-router-dom";
 
 import NodeSmallCard from "./NodeSmallCard";
-
 import remoteErrorHandler from "./remoteErrorHandler";
 
 class SearchGrid extends React.Component {
-  static propTypes = {
-    match: PropTypes.object.isRequired,
-    location: PropTypes.object.isRequired,
-    history: PropTypes.object.isRequired,
-  };
-
   constructor(props) {
     super(props);
     this.state = {
@@ -26,6 +18,10 @@ class SearchGrid extends React.Component {
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
+
+  static propTypes = {
+    history: PropTypes.object.isRequired,
+  };
 
   componentDidMount() {
     this.fetchData();

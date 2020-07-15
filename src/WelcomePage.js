@@ -11,6 +11,7 @@ import {
   ListGroup,
 } from "react-bootstrap";
 
+import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
 import "./WelcomePage.css";
@@ -22,6 +23,10 @@ class SignUpImpl extends React.Component {
       email: "",
     };
   }
+
+  static propTypes = {
+    history: PropTypes.object.isRequired,
+  };
 
   handleEmailChange = (event) => {
     this.setState({ email: event.target.value });
