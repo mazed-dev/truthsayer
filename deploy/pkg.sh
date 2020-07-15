@@ -12,7 +12,7 @@ set -x -e
 _NAME="truthsayer"
 _VERSION="$(date +'%Y.%m.%d-%H.%M.%S')"
 
-_TARGET_DIR="./pkgs"
+_TARGET_DIR="./deploy/pkgs"
 
 mkdir --parents $_TARGET_DIR
 
