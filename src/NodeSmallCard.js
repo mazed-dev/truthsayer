@@ -6,9 +6,7 @@ import { Card } from "react-bootstrap";
 import { withRouter } from "react-router-dom";
 
 import maze from "./maze.png";
-
-// https://github.com/rexxars/react-markdown
-import ReactMarkdown from "react-markdown";
+import { MdSmallCardRender } from "./MarkDownRender";
 
 class NodeSmallCard extends React.Component {
   constructor(props) {
@@ -35,7 +33,7 @@ class NodeSmallCard extends React.Component {
     return (
       <Card className="rounded" onClick={this.onClick}>
         <Card.Body className="px-3 py-3 pm-0">
-          <ReactMarkdown source={this.props.preface + "&hellip;"} />
+          <MdSmallCardRender source={this.props.preface + "&hellip;"} />
         </Card.Body>
         <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">
           <small className="text-muted">

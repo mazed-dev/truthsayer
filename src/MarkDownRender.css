@@ -1,0 +1,107 @@
+/**
+ * Markdown Render CSS
+ */
+
+/**
+ * Markdown full card
+ */
+
+.markdown-full-note-body table {
+  margin: 6px;
+}
+
+.markdown-full-note-body table tr {
+  border-top: 1px solid #c6cbd1;
+}
+
+.markdown-full-note-body table td,
+.markdown-full-note-body table th {
+  padding: 6px 13px;
+  border: 1px solid #dfe2e5;
+}
+
+.markdown-full-note-body h1 {
+  font-size: 1.48rem;
+}
+
+.markdown-full-note-body h2 {
+  font-size: 1.32rem;
+}
+
+.markdown-full-note-body h3 {
+  font-size: 1.24rem;
+}
+
+.markdown-full-note-body h4 {
+  font-size: 1.16rem;
+}
+
+.markdown-full-note-body h5 {
+  font-size: 1.12rem;
+}
+
+.markdown-full-note-body h6 {
+  font-size: 1.08rem;
+}
+
+.markdown-full-note-body .highlight pre,
+.markdown-full-note-body pre,
+.markdown-small-card-body .highlight pre,
+.markdown-small-card-body pre {
+  padding: 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: #f6f8fa;
+  border-radius: 6px;
+  text-indent: 0px;
+}
+
+.markdown-full-note-body code,
+.markdown-full-note-body tt .markdown-small-card-body code,
+.markdown-small-card-body tt {
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
+  color: #000000;
+  background-color: #f6f8fa;
+  border-radius: 6px;
+}
+
+/**
+ * Markdown small card
+ */
+
+.markdown-small-card-body table tr {
+  border-top: 1px solid #c6cbd1;
+}
+
+.markdown-small-card-body table td,
+.markdown-small-card-body table th {
+  padding: 6px 13px;
+  border: 1px solid #dfe2e5;
+}
+
+.markdown-small-card-body h1 {
+  font-size: 1.24rem;
+}
+
+.markdown-small-card-body h2 {
+  font-size: 1.16rem;
+}
+
+.markdown-small-card-body h3 {
+  font-size: 1.12rem;
+}
+
+.markdown-small-card-body h4 {
+  font-size: 1.8rem;
+}
+
+.markdown-small-card-body h5 {
+  font-size: 1.4rem;
+}
+
+.markdown-small-card-body h6 {
+  font-size: 1.02rem;
+}

@@ -3,6 +3,7 @@ import React from "react";
 import "./FullNodeView.css";
 
 import NodeSmallCard from "./NodeSmallCard";
+import { MdCardRender } from "./MarkDownRender";
 
 import maze from "./maze.png";
 
@@ -24,9 +25,6 @@ import {
   DropdownButton,
   Dropdown,
 } from "react-bootstrap";
-
-// https://github.com/rexxars/react-markdown
-import ReactMarkdown from "react-markdown";
 
 import axios from "axios";
 import moment from "moment";
@@ -665,7 +663,7 @@ class NodeCardImpl extends React.Component {
         <TextEditor value={this.state.text} onExit={this.onEditExit_} />
       );
     } else {
-      text_el = <ReactMarkdown source={this.state.text} />;
+      text_el = <MdCardRender source={this.state.text} />;
     }
     // <div className="d-flex justify-content-center mp-0">
     //   <Card.Img variant="top" className="w-25 p-3 m-1" src={maze} />
