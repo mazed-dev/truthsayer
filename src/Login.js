@@ -21,22 +21,26 @@ class Login extends React.Component {
     this.axiosCancelToken = axios.CancelToken.source();
   }
 
+  static propTypes = {
+    history: PropTypes.object.isRequired,
+  };
+
   componentDidMount() {
-    // Just in case we are already logged in
-    axios
-      .get("/api/auth/session", {
-        cancelToken: this.axiosCancelToken.token,
-      })
-      .then((res) => {
-        if (res) {
-          if (res.data.permissions === 0) {
-            this.props.history.push("/waiting-list");
-          } else {
-            this.props.onLogin();
-            this.props.history.push("/");
-          }
-        }
-      });
+    // // Just in case we are already logged in
+    // axios
+    //   .get("/api/auth/session", {
+    //     cancelToken: this.axiosCancelToken.token,
+    //   })
+    //   .then((res) => {
+    //     if (res) {
+    //       if (res.data.permissions === 0) {
+    //         this.props.history.push("/waiting-list");
+    //       } else {
+    //         this.props.onLogin();
+    //         this.props.history.push("/");
+    //       }
+    //     }
+    //   });
   }
 
   componentWillUnmount() {
@@ -75,12 +79,10 @@ class Login extends React.Component {
       .catch(this.handleSubmitError)
       .then((res) => {
         if (res) {
-          if (res.data.permissions === 0) {
-            this.props.history.push("/waiting-list");
-          } else {
-            this.props.onLogin();
-            this.props.history.push("/");
-          }
+          this.props.onLogin();
+          this.props.history.push("/");
+        } else {
+          this.handleSubmitError(null);
         }
       });
   };

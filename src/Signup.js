@@ -1,14 +1,6 @@
 import React from "react";
 
-import {
-  Card,
-  Button,
-  Form,
-  Container,
-  Row,
-  Col,
-  Modal,
-} from "react-bootstrap";
+import { Card, Button, Form, Container, Row, Col } from "react-bootstrap";
 
 import "./Signup.css";
 
@@ -90,14 +82,9 @@ class Signup extends React.Component {
       .catch(this.handleSubmitError)
       .then((res) => {
         if (res) {
-          if (res.data.wait) {
-            this.props.history.push("/waiting-list", {
-              name: this.state.name,
-              email: this.state.email,
-            });
-          } else {
-            this.props.onLogin();
-          }
+          this.props.onLogin();
+        } else {
+          this.handleSubmitError(null);
         }
       });
   };

@@ -17,13 +17,7 @@ import {
 
 import "./App.css";
 
-import {
-  Card,
-  Button,
-  Container,
-  ButtonGroup,
-  ListGroup,
-} from "react-bootstrap";
+import { Card, Button, Container } from "react-bootstrap";
 
 import queryString from "query-string";
 
@@ -34,10 +28,8 @@ import Login from "./Login";
 import Logout from "./Logout";
 import PublicNavBar from "./PublicNavBar";
 import Signup from "./Signup";
-import TopToolBar from "./TopToolBar";
 import TreeView from "./TreeView";
 import UploadFile from "./UploadFile";
-import WaitingListStatus from "./WaitingListStatus";
 import PasswordChange from "./PasswordChange";
 import PasswordRecoverForm from "./PasswordRecoverForm";
 import PasswordRecoverRequest from "./PasswordRecoverRequest";
@@ -61,7 +53,6 @@ class App extends React.Component {
       clearTimeout(this.state.auth_renewer);
     }
     const auth_renewer = setTimeout(this.renew_authentication, 3600000);
-    authcache.set();
     this.setState({
       is_authenticated: true,
       auth_renewer: auth_renewer,
@@ -87,21 +78,19 @@ class App extends React.Component {
       .then((res) => {
         if (res) {
           this.handleSuccessfulLogin();
+        } else {
+          this.handleLogout();
         }
+      })
+      .catch((err) => {
+        this.handleLogout();
       });
   };
 
   componentDidMount() {
-    axios
-      .get("/api/auth/session", {
-        cancelToken: this.fetchCancelToken.token,
-      })
-      .catch(function (err) {})
-      .then((res) => {
-        if (res) {
-          this.handleSuccessfulLogin();
-        }
-      });
+    if (this.state.is_authenticated) {
+      this.renew_authentication();
+    }
   }
 
   componentWillUnmount() {
@@ -114,11 +103,19 @@ class App extends React.Component {
     var nav_bar;
     var main_page;
     if (this.state.is_authenticated) {
-      console.log("Private App " + window.location.pathname);
+      console.log(
+        "Private App ",
+        window.location.pathname,
+        this.state.is_authenticated
+      );
       nav_bar = <GlobalNavBar />;
       main_page = <Redirect to={{ pathname: "/search" }} />;
     } else {
-      console.log("Public App " + window.location.pathname);
+      console.log(
+        "Public App ",
+        window.location.pathname,
+        this.state.is_authenticated
+      );
       nav_bar = <PublicNavBar />;
       main_page = <WelcomePage />;
     }
@@ -131,9 +128,12 @@ class App extends React.Component {
               <Route exact path="/">
                 {main_page}
               </Route>
-              <Route path="/login">
+              <PublicOnlyRoute
+                path="/login"
+                is_authenticated={this.state.is_authenticated}
+              >
                 <Login onLogin={this.handleSuccessfulLogin} />
-              </Route>
+              </PublicOnlyRoute>
               <PublicOnlyRoute
                 path="/signup"
                 is_authenticated={this.state.is_authenticated}
@@ -196,9 +196,6 @@ class App extends React.Component {
               </Route>
               <Route path="/terms-of-service">
                 <TermsOfService />
-              </Route>
-              <Route path="/waiting-list">
-                <WaitingListStatus />
               </Route>
               <PublicOnlyRoute
                 path="/password-recover-request"

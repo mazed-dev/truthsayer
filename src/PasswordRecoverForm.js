@@ -1,16 +1,7 @@
 import React from "react";
 
-import {
-  Card,
-  Button,
-  Form,
-  Container,
-  Row,
-  Col,
-  ButtonGroup,
-} from "react-bootstrap";
+import { Card, Button, Form, Container, Row, Col } from "react-bootstrap";
 
-import Emoji from "./Emoji";
 import PropTypes from "prop-types";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
