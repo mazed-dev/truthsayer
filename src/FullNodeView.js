@@ -11,6 +11,7 @@ import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
 import remoteErrorHandler from "./remoteErrorHandler";
+import AutocompleteWindow from "./AutocompleteWindow";
 
 import {
   Card,
@@ -246,6 +247,7 @@ class TextEditor extends React.Component {
   }
 
   handleChange = (event) => {
+    console.log("Text area ", this.textAreaRef.current);
     this.setState({
       value: event.target.value,
       height: this.getHeightForText(event.target.value),
@@ -688,6 +690,9 @@ class FullNodeView extends React.Component {
   constructor(props) {
     super(props);
     this.fetchCancelToken = axios.CancelToken.source();
+    this.state = {
+      modalShow: false,
+    };
   }
 
   componentDidUpdate(prevProps) {
@@ -703,6 +708,14 @@ class FullNodeView extends React.Component {
 
   componentDidMount() {
     this.fetchData();
+  }
+
+  showModal = () => {
+    this.setState({ modalShow: true });
+  }
+
+  hideModal = () => {
+    this.setState({ modalShow: false });
   }
 
   fetchData = () => {};
@@ -729,6 +742,13 @@ class FullNodeView extends React.Component {
             xs={12}
             className="meta-refs-col-node"
           >
+            <Button variant="primary" onClick={this.showModal}>
+              Launch vertically centered modal
+            </Button>
+            <AutocompleteWindow
+              show={this.state.modalShow}
+              onHide={this.hideModal}
+            />
             <NodeCard nid={this.props.nid} />
           </Col>
           <Col

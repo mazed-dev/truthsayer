@@ -1,7 +1,11 @@
 # Todo
 
+ - [ ] Modal window with autocompletion
+ - [ ] Modal window on error
  - [ ] Emoji as viniette for every note
  - [ ] Connect uploaded files
+ - [ ] Add symmetric buttons "next" and "search-to-next" to the left side
+ - [ ] Make left and right ref pannes symmetric
  - [ ] Text area for each paragraph with menu on hover
  - [ ] generate route list from loop and switch off current page reference on global navbar
  - [ ] New button should be brighter - blue or grey or something. Bright!

@@ -25,24 +25,6 @@ class Login extends React.Component {
     history: PropTypes.object.isRequired,
   };
 
-  componentDidMount() {
-    // // Just in case we are already logged in
-    // axios
-    //   .get("/api/auth/session", {
-    //     cancelToken: this.axiosCancelToken.token,
-    //   })
-    //   .then((res) => {
-    //     if (res) {
-    //       if (res.data.permissions === 0) {
-    //         this.props.history.push("/waiting-list");
-    //       } else {
-    //         this.props.onLogin();
-    //         this.props.history.push("/");
-    //       }
-    //     }
-    //   });
-  }
-
   componentWillUnmount() {
     this.axiosCancelToken.cancel();
   }
