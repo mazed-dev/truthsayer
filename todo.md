@@ -1,6 +1,5 @@
 # Todo
 
- - [ ] ----- Release it to public -----
  - [ ] Emoji as viniette for every note
  - [ ] Connect uploaded files
  - [ ] Text area for each paragraph with menu on hover
@@ -9,6 +8,23 @@
  - [ ] Better styles for headers in note
  - [ ] Add simple vignette for notes
 
+## Feedback
+
+ - [ ] Login
+    еще при переходе на login сразу шлется сессия
+    это наверно какойто хитрый трюк, но
+    если я авторизован - login не должен быть виден - скрыть под public/private
+    а если нет - то сессию слать ненадо, я ведь ен авторизован (пока не нажал на submit)
+
+    как проверить - зайди на страницу /login
+    обнови ее
+    ты увидешь 2 запроса на авторизацию
+    тоесть 1 после обновления, и второй когда заодишь (лишний)
+  - [ ] Handle all the erros, don't raise them to the console
+  - [ ] Remove permissions from the interfaces, only in JWT maybe
+  - [ ] Validate mime-type and size whe upload files
+  - [ ] Use version of software in the URL, suggetsion from kaldown. __Do we need it?__
+
 ## Done
 
  - [x] Page to upload bunch of notes from files
@@ -16,3 +32,4 @@
  - [x] Single route switch - for both private and public
  - [x] Fix bug. To reproduce: add ref by "search-and-add", click on added connection - you will see note connected to itself.
  - [x] Show proper name on global nav bar, not john@
+ - [x] ----- Release it to public -----
