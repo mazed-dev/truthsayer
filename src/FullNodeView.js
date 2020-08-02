@@ -559,7 +559,7 @@ class NodeCardImpl extends React.Component {
         .then((res) => {
           if (res) {
             this.setState({
-              text: res.data,
+              text: res.data.toString(),
               crtd: moment(res.headers["x-created-at"]),
               upd: moment(res.headers["last-modified"]),
             });
