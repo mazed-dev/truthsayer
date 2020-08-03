@@ -223,7 +223,10 @@ class ExtClickDetector extends React.Component {
     document.removeEventListener("mousedown", this.handleClick, false);
   }
   handleClick = (event) => {
-    if (!this.selfRef.current.contains(event.target)) {
+    if (
+      !this.selfRef.current.contains(event.target) &&
+      document.getElementById("root").contains(event.target)
+    ) {
       this.props.callback(event);
     }
   };
@@ -238,6 +241,8 @@ class TextEditor extends React.Component {
     this.state = {
       value: this.props.value,
       height: this.getHeightForText(this.props.value),
+      modalShow: false,
+      modSlashCounter: 0,
     };
     this.textAreaRef = React.createRef();
   }
@@ -247,12 +252,28 @@ class TextEditor extends React.Component {
   }
 
   handleChange = (event) => {
-    console.log("Text area ", this.textAreaRef.current);
     this.setState({
       value: event.target.value,
       height: this.getHeightForText(event.target.value),
     });
-    // this.props.onChange(event.target.value);
+    if (event.nativeEvent.data === "/") {
+      this.setState((state, props) => {
+        if (state.modSlashCounter === 0) {
+          return {
+            modSlashCounter: state.modSlashCounter + 1,
+          };
+        } else {
+          return {
+            modSlashCounter: 0,
+            modalShow: true,
+          };
+        }
+      });
+    } else {
+      return {
+        modSlashCounter: 0,
+      };
+    }
   };
 
   getHeightForText = (txt) => {
@@ -268,21 +289,36 @@ class TextEditor extends React.Component {
     this.props.onExit(this.state.value);
   };
 
+  showModal = () => {
+    this.setState({ modalShow: true });
+  };
+
+  hideModal = () => {
+    this.setState({ modalShow: false });
+    this.textAreaRef.current.focus();
+  };
+
   render() {
     return (
-      <ExtClickDetector callback={this._onExit}>
-        <InputGroup>
-          <Form.Control
-            as="textarea"
-            aria-label="With textarea"
-            className="border-0"
-            value={this.state.value}
-            onChange={this.handleChange}
-            style={{ height: this.state.height + "em" }}
-            ref={this.textAreaRef}
-          />
-        </InputGroup>
-      </ExtClickDetector>
+      <>
+        <AutocompleteWindow
+          show={this.state.modalShow}
+          onHide={this.hideModal}
+        />
+        <ExtClickDetector callback={this._onExit}>
+          <InputGroup>
+            <Form.Control
+              as="textarea"
+              aria-label="With textarea"
+              className="border-0"
+              value={this.state.value}
+              onChange={this.handleChange}
+              style={{ height: this.state.height + "em" }}
+              ref={this.textAreaRef}
+            />
+          </InputGroup>
+        </ExtClickDetector>
+      </>
     );
   }
 }
@@ -690,9 +726,6 @@ class FullNodeView extends React.Component {
   constructor(props) {
     super(props);
     this.fetchCancelToken = axios.CancelToken.source();
-    this.state = {
-      modalShow: false,
-    };
   }
 
   componentDidUpdate(prevProps) {
@@ -708,14 +741,6 @@ class FullNodeView extends React.Component {
 
   componentDidMount() {
     this.fetchData();
-  }
-
-  showModal = () => {
-    this.setState({ modalShow: true });
-  }
-
-  hideModal = () => {
-    this.setState({ modalShow: false });
   }
 
   fetchData = () => {};
@@ -742,13 +767,6 @@ class FullNodeView extends React.Component {
             xs={12}
             className="meta-refs-col-node"
           >
-            <Button variant="primary" onClick={this.showModal}>
-              Launch vertically centered modal
-            </Button>
-            <AutocompleteWindow
-              show={this.state.modalShow}
-              onHide={this.hideModal}
-            />
             <NodeCard nid={this.props.nid} />
           </Col>
           <Col
