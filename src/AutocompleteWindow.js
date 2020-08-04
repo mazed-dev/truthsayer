@@ -18,6 +18,33 @@ class AutocompleteModal extends React.Component {
     super(props);
     this.state = {
       input: "",
+      result: [
+        "Tip of my tongue: Word that means cultural identifier",
+        "Customization of memory class C++",
+        "Is one move considered as objectively better than another if they both lead to the same result?",
+        "error404 on 2nd booking event page",
+        "When was the first intentional ricochet fired from a naval artillery?",
+        "Why do helicopters have windows near the pedals?",
+        "Is it feasible to add an aftermarket hydrofoil to a light aircraft?",
+        "Would a President get to fill a Supreme Court vacancy just after he lost an election in November/December?",
+        "RandomPoint fails for any higher dimension",
+        "In an interview with a small video game company, should I comment about bugs I noticed in their game?",
+        "Why is the A380's fuselage designed with a flat bottom?",
+        "Is there an equivalent of computation of physical processes in nature?",
+        "Windows Storage Spaces - a useful replacement for RAID6?",
+        "Do blue light filters on phones and computer screens disrupt sleep?",
+        "What is the relationship between communism and 'a classless system'?",
+        "In command-line, custom text and background colors by directory",
+        "Sort an output by year month and date",
+        "Clarifying Share Alike in CC licenses",
+        "Why has Raspbian apparently been renamed into Raspberry Pi OS?",
+        "Can I share folders on a LAN using NTFS alone?",
+        "Water at the scale of a cell should feel more like tar?",
+        "Should I publish everything running on Linux under GPL?",
+        "Why is Elon Musk building the Starship first?",
+        "Difference between a pointer to a standalone and a friend function",
+      ],
+      cursor: 0,
     };
     this.inputRef = React.createRef();
   }
@@ -38,16 +65,16 @@ class AutocompleteModal extends React.Component {
 
   handleKeyDown = (e) => {
     // https://stackoverflow.com/questions/42036865/react-how-to-navigate-through-list-by-arrow-keys
-    const { cursor, result } = this.state;
     // arrow up/down button should select next/previous list element
-    if (e.keyCode === keycode.UP && cursor > 0) {
-      this.setState((prevState) => ({
-        cursor: prevState.cursor - 1,
-      }));
-    } else if (e.keyCode === keycode.DOWN && cursor < result.length - 1) {
-      this.setState((prevState) => ({
-        cursor: prevState.cursor + 1,
-      }));
+    if (e.keyCode === keycode.UP) {
+      this.setState((state, props) => {
+        return { cursor: state.cursor - (state.cursor > 0 ? 1 : 0) };
+      });
+    } else if (e.keyCode === keycode.DOWN) {
+      this.setState((state, props) => {
+        const maxL = state.result.length > 0 ? state.result.length - 1 : 0;
+        return { cursor: state.cursor >= maxL ? maxL : state.cursor + 1 };
+      });
     }
   };
 
@@ -67,6 +94,10 @@ class AutocompleteModal extends React.Component {
     // <Modal.Footer>
     //   <Button onClick={this.props.onHide}>Close</Button>
     // </Modal.Footer>
+    const listItems = this.state.result.map((item) => {
+      //active ?
+      return <ListGroup.Item as="li">{item}</ListGroup.Item>;
+    });
     return (
       <>
         <Form.Control
@@ -80,9 +111,7 @@ class AutocompleteModal extends React.Component {
           ref={this.inputRef}
         />
         <ListGroup as="ul" className="autocomplete-window-list-group">
-          <ListGroup.Item as="li" active>
-            Cras justo odio
-          </ListGroup.Item>
+          {listItems}
           <ListGroup.Item as="li">Dapibus ac facilisis in</ListGroup.Item>
           <ListGroup.Item as="li" disabled>
             Morbi leo risus
