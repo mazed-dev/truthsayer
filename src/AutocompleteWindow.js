@@ -7,9 +7,13 @@ import {
   Card,
   Form,
   ListGroup,
+  Row,
+  Col,
 } from "react-bootstrap";
 
 import keycode from "keycode";
+
+import SmartLine from "./smartpoint/SmartLine";
 
 import "./AutocompleteWindow.css";
 
@@ -66,11 +70,11 @@ class AutocompleteModal extends React.Component {
   handleKeyDown = (e) => {
     // https://stackoverflow.com/questions/42036865/react-how-to-navigate-through-list-by-arrow-keys
     // arrow up/down button should select next/previous list element
-    if (e.keyCode === keycode.UP) {
+    if (e.keyCode === keycode("up")) {
       this.setState((state, props) => {
         return { cursor: state.cursor - (state.cursor > 0 ? 1 : 0) };
       });
-    } else if (e.keyCode === keycode.DOWN) {
+    } else if (e.keyCode === keycode("down")) {
       this.setState((state, props) => {
         const maxL = state.result.length > 0 ? state.result.length - 1 : 0;
         return { cursor: state.cursor >= maxL ? maxL : state.cursor + 1 };
@@ -94,9 +98,13 @@ class AutocompleteModal extends React.Component {
     // <Modal.Footer>
     //   <Button onClick={this.props.onHide}>Close</Button>
     // </Modal.Footer>
-    const listItems = this.state.result.map((item) => {
-      //active ?
-      return <ListGroup.Item as="li">{item}</ListGroup.Item>;
+    const listItems = this.state.result.map((item, index) => {
+      const isActive = this.state.cursor === index;
+      return (
+        <ListGroup.Item as="li" active={isActive} key={index}>
+          <SmartLine item={item} />
+        </ListGroup.Item>
+      );
     });
     return (
       <>
@@ -112,21 +120,6 @@ class AutocompleteModal extends React.Component {
         />
         <ListGroup as="ul" className="autocomplete-window-list-group">
           {listItems}
-          <ListGroup.Item as="li">Dapibus ac facilisis in</ListGroup.Item>
-          <ListGroup.Item as="li" disabled>
-            Morbi leo risus
-          </ListGroup.Item>
-          <ListGroup.Item as="li">Porta ac consectetur ac</ListGroup.Item>
-          <ListGroup.Item as="li">Porta ac consectetur ac</ListGroup.Item>
-          <ListGroup.Item as="li">Porta ac consectetur ac</ListGroup.Item>
-          <ListGroup.Item as="li">Porta ac consectetur ac</ListGroup.Item>
-          <ListGroup.Item as="li">Porta ac consectetur ac</ListGroup.Item>
-          <ListGroup.Item as="li">Porta ac consectetur ac</ListGroup.Item>
-          <ListGroup.Item as="li">Porta ac consectetur ac</ListGroup.Item>
-          <ListGroup.Item as="li">Porta ac consectetur ac</ListGroup.Item>
-          <ListGroup.Item as="li">Porta ac consectetur ac</ListGroup.Item>
-          <ListGroup.Item as="li">Porta ac consectetur ac</ListGroup.Item>
-          <ListGroup.Item as="li">Porta ac consectetur ac</ListGroup.Item>
         </ListGroup>
       </>
     );

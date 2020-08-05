@@ -5,8 +5,8 @@
 }
 
 .autocomplete-window-list-group {
-  max-height: 512px;
+  /* max-height: 512px; */
   /* https://stackoverflow.com/questions/47256185/bootstrap-list-group-scroll */
-  overflow-y: scroll;
+  overflow-y: auto; /*scroll;*/
   -webkit-overflow-scrolling: touch;
 }
