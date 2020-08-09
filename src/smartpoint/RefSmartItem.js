@@ -1,8 +1,12 @@
 import React from "react";
 
-import moment from "moment";
+import {
+  Button,
+  Row,
+  Col,
+} from "react-bootstrap";
 
-import BaseSmartItem from "./BaseSmartItem";
+import moment from "moment";
 
 import { MdSmallCardRender } from "./../MarkDownRender";
 
@@ -31,9 +35,6 @@ export function extractRefSearcToken(input) {
 export class RefSmartItem extends React.Component {
   constructor(props) {
     super(props);
-  }
-
-  render() {
     var title = this.props.preface.match(/^.*/);
     if (title) {
       title = title[0];
@@ -44,18 +45,36 @@ export class RefSmartItem extends React.Component {
       title = "ref";
     }
     title = title.replace(/^[# ]+/, "");
-    const replacement = "[" + title + "](" + this.props.nid + ")";
+    this.replacement = "[" + title + "](" + this.props.nid + ")";
+  }
+
+  handleSumbit = () => {
+    this.props.on_insert(this.replacement);
+  };
+
+  render() {
     const upd = moment.unix(this.props.upd).fromNow();
     return (
-      <BaseSmartItem
-        replacement={replacement}
-        on_insert={this.props.on_insert}
+      <Row
+        className="justify-content-between w-100 p-0 m-0"
+        onClick={this.handleSumbit}
       >
-        <MdSmallCardRender source={this.props.preface + "&hellip;"} />
-        <small className="text-muted">
-          <i>Updated {upd}</i>
-        </small>
-      </BaseSmartItem>
+        <Col sm md lg xl={8}>
+          <MdSmallCardRender source={this.props.preface + "&hellip;"} />
+          <small className="text-muted">
+            <i>Updated {upd}</i>
+          </small>
+        </Col>
+        <Col sm md lg xl={2}>
+          <Button
+            variant="outline-success"
+            size="sm"
+            onClick={this.handleSumbit}
+          >
+            Insert
+          </Button>
+        </Col>
+      </Row>
     );
   }
 }

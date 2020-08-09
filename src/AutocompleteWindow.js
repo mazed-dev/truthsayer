@@ -44,9 +44,10 @@ class AutocompleteModal extends React.Component {
     const items = emoji.search(input).map((item) => {
       return (
         <EmojiSmartItem
-          label={item.emoji}
+          label={item.key}
           emoji={item.emoji}
           on_insert={this.props.on_insert}
+          ref={React.createRef()}
         />
       );
     });
@@ -75,6 +76,7 @@ class AutocompleteModal extends React.Component {
               preface={meta.preface}
               upd={meta.upd}
               on_insert={this.props.on_insert}
+              ref={React.createRef()}
             />
           );
         });
@@ -129,6 +131,10 @@ class AutocompleteModal extends React.Component {
         const maxL = state.result.length > 0 ? state.result.length - 1 : 0;
         return { cursor: state.cursor >= maxL ? maxL : state.cursor + 1 };
       });
+    } else if (e.keyCode === keycode("enter")) {
+      const item = this.state.result[this.state.cursor];
+      console.log("Enter", item.ref.current);
+      item.ref.current.handleSumbit();
     }
   };
 
@@ -143,7 +149,7 @@ class AutocompleteModal extends React.Component {
           as="li"
           active={this.state.cursor === index}
           key={index}
-          index={index}
+          id={"smartpoint-item=" + index}
           className="p-1"
           onMouseEnter={() => this.setActiveItem(index)}
         >
@@ -160,7 +166,7 @@ class AutocompleteModal extends React.Component {
           onSubmit={this.handleSumbit}
           onKeyDown={this.handleKeyDown}
           value={this.state.input}
-          placeholder="Search to offer"
+          placeholder="Type something"
           ref={this.inputRef}
         />
         <ListGroup as="ul" className="autocomplete-window-list-group">
