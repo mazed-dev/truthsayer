@@ -304,6 +304,7 @@ class TextEditor extends React.Component {
         <AutocompleteWindow
           show={this.state.modalShow}
           onHide={this.hideModal}
+          text_area_ref={this.textAreaRef}
         />
         <ExtClickDetector callback={this._onExit}>
           <InputGroup>
