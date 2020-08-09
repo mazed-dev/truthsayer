@@ -25,9 +25,16 @@ class SmartLineReplaceText extends React.Component {
     // {this.props.replacement}
   }
 
+  handleSumbit = () => {
+    this.props.on_insert(this.props.replacement);
+  };
+
   render() {
     return (
-      <Row className="justify-content-between w-100 p-0 m-0">
+      <Row
+        className="justify-content-between w-100 p-0 m-0"
+        onClick={this.handleSumbit}
+      >
         <Col sm md lg xl={8}>
           {this.props.children}
         </Col>
@@ -73,6 +80,7 @@ class AutocompleteModal extends React.Component {
         // "Difference between a pointer to a standalone and a friend function",
         // <SmartLine item={item} />
       ],
+      result_fetch_cancel_id: null,
       cursor: 0,
     };
     this.inputRef = React.createRef();
@@ -85,7 +93,10 @@ class AutocompleteModal extends React.Component {
   emojiSearch = async function (input) {
     const items = emoji.search(input).map((item) => {
       return (
-        <SmartLineReplaceText replacement={item.emoji}>
+        <SmartLineReplaceText
+          replacement={item.emoji}
+          on_insert={this.props.on_insert}
+        >
           <b>{item.emoji}</b>
           &nbsp;
           <i>{item.key}</i>
@@ -100,20 +111,30 @@ class AutocompleteModal extends React.Component {
   };
 
   handleChange = (event) => {
-    this.setState({
-      input: event.target.value,
-      result: [],
+    const value = event.target.value;
+    // Hack to avoid fetching on every character. If the time interval between
+    // 2 consecutive keystokes is too short, don't fetch results.
+    const result_fetch_cancel_id =
+      value && value !== ""
+        ? setTimeout(() => {
+            this.emojiSearch(value);
+          }, 200)
+        : null;
+    this.setState((state) => {
+      if (state.result_fetch_cancel_id) {
+        clearTimeout(state.result_fetch_cancel_id);
+      }
+      return {
+        input: value,
+        // Clear input
+        result: [],
+        // Preserve postponed fetch to be able to cancel it
+        result_fetch_cancel_id: result_fetch_cancel_id,
+      };
     });
-    if (event.target.value) {
-      this.emojiSearch(event.target.value);
-    }
   };
 
   handleSumbit = (event) => {};
-
-  handleReplaceInsert = (replacement) => {
-    console.log("handleReplaceInsert", this.props.text_area_ref.current);
-  };
 
   handleKeyDown = (e) => {
     // https://stackoverflow.com/questions/42036865/react-how-to-navigate-through-list-by-arrow-keys
@@ -171,9 +192,11 @@ class AutocompleteWindow extends React.Component {
     // dialogAs={AutocompleteModal}
     // backdrop={false}
     // autoFocus={true}
+    // onShow={this.onEntered}
     return (
       <Modal
-        {...this.props}
+        show={this.props.show}
+        onHide={this.props.onHide}
         size="lg"
         aria-labelledby="contained-modal-title-vcenter"
         centered
@@ -183,9 +206,8 @@ class AutocompleteWindow extends React.Component {
         dialogClassName="autocomplete-window-top"
         scrollable={true}
         enforceFocus={true}
-        onShow={this.onEntered}
       >
-        <AutocompleteModal />
+        <AutocompleteModal on_insert={this.props.on_insert} />
       </Modal>
     );
   }

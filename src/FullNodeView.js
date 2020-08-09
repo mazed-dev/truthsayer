@@ -256,6 +256,7 @@ class TextEditor extends React.Component {
       value: event.target.value,
       height: this.getHeightForText(event.target.value),
     });
+    // Check if it's a smartpoint
     if (event.nativeEvent.data === "/") {
       this.setState((state, props) => {
         if (state.modSlashCounter === 0) {
@@ -273,6 +274,26 @@ class TextEditor extends React.Component {
       return {
         modSlashCounter: 0,
       };
+    }
+  };
+
+  handleReplaceSmartpoint = (replacement) => {
+    if (this.textAreaRef.current && this.textAreaRef.current.selectionStart) {
+      this.setState((state) => {
+        // A beginning without smarpoint spell (//)
+        const beginning = state.value.slice(
+          0,
+          this.textAreaRef.current.selectionStart - 2
+        );
+        // Just an ending
+        const ending = state.value.slice(
+          this.textAreaRef.current.selectionStart
+        );
+        return {
+          value: beginning + replacement + ending,
+          modalShow: false,
+        };
+      });
     }
   };
 
@@ -304,7 +325,7 @@ class TextEditor extends React.Component {
         <AutocompleteWindow
           show={this.state.modalShow}
           onHide={this.hideModal}
-          text_area_ref={this.textAreaRef}
+          on_insert={this.handleReplaceSmartpoint}
         />
         <ExtClickDetector callback={this._onExit}>
           <InputGroup>
