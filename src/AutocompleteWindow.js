@@ -11,9 +11,14 @@ import {
   Col,
 } from "react-bootstrap";
 
+import axios from "axios";
 import keycode from "keycode";
+import moment from "moment";
 
 import SmartLine from "./smartpoint/SmartLine";
+import { MdSmallCardRender } from "./MarkDownRender";
+
+import remoteErrorHandler from "./remoteErrorHandler";
 
 import "./AutocompleteWindow.css";
 
@@ -22,7 +27,6 @@ const emoji = require("node-emoji");
 class SmartLineReplaceText extends React.Component {
   constructor(props) {
     super(props);
-    // {this.props.replacement}
   }
 
   handleSumbit = () => {
@@ -39,7 +43,11 @@ class SmartLineReplaceText extends React.Component {
           {this.props.children}
         </Col>
         <Col sm md lg xl={2}>
-          <Button variant="outline-success" size="sm">
+          <Button
+            variant="outline-success"
+            size="sm"
+            onClick={this.handleSumbit}
+          >
             Insert
           </Button>
         </Col>
@@ -84,6 +92,7 @@ class AutocompleteModal extends React.Component {
       cursor: 0,
     };
     this.inputRef = React.createRef();
+    this.searchFetchCancelToken = axios.CancelToken.source();
   }
 
   componentDidMount() {
@@ -110,6 +119,59 @@ class AutocompleteModal extends React.Component {
     });
   };
 
+  refSearch = async function (input) {
+    var q = input;
+    const prefTo = input.match(/^(refe?r?e?n?c?e?|to|next) /i);
+    if (prefTo) {
+      const pref = prefTo[0];
+      q = q.slice(pref.length);
+    } else {
+      const prefFrom = input.match(/^(from|prev?i?o?u?s?) /i);
+      if (prefFrom) {
+        const pref = prefFrom[0];
+        q = q.slice(pref.length);
+      }
+    }
+    const req = { q: q };
+    axios
+      .post("/api/node-search", req, {
+        cancelToken: this.searchFetchCancelToken.token,
+      })
+      .then((res) => {
+        const items = res.data.nodes.map((meta) => {
+          var title = meta.preface.match(/^.*/);
+          if (title) {
+            title = title[0];
+            if (title.length === 0) {
+              title = "ref";
+            }
+          } else {
+            title = "ref";
+          }
+          title = title.replace(/^[# ]+/, "");
+          const replacement = "[" + title + "](" + meta.nid + ")";
+          const upd = moment.unix(meta.upd).fromNow();
+          return (
+            <SmartLineReplaceText
+              replacement={replacement}
+              on_insert={this.props.on_insert}
+            >
+              <MdSmallCardRender source={meta.preface + "&hellip;"} />
+              <small className="text-muted">
+                <i>Updated {upd}</i>
+              </small>
+            </SmartLineReplaceText>
+          );
+        });
+        this.setState((state) => {
+          return {
+            result: state.result.concat(items),
+          };
+        });
+      })
+      .catch(remoteErrorHandler(this.props.history));
+  };
+
   handleChange = (event) => {
     const value = event.target.value;
     // Hack to avoid fetching on every character. If the time interval between
@@ -118,6 +180,7 @@ class AutocompleteModal extends React.Component {
       value && value !== ""
         ? setTimeout(() => {
             this.emojiSearch(value);
+            this.refSearch(value);
           }, 200)
         : null;
     this.setState((state) => {
