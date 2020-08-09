@@ -132,11 +132,21 @@ class AutocompleteModal extends React.Component {
     }
   };
 
+  setActiveItem = (index) => {
+    this.setState({ cursor: index });
+  };
+
   render() {
     const listItems = this.state.result.map((item, index) => {
-      const isActive = this.state.cursor === index;
       return (
-        <ListGroup.Item as="li" active={isActive} key={index} className="p-1">
+        <ListGroup.Item
+          as="li"
+          active={this.state.cursor === index}
+          key={index}
+          index={index}
+          className="p-1"
+          onMouseEnter={() => this.setActiveItem(index)}
+        >
           {item}
         </ListGroup.Item>
       );
