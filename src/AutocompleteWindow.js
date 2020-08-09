@@ -13,10 +13,9 @@ import {
 
 import axios from "axios";
 import keycode from "keycode";
-import moment from "moment";
 
-import SmartLine from "./smartpoint/SmartLine";
-import { MdSmallCardRender } from "./MarkDownRender";
+import EmojiSmartItem from "./smartpoint/EmojiSmartItem";
+import { RefSmartItem, extractRefSearcToken } from "./smartpoint/RefSmartItem";
 
 import remoteErrorHandler from "./remoteErrorHandler";
 
@@ -24,70 +23,12 @@ import "./AutocompleteWindow.css";
 
 const emoji = require("node-emoji");
 
-class SmartLineReplaceText extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  handleSumbit = () => {
-    this.props.on_insert(this.props.replacement);
-  };
-
-  render() {
-    return (
-      <Row
-        className="justify-content-between w-100 p-0 m-0"
-        onClick={this.handleSumbit}
-      >
-        <Col sm md lg xl={8}>
-          {this.props.children}
-        </Col>
-        <Col sm md lg xl={2}>
-          <Button
-            variant="outline-success"
-            size="sm"
-            onClick={this.handleSumbit}
-          >
-            Insert
-          </Button>
-        </Col>
-      </Row>
-    );
-  }
-}
-
 class AutocompleteModal extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       input: "",
-      result: [
-        // "Tip of my tongue: Word that means cultural identifier",
-        // "Customization of memory class C++",
-        // "Is one move considered as objectively better than another if they both lead to the same result?",
-        // "error404 on 2nd booking event page",
-        // "When was the first intentional ricochet fired from a naval artillery?",
-        // "Why do helicopters have windows near the pedals?",
-        // "Is it feasible to add an aftermarket hydrofoil to a light aircraft?",
-        // "Would a President get to fill a Supreme Court vacancy just after he lost an election in November/December?",
-        // "RandomPoint fails for any higher dimension",
-        // "In an interview with a small video game company, should I comment about bugs I noticed in their game?",
-        // "Why is the A380's fuselage designed with a flat bottom?",
-        // "Is there an equivalent of computation of physical processes in nature?",
-        // "Windows Storage Spaces - a useful replacement for RAID6?",
-        // "Do blue light filters on phones and computer screens disrupt sleep?",
-        // "What is the relationship between communism and 'a classless system'?",
-        // "In command-line, custom text and background colors by directory",
-        // "Sort an output by year month and date",
-        // "Clarifying Share Alike in CC licenses",
-        // "Why has Raspbian apparently been renamed into Raspberry Pi OS?",
-        // "Can I share folders on a LAN using NTFS alone?",
-        // "Water at the scale of a cell should feel more like tar?",
-        // "Should I publish everything running on Linux under GPL?",
-        // "Why is Elon Musk building the Starship first?",
-        // "Difference between a pointer to a standalone and a friend function",
-        // <SmartLine item={item} />
-      ],
+      result: [],
       result_fetch_cancel_id: null,
       cursor: 0,
     };
@@ -102,14 +43,11 @@ class AutocompleteModal extends React.Component {
   emojiSearch = async function (input) {
     const items = emoji.search(input).map((item) => {
       return (
-        <SmartLineReplaceText
-          replacement={item.emoji}
+        <EmojiSmartItem
+          label={item.emoji}
+          emoji={item.emoji}
           on_insert={this.props.on_insert}
-        >
-          <b>{item.emoji}</b>
-          &nbsp;
-          <i>{item.key}</i>
-        </SmartLineReplaceText>
+        />
       );
     });
     this.setState((state) => {
@@ -120,47 +58,24 @@ class AutocompleteModal extends React.Component {
   };
 
   refSearch = async function (input) {
-    var q = input;
-    const prefTo = input.match(/^(refe?r?e?n?c?e?|to|next) /i);
-    if (prefTo) {
-      const pref = prefTo[0];
-      q = q.slice(pref.length);
-    } else {
-      const prefFrom = input.match(/^(from|prev?i?o?u?s?) /i);
-      if (prefFrom) {
-        const pref = prefFrom[0];
-        q = q.slice(pref.length);
-      }
+    var { token, direction } = extractRefSearcToken(input);
+    if (token == null) {
+      return;
     }
-    const req = { q: q };
+    const req = { q: token };
     axios
       .post("/api/node-search", req, {
         cancelToken: this.searchFetchCancelToken.token,
       })
       .then((res) => {
         const items = res.data.nodes.map((meta) => {
-          var title = meta.preface.match(/^.*/);
-          if (title) {
-            title = title[0];
-            if (title.length === 0) {
-              title = "ref";
-            }
-          } else {
-            title = "ref";
-          }
-          title = title.replace(/^[# ]+/, "");
-          const replacement = "[" + title + "](" + meta.nid + ")";
-          const upd = moment.unix(meta.upd).fromNow();
           return (
-            <SmartLineReplaceText
-              replacement={replacement}
+            <RefSmartItem
+              nid={meta.nid}
+              preface={meta.preface}
+              upd={meta.upd}
               on_insert={this.props.on_insert}
-            >
-              <MdSmallCardRender source={meta.preface + "&hellip;"} />
-              <small className="text-muted">
-                <i>Updated {upd}</i>
-              </small>
-            </SmartLineReplaceText>
+            />
           );
         });
         this.setState((state) => {
