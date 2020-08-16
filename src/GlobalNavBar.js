@@ -45,13 +45,26 @@ class SearchInputImpl extends React.Component {
   }
 
   handleChange = (event) => {
-    this.setState({ value: event.target.value });
-    if (event.target.value.length > 2) {
-      this.props.history.push({
-        pathname: "/search",
-        search: queryString.stringify({ q: event.target.value }),
-      });
-    }
+    const value = event.target.value;
+    const result_fetch_cancel_id =
+      value === "" || value.length > 2
+        ? setTimeout(() => {
+            this.props.history.push({
+              pathname: "/search",
+              search: queryString.stringify({ q: value }),
+            });
+          }, 250)
+        : null;
+    this.setState((state) => {
+      if (state.result_fetch_cancel_id) {
+        clearTimeout(state.result_fetch_cancel_id);
+      }
+      return {
+        value: value,
+        // Preserve postponed fetch to be able to cancel it
+        result_fetch_cancel_id: result_fetch_cancel_id,
+      };
+    });
   };
 
   handleSumbit = (event) => {
@@ -84,11 +97,6 @@ SearchInputImpl.defaultProps = {
 };
 
 class UserPic extends React.Component {
-  // pub struct AccountInfo<'a> {
-  //     pub uid: &'a str,
-  //     pub name: &'a str,
-  //     pub email: &'a str,
-  // }
   constructor(props) {
     super(props);
     this.axiosCancelToken = axios.CancelToken.source();
