@@ -16,6 +16,7 @@ import keycode from "keycode";
 
 import EmojiSmartItem from "./EmojiSmartItem";
 import { RefSmartItem, extractRefSearcToken } from "./RefSmartItem";
+import { DateTimeSmartItem, dateTimeSmartItemSearch } from "./DateTimeSmartItem";
 
 import remoteErrorHandler from "./../remoteErrorHandler";
 
@@ -90,6 +91,15 @@ class AutocompleteModal extends React.Component {
       .catch(remoteErrorHandler(this.props.history));
   };
 
+  dateTimeSearch = async function (input) {
+    const items = dateTimeSmartItemSearch(input, this.props.on_insert);
+    this.setState((state) => {
+      return {
+        result: state.result.concat(items),
+      };
+    });
+  }
+
   handleChange = (event) => {
     const value = event.target.value;
     // Hack to avoid fetching on every character. If the time interval between
@@ -99,6 +109,7 @@ class AutocompleteModal extends React.Component {
         ? setTimeout(() => {
             this.emojiSearch(value);
             this.refSearch(value);
+            this.dateTimeSearch(value);
           }, 200)
         : null;
     this.setState((state) => {
