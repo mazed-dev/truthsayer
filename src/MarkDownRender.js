@@ -1,5 +1,16 @@
 import React from "react";
 
+import {
+  Badge,
+  Button,
+  Overlay,
+  Popover,
+  OverlayTrigger,
+  Tooltip,
+} from "react-bootstrap";
+
+import moment from "moment";
+
 import "./MarkDownRender.css";
 
 // https://github.com/rexxars/react-markdown
@@ -40,12 +51,45 @@ function MarkdownHeading({ level, children, ...rest }) {
   return hdr_el;
 }
 
+class DateBadge extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  handleClick = (event) => {};
+
+  render() {
+    const date_str = this.props.date.calendar();
+    return (
+      <Badge variant="secondary" pill>
+        {date_str}
+      </Badge>
+    );
+  }
+}
+
+function MarkdownLink({ href, children, ...rest }, a, b, c) {
+  href = href.trim();
+
+  if (href.startsWith("@")) {
+    const date = moment.unix(href.replace(/^@+/gm, ""));
+    return <DateBadge date={date} />;
+  }
+
+  return (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  );
+}
+
 export function MdCardRender({ source }) {
   return (
     <ReactMarkdown
       source={source}
       renderers={{
         heading: MarkdownHeading,
+        link: MarkdownLink,
         root: MarkdownRoot,
       }}
     />
@@ -66,6 +110,7 @@ export function MdSmallCardRender({ source }) {
       source={source}
       renderers={{
         heading: MarkdownHeading,
+        link: MarkdownLink,
         root: MarkdownSmallRoot,
       }}
     />

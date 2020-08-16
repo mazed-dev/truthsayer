@@ -1,6 +1,5 @@
 # Todo
 
- - [ ] Modal window with autocompletion
  - [ ] Modal window on error
  - [ ] Emoji as viniette for every note
  - [ ] Connect uploaded files
@@ -37,3 +36,4 @@
     обнови ее
     ты увидешь 2 запроса на авторизацию
     тоесть 1 после обновления, и второй когда заодишь (лишний)
+ - [x] Modal window with autocompletion
