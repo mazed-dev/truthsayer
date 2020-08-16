@@ -14,10 +14,10 @@ import {
 import axios from "axios";
 import keycode from "keycode";
 
-import EmojiSmartItem from "./smartpoint/EmojiSmartItem";
-import { RefSmartItem, extractRefSearcToken } from "./smartpoint/RefSmartItem";
+import EmojiSmartItem from "./EmojiSmartItem";
+import { RefSmartItem, extractRefSearcToken } from "./RefSmartItem";
 
-import remoteErrorHandler from "./remoteErrorHandler";
+import remoteErrorHandler from "./../remoteErrorHandler";
 
 import "./AutocompleteWindow.css";
 

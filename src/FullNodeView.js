@@ -11,7 +11,7 @@ import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
 import remoteErrorHandler from "./remoteErrorHandler";
-import AutocompleteWindow from "./AutocompleteWindow";
+import AutocompleteWindow from "./smartpoint/AutocompleteWindow";
 
 import {
   Card,
