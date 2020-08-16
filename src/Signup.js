@@ -90,7 +90,6 @@ class Signup extends React.Component {
   };
 
   handleSubmitError = (err) => {
-    console.log("Server error ", err);
     if (err.response) {
       if (err.response.status === HttpStatus.CONFLICT) {
         this.setState({

@@ -28,7 +28,6 @@ class SearchGrid extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    console.log("componentDidUpdate", this.props.q, prevProps.q);
     if (this.props.q !== prevProps.q) {
       this.setState({ nodes: [] });
       this.fetchData();
@@ -44,7 +43,6 @@ class SearchGrid extends React.Component {
   };
 
   fetchDataIteration = (upd_days_ago_after, upd_days_ago_before) => {
-    console.log("fetchDataIteration", upd_days_ago_after, upd_days_ago_before);
     const req = {
       q: this.props.q,
       upd_after: upd_days_ago_after,
@@ -56,7 +54,6 @@ class SearchGrid extends React.Component {
       })
       .then((res) => {
         const all = this.state.nodes.length + res.data.nodes.length;
-        console.log("fetchDataIteration -> got", res.data.nodes.length, all);
         this.setState((state) => {
           return {
             nodes: state.nodes.concat(res.data.nodes),

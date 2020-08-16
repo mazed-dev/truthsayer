@@ -223,10 +223,7 @@ class ExtClickDetector extends React.Component {
     document.removeEventListener("mousedown", this.handleClick, false);
   }
   handleClick = (event) => {
-    if (
-      !this.selfRef.current.contains(event.target) &&
-      document.getElementById("root").contains(event.target)
-    ) {
+    if (!this.selfRef.current.contains(event.target) && this.props.isActive) {
       this.props.callback(event);
     }
   };
@@ -327,7 +324,10 @@ class TextEditor extends React.Component {
           onHide={this.hideModal}
           on_insert={this.handleReplaceSmartpoint}
         />
-        <ExtClickDetector callback={this._onExit}>
+        <ExtClickDetector
+          callback={this._onExit}
+          isActive={!this.state.modalShow}
+        >
           <InputGroup>
             <Form.Control
               as="textarea"
@@ -456,9 +456,10 @@ class SearchNewRefToolkitImpl extends React.Component {
     );
   }
 }
+
 const SearchNewRefToolkit = withRouter(SearchNewRefToolkitImpl);
 
-class NodeRefs extends React.Component {
+class NodeRefsImpl extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -467,6 +468,10 @@ class NodeRefs extends React.Component {
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
+
+  static propTypes = {
+    location: PropTypes.object.isRequired,
+  };
 
   componentDidMount() {
     this.fetchData();
@@ -485,10 +490,27 @@ class NodeRefs extends React.Component {
 
   fetchData = () => {
     if (this.props.nid === NEW_NODE_FAKE_ID) {
-      this.setState({
-        refs: [],
-        offers: [],
-      });
+      if (
+        this.props.direction === "to" &&
+        this.props.location.state &&
+        this.props.location.state.from
+      ) {
+        this.setState({
+          refs: [
+            {
+              eid: null,
+              from_nid: this.props.location.state.from,
+              to_nid: this.props.location.state.from,
+            },
+          ],
+          offers: [],
+        });
+      } else {
+        this.setState({
+          refs: [],
+          offers: [],
+        });
+      }
       return;
     }
     axios
@@ -571,6 +593,8 @@ class NodeRefs extends React.Component {
     );
   }
 }
+
+const NodeRefs = withRouter(NodeRefsImpl);
 
 class NodeCardImpl extends React.Component {
   constructor(props) {

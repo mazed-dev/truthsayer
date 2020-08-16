@@ -103,19 +103,9 @@ class App extends React.Component {
     var nav_bar;
     var main_page;
     if (this.state.is_authenticated) {
-      console.log(
-        "Private App ",
-        window.location.pathname,
-        this.state.is_authenticated
-      );
       nav_bar = <GlobalNavBar />;
       main_page = <Redirect to={{ pathname: "/search" }} />;
     } else {
-      console.log(
-        "Public App ",
-        window.location.pathname,
-        this.state.is_authenticated
-      );
       nav_bar = <PublicNavBar />;
       main_page = <WelcomePage />;
     }
