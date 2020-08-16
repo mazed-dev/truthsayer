@@ -73,6 +73,7 @@ class AutocompleteModal extends React.Component {
           return (
             <RefSmartItem
               nid={meta.nid}
+              from_nid={this.props.nid}
               preface={meta.preface}
               upd={meta.upd}
               on_insert={this.props.on_insert}
@@ -201,7 +202,7 @@ class AutocompleteWindow extends React.Component {
         scrollable={true}
         enforceFocus={true}
       >
-        <AutocompleteModal on_insert={this.props.on_insert} />
+        <AutocompleteModal on_insert={this.props.on_insert} nid={this.props.nid} />
       </Modal>
     );
   }

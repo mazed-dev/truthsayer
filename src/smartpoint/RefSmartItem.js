@@ -6,6 +6,7 @@ import {
   Col,
 } from "react-bootstrap";
 
+import axios from "axios";
 import moment from "moment";
 
 import { MdSmallCardRender } from "./../MarkDownRender";
@@ -35,21 +36,33 @@ export function extractRefSearcToken(input) {
 export class RefSmartItem extends React.Component {
   constructor(props) {
     super(props);
-    var title = this.props.preface.match(/^.*/);
-    if (title) {
-      title = title[0];
-      if (title.length === 0) {
-        title = "ref";
-      }
-    } else {
-      title = "ref";
-    }
-    title = title.replace(/^[# ]+/, "");
+    const title = makeRefTitleFromPreface(this.props.preface);
     this.replacement = "[" + title + "](" + this.props.nid + ")";
+    this.addNodeRefCancelToken = axios.CancelToken.source();
   }
 
   handleSumbit = () => {
     this.props.on_insert(this.replacement);
+    this.addNodeReference();
+  };
+
+
+  addNodeReference = () => {
+    const req = {
+      from_nid: this.props.from_nid,
+      txt: "next",
+      weight: 100,
+    };
+    axios
+      .post("/api/node/" + this.props.nid + "/to", req, {
+        cancelToken: this.addNodeRefCancelToken.token,
+      })
+      .then((res) => {
+        if (res) {
+          // TODO(akindyakov): Refresh node references here, but how to do that?
+          console.log("Sucfully added");
+        }
+      });
   };
 
   render() {
@@ -60,7 +73,7 @@ export class RefSmartItem extends React.Component {
         onClick={this.handleSumbit}
       >
         <Col sm md lg xl={8}>
-          <MdSmallCardRender source={this.props.preface + "&hellip;"} />
+          <MdSmallCardRender source={this.props.preface + " &hellip;"} />
           <small className="text-muted">
             <i>Updated {upd}</i>
           </small>
@@ -77,6 +90,20 @@ export class RefSmartItem extends React.Component {
       </Row>
     );
   }
+}
+
+function makeRefTitleFromPreface(preface) {
+  var title = preface.match(/^.*/);
+  if (title) {
+    title = title[0];
+    if (title.length === 0) {
+      title = "ref";
+    }
+  } else {
+    title = "ref";
+  }
+  title = title.replace(/^[# ]+/, "");
+  return title;
 }
 
 export default RefSmartItem;

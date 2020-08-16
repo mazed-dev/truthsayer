@@ -30,7 +30,7 @@ class NodeSmallCard extends React.Component {
     return (
       <Card className="rounded" onClick={this.onClick}>
         <Card.Body className="px-3 pt-2 pb-0">
-          <MdSmallCardRender source={this.props.preface + "&hellip;"} />
+          <MdSmallCardRender source={this.props.preface + " &hellip;"} />
         </Card.Body>
         <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">
           <small className="text-muted">
@@ -41,13 +41,5 @@ class NodeSmallCard extends React.Component {
     );
   }
 }
-
-NodeSmallCard.defaultProps = {
-  nid: 0,
-  preface:
-    "Some quick example text to build on the card title and make up the bulk of the card's content", //String,
-  crtd: moment("2019-12-25").unix(),
-  upd: moment("2019-12-25").unix(),
-};
 
 export default withRouter(NodeSmallCard);

@@ -323,6 +323,7 @@ class TextEditor extends React.Component {
           show={this.state.modalShow}
           onHide={this.hideModal}
           on_insert={this.handleReplaceSmartpoint}
+          nid={this.props.nid}
         />
         <ExtClickDetector
           callback={this._onExit}
@@ -744,7 +745,11 @@ class NodeCardImpl extends React.Component {
     var text_el;
     if (this.state.edit) {
       text_el = (
-        <TextEditor value={this.state.text} onExit={this.onEditExit_} />
+        <TextEditor
+          value={this.state.text}
+          nid={this.props.nid}
+          onExit={this.onEditExit_}
+        />
       );
     } else {
       text_el = <MdCardRender source={this.state.text} />;
