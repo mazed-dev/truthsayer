@@ -1,6 +1,5 @@
 # Todo
 
- - [ ] After using smart menu focus should be back to editing form
  - [ ] Add "next" and "previous" to smart menu.
  - [ ] Improve dates view in notes 12/12/20 is apparently too confusing
  - [ ] Emoji as bullet points for lists in notes.
@@ -43,3 +42,4 @@
     ты увидешь 2 запроса на авторизацию
     тоесть 1 после обновления, и второй когда заодишь (лишний)
  - [x] Modal window with autocompletion
+ - [x] After using smart menu focus should be back to editing form

@@ -249,61 +249,86 @@ class TextEditor extends React.Component {
   }
 
   handleChange = (event) => {
+    console.log("handleChange ", event.target);
+    const value = event.target.value;
+    const diff = event.nativeEvent.data;
     this.setState({
-      value: event.target.value,
-      height: this.getHeightForText(event.target.value),
+      value: value,
+      height: this.getAdjustedHeight(event.target, 20),
     });
-    // Check if it's a smartpoint
-    if (event.nativeEvent.data === "/") {
-      this.setState((state, props) => {
+    this.setState((state) => {
+      // Check if it's a smartpoint
+      var modSlashCounter = 0;
+      var modalShow = false;
+      if (diff === "/") {
         if (state.modSlashCounter === 0) {
-          return {
-            modSlashCounter: state.modSlashCounter + 1,
-          };
+          modSlashCounter = state.modSlashCounter + 1;
         } else {
-          return {
-            modSlashCounter: 0,
-            modalShow: true,
-          };
+          modalShow = true;
         }
-      });
-    } else {
+      }
       return {
-        modSlashCounter: 0,
+        modSlashCounter: modSlashCounter,
+        modalShow: modalShow,
       };
-    }
+    });
   };
 
   handleReplaceSmartpoint = (replacement) => {
     if (this.textAreaRef.current && this.textAreaRef.current.selectionStart) {
-      this.setState((state) => {
-        // A beginning without smarpoint spell (//)
-        const beginning = state.value.slice(
-          0,
-          this.textAreaRef.current.selectionStart - 2
-        );
-        // Just an ending
-        const ending = state.value.slice(
-          this.textAreaRef.current.selectionStart
-        );
-        return {
-          value: beginning + replacement + ending,
-          modalShow: false,
-        };
-      });
+      const cursorPosEnd = this.textAreaRef.current.selectionStart;
+      const cursorPosBegin = cursorPosEnd - 2;
+      const replacementLen = replacement.length;
+      this.setState(
+        (state) => {
+          // A beginning without smarpoint spell (//)
+          const beginning = state.value.slice(0, cursorPosBegin);
+          // Just an ending
+          const ending = state.value.slice(cursorPosEnd);
+          return {
+            value: beginning + replacement + ending,
+            modalShow: false,
+          };
+        },
+        () => {
+          this.textAreaRef.current.focus();
+          this.textAreaRef.current.setSelectionRange(
+            cursorPosBegin,
+            cursorPosBegin + replacementLen
+          );
+        }
+      );
     }
   };
 
+  componentDidUpdate(prevProps, prevState) {}
+
   getHeightForText = (txt) => {
-    // FIXME
+    // It's a black magic for initial calculation of textarea height
+    // Fix it, if you know how
     var lines = 2;
     txt.split("\n").forEach(function (item, index) {
-      lines = lines + 1 + item.length / 80;
+      lines = lines + item.length / 71 + 1;
     });
-    return Math.max(16, lines * 1.7);
+    return Math.max(250, lines * 24);
+  };
+
+  getAdjustedHeight = (el, minHeight) => {
+    // compute the height difference which is caused by border and outline
+    var outerHeight = parseInt(window.getComputedStyle(el).height, 10);
+    var diff = outerHeight - el.clientHeight;
+    // set the height to 0 in case of it has to be shrinked
+    // el.style.height = 0;
+    // el.scrollHeight is the full height of the content, not just the visible part
+    return Math.max(minHeight, el.scrollHeight + diff);
   };
 
   _onExit = () => {
+    console.log(
+      "_onExit",
+      this.textAreaRef.current,
+      this.textAreaRef.current.selectionStart
+    );
     this.props.onExit(this.state.value);
   };
 
@@ -336,7 +361,10 @@ class TextEditor extends React.Component {
               className="border-0"
               value={this.state.value}
               onChange={this.handleChange}
-              style={{ height: this.state.height + "em" }}
+              style={{
+                height: this.state.height + "px",
+                resize: null,
+              }}
               ref={this.textAreaRef}
             />
           </InputGroup>

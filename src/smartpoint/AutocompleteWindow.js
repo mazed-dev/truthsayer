@@ -144,6 +144,7 @@ class AutocompleteModal extends React.Component {
         return { cursor: state.cursor >= maxL ? maxL : state.cursor + 1 };
       });
     } else if (e.keyCode === keycode("enter")) {
+      e.preventDefault();
       const item = this.state.result[this.state.cursor];
       console.log("Enter", item.ref.current);
       item.ref.current.handleSumbit();
