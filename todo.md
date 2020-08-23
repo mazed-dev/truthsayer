@@ -1,7 +1,7 @@
 # Todo
 
  - [ ] Add "next" and "previous" to smart menu.
- - [ ] Improve dates view in notes 12/12/20 is apparently too confusing
+ - [ ] Add popover for datetime badge on click and hover
  - [ ] Emoji as bullet points for lists in notes.
  - [ ] Improve the node view, the notes on the sides should reflect how many connections behind them
  - [ ] Improve main page, it should reflect graph nature of notes and expose at least part of connections between found notes
@@ -43,3 +43,4 @@
     тоесть 1 после обновления, и второй когда заодишь (лишний)
  - [x] Modal window with autocompletion
  - [x] After using smart menu focus should be back to editing form
+ - [x] Improve dates view in notes 12/12/20 is apparently too confusing

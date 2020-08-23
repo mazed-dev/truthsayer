@@ -5,7 +5,9 @@ import {
   Container,
   Card,
   Form,
-  ListGroup, Row, Col,
+  ListGroup,
+  Row,
+  Col,
 } from "react-bootstrap";
 
 import keycode from "keycode";
@@ -13,7 +15,7 @@ import keycode from "keycode";
 class SmartLine extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {}
+    this.state = {};
   }
 
   render() {

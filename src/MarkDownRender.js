@@ -52,7 +52,7 @@ function MarkdownHeading({ level, children, ...rest }) {
   return hdr_el;
 }
 
-class DateBadge extends React.Component {
+export class DateBadge extends React.Component {
   constructor(props) {
     super(props);
   }
@@ -60,7 +60,7 @@ class DateBadge extends React.Component {
   handleClick = (event) => {};
 
   render() {
-    const date_str = this.props.date.calendar({
+    const date_str = this.props.tm.calendar({
       sameDay: "[Today]",
       nextDay: "[Tomorrow]",
       nextWeek: "dddd",
@@ -76,7 +76,7 @@ class DateBadge extends React.Component {
   }
 }
 
-class DateTimeBadge extends React.Component {
+export class TimeBadge extends React.Component {
   constructor(props) {
     super(props);
   }
@@ -87,7 +87,7 @@ class DateTimeBadge extends React.Component {
     var date_str;
     if (!this.props.format || this.props.format === "time") {
       const timeFmt = ", hh:mm";
-      date_str = this.props.date.calendar({
+      date_str = this.props.tm.calendar({
         sameDay: "[Today]" + timeFmt,
         nextDay: "[Tomorrow]" + timeFmt,
         nextWeek: "dddd" + timeFmt,
@@ -96,7 +96,7 @@ class DateTimeBadge extends React.Component {
         sameElse: "YYYY MMMM DD, dddd" + timeFmt,
       });
     } else {
-      date_str = this.props.date.format(this.props.format);
+      date_str = this.props.tm.format(this.props.format);
     }
     return (
       <Badge variant="secondary" pill>
@@ -106,23 +106,27 @@ class DateTimeBadge extends React.Component {
   }
 }
 
-DateTimeBadge.propTypes = {
+TimeBadge.propTypes = {
   format: PropTypes.string,
 };
+
+export function DateTimeBadge({ tm, format, children, ...rest }) {
+  if (format === "day") {
+    return <DateBadge tm={tm} />;
+  }
+  return <TimeBadge tm={tm} format={format} />;
+}
 
 function MarkdownLink({ href, children, ...rest }) {
   href = href.trim();
 
   if (href.startsWith("@")) {
     const parts = href.match(/^@([0-9]+)\/?(.*)/);
+    console.log("Partgs", parts);
     if (parts) {
-      const date = moment.unix(parts[1]);
+      const tm = moment.unix(parts[1]);
       const format = parts[2];
-      if (!format || format === "date") {
-        return <DateBadge date={date} />;
-      } else {
-        return <DateTimeBadge date={date} format={format} />;
-      }
+      return <DateTimeBadge tm={tm} format={format} />;
     }
   }
 

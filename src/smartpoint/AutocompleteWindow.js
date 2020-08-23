@@ -16,7 +16,10 @@ import keycode from "keycode";
 
 import EmojiSmartItem from "./EmojiSmartItem";
 import { RefSmartItem, extractRefSearcToken } from "./RefSmartItem";
-import { DateTimeSmartItem, dateTimeSmartItemSearch } from "./DateTimeSmartItem";
+import {
+  DateTimeSmartItem,
+  dateTimeSmartItemSearch,
+} from "./DateTimeSmartItem";
 
 import remoteErrorHandler from "./../remoteErrorHandler";
 
@@ -98,7 +101,7 @@ class AutocompleteModal extends React.Component {
         result: state.result.concat(items),
       };
     });
-  }
+  };
 
   handleChange = (event) => {
     const value = event.target.value;
@@ -214,7 +217,10 @@ class AutocompleteWindow extends React.Component {
         scrollable={true}
         enforceFocus={true}
       >
-        <AutocompleteModal on_insert={this.props.on_insert} nid={this.props.nid} />
+        <AutocompleteModal
+          on_insert={this.props.on_insert}
+          nid={this.props.nid}
+        />
       </Modal>
     );
   }

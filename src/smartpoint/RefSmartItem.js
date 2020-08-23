@@ -1,10 +1,6 @@
 import React from "react";
 
-import {
-  Button,
-  Row,
-  Col,
-} from "react-bootstrap";
+import { Button, Row, Col } from "react-bootstrap";
 
 import axios from "axios";
 import moment from "moment";
@@ -18,7 +14,7 @@ export function extractRefSearcToken(input) {
   if (prefTo) {
     const pref = prefTo[0];
     token = input.slice(pref.length);
-      direction = "to";
+    direction = "to";
   } else {
     const prefFrom = input.match(/^(from|prev?i?o?u?s?) /i);
     if (prefFrom) {
@@ -45,7 +41,6 @@ export class RefSmartItem extends React.Component {
     this.props.on_insert(this.replacement);
     this.addNodeReference();
   };
-
 
   addNodeReference = () => {
     const req = {

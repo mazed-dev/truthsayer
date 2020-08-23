@@ -1,18 +1,16 @@
 import React from "react";
 
-import {
-  Button,
-  Row,
-  Col,
-  Badge,
-} from "react-bootstrap";
+import { Button, Row, Col } from "react-bootstrap";
 
 import moment from "moment";
 
-export class DateTimeSmartItem extends React.Component {
+import { DateTimeBadge } from "./../MarkDownRender";
+
+class DateTimeSmartItem extends React.Component {
   constructor(props) {
     super(props);
-    this.replacement = "[](@" + this.props.tm.unix() + ")";
+    this.replacement =
+      "[](@" + this.props.tm.unix() + "/" + this.props.format + ")";
   }
 
   handleSumbit = () => {
@@ -29,9 +27,7 @@ export class DateTimeSmartItem extends React.Component {
         <Col sm md lg xl={8}>
           {this.props.label}
           &nbsp; &ndash; &nbsp;
-          <Badge variant="secondary" pill>
-            {date_str}
-          </Badge>
+          <DateTimeBadge tm={this.props.tm} format={this.props.format} />
         </Col>
         <Col sm md lg xl={2}>
           <Button
@@ -47,48 +43,112 @@ export class DateTimeSmartItem extends React.Component {
   }
 }
 
+function createDateTimeSmartItem({ tm, format, label, on_insert }) {
+  return (
+    <DateTimeSmartItem
+      tm={tm}
+      format={format}
+      label={label}
+      on_insert={on_insert}
+      ref={React.createRef()}
+    />
+  );
+}
+
+const DEF_FMT = "YYYY-MMMM-DD";
+
 export function dateTimeSmartItemSearch(input, on_insert) {
   var ret = [];
-  const today = input.match(/^(toda?y?|now)/i);
-  if (today) {
+  if (input.match(/^now/i)) {
     const tm = moment();
-    ret.push((
-      <DateTimeSmartItem tm={tm} label={"Now"} on_insert={on_insert} ref={React.createRef()} />
-    ));
+    ret.push(
+      createDateTimeSmartItem({
+        tm: tm,
+        format: "time",
+        label: "Now",
+        on_insert: on_insert,
+      })
+    );
   }
-  const yesterday = input.match(/^yeste?r?d?a?y?/i);
-  if (yesterday) {
+  if (input.match(/^toda?y?/i)) {
+    const tm = moment();
+    ret.push(
+      createDateTimeSmartItem({
+        tm: tm,
+        format: "day",
+        label: "Today",
+        on_insert: on_insert,
+      })
+    );
+  }
+  if (input.match(/^yeste?r?d?a?y?/i)) {
     const tm = moment().subtract(1, "days");
-    ret.push((
-      <DateTimeSmartItem tm={tm} label={"Yesterday"} on_insert={on_insert} ref={React.createRef()} />
-    ));
+    ret.push(
+      createDateTimeSmartItem({
+        tm: tm,
+        format: "day",
+        label: "Yesterday",
+        on_insert: on_insert,
+      })
+    );
   }
-  const tomorrow = input.match(/^tomor?r?o?w?/i);
-  if (tomorrow) {
+  if (input.match(/^tomor?r?o?w?/i)) {
     const tm = moment().add(1, "days");
-    ret.push((
-      <DateTimeSmartItem tm={tm} label={"Tomorrow"} on_insert={on_insert} ref={React.createRef()} />
-    ));
+    ret.push(
+      createDateTimeSmartItem({
+        tm: tm,
+        format: "day",
+        label: "Tomorrow",
+        on_insert: on_insert,
+      })
+    );
   }
-  const yyyy_mm_dd = moment(input, 'YYYY-MM-DD');
+  const yyyy_mm_dd = moment(input, "YYYY-MM-DD");
   if (yyyy_mm_dd.isValid()) {
-    ret.push((
-      <DateTimeSmartItem tm={yyyy_mm_dd} label={"Date"} on_insert={on_insert} ref={React.createRef()} />
-    ));
+    ret.push(
+      createDateTimeSmartItem({
+        tm: yyyy_mm_dd,
+        format: DEF_FMT,
+        label: "Date",
+        on_insert: on_insert,
+      })
+    );
   }
 
-  const dd_mm_yyyy = moment(input, 'DD-MM-YYYY');
+  const dd_mm_yyyy = moment(input, "DD-MM-YYYY");
   if (dd_mm_yyyy.isValid()) {
-    ret.push((
-      <DateTimeSmartItem tm={dd_mm_yyyy} label={"Date"} on_insert={on_insert} ref={React.createRef()} />
-    ));
+    ret.push(
+      createDateTimeSmartItem({
+        tm: dd_mm_yyyy,
+        format: DEF_FMT,
+        label: "Date",
+        on_insert: on_insert,
+      })
+    );
   }
 
-  const dd_mm_yy = moment(input, 'DD-MM-YY');
+  const dd_mm_yy = moment(input, "DD-MM-YY");
   if (dd_mm_yy.isValid()) {
-    ret.push((
-      <DateTimeSmartItem tm={dd_mm_yy} label={"Date"} on_insert={on_insert} ref={React.createRef()} />
-    ));
+    ret.push(
+      createDateTimeSmartItem({
+        tm: dd_mm_yy,
+        format: DEF_FMT,
+        label: "Date",
+        on_insert: on_insert,
+      })
+    );
+  }
+
+  const dd_mmmm_yy = moment(input, "DD-MMMM-YY");
+  if (dd_mmmm_yy.isValid()) {
+    ret.push(
+      createDateTimeSmartItem({
+        tm: dd_mmmm_yy,
+        format: DEF_FMT,
+        label: "Date",
+        on_insert: on_insert,
+      })
+    );
   }
 
   return ret;
