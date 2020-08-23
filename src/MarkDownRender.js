@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 
 import {
   Badge,
@@ -59,7 +60,14 @@ class DateBadge extends React.Component {
   handleClick = (event) => {};
 
   render() {
-    const date_str = this.props.date.calendar();
+    const date_str = this.props.date.calendar({
+      sameDay: "[Today]",
+      nextDay: "[Tomorrow]",
+      nextWeek: "dddd",
+      lastDay: "[Yesterday]",
+      lastWeek: "[Last] dddd",
+      sameElse: "YYYY MMMM DD, dddd",
+    });
     return (
       <Badge variant="secondary" pill>
         {date_str}
@@ -68,12 +76,54 @@ class DateBadge extends React.Component {
   }
 }
 
-function MarkdownLink({ href, children, ...rest }, a, b, c) {
+class DateTimeBadge extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  handleClick = (event) => {};
+
+  render() {
+    var date_str;
+    if (!this.props.format || this.props.format === "time") {
+      const timeFmt = ", hh:mm";
+      date_str = this.props.date.calendar({
+        sameDay: "[Today]" + timeFmt,
+        nextDay: "[Tomorrow]" + timeFmt,
+        nextWeek: "dddd" + timeFmt,
+        lastDay: "[Yesterday]" + timeFmt,
+        lastWeek: "[Last] dddd" + timeFmt,
+        sameElse: "YYYY MMMM DD, dddd" + timeFmt,
+      });
+    } else {
+      date_str = this.props.date.format(this.props.format);
+    }
+    return (
+      <Badge variant="secondary" pill>
+        {date_str}
+      </Badge>
+    );
+  }
+}
+
+DateTimeBadge.propTypes = {
+  format: PropTypes.string,
+};
+
+function MarkdownLink({ href, children, ...rest }) {
   href = href.trim();
 
   if (href.startsWith("@")) {
-    const date = moment.unix(href.replace(/^@+/gm, ""));
-    return <DateBadge date={date} />;
+    const parts = href.match(/^@([0-9]+)\/?(.*)/);
+    if (parts) {
+      const date = moment.unix(parts[1]);
+      const format = parts[2];
+      if (!format || format === "date") {
+        return <DateBadge date={date} />;
+      } else {
+        return <DateTimeBadge date={date} format={format} />;
+      }
+    }
   }
 
   return (
