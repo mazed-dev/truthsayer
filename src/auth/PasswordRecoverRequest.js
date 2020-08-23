@@ -10,7 +10,7 @@ import {
   ButtonGroup,
 } from "react-bootstrap";
 
-import Emoji from "./Emoji";
+import Emoji from "./../Emoji";
 import PropTypes from "prop-types";
 import axios from "axios";
 import { withRouter } from "react-router-dom";

@@ -24,15 +24,15 @@ import queryString from "query-string";
 import axios from "axios";
 
 import GlobalNavBar from "./GlobalNavBar";
-import Login from "./Login";
-import Logout from "./Logout";
+import Login from "./auth/Login";
+import Logout from "./auth/Logout";
 import PublicNavBar from "./PublicNavBar";
-import Signup from "./Signup";
+import Signup from "./auth/Signup";
 import TreeView from "./TreeView";
 import UploadFile from "./UploadFile";
-import PasswordChange from "./PasswordChange";
-import PasswordRecoverForm from "./PasswordRecoverForm";
-import PasswordRecoverRequest from "./PasswordRecoverRequest";
+import PasswordChange from "./auth/PasswordChange";
+import PasswordRecoverForm from "./auth/PasswordRecoverForm";
+import PasswordRecoverRequest from "./auth/PasswordRecoverRequest";
 import UserPreferences from "./UserPreferences";
 import WelcomePage from "./WelcomePage";
 
