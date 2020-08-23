@@ -20,6 +20,7 @@ import {
   DateTimeSmartItem,
   dateTimeSmartItemSearch,
 } from "./DateTimeSmartItem";
+import { nextRefSmartItemSearch } from "./NextRefSmartItem";
 
 import remoteErrorHandler from "./../remoteErrorHandler";
 
@@ -103,6 +104,19 @@ class AutocompleteModal extends React.Component {
     });
   };
 
+  nextRefSearch = async function (input) {
+    const items = nextRefSmartItemSearch(
+      input,
+      this.props.nid,
+      this.props.on_insert
+    );
+    this.setState((state) => {
+      return {
+        result: state.result.concat(items),
+      };
+    });
+  };
+
   handleChange = (event) => {
     const value = event.target.value;
     // Hack to avoid fetching on every character. If the time interval between
@@ -110,6 +124,7 @@ class AutocompleteModal extends React.Component {
     const result_fetch_cancel_id =
       value && value !== ""
         ? setTimeout(() => {
+            this.nextRefSearch(value);
             this.emojiSearch(value);
             this.refSearch(value);
             this.dateTimeSearch(value);
