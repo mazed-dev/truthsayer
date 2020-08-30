@@ -122,7 +122,6 @@ function MarkdownLink({ href, children, ...rest }) {
 
   if (href.startsWith("@")) {
     const parts = href.match(/^@([0-9]+)\/?(.*)/);
-    console.log("Partgs", parts);
     if (parts) {
       const tm = moment.unix(parts[1]);
       const format = parts[2];

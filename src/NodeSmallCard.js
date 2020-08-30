@@ -1,5 +1,7 @@
 import React from "react";
 
+import "./NodeSmallCard.css";
+
 import PropTypes from "prop-types";
 import moment from "moment";
 import { Card } from "react-bootstrap";
@@ -28,7 +30,7 @@ class NodeSmallCard extends React.Component {
   render() {
     const upd = moment.unix(this.props.upd).fromNow();
     return (
-      <Card className="rounded" onClick={this.onClick}>
+      <Card className="mazed_small_card" onClick={this.onClick}>
         <Card.Body className="px-3 pt-2 pb-0">
           <MdSmallCardRender source={this.props.preface + " &hellip;"} />
         </Card.Body>

@@ -4,11 +4,73 @@ import "./SearchGrid.css";
 
 import PropTypes from "prop-types";
 import axios from "axios";
-import { Container, CardColumns } from "react-bootstrap";
+import { Container, Row, Col } from "react-bootstrap";
 import { withRouter } from "react-router-dom";
 
 import NodeSmallCard from "./NodeSmallCard";
 import remoteErrorHandler from "./remoteErrorHandler";
+
+function range(n, start, end) {
+  if (start == null) {
+    start = 0;
+  }
+  if (end == null) {
+    end = n;
+  }
+  console.log(n, start, end);
+  return new Array(n).fill(undefined).map((_, i) => i + start);
+}
+
+class DynamicGrid extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      width: 640,
+      height: 480,
+      ncols: 2,
+    };
+  }
+
+  componentDidMount() {
+    this.updateWindowDimensions();
+    window.addEventListener("resize", this.updateWindowDimensions);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("resize", this.updateWindowDimensions);
+  }
+
+  updateWindowDimensions = () => {
+    this.setState({
+      width: window.innerWidth,
+      height: window.innerHeight,
+      ncols: Math.max(
+        1,
+        Math.floor(
+          window.innerWidth /
+            // see NodeSmallCard.css.mazed_small_card.max-width
+            (parseFloat(getComputedStyle(document.documentElement).fontSize) *
+              20)
+        )
+      ),
+    });
+  };
+
+  render() {
+    const columns = range(this.state.ncols).map((_, col_ind) => {
+      const cards = this.props.cards.filter((_, card_ind) => {
+        return card_ind % this.state.ncols === col_ind;
+      });
+      return <Col>{cards}</Col>;
+    });
+    return (
+      <Container fluid>
+        {this.state.ncols}
+        <Row className="justify-content-between w-100 p-0 m-0">{columns}</Row>
+      </Container>
+    );
+  }
+}
 
 class SearchGrid extends React.Component {
   constructor(props) {
@@ -81,12 +143,12 @@ class SearchGrid extends React.Component {
         />
       );
     });
-    return (
-      <Container fluid>
-        <CardColumns className="meta-search-card-columns">{cards}</CardColumns>
-      </Container>
-    );
+    return <DynamicGrid cards={cards} />;
   }
+}
+
+function convertRemToPixels(rem) {
+  return rem * parseFloat(getComputedStyle(document.documentElement).fontSize);
 }
 
 export default withRouter(SearchGrid);
