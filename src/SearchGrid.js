@@ -65,7 +65,6 @@ class DynamicGrid extends React.Component {
     });
     return (
       <Container fluid>
-        {this.state.ncols}
         <Row className="justify-content-between w-100 p-0 m-0">{columns}</Row>
       </Container>
     );
