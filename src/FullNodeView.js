@@ -705,36 +705,24 @@ class NodeCardImpl extends React.Component {
         .catch(remoteErrorHandler(this.props.history))
         .then((_res) => {});
     } else {
+      if (this.props.location.state && this.props.location.state.from) {
+        var query =
+          "?" +
+          queryString.stringify({
+            from: this.props.location.state.from,
+          });
+      } else {
+        var query = "";
+      }
       axios
-        .post("/api/node/new", value, config)
+        .post("/api/node/new" + query, value, config)
         .catch(remoteErrorHandler(this.props.history))
         .then((res) => {
           if (res) {
             const nid = res.data.nid;
-            if (this.props.location.state && this.props.location.state.from) {
-              // That means we have to add an edge
-              const req = {
-                from_nid: this.props.location.state.from,
-                txt: "next",
-                weight: 100,
-              };
-              axios
-                .post("/api/node/" + nid + "/to", req, {
-                  cancelToken: this.fetchCancelToken.token,
-                })
-                .catch(remoteErrorHandler(this.props.history))
-                .then((res) => {
-                  if (res) {
-                    this.props.history.push({
-                      pathname: "/node/" + nid,
-                    });
-                  }
-                });
-            } else {
-              this.props.history.push({
-                pathname: "/node/" + nid,
-              });
-            }
+            this.props.history.push({
+              pathname: "/node/" + nid,
+            });
           }
         });
     }
