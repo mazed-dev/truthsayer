@@ -32,7 +32,8 @@ class NodeSmallCard extends React.Component {
     return (
       <Card className="mazed_small_card" onClick={this.onClick}>
         <Card.Body className="px-3 pt-2 pb-0">
-          <MdSmallCardRender source={this.props.preface + " &hellip;"} />
+          <MdSmallCardRender source={this.props.preface} />
+          &hellip;
         </Card.Body>
         <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">
           <small className="text-muted">
