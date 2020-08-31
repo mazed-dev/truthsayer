@@ -31,8 +31,6 @@ import axios from "axios";
 import moment from "moment";
 import queryString from "query-string";
 
-const hash = require("object-hash");
-
 const NEW_NODE_FAKE_ID = ".new";
 
 class RefNodeCardImpl extends React.Component {
@@ -200,6 +198,7 @@ class RefNodeCardImpl extends React.Component {
           preface={this.state.preface}
           crtd={this.state.crtd}
           upd={this.state.upd}
+          skip_input_edge={true}
         />
         <div className="meta-fluid-el-top-left">{toolbar}</div>
       </div>

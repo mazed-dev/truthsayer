@@ -61,7 +61,7 @@ class DynamicGrid extends React.Component {
       const cards = this.props.cards.filter((_, card_ind) => {
         return card_ind % this.state.ncols === col_ind;
       });
-      return <Col>{cards}</Col>;
+      return <Col key={"cards_" + col_ind}>{cards}</Col>;
     });
     return (
       <Container fluid>
@@ -108,6 +108,7 @@ class SearchGrid extends React.Component {
       q: this.props.q,
       upd_after: upd_days_ago_after,
       upd_before: upd_days_ago_before,
+      provide_edges: true,
     };
     axios
       .post("/api/node-search", req, {
@@ -115,6 +116,7 @@ class SearchGrid extends React.Component {
       })
       .then((res) => {
         const all = this.state.nodes.length + res.data.nodes.length;
+        console.log(res.data.nodes);
         this.setState((state) => {
           return {
             nodes: state.nodes.concat(res.data.nodes),
@@ -132,6 +134,7 @@ class SearchGrid extends React.Component {
 
   render() {
     const cards = this.state.nodes.map((meta) => {
+      console.log("Nid", meta.nid);
       return (
         <NodeSmallCard
           nid={meta.nid}
@@ -139,15 +142,12 @@ class SearchGrid extends React.Component {
           crtd={meta.crtd}
           upd={meta.upd}
           key={meta.nid}
+          skip_input_edge={false}
         />
       );
     });
     return <DynamicGrid cards={cards} />;
   }
-}
-
-function convertRemToPixels(rem) {
-  return rem * parseFloat(getComputedStyle(document.documentElement).fontSize);
 }
 
 export default withRouter(SearchGrid);

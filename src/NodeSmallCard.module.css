@@ -1,0 +1,94 @@
+:root {
+  --small_card_border_colour: rgba(0, 0, 0, 0.192);
+  --small_card_shadow_colour: rgba(0, 0, 0, 0.12);
+}
+
+.small_card {
+  max-width: 22rem;
+  margin-top: 0rem;
+  margin-bottom: 1rem;
+  margin-left: 0rem;
+  margin-right: 0rem;
+  border-color: var(--small_card_border_colour);
+}
+
+.small_card_shadow_0 {
+  /* This is actual shadow of the card, which I find not quite pretty for now,
+   * so I deleted it. */
+  /* box-shadow: 4px 4px 5px var(--small_card_shadow_colour); */
+}
+
+.small_card_shadow_1 {
+  /* prettier-ignore */
+  box-shadow:
+    1px 1px 1px white,
+    2px 2px 1px white,
+    3px 3px 1px gray /*,
+    7px 7px 5px var(--small_card_shadow_colour); */;
+}
+
+.small_card_shadow_2 {
+  /* prettier-ignore */
+  box-shadow:
+    1px 1px 1px white,
+    2px 2px 1px white,
+    3px 3px 1px gray,
+    4px 4px 1px white,
+    5px 5px 1px white,
+    6px 6px 1px gray /*,
+    10px 10px 5px var(--small_card_shadow_colour) */;
+}
+
+.small_card_shadow_3 {
+  /* prettier-ignore */
+  box-shadow:
+    1px 1px 1px white,
+    2px 2px 1px white,
+    3px 3px 1px gray,
+    4px 4px 1px white,
+    5px 5px 1px white,
+    6px 6px 1px gray,
+    7px 7px 1px white,
+    8px 8px 1px white,
+    9px 9px 1px gray /*,
+    13px 13px 5px var(--small_card_shadow_colour) */;
+}
+
+.small_card_shadow_4 {
+  /* prettier-ignore */
+  box-shadow:
+    1px 1px 1px white,
+    2px 2px 1px white,
+    3px 3px 1px gray,
+    4px 4px 1px white,
+    5px 5px 1px white,
+    6px 6px 1px gray,
+    7px 7px 1px white,
+    8px 8px 1px white,
+    9px 9px 1px gray,
+    10px 10px 1px white,
+    11px 11px 1px white,
+    12px 12px 1px gray /*,
+    16px 16px 5px var(--small_card_shadow_colour) */;
+}
+
+.small_card_shadow_5 {
+  /* prettier-ignore */
+  box-shadow:
+    1px 1px 1px white,
+    2px 2px 1px white,
+    3px 3px 1px gray,
+    4px 4px 1px white,
+    5px 5px 1px white,
+    6px 6px 1px gray,
+    7px 7px 1px white,
+    8px 8px 1px white,
+    9px 9px 1px gray,
+    10px 10px 1px white,
+    11px 11px 1px white,
+    12px 12px 1px gray,
+    13px 13px 1px white,
+    14px 14px 1px white,
+    15px 15px 1px gray /*,
+    19px 19px 5px var(--small_card_shadow_colour) */;
+}
