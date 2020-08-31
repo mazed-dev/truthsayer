@@ -1,9 +1,10 @@
 # Todo
 
+ - [ ] Vertical toolbar for markdown editing
+ - [ ] Search input on nav bar should be __sticky__ and __centered__
  - [ ] Add "next" and "previous" to smart menu.
  - [ ] Add popover for datetime badge on click and hover
  - [ ] Emoji as bullet points for lists in notes.
- - [ ] Improve the node view, the notes on the sides should reflect how many connections behind them
  - [ ] Improve main page, it should reflect graph nature of notes and expose at least part of connections between found notes
  - [ ] Modal window on error
  - [ ] Emoji as viniette for every note
@@ -44,3 +45,4 @@
  - [x] Modal window with autocompletion
  - [x] After using smart menu focus should be back to editing form
  - [x] Improve dates view in notes 12/12/20 is apparently too confusing
+ - [x] Improve the node view, the notes on the sides should reflect how many connections behind them

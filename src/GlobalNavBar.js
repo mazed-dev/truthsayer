@@ -128,18 +128,19 @@ class UserPic extends React.Component {
   render() {
     // TODO: use custom user uploaded picture for userpic here
     return (
-      <span>
+      <div className="d-inline-flex">
         <Image
           src={user_default_pic}
           roundedCircle
-          fluid
-          width="18"
-          height="18"
-          className="mx-2"
+          width="24"
+          height="24"
+          className="mr-1"
         />
-        &nbsp;
-        {this.state.name}
-      </span>
+        <div className="d-none d-sm-none d-md-block">
+          &nbsp;
+          {this.state.name}
+        </div>
+      </div>
     );
   }
 }
@@ -156,13 +157,13 @@ function GlobalNavBar() {
   const userpic = <UserPic />;
   return (
     <Navbar bg="light" variant="light" size="sm" className="py-1">
-      <Navbar.Brand as={Link} to="/" className="px-4">
+      <Navbar.Brand as={Link} to="/" className="d-inline-flex ml-1 mr-2">
         <span role="img" aria-label="next">
           &#x1F9F5;
         </span>
-        &nbsp; Mazed
+        <div className="d-none d-sm-none d-md-block"> Mazed </div>
       </Navbar.Brand>
-      <SearchInput className="ml-auto px-4" from={q} />
+      <SearchInput className="ml-auto" from={q} />
       <Dropdown as={ButtonGroup} size="sm" className="px-2">
         <Button variant="outline-success" as={Link} to="/node/.new">
           add
@@ -181,7 +182,7 @@ function GlobalNavBar() {
       <NavDropdown
         title={userpic}
         id="account-nav-dropdown"
-        className="ml-auto userpic-dropdown px-4 mx-4"
+        className="ml-auto userpic-dropdown mr-1"
       >
         <NavDropdown.Item as={Link} to="/user-preferences">
           Manage your account
