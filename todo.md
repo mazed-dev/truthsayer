@@ -1,6 +1,5 @@
 # Todo
 
- - [ ] Remove non-functioning buttons - too confusing for users
  - [ ] Take care of what people see after the sing-in even if registration is not open yet
  - [ ] Add "next" and "previous" to smart menu.
  - [ ] Quotes doens't work: the text that starts with `> ` looks like normal paragraph.

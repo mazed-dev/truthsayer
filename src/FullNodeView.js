@@ -5,6 +5,8 @@ import "./FullNodeView.css";
 import NodeSmallCard from "./NodeSmallCard";
 import { MdCardRender } from "./MarkDownRender";
 
+import Emoji from "./Emoji";
+
 import maze from "./maze.png";
 
 import PropTypes from "prop-types";
@@ -154,7 +156,7 @@ class RefNodeCardImpl extends React.Component {
             size="sm"
             onClick={this.handleRefAdd}
           >
-            &#43;
+            <Emoji symbol="+" label="add" />
           </Button>
         </ButtonGroup>
       );
@@ -162,27 +164,13 @@ class RefNodeCardImpl extends React.Component {
       if (this.state.hover) {
         toolbar = (
           <ButtonGroup>
-            <Button variant="outline-dark" size="sm">
-              &#9998;
-            </Button>
             <Button
               variant="outline-dark"
               size="sm"
               onClick={this.handleRefCutOff}
             >
-              &#9988;
+              <Emoji symbol="✂" label="cut off" />
             </Button>
-            <DropdownButton
-              as={ButtonGroup}
-              title="&#x22EE;&nbsp;"
-              id="bg-vertical-dropdown-1"
-              variant="outline-dark"
-              size="sm"
-            >
-              <Dropdown.Item eventKey="1">&#x2602;</Dropdown.Item>
-              <Dropdown.Item eventKey="2">&#x263C;</Dropdown.Item>
-              <Dropdown.Item eventKey="3">&#x263D;</Dropdown.Item>
-            </DropdownButton>
           </ButtonGroup>
         );
       }
@@ -200,7 +188,7 @@ class RefNodeCardImpl extends React.Component {
           upd={this.state.upd}
           skip_input_edge={true}
         />
-        <div className="meta-fluid-el-top-left">{toolbar}</div>
+        <div className="meta-fluid-el-top-rigth">{toolbar}</div>
       </div>
     );
   }
@@ -743,17 +731,6 @@ class NodeCardImpl extends React.Component {
         >
           &#9998;
         </Button>
-        <DropdownButton
-          as={ButtonGroup}
-          title="&#x22EE;&nbsp;"
-          id="bg-vertical-dropdown-1"
-          variant="outline-secondary"
-          size="sm"
-        >
-          <Dropdown.Item eventKey="1">&#x2602;</Dropdown.Item>
-          <Dropdown.Item eventKey="2">&#x263C;</Dropdown.Item>
-          <Dropdown.Item eventKey="3">&#x263D;</Dropdown.Item>
-        </DropdownButton>
       </ButtonGroup>
     );
 
