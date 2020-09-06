@@ -311,11 +311,6 @@ class TextEditor extends React.Component {
   };
 
   _onExit = () => {
-    console.log(
-      "_onExit",
-      this.textAreaRef.current,
-      this.textAreaRef.current.selectionStart
-    );
     this.props.onExit(this.state.value);
   };
 

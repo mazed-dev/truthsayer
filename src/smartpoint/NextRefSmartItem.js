@@ -91,7 +91,7 @@ export function nextRefSmartItemSearch(input, nid, on_insert) {
   var ret = [];
   const next = input.match(/^next ?(.*)/i);
   if (next) {
-    const title = next[1];
+    const title = next[1] ? next[1].trim() : "Next";
     ret.push(
       <NextRefSmartItem
         label={'Next, create new "next" note'}
@@ -103,9 +103,10 @@ export function nextRefSmartItemSearch(input, nid, on_insert) {
     );
   }
 
-  const prev = input.match(/^(previ?o?u?s?|prior)( .*)?/i);
+  const prev = input.match(/^(previ?o?u?s?|prior?)( .*)?/i);
+  console.log("Prev regexp", prev);
   if (prev) {
-    const title = prev[2].trim();
+    const title = prev[2] ? prev[2].trim() : "Previous";
     ret.push(
       <NextRefSmartItem
         label={'Previous, create new "prior" note'}

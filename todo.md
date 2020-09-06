@@ -1,9 +1,9 @@
 # Todo
 
- - [ ] Add "next" and "previous" to smart menu.
  - [ ] Vertical toolbar for markdown editing
  - [ ] Add symmetric buttons "next" and "search-to-next" to the left side
  - [ ] Make left and right ref pannes symmetric
+ - [ ] Save and go on "next" and "previous" from smart menue
  - [ ] If cursor stays on the list point suggest next to be with a title with the text from the bullet point
  - [ ] Search input on nav bar should be __sticky__ and __centered__
  - [ ] Add popover for datetime badge on click and hover
@@ -49,3 +49,4 @@
  - [x] Improve the node view, the notes on the sides should reflect how many connections behind them
  - [x] Take care of what people see after the sing-in even if registration is not open yet
  - [x] Quotes doens't work: the text that starts with `> ` looks like normal paragraph.
+ - [x] Add "next" and "previous" to smart menu.
