@@ -33,6 +33,7 @@ import UploadFile from "./UploadFile";
 import PasswordChange from "./auth/PasswordChange";
 import PasswordRecoverForm from "./auth/PasswordRecoverForm";
 import PasswordRecoverRequest from "./auth/PasswordRecoverRequest";
+import WaitingForApproval from "./auth/WaitingForApproval";
 import UserPreferences from "./UserPreferences";
 import WelcomePage from "./WelcomePage";
 
@@ -131,6 +132,9 @@ class App extends React.Component {
               >
                 <Signup onLogin={this.handleSuccessfulLogin} />
               </PublicOnlyRoute>
+              <Route path="/waiting-for-approval">
+                <WaitingForApproval path="/waiting-for-approval" />
+              </Route>
               <Route
                 path="/logout"
                 is_authenticated={this.state.is_authenticated}

@@ -66,6 +66,13 @@ class Signup extends React.Component {
     return isReady;
   };
 
+  onSuccessfulRegistration = () => {
+    // this.props.onLogin();
+    this.props.history.push("/waiting-for-approval", {
+      username: this.state.name,
+    });
+  };
+
   onSubmit = (event) => {
     event.preventDefault();
     this.setState({
@@ -82,7 +89,7 @@ class Signup extends React.Component {
       .catch(this.handleSubmitError)
       .then((res) => {
         if (res) {
-          this.props.onLogin();
+          this.onSuccessfulRegistration();
         } else {
           this.handleSubmitError(null);
         }
