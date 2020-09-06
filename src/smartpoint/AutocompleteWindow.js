@@ -14,7 +14,6 @@ import {
 import axios from "axios";
 import keycode from "keycode";
 
-import EmojiSmartItem from "./EmojiSmartItem";
 import { RefSmartItem, extractRefSearcToken } from "./RefSmartItem";
 import {
   DateTimeSmartItem,
@@ -25,8 +24,6 @@ import { nextRefSmartItemSearch } from "./NextRefSmartItem";
 import remoteErrorHandler from "./../remoteErrorHandler";
 
 import "./AutocompleteWindow.css";
-
-const emoji = require("node-emoji");
 
 class AutocompleteModal extends React.Component {
   constructor(props) {
@@ -44,24 +41,6 @@ class AutocompleteModal extends React.Component {
   componentDidMount() {
     this.inputRef.current.focus();
   }
-
-  emojiSearch = async function (input) {
-    const items = emoji.search(input).map((item) => {
-      return (
-        <EmojiSmartItem
-          label={item.key}
-          emoji={item.emoji}
-          on_insert={this.props.on_insert}
-          ref={React.createRef()}
-        />
-      );
-    });
-    this.setState((state) => {
-      return {
-        result: state.result.concat(items),
-      };
-    });
-  };
 
   refSearch = async function (input) {
     var { token, direction } = extractRefSearcToken(input);
@@ -125,7 +104,6 @@ class AutocompleteModal extends React.Component {
       value && value !== ""
         ? setTimeout(() => {
             this.nextRefSearch(value);
-            this.emojiSearch(value);
             this.refSearch(value);
             this.dateTimeSearch(value);
           }, 200)
@@ -149,22 +127,20 @@ class AutocompleteModal extends React.Component {
   handleKeyDown = (e) => {
     // https://stackoverflow.com/questions/42036865/react-how-to-navigate-through-list-by-arrow-keys
     // arrow up/down button should select next/previous list element
-    console.log("Key down", e.keyCode, keycode);
     if (e.keyCode === keycode("up")) {
       e.preventDefault();
       this.setState((state, props) => {
         return { cursor: state.cursor - (state.cursor > 0 ? 1 : 0) };
       });
-    } else if (e.keyCode === keycode("down") || e.keyCode === keycode("tab")) {
+    } else if (e.keyCode === keycode("down")) {
       e.preventDefault();
       this.setState((state, props) => {
         const maxL = state.result.length > 0 ? state.result.length - 1 : 0;
         return { cursor: state.cursor >= maxL ? maxL : state.cursor + 1 };
       });
-    } else if (e.keyCode === keycode("enter")) {
+    } else if (e.keyCode === keycode("enter") || e.keyCode === keycode("tab")) {
       e.preventDefault();
       const item = this.state.result[this.state.cursor];
-      console.log("Enter", item.ref.current);
       item.ref.current.handleSumbit();
     }
   };

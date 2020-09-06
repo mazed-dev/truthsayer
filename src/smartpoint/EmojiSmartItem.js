@@ -4,6 +4,8 @@ import { Button, Row, Col } from "react-bootstrap";
 
 import Emoji from "./../Emoji";
 
+const emoji = require("node-emoji");
+
 export class EmojiSmartItem extends React.Component {
   constructor(props) {
     super(props);
@@ -36,6 +38,20 @@ export class EmojiSmartItem extends React.Component {
       </Row>
     );
   }
+}
+
+export function emojiSmartItemSearch(input, on_insert) {
+  const items = emoji.search(input).map((item) => {
+    return (
+      <EmojiSmartItem
+        label={item.key}
+        emoji={item.emoji}
+        on_insert={on_insert}
+        ref={React.createRef()}
+      />
+    );
+  });
+  return items;
 }
 
 export default EmojiSmartItem;
