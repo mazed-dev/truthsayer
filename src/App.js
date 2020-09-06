@@ -52,7 +52,7 @@ class App extends React.Component {
     if (!this.state.auth_renewer !== null) {
       clearTimeout(this.state.auth_renewer);
     }
-    const auth_renewer = setTimeout(this.renew_authentication, 3600000);
+    const auth_renewer = setTimeout(this.renew_authentication, 600000);
     this.setState({
       is_authenticated: true,
       auth_renewer: auth_renewer,
@@ -63,6 +63,7 @@ class App extends React.Component {
     if (!this.state.auth_renewer !== null) {
       clearTimeout(this.state.auth_renewer);
     }
+    this.fetchCancelToken.cancel();
     authcache.drop();
     this.setState({
       is_authenticated: false,
