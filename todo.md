@@ -1,16 +1,18 @@
 # Todo
 
- - [ ] Vertical toolbar for markdown editing
- - [ ] Search input on nav bar should be __sticky__ and __centered__
  - [ ] Add "next" and "previous" to smart menu.
+ - [ ] Quotes doens't work: the text that starts with `> ` looks like normal paragraph.
+ - [ ] Vertical toolbar for markdown editing
+ - [ ] Add symmetric buttons "next" and "search-to-next" to the left side
+ - [ ] Make left and right ref pannes symmetric
+ - [ ] If cursor stays on the list point suggest next to be with a title with the text from the bullet point
+ - [ ] Search input on nav bar should be __sticky__ and __centered__
  - [ ] Add popover for datetime badge on click and hover
  - [ ] Emoji as bullet points for lists in notes.
  - [ ] Improve main page, it should reflect graph nature of notes and expose at least part of connections between found notes
  - [ ] Modal window on error
  - [ ] Emoji as viniette for every note
  - [ ] Connect uploaded files
- - [ ] Add symmetric buttons "next" and "search-to-next" to the left side
- - [ ] Make left and right ref pannes symmetric
  - [ ] Text area for each paragraph with menu on hover
  - [ ] generate route list from loop and switch off current page reference on global navbar
  - [ ] New button should be brighter - blue or grey or something. Bright!
