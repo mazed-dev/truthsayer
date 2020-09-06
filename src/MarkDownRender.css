@@ -3,6 +3,27 @@
  */
 
 /**
+ * Common for cards
+ */
+
+.markdown-body blockquote p {
+  margin-left: 5px;
+  margin-bottom: 0.4rem;
+  padding: 5px;
+  background: #eee;
+  border-radius: 5px;
+  font-style: italic;
+}
+
+.markdown-body blockquote p::after {
+  content: "\201D";
+}
+
+.markdown-body blockquote p::before {
+  content: "\201C";
+}
+
+/**
  * Markdown full card
  */
 

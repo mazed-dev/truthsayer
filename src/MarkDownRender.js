@@ -17,14 +17,6 @@ import "./MarkDownRender.css";
 // https://github.com/rexxars/react-markdown
 import ReactMarkdown from "react-markdown";
 
-function MarkdownRoot({ children, ...rest }) {
-  return (
-    <div {...rest} className="markdown-full-note-body">
-      {children}
-    </div>
-  );
-}
-
 function MarkdownHeading({ level, children, ...rest }) {
   var hdr_el;
   // TODO(akindyakov): add markdown title anchors
@@ -149,9 +141,17 @@ export function MdCardRender({ source }) {
   );
 }
 
+function MarkdownRoot({ children, ...rest }) {
+  return (
+    <div {...rest} className="markdown-body markdown-full-note-body">
+      {children}
+    </div>
+  );
+}
+
 function MarkdownSmallRoot({ children, ...rest }) {
   return (
-    <div {...rest} className="markdown-small-card-body">
+    <div {...rest} className="markdown-body markdown-small-card-body">
       {children}
     </div>
   );

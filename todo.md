@@ -1,8 +1,6 @@
 # Todo
 
- - [ ] Take care of what people see after the sing-in even if registration is not open yet
  - [ ] Add "next" and "previous" to smart menu.
- - [ ] Quotes doens't work: the text that starts with `> ` looks like normal paragraph.
  - [ ] Vertical toolbar for markdown editing
  - [ ] Add symmetric buttons "next" and "search-to-next" to the left side
  - [ ] Make left and right ref pannes symmetric
@@ -49,3 +47,5 @@
  - [x] After using smart menu focus should be back to editing form
  - [x] Improve dates view in notes 12/12/20 is apparently too confusing
  - [x] Improve the node view, the notes on the sides should reflect how many connections behind them
+ - [x] Take care of what people see after the sing-in even if registration is not open yet
+ - [x] Quotes doens't work: the text that starts with `> ` looks like normal paragraph.
