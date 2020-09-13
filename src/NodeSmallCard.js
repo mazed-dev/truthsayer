@@ -10,11 +10,9 @@ import { withRouter } from "react-router-dom";
 import { MdSmallCardRender } from "./MarkDownRender";
 import remoteErrorHandler from "./remoteErrorHandler";
 
-import axios from "axios";
+import { joinClasses } from "./util/elClass.js";
 
-function joinClasses(...cs) {
-  return [...cs].join(" ");
-}
+import axios from "axios";
 
 function getShadowStyle(n) {
   switch (Math.max(0, n) /* treat negative numbers as 0 */) {
@@ -75,7 +73,6 @@ class NodeSmallCard extends React.Component {
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
-          console.log("Res", res.data);
           this.setState({
             edges: res.data.edges,
           });

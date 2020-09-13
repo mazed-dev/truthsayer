@@ -1,0 +1,31 @@
+/**
+ * Left and Right toolbars
+ */
+
+.toolbar_col {
+  max-width: 6em;
+}
+
+.toolbar {
+  position: sticky;
+  top: 0;
+
+  width: 4rem;
+
+  padding-top: 1rem;
+  padding-right: 0rem;
+  padding-left: 0rem;
+}
+
+.toolbar_left {
+  float: right;
+}
+
+.toolbar_right {
+  float: left;
+}
+
+.toolbar_btn_img {
+  width: 2em;
+  height: 2rem;
+}

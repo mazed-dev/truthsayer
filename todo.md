@@ -1,11 +1,14 @@
 # Todo
 
  - [ ] Vertical toolbar for markdown editing
- - [ ] Add symmetric buttons "next" and "search-to-next" to the left side
- - [ ] Make left and right ref pannes symmetric
- - [ ] Save and go on "next" and "previous" from smart menue
+ - [ ] Fix the position of scissors on referenec nodes
+
+ - [ ] DATA menu, to see details and edit in modal window
+ - [ ] Notification feature from DATA menu
+ - [ ] Pencil should be sticky element
  - [ ] If cursor stays on the list point suggest next to be with a title with the text from the bullet point
  - [ ] Search input on nav bar should be __sticky__ and __centered__
+ - [ ] Save and go on "next" and "previous" from smart menue
  - [ ] Add popover for datetime badge on click and hover
  - [ ] Emoji as bullet points for lists in notes.
  - [ ] Improve main page, it should reflect graph nature of notes and expose at least part of connections between found notes
@@ -50,3 +53,5 @@
  - [x] Take care of what people see after the sing-in even if registration is not open yet
  - [x] Quotes doens't work: the text that starts with `> ` looks like normal paragraph.
  - [x] Add "next" and "previous" to smart menu.
+ - [x] Add symmetric buttons "next" and "search-to-next" to the left side
+ - [x] Make left and right toolbars symmetric

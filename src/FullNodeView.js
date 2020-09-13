@@ -9,11 +9,15 @@ import Emoji from "./Emoji";
 
 import maze from "./maze.png";
 
+import DoodledBird from "./DoodledBird.svg";
+
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
 import remoteErrorHandler from "./remoteErrorHandler";
 import AutocompleteWindow from "./smartpoint/AutocompleteWindow";
+
+import { LeftToolBar, RightToolBar } from "./full_node_view/ToolBars.js";
 
 import {
   Card,
@@ -188,7 +192,7 @@ class RefNodeCardImpl extends React.Component {
           upd={this.state.upd}
           skip_input_edge={true}
         />
-        <div className="meta-fluid-el-top-rigth">{toolbar}</div>
+        <div className="meta-fluid-el-top-left">{toolbar}</div>
       </div>
     );
   }
@@ -204,13 +208,18 @@ class ExtClickDetector extends React.Component {
     this.selfRef = React.createRef();
   }
   componentDidMount() {
-    document.addEventListener("mousedown", this.handleClick, false);
+    document.addEventListener("mousedown", this.handleClick, {
+      capture: false,
+      passive: true,
+    });
   }
   componentWillUnmount() {
-    document.removeEventListener("mousedown", this.handleClick, false);
+    document.removeEventListener("mousedown", this.handleClick, {
+      capture: false,
+    });
   }
   handleClick = (event) => {
-    if (!this.selfRef.current.contains(event.target) && this.props.isActive) {
+    if (this.props.isActive && !this.selfRef.current.contains(event.target)) {
       this.props.callback(event);
     }
   };
@@ -236,7 +245,6 @@ class TextEditor extends React.Component {
   }
 
   handleChange = (event) => {
-    console.log("handleChange ", event.target);
     const value = event.target.value;
     const diff = event.nativeEvent.data;
     this.setState({
@@ -474,7 +482,6 @@ class NodeRefsImpl extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      offers: [],
       refs: [],
     };
     this.fetchCancelToken = axios.CancelToken.source();
@@ -514,12 +521,10 @@ class NodeRefsImpl extends React.Component {
               to_nid: this.props.location.state.from,
             },
           ],
-          offers: [],
         });
       } else {
         this.setState({
           refs: [],
-          offers: [],
         });
       }
       return;
@@ -533,38 +538,12 @@ class NodeRefsImpl extends React.Component {
         if (res) {
           this.setState({
             refs: res.data.edges,
-            offers: [],
           });
         }
       });
   };
 
-  addOffersCallback = (nodes) => {
-    this.setState({
-      offers: nodes,
-    });
-  };
-
   render() {
-    const offers = this.state.offers.map((item) => {
-      var nid, partner_nid;
-      if (this.props.direction === "to") {
-        nid = this.props.nid;
-        partner_nid = item.nid;
-      } else {
-        nid = item.nid;
-        partner_nid = this.props.nid;
-      }
-      return (
-        <RefNodeCard
-          nid={nid}
-          partner_nid={partner_nid}
-          direction={this.props.direction}
-          offer={true}
-          key={"n:" + item.nid}
-        />
-      );
-    });
     const refs = this.state.refs.map((item) => {
       var nid, partner_nid;
       if (this.props.direction === "to") {
@@ -584,24 +563,7 @@ class NodeRefsImpl extends React.Component {
         />
       );
     });
-
-    var new_ref_toolkit;
-    if (this.props.direction === "from") {
-      new_ref_toolkit = (
-        <SearchNewRefToolkit
-          nid={this.props.nid}
-          offers_callback={this.addOffersCallback}
-        />
-      );
-    }
-    const style_class = "meta-node-refs-" + this.props.direction;
-    return (
-      <CardColumns className={style_class}>
-        {new_ref_toolkit}
-        {offers}
-        {refs}
-      </CardColumns>
-    );
+    return <>{refs}</>;
   }
 }
 
@@ -614,7 +576,7 @@ class NodeCardImpl extends React.Component {
       text: "",
       crtd: moment(),
       upd: moment(),
-      edit: this.isNew(),
+      edit: this.isEditingStart(),
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
@@ -640,74 +602,49 @@ class NodeCardImpl extends React.Component {
     this.fetchData();
   }
 
-  isNew() {
-    return this.props.nid === NEW_NODE_FAKE_ID;
+  isEditingStart() {
+    return this.props.location.state && this.props.location.state.edit
+      ? true
+      : false;
   }
 
   fetchData = () => {
-    if (!this.isNew()) {
-      axios
-        .get("/api/node/" + this.props.nid, {
-          cancelToken: this.fetchCancelToken.token,
-        })
-        .catch(remoteErrorHandler(this.props.history))
-        .then((res) => {
-          if (res) {
-            this.setState({
-              text: res.data.toString(),
-              crtd: moment(res.headers["x-created-at"]),
-              upd: moment(res.headers["last-modified"]),
-            });
-          }
-        });
-    } else {
-      this.setState({
-        text: "",
-        crtd: moment(),
-        upd: moment(),
-        edit: true,
+    axios
+      .get("/api/node/" + this.props.nid, {
+        cancelToken: this.fetchCancelToken.token,
+      })
+      .catch(remoteErrorHandler(this.props.history))
+      .then((res) => {
+        if (res) {
+          this.setState({
+            text: res.data.toString(),
+            crtd: moment(res.headers["x-created-at"]),
+            upd: moment(res.headers["last-modified"]),
+            edit: this.isEditingStart(),
+          });
+        }
       });
-    }
   };
 
   onEditExit_ = (value) => {
-    this.setState({
-      text: value,
-      edit: false,
-    });
     const config = {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
       },
       cancelToken: this.fetchCancelToken.token,
     };
-    if (!this.isNew()) {
-      axios
-        .patch("/api/node/" + this.props.nid, value, config)
-        .catch(remoteErrorHandler(this.props.history))
-        .then((_res) => {});
-    } else {
-      if (this.props.location.state && this.props.location.state.from) {
-        var query =
-          "?" +
-          queryString.stringify({
-            from: this.props.location.state.from,
+    axios
+      .patch("/api/node/" + this.props.nid, value, config)
+      .catch(remoteErrorHandler(this.props.history))
+      .then((res) => {
+        if (res) {
+          this.setState({
+            text: value,
+            edit: false,
           });
-      } else {
-        var query = "";
-      }
-      axios
-        .post("/api/node/new" + query, value, config)
-        .catch(remoteErrorHandler(this.props.history))
-        .then((res) => {
-          if (res) {
-            const nid = res.data.nid;
-            this.props.history.push({
-              pathname: "/node/" + nid,
-            });
-          }
-        });
-    }
+          this.props.history.push("/node/" + this.props.nid);
+        }
+      });
   };
 
   toggleEditMode = () => {
@@ -745,7 +682,7 @@ class NodeCardImpl extends React.Component {
     //   <Card.Img variant="top" className="w-25 p-3 m-1" src={maze} />
     // </div>
     return (
-      <Card className="meta-fluid-container">
+      <Card className="meta-fluid-container mazed_note_card">
         <div className="meta-fluid-el-top-rigth">{toolbar}</div>
         <Card.Body className="p-3 m-2">{text_el}</Card.Body>
         <footer className="text-right m-2">
@@ -793,9 +730,12 @@ class FullNodeView extends React.Component {
             md={3}
             sm={12}
             xs={10}
-            className="meta-refs-col-to"
+            className="meta_refs_col_to"
           >
             <NodeRefs nid={this.props.nid} direction="to" />
+          </Col>
+          <Col className="mazed_note_toolbar_col">
+            <LeftToolBar nid={this.props.nid} />
           </Col>
           <Col
             xl={4}
@@ -803,9 +743,12 @@ class FullNodeView extends React.Component {
             md={6}
             sm={12}
             xs={12}
-            className="meta-refs-col-node"
+            className="mazed_note_note_col"
           >
             <NodeCard nid={this.props.nid} />
+          </Col>
+          <Col className="mazed_note_toolbar_col">
+            <RightToolBar nid={this.props.nid} />
           </Col>
           <Col
             xl={4}

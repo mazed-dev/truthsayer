@@ -94,3 +94,17 @@
 .connect-toolkit-btn {
   display: 1;
 }
+
+.mazed_note_toolbar_col {
+  max-width: 7rem;
+}
+
+.mazed_note_note_col {
+  max-width: 46rem;
+  min-width: 12rem;
+}
+
+.mazed_note_card {
+  max-width: 46rem;
+  min-width: 12rem;
+}

@@ -2,7 +2,7 @@ import HttpStatus from "http-status-codes";
 
 import authcache from "./auth/cache";
 
-function remoteErrorHandler(history) {
+export function remoteErrorHandler(history) {
   return (error) => {
     console.log(error.config);
     if (error.response) {

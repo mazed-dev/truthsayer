@@ -42,6 +42,10 @@ class AutocompleteModal extends React.Component {
     this.inputRef.current.focus();
   }
 
+  componentWillUnmount() {
+    this.searchFetchCancelToken.cancel();
+  }
+
   refSearch = async function (input) {
     var { token, direction } = extractRefSearcToken(input);
     if (token == null) {
@@ -104,8 +108,8 @@ class AutocompleteModal extends React.Component {
       value && value !== ""
         ? setTimeout(() => {
             this.nextRefSearch(value);
-            this.refSearch(value);
             this.dateTimeSearch(value);
+            this.refSearch(value);
           }, 200)
         : null;
     this.setState((state) => {
