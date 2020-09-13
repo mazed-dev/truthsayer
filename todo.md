@@ -1,8 +1,10 @@
 # Todo
 
+ - [ ] Side toolbars should be whitish (whiter than background)
  - [ ] Vertical toolbar for markdown editing
  - [ ] Fix the position of scissors on referenec nodes
 
+ - [ ] Don't cut small notes in the middle of the line
  - [ ] DATA menu, to see details and edit in modal window
  - [ ] Notification feature from DATA menu
  - [ ] Pencil should be sticky element
