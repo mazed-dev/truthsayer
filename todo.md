@@ -4,6 +4,7 @@
  - [ ] Vertical toolbar for markdown editing
  - [ ] Fix the position of scissors on referenec nodes
 
+ - [ ] Add the number of words and letters to the footer of the note along with last update time
  - [ ] Don't cut small notes in the middle of the line
  - [ ] DATA menu, to see details and edit in modal window
  - [ ] Notification feature from DATA menu
