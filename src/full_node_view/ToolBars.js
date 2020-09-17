@@ -364,7 +364,11 @@ class LeftToolBarImpl extends React.Component {
           vertical
           className={joinClasses(styles.toolbar, styles.toolbar_left)}
         >
-          <Button variant="outline-secondary" onClick={this.handleNextClick}>
+          <Button
+            variant="light"
+            onClick={this.handleNextClick}
+            className={styles.toolbar_btn}
+          >
             <img
               src={NextNewLeftImg}
               className={styles.toolbar_btn_img}
@@ -372,8 +376,9 @@ class LeftToolBarImpl extends React.Component {
             />
           </Button>
           <Button
-            variant="outline-secondary"
+            variant="light"
             onClick={this.handleNextSearchClick}
+            className={styles.toolbar_btn}
           >
             <img
               src={NextSearchLeftImg}
@@ -452,7 +457,11 @@ class RightToolBarImpl extends React.Component {
           vertical
           className={joinClasses(styles.toolbar, styles.toolbar_right)}
         >
-          <Button variant="outline-secondary" onClick={this.handleNextClick}>
+          <Button
+            variant="light"
+            onClick={this.handleNextClick}
+            className={styles.toolbar_btn}
+          >
             <img
               src={NextNewRightImg}
               className={styles.toolbar_btn_img}
@@ -460,8 +469,9 @@ class RightToolBarImpl extends React.Component {
             />
           </Button>
           <Button
-            variant="outline-secondary"
+            variant="light"
             onClick={this.handleNextSearchClick}
+            className={styles.toolbar_btn}
           >
             <img
               src={NextSearchRightImg}
