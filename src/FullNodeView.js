@@ -158,7 +158,6 @@ class RefNodeCardImpl extends React.Component {
         <ButtonGroup>
           <Button
             variant="outline-success"
-            size="sm"
             onClick={this.handleRefAdd}
           >
             <Emoji symbol="+" label="add" />
@@ -171,7 +170,6 @@ class RefNodeCardImpl extends React.Component {
           <ButtonGroup>
             <Button
               variant="outline-dark"
-              size="sm"
               onClick={this.handleRefCutOff}
             >
               <Emoji symbol="✂" label="cut off" />
@@ -656,12 +654,7 @@ class NodeCardImpl extends React.Component {
     const upd = this.state.upd.fromNow();
     const toolbar = (
       <ButtonGroup>
-        <Button
-          variant="outline-secondary"
-          size="sm"
-          disabled={this.state.edit}
-          onClick={this.toggleEditMode}
-        >
+        <Button variant="outline-secondary" onClick={this.toggleEditMode}>
           &#9998;
         </Button>
       </ButtonGroup>
