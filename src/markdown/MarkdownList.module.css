@@ -1,0 +1,14 @@
+.unordered_list {
+  list-style: none;
+  padding-left: 2rem;
+}
+
+.ordered_list {
+  padding-left: 2rem;
+}
+
+.emoji_list_item_before {
+  display: block;
+  float: left;
+  width: 1.4rem;
+}

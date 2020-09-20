@@ -13,11 +13,15 @@ import {
 import moment from "moment";
 
 import "./MarkdownRender.css";
+import list_style from "./MarkdownList.module.css";
 
 // https://github.com/rexxars/react-markdown
 import ReactMarkdown from "react-markdown";
+import Emoji from "./../Emoji";
 
-function MarkdownHeading({ level, children, ...rest }) {
+const emoji = require("node-emoji");
+
+function MarkdownHeading({ level, children, sourcePosition, ...rest }) {
   var hdr_el;
   // TODO(akindyakov): add markdown title anchors
   switch (level) {
@@ -128,20 +132,106 @@ function MarkdownLink({ href, children, ...rest }) {
   );
 }
 
+function MarkdownText({ children, sourcePosition, ...rest }) {
+  return <>{children}</>;
+}
+
+var _DEPTH = 0;
+const _LIST_POINT_OPTIONS = [
+  <Emoji symbol="&#9679;" label="-" />,
+  <Emoji symbol="&#9654;" label="-" />,
+  <Emoji symbol="&#9655;" label="-" />,
+  <Emoji symbol="&#9658;" label="-" />,
+  <Emoji symbol="&#9659;" label="-" />,
+  <Emoji symbol="&#9656;" label="-" />,
+  <Emoji symbol="&#9657;" label="-" />,
+  //(<Emoji symbol="&#9675;" label="-" />),
+  //(<Emoji symbol="&#9673;" label="-" />),
+  //(<Emoji symbol="&#9678;" label="-" />),
+  //(<Emoji symbol="&#9677;" label="-" />),
+  //(<Emoji symbol="&#9676;" label="-" />),
+];
+
+function genListPointStyle(d) {
+  const i = Math.min(Math.max(0, d), _LIST_POINT_OPTIONS.length - 1);
+  return _LIST_POINT_OPTIONS[i];
+}
+
+function MarkdownList({ children, ordered, start, depth, ...rest }) {
+  _DEPTH = depth;
+  if (ordered) {
+    return (
+      <ol start={start} className={list_style.ordered_list}>
+        {children}
+      </ol>
+    );
+  }
+  return <ul className={list_style.unordered_list}>{children}</ul>;
+}
+
+function MarkdownListItem({
+  children,
+  ordered,
+  index,
+  sourcePosition,
+  ...rest
+}) {
+  if (!ordered && children.length && children.length > 0) {
+    const firstItem = children[0];
+    if (firstItem.props && firstItem.props.value) {
+      const value = firstItem.props.value;
+      const chArr = [...value.trim()];
+      const ch = chArr[0];
+      if (ch !== emoji.unemojify(ch)) {
+        const firstKid = MarkdownText({
+          children: value.replace(ch, "").trim(),
+          sourcePosition: {},
+        });
+        children.shift();
+        return (
+          <>
+            <div className={list_style.emoji_list_item_before}>{ch}</div>
+            <li>
+              {firstKid} {children}
+            </li>
+          </>
+        );
+      } else {
+        const depth =
+          sourcePosition.indent.length > 0
+            ? Math.floor(sourcePosition.indent[0] / 2)
+            : 0;
+        const pt = genListPointStyle(depth);
+        return (
+          <>
+            <div className={list_style.emoji_list_item_before}> {pt} </div>
+            <li> {children} </li>
+          </>
+        );
+      }
+    }
+  }
+  return <li>{children}</li>;
+}
+
 export function MdCardRender({ source }) {
   return (
     <ReactMarkdown
       source={source}
+      rawSourcePos={true}
       renderers={{
         heading: MarkdownHeading,
+        text: MarkdownText,
         link: MarkdownLink,
+        list: MarkdownList,
+        listItem: MarkdownListItem,
         root: MarkdownRoot,
       }}
     />
   );
 }
 
-function MarkdownRoot({ children, ...rest }) {
+function MarkdownRoot({ children, sourcePosition, ...rest }) {
   return (
     <div {...rest} className="markdown-body markdown-full-note-body">
       {children}
@@ -149,7 +239,7 @@ function MarkdownRoot({ children, ...rest }) {
   );
 }
 
-function MarkdownSmallRoot({ children, ...rest }) {
+function MarkdownSmallRoot({ children, sourcePosition, ...rest }) {
   return (
     <div {...rest} className="markdown-body markdown-small-card-body">
       {children}
@@ -161,9 +251,13 @@ export function MdSmallCardRender({ source }) {
   return (
     <ReactMarkdown
       source={source}
+      rawSourcePos={true}
       renderers={{
         heading: MarkdownHeading,
+        text: MarkdownText,
         link: MarkdownLink,
+        list: MarkdownList,
+        listItem: MarkdownListItem,
         root: MarkdownSmallRoot,
       }}
     />
