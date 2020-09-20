@@ -3,7 +3,7 @@ import React from "react";
 import "./FullNodeView.css";
 
 import NodeSmallCard from "./NodeSmallCard";
-import { MdCardRender } from "./MarkDownRender";
+import { MdCardRender } from "./markdown/MarkdownRender";
 
 import Emoji from "./Emoji";
 

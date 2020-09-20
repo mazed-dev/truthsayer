@@ -5,7 +5,7 @@ import { Button, Row, Col } from "react-bootstrap";
 import axios from "axios";
 import moment from "moment";
 
-import { MdSmallCardRender } from "./../MarkDownRender";
+import { MdSmallCardRender } from "./../markdown/MarkdownRender";
 
 export function extractRefSearcToken(input) {
   var token = input;

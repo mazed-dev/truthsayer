@@ -21,7 +21,7 @@ import MdToolbarIconLink from "./img/markdown-tool-link.svg";
 import MdToolbarIconEmojiList from "./img/markdown-tool-unordered-emoji-list.svg";
 import MdToolbarUnorderedList from "./img/markdown-tool-unordered-list.svg";
 
-import { MdSmallCardRender } from "./../MarkDownRender";
+import { MdSmallCardRender } from "./../markdown/MarkdownRender";
 
 import { joinClasses } from "../util/elClass.js";
 import { remoteErrorHandler } from "./../remoteErrorHandler";

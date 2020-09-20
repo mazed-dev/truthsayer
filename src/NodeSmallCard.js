@@ -7,7 +7,7 @@ import moment from "moment";
 import { Card } from "react-bootstrap";
 import { withRouter } from "react-router-dom";
 
-import { MdSmallCardRender } from "./MarkDownRender";
+import { MdSmallCardRender } from "./markdown/MarkdownRender";
 import remoteErrorHandler from "./remoteErrorHandler";
 
 import { joinClasses } from "./util/elClass.js";

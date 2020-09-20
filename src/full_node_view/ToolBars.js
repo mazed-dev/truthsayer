@@ -11,7 +11,7 @@ import NextSearchRightImg from "./img/next-link-search-right.svg";
 import NextLeftImg from "./img/next-link-left.svg";
 import NextRightImg from "./img/next-link-right.svg";
 
-import { MdSmallCardRender } from "./../MarkDownRender";
+import { MdSmallCardRender } from "./../markdown/MarkdownRender";
 
 import { joinClasses } from "../util/elClass.js";
 import { remoteErrorHandler } from "./../remoteErrorHandler";

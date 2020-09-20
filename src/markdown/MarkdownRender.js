@@ -12,7 +12,7 @@ import {
 
 import moment from "moment";
 
-import "./MarkDownRender.css";
+import "./MarkdownRender.css";
 
 // https://github.com/rexxars/react-markdown
 import ReactMarkdown from "react-markdown";

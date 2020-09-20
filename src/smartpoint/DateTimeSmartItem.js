@@ -4,7 +4,7 @@ import { Button, Row, Col } from "react-bootstrap";
 
 import moment from "moment";
 
-import { DateTimeBadge } from "./../MarkDownRender";
+import { DateTimeBadge } from "./../markdown/MarkdownRender";
 
 class DateTimeSmartItem extends React.Component {
   constructor(props) {
