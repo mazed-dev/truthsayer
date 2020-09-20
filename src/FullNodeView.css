@@ -108,3 +108,12 @@
   max-width: 46rem;
   min-width: 12rem;
 }
+
+/**
+ * Text editor
+ */
+textarea.mazed_editor {
+  padding-left: 0rem;
+  padding-right: 0rem;
+  border: none;
+}

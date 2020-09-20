@@ -349,7 +349,7 @@ class TextEditor extends React.Component {
             <Form.Control
               as="textarea"
               aria-label="With textarea"
-              className="border-0"
+              className="mazed_editor"
               value={this.state.value}
               onChange={this.handleChange}
               style={{
