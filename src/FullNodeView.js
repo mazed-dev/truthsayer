@@ -18,6 +18,7 @@ import remoteErrorHandler from "./remoteErrorHandler";
 import AutocompleteWindow from "./smartpoint/AutocompleteWindow";
 
 import { LeftToolBar, RightToolBar } from "./full_node_view/ToolBars.js";
+import { MarkdownToolbar } from "./full_node_view/MarkdownToolBar.js";
 
 import {
   Card,
