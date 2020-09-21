@@ -156,10 +156,7 @@ class RefNodeCardImpl extends React.Component {
     if (this.state.offer) {
       toolbar = (
         <ButtonGroup>
-          <Button
-            variant="outline-success"
-            onClick={this.handleRefAdd}
-          >
+          <Button variant="outline-success" onClick={this.handleRefAdd}>
             <Emoji symbol="+" label="add" />
           </Button>
         </ButtonGroup>
@@ -168,10 +165,7 @@ class RefNodeCardImpl extends React.Component {
       if (this.state.hover) {
         toolbar = (
           <ButtonGroup>
-            <Button
-              variant="outline-dark"
-              onClick={this.handleRefCutOff}
-            >
+            <Button variant="outline-dark" onClick={this.handleRefCutOff}>
               <Emoji symbol="✂" label="cut off" />
             </Button>
           </ButtonGroup>

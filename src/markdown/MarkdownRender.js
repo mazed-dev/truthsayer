@@ -19,8 +19,6 @@ import list_style from "./MarkdownList.module.css";
 import ReactMarkdown from "react-markdown";
 import Emoji from "./../Emoji";
 
-const emoji = require("node-emoji");
-
 function MarkdownHeading({ level, children, sourcePosition, ...rest }) {
   var hdr_el;
   // TODO(akindyakov): add markdown title anchors
@@ -169,6 +167,20 @@ function MarkdownList({ children, ordered, start, depth, ...rest }) {
   return <ul className={list_style.unordered_list}>{children}</ul>;
 }
 
+function isEmoji(ch) {
+  return (
+    ("\u{1f150}" < ch && ch < "\u{1fadf}") || // emoji
+    ("\u{2190}" < ch && ch < "\u{21ff}") || // arrows
+    ("\u{2300}" < ch && ch < "\u{23ff}") || // technical
+    ("\u{2460}" < ch && ch < "\u{24ff}") || // enclosed alphanymerics
+    ("\u{2580}" < ch && ch < "\u{27ff}") || // block elements
+    ("\u{2900}" < ch && ch < "\u{29d7}") || // arrows
+    ("\u{2b12}" < ch && ch < "\u{2bd2}") || // symbols and arrows
+    ("\u{10080}" < ch && ch < "\u{100fa}") || // Linear B ideograms
+    ("\u{101d0}" < ch && ch < "\u{101fc}") // Ancient symbols
+  );
+}
+
 function MarkdownListItem({
   children,
   ordered,
@@ -179,12 +191,12 @@ function MarkdownListItem({
   if (!ordered && children.length && children.length > 0) {
     const firstItem = children[0];
     if (firstItem.props && firstItem.props.value) {
-      const value = firstItem.props.value;
-      const chArr = [...value.trim()];
-      const ch = chArr[0];
-      if (ch !== emoji.unemojify(ch)) {
+      const value = firstItem.props.value.trim();
+      const ch = value.split(" ", 1)[0];
+      if (isEmoji(ch)) {
+        const suff = value.slice(ch.length).trim();
         const firstKid = MarkdownText({
-          children: value.replace(ch, "").trim(),
+          children: suff,
           sourcePosition: {},
         });
         children.shift();
