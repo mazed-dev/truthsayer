@@ -9,7 +9,7 @@
 
 .unordered_list_item {
   /* text-indent: 0em; */
-  padding-left: 1.6rem;
+  padding-left: 1.8rem;
 }
 
 .ordered_list_item {
@@ -17,16 +17,16 @@
 }
 
 .emoji_list_item_before {
-  display: block;
   float: left;
   width: 1rem;
-  position: relative;
-  left: -2px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 
 .unordered_list_item_before {
-  display: block;
   float: left;
   width: 1rem;
+  display: flex;
+  justify-content: flex-end;
 }
