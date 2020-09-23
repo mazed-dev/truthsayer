@@ -1,14 +1,32 @@
 .unordered_list {
   list-style: none;
-  padding-left: 2rem;
+  padding-left: 1rem;
 }
 
 .ordered_list {
   padding-left: 2rem;
 }
 
+.unordered_list_item {
+  /* text-indent: 0em; */
+  padding-left: 1.6rem;
+}
+
+.ordered_list_item {
+  padding-left: 0.4rem;
+}
+
 .emoji_list_item_before {
   display: block;
   float: left;
-  width: 1.4rem;
+  width: 1rem;
+  position: relative;
+  left: -2px;
+}
+
+
+.unordered_list_item_before {
+  display: block;
+  float: left;
+  width: 1rem;
 }

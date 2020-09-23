@@ -137,8 +137,11 @@ function MarkdownText({ children, sourcePosition, ...rest }) {
 var _DEPTH = 0;
 const _LIST_POINT_OPTIONS = [
   <Emoji symbol="&#9679;" label="-" />,
-  <Emoji symbol="&#9654;" label="-" />,
+  // <Emoji symbol="&#x233e;" label="-" />,
   <Emoji symbol="&#9655;" label="-" />,
+  <Emoji symbol="&#9654;" label="-" />,
+  <Emoji symbol="&#x25c6;" label="-" />,
+  <Emoji symbol="&#x25c7;" label="-" />,
   <Emoji symbol="&#9658;" label="-" />,
   <Emoji symbol="&#9659;" label="-" />,
   <Emoji symbol="&#9656;" label="-" />,
@@ -203,7 +206,7 @@ function MarkdownListItem({
         return (
           <>
             <div className={list_style.emoji_list_item_before}>{ch}</div>
-            <li>
+            <li className={list_style.unordered_list_item}>
               {firstKid} {children}
             </li>
           </>
@@ -216,14 +219,14 @@ function MarkdownListItem({
         const pt = genListPointStyle(depth);
         return (
           <>
-            <div className={list_style.emoji_list_item_before}> {pt} </div>
-            <li> {children} </li>
+            <div className={list_style.unordered_list_item_before}> {pt} </div>
+            <li className={list_style.unordered_list_item}> {children} </li>
           </>
         );
       }
     }
   }
-  return <li>{children}</li>;
+  return <li className={list_style.ordered_list_item}>{children}</li>;
 }
 
 export function MdCardRender({ source }) {
