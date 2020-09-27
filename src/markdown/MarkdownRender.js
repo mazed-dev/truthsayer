@@ -111,7 +111,7 @@ export function DateTimeBadge({ tm, format, children, ...rest }) {
   return <TimeBadge tm={tm} format={format} />;
 }
 
-function MarkdownLink({ href, children, ...rest }) {
+function MarkdownLink({ href, children, sourcePosition, ...rest }) {
   href = href.trim();
 
   if (href.startsWith("@")) {

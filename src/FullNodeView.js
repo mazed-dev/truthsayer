@@ -357,6 +357,12 @@ class TextEditor extends React.Component {
   }
 }
 
+/*
+  <div className="mazed_editor_toolbar">
+    <MarkdownToolbar />
+  </div>
+*/
+
 class SearchNewRefToolkitImpl extends React.Component {
   constructor(props) {
     super(props);
@@ -726,7 +732,7 @@ class FullNodeView extends React.Component {
             <LeftToolBar nid={this.props.nid} />
           </Col>
           <Col
-            xl={4}
+            xl={6}
             lg={6}
             md={6}
             sm={12}
@@ -739,7 +745,7 @@ class FullNodeView extends React.Component {
             <RightToolBar nid={this.props.nid} />
           </Col>
           <Col
-            xl={4}
+            xl={2}
             lg={3}
             md={3}
             sm={12}

@@ -113,7 +113,21 @@
  * Text editor
  */
 textarea.mazed_editor {
-  padding-left: 0rem;
-  padding-right: 0rem;
+  padding-left: 2px;
+  padding-right: 2px;
   border: none;
+}
+
+.mazed_editor_input {
+  float: left;
+}
+
+.mazed_editor_toolbar {
+/*  float: right; */
+  /*
+  display: inline-block;
+  */
+  position: absolute;
+  display: inline-block;
+  float: right;
 }
