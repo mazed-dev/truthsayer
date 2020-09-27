@@ -96,16 +96,17 @@
 }
 
 .mazed_note_toolbar_col {
-  max-width: 7rem;
+  max-width: 4.4rem;
 }
 
-.mazed_note_note_col {
-  max-width: 46rem;
+.mazed_note_card_col {
+  padding: 0;
+  max-width: 42rem;
   min-width: 12rem;
 }
 
 .mazed_note_card {
-  max-width: 46rem;
+  max-width: 42rem;
   min-width: 12rem;
 }
 
@@ -115,7 +116,6 @@
 textarea.mazed_editor {
   padding-left: 2px;
   padding-right: 2px;
-  border: none;
 }
 
 .mazed_editor_input {
@@ -123,11 +123,20 @@ textarea.mazed_editor {
 }
 
 .mazed_editor_toolbar {
-/*  float: right; */
+  /*  float: right; */
   /*
   display: inline-block;
   */
   position: absolute;
   display: inline-block;
   float: right;
+}
+
+.mazed_editor_input_with_toolbar {
+  position: relative;
+  display: inline-block;
+}
+
+.mazed_editor_input_toolbar {
+  position: absolute;
 }

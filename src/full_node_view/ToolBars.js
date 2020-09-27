@@ -19,6 +19,7 @@ import { remoteErrorHandler } from "./../remoteErrorHandler";
 import {
   Button,
   ButtonGroup,
+  ButtonToolbar,
   DropdownButton,
   Dropdown,
   Row,
@@ -360,33 +361,34 @@ class LeftToolBarImpl extends React.Component {
     // <Button variant="outline-secondary">D</Button>
     return (
       <>
-        <ButtonGroup
-          vertical
+        <ButtonToolbar
           className={joinClasses(styles.toolbar, styles.toolbar_left)}
         >
-          <Button
-            variant="light"
-            onClick={this.handleNextClick}
-            className={styles.toolbar_btn}
-          >
-            <img
-              src={NextNewLeftImg}
-              className={styles.toolbar_btn_img}
-              alt="Next new"
-            />
-          </Button>
-          <Button
-            variant="light"
-            onClick={this.handleNextSearchClick}
-            className={styles.toolbar_btn}
-          >
-            <img
-              src={NextSearchLeftImg}
-              className={styles.toolbar_btn_img}
-              alt="Search to connect"
-            />
-          </Button>
-        </ButtonGroup>
+          <ButtonGroup vertical className={joinClasses(styles.toolbar_group)}>
+            <Button
+              variant="light"
+              onClick={this.handleNextClick}
+              className={styles.toolbar_btn}
+            >
+              <img
+                src={NextNewLeftImg}
+                className={styles.toolbar_btn_img}
+                alt="Next new"
+              />
+            </Button>
+            <Button
+              variant="light"
+              onClick={this.handleNextSearchClick}
+              className={styles.toolbar_btn}
+            >
+              <img
+                src={NextSearchLeftImg}
+                className={styles.toolbar_btn_img}
+                alt="Search to connect"
+              />
+            </Button>
+          </ButtonGroup>
+        </ButtonToolbar>
         <NextSearchModal
           show={this.state.modalShow}
           onHide={this.hideSearchDialog}
@@ -453,33 +455,35 @@ class RightToolBarImpl extends React.Component {
   render() {
     return (
       <>
-        <ButtonGroup
-          vertical
+        <ButtonToolbar
           className={joinClasses(styles.toolbar, styles.toolbar_right)}
         >
-          <Button
-            variant="light"
-            onClick={this.handleNextClick}
-            className={styles.toolbar_btn}
-          >
-            <img
-              src={NextNewRightImg}
-              className={styles.toolbar_btn_img}
-              alt="Next new"
-            />
-          </Button>
-          <Button
-            variant="light"
-            onClick={this.handleNextSearchClick}
-            className={styles.toolbar_btn}
-          >
-            <img
-              src={NextSearchRightImg}
-              className={styles.toolbar_btn_img}
-              alt="Search to connect"
-            />
-          </Button>
-        </ButtonGroup>
+          <ButtonGroup vertical className={joinClasses(styles.toolbar_group)}>
+            <Button
+              variant="light"
+              onClick={this.handleNextClick}
+              className={styles.toolbar_btn}
+            >
+              <img
+                src={NextNewRightImg}
+                className={styles.toolbar_btn_img}
+                alt="Next new"
+              />
+            </Button>
+            <Button
+              variant="light"
+              onClick={this.handleNextSearchClick}
+              className={styles.toolbar_btn}
+            >
+              <img
+                src={NextSearchRightImg}
+                className={styles.toolbar_btn_img}
+                alt="Search to connect"
+              />
+            </Button>
+          </ButtonGroup>
+          {this.props.children}
+        </ButtonToolbar>
         <NextSearchModal
           show={this.state.modalShow}
           onHide={this.hideSearchDialog}

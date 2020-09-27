@@ -25,6 +25,7 @@ import { MdSmallCardRender } from "./../markdown/MarkdownRender";
 
 import { joinClasses } from "../util/elClass.js";
 import { remoteErrorHandler } from "./../remoteErrorHandler";
+import { NO_EXT_CLICK_DETECTION } from "./../FullNodeView";
 
 import {
   Button,
@@ -64,112 +65,264 @@ class MarkdownToolbarImpl extends React.Component {
     this.fetchCancelToken.cancel();
   }
 
-  handleIdleClick = (event) => {};
+  updateText = (txt, begin, end) => {
+    this.props.updateText(txt, begin, end);
+  };
+
+  handleIdleClick = (event) => {
+    // console.log(this.props.textAreaRef.current);
+  };
+
+  isTextAreaRefValid() {
+    return (
+      this.props.textAreaRef.current &&
+      this.props.textAreaRef.current.value &&
+      this.props.textAreaRef.current.selectionStart &&
+      this.props.textAreaRef.current.selectionEnd
+    );
+  }
+
+  insertHeaderClick = (event) => {
+    if (!this.isTextAreaRefValid()) {
+      return;
+    }
+    const txtRef = this.props.textAreaRef.current;
+
+    var beginPos = txtRef.value.lastIndexOf("\n", txtRef.selectionStart);
+    if (beginPos < 0) {
+      beginPos = 0;
+    } else {
+      beginPos = beginPos + 1;
+    }
+    const hdr = txtRef.value.slice(beginPos, txtRef.selectionEnd);
+
+    const prefix = txtRef.value.slice(0, beginPos);
+    const suffix = txtRef.value.slice(txtRef.selectionEnd);
+    const match = hdr.match("^(#){1,5} ");
+    var newValue;
+    if (match && match.length && match.length > 0) {
+      var pos = match[0].length;
+      var newHdr;
+      if (pos > 5) {
+        newHdr = hdr.slice(pos);
+      } else {
+        newHdr = "#".repeat(pos) + " " + hdr.slice(pos);
+      }
+      newValue = prefix + newHdr + suffix;
+    } else {
+      newValue = prefix + "# " + hdr + suffix;
+    }
+    this.updateText(newValue, txtRef.selectionStart, txtRef.selectionEnd);
+  };
+
+  wrapTextSelectionWith = (wrap) => {
+    if (!this.isTextAreaRefValid()) {
+      return;
+    }
+    const txtRef = this.props.textAreaRef.current;
+
+    const selected = txtRef.value.slice(
+      txtRef.selectionStart,
+      txtRef.selectionEnd
+    );
+    const prefix = txtRef.value.slice(0, txtRef.selectionStart);
+    const suffix = txtRef.value.slice(txtRef.selectionEnd);
+    const newValue = prefix + wrap + selected + wrap + suffix;
+    const wrapLn = wrap.length;
+    this.updateText(
+      newValue,
+      txtRef.selectionStart + wrapLn,
+      txtRef.selectionEnd + wrapLn
+    );
+  };
+
+  emphasiseTextClick = () => {
+    this.wrapTextSelectionWith("**");
+  };
+
+  italicTextClick = () => {
+    this.wrapTextSelectionWith("*");
+  };
+
+  scratchedTextClick = () => {
+    this.wrapTextSelectionWith("~~");
+  };
+
+  linkTextClick = () => {
+    if (!this.isTextAreaRefValid()) {
+      return;
+    }
+    const txtRef = this.props.textAreaRef.current;
+
+    const selected = txtRef.value.slice(
+      txtRef.selectionStart,
+      txtRef.selectionEnd
+    );
+    const prefix = txtRef.value.slice(0, txtRef.selectionStart);
+    const suffix = txtRef.value.slice(txtRef.selectionEnd);
+    const newValue = prefix + "[" + selected + "](https://...)" + suffix;
+    this.updateText(
+      newValue,
+      txtRef.selectionStart + 1,
+      txtRef.selectionEnd + 1
+    );
+  };
+
+  insertTableClick = () => {
+    if (!this.isTextAreaRefValid()) {
+      return;
+    }
+    const txtRef = this.props.textAreaRef.current;
+
+    const prefix = txtRef.value.slice(0, txtRef.selectionStart);
+    const suffix = txtRef.value.slice(txtRef.selectionStart);
+    const emptyTable = String.raw`
+
+|  #   |     |     |
+| ---: | --- | --- |
+|  1   |     |     |
+|  2   |     |     |
+|  3   |     |     |
+|  4   |     |     |
+`;
+    const newValue = prefix + emptyTable + suffix;
+    this.updateText(newValue, txtRef.selectionStart + 4);
+  };
+
+  makeNumberedListClick = () => {
+    if (!this.isTextAreaRefValid()) {
+      return;
+    }
+  };
 
   render() {
     return (
       <>
-        <ButtonGroup
-          vertical
-          className={joinClasses(styles.toolbar, styles.toolbar_right)}
-        >
+        <ButtonGroup vertical className={joinClasses(styles.toolbar_group)}>
           <Button
             variant="light"
-            onClick={this.handleIdleClick}
-            className={styles.toolbar_btn}
+            onClick={this.insertHeaderClick}
+            className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
           >
             <img
               src={MdToolbarIconHeader}
-              className={styles.toolbar_btn_img}
+              className={joinClasses(
+                styles.toolbar_btn_img,
+                NO_EXT_CLICK_DETECTION
+              )}
               alt="Header text"
             />
           </Button>
           <Button
             variant="light"
-            onClick={this.handleIdleClick}
-            className={styles.toolbar_btn}
+            onClick={this.emphasiseTextClick}
+            className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
           >
             <img
               src={MdToolbarIconEmphasis}
-              className={styles.toolbar_btn_img}
+              className={joinClasses(
+                styles.toolbar_btn_img,
+                NO_EXT_CLICK_DETECTION
+              )}
               alt="Emphasised text"
             />
           </Button>
           <Button
             variant="light"
-            onClick={this.handleIdleClick}
-            className={styles.toolbar_btn}
+            onClick={this.italicTextClick}
+            className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
           >
             <img
               src={MdToolbarIconItalic}
-              className={styles.toolbar_btn_img}
+              className={joinClasses(
+                styles.toolbar_btn_img,
+                NO_EXT_CLICK_DETECTION
+              )}
               alt="Italic text"
             />
           </Button>
           <Button
             variant="light"
-            onClick={this.handleIdleClick}
-            className={styles.toolbar_btn}
+            onClick={this.scratchedTextClick}
+            className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
           >
             <img
               src={MdToolbarIconScratched}
-              className={styles.toolbar_btn_img}
-              alt="Scratched text"
+              className={joinClasses(
+                styles.toolbar_btn_img,
+                NO_EXT_CLICK_DETECTION
+              )}
+              alt="Strike out text"
             />
           </Button>
           <Button
             variant="light"
-            onClick={this.handleIdleClick}
-            className={styles.toolbar_btn}
+            onClick={this.linkTextClick}
+            className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
           >
             <img
               src={MdToolbarIconLink}
-              className={styles.toolbar_btn_img}
+              className={joinClasses(
+                styles.toolbar_btn_img,
+                NO_EXT_CLICK_DETECTION
+              )}
               alt="Link"
             />
           </Button>
           <Button
             variant="light"
-            onClick={this.handleIdleClick}
-            className={styles.toolbar_btn}
+            onClick={this.insertTableClick}
+            className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
           >
             <img
               src={MdToolbarIconTable}
-              className={styles.toolbar_btn_img}
+              className={joinClasses(
+                styles.toolbar_btn_img,
+                NO_EXT_CLICK_DETECTION
+              )}
               alt="Table"
             />
           </Button>
           <Button
             variant="light"
-            onClick={this.handleIdleClick}
-            className={styles.toolbar_btn}
-          >
-            <img
-              src={MdToolbarIconEmojiList}
-              className={styles.toolbar_btn_img}
-              alt="Emoji list"
-            />
-          </Button>
-          <Button
-            variant="light"
-            onClick={this.handleIdleClick}
-            className={styles.toolbar_btn}
+            onClick={this.makeNumberedListClick}
+            className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
           >
             <img
               src={MdToolbarIconOrderedList}
-              className={styles.toolbar_btn_img}
+              className={joinClasses(
+                styles.toolbar_btn_img,
+                NO_EXT_CLICK_DETECTION
+              )}
               alt="Numbered list"
             />
           </Button>
           <Button
             variant="light"
             onClick={this.handleIdleClick}
-            className={styles.toolbar_btn}
+            className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
           >
             <img
               src={MdToolbarUnorderedList}
-              className={styles.toolbar_btn_img}
+              className={joinClasses(
+                styles.toolbar_btn_img,
+                NO_EXT_CLICK_DETECTION
+              )}
               alt="Unordered list"
+            />
+          </Button>
+          <Button
+            variant="light"
+            onClick={this.handleIdleClick}
+            className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
+          >
+            <img
+              src={MdToolbarIconEmojiList}
+              className={joinClasses(
+                styles.toolbar_btn_img,
+                NO_EXT_CLICK_DETECTION
+              )}
+              alt="Emoji list"
             />
           </Button>
         </ButtonGroup>

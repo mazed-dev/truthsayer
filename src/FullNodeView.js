@@ -195,6 +195,8 @@ RefNodeCardImpl.defaultProps = { offer: false };
 
 const RefNodeCard = withRouter(RefNodeCardImpl);
 
+export const NO_EXT_CLICK_DETECTION = "ignoreextclick";
+
 class ExtClickDetector extends React.Component {
   constructor(props) {
     super(props);
@@ -212,7 +214,13 @@ class ExtClickDetector extends React.Component {
     });
   }
   handleClick = (event) => {
-    if (this.props.isActive && !this.selfRef.current.contains(event.target)) {
+    // console.log("ExtClickDetector", event.target);
+    if (
+      this.props.isActive &&
+      !this.selfRef.current.contains(event.target) &&
+      !event.target.classList.contains("ignoreextclick")
+    ) {
+      // console.log("Ext click detected");
       this.props.callback(event);
     }
   };
@@ -234,7 +242,21 @@ class TextEditor extends React.Component {
   }
 
   componentDidMount() {
+    this.props.resetAuxToolbar(this.createEditorToolbar());
     this.textAreaRef.current.focus();
+  }
+
+  componentWillUnmount() {
+    this.props.resetAuxToolbar();
+  }
+
+  createEditorToolbar() {
+    return (
+      <MarkdownToolbar
+        textAreaRef={this.textAreaRef}
+        updateText={this.updateText}
+      />
+    );
   }
 
   handleChange = (event) => {
@@ -260,6 +282,27 @@ class TextEditor extends React.Component {
         modalShow: modalShow,
       };
     });
+  };
+
+  updateText = (value, cursorPosBegin, cursorPosEnd) => {
+    this.setState(
+      {
+        value: value,
+        height: this.getAdjustedHeight(this.textAreaRef.current, 20),
+      },
+      () => {
+        this.textAreaRef.current.focus();
+        if (cursorPosBegin) {
+          if (!cursorPosEnd) {
+            cursorPosEnd = cursorPosBegin;
+          }
+          this.textAreaRef.current.setSelectionRange(
+            cursorPosBegin,
+            cursorPosEnd
+          );
+        }
+      }
+    );
   };
 
   handleReplaceSmartpoint = (replacement) => {
@@ -298,7 +341,7 @@ class TextEditor extends React.Component {
     txt.split("\n").forEach(function (item, index) {
       lines = lines + item.length / 71 + 1;
     });
-    return Math.max(250, lines * 24);
+    return Math.max(250, lines * 25);
   };
 
   getAdjustedHeight = (el, minHeight) => {
@@ -356,126 +399,6 @@ class TextEditor extends React.Component {
     );
   }
 }
-
-/*
-  <div className="mazed_editor_toolbar">
-    <MarkdownToolbar />
-  </div>
-*/
-
-class SearchNewRefToolkitImpl extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      search_value: "",
-      should_show_search: false,
-    };
-    // this.props.offers_callback
-    this.fetchCancelToken = axios.CancelToken.source();
-  }
-
-  static propTypes = {
-    location: PropTypes.object.isRequired,
-    history: PropTypes.object.isRequired,
-  };
-
-  componentWillUnmount() {
-    this.fetchCancelToken.cancel();
-  }
-
-  handleChange = (event) => {
-    const q = event.target.value;
-    this.setState({ search_value: q });
-    if (q.length > 2) {
-      this.fetchData(q);
-    }
-  };
-
-  handleSumbit = (event) => {
-    event.preventDefault();
-    this.fetchData(this.state.search_value);
-  };
-
-  fetchData = (q) => {
-    const req = {
-      q: q,
-      upd_after: 512,
-      limit: 32,
-    };
-    axios
-      .post("/api/node-search", req, {
-        cancelToken: this.fetchCancelToken.token,
-      })
-      .then((res) => {
-        if (res) {
-          this.props.offers_callback(res.data.nodes);
-        }
-      })
-      .catch(remoteErrorHandler(this.props.history));
-  };
-
-  handleNextClick = () => {
-    this.props.history.push("/node/" + NEW_NODE_FAKE_ID, {
-      from: this.props.nid,
-    });
-  };
-
-  handleShowSearchClick = () => {
-    if (this.state.should_show_search) {
-      this.props.offers_callback([]);
-    }
-    this.setState({ should_show_search: !this.state.should_show_search });
-  };
-
-  render() {
-    // Flashlight: &#x1F526;
-    var search_input_group;
-    if (this.state.should_show_search) {
-      search_input_group = (
-        <InputGroup className="p-0">
-          <Form.Control
-            aria-label="Search-to-link"
-            aria-describedby="basic-addon1"
-            onChange={this.handleChange}
-            onSubmit={this.handleSumbit}
-            value={this.state.search_value}
-            placeholder="Search to offer"
-          />
-        </InputGroup>
-      );
-    }
-    return (
-      <Card className="rounded">
-        <ButtonGroup
-          aria-label="connect-note-toolkit"
-          className="connect-toolkit-btn-group"
-        >
-          <Button
-            variant="outline-secondary"
-            onClick={this.handleNextClick}
-            className="connect-toolkit-btn"
-          >
-            <span role="img" aria-label="next">
-              &#x2192; &#x2b;
-            </span>
-          </Button>
-          <Button
-            variant="outline-secondary"
-            onClick={this.handleShowSearchClick}
-            className="connect-toolkit-btn"
-          >
-            <span role="img" aria-label="next">
-              &#x1F50D; &#x2b;
-            </span>
-          </Button>
-        </ButtonGroup>
-        {search_input_group}
-      </Card>
-    );
-  }
-}
-
-const SearchNewRefToolkit = withRouter(SearchNewRefToolkitImpl);
 
 class NodeRefsImpl extends React.Component {
   constructor(props) {
@@ -576,6 +499,7 @@ class NodeCardImpl extends React.Component {
       crtd: moment(),
       upd: moment(),
       edit: this.isEditingStart(),
+      aux_toolbar: <></>,
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
@@ -650,6 +574,14 @@ class NodeCardImpl extends React.Component {
     this.setState({ edit: !this.state.edit });
   };
 
+  resetAuxToolbar = (el) => {
+    if (el) {
+      this.setState({ aux_toolbar: el });
+    } else {
+      this.setState({ aux_toolbar: <></> });
+    }
+  };
+
   render() {
     const upd = this.state.upd.fromNow();
     const toolbar = (
@@ -667,24 +599,34 @@ class NodeCardImpl extends React.Component {
           value={this.state.text}
           nid={this.props.nid}
           onExit={this.onEditExit_}
+          resetAuxToolbar={this.resetAuxToolbar}
         />
       );
     } else {
       text_el = <MdCardRender source={this.state.text} />;
     }
-    // <div className="d-flex justify-content-center mp-0">
-    //   <Card.Img variant="top" className="w-25 p-3 m-1" src={maze} />
-    // </div>
     return (
-      <Card className="meta-fluid-container mazed_note_card">
-        <div className="meta-fluid-el-top-rigth">{toolbar}</div>
-        <Card.Body className="p-3 m-2">{text_el}</Card.Body>
-        <footer className="text-right m-2">
-          <small className="text-muted">
-            <i>Updated {upd}</i>
-          </small>
-        </footer>
-      </Card>
+      <Row className="d-flex justify-content-center p-0">
+        <Col className="mazed_note_toolbar_col">
+          <LeftToolBar nid={this.props.nid} />
+        </Col>
+        <Col className="mazed_note_card_col">
+          <Card className="meta-fluid-container mazed_note_card">
+            <div className="meta-fluid-el-top-rigth">{toolbar}</div>
+            <Card.Body className="p-3 m-2">{text_el}</Card.Body>
+            <footer className="text-right m-2">
+              <small className="text-muted">
+                <i>Updated {upd}</i>
+              </small>
+            </footer>
+          </Card>
+        </Col>
+        <Col className="mazed_note_toolbar_col">
+          <RightToolBar nid={this.props.nid}>
+            {this.state.aux_toolbar}
+          </RightToolBar>
+        </Col>
+      </Row>
     );
   }
 }
@@ -694,64 +636,19 @@ const NodeCard = withRouter(NodeCardImpl);
 class FullNodeView extends React.Component {
   constructor(props) {
     super(props);
-    this.fetchCancelToken = axios.CancelToken.source();
   }
-
-  componentDidUpdate(prevProps) {
-    // Don't forget to compare props!
-    if (this.props.nid !== prevProps.nid) {
-      this.fetchData();
-    }
-  }
-
-  componentWillUnmount() {
-    this.fetchCancelToken.cancel();
-  }
-
-  componentDidMount() {
-    this.fetchData();
-  }
-
-  fetchData = () => {};
 
   render() {
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">
-          <Col
-            xl={2}
-            lg={3}
-            md={3}
-            sm={12}
-            xs={10}
-            className="meta_refs_col_to"
-          >
+          <Col xl={2} lg={2} md={3} sm={12} xs={10}>
             <NodeRefs nid={this.props.nid} direction="to" />
           </Col>
-          <Col className="mazed_note_toolbar_col">
-            <LeftToolBar nid={this.props.nid} />
-          </Col>
-          <Col
-            xl={6}
-            lg={6}
-            md={6}
-            sm={12}
-            xs={12}
-            className="mazed_note_note_col"
-          >
+          <Col xl={6} lg={8} md={6} sm={12} xs={12}>
             <NodeCard nid={this.props.nid} />
           </Col>
-          <Col className="mazed_note_toolbar_col">
-            <RightToolBar nid={this.props.nid} />
-          </Col>
-          <Col
-            xl={2}
-            lg={3}
-            md={3}
-            sm={12}
-            xs={10}
-            className="meta-refs-col-from"
-          >
+          <Col xl={2} lg={2} md={3} sm={12} xs={10}>
             <NodeRefs nid={this.props.nid} direction="from" />
           </Col>
         </Row>
