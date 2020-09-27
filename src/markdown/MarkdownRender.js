@@ -180,7 +180,8 @@ function isEmoji(ch) {
     ("\u{2900}" < ch && ch < "\u{29d7}") || // arrows
     ("\u{2b12}" < ch && ch < "\u{2bd2}") || // symbols and arrows
     ("\u{10080}" < ch && ch < "\u{100fa}") || // Linear B ideograms
-    ("\u{101d0}" < ch && ch < "\u{101fc}") // Ancient symbols
+    ("\u{101d0}" < ch && ch < "\u{101fc}") || // Ancient symbols
+    ("\u{203b}" < ch && ch < "\u{205c}") // Greek extended
   );
 }
 

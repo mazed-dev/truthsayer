@@ -26,6 +26,7 @@ import { MdSmallCardRender } from "./../markdown/MarkdownRender";
 import { joinClasses } from "../util/elClass.js";
 import { remoteErrorHandler } from "./../remoteErrorHandler";
 import { NO_EXT_CLICK_DETECTION } from "./../FullNodeView";
+import { EMOJI_LIST_PRESETS } from "./EmojiListPresets";
 
 import {
   Button,
@@ -46,6 +47,8 @@ import queryString from "query-string";
 
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
+
+var emoji = require("node-emoji");
 
 class MarkdownToolbarImpl extends React.Component {
   constructor(props) {
@@ -190,9 +193,72 @@ class MarkdownToolbarImpl extends React.Component {
   };
 
   makeNumberedListClick = () => {
+    this.makeListWith((line, index) => {
+      if (line.match("^ *[0-9]+. ")) {
+        return "";
+      }
+      return index + 1 + ". ";
+    });
+  };
+
+  makeUnorderedListClick = () => {
+    this.makeListWith((line, index) => {
+      if (line.match("^ *[*+-] ") || line === "") {
+        return "";
+      }
+      return "- ";
+    });
+  };
+
+  makeEmojiListClick = () => {
+    const presetInd = Math.floor(Math.random() * EMOJI_LIST_PRESETS.length);
+    const presetLen = EMOJI_LIST_PRESETS[presetInd].length;
+    this.makeListWith((line, index) => {
+      if (line.match("^ *[*+-] ") || line === "") {
+        return "";
+      }
+      var point;
+      emoji.replace(line, (em) => {
+        point = em.emoji;
+      });
+      if (point) {
+        return "- " + point + " ";
+      }
+      line.split(" ").map((word, _) => {
+        const em = emoji.find(word);
+        if (em) {
+          point = em.emoji;
+        }
+      });
+      if (point) {
+        return "- " + point + " ";
+      }
+      const itemInd = Math.floor(Math.random() * presetLen);
+      const em = EMOJI_LIST_PRESETS[presetInd][itemInd];
+      return "- " + em + " ";
+    });
+  };
+
+  makeListWith = (fn) => {
     if (!this.isTextAreaRefValid()) {
       return;
     }
+    const txtRef = this.props.textAreaRef.current;
+
+    const prefix = txtRef.value.slice(0, txtRef.selectionStart);
+    const suffix = txtRef.value.slice(txtRef.selectionEnd);
+    const selected = txtRef.value.slice(
+      txtRef.selectionStart,
+      txtRef.selectionEnd
+    );
+    const madeList = selected
+      .split("\n")
+      .map((line, ind) => {
+        return fn(line, ind) + line;
+      })
+      .join("\n");
+    const newValue = prefix + madeList + suffix;
+    this.updateText(newValue, newValue.length);
   };
 
   render() {
@@ -299,7 +365,7 @@ class MarkdownToolbarImpl extends React.Component {
           </Button>
           <Button
             variant="light"
-            onClick={this.handleIdleClick}
+            onClick={this.makeUnorderedListClick}
             className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
           >
             <img
@@ -313,7 +379,7 @@ class MarkdownToolbarImpl extends React.Component {
           </Button>
           <Button
             variant="light"
-            onClick={this.handleIdleClick}
+            onClick={this.makeEmojiListClick}
             className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
           >
             <img
