@@ -1,4 +1,5 @@
 export const EMOJI_LIST_PRESETS = [
+  // Animals
   [
     "\u{1f400}",
     "\u{1f401}",
@@ -65,6 +66,7 @@ export const EMOJI_LIST_PRESETS = [
     "\u{1f43e}",
     "\u{1f43f}",
   ],
+  // Plants
   [
     "\u{1f330}",
     "\u{1f331}",
@@ -103,6 +105,7 @@ export const EMOJI_LIST_PRESETS = [
     "\u{1f352}",
     "\u{1f353}",
   ],
+  // Food
   [
     "\u{1f354}",
     "\u{1f355}",
@@ -200,6 +203,47 @@ export const EMOJI_LIST_PRESETS = [
     "\u{24CE}",
     "\u{24CF}",
   ],
+  // Balls
+  [
+    "\u{1F388}", // balloon
+    "\u{1F383}", // Jack-o-lantern
+    "\u{1F4A3}", // bomb
+    "\u{1F3C0}", // basketball and hoop
+    "\u{1F3BE}", // tennis racquet and ball
+    "\u{1F3C8}", // american football
+    "\u{1F3B1}", // billiards
+    "\u{1F3C9}", // rugby football
+    "\u{26BD}", // soccer ball
+    "\u{26BE}", // baseball
+    "\u{1F310}", // globe with meridians
+  ],
+  // Clock face
+  [
+    "\u{1F550}", // one oclock
+    "\u{1F551}", // two oclock
+    "\u{1F552}", // three oclock
+    "\u{1F553}", // four oclock
+    "\u{1F554}", // five oclock
+    "\u{1F555}", // six oclock
+    "\u{1F556}", // seven oclock
+    "\u{1F557}", // eight oclock
+    "\u{1F558}", // nine oclock
+    "\u{1F559}", // ten oclock
+    "\u{1F55A}", // eleven oclock
+    "\u{1F55B}", // twelve oclock
+    "\u{1F55C}", // one-thirty
+    "\u{1F55D}", // two-thirty
+    "\u{1F55E}", // three-thirty
+    "\u{1F55F}", // four-thirty
+    "\u{1F560}", // five-thirty
+    "\u{1F561}", // six-thirty
+    "\u{1F562}", // seven-thirty
+    "\u{1F563}", // eight-thirty
+    "\u{1F564}", // nine-thirty
+    "\u{1F565}", // ten-thirty
+    "\u{1F566}", // eleven-thirty
+    "\u{1F567}", // twelve-thirty
+  ],
   // Arrows
   [
     // ➔
@@ -232,8 +276,6 @@ export const EMOJI_LIST_PRESETS = [
     "\u{219D}",
     // ↞
     "\u{219E}",
-    // ↟
-    "\u{219F}",
     // ↠
     "\u{21A0}",
     // ↡
@@ -246,34 +288,12 @@ export const EMOJI_LIST_PRESETS = [
     "\u{21A4}",
     // ↦
     "\u{21A6}",
-    // ↥
-    "\u{21A5}",
-    // ↧
-    "\u{21A7}",
-    // ↨
-    "\u{21A8}",
     // ↫
     "\u{21AB}",
     // ↬
     "\u{21AC}",
-    // ↭
-    "\u{21AD}",
-    // ↮
-    "\u{21AE}",
     // ↯
     "\u{21AF}",
-    // ↰
-    "\u{21B0}",
-    // ↱
-    "\u{21B1}",
-    // ↲
-    "\u{21B2}",
-    // ↴
-    "\u{21B4}",
-    // ↳
-    "\u{21B3}",
-    // ↵
-    "\u{21B5}",
     // ↶
     "\u{21B6}",
     // ↷
@@ -286,22 +306,11 @@ export const EMOJI_LIST_PRESETS = [
     "\u{21BA}",
     // ↻
     "\u{21BB}",
-    // ↼
-    "\u{21BC}",
-    // ↽
-    "\u{21BD}",
-    // ↾
-    "\u{21BE}",
-    // ↿
     "\u{21BF}",
     // ⇀
     "\u{21C0}",
     // ⇁
     "\u{21C1}",
-    // ⇂
-    "\u{21C2}",
-    // ⇃
-    "\u{21C3}",
     // ⇄
     "\u{21C4}",
     // ⇅
@@ -316,16 +325,6 @@ export const EMOJI_LIST_PRESETS = [
     "\u{21C9}",
     // ⇊
     "\u{21CA}",
-    // ⇋
-    "\u{21CB}",
-    // ⇌
-    "\u{21CC}",
-    // ⇍
-    "\u{21CD}",
-    // ⇏
-    "\u{21CF}",
-    // ⇕
-    "\u{21D5}",
     // ⇖
     "\u{21D6}",
     // ⇗
@@ -344,36 +343,14 @@ export const EMOJI_LIST_PRESETS = [
     "\u{21DC}",
     // ⇝
     "\u{21DD}",
-    // ⇞
-    "\u{21DE}",
-    // ⇟
-    "\u{21DF}",
-    // ⇟
-    "\u{21DF}",
-    // ⇟
-    "\u{21DF}",
     // ⇠
     "\u{21E0}",
-    // ⇡
-    "\u{21E1}",
     // ⇢
     "\u{21E2}",
-    // ⇣
-    "\u{21E3}",
     // ⇤
     "\u{21E4}",
     // ⇥
     "\u{21E5}",
-    // ⇦
-    "\u{21E6}",
-    // ⇨
-    "\u{21E8}",
-    // ⇩
-    "\u{21E9}",
-    // ⇪
-    "\u{21EA}",
-    // ⇧
-    "\u{21E7}",
     // ➧
     "\u{27A7}",
     // ➨
@@ -382,12 +359,6 @@ export const EMOJI_LIST_PRESETS = [
     "\u{27A9}",
     // ➪
     "\u{27AA}",
-    // ➫
-    "\u{27AB}",
-    // ➬
-    "\u{27AC}",
-    // ➭
-    "\u{27AD}",
     // ➮
     "\u{27AE}",
     // ➯
@@ -420,12 +391,6 @@ export const EMOJI_LIST_PRESETS = [
     "\u{27BD}",
     // ➾
     "\u{27BE}",
-    // ⏎
-    "\u{23CE}",
-    // ☈
-    "\u{2608}",
-    // ☇
-    "\u{2607}",
   ],
 ];
 
