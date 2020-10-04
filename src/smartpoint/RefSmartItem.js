@@ -55,7 +55,6 @@ export class RefSmartItem extends React.Component {
       .then((res) => {
         if (res) {
           // TODO(akindyakov): Refresh node references here, but how to do that?
-          console.log("Sucfully added");
         }
       });
   };

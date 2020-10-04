@@ -104,7 +104,6 @@ export function nextRefSmartItemSearch(input, nid, on_insert) {
   }
 
   const prev = input.match(/^(previ?o?u?s?|prior?)( .*)?/i);
-  console.log("Prev regexp", prev);
   if (prev) {
     const title = prev[2] ? prev[2].trim() : "Previous";
     ret.push(

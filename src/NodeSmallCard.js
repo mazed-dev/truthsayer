@@ -35,8 +35,12 @@ function getShadowStyle(n) {
 class NodeSmallCard extends React.Component {
   constructor(props) {
     super(props);
-    this.fetchCancelToken = axios.CancelToken.source();
+    this.fetchEdgesCancelToken = axios.CancelToken.source();
+    this.fetchPrefaceCancelToken = axios.CancelToken.source();
     this.state = {
+      preface: this.props.preface,
+      crtd: this.props.crtd,
+      upd: this.props.upd,
       edges: [],
     };
   }
@@ -51,12 +55,23 @@ class NodeSmallCard extends React.Component {
     location: PropTypes.object.isRequired,
   };
 
+  componentDidUpdate(prevProps) {
+    if (this.props.nid !== prevProps.nid) {
+      if (this.state.preface == null) {
+        this.fetchPreface();
+      }
+    }
+  }
   componentDidMount() {
-    this.fetchEdges();
+    if (this.state.preface == null) {
+      this.fetchPreface();
+    }
+    // this.fetchEdges();
   }
 
   componentWillUnmount() {
-    this.fetchCancelToken.cancel();
+    this.fetchEdgesCancelToken.cancel();
+    this.fetchPrefaceCancelToken.cancel();
   }
 
   onClick = () => {
@@ -68,7 +83,7 @@ class NodeSmallCard extends React.Component {
   fetchEdges = () => {
     axios
       .get("/api/node/" + this.props.nid + "/edge", {
-        cancelToken: this.fetchCancelToken.token,
+        cancelToken: this.fetchEdgesCancelToken.token,
       })
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
@@ -80,10 +95,35 @@ class NodeSmallCard extends React.Component {
       });
   };
 
+  fetchPreface = () => {
+    axios
+      .get("/api/node/" + this.props.nid, {
+        cancelToken: this.fetchPrefaceCancelToken.token,
+      })
+      .catch(remoteErrorHandler(this.props.history))
+      .then((res) => {
+        if (res) {
+          const text = res.data.toString();
+          const preface = text
+            .slice(0, 300)
+            .split("\n", 11)
+            .slice(0, 7)
+            .join("\n");
+          this.setState({
+            preface: preface,
+            crtd: moment(res.headers["x-created-at"]),
+            upd: moment(res.headers["last-modified"]),
+          });
+        }
+      });
+  };
+
   render() {
-    const upd = moment.unix(this.props.upd).fromNow();
+    const upd = this.state.upd ? moment(this.state.upd).fromNow() : "";
     const shd = getShadowStyle(
-      this.state.edges.length - (this.props.skip_input_edge ? 1 : 0)
+      this.props.edges.length +
+        this.state.edges.length -
+        (this.props.skip_input_edge ? 1 : 0)
     );
     return (
       <Card
@@ -91,7 +131,7 @@ class NodeSmallCard extends React.Component {
         onClick={this.onClick}
       >
         <Card.Body className="px-3 pt-2 pb-0">
-          <MdSmallCardRender source={this.props.preface} />
+          <MdSmallCardRender source={this.state.preface} />
           &hellip;
         </Card.Body>
         <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">
@@ -104,6 +144,6 @@ class NodeSmallCard extends React.Component {
   }
 }
 
-NodeSmallCard.defaultProps = { skip_input_edge: false };
+NodeSmallCard.defaultProps = { skip_input_edge: false, edges: [] };
 
 export default withRouter(NodeSmallCard);

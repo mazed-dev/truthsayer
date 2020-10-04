@@ -58,45 +58,9 @@ class RefNodeCardImpl extends React.Component {
     history: PropTypes.object.isRequired,
   };
 
-  componentDidMount() {
-    this.fetchData();
-  }
-
-  componentDidUpdate(prevProps) {
-    if (this.props.nid !== prevProps.nid) {
-      this.fetchData();
-    }
-  }
-
   componentWillUnmount() {
     this.fetchCancelToken.cancel();
   }
-
-  fetchData = () => {
-    if (this.props.nid === NEW_NODE_FAKE_ID) {
-      return;
-    }
-    axios
-      .get(
-        "/api/node/" +
-          this.props.nid +
-          "?" +
-          queryString.stringify({ preview: true }),
-        {
-          cancelToken: this.fetchCancelToken.token,
-        }
-      )
-      .catch(remoteErrorHandler(this.props.history))
-      .then((res) => {
-        if (res) {
-          this.setState({
-            preface: res.data,
-            crtd: moment(res.headers["x-created-at"]).unix(),
-            upd: moment(res.headers["last-modified"]).unix(),
-          });
-        }
-      });
-  };
 
   onHover = () => {
     this.setState({ hover: true });
@@ -180,9 +144,9 @@ class RefNodeCardImpl extends React.Component {
       >
         <NodeSmallCard
           nid={this.props.nid}
-          preface={this.state.preface}
-          crtd={this.state.crtd}
-          upd={this.state.upd}
+          preface={null}
+          crtd={null}
+          upd={null}
           skip_input_edge={true}
         />
         <div className="meta-fluid-el-top-left">{toolbar}</div>
@@ -214,13 +178,11 @@ class ExtClickDetector extends React.Component {
     });
   }
   handleClick = (event) => {
-    // console.log("ExtClickDetector", event.target);
     if (
       this.props.isActive &&
       !this.selfRef.current.contains(event.target) &&
       !event.target.classList.contains("ignoreextclick")
     ) {
-      // console.log("Ext click detected");
       this.props.callback(event);
     }
   };

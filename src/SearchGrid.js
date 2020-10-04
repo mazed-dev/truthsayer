@@ -3,6 +3,7 @@ import React from "react";
 import "./SearchGrid.css";
 
 import PropTypes from "prop-types";
+import moment from "moment";
 import axios from "axios";
 import { Container, Row, Col } from "react-bootstrap";
 import { withRouter } from "react-router-dom";
@@ -17,7 +18,6 @@ function range(n, start, end) {
   if (end == null) {
     end = n;
   }
-  console.log(n, start, end);
   return new Array(n).fill(undefined).map((_, i) => i + start);
 }
 
@@ -75,9 +75,11 @@ class SearchGrid extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      heads: [],
       nodes: [],
     };
     this.fetchCancelToken = axios.CancelToken.source();
+    this.fetchHeadsCancelToken = axios.CancelToken.source();
   }
 
   static propTypes = {
@@ -90,17 +92,22 @@ class SearchGrid extends React.Component {
 
   componentDidUpdate(prevProps) {
     if (this.props.q !== prevProps.q) {
-      this.setState({ nodes: [] });
+      this.setState({ cards: [] });
       this.fetchData();
     }
   }
 
   componentWillUnmount() {
     this.fetchCancelToken.cancel();
+    this.fetchHeadsCancelToken.cancel();
   }
 
   fetchData = () => {
-    this.fetchDataIteration(30, 0);
+    if (this.props.q == null || this.props.q === "") {
+      this.fetchHeads();
+    } else {
+      this.fetchDataIteration(30, 0);
+    }
   };
 
   fetchDataIteration = (upd_days_ago_after, upd_days_ago_before) => {
@@ -115,12 +122,21 @@ class SearchGrid extends React.Component {
         cancelToken: this.fetchCancelToken.token,
       })
       .then((res) => {
-        const all = this.state.nodes.length + res.data.nodes.length;
-        console.log(res.data.nodes);
-        this.setState((state) => {
+        const all =
+          this.state.heads.length +
+          this.state.nodes.length +
+          res.data.nodes.length;
+        const nodes = res.data.nodes.map((m) => {
           return {
-            nodes: state.nodes.concat(res.data.nodes),
+            nid: m.nid,
+            preface: m.preface,
+            crtd: moment.unix(m.crtd),
+            upd: moment.unix(m.upd),
+            edges: [],
           };
+        });
+        this.setState((state) => {
+          return { nodes: state.nodes.concat(nodes) };
         });
         if (all < 32 && upd_days_ago_after < 300 /* ~1 year */) {
           this.fetchDataIteration(
@@ -132,20 +148,79 @@ class SearchGrid extends React.Component {
       .catch(remoteErrorHandler(this.props.history));
   };
 
+  fetchHeads = () => {
+    const req = {
+      updated_after: 30,
+    };
+    axios
+      .post("/api/heads-search", req, {
+        cancelToken: this.fetchHeadsCancelToken.token,
+      })
+      .then((res) => {
+        var heads = {};
+        var nodes = res.data.edges
+          .map((e) => {
+            if (e.to_nid in heads) {
+              heads[e.to_nid].edges.push(e.from_nid);
+            } else {
+              heads[e.to_nid] = {
+                edges: [e.from_nid],
+              };
+            }
+            return {
+              nid: e.to_nid,
+              preface: null,
+              crtd: moment.unix(e.created_at),
+              upd: moment.unix(e.updated_at),
+            };
+          })
+          .map((e) => {
+            e.edges = heads[e.nid].edges;
+            return e;
+          });
+        nodes = nodes.concat(
+          res.data.edges.map((e) => {
+            return {
+              nid: e.from_nid,
+              preface: null,
+              crtd: moment.unix(e.created_at),
+              upd: moment.unix(e.updated_at),
+              edges: [],
+            };
+          })
+        );
+        this.setState({
+          heads: heads,
+          nodes: nodes,
+        });
+        this.fetchDataIteration(30, 0);
+      })
+      .catch(remoteErrorHandler(this.props.history));
+  };
+
   render() {
-    const cards = this.state.nodes.map((meta) => {
-      console.log("Nid", meta.nid);
-      return (
-        <NodeSmallCard
-          nid={meta.nid}
-          preface={meta.preface}
-          crtd={meta.crtd}
-          upd={meta.upd}
-          key={meta.nid}
-          skip_input_edge={false}
-        />
-      );
-    });
+    var used = {};
+    var cards = this.state.nodes
+      .filter((item) => {
+        if (item.nid in used) {
+          return false;
+        }
+        used[item.nid] = true;
+        return true;
+      })
+      .map((item) => {
+        return (
+          <NodeSmallCard
+            nid={item.nid}
+            preface={item.preface}
+            crtd={item.crtd}
+            upd={item.upd}
+            key={item.nid}
+            skip_input_edge={false}
+            edges={item.edges}
+          />
+        );
+      });
     return <DynamicGrid cards={cards} />;
   }
 }

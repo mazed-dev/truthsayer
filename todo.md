@@ -1,9 +1,5 @@
 # Todo
 
- - [ ] Side toolbars should be whitish (whiter than background)
- - [ ] Vertical toolbar for markdown editing
- - [ ] Fix the position of scissors on referenec nodes
-
  - [ ] Add the number of words and letters to the footer of the note along with last update time
  - [ ] Don't cut small notes in the middle of the line
  - [ ] DATA menu, to see details and edit in modal window
@@ -58,3 +54,6 @@
  - [x] Add "next" and "previous" to smart menu.
  - [x] Add symmetric buttons "next" and "search-to-next" to the left side
  - [x] Make left and right toolbars symmetric
+ - [x] Side toolbars should be whitish (whiter than background)
+ - [x] Vertical toolbar for markdown editing
+ - [x] Fix the position of scissors on referenec nodes

@@ -224,15 +224,6 @@ class MarkdownToolbarImpl extends React.Component {
       if (point) {
         return "- " + point + " ";
       }
-      line.split(" ").map((word, _) => {
-        const em = emoji.find(word);
-        if (em) {
-          point = em.emoji;
-        }
-      });
-      if (point) {
-        return "- " + point + " ";
-      }
       const itemInd = Math.floor(Math.random() * presetLen);
       const em = EMOJI_LIST_PRESETS[presetInd][itemInd];
       return "- " + em + " ";

@@ -244,6 +244,17 @@ export const EMOJI_LIST_PRESETS = [
     "\u{1F566}", // eleven-thirty
     "\u{1F567}", // twelve-thirty
   ],
+  // Shoes
+  [
+    "\u{1F97E}", // hiking boot
+    "\u{1F462}", // womans boot
+    "\u{1F45F}", // running shoe
+    "\u{1FA70}", // ballet shoes
+    "\u{1F97F}", // flat shoe
+    "\u{1F460}", // high heeled shoe
+    "\u{1F45E}", // mans shoe
+    "\u{1F461}", // womans sandal
+  ],
   // Arrows
   [
     // ➔
@@ -288,10 +299,6 @@ export const EMOJI_LIST_PRESETS = [
     "\u{21A4}",
     // ↦
     "\u{21A6}",
-    // ↫
-    "\u{21AB}",
-    // ↬
-    "\u{21AC}",
     // ↯
     "\u{21AF}",
     // ↶
