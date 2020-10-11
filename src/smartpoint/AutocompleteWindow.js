@@ -1,24 +1,12 @@
 import React from "react";
 
-import {
-  Modal,
-  Button,
-  Container,
-  Card,
-  Form,
-  ListGroup,
-  Row,
-  Col,
-} from "react-bootstrap";
+import { Modal, Form, ListGroup } from "react-bootstrap";
 
 import axios from "axios";
 import keycode from "keycode";
 
 import { RefSmartItem, extractRefSearcToken } from "./RefSmartItem";
-import {
-  DateTimeSmartItem,
-  dateTimeSmartItemSearch,
-} from "./DateTimeSmartItem";
+import { dateTimeSmartItemSearch } from "./DateTimeSmartItem";
 import { nextRefSmartItemSearch } from "./NextRefSmartItem";
 
 import remoteErrorHandler from "./../remoteErrorHandler";
@@ -47,7 +35,7 @@ class AutocompleteModal extends React.Component {
   }
 
   refSearch = async function (input) {
-    var { token, direction } = extractRefSearcToken(input);
+    var { token } = extractRefSearcToken(input);
     if (token == null) {
       return;
     }
@@ -189,10 +177,6 @@ class AutocompleteModal extends React.Component {
 }
 
 class AutocompleteWindow extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     // dialogAs={AutocompleteModal}
     // backdrop={false}

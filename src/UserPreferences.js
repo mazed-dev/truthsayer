@@ -1,27 +1,12 @@
 import React from "react";
 
 // React router
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-import {
-  Card,
-  Form,
-  Nav,
-  NavDropdown,
-  Navbar,
-  ButtonGroup,
-  Button,
-  Dropdown,
-  SplitButton,
-  Container,
-  Image,
-} from "react-bootstrap";
+import { Button, Container, Image } from "react-bootstrap";
 
 import axios from "axios";
-import queryString from "query-string";
 import { withRouter } from "react-router-dom";
-
-import Emoji from "./Emoji";
 
 import user_default_pic from "./user-default-pic.png";
 

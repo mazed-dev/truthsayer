@@ -4,15 +4,12 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import {
-  Card,
   Form,
-  Nav,
   NavDropdown,
   Navbar,
   ButtonGroup,
   Button,
   Dropdown,
-  SplitButton,
   Image,
 } from "react-bootstrap";
 
@@ -20,8 +17,6 @@ import PropTypes from "prop-types";
 import axios from "axios";
 import queryString from "query-string";
 import { withRouter } from "react-router-dom";
-
-import Emoji from "./Emoji";
 
 import user_default_pic from "./user-default-pic.png";
 

@@ -1,14 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-import {
-  Badge,
-  Button,
-  Overlay,
-  Popover,
-  OverlayTrigger,
-  Tooltip,
-} from "react-bootstrap";
+import { Badge } from "react-bootstrap";
 
 import moment from "moment";
 
@@ -47,10 +40,6 @@ function MarkdownHeading({ level, children, sourcePosition, ...rest }) {
 }
 
 export class DateBadge extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   handleClick = (event) => {};
 
   render() {
@@ -71,10 +60,6 @@ export class DateBadge extends React.Component {
 }
 
 export class TimeBadge extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   handleClick = (event) => {};
 
   render() {
@@ -134,7 +119,6 @@ function MarkdownText({ children, sourcePosition, ...rest }) {
   return <>{children}</>;
 }
 
-var _DEPTH = 0;
 const _LIST_POINT_OPTIONS = [
   <Emoji symbol="&#9679;" label="-" />,
   // <Emoji symbol="&#x233e;" label="-" />,
@@ -159,7 +143,6 @@ function genListPointStyle(d) {
 }
 
 function MarkdownList({ children, ordered, start, depth, ...rest }) {
-  _DEPTH = depth;
   if (ordered) {
     return (
       <ol start={start} className={list_style.ordered_list}>

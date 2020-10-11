@@ -1,15 +1,6 @@
 import React from "react";
 
-import {
-  Col,
-  Form,
-  InputGroup,
-  Card,
-  Button,
-  Container,
-  ButtonGroup,
-  ListGroup,
-} from "react-bootstrap";
+import { Form, InputGroup, Button, Container } from "react-bootstrap";
 
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";

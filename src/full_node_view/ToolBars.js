@@ -20,8 +20,6 @@ import {
   Button,
   ButtonGroup,
   ButtonToolbar,
-  DropdownButton,
-  Dropdown,
   Row,
   Col,
   ListGroup,
@@ -60,12 +58,14 @@ export class NextSearchRefItem extends React.Component {
   };
 
   addNodeReference = () => {
+    var from_nid;
+    var to_nid;
     if (this.props.left) {
-      var from_nid = this.props.nid;
-      var to_nid = this.props.dst_nid;
+      from_nid = this.props.nid;
+      to_nid = this.props.dst_nid;
     } else {
-      var from_nid = this.props.dst_nid;
-      var to_nid = this.props.nid;
+      from_nid = this.props.dst_nid;
+      to_nid = this.props.nid;
     }
     const req = {
       from_nid: from_nid,
@@ -263,10 +263,6 @@ class NextSearchModalDialog extends React.Component {
 }
 
 class NextSearchModal extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     return (
       <Modal

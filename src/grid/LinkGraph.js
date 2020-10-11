@@ -11,7 +11,7 @@ class LinkGraphImpl extends React.Component {
   }
 
   componentDidUpdate() {
-    this.createBarChart();
+    this.createSvg();
   }
 
   cleanSvg = () => {
@@ -21,12 +21,12 @@ class LinkGraphImpl extends React.Component {
     }
   };
 
-  createBarChart = () => {
+  createSvg = () => {
     this.cleanSvg();
-    console.log("LinkGraphImpl", this.props.edges);
-    this.props.edges.map((item, ind) => {
-      console.log("createBarChart::edge", item.ref);
-    });
+    // console.log("LinkGraphImpl", this.props.edges);
+    // this.props.edges.map((item, ind) => {
+    //   console.log("createSvg::edge", item);
+    // });
     const width = this.props.width;
     const height = this.props.height;
 
@@ -53,7 +53,7 @@ class LinkGraphImpl extends React.Component {
     links.push(
       d3.linkVertical()({
         source: nodes[0],
-        target: nodes[1]
+        target: nodes[1],
       })
     );
 
@@ -61,7 +61,7 @@ class LinkGraphImpl extends React.Component {
     links.push(
       d3.linkVertical()({
         source: nodes[0],
-        target: nodes[2]
+        target: nodes[2],
       })
     );
 
@@ -74,7 +74,7 @@ class LinkGraphImpl extends React.Component {
         .attr("stroke-width", "3")
         .attr("fill", "none");
     }
-  }
+  };
 
   render() {
     return (
@@ -88,10 +88,6 @@ class LinkGraphImpl extends React.Component {
 }
 
 class LinkGraph extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     return (
       <div className={styles.graph_div}>
@@ -104,6 +100,5 @@ class LinkGraph extends React.Component {
     );
   }
 }
-
 
 export default LinkGraph;

@@ -1,30 +1,9 @@
 import React from "react";
 
-// React router
-import { Link, useLocation } from "react-router-dom";
-
-import {
-  Button,
-  ButtonGroup,
-  Card,
-  CardColumns,
-  Col,
-  Container,
-  Dropdown,
-  DropdownButton,
-  Form,
-  InputGroup,
-  Nav,
-  NavDropdown,
-  Navbar,
-  Row,
-  SplitButton,
-  ListGroup,
-} from "react-bootstrap";
+import { Button, Container, Form, ListGroup } from "react-bootstrap";
 
 import PropTypes from "prop-types";
 import axios from "axios";
-import queryString from "query-string";
 import { withRouter } from "react-router-dom";
 
 import Emoji from "./Emoji";

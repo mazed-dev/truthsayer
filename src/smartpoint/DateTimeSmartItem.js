@@ -18,7 +18,6 @@ class DateTimeSmartItem extends React.Component {
   };
 
   render() {
-    const date_str = this.props.tm.calendar();
     return (
       <Row
         className="justify-content-between w-100 p-0 m-0"

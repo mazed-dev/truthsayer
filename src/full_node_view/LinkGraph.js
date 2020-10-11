@@ -95,9 +95,7 @@ class LinkGraphImpl extends React.Component {
     //   x0 = Math.min(x0, d.x);
     // });
 
-    const svg = d3
-      .select(ref)
-      .attr("viewBox", [0, 0, width, height]);
+    const svg = d3.select(ref).attr("viewBox", [0, 0, width, height]);
 
     let nodes = [];
     nodes.push([width / 2, height / 1.5]);
@@ -106,12 +104,12 @@ class LinkGraphImpl extends React.Component {
 
     for (let i = 0; i < nodes.length; i++) {
       svg
-        .append('circle')
-        .attr('cx', nodes[i][0])
-        .attr('cy', nodes[i][1])
-        .attr('r', 20)
-        .style('fill', 'green');
-   }
+        .append("circle")
+        .attr("cx", nodes[i][0])
+        .attr("cy", nodes[i][1])
+        .attr("r", 20)
+        .style("fill", "green");
+    }
 
     let links = [];
     // Link from the first node to the second
@@ -119,7 +117,7 @@ class LinkGraphImpl extends React.Component {
       //d3.linkHorizontal()({
       d3.linkVertical()({
         source: nodes[0],
-        target: nodes[1]
+        target: nodes[1],
       })
     );
 
@@ -127,17 +125,17 @@ class LinkGraphImpl extends React.Component {
     links.push(
       d3.linkVertical()({
         source: nodes[0],
-        target: nodes[2]
+        target: nodes[2],
       })
     );
 
     // Append the links to the svg element
     for (let i = 0; i < links.length; i++) {
       svg
-        .append('path')
-        .attr('d', links[i])
-        .attr('stroke', 'black')
-        .attr('fill', 'none');
+        .append("path")
+        .attr("d", links[i])
+        .attr("stroke", "black")
+        .attr("fill", "none");
     }
 
     // return svg.node();
@@ -166,11 +164,15 @@ class LinkGraphImpl extends React.Component {
     //   .clone(true)
     //   .lower()
     //   .attr("stroke", "white");
-  }
+  };
 
   render() {
     return (
-      <svg ref={(node) => (this.ref = node)} width={this.props.width} height={this.props.height}></svg>
+      <svg
+        ref={(node) => (this.ref = node)}
+        width={this.props.width}
+        height={this.props.height}
+      ></svg>
     );
   }
 }
@@ -181,9 +183,7 @@ class LinkGraph extends React.Component {
   }
 
   render() {
-    console.log("LinkGraph::render()",
-      this.props.width,
-      this.props.height);
+    console.log("LinkGraph::render()", this.props.width, this.props.height);
     return (
       <div className={styles.graph_div}>
         <LinkGraphImpl width={this.props.width} height={this.props.height} />
@@ -191,6 +191,5 @@ class LinkGraph extends React.Component {
     );
   }
 }
-
 
 export default LinkGraph;

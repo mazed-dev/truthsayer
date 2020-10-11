@@ -2,15 +2,6 @@ import React from "react";
 
 import styles from "./ToolBars.module.css";
 
-import NextNewLeftImg from "./img/next-link-new-left.svg";
-import NextSearchLeftImg from "./img/next-link-search-left.svg";
-
-import NextNewRightImg from "./img/next-link-new-right.svg";
-import NextSearchRightImg from "./img/next-link-search-right.svg";
-
-import NextLeftImg from "./img/next-link-left.svg";
-import NextRightImg from "./img/next-link-right.svg";
-
 import MdToolbarIconEmphasis from "./img/markdown-tool-emphasis.svg";
 import MdToolbarIconHeader from "./img/markdown-tool-header.svg";
 import MdToolbarIconItalic from "./img/markdown-tool-italic.svg";
@@ -21,29 +12,13 @@ import MdToolbarIconLink from "./img/markdown-tool-link.svg";
 import MdToolbarIconEmojiList from "./img/markdown-tool-unordered-emoji-list.svg";
 import MdToolbarUnorderedList from "./img/markdown-tool-unordered-list.svg";
 
-import { MdSmallCardRender } from "./../markdown/MarkdownRender";
-
 import { joinClasses } from "../util/elClass.js";
-import { remoteErrorHandler } from "./../remoteErrorHandler";
 import { NO_EXT_CLICK_DETECTION } from "./../FullNodeView";
 import { EMOJI_LIST_PRESETS } from "./EmojiListPresets";
 
-import {
-  Button,
-  ButtonGroup,
-  DropdownButton,
-  Dropdown,
-  Row,
-  Col,
-  ListGroup,
-  Form,
-  Modal,
-} from "react-bootstrap";
+import { Button, ButtonGroup } from "react-bootstrap";
 
 import axios from "axios";
-import keycode from "keycode";
-import moment from "moment";
-import queryString from "query-string";
 
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";

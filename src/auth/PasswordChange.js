@@ -3,7 +3,6 @@ import React from "react";
 import {
   Badge,
   Button,
-  ButtonGroup,
   Card,
   Col,
   Container,
@@ -11,7 +10,6 @@ import {
   Row,
 } from "react-bootstrap";
 
-import Emoji from "./../Emoji";
 import PropTypes from "prop-types";
 import axios from "axios";
 import { withRouter } from "react-router-dom";

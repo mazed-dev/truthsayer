@@ -1,11 +1,10 @@
 import React from "react";
 
 // React router
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-import { Form, Nav, NavDropdown, Navbar } from "react-bootstrap";
+import { Nav, Navbar } from "react-bootstrap";
 
-import queryString from "query-string";
 import { withRouter } from "react-router-dom";
 
 function PublicNavBar() {

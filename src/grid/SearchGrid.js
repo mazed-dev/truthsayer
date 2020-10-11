@@ -32,6 +32,8 @@ class DynamicGrid extends React.Component {
       width: 640,
       height: 480,
       ncols: 1,
+      edges: [],
+      rowRef: null,
     };
   }
 
@@ -45,9 +47,11 @@ class DynamicGrid extends React.Component {
   }
 
   updateWindowDimensions = () => {
-    console.log("updateWindowDimensions",
+    console.log(
+      "updateWindowDimensions",
       window.innerWidth,
-       window.innerHeight);
+      window.innerHeight
+    );
     this.setState({
       width: window.innerWidth,
       height: window.innerHeight,
@@ -63,48 +67,66 @@ class DynamicGrid extends React.Component {
     });
   };
 
+  //setCardPosition = (nid, edges, element) => {
+  //  // console.log("Small card element", nid, edges, element);
+  //};
+
+  //setRowRefCallback = (element) => {
+  //  this.setState({
+  //    rowRef: element,
+  //  });
+  //  console.log("Row", element, element.children.length);
+  //  const children = element.childNodes;
+  //  for (var i = 0; i < children.length; i++) {
+  //    const colEl = children[i];
+  //    console.log("Col", colEl);
+  //    // const nodes = colEl.children;
+  //    // for (var i = 0; i < nodes.length; i++) {
+  //    //   console.log("Node", nodes[i]);
+  //    // }
+  //  }
+  //};
+
   render() {
-    var edges = [];
-    const cards = this.props.cards.map((item) => {
-      const ref = React.createRef();
-      edges.push({
-        ref: ref,
-        from: item.edges,
-        nid: item.nid,
-      });
+    this.cards = this.props.cards.map((item) => {
+      // const nid = item.nid;
+      // const edges = item.edges;
+      // const setCardRefCallback = (el) => {
+      //   this.setCardPosition(nid, edges, el);
+      // };
+      // cardRef={setCardRefCallback}
       return (
-          <NodeSmallCard
-            nid={item.nid}
-            preface={item.preface}
-            crtd={item.crtd}
-            upd={item.upd}
-            key={item.nid}
-            skip_input_edge={false}
-            edges={item.edges}
-            cardRef={ref}
-          />);
+        <NodeSmallCard
+          nid={item.nid}
+          preface={item.preface}
+          crtd={item.crtd}
+          upd={item.upd}
+          key={item.nid}
+          skip_input_edge={false}
+          edges={item.edges}
+        />
+      );
     });
+
     const columns = range(this.state.ncols).map((_, col_ind) => {
-      const colCards = cards.filter((_, card_ind) => {
+      const colCards = this.cards.filter((_, card_ind) => {
         return card_ind % this.state.ncols === col_ind;
       });
       return <Col key={"cards_column_" + col_ind}>{colCards}</Col>;
     });
-    // const edges = this.props.cards.map((card, ind) => {
-    //   console.log("Card", card);
-    //   return {
-    //     // ref: card.props.cardRef,
-    //     from: card.props.edges,
-    //     nid: card.props.nid,
-    //   };
-    // });
     return (
       <Container fluid className={joinClasses(styles.grid_container)}>
         <LinkGraph
           width={this.state.width}
           height={this.state.height}
-          edges={edges}/>
-        <Row className="justify-content-between w-100 p-0 m-0">{columns}</Row>
+          edges={this.state.edges}
+        />
+        <Row
+          ref={this.setRowRefCallback}
+          className="justify-content-between w-100 p-0 m-0"
+        >
+          {columns}
+        </Row>
       </Container>
     );
   }
@@ -239,28 +261,13 @@ class SearchGrid extends React.Component {
 
   render() {
     var used = {};
-    var cards = this.state.nodes
-      .filter((item) => {
-        if (item.nid in used) {
-          return false;
-        }
-        used[item.nid] = true;
-        return true;
-      })
-    ;
-      //.map((item) => {
-      //  return (
-      //    <NodeSmallCard
-      //      nid={item.nid}
-      //      preface={item.preface}
-      //      crtd={item.crtd}
-      //      upd={item.upd}
-      //      key={item.nid}
-      //      skip_input_edge={false}
-      //      edges={item.edges}
-      //    />
-      //  );
-      //});
+    const cards = this.state.nodes.filter((item) => {
+      if (item.nid in used) {
+        return false;
+      }
+      used[item.nid] = true;
+      return true;
+    });
     return <DynamicGrid cards={cards} />;
   }
 }

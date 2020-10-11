@@ -43,6 +43,7 @@ class NodeSmallCard extends React.Component {
       upd: this.props.upd,
       edges: [],
     };
+    // this.cardRef = React.createRef();
   }
 
   static propTypes = {
@@ -125,11 +126,12 @@ class NodeSmallCard extends React.Component {
         this.state.edges.length -
         (this.props.skip_input_edge ? 1 : 0)
     );
+    // ref={this.props.cardRef}
     return (
       <Card
         className={joinClasses(shd, styles.small_card)}
         onClick={this.onClick}
-        ref={this.props.cardRef}
+        nid={this.props.nid}
       >
         <Card.Body className="px-3 pt-2 pb-0">
           <MdSmallCardRender source={this.state.preface} />

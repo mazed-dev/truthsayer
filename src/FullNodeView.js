@@ -7,10 +7,6 @@ import { MdCardRender } from "./markdown/MarkdownRender";
 
 import Emoji from "./Emoji";
 
-import maze from "./maze.png";
-
-import DoodledBird from "./DoodledBird.svg";
-
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
@@ -29,14 +25,10 @@ import {
   Container,
   Row,
   Col,
-  CardColumns,
-  DropdownButton,
-  Dropdown,
 } from "react-bootstrap";
 
 import axios from "axios";
 import moment from "moment";
-import queryString from "query-string";
 
 const NEW_NODE_FAKE_ID = ".new";
 
@@ -596,10 +588,6 @@ class NodeCardImpl extends React.Component {
 const NodeCard = withRouter(NodeCardImpl);
 
 class FullNodeView extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     return (
       <Container fluid>
