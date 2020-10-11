@@ -129,6 +129,7 @@ class NodeSmallCard extends React.Component {
       <Card
         className={joinClasses(shd, styles.small_card)}
         onClick={this.onClick}
+        ref={this.props.cardRef}
       >
         <Card.Body className="px-3 pt-2 pb-0">
           <MdSmallCardRender source={this.state.preface} />

@@ -1,6 +1,6 @@
 import React from "react";
 
-import "./SearchGrid.css";
+import styles from "./SearchGrid.module.css";
 
 import PropTypes from "prop-types";
 import moment from "moment";
@@ -8,8 +8,12 @@ import axios from "axios";
 import { Container, Row, Col } from "react-bootstrap";
 import { withRouter } from "react-router-dom";
 
-import NodeSmallCard from "./NodeSmallCard";
-import remoteErrorHandler from "./remoteErrorHandler";
+import NodeSmallCard from "./../NodeSmallCard";
+import remoteErrorHandler from "./../remoteErrorHandler";
+
+import { joinClasses } from "./../util/elClass.js";
+
+import LinkGraph from "./LinkGraph";
 
 function range(n, start, end) {
   if (start == null) {
@@ -41,6 +45,9 @@ class DynamicGrid extends React.Component {
   }
 
   updateWindowDimensions = () => {
+    console.log("updateWindowDimensions",
+      window.innerWidth,
+       window.innerHeight);
     this.setState({
       width: window.innerWidth,
       height: window.innerHeight,
@@ -57,15 +64,46 @@ class DynamicGrid extends React.Component {
   };
 
   render() {
+    var edges = [];
+    const cards = this.props.cards.map((item) => {
+      const ref = React.createRef();
+      edges.push({
+        ref: ref,
+        from: item.edges,
+        nid: item.nid,
+      });
+      return (
+          <NodeSmallCard
+            nid={item.nid}
+            preface={item.preface}
+            crtd={item.crtd}
+            upd={item.upd}
+            key={item.nid}
+            skip_input_edge={false}
+            edges={item.edges}
+            cardRef={ref}
+          />);
+    });
     const columns = range(this.state.ncols).map((_, col_ind) => {
-      const cards = this.props.cards.filter((_, card_ind) => {
-        console.log("Disperse", card_ind, card_ind % this.state.ncols, col_ind);
+      const colCards = cards.filter((_, card_ind) => {
         return card_ind % this.state.ncols === col_ind;
       });
-      return <Col key={"cards_column_" + col_ind}>{cards}</Col>;
+      return <Col key={"cards_column_" + col_ind}>{colCards}</Col>;
     });
+    // const edges = this.props.cards.map((card, ind) => {
+    //   console.log("Card", card);
+    //   return {
+    //     // ref: card.props.cardRef,
+    //     from: card.props.edges,
+    //     nid: card.props.nid,
+    //   };
+    // });
     return (
-      <Container fluid>
+      <Container fluid className={joinClasses(styles.grid_container)}>
+        <LinkGraph
+          width={this.state.width}
+          height={this.state.height}
+          edges={edges}/>
         <Row className="justify-content-between w-100 p-0 m-0">{columns}</Row>
       </Container>
     );
@@ -209,19 +247,20 @@ class SearchGrid extends React.Component {
         used[item.nid] = true;
         return true;
       })
-      .map((item) => {
-        return (
-          <NodeSmallCard
-            nid={item.nid}
-            preface={item.preface}
-            crtd={item.crtd}
-            upd={item.upd}
-            key={item.nid}
-            skip_input_edge={false}
-            edges={item.edges}
-          />
-        );
-      });
+    ;
+      //.map((item) => {
+      //  return (
+      //    <NodeSmallCard
+      //      nid={item.nid}
+      //      preface={item.preface}
+      //      crtd={item.crtd}
+      //      upd={item.upd}
+      //      key={item.nid}
+      //      skip_input_edge={false}
+      //      edges={item.edges}
+      //    />
+      //  );
+      //});
     return <DynamicGrid cards={cards} />;
   }
 }

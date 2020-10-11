@@ -37,3 +37,9 @@
     column-count: 8;
   }
 }
+
+.grid_container {
+  position: relative;
+  margin: 0;
+  padding: 0;
+}

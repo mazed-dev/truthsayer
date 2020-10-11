@@ -2,7 +2,7 @@ import React from "react";
 
 import DoodledBird from "./DoodledBird.svg";
 import FullNodeView from "./FullNodeView";
-import SearchGrid from "./SearchGrid";
+import SearchGrid from "./grid/SearchGrid";
 
 // React router
 import {
