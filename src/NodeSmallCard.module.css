@@ -4,12 +4,22 @@
 }
 
 .small_card {
-  max-width: 22rem;
+  max-width: 20rem;
+  min-width: 18rem;
   margin-top: 0rem;
   margin-bottom: 1rem;
   margin-left: 0rem;
   margin-right: 0rem;
   border-color: var(--small_card_border_colour);
+
+  /*height: 22rem;*/
+}
+
+@media (max-width: 768px) {
+  .small_card {
+    min-width: 10rem;
+    /*height: 18rem;*/
+  }
 }
 
 .small_card_shadow_0 {

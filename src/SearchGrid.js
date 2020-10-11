@@ -27,7 +27,7 @@ class DynamicGrid extends React.Component {
     this.state = {
       width: 640,
       height: 480,
-      ncols: 2,
+      ncols: 1,
     };
   }
 
@@ -59,9 +59,10 @@ class DynamicGrid extends React.Component {
   render() {
     const columns = range(this.state.ncols).map((_, col_ind) => {
       const cards = this.props.cards.filter((_, card_ind) => {
+        console.log("Disperse", card_ind, card_ind % this.state.ncols, col_ind);
         return card_ind % this.state.ncols === col_ind;
       });
-      return <Col key={"cards_" + col_ind}>{cards}</Col>;
+      return <Col key={"cards_column_" + col_ind}>{cards}</Col>;
     });
     return (
       <Container fluid>
