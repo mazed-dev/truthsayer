@@ -1,5 +1,7 @@
 # Todo
 
+ - [ ] Improve main page, it should reflect graph nature of notes and expose at least part of connections between found notes
+ - [ ] Sticky links - the links that stick to all the "next" notes
  - [ ] Add the number of words and letters to the footer of the note along with last update time
  - [ ] Don't cut small notes in the middle of the line
  - [ ] DATA menu, to see details and edit in modal window
@@ -9,8 +11,6 @@
  - [ ] Search input on nav bar should be __sticky__ and __centered__
  - [ ] Save and go on "next" and "previous" from smart menue
  - [ ] Add popover for datetime badge on click and hover
- - [ ] Emoji as bullet points for lists in notes.
- - [ ] Improve main page, it should reflect graph nature of notes and expose at least part of connections between found notes
  - [ ] Modal window on error
  - [ ] Emoji as viniette for every note
  - [ ] Connect uploaded files
@@ -57,3 +57,4 @@
  - [x] Side toolbars should be whitish (whiter than background)
  - [x] Vertical toolbar for markdown editing
  - [x] Fix the position of scissors on referenec nodes
+ - [x] Emoji as bullet points for lists in notes.
