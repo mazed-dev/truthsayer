@@ -5,7 +5,7 @@ import styles from "./SearchGrid.module.css";
 import PropTypes from "prop-types";
 import moment from "moment";
 import axios from "axios";
-import { Container, Row, Col } from "react-bootstrap";
+import { Container, Row, Col, Button } from "react-bootstrap";
 import { withRouter } from "react-router-dom";
 
 import NodeSmallCard from "./../NodeSmallCard";
@@ -32,9 +32,8 @@ class DynamicGrid extends React.Component {
       width: 640,
       height: 480,
       ncols: 1,
-      edges: [],
-      rowRef: null,
     };
+    this.rowRef = React.createRef();
   }
 
   componentDidMount() {
@@ -47,82 +46,53 @@ class DynamicGrid extends React.Component {
   }
 
   updateWindowDimensions = () => {
-    console.log(
-      "updateWindowDimensions",
-      window.innerWidth,
-      window.innerHeight
+    // console.log(
+    //   "updateWindowDimensions",
+    //   window.innerWidth,
+    //   window.innerHeight
+    // );
+    // see NodeSmallCard.css.mazed_small_card.max-width
+    const fontSize = parseFloat(
+      getComputedStyle(document.documentElement).fontSize
     );
+    const fn = (cardWidth) => {
+      const nf = window.innerWidth / (fontSize * (1 + cardWidth));
+      const n = Math.floor(nf);
+      const delta = nf - n;
+      // console.log("delta", delta, n, cardWidth);
+      return [delta, n];
+    };
+    // const opt = range(4, 16)
+    //   .map((cardWidth) => fn(cardWidth))
+    //   .reduce((opt, cur) => {
+    //     if (cur[0] > 0.1 && cur[0] < opt[0]) {
+    //       return cur;
+    //     }
+    //     return opt;
+    //   }, [1, 1]);
+    const opt = fn(19);
+    const ncols = Math.max(1, opt[1]);
     this.setState({
       width: window.innerWidth,
       height: window.innerHeight,
-      ncols: Math.max(
-        1,
-        Math.floor(
-          window.innerWidth /
-            // see NodeSmallCard.css.mazed_small_card.max-width
-            (parseFloat(getComputedStyle(document.documentElement).fontSize) *
-              20)
-        )
-      ),
+      ncols: ncols,
     });
   };
 
-  //setCardPosition = (nid, edges, element) => {
-  //  // console.log("Small card element", nid, edges, element);
-  //};
-
-  //setRowRefCallback = (element) => {
-  //  this.setState({
-  //    rowRef: element,
-  //  });
-  //  console.log("Row", element, element.children.length);
-  //  const children = element.childNodes;
-  //  for (var i = 0; i < children.length; i++) {
-  //    const colEl = children[i];
-  //    console.log("Col", colEl);
-  //    // const nodes = colEl.children;
-  //    // for (var i = 0; i < nodes.length; i++) {
-  //    //   console.log("Node", nodes[i]);
-  //    // }
-  //  }
-  //};
-
   render() {
-    this.cards = this.props.cards.map((item) => {
-      // const nid = item.nid;
-      // const edges = item.edges;
-      // const setCardRefCallback = (el) => {
-      //   this.setCardPosition(nid, edges, el);
-      // };
-      // cardRef={setCardRefCallback}
-      return (
-        <NodeSmallCard
-          nid={item.nid}
-          preface={item.preface}
-          crtd={item.crtd}
-          upd={item.upd}
-          key={item.nid}
-          skip_input_edge={false}
-          edges={item.edges}
-        />
-      );
-    });
-
     const columns = range(this.state.ncols).map((_, col_ind) => {
-      const colCards = this.cards.filter((_, card_ind) => {
+      const colCards = this.props.cards.filter((_, card_ind) => {
         return card_ind % this.state.ncols === col_ind;
       });
-      return <Col key={"cards_column_" + col_ind}>{colCards}</Col>;
+      return <Col
+        className={joinClasses(styles.grid_col)}
+        key={"cards_column_" + col_ind}
+      >{colCards}</Col>;
     });
     return (
       <Container fluid className={joinClasses(styles.grid_container)}>
-        <LinkGraph
-          width={this.state.width}
-          height={this.state.height}
-          edges={this.state.edges}
-        />
         <Row
-          ref={this.setRowRefCallback}
+          ref={this.rowRef}
           className="justify-content-between w-100 p-0 m-0"
         >
           {columns}
@@ -136,11 +106,9 @@ class SearchGrid extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      heads: [],
       nodes: [],
     };
     this.fetchCancelToken = axios.CancelToken.source();
-    this.fetchHeadsCancelToken = axios.CancelToken.source();
   }
 
   static propTypes = {
@@ -160,15 +128,10 @@ class SearchGrid extends React.Component {
 
   componentWillUnmount() {
     this.fetchCancelToken.cancel();
-    this.fetchHeadsCancelToken.cancel();
   }
 
   fetchData = () => {
-    if (this.props.q == null || this.props.q === "") {
-      this.fetchHeads();
-    } else {
-      this.fetchDataIteration(30, 0);
-    }
+    this.fetchDataIteration(30, 0);
   };
 
   fetchDataIteration = (upd_days_ago_after, upd_days_ago_before) => {
@@ -183,10 +146,6 @@ class SearchGrid extends React.Component {
         cancelToken: this.fetchCancelToken.token,
       })
       .then((res) => {
-        const all =
-          this.state.heads.length +
-          this.state.nodes.length +
-          res.data.nodes.length;
         const nodes = res.data.nodes.map((m) => {
           return {
             nid: m.nid,
@@ -197,64 +156,16 @@ class SearchGrid extends React.Component {
           };
         });
         this.setState((state) => {
+          console.log("Nodes", nodes);
           return { nodes: state.nodes.concat(nodes) };
         });
-        if (all < 32 && upd_days_ago_after < 300 /* ~1 year */) {
+        const sz = this.state.nodes.length + nodes.length;
+        if (sz < 32 && upd_days_ago_after < 366 /* ~1 year */) {
           this.fetchDataIteration(
             upd_days_ago_after + 30,
             upd_days_ago_before + 30
           );
         }
-      })
-      .catch(remoteErrorHandler(this.props.history));
-  };
-
-  fetchHeads = () => {
-    const req = {
-      updated_after: 30,
-    };
-    axios
-      .post("/api/heads-search", req, {
-        cancelToken: this.fetchHeadsCancelToken.token,
-      })
-      .then((res) => {
-        var heads = {};
-        var nodes = res.data.edges
-          .map((e) => {
-            if (e.to_nid in heads) {
-              heads[e.to_nid].edges.push(e.from_nid);
-            } else {
-              heads[e.to_nid] = {
-                edges: [e.from_nid],
-              };
-            }
-            return {
-              nid: e.to_nid,
-              preface: null,
-              crtd: moment.unix(e.created_at),
-              upd: moment.unix(e.updated_at),
-            };
-          })
-          .map((e) => {
-            e.edges = heads[e.nid].edges;
-            return e;
-          });
-        nodes = nodes.concat(
-          res.data.edges.map((e) => {
-            return {
-              nid: e.from_nid,
-              preface: null,
-              crtd: moment.unix(e.created_at),
-              upd: moment.unix(e.updated_at),
-              edges: [],
-            };
-          })
-        );
-        this.setState({
-          heads: heads,
-          nodes: nodes,
-        });
-        this.fetchDataIteration(30, 0);
       })
       .catch(remoteErrorHandler(this.props.history));
   };
@@ -267,7 +178,19 @@ class SearchGrid extends React.Component {
       }
       used[item.nid] = true;
       return true;
+    }).map((item) => {
+      return (
+        <NodeSmallCard
+          nid={item.nid}
+          preface={item.preface}
+          crtd={item.crtd}
+          upd={item.upd}
+          key={item.nid}
+          skip_input_edge={false}
+          edges={item.edges}
+        />);
     });
+    console.log("Cards", cards.length);
     return <DynamicGrid cards={cards} />;
   }
 }
