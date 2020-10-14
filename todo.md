@@ -1,6 +1,7 @@
 # Todo
 
  - [ ] Improve main page, it should reflect graph nature of notes and expose at least part of connections between found notes
+ - [ ] Small cards on smart search results
  - [ ] Sticky links - the links that stick to all the "next" notes
  - [ ] Add the number of words and letters to the footer of the note along with last update time
  - [ ] Don't cut small notes in the middle of the line
