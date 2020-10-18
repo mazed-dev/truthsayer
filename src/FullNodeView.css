@@ -6,24 +6,28 @@
   position: absolute;
   left: 0;
   top: 0;
+  z-index: 10;
 }
 
-.meta-fluid-el-top-rigth {
+.meta-fluid-el-top-right {
   position: absolute;
-  right: 0;
   top: 0;
+  right: 0;
+  z-index: 10;
 }
 
 .meta-fluid-el-bottom-left {
   position: absolute;
   left: 0;
   bottom: 0;
+  z-index: 10;
 }
 
-.meta-fluid-el-bottom-rigth {
+.meta-fluid-el-bottom-right {
   position: absolute;
   right: 0;
   bottom: 0;
+  z-index: 10;
 }
 
 /**

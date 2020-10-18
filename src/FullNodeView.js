@@ -39,6 +39,7 @@ class RefNodeCardImpl extends React.Component {
       crtd: moment().unix(),
       upd: moment().unix(),
       is_deleted: false,
+      is_sticky: props.is_sticky,
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
@@ -80,16 +81,30 @@ class RefNodeCardImpl extends React.Component {
       });
   };
 
+  handleToggleStickiness = () => {
+    this.setState((state) => {
+      return { is_sticky: !state.is_sticky };
+    });
+  };
+
   render() {
     if (this.state.is_deleted) {
       return <></>;
     }
     var toolbar;
     if (this.state.hover) {
+      const stickinessEl = this.state.is_sticky ? (
+        <Emoji symbol="🔒" label="lock" />
+      ) : (
+        <Emoji symbol="🔓" label="unlock" />
+      );
       toolbar = (
         <ButtonGroup>
           <Button variant="outline-dark" onClick={this.handleRefCutOff}>
             <Emoji symbol="✂" label="cut off" />
+          </Button>
+          <Button variant="outline-dark" onClick={this.handleToggleStickiness}>
+            {stickinessEl}
           </Button>
         </ButtonGroup>
       );
@@ -100,6 +115,7 @@ class RefNodeCardImpl extends React.Component {
         onMouseEnter={this.onHover}
         onMouseLeave={this.offHover}
       >
+        <div className="meta-fluid-el-top-right">{toolbar}</div>
         <NodeSmallCard
           nid={this.props.nid}
           preface={null}
@@ -107,7 +123,6 @@ class RefNodeCardImpl extends React.Component {
           upd={null}
           skip_input_edge={true}
         />
-        <div className="meta-fluid-el-top-left">{toolbar}</div>
       </div>
     );
   }
@@ -337,6 +352,7 @@ class NodeRefsImpl extends React.Component {
           to_nid={to_nid}
           from_nid={from_nid}
           key={edge.eid}
+          is_sticky={edge.is_sticky}
         />
       );
     });
@@ -467,7 +483,7 @@ class NodeCardImpl extends React.Component {
         </Col>
         <Col className="mazed_note_card_col">
           <Card className="meta-fluid-container mazed_note_card">
-            <div className="meta-fluid-el-top-rigth">{toolbar}</div>
+            <div className="meta-fluid-el-top-right">{toolbar}</div>
             <Card.Body className="p-3 m-2">{text_el}</Card.Body>
             <footer className="text-right m-2">
               <small className="text-muted">
@@ -494,6 +510,7 @@ class FullNodeView extends React.Component {
     this.state = {
       edges_left: [],
       edges_right: [],
+      edges_sticky: [],
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
@@ -523,16 +540,21 @@ class FullNodeView extends React.Component {
         if (res) {
           var edges_left = [];
           var edges_right = [];
+          var edges_sticky = [];
           res.data.edges.map((edge) => {
             if (edge.from_nid === this.props.nid) {
               edges_right.push(edge);
             } else {
               edges_left.push(edge);
             }
+            if (edge.is_sticky) {
+              edges_sticky.push(edge);
+            }
           });
           this.setState({
             edges_left: edges_left,
             edges_right: edges_right,
+            edges_sticky: edges_sticky,
           });
         }
       });
