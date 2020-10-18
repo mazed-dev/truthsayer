@@ -30,17 +30,15 @@ import {
 import axios from "axios";
 import moment from "moment";
 
-const NEW_NODE_FAKE_ID = ".new";
-
 class RefNodeCardImpl extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       hover: false,
-      offer: this.props.offer,
       preface: "",
       crtd: moment().unix(),
       upd: moment().unix(),
+      is_deleted: false,
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
@@ -62,35 +60,10 @@ class RefNodeCardImpl extends React.Component {
     this.setState({ hover: false });
   };
 
-  handleRefAdd = () => {
-    var to_nid = this.props.nid;
-    var from_nid = this.props.partner_nid;
-    if (this.props.direction === "to") {
-      [to_nid, from_nid] = [from_nid, to_nid];
-    }
-    const req = {
-      from_nid: from_nid,
-      txt: "next",
-      weight: 100,
-    };
-    axios
-      .post("/api/node/" + to_nid + "/to", req, {
-        cancelToken: this.fetchCancelToken.token,
-      })
-      .catch(remoteErrorHandler(this.props.history))
-      .then((res) => {
-        if (res) {
-          this.setState({ offer: false });
-        }
-      });
-  };
-
   handleRefCutOff = () => {
-    var to_nid = this.props.nid;
-    var from_nid = this.props.partner_nid;
-    if (this.props.direction === "to") {
-      [to_nid, from_nid] = [from_nid, to_nid];
-    }
+    var to_nid = this.props.to_nid != null ? this.props.to_nid : this.props.nid;
+    var from_nid =
+      this.props.from_nid != null ? this.props.from_nid : this.props.nid;
     const req = {
       from: from_nid,
     };
@@ -102,31 +75,24 @@ class RefNodeCardImpl extends React.Component {
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
-          this.setState({ offer: true });
+          this.setState({ is_deleted: true });
         }
       });
   };
 
   render() {
+    if (this.state.is_deleted) {
+      return <></>;
+    }
     var toolbar;
-    if (this.state.offer) {
+    if (this.state.hover) {
       toolbar = (
         <ButtonGroup>
-          <Button variant="outline-success" onClick={this.handleRefAdd}>
-            <Emoji symbol="+" label="add" />
+          <Button variant="outline-dark" onClick={this.handleRefCutOff}>
+            <Emoji symbol="✂" label="cut off" />
           </Button>
         </ButtonGroup>
       );
-    } else {
-      if (this.state.hover) {
-        toolbar = (
-          <ButtonGroup>
-            <Button variant="outline-dark" onClick={this.handleRefCutOff}>
-              <Emoji symbol="✂" label="cut off" />
-            </Button>
-          </ButtonGroup>
-        );
-      }
     }
     return (
       <div
@@ -146,8 +112,6 @@ class RefNodeCardImpl extends React.Component {
     );
   }
 }
-
-RefNodeCardImpl.defaultProps = { offer: false };
 
 const RefNodeCard = withRouter(RefNodeCardImpl);
 
@@ -355,87 +319,24 @@ class TextEditor extends React.Component {
 }
 
 class NodeRefsImpl extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      refs: [],
-    };
-    this.fetchCancelToken = axios.CancelToken.source();
-  }
-
-  static propTypes = {
-    location: PropTypes.object.isRequired,
-  };
-
-  componentDidMount() {
-    this.fetchData();
-  }
-
-  componentWillUnmount() {
-    this.fetchCancelToken.cancel();
-  }
-
-  componentDidUpdate(prevProps) {
-    // Don't forget to compare props!
-    if (this.props.nid !== prevProps.nid) {
-      this.fetchData();
-    }
-  }
-
-  fetchData = () => {
-    if (this.props.nid === NEW_NODE_FAKE_ID) {
-      if (
-        this.props.direction === "to" &&
-        this.props.location.state &&
-        this.props.location.state.from
-      ) {
-        this.setState({
-          refs: [
-            {
-              eid: null,
-              from_nid: this.props.location.state.from,
-              to_nid: this.props.location.state.from,
-            },
-          ],
-        });
-      } else {
-        this.setState({
-          refs: [],
-        });
-      }
-      return;
-    }
-    axios
-      .get("/api/node/" + this.props.nid + "/" + this.props.direction, {
-        cancelToken: this.fetchCancelToken.token,
-      })
-      .catch(remoteErrorHandler(this.props.history))
-      .then((res) => {
-        if (res) {
-          this.setState({
-            refs: res.data.edges,
-          });
-        }
-      });
-  };
-
   render() {
-    const refs = this.state.refs.map((item) => {
-      var nid, partner_nid;
-      if (this.props.direction === "to") {
-        nid = item.from_nid;
-        partner_nid = item.to_nid;
+    const refs = this.props.edges.map((edge) => {
+      var to_nid = null;
+      var from_nid = null;
+      var nid = null;
+      if (edge.from_nid === this.props.nid) {
+        from_nid = edge.from_nid;
+        nid = edge.to_nid;
       } else {
-        partner_nid = item.from_nid;
-        nid = item.to_nid;
+        to_nid = edge.to_nid;
+        nid = edge.from_nid;
       }
       return (
         <RefNodeCard
           nid={nid}
-          partner_nid={partner_nid}
-          direction={this.props.direction}
-          offer={false}
-          key={item.eid}
+          to_nid={to_nid}
+          from_nid={from_nid}
+          key={edge.eid}
         />
       );
     });
@@ -467,7 +368,7 @@ class NodeCardImpl extends React.Component {
   componentDidUpdate(prevProps) {
     // Don't forget to compare props!
     if (this.props.nid !== prevProps.nid) {
-      this.fetchData();
+      this.fetchEdges();
     }
   }
 
@@ -476,7 +377,7 @@ class NodeCardImpl extends React.Component {
   }
 
   componentDidMount() {
-    this.fetchData();
+    this.fetchEdges();
   }
 
   isEditingStart() {
@@ -485,7 +386,7 @@ class NodeCardImpl extends React.Component {
       : false;
   }
 
-  fetchData = () => {
+  fetchEdges = () => {
     axios
       .get("/api/node/" + this.props.nid, {
         cancelToken: this.fetchCancelToken.token,
@@ -588,18 +489,67 @@ class NodeCardImpl extends React.Component {
 const NodeCard = withRouter(NodeCardImpl);
 
 class FullNodeView extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      edges_left: [],
+      edges_right: [],
+    };
+    this.fetchCancelToken = axios.CancelToken.source();
+  }
+
+  componentDidMount() {
+    this.fetchEdges();
+  }
+
+  componentWillUnmount() {
+    this.fetchCancelToken.cancel();
+  }
+
+  componentDidUpdate(prevProps) {
+    // Don't forget to compare props!
+    if (this.props.nid !== prevProps.nid) {
+      this.fetchEdges();
+    }
+  }
+
+  fetchEdges = () => {
+    axios
+      .get("/api/node/" + this.props.nid + "/edge", {
+        cancelToken: this.fetchCancelToken.token,
+      })
+      .catch(remoteErrorHandler(this.props.history))
+      .then((res) => {
+        if (res) {
+          var edges_left = [];
+          var edges_right = [];
+          res.data.edges.map((edge) => {
+            if (edge.from_nid === this.props.nid) {
+              edges_right.push(edge);
+            } else {
+              edges_left.push(edge);
+            }
+          });
+          this.setState({
+            edges_left: edges_left,
+            edges_right: edges_right,
+          });
+        }
+      });
+  };
+
   render() {
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">
           <Col xl={2} lg={2} md={3} sm={12} xs={10}>
-            <NodeRefs nid={this.props.nid} direction="to" />
+            <NodeRefs nid={this.props.nid} edges={this.state.edges_left} />
           </Col>
           <Col xl={6} lg={8} md={6} sm={12} xs={12}>
             <NodeCard nid={this.props.nid} />
           </Col>
           <Col xl={2} lg={2} md={3} sm={12} xs={10}>
-            <NodeRefs nid={this.props.nid} direction="from" />
+            <NodeRefs nid={this.props.nid} edges={this.state.edges_right} />
           </Col>
         </Row>
       </Container>
