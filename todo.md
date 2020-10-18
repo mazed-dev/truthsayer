@@ -1,13 +1,14 @@
 # Todo
 
- - [ ] Improve main page, it should reflect graph nature of notes and expose at least part of connections between found notes
- - [ ] Small cards on smart search results
+ - [ ] Draw lines from "in-text" references to other notes
  - [ ] Sticky links - the links that stick to all the "next" notes
- - [ ] Add the number of words and letters to the footer of the note along with last update time
- - [ ] Don't cut small notes in the middle of the line
- - [ ] DATA menu, to see details and edit in modal window
- - [ ] Notification feature from DATA menu
+ - [ ] Small cards on smart search results
  - [ ] Pencil should be sticky element
+ - [ ] Don't cut small notes in the middle of the line
+ - [ ] "Date" menu, to see details and edit in modal window
+ - [ ] Notification feature from DATA menu
+ - [ ] Publishing "mazes" like a stories with multiple lines and crossroads
+ - [ ] Add the number of words and letters to the footer of the note along with last update time
  - [ ] If cursor stays on the list point suggest next to be with a title with the text from the bullet point
  - [ ] Search input on nav bar should be __sticky__ and __centered__
  - [ ] Save and go on "next" and "previous" from smart menue
@@ -20,6 +21,8 @@
  - [ ] New button should be brighter - blue or grey or something. Bright!
  - [ ] Better styles for headers in note
  - [ ] Add simple vignette for notes
+
+ - [?] Improve main page, it should reflect graph nature of notes and expose at least part of connections between found notes
 
 ## Feedback
 
@@ -59,3 +62,4 @@
  - [x] Vertical toolbar for markdown editing
  - [x] Fix the position of scissors on referenec nodes
  - [x] Emoji as bullet points for lists in notes.
+ - [x] Infinite scrol on search

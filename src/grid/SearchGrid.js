@@ -5,15 +5,13 @@ import styles from "./SearchGrid.module.css";
 import PropTypes from "prop-types";
 import moment from "moment";
 import axios from "axios";
-import { Container, Row, Col, Button } from "react-bootstrap";
+import { Container, Row, Col } from "react-bootstrap";
 import { withRouter } from "react-router-dom";
 
 import NodeSmallCard from "./../NodeSmallCard";
 import remoteErrorHandler from "./../remoteErrorHandler";
 
 import { joinClasses } from "./../util/elClass.js";
-
-import LinkGraph from "./LinkGraph";
 
 function range(n, start, end) {
   if (start == null) {
@@ -46,12 +44,12 @@ class DynamicGrid extends React.Component {
   }
 
   updateWindowDimensions = () => {
-    // console.log(
-    //   "updateWindowDimensions",
-    //   window.innerWidth,
-    //   window.innerHeight
-    // );
-    // see NodeSmallCard.css.mazed_small_card.max-width
+    //* dbg */ console.log(
+    //* dbg */   "updateWindowDimensions",
+    //* dbg */   window.innerWidth,
+    //* dbg */   window.innerHeight
+    //* dbg */ );
+    //* dbg */ see NodeSmallCard.css.mazed_small_card.max-width
     const fontSize = parseFloat(
       getComputedStyle(document.documentElement).fontSize
     );
@@ -59,7 +57,7 @@ class DynamicGrid extends React.Component {
       const nf = window.innerWidth / (fontSize * (1 + cardWidth));
       const n = Math.floor(nf);
       const delta = nf - n;
-      // console.log("delta", delta, n, cardWidth);
+      //* dbg */ console.log("delta", delta, n, cardWidth);
       return [delta, n];
     };
     // const opt = range(4, 16)
@@ -84,10 +82,14 @@ class DynamicGrid extends React.Component {
       const colCards = this.props.cards.filter((_, card_ind) => {
         return card_ind % this.state.ncols === col_ind;
       });
-      return <Col
-        className={joinClasses(styles.grid_col)}
-        key={"cards_column_" + col_ind}
-      >{colCards}</Col>;
+      return (
+        <Col
+          className={joinClasses(styles.grid_col)}
+          key={"cards_column_" + col_ind}
+        >
+          {colCards}
+        </Col>
+      );
     });
     return (
       <Container fluid className={joinClasses(styles.grid_container)}>
@@ -107,6 +109,7 @@ class SearchGrid extends React.Component {
     super(props);
     this.state = {
       nodes: [],
+      since_days_ago: 0,
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
@@ -116,18 +119,20 @@ class SearchGrid extends React.Component {
   };
 
   componentDidMount() {
+    window.addEventListener("scroll", this.handleScroll, { passive: true });
     this.fetchData();
-  }
-
-  componentDidUpdate(prevProps) {
-    if (this.props.q !== prevProps.q) {
-      this.setState({ cards: [] });
-      this.fetchData();
-    }
   }
 
   componentWillUnmount() {
     this.fetchCancelToken.cancel();
+    window.removeEventListener("scroll", this.handleScroll);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.q !== prevProps.q) {
+      this.setState({ cards: [], since_days_ago: 0 });
+      this.fetchData();
+    }
   }
 
   fetchData = () => {
@@ -156,11 +161,21 @@ class SearchGrid extends React.Component {
           };
         });
         this.setState((state) => {
-          console.log("Nodes", nodes);
-          return { nodes: state.nodes.concat(nodes) };
+          return {
+            nodes: state.nodes.concat(nodes),
+            since_days_ago: upd_days_ago_after,
+          };
         });
-        const sz = this.state.nodes.length + nodes.length;
-        if (sz < 32 && upd_days_ago_after < 366 /* ~1 year */) {
+        //* dbg */ console.log(
+        //* dbg */   "Scroll",
+        //* dbg */   window.innerHeight,
+        //* dbg */   document.documentElement.scrollTop,
+        //* dbg */   document.documentElement.offsetHeight
+        //* dbg */ );
+        const screenIsFull =
+          window.innerHeight + document.documentElement.scrollTop <
+          document.documentElement.offsetHeight;
+        if (!screenIsFull && upd_days_ago_after < 366 /* ~1 year */) {
           this.fetchDataIteration(
             upd_days_ago_after + 30,
             upd_days_ago_before + 30
@@ -170,27 +185,54 @@ class SearchGrid extends React.Component {
       .catch(remoteErrorHandler(this.props.history));
   };
 
+  handleScroll = () => {
+    //* dbg */ console.log(
+    //* dbg */   "Scroll",
+    //* dbg */   window.innerHeight,
+    //* dbg */   document.documentElement.scrollTop,
+    //* dbg */   document.documentElement.offsetHeight
+    //* dbg */ );
+    if (
+      window.innerHeight + document.documentElement.scrollTop !==
+      document.documentElement.offsetHeight
+    ) {
+      return;
+    }
+    //* dbg */ console.log(
+    //* dbg */   "Fetch more list items",
+    //* dbg */   this.state.since_days_ago + 30,
+    //* dbg */   this.state.since_days_ago
+    //* dbg */ );
+    this.fetchDataIteration(
+      this.state.since_days_ago + 30,
+      this.state.since_days_ago
+    );
+  };
+
   render() {
     var used = {};
-    const cards = this.state.nodes.filter((item) => {
-      if (item.nid in used) {
-        return false;
-      }
-      used[item.nid] = true;
-      return true;
-    }).map((item) => {
-      return (
-        <NodeSmallCard
-          nid={item.nid}
-          preface={item.preface}
-          crtd={item.crtd}
-          upd={item.upd}
-          key={item.nid}
-          skip_input_edge={false}
-          edges={item.edges}
-        />);
-    });
-    console.log("Cards", cards.length);
+    const cards = this.state.nodes
+      .filter((item) => {
+        if (item.nid in used) {
+          console.log("Search grid overlap", item.nid, item);
+          return false;
+        }
+        used[item.nid] = true;
+        return true;
+      })
+      .map((item) => {
+        return (
+          <NodeSmallCard
+            nid={item.nid}
+            preface={item.preface}
+            crtd={item.crtd}
+            upd={item.upd}
+            key={item.nid}
+            skip_input_edge={false}
+            edges={item.edges}
+          />
+        );
+      });
     return <DynamicGrid cards={cards} />;
   }
 }
