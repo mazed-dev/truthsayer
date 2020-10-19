@@ -82,9 +82,22 @@ class RefNodeCardImpl extends React.Component {
   };
 
   handleToggleStickiness = () => {
-    this.setState((state) => {
-      return { is_sticky: !state.is_sticky };
-    });
+    const reverted_is_sticky = !this.state.is_sticky;
+    const req = {
+      is_sticky: reverted_is_sticky,
+    };
+    axios
+      .patch("/api/edge/" + this.props.eid, req, {
+        cancelToken: this.fetchCancelToken.token,
+      })
+      .catch(remoteErrorHandler(this.props.history))
+      .then((res) => {
+        if (res) {
+          this.setState((state) => {
+            return { is_sticky: reverted_is_sticky };
+          });
+        }
+      });
   };
 
   render() {
@@ -349,6 +362,7 @@ class NodeRefsImpl extends React.Component {
       return (
         <RefNodeCard
           nid={nid}
+          eid={edge.eid}
           to_nid={to_nid}
           from_nid={from_nid}
           key={edge.eid}
