@@ -1,7 +1,7 @@
 # Todo
 
+ - [ ] Update refs of note at a time when they are changed, not after forced update
  - [ ] Draw lines from "in-text" references to other notes
- - [ ] Sticky links - the links that stick to all the "next" notes
  - [ ] Small cards on smart search results
  - [ ] Pencil should be sticky element
  - [ ] Don't cut small notes in the middle of the line
@@ -63,3 +63,4 @@
  - [x] Fix the position of scissors on referenec nodes
  - [x] Emoji as bullet points for lists in notes.
  - [x] Infinite scrol on search
+ - [x] Sticky links - the links that stick to all the "next" notes
