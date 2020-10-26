@@ -318,6 +318,10 @@ class LeftToolBarImpl extends React.Component {
       },
       cancelToken: this.fetchCancelToken.token,
     };
+    const add_sticky_edges_request = _createAddingStickyEdgesRequest(
+      this.props.sticky_edges,
+      this.props.nid
+    );
     const query =
       "?" +
       queryString.stringify({
@@ -329,7 +333,20 @@ class LeftToolBarImpl extends React.Component {
       .then((res) => {
         if (res) {
           const nid = res.data.nid;
-          this.props.history.push("/node/" + nid, { edit: true });
+          if (add_sticky_edges_request) {
+            axios
+              .post("/api/node/" + nid + "/edge", add_sticky_edges_request, {
+                cancelToken: this.fetchCancelToken.token,
+              })
+              .catch(remoteErrorHandler(this.props.history))
+              .then((res) => {
+                if (res) {
+                  this.props.history.push("/node/" + nid, { edit: true });
+                }
+              });
+          } else {
+            this.props.history.push("/node/" + nid, { edit: true });
+          }
         }
       });
   };
@@ -405,6 +422,11 @@ class RightToolBarImpl extends React.Component {
       modalShow: false,
     };
     this.fetchCancelToken = axios.CancelToken.source();
+    const add_sticky_edges_request = _createAddingStickyEdgesRequest(
+      this.props.sticky_edges,
+      this.props.nid
+    );
+    console.log("add_sticky_edges_request", add_sticky_edges_request);
   }
 
   static propTypes = {
@@ -429,13 +451,30 @@ class RightToolBarImpl extends React.Component {
       queryString.stringify({
         from: this.props.nid,
       });
+    const add_sticky_edges_request = _createAddingStickyEdgesRequest(
+      this.props.sticky_edges,
+      this.props.nid
+    );
     axios
       .post("/api/node/new" + query, value, config)
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
           const nid = res.data.nid;
-          this.props.history.push("/node/" + nid, { edit: true });
+          if (add_sticky_edges_request) {
+            axios
+              .post("/api/node/" + nid + "/edge", add_sticky_edges_request, {
+                cancelToken: this.fetchCancelToken.token,
+              })
+              .catch(remoteErrorHandler(this.props.history))
+              .then((res) => {
+                if (res) {
+                  this.props.history.push("/node/" + nid, { edit: true });
+                }
+              });
+          } else {
+            this.props.history.push("/node/" + nid, { edit: true });
+          }
         }
       });
   };
@@ -492,5 +531,35 @@ class RightToolBarImpl extends React.Component {
 }
 
 export const RightToolBar = withRouter(RightToolBarImpl);
+
+export function _createAddingStickyEdgesRequest(sticky_edges, prev_nid) {
+  if (sticky_edges == null) {
+    return null;
+  }
+  const edges = sticky_edges
+    .map((se) => {
+      if (se.is_sticky) {
+        if (se.to_nid === prev_nid) {
+          return {
+            from_nid: se.from_nid,
+            is_sticky: true,
+          };
+        } else if (se.from_nid === prev_nid) {
+          return {
+            to_nid: se.to_nid,
+            is_sticky: true,
+          };
+        }
+      }
+      return null;
+    })
+    .filter((item) => item != null);
+
+  return edges.length !== 0
+    ? {
+        edges: edges,
+      }
+    : null;
+}
 
 export default RightToolBar;

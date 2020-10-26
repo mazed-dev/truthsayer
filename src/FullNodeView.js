@@ -493,7 +493,10 @@ class NodeCardImpl extends React.Component {
     return (
       <Row className="d-flex justify-content-center p-0">
         <Col className="mazed_note_toolbar_col">
-          <LeftToolBar nid={this.props.nid} />
+          <LeftToolBar
+            nid={this.props.nid}
+            sticky_edges={this.props.sticky_edges}
+          />
         </Col>
         <Col className="mazed_note_card_col">
           <Card className="meta-fluid-container mazed_note_card">
@@ -507,7 +510,10 @@ class NodeCardImpl extends React.Component {
           </Card>
         </Col>
         <Col className="mazed_note_toolbar_col">
-          <RightToolBar nid={this.props.nid}>
+          <RightToolBar
+            nid={this.props.nid}
+            sticky_edges={this.props.sticky_edges}
+          >
             {this.state.aux_toolbar}
           </RightToolBar>
         </Col>
@@ -582,7 +588,10 @@ class FullNodeView extends React.Component {
             <NodeRefs nid={this.props.nid} edges={this.state.edges_left} />
           </Col>
           <Col xl={6} lg={8} md={6} sm={12} xs={12}>
-            <NodeCard nid={this.props.nid} />
+            <NodeCard
+              nid={this.props.nid}
+              sticky_edges={this.state.edges_sticky}
+            />
           </Col>
           <Col xl={2} lg={2} md={3} sm={12} xs={10}>
             <NodeRefs nid={this.props.nid} edges={this.state.edges_right} />
