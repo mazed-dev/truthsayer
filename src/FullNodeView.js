@@ -39,7 +39,7 @@ class RefNodeCardImpl extends React.Component {
       crtd: moment().unix(),
       upd: moment().unix(),
       is_deleted: false,
-      is_sticky: props.is_sticky,
+      is_sticky: props.edge.is_sticky,
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
@@ -96,6 +96,7 @@ class RefNodeCardImpl extends React.Component {
           this.setState((state) => {
             return { is_sticky: reverted_is_sticky };
           });
+          this.props.switchStickiness(this.props.edge, reverted_is_sticky);
         }
       });
   };
@@ -359,6 +360,8 @@ class NodeRefsImpl extends React.Component {
         to_nid = edge.to_nid;
         nid = edge.from_nid;
       }
+      // cutOffRef={this.props.cutOffRef}
+      // addRef={this.props.addRef}
       return (
         <RefNodeCard
           nid={nid}
@@ -366,7 +369,8 @@ class NodeRefsImpl extends React.Component {
           to_nid={to_nid}
           from_nid={from_nid}
           key={edge.eid}
-          is_sticky={edge.is_sticky}
+          edge={edge}
+          switchStickiness={this.props.switchStickiness}
         />
       );
     });
@@ -561,7 +565,7 @@ class FullNodeView extends React.Component {
           var edges_left = [];
           var edges_right = [];
           var edges_sticky = [];
-          res.data.edges.map((edge) => {
+          res.data.edges.forEach((edge) => {
             if (edge.from_nid === this.props.nid) {
               edges_right.push(edge);
             } else {
@@ -580,12 +584,77 @@ class FullNodeView extends React.Component {
       });
   };
 
+  cutOffLeftRef = (eid) => {
+    this.setState((state) => {
+      const rm = (edge) => edge.eid !== eid;
+      return {
+        edges_left: state.edges_left.filter(rm),
+        edges_sticky: state.edges_sticky.filter(rm),
+      };
+    });
+  };
+
+  cutOffRightRef = (eid) => {
+    this.setState((state) => {
+      const rm = (edge) => edge.eid !== eid;
+      return {
+        edges_right: state.edges_right.filter(rm),
+        edges_sticky: state.edges_sticky.filter(rm),
+      };
+    });
+  };
+
+  addLeftRef = (edge) => {
+    this.setState((state) => {
+      return {
+        edges_left: state.edges_left.concat([edge]),
+      };
+    });
+  };
+
+  addRightRef = (edge) => {
+    this.setState((state) => {
+      return {
+        edges_right: state.edges_right.concat([edge]),
+      };
+    });
+  };
+
+  switchStickiness = (edge, on = false) => {
+    if (on) {
+      edge.is_sticky = true;
+      this.setState((state) => {
+        return {
+          edges_sticky: state.edges_sticky.concat([edge]),
+        };
+      });
+    } else {
+      const rm = (e) => edge.eid !== e.eid;
+      this.setState((state) => {
+        const filtered = state.edges_sticky.filter(rm);
+        return {
+          edges_sticky: filtered,
+        };
+      });
+    }
+  };
+
   render() {
+    // cut off the ref
+    // make sticky
+    // set stickiness
+    // switch stickiness
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">
           <Col xl={2} lg={2} md={3} sm={12} xs={10}>
-            <NodeRefs nid={this.props.nid} edges={this.state.edges_left} />
+            <NodeRefs
+              nid={this.props.nid}
+              edges={this.state.edges_left}
+              cutOffRef={this.cutOffLeftRef}
+              addRef={this.addLeftRef}
+              switchStickiness={this.switchStickiness}
+            />
           </Col>
           <Col xl={6} lg={8} md={6} sm={12} xs={12}>
             <NodeCard
@@ -594,7 +663,13 @@ class FullNodeView extends React.Component {
             />
           </Col>
           <Col xl={2} lg={2} md={3} sm={12} xs={10}>
-            <NodeRefs nid={this.props.nid} edges={this.state.edges_right} />
+            <NodeRefs
+              nid={this.props.nid}
+              edges={this.state.edges_right}
+              cutOffRef={this.cutOffRightRef}
+              addRef={this.addRightRef}
+              switchStickiness={this.switchStickiness}
+            />
           </Col>
         </Row>
       </Container>
