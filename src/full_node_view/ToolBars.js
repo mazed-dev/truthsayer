@@ -43,7 +43,7 @@ export class NextSearchRefItem extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      disabled: false,
+      added: false,
     };
     this.addNodeRefCancelToken = axios.CancelToken.source();
   }
@@ -66,20 +66,32 @@ export class NextSearchRefItem extends React.Component {
       from_nid = this.props.dst_nid;
       to_nid = this.props.nid;
     }
-    const req = {
-      from_nid: from_nid,
-      txt: "next",
-      weight: 100,
-    };
-    axios
-      .post("/api/node/" + to_nid + "/to", req, {
+    const edges = [
+      {
+        from_nid: from_nid,
+        to_nid: to_nid,
+      },
+    ];
+    const req = { edges: edges };
+    return axios
+      .post("/api/node/" + to_nid + "/edge", req, {
         cancelToken: this.addNodeRefCancelToken.token,
       })
       .then((res) => {
         if (res) {
-          this.setState({
-            disabled: true,
-          });
+          this.setState({ added: true });
+          const edges = res.data.edges;
+          if (edges.length === 0) {
+            console.log("Error, no edge was created from [next] click");
+            return;
+          }
+          if (edges.length !== 1) {
+            console.log(
+              "Warning, more than 1 edge were created from [next] click. User first one."
+            );
+          }
+          const edge = edges[0];
+          this.props.addRef(edge);
         }
       });
   };
@@ -111,7 +123,7 @@ export class NextSearchRefItem extends React.Component {
           <Button
             variant="outline-secondary"
             onClick={this.handleSumbit}
-            disabled={this.state.disabled}
+            disabled={this.state.added}
           >
             {img}
           </Button>
@@ -158,6 +170,8 @@ class NextSearchModalDialog extends React.Component {
               upd={meta.upd}
               on_insert={this.props.on_insert}
               ref={React.createRef()}
+              left={this.props.left}
+              addRef={this.props.addRef}
             />
           );
         });
@@ -280,6 +294,8 @@ class NextSearchModal extends React.Component {
           on_insert={this.props.on_insert}
           nid={this.props.nid}
           on_hide={this.props.onHide}
+          left={this.props.left}
+          addRef={this.props.addRef}
         />
       </Modal>
     );
@@ -396,6 +412,7 @@ class LeftToolBarImpl extends React.Component {
           onHide={this.hideSearchDialog}
           nid={this.props.nid}
           left={true}
+          addRef={this.props.addRef}
         />
       </>
     );
@@ -498,6 +515,7 @@ class RightToolBarImpl extends React.Component {
           onHide={this.hideSearchDialog}
           nid={this.props.nid}
           right={true}
+          addRef={this.props.addRef}
         />
       </>
     );
@@ -568,7 +586,7 @@ function __addStickyEdges(sticky_edges, new_nid, prev_nid, cancelToken) {
     })
     .then((res) => {
       if (res) {
-        return res.data.eids;
+        return res.data.edges;
       }
     });
 }

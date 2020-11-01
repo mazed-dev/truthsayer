@@ -38,7 +38,6 @@ class RefNodeCardImpl extends React.Component {
       preface: "",
       crtd: moment().unix(),
       upd: moment().unix(),
-      is_deleted: false,
       is_sticky: props.edge.is_sticky,
     };
     this.fetchCancelToken = axios.CancelToken.source();
@@ -76,7 +75,7 @@ class RefNodeCardImpl extends React.Component {
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
-          this.setState({ is_deleted: true });
+          this.props.cutOffRef(this.props.eid);
         }
       });
   };
@@ -102,9 +101,6 @@ class RefNodeCardImpl extends React.Component {
   };
 
   render() {
-    if (this.state.is_deleted) {
-      return <></>;
-    }
     var toolbar;
     if (this.state.hover) {
       const stickinessEl = this.state.is_sticky ? (
@@ -360,7 +356,6 @@ class NodeRefsImpl extends React.Component {
         to_nid = edge.to_nid;
         nid = edge.from_nid;
       }
-      // cutOffRef={this.props.cutOffRef}
       // addRef={this.props.addRef}
       return (
         <RefNodeCard
@@ -371,6 +366,7 @@ class NodeRefsImpl extends React.Component {
           key={edge.eid}
           edge={edge}
           switchStickiness={this.props.switchStickiness}
+          cutOffRef={this.props.cutOffRef}
         />
       );
     });
@@ -500,6 +496,7 @@ class NodeCardImpl extends React.Component {
           <LeftToolBar
             nid={this.props.nid}
             sticky_edges={this.props.sticky_edges}
+            addRef={this.props.addLeftRef}
           />
         </Col>
         <Col className="mazed_note_card_col">
@@ -517,6 +514,7 @@ class NodeCardImpl extends React.Component {
           <RightToolBar
             nid={this.props.nid}
             sticky_edges={this.props.sticky_edges}
+            addRef={this.props.addRightRef}
           >
             {this.state.aux_toolbar}
           </RightToolBar>
@@ -624,8 +622,9 @@ class FullNodeView extends React.Component {
     if (on) {
       edge.is_sticky = true;
       this.setState((state) => {
+        const new_sticky_edges = state.edges_sticky.concat([edge]);
         return {
-          edges_sticky: state.edges_sticky.concat([edge]),
+          edges_sticky: new_sticky_edges,
         };
       });
     } else {
@@ -652,7 +651,6 @@ class FullNodeView extends React.Component {
               nid={this.props.nid}
               edges={this.state.edges_left}
               cutOffRef={this.cutOffLeftRef}
-              addRef={this.addLeftRef}
               switchStickiness={this.switchStickiness}
             />
           </Col>
@@ -660,6 +658,8 @@ class FullNodeView extends React.Component {
             <NodeCard
               nid={this.props.nid}
               sticky_edges={this.state.edges_sticky}
+              addLeftRef={this.addLeftRef}
+              addRightRef={this.addRightRef}
             />
           </Col>
           <Col xl={2} lg={2} md={3} sm={12} xs={10}>
@@ -667,7 +667,6 @@ class FullNodeView extends React.Component {
               nid={this.props.nid}
               edges={this.state.edges_right}
               cutOffRef={this.cutOffRightRef}
-              addRef={this.addRightRef}
               switchStickiness={this.switchStickiness}
             />
           </Col>

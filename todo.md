@@ -1,5 +1,7 @@
 # Todo
 
+ - [ ] Remove `node/<nid>/(to|from)` endpoints in favour of `node/<nid>/edge`
+ - [ ] Toolpannel is a part of small card - take is as an argument
  - [ ] Update refs of note at a time when they are changed, not after forced update
  - [ ] Draw lines from "in-text" references to other notes
  - [ ] Small cards on smart search results
