@@ -13,8 +13,6 @@ import CutTheRefImg from "./full_node_view/img/cut-the-ref.svg";
 import NodeSmallCard from "./NodeSmallCard";
 import { MdCardRender } from "./markdown/MarkdownRender";
 
-import Emoji from "./Emoji";
-
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 

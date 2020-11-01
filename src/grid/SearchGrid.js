@@ -130,7 +130,7 @@ class SearchGrid extends React.Component {
 
   componentDidUpdate(prevProps) {
     if (this.props.q !== prevProps.q) {
-      this.setState({ cards: [], since_days_ago: 0 });
+      this.setState({ nodes: [], since_days_ago: 0 });
       this.fetchData();
     }
   }
