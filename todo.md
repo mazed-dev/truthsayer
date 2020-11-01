@@ -2,7 +2,8 @@
 
  - [ ] Remove `node/<nid>/(to|from)` endpoints in favour of `node/<nid>/edge`
  - [ ] Toolpannel is a part of small card - take is as an argument
- - [ ] Update refs of note at a time when they are changed, not after forced update
+ - [ ] Check lists should look like check lists
+ - [ ] Check lists should be interactive in read mode
  - [ ] Draw lines from "in-text" references to other notes
  - [ ] Small cards on smart search results
  - [ ] Pencil should be sticky element
@@ -66,3 +67,4 @@
  - [x] Emoji as bullet points for lists in notes.
  - [x] Infinite scrol on search
  - [x] Sticky links - the links that stick to all the "next" notes
+ - [x] Update refs of note at a time when they are changed, not after forced update
