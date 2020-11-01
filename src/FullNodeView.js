@@ -1,6 +1,14 @@
 import React from "react";
 
 import "./FullNodeView.css";
+import styles from "./FullNodeView.module.css";
+
+import StickyOnImg from "./full_node_view/img/sticky-on.svg";
+import StickyAddImg from "./full_node_view/img/sticky-add.svg";
+import StickyAddHoverImg from "./full_node_view/img/sticky-add-hover.svg";
+import StickyRemoveImg from "./full_node_view/img/sticky-remove.svg";
+
+import CutTheRefImg from "./full_node_view/img/cut-the-ref.svg";
 
 import NodeSmallCard from "./NodeSmallCard";
 import { MdCardRender } from "./markdown/MarkdownRender";
@@ -29,6 +37,60 @@ import {
 
 import axios from "axios";
 import moment from "moment";
+
+class StickinessSwitcher extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      on: this.props.on,
+      hover: false,
+    };
+  }
+
+  onHover = () => {
+    this.setState({ hover: true });
+  };
+
+  offHover = () => {
+    this.setState({ hover: false });
+  };
+
+  switch = () => {
+    const off = !this.state.on;
+    this.setState({ on: off });
+    this.props.switch(off);
+  };
+
+  render() {
+    var img;
+    var alt;
+    if (this.state.on) {
+      if (this.state.hover) {
+        img = StickyRemoveImg;
+      } else {
+        img = StickyOnImg;
+      }
+      alt = "Make not sticky";
+    } else {
+      if (this.state.hover) {
+        img = StickyAddHoverImg;
+      } else {
+        img = StickyAddImg;
+      }
+      alt = "Make sticky";
+    }
+    return (
+      <Button
+        variant="outline-light"
+        onClick={this.switch}
+        onMouseEnter={this.onHover}
+        onMouseLeave={this.offHover}
+      >
+        <img src={img} className={styles.btn_img} alt={alt} />
+      </Button>
+    );
+  }
+}
 
 class RefNodeCardImpl extends React.Component {
   constructor(props) {
@@ -80,10 +142,9 @@ class RefNodeCardImpl extends React.Component {
       });
   };
 
-  handleToggleStickiness = () => {
-    const reverted_is_sticky = !this.state.is_sticky;
+  handleToggleStickiness = (on) => {
     const req = {
-      is_sticky: reverted_is_sticky,
+      is_sticky: on,
     };
     axios
       .patch("/api/edge/" + this.props.eid, req, {
@@ -93,9 +154,9 @@ class RefNodeCardImpl extends React.Component {
       .then((res) => {
         if (res) {
           this.setState((state) => {
-            return { is_sticky: reverted_is_sticky };
+            return { is_sticky: on };
           });
-          this.props.switchStickiness(this.props.edge, reverted_is_sticky);
+          this.props.switchStickiness(this.props.edge, on);
         }
       });
   };
@@ -103,19 +164,19 @@ class RefNodeCardImpl extends React.Component {
   render() {
     var toolbar;
     if (this.state.hover) {
-      const stickinessEl = this.state.is_sticky ? (
-        <Emoji symbol="🔒" label="lock" />
-      ) : (
-        <Emoji symbol="🔓" label="unlock" />
-      );
       toolbar = (
         <ButtonGroup>
-          <Button variant="outline-dark" onClick={this.handleRefCutOff}>
-            <Emoji symbol="✂" label="cut off" />
+          <Button variant="light" onClick={this.handleRefCutOff}>
+            <img
+              src={CutTheRefImg}
+              className={styles.btn_img}
+              alt={"cut off the ref"}
+            />
           </Button>
-          <Button variant="outline-dark" onClick={this.handleToggleStickiness}>
-            {stickinessEl}
-          </Button>
+          <StickinessSwitcher
+            on={this.props.edge.is_sticky}
+            switch={this.handleToggleStickiness}
+          />
         </ButtonGroup>
       );
     }
