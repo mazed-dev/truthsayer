@@ -1,0 +1,27 @@
+.checklist_box {
+  float: left;
+  margin-right: 0.6rem;
+}
+
+.checklist_box:checked {
+  background: black;
+}
+
+.checkbox {
+  height: 1rem;
+  width: 1rem;
+
+  border: 1px solid #c1c2c3;
+  display: inline-block;
+}
+
+.container {
+  display: block;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  margin-right: 0.6rem;
+}

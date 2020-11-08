@@ -12,6 +12,8 @@ import list_style from "./MarkdownList.module.css";
 import ReactMarkdown from "react-markdown";
 import Emoji from "./../Emoji";
 
+import CheckBox from "./CheckBox";
+
 function MarkdownHeading({ level, children, sourcePosition, ...rest }) {
   var hdr_el;
   // TODO(akindyakov): add markdown title anchors
@@ -168,49 +170,76 @@ function isEmoji(ch) {
   );
 }
 
+function tryToMakeEmojiListItem(elements) {
+  if (elements.length > 0 && elements[0].props && elements[0].props.value) {
+    const value = elements[0].props.value.trim();
+    const ch = value.split(" ", 1)[0];
+    if (isEmoji(ch)) {
+      const suff = value.slice(ch.length).trim();
+      const firstKid = MarkdownText({
+        children: suff,
+        sourcePosition: {},
+      });
+      elements.shift();
+      return (
+        <>
+          <div className={list_style.emoji_list_item_before}>{ch}</div>
+          <li className={list_style.unordered_list_item}>
+            {firstKid} {elements}
+          </li>
+        </>
+      );
+    }
+  }
+  return null;
+}
+
 function MarkdownListItem({
   children,
   ordered,
   index,
   sourcePosition,
+  checked,
   ...rest
 }) {
-  if (!ordered && children.length && children.length > 0) {
-    const firstItem = children[0];
-    if (firstItem.props && firstItem.props.value) {
-      const value = firstItem.props.value.trim();
-      const ch = value.split(" ", 1)[0];
-      if (isEmoji(ch)) {
-        const suff = value.slice(ch.length).trim();
-        const firstKid = MarkdownText({
-          children: suff,
-          sourcePosition: {},
-        });
-        children.shift();
-        return (
-          <>
-            <div className={list_style.emoji_list_item_before}>{ch}</div>
-            <li className={list_style.unordered_list_item}>
-              {firstKid} {children}
-            </li>
-          </>
-        );
-      } else {
-        const depth =
-          sourcePosition.indent.length > 0
-            ? Math.floor(sourcePosition.indent[0] / 2)
-            : 0;
-        const pt = genListPointStyle(depth);
-        return (
-          <>
-            <div className={list_style.unordered_list_item_before}> {pt} </div>
-            <li className={list_style.unordered_list_item}> {children} </li>
-          </>
-        );
-      }
-    }
+  const checkbox =
+    checked == null ? null : (
+      <CheckBox
+        is_checked={checked}
+        className={list_style.unordered_list_item_before}
+      />
+    );
+  if (ordered) {
+    return (
+      <li className={list_style.ordered_list_item}>
+        {checkbox}
+        {children}
+      </li>
+    );
   }
-  return <li className={list_style.ordered_list_item}>{children}</li>;
+  if (checkbox != null) {
+    return (
+      <>
+        {checkbox}
+        <li className={list_style.unordered_list_item}> {children} </li>
+      </>
+    );
+  }
+  const emojiListItem = tryToMakeEmojiListItem(children);
+  if (emojiListItem) {
+    return emojiListItem;
+  }
+  const depth =
+    sourcePosition.indent.length > 0
+      ? Math.floor(sourcePosition.indent[0] / 2)
+      : 0;
+  const pt = genListPointStyle(depth);
+  return (
+    <>
+      <div className={list_style.unordered_list_item_before}> {pt} </div>
+      <li className={list_style.unordered_list_item}> {children} </li>
+    </>
+  );
 }
 
 export function MdCardRender({ source }) {

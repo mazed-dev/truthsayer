@@ -23,10 +23,10 @@
   justify-content: flex-end;
 }
 
-
 .unordered_list_item_before {
   float: left;
   width: 1rem;
   display: flex;
   justify-content: flex-end;
 }
+
