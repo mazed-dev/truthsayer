@@ -692,13 +692,13 @@ class FullNodeView extends React.Component {
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">
-          <Col className={styles.node_refs}>
+          <Col>
             <NodeRefs
               nid={this.props.nid}
               edges={this.state.edges_left}
               cutOffRef={this.cutOffLeftRef}
               switchStickiness={this.switchStickiness}
-              className={styles.test_test}
+              className={styles.node_refs_left}
             />
           </Col>
           <Col className={styles.toolbar_col}>
