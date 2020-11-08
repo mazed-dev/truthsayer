@@ -4,6 +4,8 @@ import { Button, Row, Col } from "react-bootstrap";
 
 import axios from "axios";
 
+import queryString from "query-string";
+
 export class NextRefSmartItem extends React.Component {
   constructor(props) {
     super(props);
@@ -26,32 +28,19 @@ export class NextRefSmartItem extends React.Component {
       },
       cancelToken: this.addNodeRefCancelToken.token,
     };
-    return axios.post("/api/node/new", txt, config).then((res) => {
+    var query = {};
+    if (this.props.from_nid) {
+      query.from = this.props.from_nid;
+    } else if (this.props.to_nid) {
+      query.to = this.props.to_nid;
+    }
+    return axios.post("/api/node/new?" + queryString.stringify(query), txt, config).then((res) => {
       if (res) {
         const nid = res.data.nid;
-        this.addNodeReference(nid);
+        const replacement = "[" + this.props.title + "](" + nid + ")";
+        this.props.on_insert(replacement);
       }
     });
-  };
-
-  addNodeReference = (new_nid) => {
-    var from_nid = this.props.from_nid ? this.props.from_nid : new_nid;
-    var to_nid = this.props.to_nid ? this.props.to_nid : new_nid;
-    const req = {
-      from_nid: from_nid,
-      txt: "next",
-      weight: 100,
-    };
-    axios
-      .post("/api/node/" + to_nid + "/to", req, {
-        cancelToken: this.addNodeRefCancelToken.token,
-      })
-      .then((res) => {
-        if (res) {
-          const replacement = "[" + this.props.title + "](" + new_nid + ")";
-          this.props.on_insert(replacement);
-        }
-      });
   };
 
   render() {

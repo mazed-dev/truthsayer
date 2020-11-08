@@ -126,14 +126,11 @@ class RefNodeCardImpl extends React.Component {
   };
 
   handleRefCutOff = () => {
-    var to_nid = this.props.to_nid != null ? this.props.to_nid : this.props.nid;
-    var from_nid =
-      this.props.from_nid != null ? this.props.from_nid : this.props.nid;
     const req = {
-      from: from_nid,
+      eid: this.props.eid,
     };
     axios
-      .delete("/api/node/" + to_nid + "/to", {
+      .delete("/api/node/x/edge", {
         cancelToken: this.fetchCancelToken.token,
         data: req,
       })

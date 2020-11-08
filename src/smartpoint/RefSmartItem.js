@@ -44,12 +44,13 @@ export class RefSmartItem extends React.Component {
 
   addNodeReference = () => {
     const req = {
-      from_nid: this.props.from_nid,
-      txt: "next",
-      weight: 100,
+      edges: [{
+        from_nid: this.props.from_nid,
+        to_nid: this.props.nid,
+      }],
     };
     axios
-      .post("/api/node/" + this.props.nid + "/to", req, {
+      .post("/api/node/" + this.props.nid + "/edge", req, {
         cancelToken: this.addNodeRefCancelToken.token,
       })
       .then((res) => {

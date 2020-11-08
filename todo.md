@@ -1,6 +1,5 @@
 # Todo
 
- - [ ] Remove `node/<nid>/(to|from)` endpoints in favour of `node/<nid>/edge`
  - [ ] Toolpannel is a part of small card - take is as an argument
  - [ ] Check lists should look like check lists
  - [ ] Check lists should be interactive in read mode
@@ -69,3 +68,4 @@
  - [x] Sticky links - the links that stick to all the "next" notes
  - [x] Update refs of note at a time when they are changed, not after forced update
  - [x] Fix "new" button, it doesn't work now. Make it black-gray-white style.
+ - [x] Remove `node/<nid>/(to|from)` endpoints in favour of `node/<nid>/edge`
