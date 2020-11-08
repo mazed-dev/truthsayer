@@ -13,7 +13,7 @@ import MdToolbarIconEmojiList from "./img/markdown-tool-unordered-emoji-list.svg
 import MdToolbarUnorderedList from "./img/markdown-tool-unordered-list.svg";
 
 import { joinClasses } from "../util/elClass.js";
-import { NO_EXT_CLICK_DETECTION } from "./../FullNodeView";
+import { NO_EXT_CLICK_DETECTION } from "./FullNodeView";
 import { EMOJI_LIST_PRESETS } from "./EmojiListPresets";
 
 import { Button, ButtonGroup } from "react-bootstrap";

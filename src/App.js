@@ -1,7 +1,7 @@
 import React from "react";
 
 import DoodledBird from "./DoodledBird.svg";
-import FullNodeView from "./FullNodeView";
+import FullNodeView from "./full_node_view/FullNodeView";
 import SearchGrid from "./grid/SearchGrid";
 
 // React router

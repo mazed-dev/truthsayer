@@ -3,24 +3,24 @@ import React from "react";
 import "./FullNodeView.css";
 import styles from "./FullNodeView.module.css";
 
-import StickyOnImg from "./full_node_view/img/sticky-on.svg";
-import StickyAddImg from "./full_node_view/img/sticky-add.svg";
-import StickyAddHoverImg from "./full_node_view/img/sticky-add-hover.svg";
-import StickyRemoveImg from "./full_node_view/img/sticky-remove.svg";
+import StickyOnImg from "./img/sticky-on.svg";
+import StickyAddImg from "./img/sticky-add.svg";
+import StickyAddHoverImg from "./img/sticky-add-hover.svg";
+import StickyRemoveImg from "./img/sticky-remove.svg";
 
-import CutTheRefImg from "./full_node_view/img/cut-the-ref.svg";
+import CutTheRefImg from "./img/cut-the-ref.svg";
 
-import NodeSmallCard from "./NodeSmallCard";
-import { MdCardRender } from "./markdown/MarkdownRender";
+import NodeSmallCard from "./../NodeSmallCard";
+import { MdCardRender } from "./../markdown/MarkdownRender";
 
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
-import remoteErrorHandler from "./remoteErrorHandler";
-import AutocompleteWindow from "./smartpoint/AutocompleteWindow";
+import remoteErrorHandler from "./../remoteErrorHandler";
+import AutocompleteWindow from "./../smartpoint/AutocompleteWindow";
 
-import { LeftToolBar, RightToolBar } from "./full_node_view/ToolBars.js";
-import { MarkdownToolbar } from "./full_node_view/MarkdownToolBar.js";
+import { LeftToolBar, RightToolBar } from "./ToolBars.js";
+import { MarkdownToolbar } from "./MarkdownToolBar.js";
 
 import {
   Card,
