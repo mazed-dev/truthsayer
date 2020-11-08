@@ -68,3 +68,4 @@
  - [x] Infinite scrol on search
  - [x] Sticky links - the links that stick to all the "next" notes
  - [x] Update refs of note at a time when they are changed, not after forced update
+ - [x] Fix "new" button, it doesn't work now. Make it black-gray-white style.

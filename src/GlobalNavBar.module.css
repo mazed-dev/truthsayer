@@ -1,0 +1,16 @@
+.new_btn_img {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.new_btn {
+  border-width: 1px;
+  border-radius: 5px;
+  margin-left: 0.4rem;
+  padding: 0.4rem;
+}
+
+.new_btn:hover {
+  border: 1px solid #888888;
+  box-shadow: 1px 1px #888888;
+}

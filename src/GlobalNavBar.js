@@ -1,5 +1,7 @@
 import React from "react";
 
+import styles from "./GlobalNavBar.module.css";
+
 // React router
 import { Link, useLocation } from "react-router-dom";
 
@@ -19,6 +21,9 @@ import queryString from "query-string";
 import { withRouter } from "react-router-dom";
 
 import user_default_pic from "./user-default-pic.png";
+
+import NewImg from "./img/new-button.svg";
+import NewUploadImg from "./img/new-upload-button.svg";
 
 class SearchInputImpl extends React.Component {
   constructor(props) {
@@ -142,66 +147,98 @@ class UserPic extends React.Component {
 
 const SearchInput = withRouter(SearchInputImpl);
 
-function GlobalNavBar() {
-  const location = useLocation();
-  const params = queryString.parse(location.search);
-  var q = params["q"];
-  if (!q) {
-    q = "";
+class GlobalNavBar extends React.Component {
+  constructor(props) {
+    super(props);
+    this.fetchCancelToken = axios.CancelToken.source();
   }
-  const userpic = <UserPic />;
-  return (
-    <Navbar bg="light" variant="light" size="sm" className="py-1">
-      <Navbar.Brand as={Link} to="/" className="d-inline-flex ml-1 mr-2">
-        <span role="img" aria-label="next">
-          &#x1F9F5;
-        </span>
-        <div className="d-none d-sm-none d-md-block"> Mazed </div>
-      </Navbar.Brand>
-      <SearchInput className="ml-auto" from={q} />
-      <Dropdown as={ButtonGroup} size="sm" className="px-2">
-        <Button variant="outline-success" as={Link} to="/node/.new">
-          add
+
+  static propTypes = {
+    location: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired,
+  };
+
+  handleNewClick = (event) => {
+    const value = "";
+    const config = {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+      },
+      cancelToken: this.fetchCancelToken.token,
+    };
+    axios.post("/api/node/new", value, config).then((res) => {
+      if (res) {
+        const new_nid = res.data.nid;
+        this.props.history.push("/node/" + new_nid, { edit: true });
+      }
+    });
+  };
+
+  render() {
+    const location = this.props.location;
+    const params = queryString.parse(location.search);
+    var q = params["q"];
+    if (!q) {
+      q = "";
+    }
+    const userpic = <UserPic />;
+    return (
+      <Navbar bg="light" variant="light" size="sm" className="py-1">
+        <Navbar.Brand as={Link} to="/" className="d-inline-flex ml-1 mr-2">
+          <span role="img" aria-label="next">
+            &#x1F9F5;
+          </span>
+          <div className="d-none d-sm-none d-md-block"> Mazed </div>
+        </Navbar.Brand>
+        <SearchInput className="ml-auto" from={q} />
+        <Button
+          variant="outline-light"
+          as={Link}
+          to="/upload-file"
+          className={styles.new_btn}
+        >
+          <img
+            src={NewUploadImg}
+            className={styles.new_btn_img}
+            alt="New note"
+          />
         </Button>
-        <Dropdown.Toggle
-          split
-          variant="outline-success"
-          id="dropdown-custom-2"
-        />
-        <Dropdown.Menu className="super-colors">
-          <Dropdown.Item eventKey="1" as={Link} to="/upload-file">
-            Upload from file
-          </Dropdown.Item>
-        </Dropdown.Menu>
-      </Dropdown>
-      <NavDropdown
-        title={userpic}
-        id="account-nav-dropdown"
-        className="ml-auto userpic-dropdown mr-1"
-      >
-        <NavDropdown.Item as={Link} to="/user-preferences">
-          Manage your account
-        </NavDropdown.Item>
-        <NavDropdown.Item as={Link} to="/help">
-          Help
-        </NavDropdown.Item>
-        <NavDropdown.Divider />
-        <NavDropdown.Item as={Link} to="/about">
-          About knotledge
-        </NavDropdown.Item>
-        <NavDropdown.Item as={Link} to="/privacy-policy">
-          Privacy Policy
-        </NavDropdown.Item>
-        <NavDropdown.Item as={Link} to="/terms-of-service">
-          Terms of Service
-        </NavDropdown.Item>
-        <NavDropdown.Divider />
-        <NavDropdown.Item as={Link} to="/logout">
-          log out
-        </NavDropdown.Item>
-      </NavDropdown>
-    </Navbar>
-  );
+        <Button
+          variant="outline-light"
+          onClick={this.handleNewClick}
+          className={styles.new_btn}
+        >
+          <img src={NewImg} className={styles.new_btn_img} alt="New note" />
+        </Button>
+        <NavDropdown
+          title={userpic}
+          id="account-nav-dropdown"
+          className="ml-auto userpic-dropdown mr-1"
+        >
+          <NavDropdown.Item as={Link} to="/user-preferences">
+            Manage your account
+          </NavDropdown.Item>
+          <NavDropdown.Item as={Link} to="/help">
+            Help
+          </NavDropdown.Item>
+          <NavDropdown.Divider />
+          <NavDropdown.Item as={Link} to="/about">
+            About knotledge
+          </NavDropdown.Item>
+          <NavDropdown.Item as={Link} to="/privacy-policy">
+            Privacy Policy
+          </NavDropdown.Item>
+          <NavDropdown.Item as={Link} to="/terms-of-service">
+            Terms of Service
+          </NavDropdown.Item>
+          <NavDropdown.Divider />
+          <NavDropdown.Item as={Link} to="/logout">
+            log out
+          </NavDropdown.Item>
+        </NavDropdown>
+      </Navbar>
+    );
+  }
 }
 
 export default withRouter(GlobalNavBar);

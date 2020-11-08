@@ -20,7 +20,8 @@ _REPO_PATH="./"
 
 ## Local var
 
-_PKG_PATH="${_TARGET_DIR}/${_NAME}-${_VERSION}.tag.gz"
+_PKG_FILE="${_NAME}-${_VERSION}.tag.gz"
+_PKG_PATH="${_TARGET_DIR}/${_PKG_FILE}"
 
 ## Build
 
@@ -34,3 +35,8 @@ tar \
   --file "${_PKG_PATH}" \
   ${_REPO_PATH}/build \
 
+## Ready
+
+echo "Package is ready!"
+echo "Copy it to the server by : scp -P 5326 ${_PKG_PATH} \[2a03:b0c0:1:e0::443:5001\]:"
+echo "Unpack on the service by : tar --extract --gzip --file=${_PKG_PATH}"
