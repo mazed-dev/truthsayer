@@ -11,6 +11,8 @@ import StickyRemoveImg from "./img/sticky-remove.svg";
 import CutTheRefImg from "./img/cut-the-ref.svg";
 
 import NodeSmallCard from "./../NodeSmallCard";
+import small_card_styles from "./../NodeSmallCard.module.css";
+
 import { MdCardRender } from "./../markdown/MarkdownRender";
 
 import PropTypes from "prop-types";
@@ -21,6 +23,8 @@ import AutocompleteWindow from "./../smartpoint/AutocompleteWindow";
 
 import { LeftToolBar, RightToolBar } from "./ToolBars.js";
 import { MarkdownToolbar } from "./MarkdownToolBar.js";
+
+import { joinClasses } from "../util/elClass.js";
 
 import {
   Card,
@@ -79,7 +83,8 @@ class StickinessSwitcher extends React.Component {
     }
     return (
       <Button
-        variant="outline-light"
+        variant=""
+        className={styles.on_card_btn}
         onClick={this.switch}
         onMouseEnter={this.onHover}
         onMouseLeave={this.offHover}
@@ -164,7 +169,11 @@ class RefNodeCardImpl extends React.Component {
     if (this.state.hover) {
       toolbar = (
         <ButtonGroup>
-          <Button variant="light" onClick={this.handleRefCutOff}>
+          <Button
+            variant=""
+            className={styles.on_card_btn}
+            onClick={this.handleRefCutOff}
+          >
             <img
               src={CutTheRefImg}
               className={styles.btn_img}
@@ -180,7 +189,10 @@ class RefNodeCardImpl extends React.Component {
     }
     return (
       <div
-        className="meta-fluid-container"
+        className={joinClasses(
+          "meta-fluid-container",
+          small_card_styles.small_card_width
+        )}
         onMouseEnter={this.onHover}
         onMouseLeave={this.offHover}
       >
@@ -415,7 +427,6 @@ class NodeRefsImpl extends React.Component {
         to_nid = edge.to_nid;
         nid = edge.from_nid;
       }
-      // addRef={this.props.addRef}
       return (
         <RefNodeCard
           nid={nid}
@@ -429,7 +440,7 @@ class NodeRefsImpl extends React.Component {
         />
       );
     });
-    return <>{refs}</>;
+    return <div className={this.props.className}>{refs}</div>;
   }
 }
 
@@ -443,7 +454,6 @@ class NodeCardImpl extends React.Component {
       crtd: moment(),
       upd: moment(),
       edit: this.isEditingStart(),
-      aux_toolbar: <></>,
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
@@ -518,14 +528,6 @@ class NodeCardImpl extends React.Component {
     this.setState({ edit: !this.state.edit });
   };
 
-  resetAuxToolbar = (el) => {
-    if (el) {
-      this.setState({ aux_toolbar: el });
-    } else {
-      this.setState({ aux_toolbar: <></> });
-    }
-  };
-
   render() {
     const upd = this.state.upd.fromNow();
     const toolbar = (
@@ -543,42 +545,22 @@ class NodeCardImpl extends React.Component {
           value={this.state.text}
           nid={this.props.nid}
           onExit={this.onEditExit_}
-          resetAuxToolbar={this.resetAuxToolbar}
+          resetAuxToolbar={this.props.resetAuxToolbar}
         />
       );
     } else {
       text_el = <MdCardRender source={this.state.text} />;
     }
     return (
-      <Row className="d-flex justify-content-center p-0">
-        <Col className="mazed_note_toolbar_col">
-          <LeftToolBar
-            nid={this.props.nid}
-            sticky_edges={this.props.sticky_edges}
-            addRef={this.props.addLeftRef}
-          />
-        </Col>
-        <Col className="mazed_note_card_col">
-          <Card className="meta-fluid-container mazed_note_card">
-            <div className="meta-fluid-el-top-right">{toolbar}</div>
-            <Card.Body className="p-3 m-2">{text_el}</Card.Body>
-            <footer className="text-right m-2">
-              <small className="text-muted">
-                <i>Updated {upd}</i>
-              </small>
-            </footer>
-          </Card>
-        </Col>
-        <Col className="mazed_note_toolbar_col">
-          <RightToolBar
-            nid={this.props.nid}
-            sticky_edges={this.props.sticky_edges}
-            addRef={this.props.addRightRef}
-          >
-            {this.state.aux_toolbar}
-          </RightToolBar>
-        </Col>
-      </Row>
+      <Card className="meta-fluid-container">
+        <div className="meta-fluid-el-top-right">{toolbar}</div>
+        <Card.Body className="p-3 m-2">{text_el}</Card.Body>
+        <footer className="text-right m-2">
+          <small className="text-muted">
+            <i>Updated {upd}</i>
+          </small>
+        </footer>
+      </Card>
     );
   }
 }
@@ -592,6 +574,7 @@ class FullNodeView extends React.Component {
       edges_left: [],
       edges_right: [],
       edges_sticky: [],
+      aux_toolbar: <></>,
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
@@ -697,31 +680,53 @@ class FullNodeView extends React.Component {
     }
   };
 
+  resetAuxToolbar = (el) => {
+    if (el) {
+      this.setState({ aux_toolbar: el });
+    } else {
+      this.setState({ aux_toolbar: <></> });
+    }
+  };
+
   render() {
-    // cut off the ref
-    // make sticky
-    // set stickiness
-    // switch stickiness
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">
-          <Col xl={2} lg={2} md={3} sm={12} xs={10}>
+          <Col className={styles.node_refs}>
             <NodeRefs
               nid={this.props.nid}
               edges={this.state.edges_left}
               cutOffRef={this.cutOffLeftRef}
               switchStickiness={this.switchStickiness}
+              className={styles.test_test}
             />
           </Col>
-          <Col xl={6} lg={8} md={6} sm={12} xs={12}>
+          <Col className={styles.toolbar_col}>
+            <LeftToolBar
+              nid={this.props.nid}
+              sticky_edges={this.state.edges_sticky}
+              addRef={this.addLeftRef}
+            />
+          </Col>
+          <Col className={styles.note_col}>
             <NodeCard
               nid={this.props.nid}
               sticky_edges={this.state.edges_sticky}
               addLeftRef={this.addLeftRef}
               addRightRef={this.addRightRef}
+              resetAuxToolbar={this.resetAuxToolbar}
             />
           </Col>
-          <Col xl={2} lg={2} md={3} sm={12} xs={10}>
+          <Col className={styles.toolbar_col}>
+            <RightToolBar
+              nid={this.props.nid}
+              sticky_edges={this.state.edges_sticky}
+              addRef={this.addRightRef}
+            >
+              {this.state.aux_toolbar}
+            </RightToolBar>
+          </Col>
+          <Col className={styles.refs_col}>
             <NodeRefs
               nid={this.props.nid}
               edges={this.state.edges_right}

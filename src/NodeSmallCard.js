@@ -128,7 +128,7 @@ class NodeSmallCard extends React.Component {
     );
     return (
       <Card
-        className={joinClasses(shd, styles.small_card)}
+        className={joinClasses(shd, styles.small_card, styles.small_card_width)}
         onClick={this.onClick}
         nid={this.props.nid}
         ref={this.props.cardRef}

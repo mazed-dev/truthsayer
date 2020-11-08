@@ -27,7 +27,7 @@
 }
 
 .toolbar_group {
-  padding-bottom: 5px;
+  padding-bottom: 0.5rem;
 }
 
 .toolbar_btn {
@@ -37,9 +37,11 @@
   border-style: solid;
   border-width: 1px;
   border-radius: 4px;
+
+  padding: 0.5rem;
 }
 
 .toolbar_btn_img {
-  width: 1.2rem;
-  height: 1.2rem;
+  width: 1.6rem;
+  height: 1.6rem;
 }

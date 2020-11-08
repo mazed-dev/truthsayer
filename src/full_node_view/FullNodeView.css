@@ -99,17 +99,8 @@
   display: 1;
 }
 
-.mazed_note_toolbar_col {
-  max-width: 4.4rem;
-}
-
 .mazed_note_card_col {
   padding: 0;
-  max-width: 42rem;
-  min-width: 12rem;
-}
-
-.mazed_note_card {
   max-width: 42rem;
   min-width: 12rem;
 }

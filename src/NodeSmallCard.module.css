@@ -4,8 +4,6 @@
 }
 
 .small_card {
-  max-width: 21rem;
-  min-width: 16rem;
   margin-top: 0rem;
   margin-bottom: 1rem;
   margin-left: 0rem;
@@ -16,12 +14,19 @@
   min-height: 8rem;
 }
 
+.small_card_width {
+  max-width: 21rem;
+  min-width: 16rem;
+}
+
 @media (max-width: 768px) {
   .small_card {
-    max-width: 20rem;
-    min-width: 10rem;
     /*height: 18rem;*/
     min-height: 4rem;
+  }
+  .small_card_width {
+    max-width: 20rem;
+    min-width: 10rem;
   }
 }
 
