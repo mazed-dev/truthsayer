@@ -1,6 +1,8 @@
 # Todo
 
- - [ ] Chunked doc editing
+ - [ ] Chunked doc editing - new chunk on 2 new lines
+ - [ ] Button for list item to create right-link from this item
+ - [ ] Drag-and-drop for paragraps and list items
  - [ ] Small cards on smart search results
  - [ ] Toolpannel is a part of small card - take is as an argument
  - [ ] Check lists should be interactive in read mode
@@ -70,3 +72,4 @@
  - [x] Fix "new" button, it doesn't work now. Make it black-gray-white style.
  - [x] Remove `node/<nid>/(to|from)` endpoints in favour of `node/<nid>/edge`
  - [x] Check lists should look like check lists
+ - [x] Chunked doc editing
