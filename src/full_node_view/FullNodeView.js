@@ -315,7 +315,7 @@ class NodeCardImpl extends React.Component {
 
   render() {
     const upd = this.state.upd.fromNow();
-    const toolbar = (
+    const toolbar = true ? null : (
       <ButtonGroup>
         <Button variant="light" size={"sm"} onClick={this.toggleEditMode}>
           <Emoji symbol="⋯" label="more" />
