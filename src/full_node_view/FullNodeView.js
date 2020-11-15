@@ -549,7 +549,7 @@ class NodeCardImpl extends React.Component {
       text_el = <MdCardRender source={this.state.text} />;
     }
     return (
-      <Card className="meta-fluid-container">
+      <Card className={joinClasses("meta-fluid-container", styles.full_card)}>
         <div className="meta-fluid-el-top-right">{toolbar}</div>
         <Card.Body className="p-3 m-2">{text_el}</Card.Body>
         <footer className="text-right m-2">

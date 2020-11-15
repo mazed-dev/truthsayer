@@ -34,13 +34,15 @@ export class NextRefSmartItem extends React.Component {
     } else if (this.props.to_nid) {
       query.to = this.props.to_nid;
     }
-    return axios.post("/api/node/new?" + queryString.stringify(query), txt, config).then((res) => {
-      if (res) {
-        const nid = res.data.nid;
-        const replacement = "[" + this.props.title + "](" + nid + ")";
-        this.props.on_insert(replacement);
-      }
-    });
+    return axios
+      .post("/api/node/new?" + queryString.stringify(query), txt, config)
+      .then((res) => {
+        if (res) {
+          const nid = res.data.nid;
+          const replacement = "[" + this.props.title + "](" + nid + ")";
+          this.props.on_insert(replacement);
+        }
+      });
   };
 
   render() {

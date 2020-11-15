@@ -2,6 +2,11 @@
  * Left and Right toolbars
  */
 
+:root {
+  --small_card_border_colour: rgba(0, 0, 0, 0.192);
+  --small_card_shadow_colour: rgba(0, 0, 0, 0.12);
+}
+
 .btn_img {
   width: 1.2rem;
   height: 1.2rem;
@@ -38,4 +43,9 @@
 .on_card_btn:hover {
   border: 1px solid #888888;
   box-shadow: 1px 1px #888888;
+}
+
+.full_card {
+  box-shadow:
+    1px 1px 4px 0px var(--small_card_shadow_colour);
 }

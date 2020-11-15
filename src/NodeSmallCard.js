@@ -43,17 +43,11 @@ class NodeSmallCard extends React.Component {
       upd: this.props.upd,
       edges: [],
     };
-    // this.cardRef = React.createRef();
   }
 
   static propTypes = {
-    match: PropTypes.object.isRequired,
     location: PropTypes.object.isRequired,
     history: PropTypes.object.isRequired,
-  };
-
-  static propTypes = {
-    location: PropTypes.object.isRequired,
   };
 
   componentDidUpdate(prevProps) {
@@ -63,11 +57,11 @@ class NodeSmallCard extends React.Component {
       }
     }
   }
+
   componentDidMount() {
     if (this.state.preface == null) {
       this.fetchPreface();
     }
-    // this.fetchEdges();
   }
 
   componentWillUnmount() {
@@ -81,27 +75,14 @@ class NodeSmallCard extends React.Component {
     });
   };
 
-  fetchEdges = () => {
-    axios
-      .get("/api/node/" + this.props.nid + "/edge", {
-        cancelToken: this.fetchEdgesCancelToken.token,
-      })
-      .catch(remoteErrorHandler(this.props.history))
-      .then((res) => {
-        if (res) {
-          this.setState({
-            edges: res.data.edges,
-          });
-        }
-      });
-  };
-
   fetchPreface = () => {
     axios
       .get("/api/node/" + this.props.nid, {
         cancelToken: this.fetchPrefaceCancelToken.token,
       })
-      .catch(remoteErrorHandler(this.props.history))
+      .catch((error) => {
+        console.log("Fetch node failed with error:", error);
+      })
       .then((res) => {
         if (res) {
           const text = res.data.toString();

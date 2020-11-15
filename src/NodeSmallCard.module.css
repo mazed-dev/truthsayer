@@ -8,10 +8,12 @@
   margin-bottom: 1rem;
   margin-left: 0rem;
   margin-right: 0rem;
-  border-color: var(--small_card_border_colour);
+  /* border-color: var(--small_card_border_colour); */
 
   /*height: 22rem;*/
   min-height: 8rem;
+
+  box-shadow: 1px 1px 4px 0px var(--small_card_shadow_colour);
 }
 
 .small_card_width {
