@@ -19,10 +19,8 @@ import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
 import remoteErrorHandler from "./../remoteErrorHandler";
-import AutocompleteWindow from "./../smartpoint/AutocompleteWindow";
 
 import { LeftToolBar, RightToolBar } from "./ToolBars.js";
-import { MarkdownToolbar } from "./MarkdownToolBar.js";
 
 import { joinClasses } from "../util/elClass.js";
 import { Emoji } from "../Emoji.js";
@@ -250,7 +248,6 @@ class NodeCardImpl extends React.Component {
       text: "",
       crtd: moment(),
       upd: moment(),
-      edit: this.isEditingStart(),
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
@@ -274,12 +271,6 @@ class NodeCardImpl extends React.Component {
 
   componentDidMount() {
     this.fetchNode();
-  }
-
-  isEditingStart() {
-    return this.props.location.state && this.props.location.state.edit
-      ? true
-      : false;
   }
 
   fetchNode = () => {
@@ -332,9 +323,9 @@ class NodeCardImpl extends React.Component {
       </ButtonGroup>
     );
     return (
-      <Card className={joinClasses("meta-fluid-container", styles.full_card)}>
-        <div className="meta-fluid-el-top-right">{toolbar}</div>
-        <Card.Body className="p-3 m-2">
+      <Card className={joinClasses(styles.fluid_container, styles.full_card)}>
+        <div className={joinClasses(styles.fluid_card_toolbar)}>{toolbar}</div>
+        <Card.Body className={joinClasses(styles.full_card_body)}>
           <CardRender
             doc={this.state.doc}
             nid={this.props.nid}

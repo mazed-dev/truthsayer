@@ -1,5 +1,7 @@
 import React from "react";
 
+import styles from "./chunks.module.css";
+
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
@@ -7,9 +9,6 @@ import { Button, ButtonGroup, InputGroup, Form } from "react-bootstrap";
 
 import axios from "axios";
 import moment from "moment";
-
-// FIXME(akindyakov)
-import "./../full_node_view/FullNodeView.css";
 
 import AutocompleteWindow from "./../smartpoint/AutocompleteWindow";
 import { Emoji } from "../Emoji.js";
@@ -36,13 +35,21 @@ export class ChunkRender extends React.Component {
   };
 
   render() {
+    // <Button
+    //   variant="light"
+    //   onClick={this.toggleEditMode}
+    //   className={joinClasses(styles.paragraph_toolbar_btn)}
+    // >
+    //   <Emoji symbol="⋯" label="more" />
+    // </Button>
     const toolbar = this.state.edit ? null : (
-      <ButtonGroup>
-        <Button variant="light" onClick={this.toggleEditMode} size="sm">
-          <Emoji symbol="✏️" label="edit" />
-        </Button>
-        <Button variant="light" onClick={this.toggleEditMode} size="sm">
-          <Emoji symbol="⋯" label="more" />
+      <ButtonGroup vertical>
+        <Button
+          variant="light"
+          onClick={this.toggleEditMode}
+          className={joinClasses(styles.paragraph_toolbar_btn)}
+        >
+          &#x270E;
         </Button>
       </ButtonGroup>
     );
@@ -61,8 +68,10 @@ export class ChunkRender extends React.Component {
       />
     );
     return (
-      <div className={joinClasses("meta-fluid-container")}>
-        <div className="meta-fluid-el-top-right">{toolbar}</div>
+      <div className={joinClasses(styles.fluid_container)}>
+        <div className={joinClasses(styles.fluid_paragraph_toolbar)}>
+          {toolbar}
+        </div>
         {card}
       </div>
     );
@@ -265,16 +274,6 @@ export class TextEditor extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {}
 
-  getHeightForText = (txt) => {
-    // It's a black magic for initial calculation of textarea height
-    // Fix it, if you know how
-    var lines = 2;
-    txt.split("\n").forEach(function (item, index) {
-      lines = lines + item.length / 71 + 1;
-    });
-    return Math.max(250, lines * 25);
-  };
-
   getAdjustedHeight = (el, minHeight) => {
     // compute the height difference which is caused by border and outline
     var outerHeight = parseInt(window.getComputedStyle(el).height, 10);
@@ -315,7 +314,7 @@ export class TextEditor extends React.Component {
             <Form.Control
               as="textarea"
               aria-label="With textarea"
-              className="mazed_editor"
+              className={joinClasses(styles.text_editor_input)}
               value={this.state.value}
               onChange={this.handleChange}
               style={{

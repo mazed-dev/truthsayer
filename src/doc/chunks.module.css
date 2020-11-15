@@ -1,0 +1,39 @@
+
+.fluid_container {
+  position: relative;
+}
+
+.fluid_paragraph_toolbar {
+  position: absolute;
+  top: 0;
+  right: -1.4rem;
+  z-index: 10;
+}
+
+.paragraph_toolbar_btn {
+  margin: 0;
+  padding: 0;
+
+  /*
+  width: 1.8rem;
+  height: 1.8rem;
+  */
+
+  background-color: #f6f7f8;
+  font-size: 1.4rem;
+}
+
+.paragraph_toolbar_btn:hover {
+  /*
+  border: 1px solid #888888;
+  */
+  background-color: #c8c9ca;
+}
+
+/**
+ * Text editor
+ */
+.text_editor_input {
+  padding-left: 2px;
+  padding-right: 2px;
+}
