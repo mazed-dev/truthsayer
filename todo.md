@@ -1,10 +1,10 @@
 # Todo
 
+ - [ ] Chunked doc editing
+ - [ ] Small cards on smart search results
  - [ ] Toolpannel is a part of small card - take is as an argument
- - [ ] Check lists should look like check lists
  - [ ] Check lists should be interactive in read mode
  - [ ] Draw lines from "in-text" references to other notes
- - [ ] Small cards on smart search results
  - [ ] Pencil should be sticky element
  - [ ] Don't cut small notes in the middle of the line
  - [ ] "Date" menu, to see details and edit in modal window
@@ -69,3 +69,4 @@
  - [x] Update refs of note at a time when they are changed, not after forced update
  - [x] Fix "new" button, it doesn't work now. Make it black-gray-white style.
  - [x] Remove `node/<nid>/(to|from)` endpoints in favour of `node/<nid>/edge`
+ - [x] Check lists should look like check lists

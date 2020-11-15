@@ -7,7 +7,8 @@ import moment from "moment";
 import { Card } from "react-bootstrap";
 import { withRouter } from "react-router-dom";
 
-import { MdSmallCardRender } from "./markdown/MarkdownRender";
+// import { MdSmallCardRender } from "./markdown/MarkdownRender";
+import { SmallCardRender, exctractDoc } from "./doc/doc";
 import remoteErrorHandler from "./remoteErrorHandler";
 
 import { joinClasses } from "./util/elClass.js";
@@ -85,14 +86,8 @@ class NodeSmallCard extends React.Component {
       })
       .then((res) => {
         if (res) {
-          const text = res.data.toString();
-          const preface = text
-            .slice(0, 300)
-            .split("\n", 11)
-            .slice(0, 7)
-            .join("\n");
           this.setState({
-            preface: preface,
+            doc: exctractDoc(res.data),
             crtd: moment(res.headers["x-created-at"]),
             upd: moment(res.headers["last-modified"]),
           });
@@ -115,7 +110,7 @@ class NodeSmallCard extends React.Component {
         ref={this.props.cardRef}
       >
         <Card.Body className="px-3 pt-2 pb-0">
-          <MdSmallCardRender source={this.state.preface} />
+          <SmallCardRender doc={this.state.doc} nid={this.props.nid} head={2} />
           &hellip;
         </Card.Body>
         <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">

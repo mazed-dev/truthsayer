@@ -292,4 +292,12 @@ export function MdSmallCardRender({ source }) {
   );
 }
 
+export function renderMdCard({ source }) {
+  return <MdCardRender source={source} />;
+}
+
+export function renderMdSmallCard({ source }) {
+  return <MdSmallCardRender source={source} />;
+}
+
 export default MdCardRender;
