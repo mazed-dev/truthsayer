@@ -39,7 +39,7 @@ class NodeSmallCard extends React.Component {
     this.fetchEdgesCancelToken = axios.CancelToken.source();
     this.fetchPrefaceCancelToken = axios.CancelToken.source();
     this.state = {
-      preface: this.props.preface,
+      doc: null,
       crtd: this.props.crtd,
       upd: this.props.upd,
       edges: [],
@@ -55,6 +55,10 @@ class NodeSmallCard extends React.Component {
     if (this.props.nid !== prevProps.nid) {
       if (this.state.preface == null) {
         this.fetchPreface();
+      } else {
+        this.setState({
+          doc: exctractDoc(this.props.preface),
+        });
       }
     }
   }
@@ -62,6 +66,10 @@ class NodeSmallCard extends React.Component {
   componentDidMount() {
     if (this.state.preface == null) {
       this.fetchPreface();
+    } else {
+      this.setState({
+        doc: exctractDoc(this.props.preface),
+      });
     }
   }
 

@@ -1,25 +1,21 @@
 import React from "react";
 
-// FIXME(akindyakov)
-import "./../full_node_view/FullNodeView.css";
-
-import { renderMdCard } from "./../markdown/MarkdownRender";
-
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
-
-import AutocompleteWindow from "./../smartpoint/AutocompleteWindow";
-
-import { MarkdownToolbar } from "../full_node_view/MarkdownToolBar.js";
-
-import { joinClasses } from "../util/elClass.js";
-
-import { Emoji } from "../Emoji.js";
 
 import { Button, ButtonGroup, InputGroup, Form } from "react-bootstrap";
 
 import axios from "axios";
 import moment from "moment";
+
+// FIXME(akindyakov)
+import "./../full_node_view/FullNodeView.css";
+
+import AutocompleteWindow from "./../smartpoint/AutocompleteWindow";
+import { Emoji } from "../Emoji.js";
+import { MarkdownToolbar } from "../full_node_view/MarkdownToolBar.js";
+import { joinClasses } from "../util/elClass.js";
+import { renderMdCard } from "./../markdown/MarkdownRender";
 
 export class ChunkRender extends React.Component {
   constructor(props) {
@@ -198,10 +194,7 @@ export class TextEditor extends React.Component {
   handleChange = (event) => {
     const value = event.target.value;
     const diff = event.nativeEvent.data;
-    this.setState({
-      value: value,
-      height: this.getAdjustedHeight(event.target, 20),
-    });
+    const ref = event.target;
     this.setState((state) => {
       // Check if it's a smartpoint
       var modSlashCounter = 0;
@@ -216,6 +209,8 @@ export class TextEditor extends React.Component {
       return {
         modSlashCounter: modSlashCounter,
         modalShow: modalShow,
+        value: value,
+        height: this.getAdjustedHeight(ref, 20),
       };
     });
   };

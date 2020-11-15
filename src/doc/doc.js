@@ -33,7 +33,6 @@ export class CardRenderImpl extends React.Component {
 
   static propTypes = {
     location: PropTypes.object.isRequired,
-    // history: PropTypes.object.isRequired,
   };
 
   onModifyChunk = (chunks, index) => {
