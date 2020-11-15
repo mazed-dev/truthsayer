@@ -46,36 +46,38 @@ export class CardRenderImpl extends React.Component {
   };
 
   isEditingStart() {
-    return this.props.location.state && this.props.location.state.edit
-      ? true
-      : false;
+    return this.props.location.state && this.props.location.state.edit;
   }
 
   render() {
-    var els = null;
-    if (this.props.doc && this.props.doc.chunks) {
-      const index_of_last = this.props.doc.chunks.length - 1;
-      els = this.props.doc.chunks.map((chunk, index) => {
-        if (chunk == null) {
-          chunk = createEmptyChunk();
-        }
-        const key = index.toString();
-        var edit_first = false;
-        if (index === index_of_last) {
-          edit_first = this.isEditingStart();
-        }
-        return (
-          <ChunkRender
-            chunk={chunk}
-            key={key}
-            index={index}
-            resetAuxToolbar={this.props.resetAuxToolbar}
-            onModify={this.onModifyChunk}
-            edit_first={edit_first}
-          />
-        );
-      });
-    }
+    const chunks =
+      this.props.doc &&
+      this.props.doc.chunks &&
+      this.props.doc.chunks.length > 0
+        ? this.props.doc.chunks
+        : [createEmptyChunk()];
+    console.log("chunks", chunks.length);
+    const index_of_last = chunks.length - 1;
+    const els = chunks.map((chunk, index) => {
+      if (chunk == null) {
+        chunk = createEmptyChunk();
+      }
+      const key = index.toString();
+      var edit_first = false;
+      // if (index === index_of_last) {
+      //   edit_first = this.isEditingStart();
+      // }
+      return (
+        <ChunkRender
+          chunk={chunk}
+          key={key}
+          index={index}
+          resetAuxToolbar={this.props.resetAuxToolbar}
+          onModify={this.onModifyChunk}
+          edit_first={edit_first}
+        />
+      );
+    });
     return <>{els}</>;
   }
 }

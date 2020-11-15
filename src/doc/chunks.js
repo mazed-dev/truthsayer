@@ -20,6 +20,7 @@ export class ChunkRender extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      // FIXME
       edit: this.props.edit_first,
     };
   }
