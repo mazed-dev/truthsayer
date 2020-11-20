@@ -171,12 +171,15 @@ class ChunkImageRender extends React.Component {
   }
 }
 
+const kEditorLineHeightPx = 38;
+const kMinEditorHeightPx = kEditorLineHeightPx + 2;
+
 export class TextEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       value: this.props.value,
-      height: 200,
+      height: this.getInitialHeight(this.props.value),
       modalShow: false,
       modSlashCounter: 0,
     };
@@ -220,7 +223,7 @@ export class TextEditor extends React.Component {
         modSlashCounter: modSlashCounter,
         modalShow: modalShow,
         value: value,
-        height: this.getAdjustedHeight(ref, 20),
+        height: this.getAdjustedHeight(ref, kMinEditorHeightPx),
       };
     });
   };
@@ -229,7 +232,10 @@ export class TextEditor extends React.Component {
     this.setState(
       {
         value: value,
-        height: this.getAdjustedHeight(this.textAreaRef.current, 20),
+        height: this.getAdjustedHeight(
+          this.textAreaRef.current,
+          kMinEditorHeightPx
+        ),
       },
       () => {
         this.textAreaRef.current.focus();
@@ -274,6 +280,19 @@ export class TextEditor extends React.Component {
   };
 
   componentDidUpdate(prevProps, prevState) {}
+
+  getInitialHeight = (text) => {
+    const lineHeight = 38;
+
+    const eols = text.match(/\n/g);
+    const numberOfLines = eols ? eols.length + 1 : 1;
+    const numberOfLinesByTextLength = text.length / 62;
+
+    return Math.max(
+      Math.max(numberOfLines, numberOfLinesByTextLength) * kEditorLineHeightPx,
+      kMinEditorHeightPx
+    );
+  };
 
   getAdjustedHeight = (el, minHeight) => {
     // compute the height difference which is caused by border and outline
