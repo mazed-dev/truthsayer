@@ -192,7 +192,7 @@ class GlobalNavBar extends React.Component {
         </Navbar.Brand>
         <SearchInput className="ml-auto" from={q} />
         <Button
-          variant="outline-light"
+          variant="light"
           as={Link}
           to="/upload-file"
           className={styles.new_btn}
@@ -204,7 +204,7 @@ class GlobalNavBar extends React.Component {
           />
         </Button>
         <Button
-          variant="outline-light"
+          variant="light"
           onClick={this.handleNewClick}
           className={styles.new_btn}
         >

@@ -3,12 +3,12 @@ import React from "react";
 import "./FullNodeView.css";
 import styles from "./FullNodeView.module.css";
 
-import StickyOnImg from "./img/sticky-on.svg";
-import StickyAddImg from "./img/sticky-add.svg";
-import StickyAddHoverImg from "./img/sticky-add-hover.svg";
-import StickyRemoveImg from "./img/sticky-remove.svg";
+import StickyOnImg from "./img/sticky-on.png";
+import StickyAddImg from "./img/sticky-add.png";
+import StickyAddHoverImg from "./img/sticky-add-hover.png";
+import StickyRemoveImg from "./img/sticky-remove.png";
 
-import CutTheRefImg from "./img/cut-the-ref.svg";
+import CutTheRefImg from "./img/cut-the-ref.png";
 
 import { CardRender, exctractDoc } from "./../doc/doc";
 

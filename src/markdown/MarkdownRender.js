@@ -6,7 +6,7 @@ import { Badge } from "react-bootstrap";
 import moment from "moment";
 
 import "./MarkdownRender.css";
-import list_style from "./MarkdownList.module.css";
+import styles from "./MarkdownList.module.css";
 
 // https://github.com/rexxars/react-markdown
 import ReactMarkdown from "react-markdown";
@@ -19,23 +19,53 @@ function MarkdownHeading({ level, children, sourcePosition, ...rest }) {
   // TODO(akindyakov): add markdown title anchors
   switch (level) {
     case 1:
-      hdr_el = <h1 {...rest}> {children} </h1>;
+      hdr_el = (
+        <h1 className={styles.header_1} {...rest}>
+          {" "}
+          {children}{" "}
+        </h1>
+      );
       break;
     case 2:
-      hdr_el = <h2 {...rest}> {children} </h2>;
+      hdr_el = (
+        <h2 className={styles.header_2} {...rest}>
+          {" "}
+          {children}{" "}
+        </h2>
+      );
       break;
     case 3:
-      hdr_el = <h3 {...rest}> {children} </h3>;
+      hdr_el = (
+        <h3 className={styles.header_3} {...rest}>
+          {" "}
+          {children}{" "}
+        </h3>
+      );
       break;
     case 4:
-      hdr_el = <h4 {...rest}> {children} </h4>;
+      hdr_el = (
+        <h4 className={styles.header_4} {...rest}>
+          {" "}
+          {children}{" "}
+        </h4>
+      );
       break;
     case 5:
-      hdr_el = <h5 {...rest}> {children} </h5>;
+      hdr_el = (
+        <h5 className={styles.header_5} {...rest}>
+          {" "}
+          {children}{" "}
+        </h5>
+      );
       break;
     case 6:
     default:
-      hdr_el = <h6 {...rest}> {children} </h6>;
+      hdr_el = (
+        <h6 className={styles.header_6} {...rest}>
+          {" "}
+          {children}{" "}
+        </h6>
+      );
       break;
   }
   return hdr_el;
@@ -121,6 +151,11 @@ function MarkdownText({ children, sourcePosition, ...rest }) {
   return <>{children}</>;
 }
 
+function MarkdownParagraph({ children, sourcePosition, ...rest }) {
+  console.log("Paragraph", rest);
+  return <p className={styles.paragraph}>{children}</p>;
+}
+
 const _LIST_POINT_OPTIONS = [
   <Emoji symbol="&#9679;" label="-" />,
   // <Emoji symbol="&#x233e;" label="-" />,
@@ -147,12 +182,12 @@ function genListPointStyle(d) {
 function MarkdownList({ children, ordered, start, depth, ...rest }) {
   if (ordered) {
     return (
-      <ol start={start} className={list_style.ordered_list}>
+      <ol start={start} className={styles.ordered_list}>
         {children}
       </ol>
     );
   }
-  return <ul className={list_style.unordered_list}>{children}</ul>;
+  return <ul className={styles.unordered_list}>{children}</ul>;
 }
 
 function isEmoji(ch) {
@@ -183,8 +218,8 @@ function tryToMakeEmojiListItem(elements) {
       elements.shift();
       return (
         <>
-          <div className={list_style.emoji_list_item_before}>{ch}</div>
-          <li className={list_style.unordered_list_item}>
+          <div className={styles.emoji_list_item_before}>{ch}</div>
+          <li className={styles.unordered_list_item}>
             {firstKid} {elements}
           </li>
         </>
@@ -206,12 +241,12 @@ function MarkdownListItem({
     checked == null ? null : (
       <CheckBox
         is_checked={checked}
-        className={list_style.unordered_list_item_before}
+        className={styles.unordered_list_item_before}
       />
     );
   if (ordered) {
     return (
-      <li className={list_style.ordered_list_item}>
+      <li className={styles.ordered_list_item}>
         {checkbox}
         {children}
       </li>
@@ -221,7 +256,7 @@ function MarkdownListItem({
     return (
       <>
         {checkbox}
-        <li className={list_style.unordered_list_item}> {children} </li>
+        <li className={styles.unordered_list_item}> {children} </li>
       </>
     );
   }
@@ -236,8 +271,8 @@ function MarkdownListItem({
   const pt = genListPointStyle(depth);
   return (
     <>
-      <div className={list_style.unordered_list_item_before}> {pt} </div>
-      <li className={list_style.unordered_list_item}> {children} </li>
+      <div className={styles.unordered_list_item_before}> {pt} </div>
+      <li className={styles.unordered_list_item}> {children} </li>
     </>
   );
 }
@@ -250,6 +285,7 @@ export function MdCardRender({ source }) {
       renderers={{
         heading: MarkdownHeading,
         text: MarkdownText,
+        paragraph: MarkdownParagraph,
         link: MarkdownLink,
         list: MarkdownList,
         listItem: MarkdownListItem,
@@ -283,6 +319,7 @@ export function MdSmallCardRender({ source }) {
       renderers={{
         heading: MarkdownHeading,
         text: MarkdownText,
+        paragraph: MarkdownParagraph,
         link: MarkdownLink,
         list: MarkdownList,
         listItem: MarkdownListItem,

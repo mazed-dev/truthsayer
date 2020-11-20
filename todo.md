@@ -7,7 +7,6 @@
  - [ ] Toolpannel is a part of small card - take is as an argument
  - [ ] Check lists should be interactive in read mode
  - [ ] Draw lines from "in-text" references to other notes
- - [ ] Pencil should be sticky element
  - [ ] Don't cut small notes in the middle of the line
  - [ ] "Date" menu, to see details and edit in modal window
  - [ ] Notification feature from DATA menu
@@ -73,3 +72,4 @@
  - [x] Remove `node/<nid>/(to|from)` endpoints in favour of `node/<nid>/edge`
  - [x] Check lists should look like check lists
  - [x] Chunked doc editing
+ - [-] Pencil should be sticky element, not needed, because editing is per paragraph

@@ -16,6 +16,9 @@ import { MarkdownToolbar } from "../full_node_view/MarkdownToolBar.js";
 import { joinClasses } from "../util/elClass.js";
 import { renderMdCard } from "./../markdown/MarkdownRender";
 
+import EditButtonImg from "./img/edit-button.png";
+import EditMoreButtonImg from "./img/edit-more-button.png";
+
 export class ChunkRender extends React.Component {
   constructor(props) {
     super(props);
@@ -36,13 +39,7 @@ export class ChunkRender extends React.Component {
   };
 
   render() {
-    // <Button
-    //   variant="light"
-    //   onClick={this.toggleEditMode}
-    //   className={joinClasses(styles.paragraph_toolbar_btn)}
-    // >
-    //   <Emoji symbol="⋯" label="more" />
-    // </Button>
+    // &#x270E;
     const toolbar = this.state.edit ? null : (
       <ButtonGroup vertical>
         <Button
@@ -50,7 +47,24 @@ export class ChunkRender extends React.Component {
           onClick={this.toggleEditMode}
           className={joinClasses(styles.paragraph_toolbar_btn)}
         >
-          &#x270E;
+          <img
+            src={EditButtonImg}
+            className={styles.btn_img}
+            alt={"Edit paragraph"}
+          />
+        </Button>
+        <Button
+          variant="light"
+          className={joinClasses(
+            styles.paragraph_toolbar_btn,
+            styles.paragraph_toolbar_more_btn
+          )}
+        >
+          <img
+            src={EditMoreButtonImg}
+            className={styles.btn_img}
+            alt={"Edit paragraph"}
+          />
         </Button>
       </ButtonGroup>
     );

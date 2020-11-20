@@ -2,14 +2,14 @@ import React from "react";
 
 import styles from "./ToolBars.module.css";
 
-import NextNewLeftImg from "./img/next-link-new-left.svg";
-import NextSearchLeftImg from "./img/next-link-search-left.svg";
+import NextNewLeftImg from "./img/next-link-new-left.png";
+import NextSearchLeftImg from "./img/next-link-search-left.png";
 
-import NextNewRightImg from "./img/next-link-new-right.svg";
-import NextSearchRightImg from "./img/next-link-search-right.svg";
+import NextNewRightImg from "./img/next-link-new-right.png";
+import NextSearchRightImg from "./img/next-link-search-right.png";
 
-import NextLeftImg from "./img/next-link-left.svg";
-import NextRightImg from "./img/next-link-right.svg";
+import NextLeftImg from "./img/next-link-left.png";
+import NextRightImg from "./img/next-link-right.png";
 
 import { MdSmallCardRender } from "./../markdown/MarkdownRender";
 

@@ -2,15 +2,15 @@ import React from "react";
 
 import styles from "./ToolBars.module.css";
 
-import MdToolbarIconEmphasis from "./img/markdown-tool-emphasis.svg";
-import MdToolbarIconHeader from "./img/markdown-tool-header.svg";
-import MdToolbarIconItalic from "./img/markdown-tool-italic.svg";
-import MdToolbarIconOrderedList from "./img/markdown-tool-ordered-list.svg";
-import MdToolbarIconScratched from "./img/markdown-tool-scratched.svg";
-import MdToolbarIconTable from "./img/markdown-tool-table.svg";
-import MdToolbarIconLink from "./img/markdown-tool-link.svg";
-import MdToolbarIconEmojiList from "./img/markdown-tool-unordered-emoji-list.svg";
-import MdToolbarUnorderedList from "./img/markdown-tool-unordered-list.svg";
+import MdToolbarIconEmphasis from "./img/markdown-tool-emphasis.png";
+import MdToolbarIconHeader from "./img/markdown-tool-header.png";
+import MdToolbarIconItalic from "./img/markdown-tool-italic.png";
+import MdToolbarIconOrderedList from "./img/markdown-tool-ordered-list.png";
+import MdToolbarIconScratched from "./img/markdown-tool-scratched.png";
+import MdToolbarIconTable from "./img/markdown-tool-table.png";
+import MdToolbarIconLink from "./img/markdown-tool-link.png";
+import MdToolbarIconEmojiList from "./img/markdown-tool-unordered-emoji-list.png";
+import MdToolbarUnorderedList from "./img/markdown-tool-unordered-list.png";
 
 import { joinClasses } from "../util/elClass.js";
 import { NO_EXT_CLICK_DETECTION } from "./FullNodeView";
