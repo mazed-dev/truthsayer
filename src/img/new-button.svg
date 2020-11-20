@@ -206,9 +206,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.04"
-     inkscape:cx="599.66603"
-     inkscape:cy="437.45569"
+     inkscape:zoom="1.0748023"
+     inkscape:cx="294.02511"
+     inkscape:cy="157.73242"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -219,7 +219,7 @@
      inkscape:snap-intersection-paths="true"
      inkscape:window-width="2558"
      inkscape:window-height="1414"
-     inkscape:window-x="0"
+     inkscape:window-x="1920"
      inkscape:window-y="24"
      inkscape:window-maximized="0"
      inkscape:snap-to-guides="false" />
@@ -240,16 +240,24 @@
      inkscape:groupmode="layer"
      id="layer1">
     <path
-       style="fill:none;stroke:#000000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:"
-       d="M 129.4451,7.180541 74.414614,100.38469 129.4451,193.58889"
+       style="fill:none;stroke:#000000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 127.49896,6.794492 72.468495,99.99864 127.49896,193.20284"
        id="path1238" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:18;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 100.009,9.8503505 100,190.15974"
+       style="fill:none;stroke:#000000;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 99.985965,32.637598 -0.007,134.722142"
        id="path1384-3-6" />
     <path
        id="path1384-3-6-7"
-       d="M 190.48599,100.01009 9.4590226,100"
-       style="fill:none;stroke:#000000;stroke-width:18;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+       d="M 167.58786,100.00245 32.329546,99.99345"
+       style="fill:none;stroke:#000000;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:6.11139;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:9.1;stroke-dasharray:none;paint-order:normal"
+       id="rect938"
+       width="193.88861"
+       height="193.8886"
+       x="3.038167"
+       y="3.0536561"
+       ry="41.044151" />
   </g>
 </svg>

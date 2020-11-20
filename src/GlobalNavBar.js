@@ -22,8 +22,8 @@ import { withRouter } from "react-router-dom";
 
 import user_default_pic from "./user-default-pic.png";
 
-import NewImg from "./img/new-button.svg";
-import NewUploadImg from "./img/new-upload-button.svg";
+import NewImg from "./img/new-button.png";
+import NewUploadImg from "./img/new-upload-button.png";
 
 class SearchInputImpl extends React.Component {
   constructor(props) {
