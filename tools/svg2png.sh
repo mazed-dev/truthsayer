@@ -8,6 +8,6 @@ for src in "$@"; do
   if [[ "$src" =~ svg$ ]]; then
     echo "Convert $src"
     dst=$(echo "$src" | sed -e 's/\.svg$/\.png/')
-    convert -background none -resize 75x75 "$src" "$dst"
+    convert -background none -resize 72x72 "$src" "$dst"
   fi
 done
