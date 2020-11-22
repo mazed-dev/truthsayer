@@ -36,6 +36,7 @@ import PasswordRecoverRequest from "./auth/PasswordRecoverRequest";
 import WaitingForApproval from "./auth/WaitingForApproval";
 import UserPreferences from "./UserPreferences";
 import WelcomePage from "./WelcomePage";
+import UserEncryption from "./UserEncryption";
 
 import authcache from "./auth/cache";
 
@@ -176,6 +177,12 @@ class App extends React.Component {
                 is_authenticated={this.state.is_authenticated}
               >
                 <UserPreferences />
+              </PrivateRoute>
+              <PrivateRoute
+                path="/user-encryption"
+                is_authenticated={this.state.is_authenticated}
+              >
+                <UserEncryption />
               </PrivateRoute>
               <Route path="/help">
                 <HelpInfo />

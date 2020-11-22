@@ -1,0 +1,29 @@
+.page {
+}
+
+.page_hdr {
+  margin: 1rem;
+}
+
+.encr_key {
+  display: block;
+  max-width: 12rem;
+
+  margin: 0;
+}
+
+.encr_value {
+  display: block;
+  width: 42rem;
+  padding: 0;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  color: grey;
+}
+
+.keys_list {
+  list-style-type: none;
+}
