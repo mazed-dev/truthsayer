@@ -11,7 +11,8 @@ import { withRouter } from "react-router-dom";
 import NodeSmallCard from "./../NodeSmallCard";
 import remoteErrorHandler from "./../remoteErrorHandler";
 
-import { searchByText } from "./../search/search.js";
+import { searchNodesInAttrs } from "./../search/search.js";
+import { extractIndexNGramsFromText } from "./../search/ngramsIndex.js";
 
 import { joinClasses } from "./../util/elClass.js";
 
@@ -138,22 +139,65 @@ class SearchGrid extends React.Component {
   }
 
   fetchData = () => {
-    const nodes = searchByText(this.props.q).map((nid) => {
-      return {
-        nid: nid,
-        preface: null,
-        crtd: moment(),
-        upd: moment(),
-        edges: [],
-      };
-    });
-    this.setState((state) => {
-      return {
-        nodes: state.nodes.concat(nodes),
-      };
-    });
-    this.fetchDataIteration(30, 0);
+    var ngrams = null;
+    if (this.props.q != null) {
+      ngrams = extractIndexNGramsFromText(this.props.q);
+    }
+    const upd_days_ago_after = 30;
+    const upd_days_ago_before = 0;
+    const offset = 0;
+    this.secureSearchIteration(upd_days_ago_after, upd_days_ago_before, offset, ngrams);
   };
+
+  secureSearchIteration = (upd_days_ago_after, upd_days_ago_before, offset, ngrams) => {
+    const req = {
+      upd_after: upd_days_ago_after,
+      upd_before: upd_days_ago_before,
+      offset: offset || 0,
+    };
+    axios
+      .post("/api/node-attrs-search", req, {
+        cancelToken: this.fetchCancelToken.token,
+      })
+      .then((res) => {
+        if (!res) {
+          // escalate
+          console.error("No response from back end");
+          return;
+        }
+        const isTimeIntervalExhausted = res.data.items.length === res.data.full_size;
+        console.log("Response from back end", res.data, upd_days_ago_after, upd_days_ago_before, offset, ngrams);
+        const nodes = searchNodesInAttrs(res.data.items, ngrams);
+        if (nodes.length === 0) {
+          console.log("Ngram search found nothing, fall back to old search type", this.props.q);
+          this.fetchDataIteration(upd_days_ago_after, upd_days_ago_before);
+          return;
+        }
+        this.setState((state) => {
+          return {
+            nodes: state.nodes.concat(nodes),
+            since_days_ago: upd_days_ago_after,
+          };
+        });
+        //* dbg */ console.log(
+        //* dbg */   "Scroll",
+        //* dbg */   window.innerHeight,
+        //* dbg */   document.documentElement.scrollTop,
+        //* dbg */   document.documentElement.offsetHeight
+        //* dbg */ );
+        const screenIsFull =
+          window.innerHeight + document.documentElement.scrollTop <
+          document.documentElement.offsetHeight;
+        if (!screenIsFull && upd_days_ago_after < 366 /* ~1 year */) {
+          if (isTimeIntervalExhausted) {
+            this.secureSearchIteration(upd_days_ago_after + 30, upd_days_ago_before + 30, 0, ngrams);
+          } else {
+            this.secureSearchIteration(upd_days_ago_after, upd_days_ago_before, res.data.offset + 100, ngrams);
+          }
+        }
+      })
+      .catch(remoteErrorHandler(this.props.history));
+  }
 
   fetchDataIteration = (upd_days_ago_after, upd_days_ago_before) => {
     const req = {
@@ -230,7 +274,7 @@ class SearchGrid extends React.Component {
     const cards = this.state.nodes
       .filter((item) => {
         if (item.nid in used) {
-          console.log("Search grid overlap", item.nid, item);
+          //*dbg*/ console.log("Search grid overlap", item.nid, item);
           return false;
         }
         used[item.nid] = true;

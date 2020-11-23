@@ -2,28 +2,64 @@ import { loadAll, storeOne } from "./cache.js";
 import {
   extractIndexNGramsFromDoc,
   extractIndexNGramsFromText,
-  invertNidIndex,
 } from "./ngramsIndex.js";
+import { unpackAttrs, packAttrs, } from "./attrs.js";
+
+import moment from "moment";
 
 export function updateDocInIndex(nid, doc) {
   const ngrams = extractIndexNGramsFromDoc(doc);
   storeOne(nid, ngrams);
 }
 
-export function searchByText(txt) {
-  if (!txt) {
-    return [];
+export function buildIndex(attrs) {
+  var nGramIndex = {};
+  var attrsByNid = {};
+  attrs.forEach((item) => {
+    const nid = item.nid;
+    attrsByNid[nid] = item;
+
+    const attrs = item.attrs ? unpackAttrs(item.attrs) : {};
+    if ("ngrams" in attrs) {
+      attrs.ngrams.forEach((ngr) => {
+        if (!(ngr in nGramIndex)) {
+          nGramIndex[ngr] = [nid];
+        } else {
+          nGramIndex[ngr].push(nid);
+        }
+      });
+    }
+  });
+  return {
+    // ngram -> [nid]
+    nGramIndex: nGramIndex,
+    // nid -> {ntype, crtd, upd, attrs}
+    attrsByNid: attrsByNid,
+  };
+}
+
+export function searchNodesInAttrs(nodeAttrs, ngrams) {
+  if (!ngrams || ngrams.length === 0) {
+    /*dbg*/ console.log("Shortcut for empty search");
+    return nodeAttrs.map(item => {
+      return {
+        nid: item.nid,
+        preface: null,
+        crtd: moment.unix(item.crtd),
+        upd: moment.unix(item.upd),
+        edges: [],
+      }
+    });
   }
-  const ngrams = extractIndexNGramsFromText(txt);
-  const nidToNgramsIndex = loadAll();
-  const ngramsIndex = invertNidIndex(nidToNgramsIndex, null);
+
+  const { nGramIndex, attrsByNid } = buildIndex(nodeAttrs);
 
   var frequencyMax = -1;
   var frequency = {};
 
   var nids = ngrams
     .map((ngr) => {
-      return ngramsIndex[ngr] || [];
+      return nGramIndex[ngr] || [];
     })
     .flat()
     .filter((nid) => {
@@ -36,9 +72,18 @@ export function searchByText(txt) {
       return true;
     });
   frequencyMax = Math.min(ngrams.length - 2, frequencyMax);
-  nids = nids.filter((nid) => {
+  const nodes = nids.filter((nid) => {
     return frequency[nid] >= frequencyMax;
+  }).map((nid) => {
+    const attrs = attrsByNid[nid];
+    return {
+      nid: nid,
+      preface: null,
+      crtd: moment.unix(attrs.crtd),
+      upd: moment.unix(attrs.upd),
+      edges: [],
+    }
   });
-  //*dbg*/ console.log("searchByText - found", txt, frequencyMax, ngrams.length, nids);
-  return nids;
+  /*dbg*/ console.log("searchNodesInAttrs - found", nodes.length, frequencyMax, ngrams.length);
+  return nodes;
 }

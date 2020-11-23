@@ -46,18 +46,3 @@ export function extractIndexNGramsFromDoc(doc) {
   }
   return ngrams;
 }
-
-export function invertNidIndex(nidToNgramsIndex, inverted) {
-  inverted = inverted || {};
-  nidToNgramsIndex.forEach((item) => {
-    const nid = item.nid;
-    item.ngrams.forEach((ngr) => {
-      if (!(ngr in inverted)) {
-        inverted[ngr] = [nid];
-      } else {
-        inverted[ngr].push(nid);
-      }
-    });
-  });
-  return inverted;
-}
