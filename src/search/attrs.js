@@ -15,7 +15,7 @@ export function packAttrs(attrs) {
 export function unpackAttrs(attrsStr) {
   try {
     return base64js.fromByteArray(attrsStr);
-  } catch(err) {
+  } catch (err) {
     console.error("Attribute unpack error: ", err);
   }
   return {};

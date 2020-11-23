@@ -146,10 +146,20 @@ class SearchGrid extends React.Component {
     const upd_days_ago_after = 30;
     const upd_days_ago_before = 0;
     const offset = 0;
-    this.secureSearchIteration(upd_days_ago_after, upd_days_ago_before, offset, ngrams);
+    this.secureSearchIteration(
+      upd_days_ago_after,
+      upd_days_ago_before,
+      offset,
+      ngrams
+    );
   };
 
-  secureSearchIteration = (upd_days_ago_after, upd_days_ago_before, offset, ngrams) => {
+  secureSearchIteration = (
+    upd_days_ago_after,
+    upd_days_ago_before,
+    offset,
+    ngrams
+  ) => {
     const req = {
       upd_after: upd_days_ago_after,
       upd_before: upd_days_ago_before,
@@ -165,11 +175,22 @@ class SearchGrid extends React.Component {
           console.error("No response from back end");
           return;
         }
-        const isTimeIntervalExhausted = res.data.items.length === res.data.full_size;
-        console.log("Response from back end", res.data, upd_days_ago_after, upd_days_ago_before, offset, ngrams);
+        const isTimeIntervalExhausted =
+          res.data.items.length === res.data.full_size;
+        console.log(
+          "Response from back end",
+          res.data,
+          upd_days_ago_after,
+          upd_days_ago_before,
+          offset,
+          ngrams
+        );
         const nodes = searchNodesInAttrs(res.data.items, ngrams);
         if (nodes.length === 0) {
-          console.log("Ngram search found nothing, fall back to old search type", this.props.q);
+          console.log(
+            "Ngram search found nothing, fall back to old search type",
+            this.props.q
+          );
           this.fetchDataIteration(upd_days_ago_after, upd_days_ago_before);
           return;
         }
@@ -190,14 +211,24 @@ class SearchGrid extends React.Component {
           document.documentElement.offsetHeight;
         if (!screenIsFull && upd_days_ago_after < 366 /* ~1 year */) {
           if (isTimeIntervalExhausted) {
-            this.secureSearchIteration(upd_days_ago_after + 30, upd_days_ago_before + 30, 0, ngrams);
+            this.secureSearchIteration(
+              upd_days_ago_after + 30,
+              upd_days_ago_before + 30,
+              0,
+              ngrams
+            );
           } else {
-            this.secureSearchIteration(upd_days_ago_after, upd_days_ago_before, res.data.offset + 100, ngrams);
+            this.secureSearchIteration(
+              upd_days_ago_after,
+              upd_days_ago_before,
+              res.data.offset + 100,
+              ngrams
+            );
           }
         }
       })
       .catch(remoteErrorHandler(this.props.history));
-  }
+  };
 
   fetchDataIteration = (upd_days_ago_after, upd_days_ago_before) => {
     const req = {

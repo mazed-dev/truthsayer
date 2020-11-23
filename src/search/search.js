@@ -3,7 +3,7 @@ import {
   extractIndexNGramsFromDoc,
   extractIndexNGramsFromText,
 } from "./ngramsIndex.js";
-import { unpackAttrs, packAttrs, } from "./attrs.js";
+import { unpackAttrs, packAttrs } from "./attrs.js";
 
 import moment from "moment";
 
@@ -41,14 +41,14 @@ export function buildIndex(attrs) {
 export function searchNodesInAttrs(nodeAttrs, ngrams) {
   if (!ngrams || ngrams.length === 0) {
     /*dbg*/ console.log("Shortcut for empty search");
-    return nodeAttrs.map(item => {
+    return nodeAttrs.map((item) => {
       return {
         nid: item.nid,
         preface: null,
         crtd: moment.unix(item.crtd),
         upd: moment.unix(item.upd),
         edges: [],
-      }
+      };
     });
   }
 
@@ -72,18 +72,25 @@ export function searchNodesInAttrs(nodeAttrs, ngrams) {
       return true;
     });
   frequencyMax = Math.min(ngrams.length - 2, frequencyMax);
-  const nodes = nids.filter((nid) => {
-    return frequency[nid] >= frequencyMax;
-  }).map((nid) => {
-    const attrs = attrsByNid[nid];
-    return {
-      nid: nid,
-      preface: null,
-      crtd: moment.unix(attrs.crtd),
-      upd: moment.unix(attrs.upd),
-      edges: [],
-    }
-  });
-  /*dbg*/ console.log("searchNodesInAttrs - found", nodes.length, frequencyMax, ngrams.length);
+  const nodes = nids
+    .filter((nid) => {
+      return frequency[nid] >= frequencyMax;
+    })
+    .map((nid) => {
+      const attrs = attrsByNid[nid];
+      return {
+        nid: nid,
+        preface: null,
+        crtd: moment.unix(attrs.crtd),
+        upd: moment.unix(attrs.upd),
+        edges: [],
+      };
+    });
+  /*dbg*/ console.log(
+    "searchNodesInAttrs - found",
+    nodes.length,
+    frequencyMax,
+    ngrams.length
+  );
   return nodes;
 }
