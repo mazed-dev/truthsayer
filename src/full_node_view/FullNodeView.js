@@ -25,7 +25,7 @@ import { LeftToolBar, RightToolBar } from "./ToolBars.js";
 import { joinClasses } from "../util/elClass.js";
 import { Emoji } from "../Emoji.js";
 
-import { extractIndexNGramsFromDoc } from "../markdown/parse.js";
+import { updateDocInIndex } from "./../search/search.js";
 
 import {
   Card,
@@ -293,7 +293,7 @@ class NodeCardImpl extends React.Component {
   };
 
   onEditExit_ = (doc) => {
-    extractIndexNGramsFromDoc(doc);
+    updateDocInIndex(this.props.nid, doc);
     const jsonDoc = JSON.stringify(doc);
     const config = {
       headers: {

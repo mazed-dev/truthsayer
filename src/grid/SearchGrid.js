@@ -11,6 +11,8 @@ import { withRouter } from "react-router-dom";
 import NodeSmallCard from "./../NodeSmallCard";
 import remoteErrorHandler from "./../remoteErrorHandler";
 
+import { searchByText } from "./../search/search.js";
+
 import { joinClasses } from "./../util/elClass.js";
 
 function range(n, start, end) {
@@ -136,6 +138,20 @@ class SearchGrid extends React.Component {
   }
 
   fetchData = () => {
+    const nodes = searchByText(this.props.q).map((nid) => {
+      return {
+        nid: nid,
+        preface: null,
+        crtd: moment(),
+        upd: moment(),
+        edges: [],
+      };
+    });
+    this.setState((state) => {
+      return {
+        nodes: state.nodes.concat(nodes),
+      };
+    });
     this.fetchDataIteration(30, 0);
   };
 

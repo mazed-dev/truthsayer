@@ -152,7 +152,6 @@ function MarkdownText({ children, sourcePosition, ...rest }) {
 }
 
 function MarkdownParagraph({ children, sourcePosition, ...rest }) {
-  console.log("Paragraph", rest);
   return <p className={styles.paragraph}>{children}</p>;
 }
 
