@@ -1,0 +1,14 @@
+.files_list {
+  list-style-type: none;
+}
+
+.files_list_item_group {
+  padding: 0;
+}
+
+.filename_item_cell {
+  width: 32rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
