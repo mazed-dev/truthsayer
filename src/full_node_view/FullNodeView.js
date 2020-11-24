@@ -25,7 +25,7 @@ import { LeftToolBar, RightToolBar } from "./ToolBars.js";
 import { joinClasses } from "../util/elClass.js";
 import { Emoji } from "../Emoji.js";
 
-import { updateDocInIndex } from "./../search/search.js";
+import { packDocAttrs, kAttrsHeaderKey } from "./../search/attrs.js";
 
 import {
   Card,
@@ -293,11 +293,13 @@ class NodeCardImpl extends React.Component {
   };
 
   onEditExit_ = (doc) => {
-    updateDocInIndex(this.props.nid, doc);
     const jsonDoc = JSON.stringify(doc);
+    const attrsStr = packDocAttrs(doc);
+    console.log("Doc attrs packed", attrsStr.length, attrsStr);
     const config = {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
+        [kAttrsHeaderKey]: attrsStr,
       },
       cancelToken: this.fetchCancelToken.token,
     };

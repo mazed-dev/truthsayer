@@ -8,8 +8,12 @@ const kFOL = /^/;
 const kEOL = /$/;
 const kWindowSize = 3;
 
+const kParagraphLengthLimit = 600;
+const kNgramsNumberLimit = 500;
+
 export function makeNGrams(text) {
   text = text
+    .slice(0, kParagraphLengthLimit)
     .replace("\n", " ")
     .replace(kMdSyntaxLink, " $1 ")
     .replace(kMdSyntaxPunctuation, " ")
@@ -17,6 +21,7 @@ export function makeNGrams(text) {
     .replace(kEOL, " ")
     .replace(kLongSpace, " ")
     .toLowerCase();
+  console.log("makeNGrams", text.length, text);
   var ngrams = [];
   for (var i = kWindowSize; i < text.length; i++) {
     ngrams.push(text.slice(i - kWindowSize, i));
@@ -42,7 +47,14 @@ export function extractIndexNGramsFromDoc(doc) {
       }
       headParagraphsCounter += 1;
     }
-    extractIndexNGramsFromText(chunk.source).forEach((ngr) => ngrams.add(ngr));
+    extractIndexNGramsFromText(chunk.source).forEach((ngr) => {
+      if (ngrams.size < kNgramsNumberLimit) {
+        ngrams.add(ngr);
+      }
+    });
+    if (ngrams.size >= kNgramsNumberLimit) {
+      break;
+    }
   }
   return ngrams;
 }

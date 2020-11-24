@@ -56,7 +56,6 @@ export class CardRenderImpl extends React.Component {
       this.props.doc.chunks.length > 0
         ? this.props.doc.chunks
         : [createEmptyChunk()];
-    console.log("chunks", chunks.length);
     const index_of_last = chunks.length - 1;
     const els = chunks.map((chunk, index) => {
       if (chunk == null) {

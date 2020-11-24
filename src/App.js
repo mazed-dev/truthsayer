@@ -28,7 +28,6 @@ import Login from "./auth/Login";
 import Logout from "./auth/Logout";
 import PublicNavBar from "./PublicNavBar";
 import Signup from "./auth/Signup";
-import TreeView from "./TreeView";
 import UploadFile from "./UploadFile";
 import PasswordChange from "./auth/PasswordChange";
 import PasswordRecoverForm from "./auth/PasswordRecoverForm";
@@ -159,12 +158,6 @@ class App extends React.Component {
                 is_authenticated={this.state.is_authenticated}
               >
                 <UploadFile />
-              </PrivateRoute>
-              <PrivateRoute
-                path="/thread"
-                is_authenticated={this.state.is_authenticated}
-              >
-                <TreeView />
               </PrivateRoute>
               <PrivateRoute
                 path="/account"

@@ -171,26 +171,28 @@ class SearchGrid extends React.Component {
       })
       .then((res) => {
         if (!res) {
-          // escalate
+          // TODO(akindyakov) escalate
           console.error("No response from back end");
           return;
         }
         const isTimeIntervalExhausted =
-          res.data.items.length === res.data.full_size;
-        console.log(
-          "Response from back end",
-          res.data,
-          upd_days_ago_after,
-          upd_days_ago_before,
-          offset,
-          ngrams
-        );
+          res.data.items.length >= res.data.full_size;
+        //*dbg*/ console.log(
+        //*dbg*/   "Response from back end",
+        //*dbg*/   res.data,
+        //*dbg*/   upd_days_ago_after,
+        //*dbg*/   upd_days_ago_before,
+        //*dbg*/   offset,
+        //*dbg*/   res.data.items.length,
+        //*dbg*/   res.data.full_size,
+        //*dbg*/   ngrams
+        //*dbg*/ );
         const nodes = searchNodesInAttrs(res.data.items, ngrams);
         if (nodes.length === 0) {
-          console.log(
-            "Ngram search found nothing, fall back to old search type",
-            this.props.q
-          );
+          //*dbg*/ console.log(
+          //*dbg*/   "Secure search found nothing, fall back to old search type",
+          //*dbg*/   this.props.q
+          //*dbg*/ );
           this.fetchDataIteration(upd_days_ago_after, upd_days_ago_before);
           return;
         }
