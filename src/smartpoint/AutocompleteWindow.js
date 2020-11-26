@@ -76,6 +76,7 @@ class AutocompleteModal extends React.Component {
   };
 
   nextRefSearch = async function (input) {
+    //*dbg*/ console.log("this.props.nid", this.props.nid);
     const items = nextRefSmartItemSearch(
       input,
       this.props.nid,

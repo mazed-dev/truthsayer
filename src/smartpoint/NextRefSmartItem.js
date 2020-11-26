@@ -4,7 +4,7 @@ import { Button, Row, Col } from "react-bootstrap";
 
 import axios from "axios";
 
-import queryString from "query-string";
+import { createTextNode } from "./../smugler/api";
 
 export class NextRefSmartItem extends React.Component {
   constructor(props) {
@@ -21,28 +21,19 @@ export class NextRefSmartItem extends React.Component {
   };
 
   createNextNode = (title) => {
-    const txt = title ? "# " + title : "";
-    const config = {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-      },
+    const text = title ? "# " + title : "";
+    createTextNode({
+      text: text,
       cancelToken: this.addNodeRefCancelToken.token,
-    };
-    var query = {};
-    if (this.props.from_nid) {
-      query.from = this.props.from_nid;
-    } else if (this.props.to_nid) {
-      query.to = this.props.to_nid;
-    }
-    return axios
-      .post("/api/node/new?" + queryString.stringify(query), txt, config)
-      .then((res) => {
-        if (res) {
-          const nid = res.data.nid;
-          const replacement = "[" + this.props.title + "](" + nid + ")";
-          this.props.on_insert(replacement);
-        }
-      });
+      from_nid: this.props.from_nid,
+      to_nid: this.props.to_nid,
+    }).then((res) => {
+      if (res) {
+        const nid = res.data.nid;
+        const replacement = "[" + this.props.title + "](" + nid + ")";
+        this.props.on_insert(replacement);
+      }
+    });
   };
 
   render() {

@@ -31,8 +31,6 @@ import {
   Card,
   Button,
   ButtonGroup,
-  InputGroup,
-  Form,
   Container,
   Row,
   Col,
@@ -295,7 +293,7 @@ class NodeCardImpl extends React.Component {
   onEditExit_ = (doc) => {
     const jsonDoc = JSON.stringify(doc);
     const attrsStr = packDocAttrs(doc);
-    console.log("Doc attrs packed", attrsStr.length, attrsStr);
+    //*dbg*/ console.log("Doc attrs packed", attrsStr.length, attrsStr);
     const config = {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",

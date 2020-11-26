@@ -2,16 +2,9 @@ import React from "react";
 
 import styles from "./chunks.module.css";
 
-import PropTypes from "prop-types";
-import { withRouter } from "react-router-dom";
-
 import { Button, ButtonGroup, InputGroup, Form } from "react-bootstrap";
 
-import axios from "axios";
-import moment from "moment";
-
 import AutocompleteWindow from "./../smartpoint/AutocompleteWindow";
-import { Emoji } from "../Emoji.js";
 import { MarkdownToolbar } from "../full_node_view/MarkdownToolBar.js";
 import { joinClasses } from "../util/elClass.js";
 import { renderMdCard } from "./../markdown/MarkdownRender";
@@ -296,8 +289,6 @@ export class TextEditor extends React.Component {
   componentDidUpdate(prevProps, prevState) {}
 
   getInitialHeight = (text) => {
-    const lineHeight = 38;
-
     const eols = text.match(/\n/g);
     const numberOfLines = eols ? eols.length + 1 : 1;
     const numberOfLinesByTextLength = text.length / 62;

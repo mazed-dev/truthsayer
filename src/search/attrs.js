@@ -15,12 +15,11 @@ function fromBase64(a) {
   return atob(a);
 }
 
-export function packAttrs(attrs) {
+function packAttrs(attrs) {
   if (!attrs) {
     return null;
   }
-  console.log("Doc attrs", attrs);
-  // return base64js.fromByteArray(JSON.stringify(attrs));
+  //*dbg*/ console.log("Doc attrs", attrs);
   return toBase64(JSON.stringify(attrs));
 }
 
@@ -28,7 +27,7 @@ export function unpackAttrs(attrsStr) {
   try {
     return JSON.parse(fromBase64(attrsStr));
   } catch (err) {
-    console.error("Attribute unpack error: ", err);
+    console.log("Attribute unpack error: ", err);
   }
   return {};
 }

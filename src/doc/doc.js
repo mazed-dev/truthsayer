@@ -1,23 +1,14 @@
 import React from "react";
 
-import { Button, ButtonGroup, InputGroup, Form } from "react-bootstrap";
-
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
-
-import axios from "axios";
-import moment from "moment";
 
 // FIXME(akindyakov)
 import "./../full_node_view/FullNodeView.css";
 
 import { renderMdSmallCard } from "./../markdown/MarkdownRender";
 
-import AutocompleteWindow from "../smartpoint/AutocompleteWindow";
-
 import { joinClasses } from "../util/elClass.js";
-
-import { Emoji } from "../Emoji.js";
 
 import {
   ChunkRender,
@@ -70,6 +61,7 @@ export class CardRenderImpl extends React.Component {
         <ChunkRender
           chunk={chunk}
           key={key}
+          nid={this.props.nid}
           index={index}
           resetAuxToolbar={this.props.resetAuxToolbar}
           onModify={this.onModifyChunk}

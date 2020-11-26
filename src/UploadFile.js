@@ -7,27 +7,12 @@ import axios from "axios";
 import { Link, withRouter } from "react-router-dom";
 
 import Emoji from "./Emoji";
-import remoteErrorHandler from "./remoteErrorHandler";
 
-import { packDocAttrs, kAttrsHeaderKey } from "./search/attrs.js";
-import { parseRawSource } from "./doc/chunks.js";
+import { createTextNode } from "./smugler/api";
 
 import styles from "./UploadFile.module.css";
 
-const hash = require("object-hash");
 const uuid = require("uuid");
-const FormData = require("form-data");
-
-// const Emoji = (props) => (
-//   <span
-//     className="emoji"
-//     role="img"
-//     aria-label={props.label ? props.label : ""}
-//     aria-hidden={props.label ? "false" : "true"}
-//   >
-//     {props.symbol}
-//   </span>
-// );
 
 class UploadFile extends React.Component {
   constructor(props) {
@@ -78,19 +63,10 @@ class UploadFile extends React.Component {
         '" (`' +
         Math.round((file.size * 100) / 1024) * 100 +
         "KiB`)*\n";
-      var doc = parseRawSource(event.target.result + appendix);
-      const jsonDoc = JSON.stringify(doc);
-      const attrsStr = packDocAttrs(doc);
-      //*dbg*/ console.log("Doc attrs packed", attrsStr.length, attrsStr);
-      const config = {
-        headers: {
-          "Content-Type": "text/plain; charset=utf-8",
-          [kAttrsHeaderKey]: attrsStr,
-        },
+      createTextNode({
+        text: event.target.result + appendix,
         cancelToken: this.fetchCancelToken.token,
-      };
-      axios
-        .post("/api/node/new", jsonDoc, config)
+      })
         .then((res) => {
           if (res) {
             const nid = res.data.nid;

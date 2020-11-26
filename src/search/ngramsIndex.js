@@ -21,7 +21,7 @@ export function makeNGrams(text) {
     .replace(kEOL, " ")
     .replace(kLongSpace, " ")
     .toLowerCase();
-  console.log("makeNGrams", text.length, text);
+  //*dbg*/ console.log("makeNGrams", text.length, text);
   var ngrams = [];
   for (var i = kWindowSize; i < text.length; i++) {
     ngrams.push(text.slice(i - kWindowSize, i));
