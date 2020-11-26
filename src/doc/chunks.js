@@ -1,5 +1,7 @@
 import React from "react";
 
+import keycode from "keycode";
+
 import styles from "./chunks.module.css";
 
 import { Button, ButtonGroup, InputGroup, Form } from "react-bootstrap";
@@ -188,7 +190,7 @@ export class TextEditor extends React.Component {
       value: this.props.value,
       height: this.getInitialHeight(this.props.value),
       modalShow: false,
-      modSlashCounter: 0,
+      keyCounterSlash: 0,
     };
     this.textAreaRef = React.createRef();
   }
@@ -211,28 +213,45 @@ export class TextEditor extends React.Component {
     );
   }
 
+  handleKeyDown = (event) => {
+    // console.log("Key down", event.key);
+    const key = event.key;
+    const keyCode = event.keyCode;
+    if (keyCode === keycode("enter")) {
+      // console.log("Enter", this.textAreaRef.current);
+    } else if (keyCode === keycode("backspace")) {
+      // console.log("Bakcspace", this.textAreaRef.current.selectionStart);
+    }
+  };
+
   handleChange = (event) => {
     const value = event.target.value;
     const diff = event.nativeEvent.data;
     const ref = event.target;
-    this.setState((state) => {
-      // Check if it's a smartpoint
-      var modSlashCounter = 0;
-      var modalShow = false;
-      if (diff === "/") {
-        if (state.modSlashCounter === 0) {
-          modSlashCounter = state.modSlashCounter + 1;
+    console.log("Change", diff);
+    // Check if it's a smartpoint
+    if (diff !== "/") {
+      this.setState({
+        value: value,
+        height: this.getAdjustedHeight(ref, kMinEditorHeightPx),
+      });
+    } else {
+      this.setState((state) => {
+        var keyCounterSlash = 0;
+        var modalShow = false;
+        if (state.keyCounterSlash === 0) {
+          keyCounterSlash = state.keyCounterSlash + 1;
         } else {
           modalShow = true;
         }
-      }
-      return {
-        modSlashCounter: modSlashCounter,
-        modalShow: modalShow,
-        value: value,
-        height: this.getAdjustedHeight(ref, kMinEditorHeightPx),
-      };
-    });
+        return {
+          keyCounterSlash: keyCounterSlash,
+          modalShow: modalShow,
+          value: value,
+          height: this.getAdjustedHeight(ref, kMinEditorHeightPx),
+        };
+      });
+    }
   };
 
   updateText = (value, cursorPosBegin, cursorPosEnd) => {
@@ -342,6 +361,7 @@ export class TextEditor extends React.Component {
               className={joinClasses(styles.text_editor_input)}
               value={this.state.value}
               onChange={this.handleChange}
+              onKeyDown={this.handleKeyDown}
               style={{
                 height: this.state.height + "px",
                 resize: null,
