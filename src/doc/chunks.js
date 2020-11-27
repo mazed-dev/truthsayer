@@ -12,6 +12,7 @@ import { joinClasses } from "../util/elClass.js";
 import { renderMdCard } from "./../markdown/MarkdownRender";
 
 import { parseRawSource as _parseRawSource } from "./mdRawParser";
+import { makeChunk } from "./chunk_util";
 
 import EditButtonImg from "./img/edit-button.png";
 import EditMoreButtonImg from "./img/edit-more-button.png";
@@ -21,25 +22,15 @@ export const parseRawSource = _parseRawSource;
 export class ChunkRender extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      // FIXME
-      edit: this.props.edit_first,
-    };
   }
 
   toggleEditMode = () => {
-    this.setState({ edit: !this.state.edit });
-  };
-
-  onEditExit_ = (source) => {
-    this.setState({ edit: false });
-    const { chunks } = parseRawSource(source);
-    this.props.onModify(chunks, this.props.index);
+    this.props.edit_chunk(this.props.index);
   };
 
   render() {
     // &#x270E;
-    const toolbar = this.state.edit ? null : (
+    const toolbar = this.props.edit ? null : (
       <ButtonGroup vertical>
         <Button
           variant="light"
@@ -67,12 +58,15 @@ export class ChunkRender extends React.Component {
         </Button>
       </ButtonGroup>
     );
-    const card = this.state.edit ? (
+    const card = this.props.edit ? (
       <TextEditor
         value={this.props.chunk.source}
         nid={this.props.nid}
-        onExit={this.onEditExit_}
         resetAuxToolbar={this.props.resetAuxToolbar}
+        replace_chunks={this.props.replace_chunks}
+        merge_chunk_up={this.props.merge_chunk_up}
+        edit_chunk={this.props.edit_chunk}
+        index={this.props.index}
       />
     ) : (
       <ChunkView
@@ -202,7 +196,7 @@ export class TextEditor extends React.Component {
   }
 
   handleKeyDown = (event) => {
-    // console.log("Key down", event.key);
+    //*dbg*/ console.log("Key down", event.key);
     const key = event.key;
     const keyCode = event.keyCode;
     if (this.textAreaRef.current) {
@@ -217,21 +211,37 @@ export class TextEditor extends React.Component {
         }
       } else if (keyCode === keycode("enter")) {
         const prefix = textRef.value.slice(0, textRef.selectionStart);
-        if (prefix.endsWith("\n") && prefix.trim()) {
-          //*dbg*/ console.log("Enter - split up");
+        const trimmedPrefix = prefix.trim();
+        if (prefix.endsWith("\n") && trimmedPrefix.length > 0) {
+          /*dbg*/ console.log("Enter - split up the chunk");
+          const suffix = textRef.value.slice(textRef.selectionStart);
+          const left = makeChunk(trimmedPrefix);
+          const rigth = makeChunk(suffix);
+          this.props.replace_chunks([left, rigth], this.props.index);
+          this.props.edit_chunk(this.props.index + 1);
         }
       } else if (
         keyCode === keycode("backspace") &&
         0 === textRef.selectionStart
       ) {
-        //*dbg*/ console.log("Backspace - Merge UP");
+        /*dbg*/ console.log("Backspace - Merge UP");
+        const chunk = makeChunk(this.state.value);
+        this.props.merge_chunk_up(chunk, this.props.index);
       } else if (keyCode === keycode("up") && 0 === textRef.selectionStart) {
-        //*dbg*/ console.log("Up - jump to the previous");
+        /*dbg*/ console.log("Up - save and jump to the one above");
+        const { chunks } = parseRawSource(this.state.value);
+        this.props.replace_chunks(chunks, this.props.index);
+        if (this.props.index !== 0) {
+          this.props.edit_chunk(this.props.index - 1);
+        }
       } else if (
         keyCode === keycode("down") &&
         textRef.textLength === textRef.selectionStart
       ) {
-        //*dbg*/ console.log("Down - jump to the next");
+        /*dbg*/ console.log("Down - save and jump to the one below");
+        const { chunks } = parseRawSource(this.state.value);
+        this.props.replace_chunks(chunks, this.props.index);
+        this.props.edit_chunk(this.props.index + 1);
       }
     }
   };
@@ -320,8 +330,10 @@ export class TextEditor extends React.Component {
     return Math.max(minHeight, el.scrollHeight + diff);
   };
 
-  _onExit = () => {
-    this.props.onExit(this.state.value);
+  _saveAndQuitEditing = () => {
+    const { chunks } = parseRawSource(this.state.value);
+    this.props.replace_chunks(chunks, this.props.index);
+    this.props.edit_chunk(-1);
   };
 
   showModal = () => {
@@ -343,7 +355,7 @@ export class TextEditor extends React.Component {
           nid={this.props.nid}
         />
         <ExtClickDetector
-          callback={this._onExit}
+          callback={this._saveAndQuitEditing}
           isActive={!this.state.modalShow}
         >
           <InputGroup>

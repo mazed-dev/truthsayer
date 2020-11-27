@@ -16,3 +16,10 @@ export function parseRawSource(source: string): TDoc {
       }),
   };
 }
+
+export function mergeChunks(left: TChunk, right: TChunk): TChunk {
+  return {
+    type: 0,
+    source: left.source + right.source,
+  };
+}

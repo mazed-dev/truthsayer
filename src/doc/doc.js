@@ -17,16 +17,36 @@ import {
   createEmptyChunk,
 } from "./chunks";
 
+import { mergeChunks } from "./chunk_util";
+
 export class CardRenderImpl extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {
+      edit_index: this.isEditingStart() ? 0 : null,
+    };
   }
 
   static propTypes = {
     location: PropTypes.object.isRequired,
   };
 
-  onModifyChunk = (chunks, index) => {
+  // Chunks operations:
+  // - Save and exit
+  // - Go to the chunk above
+  // - Go to the chunk below
+  // - Split the chunk into two
+  // - Merge the chunk with one above
+  //
+  // Basic opetaions:
+  // - Insert
+  // - Merge
+  // - Go to or exit editing mode
+
+  /**
+   * Repace the chunk with index [index] with new chunks
+   */
+  replaceChunks = (chunks, index) => {
     const newChunks = (index > 0 ? this.props.doc.chunks.slice(0, index) : [])
       .concat(chunks)
       .concat(this.props.doc.chunks.slice(index + 1));
@@ -34,6 +54,31 @@ export class CardRenderImpl extends React.Component {
       chunks: newChunks,
     };
     this.props.onEdit(newDoc);
+  };
+
+  /**
+   * Merge the chunk with one above
+   */
+  mergeChunkUp = (chunk, index) => {
+    if (index === 0) {
+      this.replaceChunks([chunk], index);
+    }
+    const prevIndex = index - 1;
+    const newChunk = mergeChunks(this.props.doc.chunks[prevIndex], chunk);
+    const newChunks = this.props.doc.chunks
+      .slice(0, prevIndex)
+      .concat([newChunk])
+      .concat(this.props.doc.chunks.slice(index + 1));
+    const newDoc = {
+      chunks: newChunks,
+    };
+    this.props.onEdit(newDoc);
+  };
+
+  editChunk = (index) => {
+    this.setState({
+      edit_index: index,
+    });
   };
 
   isEditingStart() {
@@ -48,15 +93,16 @@ export class CardRenderImpl extends React.Component {
         ? this.props.doc.chunks
         : [createEmptyChunk()];
     const index_of_last = chunks.length - 1;
+    const edit_index =
+      this.state.edit_index > index_of_last
+        ? index_of_last
+        : this.state.edit_index;
     const els = chunks.map((chunk, index) => {
       if (chunk == null) {
         chunk = createEmptyChunk();
       }
       const key = index.toString();
-      var edit_first = false;
-      // if (index === index_of_last) {
-      //   edit_first = this.isEditingStart();
-      // }
+      const edit = index === edit_index;
       return (
         <ChunkRender
           chunk={chunk}
@@ -64,8 +110,10 @@ export class CardRenderImpl extends React.Component {
           nid={this.props.nid}
           index={index}
           resetAuxToolbar={this.props.resetAuxToolbar}
-          onModify={this.onModifyChunk}
-          edit_first={edit_first}
+          replace_chunks={this.replaceChunks}
+          merge_chunk_up={this.mergeChunkUp}
+          edit_chunk={this.editChunk}
+          edit={edit}
         />
       );
     });
@@ -78,7 +126,6 @@ export const CardRender = withRouter(CardRenderImpl);
 export function SmallCardRender({ nid, doc, head }) {
   var els = null;
   if (doc && doc.chunks) {
-    const index_of_last = doc.chunks.length - 1;
     els = doc.chunks.slice(0, head).map((chunk, index) => {
       if (chunk == null) {
         chunk = createEmptyChunk();
