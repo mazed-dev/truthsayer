@@ -214,11 +214,9 @@ export class TextEditor extends React.Component {
         const trimmedPrefix = prefix.trim();
         if (prefix.endsWith("\n") && trimmedPrefix.length > 0) {
           //*dbg*/ console.log("Enter - split up the chunk");
-          const trimmedSuffix = textRef.value
-            .slice(textRef.selectionStart)
-            .trim();
+          const suffix = textRef.value.slice(textRef.selectionStart).trim();
           const left = makeChunk(trimmedPrefix);
-          const rigth = makeChunk(trimmedSuffix);
+          const rigth = makeChunk(suffix);
           const goToIndex = this.props.index + 1;
           this.props.replace_chunks([left, rigth], this.props.index, goToIndex);
         }
@@ -227,7 +225,7 @@ export class TextEditor extends React.Component {
         0 === textRef.selectionStart
       ) {
         //*dbg*/ console.log("Backspace - Merge UP");
-        const chunk = makeChunk(this.state.value);
+        const chunk = makeChunk(this.state.value.trim());
         const goToIndex = this.props.index - 1;
         this.props.merge_chunk_up(chunk, this.props.index, goToIndex);
       } else if (keyCode === keycode("up") && 0 === textRef.selectionStart) {
