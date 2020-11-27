@@ -33,7 +33,7 @@ export class RefSmartItem extends React.Component {
   constructor(props) {
     super(props);
     const title = makeRefTitleFromPreface(this.props.preface);
-    this.replacement = "[" + title + "](" + this.props.nid + ")";
+    this.replacement = "[/" + title + "](" + this.props.nid + ")";
     this.addNodeRefCancelToken = axios.CancelToken.source();
   }
 

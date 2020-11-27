@@ -30,7 +30,7 @@ export class NextRefSmartItem extends React.Component {
     }).then((res) => {
       if (res) {
         const nid = res.data.nid;
-        const replacement = "[" + this.props.title + "](" + nid + ")";
+        const replacement = "[/" + this.props.title + "](" + nid + ")";
         this.props.on_insert(replacement);
       }
     });

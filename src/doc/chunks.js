@@ -11,8 +11,12 @@ import { MarkdownToolbar } from "../full_node_view/MarkdownToolBar.js";
 import { joinClasses } from "../util/elClass.js";
 import { renderMdCard } from "./../markdown/MarkdownRender";
 
+import { parseRawSource as _parseRawSource } from "./mdRawParser";
+
 import EditButtonImg from "./img/edit-button.png";
 import EditMoreButtonImg from "./img/edit-more-button.png";
+
+export const parseRawSource = _parseRawSource;
 
 export class ChunkRender extends React.Component {
   constructor(props) {
@@ -128,22 +132,6 @@ export function createEmptyChunk() {
   };
 }
 
-export function parseRawSource(source) {
-  return {
-    chunks: source
-      .split("\n\n")
-      .filter((src) => {
-        return src != null && src.length > 0;
-      })
-      .map((src, index) => {
-        return {
-          type: 0,
-          source: src,
-        };
-      }),
-  };
-}
-
 class ChunkParagraphRender extends React.Component {
   constructor(props) {
     super(props);
@@ -217,41 +205,38 @@ export class TextEditor extends React.Component {
     // console.log("Key down", event.key);
     const key = event.key;
     const keyCode = event.keyCode;
-    if (keyCode === keycode("enter")) {
-      // console.log("Enter", this.textAreaRef.current);
-    } else if (keyCode === keycode("backspace")) {
-      // console.log("Bakcspace", this.textAreaRef.current.selectionStart);
+    if (this.textAreaRef.current) {
+      const textRef = this.textAreaRef.current;
+      if (key === "/") {
+        const prefix = textRef.value.slice(0, textRef.selectionStart);
+        if (prefix.endsWith("/")) {
+          event.preventDefault();
+          this.setState({
+            modalShow: true,
+          });
+        }
+      } else if (keyCode === keycode("enter")) {
+        const prefix = textRef.value.slice(0, textRef.selectionStart);
+        if (prefix.endsWith("\n") && prefix.trim()) {
+          //*dbg*/ console.log("Enter - split up");
+        }
+      } else if (keyCode === keycode("backspace") && 0 === textRef.selectionStart) {
+        //*dbg*/ console.log("Backspace - Merge UP");
+      } else if (keyCode === keycode("up") && 0 === textRef.selectionStart) {
+        //*dbg*/ console.log("Up - jump to the previous");
+      } else if (keyCode === keycode("down") && textRef.textLength === textRef.selectionStart) {
+        //*dbg*/ console.log("Down - jump to the next");
+      }
     }
   };
 
   handleChange = (event) => {
     const value = event.target.value;
-    const diff = event.nativeEvent.data;
     const ref = event.target;
-    console.log("Change", diff);
-    // Check if it's a smartpoint
-    if (diff !== "/") {
-      this.setState({
-        value: value,
-        height: this.getAdjustedHeight(ref, kMinEditorHeightPx),
-      });
-    } else {
-      this.setState((state) => {
-        var keyCounterSlash = 0;
-        var modalShow = false;
-        if (state.keyCounterSlash === 0) {
-          keyCounterSlash = state.keyCounterSlash + 1;
-        } else {
-          modalShow = true;
-        }
-        return {
-          keyCounterSlash: keyCounterSlash,
-          modalShow: modalShow,
-          value: value,
-          height: this.getAdjustedHeight(ref, kMinEditorHeightPx),
-        };
-      });
-    }
+    this.setState({
+      value: value,
+      height: this.getAdjustedHeight(ref, kMinEditorHeightPx),
+    });
   };
 
   updateText = (value, cursorPosBegin, cursorPosEnd) => {
@@ -281,11 +266,11 @@ export class TextEditor extends React.Component {
   handleReplaceSmartpoint = (replacement) => {
     if (this.textAreaRef.current && this.textAreaRef.current.selectionStart) {
       const cursorPosEnd = this.textAreaRef.current.selectionStart;
-      const cursorPosBegin = cursorPosEnd - 2;
+      const cursorPosBegin = cursorPosEnd - 1;
       const replacementLen = replacement.length;
       this.setState(
         (state) => {
-          // A beginning without smarpoint spell (//)
+          // A beginning without smarpoint spell (/)
           const beginning = state.value.slice(0, cursorPosBegin);
           // Just an ending
           const ending = state.value.slice(cursorPosEnd);
