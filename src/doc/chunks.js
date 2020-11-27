@@ -220,11 +220,17 @@ export class TextEditor extends React.Component {
         if (prefix.endsWith("\n") && prefix.trim()) {
           //*dbg*/ console.log("Enter - split up");
         }
-      } else if (keyCode === keycode("backspace") && 0 === textRef.selectionStart) {
+      } else if (
+        keyCode === keycode("backspace") &&
+        0 === textRef.selectionStart
+      ) {
         //*dbg*/ console.log("Backspace - Merge UP");
       } else if (keyCode === keycode("up") && 0 === textRef.selectionStart) {
         //*dbg*/ console.log("Up - jump to the previous");
-      } else if (keyCode === keycode("down") && textRef.textLength === textRef.selectionStart) {
+      } else if (
+        keyCode === keycode("down") &&
+        textRef.textLength === textRef.selectionStart
+      ) {
         //*dbg*/ console.log("Down - jump to the next");
       }
     }
@@ -278,14 +284,15 @@ export class TextEditor extends React.Component {
             value: beginning + replacement + ending,
             modalShow: false,
           };
-        },
-        () => {
-          this.textAreaRef.current.focus();
-          this.textAreaRef.current.setSelectionRange(
-            cursorPosBegin,
-            cursorPosBegin + replacementLen
-          );
         }
+        // Selection of the inserted text piece
+        // ,() => {
+        //   this.textAreaRef.current.focus();
+        //   this.textAreaRef.current.setSelectionRange(
+        //     cursorPosBegin,
+        //     cursorPosBegin + replacementLen
+        //   );
+        // }
       );
     }
   };
