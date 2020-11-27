@@ -53,10 +53,8 @@ class MarkdownToolbarImpl extends React.Component {
 
   isTextAreaRefValid() {
     return (
-      this.props.textAreaRef.current &&
-      this.props.textAreaRef.current.value &&
-      this.props.textAreaRef.current.selectionStart &&
-      this.props.textAreaRef.current.selectionEnd
+      this.props.textAreaRef.current != null &&
+      this.props.textAreaRef.current.value != null
     );
   }
 
@@ -206,9 +204,11 @@ class MarkdownToolbarImpl extends React.Component {
   };
 
   makeListWith = (fn) => {
+    console.log("makeListWith");
     if (!this.isTextAreaRefValid()) {
       return;
     }
+    console.log("makeListWith text area is valid");
     const txtRef = this.props.textAreaRef.current;
 
     const prefix = txtRef.value.slice(0, txtRef.selectionStart);
@@ -224,6 +224,7 @@ class MarkdownToolbarImpl extends React.Component {
       })
       .join("\n");
     const newValue = prefix + madeList + suffix;
+    console.log("makeListWith - newValue");
     this.updateText(newValue, newValue.length);
   };
 

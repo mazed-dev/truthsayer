@@ -55,18 +55,3 @@
   right: 0;
   z-index: 10;
 }
-
-
-.full_card {
-  box-shadow:
-    1px 1px 4px 0px var(--small_card_shadow_colour);
-}
-
-.full_card_body {
-  margin: 0;
-  padding-left: 1.2rem;
-  padding-right: 2rem;
-
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-}

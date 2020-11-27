@@ -31,3 +31,23 @@ export function createTextNode({ text, cancelToken, from_nid, to_nid }) {
     config
   );
 }
+
+export function fetchNode({ nid, cancelToken }) {
+  return axios.get("/api/node/" + nid, {
+    cancelToken: cancelToken,
+  });
+}
+
+export function updateNode({ nid, doc, cancelToken }) {
+  const jsonDoc = JSON.stringify(doc);
+  const attrsStr = packDocAttrs(doc);
+  //*dbg*/ console.log("Doc attrs packed", attrsStr.length, attrsStr);
+  const config = {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      [kAttrsHeaderKey]: attrsStr,
+    },
+    cancelToken: cancelToken,
+  };
+  return axios.patch("/api/node/" + nid, jsonDoc, config);
+}

@@ -213,35 +213,38 @@ export class TextEditor extends React.Component {
         const prefix = textRef.value.slice(0, textRef.selectionStart);
         const trimmedPrefix = prefix.trim();
         if (prefix.endsWith("\n") && trimmedPrefix.length > 0) {
-          /*dbg*/ console.log("Enter - split up the chunk");
-          const suffix = textRef.value.slice(textRef.selectionStart);
+          //*dbg*/ console.log("Enter - split up the chunk");
+          const trimmedSuffix = textRef.value
+            .slice(textRef.selectionStart)
+            .trim();
           const left = makeChunk(trimmedPrefix);
-          const rigth = makeChunk(suffix);
-          this.props.replace_chunks([left, rigth], this.props.index);
-          this.props.edit_chunk(this.props.index + 1);
+          const rigth = makeChunk(trimmedSuffix);
+          const goToIndex = this.props.index + 1;
+          this.props.replace_chunks([left, rigth], this.props.index, goToIndex);
         }
       } else if (
         keyCode === keycode("backspace") &&
         0 === textRef.selectionStart
       ) {
-        /*dbg*/ console.log("Backspace - Merge UP");
+        //*dbg*/ console.log("Backspace - Merge UP");
         const chunk = makeChunk(this.state.value);
-        this.props.merge_chunk_up(chunk, this.props.index);
+        const goToIndex = this.props.index - 1;
+        this.props.merge_chunk_up(chunk, this.props.index, goToIndex);
       } else if (keyCode === keycode("up") && 0 === textRef.selectionStart) {
-        /*dbg*/ console.log("Up - save and jump to the one above");
-        const { chunks } = parseRawSource(this.state.value);
-        this.props.replace_chunks(chunks, this.props.index);
+        //*dbg*/ console.log("Up - save and jump to the one above");
         if (this.props.index !== 0) {
-          this.props.edit_chunk(this.props.index - 1);
+          const { chunks } = parseRawSource(this.state.value);
+          const goToIndex = this.props.index - 1;
+          this.props.replace_chunks(chunks, this.props.index, goToIndex);
         }
       } else if (
         keyCode === keycode("down") &&
         textRef.textLength === textRef.selectionStart
       ) {
-        /*dbg*/ console.log("Down - save and jump to the one below");
+        //*dbg*/ console.log("Down - save and jump to the one below");
         const { chunks } = parseRawSource(this.state.value);
-        this.props.replace_chunks(chunks, this.props.index);
-        this.props.edit_chunk(this.props.index + 1);
+        const goToIndex = this.props.index + 1;
+        this.props.replace_chunks(chunks, this.props.index, goToIndex);
       }
     }
   };
@@ -256,6 +259,7 @@ export class TextEditor extends React.Component {
   };
 
   updateText = (value, cursorPosBegin, cursorPosEnd) => {
+    console.log("Update text", value);
     this.setState(
       {
         value: value,
@@ -266,15 +270,15 @@ export class TextEditor extends React.Component {
       },
       () => {
         this.textAreaRef.current.focus();
-        if (cursorPosBegin) {
-          if (!cursorPosEnd) {
-            cursorPosEnd = cursorPosBegin;
-          }
-          this.textAreaRef.current.setSelectionRange(
-            cursorPosBegin,
-            cursorPosEnd
-          );
-        }
+        // if (cursorPosBegin) {
+        //   if (!cursorPosEnd) {
+        //     cursorPosEnd = cursorPosBegin;
+        //   }
+        //   this.textAreaRef.current.setSelectionRange(
+        //     cursorPosBegin,
+        //     cursorPosEnd
+        //   );
+        // }
       }
     );
   };
@@ -294,15 +298,15 @@ export class TextEditor extends React.Component {
             value: beginning + replacement + ending,
             modalShow: false,
           };
+        },
+        () => {
+          // Selection of the inserted text piece
+          this.textAreaRef.current.focus();
+          // this.textAreaRef.current.setSelectionRange(
+          //   cursorPosBegin,
+          //   cursorPosBegin + replacementLen
+          // );
         }
-        // Selection of the inserted text piece
-        // ,() => {
-        //   this.textAreaRef.current.focus();
-        //   this.textAreaRef.current.setSelectionRange(
-        //     cursorPosBegin,
-        //     cursorPosBegin + replacementLen
-        //   );
-        // }
       );
     }
   };

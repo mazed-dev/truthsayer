@@ -10,7 +10,7 @@ import StickyRemoveImg from "./img/sticky-remove.png";
 
 import CutTheRefImg from "./img/cut-the-ref.png";
 
-import { CardRender, exctractDoc } from "./../doc/doc";
+import { DocRender, exctractDoc } from "./../doc/doc";
 
 import NodeSmallCard from "./../NodeSmallCard";
 import small_card_styles from "./../NodeSmallCard.module.css";
@@ -241,113 +241,6 @@ class NodeRefsImpl extends React.Component {
 
 const NodeRefs = withRouter(NodeRefsImpl);
 
-class NodeCardImpl extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      text: "",
-      crtd: moment(),
-      upd: moment(),
-    };
-    this.fetchCancelToken = axios.CancelToken.source();
-  }
-
-  static propTypes = {
-    match: PropTypes.object.isRequired,
-    location: PropTypes.object.isRequired,
-    history: PropTypes.object.isRequired,
-  };
-
-  componentDidUpdate(prevProps) {
-    // Don't forget to compare props!
-    if (this.props.nid !== prevProps.nid) {
-      this.fetchNode();
-    }
-  }
-
-  componentWillUnmount() {
-    this.fetchCancelToken.cancel();
-  }
-
-  componentDidMount() {
-    this.fetchNode();
-  }
-
-  fetchNode = () => {
-    axios
-      .get("/api/node/" + this.props.nid, {
-        cancelToken: this.fetchCancelToken.token,
-      })
-      .catch(remoteErrorHandler(this.props.history))
-      .then((res) => {
-        if (res) {
-          this.setState({
-            doc: exctractDoc(res.data),
-            crtd: moment(res.headers["x-created-at"]),
-            upd: moment(res.headers["last-modified"]),
-          });
-        }
-      });
-  };
-
-  onEditExit_ = (doc) => {
-    const jsonDoc = JSON.stringify(doc);
-    const attrsStr = packDocAttrs(doc);
-    //*dbg*/ console.log("Doc attrs packed", attrsStr.length, attrsStr);
-    const config = {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        [kAttrsHeaderKey]: attrsStr,
-      },
-      cancelToken: this.fetchCancelToken.token,
-    };
-    axios
-      .patch("/api/node/" + this.props.nid, jsonDoc, config)
-      .catch(remoteErrorHandler(this.props.history))
-      .then((res) => {
-        if (res) {
-          this.setState({
-            doc: doc,
-          });
-          // this.props.history.push("/node/" + this.props.nid);
-        }
-      });
-  };
-
-  toggleEditMode = () => {};
-
-  render() {
-    const upd = this.state.upd.fromNow();
-    const toolbar = true ? null : (
-      <ButtonGroup>
-        <Button variant="light" size={"sm"} onClick={this.toggleEditMode}>
-          <Emoji symbol="⋯" label="more" />
-        </Button>
-      </ButtonGroup>
-    );
-    return (
-      <Card className={joinClasses(styles.fluid_container, styles.full_card)}>
-        <div className={joinClasses(styles.fluid_card_toolbar)}>{toolbar}</div>
-        <Card.Body className={joinClasses(styles.full_card_body)}>
-          <CardRender
-            doc={this.state.doc}
-            nid={this.props.nid}
-            resetAuxToolbar={this.props.resetAuxToolbar}
-            onEdit={this.onEditExit_}
-          />
-        </Card.Body>
-        <footer className="text-right m-2">
-          <small className="text-muted">
-            <i>Updated {upd}</i>
-          </small>
-        </footer>
-      </Card>
-    );
-  }
-}
-
-const NodeCard = withRouter(NodeCardImpl);
-
 class FullNodeView extends React.Component {
   constructor(props) {
     super(props);
@@ -490,7 +383,7 @@ class FullNodeView extends React.Component {
             />
           </Col>
           <Col className={styles.note_col}>
-            <NodeCard
+            <DocRender
               nid={this.props.nid}
               sticky_edges={this.state.edges_sticky}
               addLeftRef={this.addLeftRef}
