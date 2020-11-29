@@ -39,4 +39,4 @@ tar \
 
 echo "Package is ready!"
 echo "Copy it to the server by : scp -P 5326 ${_PKG_PATH} \[2a03:b0c0:1:e0::443:5001\]:"
-echo "Unpack on the service by : tar --extract --gzip --file=${_PKG_PATH}"
+echo "Unpack on the service by : tar --extract --gzip --file=./${_PKG_FILE}"

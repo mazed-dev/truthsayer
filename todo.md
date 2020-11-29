@@ -1,8 +1,8 @@
 # Todo
 
- - [ ] Chunked doc editing - new chunk on 2 new lines
  - [ ] End-to-end encryption
  - [ ] Button for list item to create right-link from this item
+ - [ ] Proper preview for small cards
  - [ ] Drag-and-drop for paragraps and list items
  - [ ] Small cards on smart search results
  - [ ] Toolpannel is a part of small card - take is as an argument
@@ -75,3 +75,4 @@
  - [x] Chunked doc editing
  - [-] Pencil should be sticky element, not needed, because editing is per paragraph
  - [x] Secure search that will allow full end-to-end encryption
+ - [x] Chunked doc editing - new chunk on 2 new lines
