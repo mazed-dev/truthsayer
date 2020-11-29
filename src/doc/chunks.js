@@ -24,8 +24,8 @@ export class ChunkRender extends React.Component {
     super(props);
   }
 
-  toggleEditMode = () => {
-    this.props.edit_chunk(this.props.index);
+  enableEditMode = () => {
+    this.props.editChunk(this.props.index);
   };
 
   render() {
@@ -34,7 +34,7 @@ export class ChunkRender extends React.Component {
       <ButtonGroup vertical>
         <Button
           variant="light"
-          onClick={this.toggleEditMode}
+          onClick={this.enableEditMode}
           className={joinClasses(styles.paragraph_toolbar_btn)}
         >
           <img
@@ -58,23 +58,25 @@ export class ChunkRender extends React.Component {
         </Button>
       </ButtonGroup>
     );
-    const card = this.props.edit ? (
-      <TextEditor
-        value={this.props.chunk.source}
-        nid={this.props.nid}
-        resetAuxToolbar={this.props.resetAuxToolbar}
-        replace_chunks={this.props.replace_chunks}
-        merge_chunk_up={this.props.merge_chunk_up}
-        edit_chunk={this.props.edit_chunk}
-        index={this.props.index}
-      />
-    ) : (
-      <ChunkView
-        nid={this.props.nid}
-        chunk={this.props.chunk}
-        render={renderMdCard}
-      />
-    );
+    const card =
+      this.props.editOpts != null ? (
+        <TextEditor
+          value={this.props.chunk.source}
+          nid={this.props.nid}
+          resetAuxToolbar={this.props.resetAuxToolbar}
+          replaceChunks={this.props.replaceChunks}
+          mergeChunkUp={this.props.mergeChunkUp}
+          editChunk={this.props.editChunk}
+          index={this.props.index}
+          editOpts={this.props.editOpts}
+        />
+      ) : (
+        <ChunkView
+          nid={this.props.nid}
+          chunk={this.props.chunk}
+          render={renderMdCard}
+        />
+      );
     return (
       <div className={joinClasses(styles.fluid_container)}>
         <div className={joinClasses(styles.fluid_paragraph_toolbar)}>
@@ -180,6 +182,13 @@ export class TextEditor extends React.Component {
   componentDidMount() {
     this.props.resetAuxToolbar(this.createEditorToolbar());
     this.textAreaRef.current.focus();
+
+    const editOpts = this.props.editOpts;
+    if (editOpts.begin) {
+      const begin = editOpts.begin;
+      const end = editOpts.end || begin;
+      this.textAreaRef.current.setSelectionRange(begin, end);
+    }
   }
 
   componentWillUnmount() {
@@ -196,7 +205,6 @@ export class TextEditor extends React.Component {
   }
 
   handleKeyDown = (event) => {
-    //*dbg*/ console.log("Key down", event.key);
     const key = event.key;
     const keyCode = event.keyCode;
     if (this.textAreaRef.current) {
@@ -209,40 +217,57 @@ export class TextEditor extends React.Component {
             modalShow: true,
           });
         }
-      } else if (keyCode === keycode("enter")) {
-        const prefix = textRef.value.slice(0, textRef.selectionStart);
-        const trimmedPrefix = prefix.trim();
-        if (prefix.endsWith("\n") && trimmedPrefix.length > 0) {
-          //*dbg*/ console.log("Enter - split up the chunk");
-          const suffix = textRef.value.slice(textRef.selectionStart).trim();
-          const left = makeChunk(trimmedPrefix);
-          const rigth = makeChunk(suffix);
-          const goToIndex = this.props.index + 1;
-          this.props.replace_chunks([left, rigth], this.props.index, goToIndex);
+      } else if (
+        keyCode === keycode("enter") &&
+        textRef.selectionStart === textRef.selectionEnd
+      ) {
+        var prefix = textRef.value.slice(0, textRef.selectionStart);
+        if (prefix.endsWith("\n")) {
+          prefix = prefix.trim();
+          if (prefix.length > 0) {
+            event.preventDefault();
+            const suffix = textRef.value.slice(textRef.selectionStart);
+            const left = makeChunk(prefix);
+            const rigth = makeChunk(suffix.trim());
+            const goToIndex = this.props.index + 1;
+            this.props.replaceChunks(
+              [left, rigth],
+              this.props.index,
+              goToIndex
+            );
+          }
         }
       } else if (
         keyCode === keycode("backspace") &&
-        0 === textRef.selectionStart
+        0 === textRef.selectionStart &&
+        0 === textRef.selectionEnd
       ) {
-        //*dbg*/ console.log("Backspace - Merge UP");
-        const chunk = makeChunk(this.state.value.trim());
+        event.preventDefault();
+        const source = this.state.value.trim();
+        const chunk = makeChunk(source);
         const goToIndex = this.props.index - 1;
-        this.props.merge_chunk_up(chunk, this.props.index, goToIndex);
+        this.props.mergeChunkUp(
+          chunk,
+          this.props.index,
+          goToIndex,
+          -source.length
+        );
       } else if (keyCode === keycode("up") && 0 === textRef.selectionStart) {
-        //*dbg*/ console.log("Up - save and jump to the one above");
         if (this.props.index !== 0) {
+          event.preventDefault();
           const { chunks } = parseRawSource(this.state.value);
           const goToIndex = this.props.index - 1;
-          this.props.replace_chunks(chunks, this.props.index, goToIndex);
+          this.props.replaceChunks(chunks, this.props.index, goToIndex);
         }
       } else if (
         keyCode === keycode("down") &&
-        textRef.textLength === textRef.selectionStart
+        textRef.textLength === textRef.selectionStart &&
+        textRef.textLength === textRef.selectionEnd
       ) {
-        //*dbg*/ console.log("Down - save and jump to the one below");
+        event.preventDefault();
         const { chunks } = parseRawSource(this.state.value);
         const goToIndex = this.props.index + 1;
-        this.props.replace_chunks(chunks, this.props.index, goToIndex);
+        this.props.replaceChunks(chunks, this.props.index, goToIndex);
       }
     }
   };
@@ -257,7 +282,6 @@ export class TextEditor extends React.Component {
   };
 
   updateText = (value, cursorPosBegin, cursorPosEnd) => {
-    console.log("Update text", value);
     this.setState(
       {
         value: value,
@@ -334,8 +358,8 @@ export class TextEditor extends React.Component {
 
   _saveAndQuitEditing = () => {
     const { chunks } = parseRawSource(this.state.value);
-    this.props.replace_chunks(chunks, this.props.index);
-    this.props.edit_chunk(-1);
+    this.props.replaceChunks(chunks, this.props.index);
+    this.props.editChunk(-1);
   };
 
   showModal = () => {

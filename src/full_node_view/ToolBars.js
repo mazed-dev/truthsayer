@@ -464,6 +464,7 @@ class RightToolBarImpl extends React.Component {
             this.props.nid,
             this.fetchCancelToken
           ).then(() => {
+            console.log("Edit");
             this.props.history.push("/node/" + new_nid, { edit: true });
           });
         }

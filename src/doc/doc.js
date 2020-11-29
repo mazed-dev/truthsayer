@@ -23,7 +23,7 @@ import {
 
 import { mergeChunks } from "./chunk_util";
 
-import { Card, Button } from "react-bootstrap";
+import { Card } from "react-bootstrap";
 
 import moment from "moment";
 import axios from "axios";
@@ -35,7 +35,11 @@ export class DocRenderImpl extends React.Component {
       chunks: [],
       crtd: null,
       upd: null,
-      edit_chunk_index: this.isEditingStart() ? 0 : null,
+      edit_chunk_opts: {
+        index: -1,
+        begin: 0,
+        end: 0,
+      },
     };
     this.fetchCancelToken = axios.CancelToken.source();
     this.updateCancelToken = axios.CancelToken.source();
@@ -50,6 +54,9 @@ export class DocRenderImpl extends React.Component {
   componentDidUpdate(prevProps) {
     // Don't forget to compare props!
     if (this.props.nid !== prevProps.nid) {
+      // if (this.isEditingStart()) {
+      //   this.setState({ edit_chunk_opts: 0, });
+      // }
       this.fetchNode();
     }
   }
@@ -81,16 +88,25 @@ export class DocRenderImpl extends React.Component {
       });
   };
 
-  updateNode = (doc, to_edit_index) => {
-    const lastIndex = this.state.chunks.length - 1;
-    if (to_edit_index > lastIndex) {
-      to_edit_index = lastIndex;
+  updateNode = (doc, toIndex, selectionStart) => {
+    const length = doc.chunks.length;
+    if (toIndex) {
+      if (length > 0 && toIndex >= length) {
+        toIndex = length - 1;
+      }
+    } else {
+      toIndex = -1;
     }
+    const editOpts = {
+      index: toIndex || -1,
+      begin: selectionStart || 0,
+      end: selectionStart || 0,
+    };
     this.setState({
       chunks: doc.chunks,
       crtd: moment(),
       upd: moment(),
-      edit_chunk_index: to_edit_index,
+      edit_chunk_opts: editOpts,
     });
     return updateNode({
       nid: this.props.nid,
@@ -99,14 +115,18 @@ export class DocRenderImpl extends React.Component {
     }).catch(remoteErrorHandler(this.props.history));
   };
 
-  editChunk = (index) => {
-    //*dbg*/ console.log("edit chunk", index);
-    const lastIndex = this.state.chunks.length - 1;
-    if (index > lastIndex) {
-      index = lastIndex;
+  editChunk = (index, begin, end) => {
+    index = index || 0;
+    const length = this.state.chunks.length;
+    if (length > 0 && index >= length) {
+      index = length - 1;
     }
     this.setState({
-      edit_chunk_index: index,
+      edit_chunk_opts: {
+        index: index,
+        begin: begin || 0,
+        end: end || 0,
+      },
     });
   };
 
@@ -125,7 +145,7 @@ export class DocRenderImpl extends React.Component {
   /**
    * Repace the chunk with index [index] with new chunks
    */
-  replaceChunk = (chunks, index, to_index) => {
+  replaceChunk = (chunks, index, toIndex, selectionStart) => {
     const newChunks = this.state.chunks
       .slice(0, index)
       .concat(chunks)
@@ -133,19 +153,22 @@ export class DocRenderImpl extends React.Component {
     const newDoc = {
       chunks: newChunks,
     };
-    return this.updateNode(newDoc, to_index);
+    return this.updateNode(newDoc, toIndex, selectionStart);
   };
 
   /**
    * Merge the chunk with one above
    */
-  mergeChunkUp = (chunk, index, to_index) => {
+  mergeChunkUp = (chunk, index, toIndex, selectionStart) => {
     if (index === 0) {
       // Nothing to merge with, just replace the current one
-      return this.replaceChunk([chunk], index, to_index);
+      return this.replaceChunk([chunk], index, toIndex, selectionStart);
     }
     const prevIndex = index - 1;
     const newChunk = mergeChunks(this.state.chunks[prevIndex], chunk);
+    if (selectionStart !== null && selectionStart < 0) {
+      selectionStart = newChunk.source.length + selectionStart;
+    }
     const newChunks = this.state.chunks
       .slice(0, prevIndex)
       .concat([newChunk])
@@ -153,7 +176,7 @@ export class DocRenderImpl extends React.Component {
     const newDoc = {
       chunks: newChunks,
     };
-    return this.updateNode(newDoc, to_index);
+    return this.updateNode(newDoc, toIndex, selectionStart);
   };
 
   isEditingStart() {
@@ -165,13 +188,13 @@ export class DocRenderImpl extends React.Component {
       this.state.chunks && this.state.chunks.length > 0
         ? this.state.chunks
         : [createEmptyChunk()];
-    const edit_chunk_index = this.state.edit_chunk_index;
+    const edit_chunk_opts = this.state.edit_chunk_opts;
     const chunksEl = chunks.map((chunk, index) => {
       if (chunk == null) {
         chunk = createEmptyChunk();
       }
       const key = index.toString();
-      const edit = index === edit_chunk_index;
+      const editOpts = index === edit_chunk_opts.index ? edit_chunk_opts : null;
       return (
         <ChunkRender
           chunk={chunk}
@@ -179,10 +202,10 @@ export class DocRenderImpl extends React.Component {
           nid={this.props.nid}
           index={index}
           resetAuxToolbar={this.props.resetAuxToolbar}
-          replace_chunks={this.replaceChunk}
-          merge_chunk_up={this.mergeChunkUp}
-          edit_chunk={this.editChunk}
-          edit={edit}
+          replaceChunks={this.replaceChunk}
+          mergeChunkUp={this.mergeChunkUp}
+          editChunk={this.editChunk}
+          editOpts={editOpts}
         />
       );
     });
