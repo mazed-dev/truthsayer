@@ -5,9 +5,6 @@ import styles from "./doc.module.css";
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
-// FIXME(akindyakov)
-import "./../full_node_view/FullNodeView.css";
-
 import { renderMdSmallCard } from "./../markdown/MarkdownRender";
 import { fetchNode, updateNode } from "./../smugler/api";
 import remoteErrorHandler from "./../remoteErrorHandler";
@@ -36,7 +33,7 @@ export class DocRenderImpl extends React.Component {
       crtd: null,
       upd: null,
       edit_chunk_opts: {
-        index: -1,
+        index: this.isEditingStart() ? 0 : -1,
         begin: 0,
         end: 0,
       },
@@ -55,7 +52,7 @@ export class DocRenderImpl extends React.Component {
     // Don't forget to compare props!
     if (this.props.nid !== prevProps.nid) {
       // if (this.isEditingStart()) {
-      //   this.setState({ edit_chunk_opts: 0, });
+      //   this.setState({ edit_chunk_opts: { index: 0, } });
       // }
       this.fetchNode();
     }
@@ -180,6 +177,7 @@ export class DocRenderImpl extends React.Component {
   };
 
   isEditingStart() {
+    console.log("isEditingStart", this.props.location.state);
     return this.props.location.state && this.props.location.state.edit;
   }
 

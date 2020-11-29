@@ -16,6 +16,8 @@ import { MdSmallCardRender } from "./../markdown/MarkdownRender";
 import { joinClasses } from "../util/elClass.js";
 import { remoteErrorHandler } from "./../remoteErrorHandler";
 
+import { createTextNode } from "./../smugler/api";
+
 import {
   Button,
   ButtonGroup,
@@ -326,20 +328,11 @@ class LeftToolBarImpl extends React.Component {
   }
 
   handleNextClick = (event) => {
-    const value = "";
-    const config = {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-      },
+    createTextNode({
+      text: "",
       cancelToken: this.fetchCancelToken.token,
-    };
-    const query =
-      "?" +
-      queryString.stringify({
-        to: this.props.nid,
-      });
-    axios
-      .post("/api/node/new" + query, value, config)
+      to_nid: this.props.nid,
+    })
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
@@ -440,20 +433,11 @@ class RightToolBarImpl extends React.Component {
   }
 
   handleNextClick = (event) => {
-    const value = "";
-    const config = {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-      },
+    createTextNode({
+      text: "",
       cancelToken: this.fetchCancelToken.token,
-    };
-    const query =
-      "?" +
-      queryString.stringify({
-        from: this.props.nid,
-      });
-    axios
-      .post("/api/node/new" + query, value, config)
+      from_nid: this.props.nid,
+    })
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
@@ -464,7 +448,6 @@ class RightToolBarImpl extends React.Component {
             this.props.nid,
             this.fetchCancelToken
           ).then(() => {
-            console.log("Edit");
             this.props.history.push("/node/" + new_nid, { edit: true });
           });
         }
