@@ -1,5 +1,6 @@
 # Todo
 
+ - [ ] Go to a small card only by clicking on Header of it
  - [ ] End-to-end encryption
  - [ ] Button for list item to create right-link from this item
  - [ ] Proper preview for small cards
