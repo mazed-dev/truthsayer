@@ -77,7 +77,7 @@ export class DocRenderImpl extends React.Component {
       .then((res) => {
         if (res) {
           this.setState({
-            chunks: exctractDoc(res.data).chunks,
+            chunks: exctractDoc(res.data, this.props.nid).chunks,
             crtd: moment(res.headers["x-created-at"]),
             upd: moment(res.headers["last-modified"]),
           });
@@ -177,7 +177,6 @@ export class DocRenderImpl extends React.Component {
   };
 
   isEditingStart() {
-    console.log("isEditingStart", this.props.location.state);
     return this.props.location.state && this.props.location.state.edit;
   }
 
@@ -248,7 +247,7 @@ export function SmallCardRender({ nid, doc, head }) {
   return <>{els}</>;
 }
 
-export function exctractDoc(source) {
+export function exctractDoc(source, nid) {
   // TODO(akindyakov): add encryption here - decrypt
   if (typeof source === "object") {
     return source;
@@ -256,7 +255,7 @@ export function exctractDoc(source) {
   try {
     return JSON.parse(source);
   } catch (e) {
-    console.log("Old style doc without mark up");
+    console.log("Old style doc without mark up", nid);
   }
   return parseRawSource(source);
 }
