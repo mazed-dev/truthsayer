@@ -14,3 +14,15 @@ export function makeChunk(source: string, type?: number): TChunk {
     source: source,
   };
 }
+
+export function trimChunk(chunk: TChunk, size: number): TChunk {
+  const hellip = (size < chunk.source.length) ? "&hellip;" : "";
+  return {
+    type: chunk.type,
+    source: chunk.source.slice(0, size) + hellip,
+  };
+}
+
+export function getChunkSize(chunk: TChunk): number {
+  return chunk.source.length;
+}

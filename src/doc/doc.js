@@ -1,5 +1,7 @@
 import React from "react";
 
+import { Link } from "react-router-dom";
+
 import styles from "./doc.module.css";
 
 import PropTypes from "prop-types";
@@ -18,7 +20,7 @@ import {
   createEmptyChunk,
 } from "./chunks";
 
-import { mergeChunks } from "./chunk_util";
+import { mergeChunks, trimChunk, getChunkSize } from "./chunk_util";
 
 import { Card } from "react-bootstrap";
 
@@ -226,15 +228,29 @@ export class DocRenderImpl extends React.Component {
 
 export const DocRender = withRouter(DocRenderImpl);
 
-export function SmallCardRender({ nid, doc, head }) {
-  var els = null;
+function makeSeeMoreLink(nid) {
+  return (
+    <Link className={styles.a_see_more} to={"/node/" + nid}>
+      See more ↘
+    </Link>
+  );
+}
+
+const kMaxSmallCardSize = 320;
+
+export function SmallCardRender({ nid, doc, trim }) {
+  var els = [];
   if (doc && doc.chunks) {
-    els = doc.chunks.slice(0, head).map((chunk, index) => {
-      if (chunk == null) {
-        chunk = createEmptyChunk();
+    var fullSize = 0;
+    for (var index in doc.chunks) {
+      var chunk = doc.chunks[index] ?? createEmptyChunk();
+      const chunkSize = getChunkSize(chunk);
+      if (fullSize + chunkSize > kMaxSmallCardSize) {
+        chunk = trimChunk(chunk, kMaxSmallCardSize - fullSize);
       }
+      fullSize += getChunkSize(chunk);
       const key = index.toString();
-      return (
+      els.push(
         <ChunkView
           nid={nid}
           chunk={chunk}
@@ -242,9 +258,17 @@ export function SmallCardRender({ nid, doc, head }) {
           render={renderMdSmallCard}
         />
       );
-    });
+      if (fullSize > kMaxSmallCardSize) {
+        break;
+      }
+    }
   }
-  return <>{els}</>;
+  return (
+    <>
+      {els}
+      {makeSeeMoreLink(nid)}
+    </>
+  );
 }
 
 export function exctractDoc(source, nid) {

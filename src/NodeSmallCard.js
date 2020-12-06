@@ -110,16 +110,15 @@ class NodeSmallCard extends React.Component {
         this.state.edges.length -
         (this.props.skip_input_edge ? 1 : 0)
     );
+    // onClick={this.onClick}
     return (
       <Card
         className={joinClasses(shd, styles.small_card, styles.small_card_width)}
-        onClick={this.onClick}
         nid={this.props.nid}
         ref={this.props.cardRef}
       >
         <Card.Body className="px-3 pt-2 pb-0">
-          <SmallCardRender doc={this.state.doc} nid={this.props.nid} head={2} />
-          &hellip;
+          <SmallCardRender doc={this.state.doc} nid={this.props.nid} trim={2} />
         </Card.Body>
         <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">
           <small className="text-muted">
