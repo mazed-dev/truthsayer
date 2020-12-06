@@ -323,6 +323,7 @@ class SearchGrid extends React.Component {
             key={item.nid}
             skip_input_edge={false}
             edges={item.edges}
+            clickable={true}
           />
         );
       });

@@ -1,11 +1,9 @@
 import React from "react";
 
-import { Link } from "react-router-dom";
-
 import styles from "./doc.module.css";
 
 import PropTypes from "prop-types";
-import { withRouter } from "react-router-dom";
+import { withRouter, useHistory } from "react-router-dom";
 
 import { renderMdSmallCard } from "./../markdown/MarkdownRender";
 import { fetchNode, updateNode } from "./../smugler/api";
@@ -71,15 +69,16 @@ export class DocRenderImpl extends React.Component {
   }
 
   fetchNode = () => {
+    const nid = this.props.nid;
     return fetchNode({
-      nid: this.props.nid,
+      nid: nid,
       cancelToken: this.fetchCancelToken.token,
     })
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
           this.setState({
-            chunks: exctractDoc(res.data, this.props.nid).chunks,
+            chunks: exctractDoc(res.data, nid).chunks,
             crtd: moment(res.headers["x-created-at"]),
             upd: moment(res.headers["last-modified"]),
           });
@@ -228,27 +227,22 @@ export class DocRenderImpl extends React.Component {
 
 export const DocRender = withRouter(DocRenderImpl);
 
-function makeSeeMoreLink(nid) {
-  return (
-    <Link className={styles.a_see_more} to={"/node/" + nid}>
-      See more ↘
-    </Link>
-  );
-}
+const kMaxTrimSmallCardSize = 320;
+const kMaxTrimSmallCardChunksNum = 4;
 
-const kMaxSmallCardSize = 320;
-
-export function SmallCardRender({ nid, doc, trim }) {
+export function SmallCardRender({ nid, doc, trim, ...rest }) {
   var els = [];
   if (doc && doc.chunks) {
-    var fullSize = 0;
+    var fullTextSize = 0;
+    var chunksNum = 0;
     for (var index in doc.chunks) {
       var chunk = doc.chunks[index] ?? createEmptyChunk();
       const chunkSize = getChunkSize(chunk);
-      if (fullSize + chunkSize > kMaxSmallCardSize) {
-        chunk = trimChunk(chunk, kMaxSmallCardSize - fullSize);
+      if (trim && fullTextSize + chunkSize > kMaxTrimSmallCardSize) {
+        chunk = trimChunk(chunk, kMaxTrimSmallCardSize - fullTextSize);
       }
-      fullSize += getChunkSize(chunk);
+      fullTextSize += getChunkSize(chunk);
+      chunksNum += 1;
       const key = index.toString();
       els.push(
         <ChunkView
@@ -258,17 +252,15 @@ export function SmallCardRender({ nid, doc, trim }) {
           render={renderMdSmallCard}
         />
       );
-      if (fullSize > kMaxSmallCardSize) {
+      if (
+        fullTextSize > kMaxTrimSmallCardSize ||
+        chunksNum >= kMaxTrimSmallCardChunksNum
+      ) {
         break;
       }
     }
   }
-  return (
-    <>
-      {els}
-      {makeSeeMoreLink(nid)}
-    </>
-  );
+  return <div {...rest}>{els}</div>;
 }
 
 export function exctractDoc(source, nid) {

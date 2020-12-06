@@ -1,19 +1,16 @@
 import React from "react";
 
-import styles from "./NodeSmallCard.module.css";
-
 import PropTypes from "prop-types";
-import moment from "moment";
-import { Card } from "react-bootstrap";
-import { withRouter } from "react-router-dom";
-
-// import { MdSmallCardRender } from "./markdown/MarkdownRender";
-import { SmallCardRender, exctractDoc } from "./doc/doc";
-import remoteErrorHandler from "./remoteErrorHandler";
-
-import { joinClasses } from "./util/elClass.js";
+import { withRouter, Link } from "react-router-dom";
 
 import axios from "axios";
+import moment from "moment";
+
+import { Card } from "react-bootstrap";
+import { SmallCardRender, exctractDoc } from "./doc/doc";
+import { joinClasses } from "./util/elClass.js";
+
+import styles from "./NodeSmallCard.module.css";
 
 function getShadowStyle(n) {
   switch (Math.max(0, n) /* treat negative numbers as 0 */) {
@@ -31,6 +28,14 @@ function getShadowStyle(n) {
       break;
   }
   return styles.small_card_shadow_5;
+}
+
+function makeSeeMoreLink(nid) {
+  return (
+    <Link className={styles.a_see_more} to={"/node/" + nid}>
+      See more
+    </Link>
+  );
 }
 
 class NodeSmallCard extends React.Component {
@@ -57,7 +62,7 @@ class NodeSmallCard extends React.Component {
         this.fetchPreface();
       } else {
         this.setState({
-          doc: exctractDoc(this.props.preface),
+          doc: exctractDoc(this.props.preface, this.props.nid),
         });
       }
     }
@@ -68,7 +73,7 @@ class NodeSmallCard extends React.Component {
       this.fetchPreface();
     } else {
       this.setState({
-        doc: exctractDoc(this.props.preface),
+        doc: exctractDoc(this.props.preface, this.props.nid),
       });
     }
   }
@@ -95,7 +100,7 @@ class NodeSmallCard extends React.Component {
       .then((res) => {
         if (res) {
           this.setState({
-            doc: exctractDoc(res.data),
+            doc: exctractDoc(res.data, this.props.nid),
             crtd: moment(res.headers["x-created-at"]),
             upd: moment(res.headers["last-modified"]),
           });
@@ -110,15 +115,34 @@ class NodeSmallCard extends React.Component {
         this.state.edges.length -
         (this.props.skip_input_edge ? 1 : 0)
     );
-    // onClick={this.onClick}
+    let seeMore = null;
+    let clickableStyle = null;
+    let clickableOnClick = null;
+    if (this.props.clickable) {
+      clickableStyle = styles.clickable_chunks;
+      clickableOnClick = this.onClick;
+    } else {
+      seeMore = makeSeeMoreLink();
+    }
     return (
       <Card
-        className={joinClasses(shd, styles.small_card, styles.small_card_width)}
+        className={joinClasses(
+          shd,
+          styles.small_card,
+          styles.small_card_width,
+          clickableStyle
+        )}
         nid={this.props.nid}
         ref={this.props.cardRef}
+        onClick={clickableOnClick}
       >
         <Card.Body className="px-3 pt-2 pb-0">
-          <SmallCardRender doc={this.state.doc} nid={this.props.nid} trim={2} />
+          <SmallCardRender
+            doc={this.state.doc}
+            nid={this.props.nid}
+            trim={true}
+          />
+          {seeMore}
         </Card.Body>
         <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">
           <small className="text-muted">

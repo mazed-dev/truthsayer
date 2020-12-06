@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { Link, NavLink } from "react-router-dom";
 
 import { Badge } from "react-bootstrap";
 
@@ -14,61 +15,112 @@ import Emoji from "./../Emoji";
 
 import CheckBox from "./CheckBox";
 
-function MarkdownHeading({ level, children, sourcePosition, ...rest }) {
-  var hdr_el;
-  // TODO(akindyakov): add markdown title anchors
-  switch (level) {
-    case 1:
-      hdr_el = (
-        <h1 className={styles.header_1} {...rest}>
-          {" "}
-          {children}{" "}
-        </h1>
-      );
-      break;
-    case 2:
-      hdr_el = (
-        <h2 className={styles.header_2} {...rest}>
-          {" "}
-          {children}{" "}
-        </h2>
-      );
-      break;
-    case 3:
-      hdr_el = (
-        <h3 className={styles.header_3} {...rest}>
-          {" "}
-          {children}{" "}
-        </h3>
-      );
-      break;
-    case 4:
-      hdr_el = (
-        <h4 className={styles.header_4} {...rest}>
-          {" "}
-          {children}{" "}
-        </h4>
-      );
-      break;
-    case 5:
-      hdr_el = (
-        <h5 className={styles.header_5} {...rest}>
-          {" "}
-          {children}{" "}
-        </h5>
-      );
-      break;
-    case 6:
-    default:
-      hdr_el = (
-        <h6 className={styles.header_6} {...rest}>
-          {" "}
-          {children}{" "}
-        </h6>
-      );
-      break;
-  }
-  return hdr_el;
+import { joinClasses } from "../util/elClass.js";
+
+function MarkdownHeading(nid) {
+  return ({ level, children, sourcePosition, ...rest }) => {
+    var hdr_el;
+    // TODO(akindyakov): add markdown title anchors
+    switch (level) {
+      case 1:
+        hdr_el = (
+          <h1 className={styles.full_h1} {...rest}>
+            {children}
+          </h1>
+        );
+        break;
+      case 2:
+        hdr_el = (
+          <h2 className={styles.full_h2} {...rest}>
+            {children}
+          </h2>
+        );
+        break;
+      case 3:
+        hdr_el = (
+          <h3 className={styles.full_h3} {...rest}>
+            {children}
+          </h3>
+        );
+        break;
+      case 4:
+        hdr_el = (
+          <h4 className={styles.full_h4} {...rest}>
+            {children}
+          </h4>
+        );
+        break;
+      case 5:
+        hdr_el = (
+          <h5 className={styles.full_h5} {...rest}>
+            {children}
+          </h5>
+        );
+        break;
+      case 6:
+      default:
+        hdr_el = (
+          <h6 className={styles.full_h6} {...rest}>
+            {children}
+          </h6>
+        );
+        break;
+    }
+    return hdr_el;
+  };
+}
+
+function MarkdownSmallHeading(nid) {
+  return ({ level, children, sourcePosition, ...rest }) => {
+    var hdr_el;
+    // TODO(akindyakov): add markdown title anchors
+    switch (level) {
+      case 1:
+        hdr_el = (
+          <NavLink className={styles.small_h1} {...rest} to={"/node/" + nid}>
+            {children}
+          </NavLink>
+        );
+        break;
+      case 2:
+        hdr_el = (
+          <h2 className={styles.small_h2} {...rest}>
+            {children}
+          </h2>
+        );
+        break;
+      case 3:
+        hdr_el = (
+          <h3 className={styles.small_h3} {...rest}>
+            {children}
+          </h3>
+        );
+        break;
+      case 4:
+        hdr_el = (
+          <h4 className={styles.small_h4} {...rest}>
+            {children}
+          </h4>
+        );
+        break;
+      case 5:
+        hdr_el = (
+          <h5 className={styles.small_h5} {...rest}>
+            {children}
+          </h5>
+        );
+        break;
+      case 6:
+      default:
+        hdr_el = (
+          <h6 className={styles.small_h6} {...rest}>
+            {children}
+          </h6>
+        );
+        break;
+    }
+    return hdr_el;
+  };
 }
 
 export class DateBadge extends React.Component {
@@ -152,7 +204,11 @@ function MarkdownText({ children, sourcePosition, ...rest }) {
 }
 
 function MarkdownParagraph({ children, sourcePosition, ...rest }) {
-  return <p className={styles.paragraph}>{children}</p>;
+  return <p className={styles.full_paragraph}>{children}</p>;
+}
+
+function MarkdownSmallParagraph({ children, sourcePosition, ...rest }) {
+  return <p className={styles.small_paragraph}>{children}</p>;
 }
 
 const _LIST_POINT_OPTIONS = [
@@ -276,13 +332,13 @@ function MarkdownListItem({
   );
 }
 
-export function MdCardRender({ source }) {
+export function MdCardRender({ source, nid }) {
   return (
     <ReactMarkdown
       source={source}
       rawSourcePos={true}
       renderers={{
-        heading: MarkdownHeading,
+        heading: MarkdownHeading(nid),
         text: MarkdownText,
         paragraph: MarkdownParagraph,
         link: MarkdownLink,
@@ -296,7 +352,14 @@ export function MdCardRender({ source }) {
 
 function MarkdownRoot({ children, sourcePosition, ...rest }) {
   return (
-    <div {...rest} className="markdown-body markdown-full-note-body">
+    <div
+      className={joinClasses(
+        "markdown-body",
+        "markdown-full-note-body",
+        styles.full_paragraph
+      )}
+      {...rest}
+    >
       {children}
     </div>
   );
@@ -304,21 +367,28 @@ function MarkdownRoot({ children, sourcePosition, ...rest }) {
 
 function MarkdownSmallRoot({ children, sourcePosition, ...rest }) {
   return (
-    <div {...rest} className="markdown-body markdown-small-card-body">
+    <div
+      className={joinClasses(
+        "markdown-body",
+        "markdown-small-card-body",
+        styles.small_paragraph
+      )}
+      {...rest}
+    >
       {children}
     </div>
   );
 }
 
-export function MdSmallCardRender({ source }) {
+export function MdSmallCardRender({ source, nid }) {
   return (
     <ReactMarkdown
       source={source}
       rawSourcePos={true}
       renderers={{
-        heading: MarkdownHeading,
+        heading: MarkdownSmallHeading(nid),
         text: MarkdownText,
-        paragraph: MarkdownParagraph,
+        paragraph: MarkdownSmallParagraph,
         link: MarkdownLink,
         list: MarkdownList,
         listItem: MarkdownListItem,
@@ -328,12 +398,12 @@ export function MdSmallCardRender({ source }) {
   );
 }
 
-export function renderMdCard({ source }) {
-  return <MdCardRender source={source} />;
+export function renderMdCard({ source, nid }) {
+  return <MdCardRender source={source} nid={nid} />;
 }
 
-export function renderMdSmallCard({ source }) {
-  return <MdSmallCardRender source={source} />;
+export function renderMdSmallCard({ source, nid }) {
+  return <MdSmallCardRender source={source} nid={nid} />;
 }
 
 export default MdCardRender;

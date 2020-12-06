@@ -112,3 +112,28 @@
     15px 15px 1px gray /*,
     19px 19px 5px var(--small_card_shadow_colour) */;
 }
+
+.clickable_chunks {
+}
+
+.clickable_chunks:hover {
+  cursor: pointer;
+}
+
+.a_see_more {
+  font-weight: bold;
+  color: black;
+
+  margin: 0;
+  padding: 0;
+
+  display: inline;
+}
+
+.a_see_more:visited {
+}
+
+.a_see_more:hover {
+  color: green;
+  text-decoration: none;
+}

@@ -1,6 +1,5 @@
 # Todo
 
- - [ ] Go to a small card only by clicking on Header of it
  - [ ] End-to-end encryption
  - [ ] Button for list item to create right-link from this item
  - [ ] Proper preview for small cards
@@ -77,3 +76,4 @@
  - [-] Pencil should be sticky element, not needed, because editing is per paragraph
  - [x] Secure search that will allow full end-to-end encryption
  - [x] Chunked doc editing - new chunk on 2 new lines
+ - [x] Go to a small card only by clicking on Header of it

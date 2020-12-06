@@ -133,7 +133,10 @@ class ChunkParagraphRender extends React.Component {
     super(props);
   }
   render() {
-    return this.props.render({ source: this.props.source });
+    return this.props.render({
+      source: this.props.source,
+      nid: this.props.nid,
+    });
   }
 }
 
@@ -142,7 +145,10 @@ class ChunkHeaderRender extends React.Component {
     super(props);
   }
   render() {
-    return this.props.render({ source: this.props.source });
+    return this.props.render({
+      source: this.props.source,
+      nid: this.props.nid,
+    });
   }
 }
 
@@ -151,7 +157,10 @@ class ChunkListRender extends React.Component {
     super(props);
   }
   render() {
-    return this.props.render({ source: this.props.source });
+    return this.props.render({
+      source: this.props.source,
+      nid: this.props.nid,
+    });
   }
 }
 
@@ -160,7 +169,10 @@ class ChunkImageRender extends React.Component {
     super(props);
   }
   render() {
-    return this.props.render({ source: this.props.source });
+    return this.props.render({
+      source: this.props.source,
+      nid: this.props.nid,
+    });
   }
 }
 

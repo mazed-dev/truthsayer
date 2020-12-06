@@ -10,7 +10,7 @@ import StickyRemoveImg from "./img/sticky-remove.png";
 
 import CutTheRefImg from "./img/cut-the-ref.png";
 
-import { DocRender, exctractDoc } from "./../doc/doc";
+import { DocRender } from "./../doc/doc";
 
 import NodeSmallCard from "./../NodeSmallCard";
 import small_card_styles from "./../NodeSmallCard.module.css";

@@ -16,16 +16,3 @@
   padding-top: 1rem;
   padding-bottom: 1rem;
 }
-
-.a_see_more {
-  font-weight: bold;
-  color:black;
-}
-
-.a_see_more:visited {
-}
-
-.a_see_more:hover {
-  color:green;
-  text-decoration: none;
-}
