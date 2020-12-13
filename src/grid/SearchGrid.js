@@ -2,7 +2,7 @@ import React from "react";
 
 import styles from "./SearchGrid.module.css";
 
-import PropTypes from "prop-types";
+// import PropTypes from "prop-types";
 import moment from "moment";
 import axios from "axios";
 import { Container, Row, Col } from "react-bootstrap";
@@ -107,7 +107,7 @@ class DynamicGrid extends React.Component {
   }
 }
 
-class SearchGrid extends React.Component {
+export class SearchGrid extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -117,9 +117,9 @@ class SearchGrid extends React.Component {
     this.fetchCancelToken = axios.CancelToken.source();
   }
 
-  static propTypes = {
-    history: PropTypes.object.isRequired,
-  };
+  // static propTypes = {
+  //   history: PropTypes.object.isRequired,
+  // };
 
   componentDidMount() {
     window.addEventListener("scroll", this.handleScroll, { passive: true });
@@ -132,7 +132,10 @@ class SearchGrid extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.q !== prevProps.q) {
+    if (
+      this.props.q !== prevProps.q ||
+      this.props.extCards !== prevProps.extCards
+    ) {
       this.setState({ nodes: [], since_days_ago: 0 });
       this.fetchData();
     }
@@ -140,6 +143,12 @@ class SearchGrid extends React.Component {
 
   fetchData = () => {
     var ngrams = null;
+    if (
+      !this.props.defaultSearch &&
+      (this.props.q == null || this.props.q.length < 2)
+    ) {
+      return;
+    }
     if (this.props.q != null) {
       ngrams = extractIndexNGramsFromText(this.props.q);
     }
@@ -229,7 +238,10 @@ class SearchGrid extends React.Component {
           }
         }
       })
-      .catch(remoteErrorHandler(this.props.history));
+      .catch((error) => {
+        console.log("Error", error);
+      });
+    // .catch(remoteErrorHandler(this.props.history));
   };
 
   fetchDataIteration = (upd_days_ago_after, upd_days_ago_before) => {
@@ -275,7 +287,10 @@ class SearchGrid extends React.Component {
           );
         }
       })
-      .catch(remoteErrorHandler(this.props.history));
+      .catch((error) => {
+        console.log("Error", error);
+      });
+    // .catch(remoteErrorHandler(this.props.history));
   };
 
   handleScroll = () => {
@@ -304,7 +319,7 @@ class SearchGrid extends React.Component {
 
   render() {
     var used = {};
-    const cards = this.state.nodes
+    let cards = this.state.nodes
       .filter((item) => {
         if (item.nid in used) {
           //*dbg*/ console.log("Search grid overlap", item.nid, item);
@@ -324,11 +339,22 @@ class SearchGrid extends React.Component {
             skip_input_edge={false}
             edges={item.edges}
             clickable={true}
+            onClick={this.props.onCardClick}
           />
         );
       });
+    if (this.props.extCards) {
+      cards = this.props.extCards.concat(cards);
+    }
     return <DynamicGrid cards={cards} />;
   }
 }
 
-export default withRouter(SearchGrid);
+SearchGrid.defaultProps = {
+  defaultSearch: true,
+  onCardClick: null,
+  extCards: null,
+};
+
+// export default withRouter(SearchGrid);
+export default SearchGrid;

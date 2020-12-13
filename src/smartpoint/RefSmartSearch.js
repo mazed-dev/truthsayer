@@ -6,6 +6,8 @@ import axios from "axios";
 import moment from "moment";
 
 import { MdSmallCardRender } from "./../markdown/MarkdownRender";
+import { NodeSmallCard } from "./../NodeSmallCard";
+import { exctractDocTitle } from "./../doc/doc_util";
 
 export function extractRefSearcToken(input) {
   var token = input;
@@ -32,8 +34,8 @@ export function extractRefSearcToken(input) {
 export class RefSmartItem extends React.Component {
   constructor(props) {
     super(props);
-    const title = makeRefTitleFromPreface(this.props.preface);
-    this.replacement = "[/" + title + "](" + this.props.nid + ")";
+    const title = ""; //FIXME exctractDocTitle(this.props.preface);
+    this.replacement = "[" + title + "](" + this.props.nid + ")";
     this.addNodeRefCancelToken = axios.CancelToken.source();
   }
 
@@ -63,44 +65,48 @@ export class RefSmartItem extends React.Component {
   };
 
   render() {
-    const upd = moment.unix(this.props.upd).fromNow();
     return (
-      <Row
-        className="justify-content-between w-100 p-0 m-0"
+      <NodeSmallCard
+        nid={this.props.nid}
+        preface={this.props.preface}
+        crtd={this.props.crtd}
+        upd={this.props.upd}
+        key={this.props.nid}
+        skip_input_edge={false}
+        edges={[]}
         onClick={this.handleSumbit}
-      >
-        <Col sm md lg xl={8}>
-          <MdSmallCardRender source={this.props.preface + " &hellip;"} />
-          <small className="text-muted">
-            <i>Updated {upd}</i>
-          </small>
-        </Col>
-        <Col sm md lg xl={2}>
-          <Button
-            variant="outline-success"
-            size="sm"
-            onClick={this.handleSumbit}
-          >
-            Insert
-          </Button>
-        </Col>
-      </Row>
+      />
     );
   }
 }
 
-function makeRefTitleFromPreface(preface) {
-  var title = preface.match(/^.*/);
-  if (title) {
-    title = title[0];
-    if (title.length === 0) {
-      title = "ref";
-    }
-  } else {
-    title = "ref";
+export function refSmartItemSearch(input, callback) {
+  var { token } = extractRefSearcToken(input);
+  if (token == null) {
+    return;
   }
-  title = title.replace(/^[# ]+/, "");
-  return title;
+  const req = { q: token };
+  axios
+    .post("/api/node-search", req, {
+      cancelToken: this.searchFetchCancelToken.token,
+    })
+    .then((res) => {
+      const items = res.data.nodes.map((meta) => {
+        return (
+          <RefSmartItem
+            nid={meta.nid}
+            from_nid={this.props.nid}
+            preface={meta.preface}
+            upd={meta.upd}
+            crtd={meta.crtd}
+            on_insert={this.props.on_insert}
+            ref={React.createRef()}
+          />
+        );
+      });
+      callback(items);
+    })
+    .catch((error) => {});
 }
 
 export default RefSmartItem;

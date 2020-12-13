@@ -5,25 +5,28 @@ import { Modal, Form, ListGroup } from "react-bootstrap";
 import axios from "axios";
 import keycode from "keycode";
 
-import { RefSmartItem, extractRefSearcToken } from "./RefSmartItem";
+import { refSmartItemSearch } from "./RefSmartSearch";
 import { dateTimeSmartItemSearch } from "./DateTimeSmartItem";
 import { nextRefSmartItemSearch } from "./NextRefSmartItem";
+import { SearchGrid } from "./../grid/SearchGrid";
 
 import remoteErrorHandler from "./../remoteErrorHandler";
 
-import "./AutocompleteWindow.css";
+import styles from "./AutocompleteWindow.module.css";
 
 class AutocompleteModal extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       input: "",
-      result: [],
-      result_fetch_cancel_id: null,
+      q: "",
+      cards: [],
+      startSmartSearchTimeout: 0,
       cursor: 0,
     };
     this.inputRef = React.createRef();
     this.searchFetchCancelToken = axios.CancelToken.source();
+    this.addNodeRefCancelToken = axios.CancelToken.source();
   }
 
   componentDidMount() {
@@ -35,83 +38,61 @@ class AutocompleteModal extends React.Component {
   }
 
   refSearch = async function (input) {
-    var { token } = extractRefSearcToken(input);
-    if (token == null) {
-      return;
-    }
-    const req = { q: token };
-    axios
-      .post("/api/node-search", req, {
-        cancelToken: this.searchFetchCancelToken.token,
-      })
-      .then((res) => {
-        const items = res.data.nodes.map((meta) => {
-          return (
-            <RefSmartItem
-              nid={meta.nid}
-              from_nid={this.props.nid}
-              preface={meta.preface}
-              upd={meta.upd}
-              on_insert={this.props.on_insert}
-              ref={React.createRef()}
-            />
-          );
-        });
-        this.setState((state) => {
-          return {
-            result: state.result.concat(items),
-          };
-        });
-      })
-      .catch(remoteErrorHandler(this.props.history));
+    this.setState({
+      q: input,
+    });
   };
 
-  dateTimeSearch = async function (input) {
-    const items = dateTimeSmartItemSearch(input, this.props.on_insert);
+  appendCards = (cards) => {
     this.setState((state) => {
       return {
-        result: state.result.concat(items),
+        cards: state.cards.concat(cards),
       };
     });
   };
 
+  dateTimeSearch = async function (input) {
+    //*dbg*/ console.log("dateTimeSearch", this.props.nid);
+    const items = dateTimeSmartItemSearch(input, this.props.on_insert);
+    this.appendCards(items);
+  };
+
   nextRefSearch = async function (input) {
-    //*dbg*/ console.log("this.props.nid", this.props.nid);
+    //*dbg*/ console.log("Next ref search", this.props.nid);
     const items = nextRefSmartItemSearch(
       input,
       this.props.nid,
       this.props.on_insert
     );
-    this.setState((state) => {
-      return {
-        result: state.result.concat(items),
-      };
-    });
+    this.appendCards(items);
+  };
+
+  startSmartSearch = (input) => {
+    console.log("startSmartSearch", input);
+    this.setState(
+      {
+        cards: [],
+      },
+      () => {
+        this.nextRefSearch(input);
+        this.dateTimeSearch(input);
+        this.refSearch(input);
+      }
+    );
   };
 
   handleChange = (event) => {
-    const value = event.target.value;
-    // Hack to avoid fetching on every character. If the time interval between
-    // 2 consecutive keystokes is too short, don't fetch results.
-    const result_fetch_cancel_id =
-      value && value !== ""
-        ? setTimeout(() => {
-            this.nextRefSearch(value);
-            this.dateTimeSearch(value);
-            this.refSearch(value);
-          }, 200)
-        : null;
-    this.setState((state) => {
-      if (state.result_fetch_cancel_id) {
-        clearTimeout(state.result_fetch_cancel_id);
-      }
-      return {
-        input: value,
-        // Clear input
-        result: [],
-        // Preserve postponed fetch to be able to cancel it
-        result_fetch_cancel_id: result_fetch_cancel_id,
-      };
+    const input = event.target.value;
+    if (this.state.startSmartSearchTimeout) {
+      clearTimeout(this.state.startSmartSearchTimeout);
+    }
+    this.setState({
+      input: input,
+      // Hack to avoid fetching on every character. If the time interval between
+      // 2 consecutive keystokes is too short, don't fetch results.
+      startSmartSearchTimeout: setTimeout(() => {
+        this.startSmartSearch(input);
+      }, 750),
     });
   };
 
@@ -128,12 +109,12 @@ class AutocompleteModal extends React.Component {
     } else if (e.keyCode === keycode("down")) {
       e.preventDefault();
       this.setState((state, props) => {
-        const maxL = state.result.length > 0 ? state.result.length - 1 : 0;
+        const maxL = state.cards.length > 0 ? state.cards.length - 1 : 0;
         return { cursor: state.cursor >= maxL ? maxL : state.cursor + 1 };
       });
     } else if (e.keyCode === keycode("enter") || e.keyCode === keycode("tab")) {
       e.preventDefault();
-      const item = this.state.result[this.state.cursor];
+      const item = this.state.cards[this.state.cursor];
       item.ref.current.handleSumbit();
     }
   };
@@ -142,37 +123,52 @@ class AutocompleteModal extends React.Component {
     this.setState({ cursor: index });
   };
 
+  onNodeCardClick = (nid) => {
+    const title = "ref"; // FIXME
+    const replacement = "[" + title + "](" + nid + ")";
+    this.props.on_insert(replacement);
+    const req = {
+      edges: [
+        {
+          from_nid: this.props.nid,
+          to_nid: nid,
+        },
+      ],
+    };
+    axios
+      .post("/api/node/" + this.props.nid + "/edge", req, {
+        cancelToken: this.addNodeRefCancelToken.token,
+      })
+      .then((res) => {
+        if (res) {
+          // TODO(akindyakov): Refresh node references here, but how to do that?
+        }
+      });
+  };
+
   render() {
-    const listItems = this.state.result.map((item, index) => {
-      return (
-        <ListGroup.Item
-          as="li"
-          active={this.state.cursor === index}
-          key={index}
-          id={"smartpoint-item=" + index}
-          className="p-1"
-          onMouseEnter={() => this.setActiveItem(index)}
-        >
-          {item}
-        </ListGroup.Item>
-      );
-    });
+    const cardsGrid = (
+      <SearchGrid
+        q={this.state.q}
+        defaultSearch={false}
+        onCardClick={this.onNodeCardClick}
+        extCards={this.state.cards}
+      />
+    );
+    // onKeyDown={this.handleKeyDown}
     return (
-      <>
+      <div className={styles.autocomplete_modal}>
         <Form.Control
           aria-label="Search-to-link"
           aria-describedby="basic-addon1"
           onChange={this.handleChange}
           onSubmit={this.handleSumbit}
-          onKeyDown={this.handleKeyDown}
           value={this.state.input}
           placeholder="Type something"
           ref={this.inputRef}
         />
-        <ListGroup as="ul" className="autocomplete-window-list-group">
-          {listItems}
-        </ListGroup>
-      </>
+        {cardsGrid}
+      </div>
     );
   }
 }
@@ -187,13 +183,13 @@ class AutocompleteWindow extends React.Component {
       <Modal
         show={this.props.show}
         onHide={this.props.onHide}
-        size="lg"
+        size="xl"
         aria-labelledby="contained-modal-title-vcenter"
         centered
         keyboard={true}
         restoreFocus={false}
         animation={false}
-        dialogClassName="autocomplete-window-top"
+        dialogClassName={""}
         scrollable={true}
         enforceFocus={true}
       >

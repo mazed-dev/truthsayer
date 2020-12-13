@@ -6,6 +6,8 @@ import axios from "axios";
 
 import { createTextNode } from "./../smugler/api";
 
+import { NodeSmallCard, GenericSmallCard } from "./../NodeSmallCard";
+
 export class NextRefSmartItem extends React.Component {
   constructor(props) {
     super(props);
@@ -37,26 +39,35 @@ export class NextRefSmartItem extends React.Component {
   };
 
   render() {
+    // return (
+    //   <Row
+    //     className="justify-content-between w-100 p-0 m-0"
+    //     onClick={this.handleSumbit}
+    //   >
+    //     <Col sm md lg xl={8}>
+    //       {this.props.label}
+    //       &nbsp;
+    //       <q>{this.props.title}</q>
+    //     </Col>
+    //     <Col sm md lg xl={2}>
+    //       <Button
+    //         variant="outline-success"
+    //         size="sm"
+    //         onClick={this.handleSumbit}
+    //       >
+    //         Insert
+    //       </Button>
+    //     </Col>
+    //   </Row>
+    // );
+
+    // key={}
+    // id={}
     return (
-      <Row
-        className="justify-content-between w-100 p-0 m-0"
-        onClick={this.handleSumbit}
-      >
-        <Col sm md lg xl={8}>
-          {this.props.label}
-          &nbsp;
-          <q>{this.props.title}</q>
-        </Col>
-        <Col sm md lg xl={2}>
-          <Button
-            variant="outline-success"
-            size="sm"
-            onClick={this.handleSumbit}
-          >
-            Insert
-          </Button>
-        </Col>
-      </Row>
+      <GenericSmallCard onClick={this.handleSumbit} header={this.props.label}>
+        &nbsp;
+        <q>{this.props.title}</q>
+      </GenericSmallCard>
     );
   }
 }
@@ -68,12 +79,12 @@ NextRefSmartItem.defaultProps = {
 
 export function nextRefSmartItemSearch(input, nid, on_insert) {
   var ret = [];
-  const next = input.match(/^next ?(.*)/i);
+  const next = input.match(/^(next|new) ?(.*)/i);
   if (next) {
-    const title = next[1] ? next[1].trim() : "Next";
+    const title = next[2] ? next[2].trim() : "New";
     ret.push(
       <NextRefSmartItem
-        label={'Next, create new "next" note'}
+        label={"Create as next"}
         title={title}
         from_nid={nid}
         on_insert={on_insert}
@@ -84,10 +95,10 @@ export function nextRefSmartItemSearch(input, nid, on_insert) {
 
   const prev = input.match(/^(previ?o?u?s?|prior?)( .*)?/i);
   if (prev) {
-    const title = prev[2] ? prev[2].trim() : "Previous";
+    const title = prev[2] ? prev[2].trim() : "New";
     ret.push(
       <NextRefSmartItem
-        label={'Previous, create new "prior" note'}
+        label={"Create previous"}
         title={title}
         to_nid={nid}
         on_insert={on_insert}

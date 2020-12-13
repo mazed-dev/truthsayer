@@ -5,39 +5,27 @@ import { Button, Row, Col } from "react-bootstrap";
 import moment from "moment";
 
 import { DateTimeBadge } from "./../markdown/MarkdownRender";
+import { GenericSmallCard } from "./../NodeSmallCard";
 
 class DateTimeSmartItem extends React.Component {
   constructor(props) {
     super(props);
-    this.replacement =
-      "[](@" + this.props.tm.unix() + "/" + this.props.format + ")";
   }
 
   handleSumbit = () => {
-    this.props.on_insert(this.replacement);
+    const replacement =
+      "[](@" + this.props.tm.unix() + "/" + this.props.format + ")";
+    this.props.on_insert(replacement);
   };
 
   render() {
     return (
-      <Row
-        className="justify-content-between w-100 p-0 m-0"
+      <GenericSmallCard
         onClick={this.handleSumbit}
+        header={"Date: " + this.props.label}
       >
-        <Col sm md lg xl={8}>
-          {this.props.label}
-          &nbsp; &ndash; &nbsp;
-          <DateTimeBadge tm={this.props.tm} format={this.props.format} />
-        </Col>
-        <Col sm md lg xl={2}>
-          <Button
-            variant="outline-success"
-            size="sm"
-            onClick={this.handleSumbit}
-          >
-            Insert
-          </Button>
-        </Col>
-      </Row>
+        <DateTimeBadge tm={this.props.tm} format={this.props.format} />
+      </GenericSmallCard>
     );
   }
 }
@@ -57,14 +45,15 @@ function createDateTimeSmartItem({ tm, format, label, on_insert }) {
 const DEF_FMT = "YYYY-MMMM-DD";
 
 export function dateTimeSmartItemSearch(input, on_insert) {
+  console.log("dateTimeSmartItemSearch", input);
   var ret = [];
-  if (input.match(/^now/i)) {
+  if (input.match(/^(now|date)/i)) {
     const tm = moment();
     ret.push(
       createDateTimeSmartItem({
         tm: tm,
         format: "time",
-        label: "Now",
+        label: "now",
         on_insert: on_insert,
       })
     );
@@ -75,7 +64,7 @@ export function dateTimeSmartItemSearch(input, on_insert) {
       createDateTimeSmartItem({
         tm: tm,
         format: "day",
-        label: "Today",
+        label: "today",
         on_insert: on_insert,
       })
     );
@@ -86,7 +75,7 @@ export function dateTimeSmartItemSearch(input, on_insert) {
       createDateTimeSmartItem({
         tm: tm,
         format: "day",
-        label: "Yesterday",
+        label: "yesterday",
         on_insert: on_insert,
       })
     );
@@ -97,7 +86,7 @@ export function dateTimeSmartItemSearch(input, on_insert) {
       createDateTimeSmartItem({
         tm: tm,
         format: "day",
-        label: "Tomorrow",
+        label: "tomorrow",
         on_insert: on_insert,
       })
     );
@@ -108,7 +97,7 @@ export function dateTimeSmartItemSearch(input, on_insert) {
       createDateTimeSmartItem({
         tm: yyyy_mm_dd,
         format: DEF_FMT,
-        label: "Date",
+        label: "",
         on_insert: on_insert,
       })
     );
@@ -120,7 +109,7 @@ export function dateTimeSmartItemSearch(input, on_insert) {
       createDateTimeSmartItem({
         tm: dd_mm_yyyy,
         format: DEF_FMT,
-        label: "Date",
+        label: "",
         on_insert: on_insert,
       })
     );
@@ -132,7 +121,7 @@ export function dateTimeSmartItemSearch(input, on_insert) {
       createDateTimeSmartItem({
         tm: dd_mm_yy,
         format: DEF_FMT,
-        label: "Date",
+        label: "",
         on_insert: on_insert,
       })
     );
@@ -144,12 +133,13 @@ export function dateTimeSmartItemSearch(input, on_insert) {
       createDateTimeSmartItem({
         tm: dd_mmmm_yy,
         format: DEF_FMT,
-        label: "Date",
+        label: "",
         on_insert: on_insert,
       })
     );
   }
-
+  //TODO: make dates unique in result array
+  //TODO: fit all suggested dates in the single card as a list
   return ret;
 }
 

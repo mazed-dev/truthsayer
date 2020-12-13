@@ -38,7 +38,7 @@ function makeSeeMoreLink(nid) {
   );
 }
 
-class NodeSmallCard extends React.Component {
+class NodeSmallCardImpl extends React.Component {
   constructor(props) {
     super(props);
     this.fetchEdgesCancelToken = axios.CancelToken.source();
@@ -84,9 +84,13 @@ class NodeSmallCard extends React.Component {
   }
 
   onClick = () => {
-    this.props.history.push({
-      pathname: "/node/" + this.props.nid,
-    });
+    if (this.props.onClick) {
+      this.props.onClick(this.props.nid);
+    } else {
+      this.props.history.push({
+        pathname: "/node/" + this.props.nid,
+      });
+    }
   };
 
   fetchPreface = () => {
@@ -118,11 +122,11 @@ class NodeSmallCard extends React.Component {
     let seeMore = null;
     let clickableStyle = null;
     let clickableOnClick = null;
-    if (this.props.clickable) {
+    if (this.props.clickable || this.props.onClick) {
       clickableStyle = styles.clickable_chunks;
       clickableOnClick = this.onClick;
     } else {
-      seeMore = makeSeeMoreLink();
+      seeMore = makeSeeMoreLink(this.props.nid);
     }
     return (
       <Card
@@ -154,6 +158,51 @@ class NodeSmallCard extends React.Component {
   }
 }
 
-NodeSmallCard.defaultProps = { skip_input_edge: false, edges: [] };
+NodeSmallCardImpl.defaultProps = { skip_input_edge: false, edges: [] };
 
-export default withRouter(NodeSmallCard);
+export const NodeSmallCard = withRouter(NodeSmallCardImpl);
+
+export class GenericSmallCard extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+  render() {
+    let clickableStyle = null;
+    let clickableOnClick = null;
+    if (this.props.onClick) {
+      clickableStyle = styles.clickable_chunks;
+      clickableOnClick = this.props.onClick;
+    }
+    let header = this.props.header ? (
+      <Card.Header>{this.props.header}</Card.Header>
+    ) : null;
+    let footer = null;
+    if (this.props.footer) {
+      footer = (
+        <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">
+          {this.props.footer}
+        </footer>
+      );
+    }
+    return (
+      <Card
+        className={joinClasses(
+          styles.small_card,
+          styles.small_card_width,
+          clickableStyle
+        )}
+        nid={this.props.nid}
+        ref={this.props.cardRef}
+        onClick={clickableOnClick}
+      >
+        {header}
+        <Card.Body className="px-3 pt-2 pb-0">{this.props.children}</Card.Body>
+        {footer}
+      </Card>
+    );
+  }
+}
+
+GenericSmallCard.defaultProps = { header: null, footer: null, onClick: null };
+
+export default NodeSmallCard;

@@ -1,5 +1,9 @@
 # Todo
 
+ - [ ] Scroll works, but requrie more work:
+    - dark background
+    - Proper title for inserted ref, better fetched dynamically
+    - Better cards for date/new nodes
  - [ ] End-to-end encryption
  - [ ] Button for list item to create right-link from this item
  - [ ] Proper preview for small cards
