@@ -143,3 +143,19 @@
 
   margin-bottom: 0.4rem;
 }
+
+.inline_ref {
+  font-weight: 500;
+  color: #61b668;
+}
+
+.inline_ref:hover {
+  color: #306e37;
+  text-decoration-line: underline;
+  -webkit-text-decoration-line: underline; /* Safari */
+}
+
+.inline_ref_img {
+  width: 1rem;
+  height: 1rem;
+}

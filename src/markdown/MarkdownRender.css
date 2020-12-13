@@ -41,15 +41,6 @@
   border: 1px solid #dfe2e5;
 }
 
-.markdown-full-note-body a {
-  color: inherit;
-}
-
-.markdown-full-note-body a:hover {
-  color: green;
-  text-decoration: none;
-}
-
 .markdown-full-note-body .highlight pre,
 .markdown-full-note-body pre,
 .markdown-small-card-body .highlight pre,

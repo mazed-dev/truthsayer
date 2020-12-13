@@ -183,6 +183,7 @@ export function DateTimeBadge({ tm, format, children, ...rest }) {
 function MarkdownLink({ href, children, sourcePosition, ...rest }) {
   href = href.trim();
 
+  let prefix = null;
   if (href.startsWith("@")) {
     const parts = href.match(/^@([0-9]+)\/?(.*)/);
     if (parts) {
@@ -190,10 +191,14 @@ function MarkdownLink({ href, children, sourcePosition, ...rest }) {
       const format = parts[2];
       return <DateTimeBadge tm={tm} format={format} />;
     }
+  } else if (href.match(/^\w+$/)) {
+    // Link to one of the nodes
+    prefix = "/";
   }
 
   return (
-    <a href={href} {...rest}>
+    <a href={href} className={styles.inline_ref} {...rest}>
+      {prefix}
       {children}
     </a>
   );
