@@ -39,30 +39,6 @@ export class NextRefSmartItem extends React.Component {
   };
 
   render() {
-    // return (
-    //   <Row
-    //     className="justify-content-between w-100 p-0 m-0"
-    //     onClick={this.handleSumbit}
-    //   >
-    //     <Col sm md lg xl={8}>
-    //       {this.props.label}
-    //       &nbsp;
-    //       <q>{this.props.title}</q>
-    //     </Col>
-    //     <Col sm md lg xl={2}>
-    //       <Button
-    //         variant="outline-success"
-    //         size="sm"
-    //         onClick={this.handleSumbit}
-    //       >
-    //         Insert
-    //       </Button>
-    //     </Col>
-    //   </Row>
-    // );
-
-    // key={}
-    // id={}
     return (
       <GenericSmallCard onClick={this.handleSumbit} header={this.props.label}>
         &nbsp;

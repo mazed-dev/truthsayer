@@ -5,10 +5,11 @@ import { Modal, Form, ListGroup } from "react-bootstrap";
 import axios from "axios";
 import keycode from "keycode";
 
-import { refSmartItemSearch } from "./RefSmartSearch";
 import { dateTimeSmartItemSearch } from "./DateTimeSmartItem";
 import { nextRefSmartItemSearch } from "./NextRefSmartItem";
 import { SearchGrid } from "./../grid/SearchGrid";
+
+import { exctractDocTitle } from "./../doc/doc_util";
 
 import remoteErrorHandler from "./../remoteErrorHandler";
 
@@ -68,7 +69,7 @@ class AutocompleteModal extends React.Component {
   };
 
   startSmartSearch = (input) => {
-    console.log("startSmartSearch", input);
+    //*dbg*/ console.log("startSmartSearch", input);
     this.setState(
       {
         cards: [],
@@ -123,8 +124,8 @@ class AutocompleteModal extends React.Component {
     this.setState({ cursor: index });
   };
 
-  onNodeCardClick = (nid) => {
-    const title = "ref"; // FIXME
+  onNodeCardClick = (nid, doc) => {
+    const title = exctractDocTitle(doc);
     const replacement = "[" + title + "](" + nid + ")";
     this.props.on_insert(replacement);
     const req = {

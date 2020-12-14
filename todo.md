@@ -1,17 +1,17 @@
 # Todo
 
- - [ ] Scroll works, but requrie more work:
-    - dark background
-    - Proper title for inserted ref, better fetched dynamically
-    - Better cards for date/new nodes
+ - [ ] Smart menu - incorrect size of dynamic cards grid
  - [ ] End-to-end encryption
+ - [ ] Clone for next - new button on side cards menu, hide it with "search and next" under "more" button with arrow - "v"
  - [ ] Button for list item to create right-link from this item
  - [ ] Proper preview for small cards
+ - [ ] Smart menu - dark background under smart cards
  - [ ] Drag-and-drop for paragraps and list items
  - [ ] Small cards on smart search results
  - [ ] Toolpannel is a part of small card - take is as an argument
  - [ ] Check lists should be interactive in read mode
  - [ ] Draw lines from "in-text" references to other notes
+ - [ ] Better cards for date/new nodes
  - [ ] Don't cut small notes in the middle of the line
  - [ ] "Date" menu, to see details and edit in modal window
  - [ ] Notification feature from DATA menu

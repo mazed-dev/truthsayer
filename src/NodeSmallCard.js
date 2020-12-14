@@ -85,7 +85,7 @@ class NodeSmallCardImpl extends React.Component {
 
   onClick = () => {
     if (this.props.onClick) {
-      this.props.onClick(this.props.nid);
+      this.props.onClick(this.props.nid, this.state.doc);
     } else {
       this.props.history.push({
         pathname: "/node/" + this.props.nid,
