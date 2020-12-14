@@ -219,68 +219,68 @@ export class TextEditor extends React.Component {
   handleKeyDown = (event) => {
     const key = event.key;
     const keyCode = event.keyCode;
-    if (this.textAreaRef.current) {
-      const textRef = this.textAreaRef.current;
-      if (key === "/") {
-        const prefix = textRef.value.slice(0, textRef.selectionStart);
-        if (prefix.endsWith("/")) {
-          event.preventDefault();
-          this.setState({
-            modalShow: true,
-          });
-        }
-      } else if (
-        keyCode === keycode("enter") &&
-        textRef.selectionStart === textRef.selectionEnd
-      ) {
-        var prefix = textRef.value.slice(0, textRef.selectionStart);
-        if (prefix.endsWith("\n")) {
-          prefix = prefix.trim();
-          if (prefix.length > 0) {
-            event.preventDefault();
-            const suffix = textRef.value.slice(textRef.selectionStart);
-            const left = makeChunk(prefix);
-            const rigth = makeChunk(suffix.trim());
-            const goToIndex = this.props.index + 1;
-            this.props.replaceChunks(
-              [left, rigth],
-              this.props.index,
-              goToIndex
-            );
-          }
-        }
-      } else if (
-        keyCode === keycode("backspace") &&
-        0 === textRef.selectionStart &&
-        0 === textRef.selectionEnd
-      ) {
+    const textRef = this.textAreaRef.current;
+    if (textRef == null) {
+      return;
+    }
+    if (key === "/") {
+      const prefix = textRef.value.slice(0, textRef.selectionStart);
+      if (prefix.endsWith("/")) {
         event.preventDefault();
-        const source = this.state.value.trim();
-        const chunk = makeChunk(source);
-        const goToIndex = this.props.index - 1;
-        this.props.mergeChunkUp(
-          chunk,
-          this.props.index,
-          goToIndex,
-          -source.length
-        );
-      } else if (keyCode === keycode("up") && 0 === textRef.selectionStart) {
-        if (this.props.index !== 0) {
-          event.preventDefault();
-          const { chunks } = parseRawSource(this.state.value);
-          const goToIndex = this.props.index - 1;
-          this.props.replaceChunks(chunks, this.props.index, goToIndex);
-        }
-      } else if (
-        keyCode === keycode("down") &&
-        textRef.textLength === textRef.selectionStart &&
-        textRef.textLength === textRef.selectionEnd
-      ) {
-        event.preventDefault();
-        const { chunks } = parseRawSource(this.state.value);
-        const goToIndex = this.props.index + 1;
-        this.props.replaceChunks(chunks, this.props.index, goToIndex);
+        this.setState({
+          modalShow: true,
+        });
       }
+    } else if (
+      keyCode === keycode("enter") &&
+      textRef.selectionStart === textRef.selectionEnd
+    ) {
+      var prefix = textRef.value.slice(0, textRef.selectionStart);
+      if (prefix.endsWith("\n")) {
+        prefix = prefix.trim();
+        if (prefix.length > 0) {
+          event.preventDefault();
+          const suffix = textRef.value.slice(textRef.selectionStart);
+          const left = makeChunk(prefix);
+          const rigth = makeChunk(suffix.trim());
+          const goToIndex = this.props.index + 1;
+          this.props.replaceChunks([left, rigth], this.props.index, goToIndex);
+        }
+      }
+    } else if (
+      keyCode === keycode("backspace") &&
+      0 === textRef.selectionStart &&
+      0 === textRef.selectionEnd
+    ) {
+      event.preventDefault();
+      const source = this.state.value.trim();
+      const chunk = makeChunk(source);
+      const goToIndex = this.props.index - 1;
+      this.props.mergeChunkUp(
+        chunk,
+        this.props.index,
+        goToIndex,
+        -source.length
+      );
+    } else if (
+      0 !== this.props.index &&
+      keyCode === keycode("up") &&
+      0 === textRef.selectionStart &&
+      0 === textRef.selectionEnd
+    ) {
+      event.preventDefault();
+      const { chunks } = parseRawSource(this.state.value);
+      const goToIndex = this.props.index - 1;
+      this.props.replaceChunks(chunks, this.props.index, goToIndex);
+    } else if (
+      keyCode === keycode("down") &&
+      textRef.textLength === textRef.selectionStart &&
+      textRef.textLength === textRef.selectionEnd
+    ) {
+      event.preventDefault();
+      const { chunks } = parseRawSource(this.state.value);
+      const goToIndex = this.props.index + 1;
+      this.props.replaceChunks(chunks, this.props.index, goToIndex);
     }
   };
 

@@ -30,8 +30,23 @@ class DateTimeSmartItem extends React.Component {
   }
 }
 
-function createDateTimeSmartItem({ tm, format, label, on_insert }) {
-  return (
+function createDateTimeSmartItem({
+  tm,
+  format,
+  label,
+  on_insert,
+  cards,
+  usedTms,
+}) {
+  if (!tm.isValid()) {
+    return;
+  }
+  const uTm = tm.unix();
+  if (usedTms.has(uTm)) {
+    return;
+  }
+  usedTms.add(uTm);
+  cards.push(
     <DateTimeSmartItem
       tm={tm}
       format={format}
@@ -46,101 +61,80 @@ const DEF_FMT = "YYYY-MMMM-DD";
 
 export function dateTimeSmartItemSearch(input, on_insert) {
   console.log("dateTimeSmartItemSearch", input);
-  var ret = [];
+  let cards = [];
+  let usedTms = new Set();
   if (input.match(/^(now|date)/i)) {
-    const tm = moment();
-    ret.push(
-      createDateTimeSmartItem({
-        tm: tm,
-        format: "time",
-        label: "now",
-        on_insert: on_insert,
-      })
-    );
+    createDateTimeSmartItem({
+      tm: moment(),
+      format: "time",
+      label: "now",
+      on_insert: on_insert,
+      cards: cards,
+      usedTms: usedTms,
+    });
+  } else if (input.match(/^toda?y?/i)) {
+    createDateTimeSmartItem({
+      tm: moment(),
+      format: "day",
+      label: "today",
+      on_insert: on_insert,
+      cards: cards,
+      usedTms: usedTms,
+    });
+  } else if (input.match(/^yeste?r?d?a?y?/i)) {
+    createDateTimeSmartItem({
+      tm: moment().subtract(1, "days"),
+      format: "day",
+      label: "yesterday",
+      on_insert: on_insert,
+      cards: cards,
+      usedTms: usedTms,
+    });
+  } else if (input.match(/^tomor?r?o?w?/i)) {
+    createDateTimeSmartItem({
+      tm: moment().add(1, "days"),
+      format: "day",
+      label: "tomorrow",
+      on_insert: on_insert,
+      cards: cards,
+      usedTms: usedTms,
+    });
+  } else {
+    createDateTimeSmartItem({
+      tm: moment(input, "YYYY-MM-DD"),
+      format: DEF_FMT,
+      label: "",
+      on_insert: on_insert,
+      cards: cards,
+      usedTms: usedTms,
+    });
+    createDateTimeSmartItem({
+      tm: moment(input, "DD-MM-YYYY"),
+      format: DEF_FMT,
+      label: "",
+      on_insert: on_insert,
+      cards: cards,
+      usedTms: usedTms,
+    });
+    createDateTimeSmartItem({
+      tm: moment(input, "DD-MM-YY"),
+      format: DEF_FMT,
+      label: "",
+      on_insert: on_insert,
+      cards: cards,
+      usedTms: usedTms,
+    });
+    createDateTimeSmartItem({
+      tm: moment(input, "DD-MMMM-YY"),
+      format: DEF_FMT,
+      label: "",
+      on_insert: on_insert,
+      cards: cards,
+      usedTms: usedTms,
+    });
   }
-  if (input.match(/^toda?y?/i)) {
-    const tm = moment();
-    ret.push(
-      createDateTimeSmartItem({
-        tm: tm,
-        format: "day",
-        label: "today",
-        on_insert: on_insert,
-      })
-    );
-  }
-  if (input.match(/^yeste?r?d?a?y?/i)) {
-    const tm = moment().subtract(1, "days");
-    ret.push(
-      createDateTimeSmartItem({
-        tm: tm,
-        format: "day",
-        label: "yesterday",
-        on_insert: on_insert,
-      })
-    );
-  }
-  if (input.match(/^tomor?r?o?w?/i)) {
-    const tm = moment().add(1, "days");
-    ret.push(
-      createDateTimeSmartItem({
-        tm: tm,
-        format: "day",
-        label: "tomorrow",
-        on_insert: on_insert,
-      })
-    );
-  }
-  const yyyy_mm_dd = moment(input, "YYYY-MM-DD");
-  if (yyyy_mm_dd.isValid()) {
-    ret.push(
-      createDateTimeSmartItem({
-        tm: yyyy_mm_dd,
-        format: DEF_FMT,
-        label: "",
-        on_insert: on_insert,
-      })
-    );
-  }
-
-  const dd_mm_yyyy = moment(input, "DD-MM-YYYY");
-  if (dd_mm_yyyy.isValid()) {
-    ret.push(
-      createDateTimeSmartItem({
-        tm: dd_mm_yyyy,
-        format: DEF_FMT,
-        label: "",
-        on_insert: on_insert,
-      })
-    );
-  }
-
-  const dd_mm_yy = moment(input, "DD-MM-YY");
-  if (dd_mm_yy.isValid()) {
-    ret.push(
-      createDateTimeSmartItem({
-        tm: dd_mm_yy,
-        format: DEF_FMT,
-        label: "",
-        on_insert: on_insert,
-      })
-    );
-  }
-
-  const dd_mmmm_yy = moment(input, "DD-MMMM-YY");
-  if (dd_mmmm_yy.isValid()) {
-    ret.push(
-      createDateTimeSmartItem({
-        tm: dd_mmmm_yy,
-        format: DEF_FMT,
-        label: "",
-        on_insert: on_insert,
-      })
-    );
-  }
-  //TODO: make dates unique in result array
-  //TODO: fit all suggested dates in the single card as a list
-  return ret;
+  //TODO(akindyakov): Place all suggested dates into a single card as a list with individual "insert" button for each date
+  return cards;
 }
 
 export default DateTimeSmartItem;
