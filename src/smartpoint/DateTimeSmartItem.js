@@ -53,6 +53,7 @@ function createDateTimeSmartItem({
       label={label}
       on_insert={on_insert}
       ref={React.createRef()}
+      key={"smart/date/insert/" + uTm}
     />
   );
 }
@@ -60,7 +61,6 @@ function createDateTimeSmartItem({
 const DEF_FMT = "YYYY-MMMM-DD";
 
 export function dateTimeSmartItemSearch(input, on_insert) {
-  console.log("dateTimeSmartItemSearch", input);
   let cards = [];
   let usedTms = new Set();
   if (input.match(/^(now|date)/i)) {

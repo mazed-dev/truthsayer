@@ -1,6 +1,5 @@
 # Todo
 
- - [ ] Smart menu - incorrect size of dynamic cards grid
  - [ ] End-to-end encryption
  - [ ] Clone for next - new button on side cards menu, hide it with "search and next" under "more" button with arrow - "v"
  - [ ] Button for list item to create right-link from this item
@@ -81,3 +80,4 @@
  - [x] Secure search that will allow full end-to-end encryption
  - [x] Chunked doc editing - new chunk on 2 new lines
  - [x] Go to a small card only by clicking on Header of it
+ - [x] Smart menu - incorrect size of dynamic cards grid

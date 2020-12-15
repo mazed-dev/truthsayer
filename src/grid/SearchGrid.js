@@ -34,7 +34,7 @@ class DynamicGrid extends React.Component {
       height: 480,
       ncols: 1,
     };
-    this.rowRef = React.createRef();
+    this.containerRef = React.createRef();
   }
 
   componentDidMount() {
@@ -53,11 +53,14 @@ class DynamicGrid extends React.Component {
     //* dbg */   window.innerHeight
     //* dbg */ );
     //* dbg */ see NodeSmallCard.css.mazed_small_card.max-width
+    const containerEl = this.containerRef.current;
+    const width = containerEl.clientWidth || window.innerWidth;
+    const height = containerEl.clientHeight || window.innerHeight;
     const fontSize = parseFloat(
       getComputedStyle(document.documentElement).fontSize
     );
     const fn = (cardWidth) => {
-      const nf = window.innerWidth / (fontSize * (1 + cardWidth));
+      const nf = width / (fontSize * (1 + cardWidth));
       const n = Math.floor(nf);
       const delta = nf - n;
       //* dbg */ console.log("delta", delta, n, cardWidth);
@@ -71,11 +74,11 @@ class DynamicGrid extends React.Component {
     //     }
     //     return opt;
     //   }, [1, 1]);
-    const opt = fn(19);
-    const ncols = Math.max(1, opt[1]);
+    const [delta, cardsN] = fn(19);
+    const ncols = Math.max(1, cardsN);
     this.setState({
-      width: window.innerWidth,
-      height: window.innerHeight,
+      width: width,
+      height: height,
       ncols: ncols,
     });
   };
@@ -95,13 +98,12 @@ class DynamicGrid extends React.Component {
       );
     });
     return (
-      <Container fluid className={joinClasses(styles.grid_container)}>
-        <Row
-          ref={this.rowRef}
-          className="justify-content-between w-100 p-0 m-0"
-        >
-          {columns}
-        </Row>
+      <Container
+        fluid
+        className={joinClasses(styles.grid_container)}
+        ref={this.containerRef}
+      >
+        <Row className="justify-content-between w-100 p-0 m-0">{columns}</Row>
       </Container>
     );
   }
@@ -116,10 +118,6 @@ export class SearchGrid extends React.Component {
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
-
-  // static propTypes = {
-  //   history: PropTypes.object.isRequired,
-  // };
 
   componentDidMount() {
     window.addEventListener("scroll", this.handleScroll, { passive: true });

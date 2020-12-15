@@ -65,6 +65,7 @@ export function nextRefSmartItemSearch(input, nid, on_insert) {
         from_nid={nid}
         on_insert={on_insert}
         ref={React.createRef()}
+        key={"smart/next/new"}
       />
     );
   }
@@ -79,6 +80,7 @@ export function nextRefSmartItemSearch(input, nid, on_insert) {
         to_nid={nid}
         on_insert={on_insert}
         ref={React.createRef()}
+        key={"smart/prev/new"}
       />
     );
   }
