@@ -1,4 +1,5 @@
 import { extractIndexNGramsFromDoc } from "./ngramsIndex";
+import { toBase64, fromBase64 } from "./../util/base64";
 
 const uuid = require("uuid");
 
@@ -6,14 +7,6 @@ const uuid = require("uuid");
  * Node attrs:
  *  - ngrams
  */
-
-function toBase64(s) {
-  return btoa(s);
-}
-
-function fromBase64(a) {
-  return atob(a);
-}
 
 function packAttrs(attrs) {
   if (!attrs) {

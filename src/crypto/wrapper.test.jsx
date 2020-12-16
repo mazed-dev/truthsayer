@@ -1,4 +1,4 @@
-import { encrypt, decrypt } from "./crypto";
+import { encrypt, decrypt } from "./wrapper";
 const { exec } = require("child_process");
 
 // OpenSSL compatible:
