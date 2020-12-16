@@ -16,15 +16,7 @@ import { extractIndexNGramsFromText } from "./../search/ngramsIndex.js";
 
 import { joinClasses } from "./../util/elClass.js";
 
-function range(n, start, end) {
-  if (start == null) {
-    start = 0;
-  }
-  if (end == null) {
-    end = n;
-  }
-  return new Array(n).fill(undefined).map((_, i) => i + start);
-}
+import { range } from "./../util/range";
 
 class DynamicGrid extends React.Component {
   constructor(props) {

@@ -10,13 +10,13 @@ export function mergeChunks(left: TChunk, right: TChunk): TChunk {
 export function makeChunk(source: string, type?: number): TChunk {
   //*dbg*/ console.log("makeChunk", source);
   return {
-    type: (type ?? 0),
+    type: type ?? 0,
     source: source,
   };
 }
 
 export function trimChunk(chunk: TChunk, size: number): TChunk {
-  const hellip = (size < chunk.source.length) ? "&hellip;" : "";
+  const hellip = size < chunk.source.length ? "&hellip;" : "";
   return {
     type: chunk.type,
     source: chunk.source.slice(0, size) + hellip,
