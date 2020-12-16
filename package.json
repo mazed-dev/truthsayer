@@ -13,6 +13,7 @@
     "axios": "^0.21.",
     "bootstrap": "^4.4.",
     "crc": "^3.",
+    "crypto-js": "^4.0.0",
     "http-status-codes": "^1.4",
     "keycode": "^2.2.",
     "local-storage": "^2.0.",
