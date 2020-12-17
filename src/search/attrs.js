@@ -1,5 +1,5 @@
 import { extractIndexNGramsFromDoc } from "./ngramsIndex";
-import { toBase64, fromBase64 } from "./../util/base64";
+import { toBase64, fromBase64 } from "./../util/base64.jsx";
 
 const uuid = require("uuid");
 
