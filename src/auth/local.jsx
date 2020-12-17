@@ -13,11 +13,8 @@ export class UserAccount {
   _email: string | null = null;
 
   constructor() {
-    console.log("UserAccount:constructor");
     this.axiosCancelToken = axios.CancelToken.source();
-    console.log("UserAccount:constructor 1");
     this._isAuthenticated = _checkAuth();
-    console.log("UserAccount:constructor 2");
     getAuth({ cancelToken: this.axiosCancelToken.token }).then((res) => {
       if (res) {
         this._uid = res.data.uid;
@@ -27,7 +24,6 @@ export class UserAccount {
         LocalCrypto.initInstance(res.data.uid, "");
       }
     });
-    console.log("UserAccount:constructor 3");
   }
 
   getUid(): string {
