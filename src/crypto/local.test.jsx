@@ -159,3 +159,15 @@ test("hashes of last secret and all secrets do not collide", () => {
     lc._getAllSecretsHashesKey()
   );
 });
+
+test("init and access singleton", () => {
+  let storage = new LocalStorageMock();
+  LocalCrypto.initInstance(kUid, kSessionSecret, storage);
+
+  let lc = LocalCrypto.getInstance();
+
+  const secret = "1u87nidcbqxo7ytm1u5swogrqy3c9zyjr39t6f4mmf154";
+  const secretHash = lc.appendSecret(secret);
+
+  expect(lc.getLastSecretHash()).toStrictEqual(secretHash);
+});

@@ -49,6 +49,7 @@ export class LocalCrypto {
     storage?: TStorage
   ): void {
     LocalCrypto.myInstance = new LocalCrypto(uid, storage || ls);
+    return LocalCrypto.myInstance;
   }
 
   static getInstance(): LocalCrypto {
