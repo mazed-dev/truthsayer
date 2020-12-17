@@ -248,7 +248,7 @@ class FullNodeView extends React.Component {
       edges_left: [],
       edges_right: [],
       edges_sticky: [],
-      aux_toolbar: <></>,
+      aux_toolbar: null,
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
@@ -358,7 +358,7 @@ class FullNodeView extends React.Component {
     if (el) {
       this.setState({ aux_toolbar: el });
     } else {
-      this.setState({ aux_toolbar: <></> });
+      this.setState({ aux_toolbar: null });
     }
   };
 

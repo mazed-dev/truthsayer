@@ -16,8 +16,6 @@ import { withRouter } from "react-router-dom";
 
 import Emoji from "./Emoji";
 
-import user_default_pic from "./user-default-pic.png";
-
 import styles from "./UserEncryption.module.css";
 
 class UserEncryption extends React.Component {

@@ -46,9 +46,9 @@ export class LocalCrypto {
   static initInstance(
     uid: string,
     sessionSecret: string,
-    storage?: TStorage
+    storage?: TStorage // Default one is local storage
   ): void {
-    LocalCrypto.myInstance = new LocalCrypto(uid, storage || ls);
+    LocalCrypto.myInstance = new LocalCrypto(uid, sessionSecret, storage || ls);
     return LocalCrypto.myInstance;
   }
 

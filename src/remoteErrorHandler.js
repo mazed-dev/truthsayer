@@ -1,7 +1,5 @@
 import HttpStatus from "http-status-codes";
 
-import authcache from "./auth/cache";
-
 export function remoteErrorHandler(history) {
   return (error) => {
     console.log(error.config);
@@ -23,9 +21,8 @@ export function remoteErrorHandler(history) {
     console.log("Error -> ", error);
     if (error.response) {
       if (HttpStatus.UNAUTHORIZED === error.response.status) {
-        authcache.drop();
         history.push({
-          pathname: "/login",
+          pathname: "/",
         });
       } else if (HttpStatus.NOT_FOUND === error.response.status) {
         history.push({

@@ -20,7 +20,7 @@ import axios from "axios";
 import queryString from "query-string";
 import { withRouter } from "react-router-dom";
 
-import user_default_pic from "./user-default-pic.png";
+import user_default_pic from "./auth/img/user-default-pic.png";
 
 import NewImg from "./img/new-button.png";
 import NewUploadImg from "./img/new-upload-button.png";

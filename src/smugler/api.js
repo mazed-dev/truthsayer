@@ -51,3 +51,7 @@ export function updateNode({ nid, doc, cancelToken }) {
   };
   return axios.patch("/api/node/" + nid, jsonDoc, config);
 }
+
+export function getAuth({ cancelToken }) {
+  return axios.get("/api/auth", { cancelToken: cancelToken });
+}

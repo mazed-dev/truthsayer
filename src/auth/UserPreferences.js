@@ -1,50 +1,16 @@
 import React from "react";
-
-// React router
-import { Link } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
 
 import { Button, Container, Image } from "react-bootstrap";
 
 import axios from "axios";
-import { withRouter } from "react-router-dom";
 
-import user_default_pic from "./user-default-pic.png";
+import user_default_pic from "./img/user-default-pic.png";
 
 class UserPreferences extends React.Component {
-  // pub struct AccountInfo<'a> {
-  //     pub uid: &'a str,
-  //     pub name: &'a str,
-  //     pub email: &'a str,
-  // }
-  constructor(props) {
-    super(props);
-    this.axiosCancelToken = axios.CancelToken.source();
-    this.state = {
-      name: "user",
-      email: "email",
-    };
-  }
-
-  componentDidMount() {
-    axios
-      .get("/api/auth", {
-        cancelToken: this.axiosCancelToken.token,
-      })
-      .then((res) => {
-        if (res) {
-          this.setState({
-            name: res.data.name,
-            email: res.data.email,
-          });
-        }
-      });
-  }
-
-  componentWillUnmount() {
-    this.axiosCancelToken.cancel();
-  }
-
   render() {
+    const name = this.props.account.getName();
+    const email = this.props.account.getEmail();
     // TODO: use custom user uploaded picture for userpic here
     return (
       <Container>
@@ -62,11 +28,11 @@ class UserPreferences extends React.Component {
             <tbody>
               <tr>
                 <td className="px-4 py-1">{"name"}</td>
-                <td>{this.state.name}</td>
+                <td>{name}</td>
               </tr>
               <tr>
                 <td className="px-4 py-1">{"email"}</td>
-                <td>{this.state.email}</td>
+                <td>{email}</td>
               </tr>
               <tr className="py-1">
                 <td className="px-4">{"password"}</td>
