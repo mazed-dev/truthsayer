@@ -1,4 +1,9 @@
-import { encrypt, decrypt } from "./wrapper";
+import { encrypt, decrypt, sha1, symmetricMakeKeys,
+  makeIv,
+  symmetricEncrypt,
+  symmetricDecrypt,
+importSecretBase64Key,
+} from "./wrapper";
 const { exec } = require("child_process");
 
 // OpenSSL compatible:
@@ -64,4 +69,33 @@ test("simple openssl enc & dec", () => {
     const decryptedText = decrypt(stdout, passphrase);
     expect(decryptedText).toStrictEqual(inputText);
   });
+});
+
+test("sha1 consistency", async () => {
+  const inputText = "https://cryptojs.gitbook.io/docs/";
+  const hashValue = await sha1(inputText);
+  // echo -n '<inputText>' | sha1sum
+  expect(hashValue).toStrictEqual("bf63b52c05b62953bdf32f7bb828964768334004");
+});
+
+test("crypto web api: encrypt & decrypt", async () => {
+  const key = await symmetricMakeKeys();
+  expect(key.type).toStrictEqual("secret");
+  expect(key.algorithm.length).toStrictEqual(256,);
+  expect(key.algorithm.name).toStrictEqual("AES-CBC");
+
+  const text = "The Nutcracker (ballet), Op.71";
+
+  const iv = makeIv();
+  const encrypted = await symmetricEncrypt(key, text, iv);
+  const decrypted = await symmetricDecrypt(key, encrypted, iv);
+  expect(decrypted).toStrictEqual(text);
+});
+
+test("crypto web api: importSecretBase64Key", async () => {
+  const base64Key = "TW96aWxsYS81LjAgKFgxMQ==";
+  const key = await importSecretBase64Key(base64Key);
+});
+
+test("crypto web api: generate random key and wrap it", async () => {
 });
