@@ -1,6 +1,14 @@
-import { encrypt, decrypt, sha1 } from "./wrapper";
+import {
+  decrypt,
+  encrypt,
+  sha1,
+  sign,
+  verify,
+} from "./wrapper.jsx";
 
-import { toBase64, fromBase64 } from "./../util/base64.jsx";
+import {getSecondKey, getAnySecondKey} from "./../smugler/api";
+
+import { base64 } from "./../util/base64.jsx";
 
 const ls = require("local-storage");
 
@@ -10,8 +18,15 @@ interface TLocalSecretHash {
 }
 
 interface TEncrypted {
-  encrypted: Any;
-  hash: string;
+  encrypted: string;
+  secid: string;
+  signature: string;
+}
+
+interface TSecret {
+  id: string;
+  key: string;
+  sig: string;
 }
 
 interface TStorage {
@@ -20,60 +35,61 @@ interface TStorage {
 }
 
 export class LocalCrypto {
-  static myInstance = null;
+  static _instance = null;
 
   _uid: string = "";
   _storage: TStorage | null = null;
-  _lastSecretHash: string | null = null;
-  _lastSecret: string | null = null;
+  _lastSecret: TSecret | null = null;
 
-  // All local secrets will be encrypted in local-storage
-  // with this session secret
-  _sessionSecret: string | null = null;
-
-  constructor(uid: string, sessionSecret: string, storage: TStorage) {
+  constructor(
+    uid: string,
+    storage: TStorage,
+    lastSecret: TSecret | null,
+  ) {
     this._uid = uid;
     this._storage = storage;
-    this._sessionSecret = sessionSecret;
-
-    const lastSecretHash = this._storage.get(this._getLastSecretHashKey());
-    if (lastSecretHash) {
-      this._lastSecret = this._getSecretByHash(lastSecretHash);
-      this._lastSecretHash = lastSecretHash;
-    }
+    this._lastSecret = lastSecret;
   }
 
   static initInstance(
     uid: string,
-    sessionSecret: string,
     storage?: TStorage // Default one is local storage
   ): void {
-    LocalCrypto.myInstance = new LocalCrypto(uid, sessionSecret, storage || ls);
-    return LocalCrypto.myInstance;
+    LocalCrypto._instance = new LocalCrypto(
+      uid,
+      storage || ls);
+    return LocalCrypto._instance;
   }
 
   static getInstance(): LocalCrypto {
-    return this.myInstance;
+    return this._instance;
   }
 
   encryptObj(obj: Any): TEncrypted | null {
-    if (!this._lastSecret || !this._lastSecretHash) {
+    if (!this._lastSecret) {
       return null;
     }
-    const encrypted = encrypt(JSON.stringify(obj), this._lastSecret);
+    const iv = makeIv();
+    const encrypted = symmetricEncrypt(
+      this._lastSecret.key,
+      JSON.stringify(obj),
+      iv,
+    );
+    const signature = signatureSign(this._lastSecret.sig, encrypted);
     return {
       encrypted: encrypted,
-      hash: this._lastSecretHash,
+      secid: this._lastSecret.id,
+      signature: signature,
     };
   }
 
-  decryptObj(cipher: string, hash: string): Any | null {
+  decryptObj(encrypted: TEncrypted): Any | null {
     const secret = this._getSecretByHash(hash);
     const str = decrypt(cipher, secret);
     return JSON.parse(str);
   }
 
-  reEncryptObj(cipher: string, hash: string): TEncrypted | null {
+  reEncryptObj(encrypted: TEncrypted): TEncrypted | null {
     const obj = this.decryptObj(cipher, hash);
     if (obj == null) {
       return null;
@@ -97,10 +113,10 @@ export class LocalCrypto {
 
   getAllSecretHashes(): Array<TLocalSecretHash> {
     const lastSecretHash: string = this._storage.get(
-      this._getLastSecretHashKey()
+      this._getLastSecretIdKey()
     );
     const allSecretsKeys: string = this._storage.get(
-      this._getAllSecretsHashesKey()
+      this._getAllSecretIdsKey()
     );
     return allSecretsKeys.map((hash) => {
       const is_active = hash === lastSecretHash;
@@ -123,34 +139,79 @@ export class LocalCrypto {
       return null;
     }
     // TODO(akindyakov): add this hash to in-memory cache for performance
-    return decrypt(fromBase64(secretBase64), this._sessionSecret);
+    return decrypt(base64.toStr(secretBase64), this._sessionSecret);
   }
 
-  _getLastSecretHashKey() {
-    return sha1(this._uid + "/crypto/local/secret/last/hash");
+  static _getLastSecretIdKey() {
+    return sha1(this._uid + "//crypto/local/secret/last");
   }
 
-  _getAllSecretsHashesKey() {
-    return sha1(this._uid + "/crypto/local/secret/all/hashes");
+  static _getAllSecretIdsKey() {
+    return sha1(this._uid + "//crypto/local/secret/all");
   }
 
-  _storeSecretToLocalStorage(secret: string): string {
+  async _storeSecretToLocalStorage(secret: string): string {
+    const secondKey = await getAnySecondKey().data;
     const encryptedSecret = encrypt(secret, this._sessionSecret);
-    const packed = toBase64(encryptedSecret);
-    const key = sha1(packed);
+    const signature = sign(encryptedSecret, secondKey.sig);
+    const encrypted: TEncrypted = {
+      encrypted: encryptedSecret,
+      secid: secondKey.id,
+      signature: signature,
+    };
+    const secretId = sha1(secret);
 
-    const allSecretsHashesKey = this._getAllSecretsHashesKey();
-    let allSecretsHashes: Array<string> =
-      this._storage.get(allSecretsHashesKey) || [];
+    let allSecretsHashes: Array<string> = [];
+    const allSecretsHashesKey = this._getAllSecretIdsKey();
+    let allSecretsHashesStr: string | null =
+      this._storage.get(allSecretsHashesKey);
+    if (allSecretsHashesStr != null) {
+      allSecretsHashes = base64.toObject(allSecretsHashesStr);
+    }
     allSecretsHashes.push(key);
 
     // Store new
-    this._storage.set(key, packed);
-    // Swap last key
-    this._storage.set(this._getLastSecretHashKey(), key);
+    this._storage.set(secretId, base64.fromObject(encrypted));
     // Sway hashes list
     this._storage.set(allSecretsHashesKey, allSecretsHashes);
+    // Swap last key
+    this._storage.set(this._getLastSecretIdKey(), secretId);
 
-    return key;
+    return secretId;
+  }
+
+  static async function respawnLocalCrypto(
+    uid: string,
+    storage: TStorage,
+    cancelToken: Any,
+  ): LocalCrypto {
+    const lastSecretId = storage.get(LocalCrypto._getLastSecretIdKey());
+    const lastSecretBase64 = this._storage.get(lastSecretId);
+    if (lastSecretBase64 == null) {
+      console.log("Error: local user secret is not defined");
+      return;
+    }
+    const lastSecretEnc: TEncrypted = base64.toObject(lastSecretBase64);
+
+    const secondKey = await getSecondKey({
+      id: lastSecretEnc.secid, cancelToken: cancelToken,
+    }).data;
+
+    if (!verify(lastSecretEnc.sig, lastSecretEnc.encrypted, secondKey.sig)) {
+      console.log("Error: signature of encrypted local key is corrupted");
+      return;
+    }
+    const keyStr = decrypt(
+      lastSecretEnc.encrypted,
+      secondKey.key,
+    );
+    const lastSecret: TSecret = base64.toObject(keyStr);
+
+    return new LocalCrypto(
+      uid,
+      storage,
+      lastSecret,
+    );
   }
 }
+

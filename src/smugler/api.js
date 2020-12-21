@@ -55,3 +55,11 @@ export function updateNode({ nid, doc, cancelToken }) {
 export function getAuth({ cancelToken }) {
   return axios.get("/api/auth", { cancelToken: cancelToken });
 }
+
+export function getAnySecondKey({ cancelToken }) {
+  return axios.get("/api/key/second/*", { cancelToken: cancelToken });
+}
+
+export function getSecondKey({ id, cancelToken }) {
+  return axios.get("/api/key/second/" + id, { cancelToken: cancelToken });
+}
