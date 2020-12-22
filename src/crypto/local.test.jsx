@@ -13,161 +13,206 @@ class LocalStorageMock {
 }
 
 const kUid = "abc";
-const kSessionSecret = "o94sjpysxcgjtiaybko6sjyfr6kixyxct7msr3jy18r9q";
-
 const kUid2 = "cde";
-const kSessionSecret2 = "babel.parser.src.parser.expression.js:348:23";
 
-test("push secret & get last & get all & push one more", () => {
+const kSecondKey = "o94sjpysxcgjtiaybko6sjyfr6kixyxct7msr3jy18r9q";
+const kSecondKeyId = "9g6czuNkVvhgple/fdvMug";
+const kSecondKeySig = "Soqfwx3BWkuHuxRbBds64L8jM+Q";
+
+const mockSmugler = {
+  getSecondKey: async () => {
+    return {
+      key: kSecondKey,
+      sig: kSecondKeySig,
+      id: kSecondKeyId,
+      is_expired: false,
+    };
+  },
+  getAnySecondKey: async () => {
+    return {
+      key: kSecondKey,
+      sig: kSecondKeySig,
+      id: kSecondKeyId,
+      is_expired: false,
+    };
+  },
+};
+
+test("push secret & get last & get all & push one more", async () => {
   let storage = new LocalStorageMock();
-  let lc = new LocalCrypto(kUid, kSessionSecret, storage);
+  let lc = new LocalCrypto(kUid, storage, mockSmugler);
 
   const secret = "<>|<f><n><t>)[<>]!@#$%^&*()_+";
-  const secretId = lc.appendSecret(secret);
+  const sig = "284j1hXWJLRKl5LL0yP8eQ";
+  const secretId = await lc.appendSecret(secret, sig);
 
   expect(lc.getLastSecretId()).toStrictEqual(secretId);
   expect(lc.getAllSecretIds()).toStrictEqual([
     {
-      hash: secretId,
+      id: secretId,
       is_active: true,
     },
   ]);
 
   const secret2 = "rnp4c74qmuyew71i9zs8hctzcgwu3bdsff8yuhp4mmtianm (*&%^)";
-  const secretHash2 = lc.appendSecret(secret2);
+  const sig2 = "2xaDRF8rx4c+4+BvdnbcIQ";
+  const secretId2 = await lc.appendSecret(secret2, sig2);
 
-  expect(lc.getLastSecretId()).toStrictEqual(secretHash2);
+  expect(lc.getLastSecretId()).toStrictEqual(secretId2);
   expect(lc.getAllSecretIds()).toStrictEqual([
     {
-      hash: secretId,
+      id: secretId,
       is_active: false,
     },
     {
-      hash: secretHash2,
+      id: secretId2,
       is_active: true,
     },
   ]);
 });
 
-// test("push secret & get last & encrypt & decrypt", () => {
-//   let storage = new LocalStorageMock();
-//   let lc = new LocalCrypto(kUid, kSessionSecret, storage);
-//
-//   const secret = "[<nm-fm>]!@#$%^&*()_+";
-//   const secretId = lc.appendSecret(secret);
-//   expect(lc.getLastSecretId()).toStrictEqual(secretId);
-//
-//   const value = {
-//     theRuleIsThis: {
-//       that: {
-//         wherever: "there",
-//         is: "a decision of a Court",
-//       },
-//       of_concurrent: "jurisdiction",
-//     },
-//     theOther: "Courts will adopt",
-//     thatAs: [2, "the", "basis", "of", "their", "decision"],
-//   };
-//
-//   const encrypted = lc.encryptObj(value);
-//
-//   expect(encrypted.hash).toStrictEqual(secretId);
-//
-//   const gotValue = lc.decryptObj(encrypted.encrypted, encrypted.hash);
-//
-//   expect(gotValue).toStrictEqual(value);
-// });
-//
-// test("push secret & delete crypto manager & create manager again and see that secret persists", () => {
-//   let storage = new LocalStorageMock();
-//   let lc = new LocalCrypto(kUid, kSessionSecret, storage);
-//
-//   const secret = "1u87nidcbqxo7ytm1u5swogrqy3c9zyjr39t6f4mmf154";
-//   const secretId = lc.appendSecret(secret);
-//
-//   expect(lc.getLastSecretId()).toStrictEqual(secretId);
-//   expect(lc.getAllSecretIds()).toStrictEqual([
-//     {
-//       hash: secretId,
-//       is_active: true,
-//     },
-//   ]);
-//
-//   const secret2 = "rnp4c74qmuyew71i9zs8hctzcgwu3bdsff8yuhp4mmtianm (*&%^)";
-//   const secretHash2 = lc.appendSecret(secret2);
-//
-//   expect(lc.getLastSecretId()).toStrictEqual(secretHash2);
-//   expect(lc.getAllSecretIds()).toStrictEqual([
-//     {
-//       hash: secretId,
-//       is_active: false,
-//     },
-//     {
-//       hash: secretHash2,
-//       is_active: true,
-//     },
-//   ]);
-//
-//   // Recreate crypto manager with the same storage
-//   lc = new LocalCrypto(kUid, kSessionSecret, storage);
-//
-//   expect(lc.getLastSecretId()).toStrictEqual(secretHash2);
-//   expect(lc.getAllSecretIds()).toStrictEqual([
-//     {
-//       hash: secretId,
-//       is_active: false,
-//     },
-//     {
-//       hash: secretHash2,
-//       is_active: true,
-//     },
-//   ]);
-// });
-//
-// test("Two crypto managers for different users that share storage should not have collisions", () => {
-//   let storage = new LocalStorageMock();
-//   let lc = new LocalCrypto(kUid, kSessionSecret, storage);
-//   let lc2 = new LocalCrypto(kUid2, kSessionSecret2, storage);
-//
-//   const secret = "1u87nidcbqxo7ytm1u5swogrqy3c9zyjr39t6f4mmf154";
-//   const secretId = lc.appendSecret(secret);
-//
-//   const secret2 = "p3y7kpqt9wfx4khihzh139e11thx8sg48a9bht3tu5opr";
-//   const secretHash2 = lc2.appendSecret(secret2);
-//
-//   expect(lc.getLastSecretId()).toStrictEqual(secretId);
-//   expect(lc.getAllSecretIds()).toStrictEqual([
-//     {
-//       hash: secretId,
-//       is_active: true,
-//     },
-//   ]);
-//
-//   expect(lc2.getLastSecretId()).toStrictEqual(secretHash2);
-//   expect(lc2.getAllSecretIds()).toStrictEqual([
-//     {
-//       hash: secretHash2,
-//       is_active: true,
-//     },
-//   ]);
-// });
-//
-// test("hashes of last secret and all secrets do not collide", () => {
-//   let storage = new LocalStorageMock();
-//   let lc = new LocalCrypto(kUid, kSessionSecret, storage);
-//   expect(lc._getLastSecretHashKey()).not.toStrictEqual(
-//     lc._getAllSecretsHashesKey()
-//   );
-// });
-//
-// test("init and access singleton", () => {
-//   let storage = new LocalStorageMock();
-//   LocalCrypto.initInstance(kUid, kSessionSecret, storage);
-//
-//   let lc = LocalCrypto.getInstance();
-//
-//   const secret = "1u87nidcbqxo7ytm1u5swogrqy3c9zyjr39t6f4mmf154";
-//   const secretId = lc.appendSecret(secret);
-//
-//   expect(lc.getLastSecretId()).toStrictEqual(secretId);
-// });
+test("push secret & get last & encrypt & decrypt", async () => {
+  let storage = new LocalStorageMock();
+  let lc = new LocalCrypto(kUid, storage, mockSmugler);
+
+  const secret = "[<nm-fm>]!@#$%^&*()_+";
+  const sig = "PZNe07IUtx+u8+jpmfav1w";
+  const secretId = await lc.appendSecret(secret, sig);
+  expect(lc.getLastSecretId()).toStrictEqual(secretId);
+
+  const value = {
+    theRuleIsThis: {
+      that: {
+        wherever: "there",
+        is: "a decision of a Court",
+        type: -123,
+      },
+      of_concurrent: "jurisdiction",
+    },
+    theOther: "Courts will adopt",
+    thatAs: [2, "the", "basis", "of", "their", "decision"],
+  };
+
+  const encrypted = await lc.encryptObj(value);
+
+  expect(encrypted.secret_id).toStrictEqual(secretId);
+
+  const gotValue = await lc.decryptObj(encrypted);
+
+  expect(gotValue).toStrictEqual(value);
+});
+
+test("push secret & delete crypto manager & create manager again and see that secret persists", async () => {
+  let storage = new LocalStorageMock();
+  let lc = new LocalCrypto(kUid, storage, mockSmugler);
+
+  const secret = "1u87nidcbqxo7ytm1u5swogrqy3c9zyjr39t6f4mmf154";
+  const sig = "TTABozjIU8s";
+  const secretId = await lc.appendSecret(secret, sig);
+
+  expect(lc.getLastSecretId()).toStrictEqual(secretId);
+  expect(lc.getAllSecretIds()).toStrictEqual([
+    {
+      id: secretId,
+      is_active: true,
+    },
+  ]);
+
+  const secret2 = "xB61aZU0jXE";
+  const sig2 = "5P0fsnHUGLc";
+  const secretId2 = await lc.appendSecret(secret2, sig2);
+
+  expect(lc.getLastSecretId()).toStrictEqual(secretId2);
+  expect(lc.getAllSecretIds()).toStrictEqual([
+    {
+      id: secretId,
+      is_active: false,
+    },
+    {
+      id: secretId2,
+      is_active: true,
+    },
+  ]);
+
+  // Recreate crypto manager with the same uid and on the same storage
+  lc = new LocalCrypto(kUid, storage, mockSmugler);
+  await lc.respawnLocalCrypto();
+
+  expect(lc.getLastSecretId()).toStrictEqual(secretId2);
+  expect(lc.getAllSecretIds()).toStrictEqual([
+    {
+      id: secretId,
+      is_active: false,
+    },
+    {
+      id: secretId2,
+      is_active: true,
+    },
+  ]);
+});
+
+test("Two crypto managers for different users that share storage should not have collisions", async () => {
+  let storage = new LocalStorageMock();
+  let lc = new LocalCrypto(kUid, storage, mockSmugler);
+  let lc2 = new LocalCrypto(kUid2, storage, mockSmugler);
+
+  const secret = "1u87nidcbqxo7ytm1u5swo";
+  const sig = "grqy3c9zyjr39t6f4mmf154";
+  const secretId = await lc.appendSecret(secret, sig);
+
+  const secret2 = "p3y7kpqt9wfx4khihzh13";
+  const sig2 = "1thx8sg48a9bht3tu5opr";
+  const secretId2 = await lc2.appendSecret(secret2, sig2);
+
+  expect(lc.getLastSecretId()).toStrictEqual(secretId);
+  expect(lc.getAllSecretIds()).toStrictEqual([
+    {
+      id: secretId,
+      is_active: true,
+    },
+  ]);
+
+  expect(lc2.getLastSecretId()).toStrictEqual(secretId2);
+  expect(lc2.getAllSecretIds()).toStrictEqual([
+    {
+      id: secretId2,
+      is_active: true,
+    },
+  ]);
+});
+
+test("hashes of last secret and all secrets do not collide", () => {
+  let storage = new LocalStorageMock();
+  let lc = new LocalCrypto(kUid, storage, mockSmugler);
+  expect(lc._getLastSecretIdKey()).not.toStrictEqual(lc._getAllSecretIdsKey());
+});
+
+test("init and access singleton", async () => {
+  let storage = new LocalStorageMock();
+  let lc = new LocalCrypto(kUid, storage, mockSmugler);
+
+  const secret = "1u87nidcbqxo7ytm1u5swogrqy3c9zyjr39t6f4mmf154";
+  const sig = "1u87nidcbqxo7ytm1u5swogrqy3c9zyjr39t6f4mmf154";
+  const secretId = await lc.appendSecret(secret, sig);
+
+  expect(lc.getLastSecretId()).toStrictEqual(secretId);
+
+  // Init LocalCrypto singleton on the same storage
+  await LocalCrypto.initInstance(kUid, storage, mockSmugler);
+  lc = LocalCrypto.getInstance();
+  expect(lc.getLastSecretId()).toStrictEqual(secretId);
+});
+
+test("does not encrypt without local key", async () => {
+  let storage = new LocalStorageMock();
+  let lc = new LocalCrypto(kUid, storage, mockSmugler);
+  const value = {
+    theRuleIsThis: {
+      that: {
+        wherever: "there",
+      },
+    },
+  };
+  const encrypted = await lc.encryptObj(value);
+  expect(encrypted).toBeNull();
+});

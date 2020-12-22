@@ -57,9 +57,18 @@ export function getAuth({ cancelToken }) {
 }
 
 export function getAnySecondKey() {
-  return axios.get("/api/key/second/*");
+  return axios.get("/api/key/second/*").then((res) => {
+    res.data;
+  });
 }
 
 export function getSecondKey({ id }) {
-  return axios.get("/api/key/second/" + id);
+  return axios.get("/api/key/second/" + id).then((res) => {
+    res.data;
+  });
 }
+
+export const smugler = {
+  getSecondKey: getSecondKey,
+  getAnySecondKey: getAnySecondKey,
+};
