@@ -24,15 +24,15 @@ function arrayBuffer2Str(ab: ArrayBuffer): string {
 }
 
 interface TEncrypted {
-  encrypted: string,
-  iv: string,
-  signature: string,
+  encrypted: string;
+  iv: string;
+  signature: string;
 }
 
 interface TUserLocalKey {
-  id: string,
-  key: ArrayBuffer,
-  sig: ArrayBuffer,
+  id: string;
+  key: ArrayBuffer;
+  sig: ArrayBuffer;
 }
 
 /// Symmetric
@@ -52,10 +52,13 @@ export async function symmetricMakeKeys() {
 // Import an AES secret key from an base64 text
 export async function importSecretBase64Key(base64Key: string) {
   const bytes = base64.toByteArray(base64Key);
-  return await kWebCryptoApiSubtle.importKey("raw", bytes, kSymmetricAlgo, true, [
-    "encrypt",
-    "decrypt",
-  ]);
+  return await kWebCryptoApiSubtle.importKey(
+    "raw",
+    bytes,
+    kSymmetricAlgo,
+    true,
+    ["encrypt", "decrypt"]
+  );
 }
 
 // Export key
@@ -80,7 +83,11 @@ export async function symmetricEncrypt(key, str: string, iv: ArrayBuffer) {
 }
 
 // Decrypt
-export async function symmetricDecrypt(key, encrypted, iv: ArrayBuffer): string {
+export async function symmetricDecrypt(
+  key,
+  encrypted,
+  iv: ArrayBuffer
+): string {
   const encryptedBytes = base64.toByteArray(encrypted);
   const decryptedBytes = await kWebCryptoApiSubtle.decrypt(
     { name: kSymmetricAlgo, iv: iv },
@@ -104,11 +111,10 @@ const kSignatureNamedCurve = "P-256";
 
 // Generate keys
 export async function signatureGenerateKeys() {
-  return await kWebCryptoApiSubtle.generateKey(
-    kSignatureAlgo,
-    true,
-    ["sign", "verify"]
-  );
+  return await kWebCryptoApiSubtle.generateKey(kSignatureAlgo, true, [
+    "sign",
+    "verify",
+  ]);
 }
 
 // Import an AES secret key from an base64 text
@@ -128,11 +134,7 @@ export async function importSecretBase64Signature(base64Sig: string) {
 
 // Sign
 export async function signatureSign(privateKey, data) {
-  return await kWebCryptoApiSubtle.sign(
-    kSignatureAlgo,
-    privateKey,
-    data
-  );
+  return await kWebCryptoApiSubtle.sign(kSignatureAlgo, privateKey, data);
 }
 
 // Verify

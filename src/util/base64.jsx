@@ -17,7 +17,7 @@ function _fromByteArray(a: Uint8Array): string {
 }
 
 function _toObject(a: string): Any {
-  return toBase64(JSON.stringify(o));
+  return JSON.parse(fromBase64(a));
 }
 
 function _fromObject(o: Any): string {

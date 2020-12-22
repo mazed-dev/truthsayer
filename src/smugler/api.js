@@ -56,10 +56,10 @@ export function getAuth({ cancelToken }) {
   return axios.get("/api/auth", { cancelToken: cancelToken });
 }
 
-export function getAnySecondKey({ cancelToken }) {
-  return axios.get("/api/key/second/*", { cancelToken: cancelToken });
+export function getAnySecondKey() {
+  return axios.get("/api/key/second/*");
 }
 
-export function getSecondKey({ id, cancelToken }) {
-  return axios.get("/api/key/second/" + id, { cancelToken: cancelToken });
+export function getSecondKey({ id }) {
+  return axios.get("/api/key/second/" + id);
 }

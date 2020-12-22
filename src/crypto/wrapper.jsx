@@ -1,9 +1,23 @@
 import AES from "crypto-js/aes";
-import Utf8 from "crypto-js/enc-utf8";
-import Pkcs7 from "crypto-js/pad-pkcs7";
+import Base64 from "crypto-js/enc-base64";
 import HmacSHA256 from "crypto-js/hmac-sha256";
+import Pkcs7 from "crypto-js/pad-pkcs7";
+import SHA1 from "crypto-js/sha1";
+import Utf8 from "crypto-js/enc-utf8";
 
-const shajs = require("sha.js");
+import { base64 } from "./../util/base64.jsx";
+
+interface TEncrypted {
+  encrypted: string;
+  secret_id: string;
+  signature: string;
+}
+
+interface TSecret {
+  id: string;
+  key: string;
+  sig: string;
+}
 
 export const encrypt = (text: string, passphrase: string): string => {
   const encrypted = AES.encrypt(text, passphrase, {
@@ -20,13 +34,59 @@ export const decrypt = (ciphertext: string, passphrase: string): string => {
 };
 
 export const sha1 = (str: string): string => {
-  return shajs("sha1").update(str).digest("hex");
+  return Base64.stringify(SHA1(str));
 };
 
 export const sign = (data: string, passphrase: string): string => {
-  HmacSHA256(data, passphrase);
+  return Base64.stringify(HmacSHA256(data, passphrase));
+};
+
+export const verify = (
+  signature: string,
+  data: string,
+  passphrase: string
+): boolean => {
+  return signature === sign(data, passphrase);
+};
+
+export function makeSecret(
+  secretPhrase: string,
+  signaturePhrase: string
+): TSecret {
+  const secret: TSecret = {
+    id: sha1(secretPhrase + "\n" + signaturePhrase),
+    key: secretPhrase,
+    sig: signaturePhrase,
+  };
+  return secret;
 }
 
-export const verify = (signature: string, data: string, passphrase: string): bool => {
-  return signature === sign(data, passphrase);
+export async function encryptAndSignObject(
+  obj: Any,
+  secret: TSecret
+): TEncrypted {
+  const encrypted = encrypt(base64.fromObject(obj), secret.key);
+  const signature = sign(encrypted, secret.sig);
+  const encryptedObj: TEncrypted = {
+    encrypted: encrypted,
+    secret_id: secret.id,
+    signature: signature,
+  };
+  return encryptedObj;
+}
+
+export async function decryptSignedObject(
+  encryptedObj: TEncrypted,
+  secret: TSecret
+): Any | null {
+  if (secret.id !== encryptedObj.secret_id) {
+    console.log("Error: secret id missmatch");
+    return null;
+  }
+  if (!verify(encryptedObj.signature, encryptedObj.encrypted, secret.sig)) {
+    console.log("Error: signature of encrypted object is corrupted");
+    return null;
+  }
+  const secretStr = decrypt(encryptedObj.encrypted, secret.key);
+  return base64.toObject(secretStr);
 }

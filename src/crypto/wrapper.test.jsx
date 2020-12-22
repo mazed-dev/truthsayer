@@ -1,6 +1,9 @@
 import {
   decrypt,
+  decryptSignedObject,
   encrypt,
+  encryptAndSignObject,
+  makeSecret,
   sha1,
   sign,
   verify,
@@ -76,7 +79,31 @@ test("simple openssl enc & dec", () => {
 test("sha1 consistency", async () => {
   const inputText = "https://cryptojs.gitbook.io/docs/";
   const hashValue = await sha1(inputText);
-  // echo -n '<inputText>' | sha1sum
-  expect(hashValue).toStrictEqual("bf63b52c05b62953bdf32f7bb828964768334004");
+  // echo -n '<inputText>' | openssl dgst -binary -sha1 | openssl base64
+  expect(hashValue).toStrictEqual("v2O1LAW2KVO98y97uCiWR2gzQAQ=");
 });
 
+test("sign output", async () => {
+  const inputText = "https://cryptojs.gitbook.io/docs/";
+  const passphrase = "a/study/in/scarlet";
+  const signed = await sign(inputText, passphrase);
+  expect(signed).toStrictEqual("Nb92J70G718pEsRDAaMWEfv3AxWHBSXNoWckfuW+RGE=");
+});
+
+test("encryptAndSignObject & decryptSignedObject", async () => {
+  const inputObject = {
+    size: 5381,
+    fill: ["abc", -1],
+    encoding: "utf8",
+  };
+  const secretPhrase = "&#0; NUL Null 001 &#1; SOH Start of Header 010 &#2";
+  const signaturePhrase = "0F 00001111 &#15;SI Shift In &#16;DLE Data Link";
+
+  const secret: TSecret = makeSecret(secretPhrase, signaturePhrase);
+
+  const encrypted = await encryptAndSignObject(inputObject, secret);
+  expect(encrypted.secret_id).toStrictEqual(secret.id);
+
+  const decryptedObject = await decryptSignedObject(encrypted, secret);
+  expect(decryptedObject).toStrictEqual(inputObject);
+});
