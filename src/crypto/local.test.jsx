@@ -10,6 +10,10 @@ class LocalStorageMock {
   set(key: string, value: string): void {
     this.storage[key] = value;
   }
+
+  remove(key: string): void {
+    delete this.storage[key];
+  }
 }
 
 const kUid = "abc";
@@ -42,9 +46,8 @@ test("push secret & get last & get all & push one more", async () => {
   let storage = new LocalStorageMock();
   let lc = new LocalCrypto(kUid, storage, mockSmugler);
 
-  const secret = "<>|<f><n><t>)[<>]!@#$%^&*()_+";
-  const sig = "284j1hXWJLRKl5LL0yP8eQ";
-  const secretId = await lc.appendSecret(secret, sig);
+  const secret = "<>|<f><n><t>)[<>]!@#$%^&*()_+284j1hXWJLRKl5LL0yP8eQ";
+  const secretId = await lc.appendSecret(secret);
 
   expect(lc.getLastSecretId()).toStrictEqual(secretId);
   expect(lc.getAllSecretIds()).toStrictEqual([
@@ -54,9 +57,8 @@ test("push secret & get last & get all & push one more", async () => {
     },
   ]);
 
-  const secret2 = "rnp4c74qmuyew71i9zs8hctzcgwu3bdsff8yuhp4mmtianm (*&%^)";
-  const sig2 = "2xaDRF8rx4c+4+BvdnbcIQ";
-  const secretId2 = await lc.appendSecret(secret2, sig2);
+  const secret2 = "rnp4c74qmuyew71i9zs(*&%^)2xaDRF8rx4c+4+BvdnbcIQ";
+  const secretId2 = await lc.appendSecret(secret2);
 
   expect(lc.getLastSecretId()).toStrictEqual(secretId2);
   expect(lc.getAllSecretIds()).toStrictEqual([
@@ -75,9 +77,8 @@ test("push secret & get last & encrypt & decrypt", async () => {
   let storage = new LocalStorageMock();
   let lc = new LocalCrypto(kUid, storage, mockSmugler);
 
-  const secret = "[<nm-fm>]!@#$%^&*()_+";
-  const sig = "PZNe07IUtx+u8+jpmfav1w";
-  const secretId = await lc.appendSecret(secret, sig);
+  const secret = "[<nm-fm>]!@#$%^&*()_+PZNe07IUtx+u8+jpmfav1w";
+  const secretId = await lc.appendSecret(secret);
   expect(lc.getLastSecretId()).toStrictEqual(secretId);
 
   const value = {
@@ -106,9 +107,8 @@ test("push secret & delete crypto manager & create manager again and see that se
   let storage = new LocalStorageMock();
   let lc = new LocalCrypto(kUid, storage, mockSmugler);
 
-  const secret = "1u87nidcbqxo7ytm1u5swogrqy3c9zyjr39t6f4mmf154";
-  const sig = "TTABozjIU8s";
-  const secretId = await lc.appendSecret(secret, sig);
+  const secret = "1u87nidcbqxo7ytm1u5swogrqy3c9zyjr39t6f4mmf154TABozjIU8s";
+  const secretId = await lc.appendSecret(secret);
 
   expect(lc.getLastSecretId()).toStrictEqual(secretId);
   expect(lc.getAllSecretIds()).toStrictEqual([
@@ -118,9 +118,8 @@ test("push secret & delete crypto manager & create manager again and see that se
     },
   ]);
 
-  const secret2 = "xB61aZU0jXE";
-  const sig2 = "5P0fsnHUGLc";
-  const secretId2 = await lc.appendSecret(secret2, sig2);
+  const secret2 = "xB61aZU0jXE5P0fsnHUGLc";
+  const secretId2 = await lc.appendSecret(secret2);
 
   expect(lc.getLastSecretId()).toStrictEqual(secretId2);
   expect(lc.getAllSecretIds()).toStrictEqual([
@@ -156,13 +155,11 @@ test("Two crypto managers for different users that share storage should not have
   let lc = new LocalCrypto(kUid, storage, mockSmugler);
   let lc2 = new LocalCrypto(kUid2, storage, mockSmugler);
 
-  const secret = "1u87nidcbqxo7ytm1u5swo";
-  const sig = "grqy3c9zyjr39t6f4mmf154";
-  const secretId = await lc.appendSecret(secret, sig);
+  const secret = "1u87nidcbqxo7ytm1u5swogrqy3c9zyjr39t6f4mm";
+  const secretId = await lc.appendSecret(secret);
 
-  const secret2 = "p3y7kpqt9wfx4khihzh13";
-  const sig2 = "1thx8sg48a9bht3tu5opr";
-  const secretId2 = await lc2.appendSecret(secret2, sig2);
+  const secret2 = "p3y7kpqt9wfx4khihzh13hx8sg48a9bht3tu5opr";
+  const secretId2 = await lc2.appendSecret(secret2);
 
   expect(lc.getLastSecretId()).toStrictEqual(secretId);
   expect(lc.getAllSecretIds()).toStrictEqual([
@@ -191,9 +188,8 @@ test("init and access singleton", async () => {
   let storage = new LocalStorageMock();
   let lc = new LocalCrypto(kUid, storage, mockSmugler);
 
-  const secret = "1u87nidcbqxo7ytm1u5swogrqy3c9zyjr39t6f4mmf154";
-  const sig = "1u87nidcbqxo7ytm1u5swogrqy3c9zyjr39t6f4mmf154";
-  const secretId = await lc.appendSecret(secret, sig);
+  const secret = "nidcbqxo7ytm1u5swogrqy3c9zyjr39t6f4mmf154";
+  const secretId = await lc.appendSecret(secret);
 
   expect(lc.getLastSecretId()).toStrictEqual(secretId);
 
@@ -215,4 +211,17 @@ test("does not encrypt without local key", async () => {
   };
   const encrypted = await lc.encryptObj(value);
   expect(encrypted).toBeNull();
+});
+
+test("deleteLastSecret", async () => {
+  let storage = new LocalStorageMock();
+  let lc = new LocalCrypto(kUid, storage, mockSmugler);
+
+  const secret = "nidcbqxo7ytm1u5swogrqy3c9zyjr39t6f4mmf154";
+  const secretId = await lc.appendSecret(secret);
+
+  expect(lc.getLastSecretId()).toStrictEqual(secretId);
+
+  await lc.deleteLastSecret();
+  expect(lc.getLastSecretId()).toBeNull();
 });

@@ -5,25 +5,47 @@
   margin: 1rem;
 }
 
-.encr_key {
-  display: block;
-  max-width: 12rem;
+.encr_item {
+  padding-bottom: 0.7rem;
+}
 
+.encr_id {
+  display: block;
   margin: 0;
+  color: red;
 }
 
 .encr_value {
   display: block;
-  width: 42rem;
   padding: 0;
 
+  /**
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  */
 
   color: grey;
+  margin-top: 1.6rem;
 }
 
 .keys_list {
   list-style-type: none;
+}
+
+.key_item_img {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-right: 0.5rem;
+}
+
+.key_hdr_img {
+  width: 2rem;
+  height: 2rem;
+  margin-right: 0.5rem;
+}
+
+.secret_input {
+  font-family: Consolas, Monaco, Lucida Console, Liberation Mono,
+    DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
 }

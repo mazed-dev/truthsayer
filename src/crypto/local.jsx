@@ -21,6 +21,7 @@ interface TLocalSecretHash {
 interface TStorage {
   get: (key: string) => string;
   set: (key: string, value: string) => void;
+  remove: (key: string) => void;
 }
 
 export class LocalCrypto {
@@ -82,22 +83,32 @@ export class LocalCrypto {
     return this.encryptObj(obj);
   }
 
-  async appendSecret(
-    secretPhrase: string,
-    signaturePhrase: string
-  ): Promise<string | null> {
-    const secret = await this._storeSecretToLocalStorage(
-      secretPhrase,
-      signaturePhrase
-    );
+  async appendSecret(secretPhrase: string): Promise<string | null> {
+    const secret = await this._storeSecretToLocalStorage(secretPhrase);
     this._lastSecret = secret;
     this._storage.set(this._getLastSecretIdKey(), secret.id);
     return secret.id;
   }
 
+  async deleteLastSecret(): Promise<void> {
+    if (this._lastSecret != null) {
+      this._storage.remove(this._lastSecret.id);
+      this._lastSecret = null;
+      this._storage.remove(this._getLastSecretIdKey());
+      this._storage.remove(this._getAllSecretIdsKey());
+    }
+  }
+
   getLastSecretId(): string | null {
     if (this._lastSecret) {
       return this._lastSecret.id;
+    }
+    return null;
+  }
+
+  getLastSecretPhrase(): string | null {
+    if (this._lastSecret) {
+      return this._lastSecret.sig + this._lastSecret.key;
     }
     return null;
   }
@@ -145,10 +156,10 @@ export class LocalCrypto {
     return secret;
   }
 
-  async _storeSecretToLocalStorage(
-    secretPhrase: string,
-    signaturePhrase: string
-  ): TSecret {
+  async _storeSecretToLocalStorage(secretPhrase: string): TSecret {
+    const signatureLength = Math.min(Math.round(secretPhrase.length / 2), 16);
+    const keyPhrase = secretPhrase.slice(0, signatureLength);
+    const signaturePhrase = secretPhrase.slice(signatureLength);
     const secondKeyData = await this._smugler.getAnySecondKey();
     // {
     //   key: String,
@@ -165,7 +176,7 @@ export class LocalCrypto {
       key: secondKeyData.key,
       sig: secondKeyData.sig,
     };
-    const secret: TSecret = makeSecret(secretPhrase, signaturePhrase);
+    const secret: TSecret = makeSecret(keyPhrase, signaturePhrase);
 
     const encryptedSecret: TEncrypted = await encryptAndSignObject(
       secret,

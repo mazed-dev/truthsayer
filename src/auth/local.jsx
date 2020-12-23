@@ -20,8 +20,9 @@ export class UserAccount {
         this._uid = res.data.uid;
         this._name = res.data.name;
         this._email = res.data.email;
-        // TODO(akindyakov): Init crypto/local here
-        LocalCrypto.initInstance(res.data.uid, "");
+        // Init singleton here
+        console.log("Got uid", this._uid, this._name);
+        LocalCrypto.initInstance(res.data.uid);
       }
     });
   }
