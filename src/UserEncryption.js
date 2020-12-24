@@ -75,6 +75,24 @@ class UserEncryption extends React.Component {
   };
 
   handleDeleteSecret = () => {
+    // const response = window.prompt(
+    //   "Are you sure you wish to delete local encryption secret?\n" +
+    //     'If you are sure, type "yes" and click "OK"'
+    // );
+    // if (response !== "yes") {
+    //   return;
+    // }
+    // TODO(akindyakov): make a custom modal confirmation window here
+    if (
+      !window.confirm(
+        "Are you sure you wish to delete local encryption secret?\n\n" +
+          "⚠️ Please make sure you backed it up securely, otherwise you will not " +
+          "be able to access notes encrypted by this secret.\n" +
+          "💡 Use secure password managers to store secrets and passwords safely."
+      )
+    ) {
+      return;
+    }
     const account = this.props.account;
     const crypto = account == null ? null : account.getLocalCrypto();
     if (crypto == null) {
@@ -82,7 +100,14 @@ class UserEncryption extends React.Component {
     }
     crypto.deleteLastSecret().then(() => {
       console.log("Secret deleted");
-      this.forceUpdate();
+      this.setState(
+        {
+          input: "",
+        },
+        () => {
+          this.forceUpdate();
+        }
+      );
     });
   };
 
