@@ -12,7 +12,7 @@
 .encr_id {
   display: block;
   margin: 0;
-  color: red;
+  color: green;
 }
 
 .encr_value {
@@ -48,4 +48,11 @@
 .secret_input {
   font-family: Consolas, Monaco, Lucida Console, Liberation Mono,
     DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
+
+  display: block;
+}
+
+.strength_badge {
+  margin: 1rem;
+  display: inline;
 }

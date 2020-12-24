@@ -22,6 +22,7 @@ import { withRouter } from "react-router-dom";
 import { LocalCrypto } from "./crypto/local.jsx";
 
 import { joinClasses } from "./util/elClass.js";
+import { isAscii } from "./util/ascii.jsx";
 
 import Emoji from "./Emoji.js";
 
@@ -35,6 +36,8 @@ class UserEncryption extends React.Component {
     this.axiosCancelToken = axios.CancelToken.source();
     this.state = {
       intput: "",
+      is_good_enough: false,
+      strength_str: "",
       reveal: false,
     };
   }
@@ -58,6 +61,7 @@ class UserEncryption extends React.Component {
       input: input,
       height: this.getAdjustedHeight(ref, 42),
     });
+    this.evaluateSecretStrength(input);
   };
 
   handleSubmitSecret = () => {
@@ -116,6 +120,51 @@ class UserEncryption extends React.Component {
     var diff = outerHeight - el.clientHeight;
     return Math.max(minHeight, el.scrollHeight + diff);
   };
+
+  evaluateSecretStrength = async (input) => {
+    let is_good_enough = true;
+    let strength_str = "";
+    if (!isAscii(input)) {
+      is_good_enough = false;
+      strength_str =
+        "Invalid symbols. Secret must contain only ASCII characters";
+    } else if (input.length < 24) {
+      is_good_enough = false;
+      strength_str = "Too short, secret must contain at least 24 symbols.";
+    } else if (input.length < 32) {
+      strength_str = "Ok";
+    } else if (input.length < 64) {
+      strength_str = "Good";
+    } else if (input.length > 128) {
+      strength_str = "Great";
+    }
+    this.setState({
+      is_good_enough: is_good_enough,
+      strength_str: strength_str,
+    });
+  };
+
+  makeSecretStrengthBadge() {
+    if (!this.state.is_good_enough) {
+      return (
+        <>
+          <Emoji
+            symbol="❌"
+            label="Incorrect"
+            className={styles.strength_badge}
+          />
+          {this.state.strength_str}
+        </>
+      );
+    } else {
+      return (
+        <>
+          <Emoji symbol="✅" label="Good" className={styles.strength_badge} />
+          {this.state.strength_str}
+        </>
+      );
+    }
+  }
 
   render() {
     let card = null;
@@ -187,10 +236,15 @@ class UserEncryption extends React.Component {
                 ref={this.textAreaRef}
               />
             </InputGroup>
-            <Button variant="outline-success" onClick={this.handleSubmitSecret}>
+            <Button
+              variant="outline-success"
+              onClick={this.handleSubmitSecret}
+              disabled={!this.state.is_good_enough}
+            >
               <img src={KeyImg} className={styles.key_item_img} alt={"key"} />
               Add secret
             </Button>
+            {this.makeSecretStrengthBadge()}
           </Card.Body>
         </Card>
       );
