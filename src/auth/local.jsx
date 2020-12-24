@@ -7,24 +7,30 @@ import { getAuth } from "./../smugler/api.js";
 const _VEIL_KEY: string = "x-magic-veil";
 
 export class UserAccount {
-  _isAuthenticated: boolean = false;
-  _uid: string | null = null;
-  _name: string | null = null;
-  _email: string | null = null;
+  _uid: string;
+  _name: string;
+  _email: string;
+  _lc: LocalCrypto;
 
-  constructor() {
-    this.axiosCancelToken = axios.CancelToken.source();
-    this._isAuthenticated = _checkAuth();
-    getAuth({ cancelToken: this.axiosCancelToken.token }).then((res) => {
+  constructor(uid: string, name: string, email: string, lc: LocalCrypto) {
+    this._uid = uid;
+    this._name = name;
+    this._email = email;
+    this._lc = lc;
+  }
+
+  static async aCreate(cancelToken): Promise<UserAccount> {
+    const user = await getAuth({ cancelToken: cancelToken }).then((res) => {
       if (res) {
-        this._uid = res.data.uid;
-        this._name = res.data.name;
-        this._email = res.data.email;
-        // Init singleton here
-        console.log("Got uid", this._uid, this._name);
-        LocalCrypto.initInstance(res.data.uid);
+        return res.data;
       }
+      return null;
     });
+    if (!user) {
+      return null;
+    }
+    const lc = await LocalCrypto.initInstance(user.uid);
+    return new UserAccount(user.uid, user.name, user.email, lc);
   }
 
   getUid(): string {
@@ -39,25 +45,18 @@ export class UserAccount {
     return this._email;
   }
 
-  isAuthenticated(): string {
-    return this._isAuthenticated;
-  }
-
-  drop() {
-    this._isAuthenticated = false;
-    this.axiosCancelToken.cancel();
-    _dropAuth();
-    return this;
+  getLocalCrypto(): LocalCrypto {
+    return this._lc;
   }
 }
 
-function _checkAuth() {
+export function checkAuth() {
   // Is it too slow?
   const cookies = new Cookies();
   return cookies.get(_VEIL_KEY) === "y";
 }
 
-function _dropAuth() {
+export function dropAuth() {
   const cookies = new Cookies();
   cookies.remove(_VEIL_KEY);
 }

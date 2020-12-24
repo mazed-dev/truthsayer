@@ -57,7 +57,7 @@ export function getAuth({ cancelToken }) {
 }
 
 export function getAnySecondKey() {
-  return axios.get("/api/key/second/*").then((res) => {
+  return axios.post("/api/key/second/*").then((res) => {
     return res.data;
   });
 }

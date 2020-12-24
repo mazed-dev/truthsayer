@@ -3,10 +3,10 @@ import {
   decryptSignedObject,
   encrypt,
   encryptAndSignObject,
+  genSecretPhrase,
   makeSecret,
   sha1,
   sign,
-  verify,
 } from "./wrapper.jsx";
 
 const { exec } = require("child_process");
@@ -97,13 +97,29 @@ test("encryptAndSignObject & decryptSignedObject", async () => {
     encoding: "utf8",
   };
   const secretPhrase = "&#0; NUL Null 001 &#1; SOH Start of Header 010 &#2";
-  const signaturePhrase = "0F 00001111 &#15;SI Shift In &#16;DLE Data Link";
 
-  const secret: TSecret = makeSecret(secretPhrase, signaturePhrase);
+  const secret: TSecret = makeSecret(secretPhrase);
 
   const encrypted = await encryptAndSignObject(inputObject, secret);
   expect(encrypted.secret_id).toStrictEqual(secret.id);
 
   const decryptedObject = await decryptSignedObject(encrypted, secret);
   expect(decryptedObject).toStrictEqual(inputObject);
+});
+
+test("makeSecret & genSecretPhrase compatibility", () => {
+  const secretPhrase =
+    "0@Pp(2FPZdnx!1AQaq)3=GQ[eoy2BRbr*4>HRfpz################################" +
+    "#3CScs!+5?IS]gq{$4DTdt,6@JT^hr|%5EUeu#-7AKU_is})9IYiy&&&&&&&&&&&&&&&&&&&" +
+    "&6FVfv$.8BLVjt~7GWgw%/9CMWakuDEL(8HXhx&0:DNXblv1;EOYcmw.................";
+  const secret = makeSecret(secretPhrase);
+  const phrase = genSecretPhrase(secret);
+  expect(phrase).toStrictEqual(secretPhrase);
+});
+
+test("makeSecret & genSecretPhrase compatibility (short)", () => {
+  const secretPhrase = "aq)3=GQ";
+  const secret = makeSecret(secretPhrase);
+  const phrase = genSecretPhrase(secret);
+  expect(phrase).toStrictEqual(secretPhrase);
 });

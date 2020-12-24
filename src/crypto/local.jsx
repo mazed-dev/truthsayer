@@ -3,6 +3,7 @@ import {
   TSecret,
   decryptSignedObject,
   encryptAndSignObject,
+  genSecretPhrase,
   makeSecret,
   sha1,
 } from "./wrapper.jsx";
@@ -48,7 +49,7 @@ export class LocalCrypto {
     uid: string,
     storage?: TStorage, // Default one is local storage
     remote?: Any
-  ): void {
+  ): LocalCrypto {
     let instance = new LocalCrypto(uid, storage, remote);
     await instance.respawnLocalCrypto();
     LocalCrypto._instance = instance;
@@ -107,8 +108,8 @@ export class LocalCrypto {
   }
 
   getLastSecretPhrase(): string | null {
-    if (this._lastSecret) {
-      return this._lastSecret.sig + this._lastSecret.key;
+    if (this._lastSecret != null) {
+      return genSecretPhrase(this._lastSecret);
     }
     return null;
   }
@@ -157,9 +158,6 @@ export class LocalCrypto {
   }
 
   async _storeSecretToLocalStorage(secretPhrase: string): TSecret {
-    const signatureLength = Math.min(Math.round(secretPhrase.length / 2), 16);
-    const keyPhrase = secretPhrase.slice(0, signatureLength);
-    const signaturePhrase = secretPhrase.slice(signatureLength);
     const secondKeyData = await this._smugler.getAnySecondKey();
     // {
     //   key: String,
@@ -176,7 +174,7 @@ export class LocalCrypto {
       key: secondKeyData.key,
       sig: secondKeyData.sig,
     };
-    const secret: TSecret = makeSecret(keyPhrase, signaturePhrase);
+    const secret: TSecret = makeSecret(secretPhrase);
 
     const encryptedSecret: TEncrypted = await encryptAndSignObject(
       secret,

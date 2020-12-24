@@ -30,43 +30,16 @@ import styles from "./UserEncryption.module.css";
 import KeyImg from "./crypto/img/yellow_key.png";
 
 class UserEncryption extends React.Component {
-  // pub struct AccountInfo<'a> {
-  //     pub uid: &'a str,
-  //     pub name: &'a str,
-  //     pub email: &'a str,
-  // }
   constructor(props) {
     super(props);
     this.axiosCancelToken = axios.CancelToken.source();
-    let secret = null;
-    const lc = LocalCrypto.getInstance();
-    if (lc !== null) {
-      secret = {
-        id: lc.getLastSecretId(),
-        phrase: lc.getLastSecretPhrase(),
-      };
-    }
     this.state = {
       intput: "",
       reveal: false,
-      secret: secret,
     };
   }
 
-  componentDidMount() {
-    axios
-      .get("/api/auth", {
-        cancelToken: this.axiosCancelToken.token,
-      })
-      .then((res) => {
-        if (res) {
-          this.setState({
-            name: res.data.name,
-            email: res.data.email,
-          });
-        }
-      });
-  }
+  componentDidMount() {}
 
   componentWillUnmount() {
     this.axiosCancelToken.cancel();
@@ -88,7 +61,29 @@ class UserEncryption extends React.Component {
   };
 
   handleSubmitSecret = () => {
-    this.state.input;
+    const account = this.props.account;
+    const crypto = account == null ? null : account.getLocalCrypto();
+    console.log("Submit...", crypto);
+    if (crypto != null) {
+      console.log("Crypto is initialised");
+      const secretPhrase = this.state.input;
+      crypto.appendSecret(secretPhrase).then((id) => {
+        console.log("Secret added", id);
+        this.forceUpdate();
+      });
+    }
+  };
+
+  handleDeleteSecret = () => {
+    const account = this.props.account;
+    const crypto = account == null ? null : account.getLocalCrypto();
+    if (crypto == null) {
+      return;
+    }
+    crypto.deleteLastSecret().then(() => {
+      console.log("Secret deleted");
+      this.forceUpdate();
+    });
   };
 
   getAdjustedHeight = (el, minHeight) => {
@@ -98,50 +93,26 @@ class UserEncryption extends React.Component {
   };
 
   render() {
-    // TODO: use custom user uploaded picture for userpic here
     let card = null;
-    if (this.state.secret === null) {
-      card = (
-        <Card>
-          <Card.Header>
-            <Emoji symbol="❌" label="No" />
-            There is no local secret on this device
-          </Card.Header>
-          <Card.Body>
-            <InputGroup>
-              <Form.Control
-                as="textarea"
-                aria-label="With textarea"
-                className={joinClasses(styles.secret_input)}
-                value={this.state.input}
-                onChange={this.handleChange}
-                style={{
-                  height: this.state.height + "px",
-                  resize: null,
-                }}
-                spellcheck="false"
-                ref={this.textAreaRef}
-              />
-            </InputGroup>
-            <Button variant="outline-success">
-              <img src={KeyImg} className={styles.key_item_img} alt={"key"} />
-              Add secret
-            </Button>
-          </Card.Body>
-        </Card>
-      );
-    } else {
-      const kv = this.state.secret;
+    const account = this.props.account;
+    const crypto = account == null ? null : account.getLocalCrypto();
+    if (crypto != null && crypto.getLastSecretId() != null) {
       card = (
         <Card>
           <Card.Header>
             <Row>
               <Col>
-                <code className={styles.encr_id}>{kv.id}</code>
+                <code className={styles.encr_id}>
+                  {crypto.getLastSecretId()}
+                </code>
               </Col>
               <Col>
                 <img src={KeyImg} className={styles.key_item_img} alt={"key"} />
-                <Button variant="outline-secondary" size="sm">
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  onClick={this.handleDeleteSecret}
+                >
                   Delete
                 </Button>
               </Col>
@@ -161,15 +132,44 @@ class UserEncryption extends React.Component {
               </Button>
             </ButtonGroup>
             <code className={styles.encr_value}>
-              {this.state.reveal ? kv.phrase : "****************"}
+              {this.state.reveal
+                ? crypto.getLastSecretPhrase()
+                : "****************"}
             </code>
           </Card.Body>
         </Card>
       );
+    } else {
+      card = (
+        <Card>
+          <Card.Header>
+            <Emoji symbol="❌" label="No" />
+            There is no local secret on this device
+          </Card.Header>
+          <Card.Body>
+            <InputGroup>
+              <Form.Control
+                as="textarea"
+                aria-label="With textarea"
+                className={joinClasses(styles.secret_input)}
+                value={this.state.input}
+                onChange={this.handleChange}
+                style={{
+                  height: this.state.height + "px",
+                  resize: null,
+                }}
+                spellCheck="false"
+                ref={this.textAreaRef}
+              />
+            </InputGroup>
+            <Button variant="outline-success" onClick={this.handleSubmitSecret}>
+              <img src={KeyImg} className={styles.key_item_img} alt={"key"} />
+              Add secret
+            </Button>
+          </Card.Body>
+        </Card>
+      );
     }
-    // <Button variant="outline-secondary" as={Link} to="/" className="m-2">
-    //   Go back
-    // </Button>
     return (
       <Container className={styles.page}>
         <h2 className={styles.page_hdr}>

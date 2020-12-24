@@ -49,16 +49,21 @@ export const verify = (
   return signature === sign(data, passphrase);
 };
 
-export function makeSecret(
-  secretPhrase: string,
-  signaturePhrase: string
-): TSecret {
+export function makeSecret(secretPhrase: string): TSecret {
+  const signatureLength = Math.min(Math.round(secretPhrase.length / 2), 16);
+  const signaturePhrase = secretPhrase.slice(0, signatureLength);
+  const keyPhrase = secretPhrase.slice(signatureLength);
+  const id = sha1(signaturePhrase + "a" + keyPhrase);
   const secret: TSecret = {
-    id: sha1(secretPhrase + "\n" + signaturePhrase),
-    key: secretPhrase,
+    id: id,
+    key: keyPhrase,
     sig: signaturePhrase,
   };
   return secret;
+}
+
+export function genSecretPhrase(secret: TSecret): string {
+  return secret.sig + secret.key;
 }
 
 export async function encryptAndSignObject(

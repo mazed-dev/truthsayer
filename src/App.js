@@ -37,21 +37,49 @@ import UserPreferences from "./auth/UserPreferences";
 import WelcomePage from "./WelcomePage";
 import UserEncryption from "./UserEncryption";
 
-import { UserAccount } from "./auth/local.jsx";
+import { UserAccount, checkAuth, dropAuth } from "./auth/local.jsx";
 
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.fetchCancelToken = axios.CancelToken.source();
+    this.updateAuthCancelToken = axios.CancelToken.source();
+    this.fetchUserInfoCancelToken = axios.CancelToken.source();
     this.state = {
-      account: new UserAccount(),
+      is_authenticated: checkAuth(),
+      account: null,
       auth_renewer: null,
     };
   }
 
+  componentDidMount() {
+    if (this.state.is_authenticated) {
+      this.initialiseUserAccount();
+    }
+  }
+
+  componentWillUnmount() {
+    this.updateAuthCancelToken.cancel();
+    this.fetchUserInfoCancelToken.cancel();
+    // https://javascript.info/settimeout-setinterval
+    clearTimeout(this.state.auth_renewer);
+  }
+
   handleSuccessfulLogin = () => {
-    this.setState({
-      account: new UserAccount(),
+    if (checkAuth()) {
+      this.setState({
+        is_authenticated: true,
+      });
+      this.initialiseUserAccount();
+    }
+  };
+
+  initialiseUserAccount = () => {
+    UserAccount.aCreate(this.fetchUserInfoCancelToken.token).then((inst) => {
+      if (inst != null) {
+        this.setState({
+          account: inst,
+        });
+      }
     });
     this.delayed_renew_authentication();
   };
@@ -70,19 +98,19 @@ class App extends React.Component {
     if (!this.state.auth_renewer !== null) {
       clearTimeout(this.state.auth_renewer);
     }
-    this.fetchCancelToken.cancel();
-    this.setState((state) => {
-      return {
-        account: state.account.drop(),
-        auth_renewer: null,
-      };
+    this.updateAuthCancelToken.cancel();
+    dropAuth();
+    this.setState({
+      is_authenticated: false,
+      account: null,
+      auth_renewer: null,
     });
   };
 
   renew_authentication = () => {
     axios
       .patch("/api/auth/session", {
-        cancelToken: this.fetchCancelToken.token,
+        cancelToken: this.updateAuthCancelToken.token,
       })
       .then((res) => {
         if (res) {
@@ -96,22 +124,10 @@ class App extends React.Component {
       });
   };
 
-  componentDidMount() {
-    if (this.state.account.isAuthenticated()) {
-      this.renew_authentication();
-    }
-  }
-
-  componentWillUnmount() {
-    this.fetchCancelToken.cancel();
-    // https://javascript.info/settimeout-setinterval
-    clearTimeout(this.state.auth_renewer);
-  }
-
   render() {
     var nav_bar;
     var main_page;
-    if (this.state.account.isAuthenticated()) {
+    if (this.state.is_authenticated) {
       nav_bar = <GlobalNavBar />;
       main_page = <Redirect to={{ pathname: "/search" }} />;
     } else {
@@ -129,13 +145,13 @@ class App extends React.Component {
               </Route>
               <PublicOnlyRoute
                 path="/login"
-                is_authenticated={this.state.account.isAuthenticated()}
+                is_authenticated={this.state.is_authenticated}
               >
                 <Login onLogin={this.handleSuccessfulLogin} />
               </PublicOnlyRoute>
               <PublicOnlyRoute
                 path="/signup"
-                is_authenticated={this.state.account.isAuthenticated()}
+                is_authenticated={this.state.is_authenticated}
               >
                 <Signup onLogin={this.handleSuccessfulLogin} />
               </PublicOnlyRoute>
@@ -144,45 +160,45 @@ class App extends React.Component {
               </Route>
               <Route
                 path="/logout"
-                is_authenticated={this.state.account.isAuthenticated()}
+                is_authenticated={this.state.is_authenticated}
               >
                 <Logout onLogout={this.handleLogout} />
               </Route>
               <PrivateRoute
                 path="/search"
-                is_authenticated={this.state.account.isAuthenticated()}
+                is_authenticated={this.state.is_authenticated}
               >
                 <SearchView />
               </PrivateRoute>
               <PrivateRoute
                 path="/node/:id"
-                is_authenticated={this.state.account.isAuthenticated()}
+                is_authenticated={this.state.is_authenticated}
               >
                 <NodeView />
               </PrivateRoute>
               <PrivateRoute
                 path="/upload-file"
-                is_authenticated={this.state.account.isAuthenticated()}
+                is_authenticated={this.state.is_authenticated}
               >
                 <UploadFile />
               </PrivateRoute>
               <PrivateRoute
                 path="/account"
-                is_authenticated={this.state.account.isAuthenticated()}
+                is_authenticated={this.state.is_authenticated}
               >
                 <AccountView />
               </PrivateRoute>
               <PrivateRoute
                 path="/user-preferences"
-                is_authenticated={this.state.account.isAuthenticated()}
+                is_authenticated={this.state.is_authenticated}
               >
                 <UserPreferences account={this.state.account} />
               </PrivateRoute>
               <PrivateRoute
                 path="/user-encryption"
-                is_authenticated={this.state.account.isAuthenticated()}
+                is_authenticated={this.state.is_authenticated}
               >
-                <UserEncryption />
+                <UserEncryption account={this.state.account} />
               </PrivateRoute>
               <Route path="/help">
                 <HelpInfo />
@@ -201,19 +217,19 @@ class App extends React.Component {
               </Route>
               <PublicOnlyRoute
                 path="/password-recover-request"
-                is_authenticated={this.state.account.isAuthenticated()}
+                is_authenticated={this.state.is_authenticated}
               >
                 <PasswordRecoverRequest />
               </PublicOnlyRoute>
               <PublicOnlyRoute
                 path="/password-recover-reset/:token"
-                is_authenticated={this.state.account.isAuthenticated()}
+                is_authenticated={this.state.is_authenticated}
               >
                 <PasswordRecoverFormView />
               </PublicOnlyRoute>
               <PrivateRoute
                 path="/password-recover-change"
-                is_authenticated={this.state.account.isAuthenticated()}
+                is_authenticated={this.state.is_authenticated}
               >
                 <PasswordChange />
               </PrivateRoute>
