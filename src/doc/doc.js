@@ -6,7 +6,7 @@ import PropTypes from "prop-types";
 import { withRouter, useHistory } from "react-router-dom";
 
 import { renderMdSmallCard } from "./../markdown/MarkdownRender";
-import { fetchNode, updateNode } from "./../smugler/api";
+import { smugler } from "./../smugler/api";
 import remoteErrorHandler from "./../remoteErrorHandler";
 
 import { joinClasses } from "../util/elClass.js";
@@ -70,10 +70,11 @@ export class DocRenderImpl extends React.Component {
 
   fetchNode = () => {
     const nid = this.props.nid;
-    return fetchNode({
-      nid: nid,
-      cancelToken: this.fetchCancelToken.token,
-    })
+    return smugler.node
+      .get({
+        nid: nid,
+        cancelToken: this.fetchCancelToken.token,
+      })
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
@@ -106,11 +107,13 @@ export class DocRenderImpl extends React.Component {
       upd: moment(),
       edit_chunk_opts: editOpts,
     });
-    return updateNode({
-      nid: this.props.nid,
-      doc: doc,
-      cancelToken: this.updateCancelToken.token,
-    }).catch(remoteErrorHandler(this.props.history));
+    return smugler.node
+      .update({
+        nid: this.props.nid,
+        doc: doc,
+        cancelToken: this.updateCancelToken.token,
+      })
+      .catch(remoteErrorHandler(this.props.history));
   };
 
   editChunk = (index, begin, end) => {
@@ -274,4 +277,12 @@ export function exctractDoc(source, nid) {
     console.log("Old style doc without mark up", nid);
   }
   return parseRawSource(source);
+}
+
+export function createEmptyDoc() {
+  let doc: TDoc = {
+    chunks: [],
+    encrypted: false,
+  };
+  return doc;
 }

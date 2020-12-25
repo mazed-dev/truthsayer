@@ -1,5 +1,4 @@
 import Cookies from "universal-cookie";
-import axios from "axios";
 
 import { LocalCrypto } from "./../crypto/local.jsx";
 import { getAuth } from "./../smugler/api.js";

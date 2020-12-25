@@ -4,7 +4,7 @@ import { Button, Row, Col } from "react-bootstrap";
 
 import axios from "axios";
 
-import { createTextNode } from "./../smugler/api";
+import { smugler } from "./../smugler/api";
 
 import { NodeSmallCard, GenericSmallCard } from "./../NodeSmallCard";
 
@@ -24,18 +24,20 @@ export class NextRefSmartItem extends React.Component {
 
   createNextNode = (title) => {
     const text = title ? "# " + title : "";
-    createTextNode({
-      text: text,
-      cancelToken: this.addNodeRefCancelToken.token,
-      from_nid: this.props.from_nid,
-      to_nid: this.props.to_nid,
-    }).then((res) => {
-      if (res) {
-        const nid = res.data.nid;
-        const replacement = "[/" + this.props.title + "](" + nid + ")";
-        this.props.on_insert(replacement);
-      }
-    });
+    smugler.node
+      .create({
+        text: text,
+        cancelToken: this.addNodeRefCancelToken.token,
+        from_nid: this.props.from_nid,
+        to_nid: this.props.to_nid,
+      })
+      .then((res) => {
+        if (res) {
+          const nid = res.data.nid;
+          const replacement = "[/" + this.props.title + "](" + nid + ")";
+          this.props.on_insert(replacement);
+        }
+      });
   };
 
   render() {

@@ -16,7 +16,7 @@ import { MdSmallCardRender } from "./../markdown/MarkdownRender";
 import { joinClasses } from "../util/elClass.js";
 import { remoteErrorHandler } from "./../remoteErrorHandler";
 
-import { createTextNode } from "./../smugler/api";
+import { smugler } from "./../smugler/api";
 
 import {
   Button,
@@ -32,7 +32,6 @@ import {
 import axios from "axios";
 import keycode from "keycode";
 import moment from "moment";
-import queryString from "query-string";
 
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
@@ -328,11 +327,11 @@ class LeftToolBarImpl extends React.Component {
   }
 
   handleNextClick = (event) => {
-    createTextNode({
-      text: "",
-      cancelToken: this.fetchCancelToken.token,
-      to_nid: this.props.nid,
-    })
+    smugler.node
+      .create({
+        cancelToken: this.fetchCancelToken.token,
+        to_nid: this.props.nid,
+      })
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
@@ -343,7 +342,7 @@ class LeftToolBarImpl extends React.Component {
             this.props.nid,
             this.fetchCancelToken
           ).then(() => {
-            this.props.history.push("/node/" + new_nid, { edit: true });
+            this.props.history.push("/node/" + new_nid);
           });
         }
       });
@@ -433,11 +432,11 @@ class RightToolBarImpl extends React.Component {
   }
 
   handleNextClick = (event) => {
-    createTextNode({
-      text: "",
-      cancelToken: this.fetchCancelToken.token,
-      from_nid: this.props.nid,
-    })
+    smugler.node
+      .create({
+        cancelToken: this.fetchCancelToken.token,
+        from_nid: this.props.nid,
+      })
       .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
@@ -448,7 +447,7 @@ class RightToolBarImpl extends React.Component {
             this.props.nid,
             this.fetchCancelToken
           ).then(() => {
-            this.props.history.push("/node/" + new_nid, { edit: true });
+            this.props.history.push("/node/" + new_nid);
           });
         }
       });

@@ -23,18 +23,8 @@ import remoteErrorHandler from "./../remoteErrorHandler";
 import { LeftToolBar, RightToolBar } from "./ToolBars.js";
 
 import { joinClasses } from "../util/elClass.js";
-import { Emoji } from "../Emoji.js";
 
-import { packDocAttrs, kAttrsHeaderKey } from "./../search/attrs.js";
-
-import {
-  Card,
-  Button,
-  ButtonGroup,
-  Container,
-  Row,
-  Col,
-} from "react-bootstrap";
+import { Button, ButtonGroup, Container, Row, Col } from "react-bootstrap";
 
 import axios from "axios";
 import moment from "moment";

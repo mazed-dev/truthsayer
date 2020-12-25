@@ -5,17 +5,20 @@ import queryString from "query-string";
 import { packDocAttrs, kAttrsHeaderKey } from "./../search/attrs.js";
 import { parseRawSource } from "./../doc/chunks.js";
 
-export function createTextNode({ text, cancelToken, from_nid, to_nid }) {
-  var query = {};
+import { createEmptyDoc } from "./../doc/doc";
+
+function createNode({ doc, text, cancelToken, from_nid, to_nid }) {
+  doc = doc || (text && parseRawSource(text)) || createEmptyDoc();
+
+  const jsonDoc = JSON.stringify(doc);
+  const attrsStr = packDocAttrs(doc);
+
+  let query = {};
   if (from_nid) {
     query.from = from_nid;
   } else if (to_nid) {
     query.to = to_nid;
   }
-
-  var doc = parseRawSource(text);
-  const jsonDoc = JSON.stringify(doc);
-  const attrsStr = packDocAttrs(doc);
 
   const config = {
     headers: {
@@ -32,13 +35,13 @@ export function createTextNode({ text, cancelToken, from_nid, to_nid }) {
   );
 }
 
-export function fetchNode({ nid, cancelToken }) {
+function getNode({ nid, cancelToken }) {
   return axios.get("/api/node/" + nid, {
     cancelToken: cancelToken,
   });
 }
 
-export function updateNode({ nid, doc, cancelToken }) {
+function updateNode({ nid, doc, cancelToken }) {
   const jsonDoc = JSON.stringify(doc);
   const attrsStr = packDocAttrs(doc);
   //*dbg*/ console.log("Doc attrs packed", attrsStr.length, attrsStr);
@@ -51,6 +54,8 @@ export function updateNode({ nid, doc, cancelToken }) {
   };
   return axios.patch("/api/node/" + nid, jsonDoc, config);
 }
+
+function removeNode({ nid, cancelToken }) {}
 
 export function getAuth({ cancelToken }) {
   return axios.get("/api/auth", { cancelToken: cancelToken });
@@ -72,5 +77,10 @@ export const smugler = {
   getAnySecondKey: getAnySecondKey,
   getAuth: getAuth,
   getSecondKey: getSecondKey,
-  updateNode: updateNode,
+  node: {
+    get: getNode,
+    update: updateNode,
+    remove: removeNode,
+    create: createNode,
+  },
 };

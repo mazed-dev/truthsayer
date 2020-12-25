@@ -8,7 +8,7 @@ import { Link, withRouter } from "react-router-dom";
 
 import Emoji from "./Emoji";
 
-import { createTextNode } from "./smugler/api";
+import { smugler } from "./smugler/api";
 
 import styles from "./UploadFile.module.css";
 
@@ -63,10 +63,11 @@ class UploadFile extends React.Component {
         '" (`' +
         Math.round((file.size * 100) / 1024) * 100 +
         "KiB`)*\n";
-      createTextNode({
-        text: event.target.result + appendix,
-        cancelToken: this.fetchCancelToken.token,
-      })
+      smugler.node
+        .create({
+          text: event.target.result + appendix,
+          cancelToken: this.fetchCancelToken.token,
+        })
         .then((res) => {
           if (res) {
             const nid = res.data.nid;

@@ -1,4 +1,4 @@
-import { TChunk, TDoc } from "./types";
+import { TChunk } from "./types";
 
 export function mergeChunks(left: TChunk, right: TChunk): TChunk {
   return {

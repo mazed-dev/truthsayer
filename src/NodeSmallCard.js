@@ -7,6 +7,8 @@ import axios from "axios";
 import moment from "moment";
 
 import { Card } from "react-bootstrap";
+
+import { smugler } from "./smugler/api";
 import { SmallCardRender, exctractDoc } from "./doc/doc";
 import { joinClasses } from "./util/elClass.js";
 
@@ -94,8 +96,9 @@ class NodeSmallCardImpl extends React.Component {
   };
 
   fetchPreface = () => {
-    axios
-      .get("/api/node/" + this.props.nid, {
+    smugler.node
+      .get({
+        nid: this.props.nid,
         cancelToken: this.fetchPrefaceCancelToken.token,
       })
       .catch((error) => {

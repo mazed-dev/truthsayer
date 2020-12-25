@@ -1,4 +1,4 @@
-import { TChunk, TDoc } from "./types";
+import { TDoc } from "./types";
 
 export function exctractDocTitle(doc: TDoc | string): string {
   if ("chunks" in doc) {

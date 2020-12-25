@@ -1,8 +1,8 @@
-interface TChunk {
+export interface TChunk {
   type: number;
   source: string;
 }
 
-interface TDoc {
+export interface TDoc {
   chunks: Chunk[];
 }

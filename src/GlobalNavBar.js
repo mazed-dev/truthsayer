@@ -20,6 +20,8 @@ import axios from "axios";
 import queryString from "query-string";
 import { withRouter } from "react-router-dom";
 
+import { smugler } from "./smugler/api";
+
 import user_default_pic from "./auth/img/user-default-pic.png";
 
 import NewImg from "./img/new-button.png";
@@ -159,19 +161,17 @@ class GlobalNavBar extends React.Component {
   };
 
   handleNewClick = (event) => {
-    const value = "";
-    const config = {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-      },
-      cancelToken: this.fetchCancelToken.token,
-    };
-    axios.post("/api/node/new", value, config).then((res) => {
-      if (res) {
-        const new_nid = res.data.nid;
-        this.props.history.push("/node/" + new_nid, { edit: true });
-      }
-    });
+    smugler.node
+      .create({
+        doc: null,
+        cancelToken: this.fetchCancelToken.token,
+      })
+      .then((res) => {
+        if (res) {
+          const new_nid = res.data.nid;
+          this.props.history.push("/node/" + new_nid, { edit: true });
+        }
+      });
   };
 
   render() {
