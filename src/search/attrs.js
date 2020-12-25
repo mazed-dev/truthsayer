@@ -1,24 +1,11 @@
 import { extractIndexNGramsFromDoc } from "./ngramsIndex";
-import { toBase64, fromBase64 } from "./../util/base64.jsx";
+import { base64 } from "./../util/base64.jsx";
 
 const uuid = require("uuid");
 
-/**
- * Node attrs:
- *  - ngrams
- */
-
-function packAttrs(attrs) {
-  if (!attrs) {
-    return null;
-  }
-  //*dbg*/ console.log("Doc attrs", attrs);
-  return toBase64(JSON.stringify(attrs));
-}
-
 export function unpackAttrs(attrsStr) {
   try {
-    return JSON.parse(fromBase64(attrsStr));
+    return base64.toObject(attrsStr);
   } catch (err) {
     console.log("Attribute unpack error: ", err);
   }
@@ -31,7 +18,7 @@ export function packDocAttrs(doc) {
   // Just a pinch of salt
   const [value0, key0, key1, key2, value1] = uuid.v4().split("-");
 
-  return packAttrs({
+  return base64.fromObject({
     ngrams: ngrams,
     [key0]: value0.slice(1, 5),
     [key1]: value1.slice(0, 2),

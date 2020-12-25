@@ -19,8 +19,6 @@ import {
 import axios from "axios";
 import { withRouter } from "react-router-dom";
 
-import { LocalCrypto } from "./crypto/local.jsx";
-
 import { joinClasses } from "./util/elClass.js";
 import { isAscii } from "./util/ascii.jsx";
 

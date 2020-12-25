@@ -3,12 +3,12 @@ import axios from "axios";
 import queryString from "query-string";
 
 import { packDocAttrs, kAttrsHeaderKey } from "./../search/attrs.js";
-import { parseRawSource } from "./../doc/chunks.js";
+import { createEmptyDoc, exctractDoc } from "./../doc/doc";
 
-import { createEmptyDoc } from "./../doc/doc";
+import { LocalCrypto } from "./../crypto/local.jsx";
 
 function createNode({ doc, text, cancelToken, from_nid, to_nid }) {
-  doc = doc || (text && parseRawSource(text)) || createEmptyDoc();
+  doc = doc || (text && exctractDoc(text, ".new")) || createEmptyDoc();
 
   const jsonDoc = JSON.stringify(doc);
   const attrsStr = packDocAttrs(doc);
@@ -36,9 +36,22 @@ function createNode({ doc, text, cancelToken, from_nid, to_nid }) {
 }
 
 function getNode({ nid, cancelToken }) {
-  return axios.get("/api/node/" + nid, {
-    cancelToken: cancelToken,
-  });
+  return axios
+    .get("/api/node/" + nid, {
+      cancelToken: cancelToken,
+    })
+    .then((res) => {
+      const crypto = LocalCrypto.getInstance();
+      console.log("Local crypto", crypto);
+      if (crypto) {
+        return crypto.encryptObj(res).then((encrypted) => {
+          const decrypted = crypto.decryptObj(encrypted);
+          return decrypted;
+        });
+      }
+      // TODO(akindyakov): continue here
+      return res;
+    });
 }
 
 function updateNode({ nid, doc, cancelToken }) {
