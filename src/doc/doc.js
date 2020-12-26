@@ -76,12 +76,12 @@ export class DocRenderImpl extends React.Component {
         cancelToken: this.fetchCancelToken.token,
       })
       .catch(remoteErrorHandler(this.props.history))
-      .then((res) => {
-        if (res) {
+      .then((node) => {
+        if (node) {
           this.setState({
-            chunks: exctractDoc(res.data, nid).chunks,
-            crtd: moment(res.headers["x-created-at"]),
-            upd: moment(res.headers["last-modified"]),
+            chunks: node.doc.chunks,
+            crtd: node.created_at,
+            upd: node.updated_at,
           });
         }
       });

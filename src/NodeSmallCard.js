@@ -104,12 +104,12 @@ class NodeSmallCardImpl extends React.Component {
       .catch((error) => {
         console.log("Fetch node failed with error:", error);
       })
-      .then((res) => {
-        if (res) {
+      .then((node) => {
+        if (node) {
           this.setState({
-            doc: exctractDoc(res.data, this.props.nid),
-            crtd: moment(res.headers["x-created-at"]),
-            upd: moment(res.headers["last-modified"]),
+            doc: node.doc,
+            crtd: node.created_at,
+            upd: node.updated_at,
           });
         }
       });

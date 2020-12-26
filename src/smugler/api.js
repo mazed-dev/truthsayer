@@ -1,11 +1,19 @@
 import axios from "axios";
+import moment from "moment";
 
 import queryString from "query-string";
 
-import { packDocAttrs, kAttrsHeaderKey } from "./../search/attrs.js";
+import { packDocAttrs } from "./../search/attrs.js";
 import { createEmptyDoc, exctractDoc } from "./../doc/doc";
-
 import { LocalCrypto } from "./../crypto/local.jsx";
+import { TNode, TNodeAttrs } from "./../node/node.jsx";
+
+const kHeaderAttrs = "x-node-attrs";
+const kHeaderCreatedAt = "x-created-at";
+const kHeaderLastModified = "last-modified";
+const kHeaderContentType = "Content-Type";
+
+const kHeaderContentTypeUtf8 = "text/plain; charset=utf-8";
 
 function createNode({ doc, text, cancelToken, from_nid, to_nid }) {
   doc = doc || (text && exctractDoc(text, ".new")) || createEmptyDoc();
@@ -22,8 +30,8 @@ function createNode({ doc, text, cancelToken, from_nid, to_nid }) {
 
   const config = {
     headers: {
-      "Content-Type": "text/plain; charset=utf-8",
-      [kAttrsHeaderKey]: attrsStr,
+      [kHeaderContentType]: kHeaderContentTypeUtf8,
+      [kHeaderAttrs]: attrsStr,
     },
     cancelToken: cancelToken,
   };
@@ -41,16 +49,29 @@ function getNode({ nid, cancelToken }) {
       cancelToken: cancelToken,
     })
     .then((res) => {
-      const crypto = LocalCrypto.getInstance();
-      console.log("Local crypto", crypto);
-      if (crypto) {
-        return crypto.encryptObj(res).then((encrypted) => {
-          const decrypted = crypto.decryptObj(encrypted);
-          return decrypted;
-        });
-      }
+      // const crypto = LocalCrypto.getInstance();
+      // console.log("Local crypto", crypto);
+      // if (crypto) {
+      //   return crypto.encryptObj(res).then((encrypted) => {
+      //     const decrypted = crypto.decryptObj(encrypted);
+      //     return decrypted;
+      //   });
+      // }
       // TODO(akindyakov): continue here
-      return res;
+      if (!res) {
+        return null;
+      }
+      return {
+        nid: nid,
+        doc: exctractDoc(res.data, nid),
+        created_at: moment(res.headers[kHeaderCreatedAt]),
+        updated_at: moment(res.headers[kHeaderLastModified]),
+        attrs: null,
+        crypto: {
+          encrypted: false,
+          success: true,
+        },
+      };
     });
 }
 
@@ -60,8 +81,8 @@ function updateNode({ nid, doc, cancelToken }) {
   //*dbg*/ console.log("Doc attrs packed", attrsStr.length, attrsStr);
   const config = {
     headers: {
-      "Content-Type": "text/plain; charset=utf-8",
-      [kAttrsHeaderKey]: attrsStr,
+      [kHeaderContentType]: kHeaderContentTypeUtf8,
+      [kHeaderAttrs]: attrsStr,
     },
     cancelToken: cancelToken,
   };

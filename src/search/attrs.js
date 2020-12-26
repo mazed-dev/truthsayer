@@ -25,5 +25,3 @@ export function packDocAttrs(doc) {
     [key2]: value1.slice(3, 8),
   });
 }
-
-export const kAttrsHeaderKey = "x-node-attrs";
