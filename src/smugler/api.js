@@ -3,24 +3,68 @@ import moment from "moment";
 
 import queryString from "query-string";
 
-import { packDocAttrs } from "./../search/attrs.js";
+import { extractDocAttrs } from "./../search/attrs.jsx";
 import { createEmptyDoc, exctractDoc } from "./../doc/doc";
 import { LocalCrypto } from "./../crypto/local.jsx";
 import { TNode, TNodeAttrs } from "./../node/node.jsx";
+import { base64 } from "./../util/base64.jsx";
 
 const kHeaderAttrs = "x-node-attrs";
 const kHeaderCreatedAt = "x-created-at";
 const kHeaderLastModified = "last-modified";
 const kHeaderContentType = "Content-Type";
+const kHeaderLocalSecretId = "x-local-secret-id";
+const kHeaderLocalSignature = "x-local-signature";
+// const kHeaderNodeAttrsLocalSignature = "x-attrs-local-signature";
 
 const kHeaderContentTypeUtf8 = "text/plain; charset=utf-8";
 
-function createNode({ doc, text, cancelToken, from_nid, to_nid }) {
-  doc = doc || (text && exctractDoc(text, ".new")) || createEmptyDoc();
+async function _tryToEncryptDocLocally(doc, attrs) {
+  let value;
+  let headers = { [kHeaderContentType]: kHeaderContentTypeUtf8 };
+  const crypto = LocalCrypto.getInstance();
+  if (crypto && crypto.has()) {
+    const [encryptedDoc, encryptedAttrs] = await Promise.all([
+      crypto.encryptObj(doc),
+      crypto.encryptObj(attrs),
+    ]);
 
-  const jsonDoc = JSON.stringify(doc);
-  const attrsStr = packDocAttrs(doc);
+    value = encryptedDoc.encrypted;
+    headers[kHeaderLocalSecretId] = encryptedDoc.secret_id;
+    headers[kHeaderLocalSignature] = encryptedDoc.signature;
+    headers[kHeaderAttrs] = base64.fromObject(encryptedAttrs);
+  } else {
+    const jsonDoc = JSON.stringify(doc);
+    value = jsonDoc;
+    const jsonAttrs = base64.fromObject(attrs);
+    headers[kHeaderAttrs] = jsonAttrs;
+  }
+  return {
+    value: value,
+    headers: headers,
+  };
+}
 
+async function _tryToDecryptDocLocally(nid, data, headers, crypto) {
+  if (kHeaderLocalSecretId in headers) {
+    const secretId = headers[kHeaderLocalSecretId];
+    if (!crypto || !crypto.has(secretId)) {
+      return { doc: null, encrypted: true, success: false };
+    } else {
+      // const encryptedAttrs = headers[kHeaderAttrs];
+      const encryptedDoc = {
+        encrypted: data,
+        secret_id: secretId,
+        signature: headers[kHeaderLocalSignature],
+      };
+      const doc = await crypto.decryptObj(encryptedDoc);
+      return { doc: doc, encrypted: true, success: true };
+    }
+  }
+  return { doc: exctractDoc(data, nid), encrypted: false, success: true };
+}
+
+async function createNode({ doc, text, cancelToken, from_nid, to_nid }) {
   let query = {};
   if (from_nid) {
     query.from = from_nid;
@@ -28,65 +72,57 @@ function createNode({ doc, text, cancelToken, from_nid, to_nid }) {
     query.to = to_nid;
   }
 
+  doc = doc || (text && exctractDoc(text, ".new")) || createEmptyDoc();
+  const attrs = extractDocAttrs(doc);
+
+  const { value, headers } = await _tryToEncryptDocLocally(doc, attrs);
+
   const config = {
-    headers: {
-      [kHeaderContentType]: kHeaderContentTypeUtf8,
-      [kHeaderAttrs]: attrsStr,
-    },
+    headers: headers,
     cancelToken: cancelToken,
   };
 
   return axios.post(
     "/api/node/new?" + queryString.stringify(query),
-    jsonDoc,
+    value,
     config
   );
 }
 
-function getNode({ nid, cancelToken }) {
-  return axios
-    .get("/api/node/" + nid, {
-      cancelToken: cancelToken,
-    })
-    .then((res) => {
-      // const crypto = LocalCrypto.getInstance();
-      // console.log("Local crypto", crypto);
-      // if (crypto) {
-      //   return crypto.encryptObj(res).then((encrypted) => {
-      //     const decrypted = crypto.decryptObj(encrypted);
-      //     return decrypted;
-      //   });
-      // }
-      // TODO(akindyakov): continue here
-      if (!res) {
-        return null;
-      }
-      return {
-        nid: nid,
-        doc: exctractDoc(res.data, nid),
-        created_at: moment(res.headers[kHeaderCreatedAt]),
-        updated_at: moment(res.headers[kHeaderLastModified]),
-        attrs: null,
-        crypto: {
-          encrypted: false,
-          success: true,
-        },
-      };
-    });
+async function getNode({ nid, crypto, cancelToken }) {
+  const res = await axios.get("/api/node/" + nid, {
+    cancelToken: cancelToken,
+  });
+  if (!res) {
+    return null;
+  }
+  const { doc, encrypted, success } = await _tryToDecryptDocLocally(
+    nid,
+    res.data,
+    res.headers,
+    crypto || LocalCrypto.getInstance()
+  );
+  return {
+    nid: nid,
+    doc: doc,
+    created_at: moment(res.headers[kHeaderCreatedAt]),
+    updated_at: moment(res.headers[kHeaderLastModified]),
+    attrs: null,
+    crypto: {
+      encrypted: encrypted,
+      success: success,
+    },
+  };
 }
 
-function updateNode({ nid, doc, cancelToken }) {
-  const jsonDoc = JSON.stringify(doc);
-  const attrsStr = packDocAttrs(doc);
-  //*dbg*/ console.log("Doc attrs packed", attrsStr.length, attrsStr);
+async function updateNode({ nid, doc, cancelToken }) {
+  const attrs = extractDocAttrs(doc);
+  const { value, headers } = await _tryToEncryptDocLocally(doc, attrs);
   const config = {
-    headers: {
-      [kHeaderContentType]: kHeaderContentTypeUtf8,
-      [kHeaderAttrs]: attrsStr,
-    },
+    headers: headers,
     cancelToken: cancelToken,
   };
-  return axios.patch("/api/node/" + nid, jsonDoc, config);
+  return axios.patch("/api/node/" + nid, value, config);
 }
 
 function removeNode({ nid, cancelToken }) {}
@@ -107,6 +143,43 @@ export function getSecondKey({ id }) {
   });
 }
 
+async function nodeAttrsSearch({
+  updateAfterDays,
+  updateBeforeDays,
+  offset,
+  cancelToken,
+  crypto,
+}) {
+  const req = {
+    upd_after: updateAfterDays,
+    upd_before: updateBeforeDays,
+    offset: offset || 0,
+  };
+  const rawResp = await axios.post("/api/node-attrs-search", req, {
+    cancelToken: cancelToken,
+  });
+  if (!rawResp) {
+    return null;
+  }
+  let response = rawResp.data;
+  crypto = crypto || LocalCrypto.getInstance();
+  response.items = await Promise.all(
+    response.items.map(async (item) => {
+      if (item.attrs) {
+        const attrsEnc = base64.toObject(item.attrs);
+        if (attrsEnc.secret_id) {
+          // If this is encrypted blob, decrypt it first with local secret
+          item.attrs = await crypto.decryptObj(attrsEnc);
+        } else {
+          item.attrs = attrsEnc;
+        }
+      }
+      return item;
+    })
+  );
+  return response;
+}
+
 export const smugler = {
   getAnySecondKey: getAnySecondKey,
   getAuth: getAuth,
@@ -116,5 +189,6 @@ export const smugler = {
     update: updateNode,
     remove: removeNode,
     create: createNode,
+    slice: nodeAttrsSearch,
   },
 };

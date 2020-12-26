@@ -50,7 +50,10 @@ export class DocRenderImpl extends React.Component {
 
   componentDidUpdate(prevProps) {
     // Don't forget to compare props!
-    if (this.props.nid !== prevProps.nid) {
+    if (
+      this.props.nid !== prevProps.nid ||
+      this.props.account !== prevProps.account
+    ) {
       // if (this.isEditingStart()) {
       //   this.setState({ edit_chunk_opts: { index: 0, } });
       // }
@@ -70,10 +73,14 @@ export class DocRenderImpl extends React.Component {
 
   fetchNode = () => {
     const nid = this.props.nid;
+    if (!this.props.account || !this.props.account.getLocalCrypto()) {
+      return;
+    }
     return smugler.node
       .get({
         nid: nid,
         cancelToken: this.fetchCancelToken.token,
+        crypto: this.props.account.getLocalCrypto(),
       })
       .catch(remoteErrorHandler(this.props.history))
       .then((node) => {

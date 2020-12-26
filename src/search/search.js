@@ -3,13 +3,23 @@ import {
   extractIndexNGramsFromDoc,
   extractIndexNGramsFromText,
 } from "./ngramsIndex.js";
-import { unpackAttrs, packAttrs } from "./attrs.js";
+
+import { base64 } from "./../util/base64.jsx";
 
 import moment from "moment";
 
 export function updateDocInIndex(nid, doc) {
   const ngrams = extractIndexNGramsFromDoc(doc);
   storeOne(nid, ngrams);
+}
+
+function _unpackAttrs(attrsStr) {
+  try {
+    return base64.toObject(attrsStr);
+  } catch (err) {
+    console.log("Attribute unpack error: ", err);
+  }
+  return {};
 }
 
 export function buildIndex(attrs) {
@@ -19,9 +29,8 @@ export function buildIndex(attrs) {
     const nid = item.nid;
     attrsByNid[nid] = item;
 
-    const attrs = item.attrs ? unpackAttrs(item.attrs) : {};
-    if ("ngrams" in attrs) {
-      attrs.ngrams.forEach((ngr) => {
+    if (item.attrs && item.attrs.ngrams) {
+      item.attrs.ngrams.forEach((ngr) => {
         if (!(ngr in nGramIndex)) {
           nGramIndex[ngr] = [nid];
         } else {
@@ -39,6 +48,7 @@ export function buildIndex(attrs) {
 }
 
 export function searchNodesInAttrs(nodeAttrs, ngrams) {
+  console.log("searchNodesInAttrs", nodeAttrs, ngrams);
   if (!ngrams || ngrams.length === 0) {
     //*dbg*/ console.log("Shortcut for empty search");
     return nodeAttrs.map((item) => {
@@ -86,11 +96,6 @@ export function searchNodesInAttrs(nodeAttrs, ngrams) {
         edges: [],
       };
     });
-  /*dbg*/ console.log(
-    "searchNodesInAttrs - found",
-    nodes.length,
-    frequencyMax,
-    ngrams.length
-  );
+  //*dbg*/ console.log( "searchNodesInAttrs - found", nodes.length, frequencyMax, ngrams.length);
   return nodes;
 }

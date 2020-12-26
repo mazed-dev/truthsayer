@@ -14,6 +14,8 @@ import remoteErrorHandler from "./../remoteErrorHandler";
 import { searchNodesInAttrs } from "./../search/search.js";
 import { extractIndexNGramsFromText } from "./../search/ngramsIndex.js";
 
+import { smugler } from "./../smugler/api.js";
+
 import { joinClasses } from "./../util/elClass.js";
 
 import { range } from "./../util/range";
@@ -124,7 +126,8 @@ export class SearchGrid extends React.Component {
   componentDidUpdate(prevProps) {
     if (
       this.props.q !== prevProps.q ||
-      this.props.extCards !== prevProps.extCards
+      this.props.extCards !== prevProps.extCards ||
+      this.props.account !== prevProps.account
     ) {
       this.setState({ nodes: [], since_days_ago: 0 });
       this.fetchData();
@@ -132,6 +135,10 @@ export class SearchGrid extends React.Component {
   }
 
   fetchData = () => {
+    console.log("SearchGrid", this.props.account);
+    if (this.props.account == null) {
+      return;
+    }
     var ngrams = null;
     if (
       !this.props.defaultSearch &&
@@ -164,18 +171,21 @@ export class SearchGrid extends React.Component {
       upd_before: upd_days_ago_before,
       offset: offset || 0,
     };
-    axios
-      .post("/api/node-attrs-search", req, {
+    smugler.node
+      .slice({
+        updateAfterDays: upd_days_ago_after,
+        updateBeforeDays: upd_days_ago_before,
+        offset: offset || 0,
         cancelToken: this.fetchCancelToken.token,
+        crypto: this.props.account.getLocalCrypto(),
       })
-      .then((res) => {
-        if (!res) {
+      .then((data) => {
+        if (!data) {
           // TODO(akindyakov) escalate
           console.error("No response from back end");
           return;
         }
-        const isTimeIntervalExhausted =
-          res.data.items.length >= res.data.full_size;
+        const isTimeIntervalExhausted = data.items.length >= data.full_size;
         //*dbg*/ console.log(
         //*dbg*/   "Response from back end",
         //*dbg*/   res.data,
@@ -186,7 +196,7 @@ export class SearchGrid extends React.Component {
         //*dbg*/   res.data.full_size,
         //*dbg*/   ngrams
         //*dbg*/ );
-        const nodes = searchNodesInAttrs(res.data.items, ngrams);
+        const nodes = searchNodesInAttrs(data.items, ngrams);
         if (nodes.length === 0) {
           //*dbg*/ console.log(
           //*dbg*/   "Secure search found nothing, fall back to old search type",
@@ -222,7 +232,7 @@ export class SearchGrid extends React.Component {
             this.secureSearchIteration(
               upd_days_ago_after,
               upd_days_ago_before,
-              res.data.offset + 100,
+              data.offset + 100,
               ngrams
             );
           }
@@ -330,6 +340,7 @@ export class SearchGrid extends React.Component {
             edges={item.edges}
             clickable={true}
             onClick={this.props.onCardClick}
+            account={this.props.account}
           />
         );
       });

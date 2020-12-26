@@ -168,13 +168,13 @@ class App extends React.Component {
                 path="/search"
                 is_authenticated={this.state.is_authenticated}
               >
-                <SearchView />
+                <SearchView account={this.state.account} />
               </PrivateRoute>
               <PrivateRoute
                 path="/node/:id"
                 is_authenticated={this.state.is_authenticated}
               >
-                <NodeView />
+                <NodeView account={this.state.account} />
               </PrivateRoute>
               <PrivateRoute
                 path="/upload-file"
@@ -383,17 +383,17 @@ function PasswordRecoverFormView() {
   return <PasswordRecoverForm token={token} />;
 }
 
-function NodeView() {
+function NodeView(props) {
   // We can use the `useParams` hook here to access
   // the dynamic pieces of the URL.
   let { id } = useParams();
-  return <FullNodeView nid={id} />;
+  return <FullNodeView nid={id} account={props.account} />;
 }
 
-function SearchView() {
+function SearchView(props) {
   const location = useLocation();
   const params = queryString.parse(location.search);
-  return <SearchGrid q={params.q} />;
+  return <SearchGrid q={params.q} account={props.account} />;
 }
 
 export default App;

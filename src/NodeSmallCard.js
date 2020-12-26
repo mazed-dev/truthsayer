@@ -59,7 +59,10 @@ class NodeSmallCardImpl extends React.Component {
   };
 
   componentDidUpdate(prevProps) {
-    if (this.props.nid !== prevProps.nid) {
+    if (
+      this.props.nid !== prevProps.nid ||
+      this.props.account !== prevProps.account
+    ) {
       if (this.state.preface == null) {
         this.fetchPreface();
       } else {
@@ -96,10 +99,14 @@ class NodeSmallCardImpl extends React.Component {
   };
 
   fetchPreface = () => {
+    if (this.props.account == null) {
+      return;
+    }
     smugler.node
       .get({
         nid: this.props.nid,
         cancelToken: this.fetchPrefaceCancelToken.token,
+        crypto: this.props.account.getLocalCrypto(),
       })
       .catch((error) => {
         console.log("Fetch node failed with error:", error);

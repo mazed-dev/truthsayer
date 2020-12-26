@@ -189,6 +189,7 @@ class RefNodeCardImpl extends React.Component {
           crtd={null}
           upd={null}
           skip_input_edge={true}
+          account={this.props.account}
         />
       </div>
     );
@@ -222,6 +223,7 @@ class NodeRefsImpl extends React.Component {
           edge={edge}
           switchStickiness={this.props.switchStickiness}
           cutOffRef={this.props.cutOffRef}
+          account={this.props.account}
         />
       );
     });
@@ -363,6 +365,7 @@ class FullNodeView extends React.Component {
               cutOffRef={this.cutOffLeftRef}
               switchStickiness={this.switchStickiness}
               className={styles.node_refs_left}
+              account={this.props.account}
             />
           </Col>
           <Col className={styles.toolbar_col}>
@@ -379,6 +382,7 @@ class FullNodeView extends React.Component {
               addLeftRef={this.addLeftRef}
               addRightRef={this.addRightRef}
               resetAuxToolbar={this.resetAuxToolbar}
+              account={this.props.account}
             />
           </Col>
           <Col className={styles.toolbar_col}>
@@ -396,6 +400,7 @@ class FullNodeView extends React.Component {
               edges={this.state.edges_right}
               cutOffRef={this.cutOffRightRef}
               switchStickiness={this.switchStickiness}
+              account={this.props.account}
             />
           </Col>
         </Row>

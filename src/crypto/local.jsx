@@ -60,6 +60,13 @@ export class LocalCrypto {
     return this._instance;
   }
 
+  has(secret_id?: string): boolean {
+    if (secret_id) {
+      return this._lastSecret && this._lastSecret.id === secret_id;
+    }
+    return this._lastSecret != null;
+  }
+
   async encryptObj(obj: Any): TEncrypted | null {
     if (!this._lastSecret) {
       return null;
@@ -69,6 +76,7 @@ export class LocalCrypto {
   }
 
   async decryptObj(encrypted: TEncrypted): Promise<Any | null> {
+    console.log("decryptObj", encrypted);
     const secret = await this._getSecretById(encrypted.secret_id);
     if (secret == null) {
       return null;
@@ -141,7 +149,7 @@ export class LocalCrypto {
     }
     const secretBase64 = this._storage.get(secret_id);
     if (!secretBase64) {
-      console.log("Error: local user secret is not defined");
+      console.log("Error: local user secret is not defined", secret_id);
       return null;
     }
     const secretEnc: TEncrypted = base64.toObject(secretBase64);
