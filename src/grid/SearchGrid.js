@@ -19,6 +19,7 @@ import { smugler } from "./../smugler/api.js";
 import { joinClasses } from "./../util/elClass.js";
 
 import { range } from "./../util/range";
+import { Loader } from "./../lib/loader";
 
 class DynamicGrid extends React.Component {
   constructor(props) {
@@ -135,7 +136,6 @@ export class SearchGrid extends React.Component {
   }
 
   fetchData = () => {
-    console.log("SearchGrid", this.props.account);
     if (this.props.account == null) {
       return;
     }
@@ -318,6 +318,9 @@ export class SearchGrid extends React.Component {
   };
 
   render() {
+    if (this.props.account == null) {
+      return <Loader size={"large"} />;
+    }
     var used = {};
     let cards = this.state.nodes
       .filter((item) => {

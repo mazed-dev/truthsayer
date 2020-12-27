@@ -10,6 +10,7 @@ import { smugler } from "./../smugler/api";
 import remoteErrorHandler from "./../remoteErrorHandler";
 
 import { joinClasses } from "../util/elClass.js";
+import { Loader } from "../lib/loader";
 
 import LockedImg from "./../img/locked.png";
 
@@ -192,7 +193,7 @@ export class DocRenderImpl extends React.Component {
   };
 
   isEditingStart() {
-    return this.props.location.state && this.props.location.state.edit;
+    return false; // this.props.location.state && this.props.location.state.edit;
   }
 
   render() {
@@ -244,6 +245,7 @@ export class DocRenderImpl extends React.Component {
       });
     } else {
       // TODO(akindyakov): Add loading animation here
+      body = <Loader />;
     }
     return (
       <Card

@@ -77,7 +77,6 @@ export class LocalCrypto {
   }
 
   async decryptObj(encrypted: TEncrypted): Promise<Any | null> {
-    console.log("decryptObj", encrypted);
     const secret = await this._getSecretById(encrypted.secret_id);
     if (secret == null) {
       return null;

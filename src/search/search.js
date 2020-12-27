@@ -48,7 +48,6 @@ export function buildIndex(attrs) {
 }
 
 export function searchNodesInAttrs(nodeAttrs, ngrams) {
-  console.log("searchNodesInAttrs", nodeAttrs, ngrams);
   if (!ngrams || ngrams.length === 0) {
     //*dbg*/ console.log("Shortcut for empty search");
     return nodeAttrs.map((item) => {

@@ -41,7 +41,7 @@
 .full_h1 {
   font-size: 1.48rem;
   font-weight: bold;
-  color:black;
+  color: black;
   display: block;
 
   margin-top: 0.24rem;
@@ -51,7 +51,7 @@
 .full_h2 {
   font-size: 1.32rem;
   font-weight: bold;
-  color:black;
+  color: black;
   display: block;
 
   margin-bottom: 1rem;
@@ -60,7 +60,7 @@
 .full_h3 {
   font-size: 1.24rem;
   font-weight: bold;
-  color:black;
+  color: black;
   display: block;
 
   margin-bottom: 1rem;
@@ -69,7 +69,7 @@
 .full_h4 {
   font-size: 1.16rem;
   font-weight: bold;
-  color:black;
+  color: black;
   display: block;
 
   margin-bottom: 1rem;
@@ -78,7 +78,7 @@
 .full_h5 {
   font-size: 1.12rem;
   font-weight: bold;
-  color:black;
+  color: black;
   display: block;
 
   margin-bottom: 1rem;
@@ -87,7 +87,7 @@
 .full_h6 {
   font-size: 1.08rem;
   font-weight: bold;
-  color:black;
+  color: black;
   display: block;
 
   margin-bottom: 1rem;
@@ -96,7 +96,7 @@
 .small_h1 {
   font-size: 1.24rem;
   font-weight: bold;
-  color:black;
+  color: black;
   display: block;
 
   margin-top: 0.1rem;
@@ -104,7 +104,7 @@
 }
 
 .small_h1:hover {
-  color:green;
+  color: green;
   text-decoration: none;
 }
 
@@ -114,7 +114,7 @@
 .small_h2 {
   font-size: 1.16rem;
   font-weight: bold;
-  color:black;
+  color: black;
   display: block;
 
   margin-bottom: 0.4rem;
@@ -123,7 +123,7 @@
 .small_h3 {
   font-size: 1.12rem;
   font-weight: bold;
-  color:black;
+  color: black;
   display: block;
 
   margin-bottom: 0.4rem;
@@ -132,7 +132,7 @@
 .small_h4 {
   font-size: 1.08rem;
   font-weight: bold;
-  color:black;
+  color: black;
   display: block;
 
   margin-bottom: 0.4rem;
@@ -141,7 +141,7 @@
 .small_h5 {
   font-size: 1.04rem;
   font-weight: bold;
-  color:black;
+  color: black;
   display: block;
 
   margin-bottom: 0.4rem;
@@ -150,7 +150,7 @@
 .small_h6 {
   font-size: 1.02rem;
   font-weight: bold;
-  color:black;
+  color: black;
   display: block;
 
   margin-bottom: 0.4rem;

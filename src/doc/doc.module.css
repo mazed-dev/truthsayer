@@ -1,11 +1,9 @@
-
 .fluid_container {
   position: relative;
 }
 
 .doc_render_card {
-  box-shadow:
-    1px 1px 4px 0px var(--small_card_shadow_colour);
+  box-shadow: 1px 1px 4px 0px var(--small_card_shadow_colour);
 }
 
 .doc_render_card_body {

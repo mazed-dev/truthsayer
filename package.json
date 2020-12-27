@@ -39,7 +39,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "fmt": "prettier --write src/**.css src/**.js src/**/*.js src/**/*.jsx"
+    "fmt": "prettier --write src/**.css src/**/*.css src/**.js src/**/*.js src/**/*.jsx"
   },
   "eslintConfig": {
     "extends": "react-app"

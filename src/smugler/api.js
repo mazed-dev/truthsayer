@@ -12,10 +12,9 @@ import { base64 } from "./../util/base64.jsx";
 const kHeaderAttrs = "x-node-attrs";
 const kHeaderCreatedAt = "x-created-at";
 const kHeaderLastModified = "last-modified";
-const kHeaderContentType = "Content-Type";
+const kHeaderContentType = "content-type";
 const kHeaderLocalSecretId = "x-local-secret-id";
 const kHeaderLocalSignature = "x-local-signature";
-// const kHeaderNodeAttrsLocalSignature = "x-attrs-local-signature";
 
 const kHeaderContentTypeUtf8 = "text/plain; charset=utf-8";
 
@@ -167,9 +166,14 @@ async function nodeAttrsSearch({
     response.items.map(async (item) => {
       if (item.attrs) {
         const attrsEnc = base64.toObject(item.attrs);
-        if (attrsEnc.secret_id) {
-          // If this is encrypted blob, decrypt it first with local secret
-          item.attrs = await crypto.decryptObj(attrsEnc);
+        const secretId = attrsEnc.secret_id;
+        if (secretId) {
+          if (crypto.has(secretId)) {
+            // If this is encrypted blob, decrypt it first with local secret
+            item.attrs = await crypto.decryptObj(attrsEnc);
+          } else {
+            item.attrs = {};
+          }
         } else {
           item.attrs = attrsEnc;
         }

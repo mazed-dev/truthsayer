@@ -1,10 +1,9 @@
 # Todo
 
- - [ ] Encryption - show that loading is in progress
  - [ ] Don't encrypt nodes with server key, just use base64 on broweser side for non-encrypted nodes
- - [ ] Encryption - reencrypt all function
- - [ ] Encryption - encryption of node should be optional
+ - [ ] Encryption - encryption of a node should be optional
  - [ ] Clone for next - new button on side cards menu, hide it with "search and next" under "more" button with arrow - "v"
+ - [ ] Encryption - reencrypt all function
  - [ ] Button for list item to create right-link from this item
  - [ ] Proper preview for small cards
  - [ ] Smart menu - dark background under smart cards
@@ -88,3 +87,4 @@
  - [x] Encryption - show that node is encrypted but there is no local key to decrypt it, show secret id of unknown key
  - [x] Show secret as a pair - signagure & key
  - [x] Check that encrypted node can be decrypted with CLI command (`openssl`)
+ - [x] Encryption - show that loading is in progress

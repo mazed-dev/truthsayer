@@ -21,7 +21,7 @@ import { withRouter } from "react-router-dom";
 
 import { joinClasses } from "./util/elClass.js";
 import { isAscii } from "./util/ascii.jsx";
-import { Vanishing } from "./lib/vanishing";
+import { Loader } from "./lib/loader";
 
 import Emoji from "./Emoji.js";
 
@@ -195,7 +195,9 @@ class UserEncryption extends React.Component {
     let card = null;
     const account = this.props.account;
     const crypto = account == null ? null : account.getLocalCrypto();
-    if (crypto != null && crypto.getLastSecretId() != null) {
+    if (account == null) {
+      card = <Loader />;
+    } else if (crypto != null && crypto.getLastSecretId() != null) {
       card = (
         <Card>
           <Card.Header>

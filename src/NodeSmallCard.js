@@ -11,6 +11,7 @@ import { Card } from "react-bootstrap";
 import { smugler } from "./smugler/api";
 import { SmallCardRender, exctractDoc } from "./doc/doc";
 import { joinClasses } from "./util/elClass.js";
+import { Loader } from "./lib/loader";
 
 import LockedImg from "./img/locked.png";
 
@@ -126,16 +127,6 @@ class NodeSmallCardImpl extends React.Component {
       });
   };
 
-  createdLockedCard(secret_id, footer) {
-    return (
-      <GenericSmallCard footer={footer} onClick={this.onClick}>
-        <img src={LockedImg} className={styles.locked_img} alt={"locked"} />
-        Encrypted with an unknown secret:
-        <code className={styles.locked_secret_id}>{secret_id}</code>
-      </GenericSmallCard>
-    );
-  }
-
   render() {
     const footer = this.state.upd ? (
       <small className="text-muted">
@@ -146,28 +137,51 @@ class NodeSmallCardImpl extends React.Component {
       </small>
     ) : null;
 
-    let seeMore = null;
-    let clickableStyle = null;
+    let body = null;
     let clickableOnClick = null;
+    let clickableStyle = null;
+    let seeMore = null;
     if (this.props.clickable || this.props.onClick) {
       clickableStyle = styles.clickable_chunks;
       clickableOnClick = this.onClick;
     } else {
       seeMore = makeSeeMoreLink(this.props.nid);
     }
-
-    if (this.state.crypto && !this.state.crypto.success) {
-      return this.createdLockedCard(this.state.crypto.secret_id, footer);
+    if (this.state.crypto == null) {
+      body = <Loader size={"medium"} />;
+    } else {
+      if (!this.state.crypto.success) {
+        body = (
+          <>
+            <img src={LockedImg} className={styles.locked_img} alt={"locked"} />
+            Encrypted with an unknown secret:
+            <code className={styles.locked_secret_id}>
+              {this.state.crypto.secret_id}
+            </code>
+            {seeMore}
+          </>
+        );
+      } else {
+        body = (
+          <>
+            <SmallCardRender
+              doc={this.state.doc}
+              nid={this.props.nid}
+              trim={true}
+            />
+            {seeMore}
+          </>
+        );
+      }
     }
-    const shd = getShadowStyle(
-      this.props.edges.length +
-        this.state.edges.length -
-        (this.props.skip_input_edge ? 1 : 0)
-    );
+    // const shd = getShadowStyle(
+    //   this.props.edges.length +
+    //     this.state.edges.length -
+    //     (this.props.skip_input_edge ? 1 : 0)
+    // );
     return (
       <Card
         className={joinClasses(
-          shd,
           styles.small_card,
           styles.small_card_width,
           clickableStyle
@@ -176,14 +190,7 @@ class NodeSmallCardImpl extends React.Component {
         ref={this.props.cardRef}
         onClick={clickableOnClick}
       >
-        <Card.Body className="px-3 pt-2 pb-0">
-          <SmallCardRender
-            doc={this.state.doc}
-            nid={this.props.nid}
-            trim={true}
-          />
-          {seeMore}
-        </Card.Body>
+        <Card.Body className="px-3 pt-2 pb-0">{body}</Card.Body>
         <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">
           {footer}
         </footer>
