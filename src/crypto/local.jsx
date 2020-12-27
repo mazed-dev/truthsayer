@@ -4,6 +4,7 @@ import {
   decryptSignedObject,
   encryptAndSignObject,
   genSecretPhrase,
+  genSecretPhraseToRender,
   makeSecret,
   sha1,
 } from "./wrapper.jsx";
@@ -118,6 +119,13 @@ export class LocalCrypto {
   getLastSecretPhrase(): string | null {
     if (this._lastSecret != null) {
       return genSecretPhrase(this._lastSecret);
+    }
+    return null;
+  }
+
+  getLastSecretPhraseToRender(): string | null {
+    if (this._lastSecret != null) {
+      return genSecretPhraseToRender(this._lastSecret);
     }
     return null;
   }

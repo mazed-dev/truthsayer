@@ -21,6 +21,7 @@ import { withRouter } from "react-router-dom";
 
 import { joinClasses } from "./util/elClass.js";
 import { isAscii } from "./util/ascii.jsx";
+import { Vanishing } from "./lib/vanishing";
 
 import Emoji from "./Emoji.js";
 
@@ -37,6 +38,7 @@ class UserEncryption extends React.Component {
       is_good_enough: false,
       strength_str: "",
       reveal: false,
+      message: null,
     };
   }
 
@@ -74,6 +76,28 @@ class UserEncryption extends React.Component {
         this.forceUpdate();
       });
     }
+  };
+
+  handleCopySecretToClipboard = () => {
+    const account = this.props.account;
+    const crypto = account == null ? null : account.getLocalCrypto();
+    if (crypto == null) {
+      return;
+    }
+    navigator.clipboard.writeText(crypto.getLastSecretPhrase()).then(
+      () => {
+        // console.log('Async: Copying to clipboard was successful!');
+        this.setState({
+          message: "✅ Copied to clipboard",
+        });
+      },
+      (err) => {
+        // console.error('Async: Could not copy text: ', err);
+        this.setState({
+          message: "❌ Copied to clipboard, " + err,
+        });
+      }
+    );
   };
 
   handleDeleteSecret = () => {
@@ -143,6 +167,9 @@ class UserEncryption extends React.Component {
   };
 
   makeSecretStrengthBadge() {
+    if (!this.state.strength_str) {
+      return null;
+    }
     if (!this.state.is_good_enough) {
       return (
         <>
@@ -192,21 +219,25 @@ class UserEncryption extends React.Component {
           </Card.Header>
           <Card.Body>
             <ButtonGroup>
-              <Button variant="outline-secondary" size="sm">
-                Copy
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={this.handleCopySecretToClipboard}
+              >
+                Copy to clipboard
               </Button>
               <Button
                 variant="outline-secondary"
                 size="sm"
                 onClick={this.handleToggleReveal}
               >
-                Reveal
+                {this.state.reveal ? "Hide" : "Reveal"}
               </Button>
             </ButtonGroup>
             <code className={styles.encr_value}>
               {this.state.reveal
-                ? crypto.getLastSecretPhrase()
-                : "****************"}
+                ? crypto.getLastSecretPhraseToRender()
+                : "**************** ************************"}
             </code>
           </Card.Body>
         </Card>

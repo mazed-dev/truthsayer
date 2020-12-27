@@ -66,6 +66,10 @@ export function genSecretPhrase(secret: TSecret): string {
   return secret.sig + secret.key;
 }
 
+export function genSecretPhraseToRender(secret: TSecret): string {
+  return secret.sig + " " + secret.key;
+}
+
 export async function encryptAndSignObject(
   obj: Any,
   secret: TSecret
