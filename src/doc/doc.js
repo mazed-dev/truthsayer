@@ -11,6 +11,8 @@ import remoteErrorHandler from "./../remoteErrorHandler";
 
 import { joinClasses } from "../util/elClass.js";
 
+import LockedImg from "./../img/locked.png";
+
 import {
   ChunkRender,
   ChunkView,
@@ -29,7 +31,7 @@ export class DocRenderImpl extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      chunks: [],
+      doc: null,
       crtd: null,
       upd: null,
       edit_chunk_opts: {
@@ -37,6 +39,7 @@ export class DocRenderImpl extends React.Component {
         begin: 0,
         end: 0,
       },
+      crypto: null,
     };
     this.fetchCancelToken = axios.CancelToken.source();
     this.updateCancelToken = axios.CancelToken.source();
@@ -86,9 +89,10 @@ export class DocRenderImpl extends React.Component {
       .then((node) => {
         if (node) {
           this.setState({
-            chunks: node.doc.chunks,
+            doc: node.doc,
             crtd: node.created_at,
             upd: node.updated_at,
+            crypto: node.crypto,
           });
         }
       });
@@ -109,7 +113,7 @@ export class DocRenderImpl extends React.Component {
       end: selectionStart || 0,
     };
     this.setState({
-      chunks: doc.chunks,
+      doc: doc,
       crtd: moment(),
       upd: moment(),
       edit_chunk_opts: editOpts,
@@ -125,7 +129,7 @@ export class DocRenderImpl extends React.Component {
 
   editChunk = (index, begin, end) => {
     index = index || 0;
-    const length = this.state.chunks.length;
+    const length = this.state.doc.chunks.length;
     if (length > 0 && index >= length) {
       index = length - 1;
     }
@@ -154,10 +158,10 @@ export class DocRenderImpl extends React.Component {
    * Repace the chunk with index [index] with new chunks
    */
   replaceChunk = (chunks, index, toIndex, selectionStart) => {
-    const newChunks = this.state.chunks
+    const newChunks = this.state.doc.chunks
       .slice(0, index)
       .concat(chunks)
-      .concat(this.state.chunks.slice(index + 1));
+      .concat(this.state.doc.chunks.slice(index + 1));
     const newDoc = {
       chunks: newChunks,
     };
@@ -173,14 +177,14 @@ export class DocRenderImpl extends React.Component {
       return this.replaceChunk([chunk], index, toIndex, selectionStart);
     }
     const prevIndex = index - 1;
-    const newChunk = mergeChunks(this.state.chunks[prevIndex], chunk);
+    const newChunk = mergeChunks(this.state.doc.chunks[prevIndex], chunk);
     if (selectionStart !== null && selectionStart < 0) {
       selectionStart = newChunk.source.length + selectionStart;
     }
-    const newChunks = this.state.chunks
+    const newChunks = this.state.doc.chunks
       .slice(0, prevIndex)
       .concat([newChunk])
-      .concat(this.state.chunks.slice(index + 1));
+      .concat(this.state.doc.chunks.slice(index + 1));
     const newDoc = {
       chunks: newChunks,
     };
@@ -192,44 +196,63 @@ export class DocRenderImpl extends React.Component {
   }
 
   render() {
-    const chunks =
-      this.state.chunks && this.state.chunks.length > 0
-        ? this.state.chunks
-        : [createEmptyChunk()];
-    const edit_chunk_opts = this.state.edit_chunk_opts;
-    const chunksEl = chunks.map((chunk, index) => {
-      if (chunk == null) {
-        chunk = createEmptyChunk();
-      }
-      const key = index.toString();
-      const editOpts = index === edit_chunk_opts.index ? edit_chunk_opts : null;
-      return (
-        <ChunkRender
-          chunk={chunk}
-          key={key}
-          nid={this.props.nid}
-          index={index}
-          resetAuxToolbar={this.props.resetAuxToolbar}
-          replaceChunks={this.replaceChunk}
-          mergeChunkUp={this.mergeChunkUp}
-          editChunk={this.editChunk}
-          editOpts={editOpts}
-        />
-      );
-    });
-    const upd = this.state.upd ? (
-      <i>Updated {this.state.upd.fromNow()}</i>
+    const footer = this.state.upd ? (
+      <small className="text-muted">
+        <i>
+          Created {moment(this.state.crtd).fromNow()}, updated{" "}
+          {moment(this.state.upd).fromNow()}
+        </i>
+      </small>
     ) : null;
+    let body = null;
+    if (this.state.crypto && !this.state.crypto.success) {
+      body = (
+        <>
+          <img src={LockedImg} className={styles.locked_img} alt={"locked"} />
+          Encrypted with an unknown secret:
+          <code className={styles.locked_secret_id}>
+            {this.state.crypto.secret_id}
+          </code>
+        </>
+      );
+    } else if (this.state.doc) {
+      const chunks =
+        this.state.doc.chunks && this.state.doc.chunks.length > 0
+          ? this.state.doc.chunks
+          : [createEmptyChunk()];
+      const edit_chunk_opts = this.state.edit_chunk_opts;
+      body = chunks.map((chunk, index) => {
+        if (chunk == null) {
+          chunk = createEmptyChunk();
+        }
+        const key = index.toString();
+        const editOpts =
+          index === edit_chunk_opts.index ? edit_chunk_opts : null;
+        return (
+          <ChunkRender
+            chunk={chunk}
+            key={key}
+            nid={this.props.nid}
+            index={index}
+            resetAuxToolbar={this.props.resetAuxToolbar}
+            replaceChunks={this.replaceChunk}
+            mergeChunkUp={this.mergeChunkUp}
+            editChunk={this.editChunk}
+            editOpts={editOpts}
+          />
+        );
+      });
+    } else {
+      // TODO(akindyakov): Add loading animation here
+    }
     return (
       <Card
         className={joinClasses(styles.fluid_container, styles.doc_render_card)}
       >
         <Card.Body className={joinClasses(styles.doc_render_card_body)}>
-          {chunksEl}
+          {body}
         </Card.Body>
-        <footer className="text-right m-2">
-          <small className="text-muted">{upd}</small>
-        </footer>
+        <footer className="text-right m-2">{footer}</footer>
       </Card>
     );
   }

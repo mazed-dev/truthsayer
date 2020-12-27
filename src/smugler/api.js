@@ -6,7 +6,7 @@ import queryString from "query-string";
 import { extractDocAttrs } from "./../search/attrs.jsx";
 import { createEmptyDoc, exctractDoc } from "./../doc/doc";
 import { LocalCrypto } from "./../crypto/local.jsx";
-import { TNode, TNodeAttrs } from "./../node/node.jsx";
+import { TNode, TNodeAttrs } from "./types.jsx";
 import { base64 } from "./../util/base64.jsx";
 
 const kHeaderAttrs = "x-node-attrs";
@@ -49,7 +49,7 @@ async function _tryToDecryptDocLocally(nid, data, headers, crypto) {
   if (kHeaderLocalSecretId in headers) {
     const secretId = headers[kHeaderLocalSecretId];
     if (!crypto || !crypto.has(secretId)) {
-      return { doc: null, encrypted: true, success: false };
+      return { doc: null, secret_id: secretId, success: false };
     } else {
       // const encryptedAttrs = headers[kHeaderAttrs];
       const encryptedDoc = {
@@ -58,10 +58,10 @@ async function _tryToDecryptDocLocally(nid, data, headers, crypto) {
         signature: headers[kHeaderLocalSignature],
       };
       const doc = await crypto.decryptObj(encryptedDoc);
-      return { doc: doc, encrypted: true, success: true };
+      return { doc: doc, secret_id: secretId, success: true };
     }
   }
-  return { doc: exctractDoc(data, nid), encrypted: false, success: true };
+  return { doc: exctractDoc(data, nid), secret_id: null, success: true };
 }
 
 async function createNode({ doc, text, cancelToken, from_nid, to_nid }) {
@@ -96,7 +96,7 @@ async function getNode({ nid, crypto, cancelToken }) {
   if (!res) {
     return null;
   }
-  const { doc, encrypted, success } = await _tryToDecryptDocLocally(
+  const { doc, secret_id, success } = await _tryToDecryptDocLocally(
     nid,
     res.data,
     res.headers,
@@ -109,7 +109,7 @@ async function getNode({ nid, crypto, cancelToken }) {
     updated_at: moment(res.headers[kHeaderLastModified]),
     attrs: null,
     crypto: {
-      encrypted: encrypted,
+      secret_id: secret_id,
       success: success,
     },
   };

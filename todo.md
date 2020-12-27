@@ -1,8 +1,8 @@
 # Todo
 
+ - [ ] Show secret as a pair - signagure & key
  - [ ] Don't encrypt nodes with server key, just use base64 on broweser side for non-encrypted nodes
  - [ ] Encryption - show that loading is in progress
- - [ ] Encryption - show that node is encrypted but there is no local key to decrypt it, show secret id of unknown key
  - [ ] Encryption - reencrypt all function
  - [ ] Encryption - encryption of node should be optional
  - [ ] Clone for next - new button on side cards menu, hide it with "search and next" under "more" button with arrow - "v"
@@ -86,3 +86,4 @@
  - [x] Go to a small card only by clicking on Header of it
  - [x] Smart menu - incorrect size of dynamic cards grid
  - [x] End-to-end encryption
+ - [x] Encryption - show that node is encrypted but there is no local key to decrypt it, show secret id of unknown key

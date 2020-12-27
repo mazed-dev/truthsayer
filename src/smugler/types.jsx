@@ -26,9 +26,8 @@ export interface TNodeCrypto {
   // uses TNode object it should not use encryption at all. But layers above
   // should be aware if node is encrypted, successfuly decrypted or
   // unsuccessfuly decrypted and why.
-  encrypted: boolean;
   success: boolean;
-  message: string | null;
+  secret_id: string | null;
 }
 
 export interface TNodeAttrs {

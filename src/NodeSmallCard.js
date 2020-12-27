@@ -12,6 +12,8 @@ import { smugler } from "./smugler/api";
 import { SmallCardRender, exctractDoc } from "./doc/doc";
 import { joinClasses } from "./util/elClass.js";
 
+import LockedImg from "./img/locked.png";
+
 import styles from "./NodeSmallCard.module.css";
 
 function getShadowStyle(n) {
@@ -50,6 +52,7 @@ class NodeSmallCardImpl extends React.Component {
       crtd: this.props.crtd,
       upd: this.props.upd,
       edges: [],
+      crypto: null,
     };
   }
 
@@ -117,18 +120,32 @@ class NodeSmallCardImpl extends React.Component {
             doc: node.doc,
             crtd: node.created_at,
             upd: node.updated_at,
+            crypto: node.crypto,
           });
         }
       });
   };
 
-  render() {
-    const upd = this.state.upd ? moment(this.state.upd).fromNow() : "";
-    const shd = getShadowStyle(
-      this.props.edges.length +
-        this.state.edges.length -
-        (this.props.skip_input_edge ? 1 : 0)
+  createdLockedCard(secret_id, footer) {
+    return (
+      <GenericSmallCard footer={footer} onClick={this.onClick}>
+        <img src={LockedImg} className={styles.locked_img} alt={"locked"} />
+        Encrypted with an unknown secret:
+        <code className={styles.locked_secret_id}>{secret_id}</code>
+      </GenericSmallCard>
     );
+  }
+
+  render() {
+    const footer = this.state.upd ? (
+      <small className="text-muted">
+        <i>
+          Created {moment(this.state.crtd).fromNow()}, updated{" "}
+          {moment(this.state.upd).fromNow()}
+        </i>
+      </small>
+    ) : null;
+
     let seeMore = null;
     let clickableStyle = null;
     let clickableOnClick = null;
@@ -138,6 +155,15 @@ class NodeSmallCardImpl extends React.Component {
     } else {
       seeMore = makeSeeMoreLink(this.props.nid);
     }
+
+    if (this.state.crypto && !this.state.crypto.success) {
+      return this.createdLockedCard(this.state.crypto.secret_id, footer);
+    }
+    const shd = getShadowStyle(
+      this.props.edges.length +
+        this.state.edges.length -
+        (this.props.skip_input_edge ? 1 : 0)
+    );
     return (
       <Card
         className={joinClasses(
@@ -159,9 +185,7 @@ class NodeSmallCardImpl extends React.Component {
           {seeMore}
         </Card.Body>
         <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">
-          <small className="text-muted">
-            <i>Updated {upd}</i>
-          </small>
+          {footer}
         </footer>
       </Card>
     );
