@@ -58,9 +58,6 @@ export class DocRenderImpl extends React.Component {
       this.props.nid !== prevProps.nid ||
       this.props.account !== prevProps.account
     ) {
-      // if (this.isEditingStart()) {
-      //   this.setState({ edit_chunk_opts: { index: 0, } });
-      // }
       this.fetchNode();
     }
   }
@@ -240,6 +237,7 @@ export class DocRenderImpl extends React.Component {
             mergeChunkUp={this.mergeChunkUp}
             editChunk={this.editChunk}
             editOpts={editOpts}
+            account={this.props.account}
           />
         );
       });

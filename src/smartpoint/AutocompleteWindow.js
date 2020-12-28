@@ -154,9 +154,9 @@ class AutocompleteModal extends React.Component {
         defaultSearch={false}
         onCardClick={this.onNodeCardClick}
         extCards={this.state.cards}
+        account={this.props.account}
       />
     );
-    // onKeyDown={this.handleKeyDown}
     return (
       <div className={styles.autocomplete_modal}>
         <Form.Control
@@ -176,10 +176,6 @@ class AutocompleteModal extends React.Component {
 
 class AutocompleteWindow extends React.Component {
   render() {
-    // dialogAs={AutocompleteModal}
-    // backdrop={false}
-    // autoFocus={true}
-    // onShow={this.onEntered}
     return (
       <Modal
         show={this.props.show}
@@ -197,6 +193,7 @@ class AutocompleteWindow extends React.Component {
         <AutocompleteModal
           on_insert={this.props.on_insert}
           nid={this.props.nid}
+          account={this.props.account}
         />
       </Modal>
     );
