@@ -144,6 +144,7 @@ class NodeSmallCardImpl extends React.Component {
     if (this.props.clickable || this.props.onClick) {
       clickableStyle = styles.clickable_chunks;
       clickableOnClick = this.onClick;
+      console.log("Clickable", clickableOnClick);
     } else {
       seeMore = makeSeeMoreLink(this.props.nid);
     }
@@ -166,7 +167,7 @@ class NodeSmallCardImpl extends React.Component {
           <>
             <SmallCardRender
               doc={this.state.doc}
-              nid={this.props.nid}
+              nid={clickableOnClick === null ? this.props.nid : null}
               trim={true}
             />
             {seeMore}

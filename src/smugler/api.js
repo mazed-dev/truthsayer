@@ -184,6 +184,27 @@ async function nodeAttrsSearch({
   return response;
 }
 
+async function createEdge({ from, to, cancelToken }) {
+  const req = {
+    edges: [
+      {
+        from_nid: from,
+        to_nid: to,
+      },
+    ],
+  };
+  return axios
+    .post("/api/node/" + from + "/edge", req, {
+      cancelToken: cancelToken,
+    })
+    .then((res) => {
+      if (res && res.data && res.data.edges && res.data.edges.length > 0) {
+        return res.data.edges[0];
+      }
+      return null;
+    });
+}
+
 export const smugler = {
   getAnySecondKey: getAnySecondKey,
   getAuth: getAuth,
@@ -194,5 +215,8 @@ export const smugler = {
     remove: removeNode,
     create: createNode,
     slice: nodeAttrsSearch,
+  },
+  edge: {
+    create: createEdge,
   },
 };

@@ -373,6 +373,7 @@ class FullNodeView extends React.Component {
               nid={this.props.nid}
               sticky_edges={this.state.edges_sticky}
               addRef={this.addLeftRef}
+              account={this.props.account}
             />
           </Col>
           <Col className={styles.note_col}>
@@ -390,6 +391,7 @@ class FullNodeView extends React.Component {
               nid={this.props.nid}
               sticky_edges={this.state.edges_sticky}
               addRef={this.addRightRef}
+              account={this.props.account}
             >
               {this.state.aux_toolbar}
             </RightToolBar>

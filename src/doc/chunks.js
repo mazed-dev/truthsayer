@@ -1,10 +1,13 @@
 import React from "react";
 
+import axios from "axios";
 import keycode from "keycode";
 
 import styles from "./chunks.module.css";
 
 import { Button, ButtonGroup, InputGroup, Form } from "react-bootstrap";
+
+import { smugler } from "./../smugler/api";
 
 import AutocompleteWindow from "./../smartpoint/AutocompleteWindow";
 import { MarkdownToolbar } from "../full_node_view/MarkdownToolBar.js";
@@ -190,6 +193,7 @@ export class TextEditor extends React.Component {
       keyCounterSlash: 0,
     };
     this.textAreaRef = React.createRef();
+    this.createEdgeCancelToken = axios.CancelToken.source();
   }
 
   componentDidMount() {
@@ -206,6 +210,7 @@ export class TextEditor extends React.Component {
 
   componentWillUnmount() {
     this.props.resetAuxToolbar();
+    this.createEdgeCancelToken.cancel();
   }
 
   createEditorToolbar() {
@@ -346,6 +351,24 @@ export class TextEditor extends React.Component {
     }
   };
 
+  handleSmartpointOnInsert = ({ text, nid }) => {
+    if (nid) {
+      smugler.edge
+        .create({
+          from: this.props.nid,
+          to: nid,
+          cancelToken: this.createEdgeCancelToken.token,
+        })
+        .then((edge) => {
+          if (edge) {
+            this.handleReplaceSmartpoint(text);
+          }
+        });
+    } else {
+      this.handleReplaceSmartpoint(text);
+    }
+  };
+
   componentDidUpdate(prevProps, prevState) {}
 
   getInitialHeight = (text) => {
@@ -390,7 +413,7 @@ export class TextEditor extends React.Component {
         <AutocompleteWindow
           show={this.state.modalShow}
           onHide={this.hideModal}
-          on_insert={this.handleReplaceSmartpoint}
+          on_insert={this.handleSmartpointOnInsert}
           nid={this.props.nid}
           account={this.props.account}
         />

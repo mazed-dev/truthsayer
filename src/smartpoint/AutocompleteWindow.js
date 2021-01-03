@@ -38,12 +38,6 @@ class AutocompleteModal extends React.Component {
     this.searchFetchCancelToken.cancel();
   }
 
-  refSearch = async function (input) {
-    this.setState({
-      q: input,
-    });
-  };
-
   appendCards = (cards) => {
     this.setState((state) => {
       return {
@@ -73,11 +67,11 @@ class AutocompleteModal extends React.Component {
     this.setState(
       {
         cards: [],
+        q: input,
       },
       () => {
-        this.nextRefSearch(input);
-        this.dateTimeSearch(input);
-        this.refSearch(input);
+        this.props.suggestNewRef && this.nextRefSearch(input);
+        this.props.suggestDateTime && this.dateTimeSearch(input);
       }
     );
   };
@@ -93,7 +87,7 @@ class AutocompleteModal extends React.Component {
       // 2 consecutive keystokes is too short, don't fetch results.
       startSmartSearchTimeout: setTimeout(() => {
         this.startSmartSearch(input);
-      }, 750),
+      }, 450),
     });
   };
 
@@ -127,24 +121,10 @@ class AutocompleteModal extends React.Component {
   onNodeCardClick = (nid, doc) => {
     const title = exctractDocTitle(doc);
     const replacement = "[" + title + "](" + nid + ")";
-    this.props.on_insert(replacement);
-    const req = {
-      edges: [
-        {
-          from_nid: this.props.nid,
-          to_nid: nid,
-        },
-      ],
-    };
-    axios
-      .post("/api/node/" + this.props.nid + "/edge", req, {
-        cancelToken: this.addNodeRefCancelToken.token,
-      })
-      .then((res) => {
-        if (res) {
-          // TODO(akindyakov): Refresh node references here, but how to do that?
-        }
-      });
+    this.props.on_insert({
+      text: replacement,
+      nid: nid,
+    });
   };
 
   render() {
@@ -194,10 +174,17 @@ class AutocompleteWindow extends React.Component {
           on_insert={this.props.on_insert}
           nid={this.props.nid}
           account={this.props.account}
+          suggestNewRef={this.props.suggestNewRef}
+          suggestDateTime={this.props.suggestDateTime}
         />
       </Modal>
     );
   }
 }
+
+AutocompleteWindow.defaultProps = {
+  suggestNewRef: true,
+  suggestDateTime: true,
+};
 
 export default AutocompleteWindow;

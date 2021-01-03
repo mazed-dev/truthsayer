@@ -76,11 +76,20 @@ function MarkdownSmallHeading(nid) {
     // TODO(akindyakov): add markdown title anchors
     switch (level) {
       case 1:
-        hdr_el = (
-          <NavLink className={styles.small_h1} {...rest} to={"/node/" + nid}>
-            {children}
-          </NavLink>
-        );
+        hdr_el =
+          nid != null ? (
+            <NavLink
+              className={joinClasses(styles.small_h1, styles.small_h1_ref)}
+              {...rest}
+              to={"/node/" + nid}
+            >
+              {children}
+            </NavLink>
+          ) : (
+            <h1 className={styles.small_h1} {...rest}>
+              {children}
+            </h1>
+          );
         break;
       case 2:
         hdr_el = (

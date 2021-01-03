@@ -103,12 +103,15 @@
   margin-bottom: 0.4rem;
 }
 
-.small_h1:hover {
+.small_h1_ref {
+}
+
+.small_h1_ref:hover {
   color: green;
   text-decoration: none;
 }
 
-.small_h1:visited {
+.small_h1_ref:visited {
 }
 
 .small_h2 {

@@ -15,7 +15,9 @@ class DateTimeSmartItem extends React.Component {
   handleSumbit = () => {
     const replacement =
       "[](@" + this.props.tm.unix() + "/" + this.props.format + ")";
-    this.props.on_insert(replacement);
+    this.props.on_insert({
+      text: replacement,
+    });
   };
 
   render() {
