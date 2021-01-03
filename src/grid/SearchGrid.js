@@ -110,18 +110,20 @@ export class SearchGrid extends React.Component {
     this.state = {
       nodes: [],
       since_days_ago: 0,
+      ngrams: this.extractIndexNGramsFromText(),
     };
     this.fetchCancelToken = axios.CancelToken.source();
+    this.ref = React.createRef();
   }
 
   componentDidMount() {
-    window.addEventListener("scroll", this.handleScroll, { passive: true });
+    // window.addEventListener("scroll", this.handleScroll, { passive: true });
     this.fetchData();
   }
 
   componentWillUnmount() {
     this.fetchCancelToken.cancel();
-    window.removeEventListener("scroll", this.handleScroll);
+    // window.removeEventListener("scroll", this.handleScroll);
   }
 
   componentDidUpdate(prevProps) {
@@ -130,24 +132,29 @@ export class SearchGrid extends React.Component {
       this.props.extCards !== prevProps.extCards ||
       this.props.account !== prevProps.account
     ) {
-      this.setState({ nodes: [], since_days_ago: 0 });
-      this.fetchData();
+      this.setState({
+        nodes: [],
+        since_days_ago: 0,
+        ngrams: this.extractIndexNGramsFromText(),
+      },
+        this.fetchData
+      );
     }
+  }
+
+  extractIndexNGramsFromText = () => {
+    return this.props.q && this.props.q.length > 2 ? extractIndexNGramsFromText(this.props.q) : null;
   }
 
   fetchData = () => {
     if (this.props.account == null) {
       return;
     }
-    var ngrams = null;
     if (
       !this.props.defaultSearch &&
       (this.props.q == null || this.props.q.length < 2)
     ) {
       return;
-    }
-    if (this.props.q != null) {
-      ngrams = extractIndexNGramsFromText(this.props.q);
     }
     const upd_days_ago_after = 30;
     const upd_days_ago_before = 0;
@@ -156,7 +163,6 @@ export class SearchGrid extends React.Component {
       upd_days_ago_after,
       upd_days_ago_before,
       offset,
-      ngrams
     );
   };
 
@@ -164,12 +170,11 @@ export class SearchGrid extends React.Component {
     upd_days_ago_after,
     upd_days_ago_before,
     offset,
-    ngrams
   ) => {
     const req = {
       upd_after: upd_days_ago_after,
       upd_before: upd_days_ago_before,
-      offset: offset || 0,
+      offset: offset,
     };
     smugler.node
       .slice({
@@ -185,58 +190,42 @@ export class SearchGrid extends React.Component {
           console.error("No response from back end");
           return;
         }
-        const isTimeIntervalExhausted = data.items.length >= data.full_size;
-        //*dbg*/ console.log(
-        //*dbg*/   "Response from back end",
-        //*dbg*/   res.data,
-        //*dbg*/   upd_days_ago_after,
-        //*dbg*/   upd_days_ago_before,
-        //*dbg*/   offset,
-        //*dbg*/   res.data.items.length,
-        //*dbg*/   res.data.full_size,
-        //*dbg*/   ngrams
-        //*dbg*/ );
-        const nodes = searchNodesInAttrs(data.items, ngrams);
+        const isTimeIntervalExhausted = !(data.items.length + offset < data.full_size);
+        const nodes = searchNodesInAttrs(data.items, this.state.ngrams);
         if (nodes.length === 0) {
-          //*dbg*/ console.log(
-          //*dbg*/   "Secure search found nothing, fall back to old search type",
-          //*dbg*/   this.props.q
-          //*dbg*/ );
+          // Secure search found nothing, fall back to old search type
           this.fetchDataIteration(upd_days_ago_after, upd_days_ago_before);
           return;
+        }
+        const scrollTop = this.ref.current.scrollTop;
+        const scrollTopMax = this.ref.current.scrollTopMax;
+        const screenIsFull = scrollTop === scrollTopMax;
+        console.log("Fetch (new)", scrollTop, scrollTopMax, upd_days_ago_after, this.ref.current);
+        var next_from_days = 0;
+        var next_offset = 0;
+        if (isTimeIntervalExhausted) {
+          next_from_days = upd_days_ago_before + 30;
+          next_offset = 0;
+        } else {
+          next_from_days = upd_days_ago_before;
+          next_offset = data.items.length + offset;
         }
         this.setState((state) => {
           return {
             nodes: state.nodes.concat(nodes),
-            since_days_ago: upd_days_ago_after,
+            from: upd_days_ago_before,
+            offset: offset,
           };
-        });
-        //* dbg */ console.log(
-        //* dbg */   "Scroll",
-        //* dbg */   window.innerHeight,
-        //* dbg */   document.documentElement.scrollTop,
-        //* dbg */   document.documentElement.offsetHeight
-        //* dbg */ );
-        const screenIsFull =
-          window.innerHeight + document.documentElement.scrollTop <
-          document.documentElement.offsetHeight;
-        if (!screenIsFull && upd_days_ago_after < 366 /* ~1 year */) {
-          if (isTimeIntervalExhausted) {
+        },() => {
+          // TODO(akindyakov) : please continue here
+          if (!screenIsFull && this.from_days < 366 /* ~1 year */) {
             this.secureSearchIteration(
-              upd_days_ago_after + 30,
-              upd_days_ago_before + 30,
-              0,
-              ngrams
-            );
-          } else {
-            this.secureSearchIteration(
-              upd_days_ago_after,
-              upd_days_ago_before,
-              data.offset + 100,
-              ngrams
+              this.from_days + 30,
+              this.from_days,
+              this.offset,
             );
           }
-        }
+        });
       })
       .catch((error) => {
         console.log("Error", error);
@@ -277,9 +266,13 @@ export class SearchGrid extends React.Component {
         //* dbg */   document.documentElement.scrollTop,
         //* dbg */   document.documentElement.offsetHeight
         //* dbg */ );
-        const screenIsFull =
-          window.innerHeight + document.documentElement.scrollTop <
-          document.documentElement.offsetHeight;
+        const scrollTop = this.ref.current.scrollTop;
+        const scrollTopMax = this.ref.current.scrollTopMax;
+        const screenIsFull = scrollTop === scrollTopMax;
+        /* dbg */ console.log(
+        /* dbg */   "Fetch (old)", scrollTop, scrollTopMax, upd_days_ago_after, this.ref.current);
+          // window.innerHeight + document.documentElement.scrollTop <
+          // document.documentElement.offsetHeight;
         if (!screenIsFull && upd_days_ago_after < 366 /* ~1 year */) {
           this.fetchDataIteration(
             upd_days_ago_after + 30,
@@ -293,24 +286,38 @@ export class SearchGrid extends React.Component {
     // .catch(remoteErrorHandler(this.props.history));
   };
 
-  handleScroll = () => {
-    //* dbg */ console.log(
-    //* dbg */   "Scroll",
-    //* dbg */   window.innerHeight,
+  handleScroll = (e) => {
+    /* dbg */ console.log(
+    /* dbg */   "Scroll",
+    /* dbg */   e.target,
     //* dbg */   document.documentElement.scrollTop,
     //* dbg */   document.documentElement.offsetHeight
-    //* dbg */ );
+    /* dbg */ );
+
+    const scrollTop = e.target.scrollTop;
+    const scrollTopMax = e.target.scrollTopMax;
+    const offsetHeight = e.target.offsetHeight;
+    const height = e.target.clientHeight;
+    /* dbg */ console.log(
+    /* dbg */   "Scroll",
+    /* dbg */   e.target,
+                scrollTop,
+                scrollTopMax,
+                offsetHeight,
+                height,
+    /* dbg */ );
     if (
-      window.innerHeight + document.documentElement.scrollTop !==
-      document.documentElement.offsetHeight
+      // window.innerHeight + document.documentElement.scrollTop !==
+      // document.documentElement.offsetHeight
+      scrollTop !== scrollTopMax
     ) {
       return;
     }
-    //* dbg */ console.log(
-    //* dbg */   "Fetch more list items",
-    //* dbg */   this.state.since_days_ago + 30,
-    //* dbg */   this.state.since_days_ago
-    //* dbg */ );
+    /* dbg */ console.log(
+    /* dbg */   "Fetch more list items",
+    /* dbg */   this.state.since_days_ago + 30,
+    /* dbg */   this.state.since_days_ago
+    /* dbg */ );
     this.fetchDataIteration(
       this.state.since_days_ago + 30,
       this.state.since_days_ago
@@ -350,7 +357,9 @@ export class SearchGrid extends React.Component {
     if (this.props.extCards) {
       cards = this.props.extCards.concat(cards);
     }
-    return <DynamicGrid cards={cards} />;
+    return (<div className={styles.search_grid} onScroll={this.handleScroll} ref={this.ref}>
+      <DynamicGrid cards={cards} />
+    </div>);
   }
 }
 

@@ -48,3 +48,11 @@
   padding-left: 0.5rem;
   padding-right: 0.5rem;
 }
+
+.search_grid {
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+
+  /* height: calc(50vh - 156px); */
+  height: 80vh;
+}
