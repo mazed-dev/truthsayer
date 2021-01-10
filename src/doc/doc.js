@@ -304,7 +304,7 @@ export function exctractDoc(source, nid) {
   try {
     return JSON.parse(source);
   } catch (e) {
-    console.log("Old style doc without mark up", nid);
+    // console.log("Old style doc without mark up", nid);
   }
   return parseRawSource(source);
 }

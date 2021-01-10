@@ -49,7 +49,18 @@
   padding-right: 0.5rem;
 }
 
+.search_grid_waiter {
+  width: 10%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 .search_grid {
+}
+
+.search_grid_portable {
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
 

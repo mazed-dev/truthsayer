@@ -148,7 +148,11 @@ class NodeSmallCardImpl extends React.Component {
       seeMore = makeSeeMoreLink(this.props.nid);
     }
     if (this.state.crypto == null) {
-      body = <Loader size={"medium"} />;
+      body = (
+        <div className={styles.small_card_waiter}>
+          <Loader size={"small"} />
+        </div>
+      );
     } else {
       if (!this.state.crypto.success) {
         body = (

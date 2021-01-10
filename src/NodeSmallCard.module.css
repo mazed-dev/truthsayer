@@ -11,13 +11,13 @@
   /* border-color: var(--small_card_border_colour); */
 
   /*height: 22rem;*/
-  min-height: 8rem;
+  min-height: 10rem;
 
   box-shadow: 1px 1px 4px 0px var(--small_card_shadow_colour);
 }
 
 .small_card_width {
-  max-width: 21rem;
+  max-width: 20rem;
   min-width: 16rem;
 }
 
@@ -30,6 +30,12 @@
     max-width: 20rem;
     min-width: 10rem;
   }
+}
+
+.small_card_waiter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .small_card_shadow_0 {

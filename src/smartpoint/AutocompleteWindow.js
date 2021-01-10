@@ -132,6 +132,7 @@ class AutocompleteModal extends React.Component {
       <SearchGrid
         q={this.state.q}
         defaultSearch={false}
+        portable={true}
         onCardClick={this.onNodeCardClick}
         extCards={this.state.cards}
         account={this.props.account}

@@ -143,15 +143,15 @@ export function getSecondKey({ id }) {
 }
 
 async function nodeAttrsSearch({
-  updateAfterDays,
-  updateBeforeDays,
+  end_time,
+  start_time,
   offset,
   cancelToken,
   crypto,
 }) {
   const req = {
-    upd_after: updateAfterDays,
-    upd_before: updateBeforeDays,
+    end_time: end_time,
+    start_time: start_time,
     offset: offset || 0,
   };
   const rawResp = await axios.post("/api/node-attrs-search", req, {

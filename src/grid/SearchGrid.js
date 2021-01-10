@@ -42,12 +42,6 @@ class DynamicGrid extends React.Component {
   }
 
   updateWindowDimensions = () => {
-    //* dbg */ console.log(
-    //* dbg */   "updateWindowDimensions",
-    //* dbg */   window.innerWidth,
-    //* dbg */   window.innerHeight
-    //* dbg */ );
-    //* dbg */ see NodeSmallCard.css.mazed_small_card.max-width
     const containerEl = this.containerRef.current;
     const width = containerEl.clientWidth || window.innerWidth;
     const height = containerEl.clientHeight || window.innerHeight;
@@ -58,7 +52,6 @@ class DynamicGrid extends React.Component {
       const nf = width / (fontSize * (1 + cardWidth));
       const n = Math.floor(nf);
       const delta = nf - n;
-      //* dbg */ console.log("delta", delta, n, cardWidth);
       return [delta, n];
     };
     // const opt = range(4, 16)
@@ -104,26 +97,37 @@ class DynamicGrid extends React.Component {
   }
 }
 
+const _kTimeWindowSizeSeconds = 4 * 7 * 24 * 60 * 60;
+const _kTimeLimit = Math.floor(Date.now() / 1000) - 2 * 356 * 24 * 60 * 60;
+const _kChunkSizeMax = 256;
+
 export class SearchGrid extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       nodes: [],
-      since_days_ago: 0,
       ngrams: this.extractIndexNGramsFromText(),
+      fetching: false,
+      end_time: null,
+      start_time: null,
+      offset: 0,
     };
     this.fetchCancelToken = axios.CancelToken.source();
     this.ref = React.createRef();
   }
 
   componentDidMount() {
-    // window.addEventListener("scroll", this.handleScroll, { passive: true });
+    if (!this.props.portable) {
+      window.addEventListener("scroll", this.handleScroll, { passive: true });
+    }
     this.fetchData();
   }
 
   componentWillUnmount() {
     this.fetchCancelToken.cancel();
-    // window.removeEventListener("scroll", this.handleScroll);
+    if (!this.props.portable) {
+      window.removeEventListener("scroll", this.handleScroll);
+    }
   }
 
   componentDidUpdate(prevProps) {
@@ -132,19 +136,15 @@ export class SearchGrid extends React.Component {
       this.props.extCards !== prevProps.extCards ||
       this.props.account !== prevProps.account
     ) {
-      this.setState({
-        nodes: [],
-        since_days_ago: 0,
-        ngrams: this.extractIndexNGramsFromText(),
-      },
-        this.fetchData
-      );
+      this.fetchData();
     }
   }
 
   extractIndexNGramsFromText = () => {
-    return this.props.q && this.props.q.length > 2 ? extractIndexNGramsFromText(this.props.q) : null;
-  }
+    return this.props.q && this.props.q.length > 2
+      ? extractIndexNGramsFromText(this.props.q)
+      : null;
+  };
 
   fetchData = () => {
     if (this.props.account == null) {
@@ -156,177 +156,110 @@ export class SearchGrid extends React.Component {
     ) {
       return;
     }
-    const upd_days_ago_after = 30;
-    const upd_days_ago_before = 0;
-    const offset = 0;
-    this.secureSearchIteration(
-      upd_days_ago_after,
-      upd_days_ago_before,
-      offset,
+    this.setState(
+      {
+        nodes: [],
+        ngrams: this.extractIndexNGramsFromText(),
+        offset: 0,
+        end_time: null,
+        start_time: null,
+        fetching: true,
+      },
+      this.secureSearchIteration
     );
+    // const upd_days_ago_after = 30;
+    // const upd_days_ago_before = 0;
+    // const offset = 0;
+    // this.secureSearchIteration(
+    // upd_days_ago_after,
+    // upd_days_ago_before,
+    // offset,
+    // );
   };
 
-  secureSearchIteration = (
-    upd_days_ago_after,
-    upd_days_ago_before,
-    offset,
-  ) => {
-    const req = {
-      upd_after: upd_days_ago_after,
-      upd_before: upd_days_ago_before,
-      offset: offset,
-    };
+  secureSearchIteration = () => {
+    let end_time = this.state.end_time;
+    let start_time = this.state.start_time;
+    let offset = this.state.offset;
     smugler.node
       .slice({
-        updateAfterDays: upd_days_ago_after,
-        updateBeforeDays: upd_days_ago_before,
-        offset: offset || 0,
+        start_time: start_time,
+        end_time: end_time,
+        offset: offset,
         cancelToken: this.fetchCancelToken.token,
         crypto: this.props.account.getLocalCrypto(),
       })
       .then((data) => {
         if (!data) {
-          // TODO(akindyakov) escalate
-          console.error("No response from back end");
+          console.error("Error: no response from back end");
           return;
         }
-        const isTimeIntervalExhausted = !(data.items.length + offset < data.full_size);
         const nodes = searchNodesInAttrs(data.items, this.state.ngrams);
-        if (nodes.length === 0) {
-          // Secure search found nothing, fall back to old search type
-          this.fetchDataIteration(upd_days_ago_after, upd_days_ago_before);
-          return;
+        let next = null;
+        let fetching = false;
+        if (this.isScrolledToBottom() && data.start_time > _kTimeLimit) {
+          //next = this.secureSearchIteration;
+          //fetching = true;
         }
-        const scrollTop = this.ref.current.scrollTop;
-        const scrollTopMax = this.ref.current.scrollTopMax;
-        const screenIsFull = scrollTop === scrollTopMax;
-        console.log("Fetch (new)", scrollTop, scrollTopMax, upd_days_ago_after, this.ref.current);
-        var next_from_days = 0;
-        var next_offset = 0;
-        if (isTimeIntervalExhausted) {
-          next_from_days = upd_days_ago_before + 30;
-          next_offset = 0;
+        if (
+          this.isTimeIntervalExhausted(
+            data.items.length,
+            data.offset,
+            data.full_size
+          )
+        ) {
+          end_time = data.start_time;
+          start_time = data.start_time - (data.end_time - data.start_time);
+          offset = 0;
         } else {
-          next_from_days = upd_days_ago_before;
-          next_offset = data.items.length + offset;
+          end_time = data.end_time;
+          start_time = data.start_time;
+          offset = data.offset + data.items.length;
         }
         this.setState((state) => {
           return {
             nodes: state.nodes.concat(nodes),
-            from: upd_days_ago_before,
+            end_time: end_time,
+            start_time: start_time,
             offset: offset,
+            fetching: fetching,
           };
-        },() => {
-          // TODO(akindyakov) : please continue here
-          if (!screenIsFull && this.from_days < 366 /* ~1 year */) {
-            this.secureSearchIteration(
-              this.from_days + 30,
-              this.from_days,
-              this.offset,
-            );
-          }
-        });
+        }, next);
       })
       .catch((error) => {
         console.log("Error", error);
       });
-    // .catch(remoteErrorHandler(this.props.history));
   };
 
-  fetchDataIteration = (upd_days_ago_after, upd_days_ago_before) => {
-    const req = {
-      q: this.props.q,
-      upd_after: upd_days_ago_after,
-      upd_before: upd_days_ago_before,
-      provide_edges: true,
-    };
-    axios
-      .post("/api/node-search", req, {
-        cancelToken: this.fetchCancelToken.token,
-      })
-      .then((res) => {
-        const nodes = res.data.nodes.map((m) => {
-          return {
-            nid: m.nid,
-            preface: m.preface,
-            crtd: moment.unix(m.crtd),
-            upd: moment.unix(m.upd),
-            edges: [],
-          };
-        });
-        this.setState((state) => {
-          return {
-            nodes: state.nodes.concat(nodes),
-            since_days_ago: upd_days_ago_after,
-          };
-        });
-        //* dbg */ console.log(
-        //* dbg */   "Scroll",
-        //* dbg */   window.innerHeight,
-        //* dbg */   document.documentElement.scrollTop,
-        //* dbg */   document.documentElement.offsetHeight
-        //* dbg */ );
-        const scrollTop = this.ref.current.scrollTop;
-        const scrollTopMax = this.ref.current.scrollTopMax;
-        const screenIsFull = scrollTop === scrollTopMax;
-        /* dbg */ console.log(
-        /* dbg */   "Fetch (old)", scrollTop, scrollTopMax, upd_days_ago_after, this.ref.current);
-          // window.innerHeight + document.documentElement.scrollTop <
-          // document.documentElement.offsetHeight;
-        if (!screenIsFull && upd_days_ago_after < 366 /* ~1 year */) {
-          this.fetchDataIteration(
-            upd_days_ago_after + 30,
-            upd_days_ago_before + 30
-          );
-        }
-      })
-      .catch((error) => {
-        console.log("Error", error);
-      });
-    // .catch(remoteErrorHandler(this.props.history));
+  isTimeIntervalExhausted = (length, offset, full_size) => {
+    return !(length + offset < full_size);
+  };
+
+  isScrolledToBottom = () => {
+    if (this.props.portable) {
+      const scrollTop = this.ref.current.scrollTop;
+      const scrollTopMax = this.ref.current.scrollTopMax;
+      return scrollTop === scrollTopMax;
+    }
+    const innerHeight = window.innerHeight;
+    const scrollTop = document.documentElement.scrollTop;
+    const offsetHeight = document.documentElement.offsetHeight;
+    return innerHeight + scrollTop >= offsetHeight;
   };
 
   handleScroll = (e) => {
-    /* dbg */ console.log(
-    /* dbg */   "Scroll",
-    /* dbg */   e.target,
-    //* dbg */   document.documentElement.scrollTop,
-    //* dbg */   document.documentElement.offsetHeight
-    /* dbg */ );
-
-    const scrollTop = e.target.scrollTop;
-    const scrollTopMax = e.target.scrollTopMax;
-    const offsetHeight = e.target.offsetHeight;
-    const height = e.target.clientHeight;
-    /* dbg */ console.log(
-    /* dbg */   "Scroll",
-    /* dbg */   e.target,
-                scrollTop,
-                scrollTopMax,
-                offsetHeight,
-                height,
-    /* dbg */ );
-    if (
-      // window.innerHeight + document.documentElement.scrollTop !==
-      // document.documentElement.offsetHeight
-      scrollTop !== scrollTopMax
-    ) {
-      return;
+    if (this.isScrolledToBottom() && !this.state.fetching) {
+      this.secureSearchIteration();
     }
-    /* dbg */ console.log(
-    /* dbg */   "Fetch more list items",
-    /* dbg */   this.state.since_days_ago + 30,
-    /* dbg */   this.state.since_days_ago
-    /* dbg */ );
-    this.fetchDataIteration(
-      this.state.since_days_ago + 30,
-      this.state.since_days_ago
-    );
   };
 
   render() {
     if (this.props.account == null) {
-      return <Loader size={"large"} />;
+      return (
+        <div className={styles.search_grid_waiter}>
+          <Loader size={"large"} />;
+        </div>
+      );
     }
     var used = {};
     let cards = this.state.nodes
@@ -354,20 +287,34 @@ export class SearchGrid extends React.Component {
           />
         );
       });
+
+    const fetchingLoader = this.state.fetching ? (
+      <div className={styles.search_grid_loader}>
+        <Loader size={"medium"} />
+      </div>
+    ) : null;
     if (this.props.extCards) {
       cards = this.props.extCards.concat(cards);
     }
-    return (<div className={styles.search_grid} onScroll={this.handleScroll} ref={this.ref}>
-      <DynamicGrid cards={cards} />
-    </div>);
+    const gridStyle = this.props.portable ? styles.search_grid_portable : null;
+    return (
+      <div
+        className={joinClasses(gridStyle, styles.search_grid)}
+        onScroll={this.handleScroll}
+        ref={this.ref}
+      >
+        <DynamicGrid cards={cards} />
+        {fetchingLoader}
+      </div>
+    );
   }
 }
 
 SearchGrid.defaultProps = {
   defaultSearch: true,
+  portable: false,
   onCardClick: null,
   extCards: null,
 };
 
-// export default withRouter(SearchGrid);
 export default SearchGrid;
