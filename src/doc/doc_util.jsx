@@ -43,3 +43,14 @@ export function markAsACopy(doc: TDoc | string, nid: string): TDoc {
   doc.chunks.unshift(clonedBadge);
   return doc;
 }
+
+export function extractDocAsMarkdown(doc: TDoc): string {
+  if (typeof doc === "string") {
+    return doc;
+  }
+  return doc.chunks
+    .reduce((acc, current) => {
+      return acc + "\n\n" + current.source;
+    }, "")
+    .trim();
+}

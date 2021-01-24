@@ -22,22 +22,38 @@ import EditMoreButtonImg from "./img/edit-more-button.png";
 
 export const parseRawSource = _parseRawSource;
 
-export class ChunkRender extends React.Component {
+class ChunkRenderToolbar extends React.Component {
   constructor(props) {
     super(props);
   }
 
-  enableEditMode = () => {
-    this.props.editChunk(this.props.index);
-  };
+  makeMoreTooling() {
+    if (!this.props.isFull) {
+      return null;
+    }
+    return (
+      <Button
+        variant="light"
+        className={joinClasses(
+          styles.paragraph_toolbar_btn,
+          styles.paragraph_toolbar_more_btn
+        )}
+      >
+        <img
+          src={EditMoreButtonImg}
+          className={styles.btn_img}
+          alt={"Edit paragraph"}
+        />
+      </Button>
+    );
+  }
 
   render() {
-    // &#x270E;
-    const toolbar = this.props.edit ? null : (
+    return (
       <ButtonGroup vertical>
         <Button
           variant="light"
-          onClick={this.enableEditMode}
+          onClick={this.props.enableEditMode}
           className={joinClasses(styles.paragraph_toolbar_btn)}
         >
           <img
@@ -46,20 +62,39 @@ export class ChunkRender extends React.Component {
             alt={"Edit paragraph"}
           />
         </Button>
-        <Button
-          variant="light"
-          className={joinClasses(
-            styles.paragraph_toolbar_btn,
-            styles.paragraph_toolbar_more_btn
-          )}
-        >
-          <img
-            src={EditMoreButtonImg}
-            className={styles.btn_img}
-            alt={"Edit paragraph"}
-          />
-        </Button>
+        {this.makeMoreTooling()}
       </ButtonGroup>
+    );
+  }
+}
+
+export class ChunkRender extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      hover: false,
+    };
+  }
+
+  onHover = () => {
+    this.setState({ hover: true });
+  };
+
+  offHover = () => {
+    this.setState({ hover: false });
+  };
+
+  enableEditMode = () => {
+    this.props.editChunk(this.props.index);
+  };
+
+  render() {
+    // &#x270E;
+    const toolbar = this.props.edit ? null : (
+      <ChunkRenderToolbar
+        enableEditMode={this.enableEditMode}
+        isFull={this.state.hover}
+      />
     );
     const card =
       this.props.editOpts != null ? (
@@ -82,7 +117,11 @@ export class ChunkRender extends React.Component {
         />
       );
     return (
-      <div className={joinClasses(styles.fluid_container)}>
+      <div
+        className={joinClasses(styles.fluid_container)}
+        onMouseEnter={this.onHover}
+        onMouseLeave={this.offHover}
+      >
         <div className={joinClasses(styles.fluid_paragraph_toolbar)}>
           {toolbar}
         </div>

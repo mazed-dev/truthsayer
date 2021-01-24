@@ -13,6 +13,7 @@ import { joinClasses } from "../util/elClass.js";
 import { Loader } from "../lib/loader";
 
 import LockedImg from "./../img/locked.png";
+import DownloadButtonImg from "./../img/download.png";
 
 import {
   ChunkRender,
@@ -22,8 +23,9 @@ import {
 } from "./chunks";
 
 import { mergeChunks, trimChunk, getChunkSize } from "./chunk_util";
+import { extractDocAsMarkdown } from "./doc_util.jsx";
 
-import { Card } from "react-bootstrap";
+import { Card, Button, ButtonGroup } from "react-bootstrap";
 
 import moment from "moment";
 import axios from "axios";
@@ -193,6 +195,38 @@ export class DocRenderImpl extends React.Component {
     return false; // this.props.location.state && this.props.location.state.edit;
   }
 
+  copyDocAsMarkdown = () => {
+    const md = extractDocAsMarkdown(this.state.doc);
+    navigator.clipboard.writeText(md).then(
+      function () {
+        /* clipboard successfully set */
+      },
+      function () {
+        /* clipboard write failed */
+      }
+    );
+  };
+
+  makeCardToolbar() {
+    return (
+      <div className={styles.doc_card_toolbar}>
+        <ButtonGroup>
+          <Button
+            variant="light"
+            className={joinClasses(styles.doc_card_toolbar_btn)}
+            onClick={this.copyDocAsMarkdown}
+          >
+            <img
+              src={DownloadButtonImg}
+              className={styles.doc_card_toolbar_btn_img}
+              alt={"Edit paragraph"}
+            />
+          </Button>
+        </ButtonGroup>
+      </div>
+    );
+  }
+
   render() {
     const footer = this.state.upd ? (
       <small className="text-muted">
@@ -249,6 +283,7 @@ export class DocRenderImpl extends React.Component {
       <Card
         className={joinClasses(styles.fluid_container, styles.doc_render_card)}
       >
+        {this.makeCardToolbar()}
         <Card.Body className={joinClasses(styles.doc_render_card_body)}>
           {body}
         </Card.Body>
