@@ -3,33 +3,33 @@ import React from "react";
 import styles from "./ToolBars.module.css";
 
 import NextNewLeftImg from "./img/next-link-new-left.png";
-import NextSearchLeftImg from "./img/next-link-search-left.png";
-
 import NextNewRightImg from "./img/next-link-new-right.png";
+
+import NextSearchLeftImg from "./img/next-link-search-left.png";
 import NextSearchRightImg from "./img/next-link-search-right.png";
 
-import NextLeftImg from "./img/next-link-left.png";
-import NextRightImg from "./img/next-link-right.png";
+import NextCloneLeftImg from "./img/next-link-clone-left.png";
+import NextCloneRightImg from "./img/next-link-clone-right.png";
+
+// import NextLeftImg from "./img/next-link-left.png";
+// import NextRightImg from "./img/next-link-right.png";
+
+import DropdownArrowLeftImg from "./img/dropdown-arrow-left.png";
+import DropdownArrowRightImg from "./img/dropdown-arrow-right.png";
+import DropdownArrowOpenedImg from "./img/dropdown-arrow-opened.png";
 
 import { MdSmallCardRender } from "./../markdown/MarkdownRender";
 
 import AutocompleteWindow from "./../smartpoint/AutocompleteWindow";
+
+import { markAsACopy } from "../doc/doc_util.jsx";
 
 import { joinClasses } from "../util/elClass.js";
 import { remoteErrorHandler } from "./../remoteErrorHandler";
 
 import { smugler } from "./../smugler/api";
 
-import {
-  Button,
-  ButtonGroup,
-  ButtonToolbar,
-  Row,
-  Col,
-  ListGroup,
-  Form,
-  Modal,
-} from "react-bootstrap";
+import { Button, ButtonGroup, ButtonToolbar } from "react-bootstrap";
 
 import axios from "axios";
 import keycode from "keycode";
@@ -37,6 +37,99 @@ import moment from "moment";
 
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
+
+class MoreOptionsToConnect extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      opened: false,
+    };
+  }
+
+  getDropdownImg() {
+    if (this.state.opened) {
+      return DropdownArrowOpenedImg;
+    }
+    if ("left" in this.props) {
+      return DropdownArrowLeftImg;
+    } else {
+      return DropdownArrowRightImg;
+    }
+  }
+
+  getSearchImg() {
+    if ("left" in this.props) {
+      return NextSearchLeftImg;
+    } else {
+      return NextSearchRightImg;
+    }
+  }
+
+  getCloneImg() {
+    if ("left" in this.props) {
+      return NextCloneLeftImg;
+    } else {
+      return NextCloneRightImg;
+    }
+  }
+
+  toggleDropdown = () => {
+    this.setState((state) => {
+      return {
+        opened: !state.opened,
+      };
+    });
+  };
+
+  getButtonDisplayAttribute() {
+    return this.state.opened ? "block" : "none";
+  }
+
+  render() {
+    return (
+      <>
+        <Button
+          variant="light"
+          className={joinClasses(
+            styles.toolbar_btn,
+            styles.toolbar_dropdown_toggle
+          )}
+          onClick={this.toggleDropdown}
+        >
+          <img
+            src={this.getDropdownImg()}
+            className={styles.toolbar_btn_img}
+            alt="More connect options"
+          />
+        </Button>
+        <Button
+          variant="light"
+          onClick={this.props.onSearchClick}
+          className={styles.toolbar_btn}
+          style={{ display: this.getButtonDisplayAttribute() }}
+        >
+          <img
+            src={this.getSearchImg()}
+            className={styles.toolbar_btn_img}
+            alt="Search to connect"
+          />
+        </Button>
+        <Button
+          variant="light"
+          onClick={this.props.onCloneClick}
+          className={styles.toolbar_btn}
+          style={{ display: this.getButtonDisplayAttribute() }}
+        >
+          <img
+            src={this.getCloneImg()}
+            className={styles.toolbar_btn_img}
+            alt="Clone and connect"
+          />
+        </Button>
+      </>
+    );
+  }
+}
 
 class LeftToolBarImpl extends React.Component {
   constructor(props) {
@@ -63,9 +156,9 @@ class LeftToolBarImpl extends React.Component {
         to_nid: this.props.nid,
       })
       .catch(remoteErrorHandler(this.props.history))
-      .then((res) => {
-        if (res) {
-          const new_nid = res.data.nid;
+      .then((node) => {
+        if (node) {
+          const new_nid = node.nid;
           __addStickyEdges(
             this.props.sticky_edges,
             new_nid,
@@ -76,6 +169,20 @@ class LeftToolBarImpl extends React.Component {
           });
         }
       });
+  };
+
+  handleNextCloneClick = () => {
+    cloneNode(
+      null,
+      this.props.nid,
+      this.props.account.getLocalCrypto(),
+      this.fetchCancelToken.token
+    ).then((node) => {
+      if (node) {
+        const nid = node.nid;
+        this.props.history.push("/node/" + nid);
+      }
+    });
   };
 
   handleNextSearchClick = (event) => {
@@ -101,18 +208,6 @@ class LeftToolBarImpl extends React.Component {
   };
 
   render() {
-    // <DropdownButton
-    //   as={ButtonGroup}
-    //   title="H1"
-    //   variant="outline-secondary"
-    // >
-    //   <Dropdown.Item eventKey="1">H1</Dropdown.Item>
-    //   <Dropdown.Item eventKey="2">H2</Dropdown.Item>
-    //   <Dropdown.Item eventKey="2">H3</Dropdown.Item>
-    // </DropdownButton>
-
-    // <Button variant="outline-secondary">C</Button>
-    // <Button variant="outline-secondary">D</Button>
     return (
       <>
         <ButtonToolbar
@@ -130,17 +225,12 @@ class LeftToolBarImpl extends React.Component {
                 alt="Next new"
               />
             </Button>
-            <Button
-              variant="light"
-              onClick={this.handleNextSearchClick}
-              className={styles.toolbar_btn}
-            >
-              <img
-                src={NextSearchLeftImg}
-                className={styles.toolbar_btn_img}
-                alt="Search to connect"
-              />
-            </Button>
+
+            <MoreOptionsToConnect
+              left
+              onSearchClick={this.handleNextSearchClick}
+              onCloneClick={this.handleNextCloneClick}
+            />
           </ButtonGroup>
         </ButtonToolbar>
         <AutocompleteWindow
@@ -182,9 +272,9 @@ class RightToolBarImpl extends React.Component {
         from_nid: this.props.nid,
       })
       .catch(remoteErrorHandler(this.props.history))
-      .then((res) => {
-        if (res) {
-          const new_nid = res.data.nid;
+      .then((node) => {
+        if (node) {
+          const new_nid = node.nid;
           __addStickyEdges(
             this.props.sticky_edges,
             new_nid,
@@ -199,6 +289,20 @@ class RightToolBarImpl extends React.Component {
 
   handleNextSearchClick = (event) => {
     this.setState({ modalShow: true });
+  };
+
+  handleNextCloneClick = (event) => {
+    cloneNode(
+      this.props.nid,
+      null,
+      this.props.account.getLocalCrypto(),
+      this.fetchCancelToken.token
+    ).then((node) => {
+      if (node) {
+        const nid = node.nid;
+        this.props.history.push("/node/" + nid);
+      }
+    });
   };
 
   hideSearchDialog = (event) => {
@@ -220,6 +324,17 @@ class RightToolBarImpl extends React.Component {
   };
 
   render() {
+    // <Button
+    //   variant="light"
+    //   onClick={this.handleNextSearchClick}
+    //   className={styles.toolbar_btn}
+    // >
+    //   <img
+    //     src={NextSearchRightImg}
+    //     className={styles.toolbar_btn_img}
+    //     alt="Search to connect"
+    //   />
+    // </Button>
     return (
       <>
         <ButtonToolbar
@@ -237,17 +352,12 @@ class RightToolBarImpl extends React.Component {
                 alt="Next new"
               />
             </Button>
-            <Button
-              variant="light"
-              onClick={this.handleNextSearchClick}
-              className={styles.toolbar_btn}
-            >
-              <img
-                src={NextSearchRightImg}
-                className={styles.toolbar_btn_img}
-                alt="Search to connect"
-              />
-            </Button>
+
+            <MoreOptionsToConnect
+              right
+              onSearchClick={this.handleNextSearchClick}
+              onCloneClick={this.handleNextCloneClick}
+            />
           </ButtonGroup>
           {this.props.children}
         </ButtonToolbar>
@@ -330,6 +440,22 @@ function __addStickyEdges(sticky_edges, new_nid, prev_nid, cancelToken) {
         return res.data.edges;
       }
     });
+}
+
+async function cloneNode(from_nid, to_nid, crypto, cancelToken) {
+  const nid = from_nid ? from_nid : to_nid;
+  const node = await smugler.node.get({
+    nid: nid,
+    crypto: crypto,
+    cancelToken: cancelToken,
+  });
+  const doc = markAsACopy(node.doc, nid);
+  return await smugler.node.create({
+    doc: doc,
+    cancelToken: cancelToken,
+    from_nid: from_nid,
+    to_nid: to_nid,
+  });
 }
 
 export default RightToolBar;

@@ -166,9 +166,9 @@ class GlobalNavBar extends React.Component {
         doc: null,
         cancelToken: this.fetchCancelToken.token,
       })
-      .then((res) => {
-        if (res) {
-          const new_nid = res.data.nid;
+      .then((node) => {
+        if (node) {
+          const new_nid = node.nid;
           this.props.history.push("/node/" + new_nid, { edit: true });
         }
       });

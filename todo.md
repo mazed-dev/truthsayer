@@ -1,6 +1,7 @@
 # Todo
 
- - [ ] Clone for next - new button on side cards menu, hide it with "search and next" under "more" button with arrow - "v"
+ - [ ] Download/copy node as markdown
+ - [ ] Download all or some nodes as markdown
  - [ ] Add "date" and "next" as buttons to a toolbar
  - [ ] Encryption - encryption of a node should be optional
  - [ ] Encryption - reencrypt all function
@@ -90,3 +91,4 @@
  - [x] Check that encrypted node can be decrypted with CLI command (`openssl`)
  - [x] Encryption - show that loading is in progress
  - [x] Reuse the same search grid component for smart menu and for globals search
+ - [x] Clone for next - new button on side cards menu, hide it with "search and next" under "more" button with arrow - "v"

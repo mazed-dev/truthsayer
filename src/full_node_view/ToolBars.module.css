@@ -38,10 +38,19 @@
   border-width: 1px;
   border-radius: 4px;
 
-  padding: 0.5rem;
+  padding: 0.4rem;
 }
 
 .toolbar_btn_img {
   width: 1.6rem;
   height: 1.6rem;
+}
+
+.toolbar_dropdown_toggle::after {
+  display: none;
+}
+
+.toolbar_dropdown_menu {
+  min-width: 2.5rem;
+  padding: 0;
 }

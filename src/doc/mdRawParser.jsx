@@ -1,4 +1,4 @@
-import { TChunk, TDoc } from "./types";
+import { TChunk, TDoc } from "./types.jsx";
 
 export function parseRawSource(source: string): TDoc {
   return {

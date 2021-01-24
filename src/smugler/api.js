@@ -81,11 +81,11 @@ async function createNode({ doc, text, cancelToken, from_nid, to_nid }) {
     cancelToken: cancelToken,
   };
 
-  return axios.post(
-    "/api/node/new?" + queryString.stringify(query),
-    value,
-    config
-  );
+  return axios
+    .post("/api/node/new?" + queryString.stringify(query), value, config)
+    .then((resp) => {
+      return resp.data ? resp.data : null;
+    });
 }
 
 async function getNode({ nid, crypto, cancelToken }) {

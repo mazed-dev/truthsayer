@@ -68,9 +68,9 @@ class UploadFile extends React.Component {
           text: event.target.result + appendix,
           cancelToken: this.fetchCancelToken.token,
         })
-        .then((res) => {
-          if (res) {
-            const nid = res.data.nid;
+        .then((node) => {
+          if (node) {
+            const nid = node.nid;
             this.updateFileStatus(localId, {
               nid: nid,
               progress: 1.0,
