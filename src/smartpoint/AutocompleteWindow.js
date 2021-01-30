@@ -10,8 +10,7 @@ import { nextRefSmartItemSearch } from "./NextRefSmartItem";
 import { SearchGrid } from "./../grid/SearchGrid";
 
 import { exctractDocTitle } from "./../doc/doc_util";
-
-import remoteErrorHandler from "./../remoteErrorHandler";
+import { smugler } from "./../smugler/api";
 
 import styles from "./AutocompleteWindow.module.css";
 
@@ -121,10 +120,22 @@ class AutocompleteModal extends React.Component {
   onNodeCardClick = (nid, doc) => {
     const title = exctractDocTitle(doc);
     const replacement = "[" + title + "](" + nid + ")";
-    this.props.on_insert({
-      text: replacement,
-      nid: nid,
-    });
+    // this.props.on_insert({
+    //   text: replacement,
+    //   nid: nid,
+    // });
+
+    smugler.edge
+      .create({
+        from: this.props.nid,
+        to: nid,
+        cancelToken: this.addNodeRefCancelToken.token,
+      })
+      .then((edge) => {
+        if (edge) {
+          this.props.on_insert({ text: replacement });
+        }
+      });
   };
 
   render() {

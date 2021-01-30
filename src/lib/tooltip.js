@@ -4,7 +4,7 @@ import styles from "./tooltip.module.css";
 
 // https://www.w3schools.com/css/css_tooltip.asp
 
-class TooltipHover extends React {
+class BlackTooltipHover extends React {
   constructor(props) {
     super(props);
     this.state = {
@@ -28,6 +28,6 @@ class TooltipHover extends React {
     >
       <span class="tooltiptext">Tooltip text</span>
       {this.props.children}
-    </div>
+    </div>;
   }
 }

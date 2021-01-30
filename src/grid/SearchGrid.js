@@ -9,7 +9,6 @@ import { Container, Row, Col } from "react-bootstrap";
 import { withRouter } from "react-router-dom";
 
 import NodeSmallCard from "./../NodeSmallCard";
-import remoteErrorHandler from "./../remoteErrorHandler";
 
 import { searchNodesInAttrs } from "./../search/search.js";
 import { extractIndexNGramsFromText } from "./../search/ngramsIndex.js";

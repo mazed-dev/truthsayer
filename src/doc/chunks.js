@@ -390,22 +390,8 @@ export class TextEditor extends React.Component {
     }
   };
 
-  handleSmartpointOnInsert = ({ text, nid }) => {
-    if (nid) {
-      smugler.edge
-        .create({
-          from: this.props.nid,
-          to: nid,
-          cancelToken: this.createEdgeCancelToken.token,
-        })
-        .then((edge) => {
-          if (edge) {
-            this.handleReplaceSmartpoint(text);
-          }
-        });
-    } else {
-      this.handleReplaceSmartpoint(text);
-    }
+  handleSmartpointOnInsert = ({ text }) => {
+    this.handleReplaceSmartpoint(text);
   };
 
   componentDidUpdate(prevProps, prevState) {}

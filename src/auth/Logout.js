@@ -4,8 +4,6 @@ import PropTypes from "prop-types";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
 
-import remoteErrorHandler from "./../remoteErrorHandler";
-
 class Logout extends React.Component {
   constructor(props) {
     super(props);
@@ -31,8 +29,7 @@ class Logout extends React.Component {
           this.props.onLogout();
         }
         this.props.history.push({ pathname: "/" });
-      })
-      .catch(remoteErrorHandler(this.props.history));
+      });
   }
 
   render() {

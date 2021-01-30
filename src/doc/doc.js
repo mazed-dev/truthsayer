@@ -7,7 +7,6 @@ import { withRouter, useHistory } from "react-router-dom";
 
 import { renderMdSmallCard } from "./../markdown/MarkdownRender";
 import { smugler } from "./../smugler/api";
-import remoteErrorHandler from "./../remoteErrorHandler";
 
 import { joinClasses } from "../util/elClass.js";
 import { Loader } from "../lib/loader";
@@ -85,7 +84,6 @@ export class DocRenderImpl extends React.Component {
         cancelToken: this.fetchCancelToken.token,
         crypto: this.props.account.getLocalCrypto(),
       })
-      .catch(remoteErrorHandler(this.props.history))
       .then((node) => {
         if (node) {
           this.setState({
@@ -118,13 +116,11 @@ export class DocRenderImpl extends React.Component {
       upd: moment(),
       edit_chunk_opts: editOpts,
     });
-    return smugler.node
-      .update({
-        nid: this.props.nid,
-        doc: doc,
-        cancelToken: this.updateCancelToken.token,
-      })
-      .catch(remoteErrorHandler(this.props.history));
+    return smugler.node.update({
+      nid: this.props.nid,
+      doc: doc,
+      cancelToken: this.updateCancelToken.token,
+    });
   };
 
   editChunk = (index, begin, end) => {

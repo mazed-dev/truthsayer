@@ -18,8 +18,6 @@ import small_card_styles from "./../NodeSmallCard.module.css";
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
-import remoteErrorHandler from "./../remoteErrorHandler";
-
 import { LeftToolBar, RightToolBar } from "./ToolBars.js";
 
 import { joinClasses } from "../util/elClass.js";
@@ -123,7 +121,6 @@ class RefNodeCardImpl extends React.Component {
         cancelToken: this.fetchCancelToken.token,
         data: req,
       })
-      .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
           this.props.cutOffRef(this.props.eid);
@@ -139,7 +136,6 @@ class RefNodeCardImpl extends React.Component {
       .patch("/api/edge/" + this.props.eid, req, {
         cancelToken: this.fetchCancelToken.token,
       })
-      .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
           this.setState((state) => {
@@ -265,7 +261,6 @@ class FullNodeView extends React.Component {
       .get("/api/node/" + this.props.nid + "/edge", {
         cancelToken: this.fetchCancelToken.token,
       })
-      .catch(remoteErrorHandler(this.props.history))
       .then((res) => {
         if (res) {
           var edges_left = [];

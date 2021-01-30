@@ -3,6 +3,8 @@ import moment from "moment";
 
 import queryString from "query-string";
 
+import dealWithError from "./error.jsx";
+
 import { extractDocAttrs } from "./../search/attrs.jsx";
 import { createEmptyDoc, exctractDoc } from "./../doc/doc";
 import { LocalCrypto } from "./../crypto/local.jsx";
@@ -85,13 +87,16 @@ async function createNode({ doc, text, cancelToken, from_nid, to_nid }) {
     .post("/api/node/new?" + queryString.stringify(query), value, config)
     .then((resp) => {
       return resp.data ? resp.data : null;
-    });
+    })
+    .catch(dealWithError);
 }
 
 async function getNode({ nid, crypto, cancelToken }) {
-  const res = await axios.get("/api/node/" + nid, {
-    cancelToken: cancelToken,
-  });
+  const res = await axios
+    .get("/api/node/" + nid, {
+      cancelToken: cancelToken,
+    })
+    .catch(dealWithError);
   if (!res) {
     return null;
   }
@@ -121,25 +126,33 @@ async function updateNode({ nid, doc, cancelToken }) {
     headers: headers,
     cancelToken: cancelToken,
   };
-  return axios.patch("/api/node/" + nid, value, config);
+  return axios.patch("/api/node/" + nid, value, config).catch(dealWithError);
 }
 
 function removeNode({ nid, cancelToken }) {}
 
 export function getAuth({ cancelToken }) {
-  return axios.get("/api/auth", { cancelToken: cancelToken });
+  return axios
+    .get("/api/auth", { cancelToken: cancelToken })
+    .catch(dealWithError);
 }
 
 export function getAnySecondKey() {
-  return axios.post("/api/key/second/*").then((res) => {
-    return res.data;
-  });
+  return axios
+    .post("/api/key/second/*")
+    .then((res) => {
+      return res.data;
+    })
+    .catch(dealWithError);
 }
 
 export function getSecondKey({ id }) {
-  return axios.get("/api/key/second/" + id).then((res) => {
-    return res.data;
-  });
+  return axios
+    .get("/api/key/second/" + id)
+    .then((res) => {
+      return res.data;
+    })
+    .catch(dealWithError);
 }
 
 async function nodeAttrsSearch({
@@ -154,9 +167,11 @@ async function nodeAttrsSearch({
     start_time: start_time,
     offset: offset || 0,
   };
-  const rawResp = await axios.post("/api/node-attrs-search", req, {
-    cancelToken: cancelToken,
-  });
+  const rawResp = await axios
+    .post("/api/node-attrs-search", req, {
+      cancelToken: cancelToken,
+    })
+    .catch(dealWithError);
   if (!rawResp) {
     return null;
   }
@@ -197,6 +212,7 @@ async function createEdge({ from, to, cancelToken }) {
     .post("/api/node/" + from + "/edge", req, {
       cancelToken: cancelToken,
     })
+    .catch(dealWithError)
     .then((res) => {
       if (res && res.data && res.data.edges && res.data.edges.length > 0) {
         return res.data.edges[0];

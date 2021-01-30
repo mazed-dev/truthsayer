@@ -25,7 +25,6 @@ import AutocompleteWindow from "./../smartpoint/AutocompleteWindow";
 import { markAsACopy } from "../doc/doc_util.jsx";
 
 import { joinClasses } from "../util/elClass.js";
-import { remoteErrorHandler } from "./../remoteErrorHandler";
 
 import { smugler } from "./../smugler/api";
 
@@ -155,7 +154,6 @@ class LeftToolBarImpl extends React.Component {
         cancelToken: this.fetchCancelToken.token,
         to_nid: this.props.nid,
       })
-      .catch(remoteErrorHandler(this.props.history))
       .then((node) => {
         if (node) {
           const new_nid = node.nid;
@@ -271,7 +269,6 @@ class RightToolBarImpl extends React.Component {
         cancelToken: this.fetchCancelToken.token,
         from_nid: this.props.nid,
       })
-      .catch(remoteErrorHandler(this.props.history))
       .then((node) => {
         if (node) {
           const new_nid = node.nid;
