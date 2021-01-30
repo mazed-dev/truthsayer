@@ -38,25 +38,28 @@
 
 .doc_card_toolbar {
   position: absolute;
-  bottom: 0.8rem;
-  left: 0.8rem;
+  bottom: 1rem;
+  left: 1rem;
   /* z-index: 10; */
 }
 
 .doc_card_toolbar_btn {
   font-size: 0;
 
-  border-radius: 2rem;
+  border-radius: 1.2rem;
 
   background-color: white;
   border-color: white;
-  opacity: 0.7;
+  opacity: 0.4;
 
   margin-left: 0rem;
   margin-right: 0rem;
 }
+.doc_card_toolbar_btn:hover {
+  opacity: 0.9;
+}
 
 .doc_card_toolbar_btn_img {
-  width: 1.4rem;
-  height: 1.4rem;
+  width: 1.1rem;
+  height: 1.1rem;
 }

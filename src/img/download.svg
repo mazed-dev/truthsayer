@@ -19,6 +19,28 @@
      id="defs2">
     <inkscape:path-effect
        effect="bspline"
+       id="path-effect983"
+       is_visible="true"
+       lpeversion="1"
+       weight="33.333333"
+       steps="2"
+       helper_size="0"
+       apply_no_weight="true"
+       apply_with_weight="true"
+       only_selected="false" />
+    <inkscape:path-effect
+       effect="bspline"
+       id="path-effect954"
+       is_visible="true"
+       lpeversion="1"
+       weight="33.333333"
+       steps="2"
+       helper_size="0"
+       apply_no_weight="true"
+       apply_with_weight="true"
+       only_selected="false" />
+    <inkscape:path-effect
+       effect="bspline"
        id="path-effect979"
        is_visible="true"
        lpeversion="1"
@@ -51,7 +73,6 @@
        apply_with_weight="true"
        only_selected="false" />
     <linearGradient
-       inkscape:collect="always"
        id="linearGradient946"
        osb:paint="gradient">
       <stop
@@ -289,7 +310,7 @@
   <sodipodi:namedview
      inkscape:window-maximized="0"
      inkscape:window-y="46"
-     inkscape:window-x="0"
+     inkscape:window-x="1920"
      inkscape:window-height="1393"
      inkscape:window-width="2558"
      inkscape:snap-intersection-paths="true"
@@ -300,15 +321,16 @@
      inkscape:document-rotation="0"
      inkscape:current-layer="layer1"
      inkscape:document-units="mm"
-     inkscape:cy="236.03103"
-     inkscape:cx="-1589.2281"
+     inkscape:cy="1163.2421"
+     inkscape:cx="859.43087"
      inkscape:zoom="0.26613503"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0.0"
      borderopacity="1.0"
      bordercolor="#666666"
      pagecolor="#ffffff"
-     id="base" />
+     id="base"
+     inkscape:lockguides="false" />
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -370,10 +392,6 @@
        inkscape:path-effect="#path-effect960"
        inkscape:original-d="m -156.71499,-58.046882 c 30.45753,10e-4 60.911549,-2.3e-4 91.362223,-0.004" />
     <path
-       id="path1238-6"
-       d="M -159.18831,263.47671 -99.322403,169.12818 -159.18831,74.779607"
-       style="fill:none;stroke:#000000;stroke-width:11.0238;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-    <path
        id="path1238-9"
        d="M 141.66309,115.00873 100.10034,159.35442 58.537622,115.00873 Z"
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:6.29695;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
@@ -383,28 +401,8 @@
        style="fill:none;stroke:#000000;stroke-width:11.0238;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <path
        id="path1238-9-0"
-       d="m -267.97756,127.4158 41.56275,-44.345742 41.56271,44.345742 z"
+       d="m -247.75167,148.57951 41.56275,-44.34575 41.56271,44.34575 z"
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:6.29695;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.0807564;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m -214.53374,-217.88778 c 0.001,30.45753 0.003,60.91155 0.004,91.36222"
-       id="path899-2-6"
-       inkscape:path-effect="#path-effect1752"
-       inkscape:original-d="m -214.53374,-217.88778 c -0.001,30.45753 2.3e-4,60.91155 0.004,91.36222" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.132672;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m -406.78621,263.4807 c 82.54209,-0.001 165.07468,-0.003 247.59818,-0.004"
-       id="path899-2-3"
-       inkscape:path-effect="#path-effect1771"
-       inkscape:original-d="m -406.78621,263.4807 c 82.54209,10e-4 165.07468,-2.3e-4 247.59818,-0.004" />
-    <path
-       id="path1238-9-2"
-       d="M 258.29236,-9.6470922 295.69883,-49.558216 333.1053,-9.6470922 Z"
-       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:5.66725;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-    <path
-       id="path1238-6-1-0"
-       d="m -22.06634,49.307122 -59.865901,94.348598 59.865901,94.34856"
-       style="fill:none;stroke:#000000;stroke-width:11.0238;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.151424;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m -261.02168,209.79909 c 66.58538,66.64512 133.16307,133.28254 199.733423,199.91262"
@@ -436,11 +434,11 @@
        inkscape:path-effect="#path-effect971"
        inkscape:original-d="M -61.420847,309.95049 -261.16812,309.83064" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:23.5133;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 12.504921,123.11132 c 0,0 0.0061,64.53424 0.0061,64.53424 0,0 175.674519,-0.006 175.674519,-0.006 0,0 -0.11656,-64.45098 -0.11656,-64.45098"
+       style="fill:none;stroke:#000000;stroke-width:25.8729;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 13.044884,122.45827 c 0,0 0.0061,64.53424 0.0061,64.53424 0,0 173.961536,-0.006 173.961536,-0.006 0,0 -0.11542,-64.45098 -0.11542,-64.45098"
        id="path973"
        inkscape:path-effect="#path-effect975"
-       inkscape:original-d="m 12.504921,123.11132 0.0061,64.53424 175.674519,-0.006 -0.11656,-64.45098" />
+       inkscape:original-d="m 13.044884,122.45827 0.0061,64.53424 173.961536,-0.006 -0.11542,-64.45098" />
     <path
        style="fill:none;stroke:#000000;stroke-width:24;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
        d="m 100.08523,115.02386 c 0,0 0.23665,-87.072179 0.23665,-87.072179"
