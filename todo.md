@@ -1,7 +1,5 @@
 # Todo
 
- - [ ] Upgrade react-bootstrap package
- - [ ] Reduce size of the cross in "New note" button on global bar
  - [ ] Make global toolbar smaller and sticky
  - [ ] Use react state (as for toaster) for account info
  - [ ] Tooltips for everything!
@@ -99,3 +97,5 @@
  - [x] Tooltip element
  - [x] Pop up for downloading doc as markdown - "Copied to clipboard"
    - [x] Modal window on error. _Canceled because I made toaster instead_
+ - [x] Upgrade react-bootstrap package
+ - [x] Reduce size of the cross in "New note" button on global bar, by 20%
