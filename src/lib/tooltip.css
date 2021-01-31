@@ -1,0 +1,7 @@
+.mzd-tooltip-root .mzd-tooltip-plate {
+  visibility: hidden;
+}
+
+.mzd-tooltip-root:hover .mzd-tooltip-plate {
+  visibility: visible;
+}

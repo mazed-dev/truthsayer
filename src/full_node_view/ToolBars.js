@@ -22,6 +22,8 @@ import { MdSmallCardRender } from "./../markdown/MarkdownRender";
 
 import AutocompleteWindow from "./../smartpoint/AutocompleteWindow";
 
+import { HoverTooltip } from "./../lib/tooltip";
+
 import { markAsACopy } from "../doc/doc_util.jsx";
 
 import { joinClasses } from "../util/elClass.js";
@@ -80,51 +82,61 @@ class MoreOptionsToConnect extends React.Component {
     });
   };
 
-  getButtonDisplayAttribute() {
-    return this.state.opened ? "block" : "none";
-  }
-
   render() {
-    return (
-      <>
-        <Button
-          variant="light"
-          className={joinClasses(
-            styles.toolbar_btn,
-            styles.toolbar_dropdown_toggle
-          )}
-          onClick={this.toggleDropdown}
-        >
+    const toggleTooltip = this.state.opened
+      ? "Hide link options"
+      : "Show link options";
+    const toggle = (
+      <Button
+        variant="light"
+        className={joinClasses(
+          styles.toolbar_btn,
+          styles.toolbar_dropdown_toggle
+        )}
+        onClick={this.toggleDropdown}
+      >
+        <HoverTooltip tooltip={toggleTooltip}>
           <img
             src={this.getDropdownImg()}
             className={styles.toolbar_btn_img}
-            alt="More connect options"
+            alt={toggleTooltip}
           />
+        </HoverTooltip>
+      </Button>
+    );
+    const others = this.state.opened ? (
+      <>
+        <Button
+          variant="light"
+          onClick={this.props.onCloneClick}
+          className={styles.toolbar_btn}
+        >
+          <HoverTooltip tooltip={"Clone and link"}>
+            <img
+              src={this.getCloneImg()}
+              className={styles.toolbar_btn_img}
+              alt="Clone and link"
+            />
+          </HoverTooltip>
         </Button>
         <Button
           variant="light"
           onClick={this.props.onSearchClick}
           className={styles.toolbar_btn}
-          style={{ display: this.getButtonDisplayAttribute() }}
         >
-          <img
-            src={this.getSearchImg()}
-            className={styles.toolbar_btn_img}
-            alt="Search to connect"
-          />
+          <HoverTooltip tooltip={"Search and link"}>
+            <img
+              src={this.getSearchImg()}
+              className={styles.toolbar_btn_img}
+              alt="Search and link"
+            />
+          </HoverTooltip>
         </Button>
-        <Button
-          variant="light"
-          onClick={this.props.onCloneClick}
-          className={styles.toolbar_btn}
-          style={{ display: this.getButtonDisplayAttribute() }}
-        >
-          <img
-            src={this.getCloneImg()}
-            className={styles.toolbar_btn_img}
-            alt="Clone and connect"
-          />
-        </Button>
+      </>
+    ) : null;
+    return (
+      <>
+        {toggle} {others}
       </>
     );
   }
@@ -217,11 +229,13 @@ class LeftToolBarImpl extends React.Component {
               onClick={this.handleNextClick}
               className={styles.toolbar_btn}
             >
-              <img
-                src={NextNewLeftImg}
-                className={styles.toolbar_btn_img}
-                alt="Next new"
-              />
+              <HoverTooltip tooltip={"Create and link"}>
+                <img
+                  src={NextNewLeftImg}
+                  className={styles.toolbar_btn_img}
+                  alt="Create and link"
+                />
+              </HoverTooltip>
             </Button>
 
             <MoreOptionsToConnect
@@ -343,11 +357,13 @@ class RightToolBarImpl extends React.Component {
               onClick={this.handleNextClick}
               className={styles.toolbar_btn}
             >
-              <img
-                src={NextNewRightImg}
-                className={styles.toolbar_btn_img}
-                alt="Next new"
-              />
+              <HoverTooltip tooltip={"Create and link"}>
+                <img
+                  src={NextNewRightImg}
+                  className={styles.toolbar_btn_img}
+                  alt="Create and link"
+                />
+              </HoverTooltip>
             </Button>
 
             <MoreOptionsToConnect

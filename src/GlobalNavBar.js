@@ -22,6 +22,8 @@ import { withRouter } from "react-router-dom";
 
 import { smugler } from "./smugler/api";
 
+import { HoverTooltip } from "./lib/tooltip";
+
 import user_default_pic from "./auth/img/user-default-pic.png";
 
 import NewImg from "./img/new-button.png";
@@ -197,18 +199,22 @@ class GlobalNavBar extends React.Component {
           to="/upload-file"
           className={styles.new_btn}
         >
-          <img
-            src={NewUploadImg}
-            className={styles.new_btn_img}
-            alt="New note"
-          />
+          <HoverTooltip tooltip={"Upload files"}>
+            <img
+              src={NewUploadImg}
+              className={styles.new_btn_img}
+              alt="New note"
+            />
+          </HoverTooltip>
         </Button>
         <Button
           variant="light"
           onClick={this.handleNewClick}
           className={styles.new_btn}
         >
-          <img src={NewImg} className={styles.new_btn_img} alt="New note" />
+          <HoverTooltip tooltip={"New note"}>
+            <img src={NewImg} className={styles.new_btn_img} alt="New note" />
+          </HoverTooltip>
         </Button>
         <NavDropdown
           title={userpic}

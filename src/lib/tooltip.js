@@ -1,33 +1,27 @@
 import React from "react";
 
+import "./tooltip.css";
 import styles from "./tooltip.module.css";
+
+import { joinClasses } from "./../util/elClass.js";
 
 // https://www.w3schools.com/css/css_tooltip.asp
 
-class BlackTooltipHover extends React {
+export class HoverTooltip extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      hover: false,
-    };
   }
 
-  onHover = () => {
-    this.setState({ hover: true });
-  };
-
-  offHover = () => {
-    this.setState({ hover: false });
-  };
-
   render() {
-    <div
-      className={joinClasses(styles.fluid_container)}
-      onMouseEnter={this.onHover}
-      onMouseLeave={this.offHover}
-    >
-      <span class="tooltiptext">Tooltip text</span>
-      {this.props.children}
-    </div>;
+    return (
+      <div className={joinClasses("mzd-tooltip-root", styles.tooltip_root)}>
+        <span
+          className={joinClasses("mzd-tooltip-plate", styles.tooltip_plate)}
+        >
+          {this.props.tooltip}
+        </span>
+        {this.props.children}
+      </div>
+    );
   }
 }

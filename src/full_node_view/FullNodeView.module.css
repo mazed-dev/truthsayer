@@ -47,6 +47,7 @@
 
 .fluid_container {
   position: relative;
+  z-index: 1;
 }
 
 .fluid_card_toolbar {

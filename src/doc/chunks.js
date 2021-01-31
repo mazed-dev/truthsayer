@@ -17,6 +17,8 @@ import { renderMdCard } from "./../markdown/MarkdownRender";
 import { parseRawSource as _parseRawSource } from "./mdRawParser";
 import { makeChunk } from "./chunk_util";
 
+import { HoverTooltip } from "./../lib/tooltip";
+
 import EditButtonImg from "./img/edit-button.png";
 import EditMoreButtonImg from "./img/edit-more-button.png";
 
@@ -31,21 +33,22 @@ class ChunkRenderToolbar extends React.Component {
     if (!this.props.isFull) {
       return null;
     }
-    return (
-      <Button
-        variant="light"
-        className={joinClasses(
-          styles.paragraph_toolbar_btn,
-          styles.paragraph_toolbar_more_btn
-        )}
-      >
-        <img
-          src={EditMoreButtonImg}
-          className={styles.btn_img}
-          alt={"Edit paragraph"}
-        />
-      </Button>
-    );
+    return null;
+    // return (
+    //   <Button
+    //     variant="light"
+    //     className={joinClasses(
+    //       styles.paragraph_toolbar_btn,
+    //       styles.paragraph_toolbar_more_btn
+    //     )}
+    //   >
+    //     <img
+    //       src={EditMoreButtonImg}
+    //       className={styles.btn_img}
+    //       alt={"Edit paragraph"}
+    //     />
+    //   </Button>
+    // );
   }
 
   render() {
@@ -56,11 +59,13 @@ class ChunkRenderToolbar extends React.Component {
           onClick={this.props.enableEditMode}
           className={joinClasses(styles.paragraph_toolbar_btn)}
         >
-          <img
-            src={EditButtonImg}
-            className={styles.btn_img}
-            alt={"Edit paragraph"}
-          />
+          <HoverTooltip tooltip={"Edit"}>
+            <img
+              src={EditButtonImg}
+              className={styles.btn_img}
+              alt={"Edit paragraph"}
+            />
+          </HoverTooltip>
         </Button>
         {this.makeMoreTooling()}
       </ButtonGroup>

@@ -24,6 +24,8 @@ import {
 import { mergeChunks, trimChunk, getChunkSize } from "./chunk_util";
 import { extractDocAsMarkdown } from "./doc_util.jsx";
 
+import { HoverTooltip } from "./../lib/tooltip";
+
 import { Card, Button, ButtonGroup } from "react-bootstrap";
 
 import moment from "moment";
@@ -207,17 +209,19 @@ export class DocRenderImpl extends React.Component {
     return (
       <div className={styles.doc_card_toolbar}>
         <ButtonGroup>
-          <Button
-            variant="light"
-            className={joinClasses(styles.doc_card_toolbar_btn)}
-            onClick={this.copyDocAsMarkdown}
-          >
-            <img
-              src={DownloadButtonImg}
-              className={styles.doc_card_toolbar_btn_img}
-              alt={"Edit paragraph"}
-            />
-          </Button>
+          <HoverTooltip tooltip={"Copy as markdown text"}>
+            <Button
+              variant="light"
+              className={joinClasses(styles.doc_card_toolbar_btn)}
+              onClick={this.copyDocAsMarkdown}
+            >
+              <img
+                src={DownloadButtonImg}
+                className={styles.doc_card_toolbar_btn_img}
+                alt={"Copy as markdown text"}
+              />
+            </Button>
+          </HoverTooltip>
         </ButtonGroup>
       </div>
     );
