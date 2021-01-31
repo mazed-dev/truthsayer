@@ -1,7 +1,9 @@
 # Todo
 
- - [ ] Tooltip element
- - [ ] Tooltip for downloading doc as markdown
+ - [ ] Upgrade react-bootstrap package
+ - [ ] Reduce size of the cross in "New note" button on global bar
+ - [ ] Make global toolbar smaller and sticky
+ - [ ] Use react state (as for toaster) for account info
  - [ ] Tooltips for everything!
  - [ ] Download all or some nodes as markdown
  - [ ] Add "date" and "next" as buttons to a toolbar
@@ -14,7 +16,7 @@
  - [ ] Drag-and-drop for paragraps and list items
  - [ ] Small cards on smart search results
  - [ ] Toolpannel is a part of small card - take is as an argument
- - [ ] Check lists should be interactive in read mode
+ - [ ] Checklists should be interactive in read mode
  - [ ] Draw lines from "in-text" references to other notes
  - [ ] Better cards for date/new nodes
  - [ ] Don't cut small notes in the middle of the line
@@ -26,7 +28,6 @@
  - [ ] Search input on nav bar should be __sticky__ and __centered__
  - [ ] Save and go on "next" and "previous" from smart menue
  - [ ] Add popover for datetime badge on click and hover
- - [ ] Modal window on error
  - [ ] Emoji as viniette for every note
  - [ ] Connect uploaded files
  - [ ] Text area for each paragraph with menu on hover
@@ -95,3 +96,6 @@
  - [x] Reuse the same search grid component for smart menu and for globals search
  - [x] Clone for next - new button on side cards menu, hide it with "search and next" under "more" button with arrow - "v"
  - [x] Download/copy node as markdown
+ - [x] Tooltip element
+ - [x] Pop up for downloading doc as markdown - "Copied to clipboard"
+   - [x] Modal window on error. _Canceled because I made toaster instead_

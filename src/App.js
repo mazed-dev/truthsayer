@@ -36,6 +36,7 @@ import WaitingForApproval from "./auth/WaitingForApproval";
 import UserPreferences from "./auth/UserPreferences";
 import WelcomePage from "./WelcomePage";
 import UserEncryption from "./UserEncryption";
+import { MzdToaster } from "./lib/toaster";
 
 import { UserAccount, checkAuth, dropAuth } from "./auth/local.jsx";
 
@@ -139,104 +140,106 @@ class App extends React.Component {
         <Router>
           <div>
             {nav_bar}
-            <Switch>
-              <Route exact path="/">
-                {main_page}
-              </Route>
-              <PublicOnlyRoute
-                path="/login"
-                is_authenticated={this.state.is_authenticated}
-              >
-                <Login onLogin={this.handleSuccessfulLogin} />
-              </PublicOnlyRoute>
-              <PublicOnlyRoute
-                path="/signup"
-                is_authenticated={this.state.is_authenticated}
-              >
-                <Signup onLogin={this.handleSuccessfulLogin} />
-              </PublicOnlyRoute>
-              <Route path="/waiting-for-approval">
-                <WaitingForApproval path="/waiting-for-approval" />
-              </Route>
-              <Route
-                path="/logout"
-                is_authenticated={this.state.is_authenticated}
-              >
-                <Logout onLogout={this.handleLogout} />
-              </Route>
-              <PrivateRoute
-                path="/search"
-                is_authenticated={this.state.is_authenticated}
-              >
-                <SearchView account={this.state.account} />
-              </PrivateRoute>
-              <PrivateRoute
-                path="/node/:id"
-                is_authenticated={this.state.is_authenticated}
-              >
-                <NodeView account={this.state.account} />
-              </PrivateRoute>
-              <PrivateRoute
-                path="/upload-file"
-                is_authenticated={this.state.is_authenticated}
-              >
-                <UploadFile />
-              </PrivateRoute>
-              <PrivateRoute
-                path="/account"
-                is_authenticated={this.state.is_authenticated}
-              >
-                <AccountView />
-              </PrivateRoute>
-              <PrivateRoute
-                path="/user-preferences"
-                is_authenticated={this.state.is_authenticated}
-              >
-                <UserPreferences account={this.state.account} />
-              </PrivateRoute>
-              <PrivateRoute
-                path="/user-encryption"
-                is_authenticated={this.state.is_authenticated}
-              >
-                <UserEncryption account={this.state.account} />
-              </PrivateRoute>
-              <Route path="/help">
-                <HelpInfo />
-              </Route>
-              <Route path="/about">
-                <About />
-              </Route>
-              <Route path="/contacts">
-                <ContactUs />
-              </Route>
-              <Route path="/privacy-policy">
-                <PrivacyPolicy />
-              </Route>
-              <Route path="/terms-of-service">
-                <TermsOfService />
-              </Route>
-              <PublicOnlyRoute
-                path="/password-recover-request"
-                is_authenticated={this.state.is_authenticated}
-              >
-                <PasswordRecoverRequest />
-              </PublicOnlyRoute>
-              <PublicOnlyRoute
-                path="/password-recover-reset/:token"
-                is_authenticated={this.state.is_authenticated}
-              >
-                <PasswordRecoverFormView />
-              </PublicOnlyRoute>
-              <PrivateRoute
-                path="/password-recover-change"
-                is_authenticated={this.state.is_authenticated}
-              >
-                <PasswordChange />
-              </PrivateRoute>
-              <Route path="*">
-                <Redirect to={{ pathname: "/" }} />
-              </Route>
-            </Switch>
+            <MzdToaster>
+              <Switch>
+                <Route exact path="/">
+                  {main_page}
+                </Route>
+                <PublicOnlyRoute
+                  path="/login"
+                  is_authenticated={this.state.is_authenticated}
+                >
+                  <Login onLogin={this.handleSuccessfulLogin} />
+                </PublicOnlyRoute>
+                <PublicOnlyRoute
+                  path="/signup"
+                  is_authenticated={this.state.is_authenticated}
+                >
+                  <Signup onLogin={this.handleSuccessfulLogin} />
+                </PublicOnlyRoute>
+                <Route path="/waiting-for-approval">
+                  <WaitingForApproval path="/waiting-for-approval" />
+                </Route>
+                <Route
+                  path="/logout"
+                  is_authenticated={this.state.is_authenticated}
+                >
+                  <Logout onLogout={this.handleLogout} />
+                </Route>
+                <PrivateRoute
+                  path="/search"
+                  is_authenticated={this.state.is_authenticated}
+                >
+                  <SearchView account={this.state.account} />
+                </PrivateRoute>
+                <PrivateRoute
+                  path="/node/:id"
+                  is_authenticated={this.state.is_authenticated}
+                >
+                  <NodeView account={this.state.account} />
+                </PrivateRoute>
+                <PrivateRoute
+                  path="/upload-file"
+                  is_authenticated={this.state.is_authenticated}
+                >
+                  <UploadFile />
+                </PrivateRoute>
+                <PrivateRoute
+                  path="/account"
+                  is_authenticated={this.state.is_authenticated}
+                >
+                  <AccountView />
+                </PrivateRoute>
+                <PrivateRoute
+                  path="/user-preferences"
+                  is_authenticated={this.state.is_authenticated}
+                >
+                  <UserPreferences account={this.state.account} />
+                </PrivateRoute>
+                <PrivateRoute
+                  path="/user-encryption"
+                  is_authenticated={this.state.is_authenticated}
+                >
+                  <UserEncryption account={this.state.account} />
+                </PrivateRoute>
+                <Route path="/help">
+                  <HelpInfo />
+                </Route>
+                <Route path="/about">
+                  <About />
+                </Route>
+                <Route path="/contacts">
+                  <ContactUs />
+                </Route>
+                <Route path="/privacy-policy">
+                  <PrivacyPolicy />
+                </Route>
+                <Route path="/terms-of-service">
+                  <TermsOfService />
+                </Route>
+                <PublicOnlyRoute
+                  path="/password-recover-request"
+                  is_authenticated={this.state.is_authenticated}
+                >
+                  <PasswordRecoverRequest />
+                </PublicOnlyRoute>
+                <PublicOnlyRoute
+                  path="/password-recover-reset/:token"
+                  is_authenticated={this.state.is_authenticated}
+                >
+                  <PasswordRecoverFormView />
+                </PublicOnlyRoute>
+                <PrivateRoute
+                  path="/password-recover-change"
+                  is_authenticated={this.state.is_authenticated}
+                >
+                  <PasswordChange />
+                </PrivateRoute>
+                <Route path="*">
+                  <Redirect to={{ pathname: "/" }} />
+                </Route>
+              </Switch>
+            </MzdToaster>
           </div>
         </Router>
       </Container>

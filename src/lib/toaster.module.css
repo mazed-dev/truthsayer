@@ -1,0 +1,12 @@
+.toaster_container {
+  position: relative;
+  min-height: 0px;
+  z-index: 4;
+}
+
+.toaster_root {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 5;
+}

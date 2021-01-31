@@ -8,7 +8,6 @@ import dealWithError from "./error.jsx";
 import { extractDocAttrs } from "./../search/attrs.jsx";
 import { createEmptyDoc, exctractDoc } from "./../doc/doc";
 import { LocalCrypto } from "./../crypto/local.jsx";
-import { TNode, TNodeAttrs } from "./types.jsx";
 import { base64 } from "./../util/base64.jsx";
 
 const kHeaderAttrs = "x-node-attrs";
