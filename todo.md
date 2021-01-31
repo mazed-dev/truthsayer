@@ -31,7 +31,6 @@
  - [ ] Text area for each paragraph with menu on hover
  - [ ] generate route list from loop and switch off current page reference on global navbar
  - [ ] New button should be brighter - blue or grey or something. Bright!
- - [ ] Better styles for headers in note
  - [ ] Add simple vignette for notes
 
  - [?] Improve main page, it should reflect graph nature of notes and expose at least part of connections between found notes
@@ -99,3 +98,4 @@
    - [x] Modal window on error. _Canceled because I made toaster instead_
  - [x] Upgrade react-bootstrap package
  - [x] Reduce size of the cross in "New note" button on global bar, by 20%
+ - [x] Better styles for headers in note : use colour gradient for h1..h6

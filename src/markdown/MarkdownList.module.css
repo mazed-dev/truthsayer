@@ -41,8 +41,10 @@
 .full_h1 {
   font-size: 1.48rem;
   font-weight: bold;
-  color: black;
   display: block;
+
+  /* color: #1a4301; */
+  color: #004b23;
 
   margin-top: 0.24rem;
   margin-bottom: 1rem;
@@ -51,7 +53,8 @@
 .full_h2 {
   font-size: 1.32rem;
   font-weight: bold;
-  color: black;
+  /* color: #245501; */
+  color: #006400;
   display: block;
 
   margin-bottom: 1rem;
@@ -60,7 +63,8 @@
 .full_h3 {
   font-size: 1.24rem;
   font-weight: bold;
-  color: black;
+  /* color: #538d22; */
+  color: #007200;
   display: block;
 
   margin-bottom: 1rem;
@@ -69,7 +73,8 @@
 .full_h4 {
   font-size: 1.16rem;
   font-weight: bold;
-  color: black;
+  /* color: #73a942; */
+  color: #008000;
   display: block;
 
   margin-bottom: 1rem;
@@ -78,7 +83,8 @@
 .full_h5 {
   font-size: 1.12rem;
   font-weight: bold;
-  color: black;
+  /* color: #aad576; */
+  color: #38b000;
   display: block;
 
   margin-bottom: 1rem;
@@ -87,7 +93,8 @@
 .full_h6 {
   font-size: 1.08rem;
   font-weight: bold;
-  color: black;
+  /* color: #aad576; */
+  color: #70e000;
   display: block;
 
   margin-bottom: 1rem;
@@ -96,7 +103,7 @@
 .small_h1 {
   font-size: 1.24rem;
   font-weight: bold;
-  color: black;
+  color: #004b23;
   display: block;
 
   margin-top: 0.1rem;
@@ -107,8 +114,10 @@
 }
 
 .small_h1_ref:hover {
-  color: green;
+  color: #004b23;
   text-decoration: none;
+  text-decoration-line: underline;
+  -webkit-text-decoration-line: underline; /* Safari */
 }
 
 .small_h1_ref:visited {
@@ -117,7 +126,7 @@
 .small_h2 {
   font-size: 1.16rem;
   font-weight: bold;
-  color: black;
+  color: #006400;
   display: block;
 
   margin-bottom: 0.4rem;
@@ -126,7 +135,7 @@
 .small_h3 {
   font-size: 1.12rem;
   font-weight: bold;
-  color: black;
+  color: #007200;
   display: block;
 
   margin-bottom: 0.4rem;
@@ -135,7 +144,7 @@
 .small_h4 {
   font-size: 1.08rem;
   font-weight: bold;
-  color: black;
+  color: #008000;
   display: block;
 
   margin-bottom: 0.4rem;
@@ -144,7 +153,7 @@
 .small_h5 {
   font-size: 1.04rem;
   font-weight: bold;
-  color: black;
+  color: #38b000;
   display: block;
 
   margin-bottom: 0.4rem;
@@ -153,7 +162,7 @@
 .small_h6 {
   font-size: 1.02rem;
   font-weight: bold;
-  color: black;
+  color: #70e000;
   display: block;
 
   margin-bottom: 0.4rem;
@@ -161,11 +170,11 @@
 
 .inline_ref {
   font-weight: 500;
-  color: #61b668;
+  color: #38b000;
 }
 
 .inline_ref:hover {
-  color: #306e37;
+  color: #70e000;
   text-decoration-line: underline;
   -webkit-text-decoration-line: underline; /* Safari */
 }
