@@ -14,9 +14,8 @@ import NextCloneRightImg from "./img/next-link-clone-right.png";
 // import NextLeftImg from "./img/next-link-left.png";
 // import NextRightImg from "./img/next-link-right.png";
 
-import DropdownArrowLeftImg from "./img/dropdown-arrow-left.png";
-import DropdownArrowRightImg from "./img/dropdown-arrow-right.png";
 import DropdownArrowOpenedImg from "./img/dropdown-arrow-opened.png";
+import DropdownArrowClosedImg from "./img/dropdown-arrow-closed.png";
 
 import { MdSmallCardRender } from "./../markdown/MarkdownRender";
 
@@ -51,11 +50,7 @@ class MoreOptionsToConnect extends React.Component {
     if (this.state.opened) {
       return DropdownArrowOpenedImg;
     }
-    if ("left" in this.props) {
-      return DropdownArrowLeftImg;
-    } else {
-      return DropdownArrowRightImg;
-    }
+    return DropdownArrowClosedImg;
   }
 
   getSearchImg() {
