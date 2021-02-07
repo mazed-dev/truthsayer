@@ -6,13 +6,13 @@ import styles from "./GlobalNavBar.module.css";
 import { Link, useLocation } from "react-router-dom";
 
 import {
+  Button,
+  ButtonGroup,
+  ButtonToolbar,
+  Dropdown,
   Form,
   NavDropdown,
   Navbar,
-  ButtonGroup,
-  Button,
-  Dropdown,
-  Image,
 } from "react-bootstrap";
 
 import PropTypes from "prop-types";
@@ -26,12 +26,12 @@ import { HoverTooltip } from "./../lib/tooltip";
 
 import { joinClasses } from "../util/elClass.js";
 
-import user_default_pic from "./../auth/img/user-default-pic.png";
+import kUserDefaultPic from "./../auth/img/user-default-pic.png";
 
 import NewImg from "./../img/new-button.png";
 import NewUploadImg from "./../img/new-upload-button.png";
 
-class SearchInputImpl extends React.Component {
+class SearchFormImpl extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -83,21 +83,21 @@ class SearchInputImpl extends React.Component {
 
   render() {
     return (
-      <Form inline onSubmit={this.handleSumbit}>
+      <Form onSubmit={this.handleSumbit} className={this.props.className}>
         <Form.Control
           aria-label="Search"
           onChange={this.handleChange}
           value={this.state.value}
           ref={this.searchCmd}
-          size="sm"
-          placeholder="search"
+          placeholder="🔎  search"
+          className={styles.search_input}
         />
       </Form>
     );
   }
 }
 
-SearchInputImpl.defaultProps = {
+SearchFormImpl.defaultProps = {
   callback: null,
   from: "",
 };
@@ -134,14 +134,8 @@ class UserPic extends React.Component {
   render() {
     // TODO: use custom user uploaded picture for userpic here
     return (
-      <div className="d-inline-flex">
-        <Image
-          src={user_default_pic}
-          roundedCircle
-          width="24"
-          height="24"
-          className="mr-1"
-        />
+      <div className={joinClasses(styles.user_pic, "d-inline-flex")}>
+        <img src={kUserDefaultPic} className={styles.user_pic_image} />
         <div className="d-none d-sm-none d-md-block">
           &nbsp;
           {this.state.name}
@@ -151,7 +145,7 @@ class UserPic extends React.Component {
   }
 }
 
-const SearchInput = withRouter(SearchInputImpl);
+const SearchForm = withRouter(SearchFormImpl);
 
 class GlobalNavBar extends React.Component {
   constructor(props) {
@@ -186,43 +180,52 @@ class GlobalNavBar extends React.Component {
       q = "";
     }
     const userpic = <UserPic />;
+    // <ButtonGroup >
+    // </ ButtonGroup >
     return (
       <>
         <Navbar className={styles.navbar}>
-          <Navbar.Brand as={Link} to="/" className="d-inline-flex ml-1 mr-2">
+          <Navbar.Brand as={Link} to="/" className={joinClasses(styles.brand)}>
             <span role="img" aria-label="next">
               &#x1F9F5;
             </span>
             <div className="d-none d-sm-none d-md-block"> Mazed </div>
           </Navbar.Brand>
-          <SearchInput from={q} />
-          <Button
-            variant="light"
-            as={Link}
-            to="/upload-file"
-            className={styles.new_btn}
-          >
-            <HoverTooltip tooltip={"Upload files"}>
-              <img
-                src={NewUploadImg}
-                className={styles.new_btn_img}
-                alt="New note"
-              />
-            </HoverTooltip>
-          </Button>
-          <Button
-            variant="light"
-            onClick={this.handleNewClick}
-            className={styles.new_btn}
-          >
-            <HoverTooltip tooltip={"New note"}>
-              <img src={NewImg} className={styles.new_btn_img} alt="New note" />
-            </HoverTooltip>
-          </Button>
+          <SearchForm from={q} className={styles.search_form} />
+
+          <ButtonToolbar className={styles.creation_toolbar}>
+            <Button
+              variant="light"
+              as={Link}
+              to="/upload-file"
+              className={styles.new_btn}
+            >
+              <HoverTooltip tooltip={"Upload files"}>
+                <img
+                  src={NewUploadImg}
+                  className={styles.new_btn_img}
+                  alt="New note"
+                />
+              </HoverTooltip>
+            </Button>
+            <Button
+              variant="light"
+              onClick={this.handleNewClick}
+              className={styles.new_btn}
+            >
+              <HoverTooltip tooltip={"New note"}>
+                <img
+                  src={NewImg}
+                  className={styles.new_btn_img}
+                  alt="New note"
+                />
+              </HoverTooltip>
+            </Button>
+          </ButtonToolbar>
           <NavDropdown
             title={userpic}
             id="account-nav-dropdown"
-            className="ml-auto userpic-dropdown mr-1"
+            className={this.account_toolbar}
           >
             <NavDropdown.Item as={Link} to="/user-preferences">
               Manage your account
