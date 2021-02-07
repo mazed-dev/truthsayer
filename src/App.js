@@ -23,7 +23,7 @@ import queryString from "query-string";
 
 import axios from "axios";
 
-import GlobalNavBar from "./GlobalNavBar";
+import GlobalNavBar from "./navbar/GlobalNavBar";
 import Login from "./auth/Login";
 import Logout from "./auth/Logout";
 import PublicNavBar from "./PublicNavBar";
@@ -136,10 +136,10 @@ class App extends React.Component {
       main_page = <WelcomePage />;
     }
     return (
-      <Container fluid>
+      <Container fluid className="entire_doc">
         <Router>
+          {nav_bar}
           <div>
-            {nav_bar}
             <MzdToaster>
               <Switch>
                 <Route exact path="/">

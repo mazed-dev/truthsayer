@@ -20,14 +20,16 @@ import axios from "axios";
 import queryString from "query-string";
 import { withRouter } from "react-router-dom";
 
-import { smugler } from "./smugler/api";
+import { smugler } from "./../smugler/api";
 
-import { HoverTooltip } from "./lib/tooltip";
+import { HoverTooltip } from "./../lib/tooltip";
 
-import user_default_pic from "./auth/img/user-default-pic.png";
+import { joinClasses } from "../util/elClass.js";
 
-import NewImg from "./img/new-button.png";
-import NewUploadImg from "./img/new-upload-button.png";
+import user_default_pic from "./../auth/img/user-default-pic.png";
+
+import NewImg from "./../img/new-button.png";
+import NewUploadImg from "./../img/new-upload-button.png";
 
 class SearchInputImpl extends React.Component {
   constructor(props) {
@@ -185,64 +187,67 @@ class GlobalNavBar extends React.Component {
     }
     const userpic = <UserPic />;
     return (
-      <Navbar bg="light" variant="light" size="sm" className="py-1">
-        <Navbar.Brand as={Link} to="/" className="d-inline-flex ml-1 mr-2">
-          <span role="img" aria-label="next">
-            &#x1F9F5;
-          </span>
-          <div className="d-none d-sm-none d-md-block"> Mazed </div>
-        </Navbar.Brand>
-        <SearchInput className="ml-auto" from={q} />
-        <Button
-          variant="light"
-          as={Link}
-          to="/upload-file"
-          className={styles.new_btn}
-        >
-          <HoverTooltip tooltip={"Upload files"}>
-            <img
-              src={NewUploadImg}
-              className={styles.new_btn_img}
-              alt="New note"
-            />
-          </HoverTooltip>
-        </Button>
-        <Button
-          variant="light"
-          onClick={this.handleNewClick}
-          className={styles.new_btn}
-        >
-          <HoverTooltip tooltip={"New note"}>
-            <img src={NewImg} className={styles.new_btn_img} alt="New note" />
-          </HoverTooltip>
-        </Button>
-        <NavDropdown
-          title={userpic}
-          id="account-nav-dropdown"
-          className="ml-auto userpic-dropdown mr-1"
-        >
-          <NavDropdown.Item as={Link} to="/user-preferences">
-            Manage your account
-          </NavDropdown.Item>
-          <NavDropdown.Item as={Link} to="/help">
-            Help
-          </NavDropdown.Item>
-          <NavDropdown.Divider />
-          <NavDropdown.Item as={Link} to="/about">
-            About knotledge
-          </NavDropdown.Item>
-          <NavDropdown.Item as={Link} to="/privacy-policy">
-            Privacy Policy
-          </NavDropdown.Item>
-          <NavDropdown.Item as={Link} to="/terms-of-service">
-            Terms of Service
-          </NavDropdown.Item>
-          <NavDropdown.Divider />
-          <NavDropdown.Item as={Link} to="/logout">
-            log out
-          </NavDropdown.Item>
-        </NavDropdown>
-      </Navbar>
+      <>
+        <Navbar className={styles.navbar}>
+          <Navbar.Brand as={Link} to="/" className="d-inline-flex ml-1 mr-2">
+            <span role="img" aria-label="next">
+              &#x1F9F5;
+            </span>
+            <div className="d-none d-sm-none d-md-block"> Mazed </div>
+          </Navbar.Brand>
+          <SearchInput from={q} />
+          <Button
+            variant="light"
+            as={Link}
+            to="/upload-file"
+            className={styles.new_btn}
+          >
+            <HoverTooltip tooltip={"Upload files"}>
+              <img
+                src={NewUploadImg}
+                className={styles.new_btn_img}
+                alt="New note"
+              />
+            </HoverTooltip>
+          </Button>
+          <Button
+            variant="light"
+            onClick={this.handleNewClick}
+            className={styles.new_btn}
+          >
+            <HoverTooltip tooltip={"New note"}>
+              <img src={NewImg} className={styles.new_btn_img} alt="New note" />
+            </HoverTooltip>
+          </Button>
+          <NavDropdown
+            title={userpic}
+            id="account-nav-dropdown"
+            className="ml-auto userpic-dropdown mr-1"
+          >
+            <NavDropdown.Item as={Link} to="/user-preferences">
+              Manage your account
+            </NavDropdown.Item>
+            <NavDropdown.Item as={Link} to="/help">
+              Help
+            </NavDropdown.Item>
+            <NavDropdown.Divider />
+            <NavDropdown.Item as={Link} to="/about">
+              About knotledge
+            </NavDropdown.Item>
+            <NavDropdown.Item as={Link} to="/privacy-policy">
+              Privacy Policy
+            </NavDropdown.Item>
+            <NavDropdown.Item as={Link} to="/terms-of-service">
+              Terms of Service
+            </NavDropdown.Item>
+            <NavDropdown.Divider />
+            <NavDropdown.Item as={Link} to="/logout">
+              log out
+            </NavDropdown.Item>
+          </NavDropdown>
+        </Navbar>
+        <div className={styles.navbar_filler} />
+      </>
     );
   }
 }

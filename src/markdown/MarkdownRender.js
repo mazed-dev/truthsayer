@@ -310,6 +310,7 @@ function MarkdownListItem({
   checked,
   ...rest
 }) {
+  console.log("Source position", sourcePosition);
   const checkbox =
     checked == null ? null : (
       <CheckBox

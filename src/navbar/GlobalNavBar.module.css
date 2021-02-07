@@ -1,0 +1,42 @@
+.new_btn_img {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.new_btn {
+  border-width: 0;
+  border-radius: 16px;
+  margin-left: 0.4rem;
+  padding: 0.4rem;
+}
+
+.new_btn:hover {
+  border-color: white;
+  background-color: #d0d1d2;
+}
+
+.navbar {
+  /**
+   *
+   * 1.The horizontal offset of the shadow, positive means the shadow will be on the right of the box, a negative offset will put the shadow on the left of the box.
+   * 2. The vertical offset of the shadow, a negative one means the box-shadow will be above the box, a positive one means the shadow will be below the box.
+   * 3. The blur radius (optional), if set to 0 the shadow will be sharp, the higher the number, the more blurred it will be.
+   * 4. The spread radius (optional), positive values increase the size of the shadow, negative values decrease the size. Default is 0 (the shadow is same size as blur).
+   * 5. Color
+   **/
+  -moz-box-shadow: 0 1px 4px 2px var(--small_card_shadow_colour);
+  -webkit-box-shadow: 0 1px 4px 2px var(--small_card_shadow_colour);
+  box-shadow: 0 1px 4px 2px var(--small_card_shadow_colour);
+
+  background-color: white;
+
+  height: 2.8rem;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 4;
+}
+
+.navbar_filler {
+  margin-bottom: 3.4rem;
+}
