@@ -29,6 +29,7 @@ import { HoverTooltip } from "./../lib/tooltip";
 import { Card, Button, ButtonGroup } from "react-bootstrap";
 
 import { MzdToasterContext } from "./../lib/toaster";
+import { FullCardFootbar } from "./../card/FullCardFootbar";
 
 import moment from "moment";
 import axios from "axios";
@@ -291,15 +292,16 @@ export class DocRenderImpl extends React.Component {
       // TODO(akindyakov): Add loading animation here
       body = <Loader />;
     }
+    // {this.makeCardToolbar()}
     return (
       <Card
         className={joinClasses(styles.fluid_container, styles.doc_render_card)}
       >
-        {this.makeCardToolbar()}
         <Card.Body className={joinClasses(styles.doc_render_card_body)}>
           {body}
         </Card.Body>
         <footer className="text-right m-2">{footer}</footer>
+        <FullCardFootbar />
       </Card>
     );
   }
