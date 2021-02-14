@@ -29,7 +29,7 @@ import { joinClasses } from "../util/elClass.js";
 import kUserDefaultPic from "./../auth/img/user-default-pic.png";
 
 import NewImg from "./../img/new-button.png";
-import NewUploadImg from "./../img/new-upload-button.png";
+import UploadImg from "./../img/upload.png";
 
 class SearchFormImpl extends React.Component {
   constructor(props) {
@@ -202,7 +202,7 @@ class GlobalNavBar extends React.Component {
             >
               <HoverTooltip tooltip={"Upload files"}>
                 <img
-                  src={NewUploadImg}
+                  src={UploadImg}
                   className={styles.new_btn_img}
                   alt="New note"
                 />

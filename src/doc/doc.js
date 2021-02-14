@@ -28,7 +28,6 @@ import { HoverTooltip } from "./../lib/tooltip";
 
 import { Card, Button, ButtonGroup } from "react-bootstrap";
 
-import { MzdToasterContext } from "./../lib/toaster";
 import { FullCardFootbar } from "./../card/FullCardFootbar";
 
 import moment from "moment";
@@ -53,9 +52,7 @@ export class DocRenderImpl extends React.Component {
   }
 
   static propTypes = {
-    match: PropTypes.object.isRequired,
     location: PropTypes.object.isRequired,
-    history: PropTypes.object.isRequired,
   };
 
   componentDidUpdate(prevProps) {
@@ -196,26 +193,9 @@ export class DocRenderImpl extends React.Component {
     return false; // this.props.location.state && this.props.location.state.edit;
   }
 
-  copyDocAsMarkdown = () => {
-    let toaster = this.context;
-    console.log("Toaster", toaster);
+  getDocAsMarkdown = () => {
     const md = extractDocAsMarkdown(this.state.doc);
-    navigator.clipboard.writeText(md).then(
-      function () {
-        /* clipboard successfully set */
-        toaster.push({
-          title: "Copied",
-          message: "Note copied to clipboard as markdown",
-        });
-      },
-      function () {
-        /* clipboard write failed */
-        toaster.push({
-          title: "Error",
-          message: "Write to system clipboard failed",
-        });
-      }
-    );
+    return md;
   };
 
   makeCardToolbar() {
@@ -301,13 +281,17 @@ export class DocRenderImpl extends React.Component {
           {body}
         </Card.Body>
         <footer className="text-right m-2">{footer}</footer>
-        <FullCardFootbar />
+        <FullCardFootbar
+          addRef={this.props.addRef}
+          nid={this.props.nid}
+          account={this.props.account}
+          stickyEdges={this.props.stickyEdges}
+          getMarkdown={this.getDocAsMarkdown}
+        />
       </Card>
     );
   }
 }
-
-DocRenderImpl.contextType = MzdToasterContext;
 
 export const DocRender = withRouter(DocRenderImpl);
 

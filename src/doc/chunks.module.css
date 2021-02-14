@@ -11,29 +11,20 @@
 }
 
 .paragraph_toolbar_btn {
-  margin: 0;
-  padding: 0;
-
-  width: 1.6rem;
-  height: 1.6rem;
-
-  font-size: 0;
-
   background-color: white;
-  border-color: white;
 
-  border-radius: 0.6rem;
+  border-style: solid;
   border-width: 0;
+  border-radius: 24px;
 
-  margin-left: 0.3rem;
-  margin-right: 0.3rem;
+  padding: 0.2rem;
 
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .paragraph_toolbar_btn:hover {
-  border-color: white;
   background-color: #d0d1d2;
+  opacity: 1;
 }
 
 .paragraph_toolbar_more_btn {

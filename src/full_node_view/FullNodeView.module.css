@@ -24,11 +24,15 @@
 .note_col {
   max-width: 42rem;
   min-width: 24rem;
-  padding: 0.5rem;
+  margin-top: 0.2rem;
+  margin-left: 0.4rem;
+  margin-right: 0.4rem;
 }
 
 .refs_col {
-  padding: 0.5rem;
+  margin-top: 1.2rem;
+  margin-left: 0.4rem;
+  margin-right: 0.4rem;
 }
 
 .on_card_btn {

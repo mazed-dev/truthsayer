@@ -12,7 +12,7 @@ for src in "$@"; do
   elif [[ "$src" =~ svg$ ]]; then
     echo "Convert normal $src"
     dst=$(echo "$src" | sed -e 's/\.svg$/\.png/')
-    convert -background none -resize 72x72 "$src" "$dst"
+    convert -antialias -background none -resize 72x72 "$src" "$dst"
   fi
 done
 

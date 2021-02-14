@@ -220,6 +220,21 @@ async function createEdge({ from, to, cancelToken }) {
     });
 }
 
+async function createFewEdges({ edges, cancelToken }) {
+  const req = {
+    edges: edges,
+  };
+  return axios
+    .post("/api/node/some/edge", req, {
+      cancelToken: cancelToken.token,
+    })
+    .then((res) => {
+      if (res) {
+        return res.data.edges;
+      }
+    });
+}
+
 export const smugler = {
   getAnySecondKey: getAnySecondKey,
   getAuth: getAuth,
@@ -233,5 +248,9 @@ export const smugler = {
   },
   edge: {
     create: createEdge,
+    createFew: createFewEdges,
+  },
+  makeCancelToken: () => {
+    return axios.CancelToken.source();
   },
 };

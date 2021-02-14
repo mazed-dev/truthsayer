@@ -8,9 +8,11 @@ import { joinClasses } from "./../util/elClass.js";
 
 import styles from "./toaster.module.css";
 
-export function makeAToast({ delay }) {
-  delay = delay || 3000;
-}
+const kMzdToastDefaultDelay = 4943; // Just a random number close to 5 seconds
+
+// export function makeAToast({ delay }) {
+//   delay = delay || 3000;
+// }
 
 class MzdToast extends React.Component {
   constructor(props) {
@@ -27,7 +29,7 @@ class MzdToast extends React.Component {
   };
 
   render() {
-    const delay = this.props.delay || 3000;
+    const delay = this.props.delay || kMzdToastDefaultDelay;
     return (
       <Toast onClose={this.hide} show={this.state.show} delay={delay} autohide>
         <Toast.Header>
@@ -40,7 +42,7 @@ class MzdToast extends React.Component {
 }
 
 MzdToast.defaultProps = {
-  delay: 3000,
+  delay: kMzdToastDefaultDelay,
 };
 
 export const MzdToasterContext = React.createContext({

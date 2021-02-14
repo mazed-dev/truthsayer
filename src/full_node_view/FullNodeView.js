@@ -18,8 +18,6 @@ import small_card_styles from "./../NodeSmallCard.module.css";
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
-import { LeftToolBar, RightToolBar } from "./ToolBars.js";
-
 import { joinClasses } from "../util/elClass.js";
 
 import { Button, ButtonGroup, Container, Row, Col } from "react-bootstrap";
@@ -305,20 +303,20 @@ class FullNodeView extends React.Component {
     });
   };
 
-  addLeftRef = (edge) => {
-    this.setState((state) => {
-      return {
-        edges_left: state.edges_left.concat([edge]),
-      };
-    });
-  };
-
-  addRightRef = (edge) => {
-    this.setState((state) => {
-      return {
-        edges_right: state.edges_right.concat([edge]),
-      };
-    });
+  addRef = ({ edge, left }) => {
+    if (left) {
+      this.setState((state) => {
+        return {
+          edges_left: state.edges_left.concat([edge]),
+        };
+      });
+    } else {
+      this.setState((state) => {
+        return {
+          edges_right: state.edges_right.concat([edge]),
+        };
+      });
+    }
   };
 
   switchStickiness = (edge, on = false) => {
@@ -353,7 +351,7 @@ class FullNodeView extends React.Component {
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">
-          <Col>
+          <Col className={styles.refs_col}>
             <NodeRefs
               nid={this.props.nid}
               edges={this.state.edges_left}
@@ -363,33 +361,15 @@ class FullNodeView extends React.Component {
               account={this.props.account}
             />
           </Col>
-          <Col className={styles.toolbar_col}>
-            <LeftToolBar
-              nid={this.props.nid}
-              sticky_edges={this.state.edges_sticky}
-              addRef={this.addLeftRef}
-              account={this.props.account}
-            />
-          </Col>
           <Col className={styles.note_col}>
             <DocRender
               nid={this.props.nid}
               sticky_edges={this.state.edges_sticky}
-              addLeftRef={this.addLeftRef}
-              addRightRef={this.addRightRef}
+              addRef={this.addRef}
               resetAuxToolbar={this.resetAuxToolbar}
               account={this.props.account}
+              stickyEdges={this.state.edges_sticky}
             />
-          </Col>
-          <Col className={styles.toolbar_col}>
-            <RightToolBar
-              nid={this.props.nid}
-              sticky_edges={this.state.edges_sticky}
-              addRef={this.addRightRef}
-              account={this.props.account}
-            >
-              {this.state.aux_toolbar}
-            </RightToolBar>
           </Col>
           <Col className={styles.refs_col}>
             <NodeRefs

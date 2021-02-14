@@ -119,11 +119,6 @@ class AutocompleteModal extends React.Component {
 
   onNodeCardClick = (nid, doc) => {
     const title = exctractDocTitle(doc);
-    const replacement = "[" + title + "](" + nid + ")";
-    // this.props.on_insert({
-    //   text: replacement,
-    //   nid: nid,
-    // });
 
     smugler.edge
       .create({
@@ -133,7 +128,8 @@ class AutocompleteModal extends React.Component {
       })
       .then((edge) => {
         if (edge) {
-          this.props.on_insert({ text: replacement });
+          const replacement = "[" + title + "](" + nid + ")";
+          this.props.on_insert({ text: replacement, edge: edge });
         }
       });
   };
@@ -166,7 +162,7 @@ class AutocompleteModal extends React.Component {
   }
 }
 
-class AutocompleteWindow extends React.Component {
+export class AutocompleteWindow extends React.Component {
   render() {
     return (
       <Modal

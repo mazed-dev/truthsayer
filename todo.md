@@ -1,6 +1,6 @@
 # Todo
 
- - [ ] Make global toolbar smaller and sticky
+ - [ ] Markdown toolbar should appear on global toolbar
  - [ ] Use react state (as for toaster) for account info
  - [ ] Tooltips for everything!
  - [ ] Download all or some nodes as markdown
@@ -99,3 +99,4 @@
  - [x] Upgrade react-bootstrap package
  - [x] Reduce size of the cross in "New note" button on global bar, by 20%
  - [x] Better styles for headers in note : use colour gradient for h1..h6
+ - [x] Make global toolbar smaller and sticky
