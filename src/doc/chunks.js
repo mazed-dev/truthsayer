@@ -9,10 +9,12 @@ import { Button, ButtonGroup, InputGroup, Form } from "react-bootstrap";
 
 import { smugler } from "./../smugler/api";
 
-import AutocompleteWindow from "./../smartpoint/AutocompleteWindow";
+import { AutocompleteWindow } from "./../smartpoint/AutocompleteWindow";
 import { MarkdownToolbar } from "../full_node_view/MarkdownToolBar.js";
 import { joinClasses } from "../util/elClass.js";
 import { renderMdCard } from "./../markdown/MarkdownRender";
+
+import { MzdGlobalContext } from "./../lib/global";
 
 import { parseRawSource as _parseRawSource } from "./mdRawParser";
 import { makeChunk } from "./chunk_util";
@@ -106,7 +108,6 @@ export class ChunkRender extends React.Component {
         <TextEditor
           value={this.props.chunk.source}
           nid={this.props.nid}
-          resetAuxToolbar={this.props.resetAuxToolbar}
           replaceChunks={this.props.replaceChunks}
           mergeChunkUp={this.props.mergeChunkUp}
           editChunk={this.props.editChunk}
@@ -241,7 +242,6 @@ export class TextEditor extends React.Component {
   }
 
   componentDidMount() {
-    this.props.resetAuxToolbar(this.createEditorToolbar());
     this.textAreaRef.current.focus();
 
     const editOpts = this.props.editOpts;
@@ -250,11 +250,16 @@ export class TextEditor extends React.Component {
       const end = editOpts.end || begin;
       this.textAreaRef.current.setSelectionRange(begin, end);
     }
+
+    const topbar = this.context.topbar;
+    topbar.reset(this.createEditorToolbar());
   }
 
   componentWillUnmount() {
-    this.props.resetAuxToolbar();
     this.createEdgeCancelToken.cancel();
+
+    const topbar = this.context.topbar;
+    topbar.reset(null);
   }
 
   createEditorToolbar() {
@@ -471,6 +476,8 @@ export class TextEditor extends React.Component {
     );
   }
 }
+
+TextEditor.contextType = MzdGlobalContext;
 
 class ExtClickDetector extends React.Component {
   constructor(props) {

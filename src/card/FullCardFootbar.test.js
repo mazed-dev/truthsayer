@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "@testing-library/react";
-import { _createAddingStickyEdgesRequest } from "./ToolBars.js";
+import { _createAddingStickyEdgesRequest } from "./FullCardFootbar.js";
 
 test("create adding sticky edges query - 1", () => {
   const sticky_edges = [

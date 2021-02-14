@@ -234,7 +234,6 @@ class FullNodeView extends React.Component {
       edges_left: [],
       edges_right: [],
       edges_sticky: [],
-      aux_toolbar: null,
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
@@ -339,14 +338,6 @@ class FullNodeView extends React.Component {
     }
   };
 
-  resetAuxToolbar = (el) => {
-    if (el) {
-      this.setState({ aux_toolbar: el });
-    } else {
-      this.setState({ aux_toolbar: null });
-    }
-  };
-
   render() {
     return (
       <Container fluid>
@@ -366,7 +357,6 @@ class FullNodeView extends React.Component {
               nid={this.props.nid}
               sticky_edges={this.state.edges_sticky}
               addRef={this.addRef}
-              resetAuxToolbar={this.resetAuxToolbar}
               account={this.props.account}
               stickyEdges={this.state.edges_sticky}
             />

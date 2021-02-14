@@ -36,7 +36,7 @@ import WaitingForApproval from "./auth/WaitingForApproval";
 import UserPreferences from "./auth/UserPreferences";
 import WelcomePage from "./WelcomePage";
 import UserEncryption from "./UserEncryption";
-import { MzdToaster } from "./lib/toaster";
+import { MzdGlobal } from "./lib/global";
 
 import { UserAccount, checkAuth, dropAuth } from "./auth/local.jsx";
 
@@ -138,9 +138,9 @@ class App extends React.Component {
     return (
       <Container fluid className="entire_doc">
         <Router>
-          {nav_bar}
           <div>
-            <MzdToaster>
+            <MzdGlobal>
+              {nav_bar}
               <Switch>
                 <Route exact path="/">
                   {main_page}
@@ -239,7 +239,7 @@ class App extends React.Component {
                   <Redirect to={{ pathname: "/" }} />
                 </Route>
               </Switch>
-            </MzdToaster>
+            </MzdGlobal>
           </div>
         </Router>
       </Container>

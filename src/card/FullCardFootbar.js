@@ -25,7 +25,7 @@ import ArchiveImg from "./../img/archive.png";
 import NextNewLeftImg from "./../img/next-link-left-00001.png";
 import NextNewRightImg from "./../img/next-link-right-00001.png";
 
-import { MzdToasterContext } from "../lib/toaster";
+import { MzdGlobalContext } from "../lib/global";
 import { AutocompleteWindow } from "../smartpoint/AutocompleteWindow";
 import { HoverTooltip } from "../lib/tooltip";
 import { joinClasses } from "../util/elClass.js";
@@ -289,7 +289,7 @@ export class FullCardFootbarImpl extends React.Component {
   };
 
   handleArchiveDoc = () => {
-    let toaster = this.context;
+    let toaster = this.context.toaster;
     toaster.push({
       title: "Not yet implemented",
       message: "Archive feature is not yet implemented",
@@ -487,6 +487,6 @@ export class FullCardFootbarImpl extends React.Component {
   }
 }
 
-FullCardFootbarImpl.contextType = MzdToasterContext;
+FullCardFootbarImpl.contextType = MzdGlobalContext;
 
 export const FullCardFootbar = withRouter(FullCardFootbarImpl);

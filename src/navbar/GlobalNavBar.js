@@ -20,6 +20,8 @@ import axios from "axios";
 import queryString from "query-string";
 import { withRouter } from "react-router-dom";
 
+import { MzdGlobalContext } from "./../lib/global";
+
 import { smugler } from "./../smugler/api";
 
 import { HoverTooltip } from "./../lib/tooltip";
@@ -172,6 +174,11 @@ class GlobalNavBar extends React.Component {
       });
   };
 
+  getAuxGroup = () => {
+    const aux = this.context.topbar.aux;
+    return aux;
+  };
+
   render() {
     const location = this.props.location;
     const params = queryString.parse(location.search);
@@ -222,6 +229,9 @@ class GlobalNavBar extends React.Component {
               </HoverTooltip>
             </Button>
           </ButtonToolbar>
+          <ButtonToolbar className={styles.creation_toolbar}>
+            {this.getAuxGroup()}
+          </ButtonToolbar>
           <NavDropdown
             title={userpic}
             id="account-nav-dropdown"
@@ -254,5 +264,7 @@ class GlobalNavBar extends React.Component {
     );
   }
 }
+
+GlobalNavBar.contextType = MzdGlobalContext;
 
 export default withRouter(GlobalNavBar);

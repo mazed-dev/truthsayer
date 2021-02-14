@@ -259,7 +259,6 @@ export class DocRenderImpl extends React.Component {
             key={key}
             nid={this.props.nid}
             index={index}
-            resetAuxToolbar={this.props.resetAuxToolbar}
             replaceChunks={this.replaceChunk}
             mergeChunkUp={this.mergeChunkUp}
             editChunk={this.editChunk}

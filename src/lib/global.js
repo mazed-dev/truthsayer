@@ -6,13 +6,9 @@ import { Toast, Button } from "react-bootstrap";
 
 import { joinClasses } from "./../util/elClass.js";
 
-import styles from "./toaster.module.css";
+import styles from "./global.module.css";
 
 const kMzdToastDefaultDelay = 4943; // Just a random number close to 5 seconds
-
-// export function makeAToast({ delay }) {
-//   delay = delay || 3000;
-// }
 
 class MzdToast extends React.Component {
   constructor(props) {
@@ -45,46 +41,67 @@ MzdToast.defaultProps = {
   delay: kMzdToastDefaultDelay,
 };
 
-export const MzdToasterContext = React.createContext({
-  toasts: [],
-  push: ({ header, message }) => {
-    console.log("Default push() function called: ", header, message);
+export const MzdGlobalContext = React.createContext({
+  toaster: {
+    toasts: [],
+    push: ({ header, message }) => {
+      console.log("Default push() function called: ", header, message);
+    },
   },
 });
 
-export class MzdToaster extends React.Component {
+export class MzdGlobal extends React.Component {
   constructor(props) {
     super(props);
     this.pushToast = ({ message, title }) => {
       const uKey = crc.crc32(message) + "-" + Math.random();
       this.setState((state) => {
         return {
-          toasts: state.toasts.concat([
-            <MzdToast message={message} title={title} key={uKey} />,
-          ]),
+          toaster: {
+            toasts: state.toaster.toasts.concat([
+              <MzdToast message={message} title={title} key={uKey} />,
+            ]),
+            push: state.toaster.push,
+          },
+        };
+      });
+    };
+    this.resetAuxToobar = (group) => {
+      this.setState((state) => {
+        return {
+          topbar: {
+            aux: group,
+            reset: state.topbar.reset,
+          },
         };
       });
     };
     this.state = {
-      toasts: [],
-      push: this.pushToast,
+      toaster: {
+        toasts: [],
+        push: this.pushToast,
+      },
+      topbar: {
+        aux: null,
+        reset: this.resetAuxToobar,
+      },
     };
   }
 
   render() {
     return (
-      <MzdToasterContext.Provider value={this.state}>
+      <MzdGlobalContext.Provider value={this.state}>
         <div
           aria-live="polite"
           aria-atomic="true"
           className={joinClasses(styles.toaster_container)}
         >
           <div className={joinClasses(styles.toaster_root)}>
-            {this.state.toasts}
+            {this.state.toaster.toasts}
           </div>
         </div>
         {this.props.children}
-      </MzdToasterContext.Provider>
+      </MzdGlobalContext.Provider>
     );
   }
 }
@@ -96,7 +113,7 @@ export class ExampleWithStaticConsumer extends React.Component {
   }
 
   onClick = () => {
-    let toaster = this.context;
+    let toaster = this.context.toaster;
     toaster.push({
       title: "Example",
       message: "Toast message created from example class",
@@ -112,15 +129,15 @@ export class ExampleWithStaticConsumer extends React.Component {
   }
 }
 
-ExampleWithStaticConsumer.contextType = MzdToasterContext;
+ExampleWithStaticConsumer.contextType = MzdGlobalContext;
 
 export function ExampleWithElementConsumer() {
   return (
-    <MzdToasterContext.Consumer>
-      {(toaster) => (
+    <MzdGlobalContext.Consumer>
+      {(context) => (
         <Button
           onClick={() => {
-            toaster.push({
+            context.toaster.push({
               title: "Example",
               message: "Toast message created from example class",
             });
@@ -129,6 +146,6 @@ export function ExampleWithElementConsumer() {
           Make a toast
         </Button>
       )}
-    </MzdToasterContext.Consumer>
+    </MzdGlobalContext.Consumer>
   );
 }
