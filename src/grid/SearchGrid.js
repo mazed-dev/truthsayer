@@ -180,6 +180,14 @@ export class SearchGrid extends React.Component {
     let end_time = this.state.end_time;
     let start_time = this.state.start_time;
     let offset = this.state.offset;
+    console.info(
+      "Fetching [",
+      start_time,
+      end_time,
+      offset,
+      "], ",
+      this.state.nodes.length
+    );
     smugler.node
       .slice({
         start_time: start_time,
@@ -197,8 +205,8 @@ export class SearchGrid extends React.Component {
         let next = null;
         let fetching = false;
         if (this.isScrolledToBottom() && data.start_time > _kTimeLimit) {
-          //next = this.secureSearchIteration;
-          //fetching = true;
+          next = this.secureSearchIteration;
+          fetching = true;
         }
         if (
           this.isTimeIntervalExhausted(
