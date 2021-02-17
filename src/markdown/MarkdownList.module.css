@@ -110,17 +110,17 @@
   margin-bottom: 0.4rem;
 }
 
-.small_h1_ref {
+.small_ref {
 }
 
-.small_h1_ref:hover {
+.small_ref:hover {
   color: #004b23;
   text-decoration: none;
   text-decoration-line: underline;
   -webkit-text-decoration-line: underline; /* Safari */
 }
 
-.small_h1_ref:visited {
+.small_ref:visited {
 }
 
 .small_h2 {

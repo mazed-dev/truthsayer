@@ -79,7 +79,7 @@ function MarkdownSmallHeading(nid) {
         hdr_el =
           nid != null ? (
             <NavLink
-              className={joinClasses(styles.small_h1, styles.small_h1_ref)}
+              className={joinClasses(styles.small_h1, styles.small_ref)}
               {...rest}
               to={"/node/" + nid}
             >
@@ -92,40 +92,85 @@ function MarkdownSmallHeading(nid) {
           );
         break;
       case 2:
-        hdr_el = (
-          <h2 className={styles.small_h2} {...rest}>
-            {children}
-          </h2>
-        );
+        hdr_el =
+          nid != null ? (
+            <NavLink
+              className={joinClasses(styles.small_h2, styles.small_ref)}
+              {...rest}
+              to={"/node/" + nid}
+            >
+              {children}
+            </NavLink>
+          ) : (
+            <h2 className={styles.small_h2} {...rest}>
+              {children}
+            </h2>
+          );
         break;
       case 3:
-        hdr_el = (
-          <h3 className={styles.small_h3} {...rest}>
-            {children}
-          </h3>
-        );
+        hdr_el =
+          nid != null ? (
+            <NavLink
+              className={joinClasses(styles.small_h4, styles.small_ref)}
+              {...rest}
+              to={"/node/" + nid}
+            >
+              {children}
+            </NavLink>
+          ) : (
+            <h3 className={styles.small_h3} {...rest}>
+              {children}
+            </h3>
+          );
         break;
       case 4:
-        hdr_el = (
-          <h4 className={styles.small_h4} {...rest}>
-            {children}
-          </h4>
-        );
+        hdr_el =
+          nid != null ? (
+            <NavLink
+              className={joinClasses(styles.small_h4, styles.small_ref)}
+              {...rest}
+              to={"/node/" + nid}
+            >
+              {children}
+            </NavLink>
+          ) : (
+            <h4 className={styles.small_h4} {...rest}>
+              {children}
+            </h4>
+          );
         break;
       case 5:
-        hdr_el = (
-          <h5 className={styles.small_h5} {...rest}>
-            {children}
-          </h5>
-        );
+        hdr_el =
+          nid != null ? (
+            <NavLink
+              className={joinClasses(styles.small_h5, styles.small_ref)}
+              {...rest}
+              to={"/node/" + nid}
+            >
+              {children}
+            </NavLink>
+          ) : (
+            <h5 className={styles.small_h5} {...rest}>
+              {children}
+            </h5>
+          );
         break;
       case 6:
       default:
-        hdr_el = (
-          <h6 className={styles.small_h6} {...rest}>
-            {children}
-          </h6>
-        );
+        hdr_el =
+          nid != null ? (
+            <NavLink
+              className={joinClasses(styles.small_h6, styles.small_ref)}
+              {...rest}
+              to={"/node/" + nid}
+            >
+              {children}
+            </NavLink>
+          ) : (
+            <h6 className={styles.small_h6} {...rest}>
+              {children}
+            </h6>
+          );
         break;
     }
     return hdr_el;
