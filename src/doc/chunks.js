@@ -456,18 +456,15 @@ export class TextEditor extends React.Component {
           callback={this._saveAndQuitEditing}
           isActive={!this.state.modalShow}
         >
-          <InputGroup>
+          <InputGroup className={joinClasses(styles.editor_input_group)}>
             <Form.Control
               as="textarea"
               aria-label="With textarea"
-              className={joinClasses(styles.text_editor_input)}
+              className={styles.editor_form}
               value={this.state.value}
               onChange={this.handleChange}
               onKeyDown={this.handleKeyDown}
-              style={{
-                height: this.state.height + "px",
-                resize: null,
-              }}
+              style={{ height: this.state.height + "px" }}
               ref={this.textAreaRef}
             />
           </InputGroup>
