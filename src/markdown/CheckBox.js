@@ -12,6 +12,10 @@ export class CheckBox extends React.Component {
     super(props);
   }
 
+  onClick = () => {
+    console.log("Source position -> ", this.props.sourcePosition);
+  };
+
   render() {
     const checkmark = this.props.is_checked ? (
       <Emoji symbol={"✅"} label="checked" />
@@ -19,7 +23,10 @@ export class CheckBox extends React.Component {
       <div className={styles.checkbox} />
     );
     return (
-      <div className={joinClasses(styles.container, this.props.className)}>
+      <div
+        className={joinClasses(styles.container, this.props.className)}
+        onClick={this.onClick}
+      >
         {checkmark}
       </div>
     );

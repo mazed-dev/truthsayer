@@ -24,6 +24,7 @@ import ArchiveImg from "./../img/archive.png";
 
 import NextNewLeftImg from "./../img/next-link-left-00001.png";
 import NextNewRightImg from "./../img/next-link-right-00001.png";
+import EllipsisImg from "./../img/ellipsis.png";
 
 import { MzdGlobalContext } from "../lib/global";
 import { AutocompleteWindow } from "../smartpoint/AutocompleteWindow";
@@ -55,6 +56,27 @@ class LeftSearchModal extends React.Component {
     );
   }
 }
+
+const CustomMoreToggle = React.forwardRef(({ children, onClick }, ref) => (
+  <Button
+    variant="light"
+    className={joinClasses(styles.tool_button)}
+    ref={ref}
+    onClick={(e) => {
+      e.preventDefault();
+      onClick(e);
+    }}
+  >
+    {children}
+    <HoverTooltip tooltip={"More"}>
+      <img
+        src={EllipsisImg}
+        className={styles.tool_button_img}
+        alt={"Download"}
+      />
+    </HoverTooltip>
+  </Button>
+));
 
 class RightSearchModal extends React.Component {
   constructor(props) {
@@ -263,7 +285,7 @@ export class FullCardFootbarImpl extends React.Component {
   };
 
   handleCopyMarkdown = () => {
-    let toaster = this.context;
+    let toaster = this.context.toaster;
     const md = this.props.getMarkdown();
     navigator.clipboard.writeText(md).then(
       function () {
@@ -350,28 +372,30 @@ export class FullCardFootbarImpl extends React.Component {
             </Dropdown.Menu>
           </Dropdown>
 
-          <Dropdown
-            as={ButtonGroup}
-            className={joinClasses(styles.toolbar_layout_item)}
+          <Button
+            variant="light"
+            className={joinClasses(
+              styles.toolbar_layout_item,
+              styles.tool_button
+            )}
+            onClick={this.handleArchiveDoc}
           >
-            <Button
-              variant="light"
-              className={joinClasses(styles.tool_button)}
-              onClick={this.handleCopyMarkdown}
-            >
-              <HoverTooltip tooltip={"Copy as markdown"}>
-                <img
-                  src={DownloadImg}
-                  className={styles.tool_button_img}
-                  alt={"Download"}
-                />
-              </HoverTooltip>
-            </Button>
+            <HoverTooltip tooltip={"Archive"}>
+              <img
+                src={ArchiveImg}
+                className={styles.tool_button_img}
+                alt={"Archive"}
+              />
+            </HoverTooltip>
+          </Button>
 
+          <Dropdown className={joinClasses(styles.toolbar_layout_item)}>
             <Dropdown.Toggle
               split
               variant="light"
               className={joinClasses(styles.tool_button, styles.tool_dropdown)}
+              id={"more-options-for-fullsize-card"}
+              as={CustomMoreToggle}
             />
 
             <Dropdown.Menu>
@@ -397,25 +421,9 @@ export class FullCardFootbarImpl extends React.Component {
                 />
                 Download as text
               </Dropdown.Item>
+              <Dropdown.Divider />
             </Dropdown.Menu>
           </Dropdown>
-
-          <Button
-            variant="light"
-            className={joinClasses(
-              styles.toolbar_layout_item,
-              styles.tool_button
-            )}
-            onClick={this.handleArchiveDoc}
-          >
-            <HoverTooltip tooltip={"Archive"}>
-              <img
-                src={ArchiveImg}
-                className={styles.tool_button_img}
-                alt={"Archive"}
-              />
-            </HoverTooltip>
-          </Button>
 
           <Dropdown
             as={ButtonGroup}

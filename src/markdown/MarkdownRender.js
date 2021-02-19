@@ -13,7 +13,7 @@ import styles from "./MarkdownList.module.css";
 import ReactMarkdown from "react-markdown";
 import Emoji from "./../Emoji";
 
-import CheckBox from "./CheckBox";
+import { CheckBox } from "./CheckBox";
 
 import { joinClasses } from "../util/elClass.js";
 
@@ -355,12 +355,12 @@ function MarkdownListItem({
   checked,
   ...rest
 }) {
-  console.log("Source position", sourcePosition);
   const checkbox =
     checked == null ? null : (
       <CheckBox
         is_checked={checked}
         className={styles.unordered_list_item_before}
+        sourcePosition={sourcePosition}
       />
     );
   if (ordered) {
