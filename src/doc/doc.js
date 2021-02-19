@@ -114,7 +114,6 @@ export class DocRenderImpl extends React.Component {
     };
     this.setState({
       doc: doc,
-      crtd: moment(),
       upd: moment(),
       edit_chunk_opts: editOpts,
     });

@@ -275,25 +275,29 @@ function MarkdownSmallParagraph({ children, sourcePosition, ...rest }) {
 }
 
 const _LIST_POINT_OPTIONS = [
-  <Emoji symbol="&#9679;" label="-" />,
-  // <Emoji symbol="&#x233e;" label="-" />,
-  <Emoji symbol="&#9655;" label="-" />,
-  <Emoji symbol="&#9654;" label="-" />,
-  <Emoji symbol="&#x25c6;" label="-" />,
-  <Emoji symbol="&#x25c7;" label="-" />,
+  <Emoji symbol="&#8226;" label="*" />,
+  <Emoji symbol="&#9702;" label="-" />,
+  <Emoji symbol="&#x25c7;" label="*" />,
   <Emoji symbol="&#9658;" label="-" />,
-  <Emoji symbol="&#9659;" label="-" />,
+  <Emoji symbol="&#9659;" label="*" />,
   <Emoji symbol="&#9656;" label="-" />,
-  <Emoji symbol="&#9657;" label="-" />,
-  //(<Emoji symbol="&#9675;" label="-" />),
-  //(<Emoji symbol="&#9673;" label="-" />),
-  //(<Emoji symbol="&#9678;" label="-" />),
-  //(<Emoji symbol="&#9677;" label="-" />),
-  //(<Emoji symbol="&#9676;" label="-" />),
+  <Emoji symbol="&#9657;" label="*" />,
+  <Emoji symbol="&#9679;" label="-" />,
+  <Emoji symbol="&#9655;" label="-" />,
+  <Emoji symbol="&#9675;" label="-" />,
+  <Emoji symbol="&#9673;" label="-" />,
+  <Emoji symbol="&#9678;" label="-" />,
+  <Emoji symbol="&#9677;" label="-" />,
+  <Emoji symbol="&#9676;" label="-" />,
+  <Emoji symbol="&#x233e;" label="-" />,
 ];
 
-function genListPointStyle(d) {
-  const i = Math.min(Math.max(0, d), _LIST_POINT_OPTIONS.length - 1);
+function genListPointStyle(sourcePosition) {
+  let startColumn = sourcePosition.start.column - 1;
+  startColumn = startColumn < 0 ? 0 : startColumn;
+  const depth = Math.floor(startColumn / 2);
+  const i = depth % _LIST_POINT_OPTIONS.length;
+  console.log("startColumn", startColumn, depth);
   return _LIST_POINT_OPTIONS[i];
 }
 
@@ -347,56 +351,49 @@ function tryToMakeEmojiListItem(elements) {
   return null;
 }
 
-function MarkdownListItem({
-  children,
-  ordered,
-  index,
-  sourcePosition,
-  checked,
-  ...rest
-}) {
-  const checkbox =
-    checked == null ? null : (
-      <CheckBox
-        is_checked={checked}
-        className={styles.unordered_list_item_before}
-        sourcePosition={sourcePosition}
-      />
-    );
-  if (ordered) {
-    return (
-      <li className={styles.ordered_list_item}>
-        {checkbox}
-        {children}
-      </li>
-    );
-  }
-  if (checkbox != null) {
+function MarkdownListItem(source, update) {
+  return ({ children, ordered, index, sourcePosition, checked, ...rest }) => {
+    const checkbox =
+      checked == null ? null : (
+        <CheckBox
+          is_checked={checked}
+          className={styles.unordered_list_item_before}
+          sourcePosition={sourcePosition}
+          source={source}
+          update={update}
+        />
+      );
+    if (ordered) {
+      return (
+        <li className={styles.ordered_list_item}>
+          {checkbox}
+          {children}
+        </li>
+      );
+    }
+    if (checkbox != null) {
+      return (
+        <>
+          {checkbox}
+          <li className={styles.unordered_list_item}> {children} </li>
+        </>
+      );
+    }
+    const emojiListItem = tryToMakeEmojiListItem(children);
+    if (emojiListItem) {
+      return emojiListItem;
+    }
+    const pt = genListPointStyle(sourcePosition);
     return (
       <>
-        {checkbox}
+        <div className={styles.unordered_list_item_before}> {pt} </div>
         <li className={styles.unordered_list_item}> {children} </li>
       </>
     );
-  }
-  const emojiListItem = tryToMakeEmojiListItem(children);
-  if (emojiListItem) {
-    return emojiListItem;
-  }
-  const depth =
-    sourcePosition.indent.length > 0
-      ? Math.floor(sourcePosition.indent[0] / 2)
-      : 0;
-  const pt = genListPointStyle(depth);
-  return (
-    <>
-      <div className={styles.unordered_list_item_before}> {pt} </div>
-      <li className={styles.unordered_list_item}> {children} </li>
-    </>
-  );
+  };
 }
 
-export function MdCardRender({ source, nid }) {
+export function MdCardRender({ source, nid, update }) {
   return (
     <ReactMarkdown
       source={source}
@@ -407,7 +404,7 @@ export function MdCardRender({ source, nid }) {
         paragraph: MarkdownParagraph,
         link: MarkdownLink,
         list: MarkdownList,
-        listItem: MarkdownListItem,
+        listItem: MarkdownListItem(source, update),
         root: MarkdownRoot,
       }}
     />
@@ -455,15 +452,15 @@ export function MdSmallCardRender({ source, nid }) {
         paragraph: MarkdownSmallParagraph,
         link: MarkdownLink,
         list: MarkdownList,
-        listItem: MarkdownListItem,
+        listItem: MarkdownListItem(null, null),
         root: MarkdownSmallRoot,
       }}
     />
   );
 }
 
-export function renderMdCard({ source, nid }) {
-  return <MdCardRender source={source} nid={nid} />;
+export function renderMdCard({ source, nid, update }) {
+  return <MdCardRender source={source} nid={nid} update={update} />;
 }
 
 export function renderMdSmallCard({ source, nid }) {

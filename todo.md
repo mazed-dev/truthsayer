@@ -1,6 +1,8 @@
 # Todo
 
- - [ ] Minus as default list bulletsign
+ - [ ] Footbar for small cards as a reference
+ - [ ] Footbar for small cards in search
+ - [ ] Properly cut overflowing html for small cards
  - [ ] Use react state (as for toaster) for account info
  - [ ] Tooltips for everything!
  - [ ] Download all or some nodes as markdown
@@ -14,7 +16,6 @@
  - [ ] Drag-and-drop for paragraps and list items
  - [ ] Small cards on smart search results
  - [ ] Toolpannel is a part of small card - take is as an argument
- - [ ] Checklists should be interactive in read mode
  - [ ] Draw lines from "in-text" references to other notes
  - [ ] Better cards for date/new nodes
  - [ ] Don't cut small notes in the middle of the line
@@ -101,3 +102,6 @@
  - [x] Better styles for headers in note : use colour gradient for h1..h6
  - [x] Make global toolbar smaller and sticky
  - [x] Markdown toolbar should appear on global toolbar
+ - [x] Minus as default list bulletsign
+ - [x] Checklists should be interactive in read mode
+ - [x] Opacity on toolbars and navbar should be the same!

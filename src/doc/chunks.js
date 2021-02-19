@@ -119,6 +119,8 @@ export class ChunkRender extends React.Component {
         <ChunkView
           nid={this.props.nid}
           chunk={this.props.chunk}
+          index={this.props.index}
+          replaceChunks={this.props.replaceChunks}
           render={renderMdCard}
         />
       );
@@ -137,37 +139,23 @@ export class ChunkRender extends React.Component {
   }
 }
 
-/**
- * 0: paragraph
- * 1: header
- * 2: list
- * 3: image
- */
-export function ChunkView({ chunk, children, render, ...rest }) {
+export function ChunkView({
+  chunk,
+  nid,
+  index,
+  replaceChunks,
+  render,
+  ...rest
+}) {
   var type = chunk.type || 0;
-  if (type == null || type < 0 || type > 3) {
-    type = 0;
-  }
-  switch (type) {
-    case 0:
-      return (
-        <ChunkParagraphRender source={chunk.source} render={render} {...rest} />
-      );
-    case 1:
-      return (
-        <ChunkHeaderRender source={chunk.source} render={render} {...rest} />
-      );
-    case 2:
-      return (
-        <ChunkListRender source={chunk.source} render={render} {...rest} />
-      );
-    case 3:
-      return (
-        <ChunkImageRender source={chunk.source} render={render} {...rest} />
-      );
-    default:
-      return null;
-  }
+  return render({
+    source: chunk.source,
+    nid: nid,
+    update: (source) => {
+      const { chunks } = parseRawSource(source);
+      replaceChunks(chunks, index);
+    },
+  });
 }
 
 export function createEmptyChunk() {
@@ -175,54 +163,6 @@ export function createEmptyChunk() {
     type: 0,
     source: "",
   };
-}
-
-class ChunkParagraphRender extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  render() {
-    return this.props.render({
-      source: this.props.source,
-      nid: this.props.nid,
-    });
-  }
-}
-
-class ChunkHeaderRender extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  render() {
-    return this.props.render({
-      source: this.props.source,
-      nid: this.props.nid,
-    });
-  }
-}
-
-class ChunkListRender extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  render() {
-    return this.props.render({
-      source: this.props.source,
-      nid: this.props.nid,
-    });
-  }
-}
-
-class ChunkImageRender extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  render() {
-    return this.props.render({
-      source: this.props.source,
-      nid: this.props.nid,
-    });
-  }
 }
 
 const kEditorLineHeightPx = 38;

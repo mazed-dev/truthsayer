@@ -205,27 +205,23 @@ class GlobalNavBar extends React.Component {
               variant="light"
               as={Link}
               to="/upload-file"
-              className={styles.new_btn}
+              className={styles.nav_button}
             >
-              <HoverTooltip tooltip={"Upload files"}>
+              <HoverTooltip tooltip={"Upload"}>
                 <img
                   src={UploadImg}
                   className={styles.new_btn_img}
-                  alt="New note"
+                  alt="Upload from file"
                 />
               </HoverTooltip>
             </Button>
             <Button
               variant="light"
               onClick={this.handleNewClick}
-              className={styles.new_btn}
+              className={styles.nav_button}
             >
-              <HoverTooltip tooltip={"New note"}>
-                <img
-                  src={NewImg}
-                  className={styles.new_btn_img}
-                  alt="New note"
-                />
+              <HoverTooltip tooltip={"New"}>
+                <img src={NewImg} className={styles.new_btn_img} alt="New" />
               </HoverTooltip>
             </Button>
           </ButtonToolbar>
