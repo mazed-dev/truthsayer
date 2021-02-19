@@ -1,5 +1,6 @@
 # Todo
 
+ - [ ] Tool for markdown checklists
  - [ ] Footbar for small cards as a reference
  - [ ] Footbar for small cards in search
  - [ ] Properly cut overflowing html for small cards
