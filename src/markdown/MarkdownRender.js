@@ -250,8 +250,8 @@ function MarkdownLink({ href, children, sourcePosition, ...rest }) {
     prefix = "/";
   } else {
     // External link
-    prefix = "\uD83C\uDF10 ";
-    // prefix = "\uD83C\uDF0D ";
+    // prefix = "\uD83C\uDF10 ";
+    prefix = "\uD83C\uDF0D ";
   }
 
   return (

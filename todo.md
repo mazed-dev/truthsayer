@@ -1,5 +1,6 @@
 # Todo
 
+ - [ ] Public pages availiable by direct link
  - [ ] Tool for markdown checklists
  - [ ] Footbar for small cards as a reference
  - [ ] Footbar for small cards in search
