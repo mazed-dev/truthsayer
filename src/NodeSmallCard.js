@@ -37,7 +37,7 @@ function getShadowStyle(n) {
 
 function makeSeeMoreLink(nid) {
   return (
-    <Link className={styles.a_see_more} to={"/node/" + nid}>
+    <Link className={styles.a_see_more} to={"/n/" + nid}>
       See more
     </Link>
   );
@@ -97,7 +97,7 @@ class NodeSmallCardImpl extends React.Component {
       this.props.onClick(this.props.nid, this.state.doc);
     } else {
       this.props.history.push({
-        pathname: "/node/" + this.props.nid,
+        pathname: "/n/" + this.props.nid,
       });
     }
   };

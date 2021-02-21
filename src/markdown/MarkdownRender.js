@@ -81,7 +81,7 @@ function MarkdownSmallHeading(nid) {
             <NavLink
               className={joinClasses(styles.small_h1, styles.small_ref)}
               {...rest}
-              to={"/node/" + nid}
+              to={"/n/" + nid}
             >
               {children}
             </NavLink>
@@ -97,7 +97,7 @@ function MarkdownSmallHeading(nid) {
             <NavLink
               className={joinClasses(styles.small_h2, styles.small_ref)}
               {...rest}
-              to={"/node/" + nid}
+              to={"/n/" + nid}
             >
               {children}
             </NavLink>
@@ -113,7 +113,7 @@ function MarkdownSmallHeading(nid) {
             <NavLink
               className={joinClasses(styles.small_h4, styles.small_ref)}
               {...rest}
-              to={"/node/" + nid}
+              to={"/n/" + nid}
             >
               {children}
             </NavLink>
@@ -129,7 +129,7 @@ function MarkdownSmallHeading(nid) {
             <NavLink
               className={joinClasses(styles.small_h4, styles.small_ref)}
               {...rest}
-              to={"/node/" + nid}
+              to={"/n/" + nid}
             >
               {children}
             </NavLink>
@@ -145,7 +145,7 @@ function MarkdownSmallHeading(nid) {
             <NavLink
               className={joinClasses(styles.small_h5, styles.small_ref)}
               {...rest}
-              to={"/node/" + nid}
+              to={"/n/" + nid}
             >
               {children}
             </NavLink>
@@ -162,7 +162,7 @@ function MarkdownSmallHeading(nid) {
             <NavLink
               className={joinClasses(styles.small_h6, styles.small_ref)}
               {...rest}
-              to={"/node/" + nid}
+              to={"/n/" + nid}
             >
               {children}
             </NavLink>

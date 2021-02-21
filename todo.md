@@ -1,6 +1,9 @@
 # Todo
 
  - [ ] Public pages availiable by direct link
+ - [ ] Insert emoji as an image
+ - [ ] Attach files to the note
+ - [ ] Insert images
  - [ ] Tool for markdown checklists
  - [ ] Footbar for small cards as a reference
  - [ ] Footbar for small cards in search

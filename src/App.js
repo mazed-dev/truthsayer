@@ -173,7 +173,7 @@ class App extends React.Component {
                   <SearchView account={this.state.account} />
                 </PrivateRoute>
                 <PrivateRoute
-                  path="/node/:id"
+                  path="/n/:id"
                   is_authenticated={this.state.is_authenticated}
                 >
                   <NodeView account={this.state.account} />

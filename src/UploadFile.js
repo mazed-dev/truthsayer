@@ -127,7 +127,7 @@ class UploadFile extends React.Component {
       var name = item.filename;
       if (item.nid !== null) {
         status = <Emoji symbol="✅" label="uploaded" />;
-        name = <Link to={"/node/" + item.nid}>{name}</Link>;
+        name = <Link to={"/n/" + item.nid}>{name}</Link>;
       }
       var msg = Math.round(item.progress * 100) + "%";
       if (item.err_message) {

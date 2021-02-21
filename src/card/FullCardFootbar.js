@@ -26,6 +26,10 @@ import NextNewLeftImg from "./../img/next-link-left-00001.png";
 import NextNewRightImg from "./../img/next-link-right-00001.png";
 import EllipsisImg from "./../img/ellipsis.png";
 
+import PrivateEncryptedImg from "./../img/private-encrypted.png";
+import PrivateImg from "./../img/private.png";
+import PublicImg from "./../img/public.png";
+
 import { MzdGlobalContext } from "../lib/global";
 import { AutocompleteWindow } from "../smartpoint/AutocompleteWindow";
 import { HoverTooltip } from "../lib/tooltip";
@@ -69,14 +73,33 @@ const CustomMoreToggle = React.forwardRef(({ children, onClick }, ref) => (
   >
     {children}
     <HoverTooltip tooltip={"More"}>
-      <img
-        src={EllipsisImg}
-        className={styles.tool_button_img}
-        alt={"Download"}
-      />
+      <img src={EllipsisImg} className={styles.tool_button_img} alt={"More"} />
     </HoverTooltip>
   </Button>
 ));
+
+const CustomNodePrivacyToggle = React.forwardRef(
+  ({ children, onClick }, ref) => (
+    <Button
+      variant="light"
+      className={joinClasses(styles.tool_button)}
+      ref={ref}
+      onClick={(e) => {
+        e.preventDefault();
+        onClick(e);
+      }}
+    >
+      {children}
+      <HoverTooltip tooltip={"Publicity and encryption"}>
+        <img
+          src={PrivateImg}
+          className={styles.tool_button_img}
+          alt={"Publicity and encryption"}
+        />
+      </HoverTooltip>
+    </Button>
+  )
+);
 
 class RightSearchModal extends React.Component {
   constructor(props) {
@@ -213,7 +236,7 @@ export class FullCardFootbarImpl extends React.Component {
             this.props.nid,
             this.remoteCancelToken.token
           ).then(() => {
-            this.props.history.push("/node/" + new_nid);
+            this.props.history.push("/n/" + new_nid);
           });
         }
       });
@@ -228,7 +251,7 @@ export class FullCardFootbarImpl extends React.Component {
     ).then((node) => {
       if (node) {
         const nid = node.nid;
-        this.props.history.push("/node/" + nid);
+        this.props.history.push("/n/" + nid);
       }
     });
   };
@@ -248,7 +271,7 @@ export class FullCardFootbarImpl extends React.Component {
             this.props.nid,
             this.remoteCancelToken.token
           ).then(() => {
-            this.props.history.push("/node/" + new_nid);
+            this.props.history.push("/n/" + new_nid);
           });
         }
       });
@@ -263,7 +286,7 @@ export class FullCardFootbarImpl extends React.Component {
     ).then((node) => {
       if (node) {
         const nid = node.nid;
-        this.props.history.push("/node/" + nid);
+        this.props.history.push("/n/" + nid);
       }
     });
   };
@@ -372,26 +395,51 @@ export class FullCardFootbarImpl extends React.Component {
             </Dropdown.Menu>
           </Dropdown>
 
-          <Button
-            variant="light"
-            className={joinClasses(
-              styles.toolbar_layout_item,
-              styles.tool_button
-            )}
-            onClick={this.handleArchiveDoc}
-          >
-            <HoverTooltip tooltip={"Archive"}>
-              <img
-                src={ArchiveImg}
-                className={styles.tool_button_img}
-                alt={"Archive"}
-              />
-            </HoverTooltip>
-          </Button>
+          <Dropdown className={joinClasses(styles.toolbar_layout_item)}>
+            <Dropdown.Toggle
+              className={joinClasses(styles.tool_button, styles.tool_dropdown)}
+              id={"share-options-for-fullsize-card"}
+              as={CustomNodePrivacyToggle}
+            />
+            <Dropdown.Menu>
+              <Dropdown.Item
+                className={styles.dropdown_menu_item}
+                onClick={null}
+              >
+                <img
+                  src={PublicImg}
+                  className={styles.dropdown_menu_inline_img}
+                  alt="Copy as markdown"
+                />
+                Publish note
+              </Dropdown.Item>
+              <Dropdown.Item
+                className={styles.dropdown_menu_item}
+                onClick={null}
+              >
+                <img
+                  src={PrivateEncryptedImg}
+                  className={styles.dropdown_menu_inline_img}
+                  alt="Encrypt"
+                />
+                Encrypt note
+              </Dropdown.Item>
+              <Dropdown.Item
+                className={styles.dropdown_menu_item}
+                onClick={null}
+              >
+                <img
+                  src={PrivateEncryptedImg}
+                  className={styles.dropdown_menu_inline_img}
+                  alt="Dencrypt"
+                />
+                Dencrypt note
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
 
           <Dropdown className={joinClasses(styles.toolbar_layout_item)}>
             <Dropdown.Toggle
-              split
               variant="light"
               className={joinClasses(styles.tool_button, styles.tool_dropdown)}
               id={"more-options-for-fullsize-card"}
@@ -422,6 +470,17 @@ export class FullCardFootbarImpl extends React.Component {
                 Download as text
               </Dropdown.Item>
               <Dropdown.Divider />
+              <Dropdown.Item
+                className={styles.dropdown_menu_item}
+                onClick={this.handleArchiveDoc}
+              >
+                <img
+                  src={ArchiveImg}
+                  className={styles.dropdown_menu_inline_img}
+                  alt={"Archive"}
+                />
+                Archive
+              </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
 

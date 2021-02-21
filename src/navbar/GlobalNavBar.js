@@ -169,7 +169,7 @@ class GlobalNavBar extends React.Component {
       .then((node) => {
         if (node) {
           const new_nid = node.nid;
-          this.props.history.push("/node/" + new_nid, { edit: true });
+          this.props.history.push("/n/" + new_nid, { edit: true });
         }
       });
   };
