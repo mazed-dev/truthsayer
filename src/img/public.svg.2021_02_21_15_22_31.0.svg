@@ -356,7 +356,7 @@
        inkscape:path-effect="#path-effect1601"
        inkscape:original-d="m 0.04442,0.03671 199.9444,199.9445" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:12.3795;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       style="fill:none;stroke:#000000;stroke-width:12;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
        id="path897"
        sodipodi:type="arc"
        sodipodi:cx="-100.01233"
@@ -459,14 +459,14 @@
        transform="scale(-1)"
        d="m -327.49932,-62.853266 a 37.006817,37.006996 0 0 1 -36.83665,-37.093592 37.006817,37.006996 0 0 1 37.01062,-36.920012 37.006817,37.006996 0 0 1 37.00283,36.927818 37.006817,37.006996 0 0 1 -36.84447,37.085821" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:0.05;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m -31.80584,99.935775 c 0,0 263.74399,0.0473 263.74399,0.0473"
+       style="fill:none;stroke:#000000;stroke-width:0.0451423;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m -7.4268,99.935775 c 0,0 214.98591,0.0473 214.98591,0.0473"
        id="path912-3-1-6"
        inkscape:path-effect="#path-effect1039"
-       inkscape:original-d="m -31.80584,99.935775 263.74399,0.0473"
+       inkscape:original-d="m -7.4268,99.935775 214.98591,0.0473"
        sodipodi:nodetypes="cc" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:12.3795;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       style="fill:none;stroke:#000000;stroke-width:12;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
        id="path897-1"
        sodipodi:type="arc"
        sodipodi:cx="100.03667"
