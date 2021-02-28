@@ -172,12 +172,12 @@ class App extends React.Component {
                 >
                   <SearchView account={this.state.account} />
                 </PrivateRoute>
-                <PrivateRoute
+                <Route
                   path="/n/:id"
                   is_authenticated={this.state.is_authenticated}
                 >
                   <NodeView account={this.state.account} />
-                </PrivateRoute>
+                </Route>
                 <PrivateRoute
                   path="/upload-file"
                   is_authenticated={this.state.is_authenticated}

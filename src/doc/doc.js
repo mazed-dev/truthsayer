@@ -38,6 +38,7 @@ export class DocRenderImpl extends React.Component {
     super(props);
     this.state = {
       doc: null,
+      meta: null,
       crtd: null,
       upd: null,
       edit_chunk_opts: {
@@ -90,6 +91,7 @@ export class DocRenderImpl extends React.Component {
         if (node) {
           this.setState({
             doc: node.doc,
+            meta: node.meta,
             crtd: node.created_at,
             upd: node.updated_at,
             crypto: node.crypto,
@@ -282,9 +284,11 @@ export class DocRenderImpl extends React.Component {
         <FullCardFootbar
           addRef={this.props.addRef}
           nid={this.props.nid}
+          meta={this.state.meta}
           account={this.props.account}
           stickyEdges={this.props.stickyEdges}
           getMarkdown={this.getDocAsMarkdown}
+          reloadNode={this.fetchNode}
         />
       </Card>
     );

@@ -26,13 +26,16 @@ import NextNewLeftImg from "./../img/next-link-left-00001.png";
 import NextNewRightImg from "./../img/next-link-right-00001.png";
 import EllipsisImg from "./../img/ellipsis.png";
 
-import PrivateEncryptedImg from "./../img/private-encrypted.png";
+import EncryptedImg from "./../img/encrypted.png";
 import PrivateImg from "./../img/private.png";
 import PublicImg from "./../img/public.png";
+
+import { ShareModal } from "./ShareModal";
 
 import { MzdGlobalContext } from "../lib/global";
 import { AutocompleteWindow } from "../smartpoint/AutocompleteWindow";
 import { HoverTooltip } from "../lib/tooltip";
+import { ImgButton } from "../lib/ImgButton";
 import { joinClasses } from "../util/elClass.js";
 import { markAsACopy } from "../doc/doc_util.jsx";
 import { downloadAsFile } from "../util/download_as_file.jsx";
@@ -212,6 +215,7 @@ export class FullCardFootbarImpl extends React.Component {
     this.state = {
       modalLeftShow: false,
       modalRightShow: false,
+      modalShareShow: false,
     };
     this.remoteCancelToken = smugler.makeCancelToken();
   }
@@ -307,6 +311,15 @@ export class FullCardFootbarImpl extends React.Component {
     this.setState({ modalLeftShow: false });
   };
 
+  hideShareDialog = (event) => {
+    this.setState({ modalShareShow: false });
+    this.props.reloadNode();
+  };
+
+  showShareDialog = (event) => {
+    this.setState({ modalShareShow: true });
+  };
+
   handleCopyMarkdown = () => {
     let toaster = this.context.toaster;
     const md = this.props.getMarkdown();
@@ -339,6 +352,30 @@ export class FullCardFootbarImpl extends React.Component {
       title: "Not yet implemented",
       message: "Archive feature is not yet implemented",
     });
+  };
+
+  getShareBtn = () => {
+    let img_ = PrivateImg;
+    let txt_ = "Share";
+    if (this.props.meta && this.props.meta) {
+      const share = this.props.meta.share;
+      if (share && share.by_link) {
+        img_ = PublicImg;
+      }
+      const local_secret_id = this.props.meta.local_secret_id;
+      if (local_secret_id) {
+        img_ = EncryptedImg;
+      }
+    }
+    return (
+      <HoverTooltip tooltip={txt_}>
+        <img
+          src={img_}
+          className={styles.tool_button_img}
+          alt={"Publicity and encryption"}
+        />
+      </HoverTooltip>
+    );
   };
 
   render() {
@@ -395,48 +432,15 @@ export class FullCardFootbarImpl extends React.Component {
             </Dropdown.Menu>
           </Dropdown>
 
-          <Dropdown className={joinClasses(styles.toolbar_layout_item)}>
-            <Dropdown.Toggle
-              className={joinClasses(styles.tool_button, styles.tool_dropdown)}
-              id={"share-options-for-fullsize-card"}
-              as={CustomNodePrivacyToggle}
-            />
-            <Dropdown.Menu>
-              <Dropdown.Item
-                className={styles.dropdown_menu_item}
-                onClick={null}
-              >
-                <img
-                  src={PublicImg}
-                  className={styles.dropdown_menu_inline_img}
-                  alt="Copy as markdown"
-                />
-                Publish note
-              </Dropdown.Item>
-              <Dropdown.Item
-                className={styles.dropdown_menu_item}
-                onClick={null}
-              >
-                <img
-                  src={PrivateEncryptedImg}
-                  className={styles.dropdown_menu_inline_img}
-                  alt="Encrypt"
-                />
-                Encrypt note
-              </Dropdown.Item>
-              <Dropdown.Item
-                className={styles.dropdown_menu_item}
-                onClick={null}
-              >
-                <img
-                  src={PrivateEncryptedImg}
-                  className={styles.dropdown_menu_inline_img}
-                  alt="Dencrypt"
-                />
-                Dencrypt note
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
+          <ImgButton
+            onClick={this.showShareDialog}
+            className={joinClasses(
+              styles.tool_button,
+              styles.toolbar_layout_item
+            )}
+          >
+            {this.getShareBtn()}
+          </ImgButton>
 
           <Dropdown className={joinClasses(styles.toolbar_layout_item)}>
             <Dropdown.Toggle
@@ -535,6 +539,12 @@ export class FullCardFootbarImpl extends React.Component {
           </Dropdown>
         </ButtonToolbar>
 
+        <ShareModal
+          show={this.state.modalShareShow}
+          nid={this.props.nid}
+          account={this.props.account}
+          onHide={this.hideShareDialog}
+        />
         <LeftSearchModal
           addRef={this.props.addRef}
           nid={this.props.nid}

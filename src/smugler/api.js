@@ -16,6 +16,7 @@ const kHeaderLastModified = "last-modified";
 const kHeaderContentType = "content-type";
 const kHeaderLocalSecretId = "x-local-secret-id";
 const kHeaderLocalSignature = "x-local-signature";
+const kHeaderNodeMeta = "x-node-meta";
 
 const kHeaderContentTypeUtf8 = "text/plain; charset=utf-8";
 
@@ -99,6 +100,9 @@ async function getNode({ nid, crypto, cancelToken }) {
   if (!res) {
     return null;
   }
+  console.log("Res", res);
+  const metaStr = res.headers[kHeaderNodeMeta];
+  const meta = metaStr != null ? base64.toObject(metaStr) : {};
   const { doc, secret_id, success } = await _tryToDecryptDocLocally(
     nid,
     res.data,
@@ -111,6 +115,7 @@ async function getNode({ nid, crypto, cancelToken }) {
     created_at: moment(res.headers[kHeaderCreatedAt]),
     updated_at: moment(res.headers[kHeaderLastModified]),
     attrs: null,
+    meta: meta,
     crypto: {
       secret_id: secret_id,
       success: success,
@@ -235,6 +240,37 @@ async function createFewEdges({ edges, cancelToken }) {
     });
 }
 
+async function getNodeMeta({ nid, cancelToken }) {
+  return await axios
+    .get("/api/node/" + nid + "/meta", {
+      cancelToken: cancelToken,
+    })
+    .catch(dealWithError)
+    .then((res) => {
+      if (res) {
+        return res.data;
+      }
+    });
+}
+
+async function updateNodeMeta({ nid, meta, cancelToken }) {
+  const req = {
+    meta: meta,
+  };
+  console.log("updateNodeMeta", req);
+  return await axios
+    .patch("/api/node/" + nid + "/meta", req, {
+      cancelToken: cancelToken,
+    })
+    .catch(dealWithError)
+    .then((res) => {
+      console.log("Updated, got", res);
+      if (res) {
+        return res.data;
+      }
+    });
+}
+
 export const smugler = {
   getAnySecondKey: getAnySecondKey,
   getAuth: getAuth,
@@ -252,5 +288,9 @@ export const smugler = {
   },
   makeCancelToken: () => {
     return axios.CancelToken.source();
+  },
+  meta: {
+    get: getNodeMeta,
+    update: updateNodeMeta,
   },
 };
