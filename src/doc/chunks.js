@@ -10,7 +10,7 @@ import { Button, ButtonGroup, InputGroup, Form } from "react-bootstrap";
 import { smugler } from "./../smugler/api";
 
 import { AutocompleteWindow } from "./../smartpoint/AutocompleteWindow";
-import { MarkdownToolbar } from "../full_node_view/MarkdownToolBar.js";
+import { MarkdownToolbar } from "./MarkdownToolBar.js";
 import { joinClasses } from "../util/elClass.js";
 import { renderMdCard } from "./../markdown/MarkdownRender";
 

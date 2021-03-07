@@ -13,7 +13,6 @@ import MdToolbarIconEmojiList from "./img/markdown-tool-unordered-emoji-list.png
 import MdToolbarUnorderedList from "./img/markdown-tool-unordered-list.png";
 
 import { joinClasses } from "../util/elClass.js";
-import { NO_EXT_CLICK_DETECTION } from "./FullNodeView";
 import { EMOJI_LIST_PRESETS } from "./EmojiListPresets";
 
 import { Button, ButtonGroup } from "react-bootstrap";
@@ -24,6 +23,8 @@ import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
 var emoji = require("node-emoji");
+
+export const NO_EXT_CLICK_DETECTION = "ignoreextclick";
 
 class MarkdownToolbarImpl extends React.Component {
   constructor(props) {

@@ -76,6 +76,16 @@ export class MzdGlobal extends React.Component {
         };
       });
     };
+    this.logout = () => {
+      this.setState((state) => {
+        return {
+          account: {
+            account: null,
+            logout: state.account.logout,
+          },
+        };
+      });
+    };
     this.state = {
       toaster: {
         toasts: [],

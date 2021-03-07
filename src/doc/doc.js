@@ -37,16 +37,11 @@ export class DocRenderImpl extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      doc: null,
-      meta: null,
-      crtd: null,
-      upd: null,
       edit_chunk_opts: {
         index: this.isEditingStart() ? 0 : -1,
         begin: 0,
         end: 0,
       },
-      crypto: null,
     };
     this.fetchCancelToken = axios.CancelToken.source();
     this.updateCancelToken = axios.CancelToken.source();
@@ -56,53 +51,9 @@ export class DocRenderImpl extends React.Component {
     location: PropTypes.object.isRequired,
   };
 
-  componentDidUpdate(prevProps) {
-    // Don't forget to compare props!
-    if (
-      this.props.nid !== prevProps.nid ||
-      this.props.account !== prevProps.account
-    ) {
-      this.fetchNode();
-    }
-  }
-
-  componentWillUnmount() {
-    this.fetchCancelToken.cancel();
-    // No, we have to save whatever we have here
-    // this.updateCancelToken.cancel();
-  }
-
-  componentDidMount() {
-    this.fetchNode();
-  }
-
-  fetchNode = () => {
-    const nid = this.props.nid;
-    if (!this.props.account || !this.props.account.getLocalCrypto()) {
-      return;
-    }
-    return smugler.node
-      .get({
-        nid: nid,
-        cancelToken: this.fetchCancelToken.token,
-        crypto: this.props.account.getLocalCrypto(),
-      })
-      .then((node) => {
-        if (node) {
-          this.setState({
-            doc: node.doc,
-            meta: node.meta,
-            crtd: node.created_at,
-            upd: node.updated_at,
-            crypto: node.crypto,
-          });
-        }
-      });
-  };
-
   updateNode = (doc, toIndex, selectionStart) => {
     const length = doc.chunks.length;
-    if (toIndex) {
+    if (toIndex != null) {
       if (length > 0 && toIndex >= length) {
         toIndex = length - 1;
       }
@@ -110,25 +61,19 @@ export class DocRenderImpl extends React.Component {
       toIndex = -1;
     }
     const editOpts = {
-      index: toIndex || -1,
+      index: toIndex,
       begin: selectionStart || 0,
       end: selectionStart || 0,
     };
     this.setState({
-      doc: doc,
-      upd: moment(),
       edit_chunk_opts: editOpts,
     });
-    return smugler.node.update({
-      nid: this.props.nid,
-      doc: doc,
-      cancelToken: this.updateCancelToken.token,
-    });
+    return this.props.updateNode(doc);
   };
 
   editChunk = (index, begin, end) => {
     index = index || 0;
-    const length = this.state.doc.chunks.length;
+    const length = this.props.node.doc.chunks.length;
     if (length > 0 && index >= length) {
       index = length - 1;
     }
@@ -157,10 +102,10 @@ export class DocRenderImpl extends React.Component {
    * Repace the chunk with index [index] with new chunks
    */
   replaceChunk = (chunks, index, toIndex, selectionStart) => {
-    const newChunks = this.state.doc.chunks
+    const newChunks = this.props.node.doc.chunks
       .slice(0, index)
       .concat(chunks)
-      .concat(this.state.doc.chunks.slice(index + 1));
+      .concat(this.props.node.doc.chunks.slice(index + 1));
     const newDoc = {
       chunks: newChunks,
     };
@@ -176,14 +121,14 @@ export class DocRenderImpl extends React.Component {
       return this.replaceChunk([chunk], index, toIndex, selectionStart);
     }
     const prevIndex = index - 1;
-    const newChunk = mergeChunks(this.state.doc.chunks[prevIndex], chunk);
+    const newChunk = mergeChunks(this.props.node.doc.chunks[prevIndex], chunk);
     if (selectionStart !== null && selectionStart < 0) {
       selectionStart = newChunk.source.length + selectionStart;
     }
-    const newChunks = this.state.doc.chunks
+    const newChunks = this.props.node.doc.chunks
       .slice(0, prevIndex)
       .concat([newChunk])
-      .concat(this.state.doc.chunks.slice(index + 1));
+      .concat(this.props.node.doc.chunks.slice(index + 1));
     const newDoc = {
       chunks: newChunks,
     };
@@ -195,7 +140,7 @@ export class DocRenderImpl extends React.Component {
   }
 
   getDocAsMarkdown = () => {
-    const md = extractDocAsMarkdown(this.state.doc);
+    const md = extractDocAsMarkdown(this.props.node.doc);
     return md;
   };
 
@@ -222,29 +167,30 @@ export class DocRenderImpl extends React.Component {
   }
 
   render() {
-    const footer = this.state.upd ? (
+    const footer = this.props.node && this.props.node.upd ? (
       <small className="text-muted">
         <i>
-          Created {moment(this.state.crtd).fromNow()}, updated{" "}
-          {moment(this.state.upd).fromNow()}
+          Created {moment(this.props.node.crtd).fromNow()}, updated{" "}
+          {moment(this.props.node.upd).fromNow()}
         </i>
       </small>
     ) : null;
     let body = null;
-    if (this.state.crypto && !this.state.crypto.success) {
-      body = (
-        <>
-          <img src={LockedImg} className={styles.locked_img} alt={"locked"} />
-          Encrypted with an unknown secret:
-          <code className={styles.locked_secret_id}>
-            {this.state.crypto.secret_id}
-          </code>
-        </>
-      );
-    } else if (this.state.doc) {
+    // if (this.state.crypto && !this.state.crypto.success) {
+    //   body = (
+    //     <>
+    //       <img src={LockedImg} className={styles.locked_img} alt={"locked"} />
+    //       Encrypted with an unknown secret:
+    //       <code className={styles.locked_secret_id}>
+    //         {this.state.crypto.secret_id}
+    //       </code>
+    //     </>
+    //   );
+    // } else
+    if (this.props.node && this.props.node.doc) {
       const chunks =
-        this.state.doc.chunks && this.state.doc.chunks.length > 0
-          ? this.state.doc.chunks
+        this.props.node.doc.chunks && this.props.node.doc.chunks.length > 0
+          ? this.props.node.doc.chunks
           : [createEmptyChunk()];
       const edit_chunk_opts = this.state.edit_chunk_opts;
       body = chunks.map((chunk, index) => {
@@ -272,6 +218,18 @@ export class DocRenderImpl extends React.Component {
       // TODO(akindyakov): Add loading animation here
       body = <Loader />;
     }
+
+    const footbar = this.props.node && this.props.node.meta ?
+      (
+        <FullCardFootbar
+          addRef={this.props.addRef}
+          nid={this.props.nid}
+          meta={this.props.node.meta}
+          account={this.props.account}
+          stickyEdges={this.props.stickyEdges}
+          getMarkdown={this.getDocAsMarkdown}
+          reloadNode={this.fetchNode}
+        />) : null;
     // {this.makeCardToolbar()}
     return (
       <Card
@@ -281,15 +239,7 @@ export class DocRenderImpl extends React.Component {
           {body}
         </Card.Body>
         <footer className="text-right m-2">{footer}</footer>
-        <FullCardFootbar
-          addRef={this.props.addRef}
-          nid={this.props.nid}
-          meta={this.state.meta}
-          account={this.props.account}
-          stickyEdges={this.props.stickyEdges}
-          getMarkdown={this.getDocAsMarkdown}
-          reloadNode={this.fetchNode}
-        />
+        {footbar}
       </Card>
     );
   }

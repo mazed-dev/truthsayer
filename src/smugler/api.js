@@ -240,6 +240,29 @@ async function createFewEdges({ edges, cancelToken }) {
     });
 }
 
+async function getNodeEdges(nid, cancelToken, dir) {
+  console.log("Get node edges ", nid, dir);
+  return axios
+    .get("/api/node/" + nid + dir, {
+      cancelToken: cancelToken,
+    })
+    .catch(dealWithError)
+    .then((res) => {
+      if (res) {
+        return res.data;
+      }
+      return null;
+    });
+}
+
+async function getEdgesToNode({ nid, cancelToken }) {
+  return await getNodeEdges(nid, cancelToken, "/to");
+}
+
+async function getEdgesFromNode({ nid, cancelToken }) {
+  return await getNodeEdges(nid, cancelToken, "/from");
+}
+
 async function getNodeMeta({ nid, cancelToken }) {
   return await axios
     .get("/api/node/" + nid + "/meta", {
@@ -247,7 +270,7 @@ async function getNodeMeta({ nid, cancelToken }) {
     })
     .catch(dealWithError)
     .then((res) => {
-      if (res) {
+      if (res && res.data) {
         return res.data;
       }
     });
@@ -257,15 +280,13 @@ async function updateNodeMeta({ nid, meta, cancelToken }) {
   const req = {
     meta: meta,
   };
-  console.log("updateNodeMeta", req);
   return await axios
     .patch("/api/node/" + nid + "/meta", req, {
       cancelToken: cancelToken,
     })
     .catch(dealWithError)
     .then((res) => {
-      console.log("Updated, got", res);
-      if (res) {
+      if (res && res.data) {
         return res.data;
       }
     });
@@ -285,6 +306,8 @@ export const smugler = {
   edge: {
     create: createEdge,
     createFew: createFewEdges,
+    getTo: getEdgesToNode,
+    getFrom: getEdgesFromNode,
   },
   makeCancelToken: () => {
     return axios.CancelToken.source();

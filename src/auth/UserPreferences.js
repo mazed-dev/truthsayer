@@ -3,8 +3,6 @@ import { Link, withRouter } from "react-router-dom";
 
 import { Button, Container, Image } from "react-bootstrap";
 
-import axios from "axios";
-
 import user_default_pic from "./img/user-default-pic.png";
 
 class UserPreferences extends React.Component {

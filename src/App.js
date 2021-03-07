@@ -1,7 +1,7 @@
 import React from "react";
 
 import DoodledBird from "./DoodledBird.svg";
-import FullNodeView from "./full_node_view/FullNodeView";
+import Triptych from "./card/Triptych";
 import SearchGrid from "./grid/SearchGrid";
 
 // React router
@@ -176,7 +176,7 @@ class App extends React.Component {
                   path="/n/:id"
                   is_authenticated={this.state.is_authenticated}
                 >
-                  <NodeView account={this.state.account} />
+                  <TriptychView account={this.state.account} />
                 </Route>
                 <PrivateRoute
                   path="/upload-file"
@@ -386,11 +386,11 @@ function PasswordRecoverFormView() {
   return <PasswordRecoverForm token={token} />;
 }
 
-function NodeView(props) {
+function TriptychView(props) {
   // We can use the `useParams` hook here to access
   // the dynamic pieces of the URL.
   let { id } = useParams();
-  return <FullNodeView nid={id} account={props.account} />;
+  return <Triptych nid={id} account={props.account} />;
 }
 
 function SearchView(props) {

@@ -1,7 +1,7 @@
 import React from "react";
 
-import "./FullNodeView.css";
-import styles from "./FullNodeView.module.css";
+import "./Triptych.css";
+import styles from "./Triptych.module.css";
 
 import StickyOnImg from "./img/sticky-on.png";
 import StickyAddImg from "./img/sticky-add.png";
@@ -19,6 +19,7 @@ import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
 import { joinClasses } from "../util/elClass.js";
+import { smugler } from "../smugler/api.js";
 
 import { Button, ButtonGroup, Container, Row, Col } from "react-bootstrap";
 
@@ -192,8 +193,6 @@ class RefNodeCardImpl extends React.Component {
 
 const RefNodeCard = withRouter(RefNodeCardImpl);
 
-export const NO_EXT_CLICK_DETECTION = "ignoreextclick";
-
 class NodeRefsImpl extends React.Component {
   render() {
     const refs = this.props.edges.map((edge) => {
@@ -227,23 +226,29 @@ class NodeRefsImpl extends React.Component {
 
 const NodeRefs = withRouter(NodeRefsImpl);
 
-class FullNodeView extends React.Component {
+class Triptych extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      node: null,
       edges_left: [],
       edges_right: [],
       edges_sticky: [],
     };
-    this.fetchCancelToken = axios.CancelToken.source();
+    this.toEdgesCancelToken = smugler.makeCancelToken();
+    this.fromEdgesCancelToken = smugler.makeCancelToken();
+    this.fetchNodeCancelToken = smugler.makeCancelToken();
   }
 
   componentDidMount() {
     this.fetchEdges();
+    this.fetchNode();
   }
 
   componentWillUnmount() {
-    this.fetchCancelToken.cancel();
+    this.toEdgesCancelToken.cancel();
+    this.fromEdgesCancelToken.cancel();
+    this.fetchNodeCancelToken.cancel();
   }
 
   componentDidUpdate(prevProps) {
@@ -254,32 +259,74 @@ class FullNodeView extends React.Component {
   }
 
   fetchEdges = () => {
-    axios
-      .get("/api/node/" + this.props.nid + "/edge", {
-        cancelToken: this.fetchCancelToken.token,
+    smugler.edge
+      .getTo({
+        nid: this.props.nid,
+        cancelToken: this.toEdgesCancelToken.token,
       })
-      .then((res) => {
-        if (res) {
-          var edges_left = [];
-          var edges_right = [];
-          var edges_sticky = [];
-          res.data.edges.forEach((edge) => {
-            if (edge.from_nid === this.props.nid) {
-              edges_right.push(edge);
-            } else {
-              edges_left.push(edge);
-            }
-            if (edge.is_sticky) {
-              edges_sticky.push(edge);
-            }
+      .then((star) => {
+        if (star) {
+          const edges_sticky = star.edges.filter((edge) => {
+            return edge.is_sticky;
           });
-          this.setState({
-            edges_left: edges_left,
-            edges_right: edges_right,
-            edges_sticky: edges_sticky,
+          this.setState((state) => {
+            return {
+              edges_left: star.edges,
+              edges_sticky: state.edges_sticky.concat(edges_sticky),
+            };
           });
         }
       });
+    smugler.edge
+      .getFrom({
+        nid: this.props.nid,
+        cancelToken: this.toEdgesCancelToken.token,
+      })
+      .then((star) => {
+        if (star) {
+          const edges_sticky = star.edges.filter((edge) => {
+            return edge.is_sticky;
+          });
+          this.setState((state) => {
+            return {
+              edges_right: star.edges,
+              edges_sticky: state.edges_sticky.concat(edges_sticky),
+            };
+          });
+        }
+      });
+  };
+
+  fetchNode = () => {
+    const nid = this.props.nid;
+    return smugler.node
+      .get({
+        nid: nid,
+        cancelToken: this.fetchNodeCancelToken.token,
+      })
+      .then((node) => {
+        if (node) {
+          this.setState({
+            node: node,
+          });
+        }
+      });
+  };
+
+  updateNode = (doc) => {
+    // For callback
+    return smugler.node.update({
+      nid: this.props.nid,
+      doc: doc,
+      cancelToken: this.fetchNodeCancelToken.token,
+    }).then((resp) => {
+      this.setState((state) => {
+        let node = state.node;
+        node.doc = doc;
+        return {node: node};
+      });
+      return resp;
+    });
   };
 
   cutOffLeftRef = (eid) => {
@@ -355,10 +402,11 @@ class FullNodeView extends React.Component {
           <Col className={styles.note_col}>
             <DocRender
               nid={this.props.nid}
-              sticky_edges={this.state.edges_sticky}
               addRef={this.addRef}
               account={this.props.account}
               stickyEdges={this.state.edges_sticky}
+              node={this.state.node}
+              updateNode={this.updateNode}
             />
           </Col>
           <Col className={styles.refs_col}>
@@ -376,4 +424,4 @@ class FullNodeView extends React.Component {
   }
 }
 
-export default withRouter(FullNodeView);
+export default withRouter(Triptych);

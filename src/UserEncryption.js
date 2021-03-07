@@ -1,16 +1,12 @@
 import React from "react";
 
 // React router
-import { Link } from "react-router-dom";
-
 import {
   InputGroup,
   Form,
   Button,
   ButtonGroup,
   Container,
-  Image,
-  ListGroup,
   Card,
   Row,
   Col,

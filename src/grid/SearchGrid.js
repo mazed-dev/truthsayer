@@ -3,10 +3,7 @@ import React from "react";
 import styles from "./SearchGrid.module.css";
 
 // import PropTypes from "prop-types";
-import moment from "moment";
-import axios from "axios";
 import { Container, Row, Col } from "react-bootstrap";
-import { withRouter } from "react-router-dom";
 
 import NodeSmallCard from "./../NodeSmallCard";
 
@@ -61,7 +58,7 @@ class DynamicGrid extends React.Component {
     //     }
     //     return opt;
     //   }, [1, 1]);
-    const [delta, cardsN] = fn(19);
+    const cardsN = fn(19)[1];
     const ncols = Math.max(1, cardsN);
     this.setState({
       width: width,
@@ -96,9 +93,7 @@ class DynamicGrid extends React.Component {
   }
 }
 
-const _kTimeWindowSizeSeconds = 4 * 7 * 24 * 60 * 60;
 const _kTimeLimit = Math.floor(Date.now() / 1000) - 2 * 356 * 24 * 60 * 60;
-const _kChunkSizeMax = 256;
 
 export class SearchGrid extends React.Component {
   constructor(props) {
@@ -111,7 +106,7 @@ export class SearchGrid extends React.Component {
       start_time: null,
       offset: 0,
     };
-    this.fetchCancelToken = axios.CancelToken.source();
+    this.fetchCancelToken = smugler.makeCancelToken();
     this.ref = React.createRef();
   }
 
