@@ -4,7 +4,10 @@ import crc from "crc";
 
 import { Toast, Button } from "react-bootstrap";
 
+import { UserAccount, checkAuth, dropAuth , Knocker } from "./auth/local.jsx";
+
 import { joinClasses } from "./../util/elClass.js";
+import axios from "axios";
 
 import styles from "./global.module.css";
 
@@ -76,16 +79,7 @@ export class MzdGlobal extends React.Component {
         };
       });
     };
-    this.logout = () => {
-      this.setState((state) => {
-        return {
-          account: {
-            account: null,
-            logout: state.account.logout,
-          },
-        };
-      });
-    };
+    this.fetchAccountCancelToken = axios.CancelToken.source();
     this.state = {
       toaster: {
         toasts: [],
@@ -95,12 +89,25 @@ export class MzdGlobal extends React.Component {
         aux: null,
         reset: this.resetAuxToobar,
       },
+      account: null,
     };
+  }
+
+  componentDidMount() {
+    UserAccount.aCreate(this.fetchAccountCancelToken.token)
+      .then((inst) => {
+        if (inst != null) {
+          this.setState({
+            account: inst,
+          });
+        }
+      });
   }
 
   render() {
     return (
       <MzdGlobalContext.Provider value={this.state}>
+        <Knocker />
         <div
           aria-live="polite"
           aria-atomic="true"
