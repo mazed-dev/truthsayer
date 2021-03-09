@@ -13,6 +13,7 @@ import { extractIndexNGramsFromText } from "./../search/ngramsIndex.js";
 import { smugler } from "./../smugler/api.js";
 
 import { joinClasses } from "./../util/elClass.js";
+import { MzdGlobalContext } from "./../lib/global.js";
 
 import { range } from "./../util/range";
 import { Loader } from "./../lib/loader";
@@ -127,8 +128,7 @@ export class SearchGrid extends React.Component {
   componentDidUpdate(prevProps) {
     if (
       this.props.q !== prevProps.q ||
-      this.props.extCards !== prevProps.extCards ||
-      this.props.account !== prevProps.account
+      this.props.extCards !== prevProps.extCards
     ) {
       this.fetchData();
     }
@@ -141,7 +141,8 @@ export class SearchGrid extends React.Component {
   };
 
   fetchData = () => {
-    if (this.props.account == null) {
+    let account = this.context.account;
+    if (account == null) {
       return;
     }
     if (
@@ -183,13 +184,14 @@ export class SearchGrid extends React.Component {
       "], ",
       this.state.nodes.length
     );
+    let account = this.context.account;
     smugler.node
       .slice({
         start_time: start_time,
         end_time: end_time,
         offset: offset,
         cancelToken: this.fetchCancelToken.token,
-        crypto: this.props.account.getLocalCrypto(),
+        crypto: account.getLocalCrypto(),
       })
       .then((data) => {
         if (!data) {
@@ -256,7 +258,8 @@ export class SearchGrid extends React.Component {
   };
 
   render() {
-    if (this.props.account == null) {
+    let account = this.context.account;
+    if (account == null) {
       return (
         <div className={styles.search_grid_waiter}>
           <Loader size={"large"} />;
@@ -285,7 +288,6 @@ export class SearchGrid extends React.Component {
             edges={item.edges}
             clickable={true}
             onClick={this.props.onCardClick}
-            account={this.props.account}
           />
         );
       });
@@ -312,6 +314,7 @@ export class SearchGrid extends React.Component {
   }
 }
 
+SearchGrid.contextType = MzdGlobalContext;
 SearchGrid.defaultProps = {
   defaultSearch: true,
   portable: false,

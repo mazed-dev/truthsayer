@@ -184,7 +184,6 @@ class RefNodeCardImpl extends React.Component {
           crtd={null}
           upd={null}
           skip_input_edge={true}
-          account={this.props.account}
         />
       </div>
     );
@@ -216,7 +215,6 @@ class NodeRefsImpl extends React.Component {
           edge={edge}
           switchStickiness={this.props.switchStickiness}
           cutOffRef={this.props.cutOffRef}
-          account={this.props.account}
         />
       );
     });
@@ -315,18 +313,20 @@ class Triptych extends React.Component {
 
   updateNode = (doc) => {
     // For callback
-    return smugler.node.update({
-      nid: this.props.nid,
-      doc: doc,
-      cancelToken: this.fetchNodeCancelToken.token,
-    }).then((resp) => {
-      this.setState((state) => {
-        let node = state.node;
-        node.doc = doc;
-        return {node: node};
+    return smugler.node
+      .update({
+        nid: this.props.nid,
+        doc: doc,
+        cancelToken: this.fetchNodeCancelToken.token,
+      })
+      .then((resp) => {
+        this.setState((state) => {
+          let node = state.node;
+          node.doc = doc;
+          return { node: node };
+        });
+        return resp;
       });
-      return resp;
-    });
   };
 
   cutOffLeftRef = (eid) => {
@@ -396,14 +396,12 @@ class Triptych extends React.Component {
               cutOffRef={this.cutOffLeftRef}
               switchStickiness={this.switchStickiness}
               className={styles.node_refs_left}
-              account={this.props.account}
             />
           </Col>
           <Col className={styles.note_col}>
             <DocRender
               nid={this.props.nid}
               addRef={this.addRef}
-              account={this.props.account}
               stickyEdges={this.state.edges_sticky}
               node={this.state.node}
               updateNode={this.updateNode}
@@ -415,7 +413,6 @@ class Triptych extends React.Component {
               edges={this.state.edges_right}
               cutOffRef={this.cutOffRightRef}
               switchStickiness={this.switchStickiness}
-              account={this.props.account}
             />
           </Col>
         </Row>

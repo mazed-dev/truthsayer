@@ -1,4 +1,6 @@
 import Cookies from "universal-cookie";
+import React from "react";
+import axios from "axios";
 
 import { LocalCrypto } from "./../crypto/local.jsx";
 import { getAuth } from "./../smugler/api.js";
@@ -60,57 +62,58 @@ export function dropAuth() {
   cookies.remove(_VEIL_KEY);
 }
 
-
 export class Knocker extends React.Component {
   constructor(props) {
     super(props);
-    this.updateAuthCancelToken = axios.CancelToken.source();
+    this.knockCancelToken = axios.CancelToken.source();
     this.state = {
-      auth_renewer: null,
+      scheduledKnocKnockId: null,
     };
   }
 
   componentDidMount() {
     if (checkAuth()) {
-      this.delayedKnocKnock();
+      this.scheduleKnocKnock();
     }
   }
 
   componentWillUnmount() {
-    this.updateAuthCancelToken.cancel();
+    this.knockCancelToken.cancel();
     // https://javascript.info/settimeout-setinterval
-    clearTimeout(this.state.auth_renewer);
+    clearTimeout(this.state.scheduledKnocKnockId);
   }
 
-  delayedKnocKnock = () => {
-    if (!this.state.auth_renewer !== null) {
-      clearTimeout(this.state.auth_renewer);
-    }
-    const auth_renewer = setTimeout(this.knocKnock, 600000);
+  scheduleKnocKnock = () => {
+    this.cancelDelayedKnocKnock();
+    const scheduledKnocKnockId = setTimeout(this.doKnocKnock, 600000);
     this.setState({
-      auth_renewer: auth_renewer,
+      scheduledKnocKnockId: scheduledKnocKnockId,
     });
+  };
+
+  cancelDelayedKnocKnock = () => {
+    if (!this.state.scheduledKnocKnockId !== null) {
+      clearTimeout(this.state.scheduledKnocKnockId);
+    }
   };
 
   logout = () => {
-    if (!this.state.auth_renewer !== null) {
-      clearTimeout(this.state.auth_renewer);
-    }
-    this.updateAuthCancelToken.cancel();
+    this.cancelDelayedKnocKnock();
+    this.knockCancelToken.cancel();
     dropAuth();
     this.setState({
-      auth_renewer: null,
+      scheduledKnocKnockId: null,
     });
   };
 
-  knocKnock = () => {
+  doKnocKnock = () => {
     axios
       .patch("/api/auth/session", {
-        cancelToken: this.updateAuthCancelToken.token,
+        cancelToken: this.knockCancelToken.token,
       })
       .then((res) => {
         if (res) {
-          this.delayedKnocKnock();
+          this.scheduleKnocKnock();
         } else {
           this.logout();
         }
@@ -121,6 +124,6 @@ export class Knocker extends React.Component {
   };
 
   render() {
-    return (<></>);
+    return <></>;
   }
 }

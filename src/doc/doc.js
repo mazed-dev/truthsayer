@@ -167,14 +167,15 @@ export class DocRenderImpl extends React.Component {
   }
 
   render() {
-    const footer = this.props.node && this.props.node.upd ? (
-      <small className="text-muted">
-        <i>
-          Created {moment(this.props.node.crtd).fromNow()}, updated{" "}
-          {moment(this.props.node.upd).fromNow()}
-        </i>
-      </small>
-    ) : null;
+    const footer =
+      this.props.node && this.props.node.upd ? (
+        <small className="text-muted">
+          <i>
+            Created {moment(this.props.node.crtd).fromNow()}, updated{" "}
+            {moment(this.props.node.upd).fromNow()}
+          </i>
+        </small>
+      ) : null;
     let body = null;
     // if (this.state.crypto && !this.state.crypto.success) {
     //   body = (
@@ -219,8 +220,8 @@ export class DocRenderImpl extends React.Component {
       body = <Loader />;
     }
 
-    const footbar = this.props.node && this.props.node.meta ?
-      (
+    const footbar =
+      this.props.node && this.props.node.meta ? (
         <FullCardFootbar
           addRef={this.props.addRef}
           nid={this.props.nid}
@@ -229,7 +230,8 @@ export class DocRenderImpl extends React.Component {
           stickyEdges={this.props.stickyEdges}
           getMarkdown={this.getDocAsMarkdown}
           reloadNode={this.fetchNode}
-        />) : null;
+        />
+      ) : null;
     // {this.makeCardToolbar()}
     return (
       <Card

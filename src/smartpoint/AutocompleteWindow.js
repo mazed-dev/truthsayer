@@ -142,7 +142,6 @@ class AutocompleteModal extends React.Component {
         portable={true}
         onCardClick={this.onNodeCardClick}
         extCards={this.state.cards}
-        account={this.props.account}
       />
     );
     return (
@@ -181,7 +180,6 @@ export class AutocompleteWindow extends React.Component {
         <AutocompleteModal
           on_insert={this.props.on_insert}
           nid={this.props.nid}
-          account={this.props.account}
           suggestNewRef={this.props.suggestNewRef}
           suggestDateTime={this.props.suggestDateTime}
         />

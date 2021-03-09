@@ -57,7 +57,6 @@ class LeftSearchModal extends React.Component {
           onHide={this.props.onHide}
           on_insert={this.handleReplaceSmartpoint}
           nid={this.props.nid}
-          account={this.props.account}
         />
       </>
     );
@@ -114,13 +113,13 @@ class RightSearchModal extends React.Component {
   };
 
   render() {
+    let account = this.context.account;
     return (
       <AutocompleteWindow
         show={this.props.show}
         onHide={this.props.onHide}
         on_insert={this.handleReplaceSmartpoint}
         nid={this.props.nid}
-        account={this.props.account}
       />
     );
   }
@@ -225,7 +224,6 @@ export class FullCardFootbarImpl extends React.Component {
   };
 
   handleNextRight = (event) => {
-    console.log("handleNextRight");
     smugler.node
       .create({
         cancelToken: this.remoteCancelToken.token,
@@ -247,10 +245,11 @@ export class FullCardFootbarImpl extends React.Component {
   };
 
   handleNextRightClone = (event) => {
+    let account = this.context.account;
     cloneNode(
       this.props.nid,
       null,
-      this.props.account.getLocalCrypto(),
+      account.getLocalCrypto(),
       this.remoteCancelToken.token
     ).then((node) => {
       if (node) {
@@ -282,10 +281,11 @@ export class FullCardFootbarImpl extends React.Component {
   };
 
   handleNextLeftClone = () => {
+    let account = this.context.account;
     cloneNode(
       null,
       this.props.nid,
-      this.props.account.getLocalCrypto(),
+      account.getLocalCrypto(),
       this.remoteCancelToken.token
     ).then((node) => {
       if (node) {
@@ -542,20 +542,17 @@ export class FullCardFootbarImpl extends React.Component {
         <ShareModal
           show={this.state.modalShareShow}
           nid={this.props.nid}
-          account={this.props.account}
           onHide={this.hideShareDialog}
         />
         <LeftSearchModal
           addRef={this.props.addRef}
           nid={this.props.nid}
-          account={this.props.account}
           show={this.state.modalLeftShow}
           onHide={this.hideLeftSearchDialog}
         />
         <RightSearchModal
           addRef={this.props.addRef}
           nid={this.props.nid}
-          account={this.props.account}
           show={this.state.modalRightShow}
           onHide={this.hideRightSearchDialog}
         />

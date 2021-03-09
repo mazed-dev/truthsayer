@@ -4,7 +4,7 @@ import crc from "crc";
 
 import { Toast, Button } from "react-bootstrap";
 
-import { UserAccount, checkAuth, dropAuth , Knocker } from "./auth/local.jsx";
+import { UserAccount, checkAuth, dropAuth, Knocker } from "./../auth/local.jsx";
 
 import { joinClasses } from "./../util/elClass.js";
 import axios from "axios";
@@ -94,14 +94,14 @@ export class MzdGlobal extends React.Component {
   }
 
   componentDidMount() {
-    UserAccount.aCreate(this.fetchAccountCancelToken.token)
-      .then((inst) => {
-        if (inst != null) {
-          this.setState({
-            account: inst,
-          });
-        }
-      });
+    UserAccount.aCreate(this.fetchAccountCancelToken.token).then((inst) => {
+      console.log("Got account, set global context", inst);
+      if (inst != null) {
+        this.setState({
+          account: inst,
+        });
+      }
+    });
   }
 
   render() {
