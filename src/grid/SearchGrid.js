@@ -126,6 +126,9 @@ export class SearchGrid extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
+    // We need to re-featch only on changes to the search parameters,
+    // changes to extCards or on changes to account from global context.
+    console.log("componentDidUpdate", prevProps, this.props);
     if (
       this.props.q !== prevProps.q ||
       this.props.extCards !== prevProps.extCards
@@ -141,10 +144,6 @@ export class SearchGrid extends React.Component {
   };
 
   fetchData = () => {
-    let account = this.context.account;
-    if (account == null) {
-      return;
-    }
     if (
       !this.props.defaultSearch &&
       (this.props.q == null || this.props.q.length < 2)
@@ -162,28 +161,20 @@ export class SearchGrid extends React.Component {
       },
       this.secureSearchIteration
     );
-    // const upd_days_ago_after = 30;
-    // const upd_days_ago_before = 0;
-    // const offset = 0;
-    // this.secureSearchIteration(
-    // upd_days_ago_after,
-    // upd_days_ago_before,
-    // offset,
-    // );
   };
 
   secureSearchIteration = () => {
     let end_time = this.state.end_time;
     let start_time = this.state.start_time;
     let offset = this.state.offset;
-    console.info(
-      "Fetching [",
-      start_time,
-      end_time,
-      offset,
-      "], ",
-      this.state.nodes.length
-    );
+    //*dbg*/ console.info(
+    //*dbg*/   "Fetching [",
+    //*dbg*/   start_time,
+    //*dbg*/   end_time,
+    //*dbg*/   offset,
+    //*dbg*/   "], ",
+    //*dbg*/   this.state.nodes.length
+    //*dbg*/ );
     let account = this.context.account;
     smugler.node
       .slice({
@@ -191,7 +182,7 @@ export class SearchGrid extends React.Component {
         end_time: end_time,
         offset: offset,
         cancelToken: this.fetchCancelToken.token,
-        crypto: account.getLocalCrypto(),
+        account: account,
       })
       .then((data) => {
         if (!data) {

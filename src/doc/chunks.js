@@ -7,8 +7,6 @@ import styles from "./chunks.module.css";
 
 import { Button, ButtonGroup, InputGroup, Form } from "react-bootstrap";
 
-import { smugler } from "./../smugler/api";
-
 import { AutocompleteWindow } from "./../smartpoint/AutocompleteWindow";
 import { MarkdownToolbar } from "./MarkdownToolBar.js";
 import { joinClasses } from "../util/elClass.js";

@@ -20,7 +20,7 @@ const kHeaderNodeMeta = "x-node-meta";
 
 const kHeaderContentTypeUtf8 = "text/plain; charset=utf-8";
 
-async function _tryToEncryptDocLocally(doc, attrs) {
+async function _tryToEncryptDocLocally(doc, attrs, account) {
   let value;
   let headers = { [kHeaderContentType]: kHeaderContentTypeUtf8 };
   const crypto = LocalCrypto.getInstance();
@@ -46,9 +46,13 @@ async function _tryToEncryptDocLocally(doc, attrs) {
   };
 }
 
-async function _tryToDecryptDocLocally(nid, data, headers, crypto) {
+async function _tryToDecryptDocLocally(nid, data, headers, account) {
   if (kHeaderLocalSecretId in headers) {
     const secretId = headers[kHeaderLocalSecretId];
+    if (!account) {
+      return { doc: null, secret_id: secretId, success: false };
+    }
+    let crypto = account.getLocalCrypto();
     if (!crypto || !crypto.has(secretId)) {
       return { doc: null, secret_id: secretId, success: false };
     } else {
@@ -65,7 +69,14 @@ async function _tryToDecryptDocLocally(nid, data, headers, crypto) {
   return { doc: exctractDoc(data, nid), secret_id: null, success: true };
 }
 
-async function createNode({ doc, text, cancelToken, from_nid, to_nid }) {
+async function createNode({
+  doc,
+  text,
+  cancelToken,
+  from_nid,
+  to_nid,
+  account,
+}) {
   let query = {};
   if (from_nid) {
     query.from = from_nid;
@@ -76,7 +87,7 @@ async function createNode({ doc, text, cancelToken, from_nid, to_nid }) {
   doc = doc || (text && exctractDoc(text, ".new")) || createEmptyDoc();
   const attrs = extractDocAttrs(doc);
 
-  const { value, headers } = await _tryToEncryptDocLocally(doc, attrs);
+  const { value, headers } = await _tryToEncryptDocLocally(doc, attrs, account);
 
   const config = {
     headers: headers,
@@ -91,7 +102,7 @@ async function createNode({ doc, text, cancelToken, from_nid, to_nid }) {
     .catch(dealWithError);
 }
 
-async function getNode({ nid, crypto, cancelToken }) {
+async function getNode({ nid, account, cancelToken }) {
   const res = await axios
     .get("/api/node/" + nid, {
       cancelToken: cancelToken,
@@ -100,14 +111,13 @@ async function getNode({ nid, crypto, cancelToken }) {
   if (!res) {
     return null;
   }
-  console.log("Res", res);
   const metaStr = res.headers[kHeaderNodeMeta];
   const meta = metaStr != null ? base64.toObject(metaStr) : {};
   const { doc, secret_id, success } = await _tryToDecryptDocLocally(
     nid,
     res.data,
     res.headers,
-    crypto || LocalCrypto.getInstance()
+    account
   );
   return {
     nid: nid,
@@ -123,9 +133,9 @@ async function getNode({ nid, crypto, cancelToken }) {
   };
 }
 
-async function updateNode({ nid, doc, cancelToken }) {
+async function updateNode({ nid, doc, cancelToken, account }) {
   const attrs = extractDocAttrs(doc);
-  const { value, headers } = await _tryToEncryptDocLocally(doc, attrs);
+  const { value, headers } = await _tryToEncryptDocLocally(doc, attrs, account);
   const config = {
     headers: headers,
     cancelToken: cancelToken,
@@ -159,12 +169,23 @@ export function getSecondKey({ id }) {
     .catch(dealWithError);
 }
 
+async function decryptSecretAttrs(account, secretId, attrsEnc) {
+  if (account) {
+    let crypto = account.getLocalCrypto();
+    if (crypto && crypto.has(secretId)) {
+      // If this is encrypted blob, decrypt it first with local secret
+      return await crypto.decryptObj(attrsEnc);
+    }
+  }
+  return {};
+}
+
 async function nodeAttrsSearch({
   end_time,
   start_time,
   offset,
   cancelToken,
-  crypto,
+  account,
 }) {
   const req = {
     end_time: end_time,
@@ -180,19 +201,13 @@ async function nodeAttrsSearch({
     return null;
   }
   let response = rawResp.data;
-  crypto = crypto || LocalCrypto.getInstance();
   response.items = await Promise.all(
     response.items.map(async (item) => {
       if (item.attrs) {
         const attrsEnc = base64.toObject(item.attrs);
         const secretId = attrsEnc.secret_id;
         if (secretId) {
-          if (crypto.has(secretId)) {
-            // If this is encrypted blob, decrypt it first with local secret
-            item.attrs = await crypto.decryptObj(attrsEnc);
-          } else {
-            item.attrs = {};
-          }
+          item.attrs = await decryptSecretAttrs(account, secretId, attrsEnc);
         } else {
           item.attrs = attrsEnc;
         }
@@ -241,7 +256,6 @@ async function createFewEdges({ edges, cancelToken }) {
 }
 
 async function getNodeEdges(nid, cancelToken, dir) {
-  console.log("Get node edges ", nid, dir);
   return axios
     .get("/api/node/" + nid + dir, {
       cancelToken: cancelToken,

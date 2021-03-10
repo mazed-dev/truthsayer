@@ -6,7 +6,6 @@ import PropTypes from "prop-types";
 import { withRouter, useHistory } from "react-router-dom";
 
 import { renderMdSmallCard } from "./../markdown/MarkdownRender";
-import { smugler } from "./../smugler/api";
 
 import { joinClasses } from "../util/elClass.js";
 import { Loader } from "../lib/loader";

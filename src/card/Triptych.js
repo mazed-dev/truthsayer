@@ -19,6 +19,7 @@ import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
 import { joinClasses } from "../util/elClass.js";
+import { MzdGlobalContext } from "../lib/global.js";
 import { smugler } from "../smugler/api.js";
 
 import { Button, ButtonGroup, Container, Row, Col } from "react-bootstrap";
@@ -252,7 +253,13 @@ class Triptych extends React.Component {
   componentDidUpdate(prevProps) {
     // Don't forget to compare props!
     if (this.props.nid !== prevProps.nid) {
+      console.log(
+        "Triptych::componentDidUpdate, refetch",
+        prevProps,
+        this.props
+      );
       this.fetchEdges();
+      this.fetchNode();
     }
   }
 
@@ -297,12 +304,15 @@ class Triptych extends React.Component {
 
   fetchNode = () => {
     const nid = this.props.nid;
+    let account = this.context.account;
     return smugler.node
       .get({
         nid: nid,
         cancelToken: this.fetchNodeCancelToken.token,
+        account: account,
       })
       .then((node) => {
+        console.log("fetchNode :: resp", node);
         if (node) {
           this.setState({
             node: node,
@@ -313,11 +323,13 @@ class Triptych extends React.Component {
 
   updateNode = (doc) => {
     // For callback
+    let account = this.context.account;
     return smugler.node
       .update({
         nid: this.props.nid,
         doc: doc,
         cancelToken: this.fetchNodeCancelToken.token,
+        account: account,
       })
       .then((resp) => {
         this.setState((state) => {
@@ -420,5 +432,7 @@ class Triptych extends React.Component {
     );
   }
 }
+
+Triptych.contextType = MzdGlobalContext;
 
 export default withRouter(Triptych);
