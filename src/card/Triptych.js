@@ -412,10 +412,9 @@ class Triptych extends React.Component {
           </Col>
           <Col className={styles.note_col}>
             <DocRender
-              nid={this.props.nid}
+              node={this.state.node}
               addRef={this.addRef}
               stickyEdges={this.state.edges_sticky}
-              node={this.state.node}
               updateNode={this.updateNode}
             />
           </Col>

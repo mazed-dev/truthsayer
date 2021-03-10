@@ -1,15 +1,7 @@
 import React from "react";
 
-import { Link, withRouter } from "react-router-dom";
-import {
-  Button,
-  Container,
-  Form,
-  ButtonToolbar,
-  ButtonGroup,
-  DropdownButton,
-  Dropdown,
-} from "react-bootstrap";
+import { withRouter } from "react-router-dom";
+import { Button, ButtonToolbar, ButtonGroup, Dropdown } from "react-bootstrap";
 
 import PropTypes from "prop-types";
 

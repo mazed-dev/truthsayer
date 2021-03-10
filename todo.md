@@ -1,10 +1,12 @@
 # Todo
 
+- [ ] Add internal shadow to a checkboxes to make them look like empty wholes
+- [ ] Use only "Long in" option on top bar
 - [ ] Public pages availiable by direct link
   - [x] Share struct to node meta
   - [x] Allow to read shared node without user UID when node is shared
-  - [ ] Move publick "node" endpoint to "n"
-  - [ ] Meta get/update endpoints
+  - [x] Move publick "node" endpoint to "n"
+  - [x] Meta get/update endpoints
   - [ ] Mark node as shared from modal window
   - [ ] Read and show edges only for public notes
 - [ ] Add local secrets page to seetings dialog

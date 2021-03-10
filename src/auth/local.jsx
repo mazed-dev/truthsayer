@@ -21,6 +21,9 @@ export class UserAccount {
   }
 
   static async aCreate(cancelToken): Promise<UserAccount> {
+    if (!checkAuth()) {
+      return null;
+    }
     const user = await getAuth({ cancelToken: cancelToken }).then((res) => {
       if (res) {
         return res.data;

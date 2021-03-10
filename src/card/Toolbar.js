@@ -1,17 +1,6 @@
 import React from "react";
 
-import { Link, withRouter } from "react-router-dom";
-import {
-  Button,
-  Container,
-  Form,
-  ButtonToolbar,
-  ButtonGroup,
-} from "react-bootstrap";
-
-import PropTypes from "prop-types";
-
-import { smugler } from "./smugler/api";
+import { Button, ButtonToolbar, ButtonGroup } from "react-bootstrap";
 
 import styles from "./Toolbar.module.css";
 

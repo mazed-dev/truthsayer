@@ -102,14 +102,11 @@ class NodeSmallCardImpl extends React.Component {
 
   fetchPreface = () => {
     let account = this.context.account;
-    if (account == null) {
-      return;
-    }
     smugler.node
       .get({
         nid: this.props.nid,
         cancelToken: this.fetchPrefaceCancelToken.token,
-        crypto: account.getLocalCrypto(),
+        account: account,
       })
       .catch((error) => {
         console.log("Fetch node failed with error:", error);

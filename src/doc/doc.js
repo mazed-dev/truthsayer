@@ -204,7 +204,7 @@ export class DocRenderImpl extends React.Component {
           <ChunkRender
             chunk={chunk}
             key={key}
-            nid={this.props.nid}
+            nid={this.props.node.nid}
             index={index}
             replaceChunks={this.replaceChunk}
             mergeChunkUp={this.mergeChunkUp}
@@ -223,7 +223,7 @@ export class DocRenderImpl extends React.Component {
       this.props.node && this.props.node.meta ? (
         <FullCardFootbar
           addRef={this.props.addRef}
-          nid={this.props.nid}
+          nid={this.props.node.nid}
           meta={this.props.node.meta}
           account={this.props.account}
           stickyEdges={this.props.stickyEdges}
