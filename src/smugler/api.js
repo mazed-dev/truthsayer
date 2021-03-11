@@ -102,6 +102,34 @@ async function createNode({
     .catch(dealWithError);
 }
 
+class TNode {
+  constructor({
+      nid,
+      doc,
+      created_at,
+      updated_at,
+      attrs,
+      meta,
+      secret_id,
+      success,
+  }) {
+    this.nid = nid;
+    this.doc = doc;
+    this.created_at = created_at;
+    this.updated_at = updated_at;
+    this.attrs = null;
+    this.meta = meta;
+    this.crypto = {
+      secret_id: secret_id,
+      success: success,
+    };
+  }
+
+  isOwnedBy(account) {
+    return account && account.getUid() === this.meta.uid;
+  }
+};
+
 async function getNode({ nid, account, cancelToken }) {
   const res = await axios
     .get("/api/node/" + nid, {
@@ -119,18 +147,16 @@ async function getNode({ nid, account, cancelToken }) {
     res.headers,
     account
   );
-  return {
+  return new TNode({
     nid: nid,
     doc: doc,
     created_at: moment(res.headers[kHeaderCreatedAt]),
     updated_at: moment(res.headers[kHeaderLastModified]),
     attrs: null,
     meta: meta,
-    crypto: {
-      secret_id: secret_id,
-      success: success,
-    },
-  };
+    secret_id: secret_id,
+    success: success,
+  });
 }
 
 async function updateNode({ nid, doc, cancelToken, account }) {
