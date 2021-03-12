@@ -172,16 +172,10 @@ function __addStickyEdges(sticky_edges, new_nid, prev_nid, cancelToken) {
   if (edges.length === 0) {
     return Promise.resolve([]);
   }
-  return smugler.edge
-    .createFew({
-      edges: edges,
-      cancelToken: cancelToken,
-    })
-    .then((res) => {
-      if (res) {
-        return res.data.edges;
-      }
-    });
+  return smugler.edge.createFew({
+    edges: edges,
+    cancelToken: cancelToken,
+  });
 }
 
 async function cloneNode(from_nid, to_nid, crypto, cancelToken) {

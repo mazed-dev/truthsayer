@@ -104,14 +104,14 @@ async function createNode({
 
 class TNode {
   constructor({
-      nid,
-      doc,
-      created_at,
-      updated_at,
-      attrs,
-      meta,
-      secret_id,
-      success,
+    nid,
+    doc,
+    created_at,
+    updated_at,
+    attrs,
+    meta,
+    secret_id,
+    success,
   }) {
     this.nid = nid;
     this.doc = doc;
@@ -128,7 +128,7 @@ class TNode {
   isOwnedBy(account) {
     return account && account.getUid() === this.meta.uid;
   }
-};
+}
 
 async function getNode({ nid, account, cancelToken }) {
   const res = await axios
@@ -281,6 +281,35 @@ async function createFewEdges({ edges, cancelToken }) {
     });
 }
 
+class TEdge {
+  constructor({
+    eid, // EdgeId,
+    txt, // String,
+    from_nid, // NodeId,
+    to_nid, // NodeId,
+    crtd, // i64,
+    upd, // i64,
+    weight, // i32,
+    is_sticky, // bool,
+    owned_by, // UserUid,
+  }) {
+    this.eid = eid;
+    this.txt = txt;
+    this.from_nid = from_nid;
+    this.to_nid = to_nid;
+    this.crtd = crtd;
+    this.upd = upd;
+    this.weight = weight;
+    this.is_sticky = is_sticky;
+    this.owned_by = owned_by;
+  }
+
+  isOwnedBy(account) {
+    console.log("Edge is owned by", account, this.owned_by);
+    return account && account.getUid() === this.owned_by;
+  }
+}
+
 async function getNodeEdges(nid, cancelToken, dir) {
   return axios
     .get("/api/node/" + nid + dir, {
@@ -289,7 +318,11 @@ async function getNodeEdges(nid, cancelToken, dir) {
     .catch(dealWithError)
     .then((res) => {
       if (res) {
-        return res.data;
+        let star = res.data;
+        star.edges = star.edges.map((edgeObj) => {
+          return new TEdge(edgeObj);
+        });
+        return star;
       }
       return null;
     });
@@ -355,5 +388,10 @@ export const smugler = {
   meta: {
     get: getNodeMeta,
     update: updateNodeMeta,
+  },
+  snitch: {
+    // Todo(akindyakov)
+    report: null,
+    record: null,
   },
 };

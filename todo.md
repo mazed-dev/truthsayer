@@ -1,5 +1,6 @@
 # Todo
 
+- [ ] Stikiness doesn't work, #bug
 - [ ] Add internal shadow to a checkboxes to make them look like empty wholes
 - [ ] Use only "Long in" option on top bar
 - [ ] Public pages availiable by direct link

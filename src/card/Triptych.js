@@ -82,7 +82,7 @@ class StickinessSwitcher extends React.Component {
   }
 }
 
-class RefNodeCardImpl extends React.Component {
+class RefNodeCard extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -94,11 +94,6 @@ class RefNodeCardImpl extends React.Component {
     };
     this.fetchCancelToken = axios.CancelToken.source();
   }
-
-  static propTypes = {
-    location: PropTypes.object.isRequired,
-    history: PropTypes.object.isRequired,
-  };
 
   componentWillUnmount() {
     this.fetchCancelToken.cancel();
@@ -147,8 +142,9 @@ class RefNodeCardImpl extends React.Component {
   };
 
   render() {
+    let account = this.context.account;
     var toolbar;
-    if (this.state.hover) {
+    if (this.state.hover && this.props.edge.isOwnedBy(account)) {
       toolbar = (
         <ButtonGroup>
           <Button
@@ -191,9 +187,9 @@ class RefNodeCardImpl extends React.Component {
   }
 }
 
-const RefNodeCard = withRouter(RefNodeCardImpl);
+RefNodeCard.contextType = MzdGlobalContext;
 
-class NodeRefsImpl extends React.Component {
+class NodeRefs extends React.Component {
   render() {
     const refs = this.props.edges.map((edge) => {
       var to_nid = null;
@@ -222,8 +218,6 @@ class NodeRefsImpl extends React.Component {
     return <div className={this.props.className}>{refs}</div>;
   }
 }
-
-const NodeRefs = withRouter(NodeRefsImpl);
 
 class Triptych extends React.Component {
   constructor(props) {
@@ -398,6 +392,7 @@ class Triptych extends React.Component {
   };
 
   render() {
+    let account = this.context.account;
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">
