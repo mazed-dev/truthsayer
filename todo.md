@@ -8,8 +8,15 @@
   - [x] Allow to read shared node without user UID when node is shared
   - [x] Move publick "node" endpoint to "n"
   - [x] Meta get/update endpoints
-  - [ ] Mark node as shared from modal window
-  - [ ] Read and show edges only for public notes
+  - [x] Mark node as shared from modal window
+  - [x] Read and show edges only for public notes
+  - [ ] Redirect to "Log-in" form when non-registered user clicks on it
+  - [ ] Show the same gloabl navbar for private and public pages
+  - [ ] Connect "alien" notes correctly
+  - [ ] Show "alien" notes correctly
+  - [ ] On public nodes show (i) information button instead of "..."
+  - [ ] On public nodes show author along with information about "upate date".
+  - [ ] On public nodes show "Published on DATE and TIME"
 - [ ] Add local secrets page to seetings dialog
 - [ ] Proper "image" logo, not just emoji
 - [ ] Font for logo must be the same size as buttons on nav bar

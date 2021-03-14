@@ -34,6 +34,28 @@ import { FullCardFootbar } from "./../card/FullCardFootbar";
 import moment from "moment";
 import axios from "axios";
 
+function DocFooter({ node, isAlien }) {
+  if (node && !isAlien) {
+    return (
+      <small className="text-muted">
+        <i>
+          Created {moment(node.created_at).fromNow()}, updated
+          {moment(node.updated_at).fromNow()}
+        </i>
+      </small>
+    );
+  }
+  if (node && isAlien) {
+    // {node.getOwner()}
+    return (
+      <small className="text-muted">
+        <i> By Alien {moment(node.updated_at).fromNow()} </i>
+      </small>
+    );
+  }
+  return <small className="text-muted"></small>;
+}
+
 export class DocRenderImpl extends React.Component {
   constructor(props) {
     super(props);
@@ -146,34 +168,15 @@ export class DocRenderImpl extends React.Component {
   };
 
   render() {
-    const footer =
-      this.props.node && this.props.node.upd ? (
-        <small className="text-muted">
-          <i>
-            Created {moment(this.props.node.crtd).fromNow()}, updated{" "}
-            {moment(this.props.node.upd).fromNow()}
-          </i>
-        </small>
-      ) : null;
     let body = null;
-    // if (this.state.crypto && !this.state.crypto.success) {
-    //   body = (
-    //     <>
-    //       <img src={LockedImg} className={styles.locked_img} alt={"locked"} />
-    //       Encrypted with an unknown secret:
-    //       <code className={styles.locked_secret_id}>
-    //         {this.state.crypto.secret_id}
-    //       </code>
-    //     </>
-    //   );
-    // } else
+    let isOwnedByUser = false;
     if (this.props.node && this.props.node.doc) {
       const chunks =
         this.props.node.doc.chunks && this.props.node.doc.chunks.length > 0
           ? this.props.node.doc.chunks
           : [createEmptyChunk()];
       const account = this.context.account;
-      const isEditable = this.props.node.isOwnedBy(account);
+      isOwnedByUser = this.props.node.isOwnedBy(account);
       const edit_chunk_opts = this.state.edit_chunk_opts;
       body = chunks.map((chunk, index) => {
         if (chunk == null) {
@@ -192,7 +195,7 @@ export class DocRenderImpl extends React.Component {
             mergeChunkUp={this.mergeChunkUp}
             editChunk={this.editChunk}
             editOpts={editOpts}
-            isEditable={isEditable}
+            isEditable={isOwnedByUser}
           />
         );
       });
@@ -217,7 +220,9 @@ export class DocRenderImpl extends React.Component {
         <Card.Body className={joinClasses(styles.doc_render_card_body)}>
           {body}
         </Card.Body>
-        <footer className="text-right m-2">{footer}</footer>
+        <footer className="text-right m-2">
+          <DocFooter node={this.props.node} isAlien={!isOwnedByUser} />
+        </footer>
         {footbar}
       </Card>
     );

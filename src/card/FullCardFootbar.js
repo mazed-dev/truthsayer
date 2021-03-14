@@ -32,6 +32,7 @@ import { MzdGlobalContext } from "../lib/global";
 import { AutocompleteWindow } from "../smartpoint/AutocompleteWindow";
 import { HoverTooltip } from "../lib/tooltip";
 import { ImgButton } from "../lib/ImgButton";
+import { goto } from "../lib/route.jsx";
 import { joinClasses } from "../util/elClass.js";
 import { markAsACopy } from "../doc/doc_util.jsx";
 import { downloadAsFile } from "../util/download_as_file.jsx";
@@ -228,7 +229,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
             this.props.nid,
             this.remoteCancelToken.token
           ).then(() => {
-            this.props.history.push("/n/" + new_nid);
+            goto.node({ history: this.props.history, nid: new_nid });
           });
         }
       });
@@ -243,8 +244,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
       this.remoteCancelToken.token
     ).then((node) => {
       if (node) {
-        const nid = node.nid;
-        this.props.history.push("/n/" + nid);
+        goto.node({ history: this.props.history, nid: node.nid });
       }
     });
   };
@@ -264,7 +264,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
             this.props.nid,
             this.remoteCancelToken.token
           ).then(() => {
-            this.props.history.push("/n/" + new_nid);
+            goto.node({ history: this.props.history, nid: new_nid });
           });
         }
       });
@@ -279,8 +279,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
       this.remoteCancelToken.token
     ).then((node) => {
       if (node) {
-        const nid = node.nid;
-        this.props.history.push("/n/" + nid);
+        goto.node({ history: this.props.history, nid: node.nid });
       }
     });
   };
@@ -566,7 +565,16 @@ class PublicFullCardFootbarImpl extends React.Component {
     history: PropTypes.object.isRequired,
   };
 
+  getAccountOrLogin = () => {
+    let account = this.context.account;
+    if (account) {
+      return account;
+    }
+    goto.login({ history: this.props.history });
+  };
+
   handleNextRight = (event) => {
+    const account = this.getAccountOrLogin();
     smugler.node
       .create({
         cancelToken: this.remoteCancelToken.token,
@@ -581,14 +589,14 @@ class PublicFullCardFootbarImpl extends React.Component {
             this.props.nid,
             this.remoteCancelToken.token
           ).then(() => {
-            this.props.history.push("/n/" + new_nid);
+            goto.node({ history: this.props.history, nid: new_nid });
           });
         }
       });
   };
 
   handleNextRightClone = (event) => {
-    let account = this.context.account;
+    const account = this.getAccountOrLogin();
     cloneNode(
       this.props.nid,
       null,
@@ -596,13 +604,13 @@ class PublicFullCardFootbarImpl extends React.Component {
       this.remoteCancelToken.token
     ).then((node) => {
       if (node) {
-        const nid = node.nid;
-        this.props.history.push("/n/" + nid);
+        goto.node({ history: this.props.history, nid: node.nid });
       }
     });
   };
 
   handleNextLeft = (event) => {
+    const account = this.getAccountOrLogin();
     smugler.node
       .create({
         cancelToken: this.remoteCancelToken.token,
@@ -617,14 +625,14 @@ class PublicFullCardFootbarImpl extends React.Component {
             this.props.nid,
             this.remoteCancelToken.token
           ).then(() => {
-            this.props.history.push("/n/" + new_nid);
+            goto.node({ history: this.props.history, nid: new_nid });
           });
         }
       });
   };
 
   handleNextLeftClone = () => {
-    let account = this.context.account;
+    const account = this.getAccountOrLogin();
     cloneNode(
       null,
       this.props.nid,
@@ -632,8 +640,7 @@ class PublicFullCardFootbarImpl extends React.Component {
       this.remoteCancelToken.token
     ).then((node) => {
       if (node) {
-        const nid = node.nid;
-        this.props.history.push("/n/" + nid);
+        goto.node({ history: this.props.history, nid: node.nid });
       }
     });
   };
@@ -661,7 +668,7 @@ class PublicFullCardFootbarImpl extends React.Component {
 
   handleDownloadMarkdown = () => {
     const md = this.props.getMarkdown();
-    downloadAsFile(this.props.nid + ".txt", md);
+    downloadAsFile(this.props.nid + ".md.txt", md);
   };
 
   render() {
@@ -699,52 +706,6 @@ class PublicFullCardFootbarImpl extends React.Component {
               />
             </HoverTooltip>
           </ImgButton>
-
-          <Dropdown className={joinClasses(styles.toolbar_layout_item)}>
-            <Dropdown.Toggle
-              variant="light"
-              className={joinClasses(styles.tool_button, styles.tool_dropdown)}
-              id={"more-options-for-fullsize-card"}
-              as={CustomMoreToggle}
-            />
-
-            <Dropdown.Menu>
-              <Dropdown.Item
-                className={styles.dropdown_menu_item}
-                onClick={this.handleCopyMarkdown}
-              >
-                <img
-                  src={CopyImg}
-                  className={styles.dropdown_menu_inline_img}
-                  alt="Copy as markdown"
-                />
-                Copy as markdown
-              </Dropdown.Item>
-              <Dropdown.Item
-                className={styles.dropdown_menu_item}
-                onClick={this.handleDownloadMarkdown}
-              >
-                <img
-                  src={DownloadImg}
-                  className={styles.dropdown_menu_inline_img}
-                  alt="Download as text"
-                />
-                Download as text
-              </Dropdown.Item>
-              <Dropdown.Divider />
-              <Dropdown.Item
-                className={styles.dropdown_menu_item}
-                onClick={this.handleArchiveDoc}
-              >
-                <img
-                  src={ArchiveImg}
-                  className={styles.dropdown_menu_inline_img}
-                  alt={"Archive"}
-                />
-                Archive
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
 
           <ImgButton
             onClick={this.handleNextRight}

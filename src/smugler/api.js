@@ -128,6 +128,10 @@ class TNode {
   isOwnedBy(account) {
     return account && account.getUid() === this.meta.uid;
   }
+
+  getOwner() {
+    return this.meta.uid;
+  }
 }
 
 async function getNode({ nid, account, cancelToken }) {
@@ -305,7 +309,6 @@ class TEdge {
   }
 
   isOwnedBy(account) {
-    console.log("Edge is owned by", account, this.owned_by);
     return account && account.getUid() === this.owned_by;
   }
 }
@@ -334,6 +337,39 @@ async function getEdgesToNode({ nid, cancelToken }) {
 
 async function getEdgesFromNode({ nid, cancelToken }) {
   return await getNodeEdges(nid, cancelToken, "/from");
+}
+
+async function switchEdgeStickiness({ eid, cancelToken, on, off }) {
+  const req = {
+    is_sticky: on != null ? on : !off,
+  };
+  return axios
+    .patch("/api/edge/" + eid, req, {
+      cancelToken: cancelToken,
+    })
+    .then((res) => {
+      if (res) {
+        return res.data;
+      }
+      return null;
+    });
+}
+
+async function deleteEdge({ eid, cancelToken }) {
+  const req = {
+    eid: eid,
+  };
+  return axios
+    .delete("/api/node/x/edge", {
+      cancelToken: cancelToken,
+      data: req,
+    })
+    .then((res) => {
+      if (res) {
+        return res.data;
+      }
+      return null;
+    });
 }
 
 async function getNodeMeta({ nid, cancelToken }) {
@@ -381,6 +417,8 @@ export const smugler = {
     createFew: createFewEdges,
     getTo: getEdgesToNode,
     getFrom: getEdgesFromNode,
+    sticky: switchEdgeStickiness,
+    delete: deleteEdge,
   },
   makeCancelToken: () => {
     return axios.CancelToken.source();

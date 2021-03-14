@@ -179,6 +179,10 @@ class NodeSmallCardImpl extends React.Component {
     //     this.state.edges.length -
     //     (this.props.skip_input_edge ? 1 : 0)
     // );
+    let footbar = null;
+    if (this.props.footbar) {
+      footbar = this.props.footbar;
+    }
     return (
       <Card
         className={joinClasses(
@@ -194,6 +198,7 @@ class NodeSmallCardImpl extends React.Component {
         <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">
           {footer}
         </footer>
+        {footbar}
       </Card>
     );
   }

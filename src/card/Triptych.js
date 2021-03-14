@@ -15,6 +15,8 @@ import { DocRender } from "./../doc/doc";
 import NodeSmallCard from "./../NodeSmallCard";
 import small_card_styles from "./../NodeSmallCard.module.css";
 
+import { SmallCardFootbar } from "./../card/SmallCardFootbar";
+
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
@@ -99,73 +101,37 @@ class RefNodeCard extends React.Component {
     this.fetchCancelToken.cancel();
   }
 
-  onHover = () => {
-    this.setState({ hover: true });
-  };
-
-  offHover = () => {
-    this.setState({ hover: false });
-  };
-
-  handleRefCutOff = () => {
-    const req = {
-      eid: this.props.eid,
-    };
-    axios
-      .delete("/api/node/x/edge", {
-        cancelToken: this.fetchCancelToken.token,
-        data: req,
-      })
-      .then((res) => {
-        if (res) {
-          this.props.cutOffRef(this.props.eid);
-        }
-      });
-  };
-
-  handleToggleStickiness = (on) => {
-    const req = {
-      is_sticky: on,
-    };
-    axios
-      .patch("/api/edge/" + this.props.eid, req, {
-        cancelToken: this.fetchCancelToken.token,
-      })
-      .then((res) => {
-        if (res) {
-          this.setState((state) => {
-            return { is_sticky: on };
-          });
-          this.props.switchStickiness(this.props.edge, on);
-        }
-      });
-  };
-
   render() {
-    let account = this.context.account;
-    var toolbar;
-    if (this.state.hover && this.props.edge.isOwnedBy(account)) {
-      toolbar = (
-        <ButtonGroup>
-          <Button
-            variant=""
-            className={styles.on_card_btn}
-            onClick={this.handleRefCutOff}
-          >
-            <img
-              src={CutTheRefImg}
-              className={styles.btn_img}
-              alt={"cut off the ref"}
-            />
-          </Button>
-          <StickinessSwitcher
-            on={this.props.edge.is_sticky}
-            switch={this.handleToggleStickiness}
-          />
-        </ButtonGroup>
-      );
-    }
-    return (
+    // var toolbar;
+    // if (this.state.hover && this.props.edge.isOwnedBy(account)) {
+    //   toolbar = (
+    //     <ButtonGroup>
+    //       <Button
+    //         variant=""
+    //         className={styles.on_card_btn}
+    //         onClick={this.handleRefCutOff}
+    //       >
+    //         <img
+    //           src={CutTheRefImg}
+    //           className={styles.btn_img}
+    //           alt={"cut off the ref"}
+    //         />
+    //       </Button>
+    //       <StickinessSwitcher
+    //         on={this.props.edge.is_sticky}
+    //         switch={this.handleToggleStickiness}
+    //       />
+    //     </ButtonGroup>
+    //   );
+    // }
+    const footbar = (
+      <SmallCardFootbar
+        edge={this.props.edge}
+        switchStickiness={this.props.switchStickiness}
+        cutOffRef={this.props.cutOffRef}
+      />
+    );
+    /*
       <div
         className={joinClasses(
           "meta-fluid-container",
@@ -175,14 +141,17 @@ class RefNodeCard extends React.Component {
         onMouseLeave={this.offHover}
       >
         <div className="meta-fluid-el-top-right">{toolbar}</div>
-        <NodeSmallCard
-          nid={this.props.nid}
-          preface={null}
-          crtd={null}
-          upd={null}
-          skip_input_edge={true}
-        />
       </div>
+    */
+    return (
+      <NodeSmallCard
+        nid={this.props.nid}
+        preface={null}
+        crtd={null}
+        upd={null}
+        skip_input_edge={true}
+        footbar={footbar}
+      />
     );
   }
 }
@@ -247,11 +216,6 @@ class Triptych extends React.Component {
   componentDidUpdate(prevProps) {
     // Don't forget to compare props!
     if (this.props.nid !== prevProps.nid) {
-      console.log(
-        "Triptych::componentDidUpdate, refetch",
-        prevProps,
-        this.props
-      );
       this.fetchEdges();
       this.fetchNode();
     }
@@ -306,7 +270,6 @@ class Triptych extends React.Component {
         account: account,
       })
       .then((node) => {
-        console.log("fetchNode :: resp", node);
         if (node) {
           this.setState({
             node: node,
@@ -372,6 +335,7 @@ class Triptych extends React.Component {
   };
 
   switchStickiness = (edge, on = false) => {
+    console.log("switchStickiness", on, edge);
     if (on) {
       edge.is_sticky = true;
       this.setState((state) => {

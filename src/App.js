@@ -37,6 +37,7 @@ import UserPreferences from "./auth/UserPreferences";
 import WelcomePage from "./WelcomePage";
 import UserEncryption from "./UserEncryption";
 import { MzdGlobal } from "./lib/global";
+import { routes } from "./lib/route";
 
 import { checkAuth } from "./auth/local.jsx";
 
@@ -67,13 +68,13 @@ class App extends React.Component {
                   {main_page}
                 </Route>
                 <PublicOnlyRoute
-                  path="/login"
+                  path={routes.login}
                   is_authenticated={isAuthenticated}
                 >
                   <Login onLogin={this.handleSuccessfulLogin} />
                 </PublicOnlyRoute>
                 <PublicOnlyRoute
-                  path="/signup"
+                  path={routes.signup}
                   is_authenticated={isAuthenticated}
                 >
                   <Signup onLogin={this.handleSuccessfulLogin} />
@@ -81,13 +82,16 @@ class App extends React.Component {
                 <Route path="/waiting-for-approval">
                   <WaitingForApproval path="/waiting-for-approval" />
                 </Route>
-                <Route path="/logout" is_authenticated={isAuthenticated}>
+                <Route path={routes.logout} is_authenticated={isAuthenticated}>
                   <Logout onLogout={this.handleLogout} />
                 </Route>
-                <PrivateRoute path="/search" is_authenticated={isAuthenticated}>
+                <PrivateRoute
+                  path={routes.search}
+                  is_authenticated={isAuthenticated}
+                >
                   <SearchView />
                 </PrivateRoute>
-                <Route path="/n/:id" is_authenticated={isAuthenticated}>
+                <Route path={routes.node} is_authenticated={isAuthenticated}>
                   <TriptychView />
                 </Route>
                 <PrivateRoute
