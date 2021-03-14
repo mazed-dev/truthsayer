@@ -143,28 +143,6 @@ export class DocRenderImpl extends React.Component {
     return md;
   };
 
-  makeCardToolbar() {
-    return (
-      <div className={styles.doc_card_toolbar}>
-        <ButtonGroup>
-          <HoverTooltip tooltip={"Copy as markdown text"}>
-            <Button
-              variant="light"
-              className={joinClasses(styles.doc_card_toolbar_btn)}
-              onClick={this.copyDocAsMarkdown}
-            >
-              <img
-                src={DownloadButtonImg}
-                className={styles.doc_card_toolbar_btn_img}
-                alt={"Copy as markdown text"}
-              />
-            </Button>
-          </HoverTooltip>
-        </ButtonGroup>
-      </div>
-    );
-  }
-
   render() {
     const footer =
       this.props.node && this.props.node.upd ? (
@@ -219,19 +197,15 @@ export class DocRenderImpl extends React.Component {
       body = <Loader />;
     }
 
-    const footbar =
-      this.props.node && this.props.node.meta ? (
-        <FullCardFootbar
-          addRef={this.props.addRef}
-          nid={this.props.node.nid}
-          meta={this.props.node.meta}
-          account={this.props.account}
-          stickyEdges={this.props.stickyEdges}
-          getMarkdown={this.getDocAsMarkdown}
-          reloadNode={this.fetchNode}
-        />
-      ) : null;
-    // {this.makeCardToolbar()}
+    const footbar = (
+      <FullCardFootbar
+        addRef={this.props.addRef}
+        node={this.props.node}
+        stickyEdges={this.props.stickyEdges}
+        getMarkdown={this.getDocAsMarkdown}
+        reloadNode={this.fetchNode}
+      />
+    );
     return (
       <Card
         className={joinClasses(styles.fluid_container, styles.doc_render_card)}
