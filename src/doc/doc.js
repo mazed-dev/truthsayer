@@ -7,8 +7,10 @@ import { withRouter, useHistory } from "react-router-dom";
 
 import { renderMdSmallCard } from "./../markdown/MarkdownRender";
 
-import { joinClasses } from "../util/elClass.js";
 import { Loader } from "../lib/loader";
+import { MzdGlobalContext } from "./../lib/global";
+
+import { joinClasses } from "../util/elClass.js";
 
 import LockedImg from "./../img/locked.png";
 import DownloadButtonImg from "./../img/download.png";
@@ -170,6 +172,8 @@ export class DocRenderImpl extends React.Component {
         this.props.node.doc.chunks && this.props.node.doc.chunks.length > 0
           ? this.props.node.doc.chunks
           : [createEmptyChunk()];
+      const account = this.context.account;
+      const isEditable = this.props.node.isOwnedBy(account);
       const edit_chunk_opts = this.state.edit_chunk_opts;
       body = chunks.map((chunk, index) => {
         if (chunk == null) {
@@ -188,7 +192,7 @@ export class DocRenderImpl extends React.Component {
             mergeChunkUp={this.mergeChunkUp}
             editChunk={this.editChunk}
             editOpts={editOpts}
-            account={this.props.account}
+            isEditable={isEditable}
           />
         );
       });
@@ -219,6 +223,8 @@ export class DocRenderImpl extends React.Component {
     );
   }
 }
+
+DocRenderImpl.contextType = MzdGlobalContext;
 
 export const DocRender = withRouter(DocRenderImpl);
 

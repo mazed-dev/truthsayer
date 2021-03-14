@@ -95,12 +95,13 @@ export class ChunkRender extends React.Component {
 
   render() {
     // &#x270E;
-    const toolbar = this.props.edit ? null : (
-      <ChunkRenderToolbar
-        enableEditMode={this.enableEditMode}
-        isFull={this.state.hover}
-      />
-    );
+    const toolbar =
+      !this.props.edit && this.props.isEditable ? (
+        <ChunkRenderToolbar
+          enableEditMode={this.enableEditMode}
+          isFull={this.state.hover}
+        />
+      ) : null;
     const card =
       this.props.editOpts != null ? (
         <TextEditor
@@ -111,7 +112,6 @@ export class ChunkRender extends React.Component {
           editChunk={this.props.editChunk}
           index={this.props.index}
           editOpts={this.props.editOpts}
-          account={this.props.account}
         />
       ) : (
         <ChunkView
@@ -388,7 +388,6 @@ export class TextEditor extends React.Component {
           onHide={this.hideModal}
           on_insert={this.handleSmartpointOnInsert}
           nid={this.props.nid}
-          account={this.props.account}
         />
         <ExtClickDetector
           callback={this._saveAndQuitEditing}
