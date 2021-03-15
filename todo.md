@@ -10,7 +10,7 @@
   - [x] Meta get/update endpoints
   - [x] Mark node as shared from modal window
   - [x] Read and show edges only for public notes
-  - [ ] Redirect to "Log-in" form when non-registered user clicks on it
+  - [x] Redirect to "Log-in" form when non-registered user clicks on it
   - [ ] Show the same gloabl navbar for private and public pages
   - [ ] Connect "alien" notes correctly
   - [ ] Show "alien" notes correctly

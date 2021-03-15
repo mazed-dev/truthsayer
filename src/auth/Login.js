@@ -4,7 +4,7 @@ import { Card, Button, Form, Container, Row, Col } from "react-bootstrap";
 
 import PropTypes from "prop-types";
 import axios from "axios";
-import { withRouter } from "react-router-dom";
+import { withRouter, Link } from "react-router-dom";
 
 import "./Signup.css";
 
@@ -135,6 +135,12 @@ class Login extends React.Component {
                     disabled={!this.state.isReady}
                   >
                     Log in
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    as={Link} to="/signup"
+                  >
+                    Sign up
                   </Button>
                 </Col>
                 <Col>{server_error}</Col>

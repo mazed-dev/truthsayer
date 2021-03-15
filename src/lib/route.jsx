@@ -6,11 +6,18 @@ const kLogOutPath = "/logout";
 const kSearchPath = "/search";
 const kNodePathPrefix = "/n/";
 
-function gotoSearch({ history, searchFor }) {
+function gotoSearch({ history, query }) {
   history.push({
     pathname: kSearchPath,
-    search: queryString.stringify({ q: searchFor }),
+    search: queryString.stringify({ q: query }),
   });
+}
+
+function getSearchAnchor({ location }) {
+  const search =
+    location && location.search ? location.search : window.location.search;
+  const params = queryString.parse(search);
+  return { query: params.q || "" };
 }
 
 function gotoPath(history, path) {
@@ -50,4 +57,9 @@ export const goto = {
   signup: gotoSignUp,
   logout: gotoLogOut,
   node: gotoNode,
+  search: gotoSearch,
+};
+
+export const anchor = {
+  search: getSearchAnchor,
 };

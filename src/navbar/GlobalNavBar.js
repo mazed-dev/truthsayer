@@ -13,6 +13,7 @@ import {
   Form,
   NavDropdown,
   Navbar,
+  Nav,
 } from "react-bootstrap";
 
 import PropTypes from "prop-types";
@@ -25,6 +26,7 @@ import { MzdGlobalContext } from "./../lib/global";
 import { smugler } from "./../smugler/api";
 
 import { HoverTooltip } from "./../lib/tooltip";
+import { goto, anchor } from "./../lib/route.jsx";
 
 import { joinClasses } from "../util/elClass.js";
 
@@ -33,76 +35,7 @@ import kUserDefaultPic from "./../auth/img/user-default-pic.png";
 import NewImg from "./../img/new-button.png";
 import UploadImg from "./../img/upload.png";
 
-class SearchFormImpl extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      value: this.props.from,
-    };
-    this.searchCmd = React.createRef();
-  }
-
-  static propTypes = {
-    history: PropTypes.object.isRequired,
-  };
-
-  componentDidMount() {
-    if (this.props.inFocus) {
-      this.searchCmd.current.focus();
-    }
-  }
-
-  handleChange = (event) => {
-    const value = event.target.value;
-    const result_fetch_cancel_id =
-      value === "" || value.length > 2
-        ? setTimeout(() => {
-            this.props.history.push({
-              pathname: "/search",
-              search: queryString.stringify({ q: value }),
-            });
-          }, 250)
-        : null;
-    this.setState((state) => {
-      if (state.result_fetch_cancel_id) {
-        clearTimeout(state.result_fetch_cancel_id);
-      }
-      return {
-        value: value,
-        // Preserve postponed fetch to be able to cancel it
-        result_fetch_cancel_id: result_fetch_cancel_id,
-      };
-    });
-  };
-
-  handleSumbit = (event) => {
-    event.preventDefault();
-    this.props.history.push({
-      pathname: "/search",
-      search: queryString.stringify({ q: this.state.value }),
-    });
-  };
-
-  render() {
-    return (
-      <Form onSubmit={this.handleSumbit} className={this.props.className}>
-        <Form.Control
-          aria-label="Search"
-          onChange={this.handleChange}
-          value={this.state.value}
-          ref={this.searchCmd}
-          placeholder="🔎  search"
-          className={styles.search_input}
-        />
-      </Form>
-    );
-  }
-}
-
-SearchFormImpl.defaultProps = {
-  callback: null,
-  from: "",
-};
+import { SearchForm } from "./SearchForm";
 
 class UserPic extends React.Component {
   constructor(props) {
@@ -147,12 +80,10 @@ class UserPic extends React.Component {
   }
 }
 
-const SearchForm = withRouter(SearchFormImpl);
-
-class GlobalNavBar extends React.Component {
+class PrivateNavButtonsImpl extends React.Component {
   constructor(props) {
     super(props);
-    this.fetchCancelToken = axios.CancelToken.source();
+    this.newNodeCancelToken = axios.CancelToken.source();
   }
 
   static propTypes = {
@@ -164,12 +95,11 @@ class GlobalNavBar extends React.Component {
     smugler.node
       .create({
         doc: null,
-        cancelToken: this.fetchCancelToken.token,
+        cancelToken: this.newNodeCancelToken.token,
       })
       .then((node) => {
         if (node) {
-          const new_nid = node.nid;
-          this.props.history.push("/n/" + new_nid, { edit: true });
+          goto.node({ history: this.props.history, nid: node.nid });
         }
       });
   };
@@ -180,25 +110,11 @@ class GlobalNavBar extends React.Component {
   };
 
   render() {
-    const location = this.props.location;
-    const params = queryString.parse(location.search);
-    var q = params["q"];
-    if (!q) {
-      q = "";
-    }
+    const { query } = anchor.search({ location: this.props.location });
     const userpic = <UserPic />;
-    // <ButtonGroup >
-    // </ ButtonGroup >
     return (
       <>
-        <Navbar className={styles.navbar}>
-          <Navbar.Brand as={Link} to="/" className={joinClasses(styles.brand)}>
-            <span role="img" aria-label="next">
-              &#x1F9F5;
-            </span>
-            <div className="d-none d-sm-none d-md-block"> Mazed </div>
-          </Navbar.Brand>
-          <SearchForm from={q} className={styles.search_form} />
+          <SearchForm from={query} className={styles.search_form} />
 
           <ButtonToolbar className={styles.creation_toolbar}>
             <Button
@@ -225,9 +141,11 @@ class GlobalNavBar extends React.Component {
               </HoverTooltip>
             </Button>
           </ButtonToolbar>
+
           <ButtonToolbar className={styles.creation_toolbar}>
             {this.getAuxGroup()}
           </ButtonToolbar>
+
           <NavDropdown
             title={userpic}
             id="account-nav-dropdown"
@@ -254,6 +172,63 @@ class GlobalNavBar extends React.Component {
               log out
             </NavDropdown.Item>
           </NavDropdown>
+      </>
+    );
+  }
+}
+
+PrivateNavButtonsImpl.contextType = MzdGlobalContext;
+const PrivateNavButtons = withRouter(PrivateNavButtonsImpl);
+
+class PublicNavButtons extends React.Component {
+  render() {
+    return (<>
+      <Navbar.Toggle aria-controls="responsive-public-navbar" />
+      <Navbar.Collapse id="responsive-public-navbar">
+        <Nav>
+          <Nav.Link as={Link} to="/terms-of-service">
+            Terms of service
+          </Nav.Link>
+          <Nav.Link as={Link} to="/privacy-policy">
+            Privacy policy
+          </Nav.Link>
+          <Nav.Link as={Link} to="/contacts">
+            Contact us
+          </Nav.Link>
+        </Nav>
+        <Nav className="ml-auto">
+          <Nav.Link as={Link} to="/login">
+            Log in
+          </Nav.Link>
+        </Nav>
+      </Navbar.Collapse>
+      </>);
+  }
+}
+
+class GlobalNavBar extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    let buttons = null;
+    let account = this.context.account;
+    if (account) {
+      buttons = (<PrivateNavButtons />);
+    } else {
+      buttons = (<PublicNavButtons />);
+    }
+    return (
+      <>
+        <Navbar className={styles.navbar}>
+          <Navbar.Brand as={Link} to="/" className={joinClasses(styles.brand)}>
+            <span role="img" aria-label="next">
+              &#x1F9F5;
+            </span>
+            <div className="d-none d-sm-none d-md-block"> Mazed </div>
+          </Navbar.Brand>
+          {buttons}
         </Navbar>
         <div className={styles.navbar_filler} />
       </>

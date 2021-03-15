@@ -47,14 +47,11 @@ class App extends React.Component {
   }
 
   render() {
-    var nav_bar;
     var main_page;
     let isAuthenticated = checkAuth();
     if (isAuthenticated) {
-      nav_bar = <GlobalNavBar />;
       main_page = <Redirect to={{ pathname: "/search" }} />;
     } else {
-      nav_bar = <PublicNavBar />;
       main_page = <WelcomePage />;
     }
     return (
@@ -62,7 +59,7 @@ class App extends React.Component {
         <Router>
           <div>
             <MzdGlobal>
-              {nav_bar}
+              <GlobalNavBar />
               <Switch>
                 <Route exact path="/">
                   {main_page}
