@@ -2,9 +2,7 @@ import React from "react";
 
 import styles from "./SearchForm.module.css";
 
-import {
-  Form,
-} from "react-bootstrap";
+import { Form } from "react-bootstrap";
 
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";

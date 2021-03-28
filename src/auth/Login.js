@@ -6,6 +6,9 @@ import PropTypes from "prop-types";
 import axios from "axios";
 import { withRouter, Link } from "react-router-dom";
 
+import { smugler } from "../smugler/api.js";
+import { goto } from "../lib/route.jsx";
+
 import "./Signup.css";
 
 class Login extends React.Component {
@@ -18,7 +21,7 @@ class Login extends React.Component {
       server_error: null,
     };
     this.emailRef = React.createRef();
-    this.axiosCancelToken = axios.CancelToken.source();
+    this.axiosCancelToken = smugler.makeCancelToken();
   }
 
   static propTypes = {
@@ -49,29 +52,25 @@ class Login extends React.Component {
     this.setState({
       server_error: null,
     });
-    const value = {
-      email: this.state.email,
-      pass: this.state.password,
-      permissions: 31,
-    };
-    axios
-      .post("/api/auth/session", value, {
+    smugler.session
+      .create({
+        email: this.state.email,
+        password: this.state.password,
         cancelToken: this.axiosCancelToken.token,
       })
       .catch(this.handleSubmitError)
       .then((res) => {
         if (res) {
-          this.props.onLogin();
-          this.props.history.push("/");
+          goto.default({ history: this.props.history });
         } else {
-          this.handleSubmitError(null);
+          goto.notice.error({ history: this.props.history });
         }
       });
   };
 
   handleSubmitError = (err) => {
     console.log("Server error ", err);
-    if (err.response) {
+    if (err && err.response) {
       // if (err.response.status === HttpStatus.FORBIDDEN) {
       if (err.response.data && err.response.data.message) {
         this.setState({
@@ -136,10 +135,7 @@ class Login extends React.Component {
                   >
                     Log in
                   </Button>
-                  <Button
-                    variant="secondary"
-                    as={Link} to="/signup"
-                  >
+                  <Button variant="secondary" as={Link} to="/signup">
                     Sign up
                   </Button>
                 </Col>

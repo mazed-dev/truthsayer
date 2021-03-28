@@ -32,6 +32,7 @@ import UploadFile from "./UploadFile";
 import PasswordChange from "./auth/PasswordChange";
 import PasswordRecoverForm from "./auth/PasswordRecoverForm";
 import PasswordRecoverRequest from "./auth/PasswordRecoverRequest";
+import { Notice } from "./notice/Notice.js";
 import WaitingForApproval from "./auth/WaitingForApproval";
 import UserPreferences from "./auth/UserPreferences";
 import WelcomePage from "./WelcomePage";
@@ -148,6 +149,9 @@ class App extends React.Component {
                 >
                   <PasswordChange />
                 </PrivateRoute>
+                <Route path="/notice/:page">
+                  <Notice />
+                </Route>
                 <Route path="*">
                   <Redirect to={{ pathname: "/" }} />
                 </Route>

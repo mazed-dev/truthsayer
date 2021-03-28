@@ -4,6 +4,8 @@ import PropTypes from "prop-types";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
 
+import { goto } from "../lib/route.jsx";
+
 class Logout extends React.Component {
   constructor(props) {
     super(props);
@@ -24,13 +26,19 @@ class Logout extends React.Component {
       .delete("/api/auth/session", {
         cancelToken: this.fetchCancelToken.token,
       })
+      .catch(this.handleError)
       .then((res) => {
-        if (res) {
-          this.props.onLogout();
+        if (res == null) {
+          goto.notice.error({ history: this.props.history });
+        } else {
+          goto.default({ history: this.props.history });
         }
-        this.props.history.push({ pathname: "/" });
       });
   }
+
+  handleError = (error) => {
+    this.props.history.push({ pathname: "/error" });
+  };
 
   render() {
     return <h3>Logout...</h3>;

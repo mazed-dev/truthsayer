@@ -401,6 +401,36 @@ async function updateNodeMeta({ nid, meta, cancelToken }) {
     });
 }
 
+function verifyIsNotNull(value) {
+  if (value == null) {
+    throw "Parameter is null";
+  }
+}
+
+async function createSession({ email, password, permissions, cancelToken }) {
+  verifyIsNotNull(email);
+  verifyIsNotNull(password);
+  verifyIsNotNull(cancelToken);
+  if (!permissions) {
+    permissions = 31;
+  }
+  const req = {
+    email: email,
+    pass: password,
+    permissions: permissions,
+  };
+  return axios
+    .post("/api/auth/session", req, {
+      cancelToken: cancelToken,
+    })
+    .then((res) => {
+      if (res && res.data) {
+        return res.data;
+      }
+      return null;
+    });
+}
+
 export const smugler = {
   getAnySecondKey: getAnySecondKey,
   getAuth: getAuth,
@@ -428,8 +458,11 @@ export const smugler = {
     update: updateNodeMeta,
   },
   snitch: {
-    // Todo(akindyakov)
+    // Todo(akindyakov): monitoring counters and logs
     report: null,
     record: null,
+  },
+  session: {
+    create: createSession,
   },
 };
