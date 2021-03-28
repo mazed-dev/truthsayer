@@ -1,9 +1,9 @@
 import React from "react";
 
-import { notice, compass } from "./../lib/route.jsx";
+import { notice } from "./../lib/route.jsx";
 
 // React router
-import { useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { Card, Container } from "react-bootstrap";
 
@@ -22,12 +22,12 @@ function ErrorPage() {
   );
 }
 
-function MissYou() {
+function SeeYou() {
   return (
     <Card className={styles.page_card}>
       <Card.Body>
-        <Card.Title>{"Can't wait to see you again  🐕 "}</Card.Title>
-        <Card.Text>{"💤"}</Card.Text>
+        <Card.Title>{"Can't wait to see you again 💤"}</Card.Title>
+        <Card.Text>{""}</Card.Text>
       </Card.Body>
     </Card>
   );
@@ -36,10 +36,10 @@ function MissYou() {
 export function Notice() {
   const { page } = useParams();
   let card = null;
-  if (page == notice.error) {
+  if (page === notice.error) {
     card = <ErrorPage />;
-  } else if (page == notice.missYou) {
-    card = <MissYou />;
+  } else if (page === notice.seeYou) {
+    card = <SeeYou />;
   }
   return <Container>{card}</Container>;
 }

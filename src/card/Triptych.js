@@ -3,86 +3,20 @@ import React from "react";
 import "./Triptych.css";
 import styles from "./Triptych.module.css";
 
-import StickyOnImg from "./img/sticky-on.png";
-import StickyAddImg from "./img/sticky-add.png";
-import StickyAddHoverImg from "./img/sticky-add-hover.png";
-import StickyRemoveImg from "./img/sticky-remove.png";
-
-import CutTheRefImg from "./img/cut-the-ref.png";
-
 import { DocRender } from "./../doc/doc";
 
 import NodeSmallCard from "./../NodeSmallCard";
-import small_card_styles from "./../NodeSmallCard.module.css";
 
 import { SmallCardFootbar } from "./../card/SmallCardFootbar";
 
-import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 
-import { joinClasses } from "../util/elClass.js";
 import { MzdGlobalContext } from "../lib/global.js";
 import { smugler } from "../smugler/api.js";
 
-import { Button, ButtonGroup, Container, Row, Col } from "react-bootstrap";
+import { Container, Row, Col } from "react-bootstrap";
 
-import axios from "axios";
 import moment from "moment";
-
-class StickinessSwitcher extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      on: this.props.on,
-      hover: false,
-    };
-  }
-
-  onHover = () => {
-    this.setState({ hover: true });
-  };
-
-  offHover = () => {
-    this.setState({ hover: false });
-  };
-
-  switch = () => {
-    const off = !this.state.on;
-    this.setState({ on: off });
-    this.props.switch(off);
-  };
-
-  render() {
-    var img;
-    var alt;
-    if (this.state.on) {
-      if (this.state.hover) {
-        img = StickyRemoveImg;
-      } else {
-        img = StickyOnImg;
-      }
-      alt = "Make not sticky";
-    } else {
-      if (this.state.hover) {
-        img = StickyAddHoverImg;
-      } else {
-        img = StickyAddImg;
-      }
-      alt = "Make sticky";
-    }
-    return (
-      <Button
-        variant=""
-        className={styles.on_card_btn}
-        onClick={this.switch}
-        onMouseEnter={this.onHover}
-        onMouseLeave={this.offHover}
-      >
-        <img src={img} className={styles.btn_img} alt={alt} />
-      </Button>
-    );
-  }
-}
 
 class RefNodeCard extends React.Component {
   constructor(props) {
@@ -94,36 +28,11 @@ class RefNodeCard extends React.Component {
       upd: moment().unix(),
       is_sticky: props.edge.is_sticky,
     };
-    this.fetchCancelToken = axios.CancelToken.source();
   }
 
-  componentWillUnmount() {
-    this.fetchCancelToken.cancel();
-  }
+  componentWillUnmount() {}
 
   render() {
-    // var toolbar;
-    // if (this.state.hover && this.props.edge.isOwnedBy(account)) {
-    //   toolbar = (
-    //     <ButtonGroup>
-    //       <Button
-    //         variant=""
-    //         className={styles.on_card_btn}
-    //         onClick={this.handleRefCutOff}
-    //       >
-    //         <img
-    //           src={CutTheRefImg}
-    //           className={styles.btn_img}
-    //           alt={"cut off the ref"}
-    //         />
-    //       </Button>
-    //       <StickinessSwitcher
-    //         on={this.props.edge.is_sticky}
-    //         switch={this.handleToggleStickiness}
-    //       />
-    //     </ButtonGroup>
-    //   );
-    // }
     const footbar = (
       <SmallCardFootbar
         edge={this.props.edge}
@@ -131,18 +40,6 @@ class RefNodeCard extends React.Component {
         cutOffRef={this.props.cutOffRef}
       />
     );
-    /*
-      <div
-        className={joinClasses(
-          "meta-fluid-container",
-          small_card_styles.small_card_width
-        )}
-        onMouseEnter={this.onHover}
-        onMouseLeave={this.offHover}
-      >
-        <div className="meta-fluid-el-top-right">{toolbar}</div>
-      </div>
-    */
     return (
       <NodeSmallCard
         nid={this.props.nid}
@@ -356,7 +253,6 @@ class Triptych extends React.Component {
   };
 
   render() {
-    let account = this.context.account;
     return (
       <Container fluid>
         <Row className="d-flex justify-content-center">

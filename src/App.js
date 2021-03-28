@@ -21,12 +21,9 @@ import { Card, Button, Container } from "react-bootstrap";
 
 import queryString from "query-string";
 
-import axios from "axios";
-
 import GlobalNavBar from "./navbar/GlobalNavBar";
 import Login from "./auth/Login";
 import Logout from "./auth/Logout";
-import PublicNavBar from "./PublicNavBar";
 import Signup from "./auth/Signup";
 import UploadFile from "./UploadFile";
 import PasswordChange from "./auth/PasswordChange";
@@ -37,132 +34,134 @@ import WaitingForApproval from "./auth/WaitingForApproval";
 import UserPreferences from "./auth/UserPreferences";
 import WelcomePage from "./WelcomePage";
 import UserEncryption from "./UserEncryption";
-import { MzdGlobal } from "./lib/global";
+import { MzdGlobal, MzdGlobalContext } from "./lib/global";
 import { routes } from "./lib/route";
 
-import { checkAuth } from "./auth/local.jsx";
-
 class App extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
-    var main_page;
-    let isAuthenticated = checkAuth();
-    if (isAuthenticated) {
-      main_page = <Redirect to={{ pathname: "/search" }} />;
-    } else {
-      main_page = <WelcomePage />;
-    }
     return (
       <Container fluid className="entire_doc">
-        <Router>
-          <div>
-            <MzdGlobal>
-              <GlobalNavBar />
-              <Switch>
-                <Route exact path="/">
-                  {main_page}
-                </Route>
-                <PublicOnlyRoute
-                  path={routes.login}
-                  is_authenticated={isAuthenticated}
-                >
-                  <Login onLogin={this.handleSuccessfulLogin} />
-                </PublicOnlyRoute>
-                <PublicOnlyRoute
-                  path={routes.signup}
-                  is_authenticated={isAuthenticated}
-                >
-                  <Signup onLogin={this.handleSuccessfulLogin} />
-                </PublicOnlyRoute>
-                <Route path="/waiting-for-approval">
-                  <WaitingForApproval path="/waiting-for-approval" />
-                </Route>
-                <Route path={routes.logout} is_authenticated={isAuthenticated}>
-                  <Logout onLogout={this.handleLogout} />
-                </Route>
-                <PrivateRoute
-                  path={routes.search}
-                  is_authenticated={isAuthenticated}
-                >
-                  <SearchView />
-                </PrivateRoute>
-                <Route path={routes.node} is_authenticated={isAuthenticated}>
-                  <TriptychView />
-                </Route>
-                <PrivateRoute
-                  path="/upload-file"
-                  is_authenticated={isAuthenticated}
-                >
-                  <UploadFile />
-                </PrivateRoute>
-                <PrivateRoute
-                  path="/account"
-                  is_authenticated={isAuthenticated}
-                >
-                  <AccountView />
-                </PrivateRoute>
-                <PrivateRoute
-                  path="/user-preferences"
-                  is_authenticated={isAuthenticated}
-                >
-                  <UserPreferences />
-                </PrivateRoute>
-                <PrivateRoute
-                  path="/user-encryption"
-                  is_authenticated={isAuthenticated}
-                >
-                  <UserEncryption />
-                </PrivateRoute>
-                <Route path="/help">
-                  <HelpInfo />
-                </Route>
-                <Route path="/about">
-                  <About />
-                </Route>
-                <Route path="/contacts">
-                  <ContactUs />
-                </Route>
-                <Route path="/privacy-policy">
-                  <PrivacyPolicy />
-                </Route>
-                <Route path="/terms-of-service">
-                  <TermsOfService />
-                </Route>
-                <PublicOnlyRoute
-                  path="/password-recover-request"
-                  is_authenticated={isAuthenticated}
-                >
-                  <PasswordRecoverRequest />
-                </PublicOnlyRoute>
-                <PublicOnlyRoute
-                  path="/password-recover-reset/:token"
-                  is_authenticated={isAuthenticated}
-                >
-                  <PasswordRecoverFormView />
-                </PublicOnlyRoute>
-                <PrivateRoute
-                  path="/password-recover-change"
-                  is_authenticated={isAuthenticated}
-                >
-                  <PasswordChange />
-                </PrivateRoute>
-                <Route path="/notice/:page">
-                  <Notice />
-                </Route>
-                <Route path="*">
-                  <Redirect to={{ pathname: "/" }} />
-                </Route>
-              </Switch>
-            </MzdGlobal>
-          </div>
-        </Router>
+        <MzdGlobal>
+          <AppRouter />
+        </MzdGlobal>
       </Container>
     );
   }
 }
+
+class AppRouter extends React.Component {
+  render() {
+    const account = this.context.account;
+    const isAuthenticated = account != null && account.isAuthenticated();
+    const mainView = isAuthenticated ? (
+      <Redirect to={{ pathname: "/search" }} />
+    ) : (
+      <WelcomePage />
+    );
+    console.log("App.render", isAuthenticated);
+    return (
+      <Router>
+        <div>
+          <GlobalNavBar />
+          <Switch>
+            <Route exact path="/">
+              {mainView}
+            </Route>
+            <PublicOnlyRoute
+              path={routes.login}
+              is_authenticated={isAuthenticated}
+            >
+              <Login onLogin={this.handleSuccessfulLogin} />
+            </PublicOnlyRoute>
+            <PublicOnlyRoute
+              path={routes.signup}
+              is_authenticated={isAuthenticated}
+            >
+              <Signup onLogin={this.handleSuccessfulLogin} />
+            </PublicOnlyRoute>
+            <Route path="/waiting-for-approval">
+              <WaitingForApproval path="/waiting-for-approval" />
+            </Route>
+            <Route path={routes.logout} is_authenticated={isAuthenticated}>
+              <Logout onLogout={this.handleLogout} />
+            </Route>
+            <PrivateRoute
+              path={routes.search}
+              is_authenticated={isAuthenticated}
+            >
+              <SearchView />
+            </PrivateRoute>
+            <Route path={routes.node} is_authenticated={isAuthenticated}>
+              <TriptychView />
+            </Route>
+            <PrivateRoute
+              path="/upload-file"
+              is_authenticated={isAuthenticated}
+            >
+              <UploadFile />
+            </PrivateRoute>
+            <PrivateRoute path="/account" is_authenticated={isAuthenticated}>
+              <AccountView />
+            </PrivateRoute>
+            <PrivateRoute
+              path="/user-preferences"
+              is_authenticated={isAuthenticated}
+            >
+              <UserPreferences />
+            </PrivateRoute>
+            <PrivateRoute
+              path="/user-encryption"
+              is_authenticated={isAuthenticated}
+            >
+              <UserEncryption />
+            </PrivateRoute>
+            <Route path="/help">
+              <HelpInfo />
+            </Route>
+            <Route path="/about">
+              <About />
+            </Route>
+            <Route path="/contacts">
+              <ContactUs />
+            </Route>
+            <Route path="/privacy-policy">
+              <PrivacyPolicy />
+            </Route>
+            <Route path="/terms-of-service">
+              <TermsOfService />
+            </Route>
+            <PublicOnlyRoute
+              path="/password-recover-request"
+              is_authenticated={isAuthenticated}
+            >
+              <PasswordRecoverRequest />
+            </PublicOnlyRoute>
+            <PublicOnlyRoute
+              path="/password-recover-reset/:token"
+              is_authenticated={isAuthenticated}
+            >
+              <PasswordRecoverFormView />
+            </PublicOnlyRoute>
+            <PrivateRoute
+              path="/password-recover-change"
+              is_authenticated={isAuthenticated}
+            >
+              <PasswordChange />
+            </PrivateRoute>
+            <Route path="/notice/:page">
+              <Notice />
+            </Route>
+            <Route path="*">
+              <Redirect to={{ pathname: "/" }} />
+            </Route>
+          </Switch>
+        </div>
+      </Router>
+    );
+  }
+}
+
+AppRouter.contextType = MzdGlobalContext;
 
 function PrivateRoute({ is_authenticated, children, ...rest }) {
   const location = useLocation();

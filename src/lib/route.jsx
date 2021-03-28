@@ -1,7 +1,5 @@
 import queryString from "query-string";
 
-import { useParams } from "react-router-dom";
-
 const kLogInPath = "/login";
 const kSignUpPath = "/signup";
 const kLogOutPath = "/logout";
@@ -11,7 +9,7 @@ const kNodePathPrefix = "/n/";
 const kNoticePathPrefix = "/notice/";
 
 const kNoticeErrorPage = "error";
-const kNoticeMissYouPage = "miss-you";
+const kNoticeSeeYouPage = "miss-you";
 
 function gotoSearch({ history, query }) {
   history.push({
@@ -63,8 +61,8 @@ function gotoError({ history }) {
   gotoPath(history, kNoticePathPrefix + kNoticeErrorPage);
 }
 
-function gotoMissYou({ history }) {
-  gotoPath(history, kNoticePathPrefix + kNoticeMissYouPage);
+function gotoSeeYou({ history }) {
+  gotoPath(history, kNoticePathPrefix + kNoticeSeeYouPage);
 }
 
 function getNoticePage({ params }) {
@@ -90,7 +88,7 @@ export const goto = {
   search: gotoSearch,
   notice: {
     error: gotoError,
-    missYou: gotoMissYou,
+    seeYou: gotoSeeYou,
   },
 };
 
@@ -105,5 +103,5 @@ export const compass = {
 
 export const notice = {
   error: kNoticeErrorPage,
-  missYou: kNoticeMissYouPage,
+  seeYou: kNoticeSeeYouPage,
 };

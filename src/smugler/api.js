@@ -403,7 +403,8 @@ async function updateNodeMeta({ nid, meta, cancelToken }) {
 
 function verifyIsNotNull(value) {
   if (value == null) {
-    throw "Parameter is null";
+    const err = new Error("Mandatory parameter is null");
+    throw err;
   }
 }
 
@@ -421,6 +422,19 @@ async function createSession({ email, password, permissions, cancelToken }) {
   };
   return axios
     .post("/api/auth/session", req, {
+      cancelToken: cancelToken,
+    })
+    .then((res) => {
+      if (res && res.data) {
+        return res.data;
+      }
+      return null;
+    });
+}
+
+async function deleteSession({ cancelToken }) {
+  return axios
+    .delete("/api/auth/session", {
       cancelToken: cancelToken,
     })
     .then((res) => {
@@ -464,5 +478,6 @@ export const smugler = {
   },
   session: {
     create: createSession,
+    delete: deleteSession,
   },
 };

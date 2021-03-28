@@ -4,7 +4,7 @@ import crc from "crc";
 
 import { Toast, Button } from "react-bootstrap";
 
-import { UserAccount, checkAuth, dropAuth, Knocker } from "./../auth/local.jsx";
+import { UserAccount, Knocker } from "./../auth/local.jsx";
 
 import { joinClasses } from "./../util/elClass.js";
 import axios from "axios";
@@ -125,10 +125,6 @@ export class MzdGlobal extends React.Component {
 
 // Example
 export class ExampleWithStaticConsumer extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   onClick = () => {
     let toaster = this.context.toaster;
     toaster.push({

@@ -8,10 +8,6 @@ import { joinClasses } from "./../util/elClass.js";
 // https://www.w3schools.com/css/css_tooltip.asp
 
 export class HoverTooltip extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     return (
       <div className={joinClasses("mzd-tooltip-root", styles.tooltip_root)}>

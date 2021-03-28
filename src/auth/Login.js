@@ -3,7 +3,6 @@ import React from "react";
 import { Card, Button, Form, Container, Row, Col } from "react-bootstrap";
 
 import PropTypes from "prop-types";
-import axios from "axios";
 import { withRouter, Link } from "react-router-dom";
 
 import { smugler } from "../smugler/api.js";
@@ -61,7 +60,7 @@ class Login extends React.Component {
       .catch(this.handleSubmitError)
       .then((res) => {
         if (res) {
-          goto.default({ history: this.props.history });
+          goto.default({}); // { history: this.props.history });
         } else {
           goto.notice.error({ history: this.props.history });
         }

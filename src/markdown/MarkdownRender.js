@@ -297,7 +297,7 @@ function genListPointStyle(sourcePosition) {
   startColumn = startColumn < 0 ? 0 : startColumn;
   const depth = Math.floor(startColumn / 2);
   const i = depth % _LIST_POINT_OPTIONS.length;
-  console.log("startColumn", startColumn, depth);
+  // console.log("startColumn", startColumn, depth);
   return _LIST_POINT_OPTIONS[i];
 }
 

@@ -128,7 +128,7 @@ export class SearchGrid extends React.Component {
   componentDidUpdate(prevProps) {
     // We need to re-featch only on changes to the search parameters,
     // changes to extCards or on changes to account from global context.
-    console.log("componentDidUpdate", prevProps, this.props);
+    // console.log("componentDidUpdate", prevProps, this.props);
     if (
       this.props.q !== prevProps.q ||
       this.props.extCards !== prevProps.extCards

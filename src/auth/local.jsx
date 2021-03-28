@@ -52,6 +52,10 @@ export class UserAccount {
   getLocalCrypto(): LocalCrypto {
     return this._lc;
   }
+
+  isAuthenticated(): boolean {
+    return checkAuth();
+  }
 }
 
 export function checkAuth() {

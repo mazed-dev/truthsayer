@@ -3,14 +3,11 @@ import React from "react";
 import styles from "./GlobalNavBar.module.css";
 
 // React router
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import {
   Button,
-  ButtonGroup,
   ButtonToolbar,
-  Dropdown,
-  Form,
   NavDropdown,
   Navbar,
   Nav,
@@ -18,7 +15,6 @@ import {
 
 import PropTypes from "prop-types";
 import axios from "axios";
-import queryString from "query-string";
 import { withRouter } from "react-router-dom";
 
 import { MzdGlobalContext } from "./../lib/global";
@@ -70,7 +66,11 @@ class UserPic extends React.Component {
     // TODO: use custom user uploaded picture for userpic here
     return (
       <div className={joinClasses(styles.user_pic, "d-inline-flex")}>
-        <img src={kUserDefaultPic} className={styles.user_pic_image} />
+        <img
+          src={kUserDefaultPic}
+          className={styles.user_pic_image}
+          alt={"user"}
+        />
         <div className="d-none d-sm-none d-md-block">
           &nbsp;
           {this.state.name}
@@ -209,10 +209,6 @@ class PublicNavButtons extends React.Component {
 }
 
 class GlobalNavBar extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     let buttons = null;
     let account = this.context.account;
