@@ -14,6 +14,8 @@ import { joinClasses } from "./util/elClass.js";
 import { Loader } from "./lib/loader";
 import { MzdGlobalContext } from "./lib/global.js";
 
+import { AuthorFooter } from "./card/AuthorBadge";
+
 import LockedImg from "./img/locked.png";
 
 import styles from "./NodeSmallCard.module.css";
@@ -47,12 +49,10 @@ function makeSeeMoreLink(nid) {
 class NodeSmallCardImpl extends React.Component {
   constructor(props) {
     super(props);
-    this.fetchEdgesCancelToken = axios.CancelToken.source();
-    this.fetchPrefaceCancelToken = axios.CancelToken.source();
+    this.fetchEdgesCancelToken = smugler.makeCancelToken();
+    this.fetchPrefaceCancelToken = smugler.makeCancelToken();
     this.state = {
-      doc: null,
-      crtd: this.props.crtd,
-      upd: this.props.upd,
+      node: null,
       edges: [],
       crypto: null,
     };
@@ -92,7 +92,7 @@ class NodeSmallCardImpl extends React.Component {
 
   onClick = () => {
     if (this.props.onClick) {
-      this.props.onClick(this.props.nid, this.state.doc);
+      this.props.onClick(this.props.nid, this.state.node.doc);
     } else {
       this.props.history.push({
         pathname: "/n/" + this.props.nid,
@@ -114,25 +114,13 @@ class NodeSmallCardImpl extends React.Component {
       .then((node) => {
         if (node) {
           this.setState({
-            doc: node.doc,
-            crtd: node.created_at,
-            upd: node.updated_at,
-            crypto: node.crypto,
+            node: node,
           });
         }
       });
   };
 
   render() {
-    const footer = this.state.upd ? (
-      <small className="text-muted">
-        <i>
-          Created {moment(this.state.crtd).fromNow()}, updated{" "}
-          {moment(this.state.upd).fromNow()}
-        </i>
-      </small>
-    ) : null;
-
     let body = null;
     let clickableOnClick = null;
     let clickableStyle = null;
@@ -143,20 +131,21 @@ class NodeSmallCardImpl extends React.Component {
     } else {
       seeMore = makeSeeMoreLink(this.props.nid);
     }
-    if (this.state.crypto == null) {
+    const node = this.state.node;
+    if (node == null) {
       body = (
         <div className={styles.small_card_waiter}>
           <Loader size={"small"} />
         </div>
       );
     } else {
-      if (!this.state.crypto.success) {
+      if (!node.crypto.success) {
         body = (
           <>
             <img src={LockedImg} className={styles.locked_img} alt={"locked"} />
             Encrypted with an unknown secret:
             <code className={styles.locked_secret_id}>
-              {this.state.crypto.secret_id}
+              {node.crypto.secret_id}
             </code>
             {seeMore}
           </>
@@ -165,7 +154,7 @@ class NodeSmallCardImpl extends React.Component {
         body = (
           <>
             <SmallCardRender
-              doc={this.state.doc}
+              doc={node.doc}
               nid={clickableOnClick === null ? this.props.nid : null}
               trim={true}
             />
@@ -195,9 +184,7 @@ class NodeSmallCardImpl extends React.Component {
         onClick={clickableOnClick}
       >
         <Card.Body className="px-3 pt-2 pb-0">{body}</Card.Body>
-        <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">
-          {footer}
-        </footer>
+        <AuthorFooter node={this.state.node} />
         {footbar}
       </Card>
     );

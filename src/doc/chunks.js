@@ -34,21 +34,6 @@ class ChunkRenderToolbar extends React.Component {
       return null;
     }
     return null;
-    // return (
-    //   <Button
-    //     variant="light"
-    //     className={joinClasses(
-    //       styles.paragraph_toolbar_btn,
-    //       styles.paragraph_toolbar_more_btn
-    //     )}
-    //   >
-    //     <img
-    //       src={EditMoreButtonImg}
-    //       className={styles.btn_img}
-    //       alt={"Edit paragraph"}
-    //     />
-    //   </Button>
-    // );
   }
 
   render() {

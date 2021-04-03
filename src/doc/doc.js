@@ -30,31 +30,10 @@ import { HoverTooltip } from "./../lib/tooltip";
 import { Card, Button, ButtonGroup } from "react-bootstrap";
 
 import { FullCardFootbar } from "./../card/FullCardFootbar";
+import { AuthorFooter } from "./../card/AuthorBadge";
 
 import moment from "moment";
 import axios from "axios";
-
-function DocFooter({ node, isAlien }) {
-  if (node && !isAlien) {
-    return (
-      <small className="text-muted">
-        <i>
-          Created {moment(node.created_at).fromNow()}, updated
-          {moment(node.updated_at).fromNow()}
-        </i>
-      </small>
-    );
-  }
-  if (node && isAlien) {
-    // {node.getOwner()}
-    return (
-      <small className="text-muted">
-        <i> By Alien {moment(node.updated_at).fromNow()} </i>
-      </small>
-    );
-  }
-  return <small className="text-muted"></small>;
-}
 
 export class DocRenderImpl extends React.Component {
   constructor(props) {
@@ -220,9 +199,7 @@ export class DocRenderImpl extends React.Component {
         <Card.Body className={joinClasses(styles.doc_render_card_body)}>
           {body}
         </Card.Body>
-        <footer className="text-right m-2">
-          <DocFooter node={this.props.node} isAlien={!isOwnedByUser} />
-        </footer>
+        <AuthorFooter node={this.props.node} />
         {footbar}
       </Card>
     );

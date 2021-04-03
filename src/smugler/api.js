@@ -445,6 +445,19 @@ async function deleteSession({ cancelToken }) {
     });
 }
 
+async function getUserBadge({ uid, cancelToken }) {
+  return axios
+    .get("/api/user/" + uid + "/badge", {
+      cancelToken: cancelToken,
+    })
+    .then((res) => {
+      if (res && res.data) {
+        return res.data;
+      }
+      return null;
+    });
+}
+
 export const smugler = {
   getAnySecondKey: getAnySecondKey,
   getAuth: getAuth,
@@ -479,5 +492,10 @@ export const smugler = {
   session: {
     create: createSession,
     delete: deleteSession,
+  },
+  user: {
+    badge: {
+      get: getUserBadge,
+    },
   },
 };

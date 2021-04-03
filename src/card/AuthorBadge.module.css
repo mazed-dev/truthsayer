@@ -1,0 +1,41 @@
+.user_pic_image {
+  width: 2.4rem;
+  height: 2.4rem;
+  margin-left: 0.8rem;
+  margin-top: 0.1rem;
+  margin-bottom: 0;
+}
+
+.user_name {
+  font-size: 1rem;
+  font-style: italic;
+  height: 1.2rem;
+  text-align: right;
+}
+
+.created_at_date {
+  color: #6c757d;
+  font-size: 0.8rem;
+  font-style: italic;
+  text-align: right;
+}
+
+.badge {
+}
+
+/* Clear floats after the columns */
+.badge:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Create three equal columns that floats next to each other */
+.column {
+  float: right;
+}
+
+.author_footer {
+  margin-bottom: 0.6rem;
+  margin-right: 1.4rem;
+}
