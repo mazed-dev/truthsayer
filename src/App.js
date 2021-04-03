@@ -58,7 +58,6 @@ class AppRouter extends React.Component {
     ) : (
       <WelcomePage />
     );
-    console.log("App.render", isAuthenticated);
     return (
       <Router>
         <div>

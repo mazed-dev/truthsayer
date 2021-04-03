@@ -20,9 +20,7 @@ import UserDefaultPic from "./../auth/img/user-default-pic.png";
 export class AuthorBadge extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      badge: null,
-    };
+    this.state = { badge: null };
     this.fetchBadgeCancelToken = smugler.makeCancelToken();
   }
 
@@ -51,7 +49,9 @@ export class AuthorBadge extends React.Component {
           cancelToken: this.fetchBadgeCancelToken.token,
         })
         .then((badge) => {
-          this.setState({ badge: badge });
+          if (badge) {
+            this.setState({ badge: badge });
+          }
         });
     }
   }
@@ -93,10 +93,10 @@ export class TimeBadge extends React.Component {
 export class AuthorFooter extends React.Component {
   render() {
     const node = this.props.node;
-    if (!node) {
-      return <></>;
-    }
     let account = this.context.account;
+    if (!node || !account) {
+      return null;
+    }
     if (node.isOwnedBy(account)) {
       return (
         <footer className={styles.author_footer}>

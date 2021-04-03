@@ -446,10 +446,13 @@ async function deleteSession({ cancelToken }) {
 }
 
 async function getUserBadge({ uid, cancelToken }) {
+  verifyIsNotNull(uid);
+  verifyIsNotNull(cancelToken);
   return axios
     .get("/api/user/" + uid + "/badge", {
       cancelToken: cancelToken,
     })
+    .catch(dealWithError)
     .then((res) => {
       if (res && res.data) {
         return res.data;
