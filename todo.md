@@ -1,5 +1,6 @@
 # Todo
 
+- [ ] Implement edge stickiness on server side to reduce number of calls to backend
 - [ ] Public and private bars are the same - don't split them
 - [ ] "Next" button should be dropdown - only, no separate button for clone and search options.
 - [ ] Change sticky option to a new picture
