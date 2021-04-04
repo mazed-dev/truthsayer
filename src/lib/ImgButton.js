@@ -16,8 +16,10 @@ export const ImgButton = React.forwardRef(
       className={joinClasses(styles.img_button, className)}
       ref={ref}
       onClick={(e) => {
-        e.preventDefault();
-        onClick(e);
+        if (onClick) {
+          e.preventDefault();
+          onClick(e);
+        }
       }}
     >
       {children}

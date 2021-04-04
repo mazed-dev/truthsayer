@@ -149,6 +149,8 @@ class PublicSmallCardFootbarImpl extends React.Component {
               styles.tool_button,
               styles.toolbar_layout_item
             )}
+            onClick={null}
+            disabled={true}
           >
             <HoverTooltip tooltip={tooltip}>
               <img src={img} className={styles.tool_button_img} alt={tooltip} />

@@ -162,11 +162,13 @@ function __addStickyEdges(sticky_edges, new_nid, prev_nid, cancelToken) {
         if (se.to_nid === prev_nid) {
           return {
             from_nid: se.from_nid,
+            to_nid: new_nid,
             is_sticky: true,
           };
         } else if (se.from_nid === prev_nid) {
           return {
             to_nid: se.to_nid,
+            from_nid: new_nid,
             is_sticky: true,
           };
         }
@@ -676,7 +678,7 @@ class PublicFullCardFootbarImpl extends React.Component {
       <>
         <ButtonToolbar className={joinClasses(styles.toolbar)}>
           <ImgButton
-            onClick={this.handleNextRight}
+            onClick={this.handleNextLeft}
             className={joinClasses(
               styles.tool_button,
               styles.toolbar_layout_item
@@ -692,7 +694,7 @@ class PublicFullCardFootbarImpl extends React.Component {
           </ImgButton>
 
           <ImgButton
-            onClick={this.handleNextRight}
+            onClick={this.handleNextLeftClone}
             className={joinClasses(
               styles.tool_button,
               styles.toolbar_layout_item
@@ -708,7 +710,7 @@ class PublicFullCardFootbarImpl extends React.Component {
           </ImgButton>
 
           <ImgButton
-            onClick={this.handleNextRight}
+            onClick={this.handleNextRightClone}
             className={joinClasses(
               styles.tool_button,
               styles.toolbar_layout_item

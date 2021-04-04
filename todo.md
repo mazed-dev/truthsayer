@@ -1,9 +1,13 @@
 # Todo
 
+- [ ] Public and private bars are the same - don't split them
+- [ ] "Next" button should be dropdown - only, no separate button for clone and search options.
+- [ ] Change sticky option to a new picture
 - [ ] Create an error page "Oops, something went wrong"
-- [ ] Stikiness doesn't work, #bug
 - [ ] Add internal shadow to a checkboxes to make them look like empty wholes
 - [ ] Use only "Long in" option on top bar
+- [ ] History of changes for each node
+- [ ] "Open" button on top of each small card. "See more" should unfold the small card, instead of opening it.
 - [ ] Public pages availiable by direct link
   - [x] Share struct to node meta
   - [x] Allow to read shared node without user UID when node is shared
@@ -130,3 +134,4 @@
 - [x] Minus as default list bulletsign
 - [x] Checklists should be interactive in read mode
 - [x] Opacity on toolbars and navbar should be the same!
+- [x] Stikiness doesn't work, #bug
