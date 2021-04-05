@@ -9,8 +9,8 @@ import { smugler } from "./../smugler/api";
 
 import styles from "./SmallCardFootbar.module.css";
 
-import StickyRefOffImg from "./../img/sticky-ref-off.png";
-import StickyRefOnImg from "./../img/sticky-ref-on.png";
+import StickyRefOffImg from "./../img/sticky-ref-checkbox-off.png";
+import StickyRefOnImg from "./../img/sticky-ref-checkbox-on.png";
 import CutTheRefImg from "./../img/cut-the-ref.png";
 
 import EllipsisImg from "./../img/ellipsis.png";
@@ -20,6 +20,7 @@ import { HoverTooltip } from "../lib/tooltip";
 import { ImgButton } from "../lib/ImgButton";
 import { goto } from "../lib/route.jsx";
 import { joinClasses } from "../util/elClass.js";
+import { CheckBox } from "./../lib/CheckBox.js";
 
 class PrivateSmallCardFootbarImpl extends React.Component {
   constructor(props) {
@@ -77,15 +78,6 @@ class PrivateSmallCardFootbarImpl extends React.Component {
   };
 
   render() {
-    let stickinessTooltip = null;
-    let stickinessImg = null;
-    if (this.state.isSticky) {
-      stickinessTooltip = "Sticky link";
-      stickinessImg = StickyRefOnImg;
-    } else {
-      stickinessTooltip = "Not sticky link";
-      stickinessImg = StickyRefOffImg;
-    }
     let cutTooltip = "Cut the link";
     return (
       <>
@@ -105,21 +97,10 @@ class PrivateSmallCardFootbarImpl extends React.Component {
               />
             </HoverTooltip>
           </ImgButton>
-          <ImgButton
-            onClick={this.switchStickiness}
-            className={joinClasses(
-              styles.tool_button,
-              styles.toolbar_layout_item
-            )}
-          >
-            <HoverTooltip tooltip={stickinessTooltip}>
-              <img
-                src={stickinessImg}
-                className={styles.tool_button_img}
-                alt={stickinessTooltip}
-              />
-            </HoverTooltip>
-          </ImgButton>
+          <StickinessSwitcher
+            is_on={this.state.isSticky}
+            onToggle={this.switchStickiness}
+          />
         </ButtonToolbar>
       </>
     );
@@ -132,34 +113,33 @@ const PrivateSmallCardFootbar = withRouter(PrivateSmallCardFootbarImpl);
 
 class PublicSmallCardFootbarImpl extends React.Component {
   render() {
-    let tooltip = null;
-    let img = null;
-    if (this.props.edge.is_sticky) {
-      tooltip = "Sticky link";
-      img = StickyRefOnImg;
-    } else {
-      tooltip = "Not sticky link";
-      img = StickyRefOffImg;
-    }
     return (
-      <>
-        <ButtonToolbar className={joinClasses(styles.toolbar)}>
-          <ImgButton
-            className={joinClasses(
-              styles.tool_button,
-              styles.toolbar_layout_item
-            )}
-            onClick={null}
-            disabled={true}
-          >
-            <HoverTooltip tooltip={tooltip}>
-              <img src={img} className={styles.tool_button_img} alt={tooltip} />
-            </HoverTooltip>
-          </ImgButton>
-        </ButtonToolbar>
-      </>
+      <ButtonToolbar className={joinClasses(styles.toolbar)}>
+        <StickinessSwitcher
+          is_on={this.props.edge.is_sticky}
+          is_disabled={true}
+        />
+      </ButtonToolbar>
     );
   }
+}
+
+function StickinessSwitcher({ is_on, onToggle, is_disabled }) {
+  is_disabled = is_disabled || false;
+  const tooltip = is_on ? "Sticky link" : "Not sticky link";
+  const img = is_on ? StickyRefOnImg : StickyRefOffImg;
+  return (
+    <ImgButton
+      className={joinClasses(styles.tool_button, styles.toolbar_layout_item)}
+      onClick={onToggle}
+      is_disabled={is_disabled}
+    >
+      <HoverTooltip tooltip={tooltip}>
+        <CheckBox is_checked={is_on} />
+        <img src={img} className={styles.tool_button_img} alt={tooltip} />
+      </HoverTooltip>
+    </ImgButton>
+  );
 }
 
 PublicSmallCardFootbarImpl.contextType = MzdGlobalContext;

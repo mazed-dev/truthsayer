@@ -6,15 +6,13 @@ import { joinClasses } from "../util/elClass.js";
 
 import styles from "./ImgButton.module.css";
 
-// <HoverTooltip tooltip={"More"}>
-// </HoverTooltip>
-
 export const ImgButton = React.forwardRef(
-  ({ children, onClick, className }, ref) => (
+  ({ children, onClick, className, is_disabled }, ref) => (
     <Button
       variant="light"
       className={joinClasses(styles.img_button, className)}
       ref={ref}
+      disabled={is_disabled}
       onClick={(e) => {
         if (onClick) {
           e.preventDefault();

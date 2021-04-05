@@ -1,11 +1,11 @@
 # Todo
 
+- [ ] Add page "Please register to create new notes"
+- [ ] Fix tooltip overlap
 - [ ] Implement edge stickiness on server side to reduce number of calls to backend
 - [ ] Public and private bars are the same - don't split them
 - [ ] "Next" button should be dropdown - only, no separate button for clone and search options.
-- [ ] Change sticky option to a new picture
 - [ ] Create an error page "Oops, something went wrong"
-- [ ] Add internal shadow to a checkboxes to make them look like empty wholes
 - [ ] Use only "Long in" option on top bar
 - [ ] History of changes for each node
 - [ ] "Open" button on top of each small card. "See more" should unfold the small card, instead of opening it.
@@ -136,3 +136,5 @@
 - [x] Checklists should be interactive in read mode
 - [x] Opacity on toolbars and navbar should be the same!
 - [x] Stikiness doesn't work, #bug
+- [x] Change sticky option to a new picture - checkbox with picture
+- [x] Add internal shadow to a checkboxes to make them look like empty wholes

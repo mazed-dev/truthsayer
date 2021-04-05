@@ -1,11 +1,6 @@
 import React from "react";
-import PropTypes from "prop-types";
 
-import styles from "./CheckBox.module.css";
-
-import Emoji from "./../Emoji";
-
-import { joinClasses } from "../util/elClass.js";
+import { CheckBox } from "./../lib/CheckBox.js";
 
 // Unordered
 const kCheckedRe = /(^ *([*\-+]|[0-9]+\.) *)\[x\]/i;
@@ -21,8 +16,8 @@ export function untickCheckbox(sourceLine) {
   return sourceLine.replace(kCheckedRe, kToUnchecked);
 }
 
-export class CheckBox extends React.Component {
-  onClick = () => {
+export class MdCheckBox extends React.Component {
+  onToggle = () => {
     // sourcePosition: {
     //   start: { line: 5, column: 1, offset: 168 }
     //   end: { line: 5, column: 51, offset: 218 }
@@ -47,21 +42,14 @@ export class CheckBox extends React.Component {
   };
 
   render() {
-    const checkmark = this.props.is_checked ? (
-      <Emoji symbol={"✅"} label="checked" />
-    ) : (
-      <div className={styles.checkbox} />
-    );
-    const pointy = this.props.update ? styles.pointy : null;
     return (
-      <div
-        className={joinClasses(styles.container, pointy, this.props.className)}
-        onClick={this.onClick}
-      >
-        {checkmark}
-      </div>
+      <CheckBox
+        is_checked={this.props.is_checked}
+        onToggle={this.onToggle}
+        className={this.props.className}
+      />
     );
   }
 }
 
-export default CheckBox;
+export default MdCheckBox;
