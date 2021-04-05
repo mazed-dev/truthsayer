@@ -35,7 +35,7 @@ import UserPreferences from "./auth/UserPreferences";
 import WelcomePage from "./WelcomePage";
 import UserEncryption from "./UserEncryption";
 import { MzdGlobal, MzdGlobalContext } from "./lib/global";
-import { routes } from "./lib/route";
+import { routes } from "./lib/route.jsx";
 
 class App extends React.Component {
   render() {

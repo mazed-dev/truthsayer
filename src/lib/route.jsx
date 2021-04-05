@@ -10,6 +10,7 @@ const kNoticePathPrefix = "/notice/";
 
 const kNoticeErrorPage = "error";
 const kNoticeSeeYouPage = "miss-you";
+const kNoticeLogInToContinue = "log-in-to-continue";
 
 function gotoSearch({ history, query }) {
   history.push({
@@ -65,6 +66,10 @@ function gotoSeeYou({ history }) {
   gotoPath(history, kNoticePathPrefix + kNoticeSeeYouPage);
 }
 
+function gotoLogInToContinue({ history }) {
+  gotoPath(history, kNoticePathPrefix + kNoticeLogInToContinue);
+}
+
 function getNoticePage({ params }) {
   console.log("getNoticePage", params);
   return params;
@@ -89,6 +94,7 @@ export const goto = {
   notice: {
     error: gotoError,
     seeYou: gotoSeeYou,
+    logInToContinue: gotoLogInToContinue,
   },
 };
 
@@ -104,4 +110,5 @@ export const compass = {
 export const notice = {
   error: kNoticeErrorPage,
   seeYou: kNoticeSeeYouPage,
+  logInToContinue: kNoticeLogInToContinue,
 };

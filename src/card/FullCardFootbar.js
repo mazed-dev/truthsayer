@@ -572,11 +572,15 @@ class PublicFullCardFootbarImpl extends React.Component {
     if (account) {
       return account;
     }
-    goto.login({ history: this.props.history });
+    goto.notice.logInToContinue({ history: this.props.history });
+    return null;
   };
 
   handleNextRight = (event) => {
     const account = this.getAccountOrLogin();
+    if (!account) {
+      return;
+    }
     smugler.node
       .create({
         cancelToken: this.remoteCancelToken.token,
@@ -599,6 +603,9 @@ class PublicFullCardFootbarImpl extends React.Component {
 
   handleNextRightClone = (event) => {
     const account = this.getAccountOrLogin();
+    if (!account) {
+      return;
+    }
     cloneNode(
       this.props.nid,
       null,
@@ -613,6 +620,9 @@ class PublicFullCardFootbarImpl extends React.Component {
 
   handleNextLeft = (event) => {
     const account = this.getAccountOrLogin();
+    if (!account) {
+      return;
+    }
     smugler.node
       .create({
         cancelToken: this.remoteCancelToken.token,
@@ -635,6 +645,9 @@ class PublicFullCardFootbarImpl extends React.Component {
 
   handleNextLeftClone = () => {
     const account = this.getAccountOrLogin();
+    if (!account) {
+      return;
+    }
     cloneNode(
       null,
       this.props.nid,

@@ -14,6 +14,7 @@ import ReactMarkdown from "react-markdown";
 import Emoji from "./../Emoji";
 
 import { MdCheckBox } from "./MdCheckBox";
+import { MzdLink } from "./../lib/MzdLink";
 
 import { joinClasses } from "../util/elClass.js";
 
@@ -238,6 +239,8 @@ function MarkdownLink({ href, children, sourcePosition, ...rest }) {
   href = href.trim();
 
   let prefix = null;
+  let is_external = false;
+  let is_note = false;
   if (href.startsWith("@")) {
     const parts = href.match(/^@(-?[0-9]+)\/?(.*)/);
     if (parts) {
@@ -247,18 +250,22 @@ function MarkdownLink({ href, children, sourcePosition, ...rest }) {
     }
   } else if (href.match(/^\w+$/)) {
     // Link to one of the nodes
-    prefix = "/";
+    is_note = true;
   } else {
     // External link
-    // prefix = "\uD83C\uDF10 ";
-    prefix = "\uD83C\uDF0D ";
+    is_external = true;
   }
 
   return (
-    <a href={href} className={styles.inline_ref} {...rest}>
-      {prefix}
+    <MzdLink
+      to={href}
+      className={styles.inline_ref}
+      is_external={is_external}
+      is_note={is_note}
+      {...rest}
+    >
       {children}
-    </a>
+    </MzdLink>
   );
 }
 
