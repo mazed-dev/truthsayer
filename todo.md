@@ -6,20 +6,8 @@
 - [ ] Public and private bars are the same - don't split them
 - [ ] "Next" button should be dropdown - only, no separate button for clone and search options.
 - [ ] History of changes for each node
-- [ ] Public pages availiable by direct link
-  - [x] Share struct to node meta
-  - [x] Allow to read shared node without user UID when node is shared
-  - [x] Move publick "node" endpoint to "n"
-  - [x] Meta get/update endpoints
-  - [x] Mark node as shared from modal window
-  - [x] Read and show edges only for public notes
-  - [x] Redirect to "Log-in" form when non-registered user clicks on it
-  - [ ] Show the same gloabl navbar for private and public pages
-  - [ ] Connect "alien" notes correctly
-  - [ ] Show "alien" notes correctly
-  - [ ] On public nodes show (i) information button instead of "..."
-  - [ ] On public nodes show author along with information about "upate date".
-  - [ ] On public nodes show "Published on DATE and TIME"
+- [ ] On public nodes show (i) information button instead of "..."
+- [ ] On public nodes show "Published on DATE and TIME"
 - [ ] Add local secrets page to seetings dialog
 - [ ] Proper "image" logo, not just emoji
 - [ ] Font for logo must be the same size as buttons on nav bar
@@ -138,3 +126,15 @@
 - [x] Add page "Please register to create new notes"
 - [x] Create an error page "Oops, something went wrong"
 - [x] Use only "Long in" option on top bar
+- [x] Public pages availiable by direct link
+  - [x] Share struct to node meta
+  - [x] Allow to read shared node without user UID when node is shared
+  - [x] Move publick "node" endpoint to "n"
+  - [x] Meta get/update endpoints
+  - [x] Mark node as shared from modal window
+  - [x] Read and show edges only for public notes
+  - [x] Redirect to "Log-in" form when non-registered user clicks on it
+  - [x] Show the same gloabal navbar for private and public pages
+  - [x] Connect "alien" notes correctly
+  - [x] Show "alien" notes correctly
+  - [x] On public nodes show author along with information about "upate date".

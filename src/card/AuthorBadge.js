@@ -93,11 +93,11 @@ export class TimeBadge extends React.Component {
 export class AuthorFooter extends React.Component {
   render() {
     const node = this.props.node;
-    let account = this.context.account;
-    if (!node || !account) {
+    if (!node) {
       return null;
     }
-    if (node.isOwnedBy(account)) {
+    let account = this.context.account;
+    if (account && node.isOwnedBy(account)) {
       return (
         <footer className={styles.author_footer}>
           <TimeBadge
