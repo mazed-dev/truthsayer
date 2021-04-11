@@ -15,6 +15,8 @@ import { joinClasses } from "../util/elClass.js";
 import LockedImg from "./../img/locked.png";
 import DownloadButtonImg from "./../img/download.png";
 
+import { enforceTopHeader } from "./doc_util.jsx";
+
 import {
   ChunkRender,
   ChunkView,
@@ -215,7 +217,8 @@ const kMaxTrimSmallCardChunksNum = 4;
 
 export function SmallCardRender({ nid, doc, trim, ...rest }) {
   var els = [];
-  if (doc && doc.chunks) {
+  if (doc) {
+    doc = enforceTopHeader(doc);
     var fullTextSize = 0;
     var chunksNum = 0;
     for (var index in doc.chunks) {
@@ -246,7 +249,7 @@ export function SmallCardRender({ nid, doc, trim, ...rest }) {
   return <div {...rest}>{els}</div>;
 }
 
-export function exctractDoc(source, nid) {
+export function exctractDoc(source, nid): TDoc {
   // TODO(akindyakov): add encryption here - decrypt
   if (typeof source === "object") {
     return source;

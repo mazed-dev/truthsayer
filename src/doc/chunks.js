@@ -10,12 +10,12 @@ import { Button, ButtonGroup, InputGroup, Form } from "react-bootstrap";
 import { AutocompleteWindow } from "./../smartpoint/AutocompleteWindow";
 import { MarkdownToolbar } from "./MarkdownToolBar.js";
 import { joinClasses } from "../util/elClass.js";
-import { renderMdCard } from "./../markdown/MarkdownRender";
+import { renderMdCard, SmallAsterisk } from "./../markdown/MarkdownRender";
 
 import { MzdGlobalContext } from "./../lib/global";
 
 import { parseRawSource as _parseRawSource } from "./mdRawParser";
-import { makeChunk } from "./chunk_util";
+import { makeChunk, isTextChunk, isAsteriskChunk } from "./chunk_util";
 
 import { HoverTooltip } from "./../lib/tooltip";
 
@@ -130,15 +130,18 @@ export function ChunkView({
   render,
   ...rest
 }) {
-  var type = chunk.type || 0;
-  return render({
-    source: chunk.source,
-    nid: nid,
-    update: (source) => {
-      const { chunks } = parseRawSource(source);
-      replaceChunks(chunks, index);
-    },
-  });
+  if (isTextChunk(chunk)) {
+    return render({
+      source: chunk.source,
+      nid: nid,
+      update: (source) => {
+        const { chunks } = parseRawSource(source);
+        replaceChunks(chunks, index);
+      },
+    });
+  } else if (isAsteriskChunk(chunk)) {
+    return <SmallAsterisk nid={nid} />;
+  }
 }
 
 export function createEmptyChunk() {

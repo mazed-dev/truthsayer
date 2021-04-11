@@ -1,6 +1,11 @@
-import { TDoc, TChunk } from "./types";
+import { TDoc, TChunk, EChunkType } from "./types";
 
-import { makeChunk } from "./chunk_util.jsx";
+import {
+  makeChunk,
+  makeAsteriskChunk,
+  isHeaderChunk,
+  isTextChunk,
+} from "./chunk_util.jsx";
 import { parseRawSource } from "./mdRawParser.jsx";
 
 export function exctractDocTitle(doc: TDoc | string): string {
@@ -10,9 +15,12 @@ export function exctractDocTitle(doc: TDoc | string): string {
     }
     let i = 0;
     for (i in doc.chunks) {
-      const trimed = doc.chunks[0].source.time();
-      if (trimed.length > 0) {
-        return _makeTitleFromRaw(trimed);
+      const chunk = doc.chunks[0];
+      if (isTextChunk(chunk)) {
+        const trimed = chunk.source.trim();
+        if (trimed.length > 0) {
+          return _makeTitleFromRaw(trimed);
+        }
       }
     }
     // For an empty doc
@@ -53,4 +61,13 @@ export function extractDocAsMarkdown(doc: TDoc): string {
       return acc + "\n\n" + current.source;
     }, "")
     .trim();
+}
+
+export function enforceTopHeader(doc: TDoc): TDoc {
+  let chunks = doc.chunks || new Array();
+  if (chunks.length === 0 || !isHeaderChunk(doc.chunks[0])) {
+    chunks.unshift(makeAsteriskChunk());
+  }
+  doc.chunks = chunks;
+  return doc;
 }

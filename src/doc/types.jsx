@@ -1,6 +1,11 @@
+export const EChunkType = Object.freeze({
+  Text: 0,
+  Asterisk: 1,
+});
+
 export interface TChunk {
-  type: number;
-  source: string;
+  type: EChunkType;
+  source: string | null;
 }
 
 export interface TDoc {

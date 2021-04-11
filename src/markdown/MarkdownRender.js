@@ -466,6 +466,23 @@ export function MdSmallCardRender({ source, nid }) {
   );
 }
 
+export function SmallAsterisk({ nid, children, ...rest }) {
+  if (!children) {
+    children = "* * *";
+  }
+  return (
+    <div className={styles.asterisk}>
+      <NavLink
+        className={joinClasses(styles.small_h1, styles.small_ref)}
+        {...rest}
+        to={"/n/" + nid}
+      >
+        {children}
+      </NavLink>
+    </div>
+  );
+}
+
 export function renderMdCard({ source, nid, update }) {
   return <MdCardRender source={source} nid={nid} update={update} />;
 }
