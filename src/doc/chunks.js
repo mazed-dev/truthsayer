@@ -142,13 +142,7 @@ export function ChunkView({
   } else if (isAsteriskChunk(chunk)) {
     return <SmallAsterisk nid={nid} />;
   }
-}
-
-export function createEmptyChunk() {
-  return {
-    type: 0,
-    source: "",
-  };
+  return <></>;
 }
 
 const kEditorLineHeightPx = 38;

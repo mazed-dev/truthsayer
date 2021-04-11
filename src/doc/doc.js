@@ -17,14 +17,14 @@ import DownloadButtonImg from "./../img/download.png";
 
 import { enforceTopHeader } from "./doc_util.jsx";
 
-import {
-  ChunkRender,
-  ChunkView,
-  parseRawSource,
-  createEmptyChunk,
-} from "./chunks";
+import { ChunkRender, ChunkView, parseRawSource } from "./chunks";
 
-import { mergeChunks, trimChunk, getChunkSize } from "./chunk_util";
+import {
+  mergeChunks,
+  makeEmptyChunk,
+  trimChunk,
+  getChunkSize,
+} from "./chunk_util";
 import { extractDocAsMarkdown } from "./doc_util.jsx";
 
 import { HoverTooltip } from "./../lib/tooltip";
@@ -155,13 +155,13 @@ export class DocRenderImpl extends React.Component {
       const chunks =
         this.props.node.doc.chunks && this.props.node.doc.chunks.length > 0
           ? this.props.node.doc.chunks
-          : [createEmptyChunk()];
+          : [makeEmptyChunk()];
       const account = this.context.account;
       isOwnedByUser = this.props.node.isOwnedBy(account);
       const edit_chunk_opts = this.state.edit_chunk_opts;
       body = chunks.map((chunk, index) => {
         if (chunk == null) {
-          chunk = createEmptyChunk();
+          chunk = makeEmptyChunk();
         }
         const key = index.toString();
         const editOpts =
@@ -222,7 +222,7 @@ export function SmallCardRender({ nid, doc, trim, ...rest }) {
     var fullTextSize = 0;
     var chunksNum = 0;
     for (var index in doc.chunks) {
-      var chunk = doc.chunks[index] ?? createEmptyChunk();
+      var chunk = doc.chunks[index] || makeEmptyChunk();
       const chunkSize = getChunkSize(chunk);
       if (trim && fullTextSize + chunkSize > kMaxTrimSmallCardSize) {
         chunk = trimChunk(chunk, kMaxTrimSmallCardSize - fullTextSize);

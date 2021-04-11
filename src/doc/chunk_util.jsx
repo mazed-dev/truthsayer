@@ -63,3 +63,10 @@ export function isHeaderChunk(chunk: TChunk): boolean {
   }
   return false;
 }
+
+export function makeEmptyChunk() {
+  return {
+    type: EChunkType.Empty,
+    source: "",
+  };
+}
