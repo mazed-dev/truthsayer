@@ -30,35 +30,12 @@
 }
 
 .refs_col {
+  max-width: 24rem;
+  min-width: 16rem;
+
   margin-top: 1.2rem;
   margin-left: 0.4rem;
   margin-right: 0.4rem;
-}
-
-.on_card_btn {
-  border-width: 1px;
-  border-radius: 5px;
-  margin-left: 0.4rem;
-  padding: 0.4rem;
-
-  background-color: #f8f9fa;
-}
-
-.on_card_btn:hover {
-  border: 1px solid #888888;
-  box-shadow: 1px 1px #888888;
-}
-
-.fluid_container {
-  position: relative;
-  z-index: 1;
-}
-
-.fluid_card_toolbar {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 10;
 }
 
 /**

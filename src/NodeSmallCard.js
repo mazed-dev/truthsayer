@@ -38,13 +38,20 @@ function getShadowStyle(n) {
   return styles.small_card_shadow_5;
 }
 
-function makeSeeMoreLink(nid) {
-  return (
-    <Link className={styles.a_see_more} to={"/n/" + nid}>
-      See more
-    </Link>
-  );
-}
+export const SeeMoreButton = React.forwardRef(
+  ({ onClick, className, disabled, on }, ref) => {
+    return (
+      <div
+        className={joinClasses(styles.a_see_more, className)}
+        ref={ref}
+        onClick={onClick}
+        disabled={disabled}
+      >
+        {on ? "See less" : "See more"}
+      </div>
+    );
+  }
+);
 
 class NodeSmallCardImpl extends React.Component {
   constructor(props) {
@@ -55,6 +62,7 @@ class NodeSmallCardImpl extends React.Component {
       node: null,
       edges: [],
       crypto: null,
+      seeMore: false,
     };
   }
 
@@ -120,6 +128,14 @@ class NodeSmallCardImpl extends React.Component {
       });
   };
 
+  toggleSeeMore = () => {
+    this.setState((state) => {
+      return {
+        seeMore: !state.seeMore,
+      };
+    });
+  };
+
   render() {
     let body = null;
     let clickableOnClick = null;
@@ -129,7 +145,9 @@ class NodeSmallCardImpl extends React.Component {
       clickableStyle = styles.clickable_chunks;
       clickableOnClick = this.onClick;
     } else {
-      seeMore = makeSeeMoreLink(this.props.nid);
+      seeMore = (
+        <SeeMoreButton onClick={this.toggleSeeMore} on={this.state.seeMore} />
+      );
     }
     const node = this.state.node;
     if (node == null) {
@@ -147,7 +165,6 @@ class NodeSmallCardImpl extends React.Component {
             <code className={styles.locked_secret_id}>
               {node.crypto.secret_id}
             </code>
-            {seeMore}
           </>
         );
       } else {
@@ -156,7 +173,7 @@ class NodeSmallCardImpl extends React.Component {
             <SmallCardRender
               doc={node.doc}
               nid={clickableOnClick === null ? this.props.nid : null}
-              trim={true}
+              trim={!this.state.seeMore}
             />
             {seeMore}
           </>
