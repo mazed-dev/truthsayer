@@ -22,7 +22,7 @@ import { goto } from "../lib/route.jsx";
 import { joinClasses } from "../util/elClass.js";
 import { CheckBox } from "./../lib/CheckBox.js";
 
-class PrivateSmallCardFootbarImpl extends React.Component {
+class PrivateSmallCardFootbar extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -62,17 +62,15 @@ class PrivateSmallCardFootbarImpl extends React.Component {
   };
 
   handleRefCutOff = () => {
-    const req = {
-      eid: this.props.eid,
-    };
+    const eid = this.props.edge.eid;
     smugler.edge
       .delete({
-        eid: this.props.eid,
+        eid: eid,
         cancelToken: this.deleteEdgeCancelToken.token,
       })
       .then((res) => {
         if (res) {
-          this.props.cutOffRef(this.props.eid);
+          this.props.cutOffRef(eid);
         }
       });
   };
@@ -107,9 +105,9 @@ class PrivateSmallCardFootbarImpl extends React.Component {
   }
 }
 
-PrivateSmallCardFootbarImpl.contextType = MzdGlobalContext;
+PrivateSmallCardFootbar.contextType = MzdGlobalContext;
 
-const PrivateSmallCardFootbar = withRouter(PrivateSmallCardFootbarImpl);
+PrivateSmallCardFootbar = withRouter(PrivateSmallCardFootbar);
 
 class PublicSmallCardFootbarImpl extends React.Component {
   render() {

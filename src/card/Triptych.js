@@ -195,20 +195,11 @@ class Triptych extends React.Component {
       });
   };
 
-  cutOffLeftRef = (eid) => {
+  cutOffRef = (eid) => {
     this.setState((state) => {
       const rm = (edge) => edge.eid !== eid;
       return {
         edges_left: state.edges_left.filter(rm),
-        edges_sticky: state.edges_sticky.filter(rm),
-      };
-    });
-  };
-
-  cutOffRightRef = (eid) => {
-    this.setState((state) => {
-      const rm = (edge) => edge.eid !== eid;
-      return {
         edges_right: state.edges_right.filter(rm),
         edges_sticky: state.edges_sticky.filter(rm),
       };
@@ -260,7 +251,7 @@ class Triptych extends React.Component {
             <NodeRefs
               nid={this.props.nid}
               edges={this.state.edges_left}
-              cutOffRef={this.cutOffLeftRef}
+              cutOffRef={this.cutOffRef}
               switchStickiness={this.switchStickiness}
               className={styles.node_refs_left}
             />
@@ -277,7 +268,7 @@ class Triptych extends React.Component {
             <NodeRefs
               nid={this.props.nid}
               edges={this.state.edges_right}
-              cutOffRef={this.cutOffRightRef}
+              cutOffRef={this.cutOffRef}
               switchStickiness={this.switchStickiness}
             />
           </Col>

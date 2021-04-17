@@ -249,6 +249,8 @@ async function nodeAttrsSearch({
 }
 
 async function createEdge({ from, to, cancelToken }) {
+  verifyIsNotNull(from);
+  verifyIsNotNull(to);
   const req = {
     edges: [
       {
@@ -271,6 +273,7 @@ async function createEdge({ from, to, cancelToken }) {
 }
 
 async function createFewEdges({ edges, cancelToken }) {
+  verifyIsNotNull(edges);
   const req = {
     edges: edges,
   };
@@ -316,6 +319,8 @@ class TEdge {
 }
 
 async function getNodeEdges(nid, cancelToken, dir) {
+  verifyIsNotNull(nid);
+  verifyIsNotNull(dir);
   return axios
     .get("/api/node/" + nid + dir, {
       cancelToken: cancelToken,
@@ -342,6 +347,7 @@ async function getEdgesFromNode({ nid, cancelToken }) {
 }
 
 async function switchEdgeStickiness({ eid, cancelToken, on, off }) {
+  verifyIsNotNull(eid);
   const req = {
     is_sticky: on != null ? on : !off,
   };
@@ -358,6 +364,7 @@ async function switchEdgeStickiness({ eid, cancelToken, on, off }) {
 }
 
 async function deleteEdge({ eid, cancelToken }) {
+  verifyIsNotNull(eid);
   const req = {
     eid: eid,
   };
