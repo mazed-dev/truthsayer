@@ -1,10 +1,10 @@
 # Todo
 
-- [ ] "Open" button on top of each small card. "See more" should unfold the small card, instead of opening it.
+- [ ] Non nodes don't work in smartpoint!
+- [ ] Title extraction work badly - doesn't remove special symbols and new line characters
 - [ ] Fix tooltip overlap
 - [ ] Implement edge stickiness on server side to reduce number of calls to backend
 - [ ] Public and private bars are the same - don't split them
-- [ ] "Next" button should be dropdown - only, no separate button for clone and search options.
 - [ ] History of changes for each node
 - [ ] On public nodes show (i) information button instead of "..."
 - [ ] On public nodes show "Published on DATE and TIME"
@@ -138,3 +138,5 @@
   - [x] Connect "alien" notes correctly
   - [x] Show "alien" notes correctly
   - [x] On public nodes show author along with information about "upate date".
+- [x] "Open" button on top of each small card. "See more" should unfold the small card, instead of opening it.
+- [x] "Next" button should be dropdown - only, no separate button for clone and search options.
