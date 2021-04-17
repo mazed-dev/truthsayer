@@ -162,9 +162,6 @@ export class DocRenderImpl extends React.Component {
       isOwnedByUser = this.props.node.isOwnedBy(account);
       const edit_chunk_opts = this.state.edit_chunk_opts;
       body = chunks.map((chunk, index) => {
-        if (chunk == null) {
-          chunk = makeEmptyChunk();
-        }
         const key = index.toString();
         const editOpts =
           index === edit_chunk_opts.index ? edit_chunk_opts : null;
@@ -181,6 +178,22 @@ export class DocRenderImpl extends React.Component {
           />
         );
       });
+      if (!body) {
+        const index = body.length;
+        body.push(
+          <ChunkRender
+            chunk={makeEmptyChunk()}
+            key={index.toString()}
+            nid={this.props.node.nid}
+            index={index}
+            replaceChunk={this.replaceChunk}
+            editChunk={this.editChunk}
+            editOpts={null}
+            isEditable={isOwnedByUser}
+          />
+        );
+      }
+      console.log("Body edit chunk opts", this.state.edit_chunk_opts);
     } else {
       // TODO(akindyakov): Add loading animation here
       body = <Loader />;
