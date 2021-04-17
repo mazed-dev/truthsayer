@@ -1,6 +1,5 @@
 import React from "react";
 
-import "./Triptych.css";
 import styles from "./Triptych.module.css";
 
 import { DocRender } from "./../doc/doc";
