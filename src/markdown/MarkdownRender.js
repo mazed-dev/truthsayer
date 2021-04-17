@@ -468,7 +468,7 @@ export function MdSmallCardRender({ source, nid }) {
 
 export function SmallAsterisk({ nid, children, ...rest }) {
   if (!children) {
-    children = "* * *";
+    children = "🧶 🧶 🧶";
   }
   return (
     <div className={styles.asterisk}>

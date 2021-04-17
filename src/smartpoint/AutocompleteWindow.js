@@ -65,7 +65,7 @@ class AutocompleteModal extends React.Component {
         q: input,
       },
       () => {
-        // this.props.suggestNewRef && this.nextRefSearch(input);
+        this.props.suggestNewRef && this.nextRefSearch(input);
         this.props.suggestDateTime && this.dateTimeSearch(input);
       }
     );
