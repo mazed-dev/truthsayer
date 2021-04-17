@@ -16,7 +16,7 @@ class DateTimeSmartItem extends React.Component {
     const replacement =
       "[](@" + this.props.tm.unix() + "/" + this.props.format + ")";
     this.props.on_insert({
-      text: replacement,
+      replacement: replacement,
     });
   };
 

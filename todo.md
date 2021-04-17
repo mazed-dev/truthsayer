@@ -1,6 +1,5 @@
 # Todo
 
-- [ ] Non nodes don't work in smartpoint!
 - [ ] Title extraction work badly - doesn't remove special symbols and new line characters
 - [ ] Fix tooltip overlap
 - [ ] Implement edge stickiness on server side to reduce number of calls to backend
@@ -140,3 +139,4 @@
   - [x] On public nodes show author along with information about "upate date".
 - [x] "Open" button on top of each small card. "See more" should unfold the small card, instead of opening it.
 - [x] "Next" button should be dropdown - only, no separate button for clone and search options.
+- [x] Non nodes don't work in smartpoint!

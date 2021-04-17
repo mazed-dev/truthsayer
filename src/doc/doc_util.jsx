@@ -33,10 +33,11 @@ export function exctractDocTitle(doc: TDoc | string): string {
 function _makeTitleFromRaw(source: string): string {
   const title = source
     .slice(0, 48)
-    .replace("\n", " ")
+    .replace(/\s+/g, " ")
     // Replace markdown links with title of the link
     .replace(/\[([^\]]+)\][^\)]+\)/g, "$1")
-    .replace(/^[# ]+/, "");
+    .replace(/^[# ]+/, "")
+    .replace(/[\[\]]+/, "");
   return title + "\u2026";
 }
 
