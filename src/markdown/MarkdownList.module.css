@@ -51,7 +51,7 @@
 }
 
 .full_h2 {
-  font-size: 1.32rem;
+  font-size: 1.24rem;
   font-weight: bold;
   /* color: #245501; */
   color: #006400;
@@ -61,7 +61,7 @@
 }
 
 .full_h3 {
-  font-size: 1.24rem;
+  font-size: 1.16rem;
   font-weight: bold;
   /* color: #538d22; */
   color: #007200;
@@ -71,7 +71,7 @@
 }
 
 .full_h4 {
-  font-size: 1.16rem;
+  font-size: 1.12rem;
   font-weight: bold;
   /* color: #73a942; */
   color: #008000;
@@ -81,7 +81,7 @@
 }
 
 .full_h5 {
-  font-size: 1.12rem;
+  font-size: 1.08rem;
   font-weight: bold;
   /* color: #aad576; */
   color: #38b000;

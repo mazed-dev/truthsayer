@@ -92,8 +92,7 @@ export class ChunkRender extends React.Component {
         <TextEditor
           value={this.props.chunk.source}
           nid={this.props.nid}
-          replaceChunks={this.props.replaceChunks}
-          mergeChunkUp={this.props.mergeChunkUp}
+          replaceChunk={this.props.replaceChunk}
           editChunk={this.props.editChunk}
           index={this.props.index}
           editOpts={this.props.editOpts}
@@ -103,7 +102,7 @@ export class ChunkRender extends React.Component {
           nid={this.props.nid}
           chunk={this.props.chunk}
           index={this.props.index}
-          replaceChunks={this.props.replaceChunks}
+          replaceChunk={this.props.replaceChunk}
           render={renderMdCard}
         />
       );
@@ -126,7 +125,7 @@ export function ChunkView({
   chunk,
   nid,
   index,
-  replaceChunks,
+  replaceChunk,
   render,
   ...rest
 }) {
@@ -136,7 +135,7 @@ export function ChunkView({
       nid: nid,
       update: (source) => {
         const { chunks } = parseRawSource(source);
-        replaceChunks(chunks, index);
+        replaceChunk(chunks, index);
       },
     });
   } else if (isAsteriskChunk(chunk)) {
@@ -182,6 +181,17 @@ export class TextEditor extends React.Component {
     topbar.reset(null);
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.value !== prevProps.value) {
+      if (this.state.value !== this.props.value) {
+        this.setState({
+          value: this.props.value,
+          height: this.getAdjustedHeight(),
+        });
+      }
+    }
+  }
+
   createEditorToolbar() {
     return (
       <MarkdownToolbar
@@ -210,33 +220,23 @@ export class TextEditor extends React.Component {
       keyCode === keycode("enter") &&
       textRef.selectionStart === textRef.selectionEnd
     ) {
-      var prefix = textRef.value.slice(0, textRef.selectionStart);
-      if (prefix.endsWith("\n")) {
+      var prefix = textRef.value.slice(0, textRef.selectionStart); // TODO(akindyakov) selectionStart+1 ?
+      if (prefix.endsWith("\n\n")) {
+        // TODO(akindyakov): Big question 2 or 3?
         prefix = prefix.trim();
         if (prefix.length > 0) {
           event.preventDefault();
           const suffix = textRef.value.slice(textRef.selectionStart);
-          const left = makeChunk(prefix);
-          const rigth = makeChunk(suffix.trim());
+          const topChunk = makeChunk(prefix);
+          const bottomChunk = makeChunk(suffix.trim());
           const goToIndex = this.props.index + 1;
-          this.props.replaceChunks([left, rigth], this.props.index, goToIndex);
+          this.props.replaceChunk(
+            [topChunk, bottomChunk],
+            this.props.index,
+            goToIndex
+          );
         }
       }
-    } else if (
-      keyCode === keycode("backspace") &&
-      0 === textRef.selectionStart &&
-      0 === textRef.selectionEnd
-    ) {
-      event.preventDefault();
-      const source = this.state.value.trim();
-      const chunk = makeChunk(source);
-      const goToIndex = this.props.index - 1;
-      this.props.mergeChunkUp(
-        chunk,
-        this.props.index,
-        goToIndex,
-        -source.length
-      );
     } else if (
       0 !== this.props.index &&
       keyCode === keycode("up") &&
@@ -246,7 +246,7 @@ export class TextEditor extends React.Component {
       event.preventDefault();
       const { chunks } = parseRawSource(this.state.value);
       const goToIndex = this.props.index - 1;
-      this.props.replaceChunks(chunks, this.props.index, goToIndex);
+      this.props.replaceChunk(chunks, this.props.index, goToIndex);
     } else if (
       keyCode === keycode("down") &&
       textRef.textLength === textRef.selectionStart &&
@@ -255,7 +255,7 @@ export class TextEditor extends React.Component {
       event.preventDefault();
       const { chunks } = parseRawSource(this.state.value);
       const goToIndex = this.props.index + 1;
-      this.props.replaceChunks(chunks, this.props.index, goToIndex);
+      this.props.replaceChunk(chunks, this.props.index, goToIndex);
     }
   };
 
@@ -264,7 +264,7 @@ export class TextEditor extends React.Component {
     const ref = event.target;
     this.setState({
       value: value,
-      height: this.getAdjustedHeight(ref, kMinEditorHeightPx),
+      height: this.getAdjustedHeight(),
     });
   };
 
@@ -272,10 +272,7 @@ export class TextEditor extends React.Component {
     this.setState(
       {
         value: value,
-        height: this.getAdjustedHeight(
-          this.textAreaRef.current,
-          kMinEditorHeightPx
-        ),
+        height: this.getAdjustedHeight(),
       },
       () => {
         this.textAreaRef.current.focus();
@@ -324,8 +321,6 @@ export class TextEditor extends React.Component {
     this.handleReplaceSmartpoint(text);
   };
 
-  componentDidUpdate(prevProps, prevState) {}
-
   getInitialHeight = (text) => {
     const eols = text.match(/\n/g);
     const numberOfLines = eols ? eols.length + 1 : 1;
@@ -337,19 +332,20 @@ export class TextEditor extends React.Component {
     );
   };
 
-  getAdjustedHeight = (el, minHeight) => {
+  getAdjustedHeight = () => {
+    const el = this.textAreaRef.current;
     // compute the height difference which is caused by border and outline
     var outerHeight = parseInt(window.getComputedStyle(el).height, 10);
     var diff = outerHeight - el.clientHeight;
     // set the height to 0 in case of it has to be shrinked
     // el.style.height = 0;
     // el.scrollHeight is the full height of the content, not just the visible part
-    return Math.max(minHeight, el.scrollHeight + diff);
+    return Math.max(kMinEditorHeightPx, el.scrollHeight + diff);
   };
 
   _saveAndQuitEditing = () => {
     const { chunks } = parseRawSource(this.state.value);
-    this.props.replaceChunks(chunks, this.props.index);
+    this.props.replaceChunk(chunks, this.props.index);
     this.props.editChunk(-1);
   };
 

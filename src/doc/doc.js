@@ -106,6 +106,8 @@ export class DocRenderImpl extends React.Component {
    * Repace the chunk with index [index] with new chunks
    */
   replaceChunk = (chunks, index, toIndex, selectionStart) => {
+    // TODO(akindyakov): Use Array.splice instead
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice
     const newChunks = this.props.node.doc.chunks
       .slice(0, index)
       .concat(chunks)
@@ -172,8 +174,7 @@ export class DocRenderImpl extends React.Component {
             key={key}
             nid={this.props.node.nid}
             index={index}
-            replaceChunks={this.replaceChunk}
-            mergeChunkUp={this.mergeChunkUp}
+            replaceChunk={this.replaceChunk}
             editChunk={this.editChunk}
             editOpts={editOpts}
             isEditable={isOwnedByUser}

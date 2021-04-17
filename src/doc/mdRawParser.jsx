@@ -3,7 +3,7 @@ import { TChunk, TDoc } from "./types.jsx";
 export function parseRawSource(source: string): TDoc {
   return {
     chunks: source
-      .split("\n\n")
+      .split("\n\n\n")
       .filter((src) => {
         return src != null && src.length > 0;
       })
