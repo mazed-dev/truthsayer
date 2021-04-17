@@ -186,10 +186,18 @@ export class TextEditor extends React.Component {
       if (this.state.value !== this.props.value) {
         this.setState({
           value: this.props.value,
-          height: this.getAdjustedHeight(),
         });
       }
     }
+    if (this.state.value !== prevState.value) {
+      this.adjustHeight();
+    }
+  }
+
+  updateValue(value) {
+    this.setState({
+      value: this.props.value,
+    });
   }
 
   createEditorToolbar() {
@@ -264,7 +272,6 @@ export class TextEditor extends React.Component {
     const ref = event.target;
     this.setState({
       value: value,
-      height: this.getAdjustedHeight(),
     });
   };
 
@@ -272,7 +279,6 @@ export class TextEditor extends React.Component {
     this.setState(
       {
         value: value,
-        height: this.getAdjustedHeight(),
       },
       () => {
         this.textAreaRef.current.focus();
@@ -341,6 +347,12 @@ export class TextEditor extends React.Component {
     // el.style.height = 0;
     // el.scrollHeight is the full height of the content, not just the visible part
     return Math.max(kMinEditorHeightPx, el.scrollHeight + diff);
+  };
+
+  adjustHeight = () => {
+    this.setState({
+      height: this.getAdjustedHeight(),
+    });
   };
 
   _saveAndQuitEditing = () => {
