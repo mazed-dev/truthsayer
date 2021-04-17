@@ -201,7 +201,7 @@ async function cloneNode(from_nid, to_nid, crypto, cancelToken) {
   });
 }
 
-class PrivateFullCardFootbarImpl extends React.Component {
+class PrivateFullCardFootbar extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -377,27 +377,32 @@ class PrivateFullCardFootbarImpl extends React.Component {
             as={ButtonGroup}
             className={joinClasses(styles.toolbar_layout_item)}
           >
-            <Button
+            <Dropdown.Toggle
               variant="light"
-              className={joinClasses(styles.tool_button)}
-              onClick={this.handleNextLeft}
+              className={joinClasses(styles.tool_button, styles.tool_dropdown)}
             >
-              <HoverTooltip tooltip={"Create and link"}>
+              <HoverTooltip tooltip={"Link to the left"}>
                 <img
                   src={NextNewLeftImg}
                   className={styles.tool_button_img}
                   alt="Add left link"
                 />
               </HoverTooltip>
-            </Button>
-
-            <Dropdown.Toggle
-              split
-              variant="light"
-              className={joinClasses(styles.tool_button, styles.tool_dropdown)}
-            />
+            </Dropdown.Toggle>
 
             <Dropdown.Menu>
+              <Dropdown.Item
+                className={styles.dropdown_menu_item}
+                onClick={this.handleNextLeft}
+              >
+                <img
+                  src={NextNewLeftImg}
+                  className={styles.dropdown_menu_inline_img}
+                  alt="Add left link"
+                />
+                New
+              </Dropdown.Item>
+
               <Dropdown.Item
                 className={styles.dropdown_menu_item}
                 onClick={this.handleNextLeftClone}
@@ -484,12 +489,30 @@ class PrivateFullCardFootbarImpl extends React.Component {
             className={joinClasses(styles.toolbar_layout_item)}
           >
             <Dropdown.Toggle
-              split
               variant="light"
               className={joinClasses(styles.tool_button, styles.tool_dropdown)}
-            />
+            >
+              <HoverTooltip tooltip={"Link to the right"}>
+                <img
+                  src={NextNewRightImg}
+                  className={styles.tool_button_img}
+                  alt="Add left link"
+                />
+              </HoverTooltip>
+            </Dropdown.Toggle>
 
             <Dropdown.Menu>
+              <Dropdown.Item
+                className={styles.dropdown_menu_item}
+                onClick={this.handleNextRightClone}
+              >
+                <img
+                  src={NextNewRightImg}
+                  className={styles.dropdown_menu_inline_img}
+                  alt="Add right link"
+                />
+                New
+              </Dropdown.Item>
               <Dropdown.Item
                 className={styles.dropdown_menu_item}
                 onClick={this.handleNextRightClone}
@@ -513,20 +536,6 @@ class PrivateFullCardFootbarImpl extends React.Component {
                 Search and link
               </Dropdown.Item>
             </Dropdown.Menu>
-
-            <Button
-              variant="light"
-              className={joinClasses(styles.tool_button)}
-              onClick={this.handleNextRight}
-            >
-              <HoverTooltip tooltip={"Create and link"}>
-                <img
-                  src={NextNewRightImg}
-                  className={styles.tool_button_img}
-                  alt="Add right link"
-                />
-              </HoverTooltip>
-            </Button>
           </Dropdown>
         </ButtonToolbar>
 
@@ -552,9 +561,9 @@ class PrivateFullCardFootbarImpl extends React.Component {
   }
 }
 
-PrivateFullCardFootbarImpl.contextType = MzdGlobalContext;
+PrivateFullCardFootbar.contextType = MzdGlobalContext;
 
-const PrivateFullCardFootbar = withRouter(PrivateFullCardFootbarImpl);
+PrivateFullCardFootbar = withRouter(PrivateFullCardFootbar);
 
 class PublicFullCardFootbarImpl extends React.Component {
   constructor(props) {
@@ -697,7 +706,7 @@ class PublicFullCardFootbarImpl extends React.Component {
               styles.toolbar_layout_item
             )}
           >
-            <HoverTooltip tooltip={"Create and link"}>
+            <HoverTooltip tooltip={"Link to the left"}>
               <img
                 src={NextNewLeftImg}
                 className={styles.tool_button_img}
@@ -745,7 +754,7 @@ class PublicFullCardFootbarImpl extends React.Component {
               styles.toolbar_layout_item
             )}
           >
-            <HoverTooltip tooltip={"Create and link"}>
+            <HoverTooltip tooltip={"Link to the right"}>
               <img
                 src={NextNewRightImg}
                 className={styles.tool_button_img}

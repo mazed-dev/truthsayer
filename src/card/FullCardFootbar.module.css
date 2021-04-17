@@ -32,6 +32,10 @@
   padding-left: 0.7rem;
 }
 
+.tool_dropdown:after {
+  display: none;
+}
+
 .tool_button_img {
   height: 1.6rem;
   width: 1.6rem;
