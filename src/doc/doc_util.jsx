@@ -9,25 +9,25 @@ import {
 import { parseRawSource } from "./mdRawParser.jsx";
 
 export function exctractDocTitle(doc: TDoc | string): string {
-  if ("chunks" in doc) {
-    if (doc.chunks.length > 0) {
-      return _makeTitleFromRaw(doc.chunks[0].source);
-    }
-    let i = 0;
-    for (i in doc.chunks) {
-      const chunk = doc.chunks[0];
-      if (isTextChunk(chunk)) {
-        const trimed = chunk.source.trim();
+  if (typeof doc === "string") {
+    return _makeTitleFromRaw(doc);
+  } else if ("chunks" in doc) {
+    const chunks = doc.chunks;
+    const title = chunks.reduce((acc, item) => {
+      if (!acc && isTextChunk(item)) {
+        const trimed = item.source.trim();
         if (trimed.length > 0) {
           return _makeTitleFromRaw(trimed);
         }
       }
+      return acc;
+    }, null);
+    if (title) {
+      return title;
     }
-    // For an empty doc
-    return "(empty)";
-  } else {
-    return _makeTitleFromRaw(doc);
   }
+  // For an empty doc
+  return "Some no name page...";
 }
 
 function _makeTitleFromRaw(source: string): string {

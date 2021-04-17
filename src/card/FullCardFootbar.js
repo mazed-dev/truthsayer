@@ -40,22 +40,38 @@ import { downloadAsFile } from "../util/download_as_file.jsx";
 class LeftSearchModal extends React.Component {
   constructor(props) {
     super(props);
+    this.addNodeRefCancelToken = smugler.makeCancelToken();
   }
 
-  handleReplaceSmartpoint = ({ replacement, nid, edge }) => {
-    this.props.addRef({ edge: edge, left: true });
+  handleReplaceSmartpoint = ({ replacement, nid }) => {
+    if (nid) {
+      smugler.edge
+        .create({
+          from: nid,
+          to: this.props.nid,
+          cancelToken: this.addNodeRefCancelToken.token,
+        })
+        .then((edge) => {
+          if (edge) {
+            this.props.addRef({ edge: edge, left: true });
+          }
+        });
+    }
   };
+
+  componentWillUnmount() {
+    this.addNodeRefCancelToken.cancel();
+  }
 
   render() {
     return (
-      <>
-        <AutocompleteWindow
-          show={this.props.show}
-          onHide={this.props.onHide}
-          on_insert={this.handleReplaceSmartpoint}
-          nid={this.props.nid}
-        />
-      </>
+      <AutocompleteWindow
+        show={this.props.show}
+        onHide={this.props.onHide}
+        on_insert={this.handleReplaceSmartpoint}
+        nid={this.props.nid}
+        suggestDateTime={false}
+      />
     );
   }
 }
@@ -103,11 +119,28 @@ const CustomNodePrivacyToggle = React.forwardRef(
 class RightSearchModal extends React.Component {
   constructor(props) {
     super(props);
+    this.addNodeRefCancelToken = smugler.makeCancelToken();
   }
 
-  handleReplaceSmartpoint = ({ replacement, nid, edge }) => {
-    this.props.addRef({ edge: edge, right: true });
+  handleReplaceSmartpoint = ({ replacement, nid }) => {
+    if (nid) {
+      smugler.edge
+        .create({
+          from: this.props.nid,
+          to: nid,
+          cancelToken: this.addNodeRefCancelToken.token,
+        })
+        .then((edge) => {
+          if (edge) {
+            this.props.addRef({ edge: edge, right: true });
+          }
+        });
+    }
   };
+
+  componentWillUnmount() {
+    this.addNodeRefCancelToken.cancel();
+  }
 
   render() {
     let account = this.context.account;
@@ -117,6 +150,7 @@ class RightSearchModal extends React.Component {
         onHide={this.props.onHide}
         on_insert={this.handleReplaceSmartpoint}
         nid={this.props.nid}
+        suggestDateTime={false}
       />
     );
   }
@@ -504,7 +538,7 @@ class PrivateFullCardFootbar extends React.Component {
             <Dropdown.Menu>
               <Dropdown.Item
                 className={styles.dropdown_menu_item}
-                onClick={this.handleNextRightClone}
+                onClick={this.handleNextRight}
               >
                 <img
                   src={NextNewRightImg}

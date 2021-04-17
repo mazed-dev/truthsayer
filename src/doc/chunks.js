@@ -1,6 +1,6 @@
 import React from "react";
 
-import axios from "axios";
+import { smugler } from "./../smugler/api";
 import keycode from "keycode";
 
 import styles from "./chunks.module.css";
@@ -157,7 +157,7 @@ export class TextEditor extends React.Component {
       keyCounterSlash: 0,
     };
     this.textAreaRef = React.createRef();
-    this.createEdgeCancelToken = axios.CancelToken.source();
+    this.addNodeRefCancelToken = smugler.makeCancelToken();
   }
 
   componentDidMount() {
@@ -175,7 +175,7 @@ export class TextEditor extends React.Component {
   }
 
   componentWillUnmount() {
-    this.createEdgeCancelToken.cancel();
+    this.addNodeRefCancelToken.cancel();
 
     const topbar = this.context.topbar;
     topbar.reset(null);
@@ -323,8 +323,20 @@ export class TextEditor extends React.Component {
     }
   };
 
-  handleSmartpointOnInsert = ({ text }) => {
-    this.handleReplaceSmartpoint(text);
+  handleSmartpointOnInsert = ({ replacement, nid }) => {
+    if (nid) {
+      smugler.edge
+        .create({
+          from: this.props.nid,
+          to: nid,
+          cancelToken: this.addNodeRefCancelToken.token,
+        })
+        .then((edge) => {
+          this.handleReplaceSmartpoint(replacement);
+        });
+    } else {
+      this.handleReplaceSmartpoint(replacement);
+    }
   };
 
   getInitialHeight = (text) => {

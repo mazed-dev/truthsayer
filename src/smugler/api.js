@@ -264,7 +264,7 @@ async function createEdge({ from, to, cancelToken }) {
     .catch(dealWithError)
     .then((res) => {
       if (res && res.data && res.data.edges && res.data.edges.length > 0) {
-        return res.data.edges[0];
+        return new TEdge(res.data.edges[0]);
       }
       return null;
     });
@@ -280,7 +280,9 @@ async function createFewEdges({ edges, cancelToken }) {
     })
     .then((res) => {
       if (res) {
-        return res.data.edges;
+        return res.data.edges.map((edgeObj) => {
+          return new TEdge(edgeObj);
+        });
       }
     });
 }

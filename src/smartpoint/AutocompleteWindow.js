@@ -25,17 +25,13 @@ class AutocompleteModal extends React.Component {
       cursor: 0,
     };
     this.inputRef = React.createRef();
-    this.searchFetchCancelToken = axios.CancelToken.source();
-    this.addNodeRefCancelToken = axios.CancelToken.source();
   }
 
   componentDidMount() {
     this.inputRef.current.focus();
   }
 
-  componentWillUnmount() {
-    this.searchFetchCancelToken.cancel();
-  }
+  componentWillUnmount() {}
 
   appendCards = (cards) => {
     this.setState((state) => {
@@ -69,7 +65,7 @@ class AutocompleteModal extends React.Component {
         q: input,
       },
       () => {
-        this.props.suggestNewRef && this.nextRefSearch(input);
+        // this.props.suggestNewRef && this.nextRefSearch(input);
         this.props.suggestDateTime && this.dateTimeSearch(input);
       }
     );
@@ -119,19 +115,8 @@ class AutocompleteModal extends React.Component {
 
   onNodeCardClick = (nid, doc) => {
     const title = exctractDocTitle(doc);
-
-    smugler.edge
-      .create({
-        from: this.props.nid,
-        to: nid,
-        cancelToken: this.addNodeRefCancelToken.token,
-      })
-      .then((edge) => {
-        if (edge) {
-          const replacement = "[" + title + "](" + nid + ")";
-          this.props.on_insert({ text: replacement, edge: edge });
-        }
-      });
+    const replacement = "[" + title + "](" + nid + ")";
+    this.props.on_insert({ replacement: replacement, nid: nid });
   };
 
   render() {

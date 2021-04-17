@@ -193,7 +193,6 @@ export class DocRenderImpl extends React.Component {
           />
         );
       }
-      console.log("Body edit chunk opts", this.state.edit_chunk_opts);
     } else {
       // TODO(akindyakov): Add loading animation here
       body = <Loader />;
