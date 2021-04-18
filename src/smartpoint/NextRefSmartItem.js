@@ -37,7 +37,7 @@ export class NextRefSmartItem extends React.Component {
           const replacement = "[" + this.props.title + "](" + nid + ")";
           this.props.on_insert({
             replacement: replacement,
-            nid: nid,
+            // nid: nid,
           });
         }
       });
