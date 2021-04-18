@@ -1,6 +1,6 @@
 # Todo
 
-- [ ] Title extraction work badly - doesn't remove special symbols and new line characters
+- [ ] Button for list item to create right-link from this item
 - [ ] Fix tooltip overlap
 - [ ] Implement edge stickiness on server side to reduce number of calls to backend
 - [ ] Public and private bars are the same - don't split them
@@ -24,7 +24,6 @@
 - [ ] Encryption - encryption of a node should be optional
 - [ ] Encryption - reencrypt all function
 - [ ] Don't encrypt nodes with server key, just use base64 on broweser side for non-encrypted nodes
-- [ ] Button for list item to create right-link from this item
 - [ ] Proper preview for small cards
 - [ ] Smart menu - dark background under smart cards
 - [ ] Drag-and-drop for paragraps and list items
@@ -140,3 +139,4 @@
 - [x] "Open" button on top of each small card. "See more" should unfold the small card, instead of opening it.
 - [x] "Next" button should be dropdown - only, no separate button for clone and search options.
 - [x] Non nodes don't work in smartpoint!
+- [x] Title extraction work badly - doesn't remove special symbols and new line characters
