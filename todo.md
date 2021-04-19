@@ -140,3 +140,4 @@
 - [x] "Next" button should be dropdown - only, no separate button for clone and search options.
 - [x] Non nodes don't work in smartpoint!
 - [x] Title extraction work badly - doesn't remove special symbols and new line characters
+- [x] Remove arrowhead after account button on navbar

@@ -8,7 +8,8 @@ import { Link } from "react-router-dom";
 import {
   Button,
   ButtonToolbar,
-  NavDropdown,
+  ButtonGroup,
+  Dropdown,
   Navbar,
   Nav,
 } from "react-bootstrap";
@@ -146,32 +147,41 @@ class PrivateNavButtonsImpl extends React.Component {
           {this.getAuxGroup()}
         </ButtonToolbar>
 
-        <NavDropdown
-          title={userpic}
-          id="account-nav-dropdown"
-          className={this.account_toolbar}
+        <Dropdown
+          className={joinClasses(styles.account_dropdown)}
+          as={ButtonGroup}
+          navbar={true}
         >
-          <NavDropdown.Item as={Link} to="/user-preferences">
-            Manage your account
-          </NavDropdown.Item>
-          <NavDropdown.Item as={Link} to="/help">
-            Help
-          </NavDropdown.Item>
-          <NavDropdown.Divider />
-          <NavDropdown.Item as={Link} to="/about">
-            About knotledge
-          </NavDropdown.Item>
-          <NavDropdown.Item as={Link} to="/privacy-policy">
-            Privacy Policy
-          </NavDropdown.Item>
-          <NavDropdown.Item as={Link} to="/terms-of-service">
-            Terms of Service
-          </NavDropdown.Item>
-          <NavDropdown.Divider />
-          <NavDropdown.Item as={Link} to="/logout">
-            log out
-          </NavDropdown.Item>
-        </NavDropdown>
+          <Dropdown.Toggle
+            variant="light"
+            className={joinClasses(styles.account_dropdown_toggle)}
+          >
+            {userpic}
+          </Dropdown.Toggle>
+
+          <Dropdown.Menu>
+            <Dropdown.Item as={Link} to="/user-preferences">
+              Manage your account
+            </Dropdown.Item>
+            <Dropdown.Item as={Link} to="/help">
+              Help
+            </Dropdown.Item>
+            <Dropdown.Divider />
+            <Dropdown.Item as={Link} to="/about">
+              About knotledge
+            </Dropdown.Item>
+            <Dropdown.Item as={Link} to="/privacy-policy">
+              Privacy Policy
+            </Dropdown.Item>
+            <Dropdown.Item as={Link} to="/terms-of-service">
+              Terms of Service
+            </Dropdown.Item>
+            <Dropdown.Divider />
+            <Dropdown.Item as={Link} to="/logout">
+              log out
+            </Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
       </>
     );
   }
