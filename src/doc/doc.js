@@ -37,7 +37,7 @@ import { AuthorFooter } from "./../card/AuthorBadge";
 import moment from "moment";
 import axios from "axios";
 
-export class DocRenderImpl extends React.Component {
+export class DocRender extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -221,9 +221,9 @@ export class DocRenderImpl extends React.Component {
   }
 }
 
-DocRenderImpl.contextType = MzdGlobalContext;
+DocRender.contextType = MzdGlobalContext;
 
-export const DocRender = withRouter(DocRenderImpl);
+DocRender = withRouter(DocRender);
 
 const kMaxTrimSmallCardSize = 320;
 const kMaxTrimSmallCardChunksNum = 4;
