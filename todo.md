@@ -1,6 +1,7 @@
 # Todo
 
-- [ ] Delete node functionality
+- [ ] Addjust Triptych for small screens
+  - All ref cards bellow in 2 rows
 - [ ] Button for list item to create right-link from this item
 - [ ] Fix tooltip overlap
 - [ ] Implement edge stickiness on server side to reduce number of calls to backend
@@ -144,3 +145,4 @@
 - [x] Remove arrowhead after account button on navbar
 - [x] Blank copy of a note with unticked checkboxes
 - [x] Badge for a copied notes is at the bottom of the note under horisontal rule
+- [x] Delete node functionality

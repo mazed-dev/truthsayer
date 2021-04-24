@@ -102,6 +102,18 @@ async function createNode({
     .catch(dealWithError);
 }
 
+async function deleteNode({ nid, cancelToken }) {
+  verifyIsNotNull(nid);
+  const config = {
+    cancelToken: cancelToken,
+  };
+  return axios
+    .delete("/api/node/" + nid, {
+      cancelToken: cancelToken,
+    })
+    .catch(dealWithError);
+}
+
 class TNode {
   constructor({
     nid,
@@ -172,8 +184,6 @@ async function updateNode({ nid, doc, cancelToken, account }) {
   };
   return axios.patch("/api/node/" + nid, value, config).catch(dealWithError);
 }
-
-function removeNode({ nid, cancelToken }) {}
 
 export function getAuth({ cancelToken }) {
   return axios
@@ -477,9 +487,9 @@ export const smugler = {
   node: {
     get: getNode,
     update: updateNode,
-    remove: removeNode,
     create: createNode,
     slice: nodeAttrsSearch,
+    delete: deleteNode,
   },
   edge: {
     create: createEdge,

@@ -13,6 +13,7 @@ import DownloadImg from "./../img/download.png";
 import CopyImg from "./../img/copy.png";
 import SearchImg from "./../img/search.png";
 import ArchiveImg from "./../img/archive.png";
+import DeleteImg from "./../img/delete.png";
 
 import NextNewLeftImg from "./../img/next-link-left-00001.png";
 import NextNewRightImg from "./../img/next-link-right-00001.png";
@@ -248,7 +249,8 @@ class PrivateFullCardFootbar extends React.Component {
       modalRightShow: false,
       modalShareShow: false,
     };
-    this.remoteCancelToken = smugler.makeCancelToken();
+    this.createCancelToken = smugler.makeCancelToken();
+    this.deleteCancelToken = smugler.makeCancelToken();
   }
 
   static propTypes = {
@@ -258,7 +260,7 @@ class PrivateFullCardFootbar extends React.Component {
   handleNextRight = (event) => {
     smugler.node
       .create({
-        cancelToken: this.remoteCancelToken.token,
+        cancelToken: this.createCancelToken.token,
         from_nid: this.props.nid,
       })
       .then((node) => {
@@ -268,7 +270,7 @@ class PrivateFullCardFootbar extends React.Component {
             this.props.stickyEdges,
             new_nid,
             this.props.nid,
-            this.remoteCancelToken.token
+            this.createCancelToken.token
           ).then(() => {
             goto.node({ history: this.props.history, nid: new_nid });
           });
@@ -282,7 +284,7 @@ class PrivateFullCardFootbar extends React.Component {
       from: this.props.nid,
       to: null,
       crypto: account.getLocalCrypto(),
-      cancelToken: this.remoteCancelToken.token,
+      cancelToken: this.createCancelToken.token,
     }).then((node) => {
       if (node) {
         goto.node({ history: this.props.history, nid: node.nid });
@@ -296,7 +298,7 @@ class PrivateFullCardFootbar extends React.Component {
       from: null,
       to: this.props.nid,
       crypto: account.getLocalCrypto(),
-      cancelToken: this.remoteCancelToken.token,
+      cancelToken: this.createCancelToken.token,
       blank: true,
     }).then((node) => {
       if (node) {
@@ -311,7 +313,7 @@ class PrivateFullCardFootbar extends React.Component {
       from: this.props.nid,
       to: null,
       crypto: account.getLocalCrypto(),
-      cancelToken: this.remoteCancelToken.token,
+      cancelToken: this.createCancelToken.token,
       blank: true,
     }).then((node) => {
       if (node) {
@@ -323,7 +325,7 @@ class PrivateFullCardFootbar extends React.Component {
   handleNextLeft = (event) => {
     smugler.node
       .create({
-        cancelToken: this.remoteCancelToken.token,
+        cancelToken: this.createCancelToken.token,
         to_nid: this.props.nid,
       })
       .then((node) => {
@@ -333,7 +335,7 @@ class PrivateFullCardFootbar extends React.Component {
             this.props.stickyEdges,
             new_nid,
             this.props.nid,
-            this.remoteCancelToken.token
+            this.createCancelToken.token
           ).then(() => {
             goto.node({ history: this.props.history, nid: new_nid });
           });
@@ -347,7 +349,7 @@ class PrivateFullCardFootbar extends React.Component {
       from: null,
       to: this.props.nid,
       crypto: account.getLocalCrypto(),
-      cancelToken: this.remoteCancelToken.token,
+      cancelToken: this.createCancelToken.token,
     }).then((node) => {
       if (node) {
         goto.node({ history: this.props.history, nid: node.nid });
@@ -412,6 +414,23 @@ class PrivateFullCardFootbar extends React.Component {
       title: "Not yet implemented",
       message: "Archive feature is not yet implemented",
     });
+  };
+
+  handleDeleteNote = () => {
+    let toaster = this.context.toaster;
+    smugler.node
+      .delete({
+        nid: this.props.nid,
+        cancelToken: this.deleteCancelToken.token,
+      })
+      .then(() => {
+        toaster.push({
+          title: "Moved to bin",
+          message:
+            "Notes that have been in the bin for more than 28 days will be deleted automatically",
+        });
+        goto.default({ history: this.props.history });
+      });
   };
 
   getShareBtn = () => {
@@ -549,6 +568,19 @@ class PrivateFullCardFootbar extends React.Component {
                 />
                 Download as text
               </Dropdown.Item>
+
+              <Dropdown.Divider />
+              <Dropdown.Item
+                className={styles.dropdown_menu_item}
+                onClick={this.handleDeleteNote}
+              >
+                <img
+                  src={DeleteImg}
+                  className={styles.dropdown_menu_inline_img}
+                  alt={"Delete"}
+                />
+                Delete
+              </Dropdown.Item>
               <Dropdown.Divider />
               <Dropdown.Item
                 className={styles.dropdown_menu_item}
@@ -660,7 +692,7 @@ class PublicFullCardFootbarImpl extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
-    this.remoteCancelToken = smugler.makeCancelToken();
+    this.createCancelToken = smugler.makeCancelToken();
   }
 
   static propTypes = {
@@ -683,7 +715,7 @@ class PublicFullCardFootbarImpl extends React.Component {
     }
     smugler.node
       .create({
-        cancelToken: this.remoteCancelToken.token,
+        cancelToken: this.createCancelToken.token,
         from_nid: this.props.nid,
       })
       .then((node) => {
@@ -693,7 +725,7 @@ class PublicFullCardFootbarImpl extends React.Component {
             this.props.stickyEdges,
             new_nid,
             this.props.nid,
-            this.remoteCancelToken.token
+            this.createCancelToken.token
           ).then(() => {
             goto.node({ history: this.props.history, nid: new_nid });
           });
@@ -710,7 +742,7 @@ class PublicFullCardFootbarImpl extends React.Component {
       from: this.props.nid,
       to: null,
       crypto: account.getLocalCrypto(),
-      cancelToken: this.remoteCancelToken.token,
+      cancelToken: this.createCancelToken.token,
     }).then((node) => {
       if (node) {
         goto.node({ history: this.props.history, nid: node.nid });
@@ -725,7 +757,7 @@ class PublicFullCardFootbarImpl extends React.Component {
     }
     smugler.node
       .create({
-        cancelToken: this.remoteCancelToken.token,
+        cancelToken: this.createCancelToken.token,
         to_nid: this.props.nid,
       })
       .then((node) => {
@@ -735,7 +767,7 @@ class PublicFullCardFootbarImpl extends React.Component {
             this.props.stickyEdges,
             new_nid,
             this.props.nid,
-            this.remoteCancelToken.token
+            this.createCancelToken.token
           ).then(() => {
             goto.node({ history: this.props.history, nid: new_nid });
           });
@@ -752,7 +784,7 @@ class PublicFullCardFootbarImpl extends React.Component {
       from: null,
       to: this.props.nid,
       crypto: account.getLocalCrypto(),
-      cancelToken: this.remoteCancelToken.token,
+      cancelToken: this.createCancelToken.token,
     }).then((node) => {
       if (node) {
         goto.node({ history: this.props.history, nid: node.nid });
