@@ -14,7 +14,6 @@ const kParagraphLengthLimit = 600;
 const kNgramsNumberLimit = 500;
 
 export function makeNGrams(text) {
-  console.log("makeNGrams text type", text);
   text = text
     .slice(0, kParagraphLengthLimit)
     .replace("\n", " ")

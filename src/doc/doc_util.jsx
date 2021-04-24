@@ -29,7 +29,7 @@ export function exctractDocTitle(doc: TDoc | string): string {
     }
   }
   // For an empty doc
-  return "Some no name page...";
+  return "Some no name page" + "\u2026";
 }
 
 function _makeTitleFromRaw(source: string): string {
@@ -71,6 +71,9 @@ export function extractDocAsMarkdown(doc: TDoc): string {
 }
 
 export function enforceTopHeader(doc: TDoc): TDoc {
+  if (typeof doc === "string") {
+    doc = parseRawSource(doc);
+  }
   let chunks = doc.chunks || new Array();
   if (chunks.length === 0 || !isHeaderChunk(doc.chunks[0])) {
     chunks.unshift(makeAsteriskChunk());
