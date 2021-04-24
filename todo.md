@@ -1,5 +1,6 @@
 # Todo
 
+- [ ] Delete node functionality
 - [ ] Button for list item to create right-link from this item
 - [ ] Fix tooltip overlap
 - [ ] Implement edge stickiness on server side to reduce number of calls to backend
@@ -141,3 +142,5 @@
 - [x] Non nodes don't work in smartpoint!
 - [x] Title extraction work badly - doesn't remove special symbols and new line characters
 - [x] Remove arrowhead after account button on navbar
+- [x] Blank copy of a note with unticked checkboxes
+- [x] Badge for a copied notes is at the bottom of the note under horisontal rule

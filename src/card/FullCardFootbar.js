@@ -34,7 +34,7 @@ import { HoverTooltip } from "../lib/tooltip";
 import { ImgButton } from "../lib/ImgButton";
 import { goto } from "../lib/route.jsx";
 import { joinClasses } from "../util/elClass.js";
-import { markAsACopy } from "../doc/doc_util.jsx";
+import { makeACopy, makeBlankCopy } from "../doc/doc_util.jsx";
 import { downloadAsFile } from "../util/download_as_file.jsx";
 
 class LeftSearchModal extends React.Component {
@@ -219,19 +219,24 @@ function __addStickyEdges(sticky_edges, new_nid, prev_nid, cancelToken) {
   });
 }
 
-async function cloneNode(from_nid, to_nid, crypto, cancelToken) {
-  const nid = from_nid ? from_nid : to_nid;
+async function cloneNode({ from, to, crypto, cancelToken, blank }) {
+  const nid = from ? from : to;
   const node = await smugler.node.get({
     nid: nid,
     crypto: crypto,
     cancelToken: cancelToken,
   });
-  const doc = markAsACopy(node.doc, nid);
+  let doc = null;
+  if (blank) {
+    doc = makeBlankCopy(node.doc);
+  } else {
+    doc = makeACopy(node.doc, nid);
+  }
   return await smugler.node.create({
     doc: doc,
     cancelToken: cancelToken,
-    from_nid: from_nid,
-    to_nid: to_nid,
+    from_nid: from,
+    to_nid: to,
   });
 }
 
@@ -273,12 +278,42 @@ class PrivateFullCardFootbar extends React.Component {
 
   handleNextRightClone = (event) => {
     let account = this.context.account;
-    cloneNode(
-      this.props.nid,
-      null,
-      account.getLocalCrypto(),
-      this.remoteCancelToken.token
-    ).then((node) => {
+    cloneNode({
+      from: this.props.nid,
+      to: null,
+      crypto: account.getLocalCrypto(),
+      cancelToken: this.remoteCancelToken.token,
+    }).then((node) => {
+      if (node) {
+        goto.node({ history: this.props.history, nid: node.nid });
+      }
+    });
+  };
+
+  handleNextLeftBlankCopy = () => {
+    let account = this.context.account;
+    cloneNode({
+      from: null,
+      to: this.props.nid,
+      crypto: account.getLocalCrypto(),
+      cancelToken: this.remoteCancelToken.token,
+      blank: true,
+    }).then((node) => {
+      if (node) {
+        goto.node({ history: this.props.history, nid: node.nid });
+      }
+    });
+  };
+
+  handleNextRightBlankCopy = () => {
+    let account = this.context.account;
+    cloneNode({
+      from: this.props.nid,
+      to: null,
+      crypto: account.getLocalCrypto(),
+      cancelToken: this.remoteCancelToken.token,
+      blank: true,
+    }).then((node) => {
       if (node) {
         goto.node({ history: this.props.history, nid: node.nid });
       }
@@ -308,12 +343,12 @@ class PrivateFullCardFootbar extends React.Component {
 
   handleNextLeftClone = () => {
     let account = this.context.account;
-    cloneNode(
-      null,
-      this.props.nid,
-      account.getLocalCrypto(),
-      this.remoteCancelToken.token
-    ).then((node) => {
+    cloneNode({
+      from: null,
+      to: this.props.nid,
+      crypto: account.getLocalCrypto(),
+      cancelToken: this.remoteCancelToken.token,
+    }).then((node) => {
       if (node) {
         goto.node({ history: this.props.history, nid: node.nid });
       }
@@ -446,7 +481,18 @@ class PrivateFullCardFootbar extends React.Component {
                   className={styles.dropdown_menu_inline_img}
                   alt="Copy and link"
                 />
-                Copy and link
+                Copy
+              </Dropdown.Item>
+              <Dropdown.Item
+                className={styles.dropdown_menu_item}
+                onClick={this.handleNextLeftBlankCopy}
+              >
+                <img
+                  src={NextCopyLeftImg}
+                  className={styles.dropdown_menu_inline_img}
+                  alt="Blank copy and link"
+                />
+                Blank copy
               </Dropdown.Item>
               <Dropdown.Item
                 className={styles.dropdown_menu_item}
@@ -457,7 +503,7 @@ class PrivateFullCardFootbar extends React.Component {
                   className={styles.dropdown_menu_inline_img}
                   alt="Search and link"
                 />
-                Search and link
+                Search
               </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
@@ -556,7 +602,18 @@ class PrivateFullCardFootbar extends React.Component {
                   className={styles.dropdown_menu_inline_img}
                   alt="Copy and link"
                 />
-                Copy and link
+                Copy
+              </Dropdown.Item>
+              <Dropdown.Item
+                className={styles.dropdown_menu_item}
+                onClick={this.handleNextRightBlankCopy}
+              >
+                <img
+                  src={NextCopyRightImg}
+                  className={styles.dropdown_menu_inline_img}
+                  alt="Blnak copy and link"
+                />
+                Blank copy
               </Dropdown.Item>
               <Dropdown.Item
                 className={styles.dropdown_menu_item}
@@ -567,7 +624,7 @@ class PrivateFullCardFootbar extends React.Component {
                   className={styles.dropdown_menu_inline_img}
                   alt="Search and link"
                 />
-                Search and link
+                Search
               </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
@@ -649,12 +706,12 @@ class PublicFullCardFootbarImpl extends React.Component {
     if (!account) {
       return;
     }
-    cloneNode(
-      this.props.nid,
-      null,
-      account.getLocalCrypto(),
-      this.remoteCancelToken.token
-    ).then((node) => {
+    cloneNode({
+      from: this.props.nid,
+      to: null,
+      crypto: account.getLocalCrypto(),
+      cancelToken: this.remoteCancelToken.token,
+    }).then((node) => {
       if (node) {
         goto.node({ history: this.props.history, nid: node.nid });
       }
@@ -691,12 +748,12 @@ class PublicFullCardFootbarImpl extends React.Component {
     if (!account) {
       return;
     }
-    cloneNode(
-      null,
-      this.props.nid,
-      account.getLocalCrypto(),
-      this.remoteCancelToken.token
-    ).then((node) => {
+    cloneNode({
+      from: null,
+      to: this.props.nid,
+      crypto: account.getLocalCrypto(),
+      cancelToken: this.remoteCancelToken.token,
+    }).then((node) => {
       if (node) {
         goto.node({ history: this.props.history, nid: node.nid });
       }

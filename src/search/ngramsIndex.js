@@ -1,5 +1,7 @@
 import crc from "crc";
 
+import { isHeaderChunk, extractChunkIndexText } from "../doc/chunk_util.jsx";
+
 const kMdHeaderRegex = /^#+ /;
 const kMdSyntaxPunctuation = /[.,`‘’"/#^&*?!;:{}=\-_~()[\]]/g;
 const kMdSyntaxLink = /\[([^)]*)\]\(.*\)/g;
@@ -12,6 +14,7 @@ const kParagraphLengthLimit = 600;
 const kNgramsNumberLimit = 500;
 
 export function makeNGrams(text) {
+  console.log("makeNGrams text type", text);
   text = text
     .slice(0, kParagraphLengthLimit)
     .replace("\n", " ")
@@ -22,8 +25,8 @@ export function makeNGrams(text) {
     .replace(kLongSpace, " ")
     .toLowerCase();
   //*dbg*/ console.log("makeNGrams", text.length, text);
-  var ngrams = [];
-  for (var i = kWindowSize; i < text.length; i++) {
+  let ngrams = [];
+  for (let i = kWindowSize; i < text.length; i++) {
     ngrams.push(text.slice(i - kWindowSize, i));
   }
   return ngrams;
@@ -34,27 +37,28 @@ export function extractIndexNGramsFromText(mdText) {
 }
 
 export function extractIndexNGramsFromDoc(doc) {
-  var headParagraphsCounter = 0;
-  var ngrams = new Set();
-  for (var i in doc.chunks) {
-    const chunk = doc.chunks[i];
-    const isHeader = chunk.source.match(kMdHeaderRegex);
-    if (!isHeader) {
-      //*dbg*/ console.log("Is not a header");
-      if (headParagraphsCounter > 1) {
-        //*dbg*/ console.log("Skip paragraph");
-        continue;
-      }
-      headParagraphsCounter += 1;
-    }
-    extractIndexNGramsFromText(chunk.source).forEach((ngr) => {
-      if (ngrams.size < kNgramsNumberLimit) {
-        ngrams.add(ngr);
-      }
-    });
+  let headParagraphsCounter = 0;
+  let ngrams = new Set();
+  doc.chunks.forEach((chunk) => {
     if (ngrams.size >= kNgramsNumberLimit) {
-      break;
+      return;
     }
-  }
+    // if (!isHeaderChunk(chunk)) {
+    //   //*dbg*/ console.log("Is not a header");
+    //   if (headParagraphsCounter > 1) {
+    //     //*dbg*/ console.log("Skip paragraph");
+    //     return;
+    //   }
+    //   headParagraphsCounter += 1;
+    // }
+    const text = extractChunkIndexText(chunk);
+    if (text != null) {
+      extractIndexNGramsFromText(text).forEach((ngr) => {
+        if (ngrams.size < kNgramsNumberLimit) {
+          ngrams.add(ngr);
+        }
+      });
+    }
+  });
   return ngrams;
 }

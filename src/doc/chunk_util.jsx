@@ -15,6 +15,13 @@ export function makeChunk(source: string, type?: number): TChunk {
   };
 }
 
+export function makeHRuleChunk(): TChunk {
+  return {
+    type: EChunkType.Text,
+    source: "---\n",
+  };
+}
+
 export function makeAsteriskChunk(): TChunk {
   return {
     type: EChunkType.Asterisk,
@@ -35,6 +42,16 @@ export function getChunkSize(chunk: TChunk): number {
     return chunk.source.length;
   }
   return 0;
+}
+
+/**
+ * Get text to do a text search
+ */
+export function extractChunkIndexText(chunk: TChunk): string | null {
+  if (chunk.type === EChunkType.Text && chunk.source) {
+    return chunk.source;
+  }
+  return null;
 }
 
 function getChunkHeaderLevel(source: string): number {
@@ -69,4 +86,28 @@ export function makeEmptyChunk() {
     type: EChunkType.Empty,
     source: "",
   };
+}
+
+const kMdTickedCheckBoxRe = /^(\s*[\-*+]\s*)\[x\]\s*/i;
+const kMdBlankCheckBox = "$1[ ] ";
+
+export function makeBlankCopyOfAText(original: string): string {
+  let source = original
+    .split("\n")
+    .map((line) => {
+      return line.replace(kMdTickedCheckBoxRe, "$1[ ] ");
+    })
+    .join("\n");
+  return source;
+}
+
+export function makeBlankCopyOfAChunk(chunk: TChunk): TChunk {
+  if (chunk.type != null) {
+    if (chunk.type === EChunkType.Text && chunk.source) {
+      return makeChunk(makeBlankCopyOfAText(chunk.source));
+    } else if (chunk.type === EChunkType.Asterisk) {
+      return chunk;
+    }
+  }
+  return makeEmptyChunk();
 }
