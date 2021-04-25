@@ -1,5 +1,6 @@
 # Todo
 
+- [ ] Twice smaler search cards for mobile devices
 - [ ] Button for list item to create right-link from this item
 - [ ] Fix tooltip overlap
 - [ ] Implement edge stickiness on server side to reduce number of calls to backend
