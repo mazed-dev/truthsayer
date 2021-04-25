@@ -110,6 +110,7 @@
 
   .node_card_col {
     max-width: 32rem;
+
     margin-top: 0.2rem;
     margin-left: auto;
     margin-right: auto;
@@ -122,16 +123,16 @@
     max-width: 50%;
     width: 46%;
 
-    padding-left: 4px;
-    padding-right: 4px;
+    padding-left: 2px;
+    padding-right: 2px;
   }
   .refs_left_col {
-    border-color: var(--small_card_border_colour);
+    border-color: var(--small_card_shadow_colour);
     border-right-style: solid;
     border-width: 1px;
   }
   .refs_right_col {
-    border-color: var(--small_card_border_colour);
+    border-color: var(--small_card_shadow_colour);
     border-left-style: solid;
     border-width: 1px;
   }
