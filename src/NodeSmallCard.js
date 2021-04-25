@@ -53,7 +53,7 @@ export const SeeMoreButton = React.forwardRef(
   }
 );
 
-class NodeSmallCardImpl extends React.Component {
+class NodeSmallCard extends React.Component {
   constructor(props) {
     super(props);
     this.fetchEdgesCancelToken = smugler.makeCancelToken();
@@ -200,7 +200,7 @@ class NodeSmallCardImpl extends React.Component {
         ref={this.props.cardRef}
         onClick={clickableOnClick}
       >
-        <Card.Body className="px-3 pt-2 pb-0">{body}</Card.Body>
+        <Card.Body className={styles.card_body}>{body}</Card.Body>
         <AuthorFooter node={this.state.node} />
         {footbar}
       </Card>
@@ -208,10 +208,9 @@ class NodeSmallCardImpl extends React.Component {
   }
 }
 
-NodeSmallCardImpl.contextType = MzdGlobalContext;
-NodeSmallCardImpl.defaultProps = { skip_input_edge: false, edges: [] };
-
-export const NodeSmallCard = withRouter(NodeSmallCardImpl);
+NodeSmallCard.contextType = MzdGlobalContext;
+NodeSmallCard.defaultProps = { skip_input_edge: false, edges: [] };
+NodeSmallCard = withRouter(NodeSmallCard);
 
 export class GenericSmallCard extends React.Component {
   constructor(props) {
@@ -247,7 +246,9 @@ export class GenericSmallCard extends React.Component {
         onClick={clickableOnClick}
       >
         {header}
-        <Card.Body className="px-3 pt-2 pb-0">{this.props.children}</Card.Body>
+        <Card.Body className={styles.card_body}>
+          {this.props.children}
+        </Card.Body>
         {footer}
       </Card>
     );

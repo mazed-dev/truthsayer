@@ -6,8 +6,8 @@
 .small_card {
   margin-top: 0.4rem;
   margin-bottom: 0.6rem;
-  margin-left: 0rem;
-  margin-right: 0rem;
+  margin-left: 0;
+  margin-right: 0;
   /* border-color: var(--small_card_border_colour); */
 
   /*height: 22rem;*/
@@ -17,18 +17,18 @@
 }
 
 .small_card_width {
-  max-width: 22rem;
-  min-width: 14rem;
+  width: 100%;
 }
 
-@media (max-width: 768px) {
-  .small_card {
-    /*height: 18rem;*/
-    min-height: 4rem;
-  }
+.card_body {
+  margin-left: 4px;
+  margin-right: 4px;
+  padding: 0.8rem;
+}
+
+@media (max-width: 1420px) {
   .small_card_width {
-    max-width: 20rem;
-    min-width: 10rem;
+    width: 100%;
   }
 }
 

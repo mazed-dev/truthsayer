@@ -11,6 +11,8 @@ import { SmallCardFootbar } from "./../card/SmallCardFootbar";
 import { withRouter } from "react-router-dom";
 
 import { MzdGlobalContext } from "../lib/global.js";
+import { joinClasses } from "./../util/elClass.js";
+
 import { smugler } from "../smugler/api.js";
 
 import { Container, Row, Col } from "react-bootstrap";
@@ -92,6 +94,7 @@ class Triptych extends React.Component {
       edges_left: [],
       edges_right: [],
       edges_sticky: [],
+      is_narrow: false,
     };
     this.toEdgesCancelToken = smugler.makeCancelToken();
     this.fromEdgesCancelToken = smugler.makeCancelToken();
@@ -101,12 +104,15 @@ class Triptych extends React.Component {
   componentDidMount() {
     this.fetchEdges();
     this.fetchNode();
+    this.updateWindowDimensions();
+    window.addEventListener("resize", this.updateWindowDimensions);
   }
 
   componentWillUnmount() {
     this.toEdgesCancelToken.cancel();
     this.fromEdgesCancelToken.cancel();
     this.fetchNodeCancelToken.cancel();
+    window.removeEventListener("resize", this.updateWindowDimensions);
   }
 
   componentDidUpdate(prevProps) {
@@ -116,6 +122,12 @@ class Triptych extends React.Component {
       this.fetchNode();
     }
   }
+
+  updateWindowDimensions = () => {
+    this.setState({
+      is_narrow: window.innerWidth < 580 /*pixels*/,
+    });
+  };
 
   fetchEdges = () => {
     smugler.edge
@@ -222,7 +234,6 @@ class Triptych extends React.Component {
   };
 
   switchStickiness = (edge, on = false) => {
-    console.log("switchStickiness", on, edge);
     if (on) {
       edge.is_sticky = true;
       this.setState((state) => {
@@ -243,35 +254,72 @@ class Triptych extends React.Component {
   };
 
   render() {
-    return (
-      <Container fluid>
-        <Row className="d-flex justify-content-center">
-          <Col className={styles.refs_col}>
-            <NodeRefs
-              nid={this.props.nid}
-              edges={this.state.edges_left}
-              cutOffRef={this.cutOffRef}
-              switchStickiness={this.switchStickiness}
-              className={styles.node_refs_left}
-            />
-          </Col>
-          <Col className={styles.note_col}>
-            <DocRender
-              node={this.state.node}
-              addRef={this.addRef}
-              stickyEdges={this.state.edges_sticky}
-              updateNode={this.updateNode}
-            />
-          </Col>
-          <Col className={styles.refs_col}>
-            <NodeRefs
-              nid={this.props.nid}
-              edges={this.state.edges_right}
-              cutOffRef={this.cutOffRef}
-              switchStickiness={this.switchStickiness}
-            />
-          </Col>
+    const leftRefs = (
+      <NodeRefs
+        nid={this.props.nid}
+        edges={this.state.edges_left}
+        cutOffRef={this.cutOffRef}
+        switchStickiness={this.switchStickiness}
+        className={styles.node_refs_left}
+      />
+    );
+    const nodeCard = (
+      <DocRender
+        node={this.state.node}
+        addRef={this.addRef}
+        stickyEdges={this.state.edges_sticky}
+        updateNode={this.updateNode}
+      />
+    );
+    const rightRefs = (
+      <NodeRefs
+        nid={this.props.nid}
+        edges={this.state.edges_right}
+        cutOffRef={this.cutOffRef}
+        switchStickiness={this.switchStickiness}
+      />
+    );
+    let triptychRow = null;
+    if (!this.state.is_narrow) {
+      triptychRow = (
+        <Row
+          className={joinClasses(
+            "d-flex",
+            "justify-content-center",
+            styles.row
+          )}
+        >
+          <Col className={styles.refs_col}>{leftRefs}</Col>
+          <Col className={styles.node_card_col}>{nodeCard}</Col>
+          <Col className={styles.refs_col}>{rightRefs}</Col>
         </Row>
+      );
+    } else {
+      triptychRow = (
+        <>
+          <div className={styles.node_card_col}>{nodeCard}</div>
+          <Row
+            className={joinClasses(
+              "d-flex",
+              "justify-content-center",
+              styles.row
+            )}
+          >
+            <Col className={joinClasses(styles.refs_col, styles.refs_left_col)}>
+              {leftRefs}
+            </Col>
+            <Col
+              className={joinClasses(styles.refs_col, styles.refs_right_col)}
+            >
+              {rightRefs}
+            </Col>
+          </Row>
+        </>
+      );
+    }
+    return (
+      <Container fluid className={styles.container}>
+        {triptychRow}
       </Container>
     );
   }

@@ -17,45 +17,122 @@
   padding: 0.5rem;
 }
 
-.node_refs_left {
-  float: right;
+.container {
+  padding-right: 6px;
+  padding-left: 6px;
 }
 
-.note_col {
+.row {
+  margin: 0;
+  padding: 0;
+}
+
+.node_card_col {
   max-width: 42rem;
-  min-width: 24rem;
   margin-top: 0.2rem;
-  margin-left: 0.4rem;
-  margin-right: 0.4rem;
+  margin-left: 2rem;
+  margin-right: 2rem;
+  padding: 0;
 }
 
 .refs_col {
   max-width: 24rem;
-  min-width: 16rem;
-
+  margin: 0;
+  padding: 0;
   margin-top: 1.2rem;
-  margin-left: 0.4rem;
-  margin-right: 0.4rem;
 }
 
-/**
- * https://stackoverflow.com/questions/34140793/bootstrap-4-responsive-cards-in-card-columns
- */
-/* xs */
-@media (min-width: 240px) {
-  .meta-node-refs-from {
-    column-count: 1;
+@media (max-width: 1420px) {
+  .node_card_col {
+    max-width: 40rem;
+    margin-top: 0.2rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
   }
-  .meta-node-refs-to {
-    column-count: 1;
+
+  .refs_col {
+    max-width: 22rem;
+    margin-top: 1rem;
   }
 }
-/* sm */
-@media (min-width: 576px) {
-  .meta-node-refs-from {
-    column-count: 2;
+
+@media (max-width: 1200px) {
+  /**
+   * Small wide screen
+   */
+
+  .node_card_col {
+    margin-top: 0.2rem;
+    margin-left: 0.8rem;
+    margin-right: 0.8rem;
   }
-  .meta-node-refs-to {
-    column-count: 2;
+
+  .refs_col {
+    max-width: 26%;
+    width: 26%;
+
+    margin-top: 0.8rem;
+  }
+}
+
+@media (max-width: 860px) {
+  /**
+   * Compact desctop screen
+   */
+
+  .node_card_col {
+    margin-top: 2px;
+    margin-left: 4px;
+    margin-right: 4px;
+    padding: 0;
+  }
+
+  .refs_col {
+    max-width: 26%;
+    width: 26%;
+
+    margin: 0;
+    padding: 0;
+    margin-top: 0.8rem;
+  }
+}
+
+@media (max-width: 580px) {
+  /**
+   * Mobile devices
+   * https://stackoverflow.com/questions/34140793/bootstrap-4-responsive-cards-in-card-columns
+   */
+
+  .container {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .node_card_col {
+    max-width: 32rem;
+    margin-top: 0.2rem;
+    margin-left: auto;
+    margin-right: auto;
+
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+
+  .refs_col {
+    max-width: 50%;
+    width: 46%;
+
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .refs_left_col {
+    border-color: var(--small_card_border_colour);
+    border-right-style: solid;
+    border-width: 1px;
+  }
+  .refs_right_col {
+    border-color: var(--small_card_border_colour);
+    border-left-style: solid;
+    border-width: 1px;
   }
 }

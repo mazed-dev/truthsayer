@@ -45,21 +45,17 @@ class DynamicGrid extends React.Component {
     const fontSize = parseFloat(
       getComputedStyle(document.documentElement).fontSize
     );
+    console.log("Font size", fontSize);
     const fn = (cardWidth) => {
-      const nf = width / (fontSize * (1 + cardWidth));
-      const n = Math.floor(nf);
+      const nf = width / (fontSize * cardWidth);
+      let n = Math.floor(nf);
       const delta = nf - n;
-      return [delta, n];
+      if (delta > 0.8) {
+        n = n + 1;
+      }
+      return n;
     };
-    // const opt = range(4, 16)
-    //   .map((cardWidth) => fn(cardWidth))
-    //   .reduce((opt, cur) => {
-    //     if (cur[0] > 0.1 && cur[0] < opt[0]) {
-    //       return cur;
-    //     }
-    //     return opt;
-    //   }, [1, 1]);
-    const cardsN = fn(19)[1];
+    const cardsN = fn(18);
     const ncols = Math.max(1, cardsN);
     this.setState({
       width: width,
@@ -69,13 +65,19 @@ class DynamicGrid extends React.Component {
   };
 
   render() {
+    const colWidth = 100 / this.state.ncols + "%";
+    const columnStyle = {
+      "max-width": colWidth,
+      width: colWidth,
+    };
     const columns = range(this.state.ncols).map((_, col_ind) => {
       const colCards = this.props.cards.filter((_, card_ind) => {
         return card_ind % this.state.ncols === col_ind;
       });
       return (
         <Col
-          className={joinClasses(styles.grid_col)}
+          className={styles.grid_col}
+          style={columnStyle}
           key={"cards_column_" + col_ind}
         >
           {colCards}
@@ -88,7 +90,11 @@ class DynamicGrid extends React.Component {
         className={joinClasses(styles.grid_container)}
         ref={this.containerRef}
       >
-        <Row className="justify-content-between w-100 p-0 m-0">{columns}</Row>
+        <Row
+          className={joinClasses("justify-content-between", styles.grid_row)}
+        >
+          {columns}
+        </Row>
       </Container>
     );
   }
