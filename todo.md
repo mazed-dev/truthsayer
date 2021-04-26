@@ -1,5 +1,8 @@
 # Todo
 
+- [ ] Fixed size cards for search grid, for triptyh, for smartpoint
+- [ ] Scrollable overflow for tables
+- [ ] "Date" menu, to see details and edit in modal window. Date picker
 - [ ] Twice smaler search cards for mobile devices
 - [ ] Button for list item to create right-link from this item
 - [ ] Fix tooltip overlap
@@ -33,7 +36,6 @@
 - [ ] Draw lines from "in-text" references to other notes
 - [ ] Better cards for date/new nodes
 - [ ] Don't cut small notes in the middle of the line
-- [ ] "Date" menu, to see details and edit in modal window
 - [ ] Notification feature from DATA menu
 - [ ] Publishing "mazes" like a stories with multiple lines and crossroads
 - [ ] Add the number of words and letters to the footer of the note along with last update time
