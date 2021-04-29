@@ -105,9 +105,6 @@
   font-weight: bold;
   color: #004b23;
   display: block;
-
-  margin-top: 0.1rem;
-  margin-bottom: 0.2rem;
 }
 
 .small_ref {
@@ -129,7 +126,8 @@
   color: #006400;
   display: block;
 
-  margin-bottom: 0.2rem;
+  margin: 0;
+  margin-bottom: 0;
 }
 
 .small_h3 {
@@ -138,7 +136,8 @@
   color: #007200;
   display: block;
 
-  margin-bottom: 0.2rem;
+  margin: 0;
+  margin-bottom: 0;
 }
 
 .small_h4 {
@@ -147,7 +146,8 @@
   color: #008000;
   display: block;
 
-  margin-bottom: 0.2rem;
+  margin: 0;
+  margin-bottom: 0;
 }
 
 .small_h5 {
@@ -156,7 +156,8 @@
   color: #38b000;
   display: block;
 
-  margin-bottom: 0.2rem;
+  margin: 0;
+  margin-bottom: 0;
 }
 
 .small_h6 {
@@ -165,7 +166,8 @@
   color: #70e000;
   display: block;
 
-  margin-bottom: 0.2rem;
+  margin: 0;
+  margin-bottom: 0;
 }
 
 .inline_ref {

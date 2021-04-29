@@ -4,20 +4,23 @@
 }
 
 .small_card {
-  margin-top: 0.4rem;
-  margin-bottom: 0.6rem;
-  margin-left: 0;
-  margin-right: 0;
+  padding: 0;
+  margin: 0;
+  margin-top: 12px;
   /* border-color: var(--small_card_border_colour); */
 
   /*height: 22rem;*/
-  min-height: 10rem;
+  min-height: 12rem;
 
+  width: 100%;
+
+  border-radius: 5px;
   box-shadow: 0px 0px 2px 1px var(--small_card_shadow_colour);
+
+  font-size: 14px;
 }
 
 .small_card_width {
-  width: 100%;
 }
 
 .card_body {

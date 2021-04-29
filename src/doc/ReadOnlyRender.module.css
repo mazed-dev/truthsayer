@@ -1,0 +1,21 @@
+.read_only_card {
+  margin: 0;
+  padding: 0;
+
+  /* border-color: var(--small_card_border_colour); */
+  border-style: none;
+}
+
+.card_body {
+  padding-top: 14px;
+  padding-bottom: 14px;
+
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+.small_card_waiter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

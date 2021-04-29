@@ -6,7 +6,7 @@ import axios from "axios";
 
 import { smugler } from "./../smugler/api";
 
-import { NodeSmallCard, GenericSmallCard } from "./../NodeSmallCard";
+import { GenericSmallCard } from "./../card/SmallCard";
 
 export class NextRefSmartItem extends React.Component {
   constructor(props) {

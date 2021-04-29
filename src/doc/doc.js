@@ -225,43 +225,6 @@ DocRender.contextType = MzdGlobalContext;
 
 DocRender = withRouter(DocRender);
 
-const kMaxTrimSmallCardSize = 320;
-const kMaxTrimSmallCardChunksNum = 4;
-
-export function SmallCardRender({ nid, doc, trim, ...rest }) {
-  var els = [];
-  if (doc) {
-    doc = enforceTopHeader(doc);
-    var fullTextSize = 0;
-    var chunksNum = 0;
-    for (var index in doc.chunks) {
-      var chunk = doc.chunks[index] || makeEmptyChunk();
-      const chunkSize = getChunkSize(chunk);
-      if (trim && fullTextSize + chunkSize > kMaxTrimSmallCardSize) {
-        chunk = trimChunk(chunk, kMaxTrimSmallCardSize - fullTextSize);
-      }
-      fullTextSize += getChunkSize(chunk);
-      chunksNum += 1;
-      const key = index.toString();
-      els.push(
-        <ChunkView
-          nid={nid}
-          chunk={chunk}
-          key={key}
-          render={renderMdSmallCard}
-        />
-      );
-      if (
-        fullTextSize > kMaxTrimSmallCardSize ||
-        chunksNum >= kMaxTrimSmallCardChunksNum
-      ) {
-        break;
-      }
-    }
-  }
-  return <div {...rest}>{els}</div>;
-}
-
 export function exctractDoc(source, nid): TDoc {
   // TODO(akindyakov): add encryption here - decrypt
   if (typeof source === "object") {

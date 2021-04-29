@@ -4,7 +4,7 @@ import styles from "./Triptych.module.css";
 
 import { DocRender } from "./../doc/doc";
 
-import NodeSmallCard from "./../NodeSmallCard";
+import SmallCard from "./SmallCard";
 
 import { SmallCardFootbar } from "./../card/SmallCardFootbar";
 
@@ -42,7 +42,7 @@ class RefNodeCard extends React.Component {
       />
     );
     return (
-      <NodeSmallCard
+      <SmallCard
         nid={this.props.nid}
         preface={null}
         crtd={null}

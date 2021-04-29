@@ -8,17 +8,18 @@ import moment from "moment";
 
 import { Card } from "react-bootstrap";
 
-import { smugler } from "./smugler/api";
-import { SmallCardRender, exctractDoc } from "./doc/doc";
-import { joinClasses } from "./util/elClass.js";
-import { Loader } from "./lib/loader";
-import { MzdGlobalContext } from "./lib/global.js";
+import { smugler } from "./../smugler/api";
+import { ReadOnlyRender } from "./../doc/ReadOnlyRender";
+import { joinClasses } from "./../util/elClass.js";
+import { Loader } from "./../lib/loader";
+import { MzdGlobalContext } from "./../lib/global.js";
 
-import { AuthorFooter } from "./card/AuthorBadge";
+import { AuthorFooter } from "./AuthorBadge";
+import { XsCard } from "./ShrinkCard";
 
-import LockedImg from "./img/locked.png";
+import LockedImg from "./../img/locked.png";
 
-import styles from "./NodeSmallCard.module.css";
+import styles from "./SmallCard.module.css";
 
 function getShadowStyle(n) {
   switch (Math.max(0, n) /* treat negative numbers as 0 */) {
@@ -53,16 +54,11 @@ export const SeeMoreButton = React.forwardRef(
   }
 );
 
-class NodeSmallCard extends React.Component {
+export class SmallCard extends React.Component {
   constructor(props) {
     super(props);
-    this.fetchEdgesCancelToken = smugler.makeCancelToken();
-    this.fetchPrefaceCancelToken = smugler.makeCancelToken();
     this.state = {
-      node: null,
-      edges: [],
-      crypto: null,
-      seeMore: false,
+      seeAll: false,
     };
   }
 
@@ -71,32 +67,11 @@ class NodeSmallCard extends React.Component {
     history: PropTypes.object.isRequired,
   };
 
-  componentDidUpdate(prevProps) {
-    if (this.props.nid !== prevProps.nid) {
-      if (this.state.preface == null) {
-        this.fetchPreface();
-      } else {
-        this.setState({
-          doc: exctractDoc(this.props.preface, this.props.nid),
-        });
-      }
-    }
-  }
+  componentDidUpdate(prevProps) {}
 
-  componentDidMount() {
-    if (this.state.preface == null) {
-      this.fetchPreface();
-    } else {
-      this.setState({
-        doc: exctractDoc(this.props.preface, this.props.nid),
-      });
-    }
-  }
+  componentDidMount() {}
 
-  componentWillUnmount() {
-    this.fetchEdgesCancelToken.cancel();
-    this.fetchPrefaceCancelToken.cancel();
-  }
+  componentWillUnmount() {}
 
   onClick = () => {
     if (this.props.onClick) {
@@ -131,54 +106,29 @@ class NodeSmallCard extends React.Component {
   toggleSeeMore = () => {
     this.setState((state) => {
       return {
-        seeMore: !state.seeMore,
+        seeAll: !state.seeMore,
       };
     });
   };
 
   render() {
-    let body = null;
+    console.log("SmallCard.render");
     let clickableOnClick = null;
     let clickableStyle = null;
-    let seeMore = null;
+    let seeAll = null;
     if (this.props.clickable || this.props.onClick) {
       clickableStyle = styles.clickable_chunks;
       clickableOnClick = this.onClick;
     } else {
-      seeMore = (
-        <SeeMoreButton onClick={this.toggleSeeMore} on={this.state.seeMore} />
+      seeAll = (
+        <SeeMoreButton onClick={this.toggleSeeMore} on={this.state.seeAll} />
       );
     }
-    const node = this.state.node;
-    if (node == null) {
-      body = (
-        <div className={styles.small_card_waiter}>
-          <Loader size={"small"} />
-        </div>
-      );
-    } else {
-      if (!node.crypto.success) {
-        body = (
-          <>
-            <img src={LockedImg} className={styles.locked_img} alt={"locked"} />
-            Encrypted with an unknown secret:
-            <code className={styles.locked_secret_id}>
-              {node.crypto.secret_id}
-            </code>
-          </>
-        );
-      } else {
-        body = (
-          <>
-            <SmallCardRender
-              doc={node.doc}
-              nid={clickableOnClick === null ? this.props.nid : null}
-              trim={!this.state.seeMore}
-            />
-            {seeMore}
-          </>
-        );
-      }
+    let body = (
+      <ReadOnlyRender nid={this.props.nid} preface={this.props.preface} />
+    );
+    if (!this.state.seeAll) {
+      body = <XsCard>{body}</XsCard>;
     }
     // const shd = getShadowStyle(
     //   this.props.edges.length +
@@ -190,27 +140,25 @@ class NodeSmallCard extends React.Component {
       footbar = this.props.footbar;
     }
     return (
-      <Card
+      <div
         className={joinClasses(
           styles.small_card,
           styles.small_card_width,
           clickableStyle
         )}
-        nid={this.props.nid}
         ref={this.props.cardRef}
         onClick={clickableOnClick}
       >
-        <Card.Body className={styles.card_body}>{body}</Card.Body>
-        <AuthorFooter node={this.state.node} />
+        {body}
         {footbar}
-      </Card>
+      </div>
     );
   }
 }
 
-NodeSmallCard.contextType = MzdGlobalContext;
-NodeSmallCard.defaultProps = { skip_input_edge: false, edges: [] };
-NodeSmallCard = withRouter(NodeSmallCard);
+SmallCard.contextType = MzdGlobalContext;
+SmallCard.defaultProps = { skip_input_edge: false, edges: [] };
+SmallCard = withRouter(SmallCard);
 
 export class GenericSmallCard extends React.Component {
   constructor(props) {
@@ -257,4 +205,4 @@ export class GenericSmallCard extends React.Component {
 
 GenericSmallCard.defaultProps = { header: null, footer: null, onClick: null };
 
-export default NodeSmallCard;
+export default SmallCard;

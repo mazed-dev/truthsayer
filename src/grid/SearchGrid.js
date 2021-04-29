@@ -5,7 +5,7 @@ import styles from "./SearchGrid.module.css";
 // import PropTypes from "prop-types";
 import { Container, Row, Col } from "react-bootstrap";
 
-import NodeSmallCard from "./../NodeSmallCard";
+import SmallCard from "./../card/SmallCard";
 
 import { searchNodesInAttrs } from "./../search/search.js";
 import { extractIndexNGramsFromText } from "./../search/ngramsIndex.js";
@@ -275,7 +275,7 @@ export class SearchGrid extends React.Component {
       })
       .map((item) => {
         return (
-          <NodeSmallCard
+          <SmallCard
             nid={item.nid}
             preface={item.preface}
             crtd={item.crtd}

@@ -5,7 +5,7 @@ import { Button, Row, Col } from "react-bootstrap";
 import moment from "moment";
 
 import { DateTimeBadge } from "./../markdown/MarkdownRender";
-import { GenericSmallCard } from "./../NodeSmallCard";
+import { GenericSmallCard } from "./../card/SmallCard";
 
 class DateTimeSmartItem extends React.Component {
   constructor(props) {
