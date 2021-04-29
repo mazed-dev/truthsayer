@@ -137,6 +137,7 @@ export class ReadOnlyRender extends React.Component {
           </>
         );
       } else {
+        //TODO(akindyakov): trim card here if shrinked!
         body = <SmallCardRender doc={node.doc} nid={this.props.nid} />;
       }
     }
