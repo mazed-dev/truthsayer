@@ -17,14 +17,6 @@
   padding: 0.5rem;
 }
 
-.container {
-  padding-right: 8px;
-  padding-left: 8px;
-  width: 99.7%;
-  margin-left: auto;
-  margin-right: auto;
-}
-
 .row {
   margin: 0;
   padding: 0;
@@ -33,30 +25,42 @@
 
 .node_card_col {
   max-width: 42rem;
-  margin-top: 0.2rem;
-  margin-left: 2rem;
-  margin-right: 2rem;
+  width: 40%;
+
   padding: 0;
+
+  padding-top: 0.2rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
+
+  margin: 0;
 }
 
 .refs_col {
   max-width: 24rem;
+  width: 20%;
   margin: 0;
-  padding: 0;
-  margin-top: 1.2rem;
+  padding-top: 1.2rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 @media (max-width: 1420px) {
   .node_card_col {
-    max-width: 40rem;
-    margin-top: 0.2rem;
-    margin-left: 1rem;
-    margin-right: 1rem;
+    max-width: 40%;
+    width: 40%;
+
+    padding-top: 0.2rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 
   .refs_col {
-    max-width: 22rem;
-    margin-top: 1rem;
+    max-width: 28%;
+    width: 24%;
+    padding-top: 1rem;
+    padding-left: 4px;
+    padding-right: 4px;
   }
 }
 
@@ -66,43 +70,25 @@
    */
 
   .node_card_col {
-    margin-top: 0.2rem;
-    margin-left: 0.8rem;
-    margin-right: 0.8rem;
-  }
+    max-width: 50%;
+    width: 50%;
 
-  .refs_col {
-    max-width: 26%;
-    width: 26%;
-
-    margin-top: 0.8rem;
-  }
-}
-
-@media (max-width: 860px) {
-  /**
-   * Compact desctop screen
-   */
-
-  .node_card_col {
     padding-top: 2px;
     padding-left: 4px;
     padding-right: 4px;
-    margin: 0;
-
-    width: 48%;
   }
 
   .refs_col {
-    width: 26%;
+    max-width: 25%;
+    width: 24%;
 
-    margin: 0;
-    padding: 0;
-    margin-top: 0.8rem;
+    padding-top: 0.8rem;
+    padding-left: 2px;
+    padding-right: 2px;
   }
 }
 
-@media (max-width: 580px) {
+@media (max-width: 480px) {
   /**
    * Mobile devices
    * https://stackoverflow.com/questions/34140793/bootstrap-4-responsive-cards-in-card-columns
@@ -117,12 +103,12 @@
     max-width: 42rem;
     width: 100%;
 
-    margin-top: 0.2rem;
     margin-left: auto;
     margin-right: auto;
 
-    padding-right: 4px;
-    padding-left: 4px;
+    padding-top: 0.2rem;
+    padding-right: 2px;
+    padding-left: 2px;
   }
 
   .refs_col {

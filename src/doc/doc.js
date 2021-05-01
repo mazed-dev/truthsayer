@@ -3,39 +3,22 @@ import React from "react";
 import styles from "./doc.module.css";
 
 import PropTypes from "prop-types";
-import { withRouter, useHistory } from "react-router-dom";
-
-import { renderMdSmallCard } from "./../markdown/MarkdownRender";
+import { withRouter } from "react-router-dom";
 
 import { Loader } from "../lib/loader";
 import { MzdGlobalContext } from "./../lib/global";
 
 import { joinClasses } from "../util/elClass.js";
 
-import LockedImg from "./../img/locked.png";
-import DownloadButtonImg from "./../img/download.png";
+import { ChunkRender, parseRawSource } from "./chunks";
 
-import { enforceTopHeader } from "./doc_util.jsx";
-
-import { ChunkRender, ChunkView, parseRawSource } from "./chunks";
-
-import {
-  mergeChunks,
-  makeEmptyChunk,
-  trimChunk,
-  getChunkSize,
-} from "./chunk_util";
+import { mergeChunks, makeEmptyChunk } from "./chunk_util";
 import { extractDocAsMarkdown } from "./doc_util.jsx";
 
-import { HoverTooltip } from "./../lib/tooltip";
-
-import { Card, Button, ButtonGroup } from "react-bootstrap";
+import { Card } from "react-bootstrap";
 
 import { FullCardFootbar } from "./../card/FullCardFootbar";
 import { AuthorFooter } from "./../card/AuthorBadge";
-
-import moment from "moment";
-import axios from "axios";
 
 export class DocRender extends React.Component {
   constructor(props) {
@@ -47,8 +30,6 @@ export class DocRender extends React.Component {
         end: 0,
       },
     };
-    this.fetchCancelToken = axios.CancelToken.source();
-    this.updateCancelToken = axios.CancelToken.source();
   }
 
   static propTypes = {

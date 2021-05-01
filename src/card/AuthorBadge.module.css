@@ -21,6 +21,10 @@
 }
 
 .badge {
+  padding-left: 14px;
+  padding-right: 14px;
+  padding-top: 10px;
+  padding-bottom: 8px;
 }
 
 /* Clear floats after the columns */

@@ -1,46 +1,31 @@
 import React from "react";
 
-import { Card, Button, ButtonGroup } from "react-bootstrap";
-import PropTypes from "prop-types";
-
 import styles from "./ReadOnlyRender.module.css";
 
 import { Loader } from "../lib/loader";
 import LockedImg from "./../img/locked.png";
 
+import { MzdGlobalContext } from "../lib/global.js";
 import { renderMdSmallCard } from "./../markdown/MarkdownRender";
 
-import { AuthorFooter } from "./../card/AuthorBadge";
-import { ChunkRender, ChunkView, parseRawSource } from "./chunks";
+import { ChunkView } from "./chunks";
 import { enforceTopHeader } from "./doc_util.jsx";
-import { exctractDoc } from "./doc.js";
-import {
-  mergeChunks,
-  makeEmptyChunk,
-  trimChunk,
-  getChunkSize,
-} from "./chunk_util";
+import { makeEmptyChunk, trimChunk } from "./chunk_util";
 import { smugler } from "./../smugler/api";
 
 const kMaxTrimSmallCardSize = 320;
 const kMaxTrimSmallCardChunksNum = 4;
+const kMaxTrimChunksNum = 6;
 
 function SmallCardRender({ nid, doc, trim, ...rest }) {
-  var els = [];
+  let els = [];
   if (doc) {
     doc = enforceTopHeader(doc);
-    var fullTextSize = 0;
-    var chunksNum = 0;
-    for (var index in doc.chunks) {
-      var chunk = doc.chunks[index] || makeEmptyChunk();
-      const chunkSize = getChunkSize(chunk);
-      if (trim && fullTextSize + chunkSize > kMaxTrimSmallCardSize) {
-        chunk = trimChunk(chunk, kMaxTrimSmallCardSize - fullTextSize);
-      }
-      fullTextSize += getChunkSize(chunk);
-      chunksNum += 1;
-      const key = index.toString();
-      els.push(
+    const chunks = trim ? doc.chunks.slice(0, 8) : doc.chunks;
+    els = chunks.map((chunk, index) => {
+      chunk = chunk || makeEmptyChunk();
+      const key = "chunk" + index;
+      return (
         <ChunkView
           nid={nid}
           chunk={chunk}
@@ -48,77 +33,19 @@ function SmallCardRender({ nid, doc, trim, ...rest }) {
           render={renderMdSmallCard}
         />
       );
-      if (
-        fullTextSize > kMaxTrimSmallCardSize ||
-        chunksNum >= kMaxTrimSmallCardChunksNum
-      ) {
-        break;
-      }
-    }
+    });
   }
   return <div {...rest}>{els}</div>;
 }
 
-export class ReadOnlyRender extends React.Component {
+class ReadDocRender extends React.Component {
   constructor(props) {
     super(props);
-    this.fetchPrefaceCancelToken = smugler.makeCancelToken();
-    this.state = {
-      node: null,
-      crypto: null,
-    };
   }
-
-  componentDidUpdate(prevProps) {
-    if (this.props.nid !== prevProps.nid) {
-      if (this.state.preface == null) {
-        this.fetchPreface();
-      } else {
-        this.setState({
-          doc: exctractDoc(this.props.preface, this.props.nid),
-        });
-      }
-    }
-  }
-
-  componentDidMount() {
-    if (this.state.preface == null) {
-      this.fetchPreface();
-    } else {
-      this.setState({
-        doc: exctractDoc(this.props.preface, this.props.nid),
-      });
-    }
-  }
-
-  componentWillUnmount() {
-    this.fetchPrefaceCancelToken.cancel();
-  }
-
-  fetchPreface = () => {
-    let account = this.context.account;
-    smugler.node
-      .get({
-        nid: this.props.nid,
-        cancelToken: this.fetchPrefaceCancelToken.token,
-        account: account,
-      })
-      .catch((error) => {
-        console.log("Fetch node failed with error:", error);
-      })
-      .then((node) => {
-        if (node) {
-          this.setState({
-            node: node,
-          });
-        }
-      });
-  };
 
   render() {
-    console.log("ReadOnlyRender.render");
     let body = null;
-    const node = this.state.node;
+    const node = this.props.node;
     if (node == null) {
       body = (
         <div className={styles.small_card_waiter}>
@@ -138,15 +65,71 @@ export class ReadOnlyRender extends React.Component {
         );
       } else {
         //TODO(akindyakov): trim card here if shrinked!
-        body = <SmallCardRender doc={node.doc} nid={this.props.nid} />;
+        body = <SmallCardRender doc={node.doc} nid={this.props.node.nid} />;
       }
     }
-    //TODO(akindyakov) AuthorFooter should not be here
-    return (
-      <div className={styles.read_only_card}>
-        <div className={styles.card_body}>{body}</div>
-        <AuthorFooter node={this.state.node} />
-      </div>
-    );
+    return <div className={styles.read_only_card}>{body}</div>;
+  }
+}
+
+class ReadOnlyRenderFetching extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      node: null,
+    };
+    this.fetchNodeCancelToken = smugler.makeCancelToken();
+  }
+
+  componentDidMount() {
+    this.fetchNode();
+  }
+
+  componentWillUnmount() {
+    this.fetchNodeCancelToken.cancel();
+  }
+
+  componentDidUpdate(prevProps) {
+    // Don't forget to compare props!
+    if (this.props.nid !== prevProps.nid) {
+      this.fetchNode();
+    }
+  }
+
+  fetchNode = () => {
+    const nid = this.props.nid;
+    let account = this.context.account;
+    return smugler.node
+      .get({
+        nid: nid,
+        cancelToken: this.fetchNodeCancelToken.token,
+        account: account,
+      })
+      .then((node) => {
+        if (node) {
+          this.setState({
+            node: node,
+          });
+        }
+      });
+  };
+
+  render() {
+    if (this.state.node) {
+      return <ReadDocRender node={this.state.node} />;
+    } else {
+      return <Loader size={"medium"} />;
+    }
+  }
+}
+
+ReadOnlyRenderFetching.contextType = MzdGlobalContext;
+
+export function ReadOnlyRender({ nid, node, ...rest }) {
+  if (node) {
+    return <ReadDocRender node={node} {...rest} />;
+  } else {
+    console.log("ReadOnlyRender by nid", nid);
+    return <ReadOnlyRenderFetching nid={nid} {...rest} />;
   }
 }

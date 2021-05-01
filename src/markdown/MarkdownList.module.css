@@ -1,15 +1,16 @@
 .unordered_list {
   list-style: none;
-  padding-left: 1rem;
+  padding: 0;
+  padding-left: 0.2rem;
 }
 
 .ordered_list {
-  padding-left: 2rem;
+  padding-left: 1.2rem;
 }
 
 .unordered_list_item {
   /* text-indent: 0em; */
-  padding-left: 1.8rem;
+  padding-left: 1.2rem;
 }
 
 .ordered_list_item {
@@ -20,14 +21,14 @@
   float: left;
   width: 1rem;
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-center;
 }
 
 .unordered_list_item_before {
   float: left;
   width: 1rem;
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-center;
 }
 
 .paragraph {

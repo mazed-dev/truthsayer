@@ -46,9 +46,15 @@ async function _tryToEncryptDocLocally(doc, attrs, account) {
   };
 }
 
-async function _tryToDecryptDocLocally(nid, data, headers, account) {
-  if (kHeaderLocalSecretId in headers) {
-    const secretId = headers[kHeaderLocalSecretId];
+async function _tryToDecryptDocLocally(
+  nid,
+  data,
+  signature,
+  secretId,
+  account
+) {
+  if (secretId && signature) {
+    // const secretId = headers[kHeaderLocalSecretId];
     if (!account) {
       return { doc: null, secret_id: secretId, success: false };
     }
@@ -57,10 +63,11 @@ async function _tryToDecryptDocLocally(nid, data, headers, account) {
       return { doc: null, secret_id: secretId, success: false };
     } else {
       // const encryptedAttrs = headers[kHeaderAttrs];
+      // const signature = headers[kHeaderLocalSignature];
       const encryptedDoc = {
         encrypted: data,
         secret_id: secretId,
-        signature: headers[kHeaderLocalSignature],
+        signature: signature,
       };
       const doc = await crypto.decryptObj(encryptedDoc);
       return { doc: doc, secret_id: secretId, success: true };
@@ -157,10 +164,13 @@ async function getNode({ nid, account, cancelToken }) {
   }
   const metaStr = res.headers[kHeaderNodeMeta];
   const meta = metaStr != null ? base64.toObject(metaStr) : {};
+  const signature = meta.local_signature; // res.headers[kHeaderLocalSignature];
+  const secretId = meta.local_secret_id; // res.headers[kHeaderLocalSecretId];
   const { doc, secret_id, success } = await _tryToDecryptDocLocally(
     nid,
     res.data,
-    res.headers,
+    signature,
+    secretId,
     account
   );
   return new TNode({
@@ -241,8 +251,8 @@ async function nodeAttrsSearch({
     return null;
   }
   let response = rawResp.data;
-  response.items = await Promise.all(
-    response.items.map(async (item) => {
+  response.nodes = await Promise.all(
+    response.nodes.map(async (item) => {
       if (item.attrs) {
         const attrsEnc = base64.toObject(item.attrs);
         const secretId = attrsEnc.secret_id;
@@ -252,7 +262,24 @@ async function nodeAttrsSearch({
           item.attrs = attrsEnc;
         }
       }
-      return item;
+      const meta = item.meta;
+      const { doc, secret_id, success } = await _tryToDecryptDocLocally(
+        item.nid,
+        item.data,
+        meta.local_signature,
+        meta.local_secret_id,
+        account
+      );
+      return new TNode({
+        nid: item.nid,
+        doc: doc,
+        created_at: moment.unix(item.crtd),
+        updated_at: moment.unix(item.upd),
+        attrs: item.attrs,
+        meta: meta,
+        secret_id: secret_id,
+        success: success,
+      });
     })
   );
   return response;

@@ -1,24 +1,10 @@
 .everything {
 }
 
-.card_xxs {
+.shrinkable {
   overflow: hidden;
-  height: 2rem;
-
   position: relative;
-}
-
-.card_xs {
-  overflow: hidden;
-  height: 12rem;
-
-  position: relative;
-
   border-radius: inherit;
-}
-
-.card_xs::after {
-  position: static;
 }
 
 .fade {
@@ -39,13 +25,76 @@
   border-radius: inherit;
 }
 
+.card_xxs {
+  height: 8rem;
+}
+
+.card_xs {
+  height: 12rem;
+}
+
 .card_s {
+  height: 18rem;
 }
 .card_m {
+  height: 24rem;
 }
 .card_l {
+  height: 32rem;
 }
 .card_xl {
+  height: 48rem;
 }
+
 .card_xxl {
+  height: 64rem;
+}
+
+.card_xs::after {
+  position: static;
+}
+
+.card_xxs::after {
+  position: static;
+}
+.card_xs::after {
+  position: static;
+}
+.card_s::after {
+  position: static;
+}
+.card_m::after {
+  position: static;
+}
+.card_l::after {
+  position: static;
+}
+.card_xl::after {
+  position: static;
+}
+.card_xxl::after {
+  position: static;
+}
+
+.a_see_more {
+  font-weight: bold;
+  color: black;
+
+  margin: 0;
+
+  margin-top: 8px;
+  margin-top: 4px;
+  margin-left: 16px;
+  margin-right: 4px;
+
+  display: inline;
+}
+
+.a_see_more:visited {
+}
+
+.a_see_more:hover {
+  color: green;
+  text-decoration: none;
+  cursor: pointer;
 }

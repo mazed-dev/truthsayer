@@ -1,11 +1,17 @@
 import React from "react";
 
-import styles from "./SearchGrid.module.css";
+import { withRouter, Link } from "react-router-dom";
 
-// import PropTypes from "prop-types";
+import PropTypes from "prop-types";
+
 import { Container, Row, Col } from "react-bootstrap";
 
-import SmallCard from "./../card/SmallCard";
+import styles from "./SearchGrid.module.css";
+
+import { SmallCard } from "./../card/SmallCard";
+import { SCard } from "./../card/ShrinkCard";
+import { TimeBadge } from "./../card/AuthorBadge";
+import { ReadOnlyRender } from "./../doc/ReadOnlyRender";
 
 import { searchNodesInAttrs } from "./../search/search.js";
 import { extractIndexNGramsFromText } from "./../search/ngramsIndex.js";
@@ -45,7 +51,6 @@ class DynamicGrid extends React.Component {
     const fontSize = parseFloat(
       getComputedStyle(document.documentElement).fontSize
     );
-    console.log("Font size", fontSize);
     const fn = (cardWidth) => {
       const nf = width / (fontSize * cardWidth);
       let n = Math.floor(nf);
@@ -55,8 +60,7 @@ class DynamicGrid extends React.Component {
       }
       return n;
     };
-    const cardsN = fn(18);
-    const ncols = Math.max(1, cardsN);
+    const ncols = Math.max(2, fn(16));
     this.setState({
       width: width,
       height: height,
@@ -65,9 +69,8 @@ class DynamicGrid extends React.Component {
   };
 
   render() {
-    const colWidth = 100 / this.state.ncols + "%";
+    const colWidth = Math.floor(100 / this.state.ncols) + "%";
     const columnStyle = {
-      "max-width": colWidth,
       width: colWidth,
     };
     const columns = range(this.state.ncols).map((_, col_ind) => {
@@ -143,6 +146,11 @@ export class SearchGrid extends React.Component {
     }
   }
 
+  static propTypes = {
+    location: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired,
+  };
+
   extractIndexNGramsFromText = () => {
     return this.props.q && this.props.q.length > 2
       ? extractIndexNGramsFromText(this.props.q)
@@ -195,7 +203,7 @@ export class SearchGrid extends React.Component {
           console.error("Error: no response from back end");
           return;
         }
-        const nodes = searchNodesInAttrs(data.items, this.state.ngrams);
+        const nodes = searchNodesInAttrs(data.nodes, this.state.ngrams);
         let next = null;
         let fetching = false;
         if (this.isScrolledToBottom() && data.start_time > _kTimeLimit) {
@@ -204,7 +212,7 @@ export class SearchGrid extends React.Component {
         }
         if (
           this.isTimeIntervalExhausted(
-            data.items.length,
+            data.nodes.length,
             data.offset,
             data.full_size
           )
@@ -215,7 +223,7 @@ export class SearchGrid extends React.Component {
         } else {
           end_time = data.end_time;
           start_time = data.start_time;
-          offset = data.offset + data.items.length;
+          offset = data.offset + data.nodes.length;
         }
         this.setState((state) => {
           return {
@@ -263,29 +271,36 @@ export class SearchGrid extends React.Component {
         </div>
       );
     }
-    var used = {};
-    let cards = this.state.nodes
-      .filter((item) => {
-        if (item.nid in used) {
-          //*dbg*/ console.log("Search grid overlap", item.nid, item);
+    let used = {};
+    const cards = this.state.nodes
+      .filter((node) => {
+        if (node.nid in used) {
+          //*dbg*/ console.log("Search grid overlap", node.nid, item);
           return false;
         }
-        used[item.nid] = true;
+        used[node.nid] = true;
         return true;
       })
-      .map((item) => {
+      .map((node) => {
+        const onClick = () => {
+          this.props.history.push({
+            pathname: "/n/" + node.nid,
+          });
+        };
         return (
           <SmallCard
-            nid={item.nid}
-            preface={item.preface}
-            crtd={item.crtd}
-            upd={item.upd}
-            key={item.nid}
-            skip_input_edge={false}
-            edges={item.edges}
-            clickable={true}
-            onClick={this.props.onCardClick}
-          />
+            onClick={onClick}
+            className={styles.grid_cell}
+            key={node.nid}
+          >
+            <SCard>
+              <ReadOnlyRender node={node} />
+            </SCard>
+            <TimeBadge
+              created_at={node.created_at}
+              updated_at={node.updated_at}
+            />
+          </SmallCard>
         );
       });
 
@@ -318,5 +333,7 @@ SearchGrid.defaultProps = {
   onCardClick: null,
   extCards: null,
 };
+
+SearchGrid = withRouter(SearchGrid);
 
 export default SearchGrid;

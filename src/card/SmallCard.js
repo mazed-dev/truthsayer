@@ -14,7 +14,6 @@ import { joinClasses } from "./../util/elClass.js";
 import { Loader } from "./../lib/loader";
 import { MzdGlobalContext } from "./../lib/global.js";
 
-import { AuthorFooter } from "./AuthorBadge";
 import { XsCard } from "./ShrinkCard";
 
 import LockedImg from "./../img/locked.png";
@@ -39,126 +38,33 @@ function getShadowStyle(n) {
   return styles.small_card_shadow_5;
 }
 
-export const SeeMoreButton = React.forwardRef(
-  ({ onClick, className, disabled, on }, ref) => {
-    return (
-      <div
-        className={joinClasses(styles.a_see_more, className)}
-        ref={ref}
-        onClick={onClick}
-        disabled={disabled}
-      >
-        {on ? "See less" : "See more"}
-      </div>
-    );
-  }
-);
-
 export class SmallCard extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      seeAll: false,
-    };
-  }
-
-  static propTypes = {
-    location: PropTypes.object.isRequired,
-    history: PropTypes.object.isRequired,
-  };
-
-  componentDidUpdate(prevProps) {}
-
-  componentDidMount() {}
-
-  componentWillUnmount() {}
-
-  onClick = () => {
-    if (this.props.onClick) {
-      this.props.onClick(this.props.nid, this.state.node.doc);
-    } else {
-      this.props.history.push({
-        pathname: "/n/" + this.props.nid,
-      });
-    }
-  };
-
-  fetchPreface = () => {
-    let account = this.context.account;
-    smugler.node
-      .get({
-        nid: this.props.nid,
-        cancelToken: this.fetchPrefaceCancelToken.token,
-        account: account,
-      })
-      .catch((error) => {
-        console.log("Fetch node failed with error:", error);
-      })
-      .then((node) => {
-        if (node) {
-          this.setState({
-            node: node,
-          });
-        }
-      });
-  };
-
-  toggleSeeMore = () => {
-    this.setState((state) => {
-      return {
-        seeAll: !state.seeMore,
-      };
-    });
-  };
-
   render() {
-    console.log("SmallCard.render");
     let clickableOnClick = null;
     let clickableStyle = null;
-    let seeAll = null;
-    if (this.props.clickable || this.props.onClick) {
+    if (this.props.onClick) {
       clickableStyle = styles.clickable_chunks;
-      clickableOnClick = this.onClick;
-    } else {
-      seeAll = (
-        <SeeMoreButton onClick={this.toggleSeeMore} on={this.state.seeAll} />
-      );
+      clickableOnClick = this.props.onClick;
     }
-    let body = (
-      <ReadOnlyRender nid={this.props.nid} preface={this.props.preface} />
-    );
-    if (!this.state.seeAll) {
-      body = <XsCard>{body}</XsCard>;
-    }
-    // const shd = getShadowStyle(
-    //   this.props.edges.length +
-    //     this.state.edges.length -
-    //     (this.props.skip_input_edge ? 1 : 0)
-    // );
-    let footbar = null;
-    if (this.props.footbar) {
-      footbar = this.props.footbar;
-    }
+    const shadowStyle = getShadowStyle(this.props.stack_size);
     return (
       <div
         className={joinClasses(
           styles.small_card,
-          styles.small_card_width,
-          clickableStyle
+          clickableStyle,
+          shadowStyle,
+          this.props.className
         )}
         ref={this.props.cardRef}
         onClick={clickableOnClick}
       >
-        {body}
-        {footbar}
+        {this.props.children}
       </div>
     );
   }
 }
 
-SmallCard.contextType = MzdGlobalContext;
-SmallCard.defaultProps = { skip_input_edge: false, edges: [] };
-SmallCard = withRouter(SmallCard);
+SmallCard.defaultProps = { onClick: null, className: null, stack_size: 0 };
 
 export class GenericSmallCard extends React.Component {
   constructor(props) {
@@ -184,11 +90,7 @@ export class GenericSmallCard extends React.Component {
     }
     return (
       <Card
-        className={joinClasses(
-          styles.small_card,
-          styles.small_card_width,
-          clickableStyle
-        )}
+        className={joinClasses(styles.small_card, clickableStyle)}
         nid={this.props.nid}
         ref={this.props.cardRef}
         onClick={clickableOnClick}

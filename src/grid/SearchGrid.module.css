@@ -45,7 +45,16 @@
   margin-left: 0;
   margin-right: 0;
   padding: 0;
-  padding-left: 1rem;
+  padding-left: 12px;
+}
+
+@media (max-width: 480px) {
+  /**
+   * Mobile devices
+   */
+  .grid_container {
+    padding-left: 6px;
+  }
 }
 
 .grid_row {
@@ -56,8 +65,21 @@
 
 .grid_col {
   margin: 0;
-  padding-left: 0rem;
-  padding-right: 1rem;
+  padding: 0;
+  padding-right: 12px;
+}
+
+@media (max-width: 480px) {
+  /**
+   * Mobile devices
+   */
+  .grid_col {
+    padding-right: 6px;
+  }
+}
+
+.grid_cell {
+  margin-top: 12px;
 }
 
 .search_grid_waiter {

@@ -6,21 +6,17 @@
 .small_card {
   padding: 0;
   margin: 0;
-  margin-top: 12px;
   /* border-color: var(--small_card_border_colour); */
 
   /*height: 22rem;*/
-  min-height: 12rem;
+  min-height: 10rem;
 
   width: 100%;
 
   border-radius: 5px;
-  box-shadow: 0px 0px 2px 1px var(--small_card_shadow_colour);
+  box-shadow: 0px 1px 2px 1px var(--small_card_shadow_colour);
 
   font-size: 14px;
-}
-
-.small_card_width {
 }
 
 .card_body {
@@ -126,25 +122,6 @@
 }
 
 .clickable_chunks:hover {
-  cursor: pointer;
-}
-
-.a_see_more {
-  font-weight: bold;
-  color: black;
-
-  margin: 0;
-  padding: 0;
-
-  display: inline;
-}
-
-.a_see_more:visited {
-}
-
-.a_see_more:hover {
-  color: green;
-  text-decoration: none;
   cursor: pointer;
 }
 

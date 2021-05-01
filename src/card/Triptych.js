@@ -4,7 +4,9 @@ import styles from "./Triptych.module.css";
 
 import { DocRender } from "./../doc/doc";
 
-import SmallCard from "./SmallCard";
+import { SmallCard } from "./SmallCard";
+import { XsCard, ShrinkCard } from "./ShrinkCard";
+import { ReadOnlyRender } from "./../doc/ReadOnlyRender";
 
 import { SmallCardFootbar } from "./../card/SmallCardFootbar";
 
@@ -19,42 +21,21 @@ import { Container, Row, Col } from "react-bootstrap";
 
 import moment from "moment";
 
-class RefNodeCard extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      hover: false,
-      preface: "",
-      crtd: moment().unix(),
-      upd: moment().unix(),
-      is_sticky: props.edge.is_sticky,
-    };
-  }
-
-  componentWillUnmount() {}
-
-  render() {
-    const footbar = (
+function RefNodeCard({ nid, edge, switchStickiness, cutOffRef }) {
+  // See more / less button should go to a footbar
+  return (
+    <SmallCard className={styles.grid_cell}>
+      <ShrinkCard>
+        <ReadOnlyRender nid={nid} />
+      </ShrinkCard>
       <SmallCardFootbar
-        edge={this.props.edge}
-        switchStickiness={this.props.switchStickiness}
-        cutOffRef={this.props.cutOffRef}
+        edge={edge}
+        switchStickiness={switchStickiness}
+        cutOffRef={cutOffRef}
       />
-    );
-    return (
-      <SmallCard
-        nid={this.props.nid}
-        preface={null}
-        crtd={null}
-        upd={null}
-        skip_input_edge={true}
-        footbar={footbar}
-      />
-    );
-  }
+    </SmallCard>
+  );
 }
-
-RefNodeCard.contextType = MzdGlobalContext;
 
 class NodeRefs extends React.Component {
   render() {
@@ -72,13 +53,10 @@ class NodeRefs extends React.Component {
       return (
         <RefNodeCard
           nid={nid}
-          eid={edge.eid}
-          to_nid={to_nid}
-          from_nid={from_nid}
-          key={edge.eid}
           edge={edge}
           switchStickiness={this.props.switchStickiness}
           cutOffRef={this.props.cutOffRef}
+          key={edge.eid}
         />
       );
     });
@@ -125,7 +103,7 @@ class Triptych extends React.Component {
 
   updateWindowDimensions = () => {
     this.setState({
-      is_narrow: window.innerWidth < 580 /*pixels*/,
+      is_narrow: window.innerWidth < 480 /*pixels*/,
     });
   };
 
@@ -317,11 +295,7 @@ class Triptych extends React.Component {
         </>
       );
     }
-    return (
-      <Container fluid className={styles.container}>
-        {triptychRow}
-      </Container>
-    );
+    return <>{triptychRow}</>;
   }
 }
 

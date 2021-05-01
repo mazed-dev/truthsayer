@@ -78,11 +78,12 @@ export class AuthorBadge extends React.Component {
 
 export class TimeBadge extends React.Component {
   render() {
+    // Created {this.props.created_at.fromNow()},
     return (
       <div className={styles.badge}>
         <div className={styles.column}>
           <div className={styles.created_at_date}>
-            Created {this.props.created_at.fromNow()}
+            Updated {this.props.updated_at.fromNow()}
           </div>
         </div>
       </div>

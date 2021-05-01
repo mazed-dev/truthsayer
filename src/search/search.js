@@ -22,15 +22,15 @@ function _unpackAttrs(attrsStr) {
   return {};
 }
 
-export function buildIndex(attrs) {
+export function buildIndex(nodes) {
   var nGramIndex = {};
-  var attrsByNid = {};
-  attrs.forEach((item) => {
-    const nid = item.nid;
-    attrsByNid[nid] = item;
+  var nodeByNid = {};
+  nodes.forEach((node) => {
+    const nid = node.nid;
+    nodeByNid[nid] = node;
 
-    if (item.attrs && item.attrs.ngrams) {
-      item.attrs.ngrams.forEach((ngr) => {
+    if (node.attrs && node.attrs.ngrams) {
+      node.attrs.ngrams.forEach((ngr) => {
         if (!(ngr in nGramIndex)) {
           nGramIndex[ngr] = [nid];
         } else {
@@ -43,25 +43,17 @@ export function buildIndex(attrs) {
     // ngram -> [nid]
     nGramIndex: nGramIndex,
     // nid -> {ntype, crtd, upd, attrs}
-    attrsByNid: attrsByNid,
+    nodeByNid: nodeByNid,
   };
 }
 
-export function searchNodesInAttrs(nodeAttrs, ngrams) {
+export function searchNodesInAttrs(nodes, ngrams) {
   if (!ngrams || ngrams.length === 0) {
     //*dbg*/ console.log("Shortcut for empty search");
-    return nodeAttrs.map((item) => {
-      return {
-        nid: item.nid,
-        preface: null,
-        crtd: moment.unix(item.crtd),
-        upd: moment.unix(item.upd),
-        edges: [],
-      };
-    });
+    return nodes;
   }
 
-  const { nGramIndex, attrsByNid } = buildIndex(nodeAttrs);
+  const { nGramIndex, nodeByNid } = buildIndex(nodes);
 
   var frequencyMax = -1;
   var frequency = {};
@@ -81,20 +73,11 @@ export function searchNodesInAttrs(nodeAttrs, ngrams) {
       return true;
     });
   frequencyMax = Math.min(ngrams.length - 2, frequencyMax);
-  const nodes = nids
+  return nids
     .filter((nid) => {
       return frequency[nid] >= frequencyMax;
     })
     .map((nid) => {
-      const attrs = attrsByNid[nid];
-      return {
-        nid: nid,
-        preface: null,
-        crtd: moment.unix(attrs.crtd),
-        upd: moment.unix(attrs.upd),
-        edges: [],
-      };
+      return nodeByNid[nid];
     });
-  //*dbg*/ console.log( "searchNodesInAttrs - found", nodes.length, frequencyMax, ngrams.length);
-  return nodes;
 }
