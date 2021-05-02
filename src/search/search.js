@@ -23,8 +23,8 @@ function _unpackAttrs(attrsStr) {
 }
 
 export function buildIndex(nodes) {
-  var nGramIndex = {};
-  var nodeByNid = {};
+  let nGramIndex = {};
+  let nodeByNid = {};
   nodes.forEach((node) => {
     const nid = node.nid;
     nodeByNid[nid] = node;
@@ -55,10 +55,12 @@ export function searchNodesInAttrs(nodes, ngrams) {
 
   const { nGramIndex, nodeByNid } = buildIndex(nodes);
 
-  var frequencyMax = -1;
-  var frequency = {};
+  //*dbg*/ console.log("nGramIndex, nodeByNid", nGramIndex);
 
-  var nids = ngrams
+  let frequencyMax = -1;
+  let frequency = {};
+
+  let nids = ngrams
     .map((ngr) => {
       return nGramIndex[ngr] || [];
     })

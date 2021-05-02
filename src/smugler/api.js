@@ -136,7 +136,7 @@ class TNode {
     this.doc = doc;
     this.created_at = created_at;
     this.updated_at = updated_at;
-    this.attrs = null;
+    this.attrs = attrs;
     this.meta = meta;
     this.crypto = {
       secret_id: secret_id,
@@ -253,8 +253,9 @@ async function nodeAttrsSearch({
   let response = rawResp.data;
   response.nodes = await Promise.all(
     response.nodes.map(async (item) => {
-      if (item.attrs) {
-        const attrsEnc = base64.toObject(item.attrs);
+      const attrs = item.attrs;
+      if (typeof attrs === "string") {
+        const attrsEnc = base64.toObject(attrs);
         const secretId = attrsEnc.secret_id;
         if (secretId) {
           item.attrs = await decryptSecretAttrs(account, secretId, attrsEnc);

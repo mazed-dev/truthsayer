@@ -66,45 +66,4 @@ export class SmallCard extends React.Component {
 
 SmallCard.defaultProps = { onClick: null, className: null, stack_size: 0 };
 
-export class GenericSmallCard extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  render() {
-    let clickableStyle = null;
-    let clickableOnClick = null;
-    if (this.props.onClick) {
-      clickableStyle = styles.clickable_chunks;
-      clickableOnClick = this.props.onClick;
-    }
-    let header = this.props.header ? (
-      <Card.Header>{this.props.header}</Card.Header>
-    ) : null;
-    let footer = null;
-    if (this.props.footer) {
-      footer = (
-        <footer className="text-muted text-right px-2 pb-2 m-0 pt-0">
-          {this.props.footer}
-        </footer>
-      );
-    }
-    return (
-      <Card
-        className={joinClasses(styles.small_card, clickableStyle)}
-        nid={this.props.nid}
-        ref={this.props.cardRef}
-        onClick={clickableOnClick}
-      >
-        {header}
-        <Card.Body className={styles.card_body}>
-          {this.props.children}
-        </Card.Body>
-        {footer}
-      </Card>
-    );
-  }
-}
-
-GenericSmallCard.defaultProps = { header: null, footer: null, onClick: null };
-
 export default SmallCard;

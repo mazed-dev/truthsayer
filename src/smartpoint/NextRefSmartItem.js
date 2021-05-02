@@ -1,12 +1,12 @@
 import React from "react";
 
-import { Button, Row, Col } from "react-bootstrap";
+import { Card } from "react-bootstrap";
 
 import axios from "axios";
 
 import { smugler } from "./../smugler/api";
 
-import { GenericSmallCard } from "./../card/SmallCard";
+import { SmallCard } from "./../card/SmallCard";
 
 export class NextRefSmartItem extends React.Component {
   constructor(props) {
@@ -45,10 +45,12 @@ export class NextRefSmartItem extends React.Component {
 
   render() {
     return (
-      <GenericSmallCard onClick={this.handleSumbit} header={this.props.label}>
-        &nbsp;
-        <q>{this.props.title}</q>
-      </GenericSmallCard>
+      <SmallCard onClick={this.handleSumbit}>
+        <Card.Header>{this.props.label}</Card.Header>
+        <Card.Body>
+          <q>{this.props.title}</q>
+        </Card.Body>
+      </SmallCard>
     );
   }
 }
@@ -65,7 +67,7 @@ export function nextRefSmartItemSearch(input, nid, on_insert) {
     const title = next[2] ? next[2].trim() : "New";
     ret.push(
       <NextRefSmartItem
-        label={"Create as next"}
+        label={"Create new note and link"}
         title={title}
         from_nid={nid}
         on_insert={on_insert}
@@ -80,7 +82,7 @@ export function nextRefSmartItemSearch(input, nid, on_insert) {
     const title = prev[2] ? prev[2].trim() : "New";
     ret.push(
       <NextRefSmartItem
-        label={"Create previous"}
+        label={"Create new note and link as previous"}
         title={title}
         to_nid={nid}
         on_insert={on_insert}

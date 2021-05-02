@@ -203,6 +203,7 @@ export class SearchGrid extends React.Component {
           console.error("Error: no response from back end");
           return;
         }
+        // TODO(akindyakov): Use better search here, we have a full text for god sake!
         const nodes = searchNodesInAttrs(data.nodes, this.state.ngrams);
         let next = null;
         let fetching = false;
@@ -271,8 +272,10 @@ export class SearchGrid extends React.Component {
         </div>
       );
     }
+
+    const extCards = this.props.extCards ? this.props.extCards : [];
     let used = {};
-    const cards = this.state.nodes
+    let cards = this.state.nodes
       .filter((node) => {
         if (node.nid in used) {
           //*dbg*/ console.log("Search grid overlap", node.nid, item);
@@ -302,16 +305,14 @@ export class SearchGrid extends React.Component {
             />
           </SmallCard>
         );
-      });
+      })
+      .concat(extCards);
 
     const fetchingLoader = this.state.fetching ? (
       <div className={styles.search_grid_loader}>
         <Loader size={"medium"} />
       </div>
     ) : null;
-    if (this.props.extCards) {
-      cards = this.props.extCards.concat(cards);
-    }
     const gridStyle = this.props.portable ? styles.search_grid_portable : null;
     return (
       <div

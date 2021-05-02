@@ -1,11 +1,11 @@
 import React from "react";
 
-import { Button, Row, Col } from "react-bootstrap";
+import { Card } from "react-bootstrap";
 
 import moment from "moment";
 
 import { DateTimeBadge } from "./../markdown/MarkdownRender";
-import { GenericSmallCard } from "./../card/SmallCard";
+import { SmallCard } from "./../card/SmallCard";
 
 class DateTimeSmartItem extends React.Component {
   constructor(props) {
@@ -22,12 +22,12 @@ class DateTimeSmartItem extends React.Component {
 
   render() {
     return (
-      <GenericSmallCard
-        onClick={this.handleSumbit}
-        header={"Date: " + this.props.label}
-      >
-        <DateTimeBadge tm={this.props.tm} format={this.props.format} />
-      </GenericSmallCard>
+      <SmallCard onClick={this.handleSumbit}>
+        <Card.Header>{"Date: " + this.props.label}</Card.Header>
+        <Card.Body>
+          <DateTimeBadge tm={this.props.tm} format={this.props.format} />
+        </Card.Body>
+      </SmallCard>
     );
   }
 }

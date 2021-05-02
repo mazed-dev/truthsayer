@@ -375,7 +375,6 @@ class PrivateFullCardFootbar extends React.Component {
 
   hideShareDialog = (event) => {
     this.setState({ modalShareShow: false });
-    this.props.reloadNode();
   };
 
   showShareDialog = (event) => {
