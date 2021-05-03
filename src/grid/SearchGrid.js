@@ -1,28 +1,24 @@
-import React from "react";
-
-import { withRouter, Link } from "react-router-dom";
-
+import React, { useContext } from "react";
 import PropTypes from "prop-types";
-
+import { withRouter, Link } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
-
-import styles from "./SearchGrid.module.css";
 
 import { SmallCard } from "./../card/SmallCard";
 import { SCard } from "./../card/ShrinkCard";
 import { TimeBadge } from "./../card/AuthorBadge";
 import { ReadOnlyRender } from "./../doc/ReadOnlyRender";
-
 import { searchNodesInAttrs } from "./../search/search.js";
 import { extractIndexNGramsFromText } from "./../search/ngramsIndex.js";
 
 import { smugler } from "./../smugler/api.js";
 
 import { joinClasses } from "./../util/elClass.js";
-import { MzdGlobalContext } from "./../lib/global.js";
-
 import { range } from "./../util/range";
+
+import { MzdGlobalContext } from "../lib/global.js";
 import { Loader } from "./../lib/loader";
+
+import styles from "./SearchGrid.module.css";
 
 class DynamicGrid extends React.Component {
   constructor(props) {
@@ -106,8 +102,8 @@ class DynamicGrid extends React.Component {
 const _kTimeLimit = Math.floor(Date.now() / 1000) - 2 * 356 * 24 * 60 * 60;
 
 export class SearchGrid extends React.Component {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     this.state = {
       nodes: [],
       ngrams: this.extractIndexNGramsFromText(),
@@ -189,7 +185,7 @@ export class SearchGrid extends React.Component {
     //*dbg*/   "], ",
     //*dbg*/   this.state.nodes.length
     //*dbg*/ );
-    let account = this.context.account;
+    const account = this.props.account;
     smugler.node
       .slice({
         start_time: start_time,
@@ -268,7 +264,7 @@ export class SearchGrid extends React.Component {
     if (account == null) {
       return (
         <div className={styles.search_grid_waiter}>
-          <Loader size={"large"} />;
+          <Loader size={"large"} />
         </div>
       );
     }
@@ -327,14 +323,18 @@ export class SearchGrid extends React.Component {
   }
 }
 
-SearchGrid.contextType = MzdGlobalContext;
 SearchGrid.defaultProps = {
   defaultSearch: true,
   portable: false,
   onCardClick: null,
   extCards: null,
 };
-
+SearchGrid.contextType = MzdGlobalContext;
 SearchGrid = withRouter(SearchGrid);
+
+// export function SearchGrid({ ...rest }) {
+//   const ctx = useContext(MzdGlobalContext);
+//   return (<SearchGrid account={ctx.account} {...rest} />);
+// }
 
 export default SearchGrid;

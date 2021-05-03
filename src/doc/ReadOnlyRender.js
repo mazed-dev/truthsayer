@@ -1,17 +1,18 @@
-import React from "react";
+import React, { useContext } from "react";
 
 import styles from "./ReadOnlyRender.module.css";
 
 import { Loader } from "../lib/loader";
 import LockedImg from "./../img/locked.png";
 
-import { MzdGlobalContext } from "../lib/global.js";
 import { renderMdSmallCard } from "./../markdown/MarkdownRender";
 
 import { ChunkView } from "./chunks";
 import { enforceTopHeader } from "./doc_util.jsx";
 import { makeEmptyChunk, trimChunk } from "./chunk_util";
 import { smugler } from "./../smugler/api";
+
+import { MzdGlobalContext } from "../lib/global.js";
 
 const kMaxTrimSmallCardSize = 320;
 const kMaxTrimSmallCardChunksNum = 4;
@@ -98,7 +99,7 @@ class ReadOnlyRenderFetching extends React.Component {
 
   fetchNode = () => {
     const nid = this.props.nid;
-    let account = this.context.account;
+    let account = this.props.account;
     return smugler.node
       .get({
         nid: nid,
@@ -123,13 +124,11 @@ class ReadOnlyRenderFetching extends React.Component {
   }
 }
 
-ReadOnlyRenderFetching.contextType = MzdGlobalContext;
-
 export function ReadOnlyRender({ nid, node, ...rest }) {
+  const ctx = useContext(MzdGlobalContext);
   if (node) {
     return <ReadDocRender node={node} {...rest} />;
   } else {
-    console.log("ReadOnlyRender by nid", nid);
-    return <ReadOnlyRenderFetching nid={nid} {...rest} />;
+    return <ReadOnlyRenderFetching nid={nid} account={ctx.account} {...rest} />;
   }
 }

@@ -18,6 +18,30 @@ import { MzdLink } from "./../lib/MzdLink";
 
 import { joinClasses } from "../util/elClass.js";
 
+export function HeaderOne({ children, ...rest }) {
+  return (<span className={styles.full_h1} {...rest}> {children} </span>);
+}
+
+export function HeaderTwo({ children, ...rest }) {
+  return (<span className={styles.full_h2} {...rest}> {children} </span>);
+}
+
+export function HeaderThree({ children, ...rest }) {
+  return (<span className={styles.full_h3} {...rest}> {children} </span>);
+}
+
+export function HeaderFour({ children, ...rest }) {
+  return (<span className={styles.full_h4} {...rest}> {children} </span>);
+}
+
+export function HeaderFive({ children, ...rest }) {
+  return (<span className={styles.full_h5} {...rest}> {children} </span>);
+}
+
+export function HeaderSix({ children, ...rest }) {
+  return (<span className={styles.full_h6} {...rest}> {children} </span>);
+}
+
 function MarkdownHeading(nid) {
   return ({ level, children, sourcePosition, ...rest }) => {
     var hdr_el;

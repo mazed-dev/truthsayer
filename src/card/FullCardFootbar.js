@@ -683,7 +683,7 @@ class PrivateFullCardFootbar extends React.Component {
   }
 }
 
-PrivateFullCardFootbar.contextType = MzdGlobalContext;
+// PrivateFullCardFootbar.contextType = MzdGlobalContext;
 
 PrivateFullCardFootbar = withRouter(PrivateFullCardFootbar);
 
@@ -890,7 +890,7 @@ class PublicFullCardFootbarImpl extends React.Component {
   }
 }
 
-PublicFullCardFootbarImpl.contextType = MzdGlobalContext;
+// PublicFullCardFootbarImpl.contextType = MzdGlobalContext;
 
 const PublicFullCardFootbar = withRouter(PublicFullCardFootbarImpl);
 
@@ -918,4 +918,4 @@ export class FullCardFootbar extends React.Component {
   }
 }
 
-FullCardFootbar.contextType = MzdGlobalContext;
+// FullCardFootbar.contextType = MzdGlobalContext;

@@ -413,7 +413,7 @@ export class TextEditor extends React.Component {
   }
 }
 
-TextEditor.contextType = MzdGlobalContext;
+// TextEditor.contextType = MzdGlobalContext;
 
 class ExtClickDetector extends React.Component {
   constructor(props) {

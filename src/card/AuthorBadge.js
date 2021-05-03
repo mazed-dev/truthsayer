@@ -2,20 +2,11 @@ import React from "react";
 
 import styles from "./AuthorBadge.module.css";
 
-import PropTypes from "prop-types";
-import { withRouter, useHistory } from "react-router-dom";
-
-import { Loader } from "../lib/loader";
-import { MzdGlobalContext } from "./../lib/global";
-
-import { joinClasses } from "../util/elClass.js";
-
-import { HoverTooltip } from "./../lib/tooltip";
 import { smugler } from "./../smugler/api";
 
-import { Card, Button, ButtonGroup } from "react-bootstrap";
-
 import UserDefaultPic from "./../auth/img/user-default-pic.png";
+
+import { MzdGlobalContext } from "./../lib/global";
 
 export class AuthorBadge extends React.Component {
   constructor(props) {
@@ -23,6 +14,8 @@ export class AuthorBadge extends React.Component {
     this.state = { badge: null };
     this.fetchBadgeCancelToken = smugler.makeCancelToken();
   }
+
+  // static contextType = MzdGlobalContext;
 
   componentDidMount() {
     if (!this.state.badge) {
@@ -92,6 +85,7 @@ export class TimeBadge extends React.Component {
 }
 
 export class AuthorFooter extends React.Component {
+  // static contextType = MzdGlobalContext;
   render() {
     const node = this.props.node;
     if (!node) {
@@ -115,6 +109,3 @@ export class AuthorFooter extends React.Component {
     );
   }
 }
-
-AuthorBadge.contextType = MzdGlobalContext;
-AuthorFooter.contextType = MzdGlobalContext;

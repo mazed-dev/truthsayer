@@ -202,7 +202,7 @@ export class DocRender extends React.Component {
   }
 }
 
-DocRender.contextType = MzdGlobalContext;
+// DocRender.contextType = MzdGlobalContext;
 
 DocRender = withRouter(DocRender);
 

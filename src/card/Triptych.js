@@ -2,7 +2,9 @@ import React from "react";
 
 import styles from "./Triptych.module.css";
 
-import { DocRender } from "./../doc/doc";
+// import { DocRender } from "./../doc/doc";
+import { WideCard } from "./WideCard";
+import { NodeEditor } from "../doc/NodeEditor";
 
 import { SmallCard } from "./SmallCard";
 import { XsCard, ShrinkCard } from "./ShrinkCard";
@@ -62,6 +64,14 @@ class NodeRefs extends React.Component {
     });
     return <div className={this.props.className}>{refs}</div>;
   }
+}
+
+function NodeCard({ node, addRef, stickyEdges, updateNode }) {
+  return (
+    <WideCard>
+      <NodeEditor />
+    </WideCard>
+  );
 }
 
 class Triptych extends React.Component {
@@ -241,20 +251,20 @@ class Triptych extends React.Component {
         className={styles.node_refs_left}
       />
     );
-    const nodeCard = (
-      <DocRender
-        node={this.state.node}
-        addRef={this.addRef}
-        stickyEdges={this.state.edges_sticky}
-        updateNode={this.updateNode}
-      />
-    );
     const rightRefs = (
       <NodeRefs
         nid={this.props.nid}
         edges={this.state.edges_right}
         cutOffRef={this.cutOffRef}
         switchStickiness={this.switchStickiness}
+      />
+    );
+    const nodeCard = (
+      <NodeCard
+        node={this.state.node}
+        addRef={this.addRef}
+        stickyEdges={this.state.edges_sticky}
+        updateNode={this.updateNode}
       />
     );
     let triptychRow = null;

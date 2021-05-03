@@ -1,9 +1,5 @@
 import React from "react";
 
-import DoodledBird from "./DoodledBird.svg";
-import Triptych from "./card/Triptych";
-import SearchGrid from "./grid/SearchGrid";
-
 // React router
 import {
   BrowserRouter as Router,
@@ -15,11 +11,13 @@ import {
   useParams,
 } from "react-router-dom";
 
-import "./App.css";
-
 import { Card, Button, Container } from "react-bootstrap";
 
 import queryString from "query-string";
+
+import DoodledBird from "./DoodledBird.svg";
+import Triptych from "./card/Triptych";
+import SearchGrid from "./grid/SearchGrid";
 
 import GlobalNavBar from "./navbar/GlobalNavBar";
 import Login from "./auth/Login";
@@ -34,8 +32,11 @@ import WaitingForApproval from "./auth/WaitingForApproval";
 import UserPreferences from "./auth/UserPreferences";
 import WelcomePage from "./WelcomePage";
 import UserEncryption from "./UserEncryption";
-import { MzdGlobal, MzdGlobalContext } from "./lib/global";
 import { routes } from "./lib/route.jsx";
+
+import { MzdGlobal, MzdGlobalContext } from "./lib/global";
+
+import "./App.css";
 
 class App extends React.Component {
   render() {

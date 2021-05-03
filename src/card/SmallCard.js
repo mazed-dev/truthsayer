@@ -3,20 +3,9 @@ import React from "react";
 import PropTypes from "prop-types";
 import { withRouter, Link } from "react-router-dom";
 
-import axios from "axios";
-import moment from "moment";
-
 import { Card } from "react-bootstrap";
 
-import { smugler } from "./../smugler/api";
-import { ReadOnlyRender } from "./../doc/ReadOnlyRender";
 import { joinClasses } from "./../util/elClass.js";
-import { Loader } from "./../lib/loader";
-import { MzdGlobalContext } from "./../lib/global.js";
-
-import { XsCard } from "./ShrinkCard";
-
-import LockedImg from "./../img/locked.png";
 
 import styles from "./SmallCard.module.css";
 

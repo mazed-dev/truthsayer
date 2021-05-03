@@ -45,6 +45,8 @@ MzdToast.defaultProps = {
 };
 
 export const MzdGlobalContext = React.createContext({
+  account: null,
+  topbar: {},
   toaster: {
     toasts: [],
     push: ({ header, message }) => {
@@ -144,7 +146,7 @@ export class ExampleWithStaticConsumer extends React.Component {
 
 ExampleWithStaticConsumer.contextType = MzdGlobalContext;
 
-export function ExampleWithElementConsumer() {
+function ExampleWithElementConsumer() {
   return (
     <MzdGlobalContext.Consumer>
       {(context) => (
@@ -162,3 +164,5 @@ export function ExampleWithElementConsumer() {
     </MzdGlobalContext.Consumer>
   );
 }
+
+export default MzdGlobalContext;
