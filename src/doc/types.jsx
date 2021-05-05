@@ -9,6 +9,23 @@ export interface TChunk {
   source: string | null;
 }
 
+export interface TContentBlock {
+  key: string;
+  text: string;
+  type: string;
+  characterList: null;
+  depth: number;
+  data: Map<any, any>;
+}
+
+export interface TEntity {}
+
+export interface TDraftDoc {
+  blocks: TContentBlock[];
+  entityMap: TEntity[];
+}
+
 export interface TDoc {
   chunks: Chunk[];
+  draft: TDraftDoc;
 }

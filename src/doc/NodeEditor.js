@@ -6,9 +6,11 @@ import {
   DraftEditorBlock,
   EditorState,
   RichUtils,
+  convertToRaw,
 } from "draft-js";
 import "draft-js/dist/Draft.css";
 import "./NodeEditor.css";
+import styles from "./NodeEditor.module.css";
 
 import {
   HeaderOne,
@@ -20,6 +22,8 @@ import {
 } from "../markdown/MarkdownRender";
 
 import { joinClasses } from "../util/elClass.js";
+
+import { CheckBox } from "../lib/CheckBox";
 
 const { Map } = require("immutable");
 
@@ -37,65 +41,26 @@ const kBlockTypeOrderedItem = "ordered-list-item";
 const kBlockTypeUnstyled = "unstyled";
 
 const kBlockTypeUnorderedCheckItem = "unordered-check-item";
-const kBlockTypeOrderedCheckItem = "ordered-check-item";
-
-const BlockHeaderOne = (props) => {
-  return (
-    <HeaderOne>
-      <EditorBlock {...props} />
-    </HeaderOne>
-  );
-};
-const BlockHeaderTwo = (props) => {
-  return (
-    <HeaderTwo>
-      <EditorBlock {...props} />
-    </HeaderTwo>
-  );
-};
-const BlockHeaderThree = (props) => {
-  return (
-    <HeaderThree>
-      <EditorBlock {...props} />
-    </HeaderThree>
-  );
-};
-const BlockHeaderFour = (props) => {
-  return (
-    <HeaderFour>
-      <EditorBlock {...props} />
-    </HeaderFour>
-  );
-};
-const BlockHeaderFive = (props) => {
-  return (
-    <HeaderFive>
-      <EditorBlock {...props} />
-    </HeaderFive>
-  );
-};
-const BlockHeaderSix = (props) => {
-  return (
-    <HeaderSix>
-      <EditorBlock {...props} />
-    </HeaderSix>
-  );
-};
 
 export default class ChecklistEditorBlock extends React.Component {
   // https://github.com/facebook/draft-js/issues/132
   constructor(props) {
     super(props);
-    this.toggleChecked = this.toggleChecked.bind(this);
+    this.state = {
+      checked: false,
+    };
   }
 
-  toggleChecked(event) {
+  toggleChecked = (event) => {
     // const { blockProps, block } = this.props;
     // const { updateMetadataFn, returnFocusToEditor, checked } = blockProps;
     // const newChecked = !checked;
     // updateMetadataFn(block.getKey(), newChecked);
     // I also stop propagation, return focus to the editor and set some state here, but that's probably specific to my app
-  }
+    this.setState((state) => {
+      return { checked: !state.checked };
+    });
+  };
 
   render() {
     const { offsetKey, blockProps } = this.props;
@@ -104,12 +69,11 @@ export default class ChecklistEditorBlock extends React.Component {
     const blockClassNames = joinClasses("ChecklistEditorBlock", { checked });
     return (
       <div className={blockClassNames} data-offset-key={offsetKey}>
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={this.toggleChecked}
+        <CheckBox
+          onToggle={this.toggleChecked}
+          is_checked={this.state.checked}
         />
-        <div className="text">
+        <div className={styles.inline_text}>
           <EditorBlock {...this.props} />
         </div>
       </div>
@@ -176,6 +140,8 @@ export class NodeEditor extends React.Component {
     //   "Editor get plain text",
     //   editorState.getCurrentContent().getPlainText("---")
     // );
+    const contentState = editorState.getCurrentContent();
+    console.log("Content state", convertToRaw(contentState));
     editorState
       .getCurrentContent()
       .getBlockMap()
@@ -302,6 +268,7 @@ const BLOCK_TYPES = [
   { label: "Code Block", style: kBlockTypeCode },
 
   { label: "Check", style: kBlockTypeUnorderedCheckItem },
+  { label: "Text", style: kBlockTypeUnstyled },
 ];
 
 const BlockStyleControls = (props) => {

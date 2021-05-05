@@ -1,4 +1,4 @@
-import { TDoc, TChunk, EChunkType } from "./types";
+import { TDoc, TChunk, EChunkType } from "./types.jsx";
 
 import {
   makeChunk,

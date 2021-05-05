@@ -21,18 +21,14 @@ export function untickCheckbox(sourceLine) {
 }
 
 export function CheckBox({ is_checked, onToggle, className, is_disabled }) {
-  const checkmark = is_checked ? (
-    <Emoji symbol={"✅"} label="checked" />
-  ) : (
-    <div className={styles.checkbox} />
-  );
+  const tick = is_checked ? styles.checkmark : null;
   const pointy = is_disabled ? null : styles.pointy;
   return (
     <div
       className={joinClasses(styles.container, pointy, className)}
       onClick={onToggle}
     >
-      {checkmark}
+      <div className={joinClasses(styles.checkbox, tick)} />
     </div>
   );
 }
