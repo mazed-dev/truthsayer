@@ -119,7 +119,12 @@ function mdToBlocksRec(blocks: TContentBlock[], mdBlock: any): TContentBlock[] {
   if (mdBlock.type === "heading") {
     blocks.push(makeHeaderBlock(mdBlock.type, mdBlock.depth || 0));
   } else if (mdBlock.type === "list") {
-    blocks = makeListBlocks(blocks, mdBlock.ordered || false, mdBlock.depth || 0, mdBlock.children || []);
+    blocks = makeListBlocks(
+      blocks,
+      mdBlock.ordered || false,
+      mdBlock.depth || 0,
+      mdBlock.children || []
+    );
   } else if (mdBlock.type === "paragraph") {
   } else if (mdBlock.type === "code") {
   } else if (mdBlock.type === "table") {

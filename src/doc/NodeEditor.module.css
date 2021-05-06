@@ -1,3 +1,28 @@
 .inline_text {
   display: inline-block;
 }
+
+.root {
+  fontfamily: "'Georgia'; serif";
+  padding: 20;
+  width: 600;
+}
+.buttons {
+  marginbottom: 10;
+}
+.urlInputContainer {
+  marginbottom: 10;
+}
+.urlInput {
+  fontfamily: "'Georgia'; serif";
+  marginright: 10;
+  padding: 3;
+}
+.button {
+  margintop: 10;
+  textalign: "center";
+}
+.link {
+  color: "#3b5998";
+  textdecoration: "underline";
+}

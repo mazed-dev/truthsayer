@@ -10,26 +10,27 @@
   width: 1rem;
 
   border: 1px solid #8c8c8c;
-  /* border-radius: 0.16rem; */
   border-radius: 0.5rem;
 
   box-shadow: inset 0 0 0.16rem rgba(0, 0, 0, 0.492);
   display: block;
+  font-size: 0;
 }
 
 .checkmark {
   background-color: #38b000;
-  display: inline-block;
+  box-shadow: inset 0 0 0.16rem white;
+  border: 1px solid #8c8c8c;
 }
 
 .checkmark:after {
   position: absolute;
   left: 0.4rem;
-  top: -0.14rem;
+  top: -0.24rem;
   width: 0.5rem;
   height: 1rem;
   border: solid white;
-  border-width: 0 3px 3px 0;
+  border-width: 0 0.19rem 0.19rem 0;
   display: block;
   content: "";
   cursor: pointer;

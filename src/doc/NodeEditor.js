@@ -7,6 +7,7 @@ import {
   EditorState,
   RichUtils,
   convertToRaw,
+  CompositeDecorator,
 } from "draft-js";
 import "draft-js/dist/Draft.css";
 import "./NodeEditor.css";
@@ -41,6 +42,15 @@ const kBlockTypeOrderedItem = "ordered-list-item";
 const kBlockTypeUnstyled = "unstyled";
 
 const kBlockTypeUnorderedCheckItem = "unordered-check-item";
+
+/**
+ * - Links
+ * - Date&time
+ *
+ * Pro:
+ * - Images
+ * - Tables
+ */
 
 export default class ChecklistEditorBlock extends React.Component {
   // https://github.com/facebook/draft-js/issues/132
@@ -122,7 +132,20 @@ const kHeaderLevelRotation = Map({
 export class NodeEditor extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { editorState: EditorState.createEmpty() };
+
+    const decorator = new CompositeDecorator([
+      {
+        strategy: findLinkEntities,
+        component: Link,
+      },
+    ]);
+
+    this.state = {
+      editorState: EditorState.createEmpty(decorator),
+      showURLInput: false,
+      urlValue: "",
+    };
+    this.onURLChange = (e) => this.setState({ urlValue: e.target.value });
   }
 
   componentDidMount() {}
@@ -152,6 +175,81 @@ export class NodeEditor extends React.Component {
   };
 
   focus = () => this.refs.editor.focus();
+
+  _promptForLink = (e) => {
+    e.preventDefault();
+    const { editorState } = this.state;
+    const selection = editorState.getSelection();
+    if (!selection.isCollapsed()) {
+      const contentState = editorState.getCurrentContent();
+      const startKey = editorState.getSelection().getStartKey();
+      const startOffset = editorState.getSelection().getStartOffset();
+      const blockWithLinkAtBeginning = contentState.getBlockForKey(startKey);
+      const linkKey = blockWithLinkAtBeginning.getEntityAt(startOffset);
+
+      let url = "";
+      if (linkKey) {
+        const linkInstance = contentState.getEntity(linkKey);
+        url = linkInstance.getData().url;
+      }
+
+      this.setState(
+        {
+          showURLInput: true,
+          urlValue: url,
+        },
+        () => {
+          setTimeout(() => this.refs.url.focus(), 0);
+        }
+      );
+    }
+  };
+
+  _confirmLink = (e) => {
+    e.preventDefault();
+    const { editorState, urlValue } = this.state;
+    const contentState = editorState.getCurrentContent();
+    const contentStateWithEntity = contentState.createEntity(
+      "LINK",
+      "MUTABLE",
+      { url: urlValue }
+    );
+    const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+    const newEditorState = EditorState.set(editorState, {
+      currentContent: contentStateWithEntity,
+    });
+    this.setState(
+      {
+        editorState: RichUtils.toggleLink(
+          newEditorState,
+          newEditorState.getSelection(),
+          entityKey
+        ),
+        showURLInput: false,
+        urlValue: "",
+      },
+      () => {
+        setTimeout(() => this.refs.editor.focus(), 0);
+      }
+    );
+  };
+
+  _onLinkInputKeyDown = (e) => {
+    if (e.which === 13) {
+      this._confirmLink(e);
+    }
+  };
+
+  _removeLink = (e) => {
+    e.preventDefault();
+    const { editorState } = this.state;
+    const selection = editorState.getSelection();
+    if (!selection.isCollapsed()) {
+      this.setState({
+        editorState: RichUtils.toggleLink(editorState, selection, null),
+      });
+    }
+  };
 
   handleKeyCommand = (command) => {
     const { editorState } = this.state;
@@ -186,8 +284,34 @@ export class NodeEditor extends React.Component {
         className += " RichEditor-hidePlaceholder";
       }
     }
+
+    let urlInput;
+    if (this.state.showURLInput) {
+      urlInput = (
+        <div className={styles.urlInputContainer}>
+          <input
+            onChange={this.onURLChange}
+            ref="url"
+            className={styles.urlInput}
+            type="text"
+            value={this.state.urlValue}
+            onKeyDown={this._onLinkInputKeyDown}
+          />
+          <button onMouseDown={this._confirmLink}>Confirm</button>
+        </div>
+      );
+    }
     return (
       <div className="RichEditor-root">
+        <div className={styles.buttons}>
+          <button onMouseDown={this._promptForLink} className={styles.button}>
+            Add Link
+          </button>
+          <button onMouseDown={this._removeLink} className={styles.button}>
+            Remove Link
+          </button>
+        </div>
+        {urlInput}
         <BlockStyleControls
           editorState={editorState}
           onToggle={this.toggleBlockType}
@@ -314,6 +438,25 @@ const InlineStyleControls = (props) => {
         />
       ))}
     </div>
+  );
+};
+
+function findLinkEntities(contentBlock, callback, contentState) {
+  contentBlock.findEntityRanges((character) => {
+    const entityKey = character.getEntity();
+    return (
+      entityKey !== null &&
+      contentState.getEntity(entityKey).getType() === "LINK"
+    );
+  }, callback);
+}
+
+const Link = (props) => {
+  const { url } = props.contentState.getEntity(props.entityKey).getData();
+  return (
+    <a href={url} className={styles.link}>
+      {props.children}
+    </a>
   );
 };
 
