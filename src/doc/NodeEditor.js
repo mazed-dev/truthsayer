@@ -45,11 +45,11 @@ const kBlockTypeUnorderedCheckItem = "unordered-check-item";
 
 /**
  * - Links
- * - Date&time
  *
  * Pro:
  * - Images
  * - Tables
+ * - Date&time
  */
 
 export default class ChecklistEditorBlock extends React.Component {

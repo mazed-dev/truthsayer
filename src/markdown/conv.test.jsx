@@ -1,29 +1,31 @@
 import React from "react";
 
-import { mdToBlocks } from "./conv.jsx";
+import { markdownToDoc } from "./conv.jsx";
 
 test("raw string", () => {
-  const md = `# Hello world!
-
-## Second layer
+  const md = `# Header 1
+## Header 2
+### Header 3
+#### Header 4
+##### Header 5
+###### Header 6
 
 - first list item
 - second list item
 
-## Historical lists (personal)
 
-- [Travel history](wq8ksuip3t8x85eckumpsezhr4ek6qatraghtohr38khg)
-- Employment history
-- [Housing history](94ogoxqapi84je7hkbt1qtt8k1oeycqc43haij57pimhn)
 - Schools
+- [Travel history](wq8ksuip3t8x85eckumpsezhr4ek6qatraghtohr38khg)
+- [Housing history](94ogoxqapi84je7hkbt1qtt8k1oeycqc43haij57pimhn)
 - Passports
 
 \`struct timeval *restrict timeout\`
 
+-----
 
 \`\`\`python
- s = "Python syntax highlighting"
-  print s
+s = "Python syntax highlighting"
+print s
 \`\`\`
 
 | Tables | Are    | Cool |
@@ -35,14 +37,12 @@ test("raw string", () => {
 > Blockquotes are very handy in email to emulate reply text.
 > This line is part of the same quote.
 
----
 
-[I'm an inline-style link](https://www.google.com)
+- [ ] Checlist item 1
+- [ ] Checlist item 2
 
-[I'm an inline-style link with title](https://www.google.com "Google's Homepage")
-
-[I'm a reference-style link][Arbitrary case-insensitive reference text]
+![Stormtroopocat](https://octodex.github.com/images/stormtroopocat.jpg "The Stormtroopocat")
 
 `;
-  mdToBlocks(md);
+  markdownToDoc(md);
 });
