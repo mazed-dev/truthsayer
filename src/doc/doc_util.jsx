@@ -10,6 +10,8 @@ import {
 } from "./chunk_util.jsx";
 import { parseRawSource } from "./mdRawParser.jsx";
 
+import { markdownToDoc } from "../markdown/conv.jsx";
+
 export function exctractDocTitle(doc: TDoc | string): string {
   if (typeof doc === "string") {
     return _makeTitleFromRaw(doc);
@@ -108,4 +110,25 @@ export function makeBlankCopy(doc: TDoc | string, nid: string): TDoc {
   return makeDoc({
     chunks: chunks,
   });
+}
+
+export function getDocDraft(doc: TDoc): TDraftDoc {
+  if (typeof doc === "string") {
+    return markdownToDoc(doc);
+  }
+  if (doc.chunks) {
+    const source = doc.chunks.reduce((acc, curr) => {
+      if (isTextChunk(curr)) {
+        return acc + "\n" + curr.source;
+      }
+      return acc;
+    }, "");
+    return markdownToDoc(source);
+  }
+  return (
+    doc.draft || {
+      blocks: [],
+      entityMap: [],
+    }
+  );
 }

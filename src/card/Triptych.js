@@ -22,6 +22,8 @@ import { smugler } from "../smugler/api.js";
 
 import { Container, Row, Col } from "react-bootstrap";
 
+import { Loader } from "../lib/loader";
+
 import moment from "moment";
 
 function RefNodeCard({ nid, edge, switchStickiness, cutOffRef }) {
@@ -68,11 +70,8 @@ class NodeRefs extends React.Component {
 }
 
 function NodeCard({ node, addRef, stickyEdges, updateNode }) {
-  return (
-    <WideCard>
-      <NodeEditor />
-    </WideCard>
-  );
+  const editor = node != null ? <NodeEditor doc={node.doc} /> : <Loader />;
+  return <WideCard>{editor}</WideCard>;
 }
 
 class Triptych extends React.Component {

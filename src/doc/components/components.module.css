@@ -1,0 +1,16 @@
+.inline_link {
+  font-weight: 500;
+  color: #38b000;
+}
+
+.inline_link:hover {
+  color: #70e000;
+
+  text-decoration-line: underline;
+  cursor: pointer;
+  /*
+  text-decoration-line: underline;
+  -webkit-text-decoration-line: underline;
+  -moz-text-decoration-line: underline;
+  */
+}

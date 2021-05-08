@@ -7,6 +7,7 @@ import {
   EditorState,
   RichUtils,
   convertToRaw,
+  convertFromRaw,
   CompositeDecorator,
 } from "draft-js";
 import "draft-js/dist/Draft.css";
@@ -26,22 +27,40 @@ import { joinClasses } from "../util/elClass.js";
 
 import { CheckBox } from "../lib/CheckBox";
 
+import {
+  TChunk,
+  TDraftDoc,
+  TContentBlock,
+  kBlockTypeAtomic,
+  kBlockTypeCode,
+  kBlockTypeH1,
+  kBlockTypeH2,
+  kBlockTypeH3,
+  kBlockTypeH4,
+  kBlockTypeH5,
+  kBlockTypeH6,
+  kBlockTypeHrule,
+  kBlockTypeOrderedItem,
+  kBlockTypeQuote,
+  kBlockTypeUnorderedCheckItem,
+  kBlockTypeUnorderedItem,
+  kBlockTypeUnstyled,
+  kEntityTypeBold,
+  kEntityTypeItalic,
+  kEntityTypeLink,
+  kEntityTypeMonospace,
+  kEntityTypeTime,
+  kEntityTypeUnderline,
+  kEntityTypeImage,
+  kEntityMutable,
+  kEntityImmutable,
+} from "./types.jsx";
+
+import { Link } from "./components/Link";
+
+import { getDocDraft } from "./doc_util.jsx";
+
 const { Map } = require("immutable");
-
-const kBlockTypeH1 = "header-one";
-const kBlockTypeH2 = "header-two";
-const kBlockTypeH3 = "header-three";
-const kBlockTypeH4 = "header-four";
-const kBlockTypeH5 = "header-five";
-const kBlockTypeH6 = "header-six";
-const kBlockTypeQuote = "blockquote";
-const kBlockTypeCode = "code-block";
-const kBlockTypeAtomic = "atomic";
-const kBlockTypeUnorderedItem = "unordered-list-item";
-const kBlockTypeOrderedItem = "ordered-list-item";
-const kBlockTypeUnstyled = "unstyled";
-
-const kBlockTypeUnorderedCheckItem = "unordered-check-item";
 
 /**
  * - Links
@@ -133,15 +152,15 @@ export class NodeEditor extends React.Component {
   constructor(props) {
     super(props);
 
-    const decorator = new CompositeDecorator([
+    this.decorator = new CompositeDecorator([
       {
         strategy: findLinkEntities,
         component: Link,
       },
     ]);
-
+    const content = convertFromRaw(getDocDraft(this.props.doc));
     this.state = {
-      editorState: EditorState.createEmpty(decorator),
+      editorState: EditorState.createWithContent(content, this.decorator),
       showURLInput: false,
       urlValue: "",
     };
@@ -149,6 +168,15 @@ export class NodeEditor extends React.Component {
   }
 
   componentDidMount() {}
+
+  componentDidUpdate(prevProps) {
+    if (this.props.doc !== prevProps.doc) {
+      const content = convertFromRaw(getDocDraft(this.props.doc));
+      this.setState({
+        editorState: EditorState.createWithContent(content, this.decorator),
+      });
+    }
+  }
 
   onChange = (editorState) => {
     // console.log(
@@ -210,8 +238,8 @@ export class NodeEditor extends React.Component {
     const { editorState, urlValue } = this.state;
     const contentState = editorState.getCurrentContent();
     const contentStateWithEntity = contentState.createEntity(
-      "LINK",
-      "MUTABLE",
+      kEntityTypeLink,
+      kEntityMutable,
       { url: urlValue }
     );
     const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
@@ -291,7 +319,6 @@ export class NodeEditor extends React.Component {
         <div className={styles.urlInputContainer}>
           <input
             onChange={this.onURLChange}
-            ref="url"
             className={styles.urlInput}
             type="text"
             value={this.state.urlValue}
@@ -330,7 +357,7 @@ export class NodeEditor extends React.Component {
             onChange={this.onChange}
             onTab={this.onTab}
             placeholder="Tell a story..."
-            ref="editor"
+            ref={(node) => (this.ref = node)}
             spellCheck={true}
           />
         </div>
@@ -351,7 +378,7 @@ const styleMap = {
 function getBlockStyle(block) {
   // TODO(akindyakov): Continue here applying custom styles for elements
   switch (block.getType()) {
-    case "blockquote":
+    case kBlockTypeQuote:
       return "RichEditor-blockquote";
     default:
       return null;
@@ -418,10 +445,10 @@ const BlockStyleControls = (props) => {
 };
 
 var INLINE_STYLES = [
-  { label: "Bold", style: "BOLD" },
-  { label: "Italic", style: "ITALIC" },
-  { label: "Underline", style: "UNDERLINE" },
-  { label: "Monospace", style: "CODE" },
+  { label: "Bold", style: kEntityTypeBold },
+  { label: "Italic", style: kEntityTypeItalic },
+  { label: "Underline", style: kEntityTypeUnderline },
+  { label: "Monospace", style: kEntityTypeMonospace },
 ];
 
 const InlineStyleControls = (props) => {
@@ -446,18 +473,9 @@ function findLinkEntities(contentBlock, callback, contentState) {
     const entityKey = character.getEntity();
     return (
       entityKey !== null &&
-      contentState.getEntity(entityKey).getType() === "LINK"
+      contentState.getEntity(entityKey).getType() === kEntityTypeLink
     );
   }, callback);
 }
-
-const Link = (props) => {
-  const { url } = props.contentState.getEntity(props.entityKey).getData();
-  return (
-    <a href={url} className={styles.link}>
-      {props.children}
-    </a>
-  );
-};
 
 // https://codesandbox.io/s/qw1rqjbll?file=/RichEditor.js:2700-4565

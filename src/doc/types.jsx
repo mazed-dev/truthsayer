@@ -41,6 +41,7 @@ export const kBlockTypeCode = "code-block";
 export const kBlockTypeUnorderedItem = "unordered-list-item";
 export const kBlockTypeOrderedItem = "ordered-list-item";
 export const kBlockTypeUnstyled = "unstyled";
+export const kBlockTypeAtomic = "atomic";
 
 export const kBlockTypeHrule = "hrule";
 export const kBlockTypeUnorderedCheckItem = "unordered-check-item";
