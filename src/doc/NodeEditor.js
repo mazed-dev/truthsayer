@@ -9,10 +9,14 @@ import {
   convertToRaw,
   convertFromRaw,
   CompositeDecorator,
+  getDefaultKeyBinding,
 } from "draft-js";
 import "draft-js/dist/Draft.css";
+import keycode from "keycode";
+
 import "./NodeEditor.css";
 import styles from "./NodeEditor.module.css";
+import "./components/components.css";
 
 import {
   HeaderOne,
@@ -71,6 +75,12 @@ const { Map } = require("immutable");
  * - Date&time
  */
 
+const kListMaxDepth = 4;
+
+const kCommandShift = "tab-shift";
+
+const kKeyCodeTab = keycode("tab");
+
 export default class ChecklistEditorBlock extends React.Component {
   // https://github.com/facebook/draft-js/issues/132
   constructor(props) {
@@ -112,7 +122,7 @@ export default class ChecklistEditorBlock extends React.Component {
 
 function myBlockRenderer(contentBlock) {
   const type = contentBlock.getType();
-  console.log("Type ", type);
+  //*dbg*/ console.log("Type ", type);
   switch (type) {
     case kBlockTypeUnorderedCheckItem:
       return {
@@ -202,7 +212,9 @@ export class NodeEditor extends React.Component {
     this.setState({ editorState });
   };
 
-  focus = () => this.refs.editor.focus();
+  focus = () => {
+    this.editorRef.focus();
+  };
 
   _promptForLink = (e) => {
     e.preventDefault();
@@ -227,7 +239,7 @@ export class NodeEditor extends React.Component {
           urlValue: url,
         },
         () => {
-          setTimeout(() => this.refs.url.focus(), 0);
+          setTimeout(() => this.urlRef.focus(), 0);
         }
       );
     }
@@ -257,7 +269,7 @@ export class NodeEditor extends React.Component {
         urlValue: "",
       },
       () => {
-        setTimeout(() => this.refs.editor.focus(), 0);
+        setTimeout(() => this.focus(), 0);
       }
     );
   };
@@ -279,9 +291,25 @@ export class NodeEditor extends React.Component {
     }
   };
 
+  keyBindingFn = (event) => {
+    // we press CTRL + K => return 'bbbold'
+    // we use hasCommandModifier instead of checking for CTRL keyCode because different OSs have different command keys
+    // if (KeyBindingUtil.hasCommandModifier(event) && event.keyCode === 75) { return 'bbbold'; }
+    if (event.keyCode === kKeyCodeTab) {
+      return kCommandShift;
+    }
+    // manages usual things, like: Ctrl+Z => return 'undo'
+    return getDefaultKeyBinding(event);
+  }
+
   handleKeyCommand = (command) => {
     const { editorState } = this.state;
-    const newState = RichUtils.handleKeyCommand(editorState, command);
+    let newState;
+    if (command === kCommandShift) {
+      newState = RichUtils.onTab(null, this.state.editorState, kListMaxDepth)
+    } else {
+      newState = RichUtils.handleKeyCommand(editorState, command);
+    }
     if (newState) {
       this.onChange(newState);
       return true;
@@ -293,6 +321,7 @@ export class NodeEditor extends React.Component {
     const maxDepth = 4;
     this.onChange(RichUtils.onTab(e, this.state.editorState, maxDepth));
   };
+
   toggleBlockType = (blockType) => {
     this.onChange(RichUtils.toggleBlockType(this.state.editorState, blockType));
   };
@@ -323,6 +352,7 @@ export class NodeEditor extends React.Component {
             type="text"
             value={this.state.urlValue}
             onKeyDown={this._onLinkInputKeyDown}
+            ref={(x) => (this.urlRef = x)}
           />
           <button onMouseDown={this._confirmLink}>Confirm</button>
         </div>
@@ -354,10 +384,11 @@ export class NodeEditor extends React.Component {
             customStyleMap={styleMap}
             editorState={editorState}
             handleKeyCommand={this.handleKeyCommand}
+            keyBindingFn={this.keyBindingFn}
             onChange={this.onChange}
             onTab={this.onTab}
             placeholder="Tell a story..."
-            ref={(node) => (this.ref = node)}
+            ref={(x) => (this.editorRef = x)}
             spellCheck={true}
           />
         </div>
@@ -380,6 +411,18 @@ function getBlockStyle(block) {
   switch (block.getType()) {
     case kBlockTypeQuote:
       return "RichEditor-blockquote";
+    case kBlockTypeH1:
+      return "doc_component_header_1";
+    case kBlockTypeH2:
+      return "doc_component_header_2";
+    case kBlockTypeH3:
+      return "doc_component_header_3";
+    case kBlockTypeH4:
+      return "doc_component_header_4";
+    case kBlockTypeH5:
+      return "doc_component_header_5";
+    case kBlockTypeH6:
+      return "doc_component_header_6";
     default:
       return null;
   }

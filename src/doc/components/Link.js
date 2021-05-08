@@ -1,6 +1,8 @@
-import styles from "./components.module.css";
+import "./components.css";
 
 import { Link as ReactRouterLink } from "react-router-dom";
+
+import { joinClasses } from "../../util/elClass.js";
 
 export const Link = (props) => {
   const { url } = props.contentState.getEntity(
@@ -10,14 +12,16 @@ export const Link = (props) => {
     return (
       <ReactRouterLink
         to={url}
-        className={styles.inline_link}
+        className={joinClasses("doc_component_inline_link", "doc_component_inline_link_int")}
       >
         {props.children}
       </ReactRouterLink>
     );
   } else {
     return (
-      <a href={url} className={styles.inline_link}>
+      <a href={url}
+        className={joinClasses("doc_component_inline_link", "doc_component_inline_link_ext")}
+      >
         {props.children}
       </a>
     );
