@@ -12,7 +12,6 @@ import {
   getDefaultKeyBinding,
 } from "draft-js";
 import "draft-js/dist/Draft.css";
-import keycode from "keycode";
 
 import "./NodeEditor.css";
 import styles from "./NodeEditor.module.css";
@@ -28,6 +27,7 @@ import {
 } from "../markdown/MarkdownRender";
 
 import { joinClasses } from "../util/elClass.js";
+import { Keys } from "../lib/Keys.jsx";
 
 import {
   TChunk,
@@ -77,9 +77,8 @@ const { Map } = require("immutable");
 
 const kListMaxDepth = 4;
 
-const kCommandShift = "tab-shift";
-
-const kKeyCodeTab = keycode("tab");
+const kCommandShiftLeft = "tab-shift-left";
+const kCommandShiftRight = "tab-shift-right";
 
 const blockRenderMap = Map({
   [kBlockTypeH1]: { element: "h1" },
@@ -104,6 +103,37 @@ const kHeaderLevelRotation = Map({
   [kBlockTypeH5]: kBlockTypeH6,
   [kBlockTypeH6]: kBlockTypeH1,
 });
+
+function adjustBlockDepthForContentState(
+  contentState,
+  selectionState,
+  adjustment,
+  maxDepth
+) {
+  var startKey = selectionState.getStartKey();
+  var endKey = selectionState.getEndKey();
+  var blockMap = contentState.getBlockMap();
+  var blocks = blockMap
+    .toSeq()
+    .skipUntil(function (_, k) {
+      return k === startKey;
+    })
+    .takeUntil(function (_, k) {
+      return k === endKey;
+    })
+    .concat([[endKey, blockMap.get(endKey)]])
+    .map(function (block) {
+      var depth = block.getDepth() + adjustment;
+      depth = Math.max(0, Math.min(depth, maxDepth));
+      return block.set("depth", depth);
+    });
+  blockMap = blockMap.merge(blocks);
+  return contentState.merge({
+    blockMap: blockMap,
+    selectionBefore: selectionState,
+    selectionAfter: selectionState,
+  });
+}
 
 export class NodeEditor extends React.Component {
   constructor(props) {
@@ -280,8 +310,8 @@ export class NodeEditor extends React.Component {
     // we press CTRL + K => return 'bbbold'
     // we use hasCommandModifier instead of checking for CTRL keyCode because different OSs have different command keys
     // if (KeyBindingUtil.hasCommandModifier(event) && event.keyCode === 75) { return 'bbbold'; }
-    if (event.keyCode === kKeyCodeTab) {
-      return kCommandShift;
+    if (event.keyCode === Keys.TAB) {
+      return event.shiftKey ? kCommandShiftLeft : kCommandShiftRight;
     }
     // manages usual things, like: Ctrl+Z => return 'undo'
     return getDefaultKeyBinding(event);
@@ -290,8 +320,8 @@ export class NodeEditor extends React.Component {
   handleKeyCommand = (command) => {
     const { editorState } = this.state;
     let newState;
-    if (command === kCommandShift) {
-      newState = RichUtils.onTab(null, this.state.editorState, kListMaxDepth);
+    if (command === kCommandShiftRight || command === kCommandShiftLeft) {
+      newState = this.onTab(command);
     } else {
       newState = RichUtils.handleKeyCommand(editorState, command);
     }
@@ -302,9 +332,44 @@ export class NodeEditor extends React.Component {
     return false;
   };
 
-  onTab = (e) => {
-    const maxDepth = 4;
-    this.onChange(RichUtils.onTab(e, this.state.editorState, maxDepth));
+  onTab = (cmd) => {
+    const { editorState } = this.state;
+    var selection = editorState.getSelection();
+    var key = selection.getAnchorKey();
+
+    if (key !== selection.getFocusKey()) {
+      return editorState;
+    }
+
+    var content = editorState.getCurrentContent();
+    var block = content.getBlockForKey(key);
+    var type = block.getType();
+
+    if (type !== kBlockTypeUnorderedItem && type !== kBlockTypeOrderedItem) {
+      return;
+    }
+
+    // event.preventDefault();
+    var depth = block.getDepth();
+    let shift;
+    if (cmd === kCommandShiftLeft) {
+      if (depth === 0) {
+        return;
+      }
+      shift = -1;
+    } else if (cmd === kCommandShiftRight) {
+      if (depth === kListMaxDepth) {
+        return;
+      }
+      shift = 1;
+    }
+    var withAdjustment = adjustBlockDepthForContentState(
+      content,
+      selection,
+      shift,
+      kListMaxDepth
+    );
+    return EditorState.push(editorState, withAdjustment, "adjust-depth");
   };
 
   toggleBlockType = (blockType) => {
@@ -371,7 +436,6 @@ export class NodeEditor extends React.Component {
             handleKeyCommand={this.handleKeyCommand}
             keyBindingFn={this.keyBindingFn}
             onChange={this.onChange}
-            onTab={this.onTab}
             placeholder="Tell a story..."
             ref={(x) => (this.editorRef = x)}
             spellCheck={true}
