@@ -29,8 +29,6 @@ import {
 
 import { joinClasses } from "../util/elClass.js";
 
-import { CheckBox } from "../lib/CheckBox";
-
 import {
   TChunk,
   TDraftDoc,
@@ -61,6 +59,8 @@ import {
 } from "./types.jsx";
 
 import { Link } from "./components/Link";
+import { HRule } from "./components/HRule";
+import { CheckBox } from "./components/CheckBox";
 
 import { getDocDraft } from "./doc_util.jsx";
 
@@ -81,59 +81,6 @@ const kCommandShift = "tab-shift";
 
 const kKeyCodeTab = keycode("tab");
 
-export default class ChecklistEditorBlock extends React.Component {
-  // https://github.com/facebook/draft-js/issues/132
-  constructor(props) {
-    super(props);
-    this.state = {
-      checked: false,
-    };
-  }
-
-  toggleChecked = (event) => {
-    // const { blockProps, block } = this.props;
-    // const { updateMetadataFn, returnFocusToEditor, checked } = blockProps;
-    // const newChecked = !checked;
-    // updateMetadataFn(block.getKey(), newChecked);
-    // I also stop propagation, return focus to the editor and set some state here, but that's probably specific to my app
-    this.setState((state) => {
-      return { checked: !state.checked };
-    });
-  };
-
-  render() {
-    const { offsetKey, blockProps } = this.props;
-    // const { checked } = blockProps;
-    const checked = true;
-    const blockClassNames = joinClasses("ChecklistEditorBlock", { checked });
-    return (
-      <div className={blockClassNames} data-offset-key={offsetKey}>
-        <CheckBox
-          onToggle={this.toggleChecked}
-          is_checked={this.state.checked}
-        />
-        <div className={styles.inline_text}>
-          <EditorBlock {...this.props} />
-        </div>
-      </div>
-    );
-  }
-}
-
-function myBlockRenderer(contentBlock) {
-  const type = contentBlock.getType();
-  //*dbg*/ console.log("Type ", type);
-  switch (type) {
-    case kBlockTypeUnorderedCheckItem:
-      return {
-        component: ChecklistEditorBlock,
-        // updateMetadataFn,
-        checked: !!contentBlock.getData().get("checked"),
-      };
-    default:
-      return;
-  }
-}
 const blockRenderMap = Map({
   [kBlockTypeH1]: { element: "h1" },
   [kBlockTypeH2]: { element: "h2" },
@@ -201,19 +148,57 @@ export class NodeEditor extends React.Component {
     //   "Editor get plain text",
     //   editorState.getCurrentContent().getPlainText("---")
     // );
-    const contentState = editorState.getCurrentContent();
-    console.log("Content state", convertToRaw(contentState));
-    editorState
-      .getCurrentContent()
-      .getBlockMap()
-      .map((value, key) => {
-        console.log("Block", key, value);
-      });
+    // const contentState = editorState.getCurrentContent();
+    // console.log("Content state", convertToRaw(contentState));
+    // editorState
+    //   .getCurrentContent()
+    //   .getBlockMap()
+    //   .map((value, key) => {
+    //     console.log("Block", key, value);
+    //   });
     this.setState({ editorState });
   };
 
   focus = () => {
     this.editorRef.focus();
+  };
+
+  updateBlockMetadata = (blockKey, path, metadata) => {
+    let contentState = this.state.editorState.getCurrentContent();
+    let updatedBlock = contentState
+      .getBlockForKey(blockKey)
+      .mergeIn(path, metadata);
+
+    let blockMap = contentState.getBlockMap();
+    blockMap = blockMap.merge({ [blockKey]: updatedBlock });
+    contentState = contentState.merge({ blockMap });
+
+    const newEditorState = EditorState.push(
+      this.state.editorState,
+      contentState,
+      "metadata-update"
+    );
+    this.onChange(newEditorState);
+  };
+
+  myBlockRenderer = (contentBlock) => {
+    const type = contentBlock.getType();
+    //*dbg*/ console.log("Type ", type);
+    switch (type) {
+      case kBlockTypeUnorderedCheckItem:
+        return {
+          component: CheckBox,
+          props: {
+            updateMetadataFn: this.updateBlockMetadata,
+          },
+        };
+      case kBlockTypeHrule:
+        return {
+          component: HRule,
+        };
+      default:
+        return;
+    }
   };
 
   _promptForLink = (e) => {
@@ -300,13 +285,13 @@ export class NodeEditor extends React.Component {
     }
     // manages usual things, like: Ctrl+Z => return 'undo'
     return getDefaultKeyBinding(event);
-  }
+  };
 
   handleKeyCommand = (command) => {
     const { editorState } = this.state;
     let newState;
     if (command === kCommandShift) {
-      newState = RichUtils.onTab(null, this.state.editorState, kListMaxDepth)
+      newState = RichUtils.onTab(null, this.state.editorState, kListMaxDepth);
     } else {
       newState = RichUtils.handleKeyCommand(editorState, command);
     }
@@ -380,7 +365,7 @@ export class NodeEditor extends React.Component {
         <div className={className} onClick={this.focus}>
           <Editor
             blockStyleFn={getBlockStyle}
-            blockRendererFn={myBlockRenderer}
+            blockRendererFn={this.myBlockRenderer}
             customStyleMap={styleMap}
             editorState={editorState}
             handleKeyCommand={this.handleKeyCommand}
@@ -423,6 +408,8 @@ function getBlockStyle(block) {
       return "doc_component_header_5";
     case kBlockTypeH6:
       return "doc_component_header_6";
+    case kBlockTypeUnstyled:
+      return "doc_component_paragraph";
     default:
       return null;
   }
@@ -522,3 +509,4 @@ function findLinkEntities(contentBlock, callback, contentState) {
 }
 
 // https://codesandbox.io/s/qw1rqjbll?file=/RichEditor.js:2700-4565
+// https://sendgrid.com/blog/how-we-use-draft-js-at-sendgrid/

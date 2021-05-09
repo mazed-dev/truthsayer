@@ -25,10 +25,19 @@
 
 .doc_component_paragraph {
   margin-bottom: 1rem;
+  white-space: normal;
+}
+
+div.public-DraftEditor-content {
+  white-space: normal;
+}
+
+div.public-DraftStyleDefault-block {
+  white-space: normal;
 }
 
 .doc_component_header_1 {
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   font-weight: bold;
   display: block;
 
@@ -40,7 +49,7 @@
 }
 
 .doc_component_header_2 {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: bold;
   /* color: #245501; */
   color: #006400;
@@ -50,7 +59,7 @@
 }
 
 .doc_component_header_3 {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: bold;
   /* color: #538d22; */
   color: #007200;
@@ -88,3 +97,17 @@
 
   margin-bottom: 1rem;
 }
+
+.doc_component_hrule {
+  border: 0;
+  height: 1px;
+  background-image: linear-gradient(to right,
+    rgba(0, 0, 0, 0),
+    rgba(0, 0, 0, 0.312),
+    rgba(0, 0, 0, 0));
+}
+
+.doc_component_inline_text {
+  display: inline-block;
+}
+
