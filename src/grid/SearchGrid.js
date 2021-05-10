@@ -101,7 +101,7 @@ class DynamicGrid extends React.Component {
 
 const _kTimeLimit = Math.floor(Date.now() / 1000) - 2 * 356 * 24 * 60 * 60;
 
-export class SearchGrid extends React.Component {
+export class SearchGridImpl extends React.Component {
   constructor(props, context) {
     super(props, context);
     this.state = {
@@ -260,7 +260,7 @@ export class SearchGrid extends React.Component {
   };
 
   render() {
-    let account = this.context.account;
+    let account = this.props.account;
     if (account == null) {
       return (
         <div className={styles.search_grid_waiter}>
@@ -323,18 +323,18 @@ export class SearchGrid extends React.Component {
   }
 }
 
-SearchGrid.defaultProps = {
+SearchGridImpl.defaultProps = {
   defaultSearch: true,
   portable: false,
   onCardClick: null,
   extCards: null,
 };
-SearchGrid.contextType = MzdGlobalContext;
-SearchGrid = withRouter(SearchGrid);
+// SearchGridImpl.contextType = MzdGlobalContext;
+SearchGridImpl = withRouter(SearchGridImpl);
 
-// export function SearchGrid({ ...rest }) {
-//   const ctx = useContext(MzdGlobalContext);
-//   return (<SearchGrid account={ctx.account} {...rest} />);
-// }
+export function SearchGrid({ ...rest }) {
+  const ctx = useContext(MzdGlobalContext);
+  return <SearchGridImpl account={ctx.account} {...rest} />;
+}
 
 export default SearchGrid;

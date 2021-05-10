@@ -106,8 +106,17 @@ class PrivateNavButtonsImpl extends React.Component {
   };
 
   getAuxGroup = () => {
-    const aux = this.context.topbar.aux;
-    return aux;
+    const { aux } = this.context.topbar; // .aux;
+    if (!aux) {
+      return null;
+    }
+    return Object.entries(aux).map(([key, value]) => {
+      return (
+        <ButtonToolbar className={styles.creation_toolbar} key={key}>
+          {value}
+        </ButtonToolbar>
+      );
+    });
   };
 
   render() {
@@ -143,9 +152,7 @@ class PrivateNavButtonsImpl extends React.Component {
           </Button>
         </ButtonToolbar>
 
-        <ButtonToolbar className={styles.creation_toolbar}>
-          {this.getAuxGroup()}
-        </ButtonToolbar>
+        {this.getAuxGroup()}
 
         <Dropdown
           className={joinClasses(styles.account_dropdown)}

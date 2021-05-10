@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import {
   Editor,
   EditorBlock,
@@ -61,6 +60,8 @@ import {
 import { Link } from "./components/Link";
 import { HRule } from "./components/HRule";
 import { CheckBox } from "./components/CheckBox";
+import { InlineStyleControls } from "./editor/InlineStyleControls";
+import { BlockStyleControls } from "./editor/BlockStyleControls";
 
 import { getDocDraft } from "./doc_util.jsx";
 
@@ -500,67 +501,6 @@ class StyleButton extends React.Component {
     );
   }
 }
-const BLOCK_TYPES = [
-  { label: "H1", style: kBlockTypeH1 },
-  { label: "H2", style: kBlockTypeH2 },
-  { label: "H3", style: kBlockTypeH3 },
-  { label: "H4", style: kBlockTypeH4 },
-  { label: "H5", style: kBlockTypeH5 },
-  { label: "H6", style: kBlockTypeH6 },
-  { label: "Blockquote", style: kBlockTypeQuote },
-  { label: "UL", style: kBlockTypeUnorderedItem },
-  { label: "OL", style: kBlockTypeOrderedItem },
-  { label: "Code Block", style: kBlockTypeCode },
-
-  { label: "Check", style: kBlockTypeUnorderedCheckItem },
-  { label: "Text", style: kBlockTypeUnstyled },
-];
-
-const BlockStyleControls = (props) => {
-  const { editorState } = props;
-  const selection = editorState.getSelection();
-  const blockType = editorState
-    .getCurrentContent()
-    .getBlockForKey(selection.getStartKey())
-    .getType();
-  return (
-    <div className="RichEditor-controls">
-      {BLOCK_TYPES.map((type) => (
-        <StyleButton
-          key={type.label}
-          active={type.style === blockType}
-          label={type.label}
-          onToggle={props.onToggle}
-          style={type.style}
-        />
-      ))}
-    </div>
-  );
-};
-
-var INLINE_STYLES = [
-  { label: "Bold", style: kEntityTypeBold },
-  { label: "Italic", style: kEntityTypeItalic },
-  { label: "Underline", style: kEntityTypeUnderline },
-  { label: "Monospace", style: kEntityTypeMonospace },
-];
-
-const InlineStyleControls = (props) => {
-  var currentStyle = props.editorState.getCurrentInlineStyle();
-  return (
-    <div className="RichEditor-controls">
-      {INLINE_STYLES.map((type) => (
-        <StyleButton
-          key={type.label}
-          active={currentStyle.has(type.style)}
-          label={type.label}
-          onToggle={props.onToggle}
-          style={type.style}
-        />
-      ))}
-    </div>
-  );
-};
 
 function findLinkEntities(contentBlock, callback, contentState) {
   contentBlock.findEntityRanges((character) => {

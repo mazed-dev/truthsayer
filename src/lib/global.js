@@ -71,13 +71,17 @@ export class MzdGlobal extends React.Component {
         };
       });
     };
-    this.resetAuxToobar = (group) => {
+    this.resetAuxToobar = (key, group) => {
       this.setState((state) => {
+        let topbar = state.topbar;
+        // Reset certain section by key and preserve everything else
+        if (group) {
+          topbar.aux[key] = group;
+        } else {
+          delete topbar.aux[key];
+        }
         return {
-          topbar: {
-            aux: group,
-            reset: state.topbar.reset,
-          },
+          topbar: topbar,
         };
       });
     };
@@ -88,7 +92,7 @@ export class MzdGlobal extends React.Component {
         push: this.pushToast,
       },
       topbar: {
-        aux: null,
+        aux: {},
         reset: this.resetAuxToobar,
       },
       account: null,
@@ -97,7 +101,6 @@ export class MzdGlobal extends React.Component {
 
   componentDidMount() {
     UserAccount.aCreate(this.fetchAccountCancelToken.token).then((inst) => {
-      console.log("Got account, set global context", inst);
       if (inst != null) {
         this.setState({
           account: inst,
