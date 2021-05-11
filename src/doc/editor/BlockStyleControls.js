@@ -35,26 +35,8 @@ const BLOCK_TYPES = [
   { label: "Text", style: kBlockTypeUnstyled },
 ];
 
-const kToolbarKey = "blck-style-ctrl";
-
-class BlockStyleControlsImpl extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  componentDidMount() {
-    const { topbar } = this.props;
-    const toolbar = this.createToolbar();
-    topbar.reset(kToolbarKey, toolbar);
-  }
-
-  componentWillUnmount() {
-    const { topbar } = this.props; // .topbar;
-    topbar.reset(kToolbarKey);
-  }
-
-  createToolbar() {
-    const { editorState, onToggle } = this.props;
+export function BlockStyleControls({ editorState, onToggle }) {
+    // const { editorState, onToggle } = this.props;
     const selection = editorState.getSelection();
     const blockType = editorState
       .getCurrentContent()
@@ -74,14 +56,4 @@ class BlockStyleControlsImpl extends React.Component {
         ))}
       </div>
     );
-  }
-
-  render() {
-    return (<div id={"block-style-controls"} />);
-  }
-};
-
-export function BlockStyleControls({ ...rest }) {
-  const ctx = useContext(MzdGlobalContext);
-  return (<BlockStyleControlsImpl topbar={ctx.topbar} {...rest} />);
 }

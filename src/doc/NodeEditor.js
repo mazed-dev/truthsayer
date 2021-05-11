@@ -62,6 +62,7 @@ import { HRule } from "./components/HRule";
 import { CheckBox } from "./components/CheckBox";
 import { InlineStyleControls } from "./editor/InlineStyleControls";
 import { BlockStyleControls } from "./editor/BlockStyleControls";
+import { ControlsToolbar } from "./editor/ControlsToolbar";
 
 import { getDocDraft } from "./doc_util.jsx";
 
@@ -411,22 +412,12 @@ export class NodeEditor extends React.Component {
     }
     return (
       <div className="RichEditor-root">
-        <div className={styles.buttons}>
-          <button onMouseDown={this._promptForLink} className={styles.button}>
-            Add Link
-          </button>
-          <button onMouseDown={this._removeLink} className={styles.button}>
-            Remove Link
-          </button>
-        </div>
-        {urlInput}
-        <BlockStyleControls
+        <ControlsToolbar
           editorState={editorState}
-          onToggle={this.toggleBlockType}
-        />
-        <InlineStyleControls
-          editorState={editorState}
-          onToggle={this.toggleInlineStyle}
+          toggleBlockType={this.toggleBlockType}
+          toggleInlineStyle={this.toggleInlineStyle}
+          onStateChange={this.onChange}
+          focusBack={this.focus}
         />
         <div className={className} onClick={this.focus}>
           <Editor

@@ -110,13 +110,12 @@ class PrivateNavButtonsImpl extends React.Component {
     if (!aux) {
       return null;
     }
-    return Object.entries(aux).map(([key, value]) => {
-      return (
-        <ButtonToolbar className={styles.creation_toolbar} key={key}>
-          {value}
-        </ButtonToolbar>
-      );
-    });
+    const auxBtns = Object.values(aux);
+    return (
+      <ButtonToolbar className={styles.creation_toolbar}>
+        {auxBtns}
+      </ButtonToolbar>
+    );
   };
 
   render() {

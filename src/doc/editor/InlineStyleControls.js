@@ -19,29 +19,10 @@ var INLINE_STYLES = [
   { label: "Monospace", style: kEntityTypeMonospace },
 ];
 
-const kToolbarKey = "in-style-ctrl";
-
-class InlineStyleControlsImpl extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  componentDidMount() {
-    const { topbar } = this.props;
-    const toolbar = this.createToolbar();
-    topbar.reset(kToolbarKey, toolbar);
-  }
-
-  componentWillUnmount() {
-    const { topbar } = this.props;
-    topbar.reset(kToolbarKey);
-  }
-
-  createToolbar() {
-    const { editorState, onToggle } = this.props;
+export function InlineStyleControls({ editorState, onToggle }) {
     const currentStyle = editorState.getCurrentInlineStyle();
     return (
-      <div>
+      <>
         {INLINE_STYLES.map((type) => (
           <ControlButton
             key={type.label}
@@ -52,16 +33,6 @@ class InlineStyleControlsImpl extends React.Component {
             {type.label}
           </ControlButton>
         ))}
-      </div>
+      </>
     );
   }
-
-  render() {
-    return (<div id={"inline-style-controls"} />);
-  }
-};
-
-export function InlineStyleControls({ ...rest }) {
-  const ctx = useContext(MzdGlobalContext);
-  return (<InlineStyleControlsImpl topbar={ctx.topbar} {...rest} />);
-}
