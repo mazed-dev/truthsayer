@@ -451,7 +451,7 @@ function getBlockStyle(block) {
   // TODO(akindyakov): Continue here applying custom styles for elements
   switch (block.getType()) {
     case kBlockTypeQuote:
-      return "RichEditor-blockquote";
+      return "doc_component_blockquote";
     case kBlockTypeH1:
       return "doc_component_header_1";
     case kBlockTypeH2:
@@ -468,28 +468,6 @@ function getBlockStyle(block) {
       return "doc_component_paragraph";
     default:
       return null;
-  }
-}
-
-class StyleButton extends React.Component {
-  constructor() {
-    super();
-    this.onToggle = (e) => {
-      e.preventDefault();
-      this.props.onToggle(this.props.style);
-    };
-  }
-  render() {
-    // Custom overrides for "code" style.
-    let className = "RichEditor-styleButton";
-    if (this.props.active) {
-      className += " RichEditor-activeButton";
-    }
-    return (
-      <span className={className} onMouseDown={this.onToggle}>
-        {this.props.label}
-      </span>
-    );
   }
 }
 
