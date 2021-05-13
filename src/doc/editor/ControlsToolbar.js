@@ -96,7 +96,7 @@ export class ControlsToolbar extends React.Component {
 
   _confirmLink = (e) => {
     e.preventDefault();
-    const { editorState , onStateChange, focusBack } = this.props;
+    const { editorState, onStateChange, focusBack } = this.props;
     const { urlValue } = this.state;
     const contentState = editorState.getCurrentContent();
     const contentStateWithEntity = contentState.createEntity(
@@ -109,17 +109,16 @@ export class ControlsToolbar extends React.Component {
       currentContent: contentStateWithEntity,
     });
     newEditorState = RichUtils.toggleLink(
-          newEditorState,
-          newEditorState.getSelection(),
-          entityKey
-        );
+      newEditorState,
+      newEditorState.getSelection(),
+      entityKey
+    );
     onStateChange(newEditorState);
     this.setState(
       {
         showURLInput: false,
         urlValue: "",
-      }
-      ,
+      },
       () => {
         setTimeout(() => focusBack(), 0);
       }
@@ -127,7 +126,7 @@ export class ControlsToolbar extends React.Component {
   };
 
   render() {
-    const { editorState, toggleBlockType, toggleInlineStyle} = this.props;
+    const { editorState, toggleBlockType, toggleInlineStyle } = this.props;
     let urlInput;
     if (this.state.showURLInput) {
       urlInput = (
@@ -144,7 +143,8 @@ export class ControlsToolbar extends React.Component {
         </div>
       );
     }
-    return (<ButtonToolbar className={styles.toolbar}>
+    return (
+      <ButtonToolbar className={styles.toolbar}>
         <BlockStyleControls
           editorState={editorState}
           onToggle={toggleBlockType}
@@ -160,6 +160,7 @@ export class ControlsToolbar extends React.Component {
           Remove Link
         </button>
         {urlInput}
-    </ButtonToolbar>);
+      </ButtonToolbar>
+    );
   }
 }

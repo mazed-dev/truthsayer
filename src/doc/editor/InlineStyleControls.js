@@ -20,19 +20,19 @@ var INLINE_STYLES = [
 ];
 
 export function InlineStyleControls({ editorState, onToggle }) {
-    const currentStyle = editorState.getCurrentInlineStyle();
-    return (
-      <>
-        {INLINE_STYLES.map((type) => (
-          <ControlButton
-            key={type.label}
-            active={currentStyle.has(type.style)}
-            onToggle={onToggle}
-            style={type.style}
-          >
-            {type.label}
-          </ControlButton>
-        ))}
-      </>
-    );
-  }
+  const currentStyle = editorState.getCurrentInlineStyle();
+  return (
+    <>
+      {INLINE_STYLES.map((type) => (
+        <ControlButton
+          key={type.label}
+          active={currentStyle.has(type.style)}
+          onToggle={onToggle}
+          style={type.style}
+        >
+          {type.label}
+        </ControlButton>
+      ))}
+    </>
+  );
+}

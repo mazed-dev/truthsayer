@@ -1,0 +1,18 @@
+.dropdown {
+}
+.dropdown_toggle {
+  border-width: 0px;
+  border-radius: 1px;
+
+  background-color: #ffffff;
+  color: inherit;
+}
+
+.dropdown_toggle:hover {
+  background-color: #d0d1d2;
+  color: inherit;
+  border-width: 0px;
+}
+
+.dropdown_toggle:after {
+}

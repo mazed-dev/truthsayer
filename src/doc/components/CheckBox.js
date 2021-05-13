@@ -1,10 +1,6 @@
 import React from "react";
 
-import {
-  EditorBlock,
-  DraftEditorBlock,
-} from "draft-js";
-
+import { EditorBlock, DraftEditorBlock } from "draft-js";
 
 import "./components.css";
 
@@ -40,11 +36,7 @@ export class CheckBox extends React.Component {
     const { updateMetadataFn } = blockProps;
     const checked = this.state.checked;
     this.setState({ checked: !checked });
-    updateMetadataFn(
-      block.getKey(),
-      ["data", kCheckedAttrKey],
-      !checked
-    );
+    updateMetadataFn(block.getKey(), ["data", kCheckedAttrKey], !checked);
   };
 
   render() {

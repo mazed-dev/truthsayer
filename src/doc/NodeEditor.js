@@ -57,6 +57,7 @@ import {
   kEntityImmutable,
 } from "./types.jsx";
 
+import { getBlockStyle } from "./components/BlockStyle";
 import { Link } from "./components/Link";
 import { HRule } from "./components/HRule";
 import { CheckBox } from "./components/CheckBox";
@@ -421,7 +422,7 @@ export class NodeEditor extends React.Component {
         />
         <div className={className} onClick={this.focus}>
           <Editor
-            blockStyleFn={getBlockStyle}
+            blockStyleFn={(block) => getBlockStyle(block.getType())}
             blockRendererFn={this.myBlockRenderer}
             customStyleMap={styleMap}
             editorState={editorState}
@@ -446,30 +447,6 @@ const styleMap = {
     padding: 2,
   },
 };
-
-function getBlockStyle(block) {
-  // TODO(akindyakov): Continue here applying custom styles for elements
-  switch (block.getType()) {
-    case kBlockTypeQuote:
-      return "doc_component_blockquote";
-    case kBlockTypeH1:
-      return "doc_component_header_1";
-    case kBlockTypeH2:
-      return "doc_component_header_2";
-    case kBlockTypeH3:
-      return "doc_component_header_3";
-    case kBlockTypeH4:
-      return "doc_component_header_4";
-    case kBlockTypeH5:
-      return "doc_component_header_5";
-    case kBlockTypeH6:
-      return "doc_component_header_6";
-    case kBlockTypeUnstyled:
-      return "doc_component_paragraph";
-    default:
-      return null;
-  }
-}
 
 function findLinkEntities(contentBlock, callback, contentState) {
   contentBlock.findEntityRanges((character) => {
