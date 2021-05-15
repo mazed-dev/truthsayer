@@ -1,20 +1,34 @@
 import React from "react";
 
+import { Button } from "react-bootstrap";
+
 import styles from "./ControlButton.module.css";
 
 import { joinClasses } from "../../util/elClass.js";
 
-export function ControlButton({ children, className, onClick, isActive }) {
-  className = joinClasses(className || "", styles.btn);
-  if (isActive) {
-    className = joinClasses(className, styles.btn_active);
+export const ControlButton = React.forwardRef(
+  ({ children, className, onClick, isActive, is_disabled }, ref) => {
+    if (isActive) {
+      className = joinClasses(className, styles.btn_active);
+    }
+    return (
+      <Button
+        variant="light"
+        className={joinClasses(styles.img_button, className)}
+        ref={ref}
+        disabled={is_disabled}
+        onClick={(e) => {
+          if (onClick) {
+            e.preventDefault();
+            onClick(e);
+          }
+        }}
+      >
+        {children}
+      </Button>
+    );
   }
-  return (
-    <div className={className} onClick={onClick}>
-      {children}
-    </div>
-  );
-}
+);
 
 export class ToggleControlButton extends React.Component {
   constructor() {

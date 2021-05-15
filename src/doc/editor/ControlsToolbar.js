@@ -158,19 +158,13 @@ export class ControlsToolbar extends React.Component {
         <BlockStyleControls
           editorState={editorState}
           onToggle={toggleBlockType}
-          className={styles.toolbar_section}
         />
         <InlineStyleControls
           editorState={editorState}
           onToggle={toggleInlineStyle}
           onStateChange={onStateChange}
-          className={styles.toolbar_section}
         />
-        <LinkEditor
-          editorState={editorState}
-          onStateChange={onStateChange}
-          className={styles.toolbar_section}
-        />
+        <LinkEditor editorState={editorState} onStateChange={onStateChange} />
       </div>
     );
   }

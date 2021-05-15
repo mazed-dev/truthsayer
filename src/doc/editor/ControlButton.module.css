@@ -12,10 +12,6 @@
   margin: 1px;
 
   opacity: 0.72;
-  cursor: pointer;
-
-  height: 36px;
-  vertical-align: 0.255em;
 }
 
 .btn:hover {

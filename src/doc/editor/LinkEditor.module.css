@@ -18,15 +18,12 @@
 }
 
 .icon_img {
-  height: 1.4rem;
-  width: 1.4rem;
-  margin-right: auto;
-  margin-left: auto;
+  height: 1.2rem;
+  width: 1.2rem;
 
   display: inline-block;
 }
 
 .btn {
-  width: 2rem;
   text-align: center;
 }
