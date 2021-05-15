@@ -1,5 +1,3 @@
-.dropdown {
-}
 .dropdown_toggle {
   border-width: 0px;
   border-radius: 1px;
@@ -15,4 +13,12 @@
 }
 
 .dropdown_toggle:after {
+}
+
+.icon_img {
+  height: 1rem;
+  width: 1rem;
+  margin-right: 1rem;
+
+  display: inline-block;
 }

@@ -47,7 +47,7 @@
     "node-emoji": "^1",
     "object-hash": "^2.0",
     "react": "^17.0.2",
-    "react-bootstrap": "1.4.3",
+    "react-bootstrap": "1.5.2",
     "react-css-modules": "^4",
     "react-dom": "^17.0.2",
     "react-editor-js": "^1.9.0",

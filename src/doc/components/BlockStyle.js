@@ -14,6 +14,7 @@ import {
   kBlockTypeUnorderedItem,
   kBlockTypeUnstyled,
 } from "../types.jsx";
+import { joinClasses } from "../../util/elClass.js";
 
 export function getBlockStyle(blockType) {
   // TODO(akindyakov): Continue here applying custom styles for elements
@@ -33,10 +34,27 @@ export function getBlockStyle(blockType) {
     case kBlockTypeH6:
       return "doc_component_header_6";
     case kBlockTypeUnstyled:
-      return "doc_component_paragraph";
+      return "doc_component_unstyled";
     default:
       return null;
   }
+}
+
+export function getBlockStyleInDoc(blockType) {
+  // TODO(akindyakov): Continue here applying custom styles for elements
+  let blockStyle = getBlockStyle(blockType);
+  switch (blockType) {
+    case kBlockTypeQuote:
+    case kBlockTypeH1:
+    case kBlockTypeH2:
+    case kBlockTypeH3:
+    case kBlockTypeH4:
+    case kBlockTypeH5:
+    case kBlockTypeH6:
+    case kBlockTypeUnstyled:
+      blockStyle = joinClasses(blockStyle, "doc_component_paragraph");
+  }
+  return blockStyle;
 }
 
 const _BLOCK_NAMES = {
@@ -46,7 +64,7 @@ const _BLOCK_NAMES = {
   [kBlockTypeH4]: "Header 4",
   [kBlockTypeH5]: "Header 5",
   [kBlockTypeH6]: "Header 6",
-  [kBlockTypeQuote]: "Quote",
+  [kBlockTypeQuote]: "\u201CQuote\u201D",
   [kBlockTypeUnorderedItem]: "Bullet list",
   [kBlockTypeOrderedItem]: "Numbered list",
   [kBlockTypeCode]: "Code",

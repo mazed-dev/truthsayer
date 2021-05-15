@@ -14,6 +14,7 @@ import "draft-js/dist/Draft.css";
 
 import "./NodeEditor.css";
 import styles from "./NodeEditor.module.css";
+import "./NodeEditor.css";
 import "./components/components.css";
 
 import {
@@ -57,7 +58,7 @@ import {
   kEntityImmutable,
 } from "./types.jsx";
 
-import { getBlockStyle } from "./components/BlockStyle";
+import { getBlockStyleInDoc } from "./components/BlockStyle";
 import { Link } from "./components/Link";
 import { HRule } from "./components/HRule";
 import { CheckBox } from "./components/CheckBox";
@@ -375,6 +376,10 @@ export class NodeEditor extends React.Component {
     return EditorState.push(editorState, withAdjustment, "adjust-depth");
   };
 
+  blockStyleFn_ = (block) => {
+    return getBlockStyleInDoc(block.getType());
+  };
+
   toggleBlockType = (blockType) => {
     this.onChange(RichUtils.toggleBlockType(this.state.editorState, blockType));
   };
@@ -422,7 +427,7 @@ export class NodeEditor extends React.Component {
         />
         <div className={className} onClick={this.focus}>
           <Editor
-            blockStyleFn={(block) => getBlockStyle(block.getType())}
+            blockStyleFn={this.blockStyleFn_}
             blockRendererFn={this.myBlockRenderer}
             customStyleMap={styleMap}
             editorState={editorState}

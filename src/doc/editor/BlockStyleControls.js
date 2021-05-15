@@ -20,11 +20,18 @@ import {
 import { MzdGlobalContext } from "../../lib/global";
 import { ControlButton } from "./ControlButton";
 
+import IconOrderedList from "./img/icon-ordered-list-strip.svg";
+import IconUnorderedList from "./img/icon-unordered-list-strip.svg";
+import IconCheckList from "./img/icon-check-list-strip.svg";
+import IconCode from "./img/icon-code-strip.svg";
+
 import styles from "./BlockStyleControls.module.css";
+import "./BlockStyleControls.css";
 import "../components/components.css";
 import { getBlockStyle, getBlockName } from "../components/BlockStyle";
 
 const BLOCK_TYPES = [
+  kBlockTypeUnstyled,
   kBlockTypeH1,
   kBlockTypeH2,
   kBlockTypeH3,
@@ -33,26 +40,43 @@ const BLOCK_TYPES = [
   kBlockTypeUnorderedCheckItem,
   kBlockTypeCode,
   kBlockTypeQuote,
-  kBlockTypeUnstyled,
   kBlockTypeH4,
   kBlockTypeH5,
   kBlockTypeH6,
 ];
 
-const BLOCK_UNAMES = {
-  [kBlockTypeH1]: "Header 1",
-  [kBlockTypeH2]: "Header 2",
-  [kBlockTypeH3]: "Header 3",
-  [kBlockTypeH4]: "Header 4",
-  [kBlockTypeH5]: "Header 5",
-  [kBlockTypeH6]: "Header 6",
-  [kBlockTypeQuote]: "Quote",
-  [kBlockTypeUnorderedItem]: "Bullet list",
-  [kBlockTypeOrderedItem]: "Numbered list",
-  [kBlockTypeCode]: "Code",
-  [kBlockTypeUnorderedCheckItem]: "Check list",
-  [kBlockTypeUnstyled]: "Text",
+const BLOCK_ICONS = {
+  // [kBlockTypeQuote]: "Quote",
+  [kBlockTypeUnorderedItem]: IconUnorderedList,
+  [kBlockTypeOrderedItem]: IconOrderedList,
+  [kBlockTypeUnorderedCheckItem]: IconCheckList,
+  [kBlockTypeCode]: IconCode,
 };
+
+function ButtonForType({ type, onToggle, blockType }) {
+  let icon = BLOCK_ICONS[type];
+  if (icon) {
+    icon = <img className={styles.icon_img} src={icon} />;
+  }
+  return (
+    <Dropdown.Item
+      as={ControlButton}
+      key={type}
+      active={type === blockType}
+      onToggle={onToggle}
+      style={type}
+      className={styles.dropdown_item}
+    >
+      <div className="checkmark_container">
+        <div className="checkmark" />
+      </div>
+      <div className={getBlockStyle(type)}>
+        {icon}
+        {getBlockName(type)}
+      </div>
+    </Dropdown.Item>
+  );
+}
 
 export function BlockStyleControls({ editorState, onToggle }) {
   // const { editorState, onToggle } = this.props;
@@ -62,22 +86,21 @@ export function BlockStyleControls({ editorState, onToggle }) {
     .getBlockForKey(selection.getStartKey())
     .getType();
   return (
-    <Dropdown className={styles.dropdown}>
-      <Dropdown.Toggle className={styles.dropdown_toggle} id="dropdown-basic">
-        {BLOCK_UNAMES[blockType]}
+    <Dropdown navbar>
+      <Dropdown.Toggle
+        className={styles.dropdown_toggle}
+        id="dropdown-basic"
+        variant={"light"}
+      >
+        {getBlockName(blockType)}
       </Dropdown.Toggle>
       <Dropdown.Menu>
         {BLOCK_TYPES.map((type) => (
-          <Dropdown.Item
-            as={ControlButton}
-            key={type}
-            active={type === blockType}
+          <ButtonForType
+            type={type}
             onToggle={onToggle}
-            style={type}
-            className={styles.dropdown_item}
-          >
-            <div className={getBlockStyle(type)}>{getBlockName(type)}</div>
-          </Dropdown.Item>
+            blockType={blockType}
+          />
         ))}
       </Dropdown.Menu>
     </Dropdown>
