@@ -1,0 +1,16 @@
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: grey;
+  border-radius: 4px;
+}
+
+.toolbar_section {
+  border-right-style: solid;
+  border-right-width: 1px;
+  border-right-color: grey;
+}

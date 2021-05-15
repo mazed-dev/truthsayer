@@ -11,8 +11,8 @@ export const Link = (props) => {
       <ReactRouterLink
         to={url}
         className={joinClasses(
-          "doc_component_inline_link",
-          "doc_component_inline_link_int"
+          "doc_block_inline_link",
+          "doc_block_inline_link_int"
         )}
       >
         {props.children}
@@ -23,8 +23,8 @@ export const Link = (props) => {
       <a
         href={url}
         className={joinClasses(
-          "doc_component_inline_link",
-          "doc_component_inline_link_ext"
+          "doc_block_inline_link",
+          "doc_block_inline_link_ext"
         )}
       >
         {props.children}

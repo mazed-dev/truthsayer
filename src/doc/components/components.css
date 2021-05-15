@@ -1,17 +1,17 @@
-.doc_component_inline_link {
+.doc_block_inline_link {
   font-weight: 500;
   color: #38b000;
 }
 
-.doc_component_inline_link_ext:before {
+.doc_block_inline_link_ext:before {
   content: "🌍 ";
 }
 
-.doc_component_inline_link_int:before {
+.doc_block_inline_link_int:before {
   content: "/";
 }
 
-.doc_component_inline_link:hover {
+.doc_block_inline_link:hover {
   color: #70e000;
 
   text-decoration-line: underline;
@@ -23,9 +23,10 @@
   */
 }
 
-.doc_component_paragraph {
+.doc_block_paragraph {
   white-space: normal;
   margin-bottom: 1rem;
+  margin-top: 0;
 }
 
 div.public-DraftEditor-content {
@@ -36,11 +37,11 @@ div.public-DraftStyleDefault-block {
   white-space: normal;
 }
 
-.doc_component_unstyled {
+.doc_block_unstyled {
   font-size: 1rem;
 }
 
-.doc_component_header_1 {
+.doc_block_header_1 {
   font-size: 1.6rem;
   font-weight: bold;
   display: block;
@@ -49,7 +50,7 @@ div.public-DraftStyleDefault-block {
   color: #004b23;
 }
 
-.doc_component_header_2 {
+.doc_block_header_2 {
   font-size: 1.4rem;
   font-weight: bold;
   /* color: #245501; */
@@ -57,7 +58,7 @@ div.public-DraftStyleDefault-block {
   display: block;
 }
 
-.doc_component_header_3 {
+.doc_block_header_3 {
   font-size: 1.2rem;
   font-weight: bold;
   /* color: #538d22; */
@@ -65,7 +66,7 @@ div.public-DraftStyleDefault-block {
   display: block;
 }
 
-.doc_component_header_4 {
+.doc_block_header_4 {
   font-size: 1.1rem;
   font-weight: bold;
   /* color: #73a942; */
@@ -73,7 +74,7 @@ div.public-DraftStyleDefault-block {
   display: block;
 }
 
-.doc_component_header_5 {
+.doc_block_header_5 {
   font-size: 1rem;
   font-weight: bold;
   /* color: #aad576; */
@@ -81,7 +82,7 @@ div.public-DraftStyleDefault-block {
   display: block;
 }
 
-.doc_component_header_6 {
+.doc_block_header_6 {
   font-size: 1rem;
   font-weight: bold;
   /* color: #aad576; */
@@ -89,7 +90,7 @@ div.public-DraftStyleDefault-block {
   display: block;
 }
 
-.doc_component_hrule {
+.doc_block_hrule {
   border: 0;
   height: 1px;
   background-image: linear-gradient(
@@ -100,21 +101,32 @@ div.public-DraftStyleDefault-block {
   );
 }
 
-.doc_component_inline_text {
+.doc_block_inline_text {
   display: inline-block;
 }
 
-.doc_component_blockquote {
+.doc_block_blockquote {
   padding: 5px;
   background: #eee;
   border-radius: 5px;
   font-style: italic;
 }
 
-.doc_component_blockquote .public-DraftStyleDefault-block::after {
+.doc_block_blockquote .public-DraftStyleDefault-block::after {
   content: "\201D";
 }
 
-.doc_component_blockquote .public-DraftStyleDefault-block::before {
+.doc_block_blockquote .public-DraftStyleDefault-block::before {
   content: "\201C";
+}
+
+.doc_block_code {
+  padding: 8px 12px 8px 12px;
+  border-radius: 5px;
+
+  background-color: rgb(246, 248, 250);
+
+  font-family: "SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace";
+  direction: ltr;
+  font-weight: 400;
 }

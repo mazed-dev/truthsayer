@@ -43,15 +43,13 @@ import {
   kEntityImmutable,
 } from "../types.jsx";
 
+import IconLink from "./img/icon-link-strip.svg";
+import { ControlButton } from "./ControlButton";
 import { joinClasses } from "../../util/elClass.js";
 
-import { InlineStyleControls } from "./InlineStyleControls";
-import { BlockStyleControls } from "./BlockStyleControls";
-import { LinkEditor } from "./LinkEditor";
+import styles from "./LinkEditor.module.css";
 
-import styles from "./ControlsToolbar.module.css";
-
-export class ControlsToolbar extends React.Component {
+export class LinkEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -66,6 +64,12 @@ export class ControlsToolbar extends React.Component {
     if (e.which === 13) {
       this._confirmLink(e);
     }
+  };
+
+  _closePopover = () => {
+    this.setState({
+      showURLInput: false,
+    });
   };
 
   _promptForLink = (e) => {
@@ -99,7 +103,7 @@ export class ControlsToolbar extends React.Component {
 
   _confirmLink = (e) => {
     e.preventDefault();
-    const { editorState, onStateChange, focusBack } = this.props;
+    const { editorState, onStateChange } = this.props;
     const { urlValue } = this.state;
     const contentState = editorState.getCurrentContent();
     const contentStateWithEntity = contentState.createEntity(
@@ -122,55 +126,51 @@ export class ControlsToolbar extends React.Component {
         showURLInput: false,
         urlValue: "",
       },
-      () => {
-        setTimeout(() => focusBack(), 0);
-      }
+      () => {}
     );
   };
 
+  _removeLink = (e) => {
+    e.preventDefault();
+    const { editorState, onStateChange } = this.props;
+    const selection = editorState.getSelection();
+    if (!selection.isCollapsed()) {
+      const newEditorState = RichUtils.toggleLink(editorState, selection, null);
+      onStateChange(newEditorState);
+    }
+  };
+
   render() {
-    let {
-      editorState,
-      onStateChange,
-      toggleBlockType,
-      toggleInlineStyle,
-      className,
-    } = this.props;
+    let { editorState, onToggle, className } = this.props;
     let urlInput;
     if (this.state.showURLInput) {
       urlInput = (
-        <div className={styles.urlInputContainer}>
-          <input
-            onChange={this._onURLChange}
-            className={styles.urlInput}
-            type="text"
-            value={this.state.urlValue}
-            onKeyDown={this._onLinkInputKeyDown}
-            ref={(x) => (this.urlRef = x)}
-          />
-          <button onMouseDown={this._confirmLink}>Confirm</button>
+        <div className={styles.popover_root}>
+          <div className={styles.popover}>
+            <input
+              onChange={this._onURLChange}
+              className={styles.urlInput}
+              type="text"
+              value={this.state.urlValue}
+              onKeyDown={this._onLinkInputKeyDown}
+              ref={(x) => (this.urlRef = x)}
+            />
+            <ControlButton onClick={this._confirmLink}>Confirm</ControlButton>
+            <ControlButton onClick={this._closePopover}>Cancel</ControlButton>
+          </div>
         </div>
       );
     }
-    className = joinClasses(className, styles.toolbar);
+    className = joinClasses(className || null, styles.toolbar);
+    // <ControlButton onClick={this._removeLink} className={styles.btn}>
+    //   Remove Link
+    // </ControlButton>
     return (
-      <div className={className} role={"toolbar"}>
-        <BlockStyleControls
-          editorState={editorState}
-          onToggle={toggleBlockType}
-          className={styles.toolbar_section}
-        />
-        <InlineStyleControls
-          editorState={editorState}
-          onToggle={toggleInlineStyle}
-          onStateChange={onStateChange}
-          className={styles.toolbar_section}
-        />
-        <LinkEditor
-          editorState={editorState}
-          onStateChange={onStateChange}
-          className={styles.toolbar_section}
-        />
+      <div className={className}>
+        <ControlButton onClick={this._promptForLink} className={styles.btn}>
+          <img className={styles.icon_img} src={IconLink} />
+        </ControlButton>
+        {urlInput}
       </div>
     );
   }

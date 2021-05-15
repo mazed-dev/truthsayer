@@ -20,21 +20,23 @@ export function getBlockStyle(blockType) {
   // TODO(akindyakov): Continue here applying custom styles for elements
   switch (blockType) {
     case kBlockTypeQuote:
-      return "doc_component_blockquote";
+      return "doc_block_blockquote";
     case kBlockTypeH1:
-      return "doc_component_header_1";
+      return "doc_block_header_1";
     case kBlockTypeH2:
-      return "doc_component_header_2";
+      return "doc_block_header_2";
     case kBlockTypeH3:
-      return "doc_component_header_3";
+      return "doc_block_header_3";
     case kBlockTypeH4:
-      return "doc_component_header_4";
+      return "doc_block_header_4";
     case kBlockTypeH5:
-      return "doc_component_header_5";
+      return "doc_block_header_5";
     case kBlockTypeH6:
-      return "doc_component_header_6";
+      return "doc_block_header_6";
     case kBlockTypeUnstyled:
-      return "doc_component_unstyled";
+      return "doc_block_unstyled";
+    case kBlockTypeCode:
+      return "doc_block_code";
     default:
       return null;
   }
@@ -52,7 +54,7 @@ export function getBlockStyleInDoc(blockType) {
     case kBlockTypeH5:
     case kBlockTypeH6:
     case kBlockTypeUnstyled:
-      blockStyle = joinClasses(blockStyle, "doc_component_paragraph");
+      blockStyle = joinClasses(blockStyle, "doc_block_paragraph");
   }
   return blockStyle;
 }
@@ -67,7 +69,7 @@ const _BLOCK_NAMES = {
   [kBlockTypeQuote]: "\u201CQuote\u201D",
   [kBlockTypeUnorderedItem]: "Bullet list",
   [kBlockTypeOrderedItem]: "Numbered list",
-  [kBlockTypeCode]: "Code",
+  [kBlockTypeCode]: "{} Code",
   [kBlockTypeUnorderedCheckItem]: "Check list",
   [kBlockTypeUnstyled]: "Text",
 };

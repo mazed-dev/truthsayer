@@ -4,7 +4,19 @@ import styles from "./ControlButton.module.css";
 
 import { joinClasses } from "../../util/elClass.js";
 
-export class ControlButton extends React.Component {
+export function ControlButton({ children, className, onClick, isActive }) {
+  className = joinClasses(className || "", styles.btn);
+  if (isActive) {
+    className = joinClasses(className, styles.btn_active);
+  }
+  return (
+    <div className={className} onClick={onClick}>
+      {children}
+    </div>
+  );
+}
+
+export class ToggleControlButton extends React.Component {
   constructor() {
     super();
     this.onToggle = (e) => {
@@ -14,16 +26,15 @@ export class ControlButton extends React.Component {
   }
   render() {
     // Custom overrides for "code" style.
-    let { active, children, className } = this.props;
-    if (active) {
-      className = joinClasses(className, styles.btn, styles.btn_active);
-    } else {
-      className = joinClasses(className, styles.btn);
-    }
+    const { className, children, isActive } = this.props;
     return (
-      <div className={className} onMouseDown={this.onToggle}>
+      <ControlButton
+        className={className}
+        onClick={this.onToggle}
+        isActive={isActive}
+      >
         {children}
-      </div>
+      </ControlButton>
     );
   }
 }

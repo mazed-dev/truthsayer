@@ -6,31 +6,27 @@
   /* border-color: rgba(0, 0, 0, 0.125); */
   border-style: solid;
   border-width: 0;
-  /* border-radius: 32px; */
+  border-radius: 4px;
 
-  padding: 0.4rem;
+  /* padding: 5px; ? */
+  margin: 1px;
 
+  opacity: 0.72;
   cursor: pointer;
+
+  height: 36px;
+  vertical-align: 0.255em;
 }
 
 .btn:hover {
+  opacity: 1;
   background-color: #d0d1d2;
 }
 
 .btn_active {
   opacity: 1;
-}
 
-.toolbar_btn_img {
-  width: 1.6rem;
-  height: 1.6rem;
-}
-
-.toolbar_dropdown_toggle::after {
-  display: none;
-}
-
-.toolbar_dropdown_menu {
-  min-width: 2.5rem;
-  padding: 0;
+  border-color: grey;
+  border-width: 1px;
+  border-radius: 4px;
 }

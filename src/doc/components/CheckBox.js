@@ -47,7 +47,7 @@ export class CheckBox extends React.Component {
           onToggle={this.toggleChecked}
           is_checked={this.state.checked}
         />
-        <div className={"doc_component_inline_text"}>
+        <div className={"doc_block_inline_text"}>
           <EditorBlock {...this.props} />
         </div>
       </div>

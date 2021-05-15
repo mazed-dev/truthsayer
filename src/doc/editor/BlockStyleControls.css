@@ -8,47 +8,31 @@
   background-color: inherit;
 }
 
-.checkmark_container {
-  display: inline-block;
-  float: left;
-  position: relative;
-
-  margin-right: 12px;
-  padding: 0;
-}
-
-.checkmark {
-  border: none;
-  height: 1rem;
-  width: 1rem;
-  margin: 0;
-  padding: 0;
-  font-size: 0;
-}
-
-.dropdown-item.active .checkmark:after {
-  position: absolute;
-  left: 6px;
-  top: 4px;
-  width: 0.5rem;
-  height: 1rem;
-  border: solid black;
-  border-width: 0 3px 3px 0;
-  display: block;
-  content: "";
-  cursor: pointer;
-
-  -webkit-transform: rotate(45deg);
-  -moz-transform: rotate(45deg);
-  -ms-transform: rotate(45deg);
-  transform: rotate(45deg);
-}
-
 .dropdown-menu {
   padding: 2px;
-  min-width: 14rem;
+  min-width: 12rem;
 }
 
 .dropdown {
-  min-width: 8rem;
+  min-width: 1rem;
+}
+
+.dropdown-toggle {
+  border-width: 0px;
+  border-radius: 1px;
+
+  background-color: #ffffff;
+  color: inherit;
+  min-width: 10rem;
+  text-align: left;
+}
+
+.dropdown-toggle:hover {
+  background-color: #d0d1d2;
+  color: inherit;
+  border-width: 0px;
+}
+
+.dropdown-toggle:after {
+  margin-left: 1rem;
 }

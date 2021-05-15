@@ -392,7 +392,7 @@ export class NodeEditor extends React.Component {
     const { editorState } = this.state;
     // If the user changes block type before entering any text, we can
     //     // either style the placeholder or hide it. Let's just hide it now.
-    let className = "RichEditor-editor";
+    let className = styles.editor;
     var contentState = editorState.getCurrentContent();
     if (!contentState.hasText()) {
       if (contentState.getBlockMap().first().getType() !== kBlockTypeUnstyled) {
@@ -417,13 +417,14 @@ export class NodeEditor extends React.Component {
       );
     }
     return (
-      <div className="RichEditor-root">
+      <div className={styles.root}>
         <ControlsToolbar
           editorState={editorState}
           toggleBlockType={this.toggleBlockType}
           toggleInlineStyle={this.toggleInlineStyle}
           onStateChange={this.onChange}
           focusBack={this.focus}
+          className={styles.controls_toolbar}
         />
         <div className={className} onClick={this.focus}>
           <Editor

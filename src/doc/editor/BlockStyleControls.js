@@ -18,7 +18,7 @@ import {
 } from "../types.jsx";
 
 import { MzdGlobalContext } from "../../lib/global";
-import { ControlButton } from "./ControlButton";
+import { ToggleControlButton } from "./ControlButton";
 
 import IconOrderedList from "./img/icon-ordered-list-strip.svg";
 import IconUnorderedList from "./img/icon-unordered-list-strip.svg";
@@ -29,6 +29,8 @@ import styles from "./BlockStyleControls.module.css";
 import "./BlockStyleControls.css";
 import "../components/components.css";
 import { getBlockStyle, getBlockName } from "../components/BlockStyle";
+
+import { joinClasses } from "../../util/elClass.js";
 
 const BLOCK_TYPES = [
   kBlockTypeUnstyled,
@@ -50,7 +52,7 @@ const BLOCK_ICONS = {
   [kBlockTypeUnorderedItem]: IconUnorderedList,
   [kBlockTypeOrderedItem]: IconOrderedList,
   [kBlockTypeUnorderedCheckItem]: IconCheckList,
-  [kBlockTypeCode]: IconCode,
+  // [kBlockTypeCode]: IconCode,
 };
 
 function ButtonForType({ type, onToggle, blockType }) {
@@ -60,16 +62,12 @@ function ButtonForType({ type, onToggle, blockType }) {
   }
   return (
     <Dropdown.Item
-      as={ControlButton}
+      as={ToggleControlButton}
       key={type}
-      active={type === blockType}
+      isActive={type === blockType}
       onToggle={onToggle}
       style={type}
-      className={styles.dropdown_item}
     >
-      <div className="checkmark_container">
-        <div className="checkmark" />
-      </div>
       <div className={getBlockStyle(type)}>
         {icon}
         {getBlockName(type)}
@@ -78,20 +76,17 @@ function ButtonForType({ type, onToggle, blockType }) {
   );
 }
 
-export function BlockStyleControls({ editorState, onToggle }) {
+export function BlockStyleControls({ editorState, onToggle, className }) {
   // const { editorState, onToggle } = this.props;
   const selection = editorState.getSelection();
   const blockType = editorState
     .getCurrentContent()
     .getBlockForKey(selection.getStartKey())
     .getType();
+  className = joinClasses(className || null, styles.select_dropdown);
   return (
-    <Dropdown navbar>
-      <Dropdown.Toggle
-        className={styles.dropdown_toggle}
-        id="dropdown-basic"
-        variant={"light"}
-      >
+    <Dropdown className={className}>
+      <Dropdown.Toggle id="dropdown-basic" variant={"light"}>
         {getBlockName(blockType)}
       </Dropdown.Toggle>
       <Dropdown.Menu>
@@ -100,6 +95,7 @@ export function BlockStyleControls({ editorState, onToggle }) {
             type={type}
             onToggle={onToggle}
             blockType={blockType}
+            key={type}
           />
         ))}
       </Dropdown.Menu>
