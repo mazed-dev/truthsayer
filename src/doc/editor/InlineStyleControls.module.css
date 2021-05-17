@@ -1,19 +1,17 @@
 .btn {
-  font-size: 1.2rem;
   text-align: center;
 }
 .btn_bold {
-  font-family: Times, serif;
   font-weight: bold;
 }
 .btn_italic {
   font-style: italic;
-  font-family: Times, serif;
+  /*font-family: Times, serif; */
 }
 .btn_underline {
   text-decoration: underline;
-  font-family: Times, serif;
+  /* font-family: Times, serif; */
 }
 .btn_monospace {
-  font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+  font-family: monospace;
 }

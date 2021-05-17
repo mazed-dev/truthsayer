@@ -1,16 +1,22 @@
 .toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
+  flex-wrap: nowrap;
+  justify-content: left;
 
   border-bottom-style: solid;
   border-bottom-width: 1px;
-  border-bottom-color: grey;
+  border-bottom-color: #c0c0c0;
   border-radius: 4px;
+
+  width: 100%;
+
+  opacity: 0.72;
+}
+
+.toolbar:hover {
+  opacity: 1;
 }
 
 .toolbar_section {
   border-right-style: solid;
   border-right-width: 1px;
-  border-right-color: grey;
 }

@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 
-import { ButtonToolbar } from "react-bootstrap";
+import { ButtonToolbar, ButtonGroup } from "react-bootstrap";
 
 import {
   Editor,
@@ -48,6 +48,7 @@ import { joinClasses } from "../../util/elClass.js";
 import { InlineStyleControls } from "./InlineStyleControls";
 import { BlockStyleControls } from "./BlockStyleControls";
 import { LinkEditor } from "./LinkEditor";
+import { ControlButton } from "./ControlButton";
 
 import styles from "./ControlsToolbar.module.css";
 
@@ -55,7 +56,7 @@ export class ControlsToolbar extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      showURLInput: false,
+      showInput: false,
       urlValue: "",
     };
   }
@@ -87,7 +88,7 @@ export class ControlsToolbar extends React.Component {
 
       this.setState(
         {
-          showURLInput: true,
+          showInput: true,
           urlValue: url,
         },
         () => {
@@ -119,7 +120,7 @@ export class ControlsToolbar extends React.Component {
     onStateChange(newEditorState);
     this.setState(
       {
-        showURLInput: false,
+        showInput: false,
         urlValue: "",
       },
       () => {
@@ -137,7 +138,7 @@ export class ControlsToolbar extends React.Component {
       className,
     } = this.props;
     let urlInput;
-    if (this.state.showURLInput) {
+    if (this.state.showInput) {
       urlInput = (
         <div className={styles.urlInputContainer}>
           <input
@@ -154,7 +155,7 @@ export class ControlsToolbar extends React.Component {
     }
     className = joinClasses(className, styles.toolbar);
     return (
-      <div className={className} role={"toolbar"}>
+      <ButtonGroup className={className}>
         <BlockStyleControls
           editorState={editorState}
           onToggle={toggleBlockType}
@@ -165,7 +166,7 @@ export class ControlsToolbar extends React.Component {
           onStateChange={onStateChange}
         />
         <LinkEditor editorState={editorState} onStateChange={onStateChange} />
-      </div>
+      </ButtonGroup>
     );
   }
 }

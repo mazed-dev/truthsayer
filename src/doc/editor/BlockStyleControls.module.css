@@ -7,5 +7,12 @@
 }
 
 .select_dropdown {
-  display: inline-block;
+}
+
+.dropdown_item {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.dropdown_menu {
 }

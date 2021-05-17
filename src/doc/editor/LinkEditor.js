@@ -43,7 +43,6 @@ import {
   kEntityImmutable,
 } from "../types.jsx";
 
-import IconLink from "./img/icon-link-strip.svg";
 import { ControlButton } from "./ControlButton";
 import { joinClasses } from "../../util/elClass.js";
 
@@ -106,6 +105,7 @@ export class LinkEditor extends React.Component {
     const { editorState, onStateChange } = this.props;
     const { urlValue } = this.state;
     const contentState = editorState.getCurrentContent();
+    // Todo: use kEntityImmutable for internal links and show actual title of the linked node
     const contentStateWithEntity = contentState.createEntity(
       kEntityTypeLink,
       kEntityMutable,
@@ -165,13 +165,18 @@ export class LinkEditor extends React.Component {
     // <ControlButton onClick={this._removeLink} className={styles.btn}>
     //   Remove Link
     // </ControlButton>
+    // <img className={styles.icon_img} src={IconLink} />
     return (
-      <div className={className}>
-        <ControlButton onClick={this._promptForLink} className={styles.btn}>
-          <img className={styles.icon_img} src={IconLink} />
+      <>
+        <ControlButton
+          onClick={this._promptForLink}
+          className={joinClasses(className || null, styles.btn)}
+          key={"link-editor-button"}
+        >
+          {"\u{1F517}"}
         </ControlButton>
-        {urlInput}
-      </div>
+        <div className={styles.toolbar}>{urlInput}</div>
+      </>
     );
   }
 }

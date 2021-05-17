@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Dropdown } from "react-bootstrap";
+import { Dropdown, ButtonGroup } from "react-bootstrap";
 import {
   kBlockTypeAtomic,
   kBlockTypeCode,
@@ -55,11 +55,15 @@ const BLOCK_ICONS = {
   // [kBlockTypeCode]: IconCode,
 };
 
-function ButtonForType({ type, onToggle, blockType }) {
-  let icon = BLOCK_ICONS[type];
+function getBlockIcon(blockType) {
+  let icon = BLOCK_ICONS[blockType];
   if (icon) {
-    icon = <img className={styles.icon_img} src={icon} />;
+    return <img className={styles.icon_img} src={icon} />;
   }
+  return null;
+}
+
+function ButtonForType({ type, onToggle, blockType }) {
   return (
     <Dropdown.Item
       as={ToggleControlButton}
@@ -67,9 +71,10 @@ function ButtonForType({ type, onToggle, blockType }) {
       isActive={type === blockType}
       onToggle={onToggle}
       style={type}
+      className={styles.dropdown_item}
     >
       <div className={getBlockStyle(type)}>
-        {icon}
+        {getBlockIcon(type)}
         {getBlockName(type)}
       </div>
     </Dropdown.Item>
@@ -83,13 +88,14 @@ export function BlockStyleControls({ editorState, onToggle, className }) {
     .getCurrentContent()
     .getBlockForKey(selection.getStartKey())
     .getType();
-  className = joinClasses(className || null, styles.select_dropdown);
+  className = joinClasses(className, styles.select_dropdown);
   return (
-    <Dropdown className={className}>
-      <Dropdown.Toggle id="dropdown-basic" variant={"light"}>
+    <Dropdown className={className} as={ButtonGroup} drop={"down"}>
+      <Dropdown.Toggle id="dropdown-block-style-selection" variant={"light"}>
+        {getBlockIcon(blockType)}
         {getBlockName(blockType)}
       </Dropdown.Toggle>
-      <Dropdown.Menu>
+      <Dropdown.Menu className={styles.dropdown_menu}>
         {BLOCK_TYPES.map((type) => (
           <ButtonForType
             type={type}

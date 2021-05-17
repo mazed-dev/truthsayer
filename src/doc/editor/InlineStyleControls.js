@@ -23,15 +23,14 @@ export function InlineStyleControls({
   className,
 }) {
   const currentStyle = editorState.getCurrentInlineStyle();
-  console.log("currentStyle", currentStyle);
   return (
-    <div className={className}>
+    <>
       <ToggleControlButton
         key={"bold"}
         isActive={currentStyle.has(kEntityTypeBold)}
         onToggle={onToggle}
         style={kEntityTypeBold}
-        className={joinClasses(styles.btn, styles.btn_bold)}
+        className={joinClasses(styles.btn, styles.btn_bold, className)}
       >
         {"B"}
       </ToggleControlButton>
@@ -40,7 +39,7 @@ export function InlineStyleControls({
         isActive={currentStyle.has(kEntityTypeItalic)}
         onToggle={onToggle}
         style={kEntityTypeItalic}
-        className={joinClasses(styles.btn, styles.btn_italic)}
+        className={joinClasses(styles.btn, styles.btn_italic, className)}
       >
         {"I"}
       </ToggleControlButton>
@@ -49,7 +48,7 @@ export function InlineStyleControls({
         isActive={currentStyle.has(kEntityTypeUnderline)}
         onToggle={onToggle}
         style={kEntityTypeUnderline}
-        className={joinClasses(styles.btn, styles.btn_underline)}
+        className={joinClasses(styles.btn, styles.btn_underline, className)}
       >
         {"U"}
       </ToggleControlButton>
@@ -58,10 +57,10 @@ export function InlineStyleControls({
         isActive={currentStyle.has(kEntityTypeMonospace)}
         onToggle={onToggle}
         style={kEntityTypeMonospace}
-        className={joinClasses(styles.btn, styles.btn_monospace)}
+        className={joinClasses(styles.btn, styles.btn_monospace, className)}
       >
-        {"{}"}
+        {"<>"}
       </ToggleControlButton>
-    </div>
+    </>
   );
 }
