@@ -62,8 +62,6 @@ import { getBlockStyleInDoc } from "./components/BlockStyle";
 import { Link } from "./components/Link";
 import { HRule } from "./components/HRule";
 import { CheckBox } from "./components/CheckBox";
-import { InlineStyleControls } from "./editor/InlineStyleControls";
-import { BlockStyleControls } from "./editor/BlockStyleControls";
 import { ControlsToolbar } from "./editor/ControlsToolbar";
 
 import { getDocDraft } from "./doc_util.jsx";
@@ -152,10 +150,8 @@ export class NodeEditor extends React.Component {
     const content = convertFromRaw(getDocDraft(this.props.doc));
     this.state = {
       editorState: EditorState.createWithContent(content, this.decorator),
-      showURLInput: false,
-      urlValue: "",
+      showControlsToolbar: false,
     };
-    this.onURLChange = (e) => this.setState({ urlValue: e.target.value });
   }
 
   componentDidMount() {}
@@ -195,6 +191,12 @@ export class NodeEditor extends React.Component {
 
   focus = () => {
     this.editorRef.focus();
+    this.setState({ showControlsToolbar: true });
+  };
+
+  onBlur = () => {
+    console.log("Editor on blur");
+    this.setState({ showControlsToolbar: false });
   };
 
   updateBlockMetadata = (blockKey, path, metadata) => {
@@ -235,70 +237,6 @@ export class NodeEditor extends React.Component {
     }
   };
 
-  _promptForLink = (e) => {
-    e.preventDefault();
-    const { editorState } = this.state;
-    const selection = editorState.getSelection();
-    if (!selection.isCollapsed()) {
-      const contentState = editorState.getCurrentContent();
-      const startKey = editorState.getSelection().getStartKey();
-      const startOffset = editorState.getSelection().getStartOffset();
-      const blockWithLinkAtBeginning = contentState.getBlockForKey(startKey);
-      const linkKey = blockWithLinkAtBeginning.getEntityAt(startOffset);
-
-      let url = "";
-      if (linkKey) {
-        const linkInstance = contentState.getEntity(linkKey);
-        url = linkInstance.getData().url;
-      }
-
-      this.setState(
-        {
-          showURLInput: true,
-          urlValue: url,
-        },
-        () => {
-          setTimeout(() => this.urlRef.focus(), 0);
-        }
-      );
-    }
-  };
-
-  _confirmLink = (e) => {
-    e.preventDefault();
-    const { editorState, urlValue } = this.state;
-    const contentState = editorState.getCurrentContent();
-    const contentStateWithEntity = contentState.createEntity(
-      kEntityTypeLink,
-      kEntityMutable,
-      { url: urlValue }
-    );
-    const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
-    const newEditorState = EditorState.set(editorState, {
-      currentContent: contentStateWithEntity,
-    });
-    this.setState(
-      {
-        editorState: RichUtils.toggleLink(
-          newEditorState,
-          newEditorState.getSelection(),
-          entityKey
-        ),
-        showURLInput: false,
-        urlValue: "",
-      },
-      () => {
-        setTimeout(() => this.focus(), 0);
-      }
-    );
-  };
-
-  _onLinkInputKeyDown = (e) => {
-    if (e.which === 13) {
-      this._confirmLink(e);
-    }
-  };
-
   _removeLink = (e) => {
     e.preventDefault();
     const { editorState } = this.state;
@@ -325,7 +263,7 @@ export class NodeEditor extends React.Component {
     const { editorState } = this.state;
     let newState;
     if (command === kCommandShiftRight || command === kCommandShiftLeft) {
-      newState = this.onTab(command);
+      newState = this._onTab(command);
     } else {
       newState = RichUtils.handleKeyCommand(editorState, command);
     }
@@ -336,7 +274,7 @@ export class NodeEditor extends React.Component {
     return false;
   };
 
-  onTab = (cmd) => {
+  _onTab = (cmd) => {
     const { editorState } = this.state;
     var selection = editorState.getSelection();
     var key = selection.getAnchorKey();
@@ -394,28 +332,16 @@ export class NodeEditor extends React.Component {
     //     // either style the placeholder or hide it. Let's just hide it now.
     let className = styles.editor;
     var contentState = editorState.getCurrentContent();
-    if (!contentState.hasText()) {
-      if (contentState.getBlockMap().first().getType() !== kBlockTypeUnstyled) {
-        className += " RichEditor-hidePlaceholder";
-      }
-    }
+    // if (!contentState.hasText()) {
+    //   if (contentState.getBlockMap().first().getType() !== kBlockTypeUnstyled) {
+    // className += " RichEditor-hidePlaceholder";
+    //   }
+    // }
 
-    let urlInput;
-    if (this.state.showURLInput) {
-      urlInput = (
-        <div className={styles.urlInputContainer}>
-          <input
-            onChange={this.onURLChange}
-            className={styles.urlInput}
-            type="text"
-            value={this.state.urlValue}
-            onKeyDown={this._onLinkInputKeyDown}
-            ref={(x) => (this.urlRef = x)}
-          />
-          <button onMouseDown={this._confirmLink}>Confirm</button>
-        </div>
-      );
-    }
+    const controlsToolbarClassName = this.state.showControlsToolbar
+      ? styles.controls_toolbar_show
+      : styles.controls_toolbar_hide;
+
     return (
       <div className={styles.root}>
         <ControlsToolbar
@@ -424,7 +350,7 @@ export class NodeEditor extends React.Component {
           toggleInlineStyle={this.toggleInlineStyle}
           onStateChange={this.onChange}
           focusBack={this.focus}
-          className={styles.controls_toolbar}
+          className={controlsToolbarClassName}
         />
         <div className={className} onClick={this.focus}>
           <Editor

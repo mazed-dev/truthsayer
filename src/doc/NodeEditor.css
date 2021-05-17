@@ -6,3 +6,12 @@
   margin: 0;
   padding: 0;
 }
+
+::-moz-selection {
+  /* Code for Firefox */
+  background: #dfeed4;
+}
+
+::selection {
+  background: #dfeed4;
+}

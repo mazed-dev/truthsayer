@@ -6,6 +6,7 @@
   border-style: solid;
   border-width: 0;
   border-color: white;
+  border-radius: inherit;
 
   /* padding: 5px; ? */
   color: inherit;
