@@ -23,3 +23,7 @@
 .toolbar {
   position: relative;
 }
+
+.link_wrap {
+  display: inline-block;
+}

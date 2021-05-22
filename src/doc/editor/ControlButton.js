@@ -2,14 +2,15 @@ import React from "react";
 
 import { Button } from "react-bootstrap";
 
-import "./ControlButton.css";
+import styles from "./ControlButton.module.css";
 
 import { joinClasses } from "../../util/elClass.js";
 
 export const ControlButton = React.forwardRef(
   ({ children, className, onClick, isActive, is_disabled }, ref) => {
+    className = joinClasses(styles.btn, className);
     if (isActive) {
-      className = joinClasses("mzd_control_button_active", className);
+      className = joinClasses(styles.control_button_active, className);
     }
     return (
       <Button

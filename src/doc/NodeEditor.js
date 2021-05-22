@@ -145,6 +145,9 @@ export class NodeEditor extends React.Component {
       {
         strategy: findLinkEntities,
         component: Link,
+        props: {
+          onStateChange: this.onChange,
+        },
       },
     ]);
     const content = convertFromRaw(getDocDraft(this.props.doc));
@@ -166,6 +169,7 @@ export class NodeEditor extends React.Component {
   }
 
   onChange = (editorState) => {
+    console.log("Editor onChange");
     // console.log(
     //   "Editor content entity map",
     //   editorState.getCurrentContent().getEntityMap()
@@ -190,6 +194,7 @@ export class NodeEditor extends React.Component {
   };
 
   focus = () => {
+    console.log("On editor focus");
     this.editorRef.focus();
     this.setState({ showControlsToolbar: true });
   };
@@ -237,8 +242,7 @@ export class NodeEditor extends React.Component {
     }
   };
 
-  _removeLink = (e) => {
-    e.preventDefault();
+  _removeLink = () => {
     const { editorState } = this.state;
     const selection = editorState.getSelection();
     if (!selection.isCollapsed()) {
@@ -340,8 +344,8 @@ export class NodeEditor extends React.Component {
 
     const controlsToolbarClassName = this.state.showControlsToolbar
       ? styles.controls_toolbar_show
-      : styles.controls_toolbar_hide;
-
+      : styles.controls_toolbar_show;
+    //onClick={this.focus}
     return (
       <div className={styles.root}>
         <ControlsToolbar
@@ -352,7 +356,7 @@ export class NodeEditor extends React.Component {
           focusBack={this.focus}
           className={controlsToolbarClassName}
         />
-        <div className={className} onClick={this.focus}>
+        <div className={className}>
           <Editor
             blockStyleFn={this.blockStyleFn_}
             blockRendererFn={this.myBlockRenderer}

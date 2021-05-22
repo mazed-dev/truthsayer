@@ -136,23 +136,8 @@ export class ControlsToolbar extends React.Component {
       toggleBlockType,
       toggleInlineStyle,
       className,
+      focusBack,
     } = this.props;
-    let urlInput;
-    if (this.state.showInput) {
-      urlInput = (
-        <div className={styles.urlInputContainer}>
-          <input
-            onChange={this._onURLChange}
-            className={styles.urlInput}
-            type="text"
-            value={this.state.urlValue}
-            onKeyDown={this._onLinkInputKeyDown}
-            ref={(x) => (this.urlRef = x)}
-          />
-          <button onMouseDown={this._confirmLink}>Confirm</button>
-        </div>
-      );
-    }
     className = joinClasses(className, styles.toolbar);
     return (
       <ButtonGroup className={className}>

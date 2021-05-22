@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useState } from "react";
 import { Dropdown, ButtonGroup } from "react-bootstrap";
 import {
   kBlockTypeAtomic,
@@ -9,7 +9,6 @@ import {
   kBlockTypeH4,
   kBlockTypeH5,
   kBlockTypeH6,
-  kBlockTypeHrule,
   kBlockTypeOrderedItem,
   kBlockTypeQuote,
   kBlockTypeUnorderedCheckItem,
@@ -17,16 +16,12 @@ import {
   kBlockTypeUnstyled,
 } from "../types.jsx";
 
-import { MzdGlobalContext } from "../../lib/global";
-import { ToggleControlButton } from "./ControlButton";
-
 import IconOrderedList from "./img/icon-ordered-list-strip.svg";
 import IconUnorderedList from "./img/icon-unordered-list-strip.svg";
 import IconCheckList from "./img/icon-check-list-strip.svg";
 import IconCode from "./img/icon-code-strip.svg";
 
 import styles from "./BlockStyleControls.module.css";
-import "./BlockStyleControls.css";
 import "../components/components.css";
 import { getBlockStyle, getBlockName } from "../components/BlockStyle";
 
@@ -63,16 +58,18 @@ function getBlockIcon(blockType) {
   return null;
 }
 
-function ButtonForType({ type, onToggle, blockType }) {
+function ButtonForType({ type, onToggle, blockType, onSelect, className }) {
+  className = joinClasses(className, styles.dropdown_item);
+  const isActive = type === blockType;
+  if (isActive) {
+    className = joinClasses(className, styles.dropdown_item_active);
+  }
+  const handleSelect = () => {
+    onToggle(type);
+    onSelect();
+  };
   return (
-    <Dropdown.Item
-      as={ToggleControlButton}
-      key={type}
-      isActive={type === blockType}
-      onToggle={onToggle}
-      style={type}
-      className={styles.dropdown_item}
-    >
+    <Dropdown.Item key={type} onSelect={handleSelect} className={className}>
       <div className={getBlockStyle(type)}>
         {getBlockIcon(type)}
         {getBlockName(type)}
@@ -82,7 +79,13 @@ function ButtonForType({ type, onToggle, blockType }) {
 }
 
 export function BlockStyleControls({ editorState, onToggle, className }) {
-  // const { editorState, onToggle } = this.props;
+  const [show, setShow] = useState(false);
+  const showDropdown = (e) => {
+    setShow(!show);
+  };
+  const hideDropdown = () => {
+    setShow(false);
+  };
   const selection = editorState.getSelection();
   const blockType = editorState
     .getCurrentContent()
@@ -90,8 +93,19 @@ export function BlockStyleControls({ editorState, onToggle, className }) {
     .getType();
   className = joinClasses(className, styles.select_dropdown);
   return (
-    <Dropdown className={className} as={ButtonGroup} drop={"down"}>
-      <Dropdown.Toggle id="dropdown-block-style-selection" variant={"light"}>
+    <Dropdown
+      as={ButtonGroup}
+      className={className}
+      drop={"down"}
+      show={show}
+      onMouseLeave={hideDropdown}
+    >
+      <Dropdown.Toggle
+        id="dropdown-block-style-selection"
+        variant={"light"}
+        className={styles.dropdown_toggle}
+        onClick={showDropdown}
+      >
         {getBlockIcon(blockType)}
         {getBlockName(blockType)}
       </Dropdown.Toggle>
@@ -101,6 +115,7 @@ export function BlockStyleControls({ editorState, onToggle, className }) {
             type={type}
             onToggle={onToggle}
             blockType={blockType}
+            onSelect={hideDropdown}
             key={type}
           />
         ))}
