@@ -4,7 +4,7 @@ import "./components.css";
 
 import { Link as ReactRouterLink } from "react-router-dom";
 
-import { RichUtils } from "draft-js";
+import { RichUtils, SelectionState } from "draft-js";
 
 import { ControlButton } from "./../editor/ControlButton";
 
@@ -131,15 +131,15 @@ class LinkEditor extends React.Component {
   };
 
   onDelete = () => {
-    const { contentState, onStateChange, onClose, entityKey } = this.props;
-    const entity = contentState.getEntity(entityKey);
+    const { contentState, onStateChange, onClose, selectionState } = this.props;
+    // const entity = contentState.getEntity(entityKey);
     // TODO(akindyakov) Continue here!
 
-    // if (!selection.isCollapsed()) {
-    //   const newEditorState = RichUtils.toggleLink(contentState, selection, null);
-    //   onStateChange(newEditorState);
-    // }
-    // onClose();
+    if (!selectionState.isCollapsed()) {
+      const newEditorState = RichUtils.toggleLink(contentState, selectionState, null);
+      onStateChange(newEditorState);
+    }
+    onClose();
   };
 
   _confirmLink = () => {
@@ -204,8 +204,19 @@ export class Link extends React.Component {
   };
   // https://github.com/facebook/draft-js/issues/2137
   render() {
-    const { contentState, children, entityKey, onStateChange } = this.props;
+    console.log("Link props", this.props);
+    const { contentState, children, entityKey, onStateChange, end, start, blockKey } = this.props;
     const { url } = contentState.getEntity(entityKey).getData();
+    // dir: null, start: 366, end: 383, blockKey: "5ss4vcu8394", entityKey: "03999e42-6e4b-4bcd-ac6e-6f492fcd17f6", offsetKey: "5ss4vcu8394-1-0",
+    let selectionState = SelectionState.createEmpty();
+    selectionState.merge({
+      anchorKey: blockKey,
+      anchorOffset: start,
+      focusKey: blockKey,
+      focusOffset: end,
+      isBackward: false,
+      hasFocus: false,
+    });
     const toolbar = this.state.showEditor ? (
       <LinkEditor
         value={url}
@@ -213,6 +224,7 @@ export class Link extends React.Component {
         onStateChange={onStateChange}
         contentState={contentState}
         entityKey={entityKey}
+        selectionState={selectionState}
       />
     ) : null;
     if (url.match(/^\w+$/)) {
