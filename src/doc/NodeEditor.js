@@ -169,7 +169,7 @@ export class NodeEditor extends React.Component {
   }
 
   onChange = (editorState) => {
-    console.log("Editor onChange");
+    console.log("Editor onChange", Editor);
     // console.log(
     //   "Editor content entity map",
     //   editorState.getCurrentContent().getEntityMap()
@@ -335,7 +335,7 @@ export class NodeEditor extends React.Component {
     // If the user changes block type before entering any text, we can
     //     // either style the placeholder or hide it. Let's just hide it now.
     let className = styles.editor;
-    var contentState = editorState.getCurrentContent();
+    let contentState = editorState.getCurrentContent();
     // if (!contentState.hasText()) {
     //   if (contentState.getBlockMap().first().getType() !== kBlockTypeUnstyled) {
     // className += " RichEditor-hidePlaceholder";

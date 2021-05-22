@@ -133,6 +133,7 @@ class LinkEditor extends React.Component {
   onDelete = () => {
     const { contentState, onStateChange, onClose, entityKey } = this.props;
     const entity = contentState.getEntity(entityKey);
+    // TODO(akindyakov) Continue here!
 
     // if (!selection.isCollapsed()) {
     //   const newEditorState = RichUtils.toggleLink(contentState, selection, null);
@@ -146,7 +147,6 @@ class LinkEditor extends React.Component {
     const newEditorState = contentState.mergeEntityData(entityKey, {
       url: this.state.value,
     });
-    onStateChange(newEditorState);
     onClose();
   };
 
@@ -210,7 +210,7 @@ export class Link extends React.Component {
       <LinkEditor
         value={url}
         onClose={this.onEditorClose}
-        onStateChange={this.onStateChange}
+        onStateChange={onStateChange}
         contentState={contentState}
         entityKey={entityKey}
       />
