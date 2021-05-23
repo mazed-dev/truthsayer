@@ -1,7 +1,15 @@
 # Todo
 
-- [ ] Fixed size cards for search grid, for triptyh, for smartpoint
-- [ ] Scrollable overflow for tables
+- [ ] Draft JS as an rich text editor
+  - [ ] Refs - url valiation
+  - [ ] Refs - local node refs recognition
+  - [ ] Bottom line toolbar
+  - [ ] Support saving changed documents
+  - [ ] Support new type of documents in search
+  - [ ] Migration tool for all existing cards
+  - [ ] Rich text toolbar at the bottom, between the card and mazed toolbar
+  - [ ] Release
+- [ ] Insert images
 - [ ] "Date" menu, to see details and edit in modal window. Date picker
 - [ ] Twice smaler search cards for mobile devices
 - [ ] Button for list item to create right-link from this item
@@ -15,14 +23,13 @@
 - [ ] Proper "image" logo, not just emoji
 - [ ] Font for logo must be the same size as buttons on nav bar
 - [ ] Insert emoji as an image
-- [ ] Insert images
 - [ ] Attach files to the note
 - [ ] Footbar for small cards as a reference
 - [ ] Footbar for small cards in search
 - [ ] Properly cut overflowing html for small cards
 - [ ] Use react state (as for toaster) for account info
 - [ ] Tooltips for everything!
-- [ ] Tool for markdown checklists
+- [ ] Scrollable overflow for tables
 - [ ] Download all or some nodes as markdown
 - [ ] Add "date" and "next" as buttons to a toolbar
 - [ ] Encryption - encryption of a node should be optional
@@ -149,3 +156,5 @@
 - [x] Delete node functionality
 - [x] Addjust Triptych for small screens
   - All ref cards bellow in 2 rows
+- [x] Fixed size cards for search grid, for triptyh, for smartpoint
+- [x] Tool for markdown checklists
