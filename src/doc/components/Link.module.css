@@ -27,3 +27,18 @@
 .link_wrap {
   display: inline-block;
 }
+
+.btn_img {
+  height: 1rem;
+  width: 1rem;
+}
+
+.link_input {
+  overflow: hidden;
+  width: 12rem;
+  display: inline-block;
+}
+
+.link_btn {
+  display: inline-block;
+}

@@ -146,7 +146,7 @@ export class NodeEditor extends React.Component {
         strategy: findLinkEntities,
         component: Link,
         props: {
-          onStateChange: this.onChange,
+          removeLink: this._removeLink,
         },
       },
     ]);
@@ -204,6 +204,17 @@ export class NodeEditor extends React.Component {
     this.setState({ showControlsToolbar: false });
   };
 
+  _removeLink = (selection) => {
+    if (!selection.isCollapsed()) {
+      const newEditorState = RichUtils.toggleLink(
+        this.state.editorState,
+        selection,
+        null
+      );
+      this.onChange(newEditorState);
+    }
+  };
+
   updateBlockMetadata = (blockKey, path, metadata) => {
     let contentState = this.state.editorState.getCurrentContent();
     let updatedBlock = contentState
@@ -239,16 +250,6 @@ export class NodeEditor extends React.Component {
         };
       default:
         return;
-    }
-  };
-
-  _removeLink = () => {
-    const { editorState } = this.state;
-    const selection = editorState.getSelection();
-    if (!selection.isCollapsed()) {
-      this.setState({
-        editorState: RichUtils.toggleLink(editorState, selection, null),
-      });
     }
   };
 

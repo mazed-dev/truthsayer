@@ -7,10 +7,14 @@ import { Link as ReactRouterLink } from "react-router-dom";
 import { RichUtils, SelectionState } from "draft-js";
 
 import { ControlButton } from "./../editor/ControlButton";
+import { ImgButton } from "../../lib/ImgButton";
 
 import { joinClasses } from "../../util/elClass.js";
 
 import { Keys, isSymbol, isHotkeyCopy } from "../../lib/Keys.jsx";
+
+import CopyImg from "./../../img/copy.png";
+import DeleteImg from "./../../img/delete.png";
 
 import styles from "./Link.module.css";
 
@@ -120,58 +124,45 @@ class LinkEditor extends React.Component {
     }
   };
 
-  __onDelete = () => {
-    // const { contentState, onStateChange, onClose } = this.props;
-    // const selection = contentState.getSelection();
-    // if (!selection.isCollapsed()) {
-    //   const newEditorState = RichUtils.toggleLink(contentState, selection, null);
-    //   onStateChange(newEditorState);
-    // }
-    // onClose();
-  };
-
-  onDelete = () => {
-    const { contentState, onStateChange, onClose, selectionState } = this.props;
-    // const entity = contentState.getEntity(entityKey);
-    // TODO(akindyakov) Continue here!
-
-    if (!selectionState.isCollapsed()) {
-      const newEditorState = RichUtils.toggleLink(contentState, selectionState, null);
-      onStateChange(newEditorState);
-    }
+  _deleteLink = () => {
+    const { removeLink, onClose, selection } = this.props;
+    removeLink(selection);
     onClose();
   };
 
   _confirmLink = () => {
-    const { contentState, onStateChange, onClose, entityKey } = this.props;
+    const { contentState, onClose, entityKey } = this.props;
     const newEditorState = contentState.mergeEntityData(entityKey, {
       url: this.state.value,
     });
     onClose();
   };
 
+  _copyLink = () => {
+    // TODO(akindyakov): implement copy of current url
+  };
+
   // https://github.com/facebook/draft-js/issues/2137
 
   render() {
-    const { contentState, entityKey } = this.props;
-    const entity = contentState.getEntity(entityKey);
-    console.log("Make toolbar ", entity.getData());
-    // Where the fuck I'm supposed to get selection to remove url here?
-    const { onClose, onSave } = this.props;
     return (
       <div className={styles.popover_root}>
         <div className={styles.popover}>
+          <ImgButton onClick={this._copyLink} className={styles.link_btn}>
+            <img src={CopyImg} className={styles.btn_img} alt={"Copy link"} />
+          </ImgButton>
+          <ImgButton onClick={this._deleteLink} className={styles.link_btn}>
+            <img src={DeleteImg} className={styles.btn_img} alt={"Unlink"} />
+          </ImgButton>
           <input
             onChange={this._onURLChange}
-            className={styles.urlInput}
+            className={styles.link_input}
             type="url"
             value={this.state.value}
             onKeyDown={this._onLinkInputKeyDown}
             ref={(x) => (this.urlRef = x)}
+            disabled={true}
           />
-          <ControlButton onClick={this._confirmLink}>Confirm</ControlButton>
-          <ControlButton onClick={this._closePopover}>Cancel</ControlButton>
-          <ControlButton onClick={this.onDelete}>Delete</ControlButton>
         </div>
       </div>
     );
@@ -186,30 +177,25 @@ export class Link extends React.Component {
     };
   }
   onMouseEnterHandler = () => {
-    this.setState({
-      showEditor: true,
-    });
-    console.log("enter");
+    this.setState({ showEditor: true });
   };
 
   onMouseLeaveHandler = () => {
-    this.setState({
-      showEditor: false,
-    });
+    this.setState({ showEditor: false });
     console.log("leave");
   };
 
   onEditorClose = () => {
     this.setState({ showEditor: false });
   };
-  // https://github.com/facebook/draft-js/issues/2137
-  render() {
-    console.log("Link props", this.props);
-    const { contentState, children, entityKey, onStateChange, end, start, blockKey } = this.props;
-    const { url } = contentState.getEntity(entityKey).getData();
-    // dir: null, start: 366, end: 383, blockKey: "5ss4vcu8394", entityKey: "03999e42-6e4b-4bcd-ac6e-6f492fcd17f6", offsetKey: "5ss4vcu8394-1-0",
-    let selectionState = SelectionState.createEmpty();
-    selectionState.merge({
+
+  makeToolbar(url) {
+    if (!this.state.showEditor) {
+      return null;
+    }
+    const { contentState, entityKey, removeLink, end, start, blockKey } =
+      this.props;
+    let selection = SelectionState.createEmpty().merge({
       anchorKey: blockKey,
       anchorOffset: start,
       focusKey: blockKey,
@@ -217,16 +203,31 @@ export class Link extends React.Component {
       isBackward: false,
       hasFocus: false,
     });
-    const toolbar = this.state.showEditor ? (
+    console.log("Selection on link deleteion", selection);
+    return (
       <LinkEditor
         value={url}
         onClose={this.onEditorClose}
-        onStateChange={onStateChange}
         contentState={contentState}
         entityKey={entityKey}
-        selectionState={selectionState}
+        selection={selection}
+        removeLink={removeLink}
       />
-    ) : null;
+    );
+  }
+  // https://github.com/facebook/draft-js/issues/2137
+  render() {
+    const {
+      contentState,
+      children,
+      entityKey,
+      removeLink,
+      end,
+      start,
+      blockKey,
+    } = this.props;
+    const { url } = contentState.getEntity(entityKey).getData();
+    const toolbar = this.makeToolbar(url);
     if (url.match(/^\w+$/)) {
       return (
         <div

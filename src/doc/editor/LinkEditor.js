@@ -115,6 +115,7 @@ export class LinkEditor extends React.Component {
     let newEditorState = EditorState.set(editorState, {
       currentContent: contentStateWithEntity,
     });
+    console.log("Selection on link creation", newEditorState.getSelection());
     newEditorState = RichUtils.toggleLink(
       newEditorState,
       newEditorState.getSelection(),
@@ -128,16 +129,6 @@ export class LinkEditor extends React.Component {
       },
       () => {}
     );
-  };
-
-  _removeLink = (e) => {
-    e.preventDefault();
-    const { editorState, onStateChange } = this.props;
-    const selection = editorState.getSelection();
-    if (!selection.isCollapsed()) {
-      const newEditorState = RichUtils.toggleLink(editorState, selection, null);
-      onStateChange(newEditorState);
-    }
   };
 
   render() {
@@ -162,10 +153,6 @@ export class LinkEditor extends React.Component {
       );
     }
     className = joinClasses(className || null, styles.toolbar);
-    // <ControlButton onClick={this._removeLink} className={styles.btn}>
-    //   Remove Link
-    // </ControlButton>
-    // <img className={styles.icon_img} src={IconLink} />
     return (
       <>
         <ControlButton
