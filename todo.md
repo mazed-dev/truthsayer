@@ -8,9 +8,11 @@
   - [ ] Support new type of documents in search
   - [ ] Migration tool for all existing cards - redirect after a login
   - [x] Rich text toolbar at the bottom, between the card and mazed toolbar
+  - [ ] Support Draft JS documents in small cards
   - [ ] Release
-- [ ] Insert images
-- [ ] "Date" menu, to see details and edit in modal window. Date picker
+- [ ] Hide share button under meatballs menu
+- [ ] Support custom images in docs
+- [ ] "Date-time" menu, to see details and edit in modal window. Date picker
 - [ ] Twice smaler search cards for mobile devices
 - [ ] Button for list item to create right-link from this item
 - [ ] Fix tooltip overlap
