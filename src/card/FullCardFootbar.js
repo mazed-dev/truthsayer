@@ -671,19 +671,19 @@ class PrivateFullCardFootbar extends React.Component {
           nid={this.props.nid}
           show={this.state.modalLeftShow}
           onHide={this.hideLeftSearchDialog}
+          context={this.props.context}
         />
         <RightSearchModal
           addRef={this.props.addRef}
           nid={this.props.nid}
           show={this.state.modalRightShow}
           onHide={this.hideRightSearchDialog}
+          context={this.props.context}
         />
       </>
     );
   }
 }
-
-// PrivateFullCardFootbar.contextType = MzdGlobalContext;
 
 PrivateFullCardFootbar = withRouter(PrivateFullCardFootbar);
 
@@ -699,9 +699,9 @@ class PublicFullCardFootbar extends React.Component {
   };
 
   getAccountOrLogin = () => {
-    let account = this.props.context.account;
-    if (account) {
-      return account;
+    let context = this.props.context;
+    if (context && context.account) {
+      return context.account;
     }
     goto.notice.logInToContinue({ history: this.props.history });
     return null;

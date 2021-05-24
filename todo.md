@@ -1,13 +1,13 @@
 # Todo
 
 - [ ] Draft JS as an rich text editor
-  - [ ] Bottom line toolbar
+  - [x] Bottom line toolbar
   - [ ] Refs - url valiation
   - [ ] Refs - local node refs recognition
   - [ ] Support saving changed documents
   - [ ] Support new type of documents in search
-  - [ ] Migration tool for all existing cards
-  - [ ] Rich text toolbar at the bottom, between the card and mazed toolbar
+  - [ ] Migration tool for all existing cards - redirect after a login
+  - [x] Rich text toolbar at the bottom, between the card and mazed toolbar
   - [ ] Release
 - [ ] Insert images
 - [ ] "Date" menu, to see details and edit in modal window. Date picker
