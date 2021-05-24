@@ -144,7 +144,7 @@ class RightSearchModal extends React.Component {
   }
 
   render() {
-    let account = this.context.account;
+    let account = this.props.context.account;
     return (
       <AutocompleteWindow
         show={this.props.show}
@@ -279,7 +279,7 @@ class PrivateFullCardFootbar extends React.Component {
   };
 
   handleNextRightClone = (event) => {
-    let account = this.context.account;
+    let account = this.props.context.account;
     cloneNode({
       from: this.props.nid,
       to: null,
@@ -293,7 +293,7 @@ class PrivateFullCardFootbar extends React.Component {
   };
 
   handleNextLeftBlankCopy = () => {
-    let account = this.context.account;
+    let account = this.props.context.account;
     cloneNode({
       from: null,
       to: this.props.nid,
@@ -308,7 +308,7 @@ class PrivateFullCardFootbar extends React.Component {
   };
 
   handleNextRightBlankCopy = () => {
-    let account = this.context.account;
+    let account = this.props.context.account;
     cloneNode({
       from: this.props.nid,
       to: null,
@@ -344,7 +344,7 @@ class PrivateFullCardFootbar extends React.Component {
   };
 
   handleNextLeftClone = () => {
-    let account = this.context.account;
+    let account = this.props.context.account;
     cloneNode({
       from: null,
       to: this.props.nid,
@@ -699,7 +699,7 @@ class PublicFullCardFootbar extends React.Component {
   };
 
   getAccountOrLogin = () => {
-    let account = this.context.account;
+    let account = this.props.context.account;
     if (account) {
       return account;
     }
@@ -887,7 +887,7 @@ export function FullCardFootbar({ children, node, ...rest }) {
       );
     } else {
       return (
-        <PublicFullCardFootbar nid={node.nid} {...rest}>
+        <PublicFullCardFootbar nid={node.nid} context={ctx} {...rest}>
           {children}
         </PublicFullCardFootbar>
       );
