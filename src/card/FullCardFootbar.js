@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 
 import { withRouter } from "react-router-dom";
 import { Button, ButtonToolbar, ButtonGroup, Dropdown } from "react-bootstrap";
@@ -35,7 +35,7 @@ import { HoverTooltip } from "../lib/tooltip";
 import { ImgButton } from "../lib/ImgButton";
 import { goto } from "../lib/route.jsx";
 import { joinClasses } from "../util/elClass.js";
-import { makeACopy, makeBlankCopy } from "../doc/doc_util.jsx";
+import { makeACopy, makeBlankCopy, docAsMarkdown } from "../doc/doc_util.jsx";
 import { downloadAsFile } from "../util/download_as_file.jsx";
 
 class LeftSearchModal extends React.Component {
@@ -382,7 +382,7 @@ class PrivateFullCardFootbar extends React.Component {
   };
 
   handleCopyMarkdown = () => {
-    let toaster = this.context.toaster;
+    let toaster = this.props.context.toaster;
     const md = this.props.getMarkdown();
     navigator.clipboard.writeText(md).then(
       function () {
@@ -408,7 +408,7 @@ class PrivateFullCardFootbar extends React.Component {
   };
 
   handleArchiveDoc = () => {
-    let toaster = this.context.toaster;
+    let toaster = this.props.context.toaster;
     toaster.push({
       title: "Not yet implemented",
       message: "Archive feature is not yet implemented",
@@ -416,7 +416,7 @@ class PrivateFullCardFootbar extends React.Component {
   };
 
   handleDeleteNote = () => {
-    let toaster = this.context.toaster;
+    let toaster = this.props.context.toaster;
     smugler.node
       .delete({
         nid: this.props.nid,
@@ -687,7 +687,7 @@ class PrivateFullCardFootbar extends React.Component {
 
 PrivateFullCardFootbar = withRouter(PrivateFullCardFootbar);
 
-class PublicFullCardFootbarImpl extends React.Component {
+class PublicFullCardFootbar extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -791,32 +791,6 @@ class PublicFullCardFootbarImpl extends React.Component {
     });
   };
 
-  handleCopyMarkdown = () => {
-    let toaster = this.context.toaster;
-    const md = this.props.getMarkdown();
-    navigator.clipboard.writeText(md).then(
-      function () {
-        /* clipboard successfully set */
-        toaster.push({
-          title: "Copied",
-          message: "Note copied to clipboard as markdown",
-        });
-      },
-      function () {
-        /* clipboard write failed */
-        toaster.push({
-          title: "Error",
-          message: "Write to system clipboard failed",
-        });
-      }
-    );
-  };
-
-  handleDownloadMarkdown = () => {
-    const md = this.props.getMarkdown();
-    downloadAsFile(this.props.nid + ".md.txt", md);
-  };
-
   render() {
     return (
       <>
@@ -890,32 +864,35 @@ class PublicFullCardFootbarImpl extends React.Component {
   }
 }
 
-// PublicFullCardFootbarImpl.contextType = MzdGlobalContext;
+PublicFullCardFootbar = withRouter(PublicFullCardFootbar);
 
-const PublicFullCardFootbar = withRouter(PublicFullCardFootbarImpl);
-
-export class FullCardFootbar extends React.Component {
-  render() {
-    const { children, node, ...rest } = this.props;
-    let account = this.context.account;
-    if (node && node.meta) {
-      if (this.props.node.isOwnedBy(account)) {
-        return (
-          <PrivateFullCardFootbar nid={node.nid} meta={node.meta} {...rest}>
-            {children}
-          </PrivateFullCardFootbar>
-        );
-      } else {
-        return (
-          <PublicFullCardFootbar nid={node.nid} {...rest}>
-            {children}
-          </PublicFullCardFootbar>
-        );
-      }
+export function FullCardFootbar({ children, node, ...rest }) {
+  const ctx = useContext(MzdGlobalContext);
+  const account = ctx.account;
+  if (node && node.meta) {
+    if (node.isOwnedBy(account)) {
+      const getMarkdown = () => {
+        return docAsMarkdown(node.doc);
+      };
+      return (
+        <PrivateFullCardFootbar
+          nid={node.nid}
+          meta={node.meta}
+          getMarkdown={getMarkdown}
+          context={ctx}
+          {...rest}
+        >
+          {children}
+        </PrivateFullCardFootbar>
+      );
+    } else {
+      return (
+        <PublicFullCardFootbar nid={node.nid} {...rest}>
+          {children}
+        </PublicFullCardFootbar>
+      );
     }
-    // TODO(akindyakov): empty footbard to allocate space?
-    return null;
   }
+  // TODO(akindyakov): empty footbard to allocate space?
+  return null;
 }
-
-// FullCardFootbar.contextType = MzdGlobalContext;

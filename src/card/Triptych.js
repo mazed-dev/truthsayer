@@ -72,7 +72,6 @@ class NodeRefs extends React.Component {
 
 function NodeCard({ node, addRef, stickyEdges, updateNode }) {
   const editor = node != null ? <NodeEditor doc={node.doc} /> : <Loader />;
-  const getDocAsMarkdown = () => {};
   const reloadNode = () => {};
   return (
     <WideCard>
@@ -81,7 +80,6 @@ function NodeCard({ node, addRef, stickyEdges, updateNode }) {
         addRef={addRef}
         node={node}
         stickyEdges={stickyEdges}
-        getMarkdown={getDocAsMarkdown}
         reloadNode={reloadNode}
       />
     </WideCard>

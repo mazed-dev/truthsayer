@@ -10,7 +10,9 @@ import {
 } from "./chunk_util.jsx";
 import { parseRawSource } from "./mdRawParser.jsx";
 
-import { markdownToDoc } from "../markdown/conv.jsx";
+import { markdownToDoc,
+  docToMarkdown,
+} from "../markdown/conv.jsx";
 
 export function exctractDocTitle(doc: TDoc | string): string {
   if (typeof doc === "string") {
@@ -131,4 +133,18 @@ export function getDocDraft(doc: TDoc): TDraftDoc {
       entityMap: [],
     }
   );
+}
+
+export function docAsMarkdown(doc: TDoc): string {
+  if (typeof doc === "string") {
+    return doc;
+  }
+  if (doc.chunks) {
+    return extractDocAsMarkdown(doc);
+  }
+  if (doc.draft) {
+    return docToMarkdown(doc.draft);
+  }
+  // TODO(akindyakov): Escalate it
+  return "";
 }
