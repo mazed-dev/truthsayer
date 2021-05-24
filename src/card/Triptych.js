@@ -11,7 +11,8 @@ import { SmallCard } from "./SmallCard";
 import { XsCard, ShrinkCard } from "./ShrinkCard";
 import { ReadOnlyRender } from "./../doc/ReadOnlyRender";
 
-import { SmallCardFootbar } from "./../card/SmallCardFootbar";
+import { SmallCardFootbar } from "./SmallCardFootbar";
+import { FullCardFootbar } from "./FullCardFootbar";
 
 import { withRouter } from "react-router-dom";
 
@@ -71,7 +72,20 @@ class NodeRefs extends React.Component {
 
 function NodeCard({ node, addRef, stickyEdges, updateNode }) {
   const editor = node != null ? <NodeEditor doc={node.doc} /> : <Loader />;
-  return <WideCard>{editor}</WideCard>;
+  const getDocAsMarkdown = () => {};
+  const reloadNode = () => {};
+  return (
+    <WideCard>
+      {editor}
+      <FullCardFootbar
+        addRef={addRef}
+        node={node}
+        stickyEdges={stickyEdges}
+        getMarkdown={getDocAsMarkdown}
+        reloadNode={reloadNode}
+      />
+    </WideCard>
+  );
 }
 
 class Triptych extends React.Component {

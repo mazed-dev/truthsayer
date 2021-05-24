@@ -1,9 +1,9 @@
 .toolbar {
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
+  padding-left: 4px;
+  padding-right: 4px;
 
-  margin-top: 0.4rem;
-  margin-bottom: 0.6rem;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
 .toolbar_group {

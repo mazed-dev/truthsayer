@@ -10,10 +10,9 @@
   border-bottom-style: solid;
   border-bottom-width: 1px;
   border-bottom-color: #c0c0c0;
-  border-radius: 4px;
 
   /* TODO(akindyakov) Please use a proper radius here */
-  box-shadow: 0px 1px 2px 1px var(--small_card_shadow_colour);
+  /* box-shadow: 0px 1px 2px 1px var(--small_card_shadow_colour); */
 
   width: 100%;
 

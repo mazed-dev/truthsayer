@@ -349,14 +349,6 @@ export class NodeEditor extends React.Component {
     //onClick={this.focus}
     return (
       <div className={styles.root}>
-        <ControlsToolbar
-          editorState={editorState}
-          toggleBlockType={this.toggleBlockType}
-          toggleInlineStyle={this.toggleInlineStyle}
-          onStateChange={this.onChange}
-          focusBack={this.focus}
-          className={controlsToolbarClassName}
-        />
         <div className={className}>
           <Editor
             blockStyleFn={this.blockStyleFn_}
@@ -371,6 +363,14 @@ export class NodeEditor extends React.Component {
             spellCheck={true}
           />
         </div>
+        <ControlsToolbar
+          editorState={editorState}
+          toggleBlockType={this.toggleBlockType}
+          toggleInlineStyle={this.toggleInlineStyle}
+          onStateChange={this.onChange}
+          focusBack={this.focus}
+          className={controlsToolbarClassName}
+        />
       </div>
     );
   }

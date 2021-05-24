@@ -1,9 +1,9 @@
 # Todo
 
 - [ ] Draft JS as an rich text editor
+  - [ ] Bottom line toolbar
   - [ ] Refs - url valiation
   - [ ] Refs - local node refs recognition
-  - [ ] Bottom line toolbar
   - [ ] Support saving changed documents
   - [ ] Support new type of documents in search
   - [ ] Migration tool for all existing cards
