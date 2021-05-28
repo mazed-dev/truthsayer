@@ -23,6 +23,8 @@
   );
 
   border-radius: inherit;
+
+  z-index: 1000;
 }
 
 .card_xxs {

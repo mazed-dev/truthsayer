@@ -20,13 +20,22 @@ export function untickCheckbox(sourceLine) {
   return sourceLine.replace(kCheckedRe, kToUnchecked);
 }
 
-export function CheckBox({ is_checked, onToggle, className, is_disabled }) {
+export function CheckBox({
+  is_checked,
+  onToggle,
+  className,
+  is_disabled,
+  onMouseEnter,
+  onMouseLeave,
+}) {
   const tick = is_checked ? styles.checkmark : null;
   const pointy = is_disabled ? null : styles.pointy;
   return (
     <div
       className={joinClasses(styles.container, pointy, className)}
       onClick={onToggle}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <div className={joinClasses(styles.checkbox, tick)} />
     </div>

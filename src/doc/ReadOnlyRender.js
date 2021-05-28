@@ -5,6 +5,8 @@ import styles from "./ReadOnlyRender.module.css";
 import { Loader } from "../lib/loader";
 import LockedImg from "./../img/locked.png";
 
+import { StaticNode } from "./NodeEditor";
+
 import { renderMdSmallCard } from "./../markdown/MarkdownRender";
 
 import { ChunkView } from "./chunks";
@@ -18,25 +20,8 @@ const kMaxTrimSmallCardSize = 320;
 const kMaxTrimSmallCardChunksNum = 4;
 const kMaxTrimChunksNum = 6;
 
-function SmallCardRender({ nid, doc, trim, ...rest }) {
-  let els = [];
-  if (doc) {
-    doc = enforceTopHeader(doc);
-    const chunks = trim ? doc.chunks.slice(0, 8) : doc.chunks;
-    els = chunks.map((chunk, index) => {
-      chunk = chunk || makeEmptyChunk();
-      const key = "chunk" + index;
-      return (
-        <ChunkView
-          nid={nid}
-          chunk={chunk}
-          key={key}
-          render={renderMdSmallCard}
-        />
-      );
-    });
-  }
-  return <div {...rest}>{els}</div>;
+function SmallCardRender({ nid, doc }) {
+  return <StaticNode doc={doc} nid={nid} small />;
 }
 
 class ReadDocRender extends React.Component {
@@ -66,7 +51,7 @@ class ReadDocRender extends React.Component {
         );
       } else {
         //TODO(akindyakov): trim card here if shrinked!
-        body = <SmallCardRender doc={node.doc} nid={this.props.node.nid} />;
+        body = <SmallCardRender doc={node.doc} nid={node.nid} />;
       }
     }
     return <div className={styles.read_only_card}>{body}</div>;

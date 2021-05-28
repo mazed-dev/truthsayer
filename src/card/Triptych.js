@@ -5,7 +5,6 @@ import styles from "./Triptych.module.css";
 // import { DocRender } from "./../doc/doc";
 import { WideCard } from "./WideCard";
 import { NodeEditor } from "../doc/NodeEditor";
-import { DocEditor } from "../doc/DocEditor";
 
 import { SmallCard } from "./SmallCard";
 import { XsCard, ShrinkCard } from "./ShrinkCard";

@@ -3,6 +3,7 @@ import React from "react";
 import { EditorBlock, DraftEditorBlock } from "draft-js";
 
 import "./components.css";
+import styles from "./CheckBox.module.css";
 
 import { CheckBox as ComonCheckBox } from "../../lib/CheckBox";
 
@@ -18,6 +19,7 @@ export class CheckBox extends React.Component {
     const checked = block.getData().get(kCheckedAttrKey, false);
     this.state = {
       checked: checked,
+      hover: false,
     };
   }
 
@@ -33,21 +35,39 @@ export class CheckBox extends React.Component {
 
   toggleChecked = (event) => {
     const { blockProps, block } = this.props;
-    const { updateMetadataFn } = blockProps;
+    const { updateMetadataFn, readOnly } = blockProps;
+    if (readOnly) {
+      return;
+    }
     const checked = this.state.checked;
     this.setState({ checked: !checked });
     updateMetadataFn(block.getKey(), ["data", kCheckedAttrKey], !checked);
   };
 
+  onMouseEnterHandler = () => {
+    this.setState({ hover: true });
+  };
+
+  onMouseLeaveHandler = () => {
+    this.setState({ hover: false });
+  };
+
   render() {
     const { offsetKey } = this.props;
+    const { hover, checked } = this.state;
+    const className = hover
+      ? joinClasses(styles.check_item, styles.check_item_hover)
+      : joinClasses(styles.check_item);
     return (
-      <div className={""} data-offset-key={offsetKey}>
+      <div className={className} data-offset-key={offsetKey}>
         <ComonCheckBox
           onToggle={this.toggleChecked}
-          is_checked={this.state.checked}
+          is_checked={checked}
+          className={styles.checkbox}
+          onMouseEnter={this.onMouseEnterHandler}
+          onMouseLeave={this.onMouseLeaveHandler}
         />
-        <div className={"doc_block_inline_text"}>
+        <div className={joinClasses("doc_block_inline_text", styles.block)}>
           <EditorBlock {...this.props} />
         </div>
       </div>

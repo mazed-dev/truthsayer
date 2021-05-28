@@ -1,0 +1,16 @@
+.check_item {
+  border-radius: 8px;
+  display: flex;
+}
+
+.check_item_hover {
+  background-color: rgba(0, 0, 0, 0.081);
+}
+
+.checkbox {
+  margin-top: 4px;
+  margin-left: 4px;
+}
+
+.block {
+}

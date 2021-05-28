@@ -25,7 +25,7 @@
 
 .doc_block_paragraph {
   white-space: normal;
-  margin-bottom: 1rem;
+  margin-bottom: 1em;
   margin-top: 0;
 }
 
@@ -38,11 +38,11 @@ div.public-DraftStyleDefault-block {
 }
 
 .doc_block_unstyled {
-  font-size: 1rem;
+  font-size: 1em;
 }
 
 .doc_block_header_1 {
-  font-size: 1.6rem;
+  font-size: 1.6em;
   font-weight: bold;
   display: block;
 
@@ -51,7 +51,7 @@ div.public-DraftStyleDefault-block {
 }
 
 .doc_block_header_2 {
-  font-size: 1.4rem;
+  font-size: 1.4em;
   font-weight: bold;
   /* color: #245501; */
   color: #006400;
@@ -59,7 +59,7 @@ div.public-DraftStyleDefault-block {
 }
 
 .doc_block_header_3 {
-  font-size: 1.2rem;
+  font-size: 1.2em;
   font-weight: bold;
   /* color: #538d22; */
   color: #007200;
@@ -67,7 +67,7 @@ div.public-DraftStyleDefault-block {
 }
 
 .doc_block_header_4 {
-  font-size: 1.1rem;
+  font-size: 1.1em;
   font-weight: bold;
   /* color: #73a942; */
   color: #008000;
@@ -75,7 +75,7 @@ div.public-DraftStyleDefault-block {
 }
 
 .doc_block_header_5 {
-  font-size: 1rem;
+  font-size: 1em;
   font-weight: bold;
   /* color: #aad576; */
   color: #38b000;
@@ -83,7 +83,7 @@ div.public-DraftStyleDefault-block {
 }
 
 .doc_block_header_6 {
-  font-size: 1rem;
+  font-size: 1em;
   font-weight: bold;
   /* color: #aad576; */
   color: #70e000;
@@ -103,6 +103,7 @@ div.public-DraftStyleDefault-block {
 
 .doc_block_inline_text {
   display: inline-block;
+  white-space: normal;
 }
 
 .doc_block_blockquote {

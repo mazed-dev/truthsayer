@@ -14,7 +14,6 @@ import "draft-js/dist/Draft.css";
 
 import "./NodeEditor.css";
 import styles from "./NodeEditor.module.css";
-import "./NodeEditor.css";
 import "./components/components.css";
 
 import {
@@ -59,8 +58,9 @@ import {
 } from "./types.jsx";
 
 import { getBlockStyleInDoc } from "./components/BlockStyle";
-import { Link } from "./components/Link";
+import { Link, StaticLink } from "./components/Link";
 import { HRule } from "./components/HRule";
+import { Header } from "./components/Header";
 import { CheckBox } from "./components/CheckBox";
 import { ControlsToolbar } from "./editor/ControlsToolbar";
 
@@ -353,14 +353,13 @@ export class NodeEditor extends React.Component {
           <Editor
             blockStyleFn={this.blockStyleFn_}
             blockRendererFn={this.myBlockRenderer}
-            customStyleMap={styleMap}
+            customStyleMap={kStyleMap}
             editorState={editorState}
             handleKeyCommand={this.handleKeyCommand}
             keyBindingFn={this.keyBindingFn}
             onChange={this.onChange}
             placeholder="Tell a story..."
             ref={(x) => (this.editorRef = x)}
-            spellCheck={true}
           />
         </div>
         <ControlsToolbar
@@ -375,8 +374,70 @@ export class NodeEditor extends React.Component {
     );
   }
 }
+
+export class StaticNode extends React.Component {
+  constructor(props) {
+    super(props);
+    this.decorator = new CompositeDecorator([
+      {
+        strategy: findLinkEntities,
+        component: StaticLink,
+      },
+    ]);
+    const content = convertFromRaw(getDocDraft(this.props.doc));
+    this.state = {
+      editorState: EditorState.createWithContent(content, this.decorator),
+      showControlsToolbar: false,
+    };
+  }
+
+  myBlockRenderer = (contentBlock) => {
+    const type = contentBlock.getType();
+    switch (type) {
+      case kBlockTypeUnorderedCheckItem:
+        return {
+          component: CheckBox,
+          props: { readOnly: true },
+        };
+      case kBlockTypeHrule:
+        return {
+          component: HRule,
+        };
+      case kBlockTypeH1:
+        return {
+          component: Header,
+          props: {
+            nid: this.props.nid,
+          },
+        };
+      default:
+        return;
+    }
+  };
+
+  blockStyleFn_ = (block) => {
+    return getBlockStyleInDoc(block.getType());
+  };
+
+  render() {
+    const { editorState } = this.state;
+    return (
+      <div className={styles.small_root}>
+        <Editor
+          blockStyleFn={this.blockStyleFn_}
+          blockRendererFn={this.myBlockRenderer}
+          customStyleMap={kStyleMap}
+          editorState={editorState}
+          ref={(x) => (this.editorRef = x)}
+          readOnly={true}
+        />
+      </div>
+    );
+  }
+}
+
 // Custom overrides for "code" style.
-const styleMap = {
+const kStyleMap = {
   CODE: {
     backgroundColor: "rgba(0, 0, 0, 0.05)",
     fontFamily: '"Inconsolata", "Menlo", "Consolas", monospace',

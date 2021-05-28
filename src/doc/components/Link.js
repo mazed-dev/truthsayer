@@ -182,7 +182,6 @@ export class Link extends React.Component {
 
   onMouseLeaveHandler = () => {
     this.setState({ showEditor: false });
-    console.log("leave");
   };
 
   onEditorClose = () => {
@@ -269,5 +268,36 @@ export class Link extends React.Component {
         </div>
       );
     }
+  }
+}
+
+export function StaticLink({ contentState, entityKey, children }) {
+  const { url } = contentState.getEntity(entityKey).getData();
+  if (url.match(/^\w+$/)) {
+    return (
+      <ReactRouterLink
+        to={url}
+        className={joinClasses(
+          "doc_block_inline_link",
+          "doc_block_inline_link_int"
+        )}
+        onBlur={onBlur}
+        onFocus={onFocus}
+      >
+        {children}
+      </ReactRouterLink>
+    );
+  } else {
+    return (
+      <a
+        href={url}
+        className={joinClasses(
+          "doc_block_inline_link",
+          "doc_block_inline_link_ext"
+        )}
+      >
+        {children}
+      </a>
+    );
   }
 }

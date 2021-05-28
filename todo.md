@@ -1,6 +1,8 @@
 # Todo
 
 - [ ] Draft JS as an rich text editor
+  - [ ] Hide all buttons from small card except "..." and "Open"
+  - [x] Support Draft JS documents in small cards
   - [x] Bottom line toolbar
   - [ ] Refs - url valiation
   - [ ] Refs - local node refs recognition
@@ -8,8 +10,8 @@
   - [ ] Support new type of documents in search
   - [ ] Migration tool for all existing cards - redirect after a login
   - [x] Rich text toolbar at the bottom, between the card and mazed toolbar
-  - [ ] Support Draft JS documents in small cards
   - [ ] Release
+- [ ] Emoji as a default header
 - [ ] Hide share button under meatballs menu
 - [ ] Support custom images in docs
 - [ ] "Date-time" menu, to see details and edit in modal window. Date picker
