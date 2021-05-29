@@ -35,6 +35,7 @@ function RefNodeCard({ nid, edge, switchStickiness, cutOffRef }) {
       </ShrinkCard>
       <SmallCardFootbar
         edge={edge}
+        nid={nid}
         switchStickiness={switchStickiness}
         cutOffRef={cutOffRef}
       />

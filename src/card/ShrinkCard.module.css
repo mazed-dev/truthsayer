@@ -1,6 +1,3 @@
-.everything {
-}
-
 .shrinkable {
   overflow: hidden;
   position: relative;
@@ -29,6 +26,10 @@
 
 .card_xxs {
   height: 8rem;
+}
+
+.everything_xxs {
+  min-height: 8rem;
 }
 
 .card_xs {

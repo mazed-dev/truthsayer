@@ -169,7 +169,6 @@ export class NodeEditor extends React.Component {
   }
 
   onChange = (editorState) => {
-    console.log("Editor onChange", Editor);
     // console.log(
     //   "Editor content entity map",
     //   editorState.getCurrentContent().getEntityMap()
@@ -194,13 +193,11 @@ export class NodeEditor extends React.Component {
   };
 
   focus = () => {
-    console.log("On editor focus");
     this.editorRef.focus();
     this.setState({ showControlsToolbar: true });
   };
 
   onBlur = () => {
-    console.log("Editor on blur");
     this.setState({ showControlsToolbar: false });
   };
 

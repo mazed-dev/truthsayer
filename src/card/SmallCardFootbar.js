@@ -1,7 +1,7 @@
 import React from "react";
 
-import { withRouter } from "react-router-dom";
-import { Button, ButtonToolbar, ButtonGroup, Dropdown } from "react-bootstrap";
+import { withRouter, Link } from "react-router-dom";
+import { Button, ButtonToolbar, ButtonGroup } from "react-bootstrap";
 
 import PropTypes from "prop-types";
 
@@ -21,6 +21,15 @@ import { ImgButton } from "../lib/ImgButton";
 import { goto } from "../lib/route.jsx";
 import { joinClasses } from "../util/elClass.js";
 import { CheckBox } from "./../lib/CheckBox.js";
+import { MeatballsButton } from "./MeatballsButton";
+import {
+  FootbarDropdown,
+  FootbarDropdownDivider,
+  FootbarDropdownItem,
+  FootbarDropdownMenu,
+  FootbarDropdownToggle,
+  FootbarDropdownToggleMeatballs,
+} from "./Footbar";
 
 class PrivateSmallCardFootbar extends React.Component {
   constructor(props) {
@@ -46,17 +55,19 @@ class PrivateSmallCardFootbar extends React.Component {
   }
 
   switchStickiness = () => {
-    const on = !this.state.isSticky;
+    let { isSticky } = this.state;
+    isSticky = !isSticky;
     smugler.edge
       .sticky({
-        on: on,
+        on: isSticky,
         eid: this.props.edge.eid,
         cancelToken: this.toggleStickinessCancelToken.token,
       })
       .then((res) => {
+        const { switchStickiness, edge } = this.props;
         if (res) {
-          this.setState({ isSticky: on });
-          this.props.switchStickiness(this.props.edge, on);
+          this.setState({ isSticky: isSticky });
+          switchStickiness(edge, isSticky);
         }
       });
   };
@@ -76,29 +87,47 @@ class PrivateSmallCardFootbar extends React.Component {
   };
 
   render() {
-    let cutTooltip = "Cut the link";
+    const cutTooltip = "Cut the link";
+    const { isSticky } = this.state;
+    const { nid } = this.props;
+    const magnetTooltip = isSticky
+      ? "Demagnetise the link"
+      : "Magnetise the link";
     return (
       <>
         <ButtonToolbar className={joinClasses(styles.toolbar)}>
           <ImgButton
-            onClick={this.handleRefCutOff}
             className={joinClasses(
               styles.tool_button,
               styles.toolbar_layout_item
             )}
+            as={Link}
+            to={"/n/" + nid}
           >
-            <HoverTooltip tooltip={cutTooltip}>
-              <img
-                src={CutTheRefImg}
-                className={styles.tool_button_img}
-                alt={cutTooltip}
-              />
-            </HoverTooltip>
+            Open
           </ImgButton>
-          <StickinessSwitcher
-            is_on={this.state.isSticky}
-            onToggle={this.switchStickiness}
-          />
+          <FootbarDropdown>
+            <FootbarDropdownToggleMeatballs
+              id={"more-options-for-fullsize-card"}
+            />
+            <FootbarDropdownMenu>
+              <FootbarDropdownItem onClick={this.handleRefCutOff}>
+                <img
+                  src={CutTheRefImg}
+                  className={joinClasses(
+                    styles.tool_button_img,
+                    styles.menu_item_pic
+                  )}
+                  alt={cutTooltip}
+                />
+                {cutTooltip}
+              </FootbarDropdownItem>
+              <FootbarDropdownItem onClick={this.switchStickiness}>
+                <CheckBox is_checked={isSticky} />
+                {magnetTooltip}
+              </FootbarDropdownItem>
+            </FootbarDropdownMenu>
+          </FootbarDropdown>
         </ButtonToolbar>
       </>
     );
@@ -124,19 +153,12 @@ class PublicSmallCardFootbarImpl extends React.Component {
 
 function StickinessSwitcher({ is_on, onToggle, is_disabled }) {
   is_disabled = is_disabled || false;
-  const tooltip = is_on ? "Sticky link" : "Not sticky link";
-  const img = is_on ? StickyRefOnImg : StickyRefOffImg;
   return (
     <ImgButton
-      className={joinClasses(styles.tool_button, styles.toolbar_layout_item)}
+      className={joinClasses(styles.tool_button)}
       onClick={onToggle}
       is_disabled={is_disabled}
-    >
-      <HoverTooltip tooltip={tooltip}>
-        <CheckBox is_checked={is_on} />
-        <img src={img} className={styles.tool_button_img} alt={tooltip} />
-      </HoverTooltip>
-    </ImgButton>
+    ></ImgButton>
   );
 }
 

@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 
 import { withRouter } from "react-router-dom";
-import { Button, ButtonToolbar, ButtonGroup, Dropdown } from "react-bootstrap";
+import { Button, ButtonToolbar, ButtonGroup } from "react-bootstrap";
 
 import PropTypes from "prop-types";
 
@@ -21,8 +21,6 @@ import NextNewRightImg from "./../img/next-link-right-00001.png";
 import NextCopyLeftImg from "./../img/next-clone-left.png";
 import NextCopyRightImg from "./../img/next-clone-right.png";
 
-import EllipsisImg from "./../img/ellipsis.png";
-
 import EncryptedImg from "./../img/encrypted.png";
 import PrivateImg from "./../img/private.png";
 import PublicImg from "./../img/public.png";
@@ -37,6 +35,16 @@ import { goto } from "../lib/route.jsx";
 import { joinClasses } from "../util/elClass.js";
 import { makeACopy, makeBlankCopy, docAsMarkdown } from "../doc/doc_util.jsx";
 import { downloadAsFile } from "../util/download_as_file.jsx";
+
+import { MeatballsButton } from "./MeatballsButton";
+import {
+  FootbarDropdown,
+  FootbarDropdownDivider,
+  FootbarDropdownItem,
+  FootbarDropdownMenu,
+  FootbarDropdownToggle,
+  FootbarDropdownToggleMeatballs,
+} from "./Footbar";
 
 class LeftSearchModal extends React.Component {
   constructor(props) {
@@ -76,23 +84,6 @@ class LeftSearchModal extends React.Component {
     );
   }
 }
-
-const CustomMoreToggle = React.forwardRef(({ children, onClick }, ref) => (
-  <Button
-    variant="light"
-    className={joinClasses(styles.tool_button)}
-    ref={ref}
-    onClick={(e) => {
-      e.preventDefault();
-      onClick(e);
-    }}
-  >
-    {children}
-    <HoverTooltip tooltip={"More"}>
-      <img src={EllipsisImg} className={styles.tool_button_img} alt={"More"} />
-    </HoverTooltip>
-  </Button>
-));
 
 const CustomNodePrivacyToggle = React.forwardRef(
   ({ children, onClick }, ref) => (
@@ -460,14 +451,8 @@ class PrivateFullCardFootbar extends React.Component {
     return (
       <>
         <ButtonToolbar className={joinClasses(styles.toolbar)}>
-          <Dropdown
-            as={ButtonGroup}
-            className={joinClasses(styles.toolbar_layout_item)}
-          >
-            <Dropdown.Toggle
-              variant="light"
-              className={joinClasses(styles.tool_button, styles.tool_dropdown)}
-            >
+          <FootbarDropdown>
+            <FootbarDropdownToggle>
               <HoverTooltip tooltip={"Link to the left"}>
                 <img
                   src={NextNewLeftImg}
@@ -475,10 +460,10 @@ class PrivateFullCardFootbar extends React.Component {
                   alt="Add left link"
                 />
               </HoverTooltip>
-            </Dropdown.Toggle>
+            </FootbarDropdownToggle>
 
-            <Dropdown.Menu>
-              <Dropdown.Item
+            <FootbarDropdownMenu>
+              <FootbarDropdownItem
                 className={styles.dropdown_menu_item}
                 onClick={this.handleNextLeft}
               >
@@ -488,9 +473,9 @@ class PrivateFullCardFootbar extends React.Component {
                   alt="Add left link"
                 />
                 New
-              </Dropdown.Item>
+              </FootbarDropdownItem>
 
-              <Dropdown.Item
+              <FootbarDropdownItem
                 className={styles.dropdown_menu_item}
                 onClick={this.handleNextLeftClone}
               >
@@ -500,8 +485,8 @@ class PrivateFullCardFootbar extends React.Component {
                   alt="Copy and link"
                 />
                 Copy
-              </Dropdown.Item>
-              <Dropdown.Item
+              </FootbarDropdownItem>
+              <FootbarDropdownItem
                 className={styles.dropdown_menu_item}
                 onClick={this.handleNextLeftBlankCopy}
               >
@@ -511,8 +496,8 @@ class PrivateFullCardFootbar extends React.Component {
                   alt="Blank copy and link"
                 />
                 Blank copy
-              </Dropdown.Item>
-              <Dropdown.Item
+              </FootbarDropdownItem>
+              <FootbarDropdownItem
                 className={styles.dropdown_menu_item}
                 onClick={this.handleNextLeftSearch}
               >
@@ -522,9 +507,9 @@ class PrivateFullCardFootbar extends React.Component {
                   alt="Search and link"
                 />
                 Search
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
+              </FootbarDropdownItem>
+            </FootbarDropdownMenu>
+          </FootbarDropdown>
 
           <ImgButton
             onClick={this.showShareDialog}
@@ -536,16 +521,13 @@ class PrivateFullCardFootbar extends React.Component {
             {this.getShareBtn()}
           </ImgButton>
 
-          <Dropdown className={joinClasses(styles.toolbar_layout_item)}>
-            <Dropdown.Toggle
-              variant="light"
-              className={joinClasses(styles.tool_button, styles.tool_dropdown)}
+          <FootbarDropdown>
+            <FootbarDropdownToggleMeatballs
               id={"more-options-for-fullsize-card"}
-              as={CustomMoreToggle}
             />
 
-            <Dropdown.Menu>
-              <Dropdown.Item
+            <FootbarDropdownMenu>
+              <FootbarDropdownItem
                 className={styles.dropdown_menu_item}
                 onClick={this.handleCopyMarkdown}
               >
@@ -555,8 +537,8 @@ class PrivateFullCardFootbar extends React.Component {
                   alt="Copy as markdown"
                 />
                 Copy as markdown
-              </Dropdown.Item>
-              <Dropdown.Item
+              </FootbarDropdownItem>
+              <FootbarDropdownItem
                 className={styles.dropdown_menu_item}
                 onClick={this.handleDownloadMarkdown}
               >
@@ -566,10 +548,10 @@ class PrivateFullCardFootbar extends React.Component {
                   alt="Download as text"
                 />
                 Download as text
-              </Dropdown.Item>
+              </FootbarDropdownItem>
 
-              <Dropdown.Divider />
-              <Dropdown.Item
+              <FootbarDropdownDivider />
+              <FootbarDropdownItem
                 className={styles.dropdown_menu_item}
                 onClick={this.handleDeleteNote}
               >
@@ -579,9 +561,9 @@ class PrivateFullCardFootbar extends React.Component {
                   alt={"Delete"}
                 />
                 Delete
-              </Dropdown.Item>
-              <Dropdown.Divider />
-              <Dropdown.Item
+              </FootbarDropdownItem>
+              <FootbarDropdownDivider />
+              <FootbarDropdownItem
                 className={styles.dropdown_menu_item}
                 onClick={this.handleArchiveDoc}
               >
@@ -591,18 +573,12 @@ class PrivateFullCardFootbar extends React.Component {
                   alt={"Archive"}
                 />
                 Archive
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
+              </FootbarDropdownItem>
+            </FootbarDropdownMenu>
+          </FootbarDropdown>
 
-          <Dropdown
-            as={ButtonGroup}
-            className={joinClasses(styles.toolbar_layout_item)}
-          >
-            <Dropdown.Toggle
-              variant="light"
-              className={joinClasses(styles.tool_button, styles.tool_dropdown)}
-            >
+          <FootbarDropdown>
+            <FootbarDropdownToggle>
               <HoverTooltip tooltip={"Link to the right"}>
                 <img
                   src={NextNewRightImg}
@@ -610,10 +586,10 @@ class PrivateFullCardFootbar extends React.Component {
                   alt="Add left link"
                 />
               </HoverTooltip>
-            </Dropdown.Toggle>
+            </FootbarDropdownToggle>
 
-            <Dropdown.Menu>
-              <Dropdown.Item
+            <FootbarDropdownMenu>
+              <FootbarDropdownItem
                 className={styles.dropdown_menu_item}
                 onClick={this.handleNextRight}
               >
@@ -623,8 +599,8 @@ class PrivateFullCardFootbar extends React.Component {
                   alt="Add right link"
                 />
                 New
-              </Dropdown.Item>
-              <Dropdown.Item
+              </FootbarDropdownItem>
+              <FootbarDropdownItem
                 className={styles.dropdown_menu_item}
                 onClick={this.handleNextRightClone}
               >
@@ -634,8 +610,8 @@ class PrivateFullCardFootbar extends React.Component {
                   alt="Copy and link"
                 />
                 Copy
-              </Dropdown.Item>
-              <Dropdown.Item
+              </FootbarDropdownItem>
+              <FootbarDropdownItem
                 className={styles.dropdown_menu_item}
                 onClick={this.handleNextRightBlankCopy}
               >
@@ -645,8 +621,8 @@ class PrivateFullCardFootbar extends React.Component {
                   alt="Blnak copy and link"
                 />
                 Blank copy
-              </Dropdown.Item>
-              <Dropdown.Item
+              </FootbarDropdownItem>
+              <FootbarDropdownItem
                 className={styles.dropdown_menu_item}
                 onClick={this.handleNextRightSearch}
               >
@@ -656,9 +632,9 @@ class PrivateFullCardFootbar extends React.Component {
                   alt="Search and link"
                 />
                 Search
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
+              </FootbarDropdownItem>
+            </FootbarDropdownMenu>
+          </FootbarDropdown>
         </ButtonToolbar>
 
         <ShareModal

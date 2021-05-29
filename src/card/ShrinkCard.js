@@ -76,7 +76,9 @@ export class ShrinkCard extends React.Component {
   };
 
   render() {
-    const shrinkStyle = this.state.opened ? styles.everything : styles.card_xxs;
+    const shrinkStyle = this.state.opened
+      ? styles.everything_xxs
+      : styles.card_xxs;
     return (
       <>
         <div className={joinClasses(styles.shrinkable, shrinkStyle)}>

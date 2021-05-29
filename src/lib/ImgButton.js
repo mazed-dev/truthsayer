@@ -7,7 +7,7 @@ import { joinClasses } from "../util/elClass.js";
 import styles from "./ImgButton.module.css";
 
 export const ImgButton = React.forwardRef(
-  ({ children, onClick, className, is_disabled }, ref) => (
+  ({ children, onClick, className, is_disabled, ...kwargs }, ref) => (
     <Button
       variant="light"
       className={joinClasses(styles.img_button, className)}
@@ -19,6 +19,7 @@ export const ImgButton = React.forwardRef(
           onClick(e);
         }
       }}
+      {...kwargs}
     >
       {children}
     </Button>
