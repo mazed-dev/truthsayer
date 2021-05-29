@@ -6,16 +6,22 @@
   - [x] Support Draft JS documents in small cards
   - [x] Bottom line toolbar
   - [x] Support saving changed documents
+  - [ ] Checkbox doesn't work
   - [ ] Support new type of documents in search
+  - [ ] Click on the ref in text doesn't work
   - [ ] Migration tool for all existing cards - redirect after a login
-  - [ ] Refs - url valiation
-  - [ ] Refs - local node refs recognition
+  - [ ] Refs, url valiation
+  - [ ] Refs, local node refs recognition
+  - [ ] Refs, same buttons as for right "next"
   - [ ] Fix links in "cloned from" disclaimers
+  - [ ] Smart point
+  - [ ] Magnet edges is broken
   - [ ] Release
 - [ ] Support custom images in docs
 - [ ] "Date-time" menu, to see details and edit in modal window. Date picker
-- [ ] Emoji as a default header
+- [ ] Checkbox doesn't have depth as normal list
 - [ ] Hide share button under meatballs menu
+- [ ] Emoji as a default header
 - [ ] Twice smaler search cards for mobile devices
 - [ ] Button for list item to create right-link from this item
 - [ ] Fix tooltip overlap
