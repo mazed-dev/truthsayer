@@ -67,8 +67,9 @@ class NodeRefs extends React.Component {
   }
 }
 
-function NodeCard({ node, addRef, stickyEdges, updateNode }) {
-  const editor = node != null ? <NodeEditor doc={node.doc} /> : <Loader />;
+function NodeCard({ node, addRef, stickyEdges, saveDoc }) {
+  const editor =
+    node != null ? <NodeEditor doc={node.doc} saveDoc={saveDoc} /> : <Loader />;
   const reloadNode = () => {};
   return (
     <WideCard>
@@ -183,7 +184,7 @@ class Triptych extends React.Component {
       });
   };
 
-  updateNode = (doc) => {
+  saveDoc = (doc) => {
     // For callback
     let account = this.context.account;
     return smugler.node
@@ -194,11 +195,11 @@ class Triptych extends React.Component {
         account: account,
       })
       .then((resp) => {
-        this.setState((state) => {
-          let node = state.node;
-          node.doc = doc;
-          return { node: node };
-        });
+        // this.setState((state) => {
+        //   let node = state.node;
+        //   node.doc = doc;
+        //   return { node: node };
+        // });
         return resp;
       });
   };
@@ -273,7 +274,7 @@ class Triptych extends React.Component {
         node={this.state.node}
         addRef={this.addRef}
         stickyEdges={this.state.edges_sticky}
-        updateNode={this.updateNode}
+        saveDoc={this.saveDoc}
       />
     );
     let triptychRow = null;

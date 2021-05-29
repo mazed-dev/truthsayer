@@ -28,6 +28,8 @@ import {
 import { joinClasses } from "../util/elClass.js";
 import { Keys } from "../lib/Keys.jsx";
 
+import { debounce } from "lodash";
+
 import {
   TChunk,
   TDraftDoc,
@@ -64,7 +66,7 @@ import { Header } from "./components/Header";
 import { CheckBox } from "./components/CheckBox";
 import { ControlsToolbar } from "./editor/ControlsToolbar";
 
-import { getDocDraft } from "./doc_util.jsx";
+import { getDocDraft, makeDoc } from "./doc_util.jsx";
 
 const { Map } = require("immutable");
 
@@ -169,28 +171,17 @@ export class NodeEditor extends React.Component {
   }
 
   onChange = (editorState) => {
-    // console.log(
-    //   "Editor content entity map",
-    //   editorState.getCurrentContent().getEntityMap()
-    // );
-    // console.log(
-    //   "Editor content block map",
-    //   editorState.getCurrentContent().getBlockMap()
-    // );
-    // console.log(
-    //   "Editor get plain text",
-    //   editorState.getCurrentContent().getPlainText("---")
-    // );
-    // const contentState = editorState.getCurrentContent();
-    // console.log("Content state", convertToRaw(contentState));
-    // editorState
-    //   .getCurrentContent()
-    //   .getBlockMap()
-    //   .map((value, key) => {
-    //     console.log("Block", key, value);
-    //   });
     this.setState({ editorState });
+    this.saveContent(editorState.getCurrentContent());
   };
+
+  saveContent = debounce((content) => {
+    const { saveDoc } = this.props;
+    const draft = convertToRaw(content);
+    saveDoc(makeDoc({ draft }));
+    // TODO(akindyakov): Collect stats here
+    console.log("Saved content state", draft);
+  }, 1000);
 
   focus = () => {
     this.editorRef.focus();

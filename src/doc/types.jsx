@@ -56,3 +56,45 @@ export const kEntityTypeImage = "IMAGE";
 
 export const kEntityMutable = "MUTABLE";
 export const kEntityImmutable = "IMMUTABLE";
+
+export function isHeaderBlock(block) {
+  const { type } = block;
+  switch (type) {
+    case kBlockTypeH1:
+    case kBlockTypeH2:
+    case kBlockTypeH3:
+    case kBlockTypeH4:
+    case kBlockTypeH5:
+    case kBlockTypeH6:
+      return true;
+  }
+  return false;
+}
+
+export function makeHRuleBlock() {
+  return {
+    type: kBlockTypeHrule,
+    key: generateRandomKey(),
+    text: "",
+    data: {},
+    depth: 0,
+    entityRanges: [],
+    inlineStyleRanges: [],
+  };
+}
+
+export function makeUnstyledBlock(text) {
+  return {
+    type: kBlockTypeUnstyled,
+    text: text,
+    key: generateRandomKey(),
+    data: {},
+    depth: 0,
+    entityRanges: [],
+    inlineStyleRanges: [],
+  };
+}
+
+export function generateRandomKey(): string {
+  return Math.random().toString(32).substring(2);
+}

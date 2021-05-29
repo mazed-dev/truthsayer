@@ -1,6 +1,6 @@
 import React from "react";
 
-import { markdownToDoc, docToMarkdown } from "./conv.jsx";
+import { markdownToDraft, docToMarkdown } from "./conv.jsx";
 
 import {
   TChunk,
@@ -71,7 +71,7 @@ print s
 [](@1619823600/day)
 `;
 
-  const doc = markdownToDoc(md);
+  const doc = markdownToDraft(md);
 
   doc.blocks.forEach((block) => {
     expect(block).toHaveProperty("key");

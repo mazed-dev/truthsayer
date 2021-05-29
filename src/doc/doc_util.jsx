@@ -1,5 +1,7 @@
 import { TDoc, TChunk, EChunkType } from "./types.jsx";
 
+import { cloneDeep } from "lodash";
+
 import {
   makeChunk,
   makeHRuleChunk,
@@ -8,11 +10,18 @@ import {
   isTextChunk,
   makeBlankCopyOfAChunk,
 } from "./chunk_util.jsx";
-import { parseRawSource } from "./mdRawParser.jsx";
 
-import { markdownToDoc,
+import { 
   docToMarkdown,
+  markdownToDraft,
 } from "../markdown/conv.jsx";
+
+import {
+  isHeaderBlock,
+  kBlockTypeUnorderedCheckItem,
+  makeHRuleBlock,
+  makeUnstyledBlock,
+} from "./../doc/types.jsx";
 
 export function exctractDocTitle(doc: TDoc | string): string {
   if (typeof doc === "string") {
@@ -31,9 +40,23 @@ export function exctractDocTitle(doc: TDoc | string): string {
     if (title) {
       return title;
     }
+  } else if ("draft" in doc) {
+    const { draft } = doc;
+    const title = draft.blocks.reduce((acc, item) => {
+      if (!acc && isHeaderBlock(item)) {
+        const title = _makeTitleFromRaw(item.text);
+        if (title) {
+          return title;
+        }
+      }
+      return acc;
+    }, null);
+    if (title) {
+      return title;
+    }
   }
   // For an empty doc
-  return "Some no name page" + "\u2026";
+  return "Some page" + "\u2026";
 }
 
 function _makeTitleFromRaw(source: string): string {
@@ -53,16 +76,28 @@ function _makeTitleFromRaw(source: string): string {
 
 export function makeACopy(doc: TDoc | string, nid: string): TDoc {
   if (typeof doc === "string") {
-    doc = parseRawSource(doc);
+    doc = makeDoc({
+      draft: markdownToDraft(doc),
+    });
   }
   let title = exctractDocTitle(doc);
   let clonedBadge: string = "_Copy of [" + title + "](" + nid + ")_";
-  let chunks = doc.chunks.concat(makeHRuleChunk(), makeChunk(clonedBadge));
-  return makeDoc({
-    chunks: chunks,
-  });
+  if ("chunks" in doc) {
+    let chunks = doc.chunks.concat(makeHRuleChunk(), makeChunk(clonedBadge));
+    return makeDoc({
+      chunks: chunks,
+    });
+  } else if ("draft" in doc) {
+    doc.draft.blocks = doc.draft.blocks.concat(
+      makeHRuleBlock(),
+      makeUnstyledBlock(clonedBadge),
+    );
+    return doc;
+  }
+  return makeDoc();
 }
 
+// Deprecated
 export function extractDocAsMarkdown(doc: TDoc): string {
   if (typeof doc === "string") {
     return doc;
@@ -74,9 +109,12 @@ export function extractDocAsMarkdown(doc: TDoc): string {
     .trim();
 }
 
+// Deprecated
 export function enforceTopHeader(doc: TDoc): TDoc {
   if (typeof doc === "string") {
-    doc = parseRawSource(doc);
+    doc = makeDoc({
+      draft: markdownToDraft(doc),
+    });
   }
   let chunks = doc.chunks || new Array();
   if (chunks.length === 0 || !isHeaderChunk(doc.chunks[0])) {
@@ -86,37 +124,60 @@ export function enforceTopHeader(doc: TDoc): TDoc {
   return doc;
 }
 
-export function makeDoc({ chunks }): TDoc {
+export function makeDoc({ chunks, draft }): TDoc {
+  if (draft) {
+    return { draft };
+  }
   if (chunks) {
     return {
-      chunks: chunks,
+      draft: markdownToDraft(
+        extractDocAsMarkdown(chunks.reduce((acc, current) => {
+            return acc + "\n\n" + current.source;
+          }, "").trim()
+        )
+      )
     };
   }
+  return {
+    draft: markdownToDraft(""),
+  };
+}
+
+function makeBlankCopyOfABlock(block) {
+  if (block.type === kBlockTypeUnorderedCheckItem) {
+    let b = cloneDeep(block);
+    b.data.checked = false;
+    return b;
+  }
+  return block;
 }
 
 export function makeBlankCopy(doc: TDoc | string, nid: string): TDoc {
   if (typeof doc === "string") {
-    doc = parseRawSource(doc);
-  }
-  if (!("chunks" in doc)) {
-    return makeDoc({
-      chunks: [],
+    doc = makeDoc({
+      draft: markdownToDraft(doc),
+    });
+  } else if ("chunks" in doc) {
+    doc = makeDoc({
+      chunks: doc.chunks,
     });
   }
-  let chunks = doc.chunks.map((chunk) => {
-    return makeBlankCopyOfAChunk(chunk);
-  });
+  let { draft } = doc;
+  if (draft == null) {
+    return makeDoc();
+  }
   const title = exctractDocTitle(doc);
   const clonedBadge: string = "_Blank copy of [" + title + "](" + nid + ")_";
-  chunks.push(makeHRuleChunk(), makeChunk(clonedBadge));
-  return makeDoc({
-    chunks: chunks,
-  });
+
+  draft.blocks = draft.blocks.map((block) => {
+    return makeBlankCopyOfABlock(block);
+  }).push(makeHRuleBlock(), makeUnstyledBlock(clonedBadge));
+  return makeDoc({ draft });
 }
 
 export function getDocDraft(doc: TDoc): TDraftDoc {
   if (typeof doc === "string") {
-    return markdownToDoc(doc);
+    return markdownToDraft(doc);
   }
   if (doc.chunks) {
     const source = doc.chunks.reduce((acc, curr) => {
@@ -125,7 +186,7 @@ export function getDocDraft(doc: TDoc): TDraftDoc {
       }
       return acc;
     }, "");
-    return markdownToDoc(source);
+    return markdownToDraft(source);
   }
   return (
     doc.draft || {
@@ -139,11 +200,12 @@ export function docAsMarkdown(doc: TDoc): string {
   if (typeof doc === "string") {
     return doc;
   }
-  if (doc.chunks) {
+  const { chunks, draft } = doc;
+  if (chunks) {
     return extractDocAsMarkdown(doc);
   }
-  if (doc.draft) {
-    return docToMarkdown(doc.draft);
+  if (draft) {
+    return docToMarkdown(draft);
   }
   // TODO(akindyakov): Escalate it
   return "";

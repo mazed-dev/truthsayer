@@ -20,25 +20,17 @@ const kHeaderNodeMeta = "x-node-meta";
 
 const kHeaderContentTypeUtf8 = "text/plain; charset=utf-8";
 
-async function _tryToEncryptDocLocally(doc, attrs, account) {
+async function _tryToEncryptDocLocally(doc, account) {
   let value;
   let headers = { [kHeaderContentType]: kHeaderContentTypeUtf8 };
   const crypto = LocalCrypto.getInstance();
   if (crypto && crypto.has()) {
-    const [encryptedDoc, encryptedAttrs] = await Promise.all([
-      crypto.encryptObj(doc),
-      crypto.encryptObj(attrs),
-    ]);
-
+    const encryptedDoc = await crypto.encryptObj(doc);
     value = encryptedDoc.encrypted;
     headers[kHeaderLocalSecretId] = encryptedDoc.secret_id;
     headers[kHeaderLocalSignature] = encryptedDoc.signature;
-    headers[kHeaderAttrs] = base64.fromObject(encryptedAttrs);
   } else {
-    const jsonDoc = JSON.stringify(doc);
-    value = jsonDoc;
-    const jsonAttrs = base64.fromObject(attrs);
-    headers[kHeaderAttrs] = jsonAttrs;
+    value = JSON.stringify(doc);
   }
   return {
     value: value,
@@ -92,9 +84,7 @@ async function createNode({
   }
 
   doc = doc || (text && exctractDoc(text, ".new")) || createEmptyDoc();
-  const attrs = extractDocAttrs(doc);
-
-  const { value, headers } = await _tryToEncryptDocLocally(doc, attrs, account);
+  const { value, headers } = await _tryToEncryptDocLocally(doc, account);
 
   const config = {
     headers: headers,
@@ -186,8 +176,7 @@ async function getNode({ nid, account, cancelToken }) {
 }
 
 async function updateNode({ nid, doc, cancelToken, account }) {
-  const attrs = extractDocAttrs(doc);
-  const { value, headers } = await _tryToEncryptDocLocally(doc, attrs, account);
+  const { value, headers } = await _tryToEncryptDocLocally(doc, account);
   const config = {
     headers: headers,
     cancelToken: cancelToken,

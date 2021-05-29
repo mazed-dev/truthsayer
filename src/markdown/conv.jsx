@@ -22,13 +22,10 @@ import {
   kEntityTypeImage,
   kEntityTypeLink,
   kEntityTypeTime,
+  generateRandomKey,
 } from "./../doc/types.jsx";
 
-import { markdownToDraft, draftToMarkdown } from "markdown-draft-js";
-
-function generateRandomKey(): string {
-  return Math.random().toString(32).substring(2);
-}
+import { markdownToDraft as libMarkdownToDraft, draftToMarkdown } from "markdown-draft-js";
 
 function mdImageItemToEntity(item) {
   return {
@@ -81,8 +78,8 @@ function mdHrToBlock(item) {
   };
 }
 
-export function markdownToDoc(source: string): TDraftDoc {
-  var rawObject: TDraftDoc = markdownToDraft(source, {
+export function markdownToDraft(source: string): TDraftDoc {
+  var rawObject: TDraftDoc = libMarkdownToDraft(source, {
     blockEntities: {
       image: mdImageItemToEntity,
       link_open: mdLinkToEntity,

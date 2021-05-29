@@ -5,16 +5,17 @@
   - [x] Hide all buttons from small card except "..." and "Open"
   - [x] Support Draft JS documents in small cards
   - [x] Bottom line toolbar
-  - [ ] Support saving changed documents
+  - [x] Support saving changed documents
   - [ ] Support new type of documents in search
   - [ ] Migration tool for all existing cards - redirect after a login
   - [ ] Refs - url valiation
   - [ ] Refs - local node refs recognition
+  - [ ] Fix links in "cloned from" disclaimers
   - [ ] Release
-- [ ] Emoji as a default header
-- [ ] Hide share button under meatballs menu
 - [ ] Support custom images in docs
 - [ ] "Date-time" menu, to see details and edit in modal window. Date picker
+- [ ] Emoji as a default header
+- [ ] Hide share button under meatballs menu
 - [ ] Twice smaler search cards for mobile devices
 - [ ] Button for list item to create right-link from this item
 - [ ] Fix tooltip overlap
