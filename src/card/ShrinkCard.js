@@ -4,8 +4,6 @@ import styles from "./ShrinkCard.module.css";
 
 import { joinClasses } from "./../util/elClass.js";
 
-import { SmallCard } from "./../card/SmallCard";
-
 /**
  * +-------------------+
  * | Card outstyle     |

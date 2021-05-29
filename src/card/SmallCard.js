@@ -1,10 +1,5 @@
 import React from "react";
 
-import PropTypes from "prop-types";
-import { withRouter, Link } from "react-router-dom";
-
-import { Card } from "react-bootstrap";
-
 import { joinClasses } from "./../util/elClass.js";
 
 import styles from "./SmallCard.module.css";

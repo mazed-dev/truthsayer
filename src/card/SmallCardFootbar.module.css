@@ -31,6 +31,8 @@
 }
 
 .tool_button_img {
+  padding: 0;
+  margin: 0;
   height: 1.2rem;
   width: 1.2rem;
 }

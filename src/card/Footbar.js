@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Button, ButtonToolbar, ButtonGroup, Dropdown } from "react-bootstrap";
+import { ButtonGroup, Dropdown } from "react-bootstrap";
 
 import styles from "./Footbar.module.css";
 
@@ -46,21 +46,17 @@ export const FootbarDropdownToggleMeatballs = React.forwardRef(
   )
 );
 
-export const FootbarDropdownMenu = React.forwardRef(
-  ({ children, className }) => <Dropdown.Menu>{children}</Dropdown.Menu>
+export const FootbarDropdownMenu = ({ children, className }) => (
+  <Dropdown.Menu>{children}</Dropdown.Menu>
 );
 
-export const FootbarDropdownItem = React.forwardRef(
-  ({ children, className, onClick }) => (
-    <Dropdown.Item
-      className={joinClasses(styles.footbar_dropdown_item, className)}
-      onClick={onClick}
-    >
-      {children}
-    </Dropdown.Item>
-  )
+export const FootbarDropdownItem = ({ children, className, onClick }) => (
+  <Dropdown.Item
+    className={joinClasses(styles.footbar_dropdown_item, className)}
+    onClick={onClick}
+  >
+    {children}
+  </Dropdown.Item>
 );
 
-export const FootbarDropdownDivider = React.forwardRef(({ className }) => (
-  <Dropdown.Divider />
-));
+export const FootbarDropdownDivider = ({ className }) => <Dropdown.Divider />;

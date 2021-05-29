@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useContext } from "react";
 
 import { withRouter, Link } from "react-router-dom";
-import { Button, ButtonToolbar, ButtonGroup } from "react-bootstrap";
+import { ButtonToolbar } from "react-bootstrap";
 
 import PropTypes from "prop-types";
 
@@ -9,25 +9,19 @@ import { smugler } from "./../smugler/api";
 
 import styles from "./SmallCardFootbar.module.css";
 
-import StickyRefOffImg from "./../img/sticky-ref-checkbox-off.png";
-import StickyRefOnImg from "./../img/sticky-ref-checkbox-on.png";
 import CutTheRefImg from "./../img/cut-the-ref.png";
-
-import EllipsisImg from "./../img/ellipsis.png";
+import ImgStickyRefOff from "./../img/sticky-ref-checkbox-off.png";
+import ImgStickyRefOn from "./../img/sticky-ref-checkbox-on.png";
 
 import { MzdGlobalContext } from "../lib/global";
-import { HoverTooltip } from "../lib/tooltip";
 import { ImgButton } from "../lib/ImgButton";
-import { goto } from "../lib/route.jsx";
+import { HoverTooltip } from "../lib/tooltip";
 import { joinClasses } from "../util/elClass.js";
 import { CheckBox } from "./../lib/CheckBox.js";
-import { MeatballsButton } from "./MeatballsButton";
 import {
   FootbarDropdown,
-  FootbarDropdownDivider,
   FootbarDropdownItem,
   FootbarDropdownMenu,
-  FootbarDropdownToggle,
   FootbarDropdownToggleMeatballs,
 } from "./Footbar";
 
@@ -86,13 +80,60 @@ class PrivateSmallCardFootbar extends React.Component {
       });
   };
 
-  render() {
+  makeMenu() {
     const cutTooltip = "Cut the link";
     const { isSticky } = this.state;
-    const { nid } = this.props;
     const magnetTooltip = isSticky
       ? "Demagnetise the link"
       : "Magnetise the link";
+    return (
+      <FootbarDropdown>
+        <FootbarDropdownToggleMeatballs id={"more-options-for-fullsize-card"} />
+        <FootbarDropdownMenu>
+          <FootbarDropdownItem onClick={this.handleRefCutOff}>
+            <img
+              src={CutTheRefImg}
+              className={joinClasses(
+                styles.tool_button_img,
+                styles.menu_item_pic
+              )}
+              alt={cutTooltip}
+            />
+            {cutTooltip}
+          </FootbarDropdownItem>
+          <FootbarDropdownItem onClick={this.switchStickiness}>
+            <CheckBox is_checked={isSticky} />
+            {magnetTooltip}
+          </FootbarDropdownItem>
+        </FootbarDropdownMenu>
+      </FootbarDropdown>
+    );
+  }
+
+  makeMagnet() {
+    const { isSticky } = this.state;
+    const src = isSticky ? ImgStickyRefOn : ImgStickyRefOff;
+    const tooltip = isSticky
+      ? "This is a magnet link"
+      : "This is a not-magnet link";
+    return (
+      <div
+        className={joinClasses(styles.tool_button, styles.toolbar_layout_item)}
+      >
+        <HoverTooltip tooltip={tooltip}>
+          <img
+            src={src}
+            className={joinClasses(styles.tool_button_img)}
+            alt={tooltip}
+          />
+        </HoverTooltip>
+      </div>
+    );
+  }
+
+  render() {
+    const { nid, isPublic } = this.props;
+    const menu = isPublic ? this.makeMagnet() : this.makeMenu();
     return (
       <>
         <ButtonToolbar className={joinClasses(styles.toolbar)}>
@@ -106,87 +147,22 @@ class PrivateSmallCardFootbar extends React.Component {
           >
             Open
           </ImgButton>
-          <FootbarDropdown>
-            <FootbarDropdownToggleMeatballs
-              id={"more-options-for-fullsize-card"}
-            />
-            <FootbarDropdownMenu>
-              <FootbarDropdownItem onClick={this.handleRefCutOff}>
-                <img
-                  src={CutTheRefImg}
-                  className={joinClasses(
-                    styles.tool_button_img,
-                    styles.menu_item_pic
-                  )}
-                  alt={cutTooltip}
-                />
-                {cutTooltip}
-              </FootbarDropdownItem>
-              <FootbarDropdownItem onClick={this.switchStickiness}>
-                <CheckBox is_checked={isSticky} />
-                {magnetTooltip}
-              </FootbarDropdownItem>
-            </FootbarDropdownMenu>
-          </FootbarDropdown>
+          {menu}
         </ButtonToolbar>
       </>
     );
   }
 }
 
-PrivateSmallCardFootbar.contextType = MzdGlobalContext;
-
 PrivateSmallCardFootbar = withRouter(PrivateSmallCardFootbar);
 
-class PublicSmallCardFootbarImpl extends React.Component {
-  render() {
-    return (
-      <ButtonToolbar className={joinClasses(styles.toolbar)}>
-        <StickinessSwitcher
-          is_on={this.props.edge.is_sticky}
-          is_disabled={true}
-        />
-      </ButtonToolbar>
-    );
-  }
-}
-
-function StickinessSwitcher({ is_on, onToggle, is_disabled }) {
-  is_disabled = is_disabled || false;
+export function SmallCardFootbar({ children, edge, ...rest }) {
+  const ctx = useContext(MzdGlobalContext);
+  const account = ctx.account;
+  const isOwned = edge.isOwnedBy(account);
   return (
-    <ImgButton
-      className={joinClasses(styles.tool_button)}
-      onClick={onToggle}
-      is_disabled={is_disabled}
-    ></ImgButton>
+    <PrivateSmallCardFootbar edge={edge} isPublic={!isOwned} {...rest}>
+      {children}
+    </PrivateSmallCardFootbar>
   );
 }
-
-PublicSmallCardFootbarImpl.contextType = MzdGlobalContext;
-
-const PublicSmallCardFootbar = withRouter(PublicSmallCardFootbarImpl);
-
-export class SmallCardFootbar extends React.Component {
-  render() {
-    const { children, edge, ...rest } = this.props;
-    let account = this.context.account;
-    const isOwned = edge.isOwnedBy(account);
-    if (isOwned) {
-      return (
-        <PrivateSmallCardFootbar edge={edge} {...rest}>
-          {children}
-        </PrivateSmallCardFootbar>
-      );
-    } else {
-      return (
-        <PublicSmallCardFootbar edge={edge} {...rest}>
-          {children}
-        </PublicSmallCardFootbar>
-      );
-    }
-    // TODO(akindyakov): empty footbard to allocate space?
-    return null;
-  }
-}
-
-SmallCardFootbar.contextType = MzdGlobalContext;

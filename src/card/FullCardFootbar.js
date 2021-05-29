@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 
 import { withRouter } from "react-router-dom";
-import { Button, ButtonToolbar, ButtonGroup } from "react-bootstrap";
+import { Button, ButtonToolbar } from "react-bootstrap";
 
 import PropTypes from "prop-types";
 
@@ -36,7 +36,6 @@ import { joinClasses } from "../util/elClass.js";
 import { makeACopy, makeBlankCopy, docAsMarkdown } from "../doc/doc_util.jsx";
 import { downloadAsFile } from "../util/download_as_file.jsx";
 
-import { MeatballsButton } from "./MeatballsButton";
 import {
   FootbarDropdown,
   FootbarDropdownDivider,
@@ -135,7 +134,6 @@ class RightSearchModal extends React.Component {
   }
 
   render() {
-    let account = this.props.context.account;
     return (
       <AutocompleteWindow
         show={this.props.show}

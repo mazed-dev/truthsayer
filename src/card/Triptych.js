@@ -2,12 +2,11 @@ import React from "react";
 
 import styles from "./Triptych.module.css";
 
-// import { DocRender } from "./../doc/doc";
 import { WideCard } from "./WideCard";
 import { NodeEditor } from "../doc/NodeEditor";
 
 import { SmallCard } from "./SmallCard";
-import { XsCard, ShrinkCard } from "./ShrinkCard";
+import { ShrinkCard } from "./ShrinkCard";
 import { ReadOnlyRender } from "./../doc/ReadOnlyRender";
 
 import { SmallCardFootbar } from "./SmallCardFootbar";
@@ -20,11 +19,9 @@ import { joinClasses } from "./../util/elClass.js";
 
 import { smugler } from "../smugler/api.js";
 
-import { Container, Row, Col } from "react-bootstrap";
+import { Row, Col } from "react-bootstrap";
 
 import { Loader } from "../lib/loader";
-
-import moment from "moment";
 
 function RefNodeCard({ nid, edge, switchStickiness, cutOffRef }) {
   // See more / less button should go to a footbar
