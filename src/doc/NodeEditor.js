@@ -1,8 +1,6 @@
 import React from "react";
 import {
   Editor,
-  EditorBlock,
-  DraftEditorBlock,
   EditorState,
   RichUtils,
   convertToRaw,
@@ -16,24 +14,10 @@ import "./NodeEditor.css";
 import styles from "./NodeEditor.module.css";
 import "./components/components.css";
 
-import {
-  HeaderOne,
-  HeaderTwo,
-  HeaderThree,
-  HeaderFour,
-  HeaderFive,
-  HeaderSix,
-} from "../markdown/MarkdownRender";
-
 import { joinClasses } from "../util/elClass.js";
 import { Keys } from "../lib/Keys.jsx";
 
-import { debounce } from "lodash";
-
 import {
-  TChunk,
-  TDraftDoc,
-  TContentBlock,
   kBlockTypeAtomic,
   kBlockTypeCode,
   kBlockTypeH1,
@@ -55,8 +39,6 @@ import {
   kEntityTypeTime,
   kEntityTypeUnderline,
   kEntityTypeImage,
-  kEntityMutable,
-  kEntityImmutable,
 } from "./types.jsx";
 
 import { getBlockStyleInDoc } from "./components/BlockStyle";
@@ -67,6 +49,8 @@ import { CheckBox } from "./components/CheckBox";
 import { ControlsToolbar } from "./editor/ControlsToolbar";
 
 import { getDocDraft, makeDoc } from "./doc_util.jsx";
+
+const lodash = require("lodash");
 
 const { Map } = require("immutable");
 
@@ -175,7 +159,7 @@ export class NodeEditor extends React.Component {
     this.saveContent(editorState.getCurrentContent());
   };
 
-  saveContent = debounce((content) => {
+  saveContent = lodash.debounce((content) => {
     const { saveDoc } = this.props;
     const draft = convertToRaw(content);
     saveDoc(makeDoc({ draft }));
@@ -203,11 +187,12 @@ export class NodeEditor extends React.Component {
     }
   };
 
-  updateBlockMetadata = (blockKey, path, metadata) => {
+  updateBlockMetadata = (blockKey, metadata) => {
     let contentState = this.state.editorState.getCurrentContent();
-    let updatedBlock = contentState
-      .getBlockForKey(blockKey)
-      .mergeIn(path, metadata);
+    let updatedBlock = contentState.getBlockForKey(blockKey);
+    console.log("updatedBlock before", updatedBlock);
+    updatedBlock = updatedBlock.mergeDeep(metadata);
+    console.log("updatedBlock after", updatedBlock);
 
     let blockMap = contentState.getBlockMap();
     blockMap = blockMap.merge({ [blockKey]: updatedBlock });

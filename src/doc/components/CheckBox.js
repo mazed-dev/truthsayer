@@ -41,7 +41,11 @@ export class CheckBox extends React.Component {
     }
     const checked = this.state.checked;
     this.setState({ checked: !checked });
-    updateMetadataFn(block.getKey(), ["data", kCheckedAttrKey], !checked);
+    updateMetadataFn(block.getKey(), {
+      data: {
+        [kCheckedAttrKey]: !checked,
+      },
+    });
   };
 
   onMouseEnterHandler = () => {

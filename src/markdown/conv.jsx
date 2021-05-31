@@ -27,6 +27,8 @@ import {
 
 import { markdownToDraft as libMarkdownToDraft, draftToMarkdown } from "markdown-draft-js";
 
+const lodash = require("lodash");
+
 function mdImageItemToEntity(item) {
   return {
     type: kEntityTypeImage,
@@ -116,8 +118,9 @@ export function markdownToDraft(source: string): TDraftDoc {
       if (isChecked || isNotChecked) {
         block.type = kBlockTypeUnorderedCheckItem;
         block.text = block.text.slice(4);
-        block.data = block.data || {};
-        block.data.checked = isChecked;
+        block.data = lodash.merge(block.data || {}, {
+            checked: isChecked,
+          });
       }
     }
     if (block.key == null) {

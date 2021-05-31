@@ -6,7 +6,7 @@
   - [x] Support Draft JS documents in small cards
   - [x] Bottom line toolbar
   - [x] Support saving changed documents
-  - [ ] Checkbox doesn't work
+  - [x] Checkbox doesn't work
   - [ ] Support new type of documents in search
   - [ ] Click on the ref in text doesn't work
   - [ ] Migration tool for all existing cards - redirect after a login
