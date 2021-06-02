@@ -100,3 +100,7 @@
   /* height: calc(50vh - 156px); */
   height: 80vh;
 }
+
+.search_grid_loader {
+  margin: 2rem;
+}

@@ -7,18 +7,21 @@ import { SmallCard } from "./../card/SmallCard";
 import { SCard } from "./../card/ShrinkCard";
 import { TimeBadge } from "./../card/AuthorBadge";
 import { ReadOnlyRender } from "./../doc/ReadOnlyRender";
-import { searchNodesInAttrs } from "./../search/search.js";
-import { extractIndexNGramsFromText } from "./../search/ngramsIndex.js";
+
+import { searchNodeFor } from "./search/search.jsx";
 
 import { smugler } from "./../smugler/api.js";
 
 import { joinClasses } from "./../util/elClass.js";
 import { range } from "./../util/range";
+import { isSmartCase } from "./../util/str.jsx";
 
 import { MzdGlobalContext } from "../lib/global.js";
 import { Loader } from "./../lib/loader";
 
 import styles from "./SearchGrid.module.css";
+
+const lodash = require("lodash");
 
 class DynamicGrid extends React.Component {
   constructor(props) {
@@ -101,12 +104,12 @@ class DynamicGrid extends React.Component {
 
 const _kTimeLimit = Math.floor(Date.now() / 1000) - 2 * 356 * 24 * 60 * 60;
 
-export class SearchGridImpl extends React.Component {
+class SearchGridImpl extends React.Component {
   constructor(props, context) {
     super(props, context);
     this.state = {
       nodes: [],
-      ngrams: this.extractIndexNGramsFromText(),
+      pattern: this.makePattern(),
       fetching: false,
       end_time: null,
       start_time: null,
@@ -138,20 +141,24 @@ export class SearchGridImpl extends React.Component {
       this.props.q !== prevProps.q ||
       this.props.extCards !== prevProps.extCards
     ) {
+      // console.log("SearchGridImpl::componentDidUpdate -> fetchData");
       this.fetchData();
     }
   }
 
   static propTypes = {
-    location: PropTypes.object.isRequired,
     history: PropTypes.object.isRequired,
   };
 
-  extractIndexNGramsFromText = () => {
-    return this.props.q && this.props.q.length > 2
-      ? extractIndexNGramsFromText(this.props.q)
-      : null;
-  };
+  makePattern() {
+    const { q } = this.props;
+    if (q == null || q.length < 2) {
+      return null;
+    }
+    // TODO(akindyakov) Use multiline search here
+    let flags = isSmartCase(this.props.q) ? "" : "i";
+    return new RegExp(this.props.q, flags);
+  }
 
   fetchData = () => {
     if (
@@ -163,7 +170,7 @@ export class SearchGridImpl extends React.Component {
     this.setState(
       {
         nodes: [],
-        ngrams: this.extractIndexNGramsFromText(),
+        pattern: this.makePattern(),
         offset: 0,
         end_time: null,
         start_time: null,
@@ -199,38 +206,49 @@ export class SearchGridImpl extends React.Component {
           console.error("Error: no response from back end");
           return;
         }
-        // TODO(akindyakov): Use better search here, we have a full text for god sake!
-        const nodes = searchNodesInAttrs(data.nodes, this.state.ngrams);
-        let next = null;
-        let fetching = false;
-        if (this.isScrolledToBottom() && data.start_time > _kTimeLimit) {
-          next = this.secureSearchIteration;
-          fetching = true;
-        }
-        if (
-          this.isTimeIntervalExhausted(
-            data.nodes.length,
-            data.offset,
-            data.full_size
-          )
-        ) {
-          end_time = data.start_time;
-          start_time = data.start_time - (data.end_time - data.start_time);
-          offset = 0;
+        const { nodes, start_time, offset, full_size, end_time } = data;
+        const { pattern } = this.state;
+        if (pattern) {
+          nodes.forEach((node) => {
+            node = searchNodeFor(node, pattern);
+            if (node) {
+              this.setState((state) => {
+                return { nodes: lodash.concat(state.nodes, node) };
+              });
+            }
+          });
         } else {
-          end_time = data.end_time;
-          start_time = data.start_time;
-          offset = data.offset + data.nodes.length;
+          this.setState((state) => {
+            return { nodes: lodash.concat(state.nodes, nodes) };
+          });
         }
-        this.setState((state) => {
-          return {
-            nodes: state.nodes.concat(nodes),
-            end_time: end_time,
-            start_time: start_time,
-            offset: offset,
-            fetching: fetching,
-          };
-        }, next);
+        let next = null;
+        let newFetching = false;
+        if (this.isScrolledToBottom() && start_time > _kTimeLimit) {
+          next = this.secureSearchIteration;
+          newFetching = true;
+        }
+        let newEndTime;
+        let newStartTime;
+        let newOffset;
+        if (this.isTimeIntervalExhausted(nodes.length, offset, full_size)) {
+          newEndTime = start_time;
+          newStartTime = start_time - (end_time - start_time);
+          newOffset = 0;
+        } else {
+          newEndTime = end_time;
+          newStartTime = start_time;
+          newOffset = offset + nodes.length;
+        }
+        this.setState(
+          {
+            end_time: newEndTime,
+            start_time: newStartTime,
+            offset: newOffset,
+            fetching: newFetching,
+          },
+          next
+        );
       })
       .catch((error) => {
         console.log("Error", error);
@@ -254,7 +272,7 @@ export class SearchGridImpl extends React.Component {
   };
 
   handleScroll = (e) => {
-    if (this.isScrolledToBottom() && !this.state.fetching) {
+    if (!this.state.fetching && this.isScrolledToBottom()) {
       this.secureSearchIteration();
     }
   };

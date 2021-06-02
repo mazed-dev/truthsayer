@@ -34,7 +34,7 @@ class SearchFormImpl extends React.Component {
       value === "" || value.length > 2
         ? setTimeout(() => {
             goto.search({ history: this.props.history, query: value });
-          }, 250)
+          }, 512)
         : null;
     this.setState((state) => {
       if (state.result_fetch_cancel_id) {
@@ -61,7 +61,7 @@ class SearchFormImpl extends React.Component {
           onChange={this.handleChange}
           value={this.state.value}
           ref={this.searchCmd}
-          placeholder="🔎  search"
+          placeholder="Search 🔎  "
           className={styles.search_input}
         />
       </Form>

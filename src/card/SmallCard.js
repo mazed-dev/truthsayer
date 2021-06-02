@@ -22,32 +22,42 @@ function getShadowStyle(n) {
   return styles.small_card_shadow_5;
 }
 
-export class SmallCard extends React.Component {
-  render() {
+export const SmallCard = React.forwardRef(
+  (
+    {
+      children,
+      className,
+      onClick,
+      stack_size,
+      // https://github.com/react-bootstrap/react-bootstrap/issues/3595
+      as: Component = "div",
+      ...kwargs
+    },
+    ref
+  ) => {
     let clickableOnClick = null;
     let clickableStyle = null;
-    if (this.props.onClick) {
+    if (onClick) {
       clickableStyle = styles.clickable_chunks;
-      clickableOnClick = this.props.onClick;
+      clickableOnClick = onClick;
     }
-    const shadowStyle = getShadowStyle(this.props.stack_size);
+    const shadowStyle = getShadowStyle(stack_size || 0);
     return (
-      <div
+      <Component
         className={joinClasses(
           styles.small_card,
           clickableStyle,
           shadowStyle,
-          this.props.className
+          className
         )}
-        ref={this.props.cardRef}
+        ref={ref}
         onClick={clickableOnClick}
+        {...kwargs}
       >
-        {this.props.children}
-      </div>
+        {children}
+      </Component>
     );
   }
-}
-
-SmallCard.defaultProps = { onClick: null, className: null, stack_size: 0 };
+);
 
 export default SmallCard;

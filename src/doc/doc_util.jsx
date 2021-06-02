@@ -23,6 +23,8 @@ import {
   makeUnstyledBlock,
 } from "./../doc/types.jsx";
 
+const lodash = require("lodash");
+
 export function exctractDocTitle(doc: TDoc | string): string {
   if (typeof doc === "string") {
     return _makeTitleFromRaw(doc);
@@ -176,9 +178,10 @@ export function makeBlankCopy(doc: TDoc | string, nid: string): TDoc {
 }
 
 export function getDocDraft(doc: TDoc): TDraftDoc {
-  if (typeof doc === "string") {
+  if (lodash.isString(doc)) {
     return markdownToDraft(doc);
   }
+  doc = doc || {};
   if (doc.chunks) {
     const source = doc.chunks.reduce((acc, curr) => {
       if (isTextChunk(curr)) {

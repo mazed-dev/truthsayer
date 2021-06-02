@@ -17,16 +17,7 @@ test("exctractDocTitle - raw string", () => {
 
 test("exctractDocTitle - empty object", () => {
   const title = exctractDocTitle({});
-  expect(title).toStrictEqual("Some no name page" + "\u2026");
-});
-
-test("exctractDocTitle - asterisk", () => {
-  const text = "RmdB zaGUgdHJpZWQgd G8gd2FzaCBvZm";
-  const doc: TDoc = {
-    chunks: [makeAsteriskChunk(), makeChunk(text)],
-  };
-  const title = exctractDocTitle(doc);
-  expect(title).toStrictEqual(text);
+  expect(title).toStrictEqual("Some page" + "\u2026");
 });
 
 test("exctractDocTitle - multiple chunks", () => {

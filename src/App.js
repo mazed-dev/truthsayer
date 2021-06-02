@@ -302,16 +302,17 @@ function PasswordRecoverFormView() {
   return <PasswordRecoverForm token={token} />;
 }
 
-function TriptychView(props) {
+function TriptychView({}) {
   // We can use the `useParams` hook here to access
   // the dynamic pieces of the URL.
   let { id } = useParams();
   return <Triptych nid={id} />;
 }
 
-function SearchView(props) {
+function SearchView({}) {
   const location = useLocation();
   const params = queryString.parse(location.search);
+  // console.log("SearchView:", location, params);
   return <SearchGrid q={params.q} />;
 }
 

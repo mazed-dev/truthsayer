@@ -7,12 +7,13 @@
   - [x] Bottom line toolbar
   - [x] Support saving changed documents
   - [x] Checkbox doesn't work
-  - [ ] Support new type of documents in search
-  - [ ] Click on the ref in text doesn't work
+  - [x] Support new type of documents in search
+  - [x] Click on the ref in text doesn't work
   - [ ] Migration tool for all existing cards - redirect after a login
-  - [ ] Fix links in "cloned from" disclaimers
-  - [ ] Magnet edges is broken
   - [ ] Release
+- [ ] Magnet edges is broken
+- [ ] Fix links in "cloned from" disclaimers
+- [ ] Goto search doesn't work!
 - [ ] Refs, url valiation
 - [ ] Refs, local node refs recognition
 - [ ] Refs, same buttons as for right "next"

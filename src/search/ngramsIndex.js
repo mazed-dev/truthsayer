@@ -1,6 +1,6 @@
 import crc from "crc";
 
-import { isHeaderChunk, extractChunkIndexText } from "../doc/chunk_util.jsx";
+import { isHeaderChunk } from "../doc/chunk_util.jsx";
 
 const kMdHeaderRegex = /^#+ /;
 const kMdSyntaxPunctuation = /[.,`‘’"/#^&*?!;:{}=\-_~()[\]]/g;
@@ -38,7 +38,7 @@ export function extractIndexNGramsFromText(mdText) {
 export function extractIndexNGramsFromDoc(doc) {
   let headParagraphsCounter = 0;
   let ngrams = new Set();
-  doc.chunks.forEach((chunk) => {
+  doc.draft.blocks.forEach((chunk) => {
     if (ngrams.size >= kNgramsNumberLimit) {
       return;
     }
@@ -50,7 +50,7 @@ export function extractIndexNGramsFromDoc(doc) {
     //   }
     //   headParagraphsCounter += 1;
     // }
-    const text = extractChunkIndexText(chunk);
+    const { text } = chunk;
     if (text != null) {
       extractIndexNGramsFromText(text).forEach((ngr) => {
         if (ngrams.size < kNgramsNumberLimit) {

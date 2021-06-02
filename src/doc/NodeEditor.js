@@ -315,14 +315,15 @@ export class NodeEditor extends React.Component {
     // className += " RichEditor-hidePlaceholder";
     //   }
     // }
+    // https://project-awesome.org/nikgraf/awesome-draft-js
 
     const controlsToolbarClassName = this.state.showControlsToolbar
       ? styles.controls_toolbar_show
       : styles.controls_toolbar_show;
-    //onClick={this.focus}
+    //
     return (
       <div className={styles.root}>
-        <div className={className}>
+        <div className={className} onClick={this.focus}>
           <Editor
             blockStyleFn={this.blockStyleFn_}
             blockRendererFn={this.myBlockRenderer}

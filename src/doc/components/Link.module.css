@@ -11,6 +11,8 @@
 
   z-index: 900;
   padding: 5px;
+
+  overflow-wrap: normal;
 }
 
 .icon_img {

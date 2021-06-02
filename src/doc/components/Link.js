@@ -1,4 +1,6 @@
 import React from "react";
+import PropTypes from "prop-types";
+import { withRouter } from "react-router-dom";
 
 import "./components.css";
 
@@ -12,11 +14,15 @@ import { ImgButton } from "../../lib/ImgButton";
 import { joinClasses } from "../../util/elClass.js";
 
 import { Keys, isSymbol, isHotkeyCopy } from "../../lib/Keys.jsx";
+import { ClickOutsideDetector } from "../../lib/ClickOutsideDetector";
+import { goto } from "../../lib/route.jsx";
 
 import CopyImg from "./../../img/copy.png";
 import DeleteImg from "./../../img/delete.png";
 
 import styles from "./Link.module.css";
+
+const lodash = require("lodash");
 
 function onBlur() {
   console.log("onBlur");
@@ -26,9 +32,10 @@ function onFocus() {
   console.log("onFocus");
 }
 
-function onClick(e) {
-  e.preventDefault();
-  console.log("onClick --- ");
+function genUrlTitle(url) {
+  return lodash.truncate(url, {
+    length: 128,
+  });
 }
 
 export function insertPiece(piece, value, start, end) {
@@ -124,7 +131,9 @@ class LinkEditor extends React.Component {
     }
   };
 
-  _deleteLink = () => {
+  _deleteLink = (event) => {
+    event.stopPropagation();
+    event.preventDefault();
     const { removeLink, onClose, selection } = this.props;
     removeLink(selection);
     onClose();
@@ -138,13 +147,18 @@ class LinkEditor extends React.Component {
     onClose();
   };
 
-  _copyLink = () => {
+  _copyLink = (event) => {
+    event.stopPropagation();
+    event.preventDefault();
+    console.log("Copy link", event);
     // TODO(akindyakov): implement copy of current url
   };
 
   // https://github.com/facebook/draft-js/issues/2137
 
   render() {
+    const { value } = this.props;
+    const name = genUrlTitle(value);
     return (
       <div className={styles.popover_root}>
         <div className={styles.popover}>
@@ -154,15 +168,9 @@ class LinkEditor extends React.Component {
           <ImgButton onClick={this._deleteLink} className={styles.link_btn}>
             <img src={DeleteImg} className={styles.btn_img} alt={"Unlink"} />
           </ImgButton>
-          <input
-            onChange={this._onURLChange}
-            className={styles.link_input}
-            type="url"
-            value={this.state.value}
-            onKeyDown={this._onLinkInputKeyDown}
-            ref={(x) => (this.urlRef = x)}
-            disabled={true}
-          />
+          <a href={value} className={joinClasses("doc_block_inline_link")}>
+            {name}
+          </a>
         </div>
       </div>
     );
@@ -176,6 +184,11 @@ export class Link extends React.Component {
       showEditor: false,
     };
   }
+
+  static propTypes = {
+    history: PropTypes.object.isRequired,
+  };
+
   onMouseEnterHandler = () => {
     this.setState({ showEditor: true });
   };
@@ -184,8 +197,26 @@ export class Link extends React.Component {
     this.setState({ showEditor: false });
   };
 
+  toggleLinkCard = (e) => {
+    const { showEditor } = this.state;
+    if (!showEditor) {
+      e.preventDefault();
+      this.setState({ showEditor: !showEditor });
+    }
+  };
+
   onEditorClose = () => {
     this.setState({ showEditor: false });
+  };
+
+  goToLink = () => {
+    const { contentState, entityKey, history } = this.props;
+    const { url } = contentState.getEntity(entityKey).getData();
+    if (url.match(/^\w+$/)) {
+      goto.node({ history, nid: url });
+    } else {
+      window.open(url, "_blank");
+    }
   };
 
   makeToolbar(url) {
@@ -202,7 +233,6 @@ export class Link extends React.Component {
       isBackward: false,
       hasFocus: false,
     });
-    console.log("Selection on link deleteion", selection);
     return (
       <LinkEditor
         value={url}
@@ -227,6 +257,7 @@ export class Link extends React.Component {
     } = this.props;
     const { url } = contentState.getEntity(entityKey).getData();
     const toolbar = this.makeToolbar(url);
+    const { showEditor } = this.state;
     if (url.match(/^\w+$/)) {
       return (
         <div
@@ -241,8 +272,7 @@ export class Link extends React.Component {
               "doc_block_inline_link",
               "doc_block_inline_link_int"
             )}
-            onBlur={onBlur}
-            onFocus={onFocus}
+            onClick={this.goToLink}
           >
             {children}
           </ReactRouterLink>
@@ -262,6 +292,7 @@ export class Link extends React.Component {
               "doc_block_inline_link",
               "doc_block_inline_link_ext"
             )}
+            onClick={this.goToLink}
           >
             {children}
           </a>
@@ -270,6 +301,8 @@ export class Link extends React.Component {
     }
   }
 }
+
+Link = withRouter(Link);
 
 export function StaticLink({ contentState, entityKey, children }) {
   const { url } = contentState.getEntity(entityKey).getData();
