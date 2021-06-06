@@ -69,7 +69,11 @@ class NodeRefs extends React.Component {
 
 function NodeCard({ node, addRef, stickyEdges, saveDoc }) {
   const editor =
-    node != null ? <NodeEditor doc={node.doc} saveDoc={saveDoc} /> : <Loader />;
+    node != null ? (
+      <NodeEditor nid={node.nid} doc={node.doc} saveDoc={saveDoc} />
+    ) : (
+      <Loader />
+    );
   const reloadNode = () => {};
   return (
     <WideCard>

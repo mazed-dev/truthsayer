@@ -22,8 +22,8 @@ import IconCheckList from "./img/icon-check-list-strip.svg";
 import IconCode from "./img/icon-code-strip.svg";
 
 import styles from "./BlockStyleControls.module.css";
-import "../components/components.css";
-import { getBlockStyle, getBlockName } from "../components/BlockStyle";
+import "./components/components.css";
+import { getBlockStyle, getBlockName } from "./components/BlockStyle";
 
 import { joinClasses } from "../../util/elClass.js";
 

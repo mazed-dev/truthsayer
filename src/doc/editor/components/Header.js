@@ -7,7 +7,7 @@ import { EditorBlock, DraftEditorBlock } from "draft-js";
 import "./components.css";
 import styles from "./Header.module.css";
 
-import { joinClasses } from "../../util/elClass.js";
+import { joinClasses } from "../../../util/elClass.js";
 
 export const Header = (props) => {
   const { contentState, block, className, children, blockProps } = props;

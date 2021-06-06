@@ -9,15 +9,16 @@
   - [x] Checkbox doesn't work
   - [x] Support new type of documents in search
   - [x] Click on the ref in text doesn't work
-  - [ ] Migration tool for all existing cards - redirect after a login
-  - [ ] Release
+  - [x] Release
+- [ ] Goto search doesn't work!
 - [ ] Magnet edges is broken
 - [ ] Fix links in "cloned from" disclaimers
-- [ ] Goto search doesn't work!
+- [ ] Make editor usabe from mobile
+- [ ] Smart point
+- [ ] Migration tool for all existing cards - redirect after a login
 - [ ] Refs, url valiation
 - [ ] Refs, local node refs recognition
 - [ ] Refs, same buttons as for right "next"
-- [ ] Smart point
 - [ ] Support custom images in docs
 - [ ] "Date-time" menu, to see details and edit in modal window. Date picker
 - [ ] Checkbox doesn't have depth as normal list

@@ -13,8 +13,8 @@ import {
   kBlockTypeUnorderedCheckItem,
   kBlockTypeUnorderedItem,
   kBlockTypeUnstyled,
-} from "../types.jsx";
-import { joinClasses } from "../../util/elClass.js";
+} from "../../types.jsx";
+import { joinClasses } from "../../../util/elClass.js";
 
 export function getBlockStyle(blockType) {
   // TODO(akindyakov): Continue here applying custom styles for elements

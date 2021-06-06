@@ -5,9 +5,9 @@ import { EditorBlock, DraftEditorBlock } from "draft-js";
 import "./components.css";
 import styles from "./CheckBox.module.css";
 
-import { CheckBox as ComonCheckBox } from "../../lib/CheckBox";
+import { CheckBox as ComonCheckBox } from "../../../lib/CheckBox";
 
-import { joinClasses } from "../../util/elClass.js";
+import { joinClasses } from "../../../util/elClass.js";
 
 const kCheckedAttrKey = "checked";
 

@@ -8,17 +8,17 @@ import { Link as ReactRouterLink } from "react-router-dom";
 
 import { RichUtils, SelectionState } from "draft-js";
 
-import { ControlButton } from "./../editor/ControlButton";
-import { ImgButton } from "../../lib/ImgButton";
+import { ControlButton } from "./../ControlButton";
+import { ImgButton } from "../../../lib/ImgButton";
 
-import { joinClasses } from "../../util/elClass.js";
+import { joinClasses } from "../../../util/elClass.js";
 
-import { Keys, isSymbol, isHotkeyCopy } from "../../lib/Keys.jsx";
-import { ClickOutsideDetector } from "../../lib/ClickOutsideDetector";
-import { goto } from "../../lib/route.jsx";
+import { Keys, isSymbol, isHotkeyCopy } from "../../../lib/Keys.jsx";
+import { ClickOutsideDetector } from "../../../lib/ClickOutsideDetector";
+import { goto } from "../../../lib/route.jsx";
 
-import CopyImg from "./../../img/copy.png";
-import DeleteImg from "./../../img/delete.png";
+import CopyImg from "../../../img/copy.png";
+import DeleteImg from "../../../img/delete.png";
 
 import styles from "./Link.module.css";
 

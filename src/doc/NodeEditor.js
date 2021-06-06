@@ -12,7 +12,7 @@ import "draft-js/dist/Draft.css";
 
 import "./NodeEditor.css";
 import styles from "./NodeEditor.module.css";
-import "./components/components.css";
+import "./editor/components/components.css";
 
 import { joinClasses } from "../util/elClass.js";
 import { Keys } from "../lib/Keys.jsx";
@@ -41,11 +41,11 @@ import {
   kEntityTypeImage,
 } from "./types.jsx";
 
-import { getBlockStyleInDoc } from "./components/BlockStyle";
-import { Link, StaticLink } from "./components/Link";
-import { HRule } from "./components/HRule";
-import { Header } from "./components/Header";
-import { CheckBox } from "./components/CheckBox";
+import { getBlockStyleInDoc } from "./editor/components/BlockStyle";
+import { Link, StaticLink } from "./editor/components/Link";
+import { HRule } from "./editor/components/HRule";
+import { Header } from "./editor/components/Header";
+import { CheckBox } from "./editor/components/CheckBox";
 import { ControlsToolbar } from "./editor/ControlsToolbar";
 
 import { getDocDraft, makeDoc } from "./doc_util.jsx";
@@ -146,7 +146,7 @@ export class NodeEditor extends React.Component {
   componentDidMount() {}
 
   componentDidUpdate(prevProps) {
-    if (this.props.doc !== prevProps.doc) {
+    if (this.props.nid !== prevProps.nid) {
       const content = convertFromRaw(getDocDraft(this.props.doc));
       this.setState({
         editorState: EditorState.createWithContent(content, this.decorator),
@@ -164,8 +164,7 @@ export class NodeEditor extends React.Component {
     const draft = convertToRaw(content);
     saveDoc(makeDoc({ draft }));
     // TODO(akindyakov): Collect stats here
-    console.log("Saved content state", draft);
-  }, 1000);
+  }, 1200);
 
   focus = () => {
     this.editorRef.focus();
