@@ -1,14 +1,13 @@
 # Todo
 
-- [ ] Fix vertical space the same between different block types
 - [ ] Magnet edges is broken
 - [ ] Goto search doesn't work!
 - [ ] Make editor usabe from mobile
 - [ ] Smart point
-- [ ] Migration tool for all existing cards - redirect after a login
 - [ ] Refs, url valiation
 - [ ] Refs, local node refs recognition
 - [ ] Refs, same buttons as for right "next"
+- [ ] Fix vertical space the same between different block types
 - [ ] Support custom images in docs
 - [ ] "Date-time" menu, to see details and edit in modal window. Date picker
 - [ ] Checkbox doesn't have depth as normal list
@@ -172,3 +171,4 @@
   - [x] Click on the ref in text doesn't work
   - [x] Release, 2021.29.05
 - [x] Fix links in "cloned from" disclaimers, 2021.06.06
+- [x] Migration tool to show document of only latest version, migrate on save.  2021.06.06

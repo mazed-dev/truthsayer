@@ -188,12 +188,15 @@ export function makeBlankCopy(doc: TDoc | string, nid: string): TDoc {
 }
 
 export function getDocDraft(doc: TDoc): TDraftDoc {
+  // Apply migration technics incrementally to make sure that showing document
+  // has the format of the latest version.
   if (lodash.isString(doc)) {
     return markdownToDraft(doc);
   }
   doc = doc || {};
-  if (doc.chunks) {
-    const source = doc.chunks.reduce((acc, curr) => {
+  const { chunks } = doc;
+  if (chunks) {
+    const source = chunks.reduce((acc, curr) => {
       if (isTextChunk(curr)) {
         return acc + "\n" + curr.source;
       }
@@ -201,12 +204,11 @@ export function getDocDraft(doc: TDoc): TDraftDoc {
     }, "");
     return markdownToDraft(source);
   }
-  return (
-    doc.draft || {
-      blocks: [],
-      entityMap: [],
-    }
-  );
+  const { draft } = doc;
+  if (draft) {
+    return draft;
+  }
+  return makeDoc();
 }
 
 export function docAsMarkdown(doc: TDoc): string {
