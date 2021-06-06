@@ -1,18 +1,8 @@
 # Todo
 
-- [ ] Draft JS as an rich text editor
-  - [x] Rich text toolbar at the bottom, between the card and mazed toolbar
-  - [x] Hide all buttons from small card except "..." and "Open"
-  - [x] Support Draft JS documents in small cards
-  - [x] Bottom line toolbar
-  - [x] Support saving changed documents
-  - [x] Checkbox doesn't work
-  - [x] Support new type of documents in search
-  - [x] Click on the ref in text doesn't work
-  - [x] Release
-- [ ] Goto search doesn't work!
+- [ ] Fix vertical space the same between different block types
 - [ ] Magnet edges is broken
-- [ ] Fix links in "cloned from" disclaimers
+- [ ] Goto search doesn't work!
 - [ ] Make editor usabe from mobile
 - [ ] Smart point
 - [ ] Migration tool for all existing cards - redirect after a login
@@ -171,3 +161,14 @@
   - All ref cards bellow in 2 rows
 - [x] Fixed size cards for search grid, for triptyh, for smartpoint
 - [x] Tool for markdown checklists
+- [x] Draft JS as an rich text editor
+  - [x] Rich text toolbar at the bottom, between the card and mazed toolbar
+  - [x] Hide all buttons from small card except "..." and "Open"
+  - [x] Support Draft JS documents in small cards
+  - [x] Bottom line toolbar
+  - [x] Support saving changed documents
+  - [x] Checkbox doesn't work
+  - [x] Support new type of documents in search
+  - [x] Click on the ref in text doesn't work
+  - [x] Release, 2021.29.05
+- [x] Fix links in "cloned from" disclaimers, 2021.06.06

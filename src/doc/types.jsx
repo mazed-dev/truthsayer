@@ -83,16 +83,84 @@ export function makeHRuleBlock() {
   };
 }
 
-export function makeUnstyledBlock(text) {
+function makeEntity({ type, mutability, data }) {
+  return { type, mutability, data };
+}
+
+export function makeLinkEntity(href) {
+  return makeEntity({
+    type: kEntityTypeLink,
+    mutability: kEntityMutable,
+    data: {
+      url: href,
+      href: href,
+    },
+  });
+}
+
+export function makeBlock({
+    type,
+    key,
+    text,
+    data,
+    depth,
+    entityRanges,
+    inlineStyleRanges,
+ }) {
+  type= type || kBlockTypeUnstyled;
+  key= key || generateRandomKey();
+  text= text || "";
+  data= data || {};
+  depth= depth || 0;
+  entityRanges= entityRanges || [];
+  inlineStyleRanges= inlineStyleRanges || [];
   return {
+    type,
+    key,
+    text,
+    data,
+    depth,
+    entityRanges,
+    inlineStyleRanges,
+  };
+}
+
+function makeEntityRange({ offset, length, key }) {
+  return { offset, length, key };
+}
+
+export function makeUnstyledBlock(text) {
+  return makeBlock({
     type: kBlockTypeUnstyled,
     text: text,
-    key: generateRandomKey(),
-    data: {},
-    depth: 0,
-    entityRanges: [],
-    inlineStyleRanges: [],
-  };
+  });
+}
+
+export function addLinkBlock({
+  draft,
+  text,
+  href,
+  blockType,
+  depth,
+}): TDraftDoc {
+  blockType = blockType || kBlockTypeUnstyled;
+  const entity = makeLinkEntity(href);
+  const eKey = generateRandomKey();
+  const block = makeBlock({
+    type: blockType,
+    text: text,
+    depth: depth,
+    entityRanges: [
+      makeEntityRange({
+        offset: 0,
+        length: text.length,
+        key: eKey,
+      }),
+    ],
+  });
+  draft.blocks = draft.blocks.concat(block);
+  draft.entityMap[eKey] = entity;
+  return draft;
 }
 
 export function generateRandomKey(): string {

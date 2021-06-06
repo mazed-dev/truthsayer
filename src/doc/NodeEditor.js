@@ -162,6 +162,7 @@ export class NodeEditor extends React.Component {
   saveContent = lodash.debounce((content) => {
     const { saveDoc } = this.props;
     const draft = convertToRaw(content);
+    /*dbg*/ console.log("Draft", draft);
     saveDoc(makeDoc({ draft }));
     // TODO(akindyakov): Collect stats here
   }, 1200);
@@ -189,9 +190,7 @@ export class NodeEditor extends React.Component {
   updateBlockMetadata = (blockKey, metadata) => {
     let contentState = this.state.editorState.getCurrentContent();
     let updatedBlock = contentState.getBlockForKey(blockKey);
-    console.log("updatedBlock before", updatedBlock);
     updatedBlock = updatedBlock.mergeDeep(metadata);
-    console.log("updatedBlock after", updatedBlock);
 
     let blockMap = contentState.getBlockMap();
     blockMap = blockMap.merge({ [blockKey]: updatedBlock });

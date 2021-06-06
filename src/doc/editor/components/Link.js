@@ -255,7 +255,8 @@ export class Link extends React.Component {
       start,
       blockKey,
     } = this.props;
-    const { url } = contentState.getEntity(entityKey).getData();
+    let { url } = contentState.getEntity(entityKey).getData();
+    url = url || "";
     const toolbar = this.makeToolbar(url);
     const { showEditor } = this.state;
     if (url.match(/^\w+$/)) {

@@ -11,7 +11,7 @@ import {
   makeBlankCopyOfAChunk,
 } from "./chunk_util.jsx";
 
-import { 
+import {
   docToMarkdown,
   markdownToDraft,
 } from "../markdown/conv.jsx";
@@ -21,12 +21,13 @@ import {
   kBlockTypeUnorderedCheckItem,
   makeHRuleBlock,
   makeUnstyledBlock,
-} from "./../doc/types.jsx";
+  addLinkBlock,
+} from "./types.jsx";
 
 const lodash = require("lodash");
 
 export function exctractDocTitle(doc: TDoc | string): string {
-  if (typeof doc === "string") {
+  if (lodash.isString(doc)) {
     return _makeTitleFromRaw(doc);
   } else if ("chunks" in doc) {
     const chunks = doc.chunks;
@@ -77,31 +78,37 @@ function _makeTitleFromRaw(source: string): string {
 }
 
 export function makeACopy(doc: TDoc | string, nid: string): TDoc {
-  if (typeof doc === "string") {
+  if (lodash.isString(doc)) {
     doc = makeDoc({
       draft: markdownToDraft(doc),
     });
   }
-  let title = exctractDocTitle(doc);
-  let clonedBadge: string = "_Copy of [" + title + "](" + nid + ")_";
+  let draft;
   if ("chunks" in doc) {
-    let chunks = doc.chunks.concat(makeHRuleChunk(), makeChunk(clonedBadge));
-    return makeDoc({
-      chunks: chunks,
+    doc = makeDoc({
+      chunks: doc.chunks,
     });
-  } else if ("draft" in doc) {
-    doc.draft.blocks = doc.draft.blocks.concat(
-      makeHRuleBlock(),
-      makeUnstyledBlock(clonedBadge),
-    );
-    return doc;
+    draft = { doc };
+  } else {
+    draft = lodash.cloneDeep(doc.draft);
   }
-  return makeDoc();
+  draft = draft || {};
+  let title = exctractDocTitle(doc);
+  draft.blocks = draft.blocks.concat(
+    makeHRuleBlock(),
+  );
+  const text = 'Copy of "' + title + '"';
+  draft = addLinkBlock({
+    draft,
+    text,
+    href: nid,
+  });
+  return makeDoc({ draft });
 }
 
 // Deprecated
 export function extractDocAsMarkdown(doc: TDoc): string {
-  if (typeof doc === "string") {
+  if (lodash.isString(doc)) {
     return doc;
   }
   return doc.chunks
@@ -113,7 +120,7 @@ export function extractDocAsMarkdown(doc: TDoc): string {
 
 // Deprecated
 export function enforceTopHeader(doc: TDoc): TDoc {
-  if (typeof doc === "string") {
+  if (lodash.isString(doc)) {
     doc = makeDoc({
       draft: markdownToDraft(doc),
     });
@@ -155,7 +162,7 @@ function makeBlankCopyOfABlock(block) {
 }
 
 export function makeBlankCopy(doc: TDoc | string, nid: string): TDoc {
-  if (typeof doc === "string") {
+  if (lodash.isString(doc)) {
     doc = makeDoc({
       draft: markdownToDraft(doc),
     });
@@ -165,15 +172,18 @@ export function makeBlankCopy(doc: TDoc | string, nid: string): TDoc {
     });
   }
   let { draft } = doc;
-  if (draft == null) {
-    return makeDoc();
-  }
+  draft = draft || {};
   const title = exctractDocTitle(doc);
-  const clonedBadge: string = "_Blank copy of [" + title + "](" + nid + ")_";
-
   draft.blocks = draft.blocks.map((block) => {
     return makeBlankCopyOfABlock(block);
-  }).push(makeHRuleBlock(), makeUnstyledBlock(clonedBadge));
+  });
+  draft.blocks.push(makeHRuleBlock());
+  const text= 'Blank copy of "' + title + '"';
+  draft = addLinkBlock({
+    draft,
+    text,
+    href: nid,
+  });
   return makeDoc({ draft });
 }
 
@@ -200,7 +210,7 @@ export function getDocDraft(doc: TDoc): TDraftDoc {
 }
 
 export function docAsMarkdown(doc: TDoc): string {
-  if (typeof doc === "string") {
+  if (lodash.isString(doc)) {
     return doc;
   }
   const { chunks, draft } = doc;

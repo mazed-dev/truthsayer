@@ -218,7 +218,7 @@ async function cloneNode({ from, to, crypto, cancelToken, blank }) {
   });
   let doc = null;
   if (blank) {
-    doc = makeBlankCopy(node.doc);
+    doc = makeBlankCopy(node.doc, nid);
   } else {
     doc = makeACopy(node.doc, nid);
   }

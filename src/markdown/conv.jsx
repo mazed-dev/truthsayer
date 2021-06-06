@@ -23,6 +23,8 @@ import {
   kEntityTypeLink,
   kEntityTypeTime,
   generateRandomKey,
+  makeLinkEntity,
+  makeBlock,
 } from "./../doc/types.jsx";
 
 import { markdownToDraft as libMarkdownToDraft, draftToMarkdown } from "markdown-draft-js";
@@ -58,14 +60,7 @@ function mdLinkToEntity(item) {
       },
     };
   }
-  return {
-    type: kEntityTypeLink,
-    mutability: kEntityMutable,
-    data: {
-      url: href,
-      href: href,
-    },
-  };
+  return makeLinkEntity(href);
 }
 
 function mdTableToBlock(item) {
@@ -73,11 +68,9 @@ function mdTableToBlock(item) {
 }
 
 function mdHrToBlock(item) {
-  return {
+  return makeBlock({
     type: kBlockTypeHrule,
-    entityRanges: [],
-    inlineStyleRanges: [],
-  };
+  });
 }
 
 export function markdownToDraft(source: string): TDraftDoc {
