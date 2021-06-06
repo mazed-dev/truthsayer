@@ -1,6 +1,8 @@
 .check_item {
   border-radius: 8px;
   display: flex;
+  margin-top: 0;
+  margin-bottom: 0.75em; /* half of line-height which is 1.5 rem */
 }
 
 .check_item_hover {
