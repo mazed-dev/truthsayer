@@ -1,3 +1,5 @@
+import { Descendant } from 'slate'
+
 export const EChunkType = Object.freeze({
   Text: 0,
   Asterisk: 1,
@@ -5,29 +7,30 @@ export const EChunkType = Object.freeze({
 })
 
 export interface TChunk {
-  type: EChunkType;
-  source: string | null;
+  type: EChunkType
+  source: string | null
 }
 
 export interface TContentBlock {
-  key: string;
-  text: string;
-  type: string;
-  characterList: null;
-  depth: number;
-  data: Map<any, any>;
+  key: string
+  text: string
+  type: string
+  characterList: null
+  depth: number
+  data: Map<any, any>
 }
 
 export interface TEntity {}
 
 export interface TDraftDoc {
-  blocks: TContentBlock[];
-  entityMap: TEntity[];
+  blocks: TContentBlock[]
+  entityMap: TEntity[]
 }
 
 export interface TDoc {
-  chunks: Chunk[];
-  draft: TDraftDoc;
+  chunks: Chunk[]
+  draft: TDraftDoc
+  slate: Descendant[]
 }
 
 export const kBlockTypeH1 = 'header-one'
@@ -57,6 +60,23 @@ export const kEntityTypeImage = 'IMAGE'
 export const kEntityMutable = 'MUTABLE'
 export const kEntityImmutable = 'IMMUTABLE'
 
+/**
+ * Slate blocks
+ */
+export const kSlateDescTypeH1 = 'heading_one'
+export const kSlateDescTypeH2 = 'heading_two'
+export const kSlateDescTypeH3 = 'heading_three'
+export const kSlateDescTypeH4 = 'heading_four'
+export const kSlateDescTypeH5 = 'heading_five'
+export const kSlateDescTypeH6 = 'heading_six'
+export const kSlateDescTypeBreak = 'thematic_break'
+export const kSlateDescTypeCode = 'code_block'
+export const kSlateDescTypeOrderedList = 'ol_list'
+export const kSlateDescTypeParagraph = 'paragraph'
+export const kSlateDescTypeQuote = 'block_quote'
+export const kSlateDescTypeUnorderedList = 'ul_list'
+export const kSlateDescTypeListItem = 'list-item'
+
 export function isHeaderBlock(block) {
   const { type } = block
   switch (type) {
@@ -66,6 +86,29 @@ export function isHeaderBlock(block) {
     case kBlockTypeH4:
     case kBlockTypeH5:
     case kBlockTypeH6:
+      return true
+  }
+  return false
+}
+
+export function isHeaderSlateBlock(block: Descendant): boolean {
+  const { type } = block
+  switch (type) {
+    case kSlateDescTypeH1:
+    case kSlateDescTypeH2:
+    case kSlateDescTypeH3:
+    case kSlateDescTypeH4:
+    case kSlateDescTypeH5:
+    case kSlateDescTypeH6:
+      return true
+  }
+  return false
+}
+
+export function isTextSlateBlock(block: Descendant): boolean {
+  const { type } = block
+  switch (type) {
+    case kSlateDescTypeParagraph:
       return true
   }
   return false

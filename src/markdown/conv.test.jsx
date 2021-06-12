@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { markdownToDraft, docToMarkdown } from './conv.jsx'
+import { markdownToDraft, draftToMarkdown } from './conv.jsx'
 
 import {
   TChunk,
@@ -24,7 +24,7 @@ import {
   kEntityTypeTime,
   kEntityMutable,
   kEntityImmutable,
-} from './../doc/types.jsx'
+} from './../doc/types.ts'
 
 test('raw string', () => {
   const md = `
@@ -149,7 +149,7 @@ print s
   //* dbg*/ doc.blocks.forEach((block) => {
   //* dbg*/   console.log("Block", block);
   //* dbg*/ });
-  const mdSource = docToMarkdown(doc)
+  const mdSource = draftToMarkdown(doc)
 
   //* dbg*/ console.log("Source", mdSource);
   expect(mdSource).toContain('# Header 1\n')

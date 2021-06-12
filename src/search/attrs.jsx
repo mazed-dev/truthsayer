@@ -1,8 +1,8 @@
 import { extractIndexNGramsFromDoc } from './ngramsIndex'
 import { base64 } from './../util/base64.jsx'
 
-import { TNode, TNodeAttrs } from './../smugler/types.jsx'
-import { TDoc } from './../doc/types.jsx'
+import { TNode, TNodeAttrs } from './../smugler/types.ts'
+import { TDoc } from './../doc/types.ts'
 
 const uuid = require('uuid')
 

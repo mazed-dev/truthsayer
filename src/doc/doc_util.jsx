@@ -1,4 +1,4 @@
-import { TDoc, TChunk, EChunkType } from './types.jsx'
+import { TDoc, TChunk, EChunkType } from './types.ts'
 
 import { cloneDeep } from 'lodash'
 
@@ -11,7 +11,8 @@ import {
   makeBlankCopyOfAChunk,
 } from './chunk_util.jsx'
 
-import { docToMarkdown, markdownToDraft } from '../markdown/conv.jsx'
+import { draftToMarkdown, markdownToDraft } from '../markdown/conv.jsx'
+import { slateToMarkdown, markdownToSlate } from '../markdown/slate.ts'
 
 import {
   isHeaderBlock,
@@ -19,7 +20,9 @@ import {
   makeHRuleBlock,
   makeUnstyledBlock,
   addLinkBlock,
-} from './types.jsx'
+  isHeaderSlateBlock,
+  isTextSlateBlock,
+} from './types.ts'
 
 const lodash = require('lodash')
 
@@ -44,6 +47,20 @@ export function exctractDocTitle(doc: TDoc | string): string {
     const { draft } = doc
     const title = draft.blocks.reduce((acc, item) => {
       if (!acc && isHeaderBlock(item)) {
+        const title = _makeTitleFromRaw(item.text)
+        if (title) {
+          return title
+        }
+      }
+      return acc
+    }, null)
+    if (title) {
+      return title
+    }
+  } else if ('slate' in doc) {
+    const { slate } = doc
+    const title = slate.reduce((acc, item) => {
+      if (!acc && (isHeaderSlateBlock(item) || isTextSlateBlock(item))) {
         const title = _makeTitleFromRaw(item.text)
         if (title) {
           return title
@@ -128,9 +145,9 @@ export function enforceTopHeader(doc: TDoc): TDoc {
   return doc
 }
 
-export function makeDoc({ chunks, draft }): TDoc {
-  if (draft) {
-    return { draft }
+export function makeDoc({ chunks, draft, slate }): TDoc {
+  if (slate) {
+    return { slate }
   }
   if (chunks) {
     return {
@@ -145,8 +162,13 @@ export function makeDoc({ chunks, draft }): TDoc {
       ),
     }
   }
+  if (draft) {
+    return {
+      slate: markdownToSlate(draftToMarkdown(draft)),
+    }
+  }
   return {
-    draft: markdownToDraft(''),
+    slate: markdownToSlate(''),
   }
 }
 
@@ -209,16 +231,46 @@ export function getDocDraft(doc: TDoc): TDraftDoc {
   return makeDoc()
 }
 
+export function getDocSlate(doc: TDoc): Descendant[] {
+  if (lodash.isString(doc)) {
+    return markdownToDraft(doc)
+  }
+  doc = doc || {}
+  let { chunks, draft, slate } = doc
+  if (slate) {
+    return slate
+  }
+  if (chunks) {
+    const source = chunks.reduce((acc, curr) => {
+      if (isTextChunk(curr)) {
+        return `${acc}\n${curr.source}`
+      }
+      return acc
+    }, '')
+    return markdownToDraft(source)
+  }
+  if (draft) {
+    return {
+      slate: markdownToSlate(draftToMarkdown(draft)),
+    }
+  }
+  slate = makeDoc().slate
+  return slate
+}
+
 export function docAsMarkdown(doc: TDoc): string {
   if (lodash.isString(doc)) {
     return doc
   }
-  const { chunks, draft } = doc
+  const { chunks, draft, slate } = doc
   if (chunks) {
     return extractDocAsMarkdown(doc)
   }
   if (draft) {
-    return docToMarkdown(draft)
+    return draftToMarkdown(draft)
+  }
+  if (slate) {
+    return slateToMarkdown(slate)
   }
   // TODO(akindyakov): Escalate it
   return ''

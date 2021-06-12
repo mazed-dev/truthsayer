@@ -7,7 +7,7 @@ import {
   kEntityTypeTime,
   kEntityTypeUnderline,
   kEntityTypeImage,
-} from '../types.jsx'
+} from '../types.ts'
 
 import { MzdGlobalContext } from '../../lib/global'
 import { ToggleControlButton } from './ControlButton'

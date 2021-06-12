@@ -131,3 +131,9 @@
     border-width: 1px;
   }
 }
+
+.editor {
+  /* top right bottom left */
+  padding: 18px 16px 16px 16px;
+  width: 100%;
+}

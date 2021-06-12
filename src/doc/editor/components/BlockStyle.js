@@ -13,7 +13,7 @@ import {
   kBlockTypeUnorderedCheckItem,
   kBlockTypeUnorderedItem,
   kBlockTypeUnstyled,
-} from '../../types.jsx'
+} from '../../types.ts'
 import { joinClasses } from '../../../util/elClass.js'
 
 export function getBlockStyle(blockType) {

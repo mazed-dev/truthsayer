@@ -14,7 +14,7 @@ import {
   kBlockTypeUnorderedCheckItem,
   kBlockTypeUnorderedItem,
   kBlockTypeUnstyled,
-} from '../types.jsx'
+} from '../types.ts'
 
 import IconOrderedList from './img/icon-ordered-list-strip.svg'
 import IconUnorderedList from './img/icon-unordered-list-strip.svg'

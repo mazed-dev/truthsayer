@@ -25,12 +25,14 @@ import {
   generateRandomKey,
   makeLinkEntity,
   makeBlock,
-} from './../doc/types.jsx'
+} from './../doc/types.ts'
 
 import {
   markdownToDraft as libMarkdownToDraft,
-  draftToMarkdown,
+  draftToMarkdown as libDraftToMarkdown,
 } from 'markdown-draft-js'
+
+import { slateToMarkdown, markdownToSlate } from './slate.ts'
 
 const lodash = require('lodash')
 
@@ -186,9 +188,9 @@ function convertCheckItemsToUnorderedItem(doc: TDraftDoc): TDraftDoc {
   return doc
 }
 
-export function docToMarkdown(doc: TDraftDoc): string {
+export function draftToMarkdown(doc: TDraftDoc): string {
   doc = convertCheckItemsToUnorderedItem(doc)
-  return draftToMarkdown(doc, {
+  return libDraftToMarkdown(doc, {
     entityItems: makeCustomEntityRenders(),
   })
 }

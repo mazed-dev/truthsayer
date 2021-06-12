@@ -39,7 +39,7 @@ import {
   kEntityTypeTime,
   kEntityTypeUnderline,
   kEntityTypeImage,
-} from './types.jsx'
+} from './types.ts'
 
 import { getBlockStyleInDoc } from './editor/components/BlockStyle'
 import { Link, StaticLink } from './editor/components/Link'

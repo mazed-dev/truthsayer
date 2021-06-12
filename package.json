@@ -37,6 +37,8 @@
     "react-router-dom": "^5.1",
     "react-scripts": "^4.0",
     "regenerator-runtime": "^0.13.7",
+    "remark-parse": "^9.0.0",
+    "remark-slate": "^1.8.0",
     "slate": "^0.63.0",
     "slate-history": "^0.62.0",
     "slate-react": "^0.65.2",
@@ -91,7 +93,8 @@
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-prettier": "^3.1.1",
     "eslint-plugin-react": "^7.16.0",
-    "prettier": "^2.2"
+    "prettier": "^2.2",
+    "unified": "^6.1.5"
   },
   "simple-git-hooks": {
     "pre-commit": "yarn lint-staged"

@@ -41,7 +41,7 @@ import {
   kEntityTypeImage,
   kEntityMutable,
   kEntityImmutable,
-} from '../types.jsx'
+} from '../types.ts'
 
 import { ControlButton } from './ControlButton'
 import { joinClasses } from '../../util/elClass.js'

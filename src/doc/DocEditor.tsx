@@ -9,13 +9,32 @@ import {
   Element as SlateElement,
   Descendant,
 } from 'slate'
+
+import {
+  kSlateDescTypeH1,
+  kSlateDescTypeH2,
+  kSlateDescTypeH3,
+  kSlateDescTypeH4,
+  kSlateDescTypeH5,
+  kSlateDescTypeH6,
+  kSlateDescTypeBreak,
+  kSlateDescTypeCode,
+  kSlateDescTypeOrderedList,
+  kSlateDescTypeParagraph,
+  kSlateDescTypeQuote,
+  kSlateDescTypeUnorderedList,
+  kSlateDescTypeListItem,
+} from './types.ts'
+
 import { withHistory } from 'slate-history'
 import { BulletedListElement } from './custom-types'
 
+import { joinClasses } from './../util/elClass.js'
+
 const SHORTCUTS = {
-  '*': 'list-item',
-  '-': 'list-item',
-  '+': 'list-item',
+  '*': kSlateDescTypeListItem,
+  '-': kSlateDescTypeListItem,
+  '+': kSlateDescTypeListItem,
   '>': 'block-quote',
   '#': 'heading-one',
   '##': 'heading-two',
@@ -25,22 +44,34 @@ const SHORTCUTS = {
   '######': 'heading-six',
 }
 
-const MarkdownShortcutsExample = () => {
-  const [value, setValue] = useState<Descendant[]>(initialValue)
+export const DocEditor = ({ className, node }) => {
+  const { doc, nid } = node
+  const content = getDocSlate(doc)
+  const [value, setValue] = useState<Descendant[]>(content)
+  const setValueAndLog = (value) => {
+    console.log('New value', value) // eslint-disable-line no-console
+    setValue(value)
+  }
   const renderElement = useCallback((props) => <Element {...props} />, [])
   const editor = useMemo(
     () => withShortcuts(withReact(withHistory(createEditor()))),
     []
   )
   return (
-    <Slate editor={editor} value={value} onChange={(value) => setValue(value)}>
-      <Editable
-        renderElement={renderElement}
-        placeholder="Write some markdown..."
-        spellCheck
-        autoFocus
-      />
-    </Slate>
+    <div className={className}>
+      <Slate
+        editor={editor}
+        value={value}
+        onChange={(value) => setValueAndLog(value)}
+      >
+        <Editable
+          renderElement={renderElement}
+          placeholder="Write some markdown..."
+          spellCheck
+          autoFocus
+        />
+      </Slate>
+    </div>
   )
 }
 
@@ -71,7 +102,7 @@ const withShortcuts = (editor) => {
           match: (n) => Editor.isBlock(editor, n),
         })
 
-        if (type === 'list-item') {
+        if (type === kSlateDescTypeListItem) {
           const list: BulletedListElement = {
             type: 'bulleted-list',
             children: [],
@@ -80,7 +111,7 @@ const withShortcuts = (editor) => {
             match: (n) =>
               !Editor.isEditor(n) &&
               SlateElement.isElement(n) &&
-              n.type === 'list-item',
+              n.type === kSlateDescTypeListItem,
           })
         }
 
@@ -114,7 +145,7 @@ const withShortcuts = (editor) => {
           }
           Transforms.setNodes(editor, newProperties)
 
-          if (block.type === 'list-item') {
+          if (block.type === kSlateDescTypeListItem) {
             Transforms.unwrapNodes(editor, {
               match: (n) =>
                 !Editor.isEditor(n) &&
@@ -153,7 +184,7 @@ const Element = ({ attributes, children, element }) => {
       return <h5 {...attributes}>{children}</h5>
     case 'heading-six':
       return <h6 {...attributes}>{children}</h6>
-    case 'list-item':
+    case kSlateDescTypeListItem:
       return <li {...attributes}>{children}</li>
     default:
       return <p {...attributes}>{children}</p>
@@ -195,4 +226,4 @@ const initialValue: Descendant[] = [
   },
 ]
 
-export default MarkdownShortcutsExample
+export default DocEditor

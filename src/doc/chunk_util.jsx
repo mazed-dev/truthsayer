@@ -1,4 +1,4 @@
-import { TChunk, EChunkType } from './types.jsx'
+import { TChunk, EChunkType } from './types.ts'
 
 export function mergeChunks(left: TChunk, right: TChunk): TChunk {
   return {
