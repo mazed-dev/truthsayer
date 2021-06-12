@@ -1,8 +1,8 @@
-import React from "react";
+import React from 'react'
 
-import { joinClasses } from "./../util/elClass.js";
+import { joinClasses } from './../util/elClass.js'
 
-import styles from "./vanishing.module.css";
+import styles from './vanishing.module.css'
 
 export class Vanishing extends React.Component {
   componentDidUpdate(prevProps) {
@@ -15,6 +15,6 @@ export class Vanishing extends React.Component {
       <div className={joinClasses(this.props.className, styles.vanishing)}>
         {this.props.children}
       </div>
-    );
+    )
   }
 }

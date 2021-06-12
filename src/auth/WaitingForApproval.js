@@ -1,20 +1,20 @@
-import React from "react";
+import React from 'react'
 
-import { Card, Button, Container } from "react-bootstrap";
-import { withRouter } from "react-router-dom";
+import { Card, Button, Container } from 'react-bootstrap'
+import { withRouter } from 'react-router-dom'
 
 class WaitingForApproval extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.username =
       this.props.location.state && this.props.location.state.username
         ? this.props.location.state.username
-        : "customer";
+        : 'customer'
   }
 
   handleBack = () => {
-    this.props.history.push("/");
-  };
+    this.props.history.push('/')
+  }
 
   render() {
     // Have a beatiful day and see you soon!
@@ -41,8 +41,8 @@ class WaitingForApproval extends React.Component {
           </Button>
         </Card>
       </Container>
-    );
+    )
   }
 }
 
-export default withRouter(WaitingForApproval);
+export default withRouter(WaitingForApproval)

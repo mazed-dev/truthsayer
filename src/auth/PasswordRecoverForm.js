@@ -1,57 +1,57 @@
-import React from "react";
+import React from 'react'
 
-import { Card, Button, Form, Container, Row, Col } from "react-bootstrap";
+import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
 
-import PropTypes from "prop-types";
-import axios from "axios";
-import { withRouter } from "react-router-dom";
+import PropTypes from 'prop-types'
+import axios from 'axios'
+import { withRouter } from 'react-router-dom'
 
 class PasswordRecoverForm extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
-      password: "",
+      password: '',
       isReady: false,
       is_validating: true,
-    };
-    this.axiosCancelToken = axios.CancelToken.source();
+    }
+    this.axiosCancelToken = axios.CancelToken.source()
   }
 
   static propTypes = {
     history: PropTypes.object.isRequired,
-  };
+  }
 
   componentWillUnmount() {
-    this.axiosCancelToken.cancel();
+    this.axiosCancelToken.cancel()
   }
 
   handlePasswordChange = (event) => {
-    const isReady = event.target.value.length > 6;
+    const isReady = event.target.value.length > 6
     this.setState({
       password: event.target.value,
-      isReady: isReady,
-    });
-  };
+      isReady,
+    })
+  }
 
   onSubmit = (event) => {
-    event.preventDefault();
+    event.preventDefault()
     const value = {
       token: this.props.token,
       new_password: this.state.password,
-    };
+    }
     axios
-      .post("/api/auth/password-recover/reset", value, {
+      .post('/api/auth/password-recover/reset', value, {
         cancelToken: this.axiosCancelToken.token,
       })
-      .catch(function (err) {
-        alert("Error " + err);
+      .catch((err) => {
+        alert(`Error ${err}`)
       })
       .then((res) => {
         if (res) {
-          this.props.history.push("/login");
+          this.props.history.push('/login')
         }
-      });
-  };
+      })
+  }
 
   render() {
     return (
@@ -83,8 +83,8 @@ class PasswordRecoverForm extends React.Component {
           </Card.Body>
         </Card>
       </Container>
-    );
+    )
   }
 }
 
-export default withRouter(PasswordRecoverForm);
+export default withRouter(PasswordRecoverForm)

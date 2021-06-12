@@ -3,21 +3,21 @@ export interface TDownloadedFile {
 }
 
 export async function downloadAsFile(filename, text): TDownloadedFile {
-  var element = document.createElement("a");
+  const element = document.createElement('a')
   element.setAttribute(
-    "href",
-    "data:text/plain;charset=utf-8," + encodeURIComponent(text)
-  );
-  element.setAttribute("download", filename);
+    'href',
+    `data:text/plain;charset=utf-8,${encodeURIComponent(text)}`
+  )
+  element.setAttribute('download', filename)
 
-  element.style.display = "none";
-  document.body.appendChild(element);
+  element.style.display = 'none'
+  document.body.appendChild(element)
 
-  element.click();
+  element.click()
 
-  document.body.removeChild(element);
+  document.body.removeChild(element)
 
   return {
     success: true,
-  };
+  }
 }

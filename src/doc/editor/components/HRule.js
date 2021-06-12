@@ -1,7 +1,9 @@
-import "./components.css";
+import React from 'react'
 
-import { joinClasses } from "../../../util/elClass.js";
+import './components.css'
+
+import { joinClasses } from '../../../util/elClass.js'
 
 export const HRule = ({ contentState, block, className }) => {
-  return <hr className={joinClasses(className, "doc_block_hrule")} />;
-};
+  return <hr className={joinClasses(className, 'doc_block_hrule')} />
+}

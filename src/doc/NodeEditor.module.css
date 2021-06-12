@@ -35,11 +35,11 @@
 }
 .button {
   margin-top: 10;
-  text-align: "center";
+  text-align: 'center';
 }
 .link {
-  color: "#3b5998";
-  text-decoration: "underline";
+  color: '#3b5998';
+  text-decoration: 'underline';
 }
 
 .controls_toolbar_hide {

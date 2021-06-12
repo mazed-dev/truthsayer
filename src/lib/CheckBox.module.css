@@ -42,7 +42,7 @@
   border: solid white;
   border-width: 0 0.19em 0.19em 0;
   display: block;
-  content: "";
+  content: '';
   cursor: pointer;
 
   -webkit-transform: rotate(45deg);

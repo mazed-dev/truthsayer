@@ -1,7 +1,7 @@
-import { TNode } from "../../smugler/api.js";
-import { getDocDraft } from "../../doc/doc_util.jsx";
+import { TNode } from '../../smugler/api.js'
+import { getDocDraft } from '../../doc/doc_util.jsx'
 
-const lodash = require("lodash");
+const lodash = require('lodash')
 
 /**
     nid: nid,
@@ -18,11 +18,11 @@ export function searchNodesFor(
   pattern: RegExp | null
 ): Array[TNode] {
   if (!lodash.isRegExp(pattern)) {
-    return nodes;
+    return nodes
   }
   return nodes.filter((node) => {
-    return null != searchNodeFor(node, pattern);
-  });
+    return searchNodeFor(node, pattern) != null
+  })
 }
 
 export function searchNodeFor(
@@ -31,25 +31,25 @@ export function searchNodeFor(
 ): TNode | null {
   if (!lodash.isRegExp(pattern)) {
     // Empty search fall back to show everything
-    return node;
+    return node
   }
-  const {doc} = node;
+  const { doc } = node
   if (doc == null) {
-    console.error("The node is empty", node);
-    return null;
+    console.error('The node is empty', node)
+    return null
   }
-  const draft = getDocDraft(doc);
-  const { blocks } = draft;
+  const draft = getDocDraft(doc)
+  const { blocks } = draft
   if (!blocks) {
-    return null;
+    return null
   }
   const matchedIndex = blocks.findIndex((block) => {
-    const { text } = block;
-    const ret = lodash.isString(text) && text.search(pattern) >= 0;
-    return ret;
-  });
+    const { text } = block
+    const ret = lodash.isString(text) && text.search(pattern) >= 0
+    return ret
+  })
   if (matchedIndex < 0) {
-    return null;
+    return null
   }
-  return node;
+  return node
 }

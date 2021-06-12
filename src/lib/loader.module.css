@@ -10,7 +10,7 @@
   transform-origin: 40px 40px;
 }
 .roller div:after {
-  content: " ";
+  content: ' ';
   display: block;
   position: absolute;
   width: 7px;

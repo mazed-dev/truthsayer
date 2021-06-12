@@ -1,58 +1,58 @@
-import React from "react";
+import React from 'react'
 
-import styles from "./LinkGraph.module.css";
+import styles from './LinkGraph.module.css'
 
-import * as d3 from "d3";
+import * as d3 from 'd3'
 
 class LinkGraphImpl extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.data = {
-      name: "Flare",
+      name: 'Flare',
       children: [
         {
-          name: "Analytics",
+          name: 'Analytics',
           children: [],
         },
         {
-          name: "Animate",
+          name: 'Animate',
           children: [],
         },
         {
-          name: "Data",
+          name: 'Data',
           children: [],
         },
         {
-          name: "Display",
+          name: 'Display',
           children: [],
         },
         {
-          name: "Flex",
+          name: 'Flex',
           children: [],
         },
         {
-          name: "Physics",
+          name: 'Physics',
           children: [],
         },
         {
-          name: "Query",
+          name: 'Query',
           children: [],
         },
         {
-          name: "Scale",
+          name: 'Scale',
           children: [],
         },
         {
-          name: "Util",
+          name: 'Util',
           children: [],
         },
         {
-          name: "Vis",
+          name: 'Vis',
           children: [
-            { name: "Axis", children: [] },
-            { name: "Controls", children: [] },
+            { name: 'Axis', children: [] },
+            { name: 'Controls', children: [] },
             {
-              name: "Data",
+              name: 'Data',
               children: [
                 // Everythin deeper than 3 -> use smaler cards
                 // {
@@ -64,21 +64,21 @@ class LinkGraphImpl extends React.Component {
           ],
         },
       ],
-    };
+    }
   }
 
   componentDidMount() {
-    this.createBarChart();
+    this.createBarChart()
   }
 
   componentDidUpdate() {
-    this.createBarChart();
+    this.createBarChart()
   }
 
   createBarChart = () => {
-    const ref = this.ref;
-    const width = this.props.width;
-    const height = this.props.height;
+    const ref = this.ref
+    const width = this.props.width
+    const height = this.props.height
 
     // const tree = function (data, width, height) {
     //   const root = d3.hierarchy(data);
@@ -95,31 +95,31 @@ class LinkGraphImpl extends React.Component {
     //   x0 = Math.min(x0, d.x);
     // });
 
-    const svg = d3.select(ref).attr("viewBox", [0, 0, width, height]);
+    const svg = d3.select(ref).attr('viewBox', [0, 0, width, height])
 
-    let nodes = [];
-    nodes.push([width / 2, height / 1.5]);
-    nodes.push([width / 4, height / 3]);
-    nodes.push([width / 1.5, height / 3]);
+    const nodes = []
+    nodes.push([width / 2, height / 1.5])
+    nodes.push([width / 4, height / 3])
+    nodes.push([width / 1.5, height / 3])
 
     for (let i = 0; i < nodes.length; i++) {
       svg
-        .append("circle")
-        .attr("cx", nodes[i][0])
-        .attr("cy", nodes[i][1])
-        .attr("r", 20)
-        .style("fill", "green");
+        .append('circle')
+        .attr('cx', nodes[i][0])
+        .attr('cy', nodes[i][1])
+        .attr('r', 20)
+        .style('fill', 'green')
     }
 
-    let links = [];
+    const links = []
     // Link from the first node to the second
     links.push(
-      //d3.linkHorizontal()({
+      // d3.linkHorizontal()({
       d3.linkVertical()({
         source: nodes[0],
         target: nodes[1],
       })
-    );
+    )
 
     // Link from the first node to the third
     links.push(
@@ -127,15 +127,15 @@ class LinkGraphImpl extends React.Component {
         source: nodes[0],
         target: nodes[2],
       })
-    );
+    )
 
     // Append the links to the svg element
     for (let i = 0; i < links.length; i++) {
       svg
-        .append("path")
-        .attr("d", links[i])
-        .attr("stroke", "black")
-        .attr("fill", "none");
+        .append('path')
+        .attr('d', links[i])
+        .attr('stroke', 'black')
+        .attr('fill', 'none')
     }
 
     // return svg.node();
@@ -164,7 +164,7 @@ class LinkGraphImpl extends React.Component {
     //   .clone(true)
     //   .lower()
     //   .attr("stroke", "white");
-  };
+  }
 
   render() {
     return (
@@ -172,24 +172,24 @@ class LinkGraphImpl extends React.Component {
         ref={(node) => (this.ref = node)}
         width={this.props.width}
         height={this.props.height}
-      ></svg>
-    );
+      />
+    )
   }
 }
 
 class LinkGraph extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
   }
 
   render() {
-    console.log("LinkGraph::render()", this.props.width, this.props.height);
+    console.log('LinkGraph::render()', this.props.width, this.props.height)
     return (
       <div className={styles.graph_div}>
         <LinkGraphImpl width={this.props.width} height={this.props.height} />
       </div>
-    );
+    )
   }
 }
 
-export default LinkGraph;
+export default LinkGraph

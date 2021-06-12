@@ -1,19 +1,19 @@
-import React from "react";
+import React from 'react'
 
-import { CheckBox } from "./../lib/CheckBox.js";
+import { CheckBox } from './../lib/CheckBox.js'
 
 // Unordered
-const kCheckedRe = /(^ *([*\-+]|[0-9]+\.) *)\[x\]/i;
-const kUncheckedRe = /(^ *([*\-+]|[0-9]+\.) *)\[ \]/i;
-const kToUnchecked = "$1[ ]";
-const kToChecked = "$1[x]";
+const kCheckedRe = /(^ *([*\-+]|[0-9]+\.) *)\[x\]/i
+const kUncheckedRe = /(^ *([*\-+]|[0-9]+\.) *)\[ \]/i
+const kToUnchecked = '$1[ ]'
+const kToChecked = '$1[x]'
 
 export function tickCheckbox(sourceLine) {
-  return sourceLine.replace(kUncheckedRe, kToChecked);
+  return sourceLine.replace(kUncheckedRe, kToChecked)
 }
 
 export function untickCheckbox(sourceLine) {
-  return sourceLine.replace(kCheckedRe, kToUnchecked);
+  return sourceLine.replace(kCheckedRe, kToUnchecked)
 }
 
 export class MdCheckBox extends React.Component {
@@ -28,18 +28,18 @@ export class MdCheckBox extends React.Component {
       const pref = this.props.source.slice(
         0,
         this.props.sourcePosition.start.offset
-      );
-      const suf = this.props.source.slice(this.props.sourcePosition.end.offset);
-      const mod = this.props.is_checked ? untickCheckbox : tickCheckbox;
+      )
+      const suf = this.props.source.slice(this.props.sourcePosition.end.offset)
+      const mod = this.props.is_checked ? untickCheckbox : tickCheckbox
       const newValue = mod(
         this.props.source.slice(
           this.props.sourcePosition.start.offset,
           this.props.sourcePosition.end.offset
         )
-      );
-      this.props.update(pref + newValue + suf);
+      )
+      this.props.update(pref + newValue + suf)
     }
-  };
+  }
 
   render() {
     return (
@@ -48,8 +48,8 @@ export class MdCheckBox extends React.Component {
         onToggle={this.onToggle}
         className={this.props.className}
       />
-    );
+    )
   }
 }
 
-export default MdCheckBox;
+export default MdCheckBox

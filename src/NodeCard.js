@@ -1,5 +1,5 @@
-import React from "react";
-import "./App.css";
+import React from 'react'
+import './App.css'
 
 /**
  * function tick() {
@@ -17,10 +17,10 @@ import "./App.css";
 
 class NodeCard extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
-      value: "O",
-    };
+      value: 'O',
+    }
   }
 
   render() {
@@ -28,18 +28,18 @@ class NodeCard extends React.Component {
       <button
         className="square"
         onClick={() => {
-          if (this.state.value === "O") {
-            this.setState({ value: "X" });
+          if (this.state.value === 'O') {
+            this.setState({ value: 'X' })
           } else {
-            this.setState({ value: "O" });
+            this.setState({ value: 'O' })
           }
         }}
       >
         NodeCard &nbsp;
         {this.state.value}
       </button>
-    );
+    )
   }
 }
 
-export default NodeCard;
+export default NodeCard

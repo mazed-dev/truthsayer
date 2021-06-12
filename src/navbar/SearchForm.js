@@ -1,57 +1,57 @@
-import React from "react";
+import React from 'react'
 
-import styles from "./SearchForm.module.css";
+import styles from './SearchForm.module.css'
 
-import { Form } from "react-bootstrap";
+import { Form } from 'react-bootstrap'
 
-import PropTypes from "prop-types";
-import { withRouter } from "react-router-dom";
+import PropTypes from 'prop-types'
+import { withRouter } from 'react-router-dom'
 
-import { goto } from "./../lib/route.jsx";
+import { goto } from './../lib/route.jsx'
 
 class SearchFormImpl extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
       value: this.props.from,
-    };
-    this.searchCmd = React.createRef();
+    }
+    this.searchCmd = React.createRef()
   }
 
   static propTypes = {
     history: PropTypes.object.isRequired,
-  };
+  }
 
   componentDidMount() {
     if (this.props.inFocus) {
-      this.searchCmd.current.focus();
+      this.searchCmd.current.focus()
     }
   }
 
   handleChange = (event) => {
-    const value = event.target.value;
+    const value = event.target.value
     const result_fetch_cancel_id =
-      value === "" || value.length > 2
+      value === '' || value.length > 2
         ? setTimeout(() => {
-            goto.search({ history: this.props.history, query: value });
+            goto.search({ history: this.props.history, query: value })
           }, 512)
-        : null;
+        : null
     this.setState((state) => {
       if (state.result_fetch_cancel_id) {
-        clearTimeout(state.result_fetch_cancel_id);
+        clearTimeout(state.result_fetch_cancel_id)
       }
       return {
-        value: value,
+        value,
         // Preserve postponed fetch to be able to cancel it
-        result_fetch_cancel_id: result_fetch_cancel_id,
-      };
-    });
-  };
+        result_fetch_cancel_id,
+      }
+    })
+  }
 
   handleSumbit = (event) => {
-    event.preventDefault();
-    goto.search({ history: this.props.history, query: this.state.value });
-  };
+    event.preventDefault()
+    goto.search({ history: this.props.history, query: this.state.value })
+  }
 
   render() {
     return (
@@ -65,13 +65,13 @@ class SearchFormImpl extends React.Component {
           className={styles.search_input}
         />
       </Form>
-    );
+    )
   }
 }
 
 SearchFormImpl.defaultProps = {
   callback: null,
-  from: "",
-};
+  from: '',
+}
 
-export const SearchForm = withRouter(SearchFormImpl);
+export const SearchForm = withRouter(SearchFormImpl)

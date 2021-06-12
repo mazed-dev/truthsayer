@@ -1,11 +1,11 @@
-import React from "react";
+import React from 'react'
 
 // React router
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom'
 
-import { Nav, Navbar } from "react-bootstrap";
+import { Nav, Navbar } from 'react-bootstrap'
 
-import { withRouter } from "react-router-dom";
+import { withRouter } from 'react-router-dom'
 
 function PublicNavBar() {
   return (
@@ -46,7 +46,7 @@ function PublicNavBar() {
         </Nav>
       </Navbar.Collapse>
     </Navbar>
-  );
+  )
 }
 
-export default withRouter(PublicNavBar);
+export default withRouter(PublicNavBar)

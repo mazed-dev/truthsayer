@@ -1,6 +1,6 @@
-import { TDoc, TChunk, EChunkType } from "./types.jsx";
+import { TDoc, TChunk, EChunkType } from './types.jsx'
 
-import { cloneDeep } from "lodash";
+import { cloneDeep } from 'lodash'
 
 import {
   makeChunk,
@@ -9,12 +9,9 @@ import {
   isHeaderChunk,
   isTextChunk,
   makeBlankCopyOfAChunk,
-} from "./chunk_util.jsx";
+} from './chunk_util.jsx'
 
-import {
-  docToMarkdown,
-  markdownToDraft,
-} from "../markdown/conv.jsx";
+import { docToMarkdown, markdownToDraft } from '../markdown/conv.jsx'
 
 import {
   isHeaderBlock,
@@ -22,58 +19,58 @@ import {
   makeHRuleBlock,
   makeUnstyledBlock,
   addLinkBlock,
-} from "./types.jsx";
+} from './types.jsx'
 
-const lodash = require("lodash");
+const lodash = require('lodash')
 
 export function exctractDocTitle(doc: TDoc | string): string {
   if (lodash.isString(doc)) {
-    return _makeTitleFromRaw(doc);
-  } else if ("chunks" in doc) {
-    const chunks = doc.chunks;
+    return _makeTitleFromRaw(doc)
+  } else if ('chunks' in doc) {
+    const chunks = doc.chunks
     const title = chunks.reduce((acc, item) => {
       if (!acc && isTextChunk(item)) {
-        const title = _makeTitleFromRaw(item.source);
+        const title = _makeTitleFromRaw(item.source)
         if (title) {
-          return title;
+          return title
         }
       }
-      return acc;
-    }, null);
+      return acc
+    }, null)
     if (title) {
-      return title;
+      return title
     }
-  } else if ("draft" in doc) {
-    const { draft } = doc;
+  } else if ('draft' in doc) {
+    const { draft } = doc
     const title = draft.blocks.reduce((acc, item) => {
       if (!acc && isHeaderBlock(item)) {
-        const title = _makeTitleFromRaw(item.text);
+        const title = _makeTitleFromRaw(item.text)
         if (title) {
-          return title;
+          return title
         }
       }
-      return acc;
-    }, null);
+      return acc
+    }, null)
     if (title) {
-      return title;
+      return title
     }
   }
   // For an empty doc
-  return "Some page" + "\u2026";
+  return 'Some page' + '\u2026'
 }
 
 function _makeTitleFromRaw(source: string): string {
   const title = source
     .slice(0, 128)
-    .replace(/\s+/g, " ")
+    .replace(/\s+/g, ' ')
     // Replace markdown links with title of the link
-    .replace(/\[([^\]]+)\][^\)]+\)/g, "$1")
-    .replace(/^[# ]+/, "")
-    .replace(/[\[\]]+/, "");
+    .replace(/\[([^\]]+)\][^\)]+\)/g, '$1')
+    .replace(/^[# ]+/, '')
+    .replace(/[\[\]]+/, '')
   if (title.length > 36) {
-    return title.slice(0, 36) + "\u2026";
+    return `${title.slice(0, 36)}\u2026`
   } else {
-    return title;
+    return title
   }
 }
 
@@ -81,41 +78,39 @@ export function makeACopy(doc: TDoc | string, nid: string): TDoc {
   if (lodash.isString(doc)) {
     doc = makeDoc({
       draft: markdownToDraft(doc),
-    });
+    })
   }
-  let draft;
-  if ("chunks" in doc) {
+  let draft
+  if ('chunks' in doc) {
     doc = makeDoc({
       chunks: doc.chunks,
-    });
-    draft = { doc };
+    })
+    draft = { doc }
   } else {
-    draft = lodash.cloneDeep(doc.draft);
+    draft = lodash.cloneDeep(doc.draft)
   }
-  draft = draft || {};
-  let title = exctractDocTitle(doc);
-  draft.blocks = draft.blocks.concat(
-    makeHRuleBlock(),
-  );
-  const text = 'Copy of "' + title + '"';
+  draft = draft || {}
+  const title = exctractDocTitle(doc)
+  draft.blocks = draft.blocks.concat(makeHRuleBlock())
+  const text = `Copy of "${title}"`
   draft = addLinkBlock({
     draft,
     text,
     href: nid,
-  });
-  return makeDoc({ draft });
+  })
+  return makeDoc({ draft })
 }
 
 // Deprecated
 export function extractDocAsMarkdown(doc: TDoc): string {
   if (lodash.isString(doc)) {
-    return doc;
+    return doc
   }
   return doc.chunks
     .reduce((acc, current) => {
-      return acc + "\n\n" + current.source;
-    }, "")
-    .trim();
+      return `${acc}\n\n${current.source}`
+    }, '')
+    .trim()
 }
 
 // Deprecated
@@ -123,105 +118,108 @@ export function enforceTopHeader(doc: TDoc): TDoc {
   if (lodash.isString(doc)) {
     doc = makeDoc({
       draft: markdownToDraft(doc),
-    });
+    })
   }
-  let chunks = doc.chunks || new Array();
+  const chunks = doc.chunks || []
   if (chunks.length === 0 || !isHeaderChunk(doc.chunks[0])) {
-    chunks.unshift(makeAsteriskChunk());
+    chunks.unshift(makeAsteriskChunk())
   }
-  doc.chunks = chunks;
-  return doc;
+  doc.chunks = chunks
+  return doc
 }
 
 export function makeDoc({ chunks, draft }): TDoc {
   if (draft) {
-    return { draft };
+    return { draft }
   }
   if (chunks) {
     return {
       draft: markdownToDraft(
-        extractDocAsMarkdown(chunks.reduce((acc, current) => {
-            return acc + "\n\n" + current.source;
-          }, "").trim()
+        extractDocAsMarkdown(
+          chunks
+            .reduce((acc, current) => {
+              return `${acc}\n\n${current.source}`
+            }, '')
+            .trim()
         )
-      )
-    };
+      ),
+    }
   }
   return {
-    draft: markdownToDraft(""),
-  };
+    draft: markdownToDraft(''),
+  }
 }
 
 function makeBlankCopyOfABlock(block) {
   if (block.type === kBlockTypeUnorderedCheckItem) {
-    let b = cloneDeep(block);
-    b.data.checked = false;
-    return b;
+    const b = cloneDeep(block)
+    b.data.checked = false
+    return b
   }
-  return block;
+  return block
 }
 
 export function makeBlankCopy(doc: TDoc | string, nid: string): TDoc {
   if (lodash.isString(doc)) {
     doc = makeDoc({
       draft: markdownToDraft(doc),
-    });
-  } else if ("chunks" in doc) {
+    })
+  } else if ('chunks' in doc) {
     doc = makeDoc({
       chunks: doc.chunks,
-    });
+    })
   }
-  let { draft } = doc;
-  draft = draft || {};
-  const title = exctractDocTitle(doc);
+  let { draft } = doc
+  draft = draft || {}
+  const title = exctractDocTitle(doc)
   draft.blocks = draft.blocks.map((block) => {
-    return makeBlankCopyOfABlock(block);
-  });
-  draft.blocks.push(makeHRuleBlock());
-  const text= 'Blank copy of "' + title + '"';
+    return makeBlankCopyOfABlock(block)
+  })
+  draft.blocks.push(makeHRuleBlock())
+  const text = `Blank copy of "${title}"`
   draft = addLinkBlock({
     draft,
     text,
     href: nid,
-  });
-  return makeDoc({ draft });
+  })
+  return makeDoc({ draft })
 }
 
 export function getDocDraft(doc: TDoc): TDraftDoc {
   // Apply migration technics incrementally to make sure that showing document
   // has the format of the latest version.
   if (lodash.isString(doc)) {
-    return markdownToDraft(doc);
+    return markdownToDraft(doc)
   }
-  doc = doc || {};
-  const { chunks } = doc;
+  doc = doc || {}
+  const { chunks } = doc
   if (chunks) {
     const source = chunks.reduce((acc, curr) => {
       if (isTextChunk(curr)) {
-        return acc + "\n" + curr.source;
+        return `${acc}\n${curr.source}`
       }
-      return acc;
-    }, "");
-    return markdownToDraft(source);
+      return acc
+    }, '')
+    return markdownToDraft(source)
   }
-  const { draft } = doc;
+  const { draft } = doc
   if (draft) {
-    return draft;
+    return draft
   }
-  return makeDoc();
+  return makeDoc()
 }
 
 export function docAsMarkdown(doc: TDoc): string {
   if (lodash.isString(doc)) {
-    return doc;
+    return doc
   }
-  const { chunks, draft } = doc;
+  const { chunks, draft } = doc
   if (chunks) {
-    return extractDocAsMarkdown(doc);
+    return extractDocAsMarkdown(doc)
   }
   if (draft) {
-    return docToMarkdown(draft);
+    return docToMarkdown(draft)
   }
   // TODO(akindyakov): Escalate it
-  return "";
+  return ''
 }

@@ -1,14 +1,14 @@
-import React from "react";
-import { Link, withRouter } from "react-router-dom";
+import React from 'react'
+import { Link, withRouter } from 'react-router-dom'
 
-import { Button, Container, Image } from "react-bootstrap";
+import { Button, Container, Image } from 'react-bootstrap'
 
-import user_default_pic from "./img/user-default-pic.png";
+import user_default_pic from './img/user-default-pic.png'
 
 class UserPreferences extends React.Component {
   render() {
-    const name = this.props.account.getName();
-    const email = this.props.account.getEmail();
+    const name = this.props.account.getName()
+    const email = this.props.account.getEmail()
     // TODO: use custom user uploaded picture for userpic here
     return (
       <Container>
@@ -25,15 +25,15 @@ class UserPreferences extends React.Component {
           <table className="m-2">
             <tbody>
               <tr>
-                <td className="px-4 py-1">{"name"}</td>
+                <td className="px-4 py-1">{'name'}</td>
                 <td>{name}</td>
               </tr>
               <tr>
-                <td className="px-4 py-1">{"email"}</td>
+                <td className="px-4 py-1">{'email'}</td>
                 <td>{email}</td>
               </tr>
               <tr className="py-1">
-                <td className="px-4">{"password"}</td>
+                <td className="px-4">{'password'}</td>
                 <td className="">
                   <Link to="/password-recover-change">*******************</Link>
                 </td>
@@ -45,8 +45,8 @@ class UserPreferences extends React.Component {
           Go back
         </Button>
       </Container>
-    );
+    )
   }
 }
 
-export default withRouter(UserPreferences);
+export default withRouter(UserPreferences)

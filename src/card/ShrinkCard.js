@@ -1,8 +1,8 @@
-import React from "react";
+import React from 'react'
 
-import styles from "./ShrinkCard.module.css";
+import styles from './ShrinkCard.module.css'
 
-import { joinClasses } from "./../util/elClass.js";
+import { joinClasses } from './../util/elClass.js'
 
 /**
  * +-------------------+
@@ -23,8 +23,8 @@ export const XxsCard = React.forwardRef(({ children }, ref) => {
       {children}
       <div className={styles.fade} />
     </div>
-  );
-});
+  )
+})
 
 export const XsCard = React.forwardRef(({ children }, ref) => {
   return (
@@ -32,8 +32,8 @@ export const XsCard = React.forwardRef(({ children }, ref) => {
       {children}
       <div className={styles.fade} />
     </div>
-  );
-});
+  )
+})
 
 export const SCard = React.forwardRef(({ children }, ref) => {
   return (
@@ -41,8 +41,8 @@ export const SCard = React.forwardRef(({ children }, ref) => {
       {children}
       <div className={styles.fade} />
     </div>
-  );
-});
+  )
+})
 
 const SeeMoreButton = React.forwardRef(
   ({ onClick, className, disabled, on }, ref) => {
@@ -53,30 +53,30 @@ const SeeMoreButton = React.forwardRef(
         onClick={onClick}
         disabled={disabled}
       >
-        {on ? "See less" : "See more"}
+        {on ? 'See less' : 'See more'}
       </div>
-    );
+    )
   }
-);
+)
 
 export class ShrinkCard extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
       opened: false,
-    };
+    }
   }
 
   toggleMoreLess = () => {
     this.setState({
       opened: !this.state.opened,
-    });
-  };
+    })
+  }
 
   render() {
     const shrinkStyle = this.state.opened
       ? styles.everything_xxs
-      : styles.card_xxs;
+      : styles.card_xxs
     return (
       <>
         <div className={joinClasses(styles.shrinkable, shrinkStyle)}>
@@ -85,6 +85,6 @@ export class ShrinkCard extends React.Component {
         </div>
         <SeeMoreButton onClick={this.toggleMoreLess} on={this.state.opened} />
       </>
-    );
+    )
   }
 }

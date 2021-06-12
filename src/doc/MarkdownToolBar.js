@@ -1,158 +1,158 @@
-import React from "react";
+import React from 'react'
 
-import styles from "./MarkdownToolBar.module.css";
+import styles from './MarkdownToolBar.module.css'
 
-import MdToolbarIconEmphasis from "./img/markdown-tool-emphasis.png";
-import MdToolbarIconHeader from "./img/markdown-tool-header.png";
-import MdToolbarIconItalic from "./img/markdown-tool-italic.png";
-import MdToolbarIconOrderedList from "./img/markdown-tool-ordered-list.png";
-import MdToolbarIconScratched from "./img/markdown-tool-scratched.png";
-import MdToolbarIconTable from "./img/markdown-tool-table.png";
-import MdToolbarIconLink from "./img/markdown-tool-link.png";
-import MdToolbarIconEmojiList from "./img/markdown-tool-unordered-emoji-list.png";
-import MdToolbarUnorderedList from "./img/markdown-tool-unordered-list.png";
+import MdToolbarIconEmphasis from './img/markdown-tool-emphasis.png'
+import MdToolbarIconHeader from './img/markdown-tool-header.png'
+import MdToolbarIconItalic from './img/markdown-tool-italic.png'
+import MdToolbarIconOrderedList from './img/markdown-tool-ordered-list.png'
+import MdToolbarIconScratched from './img/markdown-tool-scratched.png'
+import MdToolbarIconTable from './img/markdown-tool-table.png'
+import MdToolbarIconLink from './img/markdown-tool-link.png'
+import MdToolbarIconEmojiList from './img/markdown-tool-unordered-emoji-list.png'
+import MdToolbarUnorderedList from './img/markdown-tool-unordered-list.png'
 
-import { joinClasses } from "../util/elClass.js";
-import { EMOJI_LIST_PRESETS } from "./EmojiListPresets";
+import { joinClasses } from '../util/elClass.js'
+import { EMOJI_LIST_PRESETS } from './EmojiListPresets'
 
-import { Button, ButtonGroup } from "react-bootstrap";
+import { Button, ButtonGroup } from 'react-bootstrap'
 
-import axios from "axios";
+import axios from 'axios'
 
-import PropTypes from "prop-types";
-import { withRouter } from "react-router-dom";
+import PropTypes from 'prop-types'
+import { withRouter } from 'react-router-dom'
 
-var emoji = require("node-emoji");
+const emoji = require('node-emoji')
 
-export const NO_EXT_CLICK_DETECTION = "ignoreextclick";
+export const NO_EXT_CLICK_DETECTION = 'ignoreextclick'
 
 class MarkdownToolbarImpl extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
       modalShow: false,
-    };
-    this.fetchCancelToken = axios.CancelToken.source();
+    }
+    this.fetchCancelToken = axios.CancelToken.source()
   }
 
   static propTypes = {
-    location: PropTypes.object.isRequired,
     history: PropTypes.object.isRequired,
-  };
+    location: PropTypes.object.isRequired,
+  }
 
   componentWillUnmount() {
-    this.fetchCancelToken.cancel();
+    this.fetchCancelToken.cancel()
   }
 
   updateText = (txt, begin, end) => {
-    this.props.updateText(txt, begin, end);
-  };
+    this.props.updateText(txt, begin, end)
+  }
 
   handleIdleClick = (event) => {
     // console.log(this.props.textAreaRef.current);
-  };
+  }
 
   isTextAreaRefValid() {
     return (
       this.props.textAreaRef.current != null &&
       this.props.textAreaRef.current.value != null
-    );
+    )
   }
 
   insertHeaderClick = (event) => {
     if (!this.isTextAreaRefValid()) {
-      return;
+      return
     }
-    const txtRef = this.props.textAreaRef.current;
+    const txtRef = this.props.textAreaRef.current
 
-    var beginPos = txtRef.value.lastIndexOf("\n", txtRef.selectionStart);
+    let beginPos = txtRef.value.lastIndexOf('\n', txtRef.selectionStart)
     if (beginPos < 0) {
-      beginPos = 0;
+      beginPos = 0
     } else {
-      beginPos = beginPos + 1;
+      beginPos = beginPos + 1
     }
-    const hdr = txtRef.value.slice(beginPos, txtRef.selectionEnd);
+    const hdr = txtRef.value.slice(beginPos, txtRef.selectionEnd)
 
-    const prefix = txtRef.value.slice(0, beginPos);
-    const suffix = txtRef.value.slice(txtRef.selectionEnd);
-    const match = hdr.match("^(#){1,5} ");
-    var newValue;
+    const prefix = txtRef.value.slice(0, beginPos)
+    const suffix = txtRef.value.slice(txtRef.selectionEnd)
+    const match = hdr.match('^(#){1,5} ')
+    let newValue
     if (match && match.length && match.length > 0) {
-      var pos = match[0].length;
-      var newHdr;
+      const pos = match[0].length
+      let newHdr
       if (pos > 5) {
-        newHdr = hdr.slice(pos);
+        newHdr = hdr.slice(pos)
       } else {
-        newHdr = "#".repeat(pos) + " " + hdr.slice(pos);
+        newHdr = `${'#'.repeat(pos)} ${hdr.slice(pos)}`
       }
-      newValue = prefix + newHdr + suffix;
+      newValue = prefix + newHdr + suffix
     } else {
-      newValue = prefix + "# " + hdr + suffix;
+      newValue = `${prefix}# ${hdr}${suffix}`
     }
-    this.updateText(newValue, txtRef.selectionStart, txtRef.selectionEnd);
-  };
+    this.updateText(newValue, txtRef.selectionStart, txtRef.selectionEnd)
+  }
 
   wrapTextSelectionWith = (wrap) => {
     if (!this.isTextAreaRefValid()) {
-      return;
+      return
     }
-    const txtRef = this.props.textAreaRef.current;
+    const txtRef = this.props.textAreaRef.current
 
     const selected = txtRef.value.slice(
       txtRef.selectionStart,
       txtRef.selectionEnd
-    );
-    const prefix = txtRef.value.slice(0, txtRef.selectionStart);
-    const suffix = txtRef.value.slice(txtRef.selectionEnd);
-    const newValue = prefix + wrap + selected + wrap + suffix;
-    const wrapLn = wrap.length;
+    )
+    const prefix = txtRef.value.slice(0, txtRef.selectionStart)
+    const suffix = txtRef.value.slice(txtRef.selectionEnd)
+    const newValue = prefix + wrap + selected + wrap + suffix
+    const wrapLn = wrap.length
     this.updateText(
       newValue,
       txtRef.selectionStart + wrapLn,
       txtRef.selectionEnd + wrapLn
-    );
-  };
+    )
+  }
 
   emphasiseTextClick = () => {
-    this.wrapTextSelectionWith("**");
-  };
+    this.wrapTextSelectionWith('**')
+  }
 
   italicTextClick = () => {
-    this.wrapTextSelectionWith("*");
-  };
+    this.wrapTextSelectionWith('*')
+  }
 
   scratchedTextClick = () => {
-    this.wrapTextSelectionWith("~~");
-  };
+    this.wrapTextSelectionWith('~~')
+  }
 
   linkTextClick = () => {
     if (!this.isTextAreaRefValid()) {
-      return;
+      return
     }
-    const txtRef = this.props.textAreaRef.current;
+    const txtRef = this.props.textAreaRef.current
 
     const selected = txtRef.value.slice(
       txtRef.selectionStart,
       txtRef.selectionEnd
-    );
-    const prefix = txtRef.value.slice(0, txtRef.selectionStart);
-    const suffix = txtRef.value.slice(txtRef.selectionEnd);
-    const newValue = prefix + "[" + selected + "](https://...)" + suffix;
+    )
+    const prefix = txtRef.value.slice(0, txtRef.selectionStart)
+    const suffix = txtRef.value.slice(txtRef.selectionEnd)
+    const newValue = `${prefix}[${selected}](https://...)${suffix}`
     this.updateText(
       newValue,
       txtRef.selectionStart + 1,
       txtRef.selectionEnd + 1
-    );
-  };
+    )
+  }
 
   insertTableClick = () => {
     if (!this.isTextAreaRefValid()) {
-      return;
+      return
     }
-    const txtRef = this.props.textAreaRef.current;
+    const txtRef = this.props.textAreaRef.current
 
-    const prefix = txtRef.value.slice(0, txtRef.selectionStart);
-    const suffix = txtRef.value.slice(txtRef.selectionStart);
+    const prefix = txtRef.value.slice(0, txtRef.selectionStart)
+    const suffix = txtRef.value.slice(txtRef.selectionStart)
     const emptyTable = String.raw`
 
 |  #   |     |     |
@@ -161,73 +161,73 @@ class MarkdownToolbarImpl extends React.Component {
 |  2   |     |     |
 |  3   |     |     |
 |  4   |     |     |
-`;
-    const newValue = prefix + emptyTable + suffix;
-    this.updateText(newValue, txtRef.selectionStart + 4);
-  };
+`
+    const newValue = prefix + emptyTable + suffix
+    this.updateText(newValue, txtRef.selectionStart + 4)
+  }
 
   makeNumberedListClick = () => {
     this.makeListWith((line, index) => {
-      if (line.match("^ *[0-9]+. ")) {
-        return "";
+      if (line.match('^ *[0-9]+. ')) {
+        return ''
       }
-      return index + 1 + ". ";
-    });
-  };
+      return `${index + 1}. `
+    })
+  }
 
   makeUnorderedListClick = () => {
     this.makeListWith((line, index) => {
-      if (line.match("^ *[*+-] ") || line === "") {
-        return "";
+      if (line.match('^ *[*+-] ') || line === '') {
+        return ''
       }
-      return "- ";
-    });
-  };
+      return '- '
+    })
+  }
 
   makeEmojiListClick = () => {
-    const presetInd = Math.floor(Math.random() * EMOJI_LIST_PRESETS.length);
-    const presetLen = EMOJI_LIST_PRESETS[presetInd].length;
+    const presetInd = Math.floor(Math.random() * EMOJI_LIST_PRESETS.length)
+    const presetLen = EMOJI_LIST_PRESETS[presetInd].length
     this.makeListWith((line, index) => {
-      if (line.match("^ *[*+-] ") || line === "") {
-        return "";
+      if (line.match('^ *[*+-] ') || line === '') {
+        return ''
       }
-      var point;
+      let point
       emoji.replace(line, (em) => {
-        point = em.emoji;
-      });
+        point = em.emoji
+      })
       if (point) {
-        return "- " + point + " ";
+        return `- ${point} `
       }
-      const itemInd = Math.floor(Math.random() * presetLen);
-      const em = EMOJI_LIST_PRESETS[presetInd][itemInd];
-      return "- " + em + " ";
-    });
-  };
+      const itemInd = Math.floor(Math.random() * presetLen)
+      const em = EMOJI_LIST_PRESETS[presetInd][itemInd]
+      return `- ${em} `
+    })
+  }
 
   makeListWith = (fn) => {
-    console.log("makeListWith");
+    console.log('makeListWith')
     if (!this.isTextAreaRefValid()) {
-      return;
+      return
     }
-    console.log("makeListWith text area is valid");
-    const txtRef = this.props.textAreaRef.current;
+    console.log('makeListWith text area is valid')
+    const txtRef = this.props.textAreaRef.current
 
-    const prefix = txtRef.value.slice(0, txtRef.selectionStart);
-    const suffix = txtRef.value.slice(txtRef.selectionEnd);
+    const prefix = txtRef.value.slice(0, txtRef.selectionStart)
+    const suffix = txtRef.value.slice(txtRef.selectionEnd)
     const selected = txtRef.value.slice(
       txtRef.selectionStart,
       txtRef.selectionEnd
-    );
+    )
     const madeList = selected
-      .split("\n")
+      .split('\n')
       .map((line, ind) => {
-        return fn(line, ind) + line;
+        return fn(line, ind) + line
       })
-      .join("\n");
-    const newValue = prefix + madeList + suffix;
-    console.log("makeListWith - newValue");
-    this.updateText(newValue, newValue.length);
-  };
+      .join('\n')
+    const newValue = prefix + madeList + suffix
+    console.log('makeListWith - newValue')
+    this.updateText(newValue, newValue.length)
+  }
 
   render() {
     return (
@@ -359,10 +359,10 @@ class MarkdownToolbarImpl extends React.Component {
           />
         </Button>
       </>
-    );
+    )
   }
 }
 
-export const MarkdownToolbar = withRouter(MarkdownToolbarImpl);
+export const MarkdownToolbar = withRouter(MarkdownToolbarImpl)
 
-export default MarkdownToolbar;
+export default MarkdownToolbar

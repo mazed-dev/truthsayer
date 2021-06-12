@@ -16,11 +16,11 @@
 }
 
 .markdown-body blockquote p::after {
-  content: "\201D";
+  content: '\201D';
 }
 
 .markdown-body blockquote p::before {
-  content: "\201C";
+  content: '\201C';
 }
 
 /**

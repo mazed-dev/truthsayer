@@ -1,40 +1,40 @@
-import React, { useContext } from "react";
+import React, { useContext } from 'react'
 
-import { withRouter } from "react-router-dom";
-import { Button, ButtonToolbar } from "react-bootstrap";
+import { withRouter } from 'react-router-dom'
+import { Button, ButtonToolbar } from 'react-bootstrap'
 
-import PropTypes from "prop-types";
+import PropTypes from 'prop-types'
 
-import { smugler } from "./../smugler/api";
+import { smugler } from './../smugler/api'
 
-import styles from "./FullCardFootbar.module.css";
+import styles from './FullCardFootbar.module.css'
 
-import DownloadImg from "./../img/download.png";
-import CopyImg from "./../img/copy.png";
-import SearchImg from "./../img/search.png";
-import ArchiveImg from "./../img/archive.png";
-import DeleteImg from "./../img/delete.png";
+import DownloadImg from './../img/download.png'
+import CopyImg from './../img/copy.png'
+import SearchImg from './../img/search.png'
+import ArchiveImg from './../img/archive.png'
+import DeleteImg from './../img/delete.png'
 
-import NextNewLeftImg from "./../img/next-link-left-00001.png";
-import NextNewRightImg from "./../img/next-link-right-00001.png";
+import NextNewLeftImg from './../img/next-link-left-00001.png'
+import NextNewRightImg from './../img/next-link-right-00001.png'
 
-import NextCopyLeftImg from "./../img/next-clone-left.png";
-import NextCopyRightImg from "./../img/next-clone-right.png";
+import NextCopyLeftImg from './../img/next-clone-left.png'
+import NextCopyRightImg from './../img/next-clone-right.png'
 
-import EncryptedImg from "./../img/encrypted.png";
-import PrivateImg from "./../img/private.png";
-import PublicImg from "./../img/public.png";
+import EncryptedImg from './../img/encrypted.png'
+import PrivateImg from './../img/private.png'
+import PublicImg from './../img/public.png'
 
-import { ShareModal } from "./ShareModal";
+import { ShareModal } from './ShareModal'
 
-import { MzdGlobalContext } from "../lib/global";
-import { AutocompleteWindow } from "../smartpoint/AutocompleteWindow";
-import { HoverTooltip } from "../lib/tooltip";
-import { ImgButton } from "../lib/ImgButton";
-import { goto } from "../lib/route.jsx";
-import { joinClasses } from "../util/elClass.js";
-import { makeACopy, makeBlankCopy, docAsMarkdown } from "../doc/doc_util.jsx";
-import { downloadAsFile } from "../util/download_as_file.jsx";
+import { MzdGlobalContext } from '../lib/global'
+import { AutocompleteWindow } from '../smartpoint/AutocompleteWindow'
+import { HoverTooltip } from '../lib/tooltip'
+import { ImgButton } from '../lib/ImgButton'
+import { goto } from '../lib/route.jsx'
+import { joinClasses } from '../util/elClass.js'
+import { makeACopy, makeBlankCopy, docAsMarkdown } from '../doc/doc_util.jsx'
+import { downloadAsFile } from '../util/download_as_file.jsx'
 
 import {
   FootbarDropdown,
@@ -43,12 +43,12 @@ import {
   FootbarDropdownMenu,
   FootbarDropdownToggle,
   FootbarDropdownToggleMeatballs,
-} from "./Footbar";
+} from './Footbar'
 
 class LeftSearchModal extends React.Component {
   constructor(props) {
-    super(props);
-    this.addNodeRefCancelToken = smugler.makeCancelToken();
+    super(props)
+    this.addNodeRefCancelToken = smugler.makeCancelToken()
   }
 
   handleReplaceSmartpoint = ({ replacement, nid }) => {
@@ -61,14 +61,14 @@ class LeftSearchModal extends React.Component {
         })
         .then((edge) => {
           if (edge) {
-            this.props.addRef({ edge: edge, left: true });
+            this.props.addRef({ edge, left: true })
           }
-        });
+        })
     }
-  };
+  }
 
   componentWillUnmount() {
-    this.addNodeRefCancelToken.cancel();
+    this.addNodeRefCancelToken.cancel()
   }
 
   render() {
@@ -80,7 +80,7 @@ class LeftSearchModal extends React.Component {
         nid={this.props.nid}
         suggestDateTime={false}
       />
-    );
+    )
   }
 }
 
@@ -91,26 +91,26 @@ const CustomNodePrivacyToggle = React.forwardRef(
       className={joinClasses(styles.tool_button)}
       ref={ref}
       onClick={(e) => {
-        e.preventDefault();
-        onClick(e);
+        e.preventDefault()
+        onClick(e)
       }}
     >
       {children}
-      <HoverTooltip tooltip={"Publicity and encryption"}>
+      <HoverTooltip tooltip={'Publicity and encryption'}>
         <img
           src={PrivateImg}
           className={styles.tool_button_img}
-          alt={"Publicity and encryption"}
+          alt={'Publicity and encryption'}
         />
       </HoverTooltip>
     </Button>
   )
-);
+)
 
 class RightSearchModal extends React.Component {
   constructor(props) {
-    super(props);
-    this.addNodeRefCancelToken = smugler.makeCancelToken();
+    super(props)
+    this.addNodeRefCancelToken = smugler.makeCancelToken()
   }
 
   handleReplaceSmartpoint = ({ replacement, nid }) => {
@@ -123,14 +123,14 @@ class RightSearchModal extends React.Component {
         })
         .then((edge) => {
           if (edge) {
-            this.props.addRef({ edge: edge, right: true });
+            this.props.addRef({ edge, right: true })
           }
-        });
+        })
     }
-  };
+  }
 
   componentWillUnmount() {
-    this.addNodeRefCancelToken.cancel();
+    this.addNodeRefCancelToken.cancel()
   }
 
   render() {
@@ -142,13 +142,13 @@ class RightSearchModal extends React.Component {
         nid={this.props.nid}
         suggestDateTime={false}
       />
-    );
+    )
   }
 }
 
 export function _createAddingStickyEdgesRequest(sticky_edges, prev_nid) {
   if (sticky_edges == null) {
-    return null;
+    return null
   }
   const edges = sticky_edges
     .map((se) => {
@@ -157,28 +157,28 @@ export function _createAddingStickyEdgesRequest(sticky_edges, prev_nid) {
           return {
             from_nid: se.from_nid,
             is_sticky: true,
-          };
+          }
         } else if (se.from_nid === prev_nid) {
           return {
             to_nid: se.to_nid,
             is_sticky: true,
-          };
+          }
         }
       }
-      return null;
+      return null
     })
-    .filter((item) => item != null);
+    .filter((item) => item != null)
 
   return edges.length !== 0
     ? {
-        edges: edges,
+        edges,
       }
-    : null;
+    : null
 }
 
 function __addStickyEdges(sticky_edges, new_nid, prev_nid, cancelToken) {
   if (sticky_edges == null) {
-    return Promise.resolve([]);
+    return Promise.resolve([])
   }
   const edges = sticky_edges
     .map((se) => {
@@ -188,63 +188,63 @@ function __addStickyEdges(sticky_edges, new_nid, prev_nid, cancelToken) {
             from_nid: se.from_nid,
             to_nid: new_nid,
             is_sticky: true,
-          };
+          }
         } else if (se.from_nid === prev_nid) {
           return {
             to_nid: se.to_nid,
             from_nid: new_nid,
             is_sticky: true,
-          };
+          }
         }
       }
-      return null;
+      return null
     })
-    .filter((item) => item != null);
+    .filter((item) => item != null)
   if (edges.length === 0) {
-    return Promise.resolve([]);
+    return Promise.resolve([])
   }
   return smugler.edge.createFew({
-    edges: edges,
-    cancelToken: cancelToken,
-  });
+    edges,
+    cancelToken,
+  })
 }
 
 async function cloneNode({ from, to, crypto, cancelToken, blank }) {
-  const nid = from ? from : to;
+  const nid = from ? from : to
   const node = await smugler.node.get({
-    nid: nid,
-    crypto: crypto,
-    cancelToken: cancelToken,
-  });
-  let doc = null;
+    nid,
+    crypto,
+    cancelToken,
+  })
+  let doc = null
   if (blank) {
-    doc = makeBlankCopy(node.doc, nid);
+    doc = makeBlankCopy(node.doc, nid)
   } else {
-    doc = makeACopy(node.doc, nid);
+    doc = makeACopy(node.doc, nid)
   }
   return await smugler.node.create({
-    doc: doc,
-    cancelToken: cancelToken,
+    doc,
+    cancelToken,
     from_nid: from,
     to_nid: to,
-  });
+  })
 }
 
-class PrivateFullCardFootbar extends React.Component {
+class PrivateFullCardFootbarImpl extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
       modalLeftShow: false,
       modalRightShow: false,
       modalShareShow: false,
-    };
-    this.createCancelToken = smugler.makeCancelToken();
-    this.deleteCancelToken = smugler.makeCancelToken();
+    }
+    this.createCancelToken = smugler.makeCancelToken()
+    this.deleteCancelToken = smugler.makeCancelToken()
   }
 
   static propTypes = {
     history: PropTypes.object.isRequired,
-  };
+  }
 
   handleNextRight = (event) => {
     smugler.node
@@ -254,21 +254,21 @@ class PrivateFullCardFootbar extends React.Component {
       })
       .then((node) => {
         if (node) {
-          const new_nid = node.nid;
+          const new_nid = node.nid
           __addStickyEdges(
             this.props.stickyEdges,
             new_nid,
             this.props.nid,
             this.createCancelToken.token
           ).then(() => {
-            goto.node({ history: this.props.history, nid: new_nid });
-          });
+            goto.node({ history: this.props.history, nid: new_nid })
+          })
         }
-      });
-  };
+      })
+  }
 
   handleNextRightClone = (event) => {
-    let account = this.props.context.account;
+    const account = this.props.context.account
     cloneNode({
       from: this.props.nid,
       to: null,
@@ -276,13 +276,13 @@ class PrivateFullCardFootbar extends React.Component {
       cancelToken: this.createCancelToken.token,
     }).then((node) => {
       if (node) {
-        goto.node({ history: this.props.history, nid: node.nid });
+        goto.node({ history: this.props.history, nid: node.nid })
       }
-    });
-  };
+    })
+  }
 
   handleNextLeftBlankCopy = () => {
-    let account = this.props.context.account;
+    const account = this.props.context.account
     cloneNode({
       from: null,
       to: this.props.nid,
@@ -291,13 +291,13 @@ class PrivateFullCardFootbar extends React.Component {
       blank: true,
     }).then((node) => {
       if (node) {
-        goto.node({ history: this.props.history, nid: node.nid });
+        goto.node({ history: this.props.history, nid: node.nid })
       }
-    });
-  };
+    })
+  }
 
   handleNextRightBlankCopy = () => {
-    let account = this.props.context.account;
+    const account = this.props.context.account
     cloneNode({
       from: this.props.nid,
       to: null,
@@ -306,10 +306,10 @@ class PrivateFullCardFootbar extends React.Component {
       blank: true,
     }).then((node) => {
       if (node) {
-        goto.node({ history: this.props.history, nid: node.nid });
+        goto.node({ history: this.props.history, nid: node.nid })
       }
-    });
-  };
+    })
+  }
 
   handleNextLeft = (event) => {
     smugler.node
@@ -319,21 +319,21 @@ class PrivateFullCardFootbar extends React.Component {
       })
       .then((node) => {
         if (node) {
-          const new_nid = node.nid;
+          const new_nid = node.nid
           __addStickyEdges(
             this.props.stickyEdges,
             new_nid,
             this.props.nid,
             this.createCancelToken.token
           ).then(() => {
-            goto.node({ history: this.props.history, nid: new_nid });
-          });
+            goto.node({ history: this.props.history, nid: new_nid })
+          })
         }
-      });
-  };
+      })
+  }
 
   handleNextLeftClone = () => {
-    let account = this.props.context.account;
+    const account = this.props.context.account
     cloneNode({
       from: null,
       to: this.props.nid,
@@ -341,71 +341,71 @@ class PrivateFullCardFootbar extends React.Component {
       cancelToken: this.createCancelToken.token,
     }).then((node) => {
       if (node) {
-        goto.node({ history: this.props.history, nid: node.nid });
+        goto.node({ history: this.props.history, nid: node.nid })
       }
-    });
-  };
+    })
+  }
 
   handleNextLeftSearch = (event) => {
-    this.setState({ modalLeftShow: true });
-  };
+    this.setState({ modalLeftShow: true })
+  }
 
   handleNextRightSearch = (event) => {
-    this.setState({ modalRightShow: true });
-  };
+    this.setState({ modalRightShow: true })
+  }
 
   hideRightSearchDialog = (event) => {
-    this.setState({ modalRightShow: false });
-  };
+    this.setState({ modalRightShow: false })
+  }
 
   hideLeftSearchDialog = (event) => {
-    this.setState({ modalLeftShow: false });
-  };
+    this.setState({ modalLeftShow: false })
+  }
 
   hideShareDialog = (event) => {
-    this.setState({ modalShareShow: false });
-  };
+    this.setState({ modalShareShow: false })
+  }
 
   showShareDialog = (event) => {
-    this.setState({ modalShareShow: true });
-  };
+    this.setState({ modalShareShow: true })
+  }
 
   handleCopyMarkdown = () => {
-    let toaster = this.props.context.toaster;
-    const md = this.props.getMarkdown();
+    const toaster = this.props.context.toaster
+    const md = this.props.getMarkdown()
     navigator.clipboard.writeText(md).then(
-      function () {
+      () => {
         /* clipboard successfully set */
         toaster.push({
-          title: "Copied",
-          message: "Note copied to clipboard as markdown",
-        });
+          title: 'Copied',
+          message: 'Note copied to clipboard as markdown',
+        })
       },
-      function () {
+      () => {
         /* clipboard write failed */
         toaster.push({
-          title: "Error",
-          message: "Write to system clipboard failed",
-        });
+          title: 'Error',
+          message: 'Write to system clipboard failed',
+        })
       }
-    );
-  };
+    )
+  }
 
   handleDownloadMarkdown = () => {
-    const md = this.props.getMarkdown();
-    downloadAsFile(this.props.nid + ".txt", md);
-  };
+    const md = this.props.getMarkdown()
+    downloadAsFile(`${this.props.nid}.txt`, md)
+  }
 
   handleArchiveDoc = () => {
-    let toaster = this.props.context.toaster;
+    const toaster = this.props.context.toaster
     toaster.push({
-      title: "Not yet implemented",
-      message: "Archive feature is not yet implemented",
-    });
-  };
+      title: 'Not yet implemented',
+      message: 'Archive feature is not yet implemented',
+    })
+  }
 
   handleDeleteNote = () => {
-    let toaster = this.props.context.toaster;
+    const toaster = this.props.context.toaster
     smugler.node
       .delete({
         nid: this.props.nid,
@@ -413,25 +413,25 @@ class PrivateFullCardFootbar extends React.Component {
       })
       .then(() => {
         toaster.push({
-          title: "Moved to bin",
+          title: 'Moved to bin',
           message:
-            "Notes that have been in the bin for more than 28 days will be deleted automatically",
-        });
-        goto.default({ history: this.props.history });
-      });
-  };
+            'Notes that have been in the bin for more than 28 days will be deleted automatically',
+        })
+        goto.default({ history: this.props.history })
+      })
+  }
 
   getShareBtn = () => {
-    let img_ = PrivateImg;
-    let txt_ = "Share";
+    let img_ = PrivateImg
+    const txt_ = 'Share'
     if (this.props.meta && this.props.meta) {
-      const share = this.props.meta.share;
+      const share = this.props.meta.share
       if (share && share.by_link) {
-        img_ = PublicImg;
+        img_ = PublicImg
       }
-      const local_secret_id = this.props.meta.local_secret_id;
+      const local_secret_id = this.props.meta.local_secret_id
       if (local_secret_id) {
-        img_ = EncryptedImg;
+        img_ = EncryptedImg
       }
     }
     return (
@@ -439,11 +439,11 @@ class PrivateFullCardFootbar extends React.Component {
         <img
           src={img_}
           className={styles.tool_button_img}
-          alt={"Publicity and encryption"}
+          alt={'Publicity and encryption'}
         />
       </HoverTooltip>
-    );
-  };
+    )
+  }
 
   render() {
     return (
@@ -451,7 +451,7 @@ class PrivateFullCardFootbar extends React.Component {
         <ButtonToolbar className={joinClasses(styles.toolbar)}>
           <FootbarDropdown>
             <FootbarDropdownToggle>
-              <HoverTooltip tooltip={"Link to the left"}>
+              <HoverTooltip tooltip={'Link to the left'}>
                 <img
                   src={NextNewLeftImg}
                   className={styles.tool_button_img}
@@ -521,7 +521,7 @@ class PrivateFullCardFootbar extends React.Component {
 
           <FootbarDropdown>
             <FootbarDropdownToggleMeatballs
-              id={"more-options-for-fullsize-card"}
+              id={'more-options-for-fullsize-card'}
             />
 
             <FootbarDropdownMenu>
@@ -556,7 +556,7 @@ class PrivateFullCardFootbar extends React.Component {
                 <img
                   src={DeleteImg}
                   className={styles.dropdown_menu_inline_img}
-                  alt={"Delete"}
+                  alt={'Delete'}
                 />
                 Delete
               </FootbarDropdownItem>
@@ -568,7 +568,7 @@ class PrivateFullCardFootbar extends React.Component {
                 <img
                   src={ArchiveImg}
                   className={styles.dropdown_menu_inline_img}
-                  alt={"Archive"}
+                  alt={'Archive'}
                 />
                 Archive
               </FootbarDropdownItem>
@@ -577,7 +577,7 @@ class PrivateFullCardFootbar extends React.Component {
 
           <FootbarDropdown>
             <FootbarDropdownToggle>
-              <HoverTooltip tooltip={"Link to the right"}>
+              <HoverTooltip tooltip={'Link to the right'}>
                 <img
                   src={NextNewRightImg}
                   className={styles.tool_button_img}
@@ -655,36 +655,36 @@ class PrivateFullCardFootbar extends React.Component {
           context={this.props.context}
         />
       </>
-    );
+    )
   }
 }
 
-PrivateFullCardFootbar = withRouter(PrivateFullCardFootbar);
+const PrivateFullCardFootbar = withRouter(PrivateFullCardFootbarImpl)
 
-class PublicFullCardFootbar extends React.Component {
+class PublicFullCardFootbarImpl extends React.Component {
   constructor(props) {
-    super(props);
-    this.state = {};
-    this.createCancelToken = smugler.makeCancelToken();
+    super(props)
+    this.state = {}
+    this.createCancelToken = smugler.makeCancelToken()
   }
 
   static propTypes = {
     history: PropTypes.object.isRequired,
-  };
+  }
 
   getAccountOrLogin = () => {
-    let context = this.props.context;
+    const context = this.props.context
     if (context && context.account) {
-      return context.account;
+      return context.account
     }
-    goto.notice.logInToContinue({ history: this.props.history });
-    return null;
-  };
+    goto.notice.logInToContinue({ history: this.props.history })
+    return null
+  }
 
   handleNextRight = (event) => {
-    const account = this.getAccountOrLogin();
+    const account = this.getAccountOrLogin()
     if (!account) {
-      return;
+      return
     }
     smugler.node
       .create({
@@ -693,23 +693,23 @@ class PublicFullCardFootbar extends React.Component {
       })
       .then((node) => {
         if (node) {
-          const new_nid = node.nid;
+          const new_nid = node.nid
           __addStickyEdges(
             this.props.stickyEdges,
             new_nid,
             this.props.nid,
             this.createCancelToken.token
           ).then(() => {
-            goto.node({ history: this.props.history, nid: new_nid });
-          });
+            goto.node({ history: this.props.history, nid: new_nid })
+          })
         }
-      });
-  };
+      })
+  }
 
   handleNextRightClone = (event) => {
-    const account = this.getAccountOrLogin();
+    const account = this.getAccountOrLogin()
     if (!account) {
-      return;
+      return
     }
     cloneNode({
       from: this.props.nid,
@@ -718,15 +718,15 @@ class PublicFullCardFootbar extends React.Component {
       cancelToken: this.createCancelToken.token,
     }).then((node) => {
       if (node) {
-        goto.node({ history: this.props.history, nid: node.nid });
+        goto.node({ history: this.props.history, nid: node.nid })
       }
-    });
-  };
+    })
+  }
 
   handleNextLeft = (event) => {
-    const account = this.getAccountOrLogin();
+    const account = this.getAccountOrLogin()
     if (!account) {
-      return;
+      return
     }
     smugler.node
       .create({
@@ -735,23 +735,23 @@ class PublicFullCardFootbar extends React.Component {
       })
       .then((node) => {
         if (node) {
-          const new_nid = node.nid;
+          const new_nid = node.nid
           __addStickyEdges(
             this.props.stickyEdges,
             new_nid,
             this.props.nid,
             this.createCancelToken.token
           ).then(() => {
-            goto.node({ history: this.props.history, nid: new_nid });
-          });
+            goto.node({ history: this.props.history, nid: new_nid })
+          })
         }
-      });
-  };
+      })
+  }
 
   handleNextLeftClone = () => {
-    const account = this.getAccountOrLogin();
+    const account = this.getAccountOrLogin()
     if (!account) {
-      return;
+      return
     }
     cloneNode({
       from: null,
@@ -760,10 +760,10 @@ class PublicFullCardFootbar extends React.Component {
       cancelToken: this.createCancelToken.token,
     }).then((node) => {
       if (node) {
-        goto.node({ history: this.props.history, nid: node.nid });
+        goto.node({ history: this.props.history, nid: node.nid })
       }
-    });
-  };
+    })
+  }
 
   render() {
     return (
@@ -776,7 +776,7 @@ class PublicFullCardFootbar extends React.Component {
               styles.toolbar_layout_item
             )}
           >
-            <HoverTooltip tooltip={"Link to the left"}>
+            <HoverTooltip tooltip={'Link to the left'}>
               <img
                 src={NextNewLeftImg}
                 className={styles.tool_button_img}
@@ -792,7 +792,7 @@ class PublicFullCardFootbar extends React.Component {
               styles.toolbar_layout_item
             )}
           >
-            <HoverTooltip tooltip={"Copy and link"}>
+            <HoverTooltip tooltip={'Copy and link'}>
               <img
                 src={NextCopyLeftImg}
                 className={styles.tool_button_img}
@@ -808,7 +808,7 @@ class PublicFullCardFootbar extends React.Component {
               styles.toolbar_layout_item
             )}
           >
-            <HoverTooltip tooltip={"Copy and link"}>
+            <HoverTooltip tooltip={'Copy and link'}>
               <img
                 src={NextCopyRightImg}
                 className={styles.tool_button_img}
@@ -824,7 +824,7 @@ class PublicFullCardFootbar extends React.Component {
               styles.toolbar_layout_item
             )}
           >
-            <HoverTooltip tooltip={"Link to the right"}>
+            <HoverTooltip tooltip={'Link to the right'}>
               <img
                 src={NextNewRightImg}
                 className={styles.tool_button_img}
@@ -834,20 +834,20 @@ class PublicFullCardFootbar extends React.Component {
           </ImgButton>
         </ButtonToolbar>
       </>
-    );
+    )
   }
 }
 
-PublicFullCardFootbar = withRouter(PublicFullCardFootbar);
+const PublicFullCardFootbar = withRouter(PublicFullCardFootbarImpl)
 
 export function FullCardFootbar({ children, node, ...rest }) {
-  const ctx = useContext(MzdGlobalContext);
-  const account = ctx.account;
+  const ctx = useContext(MzdGlobalContext)
+  const account = ctx.account
   if (node && node.meta) {
     if (node.isOwnedBy(account)) {
       const getMarkdown = () => {
-        return docAsMarkdown(node.doc);
-      };
+        return docAsMarkdown(node.doc)
+      }
       return (
         <PrivateFullCardFootbar
           nid={node.nid}
@@ -858,15 +858,15 @@ export function FullCardFootbar({ children, node, ...rest }) {
         >
           {children}
         </PrivateFullCardFootbar>
-      );
+      )
     } else {
       return (
         <PublicFullCardFootbar nid={node.nid} context={ctx} {...rest}>
           {children}
         </PublicFullCardFootbar>
-      );
+      )
     }
   }
   // TODO(akindyakov): empty footbard to allocate space?
-  return null;
+  return null
 }

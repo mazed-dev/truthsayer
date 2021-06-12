@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext } from 'react'
 import {
   kEntityTypeBold,
   kEntityTypeItalic,
@@ -7,14 +7,14 @@ import {
   kEntityTypeTime,
   kEntityTypeUnderline,
   kEntityTypeImage,
-} from "../types.jsx";
+} from '../types.jsx'
 
-import { MzdGlobalContext } from "../../lib/global";
-import { ToggleControlButton } from "./ControlButton";
+import { MzdGlobalContext } from '../../lib/global'
+import { ToggleControlButton } from './ControlButton'
 
-import { joinClasses } from "../../util/elClass.js";
+import { joinClasses } from '../../util/elClass.js'
 
-import styles from "./InlineStyleControls.module.css";
+import styles from './InlineStyleControls.module.css'
 
 export function InlineStyleControls({
   editorState,
@@ -22,45 +22,45 @@ export function InlineStyleControls({
   onStateChange,
   className,
 }) {
-  const currentStyle = editorState.getCurrentInlineStyle();
+  const currentStyle = editorState.getCurrentInlineStyle()
   return (
     <>
       <ToggleControlButton
-        key={"bold"}
+        key={'bold'}
         isActive={currentStyle.has(kEntityTypeBold)}
         onToggle={onToggle}
         style={kEntityTypeBold}
         className={joinClasses(styles.btn, styles.btn_bold, className)}
       >
-        {"B"}
+        {'B'}
       </ToggleControlButton>
       <ToggleControlButton
-        key={"italic"}
+        key={'italic'}
         isActive={currentStyle.has(kEntityTypeItalic)}
         onToggle={onToggle}
         style={kEntityTypeItalic}
         className={joinClasses(styles.btn, styles.btn_italic, className)}
       >
-        {"I"}
+        {'I'}
       </ToggleControlButton>
       <ToggleControlButton
-        key={"underline"}
+        key={'underline'}
         isActive={currentStyle.has(kEntityTypeUnderline)}
         onToggle={onToggle}
         style={kEntityTypeUnderline}
         className={joinClasses(styles.btn, styles.btn_underline, className)}
       >
-        {"U"}
+        {'U'}
       </ToggleControlButton>
       <ToggleControlButton
-        key={"monospace"}
+        key={'monospace'}
         isActive={currentStyle.has(kEntityTypeMonospace)}
         onToggle={onToggle}
         style={kEntityTypeMonospace}
         className={joinClasses(styles.btn, styles.btn_monospace, className)}
       >
-        {"<>"}
+        {'<>'}
       </ToggleControlButton>
     </>
-  );
+  )
 }

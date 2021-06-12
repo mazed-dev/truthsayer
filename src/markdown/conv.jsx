@@ -1,4 +1,4 @@
-import moment from "moment";
+import moment from 'moment'
 
 import {
   TChunk,
@@ -25,11 +25,14 @@ import {
   generateRandomKey,
   makeLinkEntity,
   makeBlock,
-} from "./../doc/types.jsx";
+} from './../doc/types.jsx'
 
-import { markdownToDraft as libMarkdownToDraft, draftToMarkdown } from "markdown-draft-js";
+import {
+  markdownToDraft as libMarkdownToDraft,
+  draftToMarkdown,
+} from 'markdown-draft-js'
 
-const lodash = require("lodash");
+const lodash = require('lodash')
 
 function mdImageItemToEntity(item) {
   return {
@@ -39,42 +42,42 @@ function mdImageItemToEntity(item) {
       src: item.src,
       alt: item.alt,
     },
-  };
+  }
 }
 
 function mdLinkToEntity(item) {
-  const href = item.href;
-  const dtParts = href.match(/^@(-?[0-9]+)\/?(.*)/);
+  const href = item.href
+  const dtParts = href.match(/^@(-?[0-9]+)\/?(.*)/)
   if (dtParts) {
-    const tm = dtParts[1]; // Arguably unix timestamp (signed)
-    let format = dtParts[2];
-    if (format === "day") {
-      format = '"YYYY MMMM DD dddd"';
+    const tm = dtParts[1] // Arguably unix timestamp (signed)
+    let format = dtParts[2]
+    if (format === 'day') {
+      format = '"YYYY MMMM DD dddd"'
     }
     return {
       type: kEntityTypeTime,
       mutability: kEntityMutable,
       data: {
-        tm: tm,
-        format: format,
+        tm,
+        format,
       },
-    };
+    }
   }
-  return makeLinkEntity(href);
+  return makeLinkEntity(href)
 }
 
 function mdTableToBlock(item) {
-  return { type: item.type };
+  return { type: item.type }
 }
 
 function mdHrToBlock(item) {
   return makeBlock({
     type: kBlockTypeHrule,
-  });
+  })
 }
 
 export function markdownToDraft(source: string): TDraftDoc {
-  var rawObject: TDraftDoc = libMarkdownToDraft(source, {
+  const rawObject: TDraftDoc = libMarkdownToDraft(source, {
     blockEntities: {
       image: mdImageItemToEntity,
       link_open: mdLinkToEntity,
@@ -97,95 +100,95 @@ export function markdownToDraft(source: string): TDraftDoc {
       // tbody_close: mdTableToBlock,
     },
     remarkablePlugins: [],
-    remarkablePreset: "full",
+    remarkablePreset: 'full',
     remarkableOptions: {
       disable: {},
       enable: {},
     },
-  });
+  })
   rawObject.blocks = rawObject.blocks.map((block) => {
     if (block.type === kBlockTypeUnorderedItem) {
-      const prefix = block.text.slice(0, 4).toLowerCase();
-      const isChecked = prefix === "[x] ";
-      const isNotChecked = prefix === "[ ] ";
+      const prefix = block.text.slice(0, 4).toLowerCase()
+      const isChecked = prefix === '[x] '
+      const isNotChecked = prefix === '[ ] '
       if (isChecked || isNotChecked) {
-        block.type = kBlockTypeUnorderedCheckItem;
-        block.text = block.text.slice(4);
+        block.type = kBlockTypeUnorderedCheckItem
+        block.text = block.text.slice(4)
         block.data = lodash.merge(block.data || {}, {
-            checked: isChecked,
-          });
+          checked: isChecked,
+        })
       }
     }
     if (block.key == null) {
-      block.key = generateRandomKey();
+      block.key = generateRandomKey()
     }
     if (!block.text) {
-      block.text = "\n";
+      block.text = '\n'
     }
-    return block;
-  });
-  return rawObject;
+    return block
+  })
+  return rawObject
 }
 
 function makeCustomEntityRenders() {
   return {
     [kEntityTypeLink]: {
       open: (entity) => {
-        return "[";
+        return '['
       },
       close: (entity) => {
         const url =
-          (entity.data || {}).url || (entity.data || { href: "" }).href;
-        return "](" + url + ")";
+          (entity.data || {}).url || (entity.data || { href: '' }).href
+        return `](${url})`
       },
     },
     [kEntityTypeTime]: {
       open: (entity) => {
-        const tmStr = (entity.data || {}).tm;
+        const tmStr = (entity.data || {}).tm
         if (tmStr) {
           const formatStr =
-            (entity.data || {}).format || '"YYYY MMMM DD dddd hh:mm"';
-          return moment.unix(tmStr).format(formatStr);
+            (entity.data || {}).format || '"YYYY MMMM DD dddd hh:mm"'
+          return moment.unix(tmStr).format(formatStr)
         }
       },
       close: (entity) => {
-        return "";
+        return ''
       },
     },
     [kEntityTypeImage]: {
       open: (entity) => {
-        const src = (entity.data || {}).src;
+        const src = (entity.data || {}).src
         if (src) {
-          const alt = (entity.data || {}).alt || "";
-          return "![" + alt + "](" + src + ")";
+          const alt = (entity.data || {}).alt || ''
+          return `![${alt}](${src})`
         }
-        return "";
+        return ''
       },
       close: (entity) => {
-        return "";
+        return ''
       },
     },
-  };
+  }
 }
 
 function convertCheckItemsToUnorderedItem(doc: TDraftDoc): TDraftDoc {
   doc.blocks = doc.blocks.map((block) => {
     if (block.type === kBlockTypeUnorderedCheckItem) {
       if (block.data && block.data.checked) {
-        block.text = "[x] " + block.text;
+        block.text = `[x] ${block.text}`
       } else {
-        block.text = "[ ] " + block.text;
+        block.text = `[ ] ${block.text}`
       }
-      block.type = kBlockTypeUnorderedItem;
+      block.type = kBlockTypeUnorderedItem
     }
-    return block;
-  });
-  return doc;
+    return block
+  })
+  return doc
 }
 
 export function docToMarkdown(doc: TDraftDoc): string {
-  doc = convertCheckItemsToUnorderedItem(doc);
+  doc = convertCheckItemsToUnorderedItem(doc)
   return draftToMarkdown(doc, {
     entityItems: makeCustomEntityRenders(),
-  });
+  })
 }

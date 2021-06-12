@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react'
 
 import {
   Card,
@@ -8,89 +8,89 @@ import {
   Row,
   Col,
   ButtonGroup,
-} from "react-bootstrap";
+} from 'react-bootstrap'
 
-import Emoji from "./../Emoji";
-import PropTypes from "prop-types";
-import axios from "axios";
-import { withRouter } from "react-router-dom";
+import { Emoji } from './../Emoji'
+import PropTypes from 'prop-types'
+import axios from 'axios'
+import { withRouter } from 'react-router-dom'
 
 class PasswordRecoverRequest extends React.Component {
   constructor(props) {
-    super(props);
-    var email = "";
+    super(props)
+    let email = ''
     if (this.props.location.state && this.props.location.state.email) {
-      email = this.props.location.state.email;
+      email = this.props.location.state.email
     }
     this.state = {
-      email: email,
+      email,
       reset_request_is_sent: false,
-    };
-    this.emailRef = React.createRef();
-    this.axiosCancelToken = axios.CancelToken.source();
+    }
+    this.emailRef = React.createRef()
+    this.axiosCancelToken = axios.CancelToken.source()
   }
 
   static propTypes = {
-    location: PropTypes.object.isRequired,
     history: PropTypes.object.isRequired,
-  };
+    location: PropTypes.object.isRequired,
+  }
 
   componentDidMount() {
     // Just in case we are already logged in
     axios
-      .get("/api/auth/session", {
+      .get('/api/auth/session', {
         cancelToken: this.axiosCancelToken.token,
       })
       .then((res) => {
         if (res) {
-          this.props.history.push("/");
+          this.props.history.push('/')
         }
-      });
+      })
   }
 
   componentWillUnmount() {
-    this.axiosCancelToken.cancel();
+    this.axiosCancelToken.cancel()
   }
 
   handleEmailChange = (event) => {
-    this.setState({ email: event.target.value });
-    this.checkState();
-  };
+    this.setState({ email: event.target.value })
+    this.checkState()
+  }
 
   checkState = () => {
     if (this.emailRef.current) {
-      const isReady = this.emailRef.current.validity.valid;
-      this.setState({ isReady: isReady });
+      const isReady = this.emailRef.current.validity.valid
+      this.setState({ isReady })
     }
-  };
+  }
 
   onSubmit = (event) => {
-    event.preventDefault();
+    event.preventDefault()
     const value = {
       email: this.state.email,
-    };
+    }
     axios
-      .post("/api/auth/password-recover/request", value, {
+      .post('/api/auth/password-recover/request', value, {
         cancelToken: this.axiosCancelToken.token,
       })
-      .catch(function (err) {
-        alert("Error " + err);
+      .catch((err) => {
+        alert(`Error ${err}`)
       })
       .then((res) => {
         if (res) {
           this.setState({
             reset_request_is_sent: true,
-          });
+          })
         }
-      });
-  };
+      })
+  }
 
   onGoBackToMain = () => {
-    this.props.history.push("/");
-  };
+    this.props.history.push('/')
+  }
 
   render() {
-    var show;
+    let show
     if (this.state.reset_request_is_sent) {
       show = (
         <>
@@ -112,7 +112,7 @@ class PasswordRecoverRequest extends React.Component {
             </Button>
           </ButtonGroup>
         </>
-      );
+      )
     } else {
       show = (
         <>
@@ -150,7 +150,7 @@ class PasswordRecoverRequest extends React.Component {
             </ButtonGroup>
           </Form>
         </>
-      );
+      )
     }
     return (
       <Container>
@@ -161,8 +161,8 @@ class PasswordRecoverRequest extends React.Component {
           </Card.Body>
         </Card>
       </Container>
-    );
+    )
   }
 }
 
-export default withRouter(PasswordRecoverRequest);
+export default withRouter(PasswordRecoverRequest)

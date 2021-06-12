@@ -1,91 +1,91 @@
-import React, { useContext } from "react";
-import PropTypes from "prop-types";
-import { withRouter } from "react-router-dom";
-import { Container, Row, Col } from "react-bootstrap";
+import React, { useContext } from 'react'
+import PropTypes from 'prop-types'
+import { withRouter } from 'react-router-dom'
+import { Container, Row, Col } from 'react-bootstrap'
 
-import { SmallCard } from "./../card/SmallCard";
-import { SCard } from "./../card/ShrinkCard";
-import { TimeBadge } from "./../card/AuthorBadge";
-import { ReadOnlyRender } from "./../doc/ReadOnlyRender";
+import { SmallCard } from './../card/SmallCard'
+import { SCard } from './../card/ShrinkCard'
+import { TimeBadge } from './../card/AuthorBadge'
+import { ReadOnlyRender } from './../doc/ReadOnlyRender'
 
-import { searchNodeFor } from "./search/search.jsx";
+import { searchNodeFor } from './search/search.jsx'
 
-import { smugler } from "./../smugler/api.js";
+import { smugler } from './../smugler/api.js'
 
-import { joinClasses } from "./../util/elClass.js";
-import { range } from "./../util/range";
-import { isSmartCase } from "./../util/str.jsx";
+import { joinClasses } from './../util/elClass.js'
+import { range } from './../util/range'
+import { isSmartCase } from './../util/str.jsx'
 
-import { MzdGlobalContext } from "../lib/global.js";
-import { Loader } from "./../lib/loader";
+import { MzdGlobalContext } from '../lib/global.js'
+import { Loader } from './../lib/loader'
 
-import styles from "./SearchGrid.module.css";
+import styles from './SearchGrid.module.css'
 
-const lodash = require("lodash");
+const lodash = require('lodash')
 
 class DynamicGrid extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
       width: 640,
       height: 480,
       ncols: 1,
-    };
-    this.containerRef = React.createRef();
+    }
+    this.containerRef = React.createRef()
   }
 
   componentDidMount() {
-    this.updateWindowDimensions();
-    window.addEventListener("resize", this.updateWindowDimensions);
+    this.updateWindowDimensions()
+    window.addEventListener('resize', this.updateWindowDimensions)
   }
 
   componentWillUnmount() {
-    window.removeEventListener("resize", this.updateWindowDimensions);
+    window.removeEventListener('resize', this.updateWindowDimensions)
   }
 
   updateWindowDimensions = () => {
-    const containerEl = this.containerRef.current;
-    const width = containerEl.clientWidth || window.innerWidth;
-    const height = containerEl.clientHeight || window.innerHeight;
+    const containerEl = this.containerRef.current
+    const width = containerEl.clientWidth || window.innerWidth
+    const height = containerEl.clientHeight || window.innerHeight
     const fontSize = parseFloat(
       getComputedStyle(document.documentElement).fontSize
-    );
+    )
     const fn = (cardWidth) => {
-      const nf = width / (fontSize * cardWidth);
-      let n = Math.floor(nf);
-      const delta = nf - n;
+      const nf = width / (fontSize * cardWidth)
+      let n = Math.floor(nf)
+      const delta = nf - n
       if (delta > 0.8) {
-        n = n + 1;
+        n = n + 1
       }
-      return n;
-    };
-    const ncols = Math.max(2, fn(16));
+      return n
+    }
+    const ncols = Math.max(2, fn(16))
     this.setState({
-      width: width,
-      height: height,
-      ncols: ncols,
-    });
-  };
+      width,
+      height,
+      ncols,
+    })
+  }
 
   render() {
-    const colWidth = Math.floor(100 / this.state.ncols) + "%";
+    const colWidth = `${Math.floor(100 / this.state.ncols)}%`
     const columnStyle = {
       width: colWidth,
-    };
+    }
     const columns = range(this.state.ncols).map((_, col_ind) => {
       const colCards = this.props.cards.filter((_, card_ind) => {
-        return card_ind % this.state.ncols === col_ind;
-      });
+        return card_ind % this.state.ncols === col_ind
+      })
       return (
         <Col
           className={styles.grid_col}
           style={columnStyle}
-          key={"cards_column_" + col_ind}
+          key={`cards_column_${col_ind}`}
         >
           {colCards}
         </Col>
-      );
-    });
+      )
+    })
     return (
       <Container
         fluid
@@ -93,20 +93,20 @@ class DynamicGrid extends React.Component {
         ref={this.containerRef}
       >
         <Row
-          className={joinClasses("justify-content-between", styles.grid_row)}
+          className={joinClasses('justify-content-between', styles.grid_row)}
         >
           {columns}
         </Row>
       </Container>
-    );
+    )
   }
 }
 
-const _kTimeLimit = Math.floor(Date.now() / 1000) - 2 * 356 * 24 * 60 * 60;
+const _kTimeLimit = Math.floor(Date.now() / 1000) - 2 * 356 * 24 * 60 * 60
 
 class SearchGridImpl extends React.Component {
   constructor(props, context) {
-    super(props, context);
+    super(props, context)
     this.state = {
       nodes: [],
       pattern: this.makePattern(),
@@ -114,22 +114,22 @@ class SearchGridImpl extends React.Component {
       end_time: null,
       start_time: null,
       offset: 0,
-    };
-    this.fetchCancelToken = smugler.makeCancelToken();
-    this.ref = React.createRef();
+    }
+    this.fetchCancelToken = smugler.makeCancelToken()
+    this.ref = React.createRef()
   }
 
   componentDidMount() {
     if (!this.props.portable) {
-      window.addEventListener("scroll", this.handleScroll, { passive: true });
+      window.addEventListener('scroll', this.handleScroll, { passive: true })
     }
-    this.fetchData();
+    this.fetchData()
   }
 
   componentWillUnmount() {
-    this.fetchCancelToken.cancel();
+    this.fetchCancelToken.cancel()
     if (!this.props.portable) {
-      window.removeEventListener("scroll", this.handleScroll);
+      window.removeEventListener('scroll', this.handleScroll)
     }
   }
 
@@ -142,22 +142,22 @@ class SearchGridImpl extends React.Component {
       this.props.extCards !== prevProps.extCards
     ) {
       // console.log("SearchGridImpl::componentDidUpdate -> fetchData");
-      this.fetchData();
+      this.fetchData()
     }
   }
 
   static propTypes = {
     history: PropTypes.object.isRequired,
-  };
+  }
 
   makePattern() {
-    const { q } = this.props;
+    const { q } = this.props
     if (q == null || q.length < 2) {
-      return null;
+      return null
     }
     // TODO(akindyakov) Use multiline search here
-    let flags = isSmartCase(this.props.q) ? "" : "i";
-    return new RegExp(this.props.q, flags);
+    const flags = isSmartCase(this.props.q) ? '' : 'i'
+    return new RegExp(this.props.q, flags)
   }
 
   fetchData = () => {
@@ -165,7 +165,7 @@ class SearchGridImpl extends React.Component {
       !this.props.defaultSearch &&
       (this.props.q == null || this.props.q.length < 2)
     ) {
-      return;
+      return
     }
     this.setState(
       {
@@ -177,68 +177,68 @@ class SearchGridImpl extends React.Component {
         fetching: true,
       },
       this.secureSearchIteration
-    );
-  };
+    )
+  }
 
   secureSearchIteration = () => {
-    let end_time = this.state.end_time;
-    let start_time = this.state.start_time;
-    let offset = this.state.offset;
-    //*dbg*/ console.info(
-    //*dbg*/   "Fetching [",
-    //*dbg*/   start_time,
-    //*dbg*/   end_time,
-    //*dbg*/   offset,
-    //*dbg*/   "], ",
-    //*dbg*/   this.state.nodes.length
-    //*dbg*/ );
-    const account = this.props.account;
+    const end_time = this.state.end_time
+    const start_time = this.state.start_time
+    const offset = this.state.offset
+    //* dbg*/ console.info(
+    //* dbg*/   "Fetching [",
+    //* dbg*/   start_time,
+    //* dbg*/   end_time,
+    //* dbg*/   offset,
+    //* dbg*/   "], ",
+    //* dbg*/   this.state.nodes.length
+    //* dbg*/ );
+    const account = this.props.account
     smugler.node
       .slice({
-        start_time: start_time,
-        end_time: end_time,
-        offset: offset,
+        start_time,
+        end_time,
+        offset,
         cancelToken: this.fetchCancelToken.token,
-        account: account,
+        account,
       })
       .then((data) => {
         if (!data) {
-          console.error("Error: no response from back end");
-          return;
+          console.error('Error: no response from back end')
+          return
         }
-        const { nodes, start_time, offset, full_size, end_time } = data;
-        const { pattern } = this.state;
+        const { nodes, start_time, offset, full_size, end_time } = data
+        const { pattern } = this.state
         if (pattern) {
           nodes.forEach((node) => {
-            node = searchNodeFor(node, pattern);
+            node = searchNodeFor(node, pattern)
             if (node) {
               this.setState((state) => {
-                return { nodes: lodash.concat(state.nodes, node) };
-              });
+                return { nodes: lodash.concat(state.nodes, node) }
+              })
             }
-          });
+          })
         } else {
           this.setState((state) => {
-            return { nodes: lodash.concat(state.nodes, nodes) };
-          });
+            return { nodes: lodash.concat(state.nodes, nodes) }
+          })
         }
-        let next = null;
-        let newFetching = false;
+        let next = null
+        let newFetching = false
         if (this.isScrolledToBottom() && start_time > _kTimeLimit) {
-          next = this.secureSearchIteration;
-          newFetching = true;
+          next = this.secureSearchIteration
+          newFetching = true
         }
-        let newEndTime;
-        let newStartTime;
-        let newOffset;
+        let newEndTime
+        let newStartTime
+        let newOffset
         if (this.isTimeIntervalExhausted(nodes.length, offset, full_size)) {
-          newEndTime = start_time;
-          newStartTime = start_time - (end_time - start_time);
-          newOffset = 0;
+          newEndTime = start_time
+          newStartTime = start_time - (end_time - start_time)
+          newOffset = 0
         } else {
-          newEndTime = end_time;
-          newStartTime = start_time;
-          newOffset = offset + nodes.length;
+          newEndTime = end_time
+          newStartTime = start_time
+          newOffset = offset + nodes.length
         }
         this.setState(
           {
@@ -248,62 +248,62 @@ class SearchGridImpl extends React.Component {
             fetching: newFetching,
           },
           next
-        );
+        )
       })
       .catch((error) => {
-        console.log("Error", error);
-      });
-  };
+        console.log('Error', error)
+      })
+  }
 
   isTimeIntervalExhausted = (length, offset, full_size) => {
-    return !(length + offset < full_size);
-  };
+    return !(length + offset < full_size)
+  }
 
   isScrolledToBottom = () => {
     if (this.props.portable) {
-      const scrollTop = this.ref.current.scrollTop;
-      const scrollTopMax = this.ref.current.scrollTopMax;
-      return scrollTop === scrollTopMax;
+      const scrollTop = this.ref.current.scrollTop
+      const scrollTopMax = this.ref.current.scrollTopMax
+      return scrollTop === scrollTopMax
     }
-    const innerHeight = window.innerHeight;
-    const scrollTop = document.documentElement.scrollTop;
-    const offsetHeight = document.documentElement.offsetHeight;
-    return innerHeight + scrollTop >= offsetHeight;
-  };
+    const innerHeight = window.innerHeight
+    const scrollTop = document.documentElement.scrollTop
+    const offsetHeight = document.documentElement.offsetHeight
+    return innerHeight + scrollTop >= offsetHeight
+  }
 
   handleScroll = (e) => {
     if (!this.state.fetching && this.isScrolledToBottom()) {
-      this.secureSearchIteration();
+      this.secureSearchIteration()
     }
-  };
+  }
 
   render() {
-    let account = this.props.account;
+    const account = this.props.account
     if (account == null) {
       return (
         <div className={styles.search_grid_waiter}>
-          <Loader size={"large"} />
+          <Loader size={'large'} />
         </div>
-      );
+      )
     }
 
-    const extCards = this.props.extCards ? this.props.extCards : [];
-    let used = {};
-    let cards = this.state.nodes
+    const extCards = this.props.extCards ? this.props.extCards : []
+    const used = {}
+    const cards = this.state.nodes
       .filter((node) => {
         if (node.nid in used) {
-          //*dbg*/ console.log("Search grid overlap", node.nid, item);
-          return false;
+          //* dbg*/ console.log("Search grid overlap", node.nid, item);
+          return false
         }
-        used[node.nid] = true;
-        return true;
+        used[node.nid] = true
+        return true
       })
       .map((node) => {
         const onClick = () => {
           this.props.history.push({
-            pathname: "/n/" + node.nid,
-          });
-        };
+            pathname: `/n/${node.nid}`,
+          })
+        }
         return (
           <SmallCard
             onClick={onClick}
@@ -318,16 +318,16 @@ class SearchGridImpl extends React.Component {
               updated_at={node.updated_at}
             />
           </SmallCard>
-        );
+        )
       })
-      .concat(extCards);
+      .concat(extCards)
 
     const fetchingLoader = this.state.fetching ? (
       <div className={styles.search_grid_loader}>
-        <Loader size={"medium"} />
+        <Loader size={'medium'} />
       </div>
-    ) : null;
-    const gridStyle = this.props.portable ? styles.search_grid_portable : null;
+    ) : null
+    const gridStyle = this.props.portable ? styles.search_grid_portable : null
     return (
       <div
         className={joinClasses(gridStyle, styles.search_grid)}
@@ -337,7 +337,7 @@ class SearchGridImpl extends React.Component {
         <DynamicGrid cards={cards} />
         {fetchingLoader}
       </div>
-    );
+    )
   }
 }
 
@@ -346,13 +346,13 @@ SearchGridImpl.defaultProps = {
   portable: false,
   onCardClick: null,
   extCards: null,
-};
+}
 // SearchGridImpl.contextType = MzdGlobalContext;
-SearchGridImpl = withRouter(SearchGridImpl);
+const SearchGridRouter = withRouter(SearchGridImpl)
 
 export function SearchGrid({ ...rest }) {
-  const ctx = useContext(MzdGlobalContext);
-  return <SearchGridImpl account={ctx.account} {...rest} />;
+  const ctx = useContext(MzdGlobalContext)
+  return <SearchGridRouter account={ctx.account} {...rest} />
 }
 
-export default SearchGrid;
+export default SearchGrid

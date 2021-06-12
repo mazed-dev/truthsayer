@@ -1,6 +1,6 @@
-import { TDoc } from "./../doc/types";
+import { TDoc } from './../doc/types'
 
-import moment from "moment";
+import moment from 'moment'
 
 export interface TNode {
   nid: string;

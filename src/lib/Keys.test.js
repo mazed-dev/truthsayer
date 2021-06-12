@@ -1,30 +1,30 @@
-import React from "react";
-import { render } from "@testing-library/react";
-import { isSymbol, isHotkeyCopy, Keys } from "./Keys.jsx";
+import React from 'react'
+import { render } from '@testing-library/react'
+import { isSymbol, isHotkeyCopy, Keys } from './Keys.jsx'
 
-test("isSymbol - abc", () => {
-  expect(isSymbol(Keys.A)).toStrictEqual(true);
-  expect(isSymbol(Keys.Z)).toStrictEqual(true);
-  expect(isSymbol(Keys.a)).toStrictEqual(true);
-  expect(isSymbol(Keys.z)).toStrictEqual(true);
-});
+test('isSymbol - abc', () => {
+  expect(isSymbol(Keys.A)).toStrictEqual(true)
+  expect(isSymbol(Keys.Z)).toStrictEqual(true)
+  expect(isSymbol(Keys.a)).toStrictEqual(true)
+  expect(isSymbol(Keys.z)).toStrictEqual(true)
+})
 
-test("isSymbol - num", () => {
-  expect(isSymbol(Keys.ZERO)).toStrictEqual(true);
-});
+test('isSymbol - num', () => {
+  expect(isSymbol(Keys.ZERO)).toStrictEqual(true)
+})
 
-test("isSymbol - punct", () => {
-  expect(isSymbol(Keys.COMMA)).toStrictEqual(true);
-  expect(isSymbol(Keys.PERIOD)).toStrictEqual(true);
-});
+test('isSymbol - punct', () => {
+  expect(isSymbol(Keys.COMMA)).toStrictEqual(true)
+  expect(isSymbol(Keys.PERIOD)).toStrictEqual(true)
+})
 
-test("isSymbol - space", () => {
-  expect(isSymbol(Keys.SPACE)).toStrictEqual(false);
-  expect(isSymbol(Keys.RETURN)).toStrictEqual(false);
-});
+test('isSymbol - space', () => {
+  expect(isSymbol(Keys.SPACE)).toStrictEqual(false)
+  expect(isSymbol(Keys.RETURN)).toStrictEqual(false)
+})
 
-test("isSymbol - control", () => {
-  [
+test('isSymbol - control', () => {
+  ;[
     Keys.ALT,
     Keys.BACKSPACE,
     Keys.DELETE,
@@ -38,29 +38,29 @@ test("isSymbol - control", () => {
     Keys.END,
     Keys.ESC,
   ].forEach((code) => {
-    expect(isSymbol(code)).toStrictEqual(false);
-  });
-});
+    expect(isSymbol(code)).toStrictEqual(false)
+  })
+})
 
-test("isHotkeyCopy", () => {
+test('isHotkeyCopy', () => {
   expect(
     isHotkeyCopy({
       ctrlKey: true,
       which: Keys.v,
     })
-  ).toStrictEqual(true);
+  ).toStrictEqual(true)
 
   expect(
     isHotkeyCopy({
       ctrlKey: true,
       which: Keys.z,
     })
-  ).toStrictEqual(false);
+  ).toStrictEqual(false)
 
   expect(
     isHotkeyCopy({
       ctrlKey: false,
       which: Keys.v,
     })
-  ).toStrictEqual(false);
-});
+  ).toStrictEqual(false)
+})

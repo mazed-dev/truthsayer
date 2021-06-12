@@ -1,11 +1,11 @@
-import React from "react";
+import React from 'react'
 
-import { Modal, Button } from "react-bootstrap";
+import { Modal, Button } from 'react-bootstrap'
 
 class AutocompleteWindow extends React.Component {
   constructor(props) {
-    super(props);
-    console.log("AutocompleteWindow ", this.props.show);
+    super(props)
+    console.log('AutocompleteWindow ', this.props.show)
   }
 
   render() {
@@ -15,7 +15,7 @@ class AutocompleteWindow extends React.Component {
         size="lg"
         aria-labelledby="contained-modal-title-vcenter"
         centered
-        keyboard={true}
+        keyboard
         restoreFocus={false}
       >
         <Modal.Header closeButton>
@@ -35,12 +35,12 @@ class AutocompleteWindow extends React.Component {
           <Button onClick={this.props.onHide}>Close</Button>
         </Modal.Footer>
       </Modal>
-    );
+    )
   }
 }
 
 function App() {
-  const [modalShow, setModalShow] = React.useState(false);
+  const [modalShow, setModalShow] = React.useState(false)
   return (
     <>
       <Button variant="primary" onClick={() => setModalShow(true)}>
@@ -49,7 +49,7 @@ function App() {
 
       <AutocompleteWindow show={modalShow} onHide={() => setModalShow(false)} />
     </>
-  );
+  )
 }
 
-export default AutocompleteWindow;
+export default AutocompleteWindow

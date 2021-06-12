@@ -1,67 +1,65 @@
-import React from "react";
+import React from 'react'
 
-import { EditorBlock, DraftEditorBlock } from "draft-js";
+import { EditorBlock, DraftEditorBlock } from 'draft-js'
 
-import "./components.css";
-import styles from "./CheckBox.module.css";
+import './components.css'
+import styles from './CheckBox.module.css'
 
-import { CheckBox as ComonCheckBox } from "../../../lib/CheckBox";
+import { CheckBox as ComonCheckBox } from '../../../lib/CheckBox'
 
-import { joinClasses } from "../../../util/elClass.js";
+import { joinClasses } from '../../../util/elClass.js'
 
-const kCheckedAttrKey = "checked";
+const kCheckedAttrKey = 'checked'
 
 export class CheckBox extends React.Component {
   // https://github.com/facebook/draft-js/issues/132
   constructor(props) {
-    super(props);
-    const { blockProps, block } = this.props;
-    const checked = block.getData().get(kCheckedAttrKey, false);
+    super(props)
+    const { blockProps, block } = this.props
+    const checked = block.getData().get(kCheckedAttrKey, false)
     this.state = {
-      checked: checked,
+      checked,
       hover: false,
-    };
+    }
   }
 
   componentDidUpdate(prevProps) {
-    const checked = this.props.block.getData().get(kCheckedAttrKey, false);
-    const prevChecked = prevProps.block.getData().get(kCheckedAttrKey, false);
-    if (checked != prevChecked) {
-      this.setState({
-        checked: checked,
-      });
+    const checked = this.props.block.getData().get(kCheckedAttrKey, false)
+    const prevChecked = prevProps.block.getData().get(kCheckedAttrKey, false)
+    if (checked !== prevChecked) {
+      this.setState({ checked }) // eslint-disable-line react/no-did-update-set-state
     }
   }
 
   toggleChecked = (event) => {
-    const { blockProps, block } = this.props;
-    const { updateMetadataFn, readOnly } = blockProps;
+    const { blockProps, block } = this.props
+    const { updateMetadataFn, readOnly } = blockProps
     if (readOnly) {
-      return;
+      return
     }
-    const checked = this.state.checked;
-    this.setState({ checked: !checked });
+    const checked = this.state.checked
+    this.setState({ checked: !checked })
     updateMetadataFn(block.getKey(), {
       data: {
         [kCheckedAttrKey]: !checked,
       },
-    });
-  };
+    })
+  }
 
   onMouseEnterHandler = () => {
-    this.setState({ hover: true });
-  };
+    this.setState({ hover: true })
+  }
 
   onMouseLeaveHandler = () => {
-    this.setState({ hover: false });
-  };
+    this.setState({ hover: false })
+  }
 
   render() {
-    const { offsetKey } = this.props;
-    const { hover, checked } = this.state;
+    const { offsetKey } = this.props
+    const { hover, checked } = this.state
     const className = hover
       ? joinClasses(styles.check_item, styles.check_item_hover)
-      : joinClasses(styles.check_item);
+      : joinClasses(styles.check_item)
     return (
       <div className={className} data-offset-key={offsetKey}>
         <ComonCheckBox
@@ -71,10 +69,10 @@ export class CheckBox extends React.Component {
           onMouseEnter={this.onMouseEnterHandler}
           onMouseLeave={this.onMouseLeaveHandler}
         />
-        <div className={joinClasses("doc_block_inline_text", styles.block)}>
+        <div className={joinClasses('doc_block_inline_text', styles.block)}>
           <EditorBlock {...this.props} />
         </div>
       </div>
-    );
+    )
   }
 }

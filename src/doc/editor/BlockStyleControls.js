@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Dropdown, ButtonGroup } from "react-bootstrap";
+import React, { useState } from 'react'
+import { Dropdown, ButtonGroup } from 'react-bootstrap'
 import {
   kBlockTypeAtomic,
   kBlockTypeCode,
@@ -14,18 +14,18 @@ import {
   kBlockTypeUnorderedCheckItem,
   kBlockTypeUnorderedItem,
   kBlockTypeUnstyled,
-} from "../types.jsx";
+} from '../types.jsx'
 
-import IconOrderedList from "./img/icon-ordered-list-strip.svg";
-import IconUnorderedList from "./img/icon-unordered-list-strip.svg";
-import IconCheckList from "./img/icon-check-list-strip.svg";
-import IconCode from "./img/icon-code-strip.svg";
+import IconOrderedList from './img/icon-ordered-list-strip.svg'
+import IconUnorderedList from './img/icon-unordered-list-strip.svg'
+import IconCheckList from './img/icon-check-list-strip.svg'
+import IconCode from './img/icon-code-strip.svg'
 
-import styles from "./BlockStyleControls.module.css";
-import "./components/components.css";
-import { getBlockStyle, getBlockName } from "./components/BlockStyle";
+import styles from './BlockStyleControls.module.css'
+import './components/components.css'
+import { getBlockStyle, getBlockName } from './components/BlockStyle'
 
-import { joinClasses } from "../../util/elClass.js";
+import { joinClasses } from '../../util/elClass.js'
 
 const BLOCK_TYPES = [
   kBlockTypeUnstyled,
@@ -40,7 +40,7 @@ const BLOCK_TYPES = [
   kBlockTypeH4,
   kBlockTypeH5,
   kBlockTypeH6,
-];
+]
 
 const BLOCK_ICONS = {
   // [kBlockTypeQuote]: "Quote",
@@ -48,26 +48,26 @@ const BLOCK_ICONS = {
   [kBlockTypeOrderedItem]: IconOrderedList,
   [kBlockTypeUnorderedCheckItem]: IconCheckList,
   // [kBlockTypeCode]: IconCode,
-};
+}
 
 function getBlockIcon(blockType) {
-  let icon = BLOCK_ICONS[blockType];
+  const icon = BLOCK_ICONS[blockType]
   if (icon) {
-    return <img className={styles.icon_img} src={icon} />;
+    return <img className={styles.icon_img} src={icon} />
   }
-  return null;
+  return null
 }
 
 function ButtonForType({ type, onToggle, blockType, onSelect, className }) {
-  className = joinClasses(className, styles.dropdown_item);
-  const isActive = type === blockType;
+  className = joinClasses(className, styles.dropdown_item)
+  const isActive = type === blockType
   if (isActive) {
-    className = joinClasses(className, styles.dropdown_item_active);
+    className = joinClasses(className, styles.dropdown_item_active)
   }
   const handleSelect = () => {
-    onToggle(type);
-    onSelect();
-  };
+    onToggle(type)
+    onSelect()
+  }
   return (
     <Dropdown.Item key={type} onSelect={handleSelect} className={className}>
       <div className={getBlockStyle(type)}>
@@ -75,34 +75,34 @@ function ButtonForType({ type, onToggle, blockType, onSelect, className }) {
         {getBlockName(type)}
       </div>
     </Dropdown.Item>
-  );
+  )
 }
 
 export function BlockStyleControls({ editorState, onToggle, className }) {
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(false)
   const showDropdown = (e) => {
-    setShow(!show);
-  };
+    setShow(!show)
+  }
   const hideDropdown = () => {
-    setShow(false);
-  };
-  const selection = editorState.getSelection();
+    setShow(false)
+  }
+  const selection = editorState.getSelection()
   const blockType = editorState
     .getCurrentContent()
     .getBlockForKey(selection.getStartKey())
-    .getType();
-  className = joinClasses(className, styles.select_dropdown);
+    .getType()
+  className = joinClasses(className, styles.select_dropdown)
   return (
     <Dropdown
       as={ButtonGroup}
       className={className}
-      drop={"down"}
+      drop={'down'}
       show={show}
       onMouseLeave={hideDropdown}
     >
       <Dropdown.Toggle
         id="dropdown-block-style-selection"
-        variant={"light"}
+        variant={'light'}
         className={styles.dropdown_toggle}
         onClick={showDropdown}
       >
@@ -121,5 +121,5 @@ export function BlockStyleControls({ editorState, onToggle, className }) {
         ))}
       </Dropdown.Menu>
     </Dropdown>
-  );
+  )
 }

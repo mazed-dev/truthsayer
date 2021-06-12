@@ -1,34 +1,34 @@
-import React from "react";
+import React from 'react'
 
-import { Form, InputGroup, Button, Container } from "react-bootstrap";
+import { Form, InputGroup, Button, Container } from 'react-bootstrap'
 
-import PropTypes from "prop-types";
-import { withRouter } from "react-router-dom";
+import PropTypes from 'prop-types'
+import { withRouter } from 'react-router-dom'
 
-import "./WelcomePage.css";
+import './WelcomePage.css'
 
 class SignUpImpl extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
-      email: "",
-    };
+      email: '',
+    }
   }
 
   static propTypes = {
     history: PropTypes.object.isRequired,
-  };
+  }
 
   handleEmailChange = (event) => {
-    this.setState({ email: event.target.value });
-  };
+    this.setState({ email: event.target.value })
+  }
 
   onSubmit = (event) => {
-    event.preventDefault();
-    this.props.history.push("/signup", {
+    event.preventDefault()
+    this.props.history.push('/signup', {
       email: this.state.email,
-    });
-  };
+    })
+  }
 
   render() {
     return (
@@ -46,11 +46,11 @@ class SignUpImpl extends React.Component {
           </InputGroup.Append>
         </InputGroup>
       </Form>
-    );
+    )
   }
 }
 
-const SignUp = withRouter(SignUpImpl);
+const SignUp = withRouter(SignUpImpl)
 
 function WelcomePage() {
   // <h3>Link up your ideas</h3>
@@ -65,9 +65,9 @@ function WelcomePage() {
         </h2>
       </Container>
       <SignUp />
-      <p></p>
+      <p />
     </Container>
-  );
+  )
 }
 
-export default WelcomePage;
+export default WelcomePage

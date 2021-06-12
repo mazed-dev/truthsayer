@@ -1,25 +1,25 @@
-import React from "react";
+import React from 'react'
 
-import { joinClasses } from "./../util/elClass.js";
+import { joinClasses } from './../util/elClass.js'
 
-import styles from "./SmallCard.module.css";
+import styles from './SmallCard.module.css'
 
 function getShadowStyle(n) {
   switch (Math.max(0, n) /* treat negative numbers as 0 */) {
     case 0:
-      return styles.small_card_shadow_0;
+      return styles.small_card_shadow_0
     case 1:
-      return styles.small_card_shadow_1;
+      return styles.small_card_shadow_1
     case 2:
-      return styles.small_card_shadow_2;
+      return styles.small_card_shadow_2
     case 3:
-      return styles.small_card_shadow_3;
+      return styles.small_card_shadow_3
     case 4:
-      return styles.small_card_shadow_4;
+      return styles.small_card_shadow_4
     default:
-      break;
+      break
   }
-  return styles.small_card_shadow_5;
+  return styles.small_card_shadow_5
 }
 
 export const SmallCard = React.forwardRef(
@@ -30,18 +30,18 @@ export const SmallCard = React.forwardRef(
       onClick,
       stack_size,
       // https://github.com/react-bootstrap/react-bootstrap/issues/3595
-      as: Component = "div",
+      as: Component = 'div',
       ...kwargs
     },
     ref
   ) => {
-    let clickableOnClick = null;
-    let clickableStyle = null;
+    let clickableOnClick = null
+    let clickableStyle = null
     if (onClick) {
-      clickableStyle = styles.clickable_chunks;
-      clickableOnClick = onClick;
+      clickableStyle = styles.clickable_chunks
+      clickableOnClick = onClick
     }
-    const shadowStyle = getShadowStyle(stack_size || 0);
+    const shadowStyle = getShadowStyle(stack_size || 0)
     return (
       <Component
         className={joinClasses(
@@ -56,8 +56,8 @@ export const SmallCard = React.forwardRef(
       >
         {children}
       </Component>
-    );
+    )
   }
-);
+)
 
-export default SmallCard;
+export default SmallCard

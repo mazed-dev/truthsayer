@@ -1,9 +1,9 @@
-import React from "react";
+import React from 'react'
 
-import { joinClasses } from "./../util/elClass.js";
+import { joinClasses } from './../util/elClass.js'
 
 // Internal
-import styles from "./WideCard.module.css";
+import styles from './WideCard.module.css'
 
 export class WideCard extends React.Component {
   render() {
@@ -18,10 +18,10 @@ export class WideCard extends React.Component {
       >
         {this.props.children}
       </div>
-    );
+    )
   }
 }
 
-WideCard.defaultProps = { className: null };
+WideCard.defaultProps = { className: null }
 
-export default WideCard;
+export default WideCard

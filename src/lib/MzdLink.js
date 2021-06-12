@@ -1,10 +1,10 @@
-import React from "react";
+import React from 'react'
 
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom'
 
-import { joinClasses } from "../util/elClass.js";
+import { joinClasses } from '../util/elClass.js'
 
-import styles from "./MzdLink.module.css";
+import styles from './MzdLink.module.css'
 
 export function MzdLink({
   to,
@@ -14,11 +14,11 @@ export function MzdLink({
   is_external,
   ...rest
 }) {
-  let prefix = null;
+  let prefix = null
   if (is_note) {
-    prefix = "/";
+    prefix = '/'
   } else if (is_external) {
-    prefix = "\uD83C\uDF0D "; //"\uD83C\uDF10 ";
+    prefix = '\uD83C\uDF0D ' // "\uD83C\uDF10 ";
     return (
       <a
         href={to}
@@ -28,7 +28,7 @@ export function MzdLink({
         {prefix}
         {children}
       </a>
-    );
+    )
   }
   return (
     <Link
@@ -39,5 +39,5 @@ export function MzdLink({
       {prefix}
       {children}
     </Link>
-  );
+  )
 }

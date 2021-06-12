@@ -1,75 +1,75 @@
-import React from "react";
+import React from 'react'
 
-import styles from "./doc.module.css";
+import styles from './doc.module.css'
 
-import PropTypes from "prop-types";
-import { withRouter } from "react-router-dom";
+import PropTypes from 'prop-types'
+import { withRouter } from 'react-router-dom'
 
-import { Loader } from "../lib/loader";
-import { MzdGlobalContext } from "./../lib/global";
+import { Loader } from '../lib/loader'
+import { MzdGlobalContext } from './../lib/global'
 
-import { joinClasses } from "../util/elClass.js";
+import { joinClasses } from '../util/elClass.js'
 
-import { ChunkRender, parseRawSource } from "./chunks";
+import { ChunkRender, parseRawSource } from './chunks'
 
-import { mergeChunks, makeEmptyChunk } from "./chunk_util";
-import { extractDocAsMarkdown } from "./doc_util.jsx";
+import { mergeChunks, makeEmptyChunk } from './chunk_util'
+import { extractDocAsMarkdown } from './doc_util.jsx'
 
-import { Card } from "react-bootstrap";
+import { Card } from 'react-bootstrap'
 
-import { FullCardFootbar } from "./../card/FullCardFootbar";
-import { AuthorFooter } from "./../card/AuthorBadge";
+import { FullCardFootbar } from './../card/FullCardFootbar'
+import { AuthorFooter } from './../card/AuthorBadge'
 
-export class DocRender extends React.Component {
+class DocRenderImpl extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
       edit_chunk_opts: {
         index: this.isEditingStart() ? 0 : -1,
         begin: 0,
         end: 0,
       },
-    };
+    }
   }
 
   static propTypes = {
     location: PropTypes.object.isRequired,
-  };
+  }
 
   updateNode = (doc, toIndex, selectionStart) => {
-    const length = doc.chunks.length;
+    const length = doc.chunks.length
     if (toIndex != null) {
       if (length > 0 && toIndex >= length) {
-        toIndex = length - 1;
+        toIndex = length - 1
       }
     } else {
-      toIndex = -1;
+      toIndex = -1
     }
     const editOpts = {
       index: toIndex,
       begin: selectionStart || 0,
       end: selectionStart || 0,
-    };
+    }
     this.setState({
       edit_chunk_opts: editOpts,
-    });
-    return this.props.updateNode(doc);
-  };
+    })
+    return this.props.updateNode(doc)
+  }
 
   editChunk = (index, begin, end) => {
-    index = index || 0;
-    const length = this.props.node.doc.chunks.length;
+    index = index || 0
+    const length = this.props.node.doc.chunks.length
     if (length > 0 && index >= length) {
-      index = length - 1;
+      index = length - 1
     }
     this.setState({
       edit_chunk_opts: {
-        index: index,
+        index,
         begin: begin || 0,
         end: end || 0,
       },
-    });
-  };
+    })
+  }
 
   // Chunks operations:
   // - Save and exit
@@ -92,12 +92,12 @@ export class DocRender extends React.Component {
     const newChunks = this.props.node.doc.chunks
       .slice(0, index)
       .concat(chunks)
-      .concat(this.props.node.doc.chunks.slice(index + 1));
+      .concat(this.props.node.doc.chunks.slice(index + 1))
     const newDoc = {
       chunks: newChunks,
-    };
-    return this.updateNode(newDoc, toIndex, selectionStart);
-  };
+    }
+    return this.updateNode(newDoc, toIndex, selectionStart)
+  }
 
   /**
    * Merge the chunk with one above
@@ -105,47 +105,47 @@ export class DocRender extends React.Component {
   mergeChunkUp = (chunk, index, toIndex, selectionStart) => {
     if (index === 0) {
       // Nothing to merge with, just replace the current one
-      return this.replaceChunk([chunk], index, toIndex, selectionStart);
+      return this.replaceChunk([chunk], index, toIndex, selectionStart)
     }
-    const prevIndex = index - 1;
-    const newChunk = mergeChunks(this.props.node.doc.chunks[prevIndex], chunk);
+    const prevIndex = index - 1
+    const newChunk = mergeChunks(this.props.node.doc.chunks[prevIndex], chunk)
     if (selectionStart !== null && selectionStart < 0) {
-      selectionStart = newChunk.source.length + selectionStart;
+      selectionStart = newChunk.source.length + selectionStart
     }
     const newChunks = this.props.node.doc.chunks
       .slice(0, prevIndex)
       .concat([newChunk])
-      .concat(this.props.node.doc.chunks.slice(index + 1));
+      .concat(this.props.node.doc.chunks.slice(index + 1))
     const newDoc = {
       chunks: newChunks,
-    };
-    return this.updateNode(newDoc, toIndex, selectionStart);
-  };
+    }
+    return this.updateNode(newDoc, toIndex, selectionStart)
+  }
 
   isEditingStart() {
-    return false; // this.props.location.state && this.props.location.state.edit;
+    return false // this.props.location.state && this.props.location.state.edit;
   }
 
   getDocAsMarkdown = () => {
-    const md = extractDocAsMarkdown(this.props.node.doc);
-    return md;
-  };
+    const md = extractDocAsMarkdown(this.props.node.doc)
+    return md
+  }
 
   render() {
-    let body = null;
-    let isOwnedByUser = false;
+    let body = null
+    let isOwnedByUser = false
     if (this.props.node && this.props.node.doc) {
       const chunks =
         this.props.node.doc.chunks && this.props.node.doc.chunks.length > 0
           ? this.props.node.doc.chunks
-          : [makeEmptyChunk()];
-      const account = this.context.account;
-      isOwnedByUser = this.props.node.isOwnedBy(account);
-      const edit_chunk_opts = this.state.edit_chunk_opts;
+          : [makeEmptyChunk()]
+      const account = this.context.account
+      isOwnedByUser = this.props.node.isOwnedBy(account)
+      const edit_chunk_opts = this.state.edit_chunk_opts
       body = chunks.map((chunk, index) => {
-        const key = index.toString();
+        const key = index.toString()
         const editOpts =
-          index === edit_chunk_opts.index ? edit_chunk_opts : null;
+          index === edit_chunk_opts.index ? edit_chunk_opts : null
         return (
           <ChunkRender
             chunk={chunk}
@@ -157,10 +157,10 @@ export class DocRender extends React.Component {
             editOpts={editOpts}
             isEditable={isOwnedByUser}
           />
-        );
-      });
+        )
+      })
       if (!body) {
-        const index = body.length;
+        const index = body.length
         body.push(
           <ChunkRender
             chunk={makeEmptyChunk()}
@@ -172,11 +172,11 @@ export class DocRender extends React.Component {
             editOpts={null}
             isEditable={isOwnedByUser}
           />
-        );
+        )
       }
     } else {
       // TODO(akindyakov): Add loading animation here
-      body = <Loader />;
+      body = <Loader />
     }
 
     const footbar = (
@@ -187,7 +187,7 @@ export class DocRender extends React.Component {
         getMarkdown={this.getDocAsMarkdown}
         reloadNode={this.fetchNode}
       />
-    );
+    )
     return (
       <Card
         className={joinClasses(styles.fluid_container, styles.doc_render_card)}
@@ -198,31 +198,31 @@ export class DocRender extends React.Component {
         <AuthorFooter node={this.props.node} />
         {footbar}
       </Card>
-    );
+    )
   }
 }
 
 // DocRender.contextType = MzdGlobalContext;
 
-DocRender = withRouter(DocRender);
+export const DocRender = withRouter(DocRenderImpl)
 
 export function exctractDoc(source, nid): TDoc {
   // TODO(akindyakov): add encryption here - decrypt
-  if (typeof source === "object") {
-    return source;
+  if (typeof source === 'object') {
+    return source
   }
   try {
-    return JSON.parse(source);
+    return JSON.parse(source)
   } catch (e) {
     // console.log("Old style doc without mark up", nid);
   }
-  return parseRawSource(source);
+  return parseRawSource(source)
 }
 
 export function createEmptyDoc() {
-  let doc: TDoc = {
+  const doc: TDoc = {
     chunks: [],
     encrypted: false,
-  };
-  return doc;
+  }
+  return doc
 }

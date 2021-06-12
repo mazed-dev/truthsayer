@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react'
 
 // React router
 import {
@@ -9,34 +9,34 @@ import {
   Switch,
   useLocation,
   useParams,
-} from "react-router-dom";
+} from 'react-router-dom'
 
-import { Card, Button, Container } from "react-bootstrap";
+import { Card, Button, Container } from 'react-bootstrap'
 
-import queryString from "query-string";
+import { parse } from 'query-string'
 
-import DoodledBird from "./DoodledBird.svg";
-import Triptych from "./card/Triptych";
-import SearchGrid from "./grid/SearchGrid";
+import DoodledBird from './DoodledBird.svg'
+import Triptych from './card/Triptych'
+import { SearchGrid } from './grid/SearchGrid'
 
-import GlobalNavBar from "./navbar/GlobalNavBar";
-import Login from "./auth/Login";
-import Logout from "./auth/Logout";
-import Signup from "./auth/Signup";
-import UploadFile from "./UploadFile";
-import PasswordChange from "./auth/PasswordChange";
-import PasswordRecoverForm from "./auth/PasswordRecoverForm";
-import PasswordRecoverRequest from "./auth/PasswordRecoverRequest";
-import { Notice } from "./notice/Notice.js";
-import WaitingForApproval from "./auth/WaitingForApproval";
-import UserPreferences from "./auth/UserPreferences";
-import WelcomePage from "./WelcomePage";
-import UserEncryption from "./UserEncryption";
-import { routes } from "./lib/route.jsx";
+import GlobalNavBar from './navbar/GlobalNavBar'
+import Login from './auth/Login'
+import Logout from './auth/Logout'
+import Signup from './auth/Signup'
+import UploadFile from './UploadFile'
+import PasswordChange from './auth/PasswordChange'
+import PasswordRecoverForm from './auth/PasswordRecoverForm'
+import PasswordRecoverRequest from './auth/PasswordRecoverRequest'
+import { Notice } from './notice/Notice.js'
+import WaitingForApproval from './auth/WaitingForApproval'
+import UserPreferences from './auth/UserPreferences'
+import WelcomePage from './WelcomePage'
+import UserEncryption from './UserEncryption'
+import { routes } from './lib/route.jsx'
 
-import { MzdGlobal, MzdGlobalContext } from "./lib/global";
+import { MzdGlobal, MzdGlobalContext } from './lib/global'
 
-import "./App.css";
+import './App.css'
 
 class App extends React.Component {
   render() {
@@ -46,19 +46,19 @@ class App extends React.Component {
           <AppRouter />
         </MzdGlobal>
       </Container>
-    );
+    )
   }
 }
 
 class AppRouter extends React.Component {
   render() {
-    const account = this.context.account;
-    const isAuthenticated = account != null && account.isAuthenticated();
+    const account = this.context.account
+    const isAuthenticated = account != null && account.isAuthenticated()
     const mainView = isAuthenticated ? (
-      <Redirect to={{ pathname: "/search" }} />
+      <Redirect to={{ pathname: '/search' }} />
     ) : (
       <WelcomePage />
-    );
+    )
     return (
       <Router>
         <div>
@@ -152,46 +152,46 @@ class AppRouter extends React.Component {
               <Notice />
             </Route>
             <Route path="*">
-              <Redirect to={{ pathname: "/" }} />
+              <Redirect to={{ pathname: '/' }} />
             </Route>
           </Switch>
         </div>
       </Router>
-    );
+    )
   }
 }
 
-AppRouter.contextType = MzdGlobalContext;
+AppRouter.contextType = MzdGlobalContext
 
 function PrivateRoute({ is_authenticated, children, ...rest }) {
-  const location = useLocation();
+  const location = useLocation()
   if (is_authenticated) {
-    return <Route {...rest}> {children} </Route>;
+    return <Route {...rest}> {children} </Route>
   } else {
     return (
       <Redirect
         to={{
-          pathname: "/",
+          pathname: '/',
           state: { from: location },
         }}
       />
-    );
+    )
   }
 }
 
 function PublicOnlyRoute({ is_authenticated, children, ...rest }) {
-  const location = useLocation();
+  const location = useLocation()
   if (!is_authenticated) {
-    return <Route {...rest}> {children} </Route>;
+    return <Route {...rest}> {children} </Route>
   } else {
     return (
       <Redirect
         to={{
-          pathname: "/",
+          pathname: '/',
           state: { from: location },
         }}
       />
-    );
+    )
   }
 }
 
@@ -206,7 +206,7 @@ function HelpInfo() {
         </Card.Body>
       </Card>
     </Container>
-  );
+  )
 }
 
 function About() {
@@ -227,7 +227,7 @@ function About() {
         </Card.Body>
       </Card>
     </Container>
-  );
+  )
 }
 
 function ContactUs() {
@@ -238,8 +238,8 @@ function ContactUs() {
         <Card.Body>
           <Card.Title>Support</Card.Title>
           <Card.Text>
-            To get help with Pocket or to request features, please visit our{" "}
-            <Link to={"/help"}>support page</Link>.
+            To get help with Pocket or to request features, please visit our{' '}
+            <Link to={'/help'}>support page</Link>.
           </Card.Text>
         </Card.Body>
       </Card>
@@ -247,13 +247,13 @@ function ContactUs() {
         <Card.Body>
           <Card.Title>Author</Card.Title>
           <Card.Text>
-            For questions related to business, please contact me at{" "}
+            For questions related to business, please contact me at{' '}
             <a href="mailto:akindyakov@gmail.com">akindyakov@</a>
           </Card.Text>
         </Card.Body>
       </Card>
     </Container>
-  );
+  )
 }
 
 function PrivacyPolicy() {
@@ -273,7 +273,7 @@ function PrivacyPolicy() {
         </Card.Body>
       </Card>
     </Container>
-  );
+  )
 }
 
 function TermsOfService() {
@@ -286,7 +286,7 @@ function TermsOfService() {
         </Card.Body>
       </Card>
     </Container>
-  );
+  )
 }
 
 function AccountView() {
@@ -294,26 +294,26 @@ function AccountView() {
     <div>
       <h2>Account</h2>
     </div>
-  );
+  )
 }
 
 function PasswordRecoverFormView() {
-  const { token } = useParams();
-  return <PasswordRecoverForm token={token} />;
+  const { token } = useParams()
+  return <PasswordRecoverForm token={token} />
 }
 
-function TriptychView({}) {
+function TriptychView() {
   // We can use the `useParams` hook here to access
   // the dynamic pieces of the URL.
-  let { id } = useParams();
-  return <Triptych nid={id} />;
+  const { id } = useParams()
+  return <Triptych nid={id} />
 }
 
-function SearchView({}) {
-  const location = useLocation();
-  const params = queryString.parse(location.search);
+function SearchView() {
+  const location = useLocation()
+  const params = parse(location.search)
   // console.log("SearchView:", location, params);
-  return <SearchGrid q={params.q} />;
+  return <SearchGrid q={params.q} />
 }
 
-export default App;
+export default App

@@ -1,34 +1,34 @@
-import React from "react";
+import React from 'react'
 
-import crc from "crc";
+import crc from 'crc'
 
-import { Toast, Button } from "react-bootstrap";
+import { Toast, Button } from 'react-bootstrap'
 
-import { UserAccount, Knocker } from "./../auth/local.jsx";
+import { UserAccount, Knocker } from './../auth/local.jsx'
 
-import { joinClasses } from "./../util/elClass.js";
-import axios from "axios";
+import { joinClasses } from './../util/elClass.js'
+import axios from 'axios'
 
-import styles from "./global.module.css";
+import styles from './global.module.css'
 
-const kMzdToastDefaultDelay = 4943; // Just a random number close to 5 seconds
+const kMzdToastDefaultDelay = 4943 // Just a random number close to 5 seconds
 
 class MzdToast extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
       show: true,
-    };
+    }
   }
 
   hide = () => {
     this.setState({
       show: false,
-    });
-  };
+    })
+  }
 
   render() {
-    const delay = this.props.delay || kMzdToastDefaultDelay;
+    const delay = this.props.delay || kMzdToastDefaultDelay
     return (
       <Toast onClose={this.hide} show={this.state.show} delay={delay} autohide>
         <Toast.Header>
@@ -36,13 +36,13 @@ class MzdToast extends React.Component {
         </Toast.Header>
         <Toast.Body>{this.props.message}</Toast.Body>
       </Toast>
-    );
+    )
   }
 }
 
 MzdToast.defaultProps = {
   delay: kMzdToastDefaultDelay,
-};
+}
 
 export const MzdGlobalContext = React.createContext({
   account: null,
@@ -50,16 +50,16 @@ export const MzdGlobalContext = React.createContext({
   toaster: {
     toasts: [],
     push: ({ header, message }) => {
-      console.log("Default push() function called: ", header, message);
+      console.log('Default push() function called: ', header, message)
     },
   },
-});
+})
 
 export class MzdGlobal extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.pushToast = ({ message, title }) => {
-      const uKey = crc.crc32(message) + "-" + Math.random();
+      const uKey = `${crc.crc32(message)}-${Math.random()}`
       this.setState((state) => {
         return {
           toaster: {
@@ -68,24 +68,24 @@ export class MzdGlobal extends React.Component {
             ]),
             push: state.toaster.push,
           },
-        };
-      });
-    };
+        }
+      })
+    }
     this.resetAuxToobar = (key, group) => {
       this.setState((state) => {
-        let topbar = state.topbar;
+        const topbar = state.topbar
         // Reset certain section by key and preserve everything else
         if (group) {
-          topbar.aux[key] = group;
+          topbar.aux[key] = group
         } else {
-          delete topbar.aux[key];
+          delete topbar.aux[key]
         }
         return {
-          topbar: topbar,
-        };
-      });
-    };
-    this.fetchAccountCancelToken = axios.CancelToken.source();
+          topbar,
+        }
+      })
+    }
+    this.fetchAccountCancelToken = axios.CancelToken.source()
     this.state = {
       toaster: {
         toasts: [],
@@ -96,7 +96,7 @@ export class MzdGlobal extends React.Component {
         reset: this.resetAuxToobar,
       },
       account: null,
-    };
+    }
   }
 
   componentDidMount() {
@@ -104,9 +104,9 @@ export class MzdGlobal extends React.Component {
       if (inst != null) {
         this.setState({
           account: inst,
-        });
+        })
       }
-    });
+    })
   }
 
   render() {
@@ -124,30 +124,30 @@ export class MzdGlobal extends React.Component {
         </div>
         {this.props.children}
       </MzdGlobalContext.Provider>
-    );
+    )
   }
 }
 
 // Example
 export class ExampleWithStaticConsumer extends React.Component {
   onClick = () => {
-    let toaster = this.context.toaster;
+    const toaster = this.context.toaster
     toaster.push({
-      title: "Example",
-      message: "Toast message created from example class",
-    });
-  };
+      title: 'Example',
+      message: 'Toast message created from example class',
+    })
+  }
 
   render() {
     return (
       <Button variant="primary" onClick={this.onClick}>
         Make a toast
       </Button>
-    );
+    )
   }
 }
 
-ExampleWithStaticConsumer.contextType = MzdGlobalContext;
+ExampleWithStaticConsumer.contextType = MzdGlobalContext
 
 function ExampleWithElementConsumer() {
   return (
@@ -156,16 +156,16 @@ function ExampleWithElementConsumer() {
         <Button
           onClick={() => {
             context.toaster.push({
-              title: "Example",
-              message: "Toast message created from example class",
-            });
+              title: 'Example',
+              message: 'Toast message created from example class',
+            })
           }}
         >
           Make a toast
         </Button>
       )}
     </MzdGlobalContext.Consumer>
-  );
+  )
 }
 
-export default MzdGlobalContext;
+export default MzdGlobalContext

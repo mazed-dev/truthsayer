@@ -1,78 +1,78 @@
-import queryString from "query-string";
+import { stringify, parse } from 'query-string'
 
-const kLogInPath = "/login";
-const kSignUpPath = "/signup";
-const kLogOutPath = "/logout";
-const kSearchPath = "/search";
-const kNodePathPrefix = "/n/";
+const kLogInPath = '/login'
+const kSignUpPath = '/signup'
+const kLogOutPath = '/logout'
+const kSearchPath = '/search'
+const kNodePathPrefix = '/n/'
 
-const kNoticePathPrefix = "/notice/";
+const kNoticePathPrefix = '/notice/'
 
-const kNoticeErrorPage = "error";
-const kNoticeSeeYouPage = "miss-you";
-const kNoticeLogInToContinue = "log-in-to-continue";
+const kNoticeErrorPage = 'error'
+const kNoticeSeeYouPage = 'miss-you'
+const kNoticeLogInToContinue = 'log-in-to-continue'
 
 function gotoSearch({ history, query }) {
   history.push({
     pathname: kSearchPath,
-    search: queryString.stringify({ q: query }),
-  });
+    search: stringify({ q: query }),
+  })
 }
 
 function getSearchAnchor({ location }) {
   const search =
-    location && location.search ? location.search : window.location.search;
-  const params = queryString.parse(search);
-  return { query: params.q || "" };
+    location && location.search ? location.search : window.location.search
+  const params = parse(search)
+  return { query: params.q || '' }
 }
 
 function gotoPath(history, path) {
   if (history) {
-    console.log("History push", path);
-    history.push({ pathname: path });
+    console.log('History push', path)
+    history.push({ pathname: path })
   } else {
-    console.log("Window location href", path);
-    window.location.href = path;
+    console.log('Window location href', path)
+    window.location.href = path
   }
 }
 
 function gotoLogIn({ history }) {
-  gotoPath(history, kLogInPath);
+  gotoPath(history, kLogInPath)
 }
 
 function gotoSignUp({ history }) {
-  gotoPath(history, kSignUpPath);
+  gotoPath(history, kSignUpPath)
 }
 
 function gotoLogOut({ history }) {
-  gotoPath(history, kLogOutPath);
+  gotoPath(history, kLogOutPath)
 }
 
 function gotoNode({ history, nid }) {
-  gotoPath(history, kNodePathPrefix + nid);
+  gotoPath(history, kNodePathPrefix + nid)
 }
 
 function gotoMain({ history }) {
-  console.log("Go to main");
-  gotoPath(history, "/");
+  console.log('Go to main')
+  gotoPath(history, '/')
 }
 
 function gotoError({ history }) {
-  console.log("Go to error");
-  gotoPath(history, kNoticePathPrefix + kNoticeErrorPage);
+  console.log('Go to error')
+  gotoPath(history, kNoticePathPrefix + kNoticeErrorPage)
 }
 
 function gotoSeeYou({ history }) {
-  gotoPath(history, kNoticePathPrefix + kNoticeSeeYouPage);
+  gotoPath(history, kNoticePathPrefix + kNoticeSeeYouPage)
 }
 
 function gotoLogInToContinue({ history }) {
-  gotoPath(history, kNoticePathPrefix + kNoticeLogInToContinue);
+  gotoPath(history, kNoticePathPrefix + kNoticeLogInToContinue)
 }
 
 function getNoticePage({ params }) {
-  console.log("getNoticePage", params);
-  return params;
+  console.log('getNoticePage', params)
+  return params
 }
 
 export const routes = {
@@ -80,9 +80,9 @@ export const routes = {
   signup: kSignUpPath,
   logout: kLogOutPath,
   search: kSearchPath,
-  node: kNodePathPrefix + ":id",
-  notice: kNoticePathPrefix + ":page",
-};
+  node: `${kNodePathPrefix}:id`,
+  notice: `${kNoticePathPrefix}:page`,
+}
 
 export const goto = {
   default: gotoMain,
@@ -96,7 +96,7 @@ export const goto = {
     seeYou: gotoSeeYou,
     logInToContinue: gotoLogInToContinue,
   },
-};
+}
 
 export const compass = {
   search: {
@@ -105,10 +105,10 @@ export const compass = {
   notice: {
     get: getNoticePage,
   },
-};
+}
 
 export const notice = {
   error: kNoticeErrorPage,
   seeYou: kNoticeSeeYouPage,
   logInToContinue: kNoticeLogInToContinue,
-};
+}

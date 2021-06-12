@@ -1,9 +1,9 @@
-import React from "react";
+import React from 'react'
 
-import styles from "./GlobalNavBar.module.css";
+import styles from './GlobalNavBar.module.css'
 
 // React router
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom'
 
 import {
   Button,
@@ -12,41 +12,41 @@ import {
   Dropdown,
   Navbar,
   Nav,
-} from "react-bootstrap";
+} from 'react-bootstrap'
 
-import PropTypes from "prop-types";
-import axios from "axios";
-import { withRouter } from "react-router-dom";
+import PropTypes from 'prop-types'
+import axios from 'axios'
+import { withRouter } from 'react-router-dom'
 
-import { MzdGlobalContext } from "./../lib/global";
+import { MzdGlobalContext } from './../lib/global'
 
-import { smugler } from "./../smugler/api";
+import { smugler } from './../smugler/api'
 
-import { HoverTooltip } from "./../lib/tooltip";
-import { goto, compass } from "./../lib/route.jsx";
+import { HoverTooltip } from './../lib/tooltip'
+import { goto, compass } from './../lib/route.jsx'
 
-import { joinClasses } from "../util/elClass.js";
+import { joinClasses } from '../util/elClass.js'
 
-import kUserDefaultPic from "./../auth/img/user-default-pic.png";
+import kUserDefaultPic from './../auth/img/user-default-pic.png'
 
-import NewImg from "./../img/new-button.png";
-import UploadImg from "./../img/upload.png";
+import NewImg from './../img/new-button.png'
+import UploadImg from './../img/upload.png'
 
-import { SearchForm } from "./SearchForm";
+import { SearchForm } from './SearchForm'
 
 class UserPic extends React.Component {
   constructor(props) {
-    super(props);
-    this.axiosCancelToken = axios.CancelToken.source();
+    super(props)
+    this.axiosCancelToken = axios.CancelToken.source()
     this.state = {
-      name: "user",
-      email: "email",
-    };
+      name: 'user',
+      email: 'email',
+    }
   }
 
   componentDidMount() {
     axios
-      .get("/api/auth", {
+      .get('/api/auth', {
         cancelToken: this.axiosCancelToken.token,
       })
       .then((res) => {
@@ -54,43 +54,43 @@ class UserPic extends React.Component {
           this.setState({
             name: res.data.name,
             email: res.data.email,
-          });
+          })
         }
-      });
+      })
   }
 
   componentWillUnmount() {
-    this.axiosCancelToken.cancel();
+    this.axiosCancelToken.cancel()
   }
 
   render() {
     // TODO: use custom user uploaded picture for userpic here
     return (
-      <div className={joinClasses(styles.user_pic, "d-inline-flex")}>
+      <div className={joinClasses(styles.user_pic, 'd-inline-flex')}>
         <img
           src={kUserDefaultPic}
           className={styles.user_pic_image}
-          alt={"user"}
+          alt={'user'}
         />
         <div className="d-none d-sm-none d-md-block">
           &nbsp;
           {this.state.name}
         </div>
       </div>
-    );
+    )
   }
 }
 
 class PrivateNavButtonsImpl extends React.Component {
   constructor(props) {
-    super(props);
-    this.newNodeCancelToken = axios.CancelToken.source();
+    super(props)
+    this.newNodeCancelToken = axios.CancelToken.source()
   }
 
   static propTypes = {
-    location: PropTypes.object.isRequired,
     history: PropTypes.object.isRequired,
-  };
+    location: PropTypes.object.isRequired,
+  }
 
   handleNewClick = (event) => {
     smugler.node
@@ -100,27 +100,27 @@ class PrivateNavButtonsImpl extends React.Component {
       })
       .then((node) => {
         if (node) {
-          goto.node({ history: this.props.history, nid: node.nid });
+          goto.node({ history: this.props.history, nid: node.nid })
         }
-      });
-  };
+      })
+  }
 
   getAuxGroup = () => {
-    const { aux } = this.context.topbar; // .aux;
+    const { aux } = this.context.topbar // .aux;
     if (!aux) {
-      return null;
+      return null
     }
-    const auxBtns = Object.values(aux);
+    const auxBtns = Object.values(aux)
     return (
       <ButtonToolbar className={styles.creation_toolbar}>
         {auxBtns}
       </ButtonToolbar>
-    );
-  };
+    )
+  }
 
   render() {
-    const { query } = compass.search.get({ location: this.props.location });
-    const userpic = <UserPic />;
+    const { query } = compass.search.get({ location: this.props.location })
+    const userpic = <UserPic />
     return (
       <>
         <SearchForm from={query} className={styles.search_form} />
@@ -132,7 +132,7 @@ class PrivateNavButtonsImpl extends React.Component {
             to="/upload-file"
             className={styles.nav_button}
           >
-            <HoverTooltip tooltip={"Upload"}>
+            <HoverTooltip tooltip={'Upload'}>
               <img
                 src={UploadImg}
                 className={styles.new_btn_img}
@@ -145,7 +145,7 @@ class PrivateNavButtonsImpl extends React.Component {
             onClick={this.handleNewClick}
             className={styles.nav_button}
           >
-            <HoverTooltip tooltip={"New"}>
+            <HoverTooltip tooltip={'New'}>
               <img src={NewImg} className={styles.new_btn_img} alt="New" />
             </HoverTooltip>
           </Button>
@@ -156,7 +156,7 @@ class PrivateNavButtonsImpl extends React.Component {
         <Dropdown
           className={joinClasses(styles.account_dropdown)}
           as={ButtonGroup}
-          navbar={true}
+          navbar
         >
           <Dropdown.Toggle
             variant="light"
@@ -189,12 +189,12 @@ class PrivateNavButtonsImpl extends React.Component {
           </Dropdown.Menu>
         </Dropdown>
       </>
-    );
+    )
   }
 }
 
-PrivateNavButtonsImpl.contextType = MzdGlobalContext;
-const PrivateNavButtons = withRouter(PrivateNavButtonsImpl);
+PrivateNavButtonsImpl.contextType = MzdGlobalContext
+const PrivateNavButtons = withRouter(PrivateNavButtonsImpl)
 
 class PublicNavButtons extends React.Component {
   render() {
@@ -220,18 +220,18 @@ class PublicNavButtons extends React.Component {
           </Nav>
         </Navbar.Collapse>
       </>
-    );
+    )
   }
 }
 
 class GlobalNavBar extends React.Component {
   render() {
-    let buttons = null;
-    let account = this.context.account;
+    let buttons = null
+    const account = this.context.account
     if (account) {
-      buttons = <PrivateNavButtons />;
+      buttons = <PrivateNavButtons />
     } else {
-      buttons = <PublicNavButtons />;
+      buttons = <PublicNavButtons />
     }
     return (
       <>
@@ -246,10 +246,10 @@ class GlobalNavBar extends React.Component {
         </Navbar>
         <div className={styles.navbar_filler} />
       </>
-    );
+    )
   }
 }
 
-GlobalNavBar.contextType = MzdGlobalContext;
+GlobalNavBar.contextType = MzdGlobalContext
 
-export default withRouter(GlobalNavBar);
+export default withRouter(GlobalNavBar)

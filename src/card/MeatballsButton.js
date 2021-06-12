@@ -1,14 +1,14 @@
-import React from "react";
+import React from 'react'
 
-import { Button } from "react-bootstrap";
+import { Button } from 'react-bootstrap'
 
-import styles from "./MeatballsButton.module.css";
+import styles from './MeatballsButton.module.css'
 
-import EllipsisImg from "./../img/ellipsis.png";
+import EllipsisImg from './../img/ellipsis.png'
 
-import { joinClasses } from "../util/elClass.js";
+import { joinClasses } from '../util/elClass.js'
 
-import { HoverTooltip } from "../lib/tooltip";
+import { HoverTooltip } from '../lib/tooltip'
 
 export const MeatballsButton = React.forwardRef(
   ({ children, onClick, className }, ref) => (
@@ -17,18 +17,18 @@ export const MeatballsButton = React.forwardRef(
       className={joinClasses(styles.tool_button, className)}
       ref={ref}
       onClick={(e) => {
-        e.preventDefault();
-        onClick(e);
+        e.preventDefault()
+        onClick(e)
       }}
     >
       {children}
-      <HoverTooltip tooltip={"More"}>
+      <HoverTooltip tooltip={'More'}>
         <img
           src={EllipsisImg}
           className={styles.tool_button_img}
-          alt={"More"}
+          alt={'More'}
         />
       </HoverTooltip>
     </Button>
   )
-);
+)

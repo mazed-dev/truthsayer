@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react'
 
 // React router
 import {
@@ -10,91 +10,91 @@ import {
   Card,
   Row,
   Col,
-} from "react-bootstrap";
+} from 'react-bootstrap'
 
-import axios from "axios";
-import { withRouter } from "react-router-dom";
+import axios from 'axios'
+import { withRouter } from 'react-router-dom'
 
-import { joinClasses } from "./util/elClass.js";
-import { isAscii } from "./util/ascii.jsx";
-import { Loader } from "./lib/loader";
+import { joinClasses } from './util/elClass.js'
+import { isAscii } from './util/ascii.jsx'
+import { Loader } from './lib/loader'
 
-import Emoji from "./Emoji.js";
+import { Emoji } from './Emoji.js'
 
-import styles from "./UserEncryption.module.css";
+import styles from './UserEncryption.module.css'
 
-import KeyImg from "./crypto/img/yellow_key.png";
+import KeyImg from './crypto/img/yellow_key.png'
 
 class UserEncryption extends React.Component {
   constructor(props) {
-    super(props);
-    this.axiosCancelToken = axios.CancelToken.source();
+    super(props)
+    this.axiosCancelToken = axios.CancelToken.source()
     this.state = {
-      intput: "",
+      intput: '',
       is_good_enough: false,
-      strength_str: "",
+      strength_str: '',
       reveal: false,
       message: null,
-    };
+    }
   }
 
   componentDidMount() {}
 
   componentWillUnmount() {
-    this.axiosCancelToken.cancel();
+    this.axiosCancelToken.cancel()
   }
 
   handleToggleReveal = () => {
     this.setState((state) => {
-      return { reveal: !state.reveal };
-    });
-  };
+      return { reveal: !state.reveal }
+    })
+  }
 
   handleChange = (event) => {
-    const input = event.target.value;
-    const ref = event.target;
+    const input = event.target.value
+    const ref = event.target
     this.setState({
-      input: input,
+      input,
       height: this.getAdjustedHeight(ref, 42),
-    });
-    this.evaluateSecretStrength(input);
-  };
+    })
+    this.evaluateSecretStrength(input)
+  }
 
   handleSubmitSecret = () => {
-    const account = this.props.account;
-    const crypto = account == null ? null : account.getLocalCrypto();
-    console.log("Submit...", crypto);
+    const account = this.props.account
+    const crypto = account == null ? null : account.getLocalCrypto()
+    console.log('Submit...', crypto)
     if (crypto != null) {
-      console.log("Crypto is initialised");
-      const secretPhrase = this.state.input;
+      console.log('Crypto is initialised')
+      const secretPhrase = this.state.input
       crypto.appendSecret(secretPhrase).then((id) => {
-        console.log("Secret added", id);
-        this.forceUpdate();
-      });
+        console.log('Secret added', id)
+        this.forceUpdate()
+      })
     }
-  };
+  }
 
   handleCopySecretToClipboard = () => {
-    const account = this.props.account;
-    const crypto = account == null ? null : account.getLocalCrypto();
+    const account = this.props.account
+    const crypto = account == null ? null : account.getLocalCrypto()
     if (crypto == null) {
-      return;
+      return
     }
     navigator.clipboard.writeText(crypto.getLastSecretPhrase()).then(
       () => {
         // console.log('Async: Copying to clipboard was successful!');
         this.setState({
-          message: "✅ Copied to clipboard",
-        });
+          message: '✅ Copied to clipboard',
+        })
       },
       (err) => {
         // console.error('Async: Could not copy text: ', err);
         this.setState({
-          message: "❌ Copied to clipboard, " + err,
-        });
+          message: `❌ Copied to clipboard, ${err}`,
+        })
       }
-    );
-  };
+    )
+  }
 
   handleDeleteSecret = () => {
     // const response = window.prompt(
@@ -107,64 +107,64 @@ class UserEncryption extends React.Component {
     // TODO(akindyakov): make a custom modal confirmation window here
     if (
       !window.confirm(
-        "Are you sure you wish to delete local encryption secret?\n\n" +
-          "⚠️ Please make sure you backed it up securely, otherwise you will not " +
-          "be able to access notes encrypted by this secret.\n" +
-          "💡 Use secure password managers to store secrets and passwords safely."
+        'Are you sure you wish to delete local encryption secret?\n\n' +
+          '⚠️ Please make sure you backed it up securely, otherwise you will not ' +
+          'be able to access notes encrypted by this secret.\n' +
+          '💡 Use secure password managers to store secrets and passwords safely.'
       )
     ) {
-      return;
+      return
     }
-    const account = this.props.account;
-    const crypto = account == null ? null : account.getLocalCrypto();
+    const account = this.props.account
+    const crypto = account == null ? null : account.getLocalCrypto()
     if (crypto == null) {
-      return;
+      return
     }
     crypto.deleteLastSecret().then(() => {
-      console.log("Secret deleted");
+      console.log('Secret deleted')
       this.setState(
         {
-          input: "",
+          input: '',
         },
         () => {
-          this.forceUpdate();
+          this.forceUpdate()
         }
-      );
-    });
-  };
+      )
+    })
+  }
 
   getAdjustedHeight = (el, minHeight) => {
-    var outerHeight = parseInt(window.getComputedStyle(el).height, 10);
-    var diff = outerHeight - el.clientHeight;
-    return Math.max(minHeight, el.scrollHeight + diff);
-  };
+    const outerHeight = parseInt(window.getComputedStyle(el).height, 10)
+    const diff = outerHeight - el.clientHeight
+    return Math.max(minHeight, el.scrollHeight + diff)
+  }
 
   evaluateSecretStrength = async (input) => {
-    let is_good_enough = true;
-    let strength_str = "";
+    let is_good_enough = true
+    let strength_str = ''
     if (!isAscii(input)) {
-      is_good_enough = false;
+      is_good_enough = false
       strength_str =
-        "Invalid symbols. Secret must contain only ASCII characters";
+        'Invalid symbols. Secret must contain only ASCII characters'
     } else if (input.length < 24) {
-      is_good_enough = false;
-      strength_str = "Too short, secret must contain at least 24 symbols.";
+      is_good_enough = false
+      strength_str = 'Too short, secret must contain at least 24 symbols.'
     } else if (input.length < 32) {
-      strength_str = "Ok";
+      strength_str = 'Ok'
     } else if (input.length < 64) {
-      strength_str = "Good";
+      strength_str = 'Good'
     } else if (input.length > 128) {
-      strength_str = "Great";
+      strength_str = 'Great'
     }
     this.setState({
-      is_good_enough: is_good_enough,
-      strength_str: strength_str,
-    });
-  };
+      is_good_enough,
+      strength_str,
+    })
+  }
 
   makeSecretStrengthBadge() {
     if (!this.state.strength_str) {
-      return null;
+      return null
     }
     if (!this.state.is_good_enough) {
       return (
@@ -176,23 +176,23 @@ class UserEncryption extends React.Component {
           />
           {this.state.strength_str}
         </>
-      );
+      )
     } else {
       return (
         <>
           <Emoji symbol="✅" label="Good" className={styles.strength_badge} />
           {this.state.strength_str}
         </>
-      );
+      )
     }
   }
 
   render() {
-    let card = null;
-    const account = this.props.account;
-    const crypto = account == null ? null : account.getLocalCrypto();
+    let card = null
+    const account = this.props.account
+    const crypto = account == null ? null : account.getLocalCrypto()
     if (account == null) {
-      card = <Loader />;
+      card = <Loader />
     } else if (crypto != null && crypto.getLastSecretId() != null) {
       card = (
         <Card>
@@ -204,7 +204,7 @@ class UserEncryption extends React.Component {
                 </code>
               </Col>
               <Col>
-                <img src={KeyImg} className={styles.key_item_img} alt={"key"} />
+                <img src={KeyImg} className={styles.key_item_img} alt={'key'} />
                 <Button
                   variant="outline-secondary"
                   size="sm"
@@ -229,17 +229,17 @@ class UserEncryption extends React.Component {
                 size="sm"
                 onClick={this.handleToggleReveal}
               >
-                {this.state.reveal ? "Hide" : "Reveal"}
+                {this.state.reveal ? 'Hide' : 'Reveal'}
               </Button>
             </ButtonGroup>
             <code className={styles.encr_value}>
               {this.state.reveal
                 ? crypto.getLastSecretPhraseToRender()
-                : "**************** ************************"}
+                : '**************** ************************'}
             </code>
           </Card.Body>
         </Card>
-      );
+      )
     } else {
       card = (
         <Card>
@@ -256,7 +256,7 @@ class UserEncryption extends React.Component {
                 value={this.state.input}
                 onChange={this.handleChange}
                 style={{
-                  height: this.state.height + "px",
+                  height: `${this.state.height}px`,
                   resize: null,
                 }}
                 spellCheck="false"
@@ -268,24 +268,24 @@ class UserEncryption extends React.Component {
               onClick={this.handleSubmitSecret}
               disabled={!this.state.is_good_enough}
             >
-              <img src={KeyImg} className={styles.key_item_img} alt={"key"} />
+              <img src={KeyImg} className={styles.key_item_img} alt={'key'} />
               Add secret
             </Button>
             {this.makeSecretStrengthBadge()}
           </Card.Body>
         </Card>
-      );
+      )
     }
     return (
       <Container className={styles.page}>
         <h2 className={styles.page_hdr}>
-          <img src={KeyImg} className={styles.key_hdr_img} alt={"key"} />
+          <img src={KeyImg} className={styles.key_hdr_img} alt={'key'} />
           Encryption key
         </h2>
         {card}
       </Container>
-    );
+    )
   }
 }
 
-export default withRouter(UserEncryption);
+export default withRouter(UserEncryption)

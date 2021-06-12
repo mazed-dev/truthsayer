@@ -1,125 +1,125 @@
-import React from "react";
+import React from 'react'
 
-import { Modal, Button, ButtonToolbar, Form, ListGroup } from "react-bootstrap";
+import { Modal, Button, ButtonToolbar, Form, ListGroup } from 'react-bootstrap'
 
-import axios from "axios";
-import keycode from "keycode";
+import axios from 'axios'
+import keycode from 'keycode'
 
-import { Loader } from "./../lib/loader";
-import { ImgButton } from "./../lib/ImgButton";
-import { smugler } from "./../smugler/api";
-import { joinClasses } from "../util/elClass.js";
-import { HoverTooltip } from "../lib/tooltip";
+import { Loader } from './../lib/loader'
+import { ImgButton } from './../lib/ImgButton'
+import { smugler } from './../smugler/api'
+import { joinClasses } from '../util/elClass.js'
+import { HoverTooltip } from '../lib/tooltip'
 
-import styles from "./ShareModal.module.css";
+import styles from './ShareModal.module.css'
 
-import EncryptedImg from "./../img/encrypted.png";
-import DecryptedImg from "./../img/decrypted.png";
-import PrivateImg from "./../img/private.png";
-import PublicImg from "./../img/public.png";
+import EncryptedImg from './../img/encrypted.png'
+import DecryptedImg from './../img/decrypted.png'
+import PrivateImg from './../img/private.png'
+import PublicImg from './../img/public.png'
 
 class ShareModalWindow extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
       // input: "",
-      q: "",
+      q: '',
       startSmartSearchTimeout: 0,
       cursor: 0,
       meta: null,
-    };
+    }
     // this.inputRef = React.createRef();
-    this.fetchCardShareCancelToken = axios.CancelToken.source();
+    this.fetchCardShareCancelToken = axios.CancelToken.source()
   }
 
   componentDidMount() {
     // this.inputRef.current.focus();
-    this.fetchMeta();
+    this.fetchMeta()
   }
 
   componentWillUnmount() {
-    this.fetchCardShareCancelToken.cancel();
+    this.fetchCardShareCancelToken.cancel()
   }
 
   fetchMeta = () => {
-    console.log("Fetch meta for ", this.props.nid);
+    console.log('Fetch meta for ', this.props.nid)
     smugler.meta
       .get({
         nid: this.props.nid,
         cancelToken: this.fetchCardShareCancelToken.token,
       })
       .then((meta) => {
-        console.log("Got fetch meta ", meta);
+        console.log('Got fetch meta ', meta)
         this.setState({
-          meta: meta,
-        });
-      });
-  };
+          meta,
+        })
+      })
+  }
 
   updateMeta = (by_link) => {
-    console.log("Update meta for ", this.props.nid);
-    this.setState({ meta: null });
-    let meta = {
+    console.log('Update meta for ', this.props.nid)
+    this.setState({ meta: null })
+    const meta = {
       share: {
-        by_link: by_link,
+        by_link,
       },
-    };
+    }
     smugler.meta
       .update({
         nid: this.props.nid,
-        meta: meta,
+        meta,
         cancelToken: this.fetchCardShareCancelToken.token,
       })
       .then(() => {
-        this.setState({ meta: meta });
-      });
-  };
+        this.setState({ meta })
+      })
+  }
 
   handlePublishNode = () => {
-    this.updateMeta(true);
-  };
+    this.updateMeta(true)
+  }
 
   handleHideNode = () => {
-    this.updateMeta(false);
-  };
+    this.updateMeta(false)
+  }
 
   handleChange = (event) => {
-    const input = event.target.value;
+    const input = event.target.value
     if (this.state.startSmartSearchTimeout) {
-      clearTimeout(this.state.startSmartSearchTimeout);
+      clearTimeout(this.state.startSmartSearchTimeout)
     }
     this.setState({
-      input: input,
+      input,
       // Hack to avoid fetching on every character. If the time interval between
       // 2 consecutive keystokes is too short, don't fetch results.
       startSmartSearchTimeout: setTimeout(() => {
-        this.startSmartSearch(input);
+        this.startSmartSearch(input)
       }, 450),
-    });
-  };
+    })
+  }
 
   startSmartSearch = (input) => {
-    //*dbg*/ console.log("startSmartSearch", input);
+    //* dbg*/ console.log("startSmartSearch", input);
     // Search usernames for autocompletion
-  };
+  }
 
-  handleSumbit = (event) => {};
+  handleSumbit = (event) => {}
 
   render() {
-    let stateImg = null;
-    let stateTxt = null;
-    let shareOptions = null;
-    let meta = this.state.meta;
+    let stateImg = null
+    let stateTxt = null
+    let shareOptions = null
+    const meta = this.state.meta
     if (meta == null) {
-      stateImg = <Loader size="small" />;
+      stateImg = <Loader size="small" />
     } else {
-      let img_ = null;
-      let share = meta.share;
-      console.log("Is shared", share);
+      let img_ = null
+      const share = meta.share
+      console.log('Is shared', share)
       if (share && share.by_link) {
-        console.log("Is shared by link");
-        img_ = PublicImg;
-        stateTxt = "Publicly availiable";
+        console.log('Is shared by link')
+        img_ = PublicImg
+        stateTxt = 'Publicly availiable'
         // Hide
         shareOptions = (
           <>
@@ -138,11 +138,11 @@ class ShareModalWindow extends React.Component {
               </ImgButton>
             </ListGroup.Item>
           </>
-        );
+        )
       } else if (this.state.meta.local_secret_id != null) {
-        console.log("Is shared with certain uids");
-        img_ = EncryptedImg;
-        stateTxt = "Private and encrypted";
+        console.log('Is shared with certain uids')
+        img_ = EncryptedImg
+        stateTxt = 'Private and encrypted'
         // Decrypt
         shareOptions = (
           <>
@@ -161,11 +161,11 @@ class ShareModalWindow extends React.Component {
               </ImgButton>
             </ListGroup.Item>
           </>
-        );
+        )
       } else {
-        console.log("Is not shared");
-        img_ = PrivateImg;
-        stateTxt = "Private, not encrypted";
+        console.log('Is not shared')
+        img_ = PrivateImg
+        stateTxt = 'Private, not encrypted'
         // Encrypt
         // Publish
         // <ListGroup.Item>
@@ -199,11 +199,9 @@ class ShareModalWindow extends React.Component {
               </ImgButton>
             </ListGroup.Item>
           </>
-        );
+        )
       }
-      stateImg = (
-        <img src={img_} className={styles.status_img} alt={stateTxt} />
-      );
+      stateImg = <img src={img_} className={styles.status_img} alt={stateTxt} />
     }
     // <Modal.Body>
     //   <Form.Control
@@ -227,7 +225,7 @@ class ShareModalWindow extends React.Component {
           <ListGroup>{shareOptions}</ListGroup>
         </Modal.Body>
       </>
-    );
+    )
   }
 }
 
@@ -237,21 +235,21 @@ export class ShareModal extends React.Component {
       <Modal
         show={this.props.show}
         onHide={this.props.onHide}
-        backdrop={"static"}
+        backdrop={'static'}
         size="xl"
         aria-labelledby="contained-modal-title-vcenter"
         centered
-        keyboard={true}
+        keyboard
         restoreFocus={false}
         animation={false}
-        dialogClassName={""}
-        scrollable={true}
-        enforceFocus={true}
+        dialogClassName={''}
+        scrollable
+        enforceFocus
       >
         <ShareModalWindow nid={this.props.nid} account={this.props.account} />
       </Modal>
-    );
+    )
   }
 }
 
-ShareModal.defaultProps = {};
+ShareModal.defaultProps = {}

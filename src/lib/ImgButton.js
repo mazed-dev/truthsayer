@@ -1,10 +1,10 @@
-import React from "react";
+import React from 'react'
 
-import { Button } from "react-bootstrap";
+import { Button } from 'react-bootstrap'
 
-import { joinClasses } from "../util/elClass.js";
+import { joinClasses } from '../util/elClass.js'
 
-import styles from "./ImgButton.module.css";
+import styles from './ImgButton.module.css'
 
 export const ImgButton = React.forwardRef(
   ({ children, onClick, className, is_disabled, ...kwargs }, ref) => (
@@ -15,8 +15,8 @@ export const ImgButton = React.forwardRef(
       disabled={is_disabled}
       onClick={(e) => {
         if (onClick) {
-          e.preventDefault();
-          onClick(e);
+          e.preventDefault()
+          onClick(e)
         }
       }}
       {...kwargs}
@@ -24,4 +24,4 @@ export const ImgButton = React.forwardRef(
       {children}
     </Button>
   )
-);
+)

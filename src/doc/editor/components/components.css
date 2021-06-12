@@ -4,11 +4,11 @@
 }
 
 .doc_block_inline_link_ext:before {
-  content: "🌍 ";
+  content: '🌍 ';
 }
 
 .doc_block_inline_link_int:before {
-  content: "📄 "; /* "/" */
+  content: '📄 '; /* "/" */
 }
 
 .doc_block_inline_link:hover {
@@ -114,11 +114,11 @@ div.public-DraftStyleDefault-block {
 }
 
 .doc_block_blockquote .public-DraftStyleDefault-block::after {
-  content: "\201D";
+  content: '\201D';
 }
 
 .doc_block_blockquote .public-DraftStyleDefault-block::before {
-  content: "\201C";
+  content: '\201C';
 }
 
 .doc_block_code {
@@ -128,7 +128,7 @@ div.public-DraftStyleDefault-block {
 
   background-color: rgb(246, 248, 250);
 
-  font-family: "SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace";
+  font-family: 'SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace';
   direction: ltr;
   font-weight: 400;
 }
