@@ -203,7 +203,7 @@ class SearchGridImpl extends React.Component {
       })
       .then((data) => {
         if (!data) {
-          console.error('Error: no response from back end')
+          // *dbg*/ console.error('Error: no response from back end')
           return
         }
         const { nodes, start_time, offset, full_size, end_time } = data
@@ -251,7 +251,7 @@ class SearchGridImpl extends React.Component {
         )
       })
       .catch((error) => {
-        console.log('Error', error)
+        // *dbg*/ console.log('Error', error)
       })
   }
 

@@ -45,7 +45,7 @@ class Logout extends React.Component {
   }
 
   handleError = (error) => {
-    console.log('Logout.handleError', error)
+    // *dbg*/ console.log('Logout.handleError', error)
     // goto.notice.error({ history: this.props.history });
   }
 

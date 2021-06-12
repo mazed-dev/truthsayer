@@ -63,12 +63,12 @@ class UserEncryption extends React.Component {
   handleSubmitSecret = () => {
     const account = this.props.account
     const crypto = account == null ? null : account.getLocalCrypto()
-    console.log('Submit...', crypto)
+    // *dbg*/ console.log('Submit...', crypto)
     if (crypto != null) {
-      console.log('Crypto is initialised')
+      // *dbg*/ console.log('Crypto is initialised')
       const secretPhrase = this.state.input
       crypto.appendSecret(secretPhrase).then((id) => {
-        console.log('Secret added', id)
+        // *dbg*/ console.log('Secret added', id)
         this.forceUpdate()
       })
     }
@@ -121,7 +121,7 @@ class UserEncryption extends React.Component {
       return
     }
     crypto.deleteLastSecret().then(() => {
-      console.log('Secret deleted')
+      // *dbg*/ console.log('Secret deleted')
       this.setState(
         {
           input: '',

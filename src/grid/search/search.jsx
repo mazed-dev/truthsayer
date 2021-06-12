@@ -35,7 +35,7 @@ export function searchNodeFor(
   }
   const { doc } = node
   if (doc == null) {
-    console.error('The node is empty', node)
+    // *dbg*/ console.error('The node is empty', node)
     return null
   }
   const draft = getDocDraft(doc)

@@ -77,6 +77,6 @@ export function Notice() {
   } else if (page === notice.logInToContinue) {
     card = <LogInToContinue />
   }
-  console.log('Notice page', page)
+  // *dbg*/ console.log('Notice page', page)
   return <Container>{card}</Container>
 }

@@ -89,11 +89,11 @@ export async function decryptSignedObject(
   secret: TSecret
 ): Any | null {
   if (secret.id !== encryptedObj.secret_id) {
-    console.log('Error: secret id missmatch')
+    // *dbg*/ console.log('Error: secret id missmatch')
     return null
   }
   if (!verify(encryptedObj.signature, encryptedObj.encrypted, secret.sig)) {
-    console.log('Error: signature of encrypted object is corrupted')
+    // *dbg*/ console.log('Error: signature of encrypted object is corrupted')
     return null
   }
   const secretStr = decrypt(encryptedObj.encrypted, secret.key)

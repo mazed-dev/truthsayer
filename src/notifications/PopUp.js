@@ -3,11 +3,6 @@ import React from 'react'
 import { Modal, Button } from 'react-bootstrap'
 
 class AutocompleteWindow extends React.Component {
-  constructor(props) {
-    super(props)
-    console.log('AutocompleteWindow ', this.props.show)
-  }
-
   render() {
     return (
       <Modal

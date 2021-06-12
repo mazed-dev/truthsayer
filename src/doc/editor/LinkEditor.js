@@ -115,7 +115,7 @@ export class LinkEditor extends React.Component {
     let newEditorState = EditorState.set(editorState, {
       currentContent: contentStateWithEntity,
     })
-    console.log('Selection on link creation', newEditorState.getSelection())
+    // *dbg*/ console.log('Selection on link creation', newEditorState.getSelection())
     newEditorState = RichUtils.toggleLink(
       newEditorState,
       newEditorState.getSelection(),

@@ -68,7 +68,7 @@ class Login extends React.Component {
   }
 
   handleSubmitError = (err) => {
-    console.log('Server error ', err)
+    // *dbg*/ console.log('Server error ', err)
     if (err && err.response) {
       // if (err.response.status === HttpStatus.FORBIDDEN) {
       if (err.response.data && err.response.data.message) {

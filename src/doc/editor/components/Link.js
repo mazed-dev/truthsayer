@@ -25,11 +25,11 @@ import styles from './Link.module.css'
 const lodash = require('lodash')
 
 function onBlur() {
-  console.log('onBlur')
+  // *dbg*/ console.log('onBlur')
 }
 
 function onFocus() {
-  console.log('onFocus')
+  // *dbg*/ console.log('onFocus')
 }
 
 function genUrlTitle(url) {
@@ -77,7 +77,7 @@ class LinkEditor extends React.Component {
   _onLinkInputKeyDown = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    console.log('Input key', e)
+    // *dbg*/ console.log('Input key', e)
     if (isSymbol(e.which)) {
       this.setState({
         value: insertPiece(
@@ -150,7 +150,7 @@ class LinkEditor extends React.Component {
   _copyLink = (event) => {
     event.stopPropagation()
     event.preventDefault()
-    console.log('Copy link', event)
+    // *dbg*/ console.log('Copy link', event)
     // TODO(akindyakov): implement copy of current url
   }
 

@@ -28,10 +28,10 @@ function getSearchAnchor({ location }) {
 
 function gotoPath(history, path) {
   if (history) {
-    console.log('History push', path)
+    // *dbg*/ console.log('History push', path)
     history.push({ pathname: path })
   } else {
-    console.log('Window location href', path)
+    // *dbg*/ console.log('Window location href', path)
     window.location.href = path
   }
 }
@@ -53,12 +53,12 @@ function gotoNode({ history, nid }) {
 }
 
 function gotoMain({ history }) {
-  console.log('Go to main')
+  // *dbg*/ console.log('Go to main')
   gotoPath(history, '/')
 }
 
 function gotoError({ history }) {
-  console.log('Go to error')
+  // *dbg*/ console.log('Go to error')
   gotoPath(history, kNoticePathPrefix + kNoticeErrorPage)
 }
 
@@ -71,7 +71,7 @@ function gotoLogInToContinue({ history }) {
 }
 
 function getNoticePage({ params }) {
-  console.log('getNoticePage', params)
+  // *dbg*/ console.log('getNoticePage', params)
   return params
 }
 

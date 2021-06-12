@@ -161,7 +161,7 @@ export class NodeEditor extends React.Component {
   saveContent = lodash.debounce((content) => {
     const { saveDoc } = this.props
     const draft = convertToRaw(content)
-    /* dbg*/ console.log('Draft', draft)
+    // * dbg*/ console.log('Draft', draft)
     saveDoc(makeDoc({ draft }))
     // TODO(akindyakov): Collect stats here
   }, 1200)

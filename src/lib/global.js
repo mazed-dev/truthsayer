@@ -50,7 +50,7 @@ export const MzdGlobalContext = React.createContext({
   toaster: {
     toasts: [],
     push: ({ header, message }) => {
-      console.log('Default push() function called: ', header, message)
+      // *dbg*/ console.log('Default push() function called: ', header, message)
     },
   },
 })

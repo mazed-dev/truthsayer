@@ -17,7 +17,7 @@ function _unpackAttrs(attrsStr) {
   try {
     return base64.toObject(attrsStr)
   } catch (err) {
-    console.log('Attribute unpack error: ', err)
+    // *dbg*/ console.log('Attribute unpack error: ', err)
   }
   return {}
 }

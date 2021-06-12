@@ -42,14 +42,14 @@ class ShareModalWindow extends React.Component {
   }
 
   fetchMeta = () => {
-    console.log('Fetch meta for ', this.props.nid)
+    // *dbg*/ console.log('Fetch meta for ', this.props.nid)
     smugler.meta
       .get({
         nid: this.props.nid,
         cancelToken: this.fetchCardShareCancelToken.token,
       })
       .then((meta) => {
-        console.log('Got fetch meta ', meta)
+        // *dbg*/ console.log('Got fetch meta ', meta)
         this.setState({
           meta,
         })
@@ -57,7 +57,7 @@ class ShareModalWindow extends React.Component {
   }
 
   updateMeta = (by_link) => {
-    console.log('Update meta for ', this.props.nid)
+    // *dbg*/ console.log('Update meta for ', this.props.nid)
     this.setState({ meta: null })
     const meta = {
       share: {
@@ -115,9 +115,9 @@ class ShareModalWindow extends React.Component {
     } else {
       let img_ = null
       const share = meta.share
-      console.log('Is shared', share)
+      // *dbg*/ console.log('Is shared', share)
       if (share && share.by_link) {
-        console.log('Is shared by link')
+        // *dbg*/ console.log('Is shared by link')
         img_ = PublicImg
         stateTxt = 'Publicly availiable'
         // Hide
@@ -140,7 +140,7 @@ class ShareModalWindow extends React.Component {
           </>
         )
       } else if (this.state.meta.local_secret_id != null) {
-        console.log('Is shared with certain uids')
+        // *dbg*/ console.log('Is shared with certain uids')
         img_ = EncryptedImg
         stateTxt = 'Private and encrypted'
         // Decrypt
@@ -163,7 +163,7 @@ class ShareModalWindow extends React.Component {
           </>
         )
       } else {
-        console.log('Is not shared')
+        // *dbg*/ console.log('Is not shared')
         img_ = PrivateImg
         stateTxt = 'Private, not encrypted'
         // Encrypt

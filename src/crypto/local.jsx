@@ -154,7 +154,7 @@ export class LocalCrypto {
     }
     const secretBase64 = this._storage.get(secret_id)
     if (!secretBase64) {
-      console.log('Error: local user secret is not defined', secret_id)
+      // *dbg*/ console.log('Error: local user secret is not defined', secret_id)
       return null
     }
     const secretEnc: TEncrypted = base64.toObject(secretBase64)

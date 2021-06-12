@@ -205,11 +205,11 @@ class MarkdownToolbarImpl extends React.Component {
   }
 
   makeListWith = (fn) => {
-    console.log('makeListWith')
+    // *dbg*/ console.log('makeListWith')
     if (!this.isTextAreaRefValid()) {
       return
     }
-    console.log('makeListWith text area is valid')
+    // *dbg*/ console.log('makeListWith text area is valid')
     const txtRef = this.props.textAreaRef.current
 
     const prefix = txtRef.value.slice(0, txtRef.selectionStart)
@@ -225,7 +225,7 @@ class MarkdownToolbarImpl extends React.Component {
       })
       .join('\n')
     const newValue = prefix + madeList + suffix
-    console.log('makeListWith - newValue')
+    // *dbg*/ console.log('makeListWith - newValue')
     this.updateText(newValue, newValue.length)
   }
 
