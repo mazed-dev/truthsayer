@@ -35,7 +35,7 @@
     "react-markdown": "^4.3",
     "react-router": "^5.1",
     "react-router-dom": "^5.1",
-    "react-scripts": "^4.0",
+    "react-scripts": "^4.0.3",
     "regenerator-runtime": "^0.13.7",
     "remark-parse": "^9.0.0",
     "remark-slate": "^1.8.0",

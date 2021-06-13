@@ -6,6 +6,7 @@ import { Loader } from '../lib/loader'
 import LockedImg from './../img/locked.png'
 
 import { StaticNode } from './NodeEditor'
+import { DocEditor } from './DocEditor.tsx'
 
 import { renderMdSmallCard } from './../markdown/MarkdownRender'
 
@@ -20,8 +21,8 @@ const kMaxTrimSmallCardSize = 320
 const kMaxTrimSmallCardChunksNum = 4
 const kMaxTrimChunksNum = 6
 
-function SmallCardRender({ nid, doc }) {
-  return <StaticNode doc={doc} nid={nid} small />
+function SmallCardRender({ node }) {
+  return <DocEditor node={node} readOnly />
 }
 
 class ReadDocRender extends React.Component {
@@ -47,7 +48,7 @@ class ReadDocRender extends React.Component {
         )
       } else {
         // TODO(akindyakov): trim card here if shrinked!
-        body = <SmallCardRender doc={node.doc} nid={node.nid} />
+        body = <SmallCardRender node={node} />
       }
     }
     return <div className={styles.read_only_card}>{body}</div>

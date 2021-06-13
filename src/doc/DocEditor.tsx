@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import { Slate, Editable, withReact } from 'slate-react'
 import {
   Editor,
@@ -26,10 +26,14 @@ import {
   kSlateDescTypeListItem,
 } from './types.ts'
 
+import { getDocSlate } from './doc_util.jsx'
+
 import { withHistory } from 'slate-history'
 import { BulletedListElement } from './custom-types'
 
 import { joinClasses } from './../util/elClass.js'
+
+const lodash = require('lodash')
 
 const SHORTCUTS = {
   '*': kSlateDescTypeListItem,
@@ -44,14 +48,12 @@ const SHORTCUTS = {
   '######': 'heading-six',
 }
 
-export const DocEditor = ({ className, node }) => {
+export const DocEditor = ({ className, node, readOnly }) => {
   const { doc, nid } = node
-  const content = getDocSlate(doc)
-  const [value, setValue] = useState<Descendant[]>(content)
-  const setValueAndLog = (value) => {
-    console.log('New value', value) // eslint-disable-line no-console
-    setValue(value)
-  }
+  const [value, setValue] = useState<Descendant[]>([])
+  useEffect(() => {
+    getDocSlate(doc).then((content) => setValue(content))
+  }, [nid])
   const renderElement = useCallback((props) => <Element {...props} />, [])
   const editor = useMemo(
     () => withShortcuts(withReact(withHistory(createEditor()))),
@@ -62,7 +64,7 @@ export const DocEditor = ({ className, node }) => {
       <Slate
         editor={editor}
         value={value}
-        onChange={(value) => setValueAndLog(value)}
+        onChange={(value) => setValue(value)}
       >
         <Editable
           renderElement={renderElement}

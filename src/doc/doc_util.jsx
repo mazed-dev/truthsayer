@@ -91,15 +91,14 @@ function _makeTitleFromRaw(source: string): string {
   }
 }
 
-export function makeACopy(doc: TDoc | string, nid: string): TDoc {
+export async function makeACopy(doc: TDoc | string, nid: string): TDoc {
   if (lodash.isString(doc)) {
-    doc = makeDoc({
-      draft: markdownToDraft(doc),
-    })
+    const slate = await markdownToSlate(doc)
+    doc = await makeDoc({ slate })
   }
   let draft
   if ('chunks' in doc) {
-    doc = makeDoc({
+    doc = await makeDoc({
       chunks: doc.chunks,
     })
     draft = { doc }
@@ -115,7 +114,7 @@ export function makeACopy(doc: TDoc | string, nid: string): TDoc {
     text,
     href: nid,
   })
-  return makeDoc({ draft })
+  return await makeDoc({ draft })
 }
 
 // Deprecated
@@ -131,11 +130,10 @@ export function extractDocAsMarkdown(doc: TDoc): string {
 }
 
 // Deprecated
-export function enforceTopHeader(doc: TDoc): TDoc {
+export async function enforceTopHeader(doc: TDoc): TDoc {
   if (lodash.isString(doc)) {
-    doc = makeDoc({
-      draft: markdownToDraft(doc),
-    })
+    const slate = await markdownToSlate(doc)
+    doc = await makeDoc({ slate })
   }
   const chunks = doc.chunks || []
   if (chunks.length === 0 || !isHeaderChunk(doc.chunks[0])) {
@@ -145,31 +143,26 @@ export function enforceTopHeader(doc: TDoc): TDoc {
   return doc
 }
 
-export function makeDoc({ chunks, draft, slate }): TDoc {
+export async function makeDoc({ chunks, draft, slate }): TDoc {
   if (slate) {
     return { slate }
   }
   if (chunks) {
-    return {
-      draft: markdownToDraft(
-        extractDocAsMarkdown(
-          chunks
-            .reduce((acc, current) => {
-              return `${acc}\n\n${current.source}`
-            }, '')
-            .trim()
-        )
-      ),
-    }
+    slate = await markdownToSlate(
+      extractDocAsMarkdown(
+        chunks
+          .reduce((acc, current) => {
+            return `${acc}\n\n${current.source}`
+          }, '')
+          .trim()
+      )
+    )
+  } else if (draft) {
+    slate = await markdownToSlate(draftToMarkdown(draft))
+  } else {
+    slate = await markdownToSlate('')
   }
-  if (draft) {
-    return {
-      slate: markdownToSlate(draftToMarkdown(draft)),
-    }
-  }
-  return {
-    slate: markdownToSlate(''),
-  }
+  return { slate }
 }
 
 function makeBlankCopyOfABlock(block) {
@@ -181,13 +174,12 @@ function makeBlankCopyOfABlock(block) {
   return block
 }
 
-export function makeBlankCopy(doc: TDoc | string, nid: string): TDoc {
+export async function makeBlankCopy(doc: TDoc | string, nid: string): TDoc {
   if (lodash.isString(doc)) {
-    doc = makeDoc({
-      draft: markdownToDraft(doc),
-    })
+    const slate = await markdownToSlate(doc)
+    doc = await makeDoc({ slate })
   } else if ('chunks' in doc) {
-    doc = makeDoc({
+    doc = await makeDoc({
       chunks: doc.chunks,
     })
   }
@@ -204,10 +196,10 @@ export function makeBlankCopy(doc: TDoc | string, nid: string): TDoc {
     text,
     href: nid,
   })
-  return makeDoc({ draft })
+  return await makeDoc({ draft })
 }
 
-export function getDocDraft(doc: TDoc): TDraftDoc {
+export async function getDocDraft(doc: TDoc): TDraftDoc {
   // Apply migration technics incrementally to make sure that showing document
   // has the format of the latest version.
   if (lodash.isString(doc)) {
@@ -228,12 +220,12 @@ export function getDocDraft(doc: TDoc): TDraftDoc {
   if (draft) {
     return draft
   }
-  return makeDoc()
+  return await makeDoc()
 }
 
-export function getDocSlate(doc: TDoc): Descendant[] {
+export async function getDocSlate(doc: TDoc): Descendant[] {
   if (lodash.isString(doc)) {
-    return markdownToDraft(doc)
+    return await markdownToSlate(doc)
   }
   doc = doc || {}
   let { chunks, draft, slate } = doc
@@ -247,14 +239,12 @@ export function getDocSlate(doc: TDoc): Descendant[] {
       }
       return acc
     }, '')
-    return markdownToDraft(source)
+    slate = await markdownToSlate(source)
+  } else if (draft) {
+    slate = await markdownToSlate(draftToMarkdown(draft))
+  } else {
+    slate = await makeDoc().slate
   }
-  if (draft) {
-    return {
-      slate: markdownToSlate(draftToMarkdown(draft)),
-    }
-  }
-  slate = makeDoc().slate
   return slate
 }
 
