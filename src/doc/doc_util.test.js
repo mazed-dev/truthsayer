@@ -28,10 +28,3 @@ test('exctractDocTitle - multiple chunks', () => {
   const title = exctractDocTitle(doc)
   expect(title).toStrictEqual(text)
 })
-
-test('enforceTopHeader - old style doc', () => {
-  const text = 'RmdB zaGUgdHJpZWQgd G8gd2FzaCBvZm'
-  const doc = enforceTopHeader(text)
-  expect(isHeaderChunk(doc.chunks[0])).toStrictEqual(true)
-  expect(isAsteriskChunk(doc.chunks[0])).toStrictEqual(true)
-})

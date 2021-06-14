@@ -5,18 +5,18 @@ import { Descendant } from 'slate'
 import { slateToMarkdown, markdownToSlate } from './slate.ts'
 
 import {
-  kSlateDescTypeH1,
-  kSlateDescTypeH2,
-  kSlateDescTypeH3,
-  kSlateDescTypeH4,
-  kSlateDescTypeH5,
-  kSlateDescTypeH6,
-  kSlateDescTypeBreak,
-  kSlateDescTypeCode,
-  kSlateDescTypeOrderedList,
-  kSlateDescTypeParagraph,
-  kSlateDescTypeQuote,
-  kSlateDescTypeUnorderedList,
+  kSlateBlockTypeH1,
+  kSlateBlockTypeH2,
+  kSlateBlockTypeH3,
+  kSlateBlockTypeH4,
+  kSlateBlockTypeH5,
+  kSlateBlockTypeH6,
+  kSlateBlockTypeBreak,
+  kSlateBlockTypeCode,
+  kSlateBlockTypeOrderedList,
+  kSlateBlockTypeParagraph,
+  kSlateBlockTypeQuote,
+  kSlateBlockTypeUnorderedList,
 } from './../doc/types.ts'
 
 test('Markdown to Slate state', async () => {
@@ -69,23 +69,23 @@ print s
     expect(block).toHaveProperty('type')
     expect(block).toHaveProperty('children')
   })
-  expect(value[0].type).toStrictEqual(kSlateDescTypeH1)
-  expect(value[1].type).toStrictEqual(kSlateDescTypeH2)
-  expect(value[2].type).toStrictEqual(kSlateDescTypeH3)
-  expect(value[3].type).toStrictEqual(kSlateDescTypeH4)
-  expect(value[4].type).toStrictEqual(kSlateDescTypeH5)
-  expect(value[5].type).toStrictEqual(kSlateDescTypeH6)
-  expect(value[6].type).toStrictEqual(kSlateDescTypeUnorderedList)
-  expect(value[7].type).toStrictEqual(kSlateDescTypeParagraph)
-  expect(value[8].type).toStrictEqual(kSlateDescTypeParagraph)
-  expect(value[9].type).toStrictEqual(kSlateDescTypeBreak)
-  expect(value[10].type).toStrictEqual(kSlateDescTypeCode)
-  expect(value[11].type).toStrictEqual(kSlateDescTypeParagraph)
-  expect(value[12].type).toStrictEqual(kSlateDescTypeQuote)
-  expect(value[13].type).toStrictEqual(kSlateDescTypeUnorderedList)
-  expect(value[14].type).toStrictEqual(kSlateDescTypeOrderedList)
-  expect(value[15].type).toStrictEqual(kSlateDescTypeParagraph)
-  expect(value[16].type).toStrictEqual(kSlateDescTypeParagraph)
+  expect(value[0].type).toStrictEqual(kSlateBlockTypeH1)
+  expect(value[1].type).toStrictEqual(kSlateBlockTypeH2)
+  expect(value[2].type).toStrictEqual(kSlateBlockTypeH3)
+  expect(value[3].type).toStrictEqual(kSlateBlockTypeH4)
+  expect(value[4].type).toStrictEqual(kSlateBlockTypeH5)
+  expect(value[5].type).toStrictEqual(kSlateBlockTypeH6)
+  expect(value[6].type).toStrictEqual(kSlateBlockTypeUnorderedList)
+  expect(value[7].type).toStrictEqual(kSlateBlockTypeParagraph)
+  expect(value[8].type).toStrictEqual(kSlateBlockTypeParagraph)
+  expect(value[9].type).toStrictEqual(kSlateBlockTypeBreak)
+  expect(value[10].type).toStrictEqual(kSlateBlockTypeCode)
+  expect(value[11].type).toStrictEqual(kSlateBlockTypeParagraph)
+  expect(value[12].type).toStrictEqual(kSlateBlockTypeQuote)
+  expect(value[13].type).toStrictEqual(kSlateBlockTypeUnorderedList)
+  expect(value[14].type).toStrictEqual(kSlateBlockTypeOrderedList)
+  expect(value[15].type).toStrictEqual(kSlateBlockTypeParagraph)
+  expect(value[16].type).toStrictEqual(kSlateBlockTypeParagraph)
 
   expect(value[0].children[0].text).toStrictEqual('Header 1')
   expect(value[1].children[0].text).toStrictEqual('Header 2')
@@ -124,7 +124,7 @@ test('Slate state to Markdown', () => {
     '3B ; 73 {'
   const state: Descendant[] = [
     {
-      type: kSlateDescTypeH2,
+      type: kSlateBlockTypeH2,
       children: [
         {
           text: headerText,
@@ -132,7 +132,7 @@ test('Slate state to Markdown', () => {
       ],
     },
     {
-      type: kSlateDescTypeParagraph,
+      type: kSlateBlockTypeParagraph,
       children: [
         {
           text: paragraphText,
@@ -142,4 +142,104 @@ test('Slate state to Markdown', () => {
   ]
   const md: string = slateToMarkdown(state)
   expect(md).toStrictEqual(`## ${headerText}\n${paragraphText}\n`)
+})
+
+test('Checklist in Markdown', async () => {
+  const md: string = `
+- [x] Drink a glass of water
+- [X] Make your bed
+- [ ] Get moving
+- [ ] Stay unplugged
+- [x] Sneak in a little me-time
+  `
+  const value = await markdownToSlate(md)
+  expect(value.length).toStrictEqual(1)
+  const { children, type } = value[0]
+  expect(type).toStrictEqual(kSlateBlockTypeUnorderedList)
+  expect(children.length).toStrictEqual(5)
+  expect(children[0].checked).toStrictEqual(true)
+  expect(children[1].checked).toStrictEqual(true)
+  expect(children[2].checked).toStrictEqual(false)
+  expect(children[3].checked).toStrictEqual(false)
+  expect(children[4].checked).toStrictEqual(true)
+
+  expect(children[0].children[0].children[0].text).toStrictEqual(
+    'Drink a glass of water'
+  )
+  expect(children[1].children[0].children[0].text).toStrictEqual(
+    'Make your bed'
+  )
+  expect(children[2].children[0].children[0].text).toStrictEqual('Get moving')
+  expect(children[3].children[0].children[0].text).toStrictEqual(
+    'Stay unplugged'
+  )
+  expect(children[4].children[0].children[0].text).toStrictEqual(
+    'Sneak in a little me-time'
+  )
+})
+
+test('Multi checklist in Markdown', async () => {
+  const md: string = `
+- [x] First
+  - [x] aaa
+  - [ ] bbb
+  - [X] ccc
+  - [x] ddd
+- [ ] Second
+  - [ ] AAA
+  - [x] BBB
+  - [X] CCC
+  `
+  const value = await markdownToSlate(md)
+  expect(value.length).toStrictEqual(1)
+  const { children, type } = value[0]
+  expect(type).toStrictEqual(kSlateBlockTypeUnorderedList)
+  expect(children.length).toStrictEqual(2)
+
+  expect(children[0].children.length).toStrictEqual(2)
+  expect(children[1].children.length).toStrictEqual(2)
+
+  expect(children[0].children[0].children.length).toStrictEqual(1)
+  expect(children[1].children[0].children.length).toStrictEqual(1)
+  // 0
+  expect(children[0].checked).toStrictEqual(true)
+  expect(children[0].children[0].children[0].text).toStrictEqual('First')
+  // 1
+  expect(children[1].checked).toStrictEqual(false)
+  expect(children[1].children[0].children[0].text).toStrictEqual('Second')
+  // 0.0
+  expect(children[0].children[1].children[0].checked).toStrictEqual(true)
+  expect(
+    children[0].children[1].children[0].children[0].children[0].text
+  ).toStrictEqual('aaa')
+  // 0.1
+  expect(children[0].children[1].children[1].checked).toStrictEqual(false)
+  expect(
+    children[0].children[1].children[1].children[0].children[0].text
+  ).toStrictEqual('bbb')
+  // 0.2
+  expect(children[0].children[1].children[2].checked).toStrictEqual(true)
+  expect(
+    children[0].children[1].children[2].children[0].children[0].text
+  ).toStrictEqual('ccc')
+  // 0.3
+  expect(children[0].children[1].children[3].checked).toStrictEqual(true)
+  expect(
+    children[0].children[1].children[3].children[0].children[0].text
+  ).toStrictEqual('ddd')
+  // 1.0
+  expect(children[1].children[1].children[0].checked).toStrictEqual(false)
+  expect(
+    children[1].children[1].children[0].children[0].children[0].text
+  ).toStrictEqual('AAA')
+  // 1.1
+  expect(children[1].children[1].children[1].checked).toStrictEqual(true)
+  expect(
+    children[1].children[1].children[1].children[0].children[0].text
+  ).toStrictEqual('BBB')
+  // 1.2
+  expect(children[1].children[1].children[2].checked).toStrictEqual(true)
+  expect(
+    children[1].children[1].children[2].children[0].children[0].text
+  ).toStrictEqual('CCC')
 })

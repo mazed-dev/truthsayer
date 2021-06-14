@@ -1,4 +1,37 @@
-import { Descendant } from 'slate'
+import {
+  Descendant,
+  kSlateBlockTypeH1,
+  kSlateBlockTypeH2,
+  kSlateBlockTypeH3,
+  kSlateBlockTypeH4,
+  kSlateBlockTypeH5,
+  kSlateBlockTypeH6,
+  kSlateBlockTypeBreak,
+  kSlateBlockTypeCode,
+  kSlateBlockTypeOrderedList,
+  kSlateBlockTypeParagraph,
+  kSlateBlockTypeQuote,
+  kSlateBlockTypeUnorderedList,
+  kSlateBlockTypeListItem,
+  kSlateBlockTypeCheckListItem,
+} from '../markdown/slate.ts'
+
+export {
+  kSlateBlockTypeH1,
+  kSlateBlockTypeH2,
+  kSlateBlockTypeH3,
+  kSlateBlockTypeH4,
+  kSlateBlockTypeH5,
+  kSlateBlockTypeH6,
+  kSlateBlockTypeBreak,
+  kSlateBlockTypeCode,
+  kSlateBlockTypeOrderedList,
+  kSlateBlockTypeParagraph,
+  kSlateBlockTypeQuote,
+  kSlateBlockTypeUnorderedList,
+  kSlateBlockTypeListItem,
+  kSlateBlockTypeCheckListItem,
+}
 
 export const EChunkType = Object.freeze({
   Text: 0,
@@ -60,23 +93,6 @@ export const kEntityTypeImage = 'IMAGE'
 export const kEntityMutable = 'MUTABLE'
 export const kEntityImmutable = 'IMMUTABLE'
 
-/**
- * Slate blocks
- */
-export const kSlateDescTypeH1 = 'heading_one'
-export const kSlateDescTypeH2 = 'heading_two'
-export const kSlateDescTypeH3 = 'heading_three'
-export const kSlateDescTypeH4 = 'heading_four'
-export const kSlateDescTypeH5 = 'heading_five'
-export const kSlateDescTypeH6 = 'heading_six'
-export const kSlateDescTypeBreak = 'thematic_break'
-export const kSlateDescTypeCode = 'code_block'
-export const kSlateDescTypeOrderedList = 'ol_list'
-export const kSlateDescTypeParagraph = 'paragraph'
-export const kSlateDescTypeQuote = 'block_quote'
-export const kSlateDescTypeUnorderedList = 'ul_list'
-export const kSlateDescTypeListItem = 'list-item'
-
 export function isHeaderBlock(block) {
   const { type } = block
   switch (type) {
@@ -94,12 +110,12 @@ export function isHeaderBlock(block) {
 export function isHeaderSlateBlock(block: Descendant): boolean {
   const { type } = block
   switch (type) {
-    case kSlateDescTypeH1:
-    case kSlateDescTypeH2:
-    case kSlateDescTypeH3:
-    case kSlateDescTypeH4:
-    case kSlateDescTypeH5:
-    case kSlateDescTypeH6:
+    case kSlateBlockTypeH1:
+    case kSlateBlockTypeH2:
+    case kSlateBlockTypeH3:
+    case kSlateBlockTypeH4:
+    case kSlateBlockTypeH5:
+    case kSlateBlockTypeH6:
       return true
   }
   return false
@@ -108,7 +124,7 @@ export function isHeaderSlateBlock(block: Descendant): boolean {
 export function isTextSlateBlock(block: Descendant): boolean {
   const { type } = block
   switch (type) {
-    case kSlateDescTypeParagraph:
+    case kSlateBlockTypeParagraph:
       return true
   }
   return false

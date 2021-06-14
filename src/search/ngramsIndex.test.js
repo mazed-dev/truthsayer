@@ -6,7 +6,6 @@ import {
   makeAsteriskChunk,
   makeEmptyChunk,
 } from '../doc/chunk_util.jsx'
-import { makeDoc } from '../doc/doc_util.jsx'
 
 test('simple line', () => {
   const ngrams = makeNGrams('Me too! Well, except for the life part.')
@@ -125,7 +124,7 @@ test('Long space', () => {
 })
 
 test('extractIndexNGramsFromDoc', () => {
-  const doc = makeDoc({
+  const doc = {
     chunks: [
       makeChunk('# 945 Madison Avenue'),
       makeChunk(
@@ -139,7 +138,7 @@ test('extractIndexNGramsFromDoc', () => {
       ),
       makeEmptyChunk(),
     ],
-  })
+  }
   const ngrams = extractIndexNGramsFromDoc(doc)
   expect(ngrams).toStrictEqual(
     new Set([

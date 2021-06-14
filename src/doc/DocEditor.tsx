@@ -11,19 +11,19 @@ import {
 } from 'slate'
 
 import {
-  kSlateDescTypeH1,
-  kSlateDescTypeH2,
-  kSlateDescTypeH3,
-  kSlateDescTypeH4,
-  kSlateDescTypeH5,
-  kSlateDescTypeH6,
-  kSlateDescTypeBreak,
-  kSlateDescTypeCode,
-  kSlateDescTypeOrderedList,
-  kSlateDescTypeParagraph,
-  kSlateDescTypeQuote,
-  kSlateDescTypeUnorderedList,
-  kSlateDescTypeListItem,
+  kSlateBlockTypeH1,
+  kSlateBlockTypeH2,
+  kSlateBlockTypeH3,
+  kSlateBlockTypeH4,
+  kSlateBlockTypeH5,
+  kSlateBlockTypeH6,
+  kSlateBlockTypeBreak,
+  kSlateBlockTypeCode,
+  kSlateBlockTypeOrderedList,
+  kSlateBlockTypeParagraph,
+  kSlateBlockTypeQuote,
+  kSlateBlockTypeUnorderedList,
+  kSlateBlockTypeListItem,
 } from './types.ts'
 
 import { getDocSlate } from './doc_util.jsx'
@@ -36,9 +36,9 @@ import { joinClasses } from './../util/elClass.js'
 const lodash = require('lodash')
 
 const SHORTCUTS = {
-  '*': kSlateDescTypeListItem,
-  '-': kSlateDescTypeListItem,
-  '+': kSlateDescTypeListItem,
+  '*': kSlateBlockTypeListItem,
+  '-': kSlateBlockTypeListItem,
+  '+': kSlateBlockTypeListItem,
   '>': 'block-quote',
   '#': 'heading-one',
   '##': 'heading-two',
@@ -104,7 +104,7 @@ const withShortcuts = (editor) => {
           match: (n) => Editor.isBlock(editor, n),
         })
 
-        if (type === kSlateDescTypeListItem) {
+        if (type === kSlateBlockTypeListItem) {
           const list: BulletedListElement = {
             type: 'bulleted-list',
             children: [],
@@ -113,7 +113,7 @@ const withShortcuts = (editor) => {
             match: (n) =>
               !Editor.isEditor(n) &&
               SlateElement.isElement(n) &&
-              n.type === kSlateDescTypeListItem,
+              n.type === kSlateBlockTypeListItem,
           })
         }
 
@@ -147,7 +147,7 @@ const withShortcuts = (editor) => {
           }
           Transforms.setNodes(editor, newProperties)
 
-          if (block.type === kSlateDescTypeListItem) {
+          if (block.type === kSlateBlockTypeListItem) {
             Transforms.unwrapNodes(editor, {
               match: (n) =>
                 !Editor.isEditor(n) &&
@@ -186,7 +186,7 @@ const Element = ({ attributes, children, element }) => {
       return <h5 {...attributes}>{children}</h5>
     case 'heading-six':
       return <h6 {...attributes}>{children}</h6>
-    case kSlateDescTypeListItem:
+    case kSlateBlockTypeListItem:
       return <li {...attributes}>{children}</li>
     default:
       return <p {...attributes}>{children}</p>

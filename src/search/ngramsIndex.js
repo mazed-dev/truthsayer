@@ -38,7 +38,7 @@ export function extractIndexNGramsFromText(mdText) {
 export function extractIndexNGramsFromDoc(doc) {
   const headParagraphsCounter = 0
   const ngrams = new Set()
-  doc.draft.blocks.forEach((chunk) => {
+  doc.chunks.forEach((chunk) => {
     if (ngrams.size >= kNgramsNumberLimit) {
       return
     }
@@ -50,9 +50,9 @@ export function extractIndexNGramsFromDoc(doc) {
     //   }
     //   headParagraphsCounter += 1;
     // }
-    const { text } = chunk
-    if (text != null) {
-      extractIndexNGramsFromText(text).forEach((ngr) => {
+    const { source } = chunk
+    if (source != null) {
+      extractIndexNGramsFromText(source).forEach((ngr) => {
         if (ngrams.size < kNgramsNumberLimit) {
           ngrams.add(ngr)
         }
