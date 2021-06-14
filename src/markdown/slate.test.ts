@@ -2,9 +2,9 @@ import React from 'react'
 
 import { Descendant } from 'slate'
 
-import { slateToMarkdown, markdownToSlate } from './slate.ts'
-
 import {
+  slateToMarkdown,
+  markdownToSlate,
   kSlateBlockTypeH1,
   kSlateBlockTypeH2,
   kSlateBlockTypeH3,
@@ -17,7 +17,8 @@ import {
   kSlateBlockTypeParagraph,
   kSlateBlockTypeQuote,
   kSlateBlockTypeUnorderedList,
-} from './../doc/types.ts'
+  kSlateBlockTypeDateTime,
+} from './slate'
 
 test('Markdown to Slate state', async () => {
   const md = `
@@ -242,4 +243,15 @@ test('Multi checklist in Markdown', async () => {
   expect(
     children[1].children[1].children[2].children[0].children[0].text
   ).toStrictEqual('CCC')
+})
+
+test('Extra(backward): links as date', async () => {
+  const md: string = `[](@1619823600/day)`
+  const value = await markdownToSlate(md)
+  expect(value.length).toStrictEqual(1)
+  const { children } = value[0]
+  expect(children.length).toStrictEqual(1)
+  const { type, timestamp } = children[0]
+  expect(type).toStrictEqual(kSlateBlockTypeDateTime)
+  expect(timestamp).toStrictEqual(1619823600)
 })

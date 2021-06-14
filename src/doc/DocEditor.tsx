@@ -24,7 +24,7 @@ import {
   kSlateBlockTypeQuote,
   kSlateBlockTypeUnorderedList,
   kSlateBlockTypeListItem,
-} from './types.ts'
+} from './types'
 
 import { getDocSlate } from './doc_util.jsx'
 

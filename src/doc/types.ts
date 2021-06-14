@@ -1,5 +1,5 @@
+import { Descendant } from 'slate'
 import {
-  Descendant,
   kSlateBlockTypeH1,
   kSlateBlockTypeH2,
   kSlateBlockTypeH3,
@@ -14,7 +14,7 @@ import {
   kSlateBlockTypeUnorderedList,
   kSlateBlockTypeListItem,
   kSlateBlockTypeCheckListItem,
-} from '../markdown/slate.ts'
+} from '../markdown/slate'
 
 export {
   kSlateBlockTypeH1,

@@ -7,8 +7,6 @@ import { defaultNodeTypes } from 'remark-slate'
 
 const lodash = require('lodash')
 
-// export { Descendant }
-
 function dbg(...args: Any) {
   console.log('Dbg', ...args) // eslint-disable-line no-console
 }
@@ -55,23 +53,33 @@ export const kSlateBlockTypeDeleteMark = defaultNodeTypes.strikeThrough
 export const kSlateBlockTypeInlineCodeMark = defaultNodeTypes.code
 
 export const kSlateBlockTypeCheckListItem = 'check-list-item'
-
-export function parseExtraSyntax(content: Descendant[]): Descendant[] {
-  return content.map((item: Descendant) => {
+export const kSlateBlockTypeDateTime = 'datetime'
+/**
+ * Implemtations
+ * not to be exported
+ */
+function parseExtraSyntax(content: Descendant[]): Descendant[] {
+  const r = content.map((item: Descendant) => {
     let { children, type } = item
     children = children || []
-    children = parseExtraSyntax(children)
     if (
       type === kSlateBlockTypeOrderedList ||
       type === kSlateBlockTypeUnorderedList
     ) {
       children = parseListExtraSyntax(children)
+    } else if (type === kSlateBlockTypeLink) {
+      item = parseLinkExtraSyntax(item)
     }
-    return { ...item, type, children }
+    children = parseExtraSyntax(children)
+    return {
+      ...item,
+      children,
+    }
   })
+  return r
 }
 
-export function parseListExtraSyntax(children: Descendant[]): Descendant[] {
+function parseListExtraSyntax(children: Descendant[]): Descendant[] {
   return children.map((item: Descendant) => {
     if (item.type === kSlateBlockTypeListItem) {
       item = convertListItemIfCheck(item)
@@ -80,7 +88,7 @@ export function parseListExtraSyntax(children: Descendant[]): Descendant[] {
   })
 }
 
-export function convertListItemIfCheck(item: Descendant): Descendant {
+function convertListItemIfCheck(item: Descendant): Descendant {
   const children: Descendant[] = item.children || []
   const first: Descendant = lodash.head(children)
   if (first) {
@@ -100,6 +108,30 @@ export function convertListItemIfCheck(item: Descendant): Descendant {
           }
         }
       }
+    }
+  }
+  return item
+}
+
+function parseLinkExtraSyntax(item: Descendant): Descendant {
+  const { link, children } = item
+  const dtParts = link.match(/^@(-?[0-9]+)\/?(.*)/)
+  if (dtParts) {
+    // Arguably unix timestamp (signed)
+    const timestamp = parseInt(dtParts[1], 10)
+    if (isNaN(timestamp)) {
+      return item
+    }
+    let format = dtParts[2]
+    if (format === 'day') {
+      format = undefined
+    }
+    dbg('Return date', kSlateBlockTypeDateTime)
+    return {
+      children,
+      format,
+      timestamp,
+      type: kSlateBlockTypeDateTime,
     }
   }
   return item
