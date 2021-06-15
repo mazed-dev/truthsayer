@@ -5,18 +5,17 @@ import markdown from 'remark-parse'
 import slate from 'remark-slate'
 import { defaultNodeTypes } from 'remark-slate'
 
-const lodash = require('lodash')
+import moment from 'moment'
 
-function dbg(...args: Any) {
-  console.log('Dbg', ...args) // eslint-disable-line no-console
-}
+const lodash = require('lodash')
 
 /**
  * Slate object to Markdown:
  * serialize slate state to a markdown string
  */
 export function slateToMarkdown(state: Descendant[]): string {
-  return state.map((v) => serialize(v)).join('')
+  state = serializeExtraBlocks(state)
+  return state.map((block) => serialize(block)).join('')
 }
 
 /**
@@ -24,8 +23,7 @@ export function slateToMarkdown(state: Descendant[]): string {
  */
 export async function markdownToSlate(text): Promise<Descendant[]> {
   let { contents } = await unified().use(markdown).use(slate).process(text)
-  contents = parseExtraSyntax(contents)
-  dbg('Contents', JSON.stringify(contents, null, 2))
+  contents = parseExtraBlocks(contents)
   return contents
 }
 
@@ -58,8 +56,8 @@ export const kSlateBlockTypeDateTime = 'datetime'
  * Implemtations
  * not to be exported
  */
-function parseExtraSyntax(content: Descendant[]): Descendant[] {
-  const r = content.map((item: Descendant) => {
+function parseExtraBlocks(content: Descendant[]): Descendant[] {
+  return content.map((item: Descendant) => {
     let { children, type } = item
     children = children || []
     if (
@@ -70,13 +68,12 @@ function parseExtraSyntax(content: Descendant[]): Descendant[] {
     } else if (type === kSlateBlockTypeLink) {
       item = parseLinkExtraSyntax(item)
     }
-    children = parseExtraSyntax(children)
+    children = parseExtraBlocks(children)
     return {
       ...item,
       children,
     }
   })
-  return r
 }
 
 function parseListExtraSyntax(children: Descendant[]): Descendant[] {
@@ -126,7 +123,6 @@ function parseLinkExtraSyntax(item: Descendant): Descendant {
     if (format === 'day') {
       format = undefined
     }
-    dbg('Return date', kSlateBlockTypeDateTime)
     return {
       children,
       format,
@@ -135,4 +131,62 @@ function parseLinkExtraSyntax(item: Descendant): Descendant {
     }
   }
   return item
+}
+
+function serializeExtraBlocks(children: Descendant): Descendant {
+  return children.map((item: Descendant) => {
+    let { children, type } = item
+    children = children || []
+    if (
+      type === kSlateBlockTypeOrderedList ||
+      type === kSlateBlockTypeUnorderedList
+    ) {
+      children = serializeExtraCheckItems(children)
+    } else if (type === kSlateBlockTypeDateTime) {
+      item = serializeExtraDateTime(item)
+    }
+    children = parseExtraBlocks(children)
+    // TODO
+    return {
+      ...item,
+      children,
+    }
+  })
+}
+
+function serializeExtraCheckItems(children: Descendant[]): Descendant[] {
+  return children.map((item: Descendant) => {
+    const { type } = item
+    if (type === kSlateBlockTypeCheckListItem) {
+      item = serializeExtraCheckItem(item)
+    }
+    return item
+  })
+}
+
+function serializeExtraCheckItem(item: Descendant): Descendant {
+  const { children, checked } = item
+  const prefix = checked ? '[x] ' : '[ ] '
+  const first: Descendant = lodash.head(children || [])
+  if (first && first.type === kSlateBlockTypeParagraph) {
+    let { text } = lodash.head(first.children || []) || {}
+    text = prefix + (text || '')
+    children[0] = { ...first, text }
+  } else {
+    children.unshift({
+      text: `${prefix}:`,
+    })
+  }
+  return {
+    type: kSlateBlockTypeListItem,
+    children,
+  }
+}
+
+function serializeExtraDateTime(item: Descendant): Descendant {
+  let { children, format, timestamp } = item
+  format = format || 'YYYY MMMM DD, dddd, hh:mm'
+  const date = moment.unix(timestamp)
+  const text = date.format(format)
+  return { text }
 }

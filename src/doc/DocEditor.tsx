@@ -24,7 +24,9 @@ import {
   kSlateBlockTypeQuote,
   kSlateBlockTypeUnorderedList,
   kSlateBlockTypeListItem,
-} from './types'
+  kSlateBlockTypeCheckListItem,
+  kSlateBlockTypeDateTime,
+} from '../markdown/slate'
 
 import { getDocSlate } from './doc_util.jsx'
 
@@ -39,7 +41,7 @@ const SHORTCUTS = {
   '*': kSlateBlockTypeListItem,
   '-': kSlateBlockTypeListItem,
   '+': kSlateBlockTypeListItem,
-  '>': 'block-quote',
+  '>': kSlateBlockTypeQuote,
   '#': 'heading-one',
   '##': 'heading-two',
   '###': 'heading-three',
@@ -106,7 +108,7 @@ const withShortcuts = (editor) => {
 
         if (type === kSlateBlockTypeListItem) {
           const list: BulletedListElement = {
-            type: 'bulleted-list',
+            type: kSlateBlockTypeUnorderedList,
             children: [],
           }
           Transforms.wrapNodes(editor, list, {
@@ -139,11 +141,11 @@ const withShortcuts = (editor) => {
         if (
           !Editor.isEditor(block) &&
           SlateElement.isElement(block) &&
-          block.type !== 'paragraph' &&
+          block.type !== kSlateBlockTypeParagraph &&
           Point.equals(selection.anchor, start)
         ) {
           const newProperties: Partial<SlateElement> = {
-            type: 'paragraph',
+            type: kSlateBlockTypeParagraph,
           }
           Transforms.setNodes(editor, newProperties)
 
@@ -152,7 +154,7 @@ const withShortcuts = (editor) => {
               match: (n) =>
                 !Editor.isEditor(n) &&
                 SlateElement.isElement(n) &&
-                n.type === 'bulleted-list',
+                n.type === kSlateBlockTypeUnorderedList,
               split: true,
             })
           }
@@ -170,21 +172,21 @@ const withShortcuts = (editor) => {
 
 const Element = ({ attributes, children, element }) => {
   switch (element.type) {
-    case 'block-quote':
+    case kSlateBlockTypeQuote:
       return <blockquote {...attributes}>{children}</blockquote>
-    case 'bulleted-list':
+    case kSlateBlockTypeUnorderedList:
       return <ul {...attributes}>{children}</ul>
-    case 'heading-one':
+    case kSlateBlockTypeH1:
       return <h1 {...attributes}>{children}</h1>
-    case 'heading-two':
+    case kSlateBlockTypeH2:
       return <h2 {...attributes}>{children}</h2>
-    case 'heading-three':
+    case kSlateBlockTypeH3:
       return <h3 {...attributes}>{children}</h3>
-    case 'heading-four':
+    case kSlateBlockTypeH4:
       return <h4 {...attributes}>{children}</h4>
-    case 'heading-five':
+    case kSlateBlockTypeH5:
       return <h5 {...attributes}>{children}</h5>
-    case 'heading-six':
+    case kSlateBlockTypeH6:
       return <h6 {...attributes}>{children}</h6>
     case kSlateBlockTypeListItem:
       return <li {...attributes}>{children}</li>
@@ -195,7 +197,7 @@ const Element = ({ attributes, children, element }) => {
 
 const initialValue: Descendant[] = [
   {
-    type: 'paragraph',
+    type: kSlateBlockTypeParagraph,
     children: [
       {
         text: 'The editor gives you full control over the logic you can add. For example, it\'s fairly common to want to add markdown-like shortcuts to editors. So that, when you start a line with "> " you get a blockquote that looks like this:',
@@ -203,11 +205,11 @@ const initialValue: Descendant[] = [
     ],
   },
   {
-    type: 'block-quote',
+    type: kSlateBlockTypeQuote,
     children: [{ text: 'A wise quote.' }],
   },
   {
-    type: 'paragraph',
+    type: kSlateBlockTypeParagraph,
     children: [
       {
         text: 'Order when you start a line with "## " you get a level-two heading, like this:',
@@ -219,7 +221,7 @@ const initialValue: Descendant[] = [
     children: [{ text: 'Try it out!' }],
   },
   {
-    type: 'paragraph',
+    type: kSlateBlockTypeParagraph,
     children: [
       {
         text: 'Try it out for yourself! Try starting a new line with ">", "-", or "#"s.',

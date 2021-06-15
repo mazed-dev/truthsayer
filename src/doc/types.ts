@@ -13,7 +13,13 @@ import {
   kSlateBlockTypeQuote,
   kSlateBlockTypeUnorderedList,
   kSlateBlockTypeListItem,
+  kSlateBlockTypeLink,
+  kSlateBlockTypeEmphasisMark,
+  kSlateBlockTypeStrongMark,
+  kSlateBlockTypeDeleteMark,
+  kSlateBlockTypeInlineCodeMark,
   kSlateBlockTypeCheckListItem,
+  kSlateBlockTypeDateTime,
 } from '../markdown/slate'
 
 export {
@@ -30,7 +36,13 @@ export {
   kSlateBlockTypeQuote,
   kSlateBlockTypeUnorderedList,
   kSlateBlockTypeListItem,
+  kSlateBlockTypeLink,
+  kSlateBlockTypeEmphasisMark,
+  kSlateBlockTypeStrongMark,
+  kSlateBlockTypeDeleteMark,
+  kSlateBlockTypeInlineCodeMark,
   kSlateBlockTypeCheckListItem,
+  kSlateBlockTypeDateTime,
 }
 
 export const EChunkType = Object.freeze({
