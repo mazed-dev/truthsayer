@@ -1,49 +1,4 @@
 import { Descendant } from 'slate'
-import {
-  kSlateBlockTypeH1,
-  kSlateBlockTypeH2,
-  kSlateBlockTypeH3,
-  kSlateBlockTypeH4,
-  kSlateBlockTypeH5,
-  kSlateBlockTypeH6,
-  kSlateBlockTypeBreak,
-  kSlateBlockTypeCode,
-  kSlateBlockTypeOrderedList,
-  kSlateBlockTypeParagraph,
-  kSlateBlockTypeQuote,
-  kSlateBlockTypeUnorderedList,
-  kSlateBlockTypeListItem,
-  kSlateBlockTypeLink,
-  kSlateBlockTypeEmphasisMark,
-  kSlateBlockTypeStrongMark,
-  kSlateBlockTypeDeleteMark,
-  kSlateBlockTypeInlineCodeMark,
-  kSlateBlockTypeCheckListItem,
-  kSlateBlockTypeDateTime,
-} from '../markdown/slate'
-
-export {
-  kSlateBlockTypeH1,
-  kSlateBlockTypeH2,
-  kSlateBlockTypeH3,
-  kSlateBlockTypeH4,
-  kSlateBlockTypeH5,
-  kSlateBlockTypeH6,
-  kSlateBlockTypeBreak,
-  kSlateBlockTypeCode,
-  kSlateBlockTypeOrderedList,
-  kSlateBlockTypeParagraph,
-  kSlateBlockTypeQuote,
-  kSlateBlockTypeUnorderedList,
-  kSlateBlockTypeListItem,
-  kSlateBlockTypeLink,
-  kSlateBlockTypeEmphasisMark,
-  kSlateBlockTypeStrongMark,
-  kSlateBlockTypeDeleteMark,
-  kSlateBlockTypeInlineCodeMark,
-  kSlateBlockTypeCheckListItem,
-  kSlateBlockTypeDateTime,
-}
 
 export const EChunkType = Object.freeze({
   Text: 0,
@@ -104,6 +59,29 @@ export const kEntityTypeImage = 'IMAGE'
 
 export const kEntityMutable = 'MUTABLE'
 export const kEntityImmutable = 'IMMUTABLE'
+
+export const kSlateBlockTypeH1 = 'heading-one'
+export const kSlateBlockTypeH2 = 'heading-two'
+export const kSlateBlockTypeH3 = 'heading-three'
+export const kSlateBlockTypeH4 = 'heading-four'
+export const kSlateBlockTypeH5 = 'heading-five'
+export const kSlateBlockTypeH6 = 'heading-six'
+export const kSlateBlockTypeBreak = 'thematic_break'
+export const kSlateBlockTypeCode = 'code_block'
+export const kSlateBlockTypeOrderedList = 'ol_list'
+export const kSlateBlockTypeParagraph = 'paragraph'
+export const kSlateBlockTypeQuote = 'block_quote'
+export const kSlateBlockTypeUnorderedList = 'ul_list'
+export const kSlateBlockTypeListItem = 'list-item'
+
+export const kSlateBlockTypeLink = 'link'
+export const kSlateBlockTypeEmphasisMark = 'italic'
+export const kSlateBlockTypeStrongMark = 'bold'
+export const kSlateBlockTypeDeleteMark = 'strike-through'
+export const kSlateBlockTypeInlineCodeMark = 'inline-code'
+
+export const kSlateBlockTypeCheckListItem = 'check-list-item'
+export const kSlateBlockTypeDateTime = 'datetime'
 
 export function isHeaderBlock(block) {
   const { type } = block

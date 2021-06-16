@@ -1,13 +1,20 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react'
-import { Slate, Editable, withReact } from 'slate-react'
 import {
-  Editor,
-  Transforms,
-  Range,
-  Point,
-  createEditor,
-  Element as SlateElement,
+  Editable,
+  ReactEditor,
+  Slate,
+  useReadOnly,
+  useSlateStatic,
+  withReact,
+} from 'slate-react'
+import {
   Descendant,
+  Editor,
+  Element as SlateElement,
+  Point,
+  Range,
+  Transforms,
+  createEditor,
 } from 'slate'
 
 import {
@@ -26,7 +33,7 @@ import {
   kSlateBlockTypeListItem,
   kSlateBlockTypeCheckListItem,
   kSlateBlockTypeDateTime,
-} from '../markdown/slate'
+} from './types'
 
 import { getDocSlate } from './doc_util.jsx'
 
@@ -34,6 +41,9 @@ import { withHistory } from 'slate-history'
 import { BulletedListElement } from './custom-types'
 
 import { joinClasses } from './../util/elClass.js'
+import { debug } from './../util/log'
+
+import styles from './DocEditor.module.css'
 
 const lodash = require('lodash')
 
@@ -42,12 +52,12 @@ const SHORTCUTS = {
   '-': kSlateBlockTypeListItem,
   '+': kSlateBlockTypeListItem,
   '>': kSlateBlockTypeQuote,
-  '#': 'heading-one',
-  '##': 'heading-two',
-  '###': 'heading-three',
-  '####': 'heading-four',
-  '#####': 'heading-five',
-  '######': 'heading-six',
+  '#': kSlateBlockTypeH1,
+  '##': kSlateBlockTypeH2,
+  '###': kSlateBlockTypeH3,
+  '####': kSlateBlockTypeH4,
+  '#####': kSlateBlockTypeH5,
+  '######': kSlateBlockTypeH6,
 }
 
 export const DocEditor = ({ className, node, readOnly }) => {
@@ -58,7 +68,7 @@ export const DocEditor = ({ className, node, readOnly }) => {
   }, [nid])
   const renderElement = useCallback((props) => <Element {...props} />, [])
   const editor = useMemo(
-    () => withShortcuts(withReact(withHistory(createEditor()))),
+    () => withChecklists(withShortcuts(withReact(withHistory(createEditor())))),
     []
   )
   return (
@@ -170,7 +180,80 @@ const withShortcuts = (editor) => {
   return editor
 }
 
+const withChecklists = (editor) => {
+  const { deleteBackward } = editor
+
+  editor.deleteBackward = (...args) => {
+    const { selection } = editor
+
+    if (selection && Range.isCollapsed(selection)) {
+      const [match] = Editor.nodes(editor, {
+        match: (n) =>
+          !Editor.isEditor(n) &&
+          SlateElement.isElement(n) &&
+          n.type === kSlateBlockTypeCheckListItem,
+      })
+
+      if (match) {
+        const [, path] = match
+        const start = Editor.start(editor, path)
+
+        if (Point.equals(selection.anchor, start)) {
+          const newProperties: Partial<SlateElement> = {
+            type: kSlateBlockTypeParagraph,
+          }
+          Transforms.setNodes(editor, newProperties, {
+            match: (n) =>
+              !Editor.isEditor(n) &&
+              SlateElement.isElement(n) &&
+              n.type === kSlateBlockTypeCheckListItem,
+          })
+          return
+        }
+      }
+    }
+
+    deleteBackward(...args)
+  }
+
+  return editor
+}
+
+const CheckListItemElement = ({ attributes, children, element }) => {
+  const editor = useSlateStatic()
+  const readOnly = useReadOnly()
+  const { checked } = element
+  const checkLineStyle = checked
+    ? styles.check_line_span_checked
+    : styles.check_line_span
+  return (
+    <div {...attributes} className={styles.check_item_span}>
+      <span contentEditable={false} className={styles.check_box_span}>
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(event) => {
+            const path = ReactEditor.findPath(editor, element)
+            const newProperties: Partial<SlateElement> = {
+              checked: event.target.checked,
+            }
+            Transforms.setNodes(editor, newProperties, { at: path })
+          }}
+        />
+      </span>
+      <span
+        contentEditable={!readOnly}
+        suppressContentEditableWarning
+        className={checkLineStyle}
+      >
+        {children}
+      </span>
+    </div>
+  )
+}
+
 const Element = ({ attributes, children, element }) => {
+  debug('Element', element.type, attributes, element)
   switch (element.type) {
     case kSlateBlockTypeQuote:
       return <blockquote {...attributes}>{children}</blockquote>
@@ -190,6 +273,12 @@ const Element = ({ attributes, children, element }) => {
       return <h6 {...attributes}>{children}</h6>
     case kSlateBlockTypeListItem:
       return <li {...attributes}>{children}</li>
+    case kSlateBlockTypeCheckListItem:
+      return (
+        <CheckListItemElement attributes={attributes} element={element}>
+          {children}
+        </CheckListItemElement>
+      )
     default:
       return <p {...attributes}>{children}</p>
   }
@@ -217,7 +306,7 @@ const initialValue: Descendant[] = [
     ],
   },
   {
-    type: 'heading-two',
+    type: kSlateBlockTypeH2,
     children: [{ text: 'Try it out!' }],
   },
   {

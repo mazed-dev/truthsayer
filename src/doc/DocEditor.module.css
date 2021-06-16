@@ -1,0 +1,28 @@
+.check_item_span {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  & + & {
+    margin-top: 0;
+  }
+}
+.check_box_span {
+  margin-right: 0.75em;
+}
+
+.check_line_span {
+  flex: 1;
+  opacity: 1;
+  text-decoration: 'line-through';
+  &:focus {
+    outline: none;
+  }
+}
+.check_line_span_checked {
+  flex: 1;
+  opacity: 0.666;
+  text-decoration: 'none';
+  &:focus {
+    outline: none;
+  }
+}

@@ -2,23 +2,30 @@ import React from 'react'
 
 import { Descendant } from 'slate'
 
+import { slateToMarkdown, markdownToSlate } from './slate'
+
 import {
-  slateToMarkdown,
-  markdownToSlate,
+  kSlateBlockTypeBreak,
+  kSlateBlockTypeCheckListItem,
+  kSlateBlockTypeCode,
+  kSlateBlockTypeDateTime,
+  kSlateBlockTypeDeleteMark,
+  kSlateBlockTypeEmphasisMark,
   kSlateBlockTypeH1,
   kSlateBlockTypeH2,
   kSlateBlockTypeH3,
   kSlateBlockTypeH4,
   kSlateBlockTypeH5,
   kSlateBlockTypeH6,
-  kSlateBlockTypeBreak,
-  kSlateBlockTypeCode,
+  kSlateBlockTypeInlineCodeMark,
+  kSlateBlockTypeLink,
+  kSlateBlockTypeListItem,
   kSlateBlockTypeOrderedList,
   kSlateBlockTypeParagraph,
   kSlateBlockTypeQuote,
+  kSlateBlockTypeStrongMark,
   kSlateBlockTypeUnorderedList,
-  kSlateBlockTypeDateTime,
-} from './slate'
+} from '../doc/types'
 
 test('Markdown to Slate state', async () => {
   const md = `
