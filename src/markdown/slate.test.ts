@@ -6,7 +6,7 @@ import { slateToMarkdown, markdownToSlate } from './slate'
 
 import {
   kSlateBlockTypeBreak,
-  kSlateBlockTypeCheckListItem,
+  // kSlateBlockTypeCheckListItem,
   kSlateBlockTypeCode,
   kSlateBlockTypeDateTime,
   kSlateBlockTypeDeleteMark,

@@ -9,7 +9,6 @@ import moment from 'moment'
 
 import {
   kSlateBlockTypeBreak,
-  kSlateBlockTypeCheckListItem,
   kSlateBlockTypeCode,
   kSlateBlockTypeDateTime,
   kSlateBlockTypeDeleteMark,
@@ -49,6 +48,7 @@ export function slateToMarkdown(state: Descendant[]): string {
 export async function markdownToSlate(text): Promise<Descendant[]> {
   let { contents } = await unified().use(markdown).use(slate).process(text)
   contents = parseExtraBlocks(contents)
+  debug('Contents', contents)
   return contents
 }
 
@@ -85,6 +85,11 @@ function _mazedBlockTypeToRemarkSlate(type: string): string {
 }
 
 function _remarkSlateBlockTypeToMazed(type: string): string {
+  debug(
+    '_remarkSlateBlockTypeToMazed',
+    type,
+    kRemarkSlateBlockTypeToMazed[type] || kSlateBlockTypeParagraph
+  )
   return kRemarkSlateBlockTypeToMazed[type] || kSlateBlockTypeParagraph
 }
 
@@ -94,54 +99,78 @@ function _remarkSlateBlockTypeToMazed(type: string): string {
  */
 function parseExtraBlocks(content: Descendant[]): Descendant[] {
   return content.map((item: Descendant) => {
-    let { children, type } = item
+    let { type } = item
     if (type) {
       type = _remarkSlateBlockTypeToMazed(type)
     }
-    if (children) {
-      children = parseExtraBlocks(children)
-    }
     switch (type) {
       case kSlateBlockTypeListItem:
-        item = convertListItemIfCheck(item)
-        type = item.type
+        item = parseListItem(item)
         break
       case kSlateBlockTypeLink:
         item = parseLinkExtraSyntax(item)
-        type = item.type
         break
+    }
+    const { children } = item
+    if (children) {
+      item.children = parseExtraBlocks(children)
     }
     return {
       ...item,
       type,
-      children,
     }
   })
 }
 
-function convertListItemIfCheck(item: Descendant): Descendant {
-  const children: Descendant[] = item.children || []
+function parseListItem(item: Descendant): Descendant {
+  const children: Descendant[] = flattenDescendants(item.children || [])
+  debug('flattened', children)
   const first: Descendant = lodash.head(children)
   if (first) {
-    if (first.type === kSlateBlockTypeParagraph) {
-      const { text } = lodash.head(first.children || []) || {}
-      if (text) {
-        const prefix: string = text.slice(0, 4).toLowerCase()
-        const isChecked: boolean = prefix === '[x] '
-        const isNotChecked: boolean = prefix === '[ ] '
-        if (isChecked || isNotChecked) {
-          children[0].children[0].text = text.slice(4)
-          item = {
-            ...item,
-            type: kSlateBlockTypeCheckListItem,
-            checked: isChecked,
-            children,
-          }
-        }
+    const { text, type } = first
+    if (text && lodash.isUndefined(type)) {
+      const prefix: string = text.slice(0, 4).toLowerCase()
+      const isChecked: boolean = prefix === '[x] '
+      const isNotChecked: boolean = prefix === '[ ] '
+      if (isChecked || isNotChecked) {
+        children[0].text = text.slice(4)
+        item.checked = isChecked
       }
     }
   }
+  item.children = children
   return item
+}
+
+/**
+ * Make sure there is no nested elements
+ */
+const _kSlateBlocksToFlatten = new Set([
+  kSlateBlockTypeH1,
+  kSlateBlockTypeH2,
+  kSlateBlockTypeH3,
+  kSlateBlockTypeH4,
+  kSlateBlockTypeH5,
+  kSlateBlockTypeH6,
+  kSlateBlockTypeBreak,
+  kSlateBlockTypeCode,
+  kSlateBlockTypeOrderedList,
+  kSlateBlockTypeParagraph,
+  kSlateBlockTypeQuote,
+  kSlateBlockTypeUnorderedList,
+])
+
+function flattenDescendants(elements: Descendant[]): Descendant[] {
+  let flattened: Descendant[] = []
+  elements.forEach((item: Descendant) => {
+    const { type, children, text } = item
+    if (_kSlateBlocksToFlatten.has(type)) {
+      flattened = lodash.concat(flattened, flattenDescendants(children || []))
+    } else {
+      flattened.push(item)
+    }
+  })
+  return flattened
 }
 
 function parseLinkExtraSyntax(item: Descendant): Descendant {
@@ -190,6 +219,7 @@ function serializeExtraBlocks(children: Descendant): Descendant {
 
 function serializeExtraCheckItems(children: Descendant[]): Descendant[] {
   return children.map((item: Descendant) => {
+    // TODO
     const { type } = item
     if (type === kSlateBlockTypeCheckListItem) {
       item = serializeExtraCheckItem(item)
@@ -199,6 +229,7 @@ function serializeExtraCheckItems(children: Descendant[]): Descendant[] {
 }
 
 function serializeExtraCheckItem(item: Descendant): Descendant {
+  // TODO
   const { children, checked } = item
   const prefix = checked ? '[x] ' : '[ ] '
   const first: Descendant = lodash.head(children || [])
@@ -218,6 +249,7 @@ function serializeExtraCheckItem(item: Descendant): Descendant {
 }
 
 function serializeExtraDateTime(item: Descendant): Descendant {
+  // TODO
   let { children, format, timestamp } = item
   format = format || 'YYYY MMMM DD, dddd, hh:mm'
   const date = moment.unix(timestamp)

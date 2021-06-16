@@ -31,7 +31,6 @@ import {
   kSlateBlockTypeQuote,
   kSlateBlockTypeUnorderedList,
   kSlateBlockTypeListItem,
-  kSlateBlockTypeCheckListItem,
   kSlateBlockTypeDateTime,
 } from './types'
 
@@ -191,7 +190,7 @@ const withChecklists = (editor) => {
         match: (n) =>
           !Editor.isEditor(n) &&
           SlateElement.isElement(n) &&
-          n.type === kSlateBlockTypeCheckListItem,
+          !lodash.isUndefined(n.checked),
       })
 
       if (match) {
@@ -206,7 +205,7 @@ const withChecklists = (editor) => {
             match: (n) =>
               !Editor.isEditor(n) &&
               SlateElement.isElement(n) &&
-              n.type === kSlateBlockTypeCheckListItem,
+              !lodash.isUndefined(n.checked),
           })
           return
         }
@@ -253,7 +252,6 @@ const CheckListItemElement = ({ attributes, children, element }) => {
 }
 
 const Element = ({ attributes, children, element }) => {
-  debug('Element', element.type, attributes, element)
   switch (element.type) {
     case kSlateBlockTypeQuote:
       return <blockquote {...attributes}>{children}</blockquote>
@@ -272,15 +270,19 @@ const Element = ({ attributes, children, element }) => {
     case kSlateBlockTypeH6:
       return <h6 {...attributes}>{children}</h6>
     case kSlateBlockTypeListItem:
-      return <li {...attributes}>{children}</li>
-    case kSlateBlockTypeCheckListItem:
-      return (
-        <CheckListItemElement attributes={attributes} element={element}>
-          {children}
-        </CheckListItemElement>
-      )
-    default:
+      if (lodash.isUndefined(element.checked)) {
+        return <li {...attributes}>{children}</li>
+      } else {
+        return (
+          <CheckListItemElement attributes={attributes} element={element}>
+            {children}
+          </CheckListItemElement>
+        )
+      }
+    case kSlateBlockTypeParagraph:
       return <p {...attributes}>{children}</p>
+    default:
+      return <span {...attributes}>{children}</span>
   }
 }
 

@@ -60,27 +60,33 @@ export const kEntityTypeImage = 'IMAGE'
 export const kEntityMutable = 'MUTABLE'
 export const kEntityImmutable = 'IMMUTABLE'
 
+/**
+ * Slate
+ * Elements:
+ */
 export const kSlateBlockTypeH1 = 'heading-one'
 export const kSlateBlockTypeH2 = 'heading-two'
 export const kSlateBlockTypeH3 = 'heading-three'
 export const kSlateBlockTypeH4 = 'heading-four'
 export const kSlateBlockTypeH5 = 'heading-five'
 export const kSlateBlockTypeH6 = 'heading-six'
-export const kSlateBlockTypeBreak = 'thematic_break'
-export const kSlateBlockTypeCode = 'code_block'
-export const kSlateBlockTypeOrderedList = 'ol_list'
+export const kSlateBlockTypeBreak = 'thematic-break'
+export const kSlateBlockTypeCode = 'code-block'
+export const kSlateBlockTypeOrderedList = 'o-list'
 export const kSlateBlockTypeParagraph = 'paragraph'
-export const kSlateBlockTypeQuote = 'block_quote'
-export const kSlateBlockTypeUnorderedList = 'ul_list'
+export const kSlateBlockTypeQuote = 'block-quote'
+export const kSlateBlockTypeUnorderedList = 'u-list'
 export const kSlateBlockTypeListItem = 'list-item'
 
+/**
+ * Slate
+ * Leafs:
+ */
 export const kSlateBlockTypeLink = 'link'
 export const kSlateBlockTypeEmphasisMark = 'italic'
 export const kSlateBlockTypeStrongMark = 'bold'
 export const kSlateBlockTypeDeleteMark = 'strike-through'
 export const kSlateBlockTypeInlineCodeMark = 'inline-code'
-
-export const kSlateBlockTypeCheckListItem = 'check-list-item'
 export const kSlateBlockTypeDateTime = 'datetime'
 
 export function isHeaderBlock(block) {
