@@ -1,14 +1,17 @@
 # Todo
 
 - [ ] Slate editor
-  - [ ] Checklists
+  - [x] Checklists
     - [x] Deserialize from MD
-    - [ ] Serialize to md
-  - [ ] Dates
-    - [ ] Deserialize from MD
+    - [x] Serialize to md
+  - [x] Dates
+    - [x] Deserialize from MD
     - [ ] Serialize to MD
+  - Fix test
   - Custom styles
   - Release
+- [ ] Slate editor - text style menu (pop up)
+- [ ] Slate editor - block style menu
 - [ ] Magnet edges is broken
 - [ ] Goto search doesn't work!
 - [ ] Make editor usabe from mobile
