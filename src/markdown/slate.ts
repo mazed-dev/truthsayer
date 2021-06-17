@@ -39,6 +39,7 @@ const lodash = require('lodash')
  */
 export function slateToMarkdown(state: Descendant[]): string {
   state = serializeExtraBlocks(state)
+  debug('State with extra', JSON.stringify(state, null, 2))
   return state.map((block) => serialize(block)).join('')
 }
 
@@ -48,7 +49,6 @@ export function slateToMarkdown(state: Descendant[]): string {
 export async function markdownToSlate(text): Promise<Descendant[]> {
   let { contents } = await unified().use(markdown).use(slate).process(text)
   contents = parseExtraBlocks(contents)
-  debug('Contents', contents)
   return contents
 }
 
@@ -85,11 +85,6 @@ function _mazedBlockTypeToRemarkSlate(type: string): string {
 }
 
 function _remarkSlateBlockTypeToMazed(type: string): string {
-  debug(
-    '_remarkSlateBlockTypeToMazed',
-    type,
-    kRemarkSlateBlockTypeToMazed[type] || kSlateBlockTypeParagraph
-  )
   return kRemarkSlateBlockTypeToMazed[type] || kSlateBlockTypeParagraph
 }
 
@@ -109,6 +104,7 @@ function parseExtraBlocks(content: Descendant[]): Descendant[] {
         break
       case kSlateBlockTypeLink:
         item = parseLinkExtraSyntax(item)
+        type = item.type
         break
     }
     const { children } = item
@@ -124,7 +120,6 @@ function parseExtraBlocks(content: Descendant[]): Descendant[] {
 
 function parseListItem(item: Descendant): Descendant {
   const children: Descendant[] = flattenDescendants(item.children || [])
-  debug('flattened', children)
   const first: Descendant = lodash.head(children)
   if (first) {
     const { text, type } = first
@@ -198,53 +193,50 @@ function parseLinkExtraSyntax(item: Descendant): Descendant {
 
 function serializeExtraBlocks(children: Descendant): Descendant {
   return children.map((item: Descendant) => {
-    let { children, type } = item
-    children = children || []
-    if (
-      type === kSlateBlockTypeOrderedList ||
-      type === kSlateBlockTypeUnorderedList
-    ) {
-      children = serializeExtraCheckItems(children)
-    } else if (type === kSlateBlockTypeDateTime) {
-      item = serializeExtraDateTime(item)
+    let { type } = item
+    switch (type) {
+      case kSlateBlockTypeListItem:
+        item = serializeExtraCheckItem(item)
+        break
+      case kSlateBlockTypeLink:
+        item = serializeExtraDateTime(item)
+        break
     }
-    children = parseExtraBlocks(children)
-    // TODO
+    const { children } = item
+    if (children) {
+      item.children = serializeExtraBlocks(children)
+    }
+    if (type) {
+      type = _mazedBlockTypeToRemarkSlate(type)
+    }
     return {
       ...item,
-      children,
+      type,
     }
-  })
-}
-
-function serializeExtraCheckItems(children: Descendant[]): Descendant[] {
-  return children.map((item: Descendant) => {
-    // TODO
-    const { type } = item
-    if (type === kSlateBlockTypeCheckListItem) {
-      item = serializeExtraCheckItem(item)
-    }
-    return item
   })
 }
 
 function serializeExtraCheckItem(item: Descendant): Descendant {
-  // TODO
   const { children, checked } = item
   const prefix = checked ? '[x] ' : '[ ] '
   const first: Descendant = lodash.head(children || [])
-  if (first && first.type === kSlateBlockTypeParagraph) {
-    let { text } = lodash.head(first.children || []) || {}
-    text = prefix + (text || '')
+  if (first && first.text) {
+    let { text } = first
+    text = prefix + first.text
     children[0] = { ...first, text }
   } else {
     children.unshift({
-      text: `${prefix}:`,
+      text: `${prefix} `,
     })
   }
   return {
     type: kSlateBlockTypeListItem,
-    children,
+    children: [
+      {
+        type: kSlateBlockTypeParagraph,
+        children,
+      },
+    ],
   }
 }
 

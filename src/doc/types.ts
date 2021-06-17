@@ -82,12 +82,12 @@ export const kSlateBlockTypeListItem = 'list-item'
  * Slate
  * Leafs:
  */
-export const kSlateBlockTypeLink = 'link'
-export const kSlateBlockTypeEmphasisMark = 'italic'
-export const kSlateBlockTypeStrongMark = 'bold'
-export const kSlateBlockTypeDeleteMark = 'strike-through'
-export const kSlateBlockTypeInlineCodeMark = 'inline-code'
-export const kSlateBlockTypeDateTime = 'datetime'
+export const kSlateBlockTypeLink = '-link'
+export const kSlateBlockTypeEmphasisMark = '-italic'
+export const kSlateBlockTypeStrongMark = '-bold'
+export const kSlateBlockTypeDeleteMark = '-strike-through'
+export const kSlateBlockTypeInlineCodeMark = '-inline-code'
+export const kSlateBlockTypeDateTime = '-datetime'
 
 export function isHeaderBlock(block) {
   const { type } = block

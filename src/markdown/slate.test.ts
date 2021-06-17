@@ -27,6 +27,8 @@ import {
   kSlateBlockTypeUnorderedList,
 } from '../doc/types'
 
+const lodash = require('lodash')
+
 test('Markdown to Slate state', async () => {
   const md = `
 # Header 1
@@ -149,7 +151,7 @@ test('Slate state to Markdown', () => {
     },
   ]
   const md: string = slateToMarkdown(state)
-  expect(md).toStrictEqual(`## ${headerText}\n${paragraphText}\n`)
+  expect(md).toStrictEqual(`## ${headerText}\n\n${paragraphText}\n`)
 })
 
 test('Checklist in Markdown', async () => {
@@ -171,17 +173,11 @@ test('Checklist in Markdown', async () => {
   expect(children[3].checked).toStrictEqual(false)
   expect(children[4].checked).toStrictEqual(true)
 
-  expect(children[0].children[0].children[0].text).toStrictEqual(
-    'Drink a glass of water'
-  )
-  expect(children[1].children[0].children[0].text).toStrictEqual(
-    'Make your bed'
-  )
-  expect(children[2].children[0].children[0].text).toStrictEqual('Get moving')
-  expect(children[3].children[0].children[0].text).toStrictEqual(
-    'Stay unplugged'
-  )
-  expect(children[4].children[0].children[0].text).toStrictEqual(
+  expect(children[0].children[0].text).toStrictEqual('Drink a glass of water')
+  expect(children[1].children[0].text).toStrictEqual('Make your bed')
+  expect(children[2].children[0].text).toStrictEqual('Get moving')
+  expect(children[3].children[0].text).toStrictEqual('Stay unplugged')
+  expect(children[4].children[0].text).toStrictEqual(
     'Sneak in a little me-time'
   )
 })
@@ -207,49 +203,47 @@ test('Multi checklist in Markdown', async () => {
   expect(children[0].children.length).toStrictEqual(2)
   expect(children[1].children.length).toStrictEqual(2)
 
-  expect(children[0].children[0].children.length).toStrictEqual(1)
-  expect(children[1].children[0].children.length).toStrictEqual(1)
   // 0
   expect(children[0].checked).toStrictEqual(true)
-  expect(children[0].children[0].children[0].text).toStrictEqual('First')
+  expect(children[0].children[0].text).toStrictEqual('First')
   // 1
   expect(children[1].checked).toStrictEqual(false)
-  expect(children[1].children[0].children[0].text).toStrictEqual('Second')
+  expect(children[1].children[0].text).toStrictEqual('Second')
   // 0.0
   expect(children[0].children[1].children[0].checked).toStrictEqual(true)
-  expect(
-    children[0].children[1].children[0].children[0].children[0].text
-  ).toStrictEqual('aaa')
+  expect(children[0].children[1].children[0].children[0].text).toStrictEqual(
+    'aaa'
+  )
   // 0.1
   expect(children[0].children[1].children[1].checked).toStrictEqual(false)
-  expect(
-    children[0].children[1].children[1].children[0].children[0].text
-  ).toStrictEqual('bbb')
+  expect(children[0].children[1].children[1].children[0].text).toStrictEqual(
+    'bbb'
+  )
   // 0.2
   expect(children[0].children[1].children[2].checked).toStrictEqual(true)
-  expect(
-    children[0].children[1].children[2].children[0].children[0].text
-  ).toStrictEqual('ccc')
+  expect(children[0].children[1].children[2].children[0].text).toStrictEqual(
+    'ccc'
+  )
   // 0.3
   expect(children[0].children[1].children[3].checked).toStrictEqual(true)
-  expect(
-    children[0].children[1].children[3].children[0].children[0].text
-  ).toStrictEqual('ddd')
+  expect(children[0].children[1].children[3].children[0].text).toStrictEqual(
+    'ddd'
+  )
   // 1.0
   expect(children[1].children[1].children[0].checked).toStrictEqual(false)
-  expect(
-    children[1].children[1].children[0].children[0].children[0].text
-  ).toStrictEqual('AAA')
+  expect(children[1].children[1].children[0].children[0].text).toStrictEqual(
+    'AAA'
+  )
   // 1.1
   expect(children[1].children[1].children[1].checked).toStrictEqual(true)
-  expect(
-    children[1].children[1].children[1].children[0].children[0].text
-  ).toStrictEqual('BBB')
+  expect(children[1].children[1].children[1].children[0].text).toStrictEqual(
+    'BBB'
+  )
   // 1.2
   expect(children[1].children[1].children[2].checked).toStrictEqual(true)
-  expect(
-    children[1].children[1].children[2].children[0].children[0].text
-  ).toStrictEqual('CCC')
+  expect(children[1].children[1].children[2].children[0].text).toStrictEqual(
+    'CCC'
+  )
 })
 
 test('Extra(backward): links as date', async () => {
@@ -261,4 +255,22 @@ test('Extra(backward): links as date', async () => {
   const { type, timestamp } = children[0]
   expect(type).toStrictEqual(kSlateBlockTypeDateTime)
   expect(timestamp).toStrictEqual(1619823600)
+})
+
+test('Extra(back-and-forth): checlists', async () => {
+  const md: string = `
+- [x] First o+0Gl42yGkGxspc 3YO
+  - [x] aaa Toss2wiF/dfVpkJzAun
+  - [ ] bbb wSYMkIcQpy0JE2D Nx+
+  - [x] ccc v79bsklHud8EV1GcTa1
+  - [x] ddd Ds7cACvsmaf QL/8O
+- [ ] Second g3PDAxteeS9mpBjI4sD
+  - [ ] AAA +uEa3sjXKETaAis44O
+  - [x] BBB iVUd+eqy5OUq/XIymhP
+  - [x] CCC +92+5kenT/8K ObrJ
+`
+  const value = await markdownToSlate(md)
+  expect(value.length).toStrictEqual(1)
+  const backMd = slateToMarkdown(value)
+  expect(lodash.trim(backMd)).toStrictEqual(lodash.trim(md))
 })
