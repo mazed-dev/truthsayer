@@ -49,6 +49,7 @@ export function slateToMarkdown(state: Descendant[]): string {
 export async function markdownToSlate(text): Promise<Descendant[]> {
   let { contents } = await unified().use(markdown).use(slate).process(text)
   contents = parseExtraBlocks(contents)
+  debug('Slate', JSON.stringify(contents, null, 2))
   return contents
 }
 
@@ -193,26 +194,23 @@ function parseLinkExtraSyntax(item: Descendant): Descendant {
 
 function serializeExtraBlocks(children: Descendant): Descendant {
   return children.map((item: Descendant) => {
-    let { type } = item
-    switch (type) {
+    debug('serializeExtraBlocks map', item.type)
+    switch (item.type) {
       case kSlateBlockTypeListItem:
         item = serializeExtraCheckItem(item)
         break
-      case kSlateBlockTypeLink:
+      case kSlateBlockTypeDateTime:
         item = serializeExtraDateTime(item)
         break
     }
-    const { children } = item
+    const { children, type } = item
     if (children) {
       item.children = serializeExtraBlocks(children)
     }
     if (type) {
-      type = _mazedBlockTypeToRemarkSlate(type)
+      item.type = _mazedBlockTypeToRemarkSlate(type)
     }
-    return {
-      ...item,
-      type,
-    }
+    return item
   })
 }
 
@@ -241,10 +239,10 @@ function serializeExtraCheckItem(item: Descendant): Descendant {
 }
 
 function serializeExtraDateTime(item: Descendant): Descendant {
-  // TODO
+  debug('serializeExtraDateTime', JSON.stringify(item, null, 2))
   let { children, format, timestamp } = item
-  format = format || 'YYYY MMMM DD, dddd, hh:mm'
+  format = format || 'YYYY MMMM DD, dddd, hh:mm:ss'
   const date = moment.unix(timestamp)
   const text = date.format(format)
-  return { text }
+  return { text, children }
 }

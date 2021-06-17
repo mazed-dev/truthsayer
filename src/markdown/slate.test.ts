@@ -151,7 +151,7 @@ test('Slate state to Markdown', () => {
     },
   ]
   const md: string = slateToMarkdown(state)
-  expect(md).toStrictEqual(`## ${headerText}\n\n${paragraphText}\n`)
+  expect(md).toStrictEqual(`## ${headerText}\n${paragraphText}\n`)
 })
 
 test('Checklist in Markdown', async () => {
@@ -271,6 +271,16 @@ test('Extra(back-and-forth): checlists', async () => {
 `
   const value = await markdownToSlate(md)
   expect(value.length).toStrictEqual(1)
-  const backMd = slateToMarkdown(value)
+  const backMd = slateToMarkdown(value).replaceAll('\n\n', '')
   expect(lodash.trim(backMd)).toStrictEqual(lodash.trim(md))
+})
+
+test('Extra(backward): links as date and back', async () => {
+  const md: string = `QrPSc [](@1619823600/day) nk8SGb`
+  const value = await markdownToSlate(md)
+  expect(value.length).toStrictEqual(1)
+  const backMd = slateToMarkdown(value)
+  expect(lodash.trim(backMd)).toStrictEqual(
+    'QrPSc 2021 May 01, Saturday, 12:00:00 nk8SGb'
+  )
 })
