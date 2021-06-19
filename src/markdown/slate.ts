@@ -178,7 +178,8 @@ function parseLinkExtraSyntax(item: Descendant): Descendant {
       return item
     }
     let format = dtParts[2]
-    if (format === 'day') {
+    // Backward compatibility
+    if (format === 'day' || format === 'time') {
       format = undefined
     }
     return {

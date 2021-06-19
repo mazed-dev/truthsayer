@@ -8,7 +8,10 @@
     - [x] Deserialize from MD
     - [x] Serialize to MD
   - [x] Fix test
-  - [x] Custom styles
+  - [x] Custom styles, 2021.06.19
+  - [x] Dates, 2021.06.19
+  - [x] Leaf styles - (bold, italic, code), 2021.06.19
+  - [ ] Make images only top level elements
   - [ ] Implement search for slate nodes
   - [ ] Saving
   - [ ] Release

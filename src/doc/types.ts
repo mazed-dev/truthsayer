@@ -79,6 +79,7 @@ export const kSlateBlockTypeUnorderedList = 'u-list'
 export const kSlateBlockTypeListItem = 'list-item'
 export const kSlateBlockTypeListCheckItem = 'list-check-item'
 export const kSlateBlockTypeImage = 'image'
+export const kSlateBlockTypeDateTime = 'datetime'
 
 /**
  * Slate
@@ -89,7 +90,6 @@ export const kSlateBlockTypeEmphasisMark = '-italic'
 export const kSlateBlockTypeStrongMark = '-bold'
 export const kSlateBlockTypeDeleteMark = '-strike-through'
 export const kSlateBlockTypeInlineCodeMark = '-inline-code'
-export const kSlateBlockTypeDateTime = '-datetime'
 
 export function isHeaderBlock(block) {
   const { type } = block
@@ -106,9 +106,16 @@ export function isHeaderBlock(block) {
 }
 
 export type ImageElement = {
-  type: 'image'
+  type: kSlateBlockTypeImage
   url: string
   children: EmptyText[]
+}
+
+export type DateTimeElement = {
+  children: EmptyText[] // Do we need this?
+  format?: string
+  timestamp: number
+  type: kSlateBlockTypeDateTime
 }
 
 export function isHeaderSlateBlock(block: Descendant): boolean {

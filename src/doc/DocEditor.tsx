@@ -62,6 +62,8 @@ import { CodeBlock } from './editor/components/CodeBlock'
 import { Paragraph } from './editor/components/Paragraph'
 import { List } from './editor/components/List'
 import { Image } from './editor/components/Image'
+import { DateTime } from './editor/components/DateTime'
+import { Leaf } from './editor/components/Leaf'
 
 import styles from './DocEditor.module.css'
 
@@ -106,6 +108,7 @@ export const DocEditor = ({ className, node, readOnly }) => {
     (props) => <Element nid={nid} {...props} />,
     [nid]
   )
+  const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
   const editor = useMemo(
     () =>
       withImages(
@@ -122,6 +125,7 @@ export const DocEditor = ({ className, node, readOnly }) => {
       >
         <Editable
           renderElement={renderElement}
+          renderLeaf={renderLeaf}
           placeholder="Don't be afraid of an empty page..."
           spellCheck
           autoFocus
@@ -477,6 +481,12 @@ const Element = React.forwardRef(
           <Image attributes={attributes} element={element} ref={ref}>
             {children}
           </Image>
+        )
+      case kSlateBlockTypeDateTime:
+        return (
+          <DateTime attributes={attributes} element={element} ref={ref}>
+            {children}
+          </DateTime>
         )
       default:
         return (
