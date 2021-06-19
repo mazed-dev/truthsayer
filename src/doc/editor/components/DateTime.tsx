@@ -30,7 +30,7 @@ export const DateTime = React.forwardRef(
       : timeMoment.calendar(kDefaultCalendarFormat)
     return (
       <Badge pill variant="secondary" ref={ref}>
-        {date_str}
+        {str}
       </Badge>
     )
   }
