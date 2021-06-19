@@ -6,9 +6,11 @@
     - [x] Serialize to md
   - [x] Dates
     - [x] Deserialize from MD
-    - [ ] Serialize to MD
+    - [x] Serialize to MD
   - [x] Fix test
-  - [ ] Custom styles
+  - [x] Custom styles
+  - [ ] Implement search for slate nodes
+  - [ ] Saving
   - [ ] Release
 - [ ] Slate editor - text style menu (pop up)
 - [ ] Slate editor - block style menu

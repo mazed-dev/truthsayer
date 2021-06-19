@@ -17,6 +17,9 @@ import {
   createEditor,
 } from 'slate'
 
+import imageExtensions from 'image-extensions'
+import isUrl from 'is-url'
+
 import {
   kSlateBlockTypeH1,
   kSlateBlockTypeH2,
@@ -31,20 +34,51 @@ import {
   kSlateBlockTypeQuote,
   kSlateBlockTypeUnorderedList,
   kSlateBlockTypeListItem,
+  kSlateBlockTypeListCheckItem,
   kSlateBlockTypeDateTime,
+  kSlateBlockTypeImage,
+  ImageElement,
 } from './types'
 
 import { getDocSlate } from './doc_util.jsx'
 
 import { withHistory } from 'slate-history'
-import { BulletedListElement } from './custom-types'
 
 import { joinClasses } from './../util/elClass.js'
 import { debug } from './../util/log'
 
+import {
+  Header1,
+  Header2,
+  Header3,
+  Header4,
+  Header5,
+  Header6,
+} from './editor/components/Header'
+
+import { HRule } from './editor/components/HRule'
+import { BlockQuote } from './editor/components/BlockQuote'
+import { CodeBlock } from './editor/components/CodeBlock'
+import { Paragraph } from './editor/components/Paragraph'
+import { List } from './editor/components/List'
+import { Image } from './editor/components/Image'
+
 import styles from './DocEditor.module.css'
 
 const lodash = require('lodash')
+
+type OrNull<T> = T | null
+
+export type BulletedListElement = {
+  type: kSlateBlockTypeUnorderedList
+  children: Descendant[]
+}
+
+export type CheckListItemElement = {
+  type: kSlateBlockTypeListCheckItem
+  checked: boolean
+  children: Descendant[]
+}
 
 const SHORTCUTS = {
   '*': kSlateBlockTypeListItem,
@@ -57,6 +91,9 @@ const SHORTCUTS = {
   '####': kSlateBlockTypeH4,
   '#####': kSlateBlockTypeH5,
   '######': kSlateBlockTypeH6,
+  '```': kSlateBlockTypeCode,
+  '[]': kSlateBlockTypeListCheckItem,
+  '[ ]': kSlateBlockTypeListCheckItem,
 }
 
 export const DocEditor = ({ className, node, readOnly }) => {
@@ -65,9 +102,15 @@ export const DocEditor = ({ className, node, readOnly }) => {
   useEffect(() => {
     getDocSlate(doc).then((content) => setValue(content))
   }, [nid])
-  const renderElement = useCallback((props) => <Element {...props} />, [])
+  const renderElement = useCallback(
+    (props) => <Element nid={nid} {...props} />,
+    [nid]
+  )
   const editor = useMemo(
-    () => withChecklists(withShortcuts(withReact(withHistory(createEditor())))),
+    () =>
+      withImages(
+        withChecklists(withShortcuts(withReact(withHistory(createEditor()))))
+      ),
     []
   )
   return (
@@ -79,7 +122,7 @@ export const DocEditor = ({ className, node, readOnly }) => {
       >
         <Editable
           renderElement={renderElement}
-          placeholder="Write some markdown..."
+          placeholder="Don't be afraid of an empty page..."
           spellCheck
           autoFocus
         />
@@ -126,6 +169,17 @@ const withShortcuts = (editor) => {
               SlateElement.isElement(n) &&
               n.type === kSlateBlockTypeListItem,
           })
+        } else if (type === kSlateBlockTypeListCheckItem) {
+          const list: BulletedListElement = {
+            type: kSlateBlockTypeUnorderedList,
+            children: [],
+          }
+          Transforms.wrapNodes(editor, list, {
+            match: (n) =>
+              !Editor.isEditor(n) &&
+              SlateElement.isElement(n) &&
+              n.type === kSlateBlockTypeListCheckItem,
+          })
         }
 
         return
@@ -146,11 +200,12 @@ const withShortcuts = (editor) => {
       if (match) {
         const [block, path] = match
         const start = Editor.start(editor, path)
+        const { type } = block
 
         if (
           !Editor.isEditor(block) &&
           SlateElement.isElement(block) &&
-          block.type !== kSlateBlockTypeParagraph &&
+          type !== kSlateBlockTypeParagraph &&
           Point.equals(selection.anchor, start)
         ) {
           const newProperties: Partial<SlateElement> = {
@@ -158,7 +213,10 @@ const withShortcuts = (editor) => {
           }
           Transforms.setNodes(editor, newProperties)
 
-          if (block.type === kSlateBlockTypeListItem) {
+          if (
+            type === kSlateBlockTypeListItem ||
+            type === kSlateBlockTypeListCheckItem
+          ) {
             Transforms.unwrapNodes(editor, {
               match: (n) =>
                 !Editor.isEditor(n) &&
@@ -218,107 +276,216 @@ const withChecklists = (editor) => {
   return editor
 }
 
-const CheckListItemElement = ({ attributes, children, element }) => {
+const withImages = (editor) => {
+  const { insertData, isVoid } = editor
+
+  editor.isVoid = (element) => {
+    return element.type === kSlateBlockTypeImage ? true : isVoid(element)
+  }
+
+  editor.insertData = (data) => {
+    const text = data.getData('text/plain')
+    const { files } = data
+
+    if (files && files.length > 0) {
+      for (const file of files) {
+        const reader = new FileReader()
+        const [mime] = file.type.split('/')
+
+        if (mime === 'image') {
+          reader.addEventListener('load', () => {
+            const url = reader.result
+            insertImage(editor, url)
+          })
+
+          reader.readAsDataURL(file)
+        }
+      }
+    } else if (isImageUrl(text)) {
+      insertImage(editor, text)
+    } else {
+      insertData(data)
+    }
+  }
+
+  return editor
+}
+
+const insertImage = (editor, url) => {
+  const text = { text: '' }
+  const image: ImageElement = { type: 'image', url, children: [text] }
+  Transforms.insertNodes(editor, image)
+}
+
+export const Button = React.forwardRef(
+  (
+    {
+      className,
+      active,
+      reversed,
+      ...props
+    }: PropsWithChildren<
+      {
+        active: boolean
+        reversed: boolean
+      } & BaseProps
+    >,
+    ref: Ref<OrNull<HTMLSpanElement>>
+  ) => {
+    className = joinClasses(
+      reversed
+        ? active
+          ? styles.custom_button_reversed_active
+          : styles.custom_button_reversed
+        : active
+        ? styles.custom_button_active
+        : styles.custom_button,
+      className
+    )
+    return <span {...props} ref={ref} className={className} />
+  }
+)
+
+export const Icon = React.forwardRef(
+  (
+    { className, ...props }: PropsWithChildren<BaseProps>,
+    ref: Ref<OrNull<HTMLSpanElement>>
+  ) => (
+    <span
+      {...props}
+      ref={ref}
+      className={joinClasses(styles.custom_icon, className)}
+    />
+  )
+)
+
+const InsertImageButton = () => {
   const editor = useSlateStatic()
-  const readOnly = useReadOnly()
-  const { checked } = element
-  const checkLineStyle = checked
-    ? styles.check_line_span_checked
-    : styles.check_line_span
   return (
-    <div {...attributes} className={styles.check_item_span}>
-      <span contentEditable={false} className={styles.check_box_span}>
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={(event) => {
-            const path = ReactEditor.findPath(editor, element)
-            const newProperties: Partial<SlateElement> = {
-              checked: event.target.checked,
-            }
-            Transforms.setNodes(editor, newProperties, { at: path })
-          }}
-        />
-      </span>
-      <span
-        contentEditable={!readOnly}
-        suppressContentEditableWarning
-        className={checkLineStyle}
-      >
-        {children}
-      </span>
-    </div>
+    <Button
+      onMouseDown={(event) => {
+        event.preventDefault()
+        const url = window.prompt('Enter the URL of the image:')
+        if (url && !isImageUrl(url)) {
+          alert('URL is not an image')
+          return
+        }
+        insertImage(editor, url)
+      }}
+    >
+      <Icon>image</Icon>
+    </Button>
   )
 }
 
-const Element = ({ attributes, children, element }) => {
-  switch (element.type) {
-    case kSlateBlockTypeQuote:
-      return <blockquote {...attributes}>{children}</blockquote>
-    case kSlateBlockTypeUnorderedList:
-      return <ul {...attributes}>{children}</ul>
-    case kSlateBlockTypeH1:
-      return <h1 {...attributes}>{children}</h1>
-    case kSlateBlockTypeH2:
-      return <h2 {...attributes}>{children}</h2>
-    case kSlateBlockTypeH3:
-      return <h3 {...attributes}>{children}</h3>
-    case kSlateBlockTypeH4:
-      return <h4 {...attributes}>{children}</h4>
-    case kSlateBlockTypeH5:
-      return <h5 {...attributes}>{children}</h5>
-    case kSlateBlockTypeH6:
-      return <h6 {...attributes}>{children}</h6>
-    case kSlateBlockTypeListItem:
-      if (lodash.isUndefined(element.checked)) {
-        return <li {...attributes}>{children}</li>
-      } else {
-        return (
-          <CheckListItemElement attributes={attributes} element={element}>
-            {children}
-          </CheckListItemElement>
-        )
-      }
-    case kSlateBlockTypeParagraph:
-      return <p {...attributes}>{children}</p>
-    default:
-      return <span {...attributes}>{children}</span>
-  }
+const isImageUrl = (url) => {
+  if (!url) return false
+  if (!isUrl(url)) return false
+  const ext = new URL(url).pathname.split('.').pop()
+  return imageExtensions.includes(ext)
 }
 
-const initialValue: Descendant[] = [
-  {
-    type: kSlateBlockTypeParagraph,
-    children: [
-      {
-        text: 'The editor gives you full control over the logic you can add. For example, it\'s fairly common to want to add markdown-like shortcuts to editors. So that, when you start a line with "> " you get a blockquote that looks like this:',
-      },
-    ],
-  },
-  {
-    type: kSlateBlockTypeQuote,
-    children: [{ text: 'A wise quote.' }],
-  },
-  {
-    type: kSlateBlockTypeParagraph,
-    children: [
-      {
-        text: 'Order when you start a line with "## " you get a level-two heading, like this:',
-      },
-    ],
-  },
-  {
-    type: kSlateBlockTypeH2,
-    children: [{ text: 'Try it out!' }],
-  },
-  {
-    type: kSlateBlockTypeParagraph,
-    children: [
-      {
-        text: 'Try it out for yourself! Try starting a new line with ">", "-", or "#"s.',
-      },
-    ],
-  },
-]
+const Element = React.forwardRef(
+  ({ attributes, children, element, nid }, ref) => {
+    switch (element.type) {
+      case kSlateBlockTypeUnorderedList:
+        return (
+          <List.Unordered ref={ref} {...attributes}>
+            {children}
+          </List.Unordered>
+        )
+      case kSlateBlockTypeOrderedList:
+        return (
+          <List.Ordered ref={ref} {...attributes}>
+            {children}
+          </List.Ordered>
+        )
+      case kSlateBlockTypeListItem:
+        return (
+          <List.Item ref={ref} {...attributes}>
+            {children}
+          </List.Item>
+        )
+      case kSlateBlockTypeListCheckItem:
+        return (
+          <List.CheckItem element={element} attributes={attributes} ref={ref}>
+            {children}
+          </List.CheckItem>
+        )
+      case kSlateBlockTypeH1:
+        return (
+          <Header1 ref={ref} {...attributes}>
+            {children}
+          </Header1>
+        )
+      case kSlateBlockTypeH2:
+        return (
+          <Header2 ref={ref} {...attributes}>
+            {children}
+          </Header2>
+        )
+      case kSlateBlockTypeH3:
+        return (
+          <Header3 ref={ref} {...attributes}>
+            {children}
+          </Header3>
+        )
+      case kSlateBlockTypeH4:
+        return (
+          <Header4 ref={ref} {...attributes}>
+            {children}
+          </Header4>
+        )
+      case kSlateBlockTypeH5:
+        return (
+          <Header5 ref={ref} {...attributes}>
+            {children}
+          </Header5>
+        )
+      case kSlateBlockTypeH6:
+        return (
+          <Header6 ref={ref} {...attributes}>
+            {children}
+          </Header6>
+        )
+      case kSlateBlockTypeCode:
+        return (
+          <CodeBlock ref={ref} {...attributes}>
+            {children}
+          </CodeBlock>
+        )
+      case kSlateBlockTypeBreak:
+        return (
+          <HRule ref={ref} {...attributes}>
+            {children}
+          </HRule>
+        )
+      case kSlateBlockTypeQuote:
+        return (
+          <BlockQuote ref={ref} {...attributes}>
+            {children}
+          </BlockQuote>
+        )
+      case kSlateBlockTypeParagraph:
+        return (
+          <Paragraph ref={ref} {...attributes}>
+            {children}
+          </Paragraph>
+        )
+      case kSlateBlockTypeImage:
+        return (
+          <Image attributes={attributes} element={element} ref={ref}>
+            {children}
+          </Image>
+        )
+      default:
+        return (
+          <span ref={ref} {...attributes}>
+            {children}
+          </span>
+        )
+    }
+  }
+)
 
 export default DocEditor

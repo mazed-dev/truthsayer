@@ -21,7 +21,9 @@ import {
   kSlateBlockTypeH6,
   kSlateBlockTypeInlineCodeMark,
   kSlateBlockTypeLink,
+  kSlateBlockTypeImage,
   kSlateBlockTypeListItem,
+  kSlateBlockTypeListCheckItem,
   kSlateBlockTypeOrderedList,
   kSlateBlockTypeParagraph,
   kSlateBlockTypeQuote,
@@ -29,7 +31,7 @@ import {
   kSlateBlockTypeUnorderedList,
 } from '../doc/types'
 
-import { debug } from './../util/log'
+import { debug } from '../util/log'
 
 const lodash = require('lodash')
 
@@ -39,7 +41,6 @@ const lodash = require('lodash')
  */
 export function slateToMarkdown(state: Descendant[]): string {
   state = serializeExtraBlocks(state)
-  debug('State with extra', JSON.stringify(state, null, 2))
   return state.map((block) => serialize(block)).join('')
 }
 
@@ -49,7 +50,6 @@ export function slateToMarkdown(state: Descendant[]): string {
 export async function markdownToSlate(text): Promise<Descendant[]> {
   let { contents } = await unified().use(markdown).use(slate).process(text)
   contents = parseExtraBlocks(contents)
-  debug('Slate', JSON.stringify(contents, null, 2))
   return contents
 }
 
@@ -72,6 +72,7 @@ const kMazedBlockTypeToRemarkSlate: Record<string, string> = {
   [kSlateBlockTypeUnorderedList]: defaultNodeTypes.ul_list,
   [kSlateBlockTypeListItem]: defaultNodeTypes.listItem,
   [kSlateBlockTypeLink]: defaultNodeTypes.link,
+  [kSlateBlockTypeImage]: defaultNodeTypes.image,
   [kSlateBlockTypeEmphasisMark]: defaultNodeTypes.italic,
   [kSlateBlockTypeStrongMark]: defaultNodeTypes.bold,
   [kSlateBlockTypeDeleteMark]: defaultNodeTypes.strikeThrough,
@@ -98,6 +99,7 @@ function parseExtraBlocks(content: Descendant[]): Descendant[] {
     let { type } = item
     if (type) {
       type = _remarkSlateBlockTypeToMazed(type)
+      item.type = type
     }
     switch (type) {
       case kSlateBlockTypeListItem:
@@ -105,17 +107,13 @@ function parseExtraBlocks(content: Descendant[]): Descendant[] {
         break
       case kSlateBlockTypeLink:
         item = parseLinkExtraSyntax(item)
-        type = item.type
         break
     }
     const { children } = item
     if (children) {
       item.children = parseExtraBlocks(children)
     }
-    return {
-      ...item,
-      type,
-    }
+    return item
   })
 }
 
@@ -130,6 +128,7 @@ function parseListItem(item: Descendant): Descendant {
       const isNotChecked: boolean = prefix === '[ ] '
       if (isChecked || isNotChecked) {
         children[0].text = text.slice(4)
+        item.type = kSlateBlockTypeListCheckItem
         item.checked = isChecked
       }
     }
@@ -194,10 +193,9 @@ function parseLinkExtraSyntax(item: Descendant): Descendant {
 
 function serializeExtraBlocks(children: Descendant): Descendant {
   return children.map((item: Descendant) => {
-    debug('serializeExtraBlocks map', item.type)
     switch (item.type) {
-      case kSlateBlockTypeListItem:
-        item = serializeExtraCheckItem(item)
+      case kSlateBlockTypeListCheckItem:
+        item = serializeExtraListCheckItem(item)
         break
       case kSlateBlockTypeDateTime:
         item = serializeExtraDateTime(item)
@@ -214,7 +212,7 @@ function serializeExtraBlocks(children: Descendant): Descendant {
   })
 }
 
-function serializeExtraCheckItem(item: Descendant): Descendant {
+function serializeExtraListCheckItem(item: Descendant): Descendant {
   const { children, checked } = item
   const prefix = checked ? '[x] ' : '[ ] '
   const first: Descendant = lodash.head(children || [])
@@ -239,7 +237,6 @@ function serializeExtraCheckItem(item: Descendant): Descendant {
 }
 
 function serializeExtraDateTime(item: Descendant): Descendant {
-  debug('serializeExtraDateTime', JSON.stringify(item, null, 2))
   let { children, format, timestamp } = item
   format = format || 'YYYY MMMM DD, dddd, hh:mm:ss'
   const date = moment.unix(timestamp)

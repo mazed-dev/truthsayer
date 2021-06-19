@@ -6,6 +6,7 @@
     margin-top: 0;
   }
 }
+
 .check_box_span {
   margin-right: 0.75em;
 }
@@ -25,26 +26,4 @@
   &:focus {
     outline: none;
   }
-}
-
-.custom_button {
-  cursor: pointer;
-  color: '#ccc';
-}
-.custom_button_active {
-  cursor: pointer;
-  color: 'black';
-}
-.custom_button_reversed {
-  cursor: pointer;
-  color: '#aaa';
-}
-.custom_button_reversed_active {
-  cursor: pointer;
-  color: 'white';
-}
-
-.custom_icon {
-  font-size: 18px;
-  vertical-align: text-bottom;
 }

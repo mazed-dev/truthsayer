@@ -25,6 +25,7 @@ import {
   kSlateBlockTypeQuote,
   kSlateBlockTypeStrongMark,
   kSlateBlockTypeUnorderedList,
+  kSlateBlockTypeListCheckItem,
 } from '../doc/types'
 
 const lodash = require('lodash')
@@ -205,42 +206,65 @@ test('Multi checklist in Markdown', async () => {
 
   // 0
   expect(children[0].checked).toStrictEqual(true)
+  expect(children[0].type).toStrictEqual(kSlateBlockTypeListCheckItem)
   expect(children[0].children[0].text).toStrictEqual('First')
   // 1
   expect(children[1].checked).toStrictEqual(false)
+  expect(children[1].type).toStrictEqual(kSlateBlockTypeListCheckItem)
   expect(children[1].children[0].text).toStrictEqual('Second')
   // 0.0
   expect(children[0].children[1].children[0].checked).toStrictEqual(true)
+  expect(children[0].children[1].children[0].type).toStrictEqual(
+    kSlateBlockTypeListCheckItem
+  )
   expect(children[0].children[1].children[0].children[0].text).toStrictEqual(
     'aaa'
   )
   // 0.1
   expect(children[0].children[1].children[1].checked).toStrictEqual(false)
+  expect(children[0].children[1].children[1].type).toStrictEqual(
+    kSlateBlockTypeListCheckItem
+  )
   expect(children[0].children[1].children[1].children[0].text).toStrictEqual(
     'bbb'
   )
   // 0.2
   expect(children[0].children[1].children[2].checked).toStrictEqual(true)
+  expect(children[0].children[1].children[2].type).toStrictEqual(
+    kSlateBlockTypeListCheckItem
+  )
   expect(children[0].children[1].children[2].children[0].text).toStrictEqual(
     'ccc'
   )
   // 0.3
   expect(children[0].children[1].children[3].checked).toStrictEqual(true)
+  expect(children[0].children[1].children[3].type).toStrictEqual(
+    kSlateBlockTypeListCheckItem
+  )
   expect(children[0].children[1].children[3].children[0].text).toStrictEqual(
     'ddd'
   )
   // 1.0
   expect(children[1].children[1].children[0].checked).toStrictEqual(false)
+  expect(children[1].children[1].children[0].type).toStrictEqual(
+    kSlateBlockTypeListCheckItem
+  )
   expect(children[1].children[1].children[0].children[0].text).toStrictEqual(
     'AAA'
   )
   // 1.1
   expect(children[1].children[1].children[1].checked).toStrictEqual(true)
+  expect(children[1].children[1].children[1].type).toStrictEqual(
+    kSlateBlockTypeListCheckItem
+  )
   expect(children[1].children[1].children[1].children[0].text).toStrictEqual(
     'BBB'
   )
   // 1.2
   expect(children[1].children[1].children[2].checked).toStrictEqual(true)
+  expect(children[1].children[1].children[2].type).toStrictEqual(
+    kSlateBlockTypeListCheckItem
+  )
   expect(children[1].children[1].children[2].children[0].text).toStrictEqual(
     'CCC'
   )

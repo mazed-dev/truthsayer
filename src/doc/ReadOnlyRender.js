@@ -5,7 +5,6 @@ import styles from './ReadOnlyRender.module.css'
 import { Loader } from '../lib/loader'
 import LockedImg from './../img/locked.png'
 
-import { StaticNode } from './NodeEditor'
 import { DocEditor } from './DocEditor.tsx'
 
 import { renderMdSmallCard } from './../markdown/MarkdownRender'

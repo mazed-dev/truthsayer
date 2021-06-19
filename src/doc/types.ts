@@ -77,6 +77,8 @@ export const kSlateBlockTypeParagraph = 'paragraph'
 export const kSlateBlockTypeQuote = 'block-quote'
 export const kSlateBlockTypeUnorderedList = 'u-list'
 export const kSlateBlockTypeListItem = 'list-item'
+export const kSlateBlockTypeListCheckItem = 'list-check-item'
+export const kSlateBlockTypeImage = 'image'
 
 /**
  * Slate
@@ -101,6 +103,12 @@ export function isHeaderBlock(block) {
       return true
   }
   return false
+}
+
+export type ImageElement = {
+  type: 'image'
+  url: string
+  children: EmptyText[]
 }
 
 export function isHeaderSlateBlock(block: Descendant): boolean {

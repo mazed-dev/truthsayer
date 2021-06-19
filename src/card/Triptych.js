@@ -3,7 +3,6 @@ import React from 'react'
 import styles from './Triptych.module.css'
 
 import { WideCard } from './WideCard'
-import { NodeEditor } from '../doc/NodeEditor'
 import { DocEditor } from '../doc/DocEditor.tsx'
 
 import { SmallCard } from './SmallCard'
@@ -69,7 +68,6 @@ class NodeRefs extends React.Component {
 }
 
 function NodeCard({ node, addRef, stickyEdges, saveDoc }) {
-  // <NodeEditor nid={node.nid} doc={node.doc} saveDoc={saveDoc} />
   const editor =
     node != null ? (
       <DocEditor className={styles.editor} node={node} />
