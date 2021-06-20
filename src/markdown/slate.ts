@@ -47,9 +47,11 @@ export function slateToMarkdown(state: Descendant[]): string {
 /**
  * Markdown to Slate object:
  */
-export async function markdownToSlate(text): Promise<Descendant[]> {
+export async function markdownToSlate(text: string): Promise<Descendant[]> {
   let { contents } = await unified().use(markdown).use(slate).process(text)
   contents = parseExtraBlocks(contents)
+  contents = _moveOutImageBlocks(contents)
+  // debug('Contents', JSON.stringify(contents, null, 2))
   return contents
 }
 
@@ -190,6 +192,43 @@ function parseLinkExtraSyntax(item: Descendant): Descendant {
     }
   }
   return item
+}
+
+export function _moveOutImageBlocks(contents: Descendant[]): Descendant[] {
+  const newContents: Descendant[] = []
+  contents.forEach((item) => {
+    const { children } = item
+    if (lodash.isArray(children)) {
+      const [images, newChildren] = _moveOutImageBlocksRec(children)
+      debug('Images', images)
+      newContents.push(...images)
+      item.children = newChildren
+    }
+    newContents.push(item)
+  })
+  return newContents
+}
+
+export function _moveOutImageBlocksRec(
+  content: Descendant[]
+): [Descendant[], Descendant[]] {
+  const images: Descendant[] = []
+  content = content
+    .map((item: Descendant) => {
+      const { type, children } = item
+      if (type === kSlateBlockTypeImage) {
+        images.push(item)
+        return null
+      }
+      if (children) {
+        const [itemChildren, itemImages] = _moveOutImageBlocksRec(children)
+        images.push(...itemImages)
+        item.children = itemChildren
+      }
+      return item
+    })
+    .filter((item) => !lodash.isNull(item))
+  return [images, content]
 }
 
 function serializeExtraBlocks(children: Descendant): Descendant {

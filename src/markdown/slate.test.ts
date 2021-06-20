@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Descendant } from 'slate'
 
-import { slateToMarkdown, markdownToSlate } from './slate'
+import { slateToMarkdown, markdownToSlate, _moveOutImageBlocks } from './slate'
 
 import {
   kSlateBlockTypeBreak,
@@ -19,6 +19,7 @@ import {
   kSlateBlockTypeH6,
   kSlateBlockTypeInlineCodeMark,
   kSlateBlockTypeLink,
+  kSlateBlockTypeImage,
   kSlateBlockTypeListItem,
   kSlateBlockTypeOrderedList,
   kSlateBlockTypeParagraph,
@@ -95,8 +96,9 @@ print s
   expect(value[12].type).toStrictEqual(kSlateBlockTypeQuote)
   expect(value[13].type).toStrictEqual(kSlateBlockTypeUnorderedList)
   expect(value[14].type).toStrictEqual(kSlateBlockTypeOrderedList)
-  expect(value[15].type).toStrictEqual(kSlateBlockTypeParagraph)
+  expect(value[15].type).toStrictEqual(kSlateBlockTypeImage)
   expect(value[16].type).toStrictEqual(kSlateBlockTypeParagraph)
+  expect(value[17].type).toStrictEqual(kSlateBlockTypeParagraph)
 
   expect(value[0].children[0].text).toStrictEqual('Header 1')
   expect(value[1].children[0].text).toStrictEqual('Header 2')
@@ -307,4 +309,80 @@ test('Extra(backward): links as date and back', async () => {
   expect(lodash.trim(backMd)).toStrictEqual(
     'QrPSc 2021 May 01, Saturday, 12:00:00 nk8SGb'
   )
+})
+
+test('Extra(image): only top level images', async () => {
+  const root = [
+    {
+      type: 'paragraph',
+      children: [
+        {
+          type: 'image',
+          children: [
+            {
+              text: '',
+            },
+          ],
+          link: 'https://riptutorial.com/Images/logo_rip_full_white.png',
+          caption: 'Publisher Logo',
+        },
+        {
+          text: 'We value your privacy',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      children: [
+        {
+          text: 'We and our',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      children: [
+        {
+          text: 'store and/or access information on a device.',
+        },
+      ],
+    },
+  ]
+  const newContents = _moveOutImageBlocks(root)
+  expect(newContents).toStrictEqual([
+    {
+      type: 'image',
+      children: [
+        {
+          text: '',
+        },
+      ],
+      link: 'https://riptutorial.com/Images/logo_rip_full_white.png',
+      caption: 'Publisher Logo',
+    },
+    {
+      type: 'paragraph',
+      children: [
+        {
+          text: 'We value your privacy',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      children: [
+        {
+          text: 'We and our',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      children: [
+        {
+          text: 'store and/or access information on a device.',
+        },
+      ],
+    },
+  ])
 })
