@@ -46,6 +46,7 @@ import { withHistory } from 'slate-history'
 
 import { joinClasses } from './../util/elClass.js'
 import { debug } from './../util/log'
+import { Optional } from './../util/types'
 
 import {
   Header1,
@@ -68,8 +69,6 @@ import { Leaf } from './editor/components/Leaf'
 import styles from './DocEditor.module.css'
 
 const lodash = require('lodash')
-
-type OrNull<T> = T | null
 
 export type BulletedListElement = {
   type: kSlateBlockTypeUnorderedList
@@ -334,7 +333,7 @@ export const Button = React.forwardRef(
         reversed: boolean
       } & BaseProps
     >,
-    ref: Ref<OrNull<HTMLSpanElement>>
+    ref: Ref<Optional<HTMLSpanElement>>
   ) => {
     className = joinClasses(
       reversed
@@ -353,7 +352,7 @@ export const Button = React.forwardRef(
 export const Icon = React.forwardRef(
   (
     { className, ...props }: PropsWithChildren<BaseProps>,
-    ref: Ref<OrNull<HTMLSpanElement>>
+    ref: Ref<Optional<HTMLSpanElement>>
   ) => (
     <span
       {...props}

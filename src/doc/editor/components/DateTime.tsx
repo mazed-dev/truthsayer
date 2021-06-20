@@ -5,6 +5,7 @@ import { Badge } from 'react-bootstrap'
 import moment from 'moment'
 
 import { joinClasses } from '../../../util/elClass.js'
+import { Optional } from '../../../util/types'
 
 import './components.css'
 
@@ -21,13 +22,21 @@ const kDefaultCalendarFormat = {
   sameElse: `${kDefaultDateFormat}, ${kDefaultTimeFormat}`,
 }
 
+export function unixToString(
+  timestamp: number,
+  format: Optional<string>
+): string {
+  const timeMoment = moment.unix(timestamp)
+  return format
+    ? timeMoment.format(format)
+    : timeMoment.calendar(kDefaultCalendarFormat)
+}
+
 export const DateTime = React.forwardRef(
   ({ attributes, children, element }, ref) => {
     const { format, timestamp } = element
     const timeMoment = moment.unix(timestamp)
-    const str = format
-      ? timeMoment.format(format)
-      : timeMoment.calendar(kDefaultCalendarFormat)
+    const str = unixToString(timestamp, format)
     return (
       <Badge pill variant="secondary" ref={ref}>
         {str}

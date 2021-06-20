@@ -11,6 +11,8 @@ import {
   makeBlankCopyOfAChunk,
 } from './chunk_util.jsx'
 
+import { unixToString } from './editor/components/DateTime'
+
 import { draftToMarkdown, markdownToDraft } from '../markdown/conv.jsx'
 import { slateToMarkdown, markdownToSlate } from '../markdown/slate.ts'
 
@@ -246,6 +248,91 @@ export async function getDocSlate(doc: TDoc): Descendant[] {
     slate = await makeDoc().slate
   }
   return slate
+}
+
+export function getPlainText(doc: TDoc): string[] {
+  if (lodash.isString(doc)) {
+    return [doc]
+  }
+  doc = doc || {}
+  const { chunks, draft, slate } = doc
+  if (slate) {
+    return getSlateAsPlainText(slate)
+  } else if (chunks) {
+    return chunks
+      .map((item) => item.source)
+      .filter((source) => lodash.isString(source) && source.length > 0)
+  } else if (draft) {
+    return getDraftAsTextChunks(draft)
+  }
+  return ['']
+}
+
+function getSlateAsPlainText(children: Descendant): string[] {
+  const texts = []
+  const entities = []
+  children.forEach((item) => {
+    const [text, itemEntities] = getSlateDescendantAsPlainText(item, '')
+    if (text) {
+      texts.push(text)
+    }
+    entities.push(...itemEntities)
+  })
+  return lodash.concat(texts, entities)
+}
+
+function getSlateDescendantAsPlainText(parent: Descendant): string[] {
+  const entities = []
+  let { text } = parent
+  const { children, type, link, caption, timestamp, format } = parent
+  if (link) {
+    entities.push(link)
+  }
+  if (caption) {
+    entities.push(caption)
+  }
+  if (timestamp) {
+    entities.push(unixToString(timestamp, format))
+  }
+  if (children) {
+    children.forEach((item) => {
+      let [itemText, itemEntities] = getSlateDescendantAsPlainText(item, '')
+      itemText = lodash.trim(itemText)
+      if (text) {
+        text += ' '
+        text += itemText
+      } else {
+        text = itemText
+      }
+      entities.push(...itemEntities)
+    })
+  }
+  return [text, entities]
+}
+
+function getDraftAsTextChunks(draft: TDraftDoc): string[] {
+  const { blocks, entityMap } = draft
+  const texts = blocks
+    .map((block) => block.text)
+    .filter((text) => lodash.isString(text) && text.length > 0)
+  const entities = lodash
+    .values(entityMap)
+    .map((entity) => {
+      const { data } = entity
+      const { url, src, alt, tm, format } = data
+      if (url) {
+        return url
+      }
+      if (src || alt) {
+        return lodash.join([alt || '', src || ''], ' ')
+      }
+      if (tm) {
+        return unixToString(tm, format)
+      }
+      return null
+    })
+    .filter((text) => lodash.isString(text) && text.length > 0)
+  return lodash.concat(texts, entities)
 }
 
 export function docAsMarkdown(doc: TDoc): string {

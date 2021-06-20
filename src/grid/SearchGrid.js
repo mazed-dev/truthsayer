@@ -68,9 +68,9 @@ class DynamicGrid extends React.Component {
   }
 
   render() {
-    const colWidth = `${Math.floor(100 / this.state.ncols)}%`
+    const colWidth = Math.floor(100 / this.state.ncols)
     const columnStyle = {
-      width: colWidth,
+      width: `${colWidth}%`,
     }
     const columns = range(this.state.ncols).map((_, col_ind) => {
       const colCards = this.props.cards.filter((_, card_ind) => {

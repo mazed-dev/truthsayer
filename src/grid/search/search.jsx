@@ -1,6 +1,8 @@
 import { TNode } from '../../smugler/api.js'
 import { getDocDraft } from '../../doc/doc_util.jsx'
 
+import { Optional } from './../../util/types'
+
 const lodash = require('lodash')
 
 /**
@@ -14,9 +16,9 @@ const lodash = require('lodash')
     success: success,
   */
 export function searchNodesFor(
-  nodes: Array[TNode],
+  nodes: TNode[],
   pattern: RegExp | null
-): Array[TNode] {
+): TNode[] {
   if (!lodash.isRegExp(pattern)) {
     return nodes
   }
@@ -28,7 +30,7 @@ export function searchNodesFor(
 export function searchNodeFor(
   node: TNode,
   pattern: RegExp | null
-): TNode | null {
+): Optional<TNode> {
   if (!lodash.isRegExp(pattern)) {
     // Empty search fall back to show everything
     return node
