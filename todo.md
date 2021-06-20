@@ -11,9 +11,9 @@
   - [x] Custom styles, 2021.06.19
   - [x] Dates, 2021.06.19
   - [x] Leaf styles - (bold, italic, code), 2021.06.19
+  - [x] Implement search for slate nodes
   - [ ] Make images only top level elements
-  - [ ] Implement search for slate nodes
-  - [ ] Saving
+  - [ ] Saving the document while editing
   - [ ] Release
 - [ ] Slate editor - text style menu (pop up)
 - [ ] Slate editor - block style menu

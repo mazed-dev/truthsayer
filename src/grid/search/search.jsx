@@ -1,5 +1,5 @@
 import { TNode } from '../../smugler/api.js'
-import { getDocDraft } from '../../doc/doc_util.jsx'
+import { getPlainText } from '../../doc/doc_util.jsx'
 
 import { Optional } from './../../util/types'
 
@@ -29,7 +29,7 @@ export function searchNodesFor(
 
 export function searchNodeFor(
   node: TNode,
-  pattern: RegExp | null
+  pattern: Optional<RegExp>
 ): Optional<TNode> {
   if (!lodash.isRegExp(pattern)) {
     // Empty search fall back to show everything
@@ -40,14 +40,12 @@ export function searchNodeFor(
     // *dbg*/ console.error('The node is empty', node)
     return null
   }
-  const draft = getDocDraft(doc)
-  const { blocks } = draft
+  const blocks = getPlainText(doc)
   if (!blocks) {
     return null
   }
-  const matchedIndex = blocks.findIndex((block) => {
-    const { text } = block
-    const ret = lodash.isString(text) && text.search(pattern) >= 0
+  const matchedIndex = blocks.findIndex((text) => {
+    const ret = text.search(pattern) >= 0
     return ret
   })
   if (matchedIndex < 0) {
