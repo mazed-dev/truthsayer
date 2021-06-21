@@ -12,12 +12,15 @@
   - [x] Dates, 2021.06.19
   - [x] Leaf styles - (bold, italic, code), 2021.06.19
   - [x] Implement search for slate nodes
-  - [ ] Make images only top level elements
+  - [x] Make images only top level elements
+  - [x] Make small cards read-only
   - [ ] Saving the document while editing
+  - [ ] Clean up deprecated editors
   - [ ] Release
 - [ ] Slate editor - text style menu (pop up)
 - [ ] Slate editor - block style menu
 - [ ] Magnet edges is broken
+- [ ] Force title (header 1) for all notes, if missing use random emoji
 - [ ] Goto search doesn't work!
 - [ ] Make editor usabe from mobile
 - [ ] Smart point

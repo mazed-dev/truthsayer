@@ -97,7 +97,7 @@ const SHORTCUTS = {
   '[ ]': kSlateBlockTypeListCheckItem,
 }
 
-export const DocEditor = ({ className, node, readOnly }) => {
+export const DocEditor = ({ className, node }) => {
   const { doc, nid } = node
   const [value, setValue] = useState<Descendant[]>([])
   useEffect(() => {
@@ -128,6 +128,39 @@ export const DocEditor = ({ className, node, readOnly }) => {
           placeholder="Don't be afraid of an empty page..."
           spellCheck
           autoFocus
+        />
+      </Slate>
+    </div>
+  )
+}
+
+export const ReadOnlyDoc = ({ className, node }) => {
+  const { doc, nid } = node
+  const [value, setValue] = useState<Descendant[]>([])
+  useEffect(() => {
+    getDocSlate(doc).then((content) => setValue(content))
+  }, [nid])
+  const renderElement = useCallback(
+    (props) => <ReadOnlyElement nid={nid} {...props} />,
+    [nid]
+  )
+  const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
+  const editor = useMemo(
+    () => withImages(withChecklists(withReact(createEditor()))),
+    []
+  )
+  return (
+    <div className={className}>
+      <Slate
+        editor={editor}
+        value={value}
+        onChange={(value) => setValue(value)}
+      >
+        <Editable
+          renderElement={renderElement}
+          renderLeaf={renderLeaf}
+          placeholder="Don't be afraid of an empty page..."
+          readOnly
         />
       </Slate>
     </div>
@@ -388,8 +421,8 @@ const isImageUrl = (url) => {
   return imageExtensions.includes(ext)
 }
 
-const Element = React.forwardRef(
-  ({ attributes, children, element, nid }, ref) => {
+const _makeElementRender = (isEditable: boolean) => {
+  return React.forwardRef(({ attributes, children, element, nid }, ref) => {
     switch (element.type) {
       case kSlateBlockTypeUnorderedList:
         return (
@@ -411,7 +444,12 @@ const Element = React.forwardRef(
         )
       case kSlateBlockTypeListCheckItem:
         return (
-          <List.CheckItem element={element} attributes={attributes} ref={ref}>
+          <List.CheckItem
+            element={element}
+            attributes={attributes}
+            isEditable={isEditable}
+            ref={ref}
+          >
             {children}
           </List.CheckItem>
         )
@@ -494,7 +532,10 @@ const Element = React.forwardRef(
           </span>
         )
     }
-  }
-)
+  })
+}
+
+const Element = _makeElementRender(true)
+const ReadOnlyElement = _makeElementRender(false)
 
 export default DocEditor

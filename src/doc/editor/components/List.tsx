@@ -10,28 +10,6 @@ import './components.css'
 
 const lodash = require('lodash')
 
-// const ListItemElement = React.forwardRef(
-//   ({ attributes, children, element }, ref) => {
-//     const { checked } = element
-//     if (lodash.isUndefined(element.checked)) {
-//       return (
-//         <ListItem {...attributes} ref={ref}>
-//           {children}
-//         </ListItem>
-//       )
-//     }
-//     return (
-//       <CheckListItemElement
-//         attributes={attributes}
-//         element={element}
-//         ref={ref}
-//       >
-//         {children}
-//       </CheckListItemElement>
-//     )
-//   }
-// )
-
 const ListItem = React.forwardRef(
   ({ className, children, ...attributes }, ref) => {
     className = joinClasses('doc_block_list_item', className)
@@ -66,7 +44,7 @@ const UnorderedList = React.forwardRef(
 )
 
 const CheckListItemElement = React.forwardRef(
-  ({ attributes, children, element }, ref) => {
+  ({ attributes, children, element, isEditable }, ref) => {
     const { checked } = element
     const editor = useSlateStatic()
     const readOnly = useReadOnly()
@@ -87,6 +65,7 @@ const CheckListItemElement = React.forwardRef(
               }
               Transforms.setNodes(editor, newProperties, { at: path })
             }}
+            disabled={!isEditable}
           />
         </span>
         <span

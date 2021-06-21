@@ -5,7 +5,7 @@ import styles from './ReadOnlyRender.module.css'
 import { Loader } from '../lib/loader'
 import LockedImg from './../img/locked.png'
 
-import { DocEditor } from './DocEditor.tsx'
+import { ReadOnlyDoc } from './DocEditor.tsx'
 
 import { renderMdSmallCard } from './../markdown/MarkdownRender'
 
@@ -21,7 +21,7 @@ const kMaxTrimSmallCardChunksNum = 4
 const kMaxTrimChunksNum = 6
 
 function SmallCardRender({ node }) {
-  return <DocEditor node={node} readOnly />
+  return <ReadOnlyDoc node={node} />
 }
 
 class ReadDocRender extends React.Component {
