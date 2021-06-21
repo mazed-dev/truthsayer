@@ -2,8 +2,6 @@ import React from 'react'
 
 import { NavLink } from 'react-router-dom'
 
-import { EditorBlock, DraftEditorBlock } from 'draft-js'
-
 import './components.css'
 import styles from './Header.module.css'
 
