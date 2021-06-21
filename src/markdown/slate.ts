@@ -51,7 +51,6 @@ export async function markdownToSlate(text: string): Promise<Descendant[]> {
   let { contents } = await unified().use(markdown).use(slate).process(text)
   contents = parseExtraBlocks(contents)
   contents = _moveOutImageBlocks(contents)
-  // debug('Contents', JSON.stringify(contents, null, 2))
   return contents
 }
 
@@ -200,7 +199,6 @@ export function _moveOutImageBlocks(contents: Descendant[]): Descendant[] {
     const { children } = item
     if (lodash.isArray(children)) {
       const [images, newChildren] = _moveOutImageBlocksRec(children)
-      debug('Images', images)
       newContents.push(...images)
       item.children = newChildren
     }
@@ -221,7 +219,7 @@ export function _moveOutImageBlocksRec(
         return null
       }
       if (children) {
-        const [itemChildren, itemImages] = _moveOutImageBlocksRec(children)
+        const [itemImages, itemChildren] = _moveOutImageBlocksRec(children)
         images.push(...itemImages)
         item.children = itemChildren
       }
