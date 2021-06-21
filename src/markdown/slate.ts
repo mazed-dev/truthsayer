@@ -54,6 +54,19 @@ export async function markdownToSlate(text: string): Promise<Descendant[]> {
   return contents
 }
 
+export function makeEmptySlate(): Descendant[] {
+  return [
+    {
+      type: kSlateBlockTypeParagraph,
+      children: [
+        {
+          text: '',
+        },
+      ],
+    },
+  ]
+}
+
 /**
  * Slate blocks
  */

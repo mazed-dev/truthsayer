@@ -16,12 +16,15 @@ import { withRouter } from 'react-router-dom'
 
 import { MzdGlobalContext } from '../lib/global.js'
 import { joinClasses } from './../util/elClass.js'
+import { debug } from './../util/log'
 
 import { smugler } from '../smugler/api.js'
 
 import { Row, Col } from 'react-bootstrap'
 
 import { Loader } from '../lib/loader'
+
+const lodash = require('lodash')
 
 function RefNodeCard({ nid, edge, switchStickiness, cutOffRef }) {
   // See more / less button should go to a footbar
@@ -70,7 +73,7 @@ class NodeRefs extends React.Component {
 function NodeCard({ node, addRef, stickyEdges, saveDoc }) {
   const editor =
     node != null ? (
-      <DocEditor className={styles.editor} node={node} />
+      <DocEditor className={styles.editor} node={node} saveDoc={saveDoc} />
     ) : (
       <Loader />
     )
@@ -188,8 +191,9 @@ class Triptych extends React.Component {
       })
   }
 
-  saveDoc = (doc) => {
-    // For callback
+  saveDoc = lodash.debounce((doc) => {
+    // TODO(akindyakov): move conversion from raw slate to doc to here
+    // TODO(akindyakov): collect stats here
     const account = this.context.account
     return smugler.node
       .update({
@@ -206,7 +210,7 @@ class Triptych extends React.Component {
         // });
         return resp
       })
-  }
+  }, 1200)
 
   cutOffRef = (eid) => {
     this.setState((state) => {

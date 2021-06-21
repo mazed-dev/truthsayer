@@ -13,8 +13,14 @@ import {
 
 import { unixToString } from './editor/components/DateTime'
 
+import { debug } from './../util/log'
+
 import { draftToMarkdown, markdownToDraft } from '../markdown/conv.jsx'
-import { slateToMarkdown, markdownToSlate } from '../markdown/slate.ts'
+import {
+  slateToMarkdown,
+  markdownToSlate,
+  makeEmptySlate,
+} from '../markdown/slate.ts'
 
 import {
   isHeaderBlock,
@@ -145,7 +151,11 @@ export async function enforceTopHeader(doc: TDoc): TDoc {
   return doc
 }
 
-export async function makeDoc({ chunks, draft, slate }): TDoc {
+export async function makeDoc(args): TDoc {
+  if (!args) {
+    return { slate: makeEmptySlate() }
+  }
+  let { chunks, draft, slate } = args || {}
   if (slate) {
     return { slate }
   }
@@ -161,10 +171,8 @@ export async function makeDoc({ chunks, draft, slate }): TDoc {
     )
   } else if (draft) {
     slate = await markdownToSlate(draftToMarkdown(draft))
-  } else {
-    slate = await markdownToSlate('')
   }
-  return { slate }
+  return { slate: makeEmptySlate() }
 }
 
 function makeBlankCopyOfABlock(block) {
@@ -222,7 +230,7 @@ export async function getDocDraft(doc: TDoc): TDraftDoc {
   if (draft) {
     return draft
   }
-  return await makeDoc()
+  return await makeDoc({})
 }
 
 export async function getDocSlate(doc: TDoc): Descendant[] {
@@ -245,7 +253,7 @@ export async function getDocSlate(doc: TDoc): Descendant[] {
   } else if (draft) {
     slate = await markdownToSlate(draftToMarkdown(draft))
   } else {
-    slate = await makeDoc().slate
+    slate = makeEmptySlate()
   }
   return slate
 }

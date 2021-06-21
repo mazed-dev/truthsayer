@@ -14,7 +14,7 @@
   - [x] Implement search for slate nodes
   - [x] Make images only top level elements
   - [x] Make small cards read-only
-  - [ ] Saving the document while editing
+  - [x] Saving the document while editing
   - [ ] Clean up deprecated editors
   - [ ] Release
 - [ ] Slate editor - text style menu (pop up)

@@ -40,7 +40,7 @@ import {
   ImageElement,
 } from './types'
 
-import { getDocSlate } from './doc_util.jsx'
+import { getDocSlate, makeDoc } from './doc_util.jsx'
 
 import { withHistory } from 'slate-history'
 
@@ -97,7 +97,7 @@ const SHORTCUTS = {
   '[ ]': kSlateBlockTypeListCheckItem,
 }
 
-export const DocEditor = ({ className, node }) => {
+export const DocEditor = ({ className, node, saveDoc }) => {
   const { doc, nid } = node
   const [value, setValue] = useState<Descendant[]>([])
   useEffect(() => {
@@ -120,7 +120,11 @@ export const DocEditor = ({ className, node }) => {
       <Slate
         editor={editor}
         value={value}
-        onChange={(value) => setValue(value)}
+        onChange={(value) => {
+          setValue(value)
+          // Save the value to remote
+          saveDoc({ slate: value })
+        }}
       >
         <Editable
           renderElement={renderElement}
