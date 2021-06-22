@@ -20,28 +20,30 @@ import { draftToMarkdown, markdownToDraft } from '../markdown/conv.jsx'
 import { slateToMarkdown, markdownToSlate } from '../markdown/slate.ts'
 
 import {
-  isHeaderBlock,
-  kBlockTypeUnorderedCheckItem,
-  makeHRuleBlock,
-  makeUnstyledBlock,
-  addLinkBlock,
-  isHeaderSlateBlock,
-  isTextSlateBlock,
-  kSlateBlockTypeH1,
-  kSlateBlockTypeParagraph,
+  LeafElement,
+  LinkElement,
   ParagraphElement,
   ThematicBreakElement,
-  LinkElement,
-  LeafElement,
+  addLinkBlock,
+  isHeaderBlock,
+  isHeaderSlateBlock,
+  isTextSlateBlock,
+  kBlockTypeUnorderedCheckItem,
+  kSlateBlockTypeBreak,
+  kSlateBlockTypeH1,
+  kSlateBlockTypeLink,
+  kSlateBlockTypeParagraph,
+  makeHRuleBlock,
+  makeUnstyledBlock,
 } from './types.ts'
 
 const lodash = require('lodash')
 
-export function exctractDocTitle(doc: TDoc | string): string {
-  slate = getDocSlate(doc)
+export function exctractDocTitle(slate: Descendant[]): string {
   const title = slate.reduce((acc, item) => {
     if (!acc && (isHeaderSlateBlock(item) || isTextSlateBlock(item))) {
-      const title = _truncateTitle(getSlateDescendantAsPlainText(item))
+      const [text, _] = getSlateDescendantAsPlainText(item)
+      const title = _truncateTitle(text)
       if (title) {
         return title
       }
@@ -72,8 +74,8 @@ function _truncateTitle(title: string): string {
 }
 
 export async function makeACopy(doc: TDoc | string, nid: string): TDoc {
-  slate = getDocSlate(doc)
-  const title = exctractDocTitle(doc)
+  const slate = await getDocSlate(doc)
+  const title = exctractDocTitle(slate)
   const text = `Copy of "${title}"`
   slate.push(makeThematicBreak(), makeParagraph([makeLink(text, nid)]))
   return { slate }
@@ -135,8 +137,8 @@ function makeBlankCopyRec(slate: Descendant[]): Descendant[] {
 }
 
 export async function makeBlankCopy(doc: TDoc | string, nid: string): TDoc {
-  slate = makeBlankCopyRec(getDocSlate(doc))
-  const title = exctractDocTitle(doc)
+  const slate = makeBlankCopyRec(await getDocSlate(doc))
+  const title = exctractDocTitle(slate)
   const text = `Blank copy of "${title}"`
   slate.push(makeThematicBreak(), makeParagraph([makeLink(text, nid)]))
   return { slate }

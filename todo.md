@@ -15,7 +15,9 @@
   - [x] Make images only top level elements
   - [x] Make small cards read-only
   - [x] Saving the document while editing
-  - [ ] Clean up deprecated editors
+  - [x] Clean up deprecated editors
+  - [ ] Clicks on a text lead to crash - why?
+  - [ ] Copy and blank copy don't work
   - [ ] Release
 - [ ] Slate editor - text style menu (pop up)
 - [ ] Slate editor - block style menu
