@@ -14,13 +14,10 @@ import {
 import { unixToString } from './editor/components/DateTime'
 
 import { debug } from './../util/log'
+import { genEmoji } from './../lib/EmojiDefaultAsterisk'
 
 import { draftToMarkdown, markdownToDraft } from '../markdown/conv.jsx'
-import {
-  slateToMarkdown,
-  markdownToSlate,
-  makeEmptySlate,
-} from '../markdown/slate.ts'
+import { slateToMarkdown, markdownToSlate } from '../markdown/slate.ts'
 
 import {
   isHeaderBlock,
@@ -30,99 +27,56 @@ import {
   addLinkBlock,
   isHeaderSlateBlock,
   isTextSlateBlock,
+  kSlateBlockTypeH1,
+  kSlateBlockTypeParagraph,
+  ParagraphElement,
+  ThematicBreakElement,
+  LinkElement,
+  LeafElement,
 } from './types.ts'
 
 const lodash = require('lodash')
 
 export function exctractDocTitle(doc: TDoc | string): string {
-  if (lodash.isString(doc)) {
-    return _makeTitleFromRaw(doc)
-  } else if ('chunks' in doc) {
-    const chunks = doc.chunks
-    const title = chunks.reduce((acc, item) => {
-      if (!acc && isTextChunk(item)) {
-        const title = _makeTitleFromRaw(item.source)
-        if (title) {
-          return title
-        }
+  slate = getDocSlate(doc)
+  const title = slate.reduce((acc, item) => {
+    if (!acc && (isHeaderSlateBlock(item) || isTextSlateBlock(item))) {
+      const title = _truncateTitle(getSlateDescendantAsPlainText(item))
+      if (title) {
+        return title
       }
-      return acc
-    }, null)
-    if (title) {
-      return title
     }
-  } else if ('draft' in doc) {
-    const { draft } = doc
-    const title = draft.blocks.reduce((acc, item) => {
-      if (!acc && isHeaderBlock(item)) {
-        const title = _makeTitleFromRaw(item.text)
-        if (title) {
-          return title
-        }
-      }
-      return acc
-    }, null)
-    if (title) {
-      return title
-    }
-  } else if ('slate' in doc) {
-    const { slate } = doc
-    const title = slate.reduce((acc, item) => {
-      if (!acc && (isHeaderSlateBlock(item) || isTextSlateBlock(item))) {
-        const title = _makeTitleFromRaw(item.text)
-        if (title) {
-          return title
-        }
-      }
-      return acc
-    }, null)
-    if (title) {
-      return title
-    }
-  }
-  // For an empty doc
-  return 'Some page' + '\u2026'
+    return acc
+  }, null)
+  return title || 'Some page\u2026'
 }
 
-function _makeTitleFromRaw(source: string): string {
-  const title = source
-    .slice(0, 128)
-    .replace(/\s+/g, ' ')
-    // Replace markdown links with title of the link
-    .replace(/\[([^\]]+)\][^\)]+\)/g, '$1')
-    .replace(/^[# ]+/, '')
-    .replace(/[\[\]]+/, '')
+function _stripMarkdown(source: string): string {
+  return (
+    source
+      // Replace markdown links with title of the link
+      .replace(/\[([^\]]+)\][^\)]+\)/g, '$1')
+      .replace(/^[# ]+/, '')
+      .replace(/[\[\]]+/, '')
+  )
+}
+
+function _truncateTitle(title: string): string {
+  title = title.slice(0, 128).replace(/\s+/g, ' ')
   if (title.length > 36) {
-    return `${title.slice(0, 36)}\u2026`
+    title = title.slice(0, 36)
+    return `${title}\u2026`
   } else {
     return title
   }
 }
 
 export async function makeACopy(doc: TDoc | string, nid: string): TDoc {
-  if (lodash.isString(doc)) {
-    const slate = await markdownToSlate(doc)
-    doc = await makeDoc({ slate })
-  }
-  let draft
-  if ('chunks' in doc) {
-    doc = await makeDoc({
-      chunks: doc.chunks,
-    })
-    draft = { doc }
-  } else {
-    draft = lodash.cloneDeep(doc.draft)
-  }
-  draft = draft || {}
+  slate = getDocSlate(doc)
   const title = exctractDocTitle(doc)
-  draft.blocks = draft.blocks.concat(makeHRuleBlock())
   const text = `Copy of "${title}"`
-  draft = addLinkBlock({
-    draft,
-    text,
-    href: nid,
-  })
-  return await makeDoc({ draft })
+  slate.push(makeThematicBreak(), makeParagraph([makeLink(text, nid)]))
+  return { slate }
 }
 
 // Deprecated
@@ -175,38 +129,17 @@ export async function makeDoc(args): TDoc {
   return { slate: makeEmptySlate() }
 }
 
-function makeBlankCopyOfABlock(block) {
-  if (block.type === kBlockTypeUnorderedCheckItem) {
-    const b = cloneDeep(block)
-    b.data.checked = false
-    return b
-  }
-  return block
+function makeBlankCopyRec(slate: Descendant[]): Descendant[] {
+  // TODO(akindyakov): Implement a recursive blank copy for slate state
+  return item
 }
 
 export async function makeBlankCopy(doc: TDoc | string, nid: string): TDoc {
-  if (lodash.isString(doc)) {
-    const slate = await markdownToSlate(doc)
-    doc = await makeDoc({ slate })
-  } else if ('chunks' in doc) {
-    doc = await makeDoc({
-      chunks: doc.chunks,
-    })
-  }
-  let { draft } = doc
-  draft = draft || {}
+  slate = makeBlankCopyRec(getDocSlate(doc))
   const title = exctractDocTitle(doc)
-  draft.blocks = draft.blocks.map((block) => {
-    return makeBlankCopyOfABlock(block)
-  })
-  draft.blocks.push(makeHRuleBlock())
   const text = `Blank copy of "${title}"`
-  draft = addLinkBlock({
-    draft,
-    text,
-    href: nid,
-  })
-  return await makeDoc({ draft })
+  slate.push(makeThematicBreak(), makeParagraph([makeLink(text, nid)]))
+  return { slate }
 }
 
 export async function getDocDraft(doc: TDoc): TDraftDoc {
@@ -234,28 +167,31 @@ export async function getDocDraft(doc: TDoc): TDraftDoc {
 }
 
 export async function getDocSlate(doc: TDoc): Descendant[] {
+  let slate
   if (lodash.isString(doc)) {
-    return await markdownToSlate(doc)
-  }
-  doc = doc || {}
-  let { chunks, draft, slate } = doc
-  if (slate) {
-    return slate
-  }
-  if (chunks) {
-    const source = chunks.reduce((acc, curr) => {
-      if (isTextChunk(curr)) {
-        return `${acc}\n${curr.source}`
-      }
-      return acc
-    }, '')
-    slate = await markdownToSlate(source)
-  } else if (draft) {
-    slate = await markdownToSlate(draftToMarkdown(draft))
+    slate = await markdownToSlate(doc)
   } else {
-    slate = makeEmptySlate()
+    doc = doc || {}
+    slate = doc.slate
+    if (!lodash.isArray(slate)) {
+      const { chunks, draft } = doc
+      if (chunks) {
+        const source = chunks.reduce((acc, curr) => {
+          if (isTextChunk(curr)) {
+            return `${acc}\n${curr.source}`
+          }
+          return acc
+        }, '')
+        slate = await markdownToSlate(source)
+      } else if (draft) {
+        // Oh, this is a cheeky approach, but we don't have time
+        slate = await markdownToSlate(draftToMarkdown(draft))
+      } else {
+        slate = []
+      }
+    }
   }
-  return slate
+  return enforceMinimalSlate(slate)
 }
 
 export function getPlainText(doc: TDoc): string[] {
@@ -276,7 +212,7 @@ export function getPlainText(doc: TDoc): string[] {
   return ['']
 }
 
-function getSlateAsPlainText(children: Descendant): string[] {
+function getSlateAsPlainText(children: Descendant[]): string[] {
   const texts = []
   const entities = []
   children.forEach((item) => {
@@ -359,4 +295,58 @@ export function docAsMarkdown(doc: TDoc): string {
   }
   // TODO(akindyakov): Escalate it
   return ''
+}
+
+function makeEmptySlate(): Descendant[] {
+  return [
+    {
+      type: kSlateBlockTypeH1,
+      children: [
+        {
+          text: genEmoji(),
+        },
+      ],
+    },
+    {
+      type: kSlateBlockTypeParagraph,
+      children: [
+        {
+          text: '',
+        },
+      ],
+    },
+  ]
+}
+
+function makeThematicBreak(): ThematicBreakElement {
+  return {
+    type: kSlateBlockTypeBreak,
+    children: [],
+  }
+}
+
+function makeParagraph(children: Descendant[]): ParagraphElement {
+  return {
+    type: kSlateBlockTypeParagraph,
+    children,
+  }
+}
+
+function makeLink(text, link): LinkElement {
+  return {
+    type: kSlateBlockTypeLink,
+    children: [makeLeaf(text)],
+    link,
+  }
+}
+
+function makeLeaf(text): LeafElement {
+  return { text }
+}
+
+function enforceMinimalSlate(items: Descendant[]): Descendant[] {
+  if (items.length) {
+    return items
+  }
+  return makeEmptySlate()
 }

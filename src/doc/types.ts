@@ -105,14 +105,33 @@ export function isHeaderBlock(block) {
   return false
 }
 
+export type LeafElement = {
+  text: string
+}
+
 export type ImageElement = {
   type: kSlateBlockTypeImage
   url: string
-  children: EmptyText[]
+  children: LeafElement[]
+}
+
+export type ParagraphElement = {
+  type: kSlateBlockTypeParagraph
+  children: LeafElement[]
+}
+
+export type LinkElement = {
+  type: kSlateBlockTypeParagraph
+  children: LeafElement[]
+}
+
+export type ThematicBreakElement = {
+  type: kSlateBlockTypeBreak
+  children: LeafElement[]
 }
 
 export type DateTimeElement = {
-  children: EmptyText[] // Do we need this?
+  children: LeafElement[] // Do we need this?
   format?: string
   timestamp: number
   type: kSlateBlockTypeDateTime
