@@ -1,13 +1,13 @@
-.ref {
+.link {
   color: inherit;
 }
 
-.ref:hover {
+.link:hover {
   color: inherit;
   text-decoration: none;
   text-decoration-line: underline;
   -webkit-text-decoration-line: underline; /* Safari */
 }
 
-.ref:visited {
+.link:visited {
 }

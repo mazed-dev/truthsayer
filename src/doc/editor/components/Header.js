@@ -7,29 +7,28 @@ import styles from './Header.module.css'
 
 import { joinClasses } from '../../../util/elClass.js'
 
-const StdHeader = React.forwardRef((props, ref) => {
-  const { depth } = props
+const StdHeader = React.forwardRef(({ depth, ...attributes }, ref) => {
   switch (depth) {
     case 1:
-      return <h1 {...props} />
+      return <h1 ref={ref} {...attributes} />
     case 2:
-      return <h2 {...props} />
+      return <h2 ref={ref} {...attributes} />
     case 3:
-      return <h3 {...props} />
+      return <h3 ref={ref} {...attributes} />
     case 4:
-      return <h4 {...props} />
+      return <h4 ref={ref} {...attributes} />
     case 5:
-      return <h5 {...props} />
+      return <h5 ref={ref} {...attributes} />
     case 6:
-      return <h6 {...props} />
+      return <h6 ref={ref} {...attributes} />
   }
-  return <h6 {...props} />
+  return <h6 ref={ref} {...attributes} />
 })
 
 function Anchored({ nid, children }) {
   if (nid) {
     return (
-      <NavLink to={`/n/${nid}`} className={styles.ref}>
+      <NavLink to={`/n/${nid}`} className={styles.link}>
         {children}
       </NavLink>
     )
@@ -39,10 +38,15 @@ function Anchored({ nid, children }) {
 
 function makeStyledHeader(depth, baseClassName) {
   const StyledHeader = React.forwardRef(
-    ({ className, children, nid, ...rest }, ref) => {
+    ({ className, children, nid, ...attributes }, ref) => {
       className = joinClasses(baseClassName, className)
       return (
-        <StdHeader ref={ref} className={className} depth={depth} {...rest}>
+        <StdHeader
+          ref={ref}
+          className={className}
+          depth={depth}
+          {...attributes}
+        >
           <Anchored nid={nid}>{children}</Anchored>
         </StdHeader>
       )

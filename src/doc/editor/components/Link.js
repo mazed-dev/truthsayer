@@ -6,8 +6,6 @@ import './components.css'
 
 import { Link as ReactRouterLink } from 'react-router-dom'
 
-import { RichUtils, SelectionState } from 'draft-js'
-
 import { ControlButton } from './../ControlButton'
 import { ImgButton } from '../../../lib/ImgButton'
 
@@ -220,29 +218,7 @@ class LinkImpl extends React.Component {
   }
 
   makeToolbar(url) {
-    if (!this.state.showEditor) {
-      return null
-    }
-    const { contentState, entityKey, removeLink, end, start, blockKey } =
-      this.props
-    const selection = SelectionState.createEmpty().merge({
-      anchorKey: blockKey,
-      anchorOffset: start,
-      focusKey: blockKey,
-      focusOffset: end,
-      isBackward: false,
-      hasFocus: false,
-    })
-    return (
-      <LinkEditor
-        value={url}
-        onClose={this.onEditorClose}
-        contentState={contentState}
-        entityKey={entityKey}
-        selection={selection}
-        removeLink={removeLink}
-      />
-    )
+    return <></>
   }
   // https://github.com/facebook/draft-js/issues/2137
   render() {
