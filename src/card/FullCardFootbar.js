@@ -33,7 +33,7 @@ import { HoverTooltip } from '../lib/tooltip'
 import { ImgButton } from '../lib/ImgButton'
 import { goto } from '../lib/route.jsx'
 import { joinClasses } from '../util/elClass.js'
-import { makeACopy, makeBlankCopy, docAsMarkdown } from '../doc/doc_util.jsx'
+import { makeACopy, docAsMarkdown } from '../doc/doc_util.jsx'
 import { downloadAsFile } from '../util/download_as_file.jsx'
 
 import {
@@ -209,19 +209,14 @@ function __addStickyEdges(sticky_edges, new_nid, prev_nid, cancelToken) {
   })
 }
 
-async function cloneNode({ from, to, crypto, cancelToken, blank }) {
+async function cloneNode({ from, to, crypto, cancelToken, isBlank }) {
   const nid = from ? from : to
   const node = await smugler.node.get({
     nid,
     crypto,
     cancelToken,
   })
-  let doc = null
-  if (blank) {
-    doc = makeBlankCopy(node.doc, nid)
-  } else {
-    doc = makeACopy(node.doc, nid)
-  }
+  const doc = await makeACopy(node.doc, nid, isBlank || false)
   return await smugler.node.create({
     doc,
     cancelToken,
@@ -288,7 +283,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
       to: this.props.nid,
       crypto: account.getLocalCrypto(),
       cancelToken: this.createCancelToken.token,
-      blank: true,
+      isBlank: true,
     }).then((node) => {
       if (node) {
         goto.node({ history: this.props.history, nid: node.nid })
@@ -303,7 +298,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
       to: null,
       crypto: account.getLocalCrypto(),
       cancelToken: this.createCancelToken.token,
-      blank: true,
+      isBlank: true,
     }).then((node) => {
       if (node) {
         goto.node({ history: this.props.history, nid: node.nid })

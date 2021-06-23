@@ -73,11 +73,27 @@ function _truncateTitle(title: string): string {
   }
 }
 
-export async function makeACopy(doc: TDoc | string, nid: string): TDoc {
-  const slate = await getDocSlate(doc)
+function blankSlate(slate: Descendant[]): Descendant[] {
+  // TODO(akindyakov): Implement a recursive blank copy for slate state
+  return item
+}
+
+export async function makeACopy(
+  doc: TDoc | string,
+  nid: string,
+  isBlankCopy: boolean
+): TDoc {
+  let slate = await getDocSlate(doc)
   const title = exctractDocTitle(slate)
-  const text = `Copy of "${title}"`
-  slate.push(makeThematicBreak(), makeParagraph([makeLink(text, nid)]))
+  let label
+  if (isBlankCopy) {
+    slate = blankSlate(slate)
+    const title = exctractDocTitle(slate)
+    label = `Blank copy of "${title}"`
+  } else {
+    label = `Copy of "${title}"`
+  }
+  slate.push(makeThematicBreak(), makeParagraph([makeLink(label, nid)]))
   return { slate }
 }
 
@@ -129,19 +145,6 @@ export async function makeDoc(args): TDoc {
     slate = await markdownToSlate(draftToMarkdown(draft))
   }
   return { slate: makeEmptySlate() }
-}
-
-function makeBlankCopyRec(slate: Descendant[]): Descendant[] {
-  // TODO(akindyakov): Implement a recursive blank copy for slate state
-  return item
-}
-
-export async function makeBlankCopy(doc: TDoc | string, nid: string): TDoc {
-  const slate = makeBlankCopyRec(await getDocSlate(doc))
-  const title = exctractDocTitle(slate)
-  const text = `Blank copy of "${title}"`
-  slate.push(makeThematicBreak(), makeParagraph([makeLink(text, nid)]))
-  return { slate }
 }
 
 export async function getDocDraft(doc: TDoc): TDraftDoc {

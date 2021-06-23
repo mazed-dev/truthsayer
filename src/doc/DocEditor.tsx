@@ -99,6 +99,7 @@ const SHORTCUTS = {
 
 export const DocEditor = ({ className, node, saveDoc }) => {
   const { doc, nid } = node
+  debug('DocEditor doc to render', doc)
   const [value, setValue] = useState<Descendant[]>([])
   useEffect(() => {
     getDocSlate(doc).then((content) => setValue(content))
