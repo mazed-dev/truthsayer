@@ -326,7 +326,7 @@ function makeEmptySlate(): Descendant[] {
 function makeThematicBreak(): ThematicBreakElement {
   return {
     type: kSlateBlockTypeBreak,
-    children: [],
+    children: [makeLeaf('')],
   }
 }
 

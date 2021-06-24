@@ -13,10 +13,7 @@ export const HRule = React.forwardRef(
     }
     return (
       <div {...attributes} ref={ref}>
-        <div contentEditable={false}>
-          <div className={className} />
-        </div>
-        {children}
+        <div contentEditable={false} className={className} />
       </div>
     )
   }
