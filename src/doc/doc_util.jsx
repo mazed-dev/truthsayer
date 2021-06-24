@@ -28,10 +28,10 @@ import {
   isHeaderBlock,
   isHeaderSlateBlock,
   isTextSlateBlock,
-  kBlockTypeUnorderedCheckItem,
   kSlateBlockTypeBreak,
   kSlateBlockTypeH1,
   kSlateBlockTypeLink,
+  kSlateBlockTypeListCheckItem,
   kSlateBlockTypeParagraph,
   makeHRuleBlock,
   makeUnstyledBlock,
@@ -74,8 +74,16 @@ function _truncateTitle(title: string): string {
 }
 
 function blankSlate(slate: Descendant[]): Descendant[] {
-  // TODO(akindyakov): Implement a recursive blank copy for slate state
-  return item
+  return slate.map((item) => {
+    const { type, children } = item
+    if (type === kSlateBlockTypeListCheckItem) {
+      item.checked = false
+    }
+    if (lodash.isArray(children)) {
+      item.children = blankSlate(children)
+    }
+    return item
+  })
 }
 
 export async function makeACopy(

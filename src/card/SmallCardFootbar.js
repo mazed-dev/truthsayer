@@ -101,7 +101,7 @@ class PrivateSmallCardFootbarImpl extends React.Component {
             {cutTooltip}
           </FootbarDropdownItem>
           <FootbarDropdownItem onClick={this.switchStickiness}>
-            <CheckBox is_checked={isSticky} />
+            <CheckBox checked={isSticky} />
             {magnetTooltip}
           </FootbarDropdownItem>
         </FootbarDropdownMenu>

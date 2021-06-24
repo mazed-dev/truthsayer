@@ -4,9 +4,12 @@ import { ReactEditor, Slate, useReadOnly, useSlateStatic } from 'slate-react'
 import { Element as SlateElement, Transforms } from 'slate'
 
 import { joinClasses } from '../../../util/elClass.js'
+import { CheckBox } from '../../../lib/CheckBox'
 
 import styles from './List.module.css'
 import './components.css'
+
+import { debug } from '../../../util/log'
 
 const lodash = require('lodash')
 
@@ -45,23 +48,24 @@ const UnorderedList = React.forwardRef(
 
 const CheckListItemElement = React.forwardRef(
   ({ attributes, children, element, isEditable }, ref) => {
-    const { checked } = element
+    const { checked = false } = element
     const editor = useSlateStatic()
     const readOnly = useReadOnly()
     const checkLineStyle = checked
       ? styles.check_line_span_checked
       : styles.check_line_span
+    debug('Check element', element, checked)
     return (
       <div {...attributes} className={styles.check_item_span}>
         <span contentEditable={false} className={styles.check_box_span}>
-          <input
-            type="checkbox"
+          <CheckBox
             checked={checked}
             ref={ref}
             onChange={(event) => {
               const path = ReactEditor.findPath(editor, element)
+              debug('Check event', event, checked)
               const newProperties: Partial<SlateElement> = {
-                checked: event.target.checked,
+                checked: !checked,
               }
               Transforms.setNodes(editor, newProperties, { at: path })
             }}
