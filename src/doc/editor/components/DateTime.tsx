@@ -38,9 +38,14 @@ export const DateTime = React.forwardRef(
     const timeMoment = moment.unix(timestamp)
     const str = unixToString(timestamp, format)
     return (
-      <Badge pill variant="secondary" ref={ref}>
-        {str}
-      </Badge>
+      <span ref={ref} {...attributes}>
+        <span contentEditable={false}>
+          <Badge variant={'secondary'} pill>
+            {str}
+          </Badge>
+        </span>
+        {children}
+      </span>
     )
   }
 )
