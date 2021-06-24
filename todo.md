@@ -16,8 +16,9 @@
   - [x] Make small cards read-only
   - [x] Saving the document while editing
   - [x] Clean up deprecated editors
-  - [ ] Clicks on a text lead to crash - why?
-  - [ ] Copy and blank copy don't work
+  - [x] Clicks on a text lead to crash - why?
+  - [x] Copy and blank copy don't work
+  - [ ] Click on a date in the doc crashes the app
   - [ ] Release
 - [ ] Slate editor - text style menu (pop up)
 - [ ] Slate editor - block style menu
