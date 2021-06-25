@@ -170,7 +170,7 @@ function flattenDescendants(elements: Descendant[]): Descendant[] {
 }
 
 function parseLinkExtraSyntax(item: Descendant): Descendant {
-  const { link, children } = item
+  let { link, children } = item
   const dtParts = link.match(/^@(-?[0-9]+)\/?(.*)/)
   if (dtParts) {
     // Arguably unix timestamp (signed)
@@ -180,9 +180,14 @@ function parseLinkExtraSyntax(item: Descendant): Descendant {
     }
     let format = dtParts[2]
     // Backward compatibility
-    if (format === 'day' || format === 'time') {
-      format = undefined
+    if (format === 'day') {
+      format = 'YYYY MMMM DD, dddd'
+    } else if (format === 'time') {
+      format = 'YYYY MMMM DD, hh:mm:ss'
     }
+    format = 'YYYY MMMM DD, dddd, hh:mm'
+    const text = moment.unix(timestamp).format(format)
+    children = [{ text }]
     return {
       children,
       format,

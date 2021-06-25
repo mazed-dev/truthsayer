@@ -6,6 +6,7 @@ import moment from 'moment'
 
 import { joinClasses } from '../../../util/elClass.js'
 import { Optional } from '../../../util/types'
+import { debug } from '../../../util/log'
 
 import './components.css'
 
@@ -38,12 +39,7 @@ export const DateTime = React.forwardRef(
     const timeMoment = moment.unix(timestamp)
     const str = unixToString(timestamp, format)
     return (
-      <span ref={ref} {...attributes}>
-        <span contentEditable={false}>
-          <Badge variant={'secondary'} pill>
-            {str}
-          </Badge>
-        </span>
+      <span ref={ref} {...attributes} className={styles.pill}>
         {children}
       </span>
     )

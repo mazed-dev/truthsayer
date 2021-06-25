@@ -18,7 +18,8 @@
   - [x] Clean up deprecated editors
   - [x] Clicks on a text lead to crash - why?
   - [x] Copy and blank copy don't work
-  - [ ] Click on a date in the doc crashes the app
+  - [x] Click on a date in the doc crashes the app
+  - [ ] Add basic support for links
   - [ ] Release
 - [ ] Slate editor - text style menu (pop up)
 - [ ] Slate editor - block style menu
