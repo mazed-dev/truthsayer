@@ -50,7 +50,8 @@ export function slateToMarkdown(state: Descendant[]): string {
 export async function markdownToSlate(text: string): Promise<Descendant[]> {
   let { contents } = await unified().use(markdown).use(slate).process(text)
   contents = parseExtraBlocks(contents)
-  contents = _moveOutImageBlocks(contents)
+  contents = _siftUpBlocks(contents)
+  contents = _dissolveNestedParagraphs(contents)
   return contents
 }
 
@@ -142,18 +143,17 @@ function parseListItem(item: Descendant): Descendant {
  * Make sure there is no nested elements
  */
 const _kSlateBlocksToFlatten = new Set([
+  kSlateBlockTypeBreak,
+  kSlateBlockTypeCode,
   kSlateBlockTypeH1,
   kSlateBlockTypeH2,
   kSlateBlockTypeH3,
   kSlateBlockTypeH4,
   kSlateBlockTypeH5,
   kSlateBlockTypeH6,
-  kSlateBlockTypeBreak,
-  kSlateBlockTypeCode,
-  kSlateBlockTypeOrderedList,
+  kSlateBlockTypeImage,
   kSlateBlockTypeParagraph,
   kSlateBlockTypeQuote,
-  kSlateBlockTypeUnorderedList,
 ])
 
 function flattenDescendants(elements: Descendant[]): Descendant[] {
@@ -185,7 +185,7 @@ function parseLinkExtraSyntax(item: Descendant): Descendant {
     } else if (format === 'time') {
       format = 'YYYY MMMM DD, hh:mm:ss'
     }
-    format = 'YYYY MMMM DD, dddd, hh:mm'
+    format = format || 'YYYY MMMM DD, dddd, hh:mm'
     const text = moment.unix(timestamp).format(format)
     children = [{ text }]
     return {
@@ -198,13 +198,45 @@ function parseLinkExtraSyntax(item: Descendant): Descendant {
   return item
 }
 
-export function _moveOutImageBlocks(contents: Descendant[]): Descendant[] {
+export function _dissolveNestedParagraphs(
+  contents: Descendant[]
+): Descendant[] {
   const newContents: Descendant[] = []
   contents.forEach((item) => {
     const { children } = item
     if (lodash.isArray(children)) {
-      const [images, newChildren] = _moveOutImageBlocksRec(children)
-      newContents.push(...images)
+      item.children = _dissolveNestedParagraphsRec(children)
+    }
+    newContents.push(item)
+  })
+  return newContents
+}
+
+function _dissolveNestedParagraphsRec(contents: Descendant[]): Descendant[] {
+  const newContents: Descendant[] = []
+  contents.forEach((item) => {
+    const { type, children } = item
+    if (type === kSlateBlockTypeParagraph) {
+      newContents.push(...children)
+    } else {
+      newContents.push(item)
+    }
+  })
+  return newContents
+}
+
+export function _siftUpBlocks(contents: Descendant[]): Descendant[] {
+  const newContents: Descendant[] = []
+  contents.forEach((item) => {
+    const { children } = item
+    if (lodash.isArray(children)) {
+      const [topChildren, newChildren] = _siftUpBlocksRec(children)
+      newContents.push(...topChildren)
+      // We can't leave empty element and we can't just delete it, let's add one
+      // empty text node to make it valid for Slate
+      if (newChildren.length === 0) {
+        newChildren.push({ text: '' })
+      }
       item.children = newChildren
     }
     newContents.push(item)
@@ -212,26 +244,27 @@ export function _moveOutImageBlocks(contents: Descendant[]): Descendant[] {
   return newContents
 }
 
-export function _moveOutImageBlocksRec(
-  content: Descendant[]
-): [Descendant[], Descendant[]] {
-  const images: Descendant[] = []
+function _siftUpBlocksRec(content: Descendant[]): [Descendant[], Descendant[]] {
+  const tops: Descendant[] = []
   content = content
     .map((item: Descendant) => {
       const { type, children } = item
-      if (type === kSlateBlockTypeImage) {
-        images.push(item)
+      if (
+        _kSlateBlocksToFlatten.has(type) &&
+        type !== kSlateBlockTypeParagraph
+      ) {
+        tops.push(item)
         return null
       }
       if (children) {
-        const [itemImages, itemChildren] = _moveOutImageBlocksRec(children)
-        images.push(...itemImages)
+        const [topChildren, itemChildren] = _siftUpBlocksRec(children)
+        tops.push(...topChildren)
         item.children = itemChildren
       }
       return item
     })
     .filter((item) => !lodash.isNull(item))
-  return [images, content]
+  return [tops, content]
 }
 
 function serializeExtraBlocks(children: Descendant): Descendant {

@@ -1,6 +1,6 @@
 import React from 'react'
 import { render } from '@testing-library/react'
-import { insertPiece, deleteSelected, backspaceSelected } from './Link.js'
+import { insertPiece, deleteSelected, backspaceSelected } from './OldLink.js'
 
 test('insertPiece - simple', () => {
   expect(insertPiece('-', 'abcd', 0, 0)).toStrictEqual('-abcd')

@@ -36,6 +36,7 @@ import {
   kSlateBlockTypeListItem,
   kSlateBlockTypeListCheckItem,
   kSlateBlockTypeDateTime,
+  kSlateBlockTypeLink,
   kSlateBlockTypeImage,
   DateTimeElement,
   ImageElement,
@@ -66,6 +67,7 @@ import { Paragraph } from './editor/components/Paragraph'
 import { List } from './editor/components/List'
 import { Image } from './editor/components/Image'
 import { DateTime } from './editor/components/DateTime'
+import { Link } from './editor/components/Link'
 import { Leaf } from './editor/components/Leaf'
 
 import styles from './DocEditor.module.css'
@@ -101,7 +103,6 @@ const SHORTCUTS = {
 
 export const DocEditor = ({ className, node, saveDoc }) => {
   const { doc, nid } = node
-  debug('DocEditor doc to render', doc)
   const [value, setValue] = useState<Descendant[]>([])
   useEffect(() => {
     getDocSlate(doc).then((content) => setValue(content))
@@ -113,9 +114,13 @@ export const DocEditor = ({ className, node, saveDoc }) => {
   const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
   const editor = useMemo(
     () =>
-      withDateTime(
-        withImages(
-          withChecklists(withShortcuts(withReact(withHistory(createEditor()))))
+      withLinks(
+        withDateTime(
+          withImages(
+            withChecklists(
+              withShortcuts(withReact(withHistory(createEditor())))
+            )
+          )
         )
       ),
     []
@@ -155,7 +160,10 @@ export const ReadOnlyDoc = ({ className, node }) => {
   )
   const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
   const editor = useMemo(
-    () => withImages(withChecklists(withReact(createEditor()))),
+    () =>
+      withLinks(
+        withDateTime(withImages(withChecklists(withReact(createEditor()))))
+      ),
     []
   )
   return (
@@ -446,7 +454,7 @@ const withDateTime = (editor) => {
   editor.insertText = (text) => {
     const date = tryParseDate(text)
     if (date) {
-      wrapDateTime(editor, date)
+      wrapDateTime(editor, text, date)
     } else {
       insertText(text)
     }
@@ -456,7 +464,7 @@ const withDateTime = (editor) => {
     const text = data.getData('text/plain')
     const date = tryParseDate(text)
     if (date) {
-      wrapDateTime(editor, date)
+      wrapDateTime(editor, text, date)
     } else {
       insertData(data)
     }
@@ -469,7 +477,7 @@ const insertDateTime = (editor, text) => {
   if (editor.selection) {
     const date = tryParseDate(text)
     if (date) {
-      wrapDateTime(editor, date)
+      wrapDateTime(editor, text, date)
     }
   }
 }
@@ -493,7 +501,7 @@ const unwrapDateTime = (editor) => {
   })
 }
 
-const wrapDateTime = (editor, date) => {
+const wrapDateTime = (editor, text, date) => {
   if (isDateTimeActive(editor)) {
     unwrapDateTime(editor)
   }
@@ -503,7 +511,83 @@ const wrapDateTime = (editor, date) => {
   const element: DateTimeElement = {
     type: kSlateBlockTypeDateTime,
     timestamp: date.unix(),
-    children: isCollapsed ? [{ text: url }] : [],
+    children: isCollapsed ? [{ text }] : [],
+  }
+
+  if (isCollapsed) {
+    Transforms.insertNodes(editor, element)
+  } else {
+    Transforms.wrapNodes(editor, element, { split: true })
+    Transforms.collapse(editor, { edge: 'end' })
+  }
+}
+
+// Link
+
+const withLinks = (editor) => {
+  const { insertData, insertText, isInline } = editor
+
+  editor.isInline = (element) => {
+    return element.type === kSlateBlockTypeLink ? true : isInline(element)
+  }
+
+  editor.insertText = (text) => {
+    if (text && isUrl(text)) {
+      wrapLink(editor, text)
+    } else {
+      insertText(text)
+    }
+  }
+
+  editor.insertData = (data) => {
+    const text = data.getData('text/plain')
+
+    if (text && isUrl(text)) {
+      wrapLink(editor, text)
+    } else {
+      insertData(data)
+    }
+  }
+
+  return editor
+}
+
+const insertLink = (editor, url) => {
+  if (editor.selection) {
+    wrapLink(editor, url)
+  }
+}
+
+const isLinkActive = (editor) => {
+  const [link] = Editor.nodes(editor, {
+    match: (n) =>
+      !Editor.isEditor(n) &&
+      SlateElement.isElement(n) &&
+      n.type === kSlateBlockTypeLink,
+  })
+  return !!link
+}
+
+const unwrapLink = (editor) => {
+  Transforms.unwrapNodes(editor, {
+    match: (n) =>
+      !Editor.isEditor(n) &&
+      SlateElement.isElement(n) &&
+      n.type === kSlateBlockTypeLink,
+  })
+}
+
+const wrapLink = (editor, link) => {
+  if (isLinkActive(editor)) {
+    unwrapLink(editor)
+  }
+
+  const { selection } = editor
+  const isCollapsed = selection && Range.isCollapsed(selection)
+  const element: LinkElement = {
+    type: kSlateBlockTypeLink,
+    link,
+    children: isCollapsed ? [{ text: link }] : [],
   }
 
   if (isCollapsed) {
@@ -617,6 +701,12 @@ const _makeElementRender = (isEditable: boolean) => {
           <DateTime attributes={attributes} element={element} ref={ref}>
             {children}
           </DateTime>
+        )
+      case kSlateBlockTypeLink:
+        return (
+          <Link attributes={attributes} element={element} ref={ref}>
+            {children}
+          </Link>
         )
       default:
         return (

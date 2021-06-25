@@ -18,11 +18,16 @@
   - [x] Clean up deprecated editors
   - [x] Clicks on a text lead to crash - why?
   - [x] Copy and blank copy don't work
-  - [x] Click on a date in the doc crashes the app
-  - [ ] Add basic support for links
+  - [x] Click on a date in the doc crashes the app, 2021.06.25
+  - [x] Add basic support for links, 2021.06.25/10:50
+  - [x] Restrict nested paragraphs, 2021.06.25/10:50
   - [ ] Release
+- [ ] Smart menu on "//"
 - [ ] Slate editor - text style menu (pop up)
 - [ ] Slate editor - block style menu
+- [ ] Links editing menu
+- [ ] Customise local links - on insert add edges
+- [ ] Dates pick up
 - [ ] Magnet edges is broken
 - [ ] Force title (header 1) for all notes, if missing use random emoji
 - [ ] Goto search doesn't work!

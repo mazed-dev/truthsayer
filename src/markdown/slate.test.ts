@@ -2,7 +2,9 @@ import React from 'react'
 
 import { Descendant } from 'slate'
 
-import { slateToMarkdown, markdownToSlate, _moveOutImageBlocks } from './slate'
+import { slateToMarkdown, markdownToSlate, _siftUpBlocks } from './slate'
+
+import { debug } from '../util/log'
 
 import {
   kSlateBlockTypeBreak,
@@ -296,7 +298,6 @@ test('Extra(back-and-forth): checlists', async () => {
   - [x] CCC +92+5kenT/8K ObrJ
 `
   const value = await markdownToSlate(md)
-  expect(value.length).toStrictEqual(1)
   const backMd = slateToMarkdown(value).replaceAll('\n\n', '')
   expect(lodash.trim(backMd)).toStrictEqual(lodash.trim(md))
 })
@@ -307,7 +308,7 @@ test('Extra(backward): links as date and back', async () => {
   expect(value.length).toStrictEqual(1)
   const backMd = slateToMarkdown(value)
   expect(lodash.trim(backMd)).toStrictEqual(
-    'QrPSc 2021 May 01, Saturday, 12:00:00 nk8SGb'
+    'QrPSc 2021 May 01, Saturday nk8SGb'
   )
 })
 
@@ -348,7 +349,7 @@ test('Extra(image): only top level images', async () => {
       ],
     },
   ]
-  const newContents = _moveOutImageBlocks(root)
+  const newContents = _siftUpBlocks(root)
   expect(newContents).toStrictEqual([
     {
       type: 'image',

@@ -18,7 +18,7 @@ import { goto } from '../../../lib/route.jsx'
 import CopyImg from '../../../img/copy.png'
 import DeleteImg from '../../../img/delete.png'
 
-import styles from './Link.module.css'
+import styles from './OldLink.module.css'
 
 const lodash = require('lodash')
 

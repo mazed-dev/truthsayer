@@ -46,7 +46,7 @@ const UnorderedList = React.forwardRef(
   }
 )
 
-const CheckListItemElement = React.forwardRef(
+const CheckListItem = React.forwardRef(
   ({ attributes, children, element, isEditable }, ref) => {
     const { checked = false } = element
     const editor = useSlateStatic()
@@ -54,7 +54,6 @@ const CheckListItemElement = React.forwardRef(
     const checkLineStyle = checked
       ? styles.check_line_span_checked
       : styles.check_line_span
-    debug('Check element', element, checked)
     return (
       <div {...attributes} className={styles.check_item_span}>
         <span contentEditable={false} className={styles.check_box_span}>
@@ -63,7 +62,6 @@ const CheckListItemElement = React.forwardRef(
             ref={ref}
             onChange={(event) => {
               const path = ReactEditor.findPath(editor, element)
-              debug('Check event', event, checked)
               const newProperties: Partial<SlateElement> = {
                 checked: !checked,
               }
@@ -88,5 +86,5 @@ export const List = {
   Ordered: OrderedList,
   Unordered: UnorderedList,
   Item: ListItem,
-  CheckItem: CheckListItemElement,
+  CheckItem: CheckListItem,
 }

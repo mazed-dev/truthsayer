@@ -179,7 +179,7 @@ export async function getDocDraft(doc: TDoc): TDraftDoc {
   return await makeDoc({})
 }
 
-export async function getDocSlate(doc: TDoc): Descendant[] {
+export async function getDocSlate(doc: TDoc | string): Descendant[] {
   let slate
   if (lodash.isString(doc)) {
     slate = await markdownToSlate(doc)
@@ -191,7 +191,7 @@ export async function getDocSlate(doc: TDoc): Descendant[] {
       if (chunks) {
         const source = chunks.reduce((acc, curr) => {
           if (isTextChunk(curr)) {
-            return `${acc}\n${curr.source}`
+            return `${acc}\n\n${curr.source}`
           }
           return acc
         }, '')
@@ -338,7 +338,7 @@ function makeThematicBreak(): ThematicBreakElement {
   }
 }
 
-function makeParagraph(children: Descendant[]): ParagraphElement {
+export function makeParagraph(children: Descendant[]): ParagraphElement {
   return {
     type: kSlateBlockTypeParagraph,
     children,
@@ -353,7 +353,7 @@ function makeLink(text, link): LinkElement {
   }
 }
 
-function makeLeaf(text): LeafElement {
+export function makeLeaf(text): LeafElement {
   return { text }
 }
 

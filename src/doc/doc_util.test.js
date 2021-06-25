@@ -4,6 +4,9 @@ import {
   exctractDocTitle,
   enforceTopHeader,
   getPlainText,
+  getDocSlate,
+  makeParagraph,
+  makeLeaf,
 } from './doc_util.jsx'
 import { TDoc, TChunk, EChunkType } from './types'
 import {
@@ -15,23 +18,25 @@ import {
 import { markdownToDraft } from '../markdown/conv.jsx'
 import { markdownToSlate } from '../markdown/slate.ts'
 
-test('exctractDocTitle - raw string', () => {
+test('exctractDocTitle - raw string', async () => {
   const text = 'RmdBzaGUgdHJpZWQgdG8gd2FzaCBvZm'
-  const title = exctractDocTitle(text)
+  const doc = await getDocSlate(text)
+  const title = exctractDocTitle(doc)
   expect(title).toStrictEqual(text)
 })
 
 test('exctractDocTitle - empty object', () => {
-  const title = exctractDocTitle({})
+  const slate = [makeParagraph([makeLeaf()])]
+  const title = exctractDocTitle(slate)
   expect(title).toStrictEqual('Some page' + '\u2026')
 })
 
-test('exctractDocTitle - multiple chunks', () => {
+test('exctractDocTitle - multiple chunks', async () => {
   const text = 'RmdB zaGUgdHJpZWQgd G8gd2FzaCBvZm'
   const doc: TDoc = {
     chunks: [makeChunk(text), makeChunk('asdf'), , makeChunk('123')],
   }
-  const title = exctractDocTitle(doc)
+  const title = exctractDocTitle(await getDocSlate(doc))
   expect(title).toStrictEqual(text)
 })
 
@@ -115,6 +120,7 @@ __Trees were swaying__
     'Combined emphasis with asterisks and underscores .',
     'Schools Travel history Housing history',
     'Inline-style link',
+    '2021-May-01-Saturday',
     'Trees were swaying',
     'https://wq8k.su/ip3t8x85eckumpsezhr4ek6qatraghtohr38khg',
     '94ogoxqapi84je7hkbt1qtt8k1oeycqc43haij57pimhn',
