@@ -49,7 +49,6 @@ export function slateToMarkdown(state: Descendant[]): string {
  */
 export async function markdownToSlate(text: string): Promise<Descendant[]> {
   let { contents } = await unified().use(markdown).use(slate).process(text)
-  debug('markdownToSlate -> ', contents)
   contents = parseExtraBlocks(contents)
   contents = _siftUpBlocks(contents)
   contents = _dissolveNestedParagraphs(contents)
