@@ -116,11 +116,7 @@ export const DocEditor = ({ className, node, saveDoc }) => {
     () =>
       withLinks(
         withDateTime(
-          withImages(
-            withChecklists(
-              withShortcuts(withReact(withHistory(createEditor())))
-            )
-          )
+          withImages(withShortcuts(withReact(withHistory(createEditor()))))
         )
       ),
     []
@@ -160,10 +156,7 @@ export const ReadOnlyDoc = ({ className, node }) => {
   )
   const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
   const editor = useMemo(
-    () =>
-      withLinks(
-        withDateTime(withImages(withChecklists(withReact(createEditor()))))
-      ),
+    () => withLinks(withDateTime(withImages(withReact(createEditor())))),
     []
   )
   return (
@@ -211,7 +204,10 @@ const withShortcuts = (editor) => {
           match: (n) => Editor.isBlock(editor, n),
         })
 
-        if (type === kSlateBlockTypeListItem) {
+        if (
+          type === kSlateBlockTypeListItem ||
+          type === kSlateBlockTypeListCheckItem
+        ) {
           const list: BulletedListElement = {
             type: kSlateBlockTypeUnorderedList,
             children: [],
@@ -220,18 +216,7 @@ const withShortcuts = (editor) => {
             match: (n) =>
               !Editor.isEditor(n) &&
               SlateElement.isElement(n) &&
-              n.type === kSlateBlockTypeListItem,
-          })
-        } else if (type === kSlateBlockTypeListCheckItem) {
-          const list: BulletedListElement = {
-            type: kSlateBlockTypeUnorderedList,
-            children: [],
-          }
-          Transforms.wrapNodes(editor, list, {
-            match: (n) =>
-              !Editor.isEditor(n) &&
-              SlateElement.isElement(n) &&
-              n.type === kSlateBlockTypeListCheckItem,
+              n.type === type,
           })
         }
 
@@ -282,48 +267,8 @@ const withShortcuts = (editor) => {
           return
         }
       }
-
       deleteBackward(...args)
     }
-  }
-
-  return editor
-}
-
-const withChecklists = (editor) => {
-  const { deleteBackward } = editor
-
-  editor.deleteBackward = (...args) => {
-    const { selection } = editor
-
-    if (selection && Range.isCollapsed(selection)) {
-      const [match] = Editor.nodes(editor, {
-        match: (n) =>
-          !Editor.isEditor(n) &&
-          SlateElement.isElement(n) &&
-          !lodash.isUndefined(n.checked),
-      })
-
-      if (match) {
-        const [, path] = match
-        const start = Editor.start(editor, path)
-
-        if (Point.equals(selection.anchor, start)) {
-          const newProperties: Partial<SlateElement> = {
-            type: kSlateBlockTypeParagraph,
-          }
-          Transforms.setNodes(editor, newProperties, {
-            match: (n) =>
-              !Editor.isEditor(n) &&
-              SlateElement.isElement(n) &&
-              !lodash.isUndefined(n.checked),
-          })
-          return
-        }
-      }
-    }
-
-    deleteBackward(...args)
   }
 
   return editor

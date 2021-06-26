@@ -1,0 +1,9 @@
+.tip {
+  display: inline-flex;
+}
+
+.tip:after {
+  content: "Don't be afraid of an empty line...";
+  opacity: 0.42;
+  margin-left: 5px;
+}

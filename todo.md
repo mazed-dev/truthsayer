@@ -24,10 +24,12 @@
   - [x] Fixed crashes on image click, 2021.06.26/09:09
   - [x] Make datetime inline element not editable, 2021.06.26/09:35
   - [x] Checkboxes have to be "read-only" on a small cards
+  - [x] Placeholder on each empty block, 2021.06.26/11:21
+  - [x] Deleted by backspace checkbox become a paragraph in the list, 2021.06.26/11:32
   - [ ] Release
 - [ ] Smart menu on "//"
-- [ ] Slate editor - text style menu (pop up)
 - [ ] Slate editor - block style menu
+- [ ] Slate editor - text style menu (pop up)
 - [ ] Links editing menu
 - [ ] Customise local links - on insert add edges
 - [ ] Dates pick up
