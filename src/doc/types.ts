@@ -123,6 +123,7 @@ export type ParagraphElement = {
 export type LinkElement = {
   type: kSlateBlockTypeParagraph
   children: LeafElement[]
+  url: string
 }
 
 export type ThematicBreakElement = {

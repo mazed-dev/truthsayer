@@ -21,6 +21,8 @@
   - [x] Click on a date in the doc crashes the app, 2021.06.25
   - [x] Add basic support for links, 2021.06.25/10:50
   - [x] Restrict nested paragraphs, 2021.06.25/10:50
+  - [x] Fixed crashes on image click, 2021.06.26/09:09
+  - [ ] Make datetime inline element not editable
   - [ ] Release
 - [ ] Smart menu on "//"
 - [ ] Slate editor - text style menu (pop up)

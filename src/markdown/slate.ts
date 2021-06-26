@@ -49,6 +49,7 @@ export function slateToMarkdown(state: Descendant[]): string {
  */
 export async function markdownToSlate(text: string): Promise<Descendant[]> {
   let { contents } = await unified().use(markdown).use(slate).process(text)
+  debug('markdownToSlate -> ', contents)
   contents = parseExtraBlocks(contents)
   contents = _siftUpBlocks(contents)
   contents = _dissolveNestedParagraphs(contents)
@@ -175,26 +176,26 @@ function parseLinkExtraSyntax(item: Descendant): Descendant {
   if (dtParts) {
     // Arguably unix timestamp (signed)
     const timestamp = parseInt(dtParts[1], 10)
-    if (isNaN(timestamp)) {
-      return item
-    }
-    let format = dtParts[2]
-    // Backward compatibility
-    if (format === 'day') {
-      format = 'YYYY MMMM DD, dddd'
-    } else if (format === 'time') {
-      format = 'YYYY MMMM DD, hh:mm:ss'
-    }
-    format = format || 'YYYY MMMM DD, dddd, hh:mm'
-    const text = moment.unix(timestamp).format(format)
-    children = [{ text }]
-    return {
-      children,
-      format,
-      timestamp,
-      type: kSlateBlockTypeDateTime,
+    if (!isNaN(timestamp)) {
+      let format = dtParts[2]
+      // Backward compatibility
+      if (format === 'day') {
+        format = 'YYYY MMMM DD, dddd'
+      } else if (format === 'time') {
+        format = 'YYYY MMMM DD, hh:mm:ss'
+      }
+      format = format || 'YYYY MMMM DD, dddd, hh:mm'
+      const text = moment.unix(timestamp).format(format)
+      children = [{ text }]
+      return {
+        children,
+        format,
+        timestamp,
+        type: kSlateBlockTypeDateTime,
+      }
     }
   }
+  item.url = link
   return item
 }
 
@@ -276,6 +277,9 @@ function serializeExtraBlocks(children: Descendant): Descendant {
       case kSlateBlockTypeDateTime:
         item = serializeExtraDateTime(item)
         break
+      case kSlateBlockTypeLink:
+        item = serializeExtraLink(item)
+        break
     }
     const { children, type } = item
     if (children) {
@@ -310,6 +314,12 @@ function serializeExtraListCheckItem(item: Descendant): Descendant {
       },
     ],
   }
+}
+
+function serializeExtraLink(item: Descendant): Descendant {
+  const { url, link } = item
+  item.link = url || link
+  return item
 }
 
 function serializeExtraDateTime(item: Descendant): Descendant {

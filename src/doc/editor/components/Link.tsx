@@ -12,13 +12,14 @@ import './components.css'
 
 export const Link = React.forwardRef(
   ({ attributes, children, element }, ref) => {
-    const { link } = element
+    let { link, url } = element
+    url = url || link
     const className = joinClasses(
       'doc_block_inline_link',
       'doc_block_inline_link_ext'
     )
     return (
-      <a ref={ref} href={link} {...attributes} className={className}>
+      <a ref={ref} href={url} {...attributes} className={className}>
         {children}
       </a>
     )

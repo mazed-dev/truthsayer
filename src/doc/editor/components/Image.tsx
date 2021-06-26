@@ -19,9 +19,9 @@ export const Image = React.forwardRef(
       className = joinClasses(className, styles.image_selected)
     }
     return (
-      <div {...attributes} ref={ref}>
+      <div {...attributes}>
         <div contentEditable={false}>
-          <img src={url} className={className} />
+          <img src={url} className={className} ref={ref} />
         </div>
         {children}
       </div>
