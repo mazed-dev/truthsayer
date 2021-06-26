@@ -1,32 +1,5 @@
 # Todo
 
-- [ ] Slate editor
-  - [x] Checklists
-    - [x] Deserialize from MD
-    - [x] Serialize to md
-  - [x] Dates
-    - [x] Deserialize from MD
-    - [x] Serialize to MD
-  - [x] Fix test
-  - [x] Custom styles, 2021.06.19
-  - [x] Dates, 2021.06.19
-  - [x] Leaf styles - (bold, italic, code), 2021.06.19
-  - [x] Implement search for slate nodes
-  - [x] Make images only top level elements
-  - [x] Make small cards read-only
-  - [x] Saving the document while editing
-  - [x] Clean up deprecated editors
-  - [x] Clicks on a text lead to crash - why?
-  - [x] Copy and blank copy don't work
-  - [x] Click on a date in the doc crashes the app, 2021.06.25
-  - [x] Add basic support for links, 2021.06.25/10:50
-  - [x] Restrict nested paragraphs, 2021.06.25/10:50
-  - [x] Fixed crashes on image click, 2021.06.26/09:09
-  - [x] Make datetime inline element not editable, 2021.06.26/09:35
-  - [x] Checkboxes have to be "read-only" on a small cards
-  - [x] Placeholder on each empty block, 2021.06.26/11:21
-  - [x] Deleted by backspace checkbox become a paragraph in the list, 2021.06.26/11:32
-  - [ ] Release
 - [ ] Smart menu on "//"
 - [ ] Slate editor - block style menu
 - [ ] Slate editor - text style menu (pop up)
@@ -206,3 +179,30 @@
 - [x] Fix links in "cloned from" disclaimers, 2021.06.06
 - [x] Migration tool to show document of only latest version, migrate on save.  2021.06.06
 - [x] Fix vertical space at the bottom of the checklist item, 2021.06.06/13:19
+- [x] Slate editor
+  - [x] Checklists
+    - [x] Deserialize from MD
+    - [x] Serialize to md
+  - [x] Dates
+    - [x] Deserialize from MD
+    - [x] Serialize to MD
+  - [x] Fix test
+  - [x] Custom styles, 2021.06.19
+  - [x] Dates, 2021.06.19
+  - [x] Leaf styles - (bold, italic, code), 2021.06.19
+  - [x] Implement search for slate nodes
+  - [x] Make images only top level elements
+  - [x] Make small cards read-only
+  - [x] Saving the document while editing
+  - [x] Clean up deprecated editors
+  - [x] Clicks on a text lead to crash - why?
+  - [x] Copy and blank copy don't work
+  - [x] Click on a date in the doc crashes the app, 2021.06.25
+  - [x] Add basic support for links, 2021.06.25/10:50
+  - [x] Restrict nested paragraphs, 2021.06.25/10:50
+  - [x] Fixed crashes on image click, 2021.06.26/09:09
+  - [x] Make datetime inline element not editable, 2021.06.26/09:35
+  - [x] Checkboxes have to be "read-only" on a small cards
+  - [x] Placeholder on each empty block, 2021.06.26/11:21
+  - [x] Deleted by backspace checkbox become a paragraph in the list, 2021.06.26/11:32
+  - [x] Release, 2021.06.26/11:49
