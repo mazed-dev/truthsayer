@@ -1,5 +1,7 @@
 import React from 'react'
 
+import { useSelected, useFocused } from 'slate-react'
+
 import { Badge } from 'react-bootstrap'
 
 import moment from 'moment'
@@ -36,11 +38,25 @@ export function unixToString(
 export const DateTime = React.forwardRef(
   ({ attributes, children, element }, ref) => {
     const { format, timestamp } = element
+
     const timeMoment = moment.unix(timestamp)
     const str = unixToString(timestamp, format)
+
+    let className = styles.pill
+
+    const selected = useSelected()
+    const focused = useFocused()
+    if (selected && focused) {
+      className = joinClasses(className, styles.focused)
+    }
     return (
-      <span ref={ref} {...attributes} className={styles.pill}>
-        {children}
+      <span {...attributes}>
+        <span contentEditable={false}>
+          <span ref={ref} className={className}>
+            {str}
+          </span>
+          {children}
+        </span>
       </span>
     )
   }

@@ -449,10 +449,14 @@ const tryParseDate = (text: Optional<string>) => {
 }
 
 const withDateTime = (editor) => {
-  const { insertData, insertText, isInline } = editor
+  const { insertData, insertText, isInline, isVoid } = editor
 
   editor.isInline = (element) => {
     return element.type === kSlateBlockTypeDateTime ? true : isInline(element)
+  }
+
+  editor.isVoid = (element) => {
+    return element.type === kSlateBlockTypeDateTime ? true : isVoid(element)
   }
 
   editor.insertText = (text) => {

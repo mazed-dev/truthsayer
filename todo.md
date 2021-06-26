@@ -22,7 +22,8 @@
   - [x] Add basic support for links, 2021.06.25/10:50
   - [x] Restrict nested paragraphs, 2021.06.25/10:50
   - [x] Fixed crashes on image click, 2021.06.26/09:09
-  - [ ] Make datetime inline element not editable
+  - [x] Make datetime inline element not editable, 2021.06.26/09:35
+  - [x] Checkboxes have to be "read-only" on a small cards
   - [ ] Release
 - [ ] Smart menu on "//"
 - [ ] Slate editor - text style menu (pop up)

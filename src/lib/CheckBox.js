@@ -7,7 +7,11 @@ import { joinClasses } from '../util/elClass.js'
 export const CheckBox = React.forwardRef(
   ({ checked, onChange, className, disabled, ...kwargs }, ref) => {
     const tick = checked ? styles.checkmark : null
-    const pointy = disabled ? null : styles.pointy
+    let pointy = styles.pointy
+    if (disabled) {
+      onChange = null
+      pointy = null
+    }
     return (
       <div
         className={joinClasses(styles.container, pointy, className)}
