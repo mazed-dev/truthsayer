@@ -3,7 +3,7 @@
 }
 
 .tip:after {
-  content: "Don't be afraid of an empty line...";
-  opacity: 0.42;
-  margin-left: 5px;
+  content: 'Type // to open auto suggestion dialogue...';
+  opacity: 0.32;
+  margin-left: 2px;
 }
