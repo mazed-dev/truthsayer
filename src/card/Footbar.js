@@ -8,6 +8,8 @@ import { MeatballsButton } from './MeatballsButton'
 
 import { joinClasses } from '../util/elClass.js'
 
+import { debug } from './../util/log'
+
 export const FootbarDropdown = React.forwardRef(
   ({ children, onClick, className }, ref) => (
     <Dropdown
@@ -50,10 +52,18 @@ export const FootbarDropdownMenu = ({ children, className }) => (
   <Dropdown.Menu>{children}</Dropdown.Menu>
 )
 
-export const FootbarDropdownItem = ({ children, className, onClick }) => (
+export const FootbarDropdownItem = ({
+  children,
+  className,
+  as,
+  to,
+  onClick,
+}) => (
   <Dropdown.Item
     className={joinClasses(styles.footbar_dropdown_item, className)}
     onClick={onClick}
+    as={as}
+    to={to}
   >
     {children}
   </Dropdown.Item>

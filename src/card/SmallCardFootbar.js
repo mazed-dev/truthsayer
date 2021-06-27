@@ -80,6 +80,7 @@ class PrivateSmallCardFootbarImpl extends React.Component {
   }
 
   makeMenu() {
+    const { nid } = this.props
     const cutTooltip = 'Cut the link'
     const { isSticky } = this.state
     const magnetTooltip = isSticky
@@ -89,6 +90,9 @@ class PrivateSmallCardFootbarImpl extends React.Component {
       <FootbarDropdown>
         <FootbarDropdownToggleMeatballs id={'more-options-for-fullsize-card'} />
         <FootbarDropdownMenu>
+          <FootbarDropdownItem as={Link} to={`/n/${nid}`}>
+            Open
+          </FootbarDropdownItem>
           <FootbarDropdownItem onClick={this.handleRefCutOff}>
             <img
               src={CutTheRefImg}
@@ -131,24 +135,12 @@ class PrivateSmallCardFootbarImpl extends React.Component {
   }
 
   render() {
-    const { nid, isPublic } = this.props
+    const { isPublic } = this.props
     const menu = isPublic ? this.makeMagnet() : this.makeMenu()
     return (
-      <>
-        <ButtonToolbar className={joinClasses(styles.toolbar)}>
-          <ImgButton
-            className={joinClasses(
-              styles.tool_button,
-              styles.toolbar_layout_item
-            )}
-            as={Link}
-            to={`/n/${nid}`}
-          >
-            Open
-          </ImgButton>
-          {menu}
-        </ButtonToolbar>
-      </>
+      <ButtonToolbar className={joinClasses(styles.toolbar)}>
+        {menu}
+      </ButtonToolbar>
     )
   }
 }
