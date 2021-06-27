@@ -10,7 +10,6 @@ import { nextRefSmartItemSearch } from './NextRefSmartItem'
 import { SearchGrid } from './../grid/SearchGrid'
 
 import { exctractDocTitle } from './../doc/doc_util'
-import { smugler } from './../smugler/api'
 
 import styles from './AutocompleteWindow.module.css'
 

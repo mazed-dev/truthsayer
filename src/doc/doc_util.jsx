@@ -345,7 +345,7 @@ export function makeParagraph(children: Descendant[]): ParagraphElement {
   }
 }
 
-function makeLink(text, link): LinkElement {
+export function makeLink(text, link): LinkElement {
   return {
     type: kSlateBlockTypeLink,
     children: [makeLeaf(text)],

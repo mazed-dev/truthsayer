@@ -1,12 +1,14 @@
 # Todo
 
-- [ ] Smart menu on "//"
+- [ ] Implement local link, with a special option and special character 📄
+- [ ] Add edge when local link is added
+- [ ] Implement TimeDate rule for Jinn
 - [ ] Slate editor - block style menu
 - [ ] Slate editor - text style menu (pop up)
-- [ ] Links editing menu
-- [ ] Customise local links - on insert add edges
+- [ ] Images support
+- [ ] Implement special type of page - "dashboard"
 - [ ] Dates pick up
-- [ ] Magnet edges is broken
+- [ ] Links editing menu
 - [ ] Force title (header 1) for all notes, if missing use random emoji
 - [ ] Goto search doesn't work!
 - [ ] Make editor usabe from mobile
@@ -206,3 +208,4 @@
   - [x] Placeholder on each empty block, 2021.06.26/11:21
   - [x] Deleted by backspace checkbox become a paragraph in the list, 2021.06.26/11:32
   - [x] Release, 2021.06.26/11:49
+  - [x] Smart menu on "//": implemented new smart point for slate editor - "Jinn", works only for adding links to other nodes, 2021.06.27/18:01

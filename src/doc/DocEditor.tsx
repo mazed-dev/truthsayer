@@ -51,6 +51,8 @@ import { joinClasses } from './../util/elClass.js'
 import { debug } from './../util/log'
 import { Optional } from './../util/types'
 
+import { withJinn, Jinn } from './editor/plugins/jinn'
+
 import {
   Header1,
   Header2,
@@ -104,6 +106,10 @@ const SHORTCUTS = {
 export const DocEditor = ({ className, node, saveDoc }) => {
   const { doc, nid } = node
   const [value, setValue] = useState<Descendant[]>([])
+  const [showJinn, setShowJinn] = useState<boolean>(false)
+  const onModalHide = () => {
+    setShowModal(false)
+  }
   useEffect(() => {
     getDocSlate(doc).then((content) => setValue(content))
   }, [nid])
@@ -114,15 +120,19 @@ export const DocEditor = ({ className, node, saveDoc }) => {
   const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
   const editor = useMemo(
     () =>
-      withLinks(
-        withDateTime(
-          withImages(withShortcuts(withReact(withHistory(createEditor()))))
+      withJinn(
+        setShowJinn,
+        withLinks(
+          withDateTime(
+            withImages(withShortcuts(withReact(withHistory(createEditor()))))
+          )
         )
       ),
     []
   )
   return (
     <div className={className}>
+      <Jinn show={showJinn} setShow={setShowJinn} editor={editor} />
       <Slate
         editor={editor}
         value={value}
@@ -203,7 +213,6 @@ const withShortcuts = (editor) => {
         Transforms.setNodes(editor, newProperties, {
           match: (n) => Editor.isBlock(editor, n),
         })
-
         if (
           type === kSlateBlockTypeListItem ||
           type === kSlateBlockTypeListCheckItem
@@ -219,7 +228,6 @@ const withShortcuts = (editor) => {
               n.type === type,
           })
         }
-
         return
       }
     }

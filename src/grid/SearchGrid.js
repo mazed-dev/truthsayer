@@ -19,6 +19,8 @@ import { isSmartCase } from './../util/str.jsx'
 import { MzdGlobalContext } from '../lib/global.js'
 import { Loader } from './../lib/loader'
 
+import { debug } from '../util/log'
+
 import styles from './SearchGrid.module.css'
 
 const lodash = require('lodash')
@@ -68,12 +70,13 @@ class DynamicGrid extends React.Component {
   }
 
   render() {
+    debug('Cards', this.props.children)
     const colWidth = Math.floor(100 / this.state.ncols)
     const columnStyle = {
       width: `${colWidth}%`,
     }
     const columns = range(this.state.ncols).map((_, col_ind) => {
-      const colCards = this.props.cards.filter((_, card_ind) => {
+      const colCards = this.props.children.filter((_, card_ind) => {
         return card_ind % this.state.ncols === col_ind
       })
       return (
@@ -278,7 +281,8 @@ class SearchGridImpl extends React.Component {
   }
 
   render() {
-    const account = this.props.account
+    const { account, onCardClick, children = [] } = this.props
+    debug('SearchGrid', children)
     if (account == null) {
       return (
         <div className={styles.search_grid_waiter}>
@@ -287,9 +291,8 @@ class SearchGridImpl extends React.Component {
       )
     }
 
-    const extCards = this.props.extCards ? this.props.extCards : []
     const used = {}
-    const cards = this.state.nodes
+    let cards = this.state.nodes
       .filter((node) => {
         if (node.nid in used) {
           //* dbg*/ console.log("Search grid overlap", node.nid, item);
@@ -300,9 +303,13 @@ class SearchGridImpl extends React.Component {
       })
       .map((node) => {
         const onClick = () => {
-          this.props.history.push({
-            pathname: `/n/${node.nid}`,
-          })
+          if (onCardClick) {
+            onCardClick(node)
+          } else {
+            this.props.history.push({
+              pathname: `/n/${node.nid}`,
+            })
+          }
         }
         return (
           <SmallCard
@@ -320,7 +327,7 @@ class SearchGridImpl extends React.Component {
           </SmallCard>
         )
       })
-      .concat(extCards)
+    cards = lodash.concat(children, cards)
 
     const fetchingLoader = this.state.fetching ? (
       <div className={styles.search_grid_loader}>
@@ -334,19 +341,13 @@ class SearchGridImpl extends React.Component {
         onScroll={this.handleScroll}
         ref={this.ref}
       >
-        <DynamicGrid cards={cards} />
+        <DynamicGrid>{cards}</DynamicGrid>
         {fetchingLoader}
       </div>
     )
   }
 }
 
-SearchGridImpl.defaultProps = {
-  defaultSearch: true,
-  portable: false,
-  onCardClick: null,
-  extCards: null,
-}
 // SearchGridImpl.contextType = MzdGlobalContext;
 const SearchGridRouter = withRouter(SearchGridImpl)
 
