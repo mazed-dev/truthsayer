@@ -14,6 +14,7 @@ export const CodeBlock = React.forwardRef(
         autoComplete={'off'}
         autoCorrect={'off'}
         autoCapitalize={'off'}
+        ref={ref}
         {...attributes}
       >
         {children}

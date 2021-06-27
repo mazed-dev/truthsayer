@@ -585,37 +585,37 @@ const _makeElementRender = (isEditable: boolean) => {
         )
       case kSlateBlockTypeH1:
         return (
-          <Header1 ref={ref} {...attributes}>
+          <Header1 ref={ref} nid={nid} {...attributes}>
             {children}
           </Header1>
         )
       case kSlateBlockTypeH2:
         return (
-          <Header2 ref={ref} {...attributes}>
+          <Header2 ref={ref} nid={nid} {...attributes}>
             {children}
           </Header2>
         )
       case kSlateBlockTypeH3:
         return (
-          <Header3 ref={ref} {...attributes}>
+          <Header3 ref={ref} nid={nid} {...attributes}>
             {children}
           </Header3>
         )
       case kSlateBlockTypeH4:
         return (
-          <Header4 ref={ref} {...attributes}>
+          <Header4 ref={ref} nid={nid} {...attributes}>
             {children}
           </Header4>
         )
       case kSlateBlockTypeH5:
         return (
-          <Header5 ref={ref} {...attributes}>
+          <Header5 ref={ref} nid={nid} {...attributes}>
             {children}
           </Header5>
         )
       case kSlateBlockTypeH6:
         return (
-          <Header6 ref={ref} {...attributes}>
+          <Header6 ref={ref} nid={nid} {...attributes}>
             {children}
           </Header6>
         )

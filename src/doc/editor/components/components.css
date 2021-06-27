@@ -147,8 +147,7 @@ div.public-DraftStyleDefault-block {
 .doc_code_block {
   margin: 0;
   /* top right bottom left */
-  padding: 4px 12px 0 12px;
-  border-radius: 5px;
+  padding: 6px 12px 0 12px;
 
   background-color: rgb(246, 248, 250);
   color: black;
@@ -161,11 +160,11 @@ div.public-DraftStyleDefault-block {
 
 .doc_code_block:first-of-type {
   /* top-left, top-right, bottom-right, bottom-left */
-  border-radius: 5px 5px 0 0;
+  border-radius: 6px 6px 0 0;
 }
 
 .doc_code_block:last-of-type {
-  border-radius: 0 0 5px 5px;
+  border-radius: 0 0 6px 6px;
   margin-top: 0;
   margin-bottom: 1em;
 }
