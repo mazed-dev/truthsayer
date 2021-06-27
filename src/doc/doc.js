@@ -8,7 +8,7 @@ import { withRouter } from 'react-router-dom'
 import { Loader } from '../lib/loader'
 import { MzdGlobalContext } from './../lib/global'
 
-import { joinClasses } from '../util/elClass.js'
+import { jcss } from '../util/jcss'
 
 import { ChunkRender, parseRawSource } from './chunks'
 
@@ -189,10 +189,8 @@ class DocRenderImpl extends React.Component {
       />
     )
     return (
-      <Card
-        className={joinClasses(styles.fluid_container, styles.doc_render_card)}
-      >
-        <Card.Body className={joinClasses(styles.doc_render_card_body)}>
+      <Card className={jcss(styles.fluid_container, styles.doc_render_card)}>
+        <Card.Body className={jcss(styles.doc_render_card_body)}>
           {body}
         </Card.Body>
         <AuthorFooter node={this.props.node} />

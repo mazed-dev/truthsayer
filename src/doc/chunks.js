@@ -9,7 +9,7 @@ import { Button, ButtonGroup, InputGroup, Form } from 'react-bootstrap'
 
 import { AutocompleteWindow } from './../smartpoint/AutocompleteWindow'
 import { MarkdownToolbar } from './MarkdownToolBar.js'
-import { joinClasses } from '../util/elClass.js'
+import { jcss } from '../util/jcss'
 import { renderMdCard, SmallAsterisk } from './../markdown/MarkdownRender'
 
 import { MzdGlobalContext } from './../lib/global'
@@ -38,7 +38,7 @@ class ChunkRenderToolbar extends React.Component {
         <Button
           variant="light"
           onClick={this.props.enableEditMode}
-          className={joinClasses(styles.paragraph_toolbar_btn)}
+          className={jcss(styles.paragraph_toolbar_btn)}
         >
           <HoverTooltip tooltip={'Edit'}>
             <img
@@ -104,13 +104,11 @@ export class ChunkRender extends React.Component {
       )
     return (
       <div
-        className={joinClasses(styles.fluid_container)}
+        className={jcss(styles.fluid_container)}
         onMouseEnter={this.onHover}
         onMouseLeave={this.offHover}
       >
-        <div className={joinClasses(styles.fluid_paragraph_toolbar)}>
-          {toolbar}
-        </div>
+        <div className={jcss(styles.fluid_paragraph_toolbar)}>{toolbar}</div>
         {card}
       </div>
     )
@@ -390,7 +388,7 @@ export class TextEditor extends React.Component {
           callback={this._saveAndQuitEditing}
           isActive={!this.state.modalShow}
         >
-          <InputGroup className={joinClasses(styles.editor_input_group)}>
+          <InputGroup className={jcss(styles.editor_input_group)}>
             <Form.Control
               as="textarea"
               aria-label="With textarea"

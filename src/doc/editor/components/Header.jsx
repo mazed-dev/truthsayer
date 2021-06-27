@@ -5,7 +5,7 @@ import { NavLink } from 'react-router-dom'
 import './components.css'
 import styles from './Header.module.css'
 
-import { joinClasses } from '../../../util/elClass.js'
+import { jcss } from '../../../util/jcss'
 
 const StdHeader = React.forwardRef(({ depth, ...attributes }, ref) => {
   switch (depth) {
@@ -39,7 +39,7 @@ function Anchored({ nid, children }) {
 function makeStyledHeader(depth, baseClassName) {
   const StyledHeader = React.forwardRef(
     ({ className, children, nid, ...attributes }, ref) => {
-      className = joinClasses(baseClassName, className)
+      className = jcss(baseClassName, className)
       return (
         <StdHeader
           ref={ref}

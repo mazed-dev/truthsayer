@@ -16,7 +16,7 @@ import { Emoji } from './../Emoji'
 import { MdCheckBox } from './MdCheckBox'
 import { MzdLink } from './../lib/MzdLink'
 
-import { joinClasses } from '../util/elClass.js'
+import { jcss } from '../util/jcss'
 
 export function HeaderOne({ children, ...rest }) {
   return (
@@ -128,7 +128,7 @@ function MarkdownSmallHeading(nid) {
         hdr_el =
           nid != null ? (
             <NavLink
-              className={joinClasses(styles.small_h1, styles.small_ref)}
+              className={jcss(styles.small_h1, styles.small_ref)}
               {...rest}
               to={`/n/${nid}`}
             >
@@ -144,7 +144,7 @@ function MarkdownSmallHeading(nid) {
         hdr_el =
           nid != null ? (
             <NavLink
-              className={joinClasses(styles.small_h2, styles.small_ref)}
+              className={jcss(styles.small_h2, styles.small_ref)}
               {...rest}
               to={`/n/${nid}`}
             >
@@ -160,7 +160,7 @@ function MarkdownSmallHeading(nid) {
         hdr_el =
           nid != null ? (
             <NavLink
-              className={joinClasses(styles.small_h4, styles.small_ref)}
+              className={jcss(styles.small_h4, styles.small_ref)}
               {...rest}
               to={`/n/${nid}`}
             >
@@ -176,7 +176,7 @@ function MarkdownSmallHeading(nid) {
         hdr_el =
           nid != null ? (
             <NavLink
-              className={joinClasses(styles.small_h4, styles.small_ref)}
+              className={jcss(styles.small_h4, styles.small_ref)}
               {...rest}
               to={`/n/${nid}`}
             >
@@ -192,7 +192,7 @@ function MarkdownSmallHeading(nid) {
         hdr_el =
           nid != null ? (
             <NavLink
-              className={joinClasses(styles.small_h5, styles.small_ref)}
+              className={jcss(styles.small_h5, styles.small_ref)}
               {...rest}
               to={`/n/${nid}`}
             >
@@ -209,7 +209,7 @@ function MarkdownSmallHeading(nid) {
         hdr_el =
           nid != null ? (
             <NavLink
-              className={joinClasses(styles.small_h6, styles.small_ref)}
+              className={jcss(styles.small_h6, styles.small_ref)}
               {...rest}
               to={`/n/${nid}`}
             >
@@ -469,7 +469,7 @@ export function MdCardRender({ source, nid, update }) {
 function MarkdownRoot({ children, sourcePosition, ...rest }) {
   return (
     <div
-      className={joinClasses(
+      className={jcss(
         'markdown-body',
         'markdown-full-note-body',
         styles.full_paragraph
@@ -484,7 +484,7 @@ function MarkdownRoot({ children, sourcePosition, ...rest }) {
 function MarkdownSmallRoot({ children, sourcePosition, ...rest }) {
   return (
     <div
-      className={joinClasses(
+      className={jcss(
         'markdown-body',
         'markdown-small-card-body',
         styles.small_paragraph
@@ -521,7 +521,7 @@ export function SmallAsterisk({ nid, children, ...rest }) {
   return (
     <div className={styles.asterisk}>
       <NavLink
-        className={joinClasses(styles.small_h1, styles.small_ref)}
+        className={jcss(styles.small_h1, styles.small_ref)}
         {...rest}
         to={`/n/${nid}`}
       >

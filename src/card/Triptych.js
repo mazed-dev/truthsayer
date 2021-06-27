@@ -15,7 +15,7 @@ import { FullCardFootbar } from './FullCardFootbar'
 import { withRouter } from 'react-router-dom'
 
 import { MzdGlobalContext } from '../lib/global.js'
-import { joinClasses } from './../util/elClass.js'
+import { jcss } from './../util/jcss'
 import { debug } from './../util/log'
 
 import { smugler } from '../smugler/api.js'
@@ -288,13 +288,7 @@ class Triptych extends React.Component {
     let triptychRow = null
     if (!this.state.is_narrow) {
       triptychRow = (
-        <Row
-          className={joinClasses(
-            'd-flex',
-            'justify-content-center',
-            styles.row
-          )}
-        >
+        <Row className={jcss('d-flex', 'justify-content-center', styles.row)}>
           <Col className={styles.refs_col}>{leftRefs}</Col>
           <Col className={styles.node_card_col}>{nodeCard}</Col>
           <Col className={styles.refs_col}>{rightRefs}</Col>
@@ -304,19 +298,11 @@ class Triptych extends React.Component {
       triptychRow = (
         <>
           <div className={styles.node_card_col}>{nodeCard}</div>
-          <Row
-            className={joinClasses(
-              'd-flex',
-              'justify-content-center',
-              styles.row
-            )}
-          >
-            <Col className={joinClasses(styles.refs_col, styles.refs_left_col)}>
+          <Row className={jcss('d-flex', 'justify-content-center', styles.row)}>
+            <Col className={jcss(styles.refs_col, styles.refs_left_col)}>
               {leftRefs}
             </Col>
-            <Col
-              className={joinClasses(styles.refs_col, styles.refs_right_col)}
-            >
+            <Col className={jcss(styles.refs_col, styles.refs_right_col)}>
               {rightRefs}
             </Col>
           </Row>

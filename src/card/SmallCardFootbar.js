@@ -16,7 +16,7 @@ import ImgStickyRefOn from './../img/sticky-ref-checkbox-on.png'
 import { MzdGlobalContext } from '../lib/global'
 import { ImgButton } from '../lib/ImgButton'
 import { HoverTooltip } from '../lib/tooltip'
-import { joinClasses } from '../util/elClass.js'
+import { jcss } from '../util/jcss'
 import { CheckBox } from './../lib/CheckBox.js'
 import {
   FootbarDropdown,
@@ -96,10 +96,7 @@ class PrivateSmallCardFootbarImpl extends React.Component {
           <FootbarDropdownItem onClick={this.handleRefCutOff}>
             <img
               src={CutTheRefImg}
-              className={joinClasses(
-                styles.tool_button_img,
-                styles.menu_item_pic
-              )}
+              className={jcss(styles.tool_button_img, styles.menu_item_pic)}
               alt={cutTooltip}
             />
             {cutTooltip}
@@ -120,13 +117,11 @@ class PrivateSmallCardFootbarImpl extends React.Component {
       ? 'This is a magnet link'
       : 'This is a not-magnet link'
     return (
-      <div
-        className={joinClasses(styles.tool_button, styles.toolbar_layout_item)}
-      >
+      <div className={jcss(styles.tool_button, styles.toolbar_layout_item)}>
         <HoverTooltip tooltip={tooltip}>
           <img
             src={src}
-            className={joinClasses(styles.tool_button_img)}
+            className={jcss(styles.tool_button_img)}
             alt={tooltip}
           />
         </HoverTooltip>
@@ -138,9 +133,7 @@ class PrivateSmallCardFootbarImpl extends React.Component {
     const { isPublic } = this.props
     const menu = isPublic ? this.makeMagnet() : this.makeMenu()
     return (
-      <ButtonToolbar className={joinClasses(styles.toolbar)}>
-        {menu}
-      </ButtonToolbar>
+      <ButtonToolbar className={jcss(styles.toolbar)}>{menu}</ButtonToolbar>
     )
   }
 }

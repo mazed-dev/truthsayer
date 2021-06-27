@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { joinClasses } from './../util/elClass.js'
+import { jcss } from './../util/jcss'
 
 import styles from './loader.module.css'
 
@@ -15,7 +15,7 @@ export class Loader extends React.Component {
       sizeStyle = styles.small
     }
     return (
-      <div className={joinClasses(styles.roller, sizeStyle)}>
+      <div className={jcss(styles.roller, sizeStyle)}>
         <div />
         <div />
         <div />

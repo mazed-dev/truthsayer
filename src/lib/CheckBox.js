@@ -2,7 +2,7 @@ import React from 'react'
 
 import styles from './CheckBox.module.css'
 
-import { joinClasses } from '../util/elClass.js'
+import { jcss } from '../util/jcss'
 
 export const CheckBox = React.forwardRef(
   ({ checked, onChange, className, disabled, ...kwargs }, ref) => {
@@ -14,12 +14,12 @@ export const CheckBox = React.forwardRef(
     }
     return (
       <div
-        className={joinClasses(styles.container, pointy, className)}
+        className={jcss(styles.container, pointy, className)}
         onClick={onChange}
         ref={ref}
         {...kwargs}
       >
-        <div className={joinClasses(styles.checkbox, tick)} />
+        <div className={jcss(styles.checkbox, tick)} />
       </div>
     )
   }

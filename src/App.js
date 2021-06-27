@@ -313,7 +313,7 @@ function SearchView() {
   const location = useLocation()
   const params = parse(location.search)
   // console.log("SearchView:", location, params);
-  return <SearchGrid q={params.q} />
+  return <SearchGrid q={params.q} defaultSearch />
 }
 
 export default App

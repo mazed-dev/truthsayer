@@ -2,7 +2,7 @@ import React from 'react'
 
 import styles from './ShrinkCard.module.css'
 
-import { joinClasses } from './../util/elClass.js'
+import { jcss } from './../util/jcss'
 
 /**
  * +-------------------+
@@ -19,7 +19,7 @@ import { joinClasses } from './../util/elClass.js'
 
 export const XxsCard = React.forwardRef(({ children }, ref) => {
   return (
-    <div className={joinClasses(styles.card_xxs, styles.shrinkable)}>
+    <div className={jcss(styles.card_xxs, styles.shrinkable)}>
       {children}
       <div className={styles.fade} />
     </div>
@@ -28,7 +28,7 @@ export const XxsCard = React.forwardRef(({ children }, ref) => {
 
 export const XsCard = React.forwardRef(({ children }, ref) => {
   return (
-    <div className={joinClasses(styles.card_xs, styles.shrinkable)}>
+    <div className={jcss(styles.card_xs, styles.shrinkable)}>
       {children}
       <div className={styles.fade} />
     </div>
@@ -37,7 +37,7 @@ export const XsCard = React.forwardRef(({ children }, ref) => {
 
 export const SCard = React.forwardRef(({ children }, ref) => {
   return (
-    <div className={joinClasses(styles.card_s, styles.shrinkable)}>
+    <div className={jcss(styles.card_s, styles.shrinkable)}>
       {children}
       <div className={styles.fade} />
     </div>
@@ -48,7 +48,7 @@ const SeeMoreButton = React.forwardRef(
   ({ onClick, className, disabled, on }, ref) => {
     return (
       <div
-        className={joinClasses(styles.a_see_more, className)}
+        className={jcss(styles.a_see_more, className)}
         ref={ref}
         onClick={onClick}
         disabled={disabled}
@@ -79,7 +79,7 @@ export class ShrinkCard extends React.Component {
       : styles.card_xxs
     return (
       <>
-        <div className={joinClasses(styles.shrinkable, shrinkStyle)}>
+        <div className={jcss(styles.shrinkable, shrinkStyle)}>
           {this.props.children}
           <div className={styles.fade} />
         </div>

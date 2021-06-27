@@ -3,7 +3,7 @@ import React from 'react'
 import { ReactEditor, Slate, useReadOnly, useSlateStatic } from 'slate-react'
 import { Element as SlateElement, Transforms } from 'slate'
 
-import { joinClasses } from '../../../util/elClass.js'
+import { jcss } from '../../../util/jcss'
 import { CheckBox } from '../../../lib/CheckBox'
 
 import styles from './List.module.css'
@@ -15,7 +15,7 @@ const lodash = require('lodash')
 
 const ListItem = React.forwardRef(
   ({ className, children, ...attributes }, ref) => {
-    className = joinClasses('doc_block_list_item', className)
+    className = jcss('doc_block_list_item', className)
     return (
       <li className={className} ref={ref} {...attributes}>
         {children}
@@ -26,7 +26,7 @@ const ListItem = React.forwardRef(
 
 const OrderedList = React.forwardRef(
   ({ className, children, ...attributes }, ref) => {
-    className = joinClasses('doc_block_ordered_list', className)
+    className = jcss('doc_block_ordered_list', className)
     return (
       <ol ref={ref} className={className} {...attributes}>
         {children}
@@ -37,7 +37,7 @@ const OrderedList = React.forwardRef(
 
 const UnorderedList = React.forwardRef(
   ({ className, children, ...attributes }, ref) => {
-    className = joinClasses('doc_block_unordered_list', className)
+    className = jcss('doc_block_unordered_list', className)
     return (
       <ul ref={ref} className={className} {...attributes}>
         {children}

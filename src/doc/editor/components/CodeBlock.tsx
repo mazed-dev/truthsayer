@@ -1,12 +1,12 @@
 import React from 'react'
 
-import { joinClasses } from '../../../util/elClass.js'
+import { jcss } from '../../../util/jcss'
 
 import './components.css'
 
 export const CodeBlock = React.forwardRef(
   ({ className, children, ...attributes }, ref) => {
-    className = joinClasses('doc_code_block', className)
+    className = jcss('doc_code_block', className)
     return (
       <code
         className={className}

@@ -12,7 +12,7 @@ import MdToolbarIconLink from './img/markdown-tool-link.png'
 import MdToolbarIconEmojiList from './img/markdown-tool-unordered-emoji-list.png'
 import MdToolbarUnorderedList from './img/markdown-tool-unordered-list.png'
 
-import { joinClasses } from '../util/elClass.js'
+import { jcss } from '../util/jcss'
 import { EMOJI_LIST_PRESETS } from './EmojiListPresets'
 
 import { Button, ButtonGroup } from 'react-bootstrap'
@@ -235,126 +235,99 @@ class MarkdownToolbarImpl extends React.Component {
         <Button
           variant="light"
           onClick={this.insertHeaderClick}
-          className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
+          className={jcss(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
         >
           <img
             src={MdToolbarIconHeader}
-            className={joinClasses(
-              styles.toolbar_btn_img,
-              NO_EXT_CLICK_DETECTION
-            )}
+            className={jcss(styles.toolbar_btn_img, NO_EXT_CLICK_DETECTION)}
             alt="Header text"
           />
         </Button>
         <Button
           variant="light"
           onClick={this.emphasiseTextClick}
-          className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
+          className={jcss(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
         >
           <img
             src={MdToolbarIconEmphasis}
-            className={joinClasses(
-              styles.toolbar_btn_img,
-              NO_EXT_CLICK_DETECTION
-            )}
+            className={jcss(styles.toolbar_btn_img, NO_EXT_CLICK_DETECTION)}
             alt="Emphasised text"
           />
         </Button>
         <Button
           variant="light"
           onClick={this.italicTextClick}
-          className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
+          className={jcss(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
         >
           <img
             src={MdToolbarIconItalic}
-            className={joinClasses(
-              styles.toolbar_btn_img,
-              NO_EXT_CLICK_DETECTION
-            )}
+            className={jcss(styles.toolbar_btn_img, NO_EXT_CLICK_DETECTION)}
             alt="Italic text"
           />
         </Button>
         <Button
           variant="light"
           onClick={this.scratchedTextClick}
-          className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
+          className={jcss(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
         >
           <img
             src={MdToolbarIconScratched}
-            className={joinClasses(
-              styles.toolbar_btn_img,
-              NO_EXT_CLICK_DETECTION
-            )}
+            className={jcss(styles.toolbar_btn_img, NO_EXT_CLICK_DETECTION)}
             alt="Strike out text"
           />
         </Button>
         <Button
           variant="light"
           onClick={this.linkTextClick}
-          className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
+          className={jcss(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
         >
           <img
             src={MdToolbarIconLink}
-            className={joinClasses(
-              styles.toolbar_btn_img,
-              NO_EXT_CLICK_DETECTION
-            )}
+            className={jcss(styles.toolbar_btn_img, NO_EXT_CLICK_DETECTION)}
             alt="Link"
           />
         </Button>
         <Button
           variant="light"
           onClick={this.insertTableClick}
-          className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
+          className={jcss(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
         >
           <img
             src={MdToolbarIconTable}
-            className={joinClasses(
-              styles.toolbar_btn_img,
-              NO_EXT_CLICK_DETECTION
-            )}
+            className={jcss(styles.toolbar_btn_img, NO_EXT_CLICK_DETECTION)}
             alt="Table"
           />
         </Button>
         <Button
           variant="light"
           onClick={this.makeNumberedListClick}
-          className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
+          className={jcss(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
         >
           <img
             src={MdToolbarIconOrderedList}
-            className={joinClasses(
-              styles.toolbar_btn_img,
-              NO_EXT_CLICK_DETECTION
-            )}
+            className={jcss(styles.toolbar_btn_img, NO_EXT_CLICK_DETECTION)}
             alt="Numbered list"
           />
         </Button>
         <Button
           variant="light"
           onClick={this.makeUnorderedListClick}
-          className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
+          className={jcss(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
         >
           <img
             src={MdToolbarUnorderedList}
-            className={joinClasses(
-              styles.toolbar_btn_img,
-              NO_EXT_CLICK_DETECTION
-            )}
+            className={jcss(styles.toolbar_btn_img, NO_EXT_CLICK_DETECTION)}
             alt="Unordered list"
           />
         </Button>
         <Button
           variant="light"
           onClick={this.makeEmojiListClick}
-          className={joinClasses(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
+          className={jcss(styles.toolbar_btn, NO_EXT_CLICK_DETECTION)}
         >
           <img
             src={MdToolbarIconEmojiList}
-            className={joinClasses(
-              styles.toolbar_btn_img,
-              NO_EXT_CLICK_DETECTION
-            )}
+            className={jcss(styles.toolbar_btn_img, NO_EXT_CLICK_DETECTION)}
             alt="Emoji list"
           />
         </Button>

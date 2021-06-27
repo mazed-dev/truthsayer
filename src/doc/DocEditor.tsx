@@ -47,7 +47,7 @@ import { getDocSlate, makeDoc } from './doc_util.jsx'
 
 import { withHistory } from 'slate-history'
 
-import { joinClasses } from './../util/elClass.js'
+import { jcss } from './../util/jcss'
 import { debug } from './../util/log'
 import { Optional } from './../util/types'
 
@@ -342,7 +342,7 @@ export const Button = React.forwardRef(
     >,
     ref: Ref<Optional<HTMLSpanElement>>
   ) => {
-    className = joinClasses(
+    className = jcss(
       reversed
         ? active
           ? styles.custom_button_reversed_active
@@ -364,7 +364,7 @@ export const Icon = React.forwardRef(
     <span
       {...props}
       ref={ref}
-      className={joinClasses(styles.custom_icon, className)}
+      className={jcss(styles.custom_icon, className)}
     />
   )
 )

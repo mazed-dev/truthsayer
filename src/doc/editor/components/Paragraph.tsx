@@ -2,7 +2,7 @@ import React from 'react'
 
 import { useSelected } from 'slate-react'
 
-import { joinClasses } from '../../../util/elClass.js'
+import { jcss } from '../../../util/jcss'
 
 import './components.css'
 
@@ -14,12 +14,12 @@ const lodash = require('lodash')
 
 export const Paragraph = React.forwardRef(
   ({ className, children, ...attributes }, ref) => {
-    className = joinClasses('doc_block_paragraph', className)
+    className = jcss('doc_block_paragraph', className)
     const selected = useSelected()
     if (selected && children.length === 1) {
       const text = lodash.get(children[0], 'props.text.text')
       if (text === '') {
-        className = joinClasses(className, styles.tip)
+        className = jcss(className, styles.tip)
       }
     }
     return (

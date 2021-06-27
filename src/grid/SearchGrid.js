@@ -12,7 +12,7 @@ import { searchNodeFor } from './search/search.jsx'
 
 import { smugler } from './../smugler/api.js'
 
-import { joinClasses } from './../util/elClass.js'
+import { jcss } from './../util/jcss'
 import { range } from './../util/range'
 import { isSmartCase } from './../util/str.jsx'
 
@@ -70,7 +70,6 @@ class DynamicGrid extends React.Component {
   }
 
   render() {
-    debug('Cards', this.props.children)
     const colWidth = Math.floor(100 / this.state.ncols)
     const columnStyle = {
       width: `${colWidth}%`,
@@ -92,12 +91,10 @@ class DynamicGrid extends React.Component {
     return (
       <Container
         fluid
-        className={joinClasses(styles.grid_container)}
+        className={jcss(styles.grid_container)}
         ref={this.containerRef}
       >
-        <Row
-          className={joinClasses('justify-content-between', styles.grid_row)}
-        >
+        <Row className={jcss('justify-content-between', styles.grid_row)}>
           {columns}
         </Row>
       </Container>
@@ -282,7 +279,6 @@ class SearchGridImpl extends React.Component {
 
   render() {
     const { account, onCardClick, children = [] } = this.props
-    debug('SearchGrid', children)
     if (account == null) {
       return (
         <div className={styles.search_grid_waiter}>
@@ -337,7 +333,7 @@ class SearchGridImpl extends React.Component {
     const gridStyle = this.props.portable ? styles.search_grid_portable : null
     return (
       <div
-        className={joinClasses(gridStyle, styles.search_grid)}
+        className={jcss(gridStyle, styles.search_grid)}
         onScroll={this.handleScroll}
         ref={this.ref}
       >

@@ -9,7 +9,7 @@ import { Link as ReactRouterLink } from 'react-router-dom'
 import { ControlButton } from './../ControlButton'
 import { ImgButton } from '../../../lib/ImgButton'
 
-import { joinClasses } from '../../../util/elClass.js'
+import { jcss } from '../../../util/jcss'
 
 import { Keys, isSymbol, isHotkeyCopy } from '../../../lib/Keys.jsx'
 import { ClickOutsideDetector } from '../../../lib/ClickOutsideDetector'
@@ -166,7 +166,7 @@ class LinkEditor extends React.Component {
           <ImgButton onClick={this._deleteLink} className={styles.link_btn}>
             <img src={DeleteImg} className={styles.btn_img} alt={'Unlink'} />
           </ImgButton>
-          <a href={value} className={joinClasses('doc_block_inline_link')}>
+          <a href={value} className={jcss('doc_block_inline_link')}>
             {name}
           </a>
         </div>
@@ -245,7 +245,7 @@ class LinkImpl extends React.Component {
           <div className={styles.toolbar}>{toolbar}</div>
           <ReactRouterLink
             to={url}
-            className={joinClasses(
+            className={jcss(
               'doc_block_inline_link',
               'doc_block_inline_link_int'
             )}
@@ -265,7 +265,7 @@ class LinkImpl extends React.Component {
           <div className={styles.toolbar}>{toolbar}</div>
           <a
             href={url}
-            className={joinClasses(
+            className={jcss(
               'doc_block_inline_link',
               'doc_block_inline_link_ext'
             )}
@@ -287,10 +287,7 @@ export function StaticLink({ contentState, entityKey, children }) {
     return (
       <ReactRouterLink
         to={url}
-        className={joinClasses(
-          'doc_block_inline_link',
-          'doc_block_inline_link_int'
-        )}
+        className={jcss('doc_block_inline_link', 'doc_block_inline_link_int')}
         onBlur={onBlur}
         onFocus={onFocus}
       >
@@ -301,10 +298,7 @@ export function StaticLink({ contentState, entityKey, children }) {
     return (
       <a
         href={url}
-        className={joinClasses(
-          'doc_block_inline_link',
-          'doc_block_inline_link_ext'
-        )}
+        className={jcss('doc_block_inline_link', 'doc_block_inline_link_ext')}
       >
         {children}
       </a>

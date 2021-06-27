@@ -14,7 +14,7 @@ import {
   kBlockTypeUnorderedItem,
   kBlockTypeUnstyled,
 } from '../../types.ts'
-import { joinClasses } from '../../../util/elClass.js'
+import { jcss } from '../../../util/jcss'
 
 export function getBlockStyle(blockType) {
   // TODO(akindyakov): Continue here applying custom styles for elements
@@ -54,7 +54,7 @@ export function getBlockStyleInDoc(blockType) {
     case kBlockTypeH5:
     case kBlockTypeH6:
     case kBlockTypeUnstyled:
-      blockStyle = joinClasses(blockStyle, 'doc_block_paragraph')
+      blockStyle = jcss(blockStyle, 'doc_block_paragraph')
   }
   return blockStyle
 }

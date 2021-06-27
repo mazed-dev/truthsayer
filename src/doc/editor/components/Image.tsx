@@ -2,7 +2,7 @@ import React from 'react'
 
 import { useSelected, useFocused } from 'slate-react'
 
-import { joinClasses } from '../../../util/elClass.js'
+import { jcss } from '../../../util/jcss'
 
 import './components.css'
 
@@ -18,7 +18,7 @@ export const Image = React.forwardRef(
     const selected = useSelected()
     const focused = useFocused()
     if (selected && focused) {
-      className = joinClasses(className, styles.image_selected)
+      className = jcss(className, styles.image_selected)
     }
     return (
       <div {...attributes}>

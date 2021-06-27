@@ -2,12 +2,12 @@ import React from 'react'
 
 import './components.css'
 
-import { joinClasses } from '../../../util/elClass.js'
+import { jcss } from '../../../util/jcss'
 
 export const HRule = React.forwardRef(
   ({ className, children, ...attributes }, ref) => {
     if (className) {
-      className = joinClasses(className, 'doc_block_hrule')
+      className = jcss(className, 'doc_block_hrule')
     } else {
       className = 'doc_block_hrule'
     }

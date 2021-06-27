@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { joinClasses } from './../util/elClass.js'
+import { jcss } from './../util/jcss'
 
 // Internal
 import styles from './WideCard.module.css'
@@ -9,7 +9,7 @@ export class WideCard extends React.Component {
   render() {
     return (
       <div
-        className={joinClasses(
+        className={jcss(
           styles.fluid_container,
           styles.wide_card,
           this.props.className

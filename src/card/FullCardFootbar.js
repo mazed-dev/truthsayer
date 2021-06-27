@@ -32,7 +32,7 @@ import { AutocompleteWindow } from '../smartpoint/AutocompleteWindow'
 import { HoverTooltip } from '../lib/tooltip'
 import { ImgButton } from '../lib/ImgButton'
 import { goto } from '../lib/route.jsx'
-import { joinClasses } from '../util/elClass.js'
+import { jcss } from '../util/jcss'
 import { makeACopy, docAsMarkdown } from '../doc/doc_util.jsx'
 import { downloadAsFile } from '../util/download_as_file.jsx'
 
@@ -88,7 +88,7 @@ const CustomNodePrivacyToggle = React.forwardRef(
   ({ children, onClick }, ref) => (
     <Button
       variant="light"
-      className={joinClasses(styles.tool_button)}
+      className={jcss(styles.tool_button)}
       ref={ref}
       onClick={(e) => {
         e.preventDefault()
@@ -443,7 +443,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
   render() {
     return (
       <>
-        <ButtonToolbar className={joinClasses(styles.toolbar)}>
+        <ButtonToolbar className={jcss(styles.toolbar)}>
           <FootbarDropdown>
             <FootbarDropdownToggle>
               <HoverTooltip tooltip={'Link to the left'}>
@@ -506,10 +506,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
 
           <ImgButton
             onClick={this.showShareDialog}
-            className={joinClasses(
-              styles.tool_button,
-              styles.toolbar_layout_item
-            )}
+            className={jcss(styles.tool_button, styles.toolbar_layout_item)}
           >
             {this.getShareBtn()}
           </ImgButton>
@@ -763,13 +760,10 @@ class PublicFullCardFootbarImpl extends React.Component {
   render() {
     return (
       <>
-        <ButtonToolbar className={joinClasses(styles.toolbar)}>
+        <ButtonToolbar className={jcss(styles.toolbar)}>
           <ImgButton
             onClick={this.handleNextLeft}
-            className={joinClasses(
-              styles.tool_button,
-              styles.toolbar_layout_item
-            )}
+            className={jcss(styles.tool_button, styles.toolbar_layout_item)}
           >
             <HoverTooltip tooltip={'Link to the left'}>
               <img
@@ -782,10 +776,7 @@ class PublicFullCardFootbarImpl extends React.Component {
 
           <ImgButton
             onClick={this.handleNextLeftClone}
-            className={joinClasses(
-              styles.tool_button,
-              styles.toolbar_layout_item
-            )}
+            className={jcss(styles.tool_button, styles.toolbar_layout_item)}
           >
             <HoverTooltip tooltip={'Copy and link'}>
               <img
@@ -798,10 +789,7 @@ class PublicFullCardFootbarImpl extends React.Component {
 
           <ImgButton
             onClick={this.handleNextRightClone}
-            className={joinClasses(
-              styles.tool_button,
-              styles.toolbar_layout_item
-            )}
+            className={jcss(styles.tool_button, styles.toolbar_layout_item)}
           >
             <HoverTooltip tooltip={'Copy and link'}>
               <img
@@ -814,10 +802,7 @@ class PublicFullCardFootbarImpl extends React.Component {
 
           <ImgButton
             onClick={this.handleNextRight}
-            className={joinClasses(
-              styles.tool_button,
-              styles.toolbar_layout_item
-            )}
+            className={jcss(styles.tool_button, styles.toolbar_layout_item)}
           >
             <HoverTooltip tooltip={'Link to the right'}>
               <img

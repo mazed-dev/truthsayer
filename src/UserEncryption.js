@@ -15,7 +15,7 @@ import {
 import axios from 'axios'
 import { withRouter } from 'react-router-dom'
 
-import { joinClasses } from './util/elClass.js'
+import { jcss } from './util/jcss'
 import { isAscii } from './util/ascii.jsx'
 import { Loader } from './lib/loader'
 
@@ -252,7 +252,7 @@ class UserEncryption extends React.Component {
               <Form.Control
                 as="textarea"
                 aria-label="With textarea"
-                className={joinClasses(styles.secret_input)}
+                className={jcss(styles.secret_input)}
                 value={this.state.input}
                 onChange={this.handleChange}
                 style={{

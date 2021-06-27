@@ -8,7 +8,7 @@ import keycode from 'keycode'
 import { Loader } from './../lib/loader'
 import { ImgButton } from './../lib/ImgButton'
 import { smugler } from './../smugler/api'
-import { joinClasses } from '../util/elClass.js'
+import { jcss } from '../util/jcss'
 import { HoverTooltip } from '../lib/tooltip'
 
 import styles from './ShareModal.module.css'
@@ -126,7 +126,7 @@ class ShareModalWindow extends React.Component {
             <ListGroup.Item>
               <ImgButton
                 variant="light"
-                className={joinClasses(styles.tool_button)}
+                className={jcss(styles.tool_button)}
                 onClick={this.handleHideNode}
               >
                 <img
@@ -149,7 +149,7 @@ class ShareModalWindow extends React.Component {
             <ListGroup.Item>
               <ImgButton
                 variant="light"
-                className={joinClasses(styles.tool_button)}
+                className={jcss(styles.tool_button)}
                 onClick={this.handleHideNode}
               >
                 <img
@@ -171,7 +171,7 @@ class ShareModalWindow extends React.Component {
         // <ListGroup.Item>
         //   <ImgButton
         //     variant="light"
-        //     className={joinClasses(styles.tool_button)}
+        //     className={jcss(styles.tool_button)}
         //     onClick={null}
         //   >
         //     <img
@@ -187,7 +187,7 @@ class ShareModalWindow extends React.Component {
             <ListGroup.Item>
               <ImgButton
                 variant="light"
-                className={joinClasses(styles.tool_button)}
+                className={jcss(styles.tool_button)}
                 onClick={this.handlePublishNode}
               >
                 <img

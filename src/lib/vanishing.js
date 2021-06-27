@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { joinClasses } from './../util/elClass.js'
+import { jcss } from './../util/jcss'
 
 import styles from './vanishing.module.css'
 
@@ -12,7 +12,7 @@ export class Vanishing extends React.Component {
   }
   render() {
     return (
-      <div className={joinClasses(this.props.className, styles.vanishing)}>
+      <div className={jcss(this.props.className, styles.vanishing)}>
         {this.props.children}
       </div>
     )

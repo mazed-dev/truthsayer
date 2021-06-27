@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { joinClasses } from './../util/elClass.js'
+import { jcss } from './../util/jcss'
 
 import styles from './loader_ellipsis.module.css'
 

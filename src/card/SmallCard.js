@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { joinClasses } from './../util/elClass.js'
+import { jcss } from './../util/jcss'
 
 import styles from './SmallCard.module.css'
 
@@ -44,7 +44,7 @@ export const SmallCard = React.forwardRef(
     const shadowStyle = getShadowStyle(stack_size || 0)
     return (
       <Component
-        className={joinClasses(
+        className={jcss(
           styles.small_card,
           clickableStyle,
           shadowStyle,

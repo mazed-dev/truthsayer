@@ -6,7 +6,7 @@ import { Badge } from 'react-bootstrap'
 
 import moment from 'moment'
 
-import { joinClasses } from '../../../util/elClass.js'
+import { jcss } from '../../../util/jcss'
 import { Optional } from '../../../util/types'
 import { debug } from '../../../util/log'
 
@@ -47,7 +47,7 @@ export const DateTime = React.forwardRef(
     const selected = useSelected()
     const focused = useFocused()
     if (selected && focused) {
-      className = joinClasses(className, styles.focused)
+      className = jcss(className, styles.focused)
     }
     return (
       <span {...attributes}>

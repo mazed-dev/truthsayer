@@ -6,7 +6,7 @@ import { Toast, Button } from 'react-bootstrap'
 
 import { UserAccount, Knocker } from './../auth/local.jsx'
 
-import { joinClasses } from './../util/elClass.js'
+import { jcss } from './../util/jcss'
 import axios from 'axios'
 
 import styles from './global.module.css'
@@ -116,9 +116,9 @@ export class MzdGlobal extends React.Component {
         <div
           aria-live="polite"
           aria-atomic="true"
-          className={joinClasses(styles.toaster_container)}
+          className={jcss(styles.toaster_container)}
         >
-          <div className={joinClasses(styles.toaster_root)}>
+          <div className={jcss(styles.toaster_root)}>
             {this.state.toaster.toasts}
           </div>
         </div>

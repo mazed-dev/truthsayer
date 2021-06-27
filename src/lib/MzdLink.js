@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Link } from 'react-router-dom'
 
-import { joinClasses } from '../util/elClass.js'
+import { jcss } from '../util/jcss'
 
 import styles from './MzdLink.module.css'
 
@@ -20,22 +20,14 @@ export function MzdLink({
   } else if (is_external) {
     prefix = '\uD83C\uDF0D ' // "\uD83C\uDF10 ";
     return (
-      <a
-        href={to}
-        className={joinClasses(className, styles.inline_link)}
-        {...rest}
-      >
+      <a href={to} className={jcss(className, styles.inline_link)} {...rest}>
         {prefix}
         {children}
       </a>
     )
   }
   return (
-    <Link
-      to={to}
-      className={joinClasses(className, styles.inline_link)}
-      {...rest}
-    >
+    <Link to={to} className={jcss(className, styles.inline_link)} {...rest}>
       {prefix}
       {children}
     </Link>

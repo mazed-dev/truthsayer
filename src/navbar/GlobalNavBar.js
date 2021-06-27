@@ -25,7 +25,7 @@ import { smugler } from './../smugler/api'
 import { HoverTooltip } from './../lib/tooltip'
 import { goto, compass } from './../lib/route.jsx'
 
-import { joinClasses } from '../util/elClass.js'
+import { jcss } from '../util/jcss'
 
 import kUserDefaultPic from './../auth/img/user-default-pic.png'
 
@@ -66,7 +66,7 @@ class UserPic extends React.Component {
   render() {
     // TODO: use custom user uploaded picture for userpic here
     return (
-      <div className={joinClasses(styles.user_pic, 'd-inline-flex')}>
+      <div className={jcss(styles.user_pic, 'd-inline-flex')}>
         <img
           src={kUserDefaultPic}
           className={styles.user_pic_image}
@@ -154,13 +154,13 @@ class PrivateNavButtonsImpl extends React.Component {
         {this.getAuxGroup()}
 
         <Dropdown
-          className={joinClasses(styles.account_dropdown)}
+          className={jcss(styles.account_dropdown)}
           as={ButtonGroup}
           navbar
         >
           <Dropdown.Toggle
             variant="light"
-            className={joinClasses(styles.account_dropdown_toggle)}
+            className={jcss(styles.account_dropdown_toggle)}
           >
             {userpic}
           </Dropdown.Toggle>
@@ -236,7 +236,7 @@ class GlobalNavBar extends React.Component {
     return (
       <>
         <Navbar className={styles.navbar}>
-          <Navbar.Brand as={Link} to="/" className={joinClasses(styles.brand)}>
+          <Navbar.Brand as={Link} to="/" className={jcss(styles.brand)}>
             <span role="img" aria-label="next">
               &#x1F9F5;
             </span>
