@@ -3,17 +3,17 @@ import React from 'react'
 import './components.css'
 
 import { jcss } from '../../../util/jcss'
+import { debug } from '../../../util/log'
 
 export const HRule = React.forwardRef(
-  ({ className, children, ...attributes }, ref) => {
-    if (className) {
-      className = jcss(className, 'doc_block_hrule')
-    } else {
-      className = 'doc_block_hrule'
-    }
+  ({ attributes, children, element }, ref) => {
+    const className = 'doc_block_hrule'
     return (
-      <div {...attributes} ref={ref}>
-        <div contentEditable={false} className={className} />
+      <div {...attributes}>
+        <div contentEditable={false}>
+          <div ref={ref} className={className} />
+          {children}
+        </div>
       </div>
     )
   }

@@ -52,6 +52,8 @@ import { debug } from './../util/log'
 import { Optional } from './../util/types'
 
 import { withJinn, Jinn } from './editor/plugins/jinn'
+import { withTypography } from './editor/plugins/typography'
+import { withShortcuts } from './editor/plugins/shortcuts'
 
 import {
   Header1,
@@ -87,22 +89,6 @@ export type CheckListItemElement = {
   children: Descendant[]
 }
 
-const SHORTCUTS = {
-  '*': kSlateBlockTypeListItem,
-  '-': kSlateBlockTypeListItem,
-  '+': kSlateBlockTypeListItem,
-  '>': kSlateBlockTypeQuote,
-  '#': kSlateBlockTypeH1,
-  '##': kSlateBlockTypeH2,
-  '###': kSlateBlockTypeH3,
-  '####': kSlateBlockTypeH4,
-  '#####': kSlateBlockTypeH5,
-  '######': kSlateBlockTypeH6,
-  '```': kSlateBlockTypeCode,
-  '[]': kSlateBlockTypeListCheckItem,
-  '[ ]': kSlateBlockTypeListCheckItem,
-}
-
 export const DocEditor = ({ className, node, saveDoc }) => {
   const { doc, nid } = node
   const [value, setValue] = useState<Descendant[]>([])
@@ -120,11 +106,13 @@ export const DocEditor = ({ className, node, saveDoc }) => {
   const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
   const editor = useMemo(
     () =>
-      withJinn(
-        setShowJinn,
-        withLinks(
-          withDateTime(
-            withImages(withShortcuts(withReact(withHistory(createEditor()))))
+      withTypography(
+        withJinn(
+          setShowJinn,
+          withLinks(
+            withDateTime(
+              withImages(withShortcuts(withReact(withHistory(createEditor()))))
+            )
           )
         )
       ),
@@ -166,7 +154,10 @@ export const ReadOnlyDoc = ({ className, node }) => {
   )
   const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
   const editor = useMemo(
-    () => withLinks(withDateTime(withImages(withReact(createEditor())))),
+    () =>
+      withTypography(
+        withLinks(withDateTime(withImages(withReact(createEditor()))))
+      ),
     []
   )
   return (
@@ -185,101 +176,6 @@ export const ReadOnlyDoc = ({ className, node }) => {
       </Slate>
     </div>
   )
-}
-
-const withShortcuts = (editor) => {
-  const { deleteBackward, insertText } = editor
-
-  editor.insertText = (text) => {
-    const { selection } = editor
-
-    if (text === ' ' && selection && Range.isCollapsed(selection)) {
-      const { anchor } = selection
-      const block = Editor.above(editor, {
-        match: (n) => Editor.isBlock(editor, n),
-      })
-      const path = block ? block[1] : []
-      const start = Editor.start(editor, path)
-      const range = { anchor, focus: start }
-      const beforeText = Editor.string(editor, range)
-      const type = SHORTCUTS[beforeText]
-
-      if (type) {
-        Transforms.select(editor, range)
-        Transforms.delete(editor)
-        const newProperties: Partial<SlateElement> = {
-          type,
-        }
-        Transforms.setNodes(editor, newProperties, {
-          match: (n) => Editor.isBlock(editor, n),
-        })
-        if (
-          type === kSlateBlockTypeListItem ||
-          type === kSlateBlockTypeListCheckItem
-        ) {
-          const list: BulletedListElement = {
-            type: kSlateBlockTypeUnorderedList,
-            children: [],
-          }
-          Transforms.wrapNodes(editor, list, {
-            match: (n) =>
-              !Editor.isEditor(n) &&
-              SlateElement.isElement(n) &&
-              n.type === type,
-          })
-        }
-        return
-      }
-    }
-
-    insertText(text)
-  }
-
-  editor.deleteBackward = (...args) => {
-    const { selection } = editor
-
-    if (selection && Range.isCollapsed(selection)) {
-      const match = Editor.above(editor, {
-        match: (n) => Editor.isBlock(editor, n),
-      })
-
-      if (match) {
-        const [block, path] = match
-        const start = Editor.start(editor, path)
-        const { type } = block
-
-        if (
-          !Editor.isEditor(block) &&
-          SlateElement.isElement(block) &&
-          type !== kSlateBlockTypeParagraph &&
-          Point.equals(selection.anchor, start)
-        ) {
-          const newProperties: Partial<SlateElement> = {
-            type: kSlateBlockTypeParagraph,
-          }
-          Transforms.setNodes(editor, newProperties)
-
-          if (
-            type === kSlateBlockTypeListItem ||
-            type === kSlateBlockTypeListCheckItem
-          ) {
-            Transforms.unwrapNodes(editor, {
-              match: (n) =>
-                !Editor.isEditor(n) &&
-                SlateElement.isElement(n) &&
-                n.type === kSlateBlockTypeUnorderedList,
-              split: true,
-            })
-          }
-
-          return
-        }
-      }
-      deleteBackward(...args)
-    }
-  }
-
-  return editor
 }
 
 const withImages = (editor) => {
@@ -635,7 +531,7 @@ const _makeElementRender = (isEditable: boolean) => {
         )
       case kSlateBlockTypeBreak:
         return (
-          <HRule ref={ref} {...attributes}>
+          <HRule attributes={attributes} element={element} ref={ref}>
             {children}
           </HRule>
         )
