@@ -124,6 +124,7 @@ export type LinkElement = {
   type: kSlateBlockTypeParagraph
   children: LeafElement[]
   url: string
+  page?: boolean
 }
 
 export type ThematicBreakElement = {

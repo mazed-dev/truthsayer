@@ -7,7 +7,7 @@
   content: '🌍 ';
 }
 
-.doc_block_inline_link_int:before {
+.doc_block_inline_link_page:before {
   content: '📄 '; /* "/" */
 }
 

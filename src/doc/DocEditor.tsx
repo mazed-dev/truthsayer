@@ -54,6 +54,7 @@ import { Optional } from './../util/types'
 import { withJinn, Jinn } from './editor/plugins/jinn'
 import { withTypography } from './editor/plugins/typography'
 import { withShortcuts } from './editor/plugins/shortcuts'
+import { withLinks } from './editor/plugins/link'
 
 import {
   Header1,
@@ -369,82 +370,6 @@ const wrapDateTime = (editor, text, date) => {
     type: kSlateBlockTypeDateTime,
     timestamp: date.unix(),
     children: isCollapsed ? [{ text }] : [],
-  }
-
-  if (isCollapsed) {
-    Transforms.insertNodes(editor, element)
-  } else {
-    Transforms.wrapNodes(editor, element, { split: true })
-    Transforms.collapse(editor, { edge: 'end' })
-  }
-}
-
-// Link
-
-const withLinks = (editor) => {
-  const { insertData, insertText, isInline } = editor
-
-  editor.isInline = (element) => {
-    return element.type === kSlateBlockTypeLink ? true : isInline(element)
-  }
-
-  editor.insertText = (text) => {
-    if (text && isUrl(text)) {
-      wrapLink(editor, text)
-    } else {
-      insertText(text)
-    }
-  }
-
-  editor.insertData = (data) => {
-    const text = data.getData('text/plain')
-
-    if (text && isUrl(text)) {
-      wrapLink(editor, text)
-    } else {
-      insertData(data)
-    }
-  }
-
-  return editor
-}
-
-const insertLink = (editor, url) => {
-  if (editor.selection) {
-    wrapLink(editor, url)
-  }
-}
-
-const isLinkActive = (editor) => {
-  const [link] = Editor.nodes(editor, {
-    match: (n) =>
-      !Editor.isEditor(n) &&
-      SlateElement.isElement(n) &&
-      n.type === kSlateBlockTypeLink,
-  })
-  return !!link
-}
-
-const unwrapLink = (editor) => {
-  Transforms.unwrapNodes(editor, {
-    match: (n) =>
-      !Editor.isEditor(n) &&
-      SlateElement.isElement(n) &&
-      n.type === kSlateBlockTypeLink,
-  })
-}
-
-const wrapLink = (editor, link) => {
-  if (isLinkActive(editor)) {
-    unwrapLink(editor)
-  }
-
-  const { selection } = editor
-  const isCollapsed = selection && Range.isCollapsed(selection)
-  const element: LinkElement = {
-    type: kSlateBlockTypeLink,
-    link,
-    children: isCollapsed ? [{ text: link }] : [],
   }
 
   if (isCollapsed) {
