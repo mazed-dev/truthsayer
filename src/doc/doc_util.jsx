@@ -339,6 +339,9 @@ function makeThematicBreak(): ThematicBreakElement {
 }
 
 export function makeParagraph(children: Descendant[]): ParagraphElement {
+  if (!children) {
+    children = [makeLeaf('')]
+  }
   return {
     type: kSlateBlockTypeParagraph,
     children,
