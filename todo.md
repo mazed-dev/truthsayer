@@ -1,6 +1,5 @@
 # Todo
 
-- [ ] Implement local link, with a special option and special character 📄
 - [ ] Add edge when local link is added
 - [ ] Implement TimeDate rule for Jinn
 - [ ] Slate editor - block style menu
@@ -209,3 +208,4 @@
   - [x] Deleted by backspace checkbox become a paragraph in the list, 2021.06.26/11:32
   - [x] Release, 2021.06.26/11:49
   - [x] Smart menu on "//": implemented new smart point for slate editor - "Jinn", works only for adding links to other nodes, 2021.06.27/18:01
+  - [x] Implement local link, with a special option and special character 📄
