@@ -23,15 +23,11 @@ import { Optional } from '../../../util/types'
 
 import { Modal, Form, ListGroup } from 'react-bootstrap'
 
-import keycode from 'keycode'
-
-// import { dateTimeSmartItemSearch } from './DateTimeSmartItem'
-// import { nextRefSmartItemSearch } from './NextRefSmartItem'
 import { SearchGrid } from '../../../grid/SearchGrid'
 
-// import { smugler } from './../smugler/api'
-//
 import { makeLink, exctractDocTitle, getDocSlate } from '../../doc_util'
+
+import { dateTimeJinnSearch } from './jinn-datetime'
 
 import styles from './jinn.module.css'
 
@@ -78,11 +74,31 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
   handleSumbit = (event) => {}
 
   startSmartSearch = lodash.debounce((value) => {
-    this.setState((state) => ({ cards: [], q: state.input }))
+    this.setState({ cards: [], q: value }, () => {
+      // if (this.props.suggestNewRef) {
+      this.dateTimeSearch(value)
+    })
   }, 800)
 
   componentDidMount() {
     this.inputRef.current.focus()
+  }
+
+  dateTimeSearch = async function (value) {
+    const { editor, selection, setShow } = this.props
+    //* dbg*/ console.log("dateTimeSearch", this.props.nid);
+    const item = dateTimeJinnSearch(value, this.props.on_insert)
+    if (item != null) {
+      this.addCards([item])
+    }
+  }
+
+  addCards = (cards) => {
+    this.setState((state) => {
+      return {
+        cards: lodash.concat(state.cards, cards),
+      }
+    })
   }
 
   onNodeCardClick = (node) => {
@@ -91,7 +107,6 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
     getDocSlate(doc).then((slate) => {
       const title = exctractDocTitle(slate)
       const element = makeLink(title, nid)
-      debug('onNodeCardClick - new element', element)
       // Delete key '//' first of all
       Transforms.delete(editor, {
         distance: 2,
@@ -106,7 +121,7 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
   }
 
   render() {
-    const { q, input } = this.state
+    const { q, input, cards } = this.state
     // extCards={this.state.cards}
     return (
       <div className={styles.autocomplete_modal}>
@@ -124,7 +139,9 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
           defaultSearch={false}
           onCardClick={this.onNodeCardClick}
           portable
-        />
+        >
+          {cards}
+        </SearchGrid>
       </div>
     )
   }

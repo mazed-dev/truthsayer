@@ -1,7 +1,7 @@
 # Todo
 
-- [ ] Add edge when local link is added
 - [ ] Implement TimeDate rule for Jinn
+- [ ] Add edge when local link is added
 - [ ] Slate editor - block style menu
 - [ ] Slate editor - text style menu (pop up)
 - [ ] Images support

@@ -25,6 +25,17 @@ import styles from './SearchGrid.module.css'
 
 const lodash = require('lodash')
 
+export const GridCard = React.forwardRef(
+  ({ onClick, className, children }, ref) => {
+    className = className ? jcss(styles.grid_cell, className) : styles.grid_cell
+    return (
+      <SmallCard onClick={onClick} className={className} ref={ref}>
+        {children}
+      </SmallCard>
+    )
+  }
+)
+
 class DynamicGrid extends React.Component {
   constructor(props) {
     super(props)
@@ -308,11 +319,7 @@ class SearchGridImpl extends React.Component {
           }
         }
         return (
-          <SmallCard
-            onClick={onClick}
-            className={styles.grid_cell}
-            key={node.nid}
-          >
+          <GridCard onClick={onClick} key={node.nid}>
             <SCard>
               <ReadOnlyRender node={node} />
             </SCard>
@@ -320,7 +327,7 @@ class SearchGridImpl extends React.Component {
               created_at={node.created_at}
               updated_at={node.updated_at}
             />
-          </SmallCard>
+          </GridCard>
         )
       })
     cards = lodash.concat(children, cards)

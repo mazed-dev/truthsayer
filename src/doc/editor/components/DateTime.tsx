@@ -30,16 +30,17 @@ export function unixToString(
   format: Optional<string>
 ): string {
   const timeMoment = moment.unix(timestamp)
-  return format
-    ? timeMoment.format(format)
-    : timeMoment.calendar(kDefaultCalendarFormat)
+  return momentToString(timeMoment, format)
+}
+
+export function momentToString(time: moment, format: Optional<string>): string {
+  return format ? time.format(format) : time.calendar(kDefaultCalendarFormat)
 }
 
 export const DateTime = React.forwardRef(
   ({ attributes, children, element }, ref) => {
     const { format, timestamp } = element
 
-    const timeMoment = moment.unix(timestamp)
     const str = unixToString(timestamp, format)
 
     let className = styles.pill
