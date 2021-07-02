@@ -20,6 +20,7 @@ import { draftToMarkdown, markdownToDraft } from '../markdown/conv.jsx'
 import { slateToMarkdown, markdownToSlate } from '../markdown/slate.ts'
 
 import {
+  DateTimeElement,
   LeafElement,
   LinkElement,
   ParagraphElement,
@@ -29,6 +30,7 @@ import {
   isHeaderSlateBlock,
   isTextSlateBlock,
   kSlateBlockTypeBreak,
+  kSlateBlockTypeDateTime,
   kSlateBlockTypeH1,
   kSlateBlockTypeLink,
   kSlateBlockTypeListCheckItem,
@@ -358,6 +360,19 @@ export function makeLink(text, link): LinkElement {
 
 export function makeLeaf(text): LeafElement {
   return { text }
+}
+
+export function makeDateTime(
+  timestamp: number,
+  format?: string
+): DateTimeElement {
+  const type = kSlateBlockTypeDateTime
+  return {
+    timestamp,
+    format,
+    type,
+    children: [makeLeaf('')],
+  }
 }
 
 function enforceMinimalSlate(items: Descendant[]): Descendant[] {

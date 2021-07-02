@@ -87,7 +87,7 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
   dateTimeSearch = async function (value) {
     const { editor, selection, setShow } = this.props
     //* dbg*/ console.log("dateTimeSearch", this.props.nid);
-    const item = dateTimeJinnSearch(value, this.props.on_insert)
+    const item = dateTimeJinnSearch(value, this.insertElement)
     if (item != null) {
       this.addCards([item])
     }
@@ -101,22 +101,26 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
     })
   }
 
+  insertElement = (element: SlateElement) => {
+    const { editor, selection, setShow } = this.props
+    // Delete key '//' first of all
+    Transforms.delete(editor, {
+      distance: 2,
+      unit: 'character',
+      reverse: true,
+      at: selection,
+    })
+    const start = Range.start(selection)
+    Transforms.insertNodes(editor, element, { at: start })
+    setShow(false)
+  }
+
   onNodeCardClick = (node) => {
     const { nid, doc } = node
-    const { editor, selection, setShow } = this.props
     getDocSlate(doc).then((slate) => {
       const title = exctractDocTitle(slate)
       const element = makeLink(title, nid)
-      // Delete key '//' first of all
-      Transforms.delete(editor, {
-        distance: 2,
-        unit: 'character',
-        reverse: true,
-        at: selection,
-      })
-      const start = Range.start(selection)
-      Transforms.insertNodes(editor, element, { at: start })
-      setShow(false)
+      this.insertElement(element)
     })
   }
 

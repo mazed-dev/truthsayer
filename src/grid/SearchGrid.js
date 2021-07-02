@@ -27,7 +27,7 @@ const lodash = require('lodash')
 
 export const GridCard = React.forwardRef(
   ({ onClick, className, children }, ref) => {
-    className = className ? jcss(styles.grid_cell, className) : styles.grid_cell
+    className = jcss(styles.grid_cell, className)
     return (
       <SmallCard onClick={onClick} className={className} ref={ref}>
         {children}

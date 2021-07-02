@@ -1,6 +1,5 @@
 # Todo
 
-- [ ] Implement TimeDate rule for Jinn
 - [ ] Add edge when local link is added
 - [ ] Slate editor - block style menu
 - [ ] Slate editor - text style menu (pop up)
@@ -209,3 +208,4 @@
   - [x] Release, 2021.06.26/11:49
   - [x] Smart menu on "//": implemented new smart point for slate editor - "Jinn", works only for adding links to other nodes, 2021.06.27/18:01
   - [x] Implement local link, with a special option and special character 📄
+  - [x] Implement TimeDate rule for Jinn
