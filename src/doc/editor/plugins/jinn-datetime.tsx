@@ -74,9 +74,9 @@ const kWeekDay = /\b((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?)\b/i
 const kLastWeekDay =
   /last *((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?)\b/i
 const kNextWeekDay =
-  /next *((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?)\b/i
+  /(next)? *((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?)\b/i
 
-function parse12hAm(hour: string, minute: string, a: string): moment {
+export function _parse12hAm(hour: string, minute: string, a: string): moment {
   a = a.slice(0, 1).toLowerCase()
   let h = lodash.parseInt(hour)
   let m = lodash.parseInt(minute)
@@ -86,8 +86,10 @@ function parse12hAm(hour: string, minute: string, a: string): moment {
   if (m < 0 || m > 59) {
     m = 0
   }
-  if (a === 'p' && h > 12) {
-    h += 12
+  if (a === 'p') {
+    if (h < 12) {
+      h += 12
+    }
   } else {
     // am
     if (h === 12) {
@@ -99,10 +101,7 @@ function parse12hAm(hour: string, minute: string, a: string): moment {
 
 const kTraps = [
   (value) => (value.match(kNowRe) ? [{ time: moment() }] : []),
-  (value) =>
-    value.match(kTodayRe)
-      ? [{ time: moment(), format: kDefaultDateFormat }]
-      : [],
+  (value) => (value.match(kTodayRe) ? [{ time: moment() }] : []),
   (value) =>
     value.match(kYesterdayRe)
       ? [{ time: moment().subtract(1, 'days'), format: kDefaultDateFormat }]
@@ -142,7 +141,19 @@ const kTraps = [
       const sep2 = m[4]
       const a = m[5]
       const format = `hh${sep1}mm${sep2}a`
-      const time = parse12hAm(hour, minute, a)
+      const time = _parse12hAm(hour, minute, a)
+      return [{ time, format }, { time }]
+    }
+    return []
+  },
+  (value) => {
+    const m = value.match(kTime24h)
+    if (m) {
+      const hour = lodash.parseInt(m[1])
+      const sep = m[2]
+      const minute = lodash.parseInt(m[3])
+      const format = `hh${sep}mm`
+      const time = moment({ hour, minute })
       return [{ time, format }, { time }]
     }
     return []
@@ -152,9 +163,24 @@ const kTraps = [
     if (m) {
       const { hour, minute, second } = kDefaultTime
       let time = moment()
-      const today = time.dayOfYear()
+      const today = time.valueOf()
       time = time.day(m[1])
-      if (today <= time.dayOfYear()) {
+      if (today <= time.valueOf()) {
+        time = time.subtract(1, 'week')
+      }
+      time = time.hour(hour).minute(minute).second(second)
+      return [{ time }]
+    }
+    return []
+  },
+  (value) => {
+    const m = value.match(kNextWeekDay)
+    if (m) {
+      const { hour, minute, second } = kDefaultTime
+      let time = moment()
+      const today = time.valueOf()
+      time = time.day(m[2])
+      if (today >= time.valueOf()) {
         time = time.subtract(1, 'week')
       }
       time = time.hour(hour).minute(minute).second(second)
