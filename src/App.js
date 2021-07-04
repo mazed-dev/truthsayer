@@ -305,8 +305,8 @@ function PasswordRecoverFormView() {
 function TriptychView() {
   // We can use the `useParams` hook here to access
   // the dynamic pieces of the URL.
-  const { id } = useParams()
-  return <Triptych nid={id} />
+  const { nid } = useParams()
+  return <Triptych nid={nid} />
 }
 
 function SearchView() {

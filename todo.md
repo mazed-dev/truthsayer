@@ -1,9 +1,10 @@
 # Todo
 
+- [ ] Images support
+- [ ] src/markdown/slate.ts:320, TypeError: "link" is read-only, [bug]
 - [ ] Add edge when local link is added
 - [ ] Slate editor - block style menu
 - [ ] Slate editor - text style menu (pop up)
-- [ ] Images support
 - [ ] Implement special type of page - "dashboard"
 - [ ] Dates pick up
 - [ ] Links editing menu
@@ -22,7 +23,6 @@
 - [ ] Twice smaler search cards for mobile devices
 - [ ] Button for list item to create right-link from this item
 - [ ] Fix tooltip overlap
-- [ ] Implement edge stickiness on server side to reduce number of calls to backend
 - [ ] Public and private bars are the same - don't split them
 - [ ] History of changes for each node
 - [ ] On public nodes show (i) information button instead of "..."
@@ -186,26 +186,28 @@
   - [x] Dates
     - [x] Deserialize from MD
     - [x] Serialize to MD
-  - [x] Fix test
-  - [x] Custom styles, 2021.06.19
-  - [x] Dates, 2021.06.19
-  - [x] Leaf styles - (bold, italic, code), 2021.06.19
-  - [x] Implement search for slate nodes
-  - [x] Make images only top level elements
-  - [x] Make small cards read-only
-  - [x] Saving the document while editing
-  - [x] Clean up deprecated editors
-  - [x] Clicks on a text lead to crash - why?
-  - [x] Copy and blank copy don't work
-  - [x] Click on a date in the doc crashes the app, 2021.06.25
-  - [x] Add basic support for links, 2021.06.25/10:50
-  - [x] Restrict nested paragraphs, 2021.06.25/10:50
-  - [x] Fixed crashes on image click, 2021.06.26/09:09
-  - [x] Make datetime inline element not editable, 2021.06.26/09:35
-  - [x] Checkboxes have to be "read-only" on a small cards
-  - [x] Placeholder on each empty block, 2021.06.26/11:21
-  - [x] Deleted by backspace checkbox become a paragraph in the list, 2021.06.26/11:32
-  - [x] Release, 2021.06.26/11:49
-  - [x] Smart menu on "//": implemented new smart point for slate editor - "Jinn", works only for adding links to other nodes, 2021.06.27/18:01
-  - [x] Implement local link, with a special option and special character 📄
-  - [x] Implement TimeDate rule for Jinn
+- [x] Fix test
+- [x] Custom styles, 2021.06.19
+- [x] Dates, 2021.06.19
+- [x] Leaf styles - (bold, italic, code), 2021.06.19
+- [x] Implement search for slate nodes
+- [x] Make images only top level elements
+- [x] Make small cards read-only
+- [x] Saving the document while editing
+- [x] Clean up deprecated editors
+- [x] Clicks on a text lead to crash - why?
+- [x] Copy and blank copy don't work
+- [x] Click on a date in the doc crashes the app, 2021.06.25
+- [x] Add basic support for links, 2021.06.25/10:50
+- [x] Restrict nested paragraphs, 2021.06.25/10:50
+- [x] Fixed crashes on image click, 2021.06.26/09:09
+- [x] Make datetime inline element not editable, 2021.06.26/09:35
+- [x] Checkboxes have to be "read-only" on a small cards
+- [x] Placeholder on each empty block, 2021.06.26/11:21
+- [x] Deleted by backspace checkbox become a paragraph in the list, 2021.06.26/11:32
+- [x] Release, 2021.06.26/11:49
+- [x] Smart menu on "//": implemented new smart point for slate editor - "Jinn", works only for adding links to other nodes, 2021.06.27/18:01
+- [x] Implement local link, with a special option and special character 📄
+- [x] Implement TimeDate rule for Jinn
+- [x] Fix search to connect button, 2021.07.04
+- [x] Implement edge stickiness on server side to reduce number of calls to backend, 2021.07.04

@@ -80,7 +80,7 @@ export const routes = {
   signup: kSignUpPath,
   logout: kLogOutPath,
   search: kSearchPath,
-  node: `${kNodePathPrefix}:id`,
+  node: `${kNodePathPrefix}:nid`,
   notice: `${kNoticePathPrefix}:page`,
 }
 

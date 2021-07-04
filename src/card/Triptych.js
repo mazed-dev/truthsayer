@@ -101,9 +101,10 @@ class Triptych extends React.Component {
       edges_sticky: [],
       is_narrow: false,
     }
-    this.toEdgesCancelToken = smugler.makeCancelToken()
-    this.fromEdgesCancelToken = smugler.makeCancelToken()
+    this.fetchToEdgesCancelToken = smugler.makeCancelToken()
+    this.fetchFromEdgesCancelToken = smugler.makeCancelToken()
     this.fetchNodeCancelToken = smugler.makeCancelToken()
+    this.createEdgeCancelToken = smugler.makeCancelToken()
   }
 
   componentDidMount() {
@@ -114,8 +115,8 @@ class Triptych extends React.Component {
   }
 
   componentWillUnmount() {
-    this.toEdgesCancelToken.cancel()
-    this.fromEdgesCancelToken.cancel()
+    this.fetchToEdgesCancelToken.cancel()
+    this.fetchFromEdgesCancelToken.cancel()
     this.fetchNodeCancelToken.cancel()
     window.removeEventListener('resize', this.updateWindowDimensions)
   }
@@ -138,7 +139,7 @@ class Triptych extends React.Component {
     smugler.edge
       .getTo({
         nid: this.props.nid,
-        cancelToken: this.toEdgesCancelToken.token,
+        cancelToken: this.fetchToEdgesCancelToken.token,
       })
       .then((star) => {
         if (star) {
@@ -156,7 +157,7 @@ class Triptych extends React.Component {
     smugler.edge
       .getFrom({
         nid: this.props.nid,
-        cancelToken: this.toEdgesCancelToken.token,
+        cancelToken: this.fetchToEdgesCancelToken.token,
       })
       .then((star) => {
         if (star) {
@@ -223,20 +224,27 @@ class Triptych extends React.Component {
     })
   }
 
-  addRef = ({ edge, left }) => {
-    if (left) {
-      this.setState((state) => {
-        return {
-          edges_left: state.edges_left.concat([edge]),
-        }
+  addRef = ({ from, to }) => {
+    const { nid } = this.props
+    smugler.edge
+      .create({
+        from,
+        to,
+        cancelToken: this.createEdgeCancelToken.token,
       })
-    } else {
-      this.setState((state) => {
-        return {
-          edges_right: state.edges_right.concat([edge]),
-        }
+      .then((edge) => {
+        this.setState((state) => {
+          if (to === nid) {
+            return {
+              edges_left: state.edges_left.concat([edge]),
+            }
+          } else {
+            return {
+              edges_right: state.edges_right.concat([edge]),
+            }
+          }
+        })
       })
-    }
   }
 
   switchStickiness = (edge, on = false) => {

@@ -1,11 +1,12 @@
 import React, { useContext } from 'react'
 
 import { withRouter } from 'react-router-dom'
-import { Button, ButtonToolbar } from 'react-bootstrap'
+import { Button, ButtonToolbar, Modal, Form, ListGroup } from 'react-bootstrap'
 
 import PropTypes from 'prop-types'
 
-import { smugler } from './../smugler/api'
+import { smugler } from '../smugler/api'
+import { SearchGrid } from '../grid/SearchGrid'
 
 import styles from './FullCardFootbar.module.css'
 
@@ -45,168 +46,110 @@ import {
   FootbarDropdownToggleMeatballs,
 } from './Footbar'
 
-class LeftSearchModal extends React.Component {
+const lodash = require('lodash')
+
+class SearchAndConnectJinnModal extends React.Component {
   constructor(props) {
     super(props)
-    this.addNodeRefCancelToken = smugler.makeCancelToken()
-  }
-
-  handleReplaceSmartpoint = ({ replacement, nid }) => {
-    if (nid) {
-      smugler.edge
-        .create({
-          from: nid,
-          to: this.props.nid,
-          cancelToken: this.addNodeRefCancelToken.token,
-        })
-        .then((edge) => {
-          if (edge) {
-            this.props.addRef({ edge, left: true })
-          }
-        })
+    this.state = {
+      input: '',
+      q: '',
+      cursor: 0,
     }
+    this.inputRef = React.createRef()
   }
 
-  componentWillUnmount() {
-    this.addNodeRefCancelToken.cancel()
+  componentDidMount() {
+    this.inputRef.current.focus()
+  }
+
+  handleChange = (event) => {
+    const { value } = event.target
+    this.startSmartSearch.cancel() // Do we need it?
+    this.setState(
+      {
+        input: value,
+      },
+      () => {
+        this.startSmartSearch(value)
+      }
+    )
+  }
+
+  handleSumbit = (event) => {}
+
+  startSmartSearch = lodash.debounce((value) => {
+    this.setState({ cards: [], q: value })
+  }, 800)
+
+  addCards = (cards) => {
+    this.setState((state) => {
+      return {
+        cards: lodash.concat(state.cards, cards),
+      }
+    })
+  }
+
+  onNodeCardClick = (node) => {
+    const { nid, left, addRef, setShow } = this.props
+    const other_nid = node.nid
+    if (left) {
+      addRef({ from: other_nid, to: nid })
+    } else {
+      addRef({ from: nid, to: other_nid })
+    }
+    setShow(false)
   }
 
   render() {
+    const { q, input, cards } = this.state
     return (
-      <AutocompleteWindow
-        show={this.props.show}
-        onHide={this.props.onHide}
-        on_insert={this.handleReplaceSmartpoint}
-        nid={this.props.nid}
-        suggestDateTime={false}
-      />
-    )
-  }
-}
-
-const CustomNodePrivacyToggle = React.forwardRef(
-  ({ children, onClick }, ref) => (
-    <Button
-      variant="light"
-      className={jcss(styles.tool_button)}
-      ref={ref}
-      onClick={(e) => {
-        e.preventDefault()
-        onClick(e)
-      }}
-    >
-      {children}
-      <HoverTooltip tooltip={'Publicity and encryption'}>
-        <img
-          src={PrivateImg}
-          className={styles.tool_button_img}
-          alt={'Publicity and encryption'}
+      <div className={styles.autocomplete_modal}>
+        <Form.Control
+          aria-label="Search-to-link"
+          aria-describedby="basic-addon1"
+          onChange={this.handleChange}
+          onSubmit={this.handleSumbit}
+          value={input}
+          placeholder="Type something"
+          ref={this.inputRef}
         />
-      </HoverTooltip>
-    </Button>
-  )
-)
-
-class RightSearchModal extends React.Component {
-  constructor(props) {
-    super(props)
-    this.addNodeRefCancelToken = smugler.makeCancelToken()
-  }
-
-  handleReplaceSmartpoint = ({ replacement, nid }) => {
-    if (nid) {
-      smugler.edge
-        .create({
-          from: this.props.nid,
-          to: nid,
-          cancelToken: this.addNodeRefCancelToken.token,
-        })
-        .then((edge) => {
-          if (edge) {
-            this.props.addRef({ edge, right: true })
-          }
-        })
-    }
-  }
-
-  componentWillUnmount() {
-    this.addNodeRefCancelToken.cancel()
-  }
-
-  render() {
-    return (
-      <AutocompleteWindow
-        show={this.props.show}
-        onHide={this.props.onHide}
-        on_insert={this.handleReplaceSmartpoint}
-        nid={this.props.nid}
-        suggestDateTime={false}
-      />
+        <SearchGrid
+          q={q}
+          defaultSearch={false}
+          onCardClick={this.onNodeCardClick}
+          portable
+        >
+          {cards}
+        </SearchGrid>
+      </div>
     )
   }
 }
 
-export function _createAddingStickyEdgesRequest(sticky_edges, prev_nid) {
-  if (sticky_edges == null) {
-    return null
-  }
-  const edges = sticky_edges
-    .map((se) => {
-      if (se.is_sticky) {
-        if (se.to_nid === prev_nid) {
-          return {
-            from_nid: se.from_nid,
-            is_sticky: true,
-          }
-        } else if (se.from_nid === prev_nid) {
-          return {
-            to_nid: se.to_nid,
-            is_sticky: true,
-          }
-        }
-      }
-      return null
-    })
-    .filter((item) => item != null)
-
-  return edges.length !== 0
-    ? {
-        edges,
-      }
-    : null
-}
-
-function __addStickyEdges(sticky_edges, new_nid, prev_nid, cancelToken) {
-  if (sticky_edges == null) {
-    return Promise.resolve([])
-  }
-  const edges = sticky_edges
-    .map((se) => {
-      if (se.is_sticky) {
-        if (se.to_nid === prev_nid) {
-          return {
-            from_nid: se.from_nid,
-            to_nid: new_nid,
-            is_sticky: true,
-          }
-        } else if (se.from_nid === prev_nid) {
-          return {
-            to_nid: se.to_nid,
-            from_nid: new_nid,
-            is_sticky: true,
-          }
-        }
-      }
-      return null
-    })
-    .filter((item) => item != null)
-  if (edges.length === 0) {
-    return Promise.resolve([])
-  }
-  return smugler.edge.createFew({
-    edges,
-    cancelToken,
-  })
+export const SearchAndConnectJinn = ({ show, setShow, nid, addRef, left }) => {
+  return (
+    <Modal
+      show={show}
+      onHide={() => setShow(false)}
+      size="xl"
+      aria-labelledby="contained-modal-title-vcenter"
+      centered
+      keyboard
+      restoreFocus={false}
+      animation={false}
+      dialogClassName={''}
+      scrollable
+      enforceFocus
+    >
+      <SearchAndConnectJinnModal
+        nid={nid}
+        setShow={setShow}
+        addRef={addRef}
+        left={left}
+      />
+    </Modal>
+  )
 }
 
 async function cloneNode({ from, to, crypto, cancelToken, isBlank }) {
@@ -249,15 +192,8 @@ class PrivateFullCardFootbarImpl extends React.Component {
       })
       .then((node) => {
         if (node) {
-          const new_nid = node.nid
-          __addStickyEdges(
-            this.props.stickyEdges,
-            new_nid,
-            this.props.nid,
-            this.createCancelToken.token
-          ).then(() => {
-            goto.node({ history: this.props.history, nid: new_nid })
-          })
+          const { nid } = node
+          goto.node({ history: this.props.history, nid })
         }
       })
   }
@@ -314,15 +250,8 @@ class PrivateFullCardFootbarImpl extends React.Component {
       })
       .then((node) => {
         if (node) {
-          const new_nid = node.nid
-          __addStickyEdges(
-            this.props.stickyEdges,
-            new_nid,
-            this.props.nid,
-            this.createCancelToken.token
-          ).then(() => {
-            goto.node({ history: this.props.history, nid: new_nid })
-          })
+          const { nid } = node
+          goto.node({ history: this.props.history, nid })
         }
       })
   }
@@ -336,25 +265,39 @@ class PrivateFullCardFootbarImpl extends React.Component {
       cancelToken: this.createCancelToken.token,
     }).then((node) => {
       if (node) {
-        goto.node({ history: this.props.history, nid: node.nid })
+        const { nid } = node
+        goto.node({ history: this.props.history, nid })
       }
     })
   }
 
   handleNextLeftSearch = (event) => {
-    this.setState({ modalLeftShow: true })
+    this.setSearchShow(true, true)
   }
 
   handleNextRightSearch = (event) => {
-    this.setState({ modalRightShow: true })
+    this.setSearchShow(true, false)
   }
 
-  hideRightSearchDialog = (event) => {
-    this.setState({ modalRightShow: false })
-  }
-
-  hideLeftSearchDialog = (event) => {
-    this.setState({ modalLeftShow: false })
+  setSearchShow = (show, left) => {
+    if (show) {
+      if (left) {
+        this.setState({
+          modalLeftShow: true,
+          modalRightShow: false,
+        })
+      } else {
+        this.setState({
+          modalLeftShow: false,
+          modalRightShow: true,
+        })
+      }
+    } else {
+      this.setState({
+        modalRightShow: false,
+        modalLeftShow: false,
+      })
+    }
   }
 
   hideShareDialog = (event) => {
@@ -608,7 +551,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
                 <img
                   src={NextCopyRightImg}
                   className={styles.dropdown_menu_inline_img}
-                  alt="Blnak copy and link"
+                  alt="Blank copy and link"
                 />
                 Blank copy
               </FootbarDropdownItem>
@@ -626,25 +569,17 @@ class PrivateFullCardFootbarImpl extends React.Component {
             </FootbarDropdownMenu>
           </FootbarDropdown>
         </ButtonToolbar>
-
         <ShareModal
           show={this.state.modalShareShow}
           nid={this.props.nid}
           onHide={this.hideShareDialog}
         />
-        <LeftSearchModal
-          addRef={this.props.addRef}
+        <SearchAndConnectJinn
           nid={this.props.nid}
-          show={this.state.modalLeftShow}
-          onHide={this.hideLeftSearchDialog}
-          context={this.props.context}
-        />
-        <RightSearchModal
           addRef={this.props.addRef}
-          nid={this.props.nid}
-          show={this.state.modalRightShow}
-          onHide={this.hideRightSearchDialog}
-          context={this.props.context}
+          show={this.state.modalLeftShow || this.state.modalRightShow}
+          left={this.state.modalLeftShow}
+          setShow={this.setSearchShow}
         />
       </>
     )
@@ -685,15 +620,8 @@ class PublicFullCardFootbarImpl extends React.Component {
       })
       .then((node) => {
         if (node) {
-          const new_nid = node.nid
-          __addStickyEdges(
-            this.props.stickyEdges,
-            new_nid,
-            this.props.nid,
-            this.createCancelToken.token
-          ).then(() => {
-            goto.node({ history: this.props.history, nid: new_nid })
-          })
+          const { nid } = node
+          goto.node({ history: this.props.history, nid })
         }
       })
   }
@@ -727,15 +655,8 @@ class PublicFullCardFootbarImpl extends React.Component {
       })
       .then((node) => {
         if (node) {
-          const new_nid = node.nid
-          __addStickyEdges(
-            this.props.stickyEdges,
-            new_nid,
-            this.props.nid,
-            this.createCancelToken.token
-          ).then(() => {
-            goto.node({ history: this.props.history, nid: new_nid })
-          })
+          const { nid } = node
+          goto.node({ history: this.props.history, nid })
         }
       })
   }
