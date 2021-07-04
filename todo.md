@@ -2,21 +2,19 @@
 
 - [ ] Images support
 - [ ] src/markdown/slate.ts:320, TypeError: "link" is read-only, [bug]
-- [ ] Add edge when local link is added
-- [ ] Slate editor - block style menu
-- [ ] Slate editor - text style menu (pop up)
+- [ ] Use sort by "creation date" (not by update date)
 - [ ] Implement special type of page - "dashboard"
-- [ ] Dates pick up
+- [ ] Add edge when local link is added
+- [ ] Editor - block style menu
+- [ ] Editor - inline style menu (pop up)
+- [ ] Dates editing - pick up from calendar
+- [ ] Dates - set up notifications
+- [ ] Custom TODO bookmarks
 - [ ] Links editing menu
-- [ ] Force title (header 1) for all notes, if missing use random emoji
 - [ ] Goto search doesn't work!
-- [ ] Make editor usabe from mobile
-- [ ] Smart point
 - [ ] Refs, url valiation
 - [ ] Refs, local node refs recognition
 - [ ] Refs, same buttons as for right "next"
-- [ ] Support custom images in docs
-- [ ] "Date-time" menu, to see details and edit in modal window. Date picker
 - [ ] Checkbox doesn't have depth as normal list
 - [ ] Hide share button under meatballs menu
 - [ ] Emoji as a default header
@@ -211,3 +209,4 @@
 - [x] Implement TimeDate rule for Jinn
 - [x] Fix search to connect button, 2021.07.04
 - [x] Implement edge stickiness on server side to reduce number of calls to backend, 2021.07.04
+- [x] Force title (header 1) for all notes, if missing use random emoji
