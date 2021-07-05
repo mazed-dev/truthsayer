@@ -192,26 +192,34 @@ class Triptych extends React.Component {
       })
   }
 
-  saveDoc = lodash.debounce((doc) => {
-    // TODO(akindyakov): move conversion from raw slate to doc to here
-    // TODO(akindyakov): collect stats here
-    const account = this.context.account
-    return smugler.node
-      .update({
-        nid: this.props.nid,
-        doc,
-        cancelToken: this.fetchNodeCancelToken.token,
-        account,
-      })
-      .then((resp) => {
-        // this.setState((state) => {
-        //   let node = state.node;
-        //   node.doc = doc;
-        //   return { node: node };
-        // });
-        return resp
-      })
-  }, 1200)
+  saveDoc = lodash.debounce(
+    (doc) => {
+      // TODO(akindyakov): move conversion from raw slate to doc to here
+      // TODO(akindyakov): collect stats here
+      const account = this.context.account
+      return smugler.node
+        .update({
+          nid: this.props.nid,
+          doc,
+          cancelToken: this.fetchNodeCancelToken.token,
+          account,
+        })
+        .then((resp) => {
+          // this.setState((state) => {
+          //   let node = state.node;
+          //   node.doc = doc;
+          //   return { node: node };
+          // });
+          return resp
+        })
+    },
+    757,
+    {
+      leading: true,
+      maxWait: 1867,
+      trailing: true,
+    }
+  )
 
   cutOffRef = (eid) => {
     this.setState((state) => {

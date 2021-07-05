@@ -105,9 +105,9 @@ export const DocEditor = ({ className, node, saveDoc }) => {
   }, [nid])
   const renderElement = useCallback(
     (props) => <Element nid={nid} {...props} />,
-    []
+    [nid]
   )
-  const renderLeaf = useCallback((props) => <Leaf {...props} />, [])
+  const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
   const editor = useMemo(
     () =>
       withJinn(
@@ -158,8 +158,11 @@ export const ReadOnlyDoc = ({ className, node }) => {
     })
     return () => (isSubscribed = false)
   }, [nid])
-  const renderElement = (props) => <ReadOnlyElement nid={nid} {...props} />
-  const renderLeaf = (props) => <Leaf {...props} />
+  const renderElement = useCallback(
+    (props) => <ReadOnlyElement nid={nid} {...props} />,
+    [nid]
+  )
+  const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
   const editor = useMemo(
     () =>
       withTypography(

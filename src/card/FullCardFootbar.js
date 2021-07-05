@@ -207,7 +207,8 @@ class PrivateFullCardFootbarImpl extends React.Component {
       cancelToken: this.createCancelToken.token,
     }).then((node) => {
       if (node) {
-        goto.node({ history: this.props.history, nid: node.nid })
+        const { nid } = node
+        goto.node({ history: this.props.history, nid })
       }
     })
   }
@@ -222,7 +223,8 @@ class PrivateFullCardFootbarImpl extends React.Component {
       isBlank: true,
     }).then((node) => {
       if (node) {
-        goto.node({ history: this.props.history, nid: node.nid })
+        const { nid } = node
+        goto.node({ history: this.props.history, nid })
       }
     })
   }
@@ -237,7 +239,8 @@ class PrivateFullCardFootbarImpl extends React.Component {
       isBlank: true,
     }).then((node) => {
       if (node) {
-        goto.node({ history: this.props.history, nid: node.nid })
+        const { nid } = node
+        goto.node({ history: this.props.history, nid })
       }
     })
   }
@@ -638,7 +641,8 @@ class PublicFullCardFootbarImpl extends React.Component {
       cancelToken: this.createCancelToken.token,
     }).then((node) => {
       if (node) {
-        goto.node({ history: this.props.history, nid: node.nid })
+        const { nid } = node
+        goto.node({ history: this.props.history, nid })
       }
     })
   }
@@ -673,7 +677,8 @@ class PublicFullCardFootbarImpl extends React.Component {
       cancelToken: this.createCancelToken.token,
     }).then((node) => {
       if (node) {
-        goto.node({ history: this.props.history, nid: node.nid })
+        const { nid } = node
+        goto.node({ history: this.props.history, nid })
       }
     })
   }
@@ -743,16 +748,17 @@ const PublicFullCardFootbar = withRouter(PublicFullCardFootbarImpl)
 
 export function FullCardFootbar({ children, node, ...rest }) {
   const ctx = useContext(MzdGlobalContext)
-  const account = ctx.account
+  const { account } = ctx
   if (node && node.meta) {
+    const { nid, meta, doc } = node
     if (node.isOwnedBy(account)) {
       const getMarkdown = () => {
-        return docAsMarkdown(node.doc)
+        return docAsMarkdown(doc)
       }
       return (
         <PrivateFullCardFootbar
-          nid={node.nid}
-          meta={node.meta}
+          nid={nid}
+          meta={meta}
           getMarkdown={getMarkdown}
           context={ctx}
           {...rest}
@@ -762,7 +768,7 @@ export function FullCardFootbar({ children, node, ...rest }) {
       )
     } else {
       return (
-        <PublicFullCardFootbar nid={node.nid} context={ctx} {...rest}>
+        <PublicFullCardFootbar nid={nid} context={ctx} {...rest}>
           {children}
         </PublicFullCardFootbar>
       )
