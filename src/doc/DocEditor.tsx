@@ -94,22 +94,25 @@ export const DocEditor = ({ className, node, saveDoc }) => {
   const { doc, nid } = node
   const [value, setValue] = useState<Descendant[]>([])
   const [showJinn, setShowJinn] = useState<boolean>(false)
-  const onModalHide = () => {
-    setShowModal(false)
-  }
   useEffect(() => {
-    getDocSlate(doc).then((content) => setValue(content))
+    let isSubscribed = true
+    getDocSlate(doc).then((content) => {
+      if (isSubscribed) {
+        setValue(content)
+      }
+    })
+    return () => (isSubscribed = false)
   }, [nid])
   const renderElement = useCallback(
     (props) => <Element nid={nid} {...props} />,
-    [nid]
+    []
   )
-  const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
+  const renderLeaf = useCallback((props) => <Leaf {...props} />, [])
   const editor = useMemo(
     () =>
-      withTypography(
-        withJinn(
-          setShowJinn,
+      withJinn(
+        setShowJinn,
+        withTypography(
           withLinks(
             withDateTime(
               withImages(withShortcuts(withReact(withHistory(createEditor()))))
@@ -147,13 +150,16 @@ export const ReadOnlyDoc = ({ className, node }) => {
   const { doc, nid } = node
   const [value, setValue] = useState<Descendant[]>([])
   useEffect(() => {
-    getDocSlate(doc).then((content) => setValue(content))
+    let isSubscribed = true
+    getDocSlate(doc).then((content) => {
+      if (isSubscribed) {
+        setValue(content)
+      }
+    })
+    return () => (isSubscribed = false)
   }, [nid])
-  const renderElement = useCallback(
-    (props) => <ReadOnlyElement nid={nid} {...props} />,
-    [nid]
-  )
-  const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
+  const renderElement = (props) => <ReadOnlyElement nid={nid} {...props} />
+  const renderLeaf = (props) => <Leaf {...props} />
   const editor = useMemo(
     () =>
       withTypography(
