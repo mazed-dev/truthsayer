@@ -1,8 +1,11 @@
-import React from 'react'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
 
 import styles from './ShrinkCard.module.css'
 
+import { Link } from 'react-router-dom'
+
 import { jcss } from './../util/jcss'
+import { makeRefTo } from './../lib/route'
 
 /**
  * +-------------------+
@@ -58,33 +61,20 @@ const SeeMoreButton = React.forwardRef(
     )
   }
 )
-
-export class ShrinkCard extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      opened: false,
-    }
-  }
-
-  toggleMoreLess = () => {
-    this.setState({
-      opened: !this.state.opened,
-    })
-  }
-
-  render() {
-    const shrinkStyle = this.state.opened
-      ? styles.everything_xxs
-      : styles.card_xxs
-    return (
-      <>
-        <div className={jcss(styles.shrinkable, shrinkStyle)}>
-          {this.props.children}
-          <div className={styles.fade} />
-        </div>
-        <SeeMoreButton onClick={this.toggleMoreLess} on={this.state.opened} />
-      </>
-    )
-  }
+export const ShrinkCard = ({ children, nid }) => {
+  const [opened, setOpened] = useState(false)
+  const shrinkStyle = opened ? styles.everything_xxs : styles.card_xxs
+  const toggleMoreLess = () => setOpened(!opened)
+  return (
+    <>
+      <div className={jcss(styles.shrinkable, shrinkStyle)}>
+        {children}
+        <div className={styles.fade} />
+      </div>
+      <SeeMoreButton onClick={toggleMoreLess} on={opened} />
+      <Link to={makeRefTo.node(nid)} className={styles.a_see_more}>
+        or open
+      </Link>
+    </>
+  )
 }

@@ -210,3 +210,4 @@
 - [x] Fix search to connect button, 2021.07.04
 - [x] Implement edge stickiness on server side to reduce number of calls to backend, 2021.07.04
 - [x] Force title (header 1) for all notes, if missing use random emoji
+- [x] Add "open" link next to "see more" on a ref card of a triptych, 2021.07.07/09:07

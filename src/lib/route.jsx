@@ -98,6 +98,10 @@ export const goto = {
   },
 }
 
+export const makeRefTo = {
+  node: (nid) => `${kNodePathPrefix}${nid}`,
+}
+
 export const compass = {
   search: {
     get: getSearchAnchor,

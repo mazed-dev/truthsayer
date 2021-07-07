@@ -30,12 +30,11 @@ function RefNodeCard({ nid, edge, switchStickiness, cutOffRef }) {
   // See more / less button should go to a footbar
   return (
     <SmallCard className={styles.grid_cell}>
-      <ShrinkCard>
+      <ShrinkCard nid={nid}>
         <ReadOnlyRender nid={nid} />
       </ShrinkCard>
       <SmallCardFootbar
         edge={edge}
-        nid={nid}
         switchStickiness={switchStickiness}
         cutOffRef={cutOffRef}
       />
