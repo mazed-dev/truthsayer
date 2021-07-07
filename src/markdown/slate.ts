@@ -280,14 +280,14 @@ function serializeExtraBlocks(children: Descendant): Descendant {
         item = serializeExtraLink(item)
         break
     }
-    const { children, type } = item
+    let { children, type } = item
     if (children) {
-      item.children = serializeExtraBlocks(children)
+      children = serializeExtraBlocks(children)
     }
     if (type) {
-      item.type = _mazedBlockTypeToRemarkSlate(type)
+      type = _mazedBlockTypeToRemarkSlate(type)
     }
-    return item
+    return { ...item, children, type }
   })
 }
 
@@ -317,8 +317,10 @@ function serializeExtraListCheckItem(item: Descendant): Descendant {
 
 function serializeExtraLink(item: Descendant): Descendant {
   const { url, link } = item
-  item.link = url || link
-  return item
+  return {
+    ...item,
+    link: url || link,
+  }
 }
 
 function serializeExtraDateTime(item: Descendant): Descendant {
