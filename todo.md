@@ -1,8 +1,9 @@
 # Todo
 
+- [ ] [bug] Public page doesn't work - fix it first
+- [ ] Implement special type of page - "dashboard"
 - [ ] Images support
 - [ ] Use sort by "creation date" (not by update date)
-- [ ] Implement special type of page - "dashboard"
 - [ ] Add edge when local link is added
 - [ ] Catch "not found" responses in Card view and show a proper message
 - [ ] Editor - block style menu
