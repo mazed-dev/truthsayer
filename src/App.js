@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 
 // React router
 import {
@@ -33,8 +33,11 @@ import UserPreferences from './auth/UserPreferences'
 import WelcomePage from './WelcomePage'
 import UserEncryption from './UserEncryption'
 import { routes } from './lib/route.jsx'
+import { Loader } from './lib/loader'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
+
+import { debug } from './util/log'
 
 import './App.css'
 
@@ -50,122 +53,90 @@ class App extends React.Component {
   }
 }
 
-class AppRouter extends React.Component {
-  render() {
-    const account = this.context.account
-    const isAuthenticated = account != null && account.isAuthenticated()
-    const mainView = isAuthenticated ? (
-      <Redirect to={{ pathname: '/search' }} />
-    ) : (
-      <WelcomePage />
-    )
-    return (
-      <Router>
-        <div>
-          <GlobalNavBar />
-          <Switch>
-            <Route exact path="/">
-              {mainView}
-            </Route>
-            <PublicOnlyRoute
-              path={routes.login}
-              is_authenticated={isAuthenticated}
-            >
-              <Login onLogin={this.handleSuccessfulLogin} />
-            </PublicOnlyRoute>
-            <PublicOnlyRoute
-              path={routes.signup}
-              is_authenticated={isAuthenticated}
-            >
-              <Signup onLogin={this.handleSuccessfulLogin} />
-            </PublicOnlyRoute>
-            <Route path="/waiting-for-approval">
-              <WaitingForApproval path="/waiting-for-approval" />
-            </Route>
-            <Route path={routes.logout} is_authenticated={isAuthenticated}>
-              <Logout onLogout={this.handleLogout} />
-            </Route>
-            <PrivateRoute
-              path={routes.search}
-              is_authenticated={isAuthenticated}
-            >
-              <SearchView />
-            </PrivateRoute>
-            <Route path={routes.node} is_authenticated={isAuthenticated}>
-              <TriptychView />
-            </Route>
-            <PrivateRoute
-              path="/upload-file"
-              is_authenticated={isAuthenticated}
-            >
-              <UploadFile />
-            </PrivateRoute>
-            <PrivateRoute path="/account" is_authenticated={isAuthenticated}>
-              <AccountView />
-            </PrivateRoute>
-            <PrivateRoute
-              path="/user-preferences"
-              is_authenticated={isAuthenticated}
-            >
-              <UserPreferences />
-            </PrivateRoute>
-            <PrivateRoute
-              path="/user-encryption"
-              is_authenticated={isAuthenticated}
-            >
-              <UserEncryption />
-            </PrivateRoute>
-            <Route path="/help">
-              <HelpInfo />
-            </Route>
-            <Route path="/about">
-              <About />
-            </Route>
-            <Route path="/contacts">
-              <ContactUs />
-            </Route>
-            <Route path="/privacy-policy">
-              <PrivacyPolicy />
-            </Route>
-            <Route path="/terms-of-service">
-              <TermsOfService />
-            </Route>
-            <PublicOnlyRoute
-              path="/password-recover-request"
-              is_authenticated={isAuthenticated}
-            >
-              <PasswordRecoverRequest />
-            </PublicOnlyRoute>
-            <PublicOnlyRoute
-              path="/password-recover-reset/:token"
-              is_authenticated={isAuthenticated}
-            >
-              <PasswordRecoverFormView />
-            </PublicOnlyRoute>
-            <PrivateRoute
-              path="/password-recover-change"
-              is_authenticated={isAuthenticated}
-            >
-              <PasswordChange />
-            </PrivateRoute>
-            <Route path="/notice/:page">
-              <Notice />
-            </Route>
-            <Route path="*">
-              <Redirect to={{ pathname: '/' }} />
-            </Route>
-          </Switch>
-        </div>
-      </Router>
-    )
-  }
+function AppRouter() {
+  return (
+    <Router>
+      <div>
+        <GlobalNavBar />
+        <Switch>
+          <Route exact path="/">
+            <MainView />
+          </Route>
+          <PublicOnlyRoute path={routes.login}>
+            <Login />
+          </PublicOnlyRoute>
+          <PublicOnlyRoute path={routes.signup}>
+            <Signup />
+          </PublicOnlyRoute>
+          <Route path="/waiting-for-approval">
+            <WaitingForApproval path="/waiting-for-approval" />
+          </Route>
+          <Route path={routes.logout}>
+            <Logout />
+          </Route>
+          <PrivateRoute path={routes.search}>
+            <SearchView />
+          </PrivateRoute>
+          <Route path={routes.node}>
+            <TriptychView />
+          </Route>
+          <PrivateRoute path="/upload-file">
+            <UploadFile />
+          </PrivateRoute>
+          <PrivateRoute path="/account">
+            <AccountView />
+          </PrivateRoute>
+          <PrivateRoute path="/user-preferences">
+            <UserPreferences />
+          </PrivateRoute>
+          <PrivateRoute path="/user-encryption">
+            <UserEncryption />
+          </PrivateRoute>
+          <Route path="/help">
+            <HelpInfo />
+          </Route>
+          <Route path="/about">
+            <About />
+          </Route>
+          <Route path="/contacts">
+            <ContactUs />
+          </Route>
+          <Route path="/privacy-policy">
+            <PrivacyPolicy />
+          </Route>
+          <Route path="/terms-of-service">
+            <TermsOfService />
+          </Route>
+          <PublicOnlyRoute path="/password-recover-request">
+            <PasswordRecoverRequest />
+          </PublicOnlyRoute>
+          <PublicOnlyRoute path="/password-recover-reset/:token">
+            <PasswordRecoverFormView />
+          </PublicOnlyRoute>
+          <PrivateRoute path="/password-recover-change">
+            <PasswordChange />
+          </PrivateRoute>
+          <Route path="/notice/:page">
+            <Notice />
+          </Route>
+          <Route path="*">
+            <Redirect to={{ pathname: '/' }} />
+          </Route>
+        </Switch>
+      </div>
+    </Router>
+  )
 }
 
-AppRouter.contextType = MzdGlobalContext
-
-function PrivateRoute({ is_authenticated, children, ...rest }) {
+function PrivateRoute({ children, ...rest }) {
   const location = useLocation()
-  if (is_authenticated) {
+  const ctx = useContext(MzdGlobalContext)
+  const account = ctx.account
+  if (account == null) {
+    return <Loader size={'large'} />
+  }
+  const isAuthenticated = account.isAuthenticated()
+  if (isAuthenticated) {
     return <Route {...rest}> {children} </Route>
   } else {
     return (
@@ -179,9 +150,15 @@ function PrivateRoute({ is_authenticated, children, ...rest }) {
   }
 }
 
-function PublicOnlyRoute({ is_authenticated, children, ...rest }) {
+function PublicOnlyRoute({ children, ...rest }) {
   const location = useLocation()
-  if (!is_authenticated) {
+  const ctx = useContext(MzdGlobalContext)
+  const account = ctx.account
+  if (account == null) {
+    return <Loader size={'large'} />
+  }
+  const isAuthenticated = account.isAuthenticated()
+  if (!isAuthenticated) {
     return <Route {...rest}> {children} </Route>
   } else {
     return (
@@ -192,6 +169,20 @@ function PublicOnlyRoute({ is_authenticated, children, ...rest }) {
         }}
       />
     )
+  }
+}
+
+function MainView() {
+  const ctx = useContext(MzdGlobalContext)
+  const account = ctx.account
+  if (account == null) {
+    return <Loader size={'large'} />
+  }
+  const isAuthenticated = account.isAuthenticated()
+  if (isAuthenticated) {
+    return <Redirect to={{ pathname: '/search' }} />
+  } else {
+    return <WelcomePage />
   }
 }
 
@@ -312,7 +303,6 @@ function TriptychView() {
 function SearchView() {
   const location = useLocation()
   const params = parse(location.search)
-  // console.log("SearchView:", location, params);
   return <SearchGrid q={params.q} defaultSearch />
 }
 
