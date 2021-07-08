@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 
 import styles from './GlobalNavBar.module.css'
 
@@ -206,9 +206,6 @@ class PublicNavButtons extends React.Component {
             <Nav.Link as={Link} to="/terms-of-service">
               Terms of service
             </Nav.Link>
-            <Nav.Link as={Link} to="/privacy-policy">
-              Privacy policy
-            </Nav.Link>
             <Nav.Link as={Link} to="/contacts">
               Contact us
             </Nav.Link>
@@ -224,32 +221,32 @@ class PublicNavButtons extends React.Component {
   }
 }
 
-class GlobalNavBar extends React.Component {
-  render() {
-    let buttons = null
-    const account = this.context.account
-    if (account) {
-      buttons = <PrivateNavButtons />
-    } else {
-      buttons = <PublicNavButtons />
-    }
-    return (
-      <>
-        <Navbar className={styles.navbar}>
-          <Navbar.Brand as={Link} to="/" className={jcss(styles.brand)}>
-            <span role="img" aria-label="next">
-              &#x1F9F5;
-            </span>
-            <div className="d-none d-sm-none d-md-block"> Mazed </div>
-          </Navbar.Brand>
-          {buttons}
-        </Navbar>
-        <div className={styles.navbar_filler} />
-      </>
-    )
+function GlobalNavBar() {
+  const ctx = useContext(MzdGlobalContext)
+  const account = ctx.account
+  if (account == null) {
+    return <></>
   }
+  let buttons
+  if (account.isAuthenticated()) {
+    buttons = <PrivateNavButtons />
+  } else {
+    buttons = <PublicNavButtons />
+  }
+  return (
+    <>
+      <Navbar className={styles.navbar}>
+        <Navbar.Brand as={Link} to="/" className={jcss(styles.brand)}>
+          <span role="img" aria-label="next">
+            &#x1F9F5;
+          </span>
+          <div className="d-none d-sm-none d-md-block"> Mazed </div>
+        </Navbar.Brand>
+        {buttons}
+      </Navbar>
+      <div className={styles.navbar_filler} />
+    </>
+  )
 }
-
-GlobalNavBar.contextType = MzdGlobalContext
 
 export default withRouter(GlobalNavBar)

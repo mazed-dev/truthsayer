@@ -4,9 +4,10 @@ import crc from 'crc'
 
 import { Toast, Button } from 'react-bootstrap'
 
-import { UserAccount, Knocker } from './../auth/local.jsx'
+import { UserAccount, Knocker } from '../auth/local.jsx'
 
-import { jcss } from './../util/jcss'
+import { jcss } from '../util/jcss'
+import { debug } from '../util/log'
 import axios from 'axios'
 
 import styles from './global.module.css'
@@ -100,12 +101,8 @@ export class MzdGlobal extends React.Component {
   }
 
   componentDidMount() {
-    UserAccount.aCreate(this.fetchAccountCancelToken.token).then((inst) => {
-      if (inst != null) {
-        this.setState({
-          account: inst,
-        })
-      }
+    UserAccount.aCreate(this.fetchAccountCancelToken.token).then((account) => {
+      this.setState({ account })
     })
   }
 

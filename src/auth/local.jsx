@@ -2,18 +2,42 @@ import Cookies from 'universal-cookie'
 import React from 'react'
 import axios from 'axios'
 
-import { LocalCrypto } from './../crypto/local.jsx'
-import { getAuth } from './../smugler/api.js'
+import { LocalCrypto } from '../crypto/local.jsx'
+import { getAuth } from '../smugler/api.js'
+import { debug } from '../util/log'
 
 const _VEIL_KEY: string = 'x-magic-veil'
 
-export class UserAccount {
+class AnonymousAccount {
+  isAuthenticated(): boolean {
+    return false
+  }
+
+  getUid(): string {
+    throw Error('User is not authenticated')
+  }
+
+  getName(): string {
+    throw Error('User is not authenticated')
+  }
+
+  getEmail(): string {
+    throw Error('User is not authenticated')
+  }
+
+  getLocalCrypto(): LocalCrypto {
+    throw Error('User is not authenticated')
+  }
+}
+
+export class UserAccount extends AnonymousAccount {
   _uid: string
   _name: string
   _email: string
   _lc: LocalCrypto
 
   constructor(uid: string, name: string, email: string, lc: LocalCrypto) {
+    super()
     this._uid = uid
     this._name = name
     this._email = email
@@ -22,7 +46,7 @@ export class UserAccount {
 
   static async aCreate(cancelToken): Promise<UserAccount> {
     if (!checkAuth()) {
-      return null
+      return new AnonymousAccount()
     }
     const user = await getAuth({ cancelToken }).then((res) => {
       if (res) {
@@ -31,7 +55,7 @@ export class UserAccount {
       return null
     })
     if (!user) {
-      return null
+      return new AnonymousAccount()
     }
     const lc = await LocalCrypto.initInstance(user.uid)
     return new UserAccount(user.uid, user.name, user.email, lc)
@@ -54,7 +78,7 @@ export class UserAccount {
   }
 
   isAuthenticated(): boolean {
-    return checkAuth()
+    return true
   }
 }
 

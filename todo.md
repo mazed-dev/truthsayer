@@ -4,6 +4,7 @@
 - [ ] Use sort by "creation date" (not by update date)
 - [ ] Implement special type of page - "dashboard"
 - [ ] Add edge when local link is added
+- [ ] Catch "not found" responses in Card view and show a proper message
 - [ ] Editor - block style menu
 - [ ] Editor - inline style menu (pop up)
 - [ ] Dates editing - pick up from calendar
