@@ -3,8 +3,8 @@
   padding-left: 0.5rem;
   padding-right: 0.5rem;
 
-  padding-top: 2px;
-  padding-bottom: 4px;
+  padding-top: 0;
+  padding-bottom: 2px;
 }
 
 .toolbar_group {
@@ -18,16 +18,11 @@
   border-radius: 56px;
 
   padding: 0;
-  padding: 0.4rem;
+  padding: 4px;
 }
 
 .tool_button:hover {
   background-color: #d0d1d2;
-}
-
-.tool_dropdown {
-  padding-right: 0.7rem;
-  padding-left: 0.7rem;
 }
 
 .tool_button_img {

@@ -72,8 +72,9 @@ export const ShrinkCard = ({ children, nid }) => {
         <div className={styles.fade} />
       </div>
       <SeeMoreButton onClick={toggleMoreLess} on={opened} />
+      {'∾'}
       <Link to={makeRefTo.node(nid)} className={styles.a_see_more}>
-        or open
+        open
       </Link>
     </>
   )

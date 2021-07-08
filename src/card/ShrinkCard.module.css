@@ -33,24 +33,24 @@
 }
 
 .card_xs {
-  height: 12rem;
+  height: 10rem;
 }
 
 .card_s {
-  height: 18rem;
+  height: 12rem;
 }
 .card_m {
-  height: 24rem;
+  height: 18rem;
 }
 .card_l {
-  height: 32rem;
+  height: 24rem;
 }
 .card_xl {
-  height: 48rem;
+  height: 32rem;
 }
 
 .card_xxl {
-  height: 64rem;
+  height: 48rem;
 }
 
 .card_xs::after {
