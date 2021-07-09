@@ -47,7 +47,7 @@ async function _tryToDecryptDocLocally(
 ) {
   if (secretId && signature) {
     // const secretId = headers[kHeaderLocalSecretId];
-    if (!account) {
+    if (!(account && account.isAuthenticated())) {
       return { doc: null, secret_id: secretId, success: false }
     }
     const crypto = account.getLocalCrypto()
@@ -135,7 +135,9 @@ export class TNode {
   }
 
   isOwnedBy(account) {
-    return account && account.getUid() === this.meta.uid
+    return (
+      account && account.isAuthenticated() && account.getUid() === this.meta.uid
+    )
   }
 
   getOwner() {
@@ -207,7 +209,7 @@ export function getSecondKey({ id }) {
 }
 
 async function decryptSecretAttrs(account, secretId, attrsEnc) {
-  if (account) {
+  if (account && account.isAuthenticated()) {
     const crypto = account.getLocalCrypto()
     if (crypto && crypto.has(secretId)) {
       // If this is encrypted blob, decrypt it first with local secret
@@ -339,7 +341,9 @@ class TEdge {
   }
 
   isOwnedBy(account) {
-    return account && account.getUid() === this.owned_by
+    return (
+      account && account.isAuthenticated() && account.getUid() === this.owned_by
+    )
   }
 }
 

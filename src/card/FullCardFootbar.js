@@ -409,11 +409,10 @@ class PrivateFullCardFootbarImpl extends React.Component {
                 <img
                   src={NextNewLeftImg}
                   className={styles.dropdown_menu_inline_img}
-                  alt="Add left link"
+                  alt="Create new to the left"
                 />
-                New
+                Create new
               </FootbarDropdownItem>
-
               <FootbarDropdownItem
                 className={styles.dropdown_menu_item}
                 onClick={this.handleNextLeftClone}
@@ -445,7 +444,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
                   className={styles.dropdown_menu_inline_img}
                   alt="Search and link"
                 />
-                Search
+                Search to bind
               </FootbarDropdownItem>
             </FootbarDropdownMenu>
           </FootbarDropdown>
@@ -532,9 +531,9 @@ class PrivateFullCardFootbarImpl extends React.Component {
                 <img
                   src={NextNewRightImg}
                   className={styles.dropdown_menu_inline_img}
-                  alt="Add right link"
+                  alt="Create new to the right"
                 />
-                New
+                Create new
               </FootbarDropdownItem>
               <FootbarDropdownItem
                 className={styles.dropdown_menu_item}

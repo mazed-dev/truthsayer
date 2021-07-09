@@ -1,6 +1,5 @@
 # Todo
 
-- [ ] [bug] Public page doesn't work - fix it first
 - [ ] Implement special type of page - "dashboard"
 - [ ] Images support
 - [ ] Use sort by "creation date" (not by update date)
@@ -213,3 +212,4 @@
 - [x] Force title (header 1) for all notes, if missing use random emoji
 - [x] Add "open" link next to "see more" on a ref card of a triptych, 2021.07.07/09:07
 - [x] src/markdown/slate.ts:320, TypeError: "link" is read-only, [bug], 2021.07.07/09:20
+- [x] [bug] Public page doesn't work - fix it first
