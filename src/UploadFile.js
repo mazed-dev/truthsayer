@@ -3,7 +3,6 @@ import React from 'react'
 import { Button, Container, Form, ListGroup } from 'react-bootstrap'
 
 import PropTypes from 'prop-types'
-import axios from 'axios'
 import { Link, withRouter } from 'react-router-dom'
 
 import { Emoji } from './Emoji'
@@ -21,7 +20,11 @@ class UploadFile extends React.Component {
       uploads: [], // [{filename: "", nid: "", local_id: "some local id", progress: 1.0, err_message: null}]
     }
     this.fileInputRef = React.createRef()
-    this.fetchCancelToken = axios.CancelToken.source()
+    this.fetchCancelToken = smugler.makeCancelToken()
+  }
+
+  componentWillUnmount() {
+    this.fetchCancelToken.cancel()
   }
 
   static propTypes = {

@@ -1,9 +1,8 @@
 import Cookies from 'universal-cookie'
 import React from 'react'
-import axios from 'axios'
 
 import { LocalCrypto } from '../crypto/local.jsx'
-import { getAuth } from '../smugler/api.js'
+import { getAuth, smugler } from '../smugler/api.js'
 import { debug } from '../util/log'
 
 const _VEIL_KEY: string = 'x-magic-veil'
@@ -96,7 +95,7 @@ export function dropAuth() {
 export class Knocker extends React.Component {
   constructor(props) {
     super(props)
-    this.knockCancelToken = axios.CancelToken.source()
+    this.knockCancelToken = smugler.makeCancelToken()
     this.state = {
       scheduledKnocKnockId: null,
     }
@@ -138,10 +137,8 @@ export class Knocker extends React.Component {
   }
 
   doKnocKnock = () => {
-    axios
-      .patch('/api/auth/session', {
-        cancelToken: this.knockCancelToken.token,
-      })
+    smugler.session
+      .update({ cancelToken: this.knockCancelToken.token })
       .then((res) => {
         if (res) {
           this.scheduleKnocKnock()

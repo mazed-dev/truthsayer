@@ -2,16 +2,14 @@ import React from 'react'
 
 import { Card } from 'react-bootstrap'
 
-import axios from 'axios'
+import { smugler } from '../smugler/api'
 
-import { smugler } from './../smugler/api'
-
-import { SmallCard } from './../card/SmallCard'
+import { SmallCard } from '../card/SmallCard'
 
 export class NextRefSmartItem extends React.Component {
   constructor(props) {
     super(props)
-    this.addNodeRefCancelToken = axios.CancelToken.source()
+    this.addNodeRefCancelToken = smugler.makeCancelToken()
   }
 
   componentWillUnmount() {

@@ -12,7 +12,6 @@ import {
   Col,
 } from 'react-bootstrap'
 
-import axios from 'axios'
 import { withRouter } from 'react-router-dom'
 
 import { jcss } from './util/jcss'
@@ -28,7 +27,6 @@ import KeyImg from './crypto/img/yellow_key.png'
 class UserEncryption extends React.Component {
   constructor(props) {
     super(props)
-    this.axiosCancelToken = axios.CancelToken.source()
     this.state = {
       intput: '',
       is_good_enough: false,
@@ -39,10 +37,6 @@ class UserEncryption extends React.Component {
   }
 
   componentDidMount() {}
-
-  componentWillUnmount() {
-    this.axiosCancelToken.cancel()
-  }
 
   handleToggleReveal = () => {
     this.setState((state) => {

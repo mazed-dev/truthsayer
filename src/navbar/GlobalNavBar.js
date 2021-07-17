@@ -15,7 +15,6 @@ import {
 } from 'react-bootstrap'
 
 import PropTypes from 'prop-types'
-import axios from 'axios'
 import { withRouter } from 'react-router-dom'
 
 import { MzdGlobalContext } from './../lib/global'
@@ -37,7 +36,7 @@ import { SearchForm } from './SearchForm'
 class UserPic extends React.Component {
   constructor(props) {
     super(props)
-    this.axiosCancelToken = axios.CancelToken.source()
+    this.cancelToken = smugler.makeCancelToken()
     this.state = {
       name: 'user',
       email: 'email',
@@ -45,22 +44,18 @@ class UserPic extends React.Component {
   }
 
   componentDidMount() {
-    axios
-      .get('/api/auth', {
-        cancelToken: this.axiosCancelToken.token,
-      })
-      .then((res) => {
-        if (res) {
-          this.setState({
-            name: res.data.name,
-            email: res.data.email,
-          })
-        }
-      })
+    smugler.getAuth({ cancelToken: this.cancelToken.token }).then((res) => {
+      if (res) {
+        this.setState({
+          name: res.data.name,
+          email: res.data.email,
+        })
+      }
+    })
   }
 
   componentWillUnmount() {
-    this.axiosCancelToken.cancel()
+    this.cancelToken.cancel()
   }
 
   render() {
@@ -84,7 +79,7 @@ class UserPic extends React.Component {
 class PrivateNavButtonsImpl extends React.Component {
   constructor(props) {
     super(props)
-    this.newNodeCancelToken = axios.CancelToken.source()
+    this.newNodeCancelToken = smugler.makeCancelToken()
   }
 
   static propTypes = {

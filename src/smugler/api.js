@@ -9,6 +9,7 @@ import { extractDocAttrs } from './../search/attrs.jsx'
 import { createEmptyDoc, exctractDoc } from './../doc/doc'
 import { LocalCrypto } from './../crypto/local.jsx'
 import { base64 } from './../util/base64.jsx'
+import { debug } from './../util/log'
 
 const kHeaderAttrs = 'x-node-attrs'
 const kHeaderCreatedAt = 'x-created-at'
@@ -19,6 +20,24 @@ const kHeaderLocalSignature = 'x-local-signature'
 const kHeaderNodeMeta = 'x-node-meta'
 
 const kHeaderContentTypeUtf8 = 'text/plain; charset=utf-8'
+
+function _getSmuglerApiHost() {
+  switch (process.env.NODE_ENV) {
+    case 'production':
+      return 'https://api.thread-knowledge.dev'
+    case 'development':
+      return null
+    case 'test':
+      return null
+    default:
+      return null
+  }
+}
+
+const _client = axios.create({
+  baseURL: _getSmuglerApiHost(),
+  timeout: 1000,
+})
 
 async function _tryToEncryptDocLocally(doc, account) {
   let value
@@ -91,8 +110,8 @@ async function createNode({
     cancelToken,
   }
 
-  return axios
-    .post(`/api/node/new?${stringify(query)}`, value, config)
+  return _client
+    .post(`/node/new?${stringify(query)}`, value, config)
     .then((resp) => {
       return resp.data ? resp.data : null
     })
@@ -104,8 +123,8 @@ async function deleteNode({ nid, cancelToken }) {
   const config = {
     cancelToken,
   }
-  return axios
-    .delete(`/api/node/${nid}`, {
+  return _client
+    .delete(`/node/${nid}`, {
       cancelToken,
     })
     .catch(dealWithError)
@@ -146,8 +165,8 @@ export class TNode {
 }
 
 async function getNode({ nid, account, cancelToken }) {
-  const res = await axios
-    .get(`/api/node/${nid}`, {
+  const res = await _client
+    .get(`/node/${nid}`, {
       cancelToken,
     })
     .catch(dealWithError)
@@ -183,16 +202,16 @@ async function updateNode({ nid, doc, cancelToken, account }) {
     headers,
     cancelToken,
   }
-  return axios.patch(`/api/node/${nid}`, value, config).catch(dealWithError)
+  return _client.patch(`/node/${nid}`, value, config).catch(dealWithError)
 }
 
 export function getAuth({ cancelToken }) {
-  return axios.get('/api/auth', { cancelToken }).catch(dealWithError)
+  return _client.get(`/auth`, { cancelToken }).catch(dealWithError)
 }
 
 export function getAnySecondKey() {
-  return axios
-    .post('/api/key/second/*')
+  return _client
+    .post(`/key/second/*`)
     .then((res) => {
       return res.data
     })
@@ -200,8 +219,8 @@ export function getAnySecondKey() {
 }
 
 export function getSecondKey({ id }) {
-  return axios
-    .get(`/api/key/second/${id}`)
+  return _client
+    .get(`/key/second/${id}`)
     .then((res) => {
       return res.data
     })
@@ -231,8 +250,8 @@ async function nodeAttrsSearch({
     start_time,
     offset: offset || 0,
   }
-  const rawResp = await axios
-    .post('/api/node-attrs-search', req, {
+  const rawResp = await _client
+    .post(`/node-attrs-search`, req, {
       cancelToken,
     })
     .catch(dealWithError)
@@ -286,8 +305,8 @@ async function createEdge({ from, to, cancelToken }) {
       },
     ],
   }
-  return axios
-    .post(`/api/node/${from}/edge`, req, {
+  return _client
+    .post(`/node/${from}/edge`, req, {
       cancelToken,
     })
     .catch(dealWithError)
@@ -304,8 +323,8 @@ async function createFewEdges({ edges, cancelToken }) {
   const req = {
     edges,
   }
-  return axios
-    .post('/api/node/some/edge', req, {
+  return _client
+    .post(`/node/some/edge`, req, {
       cancelToken: cancelToken.token,
     })
     .then((res) => {
@@ -350,8 +369,8 @@ class TEdge {
 async function getNodeEdges(nid, cancelToken, dir) {
   verifyIsNotNull(nid)
   verifyIsNotNull(dir)
-  return axios
-    .get(`/api/node/${nid}${dir}`, {
+  return _client
+    .get(`/node/${nid}${dir}`, {
       cancelToken,
     })
     .catch(dealWithError)
@@ -380,8 +399,8 @@ async function switchEdgeStickiness({ eid, cancelToken, on, off }) {
   const req = {
     is_sticky: on != null ? on : !off,
   }
-  return axios
-    .patch(`/api/edge/${eid}`, req, {
+  return _client
+    .patch(`/edge/${eid}`, req, {
       cancelToken,
     })
     .then((res) => {
@@ -397,8 +416,8 @@ async function deleteEdge({ eid, cancelToken }) {
   const req = {
     eid,
   }
-  return axios
-    .delete('/api/node/x/edge', {
+  return _client
+    .delete(`/node/x/edge`, {
       cancelToken,
       data: req,
     })
@@ -411,8 +430,8 @@ async function deleteEdge({ eid, cancelToken }) {
 }
 
 async function getNodeMeta({ nid, cancelToken }) {
-  return await axios
-    .get(`/api/node/${nid}/meta`, {
+  return await _client
+    .get(`/node/${nid}/meta`, {
       cancelToken,
     })
     .catch(dealWithError)
@@ -427,8 +446,8 @@ async function updateNodeMeta({ nid, meta, cancelToken }) {
   const req = {
     meta,
   }
-  return await axios
-    .patch(`/api/node/${nid}/meta`, req, {
+  return await _client
+    .patch(`/node/${nid}/meta`, req, {
       cancelToken,
     })
     .catch(dealWithError)
@@ -458,8 +477,8 @@ async function createSession({ email, password, permissions, cancelToken }) {
     pass: password,
     permissions,
   }
-  return axios
-    .post('/api/auth/session', req, {
+  return _client
+    .post(`/auth/session`, req, {
       cancelToken,
     })
     .then((res) => {
@@ -471,8 +490,8 @@ async function createSession({ email, password, permissions, cancelToken }) {
 }
 
 async function deleteSession({ cancelToken }) {
-  return axios
-    .delete('/api/auth/session', {
+  return _client
+    .delete(`/auth/session`, {
       cancelToken,
     })
     .then((res) => {
@@ -483,11 +502,17 @@ async function deleteSession({ cancelToken }) {
     })
 }
 
+async function updateSession({ cancelToken }) {
+  return _client.patch(`/auth/session`, {
+    cancelToken,
+  })
+}
+
 async function getUserBadge({ uid, cancelToken }) {
   verifyIsNotNull(uid)
   verifyIsNotNull(cancelToken)
-  return axios
-    .get(`/api/user/${uid}/badge`, {
+  return await _client
+    .get(`/user/${uid}/badge`, {
       cancelToken,
     })
     .catch(dealWithError)
@@ -497,6 +522,34 @@ async function getUserBadge({ uid, cancelToken }) {
       }
       return null
     })
+}
+
+async function registerAccount({ name, email, cancelToken }) {
+  const value = { name, email }
+  return await _client.post('/auth', value, { cancelToken })
+}
+
+async function passwordReset({ token, new_password, cancelToken }) {
+  const value = { token, new_password }
+  return await _client
+    .post('auth/password-recover/reset', value, { cancelToken })
+    .catch((err) => {
+      alert(`Error ${err}`)
+    })
+}
+
+async function passwordRecoverRequest({ email, cancelToken }) {
+  const value = { email }
+  return await _client.post('/auth/password-recover/request', value, {
+    cancelToken,
+  })
+}
+
+async function passwordChange(old_password, new_password, cancelToken) {
+  const value = { old_password, new_password }
+  return await axios.post('/auth/password-recover/change', value, {
+    cancelToken,
+  })
 }
 
 export const smugler = {
@@ -533,10 +586,17 @@ export const smugler = {
   session: {
     create: createSession,
     delete: deleteSession,
+    update: updateSession,
   },
   user: {
     badge: {
       get: getUserBadge,
     },
+    password: {
+      recover: passwordRecoverRequest,
+      reset: passwordReset,
+      change: passwordChange,
+    },
+    register: registerAccount,
   },
 }
