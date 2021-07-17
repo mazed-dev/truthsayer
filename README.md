@@ -1,6 +1,17 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Web app for Mazed
 
-## Available Scripts
+## Docs
+
+For free private repos wiki is not availiable. Instead there is directory "./docs" in the root of this repo with mardown files.
+
+## Development
+
+### Branches
+
+- `main` default master branch
+- `release` production branch from which production app in digital ocean gets automatically updated
+
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 In the project directory, you can run:
 
@@ -37,7 +48,7 @@ Instead, it will copy all the configuration files and the transitive dependencie
 
 You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
 
-## Learn More
+### Learn More
 
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
