@@ -2,12 +2,11 @@ import React from 'react'
 
 import { Modal, Button, ButtonToolbar, Form, ListGroup } from 'react-bootstrap'
 
-import axios from 'axios'
 import keycode from 'keycode'
 
 import { Loader } from './../lib/loader'
 import { ImgButton } from './../lib/ImgButton'
-import { smugler } from './../smugler/api'
+import { smugler } from '../smugler/api'
 import { jcss } from '../util/jcss'
 import { HoverTooltip } from '../lib/tooltip'
 
@@ -29,7 +28,7 @@ class ShareModalWindow extends React.Component {
       meta: null,
     }
     // this.inputRef = React.createRef();
-    this.fetchCardShareCancelToken = axios.CancelToken.source()
+    this.fetchCardShareCancelToken = smugler.makeCancelToken()
   }
 
   componentDidMount() {

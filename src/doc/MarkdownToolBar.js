@@ -17,8 +17,6 @@ import { EMOJI_LIST_PRESETS } from './EmojiListPresets'
 
 import { Button, ButtonGroup } from 'react-bootstrap'
 
-import axios from 'axios'
-
 import PropTypes from 'prop-types'
 import { withRouter } from 'react-router-dom'
 
@@ -32,16 +30,11 @@ class MarkdownToolbarImpl extends React.Component {
     this.state = {
       modalShow: false,
     }
-    this.fetchCancelToken = axios.CancelToken.source()
   }
 
   static propTypes = {
     history: PropTypes.object.isRequired,
     location: PropTypes.object.isRequired,
-  }
-
-  componentWillUnmount() {
-    this.fetchCancelToken.cancel()
   }
 
   updateText = (txt, begin, end) => {

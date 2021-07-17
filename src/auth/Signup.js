@@ -5,7 +5,7 @@ import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
 import './Signup.css'
 
 import PropTypes from 'prop-types'
-import axios from 'axios'
+import { smugler } from '../smugler/api'
 import { Link, withRouter } from 'react-router-dom'
 import HttpStatus from 'http-status-codes'
 
@@ -30,7 +30,7 @@ class Signup extends React.Component {
     this.emailInputRef = React.createRef()
     this.nameInputRef = React.createRef()
 
-    this.axiosCancelToken = axios.CancelToken.source()
+    this.cancelToken = smugler.makeCancelToken()
   }
 
   static propTypes = {
@@ -43,7 +43,7 @@ class Signup extends React.Component {
   }
 
   componentWillUnmount() {
-    this.axiosCancelToken.cancel()
+    this.cancelToken.cancel()
   }
 
   handleNameChange = (event) => {
@@ -78,13 +78,11 @@ class Signup extends React.Component {
     this.setState({
       show_account_exists_error: false,
     })
-    const value = {
-      name: this.state.name,
-      email: this.state.email,
-    }
-    axios
-      .post('/api/auth', value, {
-        cancelToken: this.axiosCancelToken.token,
+    smugler.user
+      .register({
+        name: this.state.name,
+        email: this.state.email,
+        cancelToken: this.cancelToken.token,
       })
       .catch(this.handleSubmitError)
       .then((res) => {

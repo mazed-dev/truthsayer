@@ -3,7 +3,7 @@ import React from 'react'
 import { Badge, Button, Card, Col, Container, Form, Row } from 'react-bootstrap'
 
 import PropTypes from 'prop-types'
-import axios from 'axios'
+import { smugler } from '../smugler/api'
 import { withRouter } from 'react-router-dom'
 
 class PasswordChange extends React.Component {
@@ -17,7 +17,7 @@ class PasswordChange extends React.Component {
       new_password_is_too_short: false,
       new_password_is_not_confirmed: false,
     }
-    this.axiosCancelToken = axios.CancelToken.source()
+    this.cancelToken = smugler.makeCancelToken()
   }
 
   static propTypes = {
@@ -25,7 +25,7 @@ class PasswordChange extends React.Component {
   }
 
   componentWillUnmount() {
-    this.axiosCancelToken.cancel()
+    this.cancelToken.cancel()
   }
 
   handlePasswordChange = (event) => {
@@ -54,13 +54,11 @@ class PasswordChange extends React.Component {
 
   onSubmit = (event) => {
     event.preventDefault()
-    const value = {
-      old_password: this.state.password,
-      new_password: this.state.new_password,
-    }
-    axios
-      .post('/api/auth/password-recover/change', value, {
-        cancelToken: this.axiosCancelToken.token,
+    smugler.user.password
+      .change({
+        old_password: this.state.password,
+        new_password: this.state.new_password,
+        cancelToken: this.cancelToken.token,
       })
       .catch((err) => {
         alert(`Error ${err}`)

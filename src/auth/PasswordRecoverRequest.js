@@ -12,7 +12,7 @@ import {
 
 import { Emoji } from './../Emoji'
 import PropTypes from 'prop-types'
-import axios from 'axios'
+import { smugler } from '../smugler/api'
 import { withRouter } from 'react-router-dom'
 
 class PasswordRecoverRequest extends React.Component {
@@ -27,7 +27,7 @@ class PasswordRecoverRequest extends React.Component {
       reset_request_is_sent: false,
     }
     this.emailRef = React.createRef()
-    this.axiosCancelToken = axios.CancelToken.source()
+    this.cancelToken = smugler.makeCancelToken()
   }
 
   static propTypes = {
@@ -37,19 +37,20 @@ class PasswordRecoverRequest extends React.Component {
 
   componentDidMount() {
     // Just in case we are already logged in
-    axios
-      .get('/api/auth/session', {
-        cancelToken: this.axiosCancelToken.token,
-      })
-      .then((res) => {
-        if (res) {
-          this.props.history.push('/')
-        }
-      })
+    // TODO(akindyakov): Check that user is logged in here
+    // axios
+    //   .get('/api/auth/session', {
+    //     cancelToken: this.cancelToken.token,
+    //   })
+    //   .then((res) => {
+    //     if (res) {
+    //       this.props.history.push('/')
+    //     }
+    //   })
   }
 
   componentWillUnmount() {
-    this.axiosCancelToken.cancel()
+    this.cancelToken.cancel()
   }
 
   handleEmailChange = (event) => {
@@ -69,9 +70,10 @@ class PasswordRecoverRequest extends React.Component {
     const value = {
       email: this.state.email,
     }
-    axios
-      .post('/api/auth/password-recover/request', value, {
-        cancelToken: this.axiosCancelToken.token,
+    smugler.user.password
+      .recover({
+        email: this.state.email,
+        cancelToken: this.cancelToken.token,
       })
       .catch((err) => {
         alert(`Error ${err}`)

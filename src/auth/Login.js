@@ -5,7 +5,7 @@ import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import { withRouter, Link } from 'react-router-dom'
 
-import { smugler } from '../smugler/api.js'
+import { smugler } from '../smugler/api'
 import { goto } from '../lib/route.jsx'
 
 import './Signup.css'
@@ -20,7 +20,7 @@ class Login extends React.Component {
       server_error: null,
     }
     this.emailRef = React.createRef()
-    this.axiosCancelToken = smugler.makeCancelToken()
+    this.createSessionCancelToken = smugler.makeCancelToken()
   }
 
   static propTypes = {
@@ -28,7 +28,7 @@ class Login extends React.Component {
   }
 
   componentWillUnmount() {
-    this.axiosCancelToken.cancel()
+    this.createSessionCancelToken.cancel()
   }
 
   handleEmailChange = (event) => {
@@ -55,7 +55,7 @@ class Login extends React.Component {
       .create({
         email: this.state.email,
         password: this.state.password,
-        cancelToken: this.axiosCancelToken.token,
+        cancelToken: this.createSessionCancelToken.token,
       })
       .catch(this.handleSubmitError)
       .then((res) => {

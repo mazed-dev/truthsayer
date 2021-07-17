@@ -8,7 +8,7 @@ import { UserAccount, Knocker } from '../auth/local.jsx'
 
 import { jcss } from '../util/jcss'
 import { debug } from '../util/log'
-import axios from 'axios'
+import { smugler } from '../smugler/api'
 
 import styles from './global.module.css'
 
@@ -86,7 +86,7 @@ export class MzdGlobal extends React.Component {
         }
       })
     }
-    this.fetchAccountCancelToken = axios.CancelToken.source()
+    this.fetchAccountCancelToken = smugler.makeCancelToken()
     this.state = {
       toaster: {
         toasts: [],

@@ -2,7 +2,6 @@ import React from 'react'
 
 import { Modal, Form, ListGroup } from 'react-bootstrap'
 
-import axios from 'axios'
 import keycode from 'keycode'
 
 import { dateTimeSmartItemSearch } from './DateTimeSmartItem'
