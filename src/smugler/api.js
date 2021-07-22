@@ -21,10 +21,10 @@ const kHeaderNodeMeta = 'x-node-meta'
 
 const kHeaderContentTypeUtf8 = 'text/plain; charset=utf-8'
 
-function _getSmuglerApiHost() {
+function _getSmuglerApibaseURL() {
   switch (process.env.NODE_ENV) {
     case 'production':
-      return 'https://api.thread-knowledge.dev'
+      return '/smuggler'
     case 'development':
       return null
     case 'test':
@@ -35,7 +35,7 @@ function _getSmuglerApiHost() {
 }
 
 const _client = axios.create({
-  baseURL: _getSmuglerApiHost(),
+  baseURL: _getSmuglerApibaseURL(),
   timeout: 1000,
 })
 
