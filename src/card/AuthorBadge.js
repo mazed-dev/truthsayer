@@ -4,6 +4,8 @@ import styles from './AuthorBadge.module.css'
 
 import { smugler } from './../smugler/api'
 
+import { HoverTooltip } from '../lib/tooltip'
+
 import UserDefaultPic from './../auth/img/user-default-pic.png'
 
 import { MzdGlobalContext } from './../lib/global'
@@ -69,19 +71,17 @@ export class AuthorBadge extends React.Component {
   }
 }
 
-export class TimeBadge extends React.Component {
-  render() {
-    // Created {this.props.created_at.fromNow()},
-    return (
-      <div className={styles.badge}>
-        <div className={styles.column}>
-          <div className={styles.created_at_date}>
-            Updated {this.props.updated_at.fromNow()}
-          </div>
-        </div>
+export const TimeBadge = ({ created_at, updated_at }) => {
+  const tooltip = `Created ${created_at.fromNow()}, updated ${updated_at.fromNow()}`
+  return (
+    <div className={styles.badge}>
+      <div className={styles.column}>
+        <HoverTooltip tooltip={tooltip}>
+          <div className={styles.created_at_date}>{created_at.fromNow()}</div>
+        </HoverTooltip>
       </div>
-    )
-  }
+    </div>
+  )
 }
 
 export class AuthorFooter extends React.Component {
