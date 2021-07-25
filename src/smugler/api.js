@@ -532,7 +532,7 @@ async function registerAccount({ name, email, cancelToken }) {
 async function passwordReset({ token, new_password, cancelToken }) {
   const value = { token, new_password }
   return await _client
-    .post('auth/password-recover/reset', value, { cancelToken })
+    .post('/auth/password-recover/reset', value, { cancelToken })
     .catch((err) => {
       alert(`Error ${err}`)
     })
