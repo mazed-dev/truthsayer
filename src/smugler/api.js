@@ -238,7 +238,7 @@ async function decryptSecretAttrs(account, secretId, attrsEnc) {
   return {}
 }
 
-async function nodeAttrsSearch({
+async function getNodesSlice({
   end_time,
   start_time,
   offset,
@@ -251,7 +251,7 @@ async function nodeAttrsSearch({
     offset: offset || 0,
   }
   const rawResp = await _client
-    .post(`/node-attrs-search`, req, {
+    .post(`/nodes-slice`, req, {
       cancelToken,
     })
     .catch(dealWithError)
@@ -560,7 +560,7 @@ export const smugler = {
     get: getNode,
     update: updateNode,
     create: createNode,
-    slice: nodeAttrsSearch,
+    slice: getNodesSlice,
     delete: deleteNode,
   },
   edge: {
