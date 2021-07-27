@@ -154,7 +154,7 @@ class Signup extends React.Component {
                 />
                 <Form.Label sm="2">
                   I am aware that Mazed currently is under active development,
-                  therefore there is no guarantie of any kind
+                  therefore there are no guarantees of any kind
                 </Form.Label>
               </Form.Group>
               <Form.Group as={Row} controlId="formLoginName">
