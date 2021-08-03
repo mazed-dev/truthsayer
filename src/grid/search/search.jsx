@@ -1,5 +1,5 @@
-import { TNode } from '../../smugler/api.js'
-import { getPlainText } from '../../doc/doc_util.jsx'
+import { TNode } from '../../smugler/types'
+import { getPlainText } from '../../doc/doc_util'
 
 import { Optional } from './../../util/types'
 

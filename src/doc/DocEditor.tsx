@@ -43,7 +43,7 @@ import {
   LinkElement,
 } from './types'
 
-import { getDocSlate, makeDoc } from './doc_util.jsx'
+import { getDocSlate, makeDoc } from './doc_util'
 
 import { withHistory } from 'slate-history'
 
@@ -90,8 +90,7 @@ export type CheckListItemElement = {
   children: Descendant[]
 }
 
-export const DocEditor = ({ className, node, saveDoc }) => {
-  const { doc, nid } = node
+export const DocEditor = ({ className, nid, doc, saveText }) => {
   const [value, setValue] = useState<Descendant[]>([])
   const [showJinn, setShowJinn] = useState<boolean>(false)
   useEffect(() => {
@@ -131,13 +130,12 @@ export const DocEditor = ({ className, node, saveDoc }) => {
         onChange={(value) => {
           setValue(value)
           // Save the value to remote
-          saveDoc({ slate: value })
+          saveText(value)
         }}
       >
         <Editable
           renderElement={renderElement}
           renderLeaf={renderLeaf}
-          placeholder="Don't be afraid of an empty page..."
           spellCheck
           autoFocus
         />
@@ -146,8 +144,7 @@ export const DocEditor = ({ className, node, saveDoc }) => {
   )
 }
 
-export const ReadOnlyDoc = ({ className, node }) => {
-  const { doc, nid } = node
+export const ReadOnlyDoc = ({ className, doc, nid }) => {
   const [value, setValue] = useState<Descendant[]>([])
   useEffect(() => {
     let isSubscribed = true
@@ -180,7 +177,6 @@ export const ReadOnlyDoc = ({ className, node }) => {
         <Editable
           renderElement={renderElement}
           renderLeaf={renderLeaf}
-          placeholder="Don't be afraid of an empty page..."
           readOnly
         />
       </Slate>

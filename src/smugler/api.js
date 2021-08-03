@@ -1,3 +1,5 @@
+import { NodeData, NodeMeta, TNode, TNodeAttrs, TNodeCrypto } from './types'
+
 import axios from 'axios'
 import moment from 'moment'
 
@@ -6,10 +8,13 @@ import { stringify } from 'query-string'
 import { dealWithError } from './error.jsx'
 
 import { extractDocAttrs } from './../search/attrs.jsx'
-import { createEmptyDoc, exctractDoc } from './../doc/doc'
+import { makeDoc, exctractDoc } from './../doc/doc_util'
 import { LocalCrypto } from './../crypto/local.jsx'
 import { base64 } from './../util/base64.jsx'
 import { debug } from './../util/log'
+import { Mime } from './../util/Mime'
+
+const lodash = require('lodash')
 
 const kHeaderAttrs = 'x-node-attrs'
 const kHeaderCreatedAt = 'x-created-at'
@@ -18,8 +23,6 @@ const kHeaderContentType = 'content-type'
 const kHeaderLocalSecretId = 'x-local-secret-id'
 const kHeaderLocalSignature = 'x-local-signature'
 const kHeaderNodeMeta = 'x-node-meta'
-
-const kHeaderContentTypeUtf8 = 'text/plain; charset=utf-8'
 
 function _getSmuglerApibaseURL() {
   switch (process.env.NODE_ENV) {
@@ -40,21 +43,18 @@ const _client = axios.create({
 })
 
 async function _tryToEncryptDocLocally(doc, account) {
-  let value
-  const headers = { [kHeaderContentType]: kHeaderContentTypeUtf8 }
   const crypto = LocalCrypto.getInstance()
   if (crypto && crypto.has()) {
     const encryptedDoc = await crypto.encryptObj(doc)
-    value = encryptedDoc.encrypted
-    headers[kHeaderLocalSecretId] = encryptedDoc.secret_id
-    headers[kHeaderLocalSignature] = encryptedDoc.signature
-  } else {
-    value = JSON.stringify(doc)
+    const value = encryptedDoc.encrypted
+    const headers = {
+      [kHeaderLocalSecretId]: encryptedDoc.secret_id,
+      [kHeaderLocalSignature]: encryptedDoc.signature,
+      [kHeaderContentType]: Mime.TEXT_PLAIN,
+    }
+    return { value, headers }
   }
-  return {
-    value,
-    headers,
-  }
+  return null
 }
 
 async function _tryToDecryptDocLocally(
@@ -84,16 +84,21 @@ async function _tryToDecryptDocLocally(
       return { doc, secret_id: secretId, success: true }
     }
   }
-  return { doc: exctractDoc(data, nid), secret_id: null, success: true }
+  try {
+    data = JSON.parse(data)
+  } catch (error) {
+    // debug('Invalid JSON')
+  }
+  return { doc: await exctractDoc(data), secret_id: null, success: true }
 }
 
 async function createNode({
   doc,
-  text,
-  cancelToken,
+  file,
   from_nid,
   to_nid,
   account,
+  cancelToken,
 }) {
   const query = {}
   if (from_nid) {
@@ -102,20 +107,69 @@ async function createNode({
     query.to = to_nid
   }
 
-  doc = doc || (text && exctractDoc(text, '.new')) || createEmptyDoc()
-  const { value, headers } = await _tryToEncryptDocLocally(doc, account)
+  let headers = {}
+  let value
+  if (doc == null && file != null) {
+    value = new FormData()
+    value.append('file', file, file.name)
+    headers[
+      kHeaderContentType
+    ] = `multipart/form-data; boundary=${value._boundary}`
+    const config = { headers, cancelToken }
+    const resp = await _client.post(
+      `/node-upload?${stringify(query)}`,
+      value,
+      config
+    )
+    return resp.data ? resp.data : null
+  } else {
+    doc = doc || (await makeDoc())
+    const encrypted = await _tryToEncryptDocLocally(doc, account)
+    if (encrypted) {
+      value = encrypted.value
+      headers = { ...headers, ...encrypted.headers }
+    } else {
+      value = JSON.stringify(doc)
+      headers[kHeaderContentType] = Mime.JSON
+    }
+  }
+  const config = { headers, cancelToken }
+  const resp = await _client.post(
+    `/node/new?${stringify(query)}`,
+    value,
+    config
+  )
+  return resp.data ? resp.data : null
+}
 
+async function uploadFiles({ files, from_nid, to_nid, account, cancelToken }) {
+  const query = {}
+  if (from_nid) {
+    query.from = from_nid
+  } else if (to_nid) {
+    query.to = to_nid
+  }
+  const value = new FormData()
+  files.forEach((file) => value.append('file', file, file.name))
+  const headers = {
+    [kHeaderContentType]: `multipart/form-data; boundary=${value._boundary}`,
+  }
   const config = {
     headers,
     cancelToken,
+    timeout: 30000, // Extend timeout, files could be quite large and smuggler is a bit slow too
   }
+  const resp = await _client.post(
+    `/blob/new?${stringify(query)}`,
+    value,
+    config
+  )
+  return resp.data ? resp.data : null
+}
 
-  return _client
-    .post(`/node/new?${stringify(query)}`, value, config)
-    .then((resp) => {
-      return resp.data ? resp.data : null
-    })
-    .catch(dealWithError)
+function makeBlobSourceUrl(nid: string): string {
+  makeBlobSourceUrl.base = _getSmuglerApibaseURL() || ''
+  return `${makeBlobSourceUrl.base}/blob/${nid}`
 }
 
 async function deleteNode({ nid, cancelToken }) {
@@ -130,40 +184,6 @@ async function deleteNode({ nid, cancelToken }) {
     .catch(dealWithError)
 }
 
-export class TNode {
-  constructor({
-    nid,
-    doc,
-    created_at,
-    updated_at,
-    attrs,
-    meta,
-    secret_id,
-    success,
-  }) {
-    this.nid = nid
-    this.doc = doc
-    this.created_at = created_at
-    this.updated_at = updated_at
-    this.attrs = attrs
-    this.meta = meta
-    this.crypto = {
-      secret_id,
-      success,
-    }
-  }
-
-  isOwnedBy(account) {
-    return (
-      account && account.isAuthenticated() && account.getUid() === this.meta.uid
-    )
-  }
-
-  getOwner() {
-    return this.meta.uid
-  }
-}
-
 async function getNode({ nid, account, cancelToken }) {
   const res = await _client
     .get(`/node/${nid}`, {
@@ -175,33 +195,39 @@ async function getNode({ nid, account, cancelToken }) {
   }
   const metaStr = res.headers[kHeaderNodeMeta]
   const meta = metaStr != null ? base64.toObject(metaStr) : {}
-  const signature = meta.local_signature // res.headers[kHeaderLocalSignature];
-  const secretId = meta.local_secret_id // res.headers[kHeaderLocalSecretId];
-  const { doc, secret_id, success } = await _tryToDecryptDocLocally(
+  const secret_id = meta.local_secret_id
+  const success = true
+  // const signature = meta.local_signature
+  // const { doc, secret_id, success } = await _tryToDecryptDocLocally(
+  const data = await NodeData.fromJson(res.data)
+  const node = new TNode(
     nid,
-    res.data,
-    signature,
-    secretId,
-    account
-  )
-  return new TNode({
-    nid,
-    doc,
-    created_at: moment(res.headers[kHeaderCreatedAt]),
-    updated_at: moment(res.headers[kHeaderLastModified]),
-    attrs: null,
+    data,
+    moment(res.headers[kHeaderCreatedAt]),
+    moment(res.headers[kHeaderLastModified]),
+    null,
     meta,
-    secret_id,
-    success,
-  })
+    { secret_id, success }
+  )
+  return node
 }
 
-async function updateNode({ nid, doc, cancelToken, account }) {
-  const { value, headers } = await _tryToEncryptDocLocally(doc, account)
-  const config = {
-    headers,
-    cancelToken,
+async function updateNode({ node, cancelToken, account }) {
+  let value
+  let headers
+  const { nid } = node
+  const data = node.data.toJson()
+  const encrypted = await _tryToEncryptDocLocally(data, account)
+  if (encrypted) {
+    value = encrypted.value
+    headers = encrypted.headers
+  } else {
+    value = JSON.stringify(data)
+    headers = {
+      [kHeaderContentType]: Mime.JSON,
+    }
   }
+  const config = { headers, cancelToken }
   return _client.patch(`/node/${nid}`, value, config).catch(dealWithError)
 }
 
@@ -259,39 +285,42 @@ async function getNodesSlice({
     return null
   }
   const response = rawResp.data
-  response.nodes = await Promise.all(
+  const nodes = await Promise.all(
     response.nodes.map(async (item) => {
-      const attrs = item.attrs
+      const { nid, meta, crtd, upd } = item
+      let { attrs, data } = item
       if (typeof attrs === 'string') {
         const attrsEnc = base64.toObject(attrs)
         const secretId = attrsEnc.secret_id
         if (secretId) {
-          item.attrs = await decryptSecretAttrs(account, secretId, attrsEnc)
+          attrs = await decryptSecretAttrs(account, secretId, attrsEnc)
         } else {
-          item.attrs = attrsEnc
+          attrs = attrsEnc
         }
       }
-      const meta = item.meta
-      const { doc, secret_id, success } = await _tryToDecryptDocLocally(
-        item.nid,
-        item.data,
-        meta.local_signature,
-        meta.local_secret_id,
-        account
-      )
-      return new TNode({
-        nid: item.nid,
-        doc,
-        created_at: moment.unix(item.crtd),
-        updated_at: moment.unix(item.upd),
-        attrs: item.attrs,
+      // const { doc, secret_id, success } = await _tryToDecryptDocLocally(
+      const secret_id = null
+      const success = true
+      if (lodash.isString(data)) {
+        data = JSON.parse(data)
+      }
+      data = await NodeData.fromJson(data)
+      const node = new TNode(
+        nid,
+        data,
+        moment.unix(crtd),
+        moment.unix(upd),
+        attrs,
         meta,
-        secret_id,
-        success,
-      })
+        { secret_id, success }
+      )
+      return node
     })
   )
-  return response
+  return {
+    ...response,
+    nodes,
+  }
 }
 
 async function createEdge({ from, to, cancelToken }) {
@@ -562,6 +591,10 @@ export const smugler = {
     create: createNode,
     slice: getNodesSlice,
     delete: deleteNode,
+  },
+  blob: {
+    upload: uploadFiles,
+    getSource: makeBlobSourceUrl,
   },
   edge: {
     create: createEdge,

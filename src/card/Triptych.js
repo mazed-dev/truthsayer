@@ -2,15 +2,13 @@ import React from 'react'
 
 import styles from './Triptych.module.css'
 
-import { WideCard } from './WideCard'
-import { DocEditor } from '../doc/DocEditor.tsx'
+import { FullCard } from './FullCard'
 
 import { SmallCard } from './SmallCard'
 import { ShrinkCard } from './ShrinkCard'
 import { ReadOnlyRender } from './../doc/ReadOnlyRender'
 
 import { SmallCardFootbar } from './SmallCardFootbar'
-import { FullCardFootbar } from './FullCardFootbar'
 
 import { withRouter } from 'react-router-dom'
 
@@ -18,11 +16,9 @@ import { MzdGlobalContext } from '../lib/global.js'
 import { jcss } from './../util/jcss'
 import { debug } from './../util/log'
 
-import { smugler } from '../smugler/api.js'
+import { smugler } from '../smugler/api'
 
 import { Row, Col } from 'react-bootstrap'
-
-import { Loader } from '../lib/loader'
 
 const lodash = require('lodash')
 
@@ -67,27 +63,6 @@ class NodeRefs extends React.Component {
     })
     return <div className={this.props.className}>{refs}</div>
   }
-}
-
-function NodeCard({ node, addRef, stickyEdges, saveDoc }) {
-  const editor =
-    node != null ? (
-      <DocEditor className={styles.editor} node={node} saveDoc={saveDoc} />
-    ) : (
-      <Loader />
-    )
-  const reloadNode = () => {}
-  return (
-    <WideCard>
-      {editor}
-      <FullCardFootbar
-        addRef={addRef}
-        node={node}
-        stickyEdges={stickyEdges}
-        reloadNode={reloadNode}
-      />
-    </WideCard>
-  )
 }
 
 class Triptych extends React.Component {
@@ -191,15 +166,19 @@ class Triptych extends React.Component {
       })
   }
 
-  saveDoc = lodash.debounce(
-    (doc) => {
+  saveNode = lodash.debounce(
+    (node) => {
+      if (this.props.nid !== node.nid) {
+        throw Error(
+          'Attempt to modify the node from the editor that belongs to a different node'
+        )
+      }
       // TODO(akindyakov): move conversion from raw slate to doc to here
       // TODO(akindyakov): collect stats here
       const account = this.context.account
       return smugler.node
         .update({
-          nid: this.props.nid,
-          doc,
+          node,
           cancelToken: this.fetchNodeCancelToken.token,
           account,
         })
@@ -293,11 +272,11 @@ class Triptych extends React.Component {
       />
     )
     const nodeCard = (
-      <NodeCard
+      <FullCard
         node={this.state.node}
         addRef={this.addRef}
         stickyEdges={this.state.edges_sticky}
-        saveDoc={this.saveDoc}
+        saveNode={this.saveNode}
       />
     )
     let triptychRow = null

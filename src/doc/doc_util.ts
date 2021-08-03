@@ -209,6 +209,11 @@ export async function getDocSlate(doc: TDoc | string): Descendant[] {
   return enforceMinimalSlate(slate)
 }
 
+export async function exctractDoc(doc: TDoc | string): TDoc {
+  const slate = await getDocSlate(doc)
+  return await makeDoc({ slate })
+}
+
 export function getPlainText(doc: TDoc): string[] {
   if (lodash.isString(doc)) {
     return [doc]
@@ -315,14 +320,6 @@ export function docAsMarkdown(doc: TDoc): string {
 function makeEmptySlate(): Descendant[] {
   return [
     {
-      type: kSlateBlockTypeH1,
-      children: [
-        {
-          text: genEmoji(),
-        },
-      ],
-    },
-    {
       type: kSlateBlockTypeParagraph,
       children: [
         {
@@ -380,4 +377,10 @@ function enforceMinimalSlate(items: Descendant[]): Descendant[] {
     return items
   }
   return makeEmptySlate()
+}
+
+export function makeTextDoc(text: string): TDoc {
+  return {
+    slate: [makeParagraph([makeLeaf(text)])],
+  }
 }

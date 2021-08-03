@@ -3,6 +3,7 @@ import React from 'react'
 import { Card } from 'react-bootstrap'
 
 import { smugler } from '../smugler/api'
+import { makeTextDoc } from '../doc/doc_util'
 
 import { SmallCard } from '../card/SmallCard'
 
@@ -21,10 +22,10 @@ export class NextRefSmartItem extends React.Component {
   }
 
   createNextNode = (title) => {
-    const text = title ? `# ${title}` : ''
+    const doc = makeTextDoc(title)
     smugler.node
       .create({
-        text,
+        doc,
         cancelToken: this.addNodeRefCancelToken.token,
         from_nid: this.props.from_nid,
         to_nid: this.props.to_nid,

@@ -6,22 +6,46 @@ import { Loader } from '../lib/loader'
 import LockedImg from './../img/locked.png'
 
 import { ReadOnlyDoc } from './DocEditor.tsx'
+import { ImageNode } from './image/ImageNode'
 
 import { renderMdSmallCard } from './../markdown/MarkdownRender'
 
 import { ChunkView } from './chunks'
-import { enforceTopHeader } from './doc_util.jsx'
+import { enforceTopHeader } from './doc_util'
 import { makeEmptyChunk, trimChunk } from './chunk_util'
 import { smugler } from './../smugler/api'
 
 import { MzdGlobalContext } from '../lib/global.js'
+import { debug } from '../util/log'
 
 const kMaxTrimSmallCardSize = 320
 const kMaxTrimSmallCardChunksNum = 4
 const kMaxTrimChunksNum = 6
 
-function SmallCardRender({ node }) {
-  return <ReadOnlyDoc node={node} />
+export function SmallCardRender({ node }) {
+  let media
+  let text
+  if (node == null) {
+    text = <Loader />
+  } else {
+    const { data, nid } = node
+    text = (
+      <ReadOnlyDoc
+        nid={nid}
+        doc={data}
+        className={styles.read_only_text_card}
+      />
+    )
+    if (node.isImage()) {
+      media = <ImageNode nid={nid} data={data} />
+    }
+  }
+  return (
+    <div className={styles.read_only_card}>
+      {media}
+      {text}
+    </div>
+  )
 }
 
 class ReadDocRender extends React.Component {

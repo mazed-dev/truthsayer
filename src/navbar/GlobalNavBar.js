@@ -90,7 +90,6 @@ class PrivateNavButtonsImpl extends React.Component {
   handleNewClick = (event) => {
     smugler.node
       .create({
-        doc: null,
         cancelToken: this.newNodeCancelToken.token,
       })
       .then((node) => {

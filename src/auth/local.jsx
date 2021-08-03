@@ -7,7 +7,7 @@ import { debug } from '../util/log'
 
 const _VEIL_KEY: string = 'x-magic-veil'
 
-class AnonymousAccount {
+export class AnonymousAccount {
   isAuthenticated(): boolean {
     return false
   }
