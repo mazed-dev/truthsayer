@@ -24,17 +24,17 @@
 }
 
 .doc_block_paragraph {
-  white-space: normal;
+  white-space: pre-wrap;
   margin-bottom: 14px;
   margin-top: 0;
 }
 
 div.public-DraftEditor-content {
-  white-space: normal;
+  white-space: pre-wrap;
 }
 
 div.public-DraftStyleDefault-block {
-  white-space: normal;
+  white-space: pre-wrap;
 }
 
 .doc_block_unstyled {
