@@ -23,7 +23,7 @@ import GlobalNavBar from './navbar/GlobalNavBar'
 import Login from './auth/Login'
 import Logout from './auth/Logout'
 import Signup from './auth/Signup'
-import UploadFile from './UploadFile'
+import UploadFileAsNode from './upload/UploadFileAsNode'
 import PasswordChange from './auth/PasswordChange'
 import PasswordRecoverForm from './auth/PasswordRecoverForm'
 import PasswordRecoverRequest from './auth/PasswordRecoverRequest'
@@ -81,7 +81,7 @@ function AppRouter() {
             <TriptychView />
           </Route>
           <PrivateRoute path="/upload-file">
-            <UploadFile />
+            <UploadFileAsNode />
           </PrivateRoute>
           <PrivateRoute path="/account">
             <AccountView />

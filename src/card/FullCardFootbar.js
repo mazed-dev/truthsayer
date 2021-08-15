@@ -34,7 +34,7 @@ import { HoverTooltip } from '../lib/tooltip'
 import { ImgButton } from '../lib/ImgButton'
 import { goto } from '../lib/route.jsx'
 import { jcss } from '../util/jcss'
-import { makeACopy, docAsMarkdown } from '../doc/doc_util.jsx'
+import { makeACopy, docAsMarkdown } from '../doc/doc_util'
 import { downloadAsFile } from '../util/download_as_file.jsx'
 
 import {

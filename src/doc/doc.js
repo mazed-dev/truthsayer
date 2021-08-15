@@ -13,7 +13,7 @@ import { jcss } from '../util/jcss'
 import { ChunkRender, parseRawSource } from './chunks'
 
 import { mergeChunks, makeEmptyChunk } from './chunk_util'
-import { extractDocAsMarkdown } from './doc_util.jsx'
+import { extractDocAsMarkdown } from './doc_util'
 
 import { Card } from 'react-bootstrap'
 

@@ -1,5 +1,7 @@
 import { Descendant } from 'slate'
 
+export type SlateText = Descendant[]
+
 export const EChunkType = Object.freeze({
   Text: 0,
   Asterisk: 1,

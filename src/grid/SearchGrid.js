@@ -6,7 +6,7 @@ import { Container, Row, Col } from 'react-bootstrap'
 import { SmallCard } from './../card/SmallCard'
 import { SCard } from './../card/ShrinkCard'
 import { TimeBadge } from './../card/AuthorBadge'
-import { ReadOnlyRender } from './../doc/ReadOnlyRender'
+import { SmallCardRender } from './../doc/ReadOnlyRender'
 
 import { searchNodeFor } from './search/search.jsx'
 
@@ -321,7 +321,7 @@ class SearchGridImpl extends React.Component {
         return (
           <GridCard onClick={onClick} key={node.nid}>
             <SCard>
-              <ReadOnlyRender node={node} />
+              <SmallCardRender node={node} />
             </SCard>
             <TimeBadge
               created_at={node.created_at}

@@ -7,7 +7,7 @@ import {
   getDocSlate,
   makeParagraph,
   makeLeaf,
-} from './doc_util.jsx'
+} from './doc_util'
 import { TDoc, TChunk, EChunkType } from './types'
 import {
   makeChunk,
