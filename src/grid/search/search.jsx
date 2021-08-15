@@ -1,7 +1,8 @@
 import { TNode } from '../../smugler/types'
-import { getPlainText } from '../../doc/doc_util'
+import { getSlateAsPlainText } from '../../doc/doc_util'
 
 import { Optional } from './../../util/types'
+import { debug } from './../../util/log'
 
 const lodash = require('lodash')
 
@@ -35,15 +36,11 @@ export function searchNodeFor(
     // Empty search fall back to show everything
     return node
   }
-  const { doc } = node
-  if (doc == null) {
+  if (!node.hasText()) {
     // *dbg*/ console.error('The node is empty', node)
     return null
   }
-  const blocks = getPlainText(doc)
-  if (!blocks) {
-    return null
-  }
+  const blocks = getSlateAsPlainText(node.data.getText())
   const matchedIndex = blocks.findIndex((text) => {
     const ret = text.search(pattern) >= 0
     return ret

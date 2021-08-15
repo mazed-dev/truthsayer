@@ -232,7 +232,7 @@ export function getPlainText(doc: TDoc): string[] {
   return ['']
 }
 
-function getSlateAsPlainText(children: Descendant[]): string[] {
+export function getSlateAsPlainText(children: Descendant[]): string[] {
   const texts = []
   const entities = []
   children.forEach((item) => {

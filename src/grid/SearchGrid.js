@@ -195,14 +195,14 @@ class SearchGridImpl extends React.Component {
     const end_time = this.state.end_time
     const start_time = this.state.start_time
     const offset = this.state.offset
-    //* dbg*/ console.info(
-    //* dbg*/   "Fetching [",
-    //* dbg*/   start_time,
-    //* dbg*/   end_time,
-    //* dbg*/   offset,
-    //* dbg*/   "], ",
-    //* dbg*/   this.state.nodes.length
-    //* dbg*/ );
+    // debug(
+    //   "Fetching [",
+    //   start_time,
+    //   end_time,
+    //   offset,
+    //   "], ",
+    //   this.state.nodes.length
+    // );
     const account = this.props.account
     smugler.node
       .slice({
@@ -214,7 +214,7 @@ class SearchGridImpl extends React.Component {
       })
       .then((data) => {
         if (!data) {
-          // *dbg*/ console.error('Error: no response from back end')
+          // debug('Error: no response from back end')
           return
         }
         const { nodes, start_time, offset, full_size, end_time } = data
