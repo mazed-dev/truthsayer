@@ -90,18 +90,9 @@ export type CheckListItemElement = {
   children: Descendant[]
 }
 
-export const DocEditor = ({ className, nid, doc, saveText }) => {
-  const [value, setValue] = useState<Descendant[]>([])
+export const DocEditor = ({ className, nid, data, saveText }) => {
+  const [value, setValue] = useState<Descendant[]>(data.getText())
   const [showJinn, setShowJinn] = useState<boolean>(false)
-  useEffect(() => {
-    let isSubscribed = true
-    getDocSlate(doc).then((content) => {
-      if (isSubscribed) {
-        setValue(content)
-      }
-    })
-    return () => (isSubscribed = false)
-  }, [nid])
   const renderElement = useCallback(
     (props) => <Element nid={nid} {...props} />,
     [nid]
@@ -144,17 +135,8 @@ export const DocEditor = ({ className, nid, doc, saveText }) => {
   )
 }
 
-export const ReadOnlyDoc = ({ className, doc, nid }) => {
-  const [value, setValue] = useState<Descendant[]>([])
-  useEffect(() => {
-    let isSubscribed = true
-    getDocSlate(doc).then((content) => {
-      if (isSubscribed) {
-        setValue(content)
-      }
-    })
-    return () => (isSubscribed = false)
-  }, [nid])
+export const ReadOnlyDoc = ({ className, nid, data }) => {
+  const [value, setValue] = useState<Descendant[]>(data.getText())
   const renderElement = useCallback(
     (props) => <ReadOnlyElement nid={nid} {...props} />,
     [nid]

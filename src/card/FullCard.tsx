@@ -27,7 +27,7 @@ export function FullCard({ node, addRef, stickyEdges, saveNode }) {
       <DocEditor
         className={styles.editor}
         nid={nid}
-        doc={data}
+        data={data}
         saveText={saveText}
       />
     )
