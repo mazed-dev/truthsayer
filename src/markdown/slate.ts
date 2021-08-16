@@ -40,7 +40,7 @@ const lodash = require('lodash')
  * serialize slate state to a markdown string
  */
 export function slateToMarkdown(state: Descendant[]): string {
-  state = serializeExtraBlocks(state)
+  state = serializeExtraBlocks(lodash.cloneDeep(state))
   return state.map((block) => serialize(block)).join('')
 }
 
@@ -279,6 +279,9 @@ function serializeExtraBlocks(children: Descendant): Descendant {
       case kSlateBlockTypeLink:
         item = serializeExtraLink(item)
         break
+      case kSlateBlockTypeListItem:
+        item = hackListItemSerialisation(item)
+        break
     }
     let { children, type } = item
     if (children) {
@@ -291,19 +294,34 @@ function serializeExtraBlocks(children: Descendant): Descendant {
   })
 }
 
-function serializeExtraListCheckItem(item: Descendant): Descendant {
-  const { children, checked } = item
-  const prefix = checked ? '[x] ' : '[ ] '
-  const first: Descendant = lodash.head(children || [])
-  if (first && first.text) {
-    let { text } = first
-    text = prefix + first.text
-    children[0] = { ...first, text }
+function hackListItemSerialisation(item: Descendant): Descendant {
+  const { children } = item
+  const last: Descendant = lodash.last(children || [])
+  if (last && last.text && last.text.endsWith('\n')) {
+    // nothing
   } else {
-    children.unshift({
-      text: `${prefix} `,
+    children.push({
+      text: '\n',
     })
   }
+  return {
+    ...item,
+    children,
+  }
+}
+
+function serializeExtraListCheckItem(item: Descendant): Descendant {
+  const { children, checked } = item
+  let prefix = checked ? '[x]' : '[ ]'
+  const first: Descendant = lodash.head(children || [])
+  if (first && first.text && first.text.startsWith(' ')) {
+    // nothing
+  } else {
+    prefix = prefix.concat(' ')
+  }
+  children.unshift({
+    text: prefix,
+  })
   return {
     type: kSlateBlockTypeListItem,
     children: [

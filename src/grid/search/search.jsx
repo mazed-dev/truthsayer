@@ -36,10 +36,6 @@ export function searchNodeFor(
     // Empty search fall back to show everything
     return node
   }
-  if (!node.hasText()) {
-    // *dbg*/ console.error('The node is empty', node)
-    return null
-  }
   const blocks = getSlateAsPlainText(node.data.getText())
   const matchedIndex = blocks.findIndex((text) => {
     const ret = text.search(pattern) >= 0
