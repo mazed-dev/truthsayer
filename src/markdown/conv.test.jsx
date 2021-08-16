@@ -68,7 +68,7 @@ print s
 
 ![Stormtroopocat](https://octodex.github.com/images/stormtroopocat.jpg "The Stormtroopocat")
 
-[](@1619823600/day)
+[](@1618686400/day)
 `
 
   const doc = markdownToDraft(md)
@@ -186,5 +186,5 @@ print s
   expect(mdSource).toContain(
     '\n![Stormtroopocat](https://octodex.github.com/images/stormtroopocat.jpg)'
   )
-  expect(mdSource).toContain('\n"2021 May 01 Saturday"')
+  expect(mdSource).toMatch(/"2021 April 1. .+day"/)
 })
