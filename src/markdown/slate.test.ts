@@ -66,8 +66,8 @@ print s
 > Blockquotes are very handy in email to emulate reply text.
 > This line is part of the same quote.
 
-- [ ] Checlist item 1
-- [ ] Checlist item 2
+- [ ] checklist item 1
+- [ ] checklist item 2
 
 1. Though gently
 1. The ability to approach every
@@ -285,7 +285,7 @@ test('Extra(backward): links as date', async () => {
   expect(timestamp).toStrictEqual(1619823600)
 })
 
-test('Extra(back-and-forth): checlists', async () => {
+test('Extra(back-and-forth): checklists', async () => {
   const md: string = `
 - [x] First o+0Gl42yGkGxspc 3YO
   - [x] aaa Toss2wiF/dfVpkJzAun
@@ -298,18 +298,18 @@ test('Extra(back-and-forth): checlists', async () => {
   - [x] CCC +92+5kenT/8K ObrJ
 `
   const value = await markdownToSlate(md)
-  const backMd = slateToMarkdown(value).replaceAll('\n\n', '')
+  let backMd: string = slateToMarkdown(value)
+  backMd = backMd.replaceAll('\n\n', '')
   expect(lodash.trim(backMd)).toStrictEqual(lodash.trim(md))
 })
 
 test('Extra(backward): links as date and back', async () => {
-  const md: string = `QrPSc [](@1619823600/day) nk8SGb`
+  const md: string = `QrPSc [](@1618686400/day) nk8SGb`
   const value = await markdownToSlate(md)
   expect(value.length).toStrictEqual(1)
-  const backMd = slateToMarkdown(value)
-  expect(lodash.trim(backMd)).toStrictEqual(
-    'QrPSc 2021 May 01, Saturday nk8SGb'
-  )
+  const backMd: string = slateToMarkdown(value)
+  // To match the same time in different timezones depending on the locale
+  expect(lodash.trim(backMd)).toMatch(/^QrPSc 2021 April 1., .+day nk8SGb$/)
 })
 
 test('Extra(image): only top level images', async () => {

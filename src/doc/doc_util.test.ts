@@ -18,6 +18,8 @@ import {
 import { markdownToDraft } from '../markdown/conv.jsx'
 import { markdownToSlate } from '../markdown/slate.ts'
 
+const lodash = require('lodash')
+
 test('exctractDocTitle - raw string', async () => {
   const text = 'RmdBzaGUgdHJpZWQgdG8gd2FzaCBvZm'
   const doc = await getDocSlate(text)
@@ -60,28 +62,29 @@ test('getPlainText - draft', () => {
 
 ![Stormtroopocat](https://octodex.github.com/images/stormtroopocat.jpg "The Stormtroopocat")
 
-[](@1619823600/YYYY-MMMM-DD-dddd)
-
 __Trees were swaying__
+
+[](@1618686400/YYYY-MMMM-DD-dddd)
+
 -----`
   const doc: TDoc = {
     draft: markdownToDraft(source),
   }
   const texts = getPlainText(doc)
-  expect(texts).toStrictEqual([
-    'Header 1',
-    'Header 2',
-    'Schools',
-    'Travel history',
-    'Housing history',
-    '\n',
-    '\n',
-    'Trees were swaying',
-    'https://wq8k.su/ip3t8x85eckumpsezhr4ek6qatraghtohr38khg',
-    '94ogoxqapi84je7hkbt1qtt8k1oeycqc43haij57pimhn',
-    'Stormtroopocat https://octodex.github.com/images/stormtroopocat.jpg',
-    '2021-May-01-Saturday',
-  ])
+  expect(texts).toContain('Header 1')
+  expect(texts).toContain('Header 2')
+  expect(texts).toContain('Schools')
+  expect(texts).toContain('Travel history')
+  expect(texts).toContain('Housing history')
+  expect(texts).toContain('Trees were swaying')
+  expect(texts).toContain(
+    'https://wq8k.su/ip3t8x85eckumpsezhr4ek6qatraghtohr38khg'
+  )
+  expect(texts).toContain('94ogoxqapi84je7hkbt1qtt8k1oeycqc43haij57pimhn')
+  expect(texts).toContain(
+    'Stormtroopocat https://octodex.github.com/images/stormtroopocat.jpg'
+  )
+  expect(lodash.last(texts)).toMatch(/2021-April-1.-[SMTWF].+day/)
 })
 
 test('getPlainText - slate', async () => {
@@ -103,30 +106,35 @@ Combined emphasis with **asterisks and _underscores_**.
 
 ![Stormtroopocat](https://octodex.github.com/images/stormtroopocat.jpg "The Stormtroopocat")
 
-[](@1619823600/YYYY-MMMM-DD-dddd)
-
 __Trees were swaying__
+
+[](@1618686400/YYYY-MMMM-DD-dddd)
 
 -----`
   const doc: TDoc = {
     slate: await markdownToSlate(source),
   }
   const texts = getPlainText(doc)
-  expect(texts).toStrictEqual([
-    'Header 1',
-    'Header 2',
-    'Emphasis, aka italics, with asterisks or underscores .',
-    'Strong emphasis, aka bold, with asterisks or underscores .',
-    'Combined emphasis with asterisks and underscores .',
-    'Schools Travel history Housing history',
-    'Inline-style link',
-    '2021-May-01-Saturday',
-    'Trees were swaying',
-    'https://wq8k.su/ip3t8x85eckumpsezhr4ek6qatraghtohr38khg',
-    '94ogoxqapi84je7hkbt1qtt8k1oeycqc43haij57pimhn',
-    'https://github.com',
-    'https://octodex.github.com/images/stormtroopocat.jpg',
-    'Stormtroopocat',
-    '2021-May-01-Saturday',
-  ])
+  expect(texts).toContain('Header 1')
+  expect(texts).toContain('Header 2')
+  expect(texts).toContain(
+    'Emphasis, aka italics, with asterisks or underscores .'
+  )
+  expect(texts).toContain(
+    'Strong emphasis, aka bold, with asterisks or underscores .'
+  )
+  expect(texts).toContain('Combined emphasis with asterisks and underscores .')
+  expect(texts).toContain('Schools Travel history Housing history')
+  expect(texts).toContain('Inline-style link')
+  expect(texts).toContain('Trees were swaying')
+  expect(texts).toContain(
+    'https://wq8k.su/ip3t8x85eckumpsezhr4ek6qatraghtohr38khg'
+  )
+  expect(texts).toContain('94ogoxqapi84je7hkbt1qtt8k1oeycqc43haij57pimhn')
+  expect(texts).toContain('https://github.com')
+  expect(texts).toContain(
+    'https://octodex.github.com/images/stormtroopocat.jpg'
+  )
+  expect(texts).toContain('Stormtroopocat')
+  expect(lodash.last(texts)).toMatch(/2021-April-1.-[SMTWF].+day/)
 })
