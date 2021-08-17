@@ -183,11 +183,6 @@ class Triptych extends React.Component {
           account,
         })
         .then((resp) => {
-          // this.setState((state) => {
-          //   let node = state.node;
-          //   node.doc = doc;
-          //   return { node: node };
-          // });
           return resp
         })
     },

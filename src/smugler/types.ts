@@ -3,7 +3,7 @@ import { Optional } from '../util/types'
 import { MimeType } from '../util/Mime'
 import { AnonymousAccount } from '../auth/local.jsx'
 
-import { getDocSlate } from '../doc/doc_util'
+import { getDocSlate, makeEmptySlate } from '../doc/doc_util'
 import { SlateText } from '../doc/types'
 
 import { debug } from './../util/log'
@@ -55,17 +55,12 @@ export class NodeData {
     return { slate, blob }
   }
 
-  hasText(): boolean {
-    const { slate } = this
-    return !!slate
-  }
-
   getText(): SlateText {
     const { slate } = this
-    if (!slate) {
-      throw Error('Node data must have text type to access text')
+    if (slate) {
+      return slate
     }
-    return slate
+    return makeEmptySlate()
   }
 
   updateText(slate: SlateText): NodeData {
@@ -170,12 +165,16 @@ export class TNode {
     )
   }
 
-  getOwner() {
+  getOwner(): string {
     return this.meta.uid
   }
 
-  hasText() {
-    return this.data.hasText()
+  getData(): NodeData {
+    return this.data
+  }
+
+  getNid(): string {
+    return this.nid
   }
 
   isImage() {

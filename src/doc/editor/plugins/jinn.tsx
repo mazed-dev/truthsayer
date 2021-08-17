@@ -25,7 +25,7 @@ import { Modal, Form, ListGroup } from 'react-bootstrap'
 
 import { SearchGrid } from '../../../grid/SearchGrid'
 
-import { makeLink, exctractDocTitle, getDocSlate } from '../../doc_util'
+import { makeNodeLink, exctractDocTitle, getDocSlate } from '../../doc_util'
 
 import { dateTimeJinnSearch } from './jinn-datetime'
 
@@ -116,12 +116,11 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
   }
 
   onNodeCardClick = (node) => {
-    const { nid, doc } = node
-    getDocSlate(doc).then((slate) => {
-      const title = exctractDocTitle(slate)
-      const element = makeLink(title, nid)
-      this.insertElement(element)
-    })
+    const nid = node.getNid()
+    const text = node.getData().getText()
+    const title = exctractDocTitle(text)
+    const element = makeNodeLink(title, nid)
+    this.insertElement(element)
   }
 
   render() {

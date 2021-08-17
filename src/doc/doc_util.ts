@@ -1,4 +1,5 @@
-import { TDoc, TChunk, EChunkType } from './types.ts'
+import { TDoc, TChunk, EChunkType, SlateText } from './types'
+import { NodeData } from '../smugler/types'
 
 import { cloneDeep } from 'lodash'
 
@@ -41,7 +42,7 @@ import {
 
 const lodash = require('lodash')
 
-export function exctractDocTitle(slate: Descendant[]): string {
+export function exctractDocTitle(slate: SlateText): string {
   const title = slate.reduce((acc, item) => {
     if (!acc && (isHeaderSlateBlock(item) || isTextSlateBlock(item))) {
       const [text, _] = getSlateDescendantAsPlainText(item)
@@ -75,7 +76,7 @@ function _truncateTitle(title: string): string {
   }
 }
 
-function blankSlate(slate: Descendant[]): Descendant[] {
+function blankSlate(slate: SlateText): SlateText {
   return slate.map((item) => {
     const { type, children } = item
     if (type === kSlateBlockTypeListCheckItem) {
@@ -89,22 +90,22 @@ function blankSlate(slate: Descendant[]): Descendant[] {
 }
 
 export async function makeACopy(
-  doc: TDoc | string,
+  data: NodeData,
   nid: string,
   isBlankCopy: boolean
 ): TDoc {
-  let slate = await getDocSlate(doc)
-  const title = exctractDocTitle(slate)
+  let text = data.getText()
+  const title = exctractDocTitle(text)
   let label
   if (isBlankCopy) {
-    slate = blankSlate(slate)
-    const title = exctractDocTitle(slate)
+    text = blankSlate(text)
+    const title = exctractDocTitle(text)
     label = `Blank copy of "${title}"`
   } else {
     label = `Copy of "${title}"`
   }
-  slate.push(makeThematicBreak(), makeParagraph([makeLink(label, nid)]))
-  return { slate }
+  text.push(makeThematicBreak(), makeParagraph([makeNodeLink(label, nid)]))
+  return data.updateText(text)
 }
 
 // Deprecated
@@ -299,25 +300,20 @@ function getDraftAsTextChunks(draft: TDraftDoc): string[] {
   return lodash.concat(texts, entities)
 }
 
-export function docAsMarkdown(doc: TDoc): string {
-  if (lodash.isString(doc)) {
-    return doc
+export function docAsMarkdown(nid: string, data: NodeData): string {
+  let md = ''
+  if (data.isImage()) {
+    const source = data.getBlobSource(nid)
+    md = md.concat(`![](${source})`)
   }
-  const { chunks, draft, slate } = doc
-  if (chunks) {
-    return extractDocAsMarkdown(doc)
+  const text = data.getText()
+  if (text) {
+    md = md.concat(slateToMarkdown(text))
   }
-  if (draft) {
-    return draftToMarkdown(draft)
-  }
-  if (slate) {
-    return slateToMarkdown(slate)
-  }
-  // TODO(akindyakov): Escalate it
-  return ''
+  return md
 }
 
-function makeEmptySlate(): Descendant[] {
+export function makeEmptySlate(): Descendant[] {
   return [
     {
       type: kSlateBlockTypeParagraph,
@@ -352,6 +348,15 @@ export function makeLink(text, link): LinkElement {
     type: kSlateBlockTypeLink,
     children: [makeLeaf(text)],
     link,
+  }
+}
+
+export function makeNodeLink(text, nid): LinkElement {
+  return {
+    type: kSlateBlockTypeLink,
+    children: [makeLeaf(text)],
+    link: nid,
+    page: true,
   }
 }
 

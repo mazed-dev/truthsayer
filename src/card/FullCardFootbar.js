@@ -29,7 +29,6 @@ import PublicImg from './../img/public.png'
 import { ShareModal } from './ShareModal'
 
 import { MzdGlobalContext } from '../lib/global'
-import { AutocompleteWindow } from '../smartpoint/AutocompleteWindow'
 import { HoverTooltip } from '../lib/tooltip'
 import { ImgButton } from '../lib/ImgButton'
 import { goto } from '../lib/route.jsx'
@@ -159,7 +158,7 @@ async function cloneNode({ from, to, crypto, cancelToken, isBlank }) {
     crypto,
     cancelToken,
   })
-  const doc = await makeACopy(node.doc, nid, isBlank || false)
+  const doc = await makeACopy(node.getData(), node.getNid(), isBlank || false)
   return await smugler.node.create({
     doc,
     cancelToken,
@@ -749,10 +748,11 @@ export function FullCardFootbar({ children, node, ...rest }) {
   const ctx = useContext(MzdGlobalContext)
   const { account } = ctx
   if (node && node.meta) {
-    const { nid, meta, doc } = node
+    const { nid, meta } = node
+    const data = node.getData()
     if (node.isOwnedBy(account)) {
       const getMarkdown = () => {
-        return docAsMarkdown(doc)
+        return docAsMarkdown(nid, data)
       }
       return (
         <PrivateFullCardFootbar

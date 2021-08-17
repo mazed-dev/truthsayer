@@ -387,3 +387,12 @@ test('Extra(image): only top level images', async () => {
     },
   ])
 })
+
+test('Extra(list hack): from md and back', async () => {
+  const md = `- QfCCz 7uBC D13Vqj/mjm
+- Y lpeidC iCPUfx f4lpFuLU
+- Gb KxYtZ p6vAdVQG8z/Orc`
+  const value = await markdownToSlate(md)
+  const backMd = slateToMarkdown(value)
+  expect(lodash.trim(backMd)).toStrictEqual(md)
+})

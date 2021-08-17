@@ -32,7 +32,7 @@ export function SmallCardRender({ node }) {
     text = (
       <ReadOnlyDoc
         nid={nid}
-        doc={data}
+        data={data}
         className={styles.read_only_text_card}
       />
     )

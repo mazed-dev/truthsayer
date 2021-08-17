@@ -8,7 +8,8 @@ import { dateTimeSmartItemSearch } from './DateTimeSmartItem'
 import { nextRefSmartItemSearch } from './NextRefSmartItem'
 import { SearchGrid } from './../grid/SearchGrid'
 
-import { exctractDocTitle } from './../doc/doc_util'
+import { exctractDocTitle } from '../doc/doc_util'
+import { debug } from '../util/log'
 
 import styles from './AutocompleteWindow.module.css'
 
