@@ -73,15 +73,15 @@ class PasswordChange extends React.Component {
   render() {
     let new_password_badge
     if (this.state.new_password_is_too_short) {
-      new_password_badge = <Badge variant="danger">is too short</Badge>
+      new_password_badge = <Badge bg="danger">is too short</Badge>
     } else {
-      new_password_badge = <Badge variant="success">ok</Badge>
+      new_password_badge = <Badge bg="success">ok</Badge>
     }
     let new_password_confirm_badge
     if (this.state.new_password_is_not_confirmed) {
-      new_password_confirm_badge = <Badge variant="danger">doesn't match</Badge>
+      new_password_confirm_badge = <Badge bg="danger">doesn't match</Badge>
     } else {
-      new_password_confirm_badge = <Badge variant="success">ok</Badge>
+      new_password_confirm_badge = <Badge bg="success">ok</Badge>
     }
     return (
       <Container>
