@@ -39,11 +39,9 @@ class SignUpImpl extends React.Component {
             value={this.state.email}
             onChange={this.handleEmailChange}
           />
-          <InputGroup.Append>
-            <Button variant="secondary" type="submit">
-              Sign up
-            </Button>
-          </InputGroup.Append>
+          <Button variant="secondary" type="submit">
+            Sign up
+          </Button>
         </InputGroup>
       </Form>
     )
