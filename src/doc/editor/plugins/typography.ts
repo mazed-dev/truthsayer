@@ -1,18 +1,15 @@
-import {
-  Descendant,
-  Editor,
-  Element as SlateElement,
-  Point,
-  Range,
-  Transforms,
-  createEditor,
-  Path,
-} from 'slate'
+import { Editor, Element, Transforms, Path, Node } from 'slate'
 
-import { kSlateBlockTypeBreak, kSlateBlockTypeImage } from '../../types'
+import {
+  kSlateBlockTypeBreak,
+  kSlateBlockTypeH1,
+  kSlateBlockTypeImage,
+  kSlateBlockTypeParagraph,
+} from '../../types'
 import { makeParagraph } from '../../doc_util'
 
 import { debug } from '../../../util/log'
+import { CustomEditor, CustomElement } from '../../custom-types'
 
 const lodash = require('lodash')
 
@@ -21,8 +18,19 @@ const TYPES_NOT_TO_BE_LAST = new Set([
   kSlateBlockTypeImage,
 ])
 
-export const withTypography = (editor) => {
-  const { isVoid, normalizeNode } = editor
+function currentElement(
+  editor: CustomEditor
+): [CustomElement, Path] | undefined {
+  for (const [node, path] of Editor.levels(editor)) {
+    if (Element.isElement(node)) {
+      return [node, path]
+    }
+  }
+  return undefined
+}
+
+export const withTypography = (editor: CustomEditor) => {
+  const { isVoid, normalizeNode, insertBreak } = editor
 
   editor.normalizeNode = ([node, path]) => {
     if (path.length === 0) {
@@ -37,8 +45,26 @@ export const withTypography = (editor) => {
     return normalizeNode([node, path])
   }
 
-  editor.isVoid = (element) => {
+  editor.isVoid = (element: CustomElement) => {
     return element.type === kSlateBlockTypeBreak ? true : isVoid(element)
+  }
+
+  editor.insertBreak = () => {
+    const elementBeforeBreak: CustomElement | undefined =
+      currentElement(editor)?.[0]
+
+    insertBreak()
+
+    if (elementBeforeBreak?.type === kSlateBlockTypeH1) {
+      // insertBreak() adds a new node and sets selection to its start
+      // and Transforms.setNodes() by default works on the currently selected
+      // node
+      Transforms.setNodes(
+        editor,
+        { type: kSlateBlockTypeParagraph },
+        { match: (node: Node) => Element.isElement(node) }
+      )
+    }
   }
 
   return editor
