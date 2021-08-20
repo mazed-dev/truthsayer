@@ -45,7 +45,7 @@ class UploadFile extends React.Component {
     const new_uploads = []
     for (let i = 0; i < files.length; i++) {
       const file = files.item(i)
-      debug('File', file)
+      // debug('File', file)
       const localId = uuid.v4()
       new_uploads.push({
         filename: file.name,
@@ -131,17 +131,14 @@ class UploadFile extends React.Component {
     return (
       <Container>
         <Form>
-          <Form.File id="upload-notes-from-files" custom>
-            <Form.File.Input
-              multiple
-              isValid
-              onChange={this.handleChange}
-              ref={this.fileInputRef}
-            />
-            <Form.File.Label data-browse="Button text">
-              Select local files to upload...
-            </Form.File.Label>
-          </Form.File>
+          <Form.Label>Select local files to upload...</Form.Label>
+          <Form.Control
+            type="file"
+            multiple
+            isValid
+            onChange={this.handleChange}
+            ref={this.fileInputRef}
+          />
         </Form>
         <Button
           variant="secondary"
