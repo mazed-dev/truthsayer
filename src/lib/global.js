@@ -1,6 +1,6 @@
 import React from 'react'
 
-import crc from 'crc'
+import { crc32 } from 'crc'
 
 import { Toast, Button } from 'react-bootstrap'
 
@@ -60,7 +60,7 @@ export class MzdGlobal extends React.Component {
   constructor(props) {
     super(props)
     this.pushToast = ({ message, title }) => {
-      const uKey = `${crc.crc32(message)}-${Math.random()}`
+      const uKey = `${crc32(message)}-${Math.random()}`
       this.setState((state) => {
         return {
           toaster: {

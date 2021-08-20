@@ -10,7 +10,7 @@ import './MarkdownRender.css'
 import styles from './MarkdownList.module.css'
 
 // https://github.com/rexxars/react-markdown
-import ReactMarkdown from 'react-markdown'
+import { ReactMarkdown } from 'react-markdown'
 import { Emoji } from './../Emoji'
 
 import { MdCheckBox } from './MdCheckBox'
@@ -239,7 +239,7 @@ export class DateBadge extends React.Component {
       sameElse: 'YYYY MMMM DD, dddd',
     })
     return (
-      <Badge variant="secondary" pill>
+      <Badge bg="secondary" pill>
         {date_str}
       </Badge>
     )
@@ -265,7 +265,7 @@ export class TimeBadge extends React.Component {
       date_str = this.props.tm.format(this.props.format)
     }
     return (
-      <Badge variant="secondary" pill>
+      <Badge bg="secondary" pill>
         {date_str}
       </Badge>
     )

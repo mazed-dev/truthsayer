@@ -1,4 +1,4 @@
-import crc from 'crc'
+import { crc32 } from 'crc'
 
 import { isHeaderChunk } from '../doc/chunk_util.jsx'
 
@@ -32,7 +32,7 @@ export function makeNGrams(text) {
 }
 
 export function extractIndexNGramsFromText(mdText) {
-  return makeNGrams(mdText).map((gram) => crc.crc32(gram))
+  return makeNGrams(mdText).map((gram) => crc32(gram))
 }
 
 export function extractIndexNGramsFromDoc(doc) {
