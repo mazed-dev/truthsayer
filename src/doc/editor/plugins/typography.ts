@@ -2,9 +2,9 @@ import { Editor, Element, Transforms, Path, Node } from 'slate'
 
 import {
   kSlateBlockTypeBreak,
-  kSlateBlockTypeH1,
   kSlateBlockTypeImage,
   kSlateBlockTypeParagraph,
+  isHeaderSlateBlock,
 } from '../../types'
 import { makeParagraph } from '../../doc_util'
 
@@ -18,10 +18,20 @@ const TYPES_NOT_TO_BE_LAST = new Set([
   kSlateBlockTypeImage,
 ])
 
-function currentElement(
+function pathsEqual(lhs: Path | undefined, rhs: Path | undefined): boolean {
+  if (lhs === undefined || rhs === undefined) {
+    return false
+  }
+  return Path.equals(lhs, rhs)
+}
+
+function elementAtCurrentFocus(
   editor: CustomEditor
 ): [CustomElement, Path] | undefined {
-  for (const [node, path] of Editor.levels(editor)) {
+  for (const [node, path] of Editor.levels(editor, {
+    at: editor.selection?.focus,
+    reverse: true,
+  })) {
     if (Element.isElement(node)) {
       return [node, path]
     }
@@ -50,12 +60,15 @@ export const withTypography = (editor: CustomEditor) => {
   }
 
   editor.insertBreak = () => {
-    const elementBeforeBreak: CustomElement | undefined =
-      currentElement(editor)?.[0]
+    const elementEntryBeforeBreak: [CustomElement, Path] | undefined =
+      elementAtCurrentFocus(editor)
 
     insertBreak()
 
-    if (elementBeforeBreak?.type === kSlateBlockTypeH1) {
+    if (
+      elementEntryBeforeBreak &&
+      isHeaderSlateBlock(elementEntryBeforeBreak[0])
+    ) {
       // insertBreak() adds a new node and sets selection to its start
       // and Transforms.setNodes() by default works on the currently selected
       // node
