@@ -1,3 +1,57 @@
 .image {
+  height: auto;
+  display: block;
+  margin: auto;
+}
+
+.image_in_card {
+  max-width: 100%;
+
+  border-style: none;
+  border-radius: inherit;
+}
+
+.image_full {
+  max-width: 100%;
+
+  vertical-align: middle;
+  display: inline;
+}
+
+.image_full_modal_body {
+  white-space: nowrap;
+  text-align: center;
+}
+
+.image_full_helper {
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.buttons_under_image {
   width: 100%;
+
+  display: flex;
+  align-items: right;
+  justify-content: right;
+
+  padding-right: 4px;
+}
+
+.zoom_image_title {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom_button_group {
+}
+
+.zoom_button_image {
+  height: 1.5rem;
+  width: 1.5rem;
+  padding: 2px;
 }
