@@ -28,7 +28,7 @@ export type EditableVoidElement = {
   children: EmptyText[]
 }
 
-export type HeadingElement = { type: 'heading'; children: Descendant[] }
+export type HeadingElement = { type: 'heading-one'; children: Descendant[] }
 
 export type HeadingTwoElement = { type: 'heading-two'; children: Descendant[] }
 
@@ -60,7 +60,7 @@ export type TitleElement = { type: 'title'; children: Descendant[] }
 
 export type VideoElement = { type: 'video'; url: string; children: EmptyText[] }
 
-type CustomElement =
+export type CustomElement =
   | BlockQuoteElement
   | BulletedListElement
   | CheckListItemElement
