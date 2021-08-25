@@ -68,11 +68,11 @@ export const ImageNode = ({ className, nid, data }) => {
         <Modal.Header closeButton>
           <Modal.Title className={styles.zoom_image_title}>
             <ButtonGroup className={styles.zoom_button_group}>
-              <ImgButton onClick={handleZoomIn}>
+              <ImgButton onClick={handleZoomOut}>
                 <img
-                  src={ZoomInImg}
+                  src={ZoomOutImg}
                   className={styles.zoom_button_image}
-                  alt="Zoom in image"
+                  alt="Zoom out image"
                 />
               </ImgButton>
               <ImgButton onClick={handleZoomReset}>
@@ -82,11 +82,11 @@ export const ImageNode = ({ className, nid, data }) => {
                   alt="Reset image zoom"
                 />
               </ImgButton>
-              <ImgButton onClick={handleZoomOut}>
+              <ImgButton onClick={handleZoomIn}>
                 <img
-                  src={ZoomOutImg}
+                  src={ZoomInImg}
                   className={styles.zoom_button_image}
-                  alt="Zoom out image"
+                  alt="Zoom in image"
                 />
               </ImgButton>
             </ButtonGroup>
