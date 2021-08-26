@@ -28,10 +28,11 @@ import { jcss } from '../util/jcss'
 
 import kUserDefaultPic from './../auth/img/user-default-pic.png'
 
-import NewImg from './../img/new-button.png'
-import UploadImg from './../img/upload.png'
+import NewImg from './../img/new-button-strip.svg'
+import UploadImg from './../img/upload-strip.svg'
 
 import { SearchForm } from './SearchForm'
+import { UploadNodeButton } from './../upload/UploadNodeButton'
 
 class UserPic extends React.Component {
   constructor(props) {
@@ -120,20 +121,7 @@ class PrivateNavButtonsImpl extends React.Component {
         <SearchForm from={query} className={styles.search_form} />
 
         <ButtonToolbar className={styles.creation_toolbar}>
-          <Button
-            variant="light"
-            as={Link}
-            to="/upload-file"
-            className={styles.nav_button}
-          >
-            <HoverTooltip tooltip={'Upload'}>
-              <img
-                src={UploadImg}
-                className={styles.new_btn_img}
-                alt="Upload from file"
-              />
-            </HoverTooltip>
-          </Button>
+          <UploadNodeButton className={styles.nav_button} />
           <Button
             variant="light"
             onClick={this.handleNewClick}

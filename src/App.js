@@ -23,7 +23,6 @@ import GlobalNavBar from './navbar/GlobalNavBar'
 import Login from './auth/Login'
 import Logout from './auth/Logout'
 import Signup from './auth/Signup'
-import UploadFileAsNode from './upload/UploadFileAsNode'
 import PasswordChange from './auth/PasswordChange'
 import PasswordRecoverForm from './auth/PasswordRecoverForm'
 import PasswordRecoverRequest from './auth/PasswordRecoverRequest'
@@ -80,9 +79,6 @@ function AppRouter() {
           <Route path={routes.node}>
             <TriptychView />
           </Route>
-          <PrivateRoute path="/upload-file">
-            <UploadFileAsNode />
-          </PrivateRoute>
           <PrivateRoute path="/account">
             <AccountView />
           </PrivateRoute>
@@ -119,6 +115,7 @@ function AppRouter() {
           <Route path="/notice/:page">
             <Notice />
           </Route>
+          <Route exact path={routes.empty} />
           <Route path="*">
             <Redirect to={{ pathname: '/' }} />
           </Route>

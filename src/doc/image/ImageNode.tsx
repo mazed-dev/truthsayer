@@ -58,13 +58,7 @@ export const ImageNode = ({ className, nid, data }) => {
           />
         </ImgButton>
       </div>
-      <Modal
-        show={show}
-        fullscreen
-        scrollable
-        size={'xl'}
-        onHide={() => setShow(false)}
-      >
+      <Modal show={show} fullscreen scrollable onHide={() => setShow(false)}>
         <Modal.Header closeButton>
           <Modal.Title className={styles.zoom_image_title}>
             <ButtonGroup className={styles.zoom_button_group}>
