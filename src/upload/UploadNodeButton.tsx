@@ -38,7 +38,7 @@ export const UploadNodeButton = React.forwardRef(
             const { current } = fileInputRef
             if (current) {
               // Triger click on <input type="file"> component to open a file selection dialog directly
-              current!.click()
+              current.click()
             }
           }}
           {...kwargs}
