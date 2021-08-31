@@ -7,6 +7,7 @@ import PropTypes from 'prop-types'
 
 import { smugler } from '../smugler/api'
 import { SearchGrid } from '../grid/SearchGrid'
+import { UploadNodeButton } from '../upload/UploadNodeButton'
 
 import styles from './FullCardFootbar.module.css'
 
@@ -15,6 +16,7 @@ import CopyImg from './../img/copy.png'
 import SearchImg from './../img/search.png'
 import ArchiveImg from './../img/archive.png'
 import DeleteImg from './../img/delete.png'
+import UploadImg from '../img/upload-strip.svg'
 
 import NextNewLeftImg from './../img/next-link-left-00001.png'
 import NextNewRightImg from './../img/next-link-right-00001.png'
@@ -423,17 +425,18 @@ class PrivateFullCardFootbarImpl extends React.Component {
                 />
                 Copy
               </FootbarDropdownItem>
-              <FootbarDropdownItem
+              <UploadNodeButton
                 className={styles.dropdown_menu_item}
-                onClick={this.handleNextLeftBlankCopy}
+                as={FootbarDropdownItem}
+                to_nid={this.props.nid}
               >
                 <img
-                  src={NextCopyLeftImg}
+                  src={UploadImg}
                   className={styles.dropdown_menu_inline_img}
-                  alt="Blank copy and link"
+                  alt="Upload from file"
                 />
-                Blank copy
-              </FootbarDropdownItem>
+                Upload
+              </UploadNodeButton>
               <FootbarDropdownItem
                 className={styles.dropdown_menu_item}
                 onClick={this.handleNextLeftSearch}
@@ -545,17 +548,18 @@ class PrivateFullCardFootbarImpl extends React.Component {
                 />
                 Copy
               </FootbarDropdownItem>
-              <FootbarDropdownItem
+              <UploadNodeButton
                 className={styles.dropdown_menu_item}
-                onClick={this.handleNextRightBlankCopy}
+                as={FootbarDropdownItem}
+                from_nid={this.props.nid}
               >
                 <img
-                  src={NextCopyRightImg}
+                  src={UploadImg}
                   className={styles.dropdown_menu_inline_img}
-                  alt="Blank copy and link"
+                  alt="Upload from file"
                 />
-                Blank copy
-              </FootbarDropdownItem>
+                Upload
+              </UploadNodeButton>
               <FootbarDropdownItem
                 className={styles.dropdown_menu_item}
                 onClick={this.handleNextRightSearch}
