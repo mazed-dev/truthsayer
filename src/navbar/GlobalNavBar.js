@@ -29,7 +29,6 @@ import { jcss } from '../util/jcss'
 import kUserDefaultPic from './../auth/img/user-default-pic.png'
 
 import NewImg from './../img/new-button-strip.svg'
-import UploadImg from './../img/upload-strip.svg'
 
 import { SearchForm } from './SearchForm'
 import { UploadNodeButton } from './../upload/UploadNodeButton'

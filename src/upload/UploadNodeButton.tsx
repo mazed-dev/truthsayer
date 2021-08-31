@@ -1,12 +1,11 @@
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import React, { useState, useRef } from 'react'
 
 import { Link, useHistory } from 'react-router-dom'
-import { Form, ListGroup, Modal } from 'react-bootstrap'
+import { Button, Form, ListGroup, Modal } from 'react-bootstrap'
 
 import { uploadLocalFile } from './UploadLocalFile'
 
 import { Emoji } from '../Emoji'
-import { ImgButton } from '../lib/ImgButton'
 import { goto } from '../lib/route'
 import { debug } from '../util/log'
 import { jcss } from '../util/jcss'
@@ -18,7 +17,7 @@ import UploadImg from '../img/upload-strip.svg'
 import styles from './UploadNodeButton.module.css'
 
 export const UploadNodeButton = React.forwardRef(
-  ({ children, className, is_disabled, from_nid, to_nid, ...kwargs }, ref) => {
+  ({ children, className, disabled, from_nid, to_nid, ...kwargs }, ref) => {
     className = jcss(styles.btn, className)
     children = children || (
       <img
@@ -27,25 +26,25 @@ export const UploadNodeButton = React.forwardRef(
         alt="Upload from file"
       />
     )
-    const fileInputRef = useRef(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
     return (
       <>
-        <ImgButton
+        <Button
           className={className}
           ref={ref}
-          is_disabled={is_disabled}
+          disabled={disabled}
           onClick={(e) => {
             e.preventDefault()
             const { current } = fileInputRef
             if (current) {
               // Triger click on <input type="file"> component to open a file selection dialog directly
-              current.click()
+              current!.click()
             }
           }}
           {...kwargs}
         >
           {children}
-        </ImgButton>
+        </Button>
         <UploadFilesForm
           from_nid={from_nid || null}
           to_nid={to_nid || null}
@@ -66,7 +65,7 @@ const UploadFilesForm = React.forwardRef(
     ref
   ) => {
     const [show, setShow] = useState(false)
-    const [items, setItems] = useState<FileUploadStatus[]>([])
+    const [items, setItems] = useState<JSX.Element[]>([])
     const history = useHistory()
 
     const handleFileInputChange = () => {
@@ -74,7 +73,7 @@ const UploadFilesForm = React.forwardRef(
       if (!files) {
         return
       }
-      const uploadItems: FileUploadStatus[] = []
+      const uploadItems: JSX.Element[] = []
       for (let i = 0; i < files.length; i++) {
         const file = files.item(i)
         uploadItems.push(
@@ -140,7 +139,7 @@ class FileUploadStatus extends React.Component<
   FileUploadStatusProps,
   FileUploadStatusState
 > {
-  constructor(props) {
+  constructor(props: FileUploadStatusProps) {
     super(props)
     this.state = {
       progress: 0.0,
