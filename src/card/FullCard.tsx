@@ -3,8 +3,9 @@ import React from 'react'
 import { FullCardFootbar } from './FullCardFootbar'
 import { WideCard } from './WideCard'
 
-import { DocEditor } from '../doc/DocEditor.tsx'
+import { DocEditor } from '../doc/DocEditor'
 import { ImageNode } from '../doc/image/ImageNode'
+import { SlateText } from '../doc/types'
 
 import { Loader } from '../lib/loader'
 
@@ -19,7 +20,7 @@ export function FullCard({ node, addRef, stickyEdges, saveNode }) {
     editor = <Loader />
   } else {
     const { data, nid } = node
-    const saveText = (text) => {
+    const saveText = (text: SlateText) => {
       node.data = data.updateText(text)
       saveNode(node)
     }
