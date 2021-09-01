@@ -139,7 +139,7 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
         />
         <SearchGrid
           q={q}
-          defaultSearch={false}
+          defaultSearch
           onCardClick={this.onNodeCardClick}
           portable
         >

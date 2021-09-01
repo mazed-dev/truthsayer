@@ -282,7 +282,7 @@ class SearchGridImpl extends React.Component {
     return innerHeight + scrollTop >= offsetHeight
   }
 
-  handleScroll = (e) => {
+  handleScroll = () => {
     if (!this.state.fetching && this.isScrolledToBottom()) {
       this.secureSearchIteration()
     }
@@ -351,7 +351,6 @@ class SearchGridImpl extends React.Component {
   }
 }
 
-// SearchGridImpl.contextType = MzdGlobalContext;
 const SearchGridRouter = withRouter(SearchGridImpl)
 
 export function SearchGrid({ ...rest }) {
