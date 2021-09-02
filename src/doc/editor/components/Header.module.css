@@ -1,13 +1,14 @@
 .link {
   color: inherit;
+  text-decoration: none;
 }
 
 .link:hover {
   color: inherit;
   text-decoration: none;
-  text-decoration-line: underline;
-  -webkit-text-decoration-line: underline; /* Safari */
 }
 
 .link:visited {
+  color: inherit;
+  text-decoration: none;
 }

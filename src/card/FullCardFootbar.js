@@ -115,7 +115,7 @@ class SearchAndConnectJinnModal extends React.Component {
         />
         <SearchGrid
           q={q}
-          defaultSearch={false}
+          defaultSearch
           onCardClick={this.onNodeCardClick}
           portable
         >
@@ -733,9 +733,9 @@ export function FullCardFootbar({ children, node, ...rest }) {
   const { account } = ctx
   if (node && node.meta) {
     const { nid, meta } = node
-    const data = node.getData()
     if (node.isOwnedBy(account)) {
       const getMarkdown = () => {
+        const data = node.getData()
         return docAsMarkdown(nid, data)
       }
       return (

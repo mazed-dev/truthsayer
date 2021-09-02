@@ -26,6 +26,8 @@ const kHeaderLocalSecretId = 'x-local-secret-id'
 const kHeaderLocalSignature = 'x-local-signature'
 const kHeaderNodeMeta = 'x-node-meta'
 
+export type CancelToken = axios.CancelToken
+
 function _getSmuglerApibaseURL() {
   switch (process.env.NODE_ENV) {
     case 'production':
@@ -103,8 +105,8 @@ export type NewNodeResponse = {
 async function createNode({
   doc,
   file,
-  from_nid,
-  to_nid,
+  from_nid /* Optional<string> */,
+  to_nid /* Optional<string> */,
   account,
   cancelToken,
 }: {
@@ -172,7 +174,7 @@ async function uploadFiles({ files, from_nid, to_nid, account, cancelToken }) {
   const config = {
     headers,
     cancelToken,
-    timeout: 30000, // Extend timeout, files could be quite large and smuggler is a bit slow too
+    timeout: 60000, // Extend timeout, files could be quite large and smuggler is a bit slow too
   }
   const resp = await _client.post(
     `/blob/new?${stringify(query)}`,

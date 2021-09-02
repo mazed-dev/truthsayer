@@ -80,8 +80,9 @@
 }
 
 .a_see_more {
-  font-weight: bold;
-  color: black;
+  font-size: 1rem;
+  font-weight: 560;
+  color: rgba(0, 0, 0, 0.6);
 
   margin: 0;
 
@@ -91,6 +92,8 @@
   margin-right: 4px;
 
   display: inline;
+
+  text-decoration: none;
 }
 
 .a_see_more:visited {
