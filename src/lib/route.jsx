@@ -4,6 +4,7 @@ const kLogInPath = '/login'
 const kSignUpPath = '/signup'
 const kLogOutPath = '/logout'
 const kSearchPath = '/search'
+const kEmptyPath = '/empty'
 const kNodePathPrefix = '/n/'
 
 const kNoticePathPrefix = '/notice/'
@@ -75,6 +76,11 @@ function getNoticePage({ params }) {
   return params
 }
 
+function reload_(history) {
+  history.push({ pathname: kEmptyPath })
+  history.goBack()
+}
+
 export const routes = {
   login: kLogInPath,
   signup: kSignUpPath,
@@ -82,6 +88,7 @@ export const routes = {
   search: kSearchPath,
   node: `${kNodePathPrefix}:nid`,
   notice: `${kNoticePathPrefix}:page`,
+  empty: kEmptyPath,
 }
 
 export const goto = {
@@ -96,6 +103,7 @@ export const goto = {
     seeYou: gotoSeeYou,
     logInToContinue: gotoLogInToContinue,
   },
+  reload: reload_,
 }
 
 export const makeRefTo = {
