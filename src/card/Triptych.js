@@ -9,10 +9,11 @@ import { ShrinkCard } from './ShrinkCard'
 import { ReadOnlyRender } from './../doc/ReadOnlyRender'
 
 import { SmallCardFootbar } from './SmallCardFootbar'
+import { ChainActionBar } from './ChainActionBar'
 
 import { withRouter } from 'react-router-dom'
 
-import { MzdGlobalContext } from '../lib/global.js'
+import { MzdGlobalContext } from '../lib/global'
 import { jcss } from './../util/jcss'
 import { debug } from './../util/log'
 
@@ -278,9 +279,15 @@ class Triptych extends React.Component {
     if (!this.state.is_narrow) {
       triptychRow = (
         <Row className={jcss('d-flex', 'justify-content-center', styles.row)}>
-          <Col className={styles.refs_col}>{leftRefs}</Col>
+          <Col className={styles.refs_col}>
+            <ChainActionBar side="left" />
+            {leftRefs}
+          </Col>
           <Col className={styles.node_card_col}>{nodeCard}</Col>
-          <Col className={styles.refs_col}>{rightRefs}</Col>
+          <Col className={styles.refs_col}>
+            <ChainActionBar side="right" />
+            {rightRefs}
+          </Col>
         </Row>
       )
     } else {

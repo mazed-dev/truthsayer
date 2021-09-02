@@ -6,7 +6,13 @@ import { jcss } from '../util/jcss'
 
 import styles from './ImgButton.module.css'
 
-export const ImgButton = React.forwardRef(
+type ImgButtonProps = React.PropsWithChildren<{
+  onClick: React.MouseEventHandler
+  className: string
+  is_disabled: boolean
+}>
+
+export const ImgButton = React.forwardRef<HTMLButtonElement, ImgButtonProps>(
   ({ children, onClick, className, is_disabled, ...kwargs }, ref) => (
     <Button
       variant="light"

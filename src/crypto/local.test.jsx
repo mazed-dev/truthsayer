@@ -1,4 +1,4 @@
-import { LocalCrypto } from './local.jsx'
+import { LocalCrypto } from './local'
 
 class LocalStorageMock {
   storage: object = {}

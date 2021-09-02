@@ -151,22 +151,6 @@ export const SearchAndConnectJinn = ({ show, setShow, nid, addRef, left }) => {
   )
 }
 
-async function cloneNode({ from, to, crypto, cancelToken, isBlank }) {
-  const nid = from ? from : to
-  const node = await smugler.node.get({
-    nid,
-    crypto,
-    cancelToken,
-  })
-  const doc = await makeACopy(node.getData(), node.getNid(), isBlank || false)
-  return await smugler.node.create({
-    doc,
-    cancelToken,
-    from_nid: from,
-    to_nid: to,
-  })
-}
-
 class PrivateFullCardFootbarImpl extends React.Component {
   constructor(props) {
     super(props)

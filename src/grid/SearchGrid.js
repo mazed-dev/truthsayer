@@ -10,13 +10,13 @@ import { SmallCardRender } from './../doc/ReadOnlyRender'
 
 import { searchNodeFor } from './search/search.jsx'
 
-import { smugler } from './../smugler/api.js'
+import { smugler } from './../smugler/api'
 
 import { jcss } from './../util/jcss'
 import { range } from './../util/range'
 import { isSmartCase } from './../util/str.jsx'
 
-import { MzdGlobalContext } from '../lib/global.js'
+import { MzdGlobalContext } from '../lib/global'
 import { Loader } from './../lib/loader'
 
 import { debug } from '../util/log'
