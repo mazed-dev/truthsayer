@@ -9,7 +9,7 @@ import { Emoji } from '../Emoji'
 import { goto } from '../lib/route'
 import { debug } from '../util/log'
 import { jcss } from '../util/jcss'
-import { smugler } from '../smugler/api'
+import { smugler, CancelToken } from '../smugler/api'
 import { Optional } from '../util/types'
 
 import UploadImg from '../img/upload-strip.svg'
@@ -17,7 +17,7 @@ import UploadImg from '../img/upload-strip.svg'
 import styles from './UploadNodeButton.module.css'
 
 export const UploadNodeButton = React.forwardRef(
-  ({ children, className, disabled, from_nid, to_nid, ...kwargs }, ref) => {
+  ({ children, className, from_nid, to_nid, ...kwargs }, ref) => {
     className = jcss(styles.btn, className)
     children = children || (
       <img
@@ -32,7 +32,6 @@ export const UploadNodeButton = React.forwardRef(
         <Button
           className={className}
           ref={ref}
-          disabled={disabled}
           onClick={(e) => {
             e.preventDefault()
             const { current } = fileInputRef
@@ -139,6 +138,8 @@ class FileUploadStatus extends React.Component<
   FileUploadStatusProps,
   FileUploadStatusState
 > {
+  cancelToken: CancelToken
+
   constructor(props: FileUploadStatusProps) {
     super(props)
     this.state = {
