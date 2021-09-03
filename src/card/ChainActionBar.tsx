@@ -21,6 +21,7 @@ import NextNewLeftImg from './../img/next-link-left-00001.png'
 import NextCopyLeftImg from './../img/next-clone-left.png'
 import NextCopyRightImg from './../img/next-clone-right.png'
 import { LocalCrypto } from '../crypto/local'
+import { Optional } from '../util/types'
 
 export type ChainActionBarSide = 'left' | 'right'
 
@@ -61,8 +62,8 @@ async function cloneNode({
 class ChainActionHandler {
   nid: string
   nidIsPrivate: boolean
-  history: History
   cancelToken: CancelToken
+  history: History
 
   constructor({
     nid,
@@ -72,13 +73,13 @@ class ChainActionHandler {
   }: {
     nid: string
     nidIsPrivate: boolean
-    history: History
     cancelToken: CancelToken
+    history: History
   }) {
     this.nid = nid
     this.nidIsPrivate = nidIsPrivate
-    this.history = history
     this.cancelToken = cancelToken
+    this.history = history
   }
 
   logInNeeded = (context: MzdGlobalContextProps): boolean => {
@@ -137,14 +138,13 @@ export const ChainActionBar = ({
   nidIsPrivate: boolean
   cancelToken: CancelToken
 }) => {
+  const history = useHistory()
   const ctx = useContext(MzdGlobalContext)
   const handler = new ChainActionHandler({
     nid,
     nidIsPrivate,
     cancelToken,
-    // TODO[snikitin@outlook.com] What does history do? Does it need to be passed down from the
-    // main card?
-    useHistory(),
+    history,
   })
 
   return (

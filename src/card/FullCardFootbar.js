@@ -159,102 +159,11 @@ class PrivateFullCardFootbarImpl extends React.Component {
       modalRightShow: false,
       modalShareShow: false,
     }
-    this.createCancelToken = smugler.makeCancelToken()
     this.deleteCancelToken = smugler.makeCancelToken()
   }
 
   static propTypes = {
     history: PropTypes.object.isRequired,
-  }
-
-  handleNextRight = (event) => {
-    smugler.node
-      .create({
-        cancelToken: this.createCancelToken.token,
-        from_nid: this.props.nid,
-      })
-      .then((node) => {
-        if (node) {
-          const { nid } = node
-          goto.node({ history: this.props.history, nid })
-        }
-      })
-  }
-
-  handleNextRightClone = (event) => {
-    const account = this.props.context.account
-    cloneNode({
-      from: this.props.nid,
-      to: null,
-      crypto: account.getLocalCrypto(),
-      cancelToken: this.createCancelToken.token,
-    }).then((node) => {
-      if (node) {
-        const { nid } = node
-        goto.node({ history: this.props.history, nid })
-      }
-    })
-  }
-
-  handleNextLeftBlankCopy = () => {
-    const account = this.props.context.account
-    cloneNode({
-      from: null,
-      to: this.props.nid,
-      crypto: account.getLocalCrypto(),
-      cancelToken: this.createCancelToken.token,
-      isBlank: true,
-    }).then((node) => {
-      if (node) {
-        const { nid } = node
-        goto.node({ history: this.props.history, nid })
-      }
-    })
-  }
-
-  handleNextRightBlankCopy = () => {
-    const account = this.props.context.account
-    cloneNode({
-      from: this.props.nid,
-      to: null,
-      crypto: account.getLocalCrypto(),
-      cancelToken: this.createCancelToken.token,
-      isBlank: true,
-    }).then((node) => {
-      if (node) {
-        const { nid } = node
-        goto.node({ history: this.props.history, nid })
-      }
-    })
-  }
-
-  handleNextLeft = (event) => {
-    smugler.node
-      .create({
-        cancelToken: this.createCancelToken.token,
-        to_nid: this.props.nid,
-      })
-      .then((node) => {
-        if (node) {
-          const { nid } = node
-          goto.node({ history: this.props.history, nid })
-        }
-      })
-  }
-
-  handleNextLeftClone = () => {
-    const account = this.props.context.account
-    cloneNode({
-      from: null,
-      to: this.props.nid,
-      crypto: account.getLocalCrypto(),
-      cancelToken: this.createCancelToken.token,
-    }).then((node) => {
-      if (node) {
-        const { nid } = node
-        goto.node({ history: this.props.history, nid })
-      }
-    })
   }
 
   handleNextLeftSearch = (event) => {
@@ -577,7 +486,6 @@ class PublicFullCardFootbarImpl extends React.Component {
   constructor(props) {
     super(props)
     this.state = {}
-    this.createCancelToken = smugler.makeCancelToken()
   }
 
   static propTypes = {
@@ -591,78 +499,6 @@ class PublicFullCardFootbarImpl extends React.Component {
     }
     goto.notice.logInToContinue({ history: this.props.history })
     return null
-  }
-
-  handleNextRight = (event) => {
-    const account = this.getAccountOrLogin()
-    if (!account) {
-      return
-    }
-    smugler.node
-      .create({
-        cancelToken: this.createCancelToken.token,
-        from_nid: this.props.nid,
-      })
-      .then((node) => {
-        if (node) {
-          const { nid } = node
-          goto.node({ history: this.props.history, nid })
-        }
-      })
-  }
-
-  handleNextRightClone = (event) => {
-    const account = this.getAccountOrLogin()
-    if (!account) {
-      return
-    }
-    cloneNode({
-      from: this.props.nid,
-      to: null,
-      crypto: account.getLocalCrypto(),
-      cancelToken: this.createCancelToken.token,
-    }).then((node) => {
-      if (node) {
-        const { nid } = node
-        goto.node({ history: this.props.history, nid })
-      }
-    })
-  }
-
-  handleNextLeft = (event) => {
-    const account = this.getAccountOrLogin()
-    if (!account) {
-      return
-    }
-    smugler.node
-      .create({
-        cancelToken: this.createCancelToken.token,
-        to_nid: this.props.nid,
-      })
-      .then((node) => {
-        if (node) {
-          const { nid } = node
-          goto.node({ history: this.props.history, nid })
-        }
-      })
-  }
-
-  handleNextLeftClone = () => {
-    const account = this.getAccountOrLogin()
-    if (!account) {
-      return
-    }
-    cloneNode({
-      from: null,
-      to: this.props.nid,
-      crypto: account.getLocalCrypto(),
-      cancelToken: this.createCancelToken.token,
-    }).then((node) => {
-      if (node) {
-        const { nid } = node
-        goto.node({ history: this.props.history, nid })
-      }
-    })
   }
 
   render() {

@@ -61,7 +61,7 @@
         "import/no-extraneous-dependencies": [
             "error",
             {
-                "peerDependencies": true
+                "peerDependencies": false
             }
         ],
         "import/no-mutable-exports": "error",

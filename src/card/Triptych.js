@@ -80,6 +80,7 @@ class Triptych extends React.Component {
     this.fetchFromEdgesCancelToken = smugler.makeCancelToken()
     this.fetchNodeCancelToken = smugler.makeCancelToken()
     this.createEdgeCancelToken = smugler.makeCancelToken()
+    this.createNodeCancelToken = smugler.makeCancelToken()
   }
 
   componentDidMount() {
@@ -277,15 +278,27 @@ class Triptych extends React.Component {
     )
     let triptychRow = null
     if (!this.state.is_narrow) {
+      const nodeIsPrivate = this.state.node?.isOwnedBy(this.context.account)
+
       triptychRow = (
         <Row className={jcss('d-flex', 'justify-content-center', styles.row)}>
           <Col className={styles.refs_col}>
-            <ChainActionBar side="left" />
+            <ChainActionBar
+              side="left"
+              nid={this.props.nid}
+              nidIsPrivate={nodeIsPrivate}
+              cancelToken={this.createNodeCancelToken.token}
+            />
             {leftRefs}
           </Col>
           <Col className={styles.node_card_col}>{nodeCard}</Col>
           <Col className={styles.refs_col}>
-            <ChainActionBar side="right" />
+            <ChainActionBar
+              side="right"
+              nid={this.props.nid}
+              nidIsPrivate={nodeIsPrivate}
+              cancelToken={this.createNodeCancelToken.token}
+            />
             {rightRefs}
           </Col>
         </Row>
