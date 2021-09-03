@@ -12,7 +12,8 @@
   color: white;
 }
 
-.entire_doc {
+.app_content {
   padding: 0;
   margin: auto;
+  width: 100%;
 }
