@@ -115,6 +115,16 @@ class DynamicGrid extends React.Component {
 
 const _kTimeLimit = Math.floor(Date.now() / 1000) - 2 * 356 * 24 * 60 * 60
 
+export type NodeAttrsSearchItem = {
+  nid: string,
+  // ntype: i32,
+  // crtd: u64,
+  // upd: u64,
+  // attrs: Optional<String>,
+  // data: Optional<String>,
+  // meta: Optional<NodeMetaPub>,
+}
+
 class SearchGridImpl extends React.Component {
   constructor(props, context) {
     super(props, context)

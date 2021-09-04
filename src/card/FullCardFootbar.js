@@ -1,28 +1,19 @@
 import React, { useContext } from 'react'
 
 import { withRouter } from 'react-router-dom'
-import { Button, ButtonToolbar, Modal, Form, ListGroup } from 'react-bootstrap'
+import { ButtonToolbar } from 'react-bootstrap'
 
 import PropTypes from 'prop-types'
 
 import { smugler } from '../smugler/api'
-import { SearchGrid } from '../grid/SearchGrid'
 import { UploadNodeButton } from '../upload/UploadNodeButton'
 
 import styles from './FullCardFootbar.module.css'
 
 import DownloadImg from './../img/download.png'
 import CopyImg from './../img/copy.png'
-import SearchImg from './../img/search.png'
 import ArchiveImg from './../img/archive.png'
 import DeleteImg from './../img/delete.png'
-import UploadImg from '../img/upload-strip.svg'
-
-import NextNewLeftImg from './../img/next-link-left-00001.png'
-import NextNewRightImg from './../img/next-link-right-00001.png'
-
-import NextCopyLeftImg from './../img/next-clone-left.png'
-import NextCopyRightImg from './../img/next-clone-right.png'
 
 import EncryptedImg from './../img/encrypted.png'
 import PrivateImg from './../img/private.png'
@@ -47,118 +38,10 @@ import {
   FootbarDropdownToggleMeatballs,
 } from './Footbar'
 
-const lodash = require('lodash')
-
-class SearchAndConnectJinnModal extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      input: '',
-      q: '',
-      cursor: 0,
-    }
-    this.inputRef = React.createRef()
-  }
-
-  componentDidMount() {
-    this.inputRef.current.focus()
-  }
-
-  handleChange = (event) => {
-    const { value } = event.target
-    this.startSmartSearch.cancel() // Do we need it?
-    this.setState(
-      {
-        input: value,
-      },
-      () => {
-        this.startSmartSearch(value)
-      }
-    )
-  }
-
-  handleSumbit = (event) => {}
-
-  startSmartSearch = lodash.debounce((value) => {
-    this.setState({ cards: [], q: value })
-  }, 800)
-
-  addCards = (cards) => {
-    this.setState((state) => {
-      return {
-        cards: lodash.concat(state.cards, cards),
-      }
-    })
-  }
-
-  onNodeCardClick = (node) => {
-    const { nid, left, addRef, setShow } = this.props
-    const other_nid = node.nid
-    if (left) {
-      addRef({ from: other_nid, to: nid })
-    } else {
-      addRef({ from: nid, to: other_nid })
-    }
-    setShow(false)
-  }
-
-  render() {
-    const { q, input, cards } = this.state
-    return (
-      <div className={styles.autocomplete_modal}>
-        <Form.Control
-          aria-label="Search-to-link"
-          aria-describedby="basic-addon1"
-          onChange={this.handleChange}
-          onSubmit={this.handleSumbit}
-          value={input}
-          placeholder="Type something"
-          ref={this.inputRef}
-        />
-        <SearchGrid
-          q={q}
-          defaultSearch
-          onCardClick={this.onNodeCardClick}
-          portable
-        >
-          {cards}
-        </SearchGrid>
-      </div>
-    )
-  }
-}
-
-export const SearchAndConnectJinn = ({ show, setShow, nid, addRef, left }) => {
-  return (
-    <Modal
-      show={show}
-      onHide={() => setShow(false)}
-      size="xl"
-      aria-labelledby="contained-modal-title-vcenter"
-      centered
-      keyboard
-      restoreFocus={false}
-      animation={false}
-      dialogClassName={''}
-      scrollable
-      enforceFocus
-    >
-      <SearchAndConnectJinnModal
-        nid={nid}
-        setShow={setShow}
-        addRef={addRef}
-        left={left}
-      />
-    </Modal>
-  )
-}
-
 class PrivateFullCardFootbarImpl extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      modalLeftShow: false,
-      modalRightShow: false,
       modalShareShow: false,
     }
     this.deleteCancelToken = smugler.makeCancelToken()
@@ -166,35 +49,6 @@ class PrivateFullCardFootbarImpl extends React.Component {
 
   static propTypes = {
     history: PropTypes.object.isRequired,
-  }
-
-  handleNextLeftSearch = (event) => {
-    this.setSearchShow(true, true)
-  }
-
-  handleNextRightSearch = (event) => {
-    this.setSearchShow(true, false)
-  }
-
-  setSearchShow = (show, left) => {
-    if (show) {
-      if (left) {
-        this.setState({
-          modalLeftShow: true,
-          modalRightShow: false,
-        })
-      } else {
-        this.setState({
-          modalLeftShow: false,
-          modalRightShow: true,
-        })
-      }
-    } else {
-      this.setState({
-        modalRightShow: false,
-        modalLeftShow: false,
-      })
-    }
   }
 
   hideShareDialog = (event) => {
@@ -284,66 +138,6 @@ class PrivateFullCardFootbarImpl extends React.Component {
     return (
       <>
         <ButtonToolbar className={jcss(styles.toolbar)}>
-          <FootbarDropdown>
-            <FootbarDropdownToggle>
-              <HoverTooltip tooltip={'Link to the left'}>
-                <img
-                  src={NextNewLeftImg}
-                  className={styles.tool_button_img}
-                  alt="Add left link"
-                />
-              </HoverTooltip>
-            </FootbarDropdownToggle>
-
-            <FootbarDropdownMenu>
-              <FootbarDropdownItem
-                className={styles.dropdown_menu_item}
-                onClick={this.handleNextLeft}
-              >
-                <img
-                  src={NextNewLeftImg}
-                  className={styles.dropdown_menu_inline_img}
-                  alt="Create new to the left"
-                />
-                Create new
-              </FootbarDropdownItem>
-              <FootbarDropdownItem
-                className={styles.dropdown_menu_item}
-                onClick={this.handleNextLeftClone}
-              >
-                <img
-                  src={NextCopyLeftImg}
-                  className={styles.dropdown_menu_inline_img}
-                  alt="Copy and link"
-                />
-                Copy
-              </FootbarDropdownItem>
-              <UploadNodeButton
-                className={styles.dropdown_menu_item}
-                as={FootbarDropdownItem}
-                to_nid={this.props.nid}
-              >
-                <img
-                  src={UploadImg}
-                  className={styles.dropdown_menu_inline_img}
-                  alt="Upload from file"
-                />
-                Upload
-              </UploadNodeButton>
-              <FootbarDropdownItem
-                className={styles.dropdown_menu_item}
-                onClick={this.handleNextLeftSearch}
-              >
-                <img
-                  src={SearchImg}
-                  className={styles.dropdown_menu_inline_img}
-                  alt="Search and link"
-                />
-                Search to bind
-              </FootbarDropdownItem>
-            </FootbarDropdownMenu>
-          </FootbarDropdown>
-
           <ImgButton
             onClick={this.showShareDialog}
             className={jcss(styles.tool_button, styles.toolbar_layout_item)}
@@ -406,78 +200,11 @@ class PrivateFullCardFootbarImpl extends React.Component {
               </FootbarDropdownItem>
             </FootbarDropdownMenu>
           </FootbarDropdown>
-
-          <FootbarDropdown>
-            <FootbarDropdownToggle>
-              <HoverTooltip tooltip={'Link to the right'}>
-                <img
-                  src={NextNewRightImg}
-                  className={styles.tool_button_img}
-                  alt="Add left link"
-                />
-              </HoverTooltip>
-            </FootbarDropdownToggle>
-
-            <FootbarDropdownMenu>
-              <FootbarDropdownItem
-                className={styles.dropdown_menu_item}
-                onClick={this.handleNextRight}
-              >
-                <img
-                  src={NextNewRightImg}
-                  className={styles.dropdown_menu_inline_img}
-                  alt="Create new to the right"
-                />
-                Create new
-              </FootbarDropdownItem>
-              <FootbarDropdownItem
-                className={styles.dropdown_menu_item}
-                onClick={this.handleNextRightClone}
-              >
-                <img
-                  src={NextCopyRightImg}
-                  className={styles.dropdown_menu_inline_img}
-                  alt="Copy and link"
-                />
-                Copy
-              </FootbarDropdownItem>
-              <UploadNodeButton
-                className={styles.dropdown_menu_item}
-                as={FootbarDropdownItem}
-                from_nid={this.props.nid}
-              >
-                <img
-                  src={UploadImg}
-                  className={styles.dropdown_menu_inline_img}
-                  alt="Upload from file"
-                />
-                Upload
-              </UploadNodeButton>
-              <FootbarDropdownItem
-                className={styles.dropdown_menu_item}
-                onClick={this.handleNextRightSearch}
-              >
-                <img
-                  src={SearchImg}
-                  className={styles.dropdown_menu_inline_img}
-                  alt="Search and link"
-                />
-                Search
-              </FootbarDropdownItem>
-            </FootbarDropdownMenu>
-          </FootbarDropdown>
         </ButtonToolbar>
         <ShareModal
           show={this.state.modalShareShow}
           nid={this.props.nid}
           onHide={this.hideShareDialog}
-        />
-        <SearchAndConnectJinn
-          nid={this.props.nid}
-          addRef={this.props.addRef}
-          show={this.state.modalLeftShow || this.state.modalRightShow}
-          left={this.state.modalLeftShow}
-          setShow={this.setSearchShow}
         />
       </>
     )
@@ -496,71 +223,10 @@ class PublicFullCardFootbarImpl extends React.Component {
     history: PropTypes.object.isRequired,
   }
 
-  getAccountOrLogin = () => {
-    const context = this.props.context
-    if (context && context.account) {
-      return context.account
-    }
-    goto.notice.logInToContinue({ history: this.props.history })
-    return null
-  }
-
   render() {
     return (
       <>
-        <ButtonToolbar className={jcss(styles.toolbar)}>
-          <ImgButton
-            onClick={this.handleNextLeft}
-            className={jcss(styles.tool_button, styles.toolbar_layout_item)}
-          >
-            <HoverTooltip tooltip={'Link to the left'}>
-              <img
-                src={NextNewLeftImg}
-                className={styles.tool_button_img}
-                alt="Add left link"
-              />
-            </HoverTooltip>
-          </ImgButton>
-
-          <ImgButton
-            onClick={this.handleNextLeftClone}
-            className={jcss(styles.tool_button, styles.toolbar_layout_item)}
-          >
-            <HoverTooltip tooltip={'Copy and link'}>
-              <img
-                src={NextCopyLeftImg}
-                className={styles.tool_button_img}
-                alt="Copy and link"
-              />
-            </HoverTooltip>
-          </ImgButton>
-
-          <ImgButton
-            onClick={this.handleNextRightClone}
-            className={jcss(styles.tool_button, styles.toolbar_layout_item)}
-          >
-            <HoverTooltip tooltip={'Copy and link'}>
-              <img
-                src={NextCopyRightImg}
-                className={styles.tool_button_img}
-                alt="Copy and link"
-              />
-            </HoverTooltip>
-          </ImgButton>
-
-          <ImgButton
-            onClick={this.handleNextRight}
-            className={jcss(styles.tool_button, styles.toolbar_layout_item)}
-          >
-            <HoverTooltip tooltip={'Link to the right'}>
-              <img
-                src={NextNewRightImg}
-                className={styles.tool_button_img}
-                alt="Add right link"
-              />
-            </HoverTooltip>
-          </ImgButton>
-        </ButtonToolbar>
+        <ButtonToolbar className={jcss(styles.toolbar)} />
       </>
     )
   }

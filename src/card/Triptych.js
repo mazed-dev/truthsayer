@@ -276,10 +276,9 @@ class Triptych extends React.Component {
         saveNode={this.saveNode}
       />
     )
+    const nodeIsPrivate = this.state.node?.isOwnedBy(this.context.account)
     let triptychRow = null
     if (!this.state.is_narrow) {
-      const nodeIsPrivate = this.state.node?.isOwnedBy(this.context.account)
-
       triptychRow = (
         <Row className={jcss('d-flex', 'justify-content-center', styles.row)}>
           <Col className={styles.refs_col}>
@@ -288,6 +287,7 @@ class Triptych extends React.Component {
               nid={this.props.nid}
               nidIsPrivate={nodeIsPrivate}
               cancelToken={this.createNodeCancelToken.token}
+              addRef={this.addRef}
             />
             {leftRefs}
           </Col>
@@ -298,6 +298,7 @@ class Triptych extends React.Component {
               nid={this.props.nid}
               nidIsPrivate={nodeIsPrivate}
               cancelToken={this.createNodeCancelToken.token}
+              addRef={this.addRef}
             />
             {rightRefs}
           </Col>
@@ -306,6 +307,13 @@ class Triptych extends React.Component {
     } else {
       triptychRow = (
         <>
+          <ChainActionBar
+            side="both"
+            nid={this.props.nid}
+            nidIsPrivate={nodeIsPrivate}
+            cancelToken={this.createNodeCancelToken.token}
+            addRef={this.addRef}
+          />
           <div className={styles.node_card_col}>{nodeCard}</div>
           <Row className={jcss('d-flex', 'justify-content-center', styles.row)}>
             <Col className={jcss(styles.refs_col, styles.refs_left_col)}>
