@@ -106,7 +106,7 @@ const UploadFilesForm = React.forwardRef(
             onChange={handleFileInputChange}
           />
         </Form>
-        <Modal show={show} size={'lg'} scrollable onHide={onClose}>
+        <Modal show={show} size={'lg'} scrollable centered onHide={onClose}>
           <Modal.Header closeButton>
             <Modal.Title className={styles.uploaded_files_title}>
               Uploaded files

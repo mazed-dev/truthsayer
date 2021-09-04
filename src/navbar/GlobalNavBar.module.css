@@ -49,17 +49,17 @@
   position: fixed;
   top: 0;
   width: 100%;
-  z-index: 4;
+  z-index: 2048;
 
   padding-left: 0.8rem;
   padding-right: 0.8rem;
 
-  display: flex;
   justify-content: space-between;
 }
 
 .navbar_filler {
   margin-bottom: 3.4rem;
+  width: 100%;
 }
 
 .brand {
