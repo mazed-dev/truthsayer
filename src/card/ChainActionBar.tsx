@@ -1,8 +1,7 @@
 import React, { useContext, useState } from 'react'
 
 import { ButtonGroup, Row } from 'react-bootstrap'
-import { useHistory } from 'react-router-dom'
-import { History } from 'history'
+import { useHistory, RouteComponentProps } from 'react-router-dom'
 import { CancelToken } from 'axios'
 
 import { ImgButton } from '../lib/ImgButton'
@@ -73,7 +72,7 @@ class ChainActionHandler {
   nid: string
   nidIsPrivate: boolean
   cancelToken: CancelToken
-  history: History
+  history: RouteComponentProps['history']
 
   constructor({
     nid,
@@ -84,7 +83,7 @@ class ChainActionHandler {
     nid: string
     nidIsPrivate: boolean
     cancelToken: CancelToken
-    history: History
+    history: RouteComponentProps['history']
   }) {
     this.nid = nid
     this.nidIsPrivate = nidIsPrivate
