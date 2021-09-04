@@ -6,6 +6,7 @@ import { History } from 'history'
 import { CancelToken } from 'axios'
 
 import { ImgButton } from '../lib/ImgButton'
+import { HoverTooltip } from '../lib/tooltip'
 import UploadImg from '../img/upload-strip.svg'
 import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
 import { goto } from '../lib/route.jsx'
@@ -162,18 +163,19 @@ const ChainActionBarImpl = ({
   return (
     <div>
       <ButtonGroup>
-        <ImgButton
-          className="test"
-          onClick={() => handler.handleNext(ctx, side)}
-          is_disabled={false}
-        >
-          <img
-            src={side === 'right' ? NextNewRightImg : NextNewLeftImg}
-            // className={styles.tool_button_img}
-            // alt="Link to the right"
-          />
-          {`Create new & link to the ${side}`}
-        </ImgButton>
+        <HoverTooltip tooltip={`Create new & link to the ${side}`}>
+          <ImgButton
+            className="test"
+            onClick={() => handler.handleNext(ctx, side)}
+            is_disabled={false}
+          >
+            <img
+              src={side === 'right' ? NextNewRightImg : NextNewLeftImg}
+              // className={styles.tool_button_img}
+              // alt="Link to the right"
+            />
+          </ImgButton>
+        </HoverTooltip>
 
         <FootbarDropdown>
           <FootbarDropdownToggleMeatballs
