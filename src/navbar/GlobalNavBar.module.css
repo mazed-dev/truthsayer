@@ -46,10 +46,6 @@
   background-color: white;
 
   height: 2.8rem;
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 2048;
 
   padding-left: 0.8rem;
   padding-right: 0.8rem;
@@ -90,7 +86,8 @@
 .user_pic_image {
   width: 1.4rem;
   height: 1.4rem;
-  margin: auto;
+  margin-top: auto;
+  margin-bottom: auto;
   margin-right: 0.4rem;
   margin-left: 0.4rem;
 }
@@ -105,10 +102,10 @@
   border-width: 0px;
   border-radius: 56px;
 
-  padding: 0;
-  padding: 0.25rem;
-  padding-top: 0.55rem;
-  padding-right: 0.55rem;
+  padding-top: 8px;
+  padding-right: 4px;
+  padding-left: 4px;
+  padding-bottom: 4px;
 
   margin-right: 0.2rem;
 }
@@ -118,5 +115,8 @@
   background-color: #d0d1d2;
 }
 .account_dropdown_toggle:after {
-  display: none;
+  display: none !important;
+}
+.account_dropdown_toggle:before {
+  display: none !important;
 }
