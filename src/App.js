@@ -43,11 +43,9 @@ import './App.css'
 class App extends React.Component {
   render() {
     return (
-      <Container fluid className="app_content">
-        <MzdGlobal>
-          <AppRouter />
-        </MzdGlobal>
-      </Container>
+      <MzdGlobal>
+        <AppRouter />
+      </MzdGlobal>
     )
   }
 }
@@ -56,69 +54,71 @@ function AppRouter() {
   return (
     <Router>
       <GlobalNavBar />
-      <Switch>
-        <Route exact path="/">
-          <MainView />
-        </Route>
-        <PublicOnlyRoute path={routes.login}>
-          <Login />
-        </PublicOnlyRoute>
-        <PublicOnlyRoute path={routes.signup}>
-          <Signup />
-        </PublicOnlyRoute>
-        <Route path="/waiting-for-approval">
-          <WaitingForApproval path="/waiting-for-approval" />
-        </Route>
-        <Route path={routes.logout}>
-          <Logout />
-        </Route>
-        <PrivateRoute path={routes.search}>
-          <SearchView />
-        </PrivateRoute>
-        <Route path={routes.node}>
-          <TriptychView />
-        </Route>
-        <PrivateRoute path="/account">
-          <AccountView />
-        </PrivateRoute>
-        <PrivateRoute path="/user-preferences">
-          <UserPreferences />
-        </PrivateRoute>
-        <PrivateRoute path="/user-encryption">
-          <UserEncryption />
-        </PrivateRoute>
-        <Route path="/help">
-          <HelpInfo />
-        </Route>
-        <Route path="/about">
-          <About />
-        </Route>
-        <Route path="/contacts">
-          <ContactUs />
-        </Route>
-        <Route path="/privacy-policy">
-          <PrivacyPolicy />
-        </Route>
-        <Route path="/terms-of-service">
-          <TermsOfService />
-        </Route>
-        <PublicOnlyRoute path="/password-recover-request">
-          <PasswordRecoverRequest />
-        </PublicOnlyRoute>
-        <PublicOnlyRoute path="/password-recover-reset/:token">
-          <PasswordRecoverFormView />
-        </PublicOnlyRoute>
-        <PrivateRoute path="/password-recover-change">
-          <PasswordChange />
-        </PrivateRoute>
-        <Route path="/notice/:page">
-          <Notice />
-        </Route>
-        <Route exact path={routes.empty} />
-        <Route path="*">
-          <Redirect to={{ pathname: '/' }} />
-        </Route>
-      </Switch>
+      <Container fluid className="app_content">
+        <Switch>
+          <Route exact path="/">
+            <MainView />
+          </Route>
+          <PublicOnlyRoute path={routes.login}>
+            <Login />
+          </PublicOnlyRoute>
+          <PublicOnlyRoute path={routes.signup}>
+            <Signup />
+          </PublicOnlyRoute>
+          <Route path="/waiting-for-approval">
+            <WaitingForApproval path="/waiting-for-approval" />
+          </Route>
+          <Route path={routes.logout}>
+            <Logout />
+          </Route>
+          <PrivateRoute path={routes.search}>
+            <SearchView />
+          </PrivateRoute>
+          <Route path={routes.node}>
+            <TriptychView />
+          </Route>
+          <PrivateRoute path="/account">
+            <AccountView />
+          </PrivateRoute>
+          <PrivateRoute path="/user-preferences">
+            <UserPreferences />
+          </PrivateRoute>
+          <PrivateRoute path="/user-encryption">
+            <UserEncryption />
+          </PrivateRoute>
+          <Route path="/help">
+            <HelpInfo />
+          </Route>
+          <Route path="/about">
+            <About />
+          </Route>
+          <Route path="/contacts">
+            <ContactUs />
+          </Route>
+          <Route path="/privacy-policy">
+            <PrivacyPolicy />
+          </Route>
+          <Route path="/terms-of-service">
+            <TermsOfService />
+          </Route>
+          <PublicOnlyRoute path="/password-recover-request">
+            <PasswordRecoverRequest />
+          </PublicOnlyRoute>
+          <PublicOnlyRoute path="/password-recover-reset/:token">
+            <PasswordRecoverFormView />
+          </PublicOnlyRoute>
+          <PrivateRoute path="/password-recover-change">
+            <PasswordChange />
+          </PrivateRoute>
+          <Route path="/notice/:page">
+            <Notice />
+          </Route>
+          <Route exact path={routes.empty} />
+          <Route path="*">
+            <Redirect to={{ pathname: '/' }} />
+          </Route>
+        </Switch>
+      </Container>
     </Router>
   )
 }

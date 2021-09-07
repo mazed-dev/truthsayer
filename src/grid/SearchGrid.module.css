@@ -40,21 +40,9 @@
 
 .grid_container {
   position: relative;
-  margin-top: 0;
-  margin-bottom: 0;
-  margin-left: 0;
-  margin-right: 0;
-  padding: 0;
-  padding-left: 12px;
-}
 
-@media (max-width: 480px) {
-  /**
-   * Mobile devices
-   */
-  .grid_container {
-    padding-left: 6px;
-  }
+  margin: 0;
+  padding: 0;
 }
 
 .grid_row {
@@ -65,7 +53,12 @@
 
 .grid_col {
   margin: 0;
-  padding: 0;
+
+  padding-left: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+
+  /* space between columns */
   padding-right: 6px;
 }
 
@@ -76,6 +69,12 @@
   .grid_col {
     padding-right: 6px;
   }
+}
+
+/* Don't add space after last column */
+.grid_col:last-of-type {
+  margin: 0;
+  padding: 0;
 }
 
 .grid_cell {
