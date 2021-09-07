@@ -169,36 +169,37 @@ const ChainActionBarImpl = ({
           'justify-content-end',
           // buttons should be in opposite order on different sides
           // for visual symmetry
-          side === 'left' ? 'flex-row-reverse' : ''
+          side === 'left' ? 'flex-row-reverse' : '',
+          styles.toolbar
         )}
       >
-        {/* <HoverTooltip tooltip={newDescription}> */}
         <ImgButton
           className={buttonClass}
           onClick={() => handler.handleNext(ctx, side)}
           is_disabled={false}
         >
-          <img
-            src={side === 'right' ? NextNewRightImg : NextNewLeftImg}
-            className={styles.tool_button_img}
-            alt={newDescription}
-          />
+          <HoverTooltip tooltip={newDescription}>
+            <img
+              src={side === 'right' ? NextNewRightImg : NextNewLeftImg}
+              className={styles.tool_button_img}
+              alt={newDescription}
+            />
+          </HoverTooltip>
         </ImgButton>
-        {/* </HoverTooltip> */}
 
-        {/* <HoverTooltip tooltip={newCopyDescription}> */}
         <ImgButton
           className={buttonClass}
           onClick={() => handler.handleNextClone(ctx, side)}
           is_disabled={false}
         >
-          <img
-            src={side === 'right' ? NextCopyRightImg : NextCopyLeftImg}
-            className={styles.tool_button_img}
-            alt={newCopyDescription}
-          />
+          <HoverTooltip tooltip={newCopyDescription}>
+            <img
+              src={side === 'right' ? NextCopyRightImg : NextCopyLeftImg}
+              className={styles.tool_button_img}
+              alt={newCopyDescription}
+            />
+          </HoverTooltip>
         </ImgButton>
-        {/* </HoverTooltip> */}
 
         <UploadNodeButton
           className={buttonClass}
@@ -206,29 +207,31 @@ const ChainActionBarImpl = ({
           from_nid={side === 'right' ? nid : null}
           to_nid={side === 'left' ? nid : null}
         >
-          <img
-            src={UploadImg}
-            // className="test"
-            // className={styles.dropdown_menu_inline_img}
-            className={styles.tool_button_img}
-            alt={uploadDescription}
-          />
+          <HoverTooltip tooltip={uploadDescription}>
+            <img
+              src={UploadImg}
+              // className="test"
+              // className={styles.dropdown_menu_inline_img}
+              className={styles.tool_button_img}
+              alt={uploadDescription}
+            />
+          </HoverTooltip>
         </UploadNodeButton>
 
-        {/* <HoverTooltip tooltip={newCopyDescription}> */}
         <ImgButton
           className={buttonClass}
           // className={styles.tool_button_img}
           onClick={() => setShowSearchModal(true)}
           is_disabled={false}
         >
-          <img
-            src={SearchImg}
-            className={styles.tool_button_img}
-            alt={findDescription}
-          />{' '}
+          <HoverTooltip tooltip={newCopyDescription}>
+            <img
+              src={SearchImg}
+              className={styles.tool_button_img}
+              alt={findDescription}
+            />{' '}
+          </HoverTooltip>
         </ImgButton>
-        {/* </HoverTooltip> */}
       </ButtonToolbar>
       <SearchAndConnectJinn
         nid={nid}
