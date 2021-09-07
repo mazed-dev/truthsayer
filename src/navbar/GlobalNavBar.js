@@ -138,6 +138,7 @@ class PrivateNavButtonsImpl extends React.Component {
           className={jcss(styles.account_dropdown)}
           as={ButtonGroup}
           navbar
+          drop="start"
         >
           <Dropdown.Toggle
             variant="light"
@@ -216,7 +217,7 @@ function GlobalNavBar() {
   }
   return (
     <>
-      <Navbar className={styles.navbar}>
+      <Navbar fixed="top" className={styles.navbar}>
         <Navbar.Brand as={Link} to="/" className={jcss(styles.brand)}>
           <span role="img" aria-label="next">
             &#x1F9F5;
