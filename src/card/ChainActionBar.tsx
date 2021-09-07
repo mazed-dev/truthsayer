@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react'
 
-import { ButtonGroup, Row } from 'react-bootstrap'
+import { ButtonGroup, Row, ButtonToolbar } from 'react-bootstrap'
 import { useHistory, RouteComponentProps } from 'react-router-dom'
 import { CancelToken } from 'axios'
 
@@ -25,12 +25,7 @@ import { Optional } from '../util/types'
 import { jcss } from './../util/jcss'
 import { SearchAndConnectJinn } from './SearchAndConnect'
 
-import {
-  FootbarDropdown,
-  FootbarDropdownItem,
-  FootbarDropdownMenu,
-  FootbarDropdownToggleMeatballs,
-} from './Footbar'
+import styles from './ChainActionBar.module.css'
 
 export type ChainActionBarSide = 'left' | 'right' | 'both'
 
@@ -159,70 +154,82 @@ const ChainActionBarImpl = ({
     history,
   })
 
+  const newDescription = `Create new & link to the ${side}`
+  const newCopyDescription = `Copy & link to the ${side}`
+  const uploadDescription = `Upload & link to the ${side}`
+  const findDescription = `Find & link to the ${side}`
+
+  const buttonClass = jcss(styles.tool_button, styles.toolbar_layout_item)
+
   return (
-    <div>
-      <ButtonGroup>
-        <HoverTooltip tooltip={`Create new & link to the ${side}`}>
-          <ImgButton
-            className="test"
-            onClick={() => handler.handleNext(ctx, side)}
-            is_disabled={false}
-          >
-            <img
-              src={side === 'right' ? NextNewRightImg : NextNewLeftImg}
-              // className={styles.tool_button_img}
-              // alt="Link to the right"
-            />
-          </ImgButton>
-        </HoverTooltip>
-
-        <FootbarDropdown>
-          <FootbarDropdownToggleMeatballs
-            id={'more-options-for-chain-actions'}
+    <>
+      <ButtonToolbar
+        className={jcss(
+          'd-flex',
+          'justify-content-end',
+          // buttons should be in opposite order on different sides
+          // for visual symmetry
+          side === 'left' ? 'flex-row-reverse' : ''
+        )}
+      >
+        {/* <HoverTooltip tooltip={newDescription}> */}
+        <ImgButton
+          className={buttonClass}
+          onClick={() => handler.handleNext(ctx, side)}
+          is_disabled={false}
+        >
+          <img
+            src={side === 'right' ? NextNewRightImg : NextNewLeftImg}
+            className={styles.tool_button_img}
+            alt={newDescription}
           />
+        </ImgButton>
+        {/* </HoverTooltip> */}
 
-          <FootbarDropdownMenu>
-            <FootbarDropdownItem
-              // className={styles.dropdown_menu_item}
-              className="test"
-              onClick={() => handler.handleNextClone(ctx, side)}
-            >
-              <img
-                src={side === 'right' ? NextCopyRightImg : NextCopyLeftImg}
-                // className={styles.tool_button_img}
-                // alt="Link to the right"
-              />
-              {`Copy & link to the ${side}`}
-            </FootbarDropdownItem>
-            <UploadNodeButton
-              className="test"
-              // className={styles.dropdown_menu_item}
-              as={FootbarDropdownItem}
-              from_nid={side === 'right' ? nid : null}
-              to_nid={side === 'left' ? nid : null}
-            >
-              <img
-                src={UploadImg}
-                className="test"
-                // className={styles.dropdown_menu_inline_img}
-                alt="Upload from file"
-              />
-              Upload
-            </UploadNodeButton>
-            <FootbarDropdownItem
-              // className={styles.dropdown_menu_item}
-              onClick={() => setShowSearchModal(true)}
-            >
-              <img
-                src={SearchImg}
-                // className={styles.tool_button_img}
-                // alt="Link to the right"
-              />
-              {`Find & link to the ${side}`}
-            </FootbarDropdownItem>
-          </FootbarDropdownMenu>
-        </FootbarDropdown>
-      </ButtonGroup>
+        {/* <HoverTooltip tooltip={newCopyDescription}> */}
+        <ImgButton
+          className={buttonClass}
+          onClick={() => handler.handleNextClone(ctx, side)}
+          is_disabled={false}
+        >
+          <img
+            src={side === 'right' ? NextCopyRightImg : NextCopyLeftImg}
+            className={styles.tool_button_img}
+            alt={newCopyDescription}
+          />
+        </ImgButton>
+        {/* </HoverTooltip> */}
+
+        <UploadNodeButton
+          className={buttonClass}
+          as={ImgButton}
+          from_nid={side === 'right' ? nid : null}
+          to_nid={side === 'left' ? nid : null}
+        >
+          <img
+            src={UploadImg}
+            // className="test"
+            // className={styles.dropdown_menu_inline_img}
+            className={styles.tool_button_img}
+            alt={uploadDescription}
+          />
+        </UploadNodeButton>
+
+        {/* <HoverTooltip tooltip={newCopyDescription}> */}
+        <ImgButton
+          className={buttonClass}
+          // className={styles.tool_button_img}
+          onClick={() => setShowSearchModal(true)}
+          is_disabled={false}
+        >
+          <img
+            src={SearchImg}
+            className={styles.tool_button_img}
+            alt={findDescription}
+          />{' '}
+        </ImgButton>
+        {/* </HoverTooltip> */}
+      </ButtonToolbar>
       <SearchAndConnectJinn
         nid={nid}
         addRef={addRef}
@@ -230,7 +237,7 @@ const ChainActionBarImpl = ({
         left={side === 'left'}
         setShow={setShowSearchModal}
       />
-    </div>
+    </>
   )
 }
 
