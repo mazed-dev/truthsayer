@@ -224,12 +224,12 @@ const ChainActionBarImpl = ({
           onClick={() => setShowSearchModal(true)}
           is_disabled={false}
         >
-          <HoverTooltip tooltip={newCopyDescription}>
+          <HoverTooltip tooltip={findDescription}>
             <img
               src={SearchImg}
               className={styles.tool_button_img}
               alt={findDescription}
-            />{' '}
+            />
           </HoverTooltip>
         </ImgButton>
       </ButtonToolbar>
