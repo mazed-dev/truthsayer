@@ -1,14 +1,14 @@
 import React, { useContext, useState } from 'react'
 
 import { ButtonGroup, Row, ButtonToolbar } from 'react-bootstrap'
-import { useHistory, RouteComponentProps } from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 import { CancelToken } from 'axios'
 
 import { ImgButton } from '../lib/ImgButton'
 import { HoverTooltip } from '../lib/tooltip'
 import UploadImg from '../img/upload-strip.svg'
 import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
-import { goto } from '../lib/route.jsx'
+import { goto, History } from '../lib/route'
 
 import { smugler, NewNodeResponse } from '../smugler/api'
 import { makeACopy } from '../doc/doc_util'
@@ -67,7 +67,7 @@ class ChainActionHandler {
   nid: string
   nidIsPrivate: boolean
   cancelToken: CancelToken
-  history: RouteComponentProps['history']
+  history: History
 
   constructor({
     nid,
@@ -78,7 +78,7 @@ class ChainActionHandler {
     nid: string
     nidIsPrivate: boolean
     cancelToken: CancelToken
-    history: RouteComponentProps['history']
+    history: History
   }) {
     this.nid = nid
     this.nidIsPrivate = nidIsPrivate

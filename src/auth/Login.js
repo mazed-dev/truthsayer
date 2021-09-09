@@ -6,7 +6,7 @@ import PropTypes from 'prop-types'
 import { withRouter, Link } from 'react-router-dom'
 
 import { smugler } from '../smugler/api'
-import { goto } from '../lib/route.jsx'
+import { goto } from '../lib/route'
 
 import './Signup.css'
 

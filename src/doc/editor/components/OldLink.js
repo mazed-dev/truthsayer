@@ -13,7 +13,7 @@ import { jcss } from '../../../util/jcss'
 
 import { Keys, isSymbol, isHotkeyCopy } from '../../../lib/Keys.jsx'
 import { ClickOutsideDetector } from '../../../lib/ClickOutsideDetector'
-import { goto } from '../../../lib/route.jsx'
+import { goto } from '../../../lib/route'
 
 import CopyImg from '../../../img/copy.png'
 import DeleteImg from '../../../img/delete.png'

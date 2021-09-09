@@ -22,7 +22,7 @@ import { MzdGlobalContext } from './../lib/global'
 import { smugler } from './../smugler/api'
 
 import { HoverTooltip } from './../lib/tooltip'
-import { goto, compass } from './../lib/route.jsx'
+import { goto, compass } from './../lib/route'
 
 import { jcss } from '../util/jcss'
 

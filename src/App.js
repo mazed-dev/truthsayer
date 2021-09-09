@@ -31,7 +31,7 @@ import WaitingForApproval from './auth/WaitingForApproval'
 import UserPreferences from './auth/UserPreferences'
 import WelcomePage from './WelcomePage'
 import UserEncryption from './UserEncryption'
-import { routes } from './lib/route.jsx'
+import { routes } from './lib/route'
 import { Loader } from './lib/loader'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'

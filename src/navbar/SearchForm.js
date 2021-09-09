@@ -7,7 +7,7 @@ import { Form } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import { withRouter } from 'react-router-dom'
 
-import { goto } from './../lib/route.jsx'
+import { goto } from './../lib/route'
 
 class SearchFormImpl extends React.Component {
   constructor(props) {
