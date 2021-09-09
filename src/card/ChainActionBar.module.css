@@ -1,5 +1,8 @@
 .toolbar {
-  margin-bottom: 4px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  margin-left: 0;
+  margin-right: 0;
 }
 
 .tool_button {
@@ -11,8 +14,8 @@
 
   opacity: 0.5;
 
-  padding: 0;
-  padding: 0.4rem;
+  box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.24);
+  padding: 8px;
 }
 
 .toolbar_layout_item {
