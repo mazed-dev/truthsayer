@@ -307,6 +307,7 @@ class Triptych extends React.Component {
     } else {
       triptychRow = (
         <>
+          <div className={styles.node_card_col}>{nodeCard}</div>
           <ChainActionBar
             side="both"
             nid={this.props.nid}
@@ -314,7 +315,6 @@ class Triptych extends React.Component {
             cancelToken={this.createNodeCancelToken.token}
             addRef={this.addRef}
           />
-          <div className={styles.node_card_col}>{nodeCard}</div>
           <Row className={jcss('d-flex', 'justify-content-center', styles.row)}>
             <Col className={jcss(styles.refs_col, styles.refs_left_col)}>
               {leftRefs}
