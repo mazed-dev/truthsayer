@@ -78,6 +78,14 @@ export type CustomElement =
   | TitleElement
   | VideoElement
 
+// A "mark" is how Slate represents rich text formatting which controls text's
+// "visual" appearance and is applicable to 'Text' nodes.
+// Note that Slate differentiates between "visual" formatting which is done
+// via marks and "semantic meaning" formatting (like turning text into a
+// bullet-point list, a quote etc.) that is applicable to 'Element' nodes.
+// See https://docs.slatejs.org/concepts/09-rendering for more information
+export type MarkType = 'bold' | 'italic' | 'code'
+
 export type CustomText = {
   bold?: boolean
   italic?: boolean
@@ -95,6 +103,6 @@ declare module 'slate' {
   interface CustomTypes {
     Editor: CustomEditor
     Element: CustomElement
-    Text: CustomText | EmptyText
+    Text: CustomText
   }
 }

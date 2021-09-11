@@ -1,0 +1,24 @@
+.custom_button {
+  padding: 1px 10px 5px;
+  font-size: 18px;
+
+  cursor: pointer;
+  color: #ccc;
+}
+.custom_button_active {
+  padding: 1px 10px 5px;
+  font-size: 18px;
+
+  cursor: pointer;
+  color: black;
+
+  font-weight: bold;
+}
+
+.toolbar {
+  border-bottom: 2px solid #eee;
+  margin-bottom: 5px;
+  padding: 5px 0px 0px 0px;
+
+  /* margin-top: 5px; */
+}
