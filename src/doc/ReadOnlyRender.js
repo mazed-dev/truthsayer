@@ -15,7 +15,7 @@ import { enforceTopHeader } from './doc_util'
 import { makeEmptyChunk, trimChunk } from './chunk_util'
 import { smugler } from './../smugler/api'
 
-import { MzdGlobalContext } from '../lib/global.js'
+import { MzdGlobalContext } from '../lib/global'
 import { debug } from '../util/log'
 
 const kMaxTrimSmallCardSize = 320

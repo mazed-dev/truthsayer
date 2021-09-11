@@ -7,12 +7,14 @@ import { stringify } from 'query-string'
 
 import { dealWithError } from './error.jsx'
 
-import { extractDocAttrs } from './../search/attrs.jsx'
-import { makeDoc, exctractDoc } from './../doc/doc_util'
-import { LocalCrypto } from './../crypto/local.jsx'
-import { base64 } from './../util/base64.jsx'
-import { debug } from './../util/log'
-import { Mime } from './../util/Mime'
+import { extractDocAttrs } from '../search/attrs.jsx'
+import { makeDoc, exctractDoc } from '../doc/doc_util'
+import { LocalCrypto } from '../crypto/local'
+import { base64 } from '../util/base64.jsx'
+import { debug } from '../util/log'
+import { Mime } from '../util/Mime'
+import { UserAccount } from '../auth/local'
+import { TDoc } from '../doc/types'
 
 const lodash = require('lodash')
 
@@ -94,6 +96,12 @@ async function _tryToDecryptDocLocally(
   return { doc: await exctractDoc(data), secret_id: null, success: true }
 }
 
+export type NewNodeResponse = {
+  nid: string
+  from: Optional<string>
+  to: Optional<string>
+}
+
 async function createNode({
   doc,
   file,
@@ -101,7 +109,14 @@ async function createNode({
   to_nid /* Optional<string> */,
   account,
   cancelToken,
-}) {
+}: {
+  doc?: TDoc
+  file?: any
+  from_nid?: string
+  to_nid?: string
+  account?: UserAccount
+  cancelToken: import('axios').CancelToken
+}): Promise<Optional<NewNodeResponse>> {
   const query = {}
   if (from_nid) {
     query.from = from_nid

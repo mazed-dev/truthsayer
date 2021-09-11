@@ -9,10 +9,11 @@ import { ShrinkCard } from './ShrinkCard'
 import { ReadOnlyRender } from './../doc/ReadOnlyRender'
 
 import { SmallCardFootbar } from './SmallCardFootbar'
+import { ChainActionBar } from './ChainActionBar'
 
 import { withRouter } from 'react-router-dom'
 
-import { MzdGlobalContext } from '../lib/global.js'
+import { MzdGlobalContext } from '../lib/global'
 import { jcss } from './../util/jcss'
 import { debug } from './../util/log'
 
@@ -79,6 +80,7 @@ class Triptych extends React.Component {
     this.fetchFromEdgesCancelToken = smugler.makeCancelToken()
     this.fetchNodeCancelToken = smugler.makeCancelToken()
     this.createEdgeCancelToken = smugler.makeCancelToken()
+    this.createNodeCancelToken = smugler.makeCancelToken()
   }
 
   componentDidMount() {
@@ -274,19 +276,45 @@ class Triptych extends React.Component {
         saveNode={this.saveNode}
       />
     )
+    const nodeIsPrivate = this.state.node?.isOwnedBy(this.context.account)
     let triptychRow = null
     if (!this.state.is_narrow) {
       triptychRow = (
         <Row className={jcss('d-flex', 'justify-content-center', styles.row)}>
-          <Col className={styles.refs_col}>{leftRefs}</Col>
+          <Col className={styles.refs_col}>
+            <ChainActionBar
+              side="left"
+              nid={this.props.nid}
+              nidIsPrivate={nodeIsPrivate}
+              cancelToken={this.createNodeCancelToken.token}
+              addRef={this.addRef}
+            />
+            {leftRefs}
+          </Col>
           <Col className={styles.node_card_col}>{nodeCard}</Col>
-          <Col className={styles.refs_col}>{rightRefs}</Col>
+          <Col className={styles.refs_col}>
+            <ChainActionBar
+              side="right"
+              nid={this.props.nid}
+              nidIsPrivate={nodeIsPrivate}
+              cancelToken={this.createNodeCancelToken.token}
+              addRef={this.addRef}
+            />
+            {rightRefs}
+          </Col>
         </Row>
       )
     } else {
       triptychRow = (
         <>
           <div className={styles.node_card_col}>{nodeCard}</div>
+          <ChainActionBar
+            side="both"
+            nid={this.props.nid}
+            nidIsPrivate={nodeIsPrivate}
+            cancelToken={this.createNodeCancelToken.token}
+            addRef={this.addRef}
+          />
           <Row className={jcss('d-flex', 'justify-content-center', styles.row)}>
             <Col className={jcss(styles.refs_col, styles.refs_left_col)}>
               {leftRefs}

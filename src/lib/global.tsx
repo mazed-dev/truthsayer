@@ -4,7 +4,7 @@ import { crc32 } from 'crc'
 
 import { Toast, Button } from 'react-bootstrap'
 
-import { UserAccount, Knocker } from '../auth/local.jsx'
+import { UserAccount, Knocker } from '../auth/local'
 
 import { jcss } from '../util/jcss'
 import { debug } from '../util/log'
@@ -45,7 +45,16 @@ MzdToast.defaultProps = {
   delay: kMzdToastDefaultDelay,
 }
 
-export const MzdGlobalContext = React.createContext({
+export type MzdGlobalContextProps = {
+  account: null | UserAccount
+  topbar: {}
+  toaster: {
+    toasts: string[]
+    push: ({ header, message }: { header: string; message: string }) => void
+  }
+}
+
+export const MzdGlobalContext = React.createContext<MzdGlobalContextProps>({
   account: null,
   topbar: {},
   toaster: {

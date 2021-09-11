@@ -3,8 +3,8 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 import { withRouter } from 'react-router-dom'
-import { goto } from '../lib/route.jsx'
-import { smugler } from '../smugler/api.js'
+import { goto } from '../lib/route'
+import { smugler } from '../smugler/api'
 
 import { MzdGlobalContext } from './../lib/global'
 

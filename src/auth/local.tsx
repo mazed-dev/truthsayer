@@ -1,8 +1,8 @@
 import Cookies from 'universal-cookie'
 import React from 'react'
 
-import { LocalCrypto } from '../crypto/local.jsx'
-import { getAuth, smugler } from '../smugler/api.js'
+import { LocalCrypto } from '../crypto/local'
+import { getAuth, smugler } from '../smugler/api'
 import { debug } from '../util/log'
 
 const _VEIL_KEY: string = 'x-magic-veil'

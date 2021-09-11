@@ -1,7 +1,7 @@
 import { TDoc } from '../doc/types'
 import { Optional } from '../util/types'
 import { MimeType } from '../util/Mime'
-import { AnonymousAccount } from '../auth/local.jsx'
+import { AnonymousAccount } from '../auth/local'
 
 import { getDocSlate, makeEmptySlate } from '../doc/doc_util'
 import { SlateText } from '../doc/types'

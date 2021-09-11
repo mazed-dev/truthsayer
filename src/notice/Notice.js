@@ -1,13 +1,12 @@
 import React from 'react'
 
-import { notice } from './../lib/route.jsx'
+import { notice, routes } from './../lib/route'
 
 // React router
 import { useParams, Link } from 'react-router-dom'
 
 import { Card, Container, Button } from 'react-bootstrap'
 
-import { routes } from './../lib/route.jsx'
 import { MzdLink } from './../lib/MzdLink'
 
 import styles from './Notice.module.css'

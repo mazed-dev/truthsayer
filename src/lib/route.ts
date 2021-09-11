@@ -1,4 +1,6 @@
 import { stringify, parse } from 'query-string'
+import { RouteComponentProps } from 'react-router-dom'
+import { Optional } from '../util/types'
 
 const kLogInPath = '/login'
 const kSignUpPath = '/signup'
@@ -13,21 +15,24 @@ const kNoticeErrorPage = 'error'
 const kNoticeSeeYouPage = 'miss-you'
 const kNoticeLogInToContinue = 'log-in-to-continue'
 
-function gotoSearch({ history, query }) {
+export type History = RouteComponentProps['history']
+export type Location = RouteComponentProps['location']
+
+function gotoSearch({ history, query }: { history: History; query: string }) {
   history.push({
     pathname: kSearchPath,
     search: stringify({ q: query }),
   })
 }
 
-function getSearchAnchor({ location }) {
+function getSearchAnchor({ location }: { location: Location }) {
   const search =
     location && location.search ? location.search : window.location.search
   const params = parse(search)
   return { query: params.q || '' }
 }
 
-function gotoPath(history, path) {
+function gotoPath(history: Optional<History>, path: string) {
   if (history) {
     // *dbg*/ console.log('History push', path)
     history.push({ pathname: path })
@@ -37,37 +42,39 @@ function gotoPath(history, path) {
   }
 }
 
-function gotoLogIn({ history }) {
+type HistoryObj = { history: Optional<History> }
+
+function gotoLogIn({ history }: HistoryObj) {
   gotoPath(history, kLogInPath)
 }
 
-function gotoSignUp({ history }) {
+function gotoSignUp({ history }: HistoryObj) {
   gotoPath(history, kSignUpPath)
 }
 
-function gotoLogOut({ history }) {
+function gotoLogOut({ history }: HistoryObj) {
   gotoPath(history, kLogOutPath)
 }
 
-function gotoNode({ history, nid }) {
+function gotoNode({ history, nid }: { history: History; nid: string }) {
   gotoPath(history, kNodePathPrefix + nid)
 }
 
-function gotoMain({ history }) {
+function gotoMain({ history }: HistoryObj) {
   // *dbg*/ console.log('Go to main')
   gotoPath(history, '/')
 }
 
-function gotoError({ history }) {
+function gotoError({ history }: HistoryObj) {
   // *dbg*/ console.log('Go to error')
   gotoPath(history, kNoticePathPrefix + kNoticeErrorPage)
 }
 
-function gotoSeeYou({ history }) {
+function gotoSeeYou({ history }: HistoryObj) {
   gotoPath(history, kNoticePathPrefix + kNoticeSeeYouPage)
 }
 
-function gotoLogInToContinue({ history }) {
+function gotoLogInToContinue({ history }: HistoryObj) {
   gotoPath(history, kNoticePathPrefix + kNoticeLogInToContinue)
 }
 
@@ -76,7 +83,7 @@ function getNoticePage({ params }) {
   return params
 }
 
-function reload_(history) {
+function reload_(history: History) {
   history.push({ pathname: kEmptyPath })
   history.goBack()
 }
@@ -107,7 +114,7 @@ export const goto = {
 }
 
 export const makeRefTo = {
-  node: (nid) => `${kNodePathPrefix}${nid}`,
+  node: (nid: string) => `${kNodePathPrefix}${nid}`,
 }
 
 export const compass = {

@@ -10,13 +10,13 @@ import { SmallCardRender } from './../doc/ReadOnlyRender'
 
 import { searchNodeFor } from './search/search.jsx'
 
-import { smugler } from './../smugler/api.js'
+import { smugler } from './../smugler/api'
 
 import { jcss } from './../util/jcss'
 import { range } from './../util/range'
 import { isSmartCase } from './../util/str.jsx'
 
-import { MzdGlobalContext } from '../lib/global.js'
+import { MzdGlobalContext } from '../lib/global'
 import { Loader } from './../lib/loader'
 
 import { debug } from '../util/log'
@@ -114,6 +114,16 @@ class DynamicGrid extends React.Component {
 }
 
 const _kTimeLimit = Math.floor(Date.now() / 1000) - 2 * 356 * 24 * 60 * 60
+
+export type NodeAttrsSearchItem = {
+  nid: string,
+  // ntype: i32,
+  // crtd: u64,
+  // upd: u64,
+  // attrs: Optional<String>,
+  // data: Optional<String>,
+  // meta: Optional<NodeMetaPub>,
+}
 
 class SearchGridImpl extends React.Component {
   constructor(props, context) {
