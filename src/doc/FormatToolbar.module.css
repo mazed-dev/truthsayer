@@ -19,6 +19,5 @@
   border-bottom: 2px solid #eee;
   margin-bottom: 5px;
   padding: 5px 0px 0px 0px;
-
-  /* margin-top: 5px; */
+  display: flex;
 }
