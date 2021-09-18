@@ -10,6 +10,24 @@ import {
 import { ReactEditor } from 'slate-react'
 import { HistoryEditor } from 'slate-history'
 
+export type CustomElementType =
+  | 'block-quote'
+  | 'bulleted-list'
+  | 'check-list-item'
+  | 'editable-void'
+  | 'heading-one'
+  | 'heading-two'
+  | 'image'
+  | 'link'
+  | 'list-item'
+  | 'mention'
+  | 'paragraph'
+  | 'table'
+  | 'table-cell'
+  | 'table-row'
+  | 'title'
+  | 'video'
+
 export type BlockQuoteElement = { type: 'block-quote'; children: Descendant[] }
 
 export type BulletedListElement = {
