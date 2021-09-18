@@ -44,6 +44,12 @@ class App extends React.Component {
   render() {
     return (
       <MzdGlobal>
+        {/* Can be enabled for an element via applying a 'material-icons' css class */}
+        {/* See https://google.github.io/material-design-icons/ for more info */}
+        <link
+          href="https://fonts.googleapis.com/icon?family=Material+Icons"
+          rel="stylesheet"
+        />
         <AppRouter />
       </MzdGlobal>
     )

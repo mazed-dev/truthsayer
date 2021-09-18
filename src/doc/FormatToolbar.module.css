@@ -1,23 +1,24 @@
-.custom_button {
-  padding: 1px 10px 5px;
+.toolbar_button_inactive {
+  padding: 1px 10px 0px;
+  border-radius: 50px;
   font-size: 18px;
+  color: rgba(0, 0, 0, 0.3);
 
   cursor: pointer;
-  color: #ccc;
 }
-.custom_button_active {
-  padding: 1px 10px 5px;
-  font-size: 18px;
 
-  cursor: pointer;
+.toolbar_button_inactive:hover {
+  background: rgba(82, 82, 82, 0.3);
+  transition: 0.3s;
+}
+
+.toolbar_button_active {
   color: black;
-
-  font-weight: bold;
 }
 
 .toolbar {
   border-bottom: 1px solid #eee;
   margin-bottom: 5px;
-  padding: 5px 0px 0px 0px;
+  padding: 5px 0px 5px 0px;
   display: flex;
 }
