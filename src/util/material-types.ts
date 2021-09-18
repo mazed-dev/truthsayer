@@ -1,5 +1,7 @@
-/// This file is intended for declaring type definitions that help
-/// work with Google's Material Design libraries
+/**
+ * This file is intended for declaring type definitions that help
+ * work with Google's Material Design libraries
+ */
 
 /**
  * A non-exhaustive list of valid icon ligatures from
