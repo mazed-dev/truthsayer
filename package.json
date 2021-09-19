@@ -67,7 +67,10 @@
     "lint:typescript": "tsc --build ./ --force"
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
   },
   "proxy": "http://0.0.0.0:8080",
   "browserslist": {
