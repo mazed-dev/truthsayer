@@ -15,4 +15,5 @@ export type MaterialIcon =
   | 'looks_one'
   | 'looks_two'
   | 'format_quote'
+  | 'format_list_numbered'
   | 'format_list_bulleted'

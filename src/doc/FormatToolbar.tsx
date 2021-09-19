@@ -12,7 +12,12 @@ import {
   CustomElement,
   CustomElementType,
   MarkType,
-} from './custom-types'
+  kSlateBlockTypeOrderedList,
+  kSlateBlockTypeUnorderedList,
+  kSlateBlockTypeQuote,
+  kSlateBlockTypeH1,
+  kSlateBlockTypeH2,
+} from './types'
 import { MaterialIcon } from './../util/material-types'
 
 type ReactiveButtonProps = {
@@ -99,7 +104,8 @@ const isBlockActive = (editor: CustomEditor, format: CustomElementType) => {
 }
 
 const LIST_TYPES: CustomElementType[] = [
-  'bulleted-list' /* , 'numbered-list' */,
+  kSlateBlockTypeOrderedList,
+  kSlateBlockTypeUnorderedList,
 ]
 
 const toggleBlock = (editor: CustomEditor, format: CustomElementType) => {
@@ -131,10 +137,17 @@ export const FormatToolbar = () => {
       <MarkButton mark="italic" icon="format_italic" />
       <MarkButton mark="underline" icon="format_underlined" />
       <MarkButton mark="code" icon="code" />
-      <BlockButton format="heading-one" icon="looks_one" />
-      <BlockButton format="heading-two" icon="looks_two" />
-      <BlockButton format="bulleted-list" icon="format_list_bulleted" />
-      <BlockButton format="block-quote" icon="format_quote" />
+      <BlockButton format={kSlateBlockTypeH1} icon="looks_one" />
+      <BlockButton format={kSlateBlockTypeH2} icon="looks_two" />
+      <BlockButton
+        format={kSlateBlockTypeOrderedList}
+        icon="format_list_numbered"
+      />
+      <BlockButton
+        format={kSlateBlockTypeUnorderedList}
+        icon="format_list_bulleted"
+      />
+      <BlockButton format={kSlateBlockTypeQuote} icon="format_quote" />
     </ButtonGroup>
   )
 }
