@@ -133,6 +133,10 @@ export function isHeaderBlock(block) {
   return false
 }
 
+// [snikitin] I believe LeafElement should be replaced with CustomText
+// as it is a more correct representation of a text element
+// (alternatively, as there are files like Leaf.tsx already, perhaps
+// CustomText should be renamed as LeafElement instead)
 export type LeafElement = {
   text: string
 }
