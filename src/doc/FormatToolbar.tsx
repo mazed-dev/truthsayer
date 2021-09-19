@@ -129,6 +129,7 @@ export const FormatToolbar = () => {
     <ButtonGroup className={styles.toolbar}>
       <MarkButton mark="bold" icon="format_bold" />
       <MarkButton mark="italic" icon="format_italic" />
+      <MarkButton mark="underline" icon="format_underlined" />
       <MarkButton mark="code" icon="code" />
       <BlockButton format="heading-one" icon="looks_one" />
       <BlockButton format="heading-two" icon="looks_two" />

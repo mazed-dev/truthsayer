@@ -102,11 +102,12 @@ export type CustomElement =
 // via marks and "semantic meaning" formatting (like turning text into a
 // bullet-point list, a quote etc.) that is applicable to 'Element' nodes.
 // See https://docs.slatejs.org/concepts/09-rendering for more information
-export type MarkType = 'bold' | 'italic' | 'code'
+export type MarkType = 'bold' | 'italic' | 'underline' | 'code'
 
 export type CustomText = {
   bold?: boolean
   italic?: boolean
+  underline?: boolean
   code?: boolean
   text: string
 }

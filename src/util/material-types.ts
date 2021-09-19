@@ -10,6 +10,7 @@
 export type MaterialIcon =
   | 'format_bold'
   | 'format_italic'
+  | 'format_underlined'
   | 'code'
   | 'looks_one'
   | 'looks_two'
