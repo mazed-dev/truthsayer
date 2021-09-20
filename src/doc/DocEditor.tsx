@@ -1,12 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react'
-import {
-  Editable,
-  ReactEditor,
-  Slate,
-  useReadOnly,
-  useSlateStatic,
-  withReact,
-} from 'slate-react'
+import { Editable, Slate, withReact } from 'slate-react'
 import {
   Descendant,
   Editor,
@@ -75,6 +68,8 @@ import { DateTime } from './editor/components/DateTime'
 import { Link } from './editor/components/Link'
 import { Leaf } from './editor/components/Leaf'
 
+import { FormatToolbar } from './FormatToolbar'
+
 import styles from './DocEditor.module.css'
 
 const lodash = require('lodash')
@@ -129,6 +124,7 @@ export const DocEditor = ({ className, nid, data, saveText }) => {
           saveText(value)
         }}
       >
+        <FormatToolbar />
         <Editable
           renderElement={renderElement}
           renderLeaf={renderLeaf}
@@ -219,67 +215,6 @@ const insertImage = (editor, url) => {
     children: [text],
   }
   Transforms.insertNodes(editor, image)
-}
-
-export const Button = React.forwardRef(
-  (
-    {
-      className,
-      active,
-      reversed,
-      ...props
-    }: PropsWithChildren<
-      {
-        active: boolean
-        reversed: boolean
-      } & BaseProps
-    >,
-    ref: Ref<Optional<HTMLSpanElement>>
-  ) => {
-    className = jcss(
-      reversed
-        ? active
-          ? styles.custom_button_reversed_active
-          : styles.custom_button_reversed
-        : active
-        ? styles.custom_button_active
-        : styles.custom_button,
-      className
-    )
-    return <span {...props} ref={ref} className={className} />
-  }
-)
-
-export const Icon = React.forwardRef(
-  (
-    { className, ...props }: PropsWithChildren<BaseProps>,
-    ref: Ref<Optional<HTMLSpanElement>>
-  ) => (
-    <span
-      {...props}
-      ref={ref}
-      className={jcss(styles.custom_icon, className)}
-    />
-  )
-)
-
-const InsertImageButton = () => {
-  const editor = useSlateStatic()
-  return (
-    <Button
-      onMouseDown={(event) => {
-        event.preventDefault()
-        const url = window.prompt('Enter the URL of the image:')
-        if (url && !isImageUrl(url)) {
-          alert('URL is not an image')
-          return
-        }
-        insertImage(editor, url)
-      }}
-    >
-      <Icon>image</Icon>
-    </Button>
-  )
 }
 
 const isImageUrl = (url) => {

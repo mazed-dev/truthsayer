@@ -1,4 +1,14 @@
-import { Descendant } from 'slate'
+import {
+  Descendant,
+  Text,
+  createEditor,
+  Node,
+  Element,
+  Editor,
+  BaseEditor,
+} from 'slate'
+import { ReactEditor } from 'slate-react'
+import { HistoryEditor } from 'slate-history'
 
 export type SlateText = Descendant[]
 
@@ -51,12 +61,8 @@ export const kBlockTypeAtomic = 'atomic'
 export const kBlockTypeHrule = 'hrule'
 export const kBlockTypeUnorderedCheckItem = 'unordered-check-item'
 
-export const kEntityTypeBold = 'BOLD'
-export const kEntityTypeItalic = 'ITALIC'
 export const kEntityTypeLink = 'LINK'
-export const kEntityTypeMonospace = 'CODE'
 export const kEntityTypeTime = 'DATETIME'
-export const kEntityTypeUnderline = 'UNDERLINE'
 export const kEntityTypeImage = 'IMAGE'
 
 export const kEntityMutable = 'MUTABLE'
@@ -82,12 +88,32 @@ export const kSlateBlockTypeListItem = 'list-item'
 export const kSlateBlockTypeListCheckItem = 'list-check-item'
 export const kSlateBlockTypeImage = 'image'
 export const kSlateBlockTypeDateTime = 'datetime'
+// [snikitin] Why does link has the same prefix pattern as "marks"?
+export const kSlateBlockTypeLink = '-link'
+
+export type CustomElementType =
+  | typeof kSlateBlockTypeH1
+  | typeof kSlateBlockTypeH2
+  | typeof kSlateBlockTypeH3
+  | typeof kSlateBlockTypeH4
+  | typeof kSlateBlockTypeH5
+  | typeof kSlateBlockTypeH6
+  | typeof kSlateBlockTypeBreak
+  | typeof kSlateBlockTypeCode
+  | typeof kSlateBlockTypeOrderedList
+  | typeof kSlateBlockTypeParagraph
+  | typeof kSlateBlockTypeQuote
+  | typeof kSlateBlockTypeUnorderedList
+  | typeof kSlateBlockTypeListItem
+  | typeof kSlateBlockTypeListCheckItem
+  | typeof kSlateBlockTypeImage
+  | typeof kSlateBlockTypeDateTime
+  | typeof kSlateBlockTypeLink
 
 /**
  * Slate
  * Leafs:
  */
-export const kSlateBlockTypeLink = '-link'
 export const kSlateBlockTypeEmphasisMark = '-italic'
 export const kSlateBlockTypeStrongMark = '-bold'
 export const kSlateBlockTypeDeleteMark = '-strike-through'
@@ -107,39 +133,99 @@ export function isHeaderBlock(block) {
   return false
 }
 
+// [snikitin] I believe LeafElement should be replaced with CustomText
+// as it is a more correct representation of a text element
+// (alternatively, as there are files like Leaf.tsx already, perhaps
+// CustomText should be renamed as LeafElement instead)
 export type LeafElement = {
   text: string
 }
 
+export type HeadingElement = {
+  type:
+    | typeof kSlateBlockTypeH1
+    | typeof kSlateBlockTypeH2
+    | typeof kSlateBlockTypeH3
+    | typeof kSlateBlockTypeH4
+    | typeof kSlateBlockTypeH5
+    | typeof kSlateBlockTypeH6
+  children: LeafElement[]
+}
+
+export type ThematicBreakElement = {
+  type: typeof kSlateBlockTypeBreak
+  children: LeafElement[]
+}
+
+export type CodeBlockElement = {
+  type: typeof kSlateBlockTypeCode
+  children: LeafElement[]
+}
+
+export type UnorderedListElement = {
+  type: typeof kSlateBlockTypeUnorderedList
+  children: Descendant[]
+}
+
+export type ParagraphElement = {
+  type: typeof kSlateBlockTypeParagraph
+  children: LeafElement[]
+}
+
+export type BlockQuoteElement = {
+  type: typeof kSlateBlockTypeQuote
+  children: Descendant[]
+}
+
+export type OrderedListElement = {
+  type: typeof kSlateBlockTypeOrderedList
+  children: Descendant[]
+}
+
+export type ListItemElement = {
+  type: typeof kSlateBlockTypeListItem
+  children: Descendant[]
+}
+
+export type CheckListItemElement = {
+  type: typeof kSlateBlockTypeListCheckItem
+  checked: boolean
+  children: Descendant[]
+}
+
 export type ImageElement = {
-  type: kSlateBlockTypeImage
+  type: typeof kSlateBlockTypeImage
   url: string
   children: LeafElement[]
 }
 
-export type ParagraphElement = {
-  type: kSlateBlockTypeParagraph
-  children: LeafElement[]
+export type DateTimeElement = {
+  type: typeof kSlateBlockTypeDateTime
+  children: LeafElement[] // Do we need this?
+  format?: string
+  timestamp: number
 }
 
 export type LinkElement = {
-  type: kSlateBlockTypeParagraph
+  type: typeof kSlateBlockTypeLink
   children: LeafElement[]
   url: string
   page?: boolean
 }
 
-export type ThematicBreakElement = {
-  type: kSlateBlockTypeBreak
-  children: LeafElement[]
-}
-
-export type DateTimeElement = {
-  children: LeafElement[] // Do we need this?
-  format?: string
-  timestamp: number
-  type: kSlateBlockTypeDateTime
-}
+export type CustomElement =
+  | HeadingElement
+  | ThematicBreakElement
+  | UnorderedListElement
+  | ParagraphElement
+  | CodeBlockElement
+  | BlockQuoteElement
+  | OrderedListElement
+  | ListItemElement
+  | CheckListItemElement
+  | ImageElement
+  | DateTimeElement
+  | LinkElement
 
 export function isHeaderSlateBlock(block: Descendant): boolean {
   const { type } = block
@@ -258,4 +344,30 @@ export function addLinkBlock({
 
 export function generateRandomKey(): string {
   return Math.random().toString(32).substring(2)
+}
+
+// A "mark" is how Slate represents rich text formatting which controls text's
+// "visual" appearance and is applicable to 'Text' nodes.
+// Note that Slate differentiates between "visual" formatting which is done
+// via marks and "semantic meaning" formatting (like turning text into a
+// bullet-point list, a quote etc.) that is applicable to 'Element' nodes.
+// See https://docs.slatejs.org/concepts/09-rendering for more information
+export type MarkType = 'bold' | 'italic' | 'underline' | 'code'
+
+export type CustomText = {
+  bold?: boolean
+  italic?: boolean
+  underline?: boolean
+  code?: boolean
+  text: string
+}
+
+export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor
+
+declare module 'slate' {
+  interface CustomTypes {
+    Editor: CustomEditor
+    Element: CustomElement
+    Text: CustomText
+  }
 }

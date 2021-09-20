@@ -9,7 +9,7 @@ import {
 import { makeParagraph } from '../../doc_util'
 
 import { debug } from '../../../util/log'
-import { CustomEditor, CustomElement } from '../../custom-types'
+import { CustomEditor, CustomElement } from '../../types'
 
 const lodash = require('lodash')
 
