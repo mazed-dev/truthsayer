@@ -33,6 +33,7 @@ import WelcomePage from './WelcomePage'
 import UserEncryption from './UserEncryption'
 import { routes } from './lib/route'
 import { Loader } from './lib/loader'
+import { initDevEnv } from './dev/env'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
 
@@ -42,6 +43,7 @@ import './App.css'
 
 class App extends React.Component {
   render() {
+    initDevEnv()
     return (
       <MzdGlobal>
         <AppRouter />

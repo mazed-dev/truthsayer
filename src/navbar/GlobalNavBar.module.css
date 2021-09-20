@@ -64,6 +64,16 @@
   margin-right: 0.5rem;
 }
 
+.logo_image {
+  width: 1.6rem;
+  height: 1.6rem;
+
+  margin-top: auto;
+  margin-bottom: auto;
+  margin-left: 2px;
+  margin-right: 6px;
+}
+
 .search_form {
   display: flex;
   justify-content: space-between;

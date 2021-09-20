@@ -29,6 +29,7 @@ import { jcss } from '../util/jcss'
 import kUserDefaultPic from './../auth/img/user-default-pic.png'
 
 import NewImg from './../img/new-button-strip.svg'
+import { getLogoImage } from './../dev/env'
 
 import { SearchForm } from './SearchForm'
 import { UploadNodeButton } from './../upload/UploadNodeButton'
@@ -219,9 +220,11 @@ function GlobalNavBar() {
     <>
       <Navbar fixed="top" className={styles.navbar}>
         <Navbar.Brand as={Link} to="/" className={jcss(styles.brand)}>
-          <span role="img" aria-label="next">
-            &#x1F9F5;
-          </span>
+          <img
+            src={getLogoImage()}
+            alt={'Mazed logo'}
+            className={styles.logo_image}
+          />
           <div className="d-none d-sm-none d-md-block"> Mazed </div>
         </Navbar.Brand>
         {buttons}
