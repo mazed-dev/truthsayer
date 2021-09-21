@@ -1,4 +1,8 @@
-import React from 'react'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
+
+import { Row, Col, Button, ButtonToolbar } from 'react-bootstrap'
+
+import { Link } from 'react-router-dom'
 
 import styles from './Triptych.module.css'
 
@@ -19,19 +23,21 @@ import { debug } from './../util/log'
 
 import { smugler } from '../smugler/api'
 
-import { Row, Col } from 'react-bootstrap'
-
 const lodash = require('lodash')
 
 function RefNodeCard({ nid, edge, switchStickiness, cutOffRef }) {
-  // See more / less button should go to a footbar
+  const [showMore, setShowMore] = useState(false)
+  const toggleMoreLess = () => setShowMore(!showMore)
   return (
-    <SmallCard className={styles.grid_cell}>
-      <ShrinkCard nid={nid}>
+    <SmallCard className={styles.ref_card}>
+      <ShrinkCard nid={nid} showMore={showMore}>
         <ReadOnlyRender nid={nid} />
       </ShrinkCard>
       <SmallCardFootbar
+        nid={nid}
         edge={edge}
+        showMore={showMore}
+        toggleMore={toggleMoreLess}
         switchStickiness={switchStickiness}
         cutOffRef={cutOffRef}
       />
@@ -39,31 +45,20 @@ function RefNodeCard({ nid, edge, switchStickiness, cutOffRef }) {
   )
 }
 
-class NodeRefs extends React.Component {
-  render() {
-    const refs = this.props.edges.map((edge) => {
-      let to_nid = null
-      let from_nid = null
-      let nid = null
-      if (edge.from_nid === this.props.nid) {
-        from_nid = edge.from_nid
-        nid = edge.to_nid
-      } else {
-        to_nid = edge.to_nid
-        nid = edge.from_nid
-      }
-      return (
-        <RefNodeCard
-          nid={nid}
-          edge={edge}
-          switchStickiness={this.props.switchStickiness}
-          cutOffRef={this.props.cutOffRef}
-          key={edge.eid}
-        />
-      )
-    })
-    return <div className={this.props.className}>{refs}</div>
-  }
+function NodeRefs({ className, nid, edges, switchStickiness, cutOffRef }) {
+  const refs = edges.map((edge) => {
+    const refCardNid = edge.from_nid === nid ? edge.to_nid : edge.from_nid
+    return (
+      <RefNodeCard
+        nid={refCardNid}
+        edge={edge}
+        switchStickiness={switchStickiness}
+        cutOffRef={cutOffRef}
+        key={edge.eid}
+      />
+    )
+  })
+  return <div className={className}>{refs}</div>
 }
 
 class Triptych extends React.Component {

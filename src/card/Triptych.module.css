@@ -45,6 +45,10 @@
   padding-right: 1rem;
 }
 
+.ref_card {
+  margin: 0 0 8px 0;
+}
+
 @media (max-width: 1420px) {
   .node_card_col {
     max-width: 40%;
@@ -129,6 +133,10 @@
     border-color: rgb(231, 233, 235);
     border-left-style: solid;
     border-width: 1px;
+  }
+
+  .ref_card {
+    margin: 0 0 4px 0;
   }
 }
 
