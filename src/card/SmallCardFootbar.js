@@ -1,9 +1,7 @@
 import React, { useContext } from 'react'
 
-import { withRouter, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Button, ButtonToolbar } from 'react-bootstrap'
-
-import PropTypes from 'prop-types'
 
 import { smugler } from './../smugler/api'
 
@@ -15,7 +13,6 @@ import ImgStickyRefOn from './../img/sticky-ref-checkbox-on.png'
 import { makeRefTo } from './../lib/route'
 
 import { MzdGlobalContext } from '../lib/global'
-import { ImgButton } from '../lib/ImgButton'
 import { HoverTooltip } from '../lib/tooltip'
 import { jcss } from '../util/jcss'
 import { CheckBox } from './../lib/CheckBox.js'
@@ -25,6 +22,8 @@ import {
   FootbarDropdownMenu,
   FootbarDropdownToggle,
 } from './Footbar'
+
+import { MaterialIcon, MdiOpenInFull, MdiMoreHoriz } from '../lib/MaterialIcons'
 
 class PrivateMenu extends React.Component {
   constructor(props) {
@@ -180,16 +179,14 @@ export function SmallCardFootbar({
         onClick={toggleMore}
         className={jcss(styles.tool_button, styles.toolbar_layout_item)}
       >
-        <span className={'material-icons'}>
-          {showMore ? 'expand_less' : 'expand_more'}
-        </span>
+        <MaterialIcon type={showMore ? 'expand_less' : 'expand_more'} />
       </Button>
       <Button
         as={Link}
         to={makeRefTo.node(nid)}
         className={jcss(styles.tool_button, styles.toolbar_layout_item)}
       >
-        <span className={'material-icons'}>launch</span>
+        <MdiOpenInFull />
       </Button>
       <Menu
         edge={edge}
@@ -198,7 +195,7 @@ export function SmallCardFootbar({
         className={jcss(styles.tool_button, styles.toolbar_layout_item)}
         isOwned={isOwned}
       >
-        <span className={'material-icons'}>more_horiz</span>
+        <MdiMoreHoriz />
       </Menu>
     </ButtonToolbar>
   )

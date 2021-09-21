@@ -18,7 +18,17 @@ import {
   kSlateBlockTypeH1,
   kSlateBlockTypeH2,
 } from './types'
-import { MaterialIcon } from './../util/material-types'
+import {
+  MdiFormatBold,
+  MdiFormatItalic,
+  MdiFormatUnderlined,
+  MdiCode,
+  MdiLooksOne,
+  MdiLooksTwo,
+  MdiFormatQuote,
+  MdiFormatListNumbered,
+  MdiFormatListBulleted,
+} from './../lib/MaterialIcons'
 
 type ReactiveButtonProps = {
   active: boolean
@@ -43,7 +53,10 @@ const ReactiveButton = ({
   )
 }
 
-const MarkButton = ({ mark, icon }: { mark: MarkType; icon: MaterialIcon }) => {
+const MarkButton = ({
+  children,
+  mark,
+}: React.PropsWithChildren<{ mark: MarkType }>) => {
   const editor = useSlate()
   return (
     <ReactiveButton
@@ -53,7 +66,7 @@ const MarkButton = ({ mark, icon }: { mark: MarkType; icon: MaterialIcon }) => {
         toggleMark(editor, mark)
       }}
     >
-      {icon}
+      {children}
     </ReactiveButton>
   )
 }
@@ -74,12 +87,11 @@ const toggleMark = (editor: CustomEditor, mark: MarkType) => {
 }
 
 const BlockButton = ({
+  children,
   format,
-  icon,
-}: {
+}: React.PropsWithChildren<{
   format: CustomElementType
-  icon: MaterialIcon
-}) => {
+}>) => {
   const editor = useSlate()
   return (
     <ReactiveButton
@@ -89,7 +101,7 @@ const BlockButton = ({
         toggleBlock(editor, format)
       }}
     >
-      {icon}
+      {children}
     </ReactiveButton>
   )
 }
@@ -133,21 +145,33 @@ const toggleBlock = (editor: CustomEditor, format: CustomElementType) => {
 export const FormatToolbar = () => {
   return (
     <ButtonGroup className={styles.toolbar}>
-      <MarkButton mark="bold" icon="format_bold" />
-      <MarkButton mark="italic" icon="format_italic" />
-      <MarkButton mark="underline" icon="format_underlined" />
-      <MarkButton mark="code" icon="code" />
-      <BlockButton format={kSlateBlockTypeH1} icon="looks_one" />
-      <BlockButton format={kSlateBlockTypeH2} icon="looks_two" />
-      <BlockButton
-        format={kSlateBlockTypeOrderedList}
-        icon="format_list_numbered"
-      />
-      <BlockButton
-        format={kSlateBlockTypeUnorderedList}
-        icon="format_list_bulleted"
-      />
-      <BlockButton format={kSlateBlockTypeQuote} icon="format_quote" />
+      <MarkButton mark="bold">
+        <MdiFormatBold />
+      </MarkButton>
+      <MarkButton mark="italic">
+        <MdiFormatItalic />
+      </MarkButton>
+      <MarkButton mark="underline">
+        <MdiFormatUnderlined />
+      </MarkButton>
+      <MarkButton mark="code">
+        <MdiCode />
+      </MarkButton>
+      <BlockButton format={kSlateBlockTypeH1}>
+        <MdiLooksOne />
+      </BlockButton>
+      <BlockButton format={kSlateBlockTypeH2}>
+        <MdiLooksTwo />
+      </BlockButton>
+      <BlockButton format={kSlateBlockTypeOrderedList}>
+        <MdiFormatListNumbered />
+      </BlockButton>
+      <BlockButton format={kSlateBlockTypeUnorderedList}>
+        <MdiFormatListBulleted />
+      </BlockButton>
+      <BlockButton format={kSlateBlockTypeQuote}>
+        <MdiFormatQuote />
+      </BlockButton>
     </ButtonGroup>
   )
 }
