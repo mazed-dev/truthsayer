@@ -94,6 +94,7 @@ class ReadOnlyRenderFetching extends React.Component {
   }
 
   fetchNode = async () => {
+    this.setState({ node: null })
     const nid = this.props.nid
     const account = this.props.account
     const node = await smugler.node.get({
