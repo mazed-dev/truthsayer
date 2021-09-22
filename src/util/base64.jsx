@@ -32,7 +32,7 @@ function _decode(b64: string): string {
   return Base64.decode(b64)
 }
 
-export const base64: Object = {
+export const base64 = {
   fromStr: toBase64,
   toStr: fromBase64,
   toByteArray: _toByteArray,

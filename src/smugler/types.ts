@@ -33,7 +33,7 @@ export class NodeData {
     this.blob = blob
   }
 
-  static async fromJson(v: object): NodeData {
+  static async fromJson(v: object): Promise<NodeData> {
     const { blob = null } = v
     if (blob) {
       // TODO(akindyakov) parse content_type of preview too

@@ -30,7 +30,7 @@ function RefNodeCard({ nid, edge, switchStickiness, cutOffRef }) {
   const toggleMoreLess = () => setShowMore(!showMore)
   return (
     <SmallCard className={styles.ref_card}>
-      <ShrinkCard nid={nid} showMore={showMore}>
+      <ShrinkCard showMore={showMore}>
         <ReadOnlyRender nid={nid} />
       </ShrinkCard>
       <SmallCardFootbar

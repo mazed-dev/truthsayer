@@ -1,10 +1,13 @@
-import HttpStatus from 'http-status-codes'
+// import HttpStatus from 'http-status-codes'
+import { AxiosError } from 'axios'
+
+import { debug } from '../util/log'
 
 // Custom HTTP status codes
-const LOGIN_TIME_OUT: int = 440
+const LOGIN_TIME_OUT: number = 440
 
-export function dealWithError(error) {
-  // *dbg*/ console.log('Smugler API error:', error)
+export function dealWithError(error: AxiosError) {
+  debug('Smugler API error:', error)
   // console.log(error.config);
   if (error.response) {
     // The request was made and the server responded with a status code
