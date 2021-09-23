@@ -8,19 +8,10 @@ import LockedImg from './../img/locked.png'
 import { ReadOnlyDoc } from './DocEditor.tsx'
 import { ImageNode } from './image/ImageNode'
 
-import { renderMdSmallCard } from './../markdown/MarkdownRender'
-
-import { ChunkView } from './chunks'
-import { enforceTopHeader } from './doc_util'
-import { makeEmptyChunk, trimChunk } from './chunk_util'
 import { smugler } from './../smugler/api'
 
 import { MzdGlobalContext } from '../lib/global'
 import { debug } from '../util/log'
-
-const kMaxTrimSmallCardSize = 320
-const kMaxTrimSmallCardChunksNum = 4
-const kMaxTrimChunksNum = 6
 
 export function SmallCardRender({ node }) {
   let media
@@ -102,27 +93,24 @@ class ReadOnlyRenderFetching extends React.Component {
     }
   }
 
-  fetchNode = () => {
+  fetchNode = async () => {
+    this.setState({ node: null })
     const nid = this.props.nid
     const account = this.props.account
-    return smugler.node
-      .get({
-        nid,
-        cancelToken: this.fetchNodeCancelToken.token,
-        account,
-      })
-      .then((node) => {
-        if (node) {
-          this.setState({
-            node,
-          })
-        }
-      })
+    const node = await smugler.node.get({
+      nid,
+      cancelToken: this.fetchNodeCancelToken.token,
+      account,
+    })
+    if (node) {
+      this.setState({ node })
+    }
   }
 
   render() {
-    if (this.state.node) {
-      return <ReadDocRender node={this.state.node} />
+    const { node } = this.state
+    if (node) {
+      return <ReadDocRender node={node} />
     } else {
       return <Loader size={'medium'} />
     }

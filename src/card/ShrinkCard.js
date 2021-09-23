@@ -43,7 +43,7 @@ export const SCard = React.forwardRef(({ children }, ref) => {
   )
 })
 
-export const ShrinkCard = ({ children, nid, showMore }) => {
+export const ShrinkCard = ({ children, showMore }) => {
   const shrinkStyle = showMore ? styles.everything_xxs : styles.card_xxs
   return (
     <div className={jcss(styles.shrinkable, shrinkStyle)}>

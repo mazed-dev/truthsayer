@@ -182,7 +182,7 @@ export async function getDocDraft(doc: TDoc): TDraftDoc {
   return await makeDoc({})
 }
 
-export async function getDocSlate(doc: TDoc | string): Descendant[] {
+export async function getDocSlate(doc: TDoc | string): Promise<Descendant[]> {
   let slate
   if (lodash.isString(doc)) {
     slate = await markdownToSlate(doc)

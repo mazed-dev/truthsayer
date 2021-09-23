@@ -1,13 +1,13 @@
-import { NodeData, NodeMeta, TNode, TNodeAttrs, TNodeCrypto } from './types'
+import { NodeData, TNode } from './types'
 
-import axios from 'axios'
+import axios, { CancelToken } from 'axios'
+
 import moment from 'moment'
 
 import { stringify } from 'query-string'
 
-import { dealWithError } from './error.jsx'
+import { dealWithError } from './error'
 
-import { extractDocAttrs } from '../search/attrs.jsx'
 import { makeDoc, exctractDoc } from '../doc/doc_util'
 import { LocalCrypto } from '../crypto/local'
 import { base64 } from '../util/base64.jsx'
@@ -15,8 +15,9 @@ import { debug } from '../util/log'
 import { Mime } from '../util/Mime'
 import { UserAccount } from '../auth/local'
 import { TDoc } from '../doc/types'
+import { Optional } from '../util/types'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 const kHeaderAttrs = 'x-node-attrs'
 const kHeaderCreatedAt = 'x-created-at'
@@ -26,24 +27,24 @@ const kHeaderLocalSecretId = 'x-local-secret-id'
 const kHeaderLocalSignature = 'x-local-signature'
 const kHeaderNodeMeta = 'x-node-meta'
 
-export type CancelToken = axios.CancelToken
+export type { CancelToken }
 
 function _getSmuglerApibaseURL() {
   switch (process.env.NODE_ENV) {
     case 'production':
       return '/smuggler'
     case 'development':
-      return null
+      return undefined
     case 'test':
-      return null
+      return undefined
     default:
-      return null
+      return undefined
   }
 }
 
 const _client = axios.create({
   baseURL: _getSmuglerApibaseURL(),
-  timeout: 1000,
+  timeout: 8000,
 })
 
 async function _tryToEncryptDocLocally(doc, account) {
@@ -189,19 +190,31 @@ function makeBlobSourceUrl(nid: string): string {
   return `${makeBlobSourceUrl.base}/blob/${nid}`
 }
 
-async function deleteNode({ nid, cancelToken }) {
+async function deleteNode({
+  nid,
+  cancelToken,
+}: {
+  nid: string
+  cancelToken: CancelToken
+}): Promise<void> {
   verifyIsNotNull(nid)
-  const config = {
-    cancelToken,
-  }
   return _client
     .delete(`/node/${nid}`, {
       cancelToken,
     })
+    .then((_res) => {})
     .catch(dealWithError)
 }
 
-async function getNode({ nid, account, cancelToken }) {
+async function getNode({
+  nid,
+  account,
+  cancelToken,
+}: {
+  nid: string
+  account?: UserAccount
+  cancelToken: CancelToken
+}): Promise<Optional<TNode>> {
   const res = await _client
     .get(`/node/${nid}`, {
       cancelToken,

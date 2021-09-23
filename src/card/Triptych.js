@@ -1,8 +1,6 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react'
+import React, { useState } from 'react'
 
-import { Row, Col, Button, ButtonToolbar } from 'react-bootstrap'
-
-import { Link } from 'react-router-dom'
+import { Row, Col } from 'react-bootstrap'
 
 import styles from './Triptych.module.css'
 
@@ -30,7 +28,7 @@ function RefNodeCard({ nid, edge, switchStickiness, cutOffRef }) {
   const toggleMoreLess = () => setShowMore(!showMore)
   return (
     <SmallCard className={styles.ref_card}>
-      <ShrinkCard nid={nid} showMore={showMore}>
+      <ShrinkCard showMore={showMore}>
         <ReadOnlyRender nid={nid} />
       </ShrinkCard>
       <SmallCardFootbar
@@ -107,6 +105,11 @@ class Triptych extends React.Component {
   }
 
   fetchEdges = () => {
+    this.setState({
+      edges_left: [],
+      edges_right: [],
+      edges_sticky: [],
+    })
     smugler.edge
       .getTo({
         nid: this.props.nid,
@@ -145,22 +148,18 @@ class Triptych extends React.Component {
       })
   }
 
-  fetchNode = () => {
+  fetchNode = async () => {
+    this.setState({ node: null })
     const nid = this.props.nid
     const account = this.context.account
-    return smugler.node
-      .get({
-        nid,
-        cancelToken: this.fetchNodeCancelToken.token,
-        account,
-      })
-      .then((node) => {
-        if (node) {
-          this.setState({
-            node,
-          })
-        }
-      })
+    const node = await smugler.node.get({
+      nid,
+      cancelToken: this.fetchNodeCancelToken.token,
+      account,
+    })
+    if (node) {
+      this.setState({ node })
+    }
   }
 
   saveNode = lodash.debounce(
