@@ -1,48 +1,29 @@
-/**
- * Left and Right toolbars
- */
-
-:root {
-  --small_card_border_colour: rgba(0, 0, 0, 0.192);
-  --small_card_shadow_colour: rgba(0, 0, 0, 0.12);
-}
-
-.btn_img {
-  width: 1.2rem;
-  height: 1.2rem;
-}
-
-.toolbar_col {
-  max-width: 4.4rem;
-  padding: 0.5rem;
-}
-
 .row {
   margin: 0;
   padding: 0;
   width: 100%;
+
+  display: flex;
+  flex: none;
+  flex-flow: row nowrap;
+}
+
+.col {
 }
 
 .node_card_col {
-  max-width: 42rem;
   width: 40%;
-
-  padding: 0;
-
-  padding-top: 0.2rem;
-  padding-left: 2rem;
-  padding-right: 2rem;
-
   margin: 0;
+  padding-top: 0.2rem;
+  padding-right: 2rem;
+  padding-bottom: 0;
+  padding-left: 2rem;
 }
 
 .refs_col {
-  max-width: 24rem;
   width: 20%;
   margin: 0;
-  padding-top: 0rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding: 0rem 1rem 0 1rem;
 }
 
 .ref_card {
@@ -51,20 +32,12 @@
 
 @media (max-width: 1420px) {
   .node_card_col {
-    max-width: 40%;
     width: 40%;
-
-    padding-top: 0.2rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding: 0.2rem 1rem 0 1rem;
   }
-
   .refs_col {
-    max-width: 28%;
     width: 24%;
-    padding-top: 1rem;
-    padding-left: 4px;
-    padding-right: 4px;
+    padding: 1rem 4px 0 4px;
   }
 }
 
@@ -72,23 +45,13 @@
   /**
    * Small wide screen
    */
-
   .node_card_col {
-    max-width: 50%;
     width: 50%;
-
-    padding-top: 2px;
-    padding-left: 4px;
-    padding-right: 4px;
+    padding: 2px 4px 0 4px;
   }
-
   .refs_col {
-    max-width: 25%;
     width: 24%;
-
-    padding-top: 0.8rem;
-    padding-left: 2px;
-    padding-right: 2px;
+    padding-top: 0.8rem 2px 0 2px;
   }
 }
 
@@ -98,43 +61,28 @@
    * https://stackoverflow.com/questions/34140793/bootstrap-4-responsive-cards-in-card-columns
    */
 
-  .container {
-    padding-right: 4px;
-    padding-left: 4px;
+  .row {
+    overflow: auto;
+    scroll-snap-type: x mandatory;
+  }
+
+  .col {
+    width: 100vw;
+    display: inline-block;
+    flex: none;
+
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
   }
 
   .node_card_col {
-    max-width: 42rem;
-    width: 100%;
-
-    margin-left: auto;
-    margin-right: auto;
-
-    padding-top: 0.2rem;
-    padding-right: 2px;
-    padding-left: 2px;
+    padding: 0.2rem 2px 0 2px;
   }
 
   .refs_col {
-    max-width: 50%;
-    width: 50%;
-
-    margin: 0;
-    margin-top: 0.4rem;
-
-    padding-top: 3px;
-    padding-bottom: 3px;
-    padding-left: 2px;
-    padding-right: 2px;
+    margin: 0.4rem 0 0 0;
+    padding: 3px 2px 3px 2px;
   }
-  .refs_left_col {
-  }
-  .refs_right_col {
-    border-color: rgb(231, 233, 235);
-    border-left-style: solid;
-    border-width: 1px;
-  }
-
   .ref_card {
     margin: 0 0 4px 0;
   }
