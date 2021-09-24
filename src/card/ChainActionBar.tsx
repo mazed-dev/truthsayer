@@ -9,6 +9,7 @@ import { HoverTooltip } from '../lib/tooltip'
 import UploadImg from '../img/upload-strip.svg'
 import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
 import { goto, History } from '../lib/route'
+import { SmallCard } from './SmallCard'
 
 import { smugler, NewNodeResponse } from '../smugler/api'
 import { makeACopy } from '../doc/doc_util'
@@ -27,7 +28,7 @@ import { SearchAndConnectJinn } from './SearchAndConnect'
 
 import styles from './ChainActionBar.module.css'
 
-export type ChainActionBarSide = 'left' | 'right' | 'both'
+export type ChainActionBarSide = 'left' | 'right'
 
 async function cloneNode({
   from,
@@ -250,42 +251,25 @@ export const ChainActionBar = ({
   nidIsPrivate,
   cancelToken,
   addRef,
+  className,
 }: {
   side: ChainActionBarSide
   nid: string
   nidIsPrivate: boolean
   cancelToken: CancelToken
   addRef: ({ from, to }: { from: string; to: string }) => void
+  className: string
 }) => {
-  if (side === 'both') {
-    return (
-      <Row
-        className={jcss('d-flex', 'justify-content-center' /* styles.row */)}
-      >
-        <ChainActionBarImpl
-          side="left"
-          nid={nid}
-          nidIsPrivate={nidIsPrivate}
-          cancelToken={cancelToken}
-          addRef={addRef}
-        />
-        <ChainActionBarImpl
-          side="right"
-          nid={nid}
-          nidIsPrivate={nidIsPrivate}
-          cancelToken={cancelToken}
-          addRef={addRef}
-        />
-      </Row>
-    )
-  }
   return (
-    <ChainActionBarImpl
-      side={side}
-      nid={nid}
-      nidIsPrivate={nidIsPrivate}
-      cancelToken={cancelToken}
-      addRef={addRef}
-    />
+    <SmallCard className={jcss(className, styles.card)}>
+      <span className={styles.side_title}>Add to the {side}</span>
+      <ChainActionBarImpl
+        side={side}
+        nid={nid}
+        nidIsPrivate={nidIsPrivate}
+        cancelToken={cancelToken}
+        addRef={addRef}
+      />
+    </SmallCard>
   )
 }

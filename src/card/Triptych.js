@@ -270,6 +270,7 @@ class Triptych extends React.Component {
             nidIsPrivate={nodeIsPrivate}
             cancelToken={this.createNodeCancelToken.token}
             addRef={this.addRef}
+            className={styles.ref_card}
           />
           {leftRefs}
         </Col>
@@ -281,6 +282,7 @@ class Triptych extends React.Component {
             nidIsPrivate={nodeIsPrivate}
             cancelToken={this.createNodeCancelToken.token}
             addRef={this.addRef}
+            className={styles.ref_card}
           />
           {rightRefs}
         </Col>

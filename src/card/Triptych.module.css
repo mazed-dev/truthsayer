@@ -13,7 +13,9 @@
 
 .node_card_col {
   width: 40%;
-  margin: 0;
+
+  margin: 3px 0 0 0;
+
   padding-top: 0.2rem;
   padding-right: 2rem;
   padding-bottom: 0;
@@ -22,22 +24,22 @@
 
 .refs_col {
   width: 20%;
-  margin: 0;
-  padding: 0rem 1rem 0 1rem;
+  margin: 3px 0 0 0;
+  padding: 0 1rem 0 1rem;
 }
 
 .ref_card {
-  margin: 0 0 8px 0;
+  margin: 0 0 8px 0 !important;
 }
 
 @media (max-width: 1420px) {
   .node_card_col {
     width: 40%;
-    padding: 0.2rem 1rem 0 1rem;
+    padding: 0 1rem 0 1rem;
   }
   .refs_col {
     width: 24%;
-    padding: 1rem 4px 0 4px;
+    padding: 0 4px 0 4px;
   }
 }
 
@@ -47,11 +49,11 @@
    */
   .node_card_col {
     width: 50%;
-    padding: 2px 4px 0 4px;
+    padding: 0 4px 0 4px;
   }
   .refs_col {
     width: 24%;
-    padding-top: 0.8rem 2px 0 2px;
+    padding: 0 2px 0 2px;
   }
 }
 
@@ -60,12 +62,10 @@
    * Mobile devices
    * https://stackoverflow.com/questions/34140793/bootstrap-4-responsive-cards-in-card-columns
    */
-
   .row {
     overflow: auto;
     scroll-snap-type: x mandatory;
   }
-
   .col {
     width: 100vw;
     display: inline-block;
@@ -74,14 +74,13 @@
     scroll-snap-align: center;
     scroll-snap-stop: always;
   }
-
   .node_card_col {
-    padding: 0.2rem 2px 0 2px;
+    margin: 3px 0 0 0;
+    padding: 0 2px 0 2px;
   }
-
   .refs_col {
-    margin: 0.4rem 0 0 0;
-    padding: 3px 2px 3px 2px;
+    margin: 3px 0 0 0;
+    padding: 0 2px 3px 2px;
   }
   .ref_card {
     margin: 0 0 4px 0;

@@ -4,7 +4,8 @@
 }
 
 .small_card {
-  padding: 0;
+  margin: 0;
+  padding: 1px;
   /* border-color: var(--small_card_border_colour); */
 
   /*height: 22rem;*/
