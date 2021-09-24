@@ -12,7 +12,8 @@
 }
 
 .node_card_col {
-  width: 40%;
+  width: 36%;
+  max-width: 46rem;
 
   margin: 3px 0 0 0;
 
@@ -24,6 +25,7 @@
 
 .refs_col {
   width: 20%;
+  max-width: 30rem;
   margin: 3px 0 0 0;
   padding: 0 1rem 0 1rem;
 }
@@ -34,11 +36,13 @@
 
 @media (max-width: 1420px) {
   .node_card_col {
-    width: 40%;
+    width: 45%;
+    max-width: 46rem;
     padding: 0 1rem 0 1rem;
   }
   .refs_col {
     width: 24%;
+    max-width: 30rem;
     padding: 0 4px 0 4px;
   }
 }
@@ -49,11 +53,19 @@
    */
   .node_card_col {
     width: 50%;
+    max-width: 50%;
     padding: 0 4px 0 4px;
   }
   .refs_col {
     width: 24%;
+    max-width: 24%;
     padding: 0 2px 0 2px;
+  }
+}
+
+@media (min-width: 480px) {
+  .row {
+    justify-content: center;
   }
 }
 
@@ -68,6 +80,7 @@
   }
   .col {
     width: 100vw;
+    max-width: 100%;
     display: inline-block;
     flex: none;
 
@@ -99,6 +112,7 @@
   margin: 0;
 
   width: 100%;
+  max-width: 100%;
 
   border-style: none;
   border-top-left-radius: inherit;
