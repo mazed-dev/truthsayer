@@ -21,4 +21,8 @@
   margin-bottom: 5px;
   padding: 5px 0px 5px 0px;
   display: flex;
+  /* To make usable on narrow screens */
+  /* https://www.w3schools.com/howto/howto_css_menu_horizontal_scroll.asp */
+  overflow: auto;
+  white-space: nowrap;
 }
