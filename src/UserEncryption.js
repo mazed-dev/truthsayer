@@ -18,7 +18,7 @@ import { jcss } from './util/jcss'
 import { isAscii } from './util/ascii.jsx'
 import { Loader } from './lib/loader'
 
-import { Emoji } from './Emoji.js'
+import { Emoji } from './lib/Emoji'
 
 import styles from './UserEncryption.module.css'
 

@@ -11,7 +11,7 @@ import styles from './MarkdownList.module.css'
 
 // https://github.com/rexxars/react-markdown
 import { ReactMarkdown } from 'react-markdown'
-import { Emoji } from './../Emoji'
+import { Emoji } from './../lib/Emoji'
 
 import { MdCheckBox } from './MdCheckBox'
 import { MzdLink } from './../lib/MzdLink'
