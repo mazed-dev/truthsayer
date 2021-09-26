@@ -24,6 +24,10 @@ export type MaterialIconType =
   | 'launch'
   | 'more_horiz'
   | 'open_in_full'
+  | 'add'
+  | 'content_copy'
+  | 'file_upload'
+  | 'search'
 
 type MaterialIconAttrs = React.HTMLProps<HTMLSpanElement>
 
@@ -62,3 +66,7 @@ export const MdiExpandMore = _makeMaterialIcon('expand_more')
 export const MdiLaunch = _makeMaterialIcon('launch')
 export const MdiMoreHoriz = _makeMaterialIcon('more_horiz')
 export const MdiOpenInFull = _makeMaterialIcon('open_in_full')
+export const MdiAdd = _makeMaterialIcon('add')
+export const MdiContentCopy = _makeMaterialIcon('content_copy')
+export const MdiFileUpload = _makeMaterialIcon('file_upload')
+export const MdiSearch = _makeMaterialIcon('search')

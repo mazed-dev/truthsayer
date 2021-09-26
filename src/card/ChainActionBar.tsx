@@ -1,33 +1,36 @@
 import React, { useContext, useState } from 'react'
 
-import { ButtonGroup, Row, ButtonToolbar } from 'react-bootstrap'
+import { ButtonToolbar } from 'react-bootstrap'
 import { useHistory } from 'react-router-dom'
 import { CancelToken } from 'axios'
 
 import { ImgButton } from '../lib/ImgButton'
 import { HoverTooltip } from '../lib/tooltip'
-import UploadImg from '../img/upload-strip.svg'
 import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
 import { goto, History } from '../lib/route'
+import { SmallCard } from './SmallCard'
 
 import { smugler, NewNodeResponse } from '../smugler/api'
 import { makeACopy } from '../doc/doc_util'
 import { TNode } from '../smugler/types'
 
-import NextNewRightImg from './../img/next-link-right-00001-strip.svg'
-import NextNewLeftImg from './../img/next-link-left-00001-strip.svg'
-import SearchImg from './../img/search-strip.svg'
 import { UploadNodeButton } from '../upload/UploadNodeButton'
-import NextCopyLeftImg from './../img/next-clone-left-strip.svg'
-import NextCopyRightImg from './../img/next-clone-right-strip.svg'
 import { LocalCrypto } from '../crypto/local'
 import { Optional } from '../util/types'
 import { jcss } from './../util/jcss'
+import { Emoji } from '../lib/Emoji'
+import {
+  MdiAdd,
+  MdiContentCopy,
+  MdiFileUpload,
+  MdiSearch,
+} from '../lib/MaterialIcons'
+
 import { SearchAndConnectJinn } from './SearchAndConnect'
 
 import styles from './ChainActionBar.module.css'
 
-export type ChainActionBarSide = 'left' | 'right' | 'both'
+export type ChainActionBarSide = 'left' | 'right'
 
 async function cloneNode({
   from,
@@ -179,11 +182,7 @@ const ChainActionBarImpl = ({
           is_disabled={false}
         >
           <HoverTooltip tooltip={newDescription}>
-            <img
-              src={side === 'right' ? NextNewRightImg : NextNewLeftImg}
-              className={styles.tool_button_img}
-              alt={newDescription}
-            />
+            <MdiAdd />
           </HoverTooltip>
         </ImgButton>
 
@@ -193,11 +192,7 @@ const ChainActionBarImpl = ({
           is_disabled={false}
         >
           <HoverTooltip tooltip={newCopyDescription}>
-            <img
-              src={side === 'right' ? NextCopyRightImg : NextCopyLeftImg}
-              className={styles.tool_button_img}
-              alt={newCopyDescription}
-            />
+            <MdiContentCopy />
           </HoverTooltip>
         </ImgButton>
 
@@ -208,13 +203,7 @@ const ChainActionBarImpl = ({
           to_nid={side === 'left' ? nid : null}
         >
           <HoverTooltip tooltip={uploadDescription}>
-            <img
-              src={UploadImg}
-              // className="test"
-              // className={styles.dropdown_menu_inline_img}
-              className={styles.tool_button_img}
-              alt={uploadDescription}
-            />
+            <MdiFileUpload />
           </HoverTooltip>
         </UploadNodeButton>
 
@@ -225,11 +214,7 @@ const ChainActionBarImpl = ({
           is_disabled={false}
         >
           <HoverTooltip tooltip={findDescription}>
-            <img
-              src={SearchImg}
-              className={styles.tool_button_img}
-              alt={findDescription}
-            />
+            <MdiSearch />
           </HoverTooltip>
         </ImgButton>
       </ButtonToolbar>
@@ -250,42 +235,29 @@ export const ChainActionBar = ({
   nidIsPrivate,
   cancelToken,
   addRef,
+  className,
 }: {
   side: ChainActionBarSide
   nid: string
   nidIsPrivate: boolean
   cancelToken: CancelToken
   addRef: ({ from, to }: { from: string; to: string }) => void
+  className: string
 }) => {
-  if (side === 'both') {
-    return (
-      <Row
-        className={jcss('d-flex', 'justify-content-center' /* styles.row */)}
-      >
-        <ChainActionBarImpl
-          side="left"
-          nid={nid}
-          nidIsPrivate={nidIsPrivate}
-          cancelToken={cancelToken}
-          addRef={addRef}
-        />
-        <ChainActionBarImpl
-          side="right"
-          nid={nid}
-          nidIsPrivate={nidIsPrivate}
-          cancelToken={cancelToken}
-          addRef={addRef}
-        />
-      </Row>
-    )
-  }
   return (
-    <ChainActionBarImpl
-      side={side}
-      nid={nid}
-      nidIsPrivate={nidIsPrivate}
-      cancelToken={cancelToken}
-      addRef={addRef}
-    />
+    <SmallCard className={jcss(className, styles.card)}>
+      <span className={styles.side_title}>
+        {side === 'left' ? <Emoji>👈 </Emoji> : null}
+        Add to the {side}
+        {side === 'right' ? <Emoji> 👉 </Emoji> : null}
+      </span>
+      <ChainActionBarImpl
+        side={side}
+        nid={nid}
+        nidIsPrivate={nidIsPrivate}
+        cancelToken={cancelToken}
+        addRef={addRef}
+      />
+    </SmallCard>
   )
 }

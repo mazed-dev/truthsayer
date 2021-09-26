@@ -5,7 +5,7 @@ import { Button, Form, ListGroup, Modal } from 'react-bootstrap'
 
 import { uploadLocalFile } from './UploadLocalFile'
 
-import { Emoji } from '../Emoji'
+import { Emoji } from '../lib/Emoji'
 import { goto } from '../lib/route'
 import { debug } from '../util/log'
 import { jcss } from '../util/jcss'

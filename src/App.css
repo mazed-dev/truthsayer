@@ -13,6 +13,7 @@
 }
 
 .app_content {
+  max-width: 100%;
   width: 100%;
 
   margin: 0;
@@ -32,6 +33,6 @@
   .app_content {
     padding-left: 4px;
     /* Reserve space for scrollbar on the right side */
-    padding-right: 10px;
+    padding-right: 6px;
   }
 }
