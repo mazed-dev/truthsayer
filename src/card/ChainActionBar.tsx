@@ -18,6 +18,7 @@ import { UploadNodeButton } from '../upload/UploadNodeButton'
 import { LocalCrypto } from '../crypto/local'
 import { Optional } from '../util/types'
 import { jcss } from './../util/jcss'
+import { Emoji } from '../Emoji'
 import {
   MdiAdd,
   MdiContentCopy,
@@ -245,7 +246,11 @@ export const ChainActionBar = ({
 }) => {
   return (
     <SmallCard className={jcss(className, styles.card)}>
-      <span className={styles.side_title}>Add to the {side}</span>
+      <span className={styles.side_title}>
+        {side === 'left' ? <Emoji symbol={'👈 '} /> : null}
+        Add to the {side}
+        {side === 'right' ? <Emoji symbol={' 👉'} /> : null}
+      </span>
       <ChainActionBarImpl
         side={side}
         nid={nid}
