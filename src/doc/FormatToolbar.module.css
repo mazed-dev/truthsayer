@@ -23,6 +23,6 @@
   display: flex;
   /* To make usable on narrow screens */
   /* https://www.w3schools.com/howto/howto_css_menu_horizontal_scroll.asp */
-  overflow: auto;
+  overflow-x: auto;
   white-space: nowrap;
 }
