@@ -223,6 +223,7 @@ class SearchGridImpl extends React.Component {
         account,
       })
       .then((data) => {
+        debug('Search data', data)
         if (!data) {
           // debug('Error: no response from back end')
           return
@@ -240,6 +241,7 @@ class SearchGridImpl extends React.Component {
           })
         } else {
           this.setState((state) => {
+            debug('All nodes', state.nodes.length, nodes.length)
             return { nodes: lodash.concat(state.nodes, nodes) }
           })
         }
@@ -311,25 +313,28 @@ class SearchGridImpl extends React.Component {
     const used = {}
     let cards = this.state.nodes
       .filter((node) => {
-        if (node.nid in used) {
+        debug('SearchGrid.filter', node)
+        const { nid } = node
+        if (nid in used) {
           //* dbg*/ console.log("Search grid overlap", node.nid, item);
           return false
         }
-        used[node.nid] = true
+        used[nid] = true
         return true
       })
       .map((node) => {
+        const { nid } = node
         const onClick = () => {
           if (onCardClick) {
             onCardClick(node)
           } else {
             this.props.history.push({
-              pathname: `/n/${node.nid}`,
+              pathname: `/n/${nid}`,
             })
           }
         }
         return (
-          <GridCard onClick={onClick} key={node.nid}>
+          <GridCard onClick={onClick} key={nid}>
             <SCard>
               <SmallCardRender node={node} />
             </SCard>

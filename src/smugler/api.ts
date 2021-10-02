@@ -1,4 +1,4 @@
-import { NodeData, TNode } from './types'
+import { NodeExtattrs, TNode, NodeTextData, NodeTextIndex } from './types'
 
 import axios, { CancelToken } from 'axios'
 
@@ -10,22 +10,17 @@ import { dealWithError } from './error'
 
 import { makeDoc, exctractDoc } from '../doc/doc_util'
 import { LocalCrypto } from '../crypto/local'
-import { base64 } from '../util/base64.jsx'
 import { debug } from '../util/log'
 import { Mime } from '../util/Mime'
 import { UserAccount } from '../auth/local'
 import { TDoc } from '../doc/types'
 import { Optional } from '../util/types'
 
-import lodash from 'lodash'
-
-const kHeaderAttrs = 'x-node-attrs'
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
 const kHeaderContentType = 'content-type'
 const kHeaderLocalSecretId = 'x-local-secret-id'
 const kHeaderLocalSignature = 'x-local-signature'
-const kHeaderNodeMeta = 'x-node-meta'
 
 export type { CancelToken }
 
@@ -208,7 +203,6 @@ async function deleteNode({
 
 async function getNode({
   nid,
-  account,
   cancelToken,
 }: {
   nid: string
@@ -220,42 +214,39 @@ async function getNode({
       cancelToken,
     })
     .catch(dealWithError)
-  if (!res) {
+  if (!res || !res.data) {
     return null
   }
-  const metaStr = res.headers[kHeaderNodeMeta]
-  const meta = metaStr != null ? base64.toObject(metaStr) : {}
-  const secret_id = meta.local_secret_id
+  debug('Node', res.data)
+  const { text, ntype, extattrs = null, intext = null, meta = null } = res.data
+  const secret_id = null
   const success = true
-  // const signature = meta.local_signature
-  // const { doc, secret_id, success } = await _tryToDecryptDocLocally(
-  const data = await NodeData.fromJson(res.data)
   const node = new TNode(
     nid,
-    data,
+    ntype,
+    await NodeTextData.fromJson(text),
     moment(res.headers[kHeaderCreatedAt]),
     moment(res.headers[kHeaderLastModified]),
-    null,
     meta,
+    extattrs ? NodeExtattrs.fromJson(extattrs) : null,
+    intext,
     { secret_id, success }
   )
   return node
 }
 
-async function updateNode({ node, cancelToken, account }) {
-  let value
-  let headers
-  const { nid } = node
-  const data = node.data.toJson()
-  const encrypted = await _tryToEncryptDocLocally(data, account)
-  if (encrypted) {
-    value = encrypted.value
-    headers = encrypted.headers
-  } else {
-    value = JSON.stringify(data)
-    headers = {
-      [kHeaderContentType]: Mime.JSON,
-    }
+async function updateNode({
+  nid,
+  text,
+  cancelToken,
+}: {
+  nid: string
+  text: NodeTextData
+  cancelToken: CancelToken
+}) {
+  let value = { text: text.toJson() }
+  let headers = {
+    [kHeaderContentType]: Mime.JSON,
   }
   const config = { headers, cancelToken }
   return _client.patch(`/node/${nid}`, value, config).catch(dealWithError)
@@ -317,36 +308,31 @@ async function getNodesSlice({
   const response = rawResp.data
   const nodes = await Promise.all(
     response.nodes.map(async (item) => {
-      const { nid, meta, crtd, upd } = item
-      let { attrs, data } = item
-      if (typeof attrs === 'string') {
-        const attrsEnc = base64.toObject(attrs)
-        const secretId = attrsEnc.secret_id
-        if (secretId) {
-          attrs = await decryptSecretAttrs(account, secretId, attrsEnc)
-        } else {
-          attrs = attrsEnc
-        }
-      }
-      // const { doc, secret_id, success } = await _tryToDecryptDocLocally(
-      const secret_id = null
-      const success = true
-      if (lodash.isString(data)) {
-        data = JSON.parse(data)
-      }
-      data = await NodeData.fromJson(data)
+      const {
+        nid,
+        crtd,
+        upd,
+        text,
+        ntype,
+        extattrs = null,
+        intext = null,
+        meta = null,
+      } = item
       const node = new TNode(
         nid,
-        data,
+        ntype,
+        await NodeTextData.fromJson(text),
         moment.unix(crtd),
         moment.unix(upd),
-        attrs,
         meta,
-        { secret_id, success }
+        extattrs ? NodeExtattrs.fromJson(extattrs) : null,
+        intext,
+        { secret_id: null, success: true }
       )
       return node
     })
   )
+  debug('Slice return', nodes)
   return {
     ...response,
     nodes,

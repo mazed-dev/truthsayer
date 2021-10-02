@@ -13,8 +13,8 @@ import { smugler } from './api'
 import moment from 'moment'
 
 // see smuggler/src/types.rs
-export class NodeData {
-  slate: Optional<SlateText>
+export class NodeTextData {
+  slate: SlateText
 
   // Deprecated
   draft: Optional<any>
@@ -22,37 +22,20 @@ export class NodeData {
   // Deprecated
   chunks: Optional<any>
 
-  /**
-   * For Blob type of nodes (see NodeType::Blob) with externally saved large
-   * blob of binary data like image, PDF, audio etc.
-   */
-  blob: Optional<NodeDataBlob>
-
-  constructor(slate: Optional<SlateText>, blob: Optional<NodeDataBlob>) {
+  constructor(slate: SlateText) {
     this.slate = slate
-    this.blob = blob
   }
 
-  static async fromJson(v: object): Promise<NodeData> {
-    const { blob = null } = v
-    if (blob) {
-      // TODO(akindyakov) parse content_type of preview too
-      blob.content_type = MimeType.parse(blob.content_type)
-    }
+  static async fromJson(v: object): Promise<NodeTextData> {
+    debug('NodeTextData.fromJson -- begin', v)
     const slate = await getDocSlate(v) // (slate || draft || chunks)
-    return new NodeData(slate, blob)
+    debug('NodeTextData.fromJson -- end', v)
+    return new NodeTextData(slate)
   }
 
-  toJson(): object {
-    let { blob = null, slate = null } = this
-    if (blob) {
-      const content_type = blob.content_type.toString()
-      blob = {
-        ...blob,
-        content_type,
-      }
-    }
-    return { slate, blob }
+  toJson(): { slate: SlateText } {
+    const { slate } = this
+    return { slate }
   }
 
   getText(): SlateText {
@@ -63,14 +46,52 @@ export class NodeData {
     return makeEmptySlate()
   }
 
-  updateText(slate: SlateText): NodeData {
-    const { blob } = this
-    return new NodeData(slate, blob)
+  updateText(slate: SlateText): NodeTextData {
+    return new NodeTextData(slate)
+  }
+}
+
+export enum NodeType {
+  Text = 0,
+  Blob = 1,
+  Url = 2,
+}
+
+// see smuggler/src/types.rs
+export class NodeExtattrs {
+  content_type: MimeType
+  preview_image: Optional<NodeDataBlobPreview>
+
+  constructor(
+    content_type: MimeType,
+    preview_image: Optional<NodeDataBlobPreview>
+  ) {
+    this.content_type = content_type
+    this.preview_image = preview_image
   }
 
   isImage(): boolean {
-    const { blob } = this
-    return blob && blob.content_type && blob.content_type.isImage()
+    return this.content_type.isImage()
+  }
+
+  toJson(): object {
+    const content_type = this.content_type.toString()
+    const preview_image = this.preview_image
+    return {
+      content_type,
+      preview_image,
+    }
+  }
+
+  static fromJson({
+    content_type,
+    preview_image = null,
+  }: {
+    content_type: string
+    preview_image: object | null
+  }): NodeExtattrs {
+    // TODO(akindyakov) parse content_type of preview_image too
+    return new NodeExtattrs(MimeType.parse(content_type), preview_image)
   }
 
   getBlobSource(nid: string): string {
@@ -78,22 +99,11 @@ export class NodeData {
   }
 }
 
-export enum NodeType {
-  Text = 0,
-  Blob = 1,
-}
-
-// see smuggler/src/types.rs
-export class NodeDataBlob {
-  content_type: MimeType
-  preview: Optional<NodeDataBlobPreview>
-}
-
 // see smuggler/src/types.rs
 export class NodeDataBlobPreview {
   content_type: MimeType
 
-  // Base64 encoded image for card preview, it must be small so we can
+  // Base64 encoded image for card preview_image, it must be small so we can
   // afford to store it to postgres DB
   // https://stackoverflow.com/questions/8499633/how-to-display-base64-images-in-html
   // https://en.wikipedia.org/wiki/Data_URI_scheme#Syntax
@@ -107,9 +117,13 @@ export interface NodeShare {
 
 export interface NodeMeta {
   share: Optional<NodeShare>
-  local_secret_id: Option<string>
-  local_signature: Option<string>
-  uid: Optional<string>
+  local_secret_id: Optional<string>
+  local_signature: Optional<string>
+  uid: string
+}
+
+export type NodeTextIndex = {
+  plaintext: Optional<string>
 }
 
 export class TNode {
@@ -117,16 +131,20 @@ export class TNode {
 
   // There is no proper Unions or typed Enums in TypeScript, so I used optional
   // fields to represent different types of node: image or text document.
-  data: NodeData
+  text: NodeTextData
 
-  created_at: moment
-  updated_at: moment
+  /**
+   * For Blob type of nodes (see NodeType::Blob) with externally saved large
+   * blob of binary data like image, PDF, audio etc.
+   */
+  extattrs: Optional<NodeExtattrs>
 
-  // Attributes of a node to be serialised and encrypted before submiting to the
-  // server with local secret key
-  attrs: Optional<TNodeAttrs>
+  intext: Optional<NodeTextIndex>
 
-  meta: NodeMeta
+  created_at: moment.Moment
+  updated_at: moment.Moment
+
+  meta: Optional<NodeMeta>
 
   // Information about node security
   crypto: TNodeCrypto
@@ -135,26 +153,25 @@ export class TNode {
 
   constructor(
     nid: string,
-    data: NodeData,
-    created_at: moment,
-    updated_at: moment,
-    attrs: Optional<TNodeAttrs>,
-    meta: NodeMeta,
+    ntype: number,
+    text: NodeTextData,
+    created_at: moment.Moment,
+    updated_at: moment.Moment,
+    meta: Optional<NodeMeta>,
+    extattrs: Optional<NodeExtattrs>,
+    intext: Optional<NodeTextIndex>,
     _crypto: TNodeCrypto
   ) {
+    debug('TNode constructor', nid)
     this.nid = nid
-    this.data = data
+    this.ntype = ntype
+    this.text = text
     this.created_at = created_at
     this.updated_at = updated_at
-    this.attrs = attrs
     this.meta = meta
+    this.extattrs = extattrs
+    this.intext = intext
     this.crypto = _crypto
-    const { blob } = data
-    if (blob) {
-      this.ntype = NodeType.Blob
-    } else {
-      this.ntype = NodeType.Text
-    }
   }
 
   isOwnedBy(account: Optional<AnonymousAccount>): boolean {
@@ -165,12 +182,12 @@ export class TNode {
     )
   }
 
-  getOwner(): string {
-    return this.meta.uid
+  getOwner(): Optional<string> {
+    return this.meta?.uid || null
   }
 
-  getData(): NodeData {
-    return this.data
+  getText(): NodeTextData {
+    return this.text
   }
 
   getNid(): string {
@@ -178,13 +195,13 @@ export class TNode {
   }
 
   isImage() {
-    const { ntype, data } = this
-    return ntype === NodeType.Blob && data.isImage()
+    const { ntype, extattrs } = this
+    return ntype === NodeType.Blob && extattrs?.isImage()
   }
 
-  getBlobSource(): string {
-    const { nid, data } = this
-    return data.getBlobSource(nid)
+  getBlobSource(): Optional<string> {
+    const { nid, extattrs } = this
+    return extattrs?.getBlobSource(nid) || null
   }
 }
 

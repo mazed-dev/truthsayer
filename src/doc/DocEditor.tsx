@@ -85,12 +85,13 @@ export type CheckListItemElement = {
   children: Descendant[]
 }
 
-export const DocEditor = ({ className, nid, data, saveText }) => {
+export const DocEditor = ({ className, node, saveText }) => {
   const [value, setValue] = useState<Descendant[]>([])
   const [showJinn, setShowJinn] = useState<boolean>(false)
+  const nid = node.nid
   useEffect(() => {
     let isSubscribed = true
-    setValue(data.getText())
+    setValue(node.getText().getText())
     return () => (isSubscribed = false)
   }, [nid])
   const renderElement = useCallback(
@@ -136,18 +137,21 @@ export const DocEditor = ({ className, nid, data, saveText }) => {
   )
 }
 
-export const ReadOnlyDoc = ({ className, nid, data }) => {
+export const ReadOnlyDoc = ({ className, node }) => {
+  debug('ReadOnlyDoc', node)
   const [value, setValue] = useState<Descendant[]>([])
   useEffect(() => {
     let isSubscribed = true
-    setValue(data.getText())
+    debug('ReadOnlyDoc:useEffect', node)
+    const slateDoc = node.getText().getText()
+    setValue(slateDoc)
     return () => (isSubscribed = false)
-  }, [nid])
+  }, [node])
   const renderElement = useCallback(
-    (props) => <ReadOnlyElement nid={nid} {...props} />,
-    [nid]
+    (props) => <ReadOnlyElement nid={node.nid} {...props} />,
+    [node]
   )
-  const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
+  const renderLeaf = useCallback((props) => <Leaf {...props} />, [node])
   const editor = useMemo(
     () =>
       withTypography(

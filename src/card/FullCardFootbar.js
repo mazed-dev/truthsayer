@@ -26,7 +26,7 @@ import { HoverTooltip } from '../lib/tooltip'
 import { ImgButton } from '../lib/ImgButton'
 import { goto } from '../lib/route'
 import { jcss } from '../util/jcss'
-import { makeACopy, docAsMarkdown } from '../doc/doc_util'
+import { docAsMarkdown } from '../doc/doc_util'
 import { downloadAsFile } from '../util/download_as_file.jsx'
 
 import {
@@ -241,8 +241,7 @@ export function FullCardFootbar({ children, node, ...rest }) {
     const { nid, meta } = node
     if (node.isOwnedBy(account)) {
       const getMarkdown = () => {
-        const data = node.getData()
-        return docAsMarkdown(nid, data)
+        return docAsMarkdown(node)
       }
       return (
         <PrivateFullCardFootbar
