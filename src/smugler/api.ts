@@ -244,8 +244,8 @@ async function updateNode({
   text: NodeTextData
   cancelToken: CancelToken
 }) {
-  let value = { text: text.toJson() }
-  let headers = {
+  const value = { text: text.toJson() }
+  const headers = {
     [kHeaderContentType]: Mime.JSON,
   }
   const config = { headers, cancelToken }
