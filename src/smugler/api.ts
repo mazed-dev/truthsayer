@@ -100,7 +100,6 @@ export type NewNodeResponse = {
 
 async function createNode({
   doc,
-  file,
   from_nid /* Optional<string> */,
   to_nid /* Optional<string> */,
   account,
@@ -113,50 +112,47 @@ async function createNode({
   account?: UserAccount
   cancelToken: import('axios').CancelToken
 }): Promise<Optional<NewNodeResponse>> {
-  const query = {}
+  const query: {
+    from?: string
+    to?: string
+  } = {}
   if (from_nid) {
     query.from = from_nid
   } else if (to_nid) {
     query.to = to_nid
   }
-
-  let headers = {}
+  let headers = { [kHeaderContentType]: Mime.JSON }
   let value
-  if (doc == null && file != null) {
-    value = new FormData()
-    value.append('file', file, file.name)
-    headers[
-      kHeaderContentType
-    ] = `multipart/form-data; boundary=${value._boundary}`
-    const config = { headers, cancelToken }
-    const resp = await _client.post(
-      `/node-upload?${stringify(query)}`,
-      value,
-      config
-    )
-    return resp.data ? resp.data : null
+  doc = doc || (await makeDoc({}))
+  const encrypted = await _tryToEncryptDocLocally(doc, account)
+  if (encrypted) {
+    value = encrypted.value
+    headers = { ...headers, ...encrypted.headers }
   } else {
-    doc = doc || (await makeDoc())
-    const encrypted = await _tryToEncryptDocLocally(doc, account)
-    if (encrypted) {
-      value = encrypted.value
-      headers = { ...headers, ...encrypted.headers }
-    } else {
-      value = JSON.stringify(doc)
-      headers[kHeaderContentType] = Mime.JSON
-    }
+    value = { text: doc }
   }
-  const config = { headers, cancelToken }
-  const resp = await _client.post(
-    `/node/new?${stringify(query)}`,
-    value,
-    config
-  )
+  const resp = await _client.post(`/node/new?${stringify(query)}`, value, {
+    headers,
+    cancelToken,
+  })
   return resp.data ? resp.data : null
 }
 
-async function uploadFiles({ files, from_nid, to_nid, account, cancelToken }) {
-  const query = {}
+async function uploadFiles({
+  files,
+  from_nid,
+  to_nid,
+  cancelToken,
+}: {
+  files: File[]
+  from_nid?: string
+  to_nid?: string
+  cancelToken: CancelToken
+}) {
+  const query: {
+    from?: string
+    to?: string
+  } = {}
   if (from_nid) {
     query.from = from_nid
   } else if (to_nid) {
@@ -164,9 +160,7 @@ async function uploadFiles({ files, from_nid, to_nid, account, cancelToken }) {
   }
   const value = new FormData()
   files.forEach((file) => value.append('file', file, file.name))
-  const headers = {
-    [kHeaderContentType]: `multipart/form-data; boundary=${value._boundary}`,
-  }
+  const headers = { [kHeaderContentType]: Mime.FORM_DATA }
   const config = {
     headers,
     cancelToken,
@@ -217,8 +211,13 @@ async function getNode({
   if (!res || !res.data) {
     return null
   }
-  debug('Node', res.data)
-  const { text, ntype, extattrs = null, intext = null, meta = null } = res.data
+  const {
+    text,
+    ntype,
+    extattrs = null,
+    index_text = null,
+    meta = null,
+  } = res.data
   const secret_id = null
   const success = true
   const node = new TNode(
@@ -229,7 +228,7 @@ async function getNode({
     moment(res.headers[kHeaderLastModified]),
     meta,
     extattrs ? NodeExtattrs.fromJson(extattrs) : null,
-    intext,
+    index_text,
     { secret_id, success }
   )
   return node
@@ -315,7 +314,7 @@ async function getNodesSlice({
         text,
         ntype,
         extattrs = null,
-        intext = null,
+        index_text = null,
         meta = null,
       } = item
       const node = new TNode(
@@ -326,13 +325,12 @@ async function getNodesSlice({
         moment.unix(upd),
         meta,
         extattrs ? NodeExtattrs.fromJson(extattrs) : null,
-        intext,
+        index_text,
         { secret_id: null, success: true }
       )
       return node
     })
   )
-  debug('Slice return', nodes)
   return {
     ...response,
     nodes,

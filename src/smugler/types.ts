@@ -27,9 +27,7 @@ export class NodeTextData {
   }
 
   static async fromJson(v: object): Promise<NodeTextData> {
-    debug('NodeTextData.fromJson -- begin', v)
     const slate = await getDocSlate(v) // (slate || draft || chunks)
-    debug('NodeTextData.fromJson -- end', v)
     return new NodeTextData(slate)
   }
 
@@ -139,7 +137,7 @@ export class TNode {
    */
   extattrs: Optional<NodeExtattrs>
 
-  intext: Optional<NodeTextIndex>
+  index_text: Optional<NodeTextIndex>
 
   created_at: moment.Moment
   updated_at: moment.Moment
@@ -159,10 +157,9 @@ export class TNode {
     updated_at: moment.Moment,
     meta: Optional<NodeMeta>,
     extattrs: Optional<NodeExtattrs>,
-    intext: Optional<NodeTextIndex>,
+    index_text: Optional<NodeTextIndex>,
     _crypto: TNodeCrypto
   ) {
-    debug('TNode constructor', nid)
     this.nid = nid
     this.ntype = ntype
     this.text = text
@@ -170,7 +167,7 @@ export class TNode {
     this.updated_at = updated_at
     this.meta = meta
     this.extattrs = extattrs
-    this.intext = intext
+    this.index_text = index_text
     this.crypto = _crypto
   }
 

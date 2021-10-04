@@ -134,7 +134,7 @@ export async function enforceTopHeader(doc: TDoc): TDoc {
   return doc
 }
 
-export async function makeDoc(args): TDoc {
+export async function makeDoc(args): Promise<TDoc> {
   if (!args) {
     return { slate: makeEmptySlate() }
   }
