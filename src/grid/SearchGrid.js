@@ -72,7 +72,7 @@ class DynamicGrid extends React.Component {
       }
       return n
     }
-    const ncols = Math.max(2, fn(16))
+    const ncols = Math.max(2, fn(14))
     this.setState({
       width,
       height,
