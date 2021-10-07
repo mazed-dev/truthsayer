@@ -71,13 +71,36 @@ export class AuthorBadge extends React.Component {
   }
 }
 
+function formatDate(m) {
+  const sameElse = function (now) {
+    if (this.year() === now.year()) {
+      return 'dddd, D MMM'
+    } else {
+      return 'dddd, D MMM YYYY'
+    }
+  }
+  return m.calendar({
+    sameDay: '[Today]',
+    lastDay: '[Yesterday]',
+    lastWeek: '[Last] dddd',
+    sameElse,
+  })
+}
+
+function formatFullDate(m) {
+  return m.format('dddd, MMMM Do YYYY, HH:mm')
+}
+
 export const TimeBadge = ({ created_at, updated_at }) => {
-  const tooltip = `Created ${created_at.fromNow()}, updated ${updated_at.fromNow()}`
+  let tooltip = `Created ${formatFullDate(created_at)}`
+  if (!created_at.isSame(updated_at)) {
+    tooltip += `, updated ${formatFullDate(updated_at)}`
+  }
   return (
     <div className={styles.badge}>
       <div className={styles.column}>
         <HoverTooltip tooltip={tooltip}>
-          <div className={styles.created_at_date}>{created_at.fromNow()}</div>
+          <div className={styles.created_at_date}>{formatDate(created_at)}</div>
         </HoverTooltip>
       </div>
     </div>
