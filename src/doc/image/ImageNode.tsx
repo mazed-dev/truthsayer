@@ -13,8 +13,8 @@ import ZoomResetImg from '../../img/zoom-reset-strip.svg'
 
 import styles from './ImageNode.module.css'
 
-export const ImageNode = ({ className, nid, data }) => {
-  const source = data.getBlobSource(nid)
+export const ImageNode = ({ className, node }) => {
+  const source = node.getBlobSource()
   const [show, setShow] = useState(false)
 
   let imageRef

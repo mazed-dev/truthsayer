@@ -3,9 +3,11 @@ import { debug } from '../util/log'
 
 const queryString = require('query-string')
 
-export const Mime: Map<string, string> = {
+export const Mime = {
   JSON: 'application/json',
   PDF: 'application/pdf',
+
+  FORM_DATA: 'multipart/form-data',
 
   TEXT_PLAIN: 'text/plain',
   TEXT_PLAIN_UTF_8: 'text/plain; charset=utf-8',
@@ -23,6 +25,9 @@ export const Mime: Map<string, string> = {
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
  */
 export class MimeType {
+  _type: string
+  subtype: string
+  params: Optional<object>
   constructor({ type, subtype, params }) {
     this._type = type
     this.subtype = subtype || '*'

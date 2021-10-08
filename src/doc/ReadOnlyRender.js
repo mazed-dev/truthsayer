@@ -14,21 +14,15 @@ import { MzdGlobalContext } from '../lib/global'
 import { debug } from '../util/log'
 
 export function SmallCardRender({ node }) {
+  debug('SmallCardRender', node)
   let media
   let text
   if (node == null) {
-    text = <Loader />
+    media = <Loader />
   } else {
-    const { data, nid } = node
-    text = (
-      <ReadOnlyDoc
-        nid={nid}
-        data={data}
-        className={styles.read_only_text_card}
-      />
-    )
+    text = <ReadOnlyDoc node={node} className={styles.read_only_text_card} />
     if (node.isImage()) {
-      media = <ImageNode nid={nid} data={data} />
+      media = <ImageNode node={node} />
     }
   }
   return (

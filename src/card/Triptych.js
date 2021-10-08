@@ -153,20 +153,15 @@ class Triptych extends React.Component {
   }
 
   saveNode = lodash.debounce(
-    (node) => {
-      if (this.props.nid !== node.nid) {
-        throw Error(
-          'Attempt to modify the node from the editor that belongs to a different node'
-        )
-      }
+    (text) => {
       // TODO(akindyakov): move conversion from raw slate to doc to here
       // TODO(akindyakov): collect stats here
-      const account = this.context.account
+      const nid = this.props.nid
       return smugler.node
         .update({
-          node,
+          nid,
+          text,
           cancelToken: this.fetchNodeCancelToken.token,
-          account,
         })
         .then((resp) => {
           return resp

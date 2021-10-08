@@ -1,5 +1,5 @@
 import { TDoc, TChunk, EChunkType, SlateText } from './types'
-import { NodeData } from '../smugler/types'
+import { TNode } from '../smugler/types'
 
 import { cloneDeep } from 'lodash'
 
@@ -134,7 +134,7 @@ export async function enforceTopHeader(doc: TDoc): TDoc {
   return doc
 }
 
-export async function makeDoc(args): TDoc {
+export async function makeDoc(args): Promise<TDoc> {
   if (!args) {
     return { slate: makeEmptySlate() }
   }
@@ -300,13 +300,13 @@ function getDraftAsTextChunks(draft: TDraftDoc): string[] {
   return lodash.concat(texts, entities)
 }
 
-export function docAsMarkdown(nid: string, data: NodeData): string {
+export function docAsMarkdown(node: TNode): string {
   let md = ''
-  if (data.isImage()) {
-    const source = data.getBlobSource(nid)
+  if (node.isImage()) {
+    const source = node.getBlobSource()
     md = md.concat(`![](${source})`)
   }
-  const text = data.getText()
+  const text = node.getText().getText()
   if (text) {
     md = md.concat(slateToMarkdown(text))
   }

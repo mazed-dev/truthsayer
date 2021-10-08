@@ -19,21 +19,15 @@ export function FullCard({ node, addRef, stickyEdges, saveNode }) {
   if (node == null) {
     editor = <Loader />
   } else {
-    const { data, nid } = node
     const saveText = (text: SlateText) => {
-      node.data = data.updateText(text)
-      saveNode(node)
+      const newText = node.getText().updateText(text)
+      saveNode(newText)
     }
     editor = (
-      <DocEditor
-        className={styles.editor}
-        nid={nid}
-        data={data}
-        saveText={saveText}
-      />
+      <DocEditor className={styles.editor} node={node} saveText={saveText} />
     )
     if (node.isImage()) {
-      media = <ImageNode className={styles.media} nid={nid} data={data} />
+      media = <ImageNode className={styles.media} node={node} />
     }
   }
   const reloadNode = () => {}
