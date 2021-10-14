@@ -43,5 +43,7 @@ jobs:
         run: yarn install --prefer-offline --frozen-lockfile
 
       - run: yarn lint
-      - run: yarn build
+      - run: yarn smuggler-api build
+      - run: yarn archaeologist build
+      - run: yarn truthsayer build
       - run: yarn test --all --watchAll=false --no-watchman

@@ -18,14 +18,9 @@ For free private repos wiki is not availiable. Instead there is directory "./doc
 
 ### Build
 
-To build all workspaces run:
-```
-yarn build
-```
-
 For to build a single workspace:
 ```
-yarn truthsayer build
+yarn <workspace> build
 ```
 
 ### Test
