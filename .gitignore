@@ -3,8 +3,11 @@
 # React
 /src/react-app-env.d.ts
 
+# Typescript
+*/tsconfig.tsbuildinfo
+
 # dependencies
-/node_modules
+**/node_modules/**
 /.pnp
 .pnp.js
 
@@ -12,8 +15,9 @@
 /coverage
 
 # production
-/build
+**/build/**
 /deploy/pkgs
+**/dist/**
 
 # misc
 .DS_Store

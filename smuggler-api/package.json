@@ -1,0 +1,28 @@
+{
+  "name": "smuggler-api",
+  "version": "0.0.1",
+  "description": "Smuggler API artefacts in typescript",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [ "/dist" ],
+  "author": "Thread knowledge",
+  "license": "no",
+  "private": true,
+  "scripts": {
+    "build": "tsc --pretty",
+    "test": "jest",
+    "fix": "yarn fix:prettier && yarn fix:eslint",
+    "fix:eslint": "yarn lint:eslint --fix",
+    "fix:prettier": "yarn lint:prettier --write",
+    "lint": "yarn lint:eslint && yarn lint:prettier",
+    "lint:eslint": "eslint \"./src/**/*.{js,ts}\"",
+    "lint:prettier": "prettier --check \"./src/**/*.{css,md,js,json,ts}\"",
+    "lint:typescript": "tsc --build ./ --force"
+  },
+  "devDependencies": {},
+  "dependencies": {
+    "axios": "^0.21.4",
+    "moment": "^2.29.1",
+    "query-string": "^7.0.0"
+  }
+}

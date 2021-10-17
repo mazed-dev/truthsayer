@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "Mazed",
+  "author": "Thread knowledge",
+  "version": "0.0.1",
+  "description": "Save your web to Mazed",
+  "action": {
+    "default_icon": {
+      "16": "logo-16x16.png",
+      "48": "logo-48x48.png",
+      "72": "logo-72x72.png",
+      "128": "logo-128x128.png",
+      "240": "logo-240x240.png"
+    },
+    "default_title": "Click Me",
+    "default_popup": "popup.html"
+  },
+  "icons": {
+      "16": "logo-16x16.png",
+      "48": "logo-48x48.png",
+      "72": "logo-72x72.png",
+      "128": "logo-128x128.png",
+      "240": "logo-240x240.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "chrome_url_overrides": {},
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "contextMenus",
+    "storage"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*/*"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ]
+}
