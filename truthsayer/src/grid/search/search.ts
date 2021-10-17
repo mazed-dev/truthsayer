@@ -4,8 +4,6 @@ import { getSlateAsPlainText } from '../../doc/doc_util'
 import { Optional } from './../../util/types'
 import { debug } from './../../util/log'
 
-const lodash = require('lodash')
-
 /**
     nid: nid,
     doc: doc,
@@ -20,7 +18,7 @@ export function searchNodesFor(
   nodes: TNode[],
   pattern: RegExp | null
 ): TNode[] {
-  if (!lodash.isRegExp(pattern)) {
+  if (!pattern) {
     return nodes
   }
   return nodes.filter((node) => {
@@ -32,11 +30,11 @@ export function searchNodeFor(
   node: TNode,
   pattern: Optional<RegExp>
 ): Optional<TNode> {
-  if (!lodash.isRegExp(pattern)) {
+  if (!pattern) {
     // Empty search fall back to show everything
     return node
   }
-  const blocks = getSlateAsPlainText(node.data.getText())
+  const blocks = getSlateAsPlainText(node.getText().getText())
   const matchedIndex = blocks.findIndex((text) => {
     const ret = text.search(pattern) >= 0
     return ret

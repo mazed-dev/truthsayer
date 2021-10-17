@@ -8,7 +8,7 @@ import { SCard } from './../card/ShrinkCard'
 import { TimeBadge } from './../card/AuthorBadge'
 import { SmallCardRender } from './../doc/ReadOnlyRender'
 
-import { searchNodeFor } from './search/search.jsx'
+import { searchNodeFor } from './search/search'
 
 import { smuggler } from 'smuggler-api'
 
