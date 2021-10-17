@@ -1,10 +1,12 @@
 # Web app for Mazed
 
-## Projects
+## Workspaces
 
 - `truthsayer` - Web app
 - `archaeologist` - browser plugin for Chromium/Chrome
 - `smuggler-api` - simple TS wrapper around smuggler REST API
+
+See [yarn workspaces](https://yarnpkg.com/features/workspaces).
 
 ## Docs
 
@@ -32,7 +34,7 @@ yarn test
 
 To test one workspace:
 ```
-yarn <project> test
+yarn <workspace> test
 ```
 
 ### Linter
