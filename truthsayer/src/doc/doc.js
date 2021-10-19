@@ -6,7 +6,6 @@ import PropTypes from 'prop-types'
 import { withRouter } from 'react-router-dom'
 
 import { Loader } from '../lib/loader'
-import { MzdGlobalContext } from './../lib/global'
 
 import { jcss } from '../util/jcss'
 

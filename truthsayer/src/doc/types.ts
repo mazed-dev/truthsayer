@@ -41,21 +41,6 @@ export interface TDraftDoc {
   entityMap: TEntity[]
 }
 
-// TODO(akindyakov): Move it to doc.ts
-export class TDoc {
-  chunks?: TChunk[]
-  draft?: TDraftDoc
-  slate: Descendant[]
-
-  constructor(slate: Descendant[]) {
-    this.slate = slate
-  }
-
-  toNodeTextData(): NodeTextData {
-    return new NodeTextData(this.slate)
-  }
-}
-
 export const kBlockTypeH1 = 'header-one'
 export const kBlockTypeH2 = 'header-two'
 export const kBlockTypeH3 = 'header-three'

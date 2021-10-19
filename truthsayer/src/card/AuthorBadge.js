@@ -8,8 +8,6 @@ import { HoverTooltip } from '../lib/tooltip'
 
 import UserDefaultPic from './../auth/img/user-default-pic.png'
 
-import { MzdGlobalContext } from './../lib/global'
-
 export class AuthorBadge extends React.Component {
   constructor(props) {
     super(props)

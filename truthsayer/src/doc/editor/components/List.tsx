@@ -11,7 +11,7 @@ import './components.css'
 
 import { debug } from '../../../util/log'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 const ListItem = React.forwardRef(
   ({ className, children, ...attributes }, ref) => {

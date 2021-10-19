@@ -34,7 +34,7 @@ import {
 
 import { slateToMarkdown, markdownToSlate } from './slate.ts'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 function mdImageItemToEntity(item) {
   return {

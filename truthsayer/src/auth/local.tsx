@@ -9,7 +9,6 @@ import {
   AnonymousAccount,
   AccountInterface,
 } from 'smuggler-api'
-import { debug } from '../util/log'
 
 export type { AccountInterface }
 export type { UserAccount }

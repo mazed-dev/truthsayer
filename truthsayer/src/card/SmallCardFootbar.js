@@ -8,8 +8,6 @@ import { smuggler } from 'smuggler-api'
 import styles from './Footbar.module.css'
 
 import CutTheRefImg from './../img/cut-the-ref.png'
-import ImgStickyRefOff from './../img/sticky-ref-checkbox-off.png'
-import ImgStickyRefOn from './../img/sticky-ref-checkbox-on.png'
 import { makeRefTo } from './../lib/route'
 
 import { MzdGlobalContext } from '../lib/global'
@@ -111,7 +109,6 @@ class PrivateMenu extends React.Component {
 
 const PublicMenu = ({ children, edge }) => {
   const { isSticky } = edge
-  const src = isSticky ? ImgStickyRefOn : ImgStickyRefOff
   const tooltip = isSticky
     ? 'This is a magnet link'
     : 'This is a not-magnet link'

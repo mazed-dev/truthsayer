@@ -1,6 +1,3 @@
-import React from 'react'
-import { render } from '@testing-library/react'
-import { TDoc, TChunk, EChunkType } from './types'
 import { makeBlankCopyOfAText } from './chunk_util.jsx'
 
 test('makeBlankCopyOfAText - plain text single line', () => {

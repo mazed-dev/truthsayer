@@ -37,8 +37,6 @@ import { initDevEnv } from './dev/env'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
 
-import { debug } from './util/log'
-
 import './App.css'
 
 class App extends React.Component {

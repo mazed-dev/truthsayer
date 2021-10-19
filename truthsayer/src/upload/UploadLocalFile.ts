@@ -59,7 +59,6 @@ function uploadLocalTextFile(
   }
   const reader = new FileReader()
   reader.onload = (event) => {
-    debug('Loaded to memory', event)
     const appendix = `\n---\n*From file - "${file.name}" (\`${
       Math.round((file.size * 100) / 1024) * 100
     }KiB\`)*\n`

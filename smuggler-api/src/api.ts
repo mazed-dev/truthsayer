@@ -1,4 +1,12 @@
-import { NodeExtattrs, TNode, NodeTextData } from './types'
+import {
+  NodeExtattrs,
+  TNode,
+  TEdge,
+  EdgeAttributes,
+  EdgeStar,
+  NodeTextData,
+  NewNodeResponse,
+} from './types'
 
 import { Mime } from './util/mime'
 import { Optional } from './util/optional'
@@ -32,12 +40,6 @@ const _client = axios.create({
   baseURL: _getSmuglerApibaseURL(),
   timeout: 8000,
 })
-
-export type NewNodeResponse = {
-  nid: string
-  from: Optional<string>
-  to: Optional<string>
-}
 
 async function createNode({
   doc,
@@ -180,11 +182,11 @@ async function updateNode({
   return _client.patch(`/node/${nid}`, value, config).catch(dealWithError)
 }
 
-export function getAuth({ cancelToken }) {
+function getAuth({ cancelToken }) {
   return _client.get(`/auth`, { cancelToken }).catch(dealWithError)
 }
 
-export function getAnySecondKey() {
+function getAnySecondKey() {
   return _client
     .post(`/key/second/*`)
     .then((res) => {
@@ -193,7 +195,7 @@ export function getAnySecondKey() {
     .catch(dealWithError)
 }
 
-export function getSecondKey({ id }) {
+function getSecondKey({ id }) {
   return _client
     .get(`/key/second/${id}`)
     .then((res) => {
@@ -265,7 +267,7 @@ async function getNodesSlice({
   }
 }
 
-async function createEdge({ from, to, cancelToken }) {
+async function createEdge({ from, to, cancelToken }): Promise<TEdge> {
   verifyIsNotNull(from)
   verifyIsNotNull(to)
   const req = {
@@ -282,10 +284,15 @@ async function createEdge({ from, to, cancelToken }) {
     })
     .catch(dealWithError)
     .then((res) => {
-      if (res && res.data && res.data.edges && res.data.edges.length > 0) {
-        return new TEdge(res.data.edges[0])
+      if (res == null) {
+        throw new Error('Empty edge creation response')
       }
-      return null
+      const edges = res?.data?.edges
+      if (!edges?.length) {
+        throw new Error('Empty edge creation response')
+      }
+      const edgeOjb = edges[0]
+      return new TEdge(edgeOjb)
     })
 }
 
@@ -307,48 +314,11 @@ async function createFewEdges({ edges, cancelToken }) {
     })
 }
 
-interface Edge {
-  eid: string
-  txt: string
-  from_nid: string
-  to_nid: string
-  crtd: moment.Moment
-  upd: moment.Moment
-  weight: number
-  is_sticky: boolean
-  owned_by: string
-}
-
-class TEdge implements Edge {
-  eid: string
-  txt: string
-  from_nid: string
-  to_nid: string
-  crtd: moment.Moment
-  upd: moment.Moment
-  weight: number
-  is_sticky: boolean
-  owned_by: string
-
-  constructor(edge: Edge) {
-    this.eid = edge.eid
-    this.txt = edge.txt
-    this.from_nid = edge.from_nid
-    this.to_nid = edge.to_nid
-    this.crtd = edge.crtd
-    this.upd = edge.upd
-    this.weight = edge.weight
-    this.is_sticky = edge.is_sticky
-    this.owned_by = edge.owned_by
-  }
-  // isOwnedBy(account) {
-  //   return (
-  //     account && account.isAuthenticated() && account.getUid() === this.owned_by
-  //   );
-  // }
-}
-
-async function getNodeEdges(nid, cancelToken, dir) {
+async function getNodeEdges(
+  nid: string,
+  cancelToken: CancelToken,
+  dir: '/to' | '/from'
+): Promise<EdgeStar> {
   verifyIsNotNull(nid)
   verifyIsNotNull(dir)
   return _client
@@ -356,23 +326,23 @@ async function getNodeEdges(nid, cancelToken, dir) {
       cancelToken,
     })
     .catch(dealWithError)
-    .then((res) => {
-      if (res) {
-        const star = res.data
-        star.edges = star.edges.map((edgeObj) => {
-          return new TEdge(edgeObj)
-        })
-        return star
+    .then((response) => {
+      if (response == null) {
+        throw new Error('Unexpected empty response')
       }
-      return null
+      const star = response.data
+      star.edges = star.edges.map((edgeObj: EdgeAttributes) => {
+        return new TEdge(edgeObj)
+      })
+      return star
     })
 }
 
-async function getEdgesToNode({ nid, cancelToken }) {
+async function getEdgesToNode({ nid, cancelToken }): Promise<EdgeStar> {
   return await getNodeEdges(nid, cancelToken, '/to')
 }
 
-async function getEdgesFromNode({ nid, cancelToken }) {
+async function getEdgesFromNode({ nid, cancelToken }): Promise<EdgeStar> {
   return await getNodeEdges(nid, cancelToken, '/from')
 }
 

@@ -1,24 +1,12 @@
-import { TDoc, TChunk, TDraftDoc, SlateText } from './types'
-import { TNode } from 'smuggler-api'
+import { TChunk, TDraftDoc, SlateText } from './types'
+import { TNode, NodeTextData } from 'smuggler-api'
 
-import { cloneDeep } from 'lodash'
-
-import {
-  makeChunk,
-  makeHRuleChunk,
-  makeAsteriskChunk,
-  isHeaderChunk,
-  isTextChunk,
-  makeBlankCopyOfAChunk,
-} from './chunk_util.jsx'
+import { makeAsteriskChunk, isHeaderChunk, isTextChunk } from './chunk_util.jsx'
 
 import { unixToString } from './editor/components/DateTime'
 
-import { debug } from './../util/log'
-import { genEmoji } from './../lib/EmojiDefaultAsterisk'
-
 import { draftToMarkdown, markdownToDraft } from '../markdown/conv.jsx'
-import { slateToMarkdown, markdownToSlate } from '../markdown/slate.ts'
+import { slateToMarkdown, markdownToSlate } from '../markdown/slate'
 
 import {
   DateTimeElement,
@@ -26,21 +14,36 @@ import {
   LinkElement,
   ParagraphElement,
   ThematicBreakElement,
-  addLinkBlock,
-  isHeaderBlock,
   isHeaderSlateBlock,
   isTextSlateBlock,
   kSlateBlockTypeBreak,
   kSlateBlockTypeDateTime,
-  kSlateBlockTypeH1,
   kSlateBlockTypeLink,
   kSlateBlockTypeListCheckItem,
   kSlateBlockTypeParagraph,
-  makeHRuleBlock,
-  makeUnstyledBlock,
-} from './types.ts'
+} from './types'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
+
+export class TDoc {
+  slate: SlateText
+
+  constructor(slate: SlateText) {
+    this.slate = slate
+  }
+
+  toNodeTextData(): NodeTextData {
+    return new NodeTextData(this.slate)
+  }
+
+  static fromNodeTextData(nodeTextData: NodeTextData): TDoc {
+    return new TDoc(nodeTextData.getText() as SlateText)
+  }
+
+  static makeEmpty(): TDoc {
+    return new TDoc(makeEmptySlate())
+  }
+}
 
 export function exctractDocTitle(slate: SlateText): string {
   const title = slate.reduce((acc, item) => {
@@ -89,23 +92,19 @@ function blankSlate(slate: SlateText): SlateText {
   })
 }
 
-export async function makeACopy(
-  data: NodeData,
-  nid: string,
-  isBlankCopy: boolean
-): TDoc {
-  let text = data.getText()
-  const title = exctractDocTitle(text)
+export function makeACopy(doc: TDoc, nid: string, isBlankCopy: boolean): TDoc {
+  let slate = doc.slate
+  const title = exctractDocTitle(slate)
   let label
   if (isBlankCopy) {
-    text = blankSlate(text)
-    const title = exctractDocTitle(text)
+    slate = blankSlate(slate)
     label = `Blank copy of "${title}"`
   } else {
+    slate = lodash.cloneDeep(doc.slate)
     label = `Copy of "${title}"`
   }
-  text.push(makeThematicBreak(), makeParagraph([makeNodeLink(label, nid)]))
-  return data.updateText(text)
+  slate.push(makeThematicBreak(), makeParagraph([makeNodeLink(label, nid)]))
+  return new TDoc(slate)
 }
 
 // Deprecated
@@ -195,7 +194,7 @@ export async function getDocDraft(doc: TDoc): TDraftDoc {
   return await makeDoc({})
 }
 
-export async function getDocSlate(doc: TDoc | string): Promise<Descendant[]> {
+export async function getDocSlate(doc: TDoc | string): Promise<SlateText> {
   let slate
   if (lodash.isString(doc)) {
     slate = await markdownToSlate(doc)
@@ -246,7 +245,7 @@ export function getPlainText(doc: TDoc): string[] {
   return ['']
 }
 
-export function getSlateAsPlainText(children: Descendant[]): string[] {
+export function getSlateAsPlainText(children: SlateText): string[] {
   const texts = []
   const entities = []
   children.forEach((item) => {
@@ -326,7 +325,7 @@ export function docAsMarkdown(node: TNode): string {
   return md
 }
 
-export function makeEmptySlate(): Descendant[] {
+export function makeEmptySlate(): SlateText {
   return [
     {
       type: kSlateBlockTypeParagraph,
@@ -346,7 +345,7 @@ function makeThematicBreak(): ThematicBreakElement {
   }
 }
 
-export function makeParagraph(children: Descendant[]): ParagraphElement {
+export function makeParagraph(children: SlateText): ParagraphElement {
   if (!children) {
     children = [makeLeaf('')]
   }
@@ -390,7 +389,7 @@ export function makeDateTime(
   }
 }
 
-function enforceMinimalSlate(items: Descendant[]): Descendant[] {
+function enforceMinimalSlate(items: SlateText): SlateText {
   if (items.length) {
     return items
   }

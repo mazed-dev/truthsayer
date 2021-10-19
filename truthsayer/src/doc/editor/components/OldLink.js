@@ -20,7 +20,7 @@ import DeleteImg from '../../../img/delete.png'
 
 import styles from './OldLink.module.css'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 function onBlur() {
   // *dbg*/ console.log('onBlur')

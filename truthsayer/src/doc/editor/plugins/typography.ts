@@ -11,7 +11,7 @@ import { makeParagraph } from '../../doc_util'
 import { debug } from '../../../util/log'
 import { CustomEditor, CustomElement } from '../../types'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 const TYPES_NOT_TO_BE_LAST = new Set([
   kSlateBlockTypeBreak,

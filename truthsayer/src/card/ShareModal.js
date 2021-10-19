@@ -1,14 +1,11 @@
 import React from 'react'
 
-import { Modal, Button, ButtonToolbar, Form, ListGroup } from 'react-bootstrap'
-
-import keycode from 'keycode'
+import { Modal, ListGroup } from 'react-bootstrap'
 
 import { Loader } from './../lib/loader'
 import { ImgButton } from './../lib/ImgButton'
 import { smuggler } from 'smuggler-api'
 import { jcss } from '../util/jcss'
-import { HoverTooltip } from '../lib/tooltip'
 
 import styles from './ShareModal.module.css'
 
