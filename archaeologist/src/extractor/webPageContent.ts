@@ -11,7 +11,10 @@
  *   - head.meta[name="description"] : [content]
  */
 
-import * as _log from './util/log'
+import lodash from 'lodash'
+
+import { Readability as MozillaReadability } from '@mozilla/readability'
+import { stabiliseUrl } from './originId'
 
 export interface WebPageContentImage {
   icon: string | null // favicon, URL
@@ -19,31 +22,85 @@ export interface WebPageContentImage {
 }
 
 export interface WebPageContent {
+  url: string
   title: string | null
   description: string | null
   lang: string | null
   author: string[]
   publisher: string[]
-  text: string[]
-  tags: string[]
+  text: string | null
   image: WebPageContentImage
 }
 
+export function exctractPageUrl(document_: Document): string {
+  return document_.URL || document_.documentURI
+}
+
 export function exctractPageContent(
-  html: HTMLHtmlElement,
+  document_: Document,
   baseURL: string
 ): WebPageContent {
-  const head = html.getElementsByTagName('head')[0]
-  const body = html.getElementsByTagName('body')[0]
+  const url = stabiliseUrl(document_.URL || document_.documentURI)
+  const head = document_.head
+  const body = document_.body
+
+  // The parse() method of @mozilla/readability works by modifying the DOM. This
+  // removes some elements in the web page. We avoid this by passing the clone
+  // of the document object to the Readability constructor.
+  const article = new MozillaReadability(
+    document_.cloneNode(true) as Document,
+    {
+      keepClasses: false,
+    }
+  ).parse()
+
+  let title: string | null = null
+  let text: string | null = null
+  let description: string | null = null
+  const author: string[] = []
+  const publisher: string[] = []
+  const lang = _exctractPageLanguage(document_)
+
+  if (article) {
+    // Do a best effort with what @mozilla/readability gives us here
+    title = article.title
+    const { textContent, excerpt, byline, siteName } = article
+    text = textContent
+    description = excerpt
+    if (byline) {
+      author.push(byline)
+    }
+    if (siteName) {
+      publisher.push(siteName)
+    }
+  }
+  if (title) {
+    title = _stripText(title)
+  } else {
+    title = head ? _exctractPageTitle(head) : null
+  }
+  if (description) {
+    description = _stripText(description)
+  } else {
+    description = head ? _exctractPageDescription(head) : null
+  }
+  if (text) {
+    text = _stripText(text)
+  } else {
+    text = body ? _exctractPageText(body) : null
+  }
+  if (author.length === 0 && head) {
+    author.push(..._exctractPageAuthor(head))
+  }
   return {
-    title: _exctractPageTitle(head),
-    author: _exctractPageAuthor(head),
-    publisher: _exctractPagePublisher(head),
-    description: _exctractPageDescription(head),
-    lang: _exctractPageLanguage(html),
-    text: _exctractPageText(body),
-    image: _exctractPageImage(head, baseURL),
-    tags: _exctractPageTags(head),
+    url,
+    title,
+    author,
+    publisher,
+    description,
+    lang,
+    text,
+    image: _exctractPageImage(head || null, baseURL),
   }
 }
 
@@ -76,7 +133,7 @@ export function _stripText(text: string): string {
  *   - ARIA element role: `article`, `main`.
  *   - ? Element class: `content`, `main`
  */
-export function _exctractPageText(body: HTMLBodyElement): string[] {
+export function _exctractPageText(body: HTMLElement): string {
   const ret: string[] = []
   const addedElements: Element[] = []
   for (const elementsGroup of [
@@ -102,7 +159,7 @@ export function _exctractPageText(body: HTMLBodyElement): string[] {
     }
   }
   if (ret.length > 0) {
-    return ret
+    return ret.join(' ')
   }
   for (const elementsGroup of [
     body.querySelectorAll('[role="main"]'),
@@ -126,7 +183,7 @@ export function _exctractPageText(body: HTMLBodyElement): string[] {
       addedElements.push(element)
     }
   }
-  return ret
+  return ret.join(' ')
 }
 
 /**
@@ -193,8 +250,12 @@ export function _exctractPageDescription(head: HTMLHeadElement): string | null {
   return null
 }
 
-export function _exctractPageLanguage(html: HTMLHtmlElement): string | null {
-  return html.lang || html.getAttribute('lang') || null
+export function _exctractPageLanguage(document_: Document): string | null {
+  const html = lodash.head(document_.getElementsByTagName('html'))
+  if (html) {
+    return html.lang || html.getAttribute('lang') || null
+  }
+  return null
 }
 
 export function _exctractPagePublisher(head: HTMLHeadElement): string[] {
@@ -225,11 +286,14 @@ function ensureAbsRef(ref: string, baseURL: string): string {
 }
 
 export function _exctractPageImage(
-  head: HTMLHeadElement,
+  head: HTMLHeadElement | null,
   baseURL: string
 ): WebPageContentImage {
   let icon = null
   let og = null
+  if (head == null) {
+    return { icon, og }
+  }
   for (const elementsGroup of [
     head.querySelectorAll('meta[property="og:image"]'),
     head.querySelectorAll('meta[name="twitter:image"]'),
@@ -253,9 +317,4 @@ export function _exctractPageImage(
     }
   }
   return { icon, og }
-}
-
-export function _exctractPageTags(head: HTMLHeadElement): string[] {
-  // TODO
-  return []
 }

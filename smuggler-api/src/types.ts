@@ -10,6 +10,27 @@ export type Optional<T> = T | null | undefined
 
 export type SlateText = object[]
 
+function makeEmptySlate(plaintext?: string): SlateText {
+  return [
+    {
+      type: 'paragraph',
+      children: [
+        {
+          text: plaintext || '',
+        },
+      ],
+    },
+  ]
+}
+
+export function makeNodeTextData(plaintext?: string): NodeTextData {
+  return {
+    slate: makeEmptySlate(plaintext),
+    draft: undefined,
+    chunks: undefined,
+  }
+}
+
 // see smuggler/src/types.rs
 export type NodeTextData = {
   slate: SlateText | undefined

@@ -1,4 +1,5 @@
 module.exports = {
+  verbose: true,
 
   // The root of your source code, typically /src
   // `<rootDir>` is a token Jest substitutes
@@ -7,8 +8,12 @@ module.exports = {
   // Jest transformations -- this adds support for TypeScript
   // using ts-jest
   transform: {
-    "^.+\\.tsx?$": "ts-jest"
+    "^.+\\.[tj]sx?$": "ts-jest"
   },
+
+  transformIgnorePatterns: [
+    "/node_modules/(?!normalize-url/)",
+  ],
 
   // Runs special logic, such as cleaning up components
   // when using React Testing Library and adds special

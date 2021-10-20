@@ -1,5 +1,5 @@
 import { TChunk, TDraftDoc, SlateText } from './types'
-import { TNode, NodeTextData } from 'smuggler-api'
+import { TNode, NodeTextData, makeNodeTextData } from 'smuggler-api'
 
 import { unixToString } from './editor/components/DateTime'
 
@@ -47,7 +47,8 @@ export class TDoc {
   }
 
   static makeEmpty(): TDoc {
-    return new TDoc(makeEmptySlate())
+    const { slate } = makeNodeTextData()
+    return new TDoc(slate as SlateText)
   }
 
   makeACopy(nid: string, isBlankCopy: boolean): TDoc {
@@ -161,7 +162,7 @@ export async function makeDoc({
     const slate = await markdownToSlate(plain)
     return new TDoc(slate)
   }
-  return new TDoc(makeEmptySlate())
+  return new TDoc(makeNodeTextData().slate as SlateText)
 }
 
 export function getPlainText({ slate, draft, chunks }: NodeTextData): string[] {
@@ -178,10 +179,10 @@ export function getPlainText({ slate, draft, chunks }: NodeTextData): string[] {
 }
 
 export function getSlateAsPlainText(children: SlateText): string[] {
-  const texts = []
-  const entities = []
+  const texts: string[] = []
+  const entities: string[] = []
   children.forEach((item) => {
-    const [text, itemEntities] = getSlateDescendantAsPlainText(item, '')
+    const [text, itemEntities] = getSlateDescendantAsPlainText(item)
     if (text) {
       texts.push(text)
     }
@@ -205,7 +206,7 @@ function getSlateDescendantAsPlainText(parent: Descendant): string[] {
   }
   if (children) {
     children.forEach((item) => {
-      let [itemText, itemEntities] = getSlateDescendantAsPlainText(item, '')
+      let [itemText, itemEntities] = getSlateDescendantAsPlainText(item)
       itemText = lodash.trim(itemText)
       if (text) {
         text += ' '
@@ -256,19 +257,6 @@ export async function docAsMarkdown(node: TNode): Promise<string> {
     md = md.concat(slateToMarkdown(doc.slate))
   }
   return md
-}
-
-export function makeEmptySlate(): SlateText {
-  return [
-    {
-      type: kSlateBlockTypeParagraph,
-      children: [
-        {
-          text: '',
-        },
-      ],
-    },
-  ]
 }
 
 function makeThematicBreak(): ThematicBreakElement {

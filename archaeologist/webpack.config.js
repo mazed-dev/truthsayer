@@ -81,11 +81,14 @@ const config = (env, argv) => {
         'process.env.SAFARI': JSON.stringify(env.safari || false),
         'process.env.BROWSER': JSON.stringify(
           (env.chrome) ? "chrome"
-          : (env.firefox) ? "firefox"
-          : (env.safari) ? "safari" : ""
+            : (env.firefox) ? "firefox"
+              : (env.safari) ? "safari" : ""
         ),
         'process.env.REACT_APP_SMUGGLER_API_URL': JSON.stringify(
-          argv.mode === 'development' ? "http://0.0.0.0:8080" : "https://mazed.dev"),
+          argv.mode === 'development'
+            ? "http://localhost:3000"
+            : "https://mazed.dev/smuggler"
+        ),
       }),
     ],
   }

@@ -1,4 +1,5 @@
-import React from 'react'
+// Do not remove this import
+import React from 'react' // eslint-disable-line @typescript-eslint/no-unused-vars
 
 /**
  * @jest-environment jsdom
@@ -10,11 +11,10 @@ import {
   _exctractPageText,
   _exctractPageTitle,
   _exctractPageAuthor,
-  _exctractPageDescription,
-  _exctractPageTags,
   _exctractPageLanguage,
   _exctractPagePublisher,
   _exctractPageImage,
+  exctractPageContent,
 } from './webPageContent'
 
 const { JSDOM } = jsdom
@@ -51,7 +51,7 @@ test('_exctractPageText - main', () => {
 `)
   const body = dom.window.document.getElementsByTagName('body')[0]
   const text = _exctractPageText(body)
-  expect(text).toStrictEqual(['First and second Third and forth'])
+  expect(text).toStrictEqual('First and second Third and forth')
 })
 
 test('_exctractPageText - article', () => {
@@ -72,7 +72,7 @@ test('_exctractPageText - article', () => {
 `)
   const body = dom.window.document.getElementsByTagName('body')[0]
   const text = _exctractPageText(body)
-  expect(text).toStrictEqual(['First and second Third and forth'])
+  expect(text).toStrictEqual('First and second Third and forth')
 })
 
 test('_exctractPageText - <div role="main">', () => {
@@ -93,7 +93,7 @@ test('_exctractPageText - <div role="main">', () => {
 `)
   const body = dom.window.document.getElementsByTagName('body')[0]
   const text = _exctractPageText(body)
-  expect(text).toStrictEqual(['First and second Third and forth'])
+  expect(text).toStrictEqual('First and second Third and forth')
 })
 
 test('_exctractPageText - nested elements', () => {
@@ -114,7 +114,7 @@ test('_exctractPageText - nested elements', () => {
 `)
   const body = dom.window.document.getElementsByTagName('body')[0]
   const text = _exctractPageText(body)
-  expect(text).toStrictEqual(['First and second Third and forth'])
+  expect(text).toStrictEqual('First and second Third and forth')
 })
 
 test('_exctractPageTitle - <title>', () => {
@@ -179,7 +179,7 @@ test('_exctractPageLanguage', () => {
 </html>
 `)
   const html = dom.window.document.getElementsByTagName('html')[0]
-  const lang = _exctractPageLanguage(html)
+  const lang = _exctractPageLanguage(dom.window.document)
   expect(lang).toStrictEqual('en')
 })
 
@@ -194,8 +194,8 @@ test('_exctractPagePublisher', () => {
 </html>
 `)
   const head = dom.window.document.getElementsByTagName('head')[0]
-  const lang = _exctractPagePublisher(head)
-  expect(lang).toStrictEqual(['The Publisher'])
+  const publisher = _exctractPagePublisher(head)
+  expect(publisher).toStrictEqual(['The Publisher'])
 })
 
 test('_exctractPageImage', () => {
@@ -233,5 +233,55 @@ test('_exctractPageImage - relative ref', () => {
   expect(image).toStrictEqual({
     icon: 'https://term.info/favicon-96x96.png',
     og: 'https://term.info/asset/ZgxW.jpg',
+  })
+})
+
+test('exctractPageContent - main', () => {
+  const originalUrl = 'https://example.org/test.html'
+  const origin = 'https://example.org'
+  const dom = new JSDOM(
+    `<!DOCTYPE html>
+<html class="responsive" lang="en">
+<head>
+  <title>Some title</title>
+  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+  <link rel="icon" type="image/png" href="https://cdn.abc.com/favicon-96x96.png" sizes="96x96">
+  <meta property="og:image" content="/asset/ZgxW.jpg">
+  <meta property="og:image" content="https://cdn.abc.com/ZgxW.jpg">
+  <meta property="author" content="Correct First Author">
+  <meta property="author" content="Correct Second Author">
+  <meta property="og:site_name" content="The Publisher">
+  <meta name="twitter:description" content="A JavaScript implementation">
+</head>
+<body >
+  <div>
+    <div>
+      <main id="content" class="social social-popover">
+        <div id="1" class="eng export 1">First and second</div>
+        <div id="2" class="eng export 2">Third and forth</div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
+`,
+    { url: originalUrl }
+  )
+  const content = exctractPageContent(dom.window.document, origin)
+  const { url, title, author, publisher, description, lang, text, image } =
+    content
+  expect(text).toStrictEqual('First and second Third and forth')
+  expect(url).toStrictEqual(originalUrl)
+  expect(title).toStrictEqual('Some title')
+  expect(author).toStrictEqual([
+    'Correct First Author',
+    'Correct Second Author',
+  ])
+  expect(publisher).toStrictEqual(['The Publisher'])
+  expect(description).toStrictEqual('A JavaScript implementation')
+  expect(lang).toStrictEqual('en')
+  expect(image).toStrictEqual({
+    icon: 'https://example.org/favicon-96x96.png',
+    og: 'https://example.org/asset/ZgxW.jpg',
   })
 })

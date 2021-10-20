@@ -41,7 +41,9 @@ export const Mime = {
   JSON: 'application/json',
   PDF: 'application/pdf',
   FORM_DATA: 'multipart/form-data',
+
   TEXT_URI_LIST: 'text/uri-list',
+
   TEXT_PLAIN: 'text/plain',
   TEXT_PLAIN_UTF_8: 'text/plain; charset=utf-8',
   IMAGE_BMP: 'image/bmp',

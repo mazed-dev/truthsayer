@@ -1,5 +1,7 @@
 # Todo
 
+- [ ] Add background element for popup
+
 - [ ] Implement special type of page - "dashboard"
 - [ ] Images support
 - [ ] Use sort by "creation date" (not by update date)

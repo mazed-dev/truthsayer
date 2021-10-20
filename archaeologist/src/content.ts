@@ -6,25 +6,43 @@
  * the DOM of web pages the browser visits.
  */
 import './content.css'
-import { MessageTypes } from './types'
-import { exctractPageContent } from './webPageContent'
+import { MessageTypes } from './message/types'
+import {
+  exctractPageContent,
+  exctractPageUrl,
+} from './extractor/webPageContent'
 
-async function _readPageContent() {
-  const html = document.getElementsByTagName('html')
-  const url = document.URL || document.documentURI
+import { genOriginId } from './extractor/originId'
+
+async function readPageContent() {
   const baseURL = `${window.location.protocol}//${window.location.host}`
-  const content = exctractPageContent(html[0], baseURL)
+  const content = exctractPageContent(document, baseURL)
+  const url = exctractPageUrl(document)
+  const originId = await genOriginId(url)
   chrome.runtime.sendMessage({
-    type: 'SAVE_PAGE',
+    type: 'PAGE_TO_SAVE',
     content,
     url,
+    originId,
+  })
+}
+
+async function getPageOriginId() {
+  const url = exctractPageUrl(document)
+  const originId = await genOriginId(url)
+  chrome.runtime.sendMessage({
+    type: 'PAGE_ORIGIN_ID',
+    originId,
   })
 }
 
 chrome.runtime.onMessage.addListener((message: MessageTypes) => {
   switch (message.type) {
-    case 'REQ_SAVE_PAGE':
-      _readPageContent()
+    case 'REQUEST_PAGE_TO_SAVE':
+      readPageContent()
+      break
+    case 'REQUEST_PAGE_ORIGIN_ID':
+      getPageOriginId()
       break
     default:
       break

@@ -10,23 +10,24 @@ import { jcss } from './jcss'
  * https://google.github.io/material-design-icons/ font
  */
 export type MaterialIconType =
-  | 'format_bold'
-  | 'format_italic'
-  | 'format_underlined'
+  | 'add'
+  | 'bookmark_add'
   | 'code'
-  | 'looks_one'
-  | 'looks_two'
-  | 'format_quote'
-  | 'format_list_numbered'
-  | 'format_list_bulleted'
+  | 'content_copy'
   | 'expand_less'
   | 'expand_more'
+  | 'file_upload'
+  | 'format_bold'
+  | 'format_italic'
+  | 'format_list_bulleted'
+  | 'format_list_numbered'
+  | 'format_quote'
+  | 'format_underlined'
   | 'launch'
+  | 'looks_one'
+  | 'looks_two'
   | 'more_horiz'
   | 'open_in_full'
-  | 'add'
-  | 'content_copy'
-  | 'file_upload'
   | 'search'
 
 type MaterialIconAttrs = React.HTMLProps<HTMLSpanElement>
@@ -70,3 +71,4 @@ export const MdiAdd = _makeMaterialIcon('add')
 export const MdiContentCopy = _makeMaterialIcon('content_copy')
 export const MdiFileUpload = _makeMaterialIcon('file_upload')
 export const MdiSearch = _makeMaterialIcon('search')
+export const MdiBookmarkAdd = _makeMaterialIcon('bookmark_add')

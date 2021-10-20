@@ -58,8 +58,8 @@ async function createNode({
   }
   const body: NewNodeRequestBody = {
     text,
-    index_text,
-    extattrs,
+    index_text: index_text || null,
+    extattrs: extattrs || null,
   }
   const resp = await fetch(makeUrl('node/new', query), {
     method: 'POST',
@@ -506,7 +506,7 @@ async function deleteSession({ signal }: { signal: AbortSignal }) {
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function updateSession(signal?: AbortSignal) {
+async function updateSession(signal?: AbortSignal): Promise<Ack> {
   const resp = await fetch(makeUrl('/auth/session'), {
     method: 'PATCH',
     signal,

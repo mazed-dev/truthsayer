@@ -118,7 +118,7 @@ export const authCookie = {
   check() {
     // Is it too slow?
     const cookies = new Cookies()
-    return cookies.get(COOKIES_VEIL_KEY) === 'y'
+    return checkRawValue(cookies.get(COOKIES_VEIL_KEY))
   },
   drop() {
     const cookies = new Cookies()
