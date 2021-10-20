@@ -23,7 +23,7 @@ import { debug } from '../util/log'
 
 import styles from './SearchGrid.module.css'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 export const GridCard = React.forwardRef(
   ({ onClick, className, children }, ref) => {

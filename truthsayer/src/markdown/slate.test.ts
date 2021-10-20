@@ -31,7 +31,7 @@ import {
   kSlateBlockTypeListCheckItem,
 } from '../doc/types'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 test('Markdown to Slate state', async () => {
   const md = `

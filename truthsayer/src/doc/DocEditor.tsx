@@ -4,7 +4,6 @@ import {
   Descendant,
   Editor,
   Element as SlateElement,
-  Point,
   Range,
   Transforms,
   createEditor,
@@ -33,15 +32,10 @@ import {
   kSlateBlockTypeImage,
   DateTimeElement,
   ImageElement,
-  LinkElement,
 } from './types'
-
-import { getDocSlate, makeDoc } from './doc_util'
 
 import { withHistory } from 'slate-history'
 
-import { jcss } from './../util/jcss'
-import { debug } from './../util/log'
 import { Optional } from './../util/types'
 
 import { withJinn, Jinn } from './editor/plugins/jinn'
@@ -72,7 +66,7 @@ import { FormatToolbar } from './FormatToolbar'
 
 import styles from './DocEditor.module.css'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 export type BulletedListElement = {
   type: kSlateBlockTypeUnorderedList

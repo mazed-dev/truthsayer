@@ -6,7 +6,6 @@ import { ButtonToolbar } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 
 import { smuggler } from 'smuggler-api'
-import { UploadNodeButton } from '../upload/UploadNodeButton'
 
 import styles from './FullCardFootbar.module.css'
 
@@ -34,7 +33,6 @@ import {
   FootbarDropdownDivider,
   FootbarDropdownItem,
   FootbarDropdownMenu,
-  FootbarDropdownToggle,
   FootbarDropdownToggleMeatballs,
 } from './Footbar'
 

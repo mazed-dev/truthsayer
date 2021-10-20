@@ -33,7 +33,7 @@ import {
 
 import { debug } from '../util/log'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 /**
  * Slate object to Markdown:

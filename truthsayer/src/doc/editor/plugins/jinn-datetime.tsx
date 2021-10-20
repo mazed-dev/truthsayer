@@ -18,7 +18,7 @@ import { base64 } from '../../../util/base64'
 
 import styles from './jinn-datetime.module.css'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 export const DateTimeCardItem = React.forwardRef(
   ({ time, format, onInsert }, ref) => {

@@ -17,11 +17,10 @@ import { withRouter } from 'react-router-dom'
 
 import { MzdGlobalContext } from '../lib/global'
 import { jcss } from './../util/jcss'
-import { debug } from './../util/log'
 
 import { smuggler } from 'smuggler-api'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 function RefNodeCard({ nid, edge, switchStickiness, cutOffRef }) {
   const [showMore, setShowMore] = useState(false)

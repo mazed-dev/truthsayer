@@ -2,23 +2,17 @@ import React from 'react'
 import { render } from '@testing-library/react'
 import {
   exctractDocTitle,
-  enforceTopHeader,
   getPlainText,
   getDocSlate,
   makeParagraph,
   makeLeaf,
+  TDoc,
 } from './doc_util'
-import { TDoc, TChunk, EChunkType } from './types'
-import {
-  makeChunk,
-  makeAsteriskChunk,
-  isHeaderChunk,
-  isAsteriskChunk,
-} from './chunk_util.jsx'
-import { markdownToDraft } from '../markdown/conv.jsx'
-import { markdownToSlate } from '../markdown/slate.ts'
+import { makeChunk } from './chunk_util.jsx'
+import { markdownToDraft } from '../markdown/conv'
+import { markdownToSlate } from '../markdown/slate'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 test('exctractDocTitle - raw string', async () => {
   const text = 'RmdBzaGUgdHJpZWQgdG8gd2FzaCBvZm'

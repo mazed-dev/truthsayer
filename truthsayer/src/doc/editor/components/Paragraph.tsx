@@ -10,7 +10,7 @@ import styles from './Paragraph.module.css'
 
 import { debug } from '../../../util/log'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 export const Paragraph = React.forwardRef(
   ({ className, children, ...attributes }, ref) => {

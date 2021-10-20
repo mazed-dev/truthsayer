@@ -11,11 +11,10 @@ import { goto, History } from '../lib/route'
 import { SmallCard } from './SmallCard'
 
 import { smuggler, NewNodeResponse } from 'smuggler-api'
-import { makeACopy } from '../doc/doc_util'
-import { TNode } from '../smugler/types'
+import { makeACopy, TDoc } from '../doc/doc_util'
+import { TNode } from 'smuggler-api'
 
 import { UploadNodeButton } from '../upload/UploadNodeButton'
-import { LocalCrypto } from '../crypto/local'
 import { Optional } from '../util/types'
 import { jcss } from './../util/jcss'
 import { Emoji } from '../lib/Emoji'
@@ -35,13 +34,11 @@ export type ChainActionBarSide = 'left' | 'right'
 async function cloneNode({
   from,
   to,
-  crypto,
   cancelToken,
   isBlank = false,
 }: {
   from?: string
   to?: string
-  crypto?: LocalCrypto
   cancelToken: CancelToken
   isBlank?: boolean
 }): Promise<Optional<NewNodeResponse>> {
@@ -51,15 +48,18 @@ async function cloneNode({
   }
   const node: Optional<TNode> = await smuggler.node.get({
     nid,
-    crypto,
     cancelToken,
   })
   if (!node) {
     return null
   }
-  const doc = await makeACopy(node.getData(), node.getNid(), isBlank || false)
+  const doc = makeACopy(
+    TDoc.fromNodeTextData(node.getText()),
+    node.getNid(),
+    isBlank || false
+  )
   return await smuggler.node.create({
-    doc,
+    doc: doc.toNodeTextData(),
     cancelToken,
     from_nid: from,
     to_nid: to,
@@ -100,6 +100,7 @@ class ChainActionHandler {
     }
     smuggler.node
       .create({
+        doc: TDoc.makeEmpty().toNodeTextData(),
         cancelToken: this.cancelToken,
         from_nid: side === 'right' ? this.nid : undefined,
         to_nid: side === 'left' ? this.nid : undefined,
@@ -123,7 +124,6 @@ class ChainActionHandler {
     cloneNode({
       from: side === 'right' ? this.nid : undefined,
       to: side === 'left' ? this.nid : undefined,
-      crypto: context.account?.getLocalCrypto(),
       cancelToken: this.cancelToken,
     }).then((node) => {
       if (node) {

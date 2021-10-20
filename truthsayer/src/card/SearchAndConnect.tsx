@@ -1,9 +1,9 @@
 import React from 'react'
-import { Button, ButtonToolbar, Modal, Form, ListGroup } from 'react-bootstrap'
+import { Modal, Form } from 'react-bootstrap'
 
 import { SearchGrid, NodeAttrsSearchItem } from '../grid/SearchGrid'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 type SearchAndConnectJinnModalProps = {
   nid: string

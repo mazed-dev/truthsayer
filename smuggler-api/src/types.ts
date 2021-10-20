@@ -225,6 +225,59 @@ export class TNode {
   }
 }
 
+export interface EdgeAttributes {
+  eid: string
+  txt?: string
+  from_nid: string
+  to_nid: string
+  crtd: moment.Moment
+  upd: moment.Moment
+  weight?: number
+  is_sticky: boolean
+  owned_by: string
+}
+
+export class TEdge {
+  eid: string
+  txt?: string
+  from_nid: string
+  to_nid: string
+  crtd: moment.Moment
+  upd: moment.Moment
+  weight?: number
+  is_sticky: boolean
+  owned_by: string
+
+  constructor(edge: EdgeAttributes) {
+    this.eid = edge.eid
+    this.txt = edge.txt
+    this.from_nid = edge.from_nid
+    this.to_nid = edge.to_nid
+    this.crtd = edge.crtd
+    this.upd = edge.upd
+    this.weight = edge.weight
+    this.is_sticky = edge.is_sticky
+    this.owned_by = edge.owned_by
+  }
+
+  getOwner(): string {
+    return this.owned_by
+  }
+
+  isOwnedBy(account: Optional<AccountInterface>): boolean {
+    return (
+      (account?.isAuthenticated() && account?.getUid() === this.getOwner()) ||
+      false
+    )
+  }
+}
+
+export type EdgeStar = {
+  edges: TEdge[]
+  from: Optional<string>
+  to: Optional<string>
+}
+
 export interface TNodeCrypto {
   // Ideally encryption/decryption happens in a layer below TNode, so if code
   // uses TNode object it should not use encryption at all. But layers above
@@ -240,3 +293,9 @@ export interface TNodeAttrs {
 }
 
 export interface TImage {}
+
+export type NewNodeResponse = {
+  nid: string
+  from: Optional<string>
+  to: Optional<string>
+}

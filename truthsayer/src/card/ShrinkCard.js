@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react'
+import React from 'react'
 
 import styles from './ShrinkCard.module.css'
 

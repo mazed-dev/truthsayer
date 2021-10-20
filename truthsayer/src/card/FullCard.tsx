@@ -9,8 +9,6 @@ import { SlateText } from '../doc/types'
 
 import { Loader } from '../lib/loader'
 
-import { debug } from './../util/log'
-
 import styles from './FullCard.module.css'
 
 export function FullCard({ node, addRef, stickyEdges, saveNode }) {

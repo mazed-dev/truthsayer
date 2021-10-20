@@ -31,7 +31,7 @@ import { dateTimeJinnSearch } from './jinn-datetime'
 
 import styles from './jinn.module.css'
 
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 type JinnModalProps = {
   nid: string
