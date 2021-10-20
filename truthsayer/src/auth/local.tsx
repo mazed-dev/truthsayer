@@ -3,7 +3,6 @@ import React from 'react'
 
 import {
   smuggler,
-  CancelToken,
   COOKIES_VEIL_KEY,
   UserAccount,
   AnonymousAccount,
@@ -25,18 +24,18 @@ export function dropAuth() {
 }
 
 export async function createUserAccount(
-  cancelToken: CancelToken
+  abortControler: AbortController
 ): Promise<AccountInterface> {
   if (!checkAuth()) {
     return new AnonymousAccount()
   }
-  return await UserAccount.create(cancelToken)
+  return await UserAccount.create(abortControler)
 }
 
 export class Knocker extends React.Component {
   constructor(props) {
     super(props)
-    this.knockCancelToken = smuggler.makeCancelToken()
+    this.knockAbortController = new AbortController()
     this.state = {
       scheduledKnocKnockId: null,
     }
@@ -49,7 +48,7 @@ export class Knocker extends React.Component {
   }
 
   componentWillUnmount() {
-    this.knockCancelToken.cancel()
+    this.knockAbortController.abort()
     // https://javascript.info/settimeout-setinterval
     clearTimeout(this.state.scheduledKnocKnockId)
   }
@@ -70,7 +69,7 @@ export class Knocker extends React.Component {
 
   logout = () => {
     this.cancelDelayedKnocKnock()
-    this.knockCancelToken.cancel()
+    this.knockAbortController.abort()
     dropAuth()
     this.setState({
       scheduledKnocKnockId: null,
@@ -79,7 +78,7 @@ export class Knocker extends React.Component {
 
   doKnocKnock = () => {
     smuggler.session
-      .update({ cancelToken: this.knockCancelToken.token })
+      .update({ signal: this.knockAbortController.signal })
       .then((res) => {
         if (res) {
           this.scheduleKnocKnock()

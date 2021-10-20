@@ -9,6 +9,7 @@ import { smuggler } from 'smuggler-api'
 import { goto } from '../lib/route'
 
 import './Signup.css'
+import { debug } from '../util/log'
 
 class Login extends React.Component {
   constructor(props) {
@@ -20,7 +21,7 @@ class Login extends React.Component {
       server_error: null,
     }
     this.emailRef = React.createRef()
-    this.createSessionCancelToken = smuggler.makeCancelToken()
+    this.createSessionAbortController = new AbortController()
   }
 
   static propTypes = {
@@ -28,7 +29,7 @@ class Login extends React.Component {
   }
 
   componentWillUnmount() {
-    this.createSessionCancelToken.cancel()
+    this.createSessionAbortController.abort()
   }
 
   handleEmailChange = (event) => {
@@ -51,19 +52,18 @@ class Login extends React.Component {
     this.setState({
       server_error: null,
     })
+    const { email, password } = this.state
+    const permissions = null
     smuggler.session
-      .create({
-        email: this.state.email,
-        password: this.state.password,
-        cancelToken: this.createSessionCancelToken.token,
-      })
+      .create(
+        email,
+        password,
+        permissions,
+        this.createSessionAbortController.signal
+      )
       .catch(this.handleSubmitError)
-      .then((res) => {
-        if (res) {
-          goto.default({}) // { history: this.props.history });
-        } else {
-          goto.notice.error({ history: this.props.history })
-        }
+      .then(() => {
+        goto.default({}) // { history: this.props.history });
       })
   }
 
@@ -85,6 +85,7 @@ class Login extends React.Component {
         server_error: 'Server error',
       })
     }
+    goto.notice.error({ history: this.props.history })
   }
 
   render() {

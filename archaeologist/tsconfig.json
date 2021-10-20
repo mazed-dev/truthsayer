@@ -20,6 +20,7 @@
     "strict": true,
     "target": "es6"
   },
+  "references": [{ "path": "../smuggler-api" }],
   "include": [
     "./src/**/*",
     "src/custom.d.ts"

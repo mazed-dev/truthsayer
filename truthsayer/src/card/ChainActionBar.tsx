@@ -2,7 +2,6 @@ import React, { useContext, useState } from 'react'
 
 import { ButtonToolbar } from 'react-bootstrap'
 import { useHistory } from 'react-router-dom'
-import { CancelToken } from 'axios'
 
 import { ImgButton } from '../lib/ImgButton'
 import { HoverTooltip } from '../lib/tooltip'
@@ -34,12 +33,12 @@ export type ChainActionBarSide = 'left' | 'right'
 async function cloneNode({
   from,
   to,
-  cancelToken,
+  abortControler,
   isBlank = false,
 }: {
   from?: string
   to?: string
-  cancelToken: CancelToken
+  abortControler: AbortController
   isBlank?: boolean
 }): Promise<Optional<NewNodeResponse>> {
   const nid: Optional<string> = from ? from : to ? to : null
@@ -48,7 +47,7 @@ async function cloneNode({
   }
   const node: Optional<TNode> = await smuggler.node.get({
     nid,
-    cancelToken,
+    abortControler,
   })
   if (!node) {
     return null
@@ -60,7 +59,7 @@ async function cloneNode({
   )
   return await smuggler.node.create({
     doc: doc.toNodeTextData(),
-    cancelToken,
+    abortControler,
     from_nid: from,
     to_nid: to,
   })
@@ -69,23 +68,23 @@ async function cloneNode({
 class ChainActionHandler {
   nid: string
   nidIsPrivate: boolean
-  cancelToken: CancelToken
+  abortControler: AbortController
   history: History
 
   constructor({
     nid,
     nidIsPrivate,
     history,
-    cancelToken,
+    abortControler,
   }: {
     nid: string
     nidIsPrivate: boolean
-    cancelToken: CancelToken
+    abortControler: AbortController
     history: History
   }) {
     this.nid = nid
     this.nidIsPrivate = nidIsPrivate
-    this.cancelToken = cancelToken
+    this.abortControler = abortControler
     this.history = history
   }
 
@@ -101,7 +100,7 @@ class ChainActionHandler {
     smuggler.node
       .create({
         doc: TDoc.makeEmpty().toNodeTextData(),
-        cancelToken: this.cancelToken,
+        abortControler: this.abortControler,
         from_nid: side === 'right' ? this.nid : undefined,
         to_nid: side === 'left' ? this.nid : undefined,
       })
@@ -124,7 +123,7 @@ class ChainActionHandler {
     cloneNode({
       from: side === 'right' ? this.nid : undefined,
       to: side === 'left' ? this.nid : undefined,
-      cancelToken: this.cancelToken,
+      abortControler: this.abortControler,
     }).then((node) => {
       if (node) {
         const { nid } = node
@@ -138,13 +137,13 @@ const ChainActionBarImpl = ({
   side,
   nid,
   nidIsPrivate,
-  cancelToken,
+  abortControler,
   addRef,
 }: {
   side: 'right' | 'left'
   nid: string
   nidIsPrivate: boolean
-  cancelToken: CancelToken
+  abortControler: AbortController
   addRef: ({ from, to }: { from: string; to: string }) => void
 }) => {
   const history = useHistory()
@@ -153,7 +152,7 @@ const ChainActionBarImpl = ({
   const handler = new ChainActionHandler({
     nid,
     nidIsPrivate,
-    cancelToken,
+    abortControler,
     history,
   })
 
@@ -233,14 +232,14 @@ export const ChainActionBar = ({
   side,
   nid,
   nidIsPrivate,
-  cancelToken,
+  abortControler,
   addRef,
   className,
 }: {
   side: ChainActionBarSide
   nid: string
   nidIsPrivate: boolean
-  cancelToken: CancelToken
+  abortControler: AbortController
   addRef: ({ from, to }: { from: string; to: string }) => void
   className: string
 }) => {
@@ -255,7 +254,7 @@ export const ChainActionBar = ({
         side={side}
         nid={nid}
         nidIsPrivate={nidIsPrivate}
-        cancelToken={cancelToken}
+        abortControler={abortControler}
         addRef={addRef}
       />
     </SmallCard>

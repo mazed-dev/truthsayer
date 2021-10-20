@@ -222,7 +222,7 @@ export async function getDocSlate(doc: TDoc | string): Promise<SlateText> {
   return enforceMinimalSlate(slate)
 }
 
-export async function exctractDoc(doc: TDoc | string): TDoc {
+export async function exctractDoc(doc: TDoc | string): Promise<TDoc> {
   const slate = await getDocSlate(doc)
   return await makeDoc({ slate })
 }

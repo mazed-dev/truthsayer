@@ -32,6 +32,11 @@
     "contextMenus",
     "storage"
   ],
+  "host_permissions": [
+    "https://*.mazed.dev/*",
+    "http://localhost:3000/*",
+    "https://ya.ru/*"
+  ],
   "content_scripts": [
     {
       "matches": [

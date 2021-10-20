@@ -29,8 +29,8 @@ class PrivateMenu extends React.Component {
     this.state = {
       isSticky: this.props.edge.is_sticky,
     }
-    this.toggleStickinessCancelToken = smuggler.makeCancelToken()
-    this.deleteEdgeCancelToken = smuggler.makeCancelToken()
+    this.toggleStickinessAbortController = new AbortController()
+    this.deleteEdgeAbortController = new AbortController()
   }
 
   componentDidUpdate(prevProps) {
@@ -48,7 +48,7 @@ class PrivateMenu extends React.Component {
       .sticky({
         on: isSticky,
         eid: this.props.edge.eid,
-        cancelToken: this.toggleStickinessCancelToken.token,
+        signal: this.toggleStickinessAbortController.signal,
       })
       .then((res) => {
         const { switchStickiness, edge } = this.props
@@ -64,7 +64,7 @@ class PrivateMenu extends React.Component {
     smuggler.edge
       .delete({
         eid,
-        cancelToken: this.deleteEdgeCancelToken.token,
+        signal: this.deleteEdgeAbortController.signal,
       })
       .then((res) => {
         if (res) {

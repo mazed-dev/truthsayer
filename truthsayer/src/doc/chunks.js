@@ -151,7 +151,7 @@ export class TextEditor extends React.Component {
       keyCounterSlash: 0,
     }
     this.textAreaRef = React.createRef()
-    this.addNodeRefCancelToken = smuggler.makeCancelToken()
+    this.addNodeRefAbortController = new AbortController()
   }
 
   componentDidMount() {
@@ -169,7 +169,7 @@ export class TextEditor extends React.Component {
   }
 
   componentWillUnmount() {
-    this.addNodeRefCancelToken.cancel()
+    this.addNodeRefAbortController.abort()
 
     const topbar = this.context.topbar
     topbar.reset(null)
@@ -322,7 +322,7 @@ export class TextEditor extends React.Component {
         .create({
           from: this.props.nid,
           to: nid,
-          cancelToken: this.addNodeRefCancelToken.token,
+          signal: this.addNodeRefAbortController.signal,
         })
         .then((edge) => {
           this.handleReplaceSmartpoint(replacement)

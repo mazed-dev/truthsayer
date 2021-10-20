@@ -136,7 +136,7 @@ class SearchGridImpl extends React.Component {
       start_time: null,
       offset: 0,
     }
-    this.fetchCancelToken = smuggler.makeCancelToken()
+    this.fetchAbortController = new AbortController()
     this.ref = React.createRef()
   }
 
@@ -148,7 +148,7 @@ class SearchGridImpl extends React.Component {
   }
 
   componentWillUnmount() {
-    this.fetchCancelToken.cancel()
+    this.fetchAbortController.abort()
     if (!this.props.portable) {
       window.removeEventListener('scroll', this.handleScroll)
     }
@@ -211,7 +211,7 @@ class SearchGridImpl extends React.Component {
         start_time,
         end_time,
         offset,
-        cancelToken: this.fetchCancelToken.token,
+        signal: this.fetchAbortController.signal,
         account,
       })
       .then((data) => {

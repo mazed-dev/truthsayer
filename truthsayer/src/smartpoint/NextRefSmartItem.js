@@ -10,11 +10,11 @@ import { SmallCard } from '../card/SmallCard'
 export class NextRefSmartItem extends React.Component {
   constructor(props) {
     super(props)
-    this.addNodeRefCancelToken = smuggler.makeCancelToken()
+    this.addNodeRefAbortController = new AbortController()
   }
 
   componentWillUnmount() {
-    this.addNodeRefCancelToken.cancel()
+    this.addNodeRefAbortController.abort()
   }
 
   handleSumbit = () => {
@@ -26,7 +26,7 @@ export class NextRefSmartItem extends React.Component {
     smuggler.node
       .create({
         doc,
-        cancelToken: this.addNodeRefCancelToken.token,
+        signal: this.addNodeRefAbortController.signal,
         from_nid: this.props.from_nid,
         to_nid: this.props.to_nid,
       })

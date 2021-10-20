@@ -12,7 +12,7 @@ export class AuthorBadge extends React.Component {
   constructor(props) {
     super(props)
     this.state = { badge: null }
-    this.fetchBadgeCancelToken = smuggler.makeCancelToken()
+    this.fetchBadgeAbortController = new AbortController()
   }
 
   // static contextType = MzdGlobalContext;
@@ -24,7 +24,7 @@ export class AuthorBadge extends React.Component {
   }
 
   componentWillUnmount() {
-    this.fetchBadgeCancelToken.cancel()
+    this.fetchBadgeAbortController.abort()
   }
 
   componentDidUpdate(prevProps) {
@@ -39,7 +39,7 @@ export class AuthorBadge extends React.Component {
       smuggler.user.badge
         .get({
           uid,
-          cancelToken: this.fetchBadgeCancelToken.token,
+          signal: this.fetchBadgeAbortController.signal,
         })
         .then((badge) => {
           if (badge) {
