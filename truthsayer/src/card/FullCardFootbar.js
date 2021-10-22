@@ -59,28 +59,30 @@ class PrivateFullCardFootbarImpl extends React.Component {
 
   handleCopyMarkdown = () => {
     const toaster = this.props.context.toaster
-    const md = this.props.getMarkdown()
-    navigator.clipboard.writeText(md).then(
-      () => {
-        /* clipboard successfully set */
-        toaster.push({
-          title: 'Copied',
-          message: 'Note copied to clipboard as markdown',
-        })
-      },
-      () => {
-        /* clipboard write failed */
-        toaster.push({
-          title: 'Error',
-          message: 'Write to system clipboard failed',
-        })
-      }
-    )
+    this.props.getMarkdown().then((md) => {
+      navigator.clipboard.writeText(md).then(
+        () => {
+          /* clipboard successfully set */
+          toaster.push({
+            title: 'Copied',
+            message: 'Note copied to clipboard as markdown',
+          })
+        },
+        () => {
+          /* clipboard write failed */
+          toaster.push({
+            title: 'Error',
+            message: 'Write to system clipboard failed',
+          })
+        }
+      )
+    })
   }
 
   handleDownloadMarkdown = () => {
-    const md = this.props.getMarkdown()
-    downloadAsFile(`${this.props.nid}.txt`, md)
+    this.props.getMarkdown().then((md) => {
+      downloadAsFile(`${this.props.nid}.txt`, md)
+    })
   }
 
   handleArchiveDoc = () => {
@@ -238,8 +240,8 @@ export function FullCardFootbar({ children, node, ...rest }) {
   if (node && node.meta) {
     const { nid, meta } = node
     if (node.isOwnedBy(account)) {
-      const getMarkdown = () => {
-        return docAsMarkdown(node)
+      const getMarkdown = async () => {
+        return await docAsMarkdown(node)
       }
       return (
         <PrivateFullCardFootbar

@@ -53,11 +53,8 @@ async function cloneNode({
   if (!node) {
     return null
   }
-  const doc = makeACopy(
-    TDoc.fromNodeTextData(node.getText()),
-    node.getNid(),
-    isBlank || false
-  )
+  let doc = await TDoc.fromNodeTextData(node.getText())
+  doc = doc.makeACopy(node.getNid(), isBlank || false)
   return await smuggler.node.create({
     doc: doc.toNodeTextData(),
     cancelToken,
