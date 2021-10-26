@@ -154,7 +154,7 @@ async function getNode({
   const node = new TNode(
     nid,
     ntype,
-    NodeTextData.fromJson(text),
+    text as NodeTextData,
     moment(res.headers[kHeaderCreatedAt]),
     moment(res.headers[kHeaderLastModified]),
     meta,
@@ -174,7 +174,7 @@ async function updateNode({
   text: NodeTextData
   cancelToken: CancelToken
 }) {
-  const value = { text: text.toJson() }
+  const value = { text }
   const headers = {
     [kHeaderContentType]: Mime.JSON,
   }
@@ -247,7 +247,7 @@ async function getNodesSlice({
       index_text = null,
       meta = null,
     } = item
-    const textObj = NodeTextData.fromJson(text)
+    const textObj = text as NodeTextData
     const extattrsObj = extattrs ? NodeExtattrs.fromJson(extattrs) : null
     return new TNode(
       nid,

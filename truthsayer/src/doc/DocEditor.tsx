@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react'
+import { useAsyncEffect } from 'use-async-effect'
 import { Editable, Slate, withReact } from 'slate-react'
 import {
   Descendant,
@@ -63,6 +64,8 @@ import { Link } from './editor/components/Link'
 import { Leaf } from './editor/components/Leaf'
 
 import { FormatToolbar } from './FormatToolbar'
+import { TDoc } from './doc_util'
+import { SlateText } from './types'
 
 import styles from './DocEditor.module.css'
 
@@ -80,14 +83,18 @@ export type CheckListItemElement = {
 }
 
 export const DocEditor = ({ className, node, saveText }) => {
-  const [value, setValue] = useState<Descendant[]>([])
+  const [value, setValue] = useState<SlateText>([])
   const [showJinn, setShowJinn] = useState<boolean>(false)
   const nid = node.nid
-  useEffect(() => {
-    let isSubscribed = true
-    setValue(node.getText().getText())
-    return () => (isSubscribed = false)
-  }, [nid])
+  useAsyncEffect(
+    async (isMounted) => {
+      const doc = await TDoc.fromNodeTextData(node.getText())
+      if (isMounted()) {
+        setValue(doc.slate)
+      }
+    },
+    [nid]
+  )
   const renderElement = useCallback(
     (props) => <Element nid={nid} {...props} />,
     [nid]
@@ -133,12 +140,15 @@ export const DocEditor = ({ className, node, saveText }) => {
 
 export const ReadOnlyDoc = ({ className, node }) => {
   const [value, setValue] = useState<Descendant[]>([])
-  useEffect(() => {
-    let isSubscribed = true
-    const slateDoc = node.getText().getText()
-    setValue(slateDoc)
-    return () => (isSubscribed = false)
-  }, [node])
+  useAsyncEffect(
+    async (isMounted) => {
+      const doc = await TDoc.fromNodeTextData(node.getText())
+      if (isMounted()) {
+        setValue(doc.slate)
+      }
+    },
+    [node]
+  )
   const renderElement = useCallback(
     (props) => <ReadOnlyElement nid={node.nid} {...props} />,
     [node]

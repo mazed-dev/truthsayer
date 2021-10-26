@@ -1,5 +1,5 @@
 import { TNode } from 'smuggler-api'
-import { getSlateAsPlainText } from '../../doc/doc_util'
+import { getPlainText } from '../../doc/doc_util'
 
 import { Optional } from './../../util/types'
 import { debug } from './../../util/log'
@@ -34,7 +34,7 @@ export function searchNodeFor(
     // Empty search fall back to show everything
     return node
   }
-  const blocks = getSlateAsPlainText(node.getText().getText())
+  const blocks = getPlainText(node.getText())
   const matchedIndex = blocks.findIndex((text) => {
     const ret = text.search(pattern) >= 0
     return ret

@@ -1,31 +1,20 @@
 import React from 'react'
 
 import {
-  Editable,
-  ReactEditor,
-  Slate,
-  useReadOnly,
-  useSlateStatic,
-  withReact,
-} from 'slate-react'
-import {
-  Descendant,
   Editor,
   Element as SlateElement,
   Point,
   Range,
   Transforms,
-  createEditor,
 } from 'slate'
 
-import { debug } from '../../../util/log'
 import { Optional } from '../../../util/types'
 
-import { Modal, Form, ListGroup } from 'react-bootstrap'
+import { Modal, Form } from 'react-bootstrap'
 
 import { SearchGrid } from '../../../grid/SearchGrid'
 
-import { makeNodeLink, exctractDocTitle, getDocSlate } from '../../doc_util'
+import { makeNodeLink, exctractDocTitle } from '../../doc_util'
 
 import { dateTimeJinnSearch } from './jinn-datetime'
 
@@ -117,8 +106,8 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
 
   onNodeCardClick = (node) => {
     const nid = node.getNid()
-    const text = node.getData().getText()
-    const title = exctractDocTitle(text)
+    const text = node.getText()
+    const title = exctractDocTitle(text.slate)
     const element = makeNodeLink(title, nid)
     this.insertElement(element)
   }
