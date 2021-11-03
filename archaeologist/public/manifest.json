@@ -34,8 +34,7 @@
   ],
   "host_permissions": [
     "https://*.mazed.dev/*",
-    "http://localhost:3000/*",
-    "https://ya.ru/*"
+    "http://localhost:3000/*"
   ],
   "content_scripts": [
     {
