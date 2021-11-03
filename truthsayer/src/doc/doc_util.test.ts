@@ -3,10 +3,9 @@ import { render } from '@testing-library/react'
 import {
   exctractDocTitle,
   getPlainText,
-  getDocSlate,
   makeParagraph,
   makeLeaf,
-  TDoc,
+  makeDoc,
 } from './doc_util'
 import { makeChunk } from './chunk_util.jsx'
 import { markdownToDraft } from '../markdown/conv'
@@ -16,32 +15,38 @@ import lodash from 'lodash'
 
 test('exctractDocTitle - raw string', async () => {
   const text = 'RmdBzaGUgdHJpZWQgdG8gd2FzaCBvZm'
-  const doc = await getDocSlate(text)
-  const title = exctractDocTitle(doc)
+  const doc = await makeDoc({ plain: text })
+  const title = exctractDocTitle(doc.slate)
   expect(title).toStrictEqual(text)
 })
 
 test('exctractDocTitle - empty object', () => {
-  const slate = [makeParagraph([makeLeaf()])]
+  const slate = [makeParagraph([makeLeaf('')])]
   const title = exctractDocTitle(slate)
   expect(title).toStrictEqual('Some page' + '\u2026')
 })
 
 test('exctractDocTitle - multiple chunks', async () => {
   const text = 'RmdB zaGUgdHJpZWQgd G8gd2FzaCBvZm'
-  const doc: TDoc = {
+  const doc = await makeDoc({
     chunks: [makeChunk(text), makeChunk('asdf'), , makeChunk('123')],
-  }
-  const title = exctractDocTitle(await getDocSlate(doc))
+  })
+  const title = exctractDocTitle(doc.slate)
   expect(title).toStrictEqual(text)
 })
 
 test('getPlainText - chunks', () => {
   const text = 'RmdB zaGUgdHJpZWQgd G8gd2FzaCBvZm'
-  const doc: TDoc = {
-    chunks: [makeChunk(text), makeChunk('asdf'), , makeChunk('123')],
-  }
-  const texts = getPlainText(doc)
+  const texts = getPlainText({
+    chunks: [
+      makeChunk(text) as any,
+      makeChunk('asdf') as any,
+      ,
+      makeChunk('123') as any,
+    ],
+    slate: undefined,
+    draft: undefined,
+  })
   expect(texts).toStrictEqual([text, 'asdf', '123'])
 })
 
@@ -61,10 +66,11 @@ __Trees were swaying__
 [](@1618686400/YYYY-MMMM-DD-dddd)
 
 -----`
-  const doc: TDoc = {
+  const texts = getPlainText({
     draft: markdownToDraft(source),
-  }
-  const texts = getPlainText(doc)
+    slate: undefined,
+    chunks: undefined,
+  })
   expect(texts).toContain('Header 1')
   expect(texts).toContain('Header 2')
   expect(texts).toContain('Schools')
@@ -105,10 +111,11 @@ __Trees were swaying__
 [](@1618686400/YYYY-MMMM-DD-dddd)
 
 -----`
-  const doc: TDoc = {
+  const texts = getPlainText({
     slate: await markdownToSlate(source),
-  }
-  const texts = getPlainText(doc)
+    draft: undefined,
+    chunks: undefined,
+  })
   expect(texts).toContain('Header 1')
   expect(texts).toContain('Header 2')
   expect(texts).toContain(

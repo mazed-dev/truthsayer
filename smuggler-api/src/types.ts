@@ -24,50 +24,12 @@ export function makeEmptySlate(): SlateText {
 }
 
 // see smuggler/src/types.rs
-export class NodeTextData {
-  slate: SlateText
-
+export type NodeTextData = {
+  slate: SlateText | undefined
   // Deprecated
-  draft: Optional<any>
-
+  draft: any | undefined
   // Deprecated
-  chunks: Optional<any>
-
-  constructor(slate: SlateText) {
-    this.slate = slate
-  }
-
-  static fromJson({
-    slate,
-    draft,
-    chunks,
-  }: {
-    slate?: SlateText
-    draft?: object
-    chunks?: any
-  }): NodeTextData {
-    if (slate == null) {
-      slate = makeEmptySlate()
-    }
-    return new NodeTextData(slate)
-  }
-
-  toJson(): { slate: SlateText } {
-    const { slate } = this
-    return { slate }
-  }
-
-  getText(): SlateText {
-    const { slate } = this
-    if (slate) {
-      return slate
-    }
-    return makeEmptySlate()
-  }
-
-  updateText(slate: SlateText): NodeTextData {
-    return new NodeTextData(slate)
-  }
+  chunks: any | undefined
 }
 
 export enum NodeType {

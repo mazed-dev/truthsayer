@@ -33,29 +33,55 @@ export class TDoc {
   }
 
   toNodeTextData(): NodeTextData {
-    return new NodeTextData(this.slate)
+    const { slate } = this
+    return { slate, draft: null, chunks: null }
   }
 
-  static fromNodeTextData(nodeTextData: NodeTextData): TDoc {
-    return new TDoc(nodeTextData.getText() as SlateText)
+  static async fromNodeTextData({
+    slate,
+    draft,
+    chunks,
+  }: NodeTextData): Promise<TDoc> {
+    if (slate) {
+      return await makeDoc({ slate: slate as SlateText, draft, chunks })
+    }
+    return await makeDoc({ slate: undefined, draft, chunks })
   }
 
   static makeEmpty(): TDoc {
     return new TDoc(makeEmptySlate())
   }
+
+  makeACopy(nid: string, isBlankCopy: boolean): TDoc {
+    let { slate } = this
+    const title = exctractDocTitle(slate)
+    let label
+    if (isBlankCopy) {
+      slate = blankSlate(slate)
+      label = `Blank copy of "${title}"`
+    } else {
+      slate = lodash.cloneDeep(slate)
+      label = `Copy of "${title}"`
+    }
+    slate.push(makeThematicBreak(), makeParagraph([makeNodeLink(label, nid)]))
+    return new TDoc(slate)
+  }
 }
 
-export function exctractDocTitle(slate: SlateText): string {
-  const title = slate.reduce((acc, item) => {
-    if (!acc && (isHeaderSlateBlock(item) || isTextSlateBlock(item))) {
-      const [text, _] = getSlateDescendantAsPlainText(item)
-      const title = _truncateTitle(text)
-      if (title) {
-        return title
+export function exctractDocTitle(slate?: SlateText): string {
+  let title
+  if (slate) {
+    title = slate.reduce((acc, item) => {
+      if (!acc && (isHeaderSlateBlock(item) || isTextSlateBlock(item))) {
+        const [text, _] = getSlateDescendantAsPlainText(item)
+        const title = _truncateTitle(text)
+        if (title) {
+          return title
+        }
       }
-    }
-    return acc
-  }, null)
+      return acc
+    }, null)
+  }
   return title || 'Some page\u2026'
 }
 
@@ -92,21 +118,6 @@ function blankSlate(slate: SlateText): SlateText {
   })
 }
 
-export function makeACopy(doc: TDoc, nid: string, isBlankCopy: boolean): TDoc {
-  let slate = doc.slate
-  const title = exctractDocTitle(slate)
-  let label
-  if (isBlankCopy) {
-    slate = blankSlate(slate)
-    label = `Blank copy of "${title}"`
-  } else {
-    slate = lodash.cloneDeep(doc.slate)
-    label = `Copy of "${title}"`
-  }
-  slate.push(makeThematicBreak(), makeParagraph([makeNodeLink(label, nid)]))
-  return new TDoc(slate)
-}
-
 // Deprecated
 export function extractDocAsMarkdown(doc: TDoc): string {
   if (lodash.isString(doc)) {
@@ -134,28 +145,27 @@ export async function enforceTopHeader(doc: TDoc): TDoc {
 }
 
 export async function makeDoc({
+  slate,
   chunks,
   draft,
-  slate,
-  mdText,
+  plain,
 }: {
+  slate?: SlateText
   chunks?: TChunk[]
   draft?: TDraftDoc
-  slate?: SlateText
-  mdText?: string
+  plain?: string
 }): Promise<TDoc> {
   if (slate) {
     return new TDoc(slate)
   }
   if (chunks) {
     const slate = await markdownToSlate(
-      extractDocAsMarkdown(
-        chunks
-          .reduce((acc, current) => {
-            return `${acc}\n\n${current.source}`
-          }, '')
-          .trim()
-      )
+      chunks
+        .map((chunk: any) => {
+          return (chunk as TChunk).source
+        })
+        .join('\n\n')
+        .trim()
     )
     return new TDoc(slate)
   }
@@ -163,8 +173,8 @@ export async function makeDoc({
     const slate = await markdownToSlate(draftToMarkdown(draft))
     return new TDoc(slate)
   }
-  if (mdText) {
-    const slate = await markdownToSlate(mdText)
+  if (plain) {
+    const slate = await markdownToSlate(plain)
     return new TDoc(slate)
   }
   return new TDoc(makeEmptySlate())
@@ -194,51 +204,13 @@ export async function getDocDraft(doc: TDoc): TDraftDoc {
   return await makeDoc({})
 }
 
-export async function getDocSlate(doc: TDoc | string): Promise<SlateText> {
-  let slate
-  if (lodash.isString(doc)) {
-    slate = await markdownToSlate(doc)
-  } else {
-    doc = doc || {}
-    slate = doc.slate
-    if (!lodash.isArray(slate)) {
-      const { chunks, draft } = doc
-      if (chunks) {
-        const source = chunks.reduce((acc, curr) => {
-          if (isTextChunk(curr)) {
-            return `${acc}\n\n${curr.source}`
-          }
-          return acc
-        }, '')
-        slate = await markdownToSlate(source)
-      } else if (draft) {
-        // Oh, this is a cheeky approach, but we don't have time
-        slate = await markdownToSlate(draftToMarkdown(draft))
-      } else {
-        slate = []
-      }
-    }
-  }
-  return enforceMinimalSlate(slate)
-}
-
-export async function exctractDoc(doc: TDoc | string): Promise<TDoc> {
-  const slate = await getDocSlate(doc)
-  return await makeDoc({ slate })
-}
-
-export function getPlainText(doc: TDoc): string[] {
-  if (lodash.isString(doc)) {
-    return [doc]
-  }
-  doc = doc || {}
-  const { chunks, draft, slate } = doc
+export function getPlainText({ slate, draft, chunks }: NodeTextData): string[] {
   if (slate) {
-    return getSlateAsPlainText(slate)
+    return getSlateAsPlainText(slate as SlateText)
   } else if (chunks) {
     return chunks
-      .map((item) => item.source)
-      .filter((source) => lodash.isString(source) && source.length > 0)
+      .map((item: any) => (item as TChunk).source)
+      .filter((source: any) => lodash.isString(source) && source.length > 0)
   } else if (draft) {
     return getDraftAsTextChunks(draft)
   }
@@ -312,15 +284,16 @@ function getDraftAsTextChunks(draft: TDraftDoc): string[] {
   return lodash.concat(texts, entities)
 }
 
-export function docAsMarkdown(node: TNode): string {
+export async function docAsMarkdown(node: TNode): Promise<string> {
   let md = ''
   if (node.isImage()) {
     const source = node.getBlobSource()
     md = md.concat(`![](${source})`)
   }
-  const text = node.getText().getText()
+  const text = node.getText()
   if (text) {
-    md = md.concat(slateToMarkdown(text))
+    const doc = await TDoc.fromNodeTextData(text)
+    md = md.concat(slateToMarkdown(doc.slate))
   }
   return md
 }

@@ -6,6 +6,7 @@ import { WideCard } from './WideCard'
 import { DocEditor } from '../doc/DocEditor'
 import { ImageNode } from '../doc/image/ImageNode'
 import { SlateText } from '../doc/types'
+import { TDoc } from '../doc/doc_util'
 
 import { Loader } from '../lib/loader'
 
@@ -18,8 +19,8 @@ export function FullCard({ node, addRef, stickyEdges, saveNode }) {
     editor = <Loader />
   } else {
     const saveText = (text: SlateText) => {
-      const newText = node.getText().updateText(text)
-      saveNode(newText)
+      const doc = new TDoc(text)
+      saveNode(doc.toNodeTextData())
     }
     editor = (
       <DocEditor className={styles.editor} node={node} saveText={saveText} />
