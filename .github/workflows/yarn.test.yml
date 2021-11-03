@@ -48,7 +48,7 @@ jobs:
         run: yarn smuggler-api build
 
       - name: Build archaeologist
-        run: yarn archaeologist build
+        run: yarn archaeologist build:chrome:public
 
       - name: Build truthsayer
         # This is a little absurd, but CI=ture force react build scripb treat
