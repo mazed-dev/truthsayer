@@ -4,7 +4,6 @@ describe('test suite for makeUrl', () => {
   const SAVED_ENV = process.env
 
   beforeEach(() => {
-    jest.resetModules() // Most important - it clears the cache
     process.env = { ...SAVED_ENV } // Make a copy
   })
 

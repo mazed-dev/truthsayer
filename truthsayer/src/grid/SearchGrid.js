@@ -19,7 +19,8 @@ import { isSmartCase } from './../util/str.jsx'
 import { MzdGlobalContext } from '../lib/global'
 import { Loader } from './../lib/loader'
 
-import { debug } from '../util/log'
+import * as log from '../util/log'
+import { isAbortError } from '../util/exception'
 
 import styles from './SearchGrid.module.css'
 
@@ -262,8 +263,11 @@ class SearchGridImpl extends React.Component {
           next
         )
       })
-      .catch((error) => {
-        // *dbg*/ console.log('Error', error)
+      .catch((err) => {
+        if (isAbortError(err)) {
+          return
+        }
+        log.exception(err)
       })
   }
 

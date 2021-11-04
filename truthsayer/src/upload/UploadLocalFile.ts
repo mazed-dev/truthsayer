@@ -1,5 +1,6 @@
 import { smuggler } from 'smuggler-api'
-import { debug } from '../util/log'
+import * as log from '../util/log'
+import { isAbortError } from '../util/exception'
 
 import { makeDoc } from '../doc/doc_util'
 import { MimeType } from '../util/Mime'
@@ -43,12 +44,16 @@ function uploadLocalBinaryFile(
         updateStatus({ nid, progress: 1.0 })
       }
     })
-    .catch((err) =>
+    .catch((err) => {
+      if (isAbortError(err)) {
+        return
+      }
+      log.exception(err)
       updateStatus({
         progress: 1,
         error: `Submission failed: ${err}`,
       })
-    )
+    })
 }
 
 function uploadLocalTextFile(
@@ -84,12 +89,16 @@ function uploadLocalTextFile(
             updateStatus({ nid, progress: 1.0 })
           }
         })
-        .catch((err) =>
+        .catch((err) => {
+          if (isAbortError(err)) {
+            return
+          }
+          log.exception(err)
           updateStatus({
             progress: 1,
             error: `Submission failed: ${err}`,
           })
-        )
+        })
     })
   }
 

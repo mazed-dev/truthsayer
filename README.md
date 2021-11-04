@@ -26,9 +26,9 @@ yarn <workspace> build
 ```
 For instance to build truthsayer only:
 ```
-yarn <workspace> build
+yarn truthsayer build
 ```
-To build all workspaces run:
+To build all workspaces:
 ```
 yarn build
 ```

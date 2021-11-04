@@ -11,7 +11,8 @@ import { ImageNode } from './image/ImageNode'
 import { smuggler } from 'smuggler-api'
 
 import { MzdGlobalContext } from '../lib/global'
-import { debug } from '../util/log'
+import * as log from '../util/log'
+import { isAbortError } from '../util/exception'
 
 export function SmallCardRender({ node }) {
   let media
@@ -100,10 +101,10 @@ class ReadOnlyRenderFetching extends React.Component {
         this.setState({ node })
       })
       .catch((err) => {
-        if (err.name === 'AboutError') {
+        if (isAbortError(err)) {
           return
         }
-        // TODO(akindyakov): handle exceptions properly
+        log.exception(err)
       })
   }
 

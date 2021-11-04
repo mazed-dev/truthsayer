@@ -17,6 +17,8 @@ import { withRouter } from 'react-router-dom'
 
 import { MzdGlobalContext } from '../lib/global'
 import { jcss } from './../util/jcss'
+import * as log from '../util/log'
+import { isAbortError } from '../util/exception'
 
 import { smuggler } from 'smuggler-api'
 
@@ -118,10 +120,10 @@ class Triptych extends React.Component {
         }
       })
       .catch((err) => {
-        if (err.name === 'AboutError') {
+        if (isAbortError(err)) {
           return
         }
-        // TODO(akindyakov): handle exceptions properly
+        log.exception(err)
       })
     smuggler.edge
       .getFrom({
@@ -142,10 +144,10 @@ class Triptych extends React.Component {
         }
       })
       .catch((err) => {
-        if (err.name === 'AboutError') {
+        if (isAbortError(err)) {
           return
         }
-        // TODO(akindyakov): handle exceptions properly
+        log.exception(err)
       })
   }
 
@@ -163,10 +165,10 @@ class Triptych extends React.Component {
         this.setState({ node })
       })
       .catch((err) => {
-        if (err.name === 'AboutError') {
+        if (isAbortError(err)) {
           return
         }
-        // TODO(akindyakov): handle exceptions properly
+        log.exception(err)
       })
   }
 
