@@ -15,7 +15,7 @@ class PasswordRecoverForm extends React.Component {
       isReady: false,
       is_validating: true,
     }
-    this.cancelToken = smuggler.makeCancelToken()
+    this.abortControler = new AbortController()
   }
 
   static propTypes = {
@@ -23,7 +23,7 @@ class PasswordRecoverForm extends React.Component {
   }
 
   componentWillUnmount() {
-    this.cancelToken.cancel()
+    this.abortControler.abort()
   }
 
   handlePasswordChange = (event) => {
@@ -44,7 +44,7 @@ class PasswordRecoverForm extends React.Component {
       .reset({
         token: this.props.token,
         new_password: this.state.password,
-        cancelToken: this.cancelToken.token,
+        signal: this.abortControler.signal,
       })
       .catch((err) => {
         alert(`Error ${err}`)

@@ -30,7 +30,7 @@ class Signup extends React.Component {
     this.emailInputRef = React.createRef()
     this.nameInputRef = React.createRef()
 
-    this.cancelToken = smuggler.makeCancelToken()
+    this.abortControler = new AbortController()
   }
 
   static propTypes = {
@@ -43,7 +43,7 @@ class Signup extends React.Component {
   }
 
   componentWillUnmount() {
-    this.cancelToken.cancel()
+    this.abortControler.abort()
   }
 
   handleNameChange = (event) => {
@@ -82,7 +82,7 @@ class Signup extends React.Component {
       .register({
         name: this.state.name,
         email: this.state.email,
-        cancelToken: this.cancelToken.token,
+        signal: this.abortControler.signal,
       })
       .catch(this.handleSubmitError)
       .then((res) => {

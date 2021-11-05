@@ -17,6 +17,8 @@ import { withRouter } from 'react-router-dom'
 
 import { MzdGlobalContext } from '../lib/global'
 import { jcss } from './../util/jcss'
+import * as log from '../util/log'
+import { isAbortError } from '../util/exception'
 
 import { smuggler } from 'smuggler-api'
 
@@ -67,11 +69,11 @@ class Triptych extends React.Component {
       edges_right: [],
       edges_sticky: [],
     }
-    this.fetchToEdgesCancelToken = smuggler.makeCancelToken()
-    this.fetchFromEdgesCancelToken = smuggler.makeCancelToken()
-    this.fetchNodeCancelToken = smuggler.makeCancelToken()
-    this.createEdgeCancelToken = smuggler.makeCancelToken()
-    this.createNodeCancelToken = smuggler.makeCancelToken()
+    this.fetchToEdgesAbortController = new AbortController()
+    this.fetchFromEdgesAbortController = new AbortController()
+    this.fetchNodeAbortController = new AbortController()
+    this.createEdgeAbortController = new AbortController()
+    this.createNodeAbortController = new AbortController()
   }
 
   componentDidMount() {
@@ -80,9 +82,9 @@ class Triptych extends React.Component {
   }
 
   componentWillUnmount() {
-    this.fetchToEdgesCancelToken.cancel()
-    this.fetchFromEdgesCancelToken.cancel()
-    this.fetchNodeCancelToken.cancel()
+    this.fetchToEdgesAbortController.abort()
+    this.fetchFromEdgesAbortController.abort()
+    this.fetchNodeAbortController.abort()
   }
 
   componentDidUpdate(prevProps) {
@@ -102,7 +104,7 @@ class Triptych extends React.Component {
     smuggler.edge
       .getTo({
         nid: this.props.nid,
-        cancelToken: this.fetchToEdgesCancelToken.token,
+        signal: this.fetchToEdgesAbortController.signal,
       })
       .then((star) => {
         if (star) {
@@ -117,10 +119,16 @@ class Triptych extends React.Component {
           })
         }
       })
+      .catch((err) => {
+        if (isAbortError(err)) {
+          return
+        }
+        log.exception(err)
+      })
     smuggler.edge
       .getFrom({
         nid: this.props.nid,
-        cancelToken: this.fetchToEdgesCancelToken.token,
+        signal: this.fetchToEdgesAbortController.signal,
       })
       .then((star) => {
         if (star) {
@@ -135,20 +143,33 @@ class Triptych extends React.Component {
           })
         }
       })
+      .catch((err) => {
+        if (isAbortError(err)) {
+          return
+        }
+        log.exception(err)
+      })
   }
 
   fetchNode = async () => {
     this.setState({ node: null })
     const nid = this.props.nid
     const account = this.context.account
-    const node = await smuggler.node.get({
-      nid,
-      cancelToken: this.fetchNodeCancelToken.token,
-      account,
-    })
-    if (node) {
-      this.setState({ node })
-    }
+    return smuggler.node
+      .get({
+        nid,
+        signal: this.fetchNodeAbortController.signal,
+        account,
+      })
+      .then((node) => {
+        this.setState({ node })
+      })
+      .catch((err) => {
+        if (isAbortError(err)) {
+          return
+        }
+        log.exception(err)
+      })
   }
 
   saveNode = lodash.debounce(
@@ -160,7 +181,7 @@ class Triptych extends React.Component {
         .update({
           nid,
           text,
-          cancelToken: this.fetchNodeCancelToken.token,
+          signal: this.fetchNodeAbortController.signal,
         })
         .then((resp) => {
           return resp
@@ -191,7 +212,7 @@ class Triptych extends React.Component {
       .create({
         from,
         to,
-        cancelToken: this.createEdgeCancelToken.token,
+        signal: this.createEdgeAbortController.signal,
       })
       .then((edge) => {
         this.setState((state) => {
@@ -262,7 +283,7 @@ class Triptych extends React.Component {
             side="left"
             nid={this.props.nid}
             nidIsPrivate={nodeIsPrivate}
-            cancelToken={this.createNodeCancelToken.token}
+            abortControler={this.createNodeAbortController.signal}
             addRef={this.addRef}
             className={styles.ref_card}
           />
@@ -274,7 +295,7 @@ class Triptych extends React.Component {
             side="right"
             nid={this.props.nid}
             nidIsPrivate={nodeIsPrivate}
-            cancelToken={this.createNodeCancelToken.token}
+            abortControler={this.createNodeAbortController.signal}
             addRef={this.addRef}
             className={styles.ref_card}
           />

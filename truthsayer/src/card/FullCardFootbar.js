@@ -42,7 +42,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
     this.state = {
       modalShareShow: false,
     }
-    this.deleteCancelToken = smuggler.makeCancelToken()
+    this.deleteAbortController = new AbortController()
   }
 
   static propTypes = {
@@ -98,7 +98,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
     smuggler.node
       .delete({
         nid: this.props.nid,
-        cancelToken: this.deleteCancelToken.token,
+        signal: this.deleteAbortController.signal,
       })
       .then(() => {
         toaster.push({

@@ -4,7 +4,9 @@
   "description": "Smuggler API artefacts in typescript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [ "/dist" ],
+  "files": [
+    "/dist"
+  ],
   "author": "Thread knowledge",
   "license": "no",
   "private": true,
@@ -21,8 +23,9 @@
   },
   "devDependencies": {},
   "dependencies": {
-    "axios": "^0.21.4",
+    "lodash": "^4.17.21",
     "moment": "^2.29.1",
-    "query-string": "^7.0.0"
+    "query-string": "^7.0.0",
+    "universal-cookie": "^4.0"
   }
 }

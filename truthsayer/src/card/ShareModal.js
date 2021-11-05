@@ -25,7 +25,7 @@ class ShareModalWindow extends React.Component {
       meta: null,
     }
     // this.inputRef = React.createRef();
-    this.fetchCardShareCancelToken = smuggler.makeCancelToken()
+    this.fetchCardShareAbortController = new AbortController()
   }
 
   componentDidMount() {
@@ -34,7 +34,7 @@ class ShareModalWindow extends React.Component {
   }
 
   componentWillUnmount() {
-    this.fetchCardShareCancelToken.cancel()
+    this.fetchCardShareAbortController.abort()
   }
 
   fetchMeta = () => {
@@ -42,7 +42,7 @@ class ShareModalWindow extends React.Component {
     smuggler.meta
       .get({
         nid: this.props.nid,
-        cancelToken: this.fetchCardShareCancelToken.token,
+        signal: this.fetchCardShareAbortController.signal,
       })
       .then((meta) => {
         // *dbg*/ console.log('Got fetch meta ', meta)
@@ -64,7 +64,7 @@ class ShareModalWindow extends React.Component {
       .update({
         nid: this.props.nid,
         meta,
-        cancelToken: this.fetchCardShareCancelToken.token,
+        signal: this.fetchCardShareAbortController.signal,
       })
       .then(() => {
         this.setState({ meta })

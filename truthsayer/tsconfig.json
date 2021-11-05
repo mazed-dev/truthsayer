@@ -5,7 +5,12 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "jsx": "react-jsx",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "module": "esnext",
     "moduleResolution": "node",
     "noEmit": true,
@@ -16,9 +21,14 @@
     "rootDir": "src",
     "skipLibCheck": true,
     "strict": true,
-    "target": "es6",
-    "jsx": "react-jsx"
+    "target": "es6"
   },
-  "references": [{ "path": "../smuggler-api" }],
-  "include": ["src"]
+  "references": [
+    {
+      "path": "../smuggler-api"
+    }
+  ],
+  "include": [
+    "src"
+  ]
 }

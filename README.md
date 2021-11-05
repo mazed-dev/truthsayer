@@ -24,6 +24,14 @@ For to build a single workspace:
 ```
 yarn <workspace> build
 ```
+For instance to build truthsayer only:
+```
+yarn truthsayer build
+```
+To build all workspaces:
+```
+yarn build
+```
 
 ### Test
 

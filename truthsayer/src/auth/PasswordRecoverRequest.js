@@ -27,7 +27,7 @@ class PasswordRecoverRequest extends React.Component {
       reset_request_is_sent: false,
     }
     this.emailRef = React.createRef()
-    this.cancelToken = smuggler.makeCancelToken()
+    this.abortControler = new AbortController()
   }
 
   static propTypes = {
@@ -40,7 +40,7 @@ class PasswordRecoverRequest extends React.Component {
     // TODO(akindyakov): Check that user is logged in here
     // axios
     //   .get('/api/auth/session', {
-    //     cancelToken: this.cancelToken.token,
+    //     signal: this.abortControler.signal,
     //   })
     //   .then((res) => {
     //     if (res) {
@@ -50,7 +50,7 @@ class PasswordRecoverRequest extends React.Component {
   }
 
   componentWillUnmount() {
-    this.cancelToken.cancel()
+    this.abortControler.abort()
   }
 
   handleEmailChange = (event) => {
@@ -73,7 +73,7 @@ class PasswordRecoverRequest extends React.Component {
     smuggler.user.password
       .recover({
         email: this.state.email,
-        cancelToken: this.cancelToken.token,
+        signal: this.abortControler.signal,
       })
       .catch((err) => {
         alert(`Error ${err}`)

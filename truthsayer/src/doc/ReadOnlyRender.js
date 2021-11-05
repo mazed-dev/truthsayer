@@ -11,7 +11,8 @@ import { ImageNode } from './image/ImageNode'
 import { smuggler } from 'smuggler-api'
 
 import { MzdGlobalContext } from '../lib/global'
-import { debug } from '../util/log'
+import * as log from '../util/log'
+import { isAbortError } from '../util/exception'
 
 export function SmallCardRender({ node }) {
   let media
@@ -68,7 +69,7 @@ class ReadOnlyRenderFetching extends React.Component {
     this.state = {
       node: null,
     }
-    this.fetchNodeCancelToken = smuggler.makeCancelToken()
+    this.fetchNodeAbortController = new AbortController()
   }
 
   componentDidMount() {
@@ -76,7 +77,7 @@ class ReadOnlyRenderFetching extends React.Component {
   }
 
   componentWillUnmount() {
-    this.fetchNodeCancelToken.cancel()
+    this.fetchNodeAbortController.abort()
   }
 
   componentDidUpdate(prevProps) {
@@ -90,14 +91,21 @@ class ReadOnlyRenderFetching extends React.Component {
     this.setState({ node: null })
     const nid = this.props.nid
     const account = this.props.account
-    const node = await smuggler.node.get({
-      nid,
-      cancelToken: this.fetchNodeCancelToken.token,
-      account,
-    })
-    if (node) {
-      this.setState({ node })
-    }
+    smuggler.node
+      .get({
+        nid,
+        signal: this.fetchNodeAbortController.signal,
+        account,
+      })
+      .then((node) => {
+        this.setState({ node })
+      })
+      .catch((err) => {
+        if (isAbortError(err)) {
+          return
+        }
+        log.exception(err)
+      })
   }
 
   render() {

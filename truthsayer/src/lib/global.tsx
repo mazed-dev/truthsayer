@@ -95,7 +95,7 @@ export class MzdGlobal extends React.Component {
         }
       })
     }
-    this.fetchAccountCancelToken = smuggler.makeCancelToken()
+    this.fetchAccountAbortController = new AbortController()
     this.state = {
       toaster: {
         toasts: [],
@@ -110,9 +110,11 @@ export class MzdGlobal extends React.Component {
   }
 
   componentDidMount() {
-    createUserAccount(this.fetchAccountCancelToken.token).then((account) => {
-      this.setState({ account })
-    })
+    createUserAccount(this.fetchAccountAbortController.signal).then(
+      (account) => {
+        this.setState({ account })
+      }
+    )
   }
 
   render() {

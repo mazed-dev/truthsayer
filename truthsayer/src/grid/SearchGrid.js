@@ -19,7 +19,8 @@ import { isSmartCase } from './../util/str.jsx'
 import { MzdGlobalContext } from '../lib/global'
 import { Loader } from './../lib/loader'
 
-import { debug } from '../util/log'
+import * as log from '../util/log'
+import { isAbortError } from '../util/exception'
 
 import styles from './SearchGrid.module.css'
 
@@ -136,7 +137,7 @@ class SearchGridImpl extends React.Component {
       start_time: null,
       offset: 0,
     }
-    this.fetchCancelToken = smuggler.makeCancelToken()
+    this.fetchAbortController = new AbortController()
     this.ref = React.createRef()
   }
 
@@ -148,7 +149,7 @@ class SearchGridImpl extends React.Component {
   }
 
   componentWillUnmount() {
-    this.fetchCancelToken.cancel()
+    this.fetchAbortController.abort()
     if (!this.props.portable) {
       window.removeEventListener('scroll', this.handleScroll)
     }
@@ -211,7 +212,7 @@ class SearchGridImpl extends React.Component {
         start_time,
         end_time,
         offset,
-        cancelToken: this.fetchCancelToken.token,
+        signal: this.fetchAbortController.signal,
         account,
       })
       .then((data) => {
@@ -262,8 +263,11 @@ class SearchGridImpl extends React.Component {
           next
         )
       })
-      .catch((error) => {
-        // *dbg*/ console.log('Error', error)
+      .catch((err) => {
+        if (isAbortError(err)) {
+          return
+        }
+        log.exception(err)
       })
   }
 

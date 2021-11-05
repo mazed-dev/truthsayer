@@ -1,4 +1,6 @@
-import { smuggler, CancelToken } from './api'
+import Cookies from 'universal-cookie'
+
+import { smuggler } from './api'
 
 export const COOKIES_VEIL_KEY: string = 'x-magic-veil'
 
@@ -52,11 +54,8 @@ export class UserAccount extends AnonymousAccount {
     this._lc = lc
   }
 
-  static async create(cancelToken: CancelToken): Promise<AccountInterface> {
-    const user = await smuggler.getAuth({ cancelToken }).then((res) => {
-      if (res) {
-        return res.data
-      }
+  static async create(signal: AbortSignal): Promise<AccountInterface> {
+    const user = await smuggler.getAuth({ signal }).catch(() => {
       return null
     })
     if (!user) {
@@ -86,4 +85,16 @@ export class UserAccount extends AnonymousAccount {
   isAuthenticated(): boolean {
     return true
   }
+}
+
+export const authCookie = {
+  checkAuth() {
+    // Is it too slow?
+    const cookies = new Cookies()
+    return cookies.get(COOKIES_VEIL_KEY) === 'y'
+  },
+  dropAuth() {
+    const cookies = new Cookies()
+    cookies.remove(COOKIES_VEIL_KEY)
+  },
 }

@@ -1,86 +1,66 @@
 import {
-  NodeExtattrs,
-  TNode,
-  TEdge,
   EdgeAttributes,
   EdgeStar,
-  NodeTextData,
   NewNodeResponse,
+  NodeExtattrs,
+  NodeTextData,
+  TEdge,
+  TNode,
+  Ack,
+  AccountInfo,
 } from './types'
 
 import { Mime } from './util/mime'
 import { Optional } from './util/optional'
 
-import axios, { CancelToken, AxiosError } from 'axios'
 import moment from 'moment'
+import lodash from 'lodash'
 import { stringify } from 'query-string'
 
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
-const kHeaderContentType = 'content-type'
 
-export type { CancelToken }
-
-function dealWithError(error: AxiosError) {}
-
-function _getSmuglerApibaseURL() {
-  switch (process.env.NODE_ENV) {
-    case 'production':
-      return '/smuggler'
-    case 'development':
-      return undefined
-    case 'test':
-      return undefined
-    default:
-      return undefined
-  }
+export function makeUrl(path?: string, query?: Record<string, any>): string {
+  const q = query ? `?${stringify(query)}` : ''
+  const p = lodash.trim(path || '', '/')
+  const base = lodash.trimEnd(process.env.REACT_APP_SMUGGLER_API_URL || '', '/')
+  return `${base}/${p}${q}`
 }
-
-const _client = axios.create({
-  baseURL: _getSmuglerApibaseURL(),
-  timeout: 8000,
-})
 
 async function createNode({
   doc,
   from_nid /* Optional<string> */,
   to_nid /* Optional<string> */,
-  cancelToken,
+  signal,
 }: {
   doc: NodeTextData
   from_nid?: string
   to_nid?: string
-  cancelToken: import('axios').CancelToken
+  signal?: AbortSignal
 }): Promise<Optional<NewNodeResponse>> {
-  const query: {
-    from?: string
-    to?: string
-  } = {}
-  if (from_nid) {
-    query.from = from_nid
-  } else if (to_nid) {
-    query.to = to_nid
+  signal = signal || undefined
+  const query = {
+    from: from_nid || undefined,
+    to: to_nid || undefined,
   }
-  const headers = { [kHeaderContentType]: Mime.JSON }
-  const value = { text: doc }
-  const resp = await _client.post(`/node/new?${stringify(query)}`, value, {
-    headers,
-    cancelToken,
+  const resp = await fetch(makeUrl('node/new', query), {
+    method: 'POST',
+    body: JSON.stringify({ text: doc }),
+    headers: { 'Content-type': Mime.JSON },
+    signal,
   })
-  return resp.data ? resp.data : null
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function uploadFiles({
-  files,
-  from_nid,
-  to_nid,
-  cancelToken,
-}: {
-  files: File[]
-  from_nid?: string
-  to_nid?: string
-  cancelToken: CancelToken
-}) {
+async function uploadFiles(
+  files: File[],
+  from_nid: Optional<string>,
+  to_nid: Optional<string>,
+  signal?: AbortSignal
+) {
   const query: {
     from?: string
     to?: string
@@ -92,55 +72,49 @@ async function uploadFiles({
   }
   const value = new FormData()
   files.forEach((file) => value.append('file', file, file.name))
-  const headers = { [kHeaderContentType]: Mime.FORM_DATA }
-  const config = {
-    headers,
-    cancelToken,
-    timeout: 60000, // Extend timeout, files could be quite large and smuggler is a bit slow too
+  const resp = await fetch(makeUrl('/blob/new', query), {
+    method: 'POST',
+    body: value,
+    signal,
+  })
+  if (!resp.ok) {
+    throw new Error(`(${resp.status}) ${resp.statusText}`)
   }
-  const resp = await _client.post(
-    `/blob/new?${stringify(query)}`,
-    value,
-    config
-  )
-  return resp.data ? resp.data : null
+  return await resp.json()
 }
 
 function makeBlobSourceUrl(nid: string): string {
-  const base = _getSmuglerApibaseURL() || ''
-  return `${base}/blob/${nid}`
+  return makeUrl(`/blob/${nid}`)
 }
 
 async function deleteNode({
   nid,
-  cancelToken,
+  signal,
 }: {
   nid: string
-  cancelToken: CancelToken
-}): Promise<void> {
+  signal?: AbortSignal
+}): Promise<Ack> {
   verifyIsNotNull(nid)
-  return _client
-    .delete(`/node/${nid}`, {
-      cancelToken,
-    })
-    .then((_res) => {})
-    .catch(dealWithError)
+  const resp = await fetch(makeUrl(`/node/${nid}`), {
+    method: 'DELETE',
+    signal,
+  })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
 async function getNode({
   nid,
-  cancelToken,
+  signal,
 }: {
   nid: string
-  cancelToken: CancelToken
-}): Promise<Optional<TNode>> {
-  const res = await _client
-    .get(`/node/${nid}`, {
-      cancelToken,
-    })
-    .catch(dealWithError)
-  if (!res || !res.data) {
-    return null
+  signal?: AbortSignal
+}): Promise<TNode> {
+  const res = await fetch(makeUrl(`/node/${nid}`), { method: 'GET', signal })
+  if (!res.ok) {
+    throw new Error(`(${res.status}) ${res.statusText}`)
   }
   const {
     text,
@@ -148,7 +122,7 @@ async function getNode({
     extattrs = null,
     index_text = null,
     meta = null,
-  } = res.data
+  } = await res.json()
   const secret_id = null
   const success = true
   const node = new TNode(
@@ -168,40 +142,53 @@ async function getNode({
 async function updateNode({
   nid,
   text,
-  cancelToken,
+  signal,
 }: {
   nid: string
   text: NodeTextData
-  cancelToken: CancelToken
+  signal?: AbortSignal
 }) {
   const value = { text }
   const headers = {
-    [kHeaderContentType]: Mime.JSON,
+    'Content-type': Mime.JSON,
   }
-  const config = { headers, cancelToken }
-  return _client.patch(`/node/${nid}`, value, config).catch(dealWithError)
+  return fetch(makeUrl(`/node/${nid}`), {
+    method: 'PATCH',
+    body: JSON.stringify(value),
+    headers,
+    signal,
+  })
 }
 
-function getAuth({ cancelToken }) {
-  return _client.get(`/auth`, { cancelToken }).catch(dealWithError)
+async function getAuth({ signal }): Promise<AccountInfo> {
+  const resp = await fetch(makeUrl('/auth'), { method: 'GET', signal })
+  if (!resp.ok) {
+    throw new Error('Retrieving account information failed with an error')
+  }
+  return await resp.json()
 }
 
-function getAnySecondKey() {
-  return _client
-    .post(`/key/second/*`)
-    .then((res) => {
-      return res.data
-    })
-    .catch(dealWithError)
+export async function ping(): Promise<void> {
+  await fetch(makeUrl(), { method: 'GET' })
 }
 
-function getSecondKey({ id }) {
-  return _client
-    .get(`/key/second/${id}`)
-    .then((res) => {
-      return res.data
-    })
-    .catch(dealWithError)
+export async function getAnySecondKey() {
+  const resp = await fetch(makeUrl('/key/second/*'), {
+    method: 'POST',
+    headers: { 'Content-type': Mime.JSON },
+  })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
+}
+
+async function getSecondKey({ id }) {
+  const resp = await fetch(makeUrl(`/key/second/${id}`), { method: 'GET' })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
 async function decryptSecretAttrs(account, secretId, attrsEnc) {
@@ -215,27 +202,22 @@ async function decryptSecretAttrs(account, secretId, attrsEnc) {
   return {}
 }
 
-async function getNodesSlice({
-  end_time,
-  start_time,
-  offset,
-  cancelToken,
-  account,
-}) {
+async function getNodesSlice({ end_time, start_time, offset, signal }) {
   const req = {
     end_time,
     start_time,
     offset: offset || 0,
   }
-  const rawResp = await _client
-    .post(`/nodes-slice`, req, {
-      cancelToken,
-    })
-    .catch(dealWithError)
-  if (!rawResp) {
-    return null
+  const rawResp = await fetch(makeUrl(`/nodes-slice`), {
+    method: 'POST',
+    body: JSON.stringify(req),
+    headers: { 'Content-type': Mime.JSON },
+    signal,
+  })
+  if (!rawResp.ok) {
+    throw new Error(`(${rawResp.status}) ${rawResp.statusText}`)
   }
-  const response = rawResp.data
+  const response = await rawResp.json()
   const nodes = response.nodes.map((item) => {
     const {
       nid,
@@ -267,7 +249,7 @@ async function getNodesSlice({
   }
 }
 
-async function createEdge({ from, to, cancelToken }): Promise<TEdge> {
+async function createEdge({ from, to, signal }): Promise<TEdge> {
   verifyIsNotNull(from)
   verifyIsNotNull(to)
   const req = {
@@ -278,149 +260,144 @@ async function createEdge({ from, to, cancelToken }): Promise<TEdge> {
       },
     ],
   }
-  return _client
-    .post(`/node/${from}/edge`, req, {
-      cancelToken,
-    })
-    .catch(dealWithError)
-    .then((res) => {
-      if (res == null) {
-        throw new Error('Empty edge creation response')
-      }
-      const edges = res?.data?.edges
-      if (!edges?.length) {
-        throw new Error('Empty edge creation response')
-      }
-      const edgeOjb = edges[0]
-      return new TEdge(edgeOjb)
-    })
+  const resp = await fetch(makeUrl(`/node/${from}/edge`), {
+    method: 'POST',
+    body: JSON.stringify(req),
+    headers: { 'Content-type': Mime.JSON },
+    signal,
+  })
+  if (!resp.ok) {
+    throw new Error('Empty edge creation response')
+  }
+  const { edges } = await resp.json()
+  if (!edges?.length) {
+    throw new Error('Empty edge creation response')
+  }
+  const edgeOjb = edges[0]
+  return new TEdge(edgeOjb)
 }
 
-async function createFewEdges({ edges, cancelToken }) {
+async function createFewEdges({ edges, signal }) {
   verifyIsNotNull(edges)
   const req = {
     edges,
   }
-  return _client
-    .post(`/node/some/edge`, req, {
-      cancelToken: cancelToken.token,
-    })
-    .then((res) => {
-      if (res) {
-        return res.data.edges.map((edgeObj) => {
-          return new TEdge(edgeObj)
-        })
-      }
-    })
+  const resp = await fetch(makeUrl(`/node/some/edge`), {
+    method: 'POST',
+    body: JSON.stringify(req),
+    headers: { 'Content-type': Mime.JSON },
+    signal,
+  })
+  if (!resp.ok) {
+    throw new Error('Edge creation failed')
+  }
+  const { edges: newEdges } = await resp.json()
+  return newEdges.map((edgeObj) => {
+    return new TEdge(edgeObj)
+  })
 }
 
 async function getNodeEdges(
   nid: string,
-  cancelToken: CancelToken,
-  dir: '/to' | '/from'
+  dir: '/to' | '/from',
+  signal?: AbortSignal
 ): Promise<EdgeStar> {
   verifyIsNotNull(nid)
   verifyIsNotNull(dir)
-  return _client
-    .get(`/node/${nid}${dir}`, {
-      cancelToken,
-    })
-    .catch(dealWithError)
-    .then((response) => {
-      if (response == null) {
-        throw new Error('Unexpected empty response')
-      }
-      const star = response.data
-      star.edges = star.edges.map((edgeObj: EdgeAttributes) => {
-        return new TEdge(edgeObj)
-      })
-      return star
-    })
+  const resp = await fetch(makeUrl(`/node/${nid}${dir}`), {
+    method: 'GET',
+    signal,
+  })
+  if (!resp.ok) {
+    throw new Error('Getting node edges failed with error')
+  }
+  const star = await resp.json()
+  star.edges = star.edges.map((edgeObj: EdgeAttributes) => {
+    return new TEdge(edgeObj)
+  })
+  return star
 }
 
-async function getEdgesToNode({ nid, cancelToken }): Promise<EdgeStar> {
-  return await getNodeEdges(nid, cancelToken, '/to')
+async function getEdgesToNode({ nid, signal }): Promise<EdgeStar> {
+  return await getNodeEdges(nid, '/to', signal)
 }
 
-async function getEdgesFromNode({ nid, cancelToken }): Promise<EdgeStar> {
-  return await getNodeEdges(nid, cancelToken, '/from')
+async function getEdgesFromNode({ nid, signal }): Promise<EdgeStar> {
+  return await getNodeEdges(nid, '/from', signal)
 }
 
-async function switchEdgeStickiness({ eid, cancelToken, on, off }) {
+async function switchEdgeStickiness({ eid, signal, on, off }) {
   verifyIsNotNull(eid)
   const req = {
     is_sticky: on != null ? on : !off,
   }
-  return _client
-    .patch(`/edge/${eid}`, req, {
-      cancelToken,
-    })
-    .then((res) => {
-      if (res) {
-        return res.data
-      }
-      return null
-    })
+  const resp = await fetch(makeUrl(`/edge/${eid}`), {
+    method: 'PATCH',
+    body: JSON.stringify(req),
+    headers: { 'Content-type': Mime.JSON },
+    signal,
+  })
+  if (!resp.ok) {
+    throw new Error('Switching edge stickiness failed with error')
+  }
+  return await resp.json()
 }
 
-async function deleteEdge({ eid, cancelToken }) {
+async function deleteEdge({ eid, signal }) {
   verifyIsNotNull(eid)
-  const req = {
-    eid,
+  const req = { eid }
+  const resp = await fetch(makeUrl(`/node/x/edge`), {
+    method: 'DELETE',
+    signal,
+    body: JSON.stringify(req),
+    headers: { 'Content-type': Mime.JSON },
+  })
+  if (resp.ok) {
+    return await resp.json()
   }
-  return _client
-    .delete(`/node/x/edge`, {
-      cancelToken,
-      data: req,
-    })
-    .then((res) => {
-      if (res) {
-        return res.data
-      }
-      return null
-    })
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function getNodeMeta({ nid, cancelToken }) {
-  return await _client
-    .get(`/node/${nid}/meta`, {
-      cancelToken,
-    })
-    .catch(dealWithError)
-    .then((res) => {
-      if (res && res.data) {
-        return res.data
-      }
-    })
-}
-
-async function updateNodeMeta({ nid, meta, cancelToken }) {
-  const req = {
-    meta,
+async function getNodeMeta({ nid, signal }) {
+  const resp = await fetch(makeUrl(`/node/${nid}/meta`), {
+    method: 'GET',
+    signal,
+  })
+  if (resp.ok) {
+    return await resp.json()
   }
-  return await _client
-    .patch(`/node/${nid}/meta`, req, {
-      cancelToken,
-    })
-    .catch(dealWithError)
-    .then((res) => {
-      if (res && res.data) {
-        return res.data
-      }
-    })
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-function verifyIsNotNull(value) {
+async function updateNodeMeta({ nid, meta, signal }) {
+  const req = { meta }
+  const resp = await fetch(makeUrl(`/node/${nid}/meta`), {
+    method: 'PATCH',
+    body: JSON.stringify(req),
+    headers: { 'Content-type': Mime.JSON },
+    signal,
+  })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
+}
+
+function verifyIsNotNull(value: Optional<any>): void {
   if (value == null) {
-    const err = new Error('Mandatory parameter is null')
-    throw err
+    throw new Error('Mandatory parameter is null')
   }
 }
 
-async function createSession({ email, password, permissions, cancelToken }) {
+async function createSession(
+  email: string,
+  password: string,
+  permissions: number | null,
+  signal?: AbortSignal
+) {
   verifyIsNotNull(email)
   verifyIsNotNull(password)
-  verifyIsNotNull(cancelToken)
+  verifyIsNotNull(signal)
   if (!permissions) {
     permissions = 31
   }
@@ -429,79 +406,113 @@ async function createSession({ email, password, permissions, cancelToken }) {
     pass: password,
     permissions,
   }
-  return _client
-    .post(`/auth/session`, req, {
-      cancelToken,
-    })
-    .then((res) => {
-      if (res && res.data) {
-        return res.data
-      }
-      return null
-    })
-}
-
-async function deleteSession({ cancelToken }) {
-  return _client
-    .delete(`/auth/session`, {
-      cancelToken,
-    })
-    .then((res) => {
-      if (res && res.data) {
-        return res.data
-      }
-      return null
-    })
-}
-
-async function updateSession({ cancelToken }) {
-  return _client.patch(`/auth/session`, {
-    cancelToken,
+  const resp = await fetch(makeUrl('/auth/session'), {
+    method: 'POST',
+    body: JSON.stringify(req),
+    headers: { 'Content-type': Mime.JSON },
+    signal,
   })
+  if (!resp.ok) {
+    throw new Error(
+      `Session creation failed with an error (${resp.status}) ${resp.statusText}`
+    )
+  }
+  return await resp.json()
 }
 
-async function getUserBadge({ uid, cancelToken }) {
+async function deleteSession({ signal }) {
+  const resp = await fetch(makeUrl(`/auth/session`), {
+    method: 'DELETE',
+    signal,
+  })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
+}
+
+async function updateSession({ signal }) {
+  const resp = await fetch(makeUrl('/auth/session'), {
+    method: 'PATCH',
+    signal,
+  })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
+}
+
+async function getUserBadge({ uid, signal }) {
   verifyIsNotNull(uid)
-  verifyIsNotNull(cancelToken)
-  return await _client
-    .get(`/user/${uid}/badge`, {
-      cancelToken,
-    })
-    .catch(dealWithError)
-    .then((res) => {
-      if (res && res.data) {
-        return res.data
-      }
-      return null
-    })
+  verifyIsNotNull(signal)
+  const resp = await fetch(makeUrl(`/user/${uid}/badge`), {
+    method: 'GET',
+    signal,
+  })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function registerAccount({ name, email, cancelToken }) {
+async function registerAccount({ name, email, signal }) {
   const value = { name, email }
-  return await _client.post('/auth', value, { cancelToken })
+  const resp = await fetch(makeUrl('/auth'), {
+    method: 'POST',
+    body: JSON.stringify(value),
+    headers: { 'Content-type': Mime.JSON },
+    signal,
+  })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function passwordReset({ token, new_password, cancelToken }) {
+async function passwordReset({ token, new_password, signal }) {
   const value = { token, new_password }
-  return await _client
-    .post('/auth/password-recover/reset', value, { cancelToken })
-    .catch((err) => {
-      alert(`Error ${err}`)
-    })
+  const resp = await fetch(makeUrl('/auth/password-recover/reset'), {
+    method: 'POST',
+    body: JSON.stringify(value),
+    headers: { 'Content-type': Mime.JSON },
+    signal,
+  })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function passwordRecoverRequest({ email, cancelToken }) {
+async function passwordRecoverRequest({ email, signal }) {
   const value = { email }
-  return await _client.post('/auth/password-recover/request', value, {
-    cancelToken,
+  const resp = await fetch(makeUrl('/auth/password-recover/request'), {
+    method: 'POST',
+    body: JSON.stringify(value),
+    headers: { 'Content-type': Mime.JSON },
+    signal,
   })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function passwordChange(old_password, new_password, cancelToken) {
+async function passwordChange(
+  old_password: string,
+  new_password: string,
+  signal?: AbortSignal
+) {
   const value = { old_password, new_password }
-  return await axios.post('/auth/password-recover/change', value, {
-    cancelToken,
+  const resp = await fetch(makeUrl('/auth/password-recover/change'), {
+    method: 'POST',
+    body: JSON.stringify(value),
+    headers: { 'Content-type': Mime.JSON },
+    signal,
   })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
 export const smuggler = {
@@ -526,9 +537,6 @@ export const smuggler = {
     getFrom: getEdgesFromNode,
     sticky: switchEdgeStickiness,
     delete: deleteEdge,
-  },
-  makeCancelToken: () => {
-    return axios.CancelToken.source()
   },
   meta: {
     get: getNodeMeta,
@@ -555,4 +563,5 @@ export const smuggler = {
     },
     register: registerAccount,
   },
+  ping,
 }

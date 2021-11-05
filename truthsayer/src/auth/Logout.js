@@ -11,7 +11,7 @@ import { MzdGlobalContext } from './../lib/global'
 class Logout extends React.Component {
   constructor(props) {
     super(props)
-    this.fetchCancelToken = smuggler.makeCancelToken()
+    this.fetchAbortController = new AbortController()
   }
 
   static propTypes = {
@@ -19,7 +19,7 @@ class Logout extends React.Component {
   }
 
   componentWillUnmount() {
-    this.fetchCancelToken.cancel()
+    this.fetchAbortController.abort()
   }
 
   componentDidMount() {
@@ -28,7 +28,7 @@ class Logout extends React.Component {
     if (isAuthenticated) {
       smuggler.session
         .delete({
-          cancelToken: this.fetchCancelToken.token,
+          signal: this.fetchAbortController.signal,
         })
         .catch(this.handleError)
         .then((res) => {

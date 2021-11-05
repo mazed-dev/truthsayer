@@ -17,7 +17,7 @@ class PasswordChange extends React.Component {
       new_password_is_too_short: false,
       new_password_is_not_confirmed: false,
     }
-    this.cancelToken = smuggler.makeCancelToken()
+    this.abortControler = new AbortController()
   }
 
   static propTypes = {
@@ -25,7 +25,7 @@ class PasswordChange extends React.Component {
   }
 
   componentWillUnmount() {
-    this.cancelToken.cancel()
+    this.abortControler.abort()
   }
 
   handlePasswordChange = (event) => {
@@ -58,7 +58,7 @@ class PasswordChange extends React.Component {
       .change({
         old_password: this.state.password,
         new_password: this.state.new_password,
-        cancelToken: this.cancelToken.token,
+        signal: this.abortControler.signal,
       })
       .catch((err) => {
         alert(`Error ${err}`)

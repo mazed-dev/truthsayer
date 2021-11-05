@@ -3,8 +3,11 @@ import * as log from './util/log'
 
 import { WebPageContent } from './webPageContent'
 
+import { smuggler, authCookie } from 'smuggler-api'
+
 const sendSavePageRequest = () => {
   log.debug('sendSavePageRequest')
+  log.debug('Save page content authenticated:', authCookie.checkAuth())
   const message = { type: 'REQ_SAVE_PAGE' }
 
   // send message to popup
@@ -39,6 +42,24 @@ chrome.storage.local.get('snowing', (res) => {
 
 chrome.runtime.onMessage.addListener((message: MessageTypes) => {
   log.debug('chrome.runtime.onMessage.addListener - callback', message)
+  log.debug('Save page content authenticated:', authCookie.checkAuth())
+  // process is not defined in browsers extensions - use it to set up axios
+  log.debug('background.process.env', process.env.NODE_ENV)
+  log.debug(
+    'background.process.env.CHROME',
+    process.env.CHROME,
+    process.env.FIREFOX
+  )
+  log.debug(
+    'background.process.env.REACT_APP_*',
+    process.env.REACT_APP_SMUGGLER_API_URL
+  )
+  fetch('http://0.0.0.0:8080/').then(function (response) {
+    log.debug('Fetch /', response)
+  })
+  smuggler.ping().then((d) => {
+    log.debug('Ping', d)
+  })
   switch (message.type) {
     case 'REQ_SAVE_PAGE':
       sendSavePageRequest()

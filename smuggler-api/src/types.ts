@@ -261,3 +261,13 @@ export type NewNodeResponse = {
   from: Optional<string>
   to: Optional<string>
 }
+
+export type Ack = {
+  ack: boolean
+}
+
+export type AccountInfo = {
+  uid: string
+  name: string
+  email: string
+}

@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "webpack --watch --mode development --config webpack.config.js",
-    "build": "webpack --config webpack.config.js --mode production",
+    "build:chrome:public": "webpack --config webpack.config.js --mode production --env chrome",
+    "build:chrome:local": "webpack --config webpack.config.js --mode development --env chrome --progress --color",
     "test": "jest",
     "eject": "react-scripts eject",
     "fmt": "prettier --write $(find src -name '*.css' -o -name '*.js' -o -name '*.jsx')",
@@ -40,10 +40,11 @@
     "@hot-loader/react-dom": "^16.8.6",
     "@popperjs/core": "^2.9.3",
     "@types/chrome": "^0.0.154",
+    "process": "^0.11.10",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-hot-loader": "^4.13.0",
     "react-scripts": "4.0.3",
+    "smuggler-api": "0.0.1",
     "ts-node": "^9.1.1",
     "universal-cookie": "^4.0"
   },

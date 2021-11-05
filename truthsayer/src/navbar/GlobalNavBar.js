@@ -38,7 +38,7 @@ import { UploadNodeButton } from './../upload/UploadNodeButton'
 class UserPic extends React.Component {
   constructor(props) {
     super(props)
-    this.cancelToken = smuggler.makeCancelToken()
+    this.abortControler = new AbortController()
     this.state = {
       name: 'user',
       email: 'email',
@@ -46,18 +46,19 @@ class UserPic extends React.Component {
   }
 
   componentDidMount() {
-    smuggler.getAuth({ cancelToken: this.cancelToken.token }).then((res) => {
-      if (res) {
+    smuggler
+      .getAuth({ signal: this.abortControler.signal })
+      .catch(() => {})
+      .then((user) => {
         this.setState({
-          name: res.data.name,
-          email: res.data.email,
+          name: user.name,
+          email: user.email,
         })
-      }
-    })
+      })
   }
 
   componentWillUnmount() {
-    this.cancelToken.cancel()
+    this.abortControler.abort()
   }
 
   render() {
@@ -81,7 +82,8 @@ class UserPic extends React.Component {
 class PrivateNavButtonsImpl extends React.Component {
   constructor(props) {
     super(props)
-    this.newNodeCancelToken = smuggler.makeCancelToken()
+    this.newNodeAbortController = new AbortController()
+    this.newNodeAbortController = new AbortController()
   }
 
   static propTypes = {
@@ -94,7 +96,8 @@ class PrivateNavButtonsImpl extends React.Component {
       .then((doc) => {
         return smuggler.node.create({
           doc: doc.toNodeTextData(),
-          cancelToken: this.newNodeCancelToken.token,
+          signal: this.newNodeAbortController.signal,
+          signal: this.newNodeAbortController.signal,
         })
       })
       .then((node) => {

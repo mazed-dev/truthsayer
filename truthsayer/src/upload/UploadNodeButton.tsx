@@ -9,7 +9,7 @@ import { Emoji } from '../lib/Emoji'
 import { goto } from '../lib/route'
 import { debug } from '../util/log'
 import { jcss } from '../util/jcss'
-import { smuggler, CancelToken } from 'smuggler-api'
+import { smuggler } from 'smuggler-api'
 import { Optional } from '../util/types'
 
 import UploadImg from '../img/upload-strip.svg'
@@ -136,15 +136,15 @@ type FileUploadStatusProps = {
 
 export type FileUploadStatusState = {
   progress: number
-  nid: Optional<string>
-  error: Optional<string>
+  nid?: string
+  error?: string
 }
 
 class FileUploadStatus extends React.Component<
   FileUploadStatusProps,
   FileUploadStatusState
 > {
-  cancelToken: CancelToken
+  abortControler: AbortController
 
   constructor(props: FileUploadStatusProps) {
     super(props)
@@ -153,7 +153,7 @@ class FileUploadStatus extends React.Component<
       nid: null,
       error: null,
     }
-    this.cancelToken = smuggler.makeCancelToken()
+    this.abortControler = new AbortController()
   }
 
   componentDidMount() {
@@ -163,12 +163,12 @@ class FileUploadStatus extends React.Component<
       from_nid || null,
       to_nid || null,
       this.updateState,
-      this.cancelToken.token
+      this.abortControler.signal
     )
   }
 
   componentWillUnmount() {
-    this.cancelToken.cancel()
+    this.abortControler.abort()
   }
 
   updateState = (upd: FileUploadStatusState) => {
