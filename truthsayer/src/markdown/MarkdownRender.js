@@ -16,7 +16,7 @@ import { Emoji } from './../lib/Emoji'
 import { MdCheckBox } from './MdCheckBox'
 import { MzdLink } from './../lib/MzdLink'
 
-import { jcss } from '../util/jcss'
+import { jcss } from 'elementary'
 
 export function HeaderOne({ children, ...rest }) {
   return (

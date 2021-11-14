@@ -12,7 +12,7 @@ import { searchNodeFor } from './search/search'
 
 import { smuggler } from 'smuggler-api'
 
-import { jcss } from './../util/jcss'
+import { jcss } from 'elementary'
 import { range } from './../util/range'
 import { isSmartCase } from './../util/str.jsx'
 

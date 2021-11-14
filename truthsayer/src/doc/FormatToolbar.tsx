@@ -4,7 +4,7 @@ import { ButtonGroup } from 'react-bootstrap'
 import { Editor, Transforms, Element as SlateElement } from 'slate'
 import { useSlate } from 'slate-react'
 
-import { jcss } from './../util/jcss'
+import { jcss } from 'elementary'
 import styles from './FormatToolbar.module.css'
 
 import {
@@ -28,7 +28,7 @@ import {
   MdiFormatQuote,
   MdiFormatListNumbered,
   MdiFormatListBulleted,
-} from './../lib/MaterialIcons'
+} from 'elementary'
 
 type ReactiveButtonProps = {
   active: boolean

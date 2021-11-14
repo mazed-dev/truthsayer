@@ -2,7 +2,7 @@ import React from 'react'
 
 import './tooltip.css'
 
-import { jcss } from '../util/jcss'
+import { jcss } from 'elementary'
 
 type HoverTooltipProps = React.PropsWithChildren<{ tooltip: string }>
 

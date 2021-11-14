@@ -2,7 +2,7 @@ import React from 'react'
 
 import { useSelected, useFocused } from 'slate-react'
 
-import { jcss } from '../../../util/jcss'
+import { jcss } from 'elementary'
 
 import './components.css'
 

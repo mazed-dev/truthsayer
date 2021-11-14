@@ -16,7 +16,7 @@ import { ChainActionBar } from './ChainActionBar'
 import { withRouter } from 'react-router-dom'
 
 import { MzdGlobalContext } from '../lib/global'
-import { jcss } from './../util/jcss'
+import { jcss } from 'elementary'
 import * as log from '../util/log'
 import { isAbortError } from '../util/exception'
 

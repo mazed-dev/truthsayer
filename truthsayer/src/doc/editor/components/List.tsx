@@ -3,7 +3,7 @@ import React from 'react'
 import { ReactEditor, Slate, useReadOnly, useSlateStatic } from 'slate-react'
 import { Element as SlateElement, Transforms } from 'slate'
 
-import { jcss } from '../../../util/jcss'
+import { jcss } from 'elementary'
 import { CheckBox } from '../../../lib/CheckBox'
 
 import styles from './List.module.css'

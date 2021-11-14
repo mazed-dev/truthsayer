@@ -4955,6 +4955,11 @@ electron-to-chromium@^1.3.564, electron-to-chromium@^1.3.857:
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.864.tgz#6a993bcc196a2b8b3df84d28d5d4dd912393885f"
   integrity sha512-v4rbad8GO6/yVI92WOeU9Wgxc4NA0n4f6P1FvZTY+jyY7JHEhw3bduYu60v3Q1h81Cg6eo4ApZrFPuycwd5hGw==
 
+elementary@0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/elementary/-/elementary-0.0.1.tgz#a6f2b3d4e1b9fbcdb41ed1fd246b8ef27e0c74d3"
+  integrity sha1-pvKz1OG5+820HtH9JGuO8n4MdNM=
+
 elliptic@^6.5.3:
   version "6.5.4"
   resolved "https://registry.yarnpkg.com/elliptic/-/elliptic-6.5.4.tgz#da37cebd31e79a1367e941b592ed1fbebd58abbb"

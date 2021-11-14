@@ -6,7 +6,7 @@ import { Toast, Button } from 'react-bootstrap'
 
 import { createUserAccount, AccountInterface, Knocker } from '../auth/local'
 
-import { jcss } from '../util/jcss'
+import { jcss } from 'elementary'
 import { debug } from '../util/log'
 import { smuggler } from 'smuggler-api'
 

@@ -6,7 +6,7 @@ import styles from './Footbar.module.css'
 
 import { MeatballsButton } from './MeatballsButton'
 
-import { jcss } from '../util/jcss'
+import { jcss } from 'elementary'
 
 import { debug } from './../util/log'
 

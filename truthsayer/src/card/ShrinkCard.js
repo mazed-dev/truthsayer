@@ -2,7 +2,7 @@ import React from 'react'
 
 import styles from './ShrinkCard.module.css'
 
-import { jcss } from './../util/jcss'
+import { jcss } from 'elementary'
 /**
  * +-------------------+
  * | Card outstyle     |

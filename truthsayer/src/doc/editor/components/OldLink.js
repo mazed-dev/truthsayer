@@ -9,7 +9,7 @@ import { Link as ReactRouterLink } from 'react-router-dom'
 import { ControlButton } from './../ControlButton'
 import { ImgButton } from '../../../lib/ImgButton'
 
-import { jcss } from '../../../util/jcss'
+import { jcss } from 'elementary'
 
 import { Keys, isSymbol, isHotkeyCopy } from '../../../lib/Keys.jsx'
 import { ClickOutsideDetector } from '../../../lib/ClickOutsideDetector'

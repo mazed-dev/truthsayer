@@ -6,7 +6,7 @@ import styles from './MeatballsButton.module.css'
 
 import EllipsisImg from './../img/ellipsis.png'
 
-import { jcss } from '../util/jcss'
+import { jcss } from 'elementary'
 
 import { HoverTooltip } from '../lib/tooltip'
 

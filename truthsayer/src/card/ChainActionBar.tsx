@@ -10,19 +10,19 @@ import { goto, History } from '../lib/route'
 import { SmallCard } from './SmallCard'
 
 import { smuggler, NewNodeResponse } from 'smuggler-api'
-import { makeACopy, TDoc } from '../doc/doc_util'
+import { TDoc } from '../doc/doc_util'
 import { TNode } from 'smuggler-api'
 
 import { UploadNodeButton } from '../upload/UploadNodeButton'
 import { Optional } from '../util/types'
-import { jcss } from './../util/jcss'
+import { jcss } from 'elementary'
 import { Emoji } from '../lib/Emoji'
 import {
   MdiAdd,
   MdiContentCopy,
   MdiFileUpload,
   MdiSearch,
-} from '../lib/MaterialIcons'
+} from 'elementary'
 
 import { SearchAndConnectJinn } from './SearchAndConnect'
 

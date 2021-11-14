@@ -5,7 +5,7 @@ import { NavLink } from 'react-router-dom'
 import './components.css'
 import styles from './Header.module.css'
 
-import { jcss } from '../../../util/jcss'
+import { jcss } from 'elementary'
 
 const StdHeader = React.forwardRef(({ depth, ...attributes }, ref) => {
   switch (depth) {

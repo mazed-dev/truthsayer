@@ -24,7 +24,7 @@ import { MzdGlobalContext } from '../lib/global'
 import { HoverTooltip } from '../lib/tooltip'
 import { ImgButton } from '../lib/ImgButton'
 import { goto } from '../lib/route'
-import { jcss } from '../util/jcss'
+import { jcss } from 'elementary'
 import { docAsMarkdown } from '../doc/doc_util'
 import { downloadAsFile } from '../util/download_as_file.jsx'
 

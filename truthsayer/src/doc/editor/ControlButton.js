@@ -4,7 +4,7 @@ import { Button } from 'react-bootstrap'
 
 import styles from './ControlButton.module.css'
 
-import { jcss } from '../../util/jcss'
+import { jcss } from 'elementary'
 
 export const ControlButton = React.forwardRef(
   ({ children, className, onClick, isActive, is_disabled }, ref) => {

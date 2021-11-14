@@ -12,7 +12,6 @@ import { makeRefTo } from './../lib/route'
 
 import { MzdGlobalContext } from '../lib/global'
 import { HoverTooltip } from '../lib/tooltip'
-import { jcss } from '../util/jcss'
 import { CheckBox } from './../lib/CheckBox.js'
 import {
   FootbarDropdown,
@@ -21,7 +20,7 @@ import {
   FootbarDropdownToggle,
 } from './Footbar'
 
-import { MaterialIcon, MdiOpenInFull, MdiMoreHoriz } from '../lib/MaterialIcons'
+import { jcss, MaterialIcon, MdiOpenInFull, MdiMoreHoriz } from 'elementary'
 
 class PrivateMenu extends React.Component {
   constructor(props) {

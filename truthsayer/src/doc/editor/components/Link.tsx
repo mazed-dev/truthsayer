@@ -5,7 +5,7 @@ import { Link as ReactRouterLink } from 'react-router-dom'
 
 import moment from 'moment'
 
-import { jcss } from '../../../util/jcss'
+import { jcss } from 'elementary'
 import { Optional } from '../../../util/types'
 import { debug } from '../../../util/log'
 
