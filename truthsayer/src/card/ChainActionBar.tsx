@@ -17,12 +17,7 @@ import { UploadNodeButton } from '../upload/UploadNodeButton'
 import { Optional } from '../util/types'
 import { jcss } from 'elementary'
 import { Emoji } from '../lib/Emoji'
-import {
-  MdiAdd,
-  MdiContentCopy,
-  MdiFileUpload,
-  MdiSearch,
-} from 'elementary'
+import { MdiAdd, MdiContentCopy, MdiFileUpload, MdiSearch } from 'elementary'
 
 import { SearchAndConnectJinn } from './SearchAndConnect'
 
