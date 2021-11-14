@@ -42,7 +42,14 @@ jobs:
       - name: Install dependencies
         run: yarn install --prefer-offline --frozen-lockfile
 
-      - run: yarn lint
+      - run: Run linters
+        # This is a little absurd, but CI=ture force react build scripb treat
+        # all warning as errors. Let's turn it off to unblock the change. Once
+        # we get rid of all the warning we cad enable CI back.
+        # https://github.com/facebook/create-react-app/issues/3657
+        env:
+          CI: false
+        run: yarn lint
 
       - name: Build smuggler-api
         run: yarn smuggler-api build
@@ -54,10 +61,6 @@ jobs:
         run: yarn archaeologist build:chrome:public
 
       - name: Build truthsayer
-        # This is a little absurd, but CI=ture force react build scripb treat
-        # all warning as errors. Let's turn it off to unblock the change. Once
-        # we get rid of all the warning we cad enable CI back.
-        # https://github.com/facebook/create-react-app/issues/3657
         env:
           CI: false
         run: yarn truthsayer build
