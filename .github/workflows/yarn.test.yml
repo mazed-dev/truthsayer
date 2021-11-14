@@ -42,7 +42,7 @@ jobs:
       - name: Install dependencies
         run: yarn install --prefer-offline --frozen-lockfile
 
-      - run: Run linters
+      - name: Run linters
         # This is a little absurd, but CI=ture force react build scripb treat
         # all warning as errors. Let's turn it off to unblock the change. Once
         # we get rid of all the warning we cad enable CI back.
