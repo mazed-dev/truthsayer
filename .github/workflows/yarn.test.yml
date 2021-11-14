@@ -47,6 +47,9 @@ jobs:
       - name: Build smuggler-api
         run: yarn smuggler-api build
 
+      - name: Build elementary
+        run: yarn elementary build
+
       - name: Build archaeologist
         run: yarn archaeologist build:chrome:public
 
