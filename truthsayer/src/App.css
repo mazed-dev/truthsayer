@@ -11,28 +11,3 @@
   font-size: calc(10px + 2vmin);
   color: white;
 }
-
-.app_content {
-  max-width: 100%;
-  width: 100%;
-
-  margin: 0;
-
-  padding-top: 0;
-  padding-bottom: 0;
-
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
-@media (max-width: 480px) {
-  /**
-   * Mobile devices
-   */
-  /* Save some space */
-  .app_content {
-    padding-left: 4px;
-    /* Reserve space for scrollbar on the right side */
-    padding-right: 6px;
-  }
-}

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 import { Editable, Slate, withReact } from 'slate-react'
 import {
@@ -66,10 +66,6 @@ import { Leaf } from './editor/components/Leaf'
 import { FormatToolbar } from './FormatToolbar'
 import { TDoc } from './doc_util'
 import { SlateText } from './types'
-
-import styles from './DocEditor.module.css'
-
-import lodash from 'lodash'
 
 export type BulletedListElement = {
   type: kSlateBlockTypeUnorderedList
