@@ -2,7 +2,6 @@
 
 import React, { useContext } from 'react'
 
-// React router
 import {
   BrowserRouter as Router,
   Link,
@@ -40,8 +39,6 @@ import { Loader } from './lib/loader'
 import { initDevEnv } from './dev/env'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
-
-import './App.css'
 
 class App extends React.Component {
   render() {
