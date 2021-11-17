@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { jcss } from './../util/jcss'
+import { jcss } from 'elementary'
 
 import styles from './loader.module.css'
 

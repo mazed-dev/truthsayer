@@ -5,7 +5,7 @@ import { Modal, ListGroup } from 'react-bootstrap'
 import { Loader } from './../lib/loader'
 import { ImgButton } from './../lib/ImgButton'
 import { smuggler } from 'smuggler-api'
-import { jcss } from '../util/jcss'
+import { jcss } from 'elementary'
 
 import styles from './ShareModal.module.css'
 

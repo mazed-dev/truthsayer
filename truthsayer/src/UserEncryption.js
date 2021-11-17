@@ -14,7 +14,7 @@ import {
 
 import { withRouter } from 'react-router-dom'
 
-import { jcss } from './util/jcss'
+import { jcss } from 'elementary'
 import { isAscii } from './util/ascii.jsx'
 import { Loader } from './lib/loader'
 

@@ -2,15 +2,16 @@
 
 ## Workspaces
 
-- `truthsayer` - Web app
+- `truthsayer` - web app
 - `archaeologist` - browser plugin for Chromium/Chrome
+- `elementary` - library of common React components
 - `smuggler-api` - simple TS wrapper around smuggler REST API
 
 See [yarn workspaces](https://yarnpkg.com/features/workspaces).
 
 ## Docs
 
-For free private repos wiki is not availiable. Instead there is directory "./docs" in the root of this repo with markdown files.
+For free private repos wiki is not available. Instead there is directory "./docs" in the root of this repo with markdown files.
 
 ## Development
 

@@ -1,0 +1,38 @@
+{
+  "name": "elementary",
+  "author": "Thread knowledge",
+  "license": "no",
+  "private": true,
+  "version": "0.1.0",
+  "description": "React shared elements",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "scripts": {
+    "build": "tsc --build --pretty",
+    "test": "jest",
+    "fix": "yarn fix:prettier && yarn fix:eslint",
+    "fix:eslint": "yarn lint:eslint --fix",
+    "fix:prettier": "yarn lint:prettier --write",
+    "lint": "yarn lint:eslint && yarn lint:prettier",
+    "lint:eslint": "eslint \"./src/**/*.{js,ts}\"",
+    "lint:prettier": "prettier --check \"./src/**/*.{css,md,js,json,ts}\"",
+    "lint:typescript": "tsc --build ./ --force"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@testing-library/dom": "^7.29",
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^12.1.0",
+    "@testing-library/user-event": "^12.6",
+    "@types/jsdom": "^16.2.13",
+    "jsdom": "^17.0.0",
+    "ts-jest": "^26.4.2"
+  },
+  "peerDependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  }
+}

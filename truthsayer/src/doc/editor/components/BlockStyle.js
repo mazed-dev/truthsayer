@@ -14,7 +14,7 @@ import {
   kBlockTypeUnorderedItem,
   kBlockTypeUnstyled,
 } from '../../types.ts'
-import { jcss } from '../../../util/jcss'
+import { jcss } from 'elementary'
 
 export function getBlockStyle(blockType) {
   // TODO(akindyakov): Continue here applying custom styles for elements

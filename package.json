@@ -2,6 +2,7 @@
   "name": "truthsayer",
   "workspaces": [
     "archaeologist",
+    "elementary",
     "smuggler-api",
     "truthsayer"
   ],
@@ -11,6 +12,7 @@
     "archaeologist": "yarn workspace archaeologist",
     "smuggler-api": "yarn workspace smuggler-api",
     "truthsayer": "yarn workspace truthsayer",
+    "elementary": "yarn workspace elementary",
     "test": "yarn workspaces run test --all --watchAll=false --no-watchman",
     "lint": "yarn workspaces run lint",
     "fix": "yarn workspaces run fix",

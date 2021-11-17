@@ -2,7 +2,12 @@
   "compilerOptions": {
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
     "esModuleInterop": true,
+    "inlineSources": false,
+    "sourceMap":true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
@@ -13,7 +18,6 @@
     ],
     "module": "esnext",
     "moduleResolution": "node",
-    "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "outDir": "dist",
     "removeComments": true,
@@ -23,15 +27,8 @@
     "strict": true,
     "target": "es6"
   },
-  "references": [
-    {
-      "path": "../smuggler-api"
-    },
-    {
-      "path": "../elementary"
-    }
-  ],
   "include": [
     "src"
-  ]
+  ],
+  "exclude": ["node_modules", "dist" ]
 }

@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Button } from 'react-bootstrap'
 
-import { jcss } from '../util/jcss'
+import { jcss } from 'elementary'
 
 import styles from './ImgButton.module.css'
 

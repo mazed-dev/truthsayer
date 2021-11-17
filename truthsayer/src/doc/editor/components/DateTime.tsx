@@ -6,7 +6,7 @@ import { Badge } from 'react-bootstrap'
 
 import moment from 'moment'
 
-import { jcss } from '../../../util/jcss'
+import { jcss } from 'elementary'
 import { Optional } from '../../../util/types'
 import { debug } from '../../../util/log'
 

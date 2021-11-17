@@ -9,7 +9,7 @@ import { Button, ButtonGroup, InputGroup, Form } from 'react-bootstrap'
 
 import { AutocompleteWindow } from './../smartpoint/AutocompleteWindow'
 import { MarkdownToolbar } from './MarkdownToolBar.js'
-import { jcss } from '../util/jcss'
+import { jcss } from 'elementary'
 import { renderMdCard, SmallAsterisk } from './../markdown/MarkdownRender'
 
 import { MzdGlobalContext } from './../lib/global'

@@ -7,7 +7,7 @@ import { withRouter } from 'react-router-dom'
 
 import { Loader } from '../lib/loader'
 
-import { jcss } from '../util/jcss'
+import { jcss } from 'elementary'
 
 import { ChunkRender, parseRawSource } from './chunks'
 

@@ -2,7 +2,7 @@ import React from 'react'
 
 import './components.css'
 
-import { jcss } from '../../../util/jcss'
+import { jcss } from 'elementary'
 import { debug } from '../../../util/log'
 
 export const HRule = React.forwardRef(

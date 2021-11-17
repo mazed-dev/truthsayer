@@ -4,7 +4,7 @@ import { Image, Button, ButtonGroup, Modal } from 'react-bootstrap'
 
 import { ImgButton } from '../../lib/ImgButton'
 
-import { jcss } from '../../util/jcss'
+import { jcss } from 'elementary'
 import { debug } from '../../util/log'
 
 import ZoomInImg from '../../img/zoom-in-strip.svg'

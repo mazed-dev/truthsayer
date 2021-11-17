@@ -8,7 +8,7 @@ import { uploadLocalFile } from './UploadLocalFile'
 import { Emoji } from '../lib/Emoji'
 import { goto } from '../lib/route'
 import { debug } from '../util/log'
-import { jcss } from '../util/jcss'
+import { jcss } from 'elementary'
 import { smuggler } from 'smuggler-api'
 import { Optional } from '../util/types'
 

@@ -2,7 +2,7 @@ import React from 'react'
 
 import styles from './CheckBox.module.css'
 
-import { jcss } from '../util/jcss'
+import { jcss } from 'elementary'
 
 export const CheckBox = React.forwardRef(
   ({ checked, onChange, className, disabled, ...kwargs }, ref) => {

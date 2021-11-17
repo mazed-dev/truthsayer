@@ -24,7 +24,7 @@ import { smuggler } from 'smuggler-api'
 import { HoverTooltip } from './../lib/tooltip'
 import { goto, compass } from './../lib/route'
 
-import { jcss } from '../util/jcss'
+import { jcss } from 'elementary'
 
 import kUserDefaultPic from './../auth/img/user-default-pic.png'
 

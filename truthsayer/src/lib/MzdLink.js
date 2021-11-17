@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Link } from 'react-router-dom'
 
-import { jcss } from '../util/jcss'
+import { jcss } from 'elementary'
 
 import styles from './MzdLink.module.css'
 

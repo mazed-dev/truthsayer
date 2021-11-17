@@ -12,7 +12,7 @@ import MdToolbarIconLink from './img/markdown-tool-link.png'
 import MdToolbarIconEmojiList from './img/markdown-tool-unordered-emoji-list.png'
 import MdToolbarUnorderedList from './img/markdown-tool-unordered-list.png'
 
-import { jcss } from '../util/jcss'
+import { jcss } from 'elementary'
 import { EMOJI_LIST_PRESETS } from './EmojiListPresets'
 
 import { Button, ButtonGroup } from 'react-bootstrap'
