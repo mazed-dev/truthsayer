@@ -21,7 +21,10 @@
     "lint:prettier": "prettier --check \"./src/**/*.{css,md,js,json,ts}\"",
     "lint:typescript": "tsc --build ./ --force"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@emotion/react": "^11.6.0",
+    "@emotion/styled": "^11.6.0"
+  },
   "devDependencies": {
     "@testing-library/dom": "^7.29",
     "@testing-library/jest-dom": "^5.14.1",

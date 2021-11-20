@@ -1,46 +1,47 @@
 {
-    "compilerOptions": {
-        "allowJs": true,
-        "allowSyntheticDefaultImports": true,
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
-        "isolatedModules": true,
-        "jsx": "react-jsx",
-        "lib": [
-            "dom",
-            "dom.iterable",
-            "esnext"
-        ],
-        "module": "es6",
-        "moduleResolution": "node",
-        "noEmit": false,
-        "noFallthroughCasesInSwitch": true,
-        "noImplicitAny": true,
-        "noImplicitReturns": true,
-        "removeComments": true,
-        "resolveJsonModule": true,
-        "skipLibCheck": true,
-        "sourceMap": true,
-        "strict": true,
-        "target": "es6"
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "@emotion/react",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "module": "es6",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "removeComments": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "es6"
+  },
+  "references": [
+    {
+      "path": "../smuggler-api"
     },
-    "references": [
-        {
-            "path": "../smuggler-api"
-        },
-        {
-            "path": "../elementary"
-        }
-    ],
-    "include": [
-        "./src/**/*",
-        "src/custom.d.ts"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist",
-        "./src/test/*.js",
-        "./src/reportWebVitals.js",
-        "./src/setupTests.js"
-    ]
+    {
+      "path": "../elementary"
+    }
+  ],
+  "include": [
+    "./src/**/*",
+    "src/custom.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "./src/test/*.js",
+    "./src/reportWebVitals.js",
+    "./src/setupTests.js"
+  ]
 }

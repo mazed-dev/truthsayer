@@ -1,6 +1,7 @@
+/** @jsxImportSource @emotion/react */
+
 import React, { useContext } from 'react'
 
-// React router
 import {
   BrowserRouter as Router,
   Link,
@@ -10,6 +11,8 @@ import {
   useLocation,
   useParams,
 } from 'react-router-dom'
+
+import { css } from '@emotion/react'
 
 import { Card, Button, Container } from 'react-bootstrap'
 
@@ -37,8 +40,6 @@ import { initDevEnv } from './dev/env'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
 
-import './App.css'
-
 class App extends React.Component {
   render() {
     initDevEnv()
@@ -54,7 +55,27 @@ function AppRouter() {
   return (
     <Router>
       <GlobalNavBar />
-      <Container fluid className="app_content">
+      <Container
+        fluid
+        className="app_content"
+        css={css`
+          max-width: 100%;
+          width: 100%;
+          margin: 0;
+          padding-top: 0;
+          padding-bottom: 0;
+          padding-left: 10px;
+          padding-right: 10px;
+
+          @media (min-width: 480px) {
+            .app_content {
+              padding-left: 4px;
+              /* Reserve space for scrollbar on the right side */
+              padding-right: 6px;
+            }
+          }
+        `}
+      >
         <Switch>
           <Route exact path="/">
             <MainView />
