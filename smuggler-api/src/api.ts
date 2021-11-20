@@ -8,6 +8,8 @@ import {
   TNode,
   Ack,
   AccountInfo,
+  UploadMultipartResponse,
+  GenerateBlobIndexResponse,
 } from './types'
 
 import { Mime } from './util/mime'
@@ -16,6 +18,7 @@ import { Optional } from './util/optional'
 import moment from 'moment'
 import lodash from 'lodash'
 import { stringify } from 'query-string'
+import { NodePatchRequest } from '.'
 
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
@@ -60,7 +63,7 @@ async function uploadFiles(
   from_nid: Optional<string>,
   to_nid: Optional<string>,
   signal?: AbortSignal
-) {
+): Promise<UploadMultipartResponse> {
   const query: {
     from?: string
     to?: string
@@ -73,6 +76,23 @@ async function uploadFiles(
   const value = new FormData()
   files.forEach((file) => value.append('file', file, file.name))
   const resp = await fetch(makeUrl('/blob/new', query), {
+    method: 'POST',
+    body: value,
+    signal,
+  })
+  if (!resp.ok) {
+    throw new Error(`(${resp.status}) ${resp.statusText}`)
+  }
+  return await resp.json()
+}
+
+async function createFilesSearchIndex(
+  files: File[],
+  signal?: AbortSignal
+): Promise<GenerateBlobIndexResponse> {
+  const value = new FormData()
+  files.forEach((file) => value.append('file', file, file.name))
+  const resp = await fetch(makeUrl('/blob-index'), {
     method: 'POST',
     body: value,
     signal,
@@ -141,20 +161,19 @@ async function getNode({
 
 async function updateNode({
   nid,
-  text,
+  request,
   signal,
 }: {
   nid: string
-  text: NodeTextData
+  request: NodePatchRequest
   signal?: AbortSignal
 }) {
-  const value = { text }
   const headers = {
     'Content-type': Mime.JSON,
   }
   return fetch(makeUrl(`/node/${nid}`), {
     method: 'PATCH',
-    body: JSON.stringify(value),
+    body: JSON.stringify(request),
     headers,
     signal,
   })
@@ -529,6 +548,9 @@ export const smuggler = {
   blob: {
     upload: uploadFiles,
     getSource: makeBlobSourceUrl,
+  },
+  blob_index: {
+    create: createFilesSearchIndex,
   },
   edge: {
     create: createEdge,

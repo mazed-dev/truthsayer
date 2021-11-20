@@ -271,3 +271,24 @@ export type AccountInfo = {
   name: string
   email: string
 }
+
+export type NodePatchRequest = {
+  text?: NodeTextData
+  index_text?: NodeTextIndex
+  preserve_update_time?: boolean // Default is false
+}
+
+export type UploadMultipartResponse = {
+  nids: string[]
+  from: Optional<string>
+  to: Optional<string>
+}
+
+export type BlobIndex = {
+  filename: string
+  index: NodeTextIndex
+}
+
+export type GenerateBlobIndexResponse = {
+  indexes: Array<BlobIndex>
+}
