@@ -4,6 +4,7 @@ import {
   NewNodeResponse,
   NodeExtattrs,
   NodeTextData,
+  NodeTextIndex,
   TEdge,
   TNode,
   Ack,
@@ -161,15 +162,24 @@ async function getNode({
 
 async function updateNode({
   nid,
-  request,
   signal,
+  text,
+  index_text,
+  preserve_update_time,
 }: {
   nid: string
-  request: NodePatchRequest
+  text?: NodeTextData
+  index_text?: NodeTextIndex
+  preserve_update_time?: boolean
   signal?: AbortSignal
 }) {
   const headers = {
     'Content-type': Mime.JSON,
+  }
+  const request: NodePatchRequest = {
+    text: text,
+    index_text: index_text,
+    preserve_update_time: preserve_update_time,
   }
   return fetch(makeUrl(`/node/${nid}`), {
     method: 'PATCH',
