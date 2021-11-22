@@ -61,60 +61,66 @@ async function uploadLocalBinaryFile(
     }
     return
   }
+
+  const upload: UploadMultipartResponse = uploadResult.value
+  const nid = upload.nids.length !== 0 ? upload.nids[0] : undefined
+
+  const updateStatusOnIndexError = (error: Error) => {
+    if (isAbortError(error)) {
+      return
+    }
+    log.exception(error)
+    updateStatus({
+      nid,
+      progress: 1,
+      error:
+        `Submission succeeded, but failed to generate search index ` +
+        `(node will be accessible, but not searchable): ${error}`,
+    })
+  }
+
   // When upload succeeds, but index generation fails it's not a critical
   // error as user data is not lost & if index generation is attempted in the
   // future it may still succeed. There is however nothing to update on the
   // successfully created node
-  else if (indexResult.status == 'rejected') {
-    if (!isAbortError(indexResult.reason)) {
-      log.exception(indexResult.reason)
-      updateStatus({
-        progress: 1,
-        error:
-          `Submission succeeded, but failed to generate search index ` +
-          `(file will be accessible, but not searchable): ${indexResult.reason}`,
-      })
-    }
+  if (indexResult.status == 'rejected') {
+    updateStatusOnIndexError(indexResult.reason)
     return
   }
+
+  const index: GenerateBlobIndexResponse = indexResult.value
 
   // If both upload & index generation have succeeded then resulting node
   // needs to be updated with generated index to make it searchable
-  const upload: UploadMultipartResponse = uploadResult.value
-  const index: GenerateBlobIndexResponse = indexResult.value
 
   if (upload.nids.length !== 1 || index.indexes.length !== 1) {
-    console.error(
-      `Can't resolve which blob index is associated with which file` +
-        ` (got ${index.indexes.length} indexes, ${upload.nids.length} upload results)`
-    )
-    updateStatus({
-      progress: 1,
-      error: `Submission succeeded, but failed to generate search index due to internal error`,
+    updateStatusOnIndexError({
+      name: 'logical-error',
+      message:
+        `Can't resolve which blob index is associated with which file` +
+        ` (got ${index.indexes.length} indexes, ${upload.nids.length} upload results)`,
     })
     return
   }
 
-  const nid = upload.nids[0]
   const index_text: NodeTextIndex = index.indexes[0].index
-  smuggler.node
+  const updateResult = smuggler.node
     .update({
-      nid,
-      request: { index_text },
+      nid: upload.nids[0],
+      index_text,
       signal: abortSignal,
     })
-    .catch((err) => {
-      if (isAbortError(err)) {
-        return
+    .then((resp) => {
+      if (resp.ok) {
+        updateStatus({ nid, progress: 1.0 })
+      } else {
+        updateStatusOnIndexError({
+          name: 'http-error',
+          message: `(${resp.status}) ${resp.statusText}`,
+        })
       }
-      log.exception(err)
-      updateStatus({
-        progress: 1,
-        error:
-          `Submission succeeded, but failed to generate search index ` +
-          `(file will be accessible, but not searchable): ${err}`,
-      })
     })
+    .catch(updateStatusOnIndexError)
 }
 
 function uploadLocalTextFile(
@@ -140,8 +146,8 @@ function uploadLocalTextFile(
       smuggler.node
         .create({
           doc: doc.toNodeTextData(),
-          from_nid,
-          to_nid,
+          from_nid: from_nid || undefined,
+          to_nid: to_nid || undefined,
           signal: abortSignal,
         })
         .then((node) => {
