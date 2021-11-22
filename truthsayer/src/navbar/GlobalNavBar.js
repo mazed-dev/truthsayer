@@ -95,7 +95,7 @@ class PrivateNavButtonsImpl extends React.Component {
     makeDoc({})
       .then((doc) => {
         return smuggler.node.create({
-          doc: doc.toNodeTextData(),
+          text: doc.toNodeTextData(),
           signal: this.newNodeAbortController.signal,
           signal: this.newNodeAbortController.signal,
         })

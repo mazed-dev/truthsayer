@@ -271,3 +271,13 @@ export type AccountInfo = {
   name: string
   email: string
 }
+
+export type NodeIndexText = {
+  plaintext: Optional<string>
+}
+
+export type NewNodeRequestBody = {
+  text: Optional<NodeTextData>
+  index_text: Optional<NodeIndexText>
+  extattrs: Optional<NodeExtattrs>
+}
