@@ -106,8 +106,18 @@ export interface NodeMeta {
   uid: string
 }
 
+export type Color = {
+  frac_red: number
+  frac_green: number
+  frac_blue: number
+  alpha: number
+}
+
 export type NodeTextIndex = {
   plaintext: Optional<string>
+  labels: string[]
+  brands: string[]
+  dominant_colors: Color[]
 }
 
 export class TNode {

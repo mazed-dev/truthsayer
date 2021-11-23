@@ -34,6 +34,13 @@ export function searchNodeFor(
     // Empty search fall back to show everything
     return node
   }
+  const labelIndex = node.index_text?.labels.findIndex((text) => {
+    return text.search(pattern) >= 0
+  })
+  if (labelIndex !== undefined && labelIndex >= 0) {
+    return node
+  }
+
   const blocks = getPlainText(node.getText())
   const matchedIndex = blocks.findIndex((text) => {
     const ret = text.search(pattern) >= 0

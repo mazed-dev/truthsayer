@@ -51,7 +51,7 @@ async function uploadLocalBinaryFile(
 
   // If upload fails then what happens with index is not important as there is no
   // node to update with one
-  if (uploadResult.status == 'rejected') {
+  if (uploadResult.status === 'rejected') {
     if (!isAbortError(uploadResult.reason)) {
       log.exception(uploadResult.reason)
       updateStatus({
@@ -83,7 +83,7 @@ async function uploadLocalBinaryFile(
   // error as user data is not lost & if index generation is attempted in the
   // future it may still succeed. There is however nothing to update on the
   // successfully created node
-  if (indexResult.status == 'rejected') {
+  if (indexResult.status === 'rejected') {
     updateStatusOnIndexError(indexResult.reason)
     return
   }
@@ -104,7 +104,7 @@ async function uploadLocalBinaryFile(
   }
 
   const index_text: NodeTextIndex = index.indexes[0].index
-  const updateResult = smuggler.node
+  smuggler.node
     .update({
       nid: upload.nids[0],
       index_text,
