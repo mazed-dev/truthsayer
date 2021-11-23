@@ -50,7 +50,7 @@ async function cloneNode({
   let doc = await TDoc.fromNodeTextData(node.getText())
   doc = doc.makeACopy(node.getNid(), isBlank || false)
   return await smuggler.node.create({
-    doc: doc.toNodeTextData(),
+    text: doc.toNodeTextData(),
     abortControler,
     from_nid: from,
     to_nid: to,

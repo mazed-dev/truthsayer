@@ -1,13 +1,15 @@
 import {
+  AccountInfo,
+  Ack,
   EdgeAttributes,
   EdgeStar,
   NewNodeResponse,
   NodeExtattrs,
+  NewNodeRequestBody,
+  NodeIndexText,
   NodeTextData,
   TEdge,
   TNode,
-  Ack,
-  AccountInfo,
 } from './types'
 
 import { Mime } from './util/mime'
@@ -28,14 +30,18 @@ export function makeUrl(path?: string, query?: Record<string, any>): string {
 }
 
 async function createNode({
-  doc,
-  from_nid /* Optional<string> */,
-  to_nid /* Optional<string> */,
+  text,
+  from_nid,
+  to_nid,
+  index_text,
+  extattrs,
   signal,
 }: {
-  doc: NodeTextData
+  text: NodeTextData
   from_nid?: string
   to_nid?: string
+  index_text?: NodeIndexText
+  extattrs?: NodeExtattrs
   signal?: AbortSignal
 }): Promise<Optional<NewNodeResponse>> {
   signal = signal || undefined
@@ -43,9 +49,14 @@ async function createNode({
     from: from_nid || undefined,
     to: to_nid || undefined,
   }
+  const body: NewNodeRequestBody = {
+    text,
+    index_text: index_text || null,
+    extattrs: extattrs || null,
+  }
   const resp = await fetch(makeUrl('node/new', query), {
     method: 'POST',
-    body: JSON.stringify({ text: doc }),
+    body: JSON.stringify(body),
     headers: { 'Content-type': Mime.JSON },
     signal,
   })
