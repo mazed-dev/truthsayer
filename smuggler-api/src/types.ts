@@ -42,37 +42,43 @@ export enum NodeType {
 // see smuggler/src/types.rs
 export interface INodeExtattrs {
   content_type: MimeType
-  preview_image: Optional<NodeDataBlobPreview>
+  title: Optional<string>
+  description: Optional<string>
+  lang: Optional<string>
+  author: Optional<string>
+  preview_image: Optional<PreviewImageSmall>
+  web: Optional<NodeExtattrsWeb>
+  blob: Optional<NodeExtattrsBlob>
 }
 
 export class NodeExtattrs implements INodeExtattrs {
   content_type: MimeType
-  preview_image: Optional<NodeDataBlobPreview>
+  title: Optional<string>
+  description: Optional<string>
+  lang: Optional<string>
+  author: Optional<string>
+  preview_image: Optional<PreviewImageSmall>
+  web: Optional<NodeExtattrsWeb>
+  blob: Optional<NodeExtattrsBlob>
 
-  // #[serde(skip_serializing_if = "Option::is_none")]
-  // pub title: Option<String>,
-
-  // #[serde(skip_serializing_if = "Option::is_none")]
-  // pub description: Option<String>,
-
-  // #[serde(skip_serializing_if = "Option::is_none")]
-  // pub lang: Option<String>,
-
-  // #[serde(skip_serializing_if = "Option::is_none")]
-  // pub author: Option<String>,
-
-  // #[serde(skip_serializing_if = "Option::is_none")]
-  // pub preview_image: Option<PreviewImageSmall>,
-
-  // #[serde(skip_serializing_if = "Option::is_none")]
-  // pub web: Option<NodeAirbilWebResource>,
-
-  // #[serde(skip_serializing_if = "Option::is_none")]
-  // pub blob: Option<NodeExtattrsBlob>,
-
-  constructor({ content_type, preview_image }: INodeExtattrs) {
+  constructor({
+  content_type,
+  title,
+  description,
+  lang,
+  author,
+  preview_image,
+  web,
+  blob,
+  }: INodeExtattrs) {
     this.content_type = content_type
+  this.title = title
+  this.description = description
+  this.lang = lang
+  this.author = author
     this.preview_image = preview_image
+  this.web = web
+  this.blob = blob
   }
 
   isImage(): boolean {
@@ -90,7 +96,7 @@ export class NodeExtattrs implements INodeExtattrs {
     obj = lodash.forIn(obj, (value: any, key: string, obj: object): void => {
       value = NodeExtattrs.reviver(key, value)
       if (key === 'preview_image' && value) {
-        value = NodeDataBlobPreview.fromJSON(value)
+        value = PreviewImageSmall.fromJSON(value)
       }
       obj[key] = value
     })
@@ -106,7 +112,7 @@ export class NodeExtattrs implements INodeExtattrs {
 }
 
 // see smuggler/src/types.rs
-export interface INodeDataBlobPreview {
+export interface IPreviewImageSmall {
   content_type: MimeType
 
   // Base64 encoded image for card preview_image, it must be small so we can
@@ -116,11 +122,11 @@ export interface INodeDataBlobPreview {
   data: string
 }
 
-export class NodeDataBlobPreview implements INodeDataBlobPreview {
+export class PreviewImageSmall implements IPreviewImageSmall {
   content_type: MimeType
   data: string
 
-  constructor({ content_type, data }: INodeDataBlobPreview) {
+  constructor({ content_type, data }: IPreviewImageSmall) {
     this.content_type = content_type
     this.data = data
   }
@@ -132,13 +138,22 @@ export class NodeDataBlobPreview implements INodeDataBlobPreview {
     return value
   }
 
-  static fromJSON(obj: object): NodeDataBlobPreview {
+  static fromJSON(obj: object): PreviewImageSmall {
     obj = lodash.forIn(obj, (value: any, key: string, obj: object): void => {
       value = NodeExtattrs.reviver(key, value)
       obj[key] = value
     })
-    return new NodeDataBlobPreview(obj as INodeDataBlobPreview)
+    return new PreviewImageSmall(obj as IPreviewImageSmall)
   }
+}
+
+export type NodeExtattrsBlob = {}
+
+export type NodeExtattrsWeb = {
+  // Web resource only related attributes
+  // Store here any conditions or credentials to access that resource,
+  // for example the resource is availiable only from certain contries
+  url: string,
 }
 
 export interface NodeShare {
