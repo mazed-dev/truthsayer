@@ -113,7 +113,7 @@ export type Color = {
   alpha: number
 }
 
-export type NodeTextIndex = {
+export type NodeIndexText = {
   plaintext: Optional<string>
   labels: string[]
   brands: string[]
@@ -133,7 +133,7 @@ export class TNode {
    */
   extattrs: Optional<NodeExtattrs>
 
-  index_text: Optional<NodeTextIndex>
+  index_text: Optional<NodeIndexText>
 
   created_at: moment.Moment
   updated_at: moment.Moment
@@ -153,7 +153,7 @@ export class TNode {
     updated_at: moment.Moment,
     meta: Optional<NodeMeta>,
     extattrs: Optional<NodeExtattrs>,
-    index_text: Optional<NodeTextIndex>,
+    index_text: Optional<NodeIndexText>,
     _crypto: TNodeCrypto
   ) {
     this.nid = nid
@@ -282,9 +282,15 @@ export type AccountInfo = {
   email: string
 }
 
+export type NewNodeRequestBody = {
+  text: Optional<NodeTextData>
+  index_text: Optional<NodeIndexText>
+  extattrs: Optional<NodeExtattrs>
+}
+
 export type NodePatchRequest = {
   text?: NodeTextData
-  index_text?: NodeTextIndex
+  index_text?: NodeIndexText
   preserve_update_time?: boolean // Default is false
 }
 
@@ -296,7 +302,7 @@ export type UploadMultipartResponse = {
 
 export type BlobIndex = {
   filename: string
-  index: NodeTextIndex
+  index: NodeIndexText
 }
 
 export type GenerateBlobIndexResponse = {

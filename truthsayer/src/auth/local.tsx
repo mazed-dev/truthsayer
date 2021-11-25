@@ -9,6 +9,8 @@ import {
   AccountInterface,
 } from 'smuggler-api'
 
+import { Optional } from '../util/types'
+
 export type { AccountInterface }
 export type { UserAccount }
 
@@ -32,8 +34,15 @@ export async function createUserAccount(
   return await UserAccount.create(abortControler)
 }
 
-export class Knocker extends React.Component {
-  constructor(props) {
+type KnockerProps = {}
+type KnockerState = {
+  scheduledKnocKnockId: Optional<NodeJS.Timeout>
+}
+
+export class Knocker extends React.Component<KnockerProps, KnockerState> {
+  knockAbortController: AbortController
+
+  constructor(props: KnockerProps) {
     super(props)
     this.knockAbortController = new AbortController()
     this.state = {
@@ -49,8 +58,10 @@ export class Knocker extends React.Component {
 
   componentWillUnmount() {
     this.knockAbortController.abort()
-    // https://javascript.info/settimeout-setinterval
-    clearTimeout(this.state.scheduledKnocKnockId)
+    if (this.state.scheduledKnocKnockId) {
+      // https://javascript.info/settimeout-setinterval
+      clearTimeout(this.state.scheduledKnocKnockId)
+    }
   }
 
   scheduleKnocKnock = () => {
@@ -62,7 +73,7 @@ export class Knocker extends React.Component {
   }
 
   cancelDelayedKnocKnock = () => {
-    if (!this.state.scheduledKnocKnockId !== null) {
+    if (this.state.scheduledKnocKnockId) {
       clearTimeout(this.state.scheduledKnocKnockId)
     }
   }
