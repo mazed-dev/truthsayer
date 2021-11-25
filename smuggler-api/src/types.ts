@@ -106,7 +106,7 @@ export interface NodeMeta {
   uid: string
 }
 
-export type NodeTextIndex = {
+export type NodeIndexText = {
   plaintext: Optional<string>
 }
 
@@ -123,7 +123,7 @@ export class TNode {
    */
   extattrs: Optional<NodeExtattrs>
 
-  index_text: Optional<NodeTextIndex>
+  index_text: Optional<NodeIndexText>
 
   created_at: moment.Moment
   updated_at: moment.Moment
@@ -143,7 +143,7 @@ export class TNode {
     updated_at: moment.Moment,
     meta: Optional<NodeMeta>,
     extattrs: Optional<NodeExtattrs>,
-    index_text: Optional<NodeTextIndex>,
+    index_text: Optional<NodeIndexText>,
     _crypto: TNodeCrypto
   ) {
     this.nid = nid
@@ -270,10 +270,6 @@ export type AccountInfo = {
   uid: string
   name: string
   email: string
-}
-
-export type NodeIndexText = {
-  plaintext: Optional<string>
 }
 
 export type NewNodeRequestBody = {
