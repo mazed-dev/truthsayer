@@ -1,5 +1,5 @@
 {
-  "name": "truthsayer",
+  "name": "thread-knowledge",
   "workspaces": [
     "archaeologist",
     "elementary",
@@ -44,5 +44,6 @@
     "ts-jest": "^26.4.2",
     "typescript": "4.1.3",
     "unified": "^6.1.5"
-  }
+  },
+  "packageManager": "yarn@3.1.0"
 }
