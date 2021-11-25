@@ -34,20 +34,24 @@ export function searchNodeFor(
     // Empty search fall back to show everything
     return node
   }
-  const labelIndex = node.index_text?.labels.findIndex((text) => {
-    return text.search(pattern) >= 0
-  })
-  if (labelIndex !== undefined && labelIndex >= 0) {
-    return node
+  const matchesPattern = (index_element: Optional<string> | undefined) => {
+    return index_element && index_element.search(pattern) >= 0
+  }
+  const oneOfElementsMatchesPattern = (search_index: string[] | undefined) => {
+    return (
+      search_index !== undefined && search_index.findIndex(matchesPattern) >= 0
+    )
   }
 
-  const blocks = getPlainText(node.getText())
-  const matchedIndex = blocks.findIndex((text) => {
-    const ret = text.search(pattern) >= 0
-    return ret
-  })
-  if (matchedIndex < 0) {
-    return null
-  }
-  return node
+  const matchFound =
+    oneOfElementsMatchesPattern(node.index_text?.labels) ||
+    oneOfElementsMatchesPattern(node.index_text?.brands) ||
+    matchesPattern(node.index_text?.plaintext) ||
+    // TODO [snikitin@outlook.com] Not certain if the part of search
+    // that looks at the contents of node's text itself is relevant
+    // or leftover from the times that pre-date dedicated search index
+    // structures like 'index_text'
+    oneOfElementsMatchesPattern(getPlainText(node.getText()))
+
+  return matchFound ? node : null
 }
