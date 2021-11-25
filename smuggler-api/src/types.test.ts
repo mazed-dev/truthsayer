@@ -24,11 +24,11 @@ test('NodeExtattrs.fromJSON - full', async () => {
     MimeType.IMAGE_PNG
   )
   expect(nodeExtattrs.preview_image?.data).toStrictEqual('YWJj')
-  expect(nodeExtattrs.title).toStrictEqual("Node extra title")
-  expect(nodeExtattrs.description).toStrictEqual("Node extra description")
-  expect(nodeExtattrs.lang).toStrictEqual("en")
-  expect(nodeExtattrs.author).toStrictEqual("Gaius Helen Mohiam")
-  expect(nodeExtattrs.web?.url).toStrictEqual("https://en.wikipedia.org/wiki")
+  expect(nodeExtattrs.title).toStrictEqual('Node extra title')
+  expect(nodeExtattrs.description).toStrictEqual('Node extra description')
+  expect(nodeExtattrs.lang).toStrictEqual('en')
+  expect(nodeExtattrs.author).toStrictEqual('Gaius Helen Mohiam')
+  expect(nodeExtattrs.web?.url).toStrictEqual('https://en.wikipedia.org/wiki')
   expect(nodeExtattrs.blob).not.toBeNull()
 })
 
@@ -41,5 +41,3 @@ test('NodeExtattrs.fromJSON - mimimal', async () => {
   expect(nodeExtattrs.content_type).toStrictEqual(MimeType.PDF)
   expect(nodeExtattrs.preview_image).toStrictEqual(null)
 })
-
-

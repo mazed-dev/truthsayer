@@ -62,23 +62,23 @@ export class NodeExtattrs implements INodeExtattrs {
   blob: Optional<NodeExtattrsBlob>
 
   constructor({
-  content_type,
-  title,
-  description,
-  lang,
-  author,
-  preview_image,
-  web,
-  blob,
+    content_type,
+    title,
+    description,
+    lang,
+    author,
+    preview_image,
+    web,
+    blob,
   }: INodeExtattrs) {
     this.content_type = content_type
-  this.title = title
-  this.description = description
-  this.lang = lang
-  this.author = author
+    this.title = title
+    this.description = description
+    this.lang = lang
+    this.author = author
     this.preview_image = preview_image
-  this.web = web
-  this.blob = blob
+    this.web = web
+    this.blob = blob
   }
 
   isImage(): boolean {
@@ -153,7 +153,7 @@ export type NodeExtattrsWeb = {
   // Web resource only related attributes
   // Store here any conditions or credentials to access that resource,
   // for example the resource is availiable only from certain contries
-  url: string,
+  url: string
 }
 
 export interface NodeShare {
