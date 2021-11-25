@@ -143,7 +143,7 @@ async function getNode({
     moment(res.headers[kHeaderCreatedAt]),
     moment(res.headers[kHeaderLastModified]),
     meta,
-    extattrs ? NodeExtattrs.fromJson(extattrs) : null,
+    extattrs ? NodeExtattrs.fromJSON(extattrs) : null,
     index_text,
     { secret_id, success }
   )
@@ -241,7 +241,7 @@ async function getNodesSlice({ end_time, start_time, offset, signal }) {
       meta = null,
     } = item
     const textObj = text as NodeTextData
-    const extattrsObj = extattrs ? NodeExtattrs.fromJson(extattrs) : null
+    const extattrsObj = extattrs ? NodeExtattrs.fromJSON(extattrs) : null
     return new TNode(
       nid,
       ntype,

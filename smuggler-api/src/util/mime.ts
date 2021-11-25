@@ -1,5 +1,3 @@
-import { Optional } from './optional'
-
 import * as queryString from 'query-string'
 
 export const Mime = {
@@ -7,6 +5,8 @@ export const Mime = {
   PDF: 'application/pdf',
 
   FORM_DATA: 'multipart/form-data',
+
+  TEXT_URI_LIST: 'text/uri-list',
 
   TEXT_PLAIN: 'text/plain',
   TEXT_PLAIN_UTF_8: 'text/plain; charset=utf-8',
@@ -20,13 +20,16 @@ export const Mime = {
   IMAGE_WEBP: 'image/webp',
 }
 
+type MimeParamsValue = string | string[] | null
+type MimeParams = Record<string, MimeParamsValue>
+
 /**
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
  */
 export class MimeType {
   _type: string
   subtype: string
-  params: Optional<object>
+  params: MimeParams
   constructor({
     type,
     subtype,
@@ -34,11 +37,11 @@ export class MimeType {
   }: {
     type: string
     subtype: string
-    params: object
+    params?: MimeParams
   }) {
     this._type = type
     this.subtype = subtype || '*'
-    this.params = params || null
+    this.params = params || {}
   }
 
   getType(): string {
@@ -49,22 +52,28 @@ export class MimeType {
     return this.subtype
   }
 
-  getParameter(key: string): Optional<string> {
+  getParameter(key: string): MimeParamsValue {
     const { params } = this
-    if (params) {
-      return params[key] || null
-    }
-    return null
+    return params[key] || null
   }
 
   toString(): string {
     const { _type, subtype, params } = this
     let s = `${_type}/${subtype}`
-    if (params) {
-      const p = queryString.stringify(params || {})
+    if (params.length) {
+      const p = queryString.stringify(params)
       s = `${s};${p}`
     }
     return s
+  }
+
+  /**
+   * To support correct serialization to string in JSON.stringify
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#tojson_behavior
+   */
+  toJSON(): string {
+    return this.toString()
   }
 
   isText(): boolean {
@@ -75,9 +84,21 @@ export class MimeType {
     return this._type === 'image'
   }
 
+  isSame(m: MimeType): boolean {
+    return this.isSameType(m) && this.isSameSubType(m)
+  }
+
+  isSameType(m: MimeType): boolean {
+    return this.getType() === m.getType()
+  }
+
+  isSameSubType(m: MimeType): boolean {
+    return this.getSubType() === m.getSubType()
+  }
+
   static parse(s: string): MimeType {
-    let subtype
-    let params
+    let subtype = ''
+    let params: MimeParams = {}
     const fullTypeAndParam = s.split(';')
     if (fullTypeAndParam.length > 1) {
       params = queryString.parse(fullTypeAndParam[1].toLowerCase())
@@ -90,4 +111,23 @@ export class MimeType {
     const _type = typeAndSubType[0].toLowerCase()
     return new MimeType({ type: _type, subtype, params })
   }
+
+  static reviver(value: any): MimeType {
+    if (typeof value === 'string') {
+      return MimeType.parse(value as string)
+    }
+    throw new Error(`Unexpected type of mime "${typeof value}"`)
+  }
+
+  static JSON = MimeType.parse(Mime.JSON)
+  static PDF = MimeType.parse(Mime.PDF)
+  static FORM_DATA = MimeType.parse(Mime.FORM_DATA)
+  static TEXT_URI_LIST = MimeType.parse(Mime.TEXT_URI_LIST)
+  static IMAGE_BMP = MimeType.parse(Mime.IMAGE_BMP)
+  static IMAGE_GIF = MimeType.parse(Mime.IMAGE_GIF)
+  static IMAGE_JPEG = MimeType.parse(Mime.IMAGE_JPEG)
+  static IMAGE_PNG = MimeType.parse(Mime.IMAGE_PNG)
+  static IMAGE_SVG_XML = MimeType.parse(Mime.IMAGE_SVG_XML)
+  static IMAGE_TIFF = MimeType.parse(Mime.IMAGE_TIFF)
+  static IMAGE_WEBP = MimeType.parse(Mime.IMAGE_WEBP)
 }

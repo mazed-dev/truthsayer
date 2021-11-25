@@ -4,6 +4,7 @@ import { smuggler } from './api'
 import { AccountInterface } from './auth'
 
 import moment from 'moment'
+import lodash from 'lodash'
 
 // TODO: get rid of duplication here with separate "util" package
 export type Optional<T> = T | null
@@ -39,14 +40,37 @@ export enum NodeType {
 }
 
 // see smuggler/src/types.rs
-export class NodeExtattrs {
+export interface INodeExtattrs {
+  content_type: MimeType
+  preview_image: Optional<NodeDataBlobPreview>
+}
+
+export class NodeExtattrs implements INodeExtattrs {
   content_type: MimeType
   preview_image: Optional<NodeDataBlobPreview>
 
-  constructor(
-    content_type: MimeType,
-    preview_image: Optional<NodeDataBlobPreview>
-  ) {
+  // #[serde(skip_serializing_if = "Option::is_none")]
+  // pub title: Option<String>,
+
+  // #[serde(skip_serializing_if = "Option::is_none")]
+  // pub description: Option<String>,
+
+  // #[serde(skip_serializing_if = "Option::is_none")]
+  // pub lang: Option<String>,
+
+  // #[serde(skip_serializing_if = "Option::is_none")]
+  // pub author: Option<String>,
+
+  // #[serde(skip_serializing_if = "Option::is_none")]
+  // pub preview_image: Option<PreviewImageSmall>,
+
+  // #[serde(skip_serializing_if = "Option::is_none")]
+  // pub web: Option<NodeAirbilWebResource>,
+
+  // #[serde(skip_serializing_if = "Option::is_none")]
+  // pub blob: Option<NodeExtattrsBlob>,
+
+  constructor({ content_type, preview_image }: INodeExtattrs) {
     this.content_type = content_type
     this.preview_image = preview_image
   }
@@ -55,27 +79,25 @@ export class NodeExtattrs {
     return this.content_type.isImage()
   }
 
-  toJson(): object {
-    const content_type = this.content_type.toString()
-    const preview_image = this.preview_image
-    return {
-      content_type,
-      preview_image,
+  static reviver(key: string, value: any): any {
+    if (key === 'content_type') {
+      return MimeType.reviver(value)
     }
+    return value
   }
 
-  static fromJson({
-    content_type,
-    preview_image = null,
-  }: {
-    content_type: string
-    preview_image: object | null
-  }): NodeExtattrs {
-    // TODO(akindyakov) parse content_type of preview_image too
-    return new NodeExtattrs(
-      MimeType.parse(content_type),
-      preview_image == null ? null : (preview_image as NodeDataBlobPreview)
-    )
+  static fromJSON(obj: object): NodeExtattrs {
+    obj = lodash.forIn(obj, (value: any, key: string, obj: object): void => {
+      value = NodeExtattrs.reviver(key, value)
+      if (key === 'preview_image' && value) {
+        value = NodeDataBlobPreview.fromJSON(value)
+      }
+      obj[key] = value
+    })
+    lodash.defaults(obj, {
+      preview_image: null,
+    })
+    return new NodeExtattrs(obj as INodeExtattrs)
   }
 
   getBlobSource(nid: string): string {
@@ -84,14 +106,39 @@ export class NodeExtattrs {
 }
 
 // see smuggler/src/types.rs
-export type NodeDataBlobPreview = {
+export interface INodeDataBlobPreview {
   content_type: MimeType
 
   // Base64 encoded image for card preview_image, it must be small so we can
   // afford to store it to postgres DB
-  // https://stackoverflow.com/questions/8499633/how-to-display-base64-images-in-html
+  // https://stackoverflow.com/questions/8499632/how-to-display-base64-images-in-html
   // https://en.wikipedia.org/wiki/Data_URI_scheme#Syntax
-  data: String
+  data: string
+}
+
+export class NodeDataBlobPreview implements INodeDataBlobPreview {
+  content_type: MimeType
+  data: string
+
+  constructor({ content_type, data }: INodeDataBlobPreview) {
+    this.content_type = content_type
+    this.data = data
+  }
+
+  static reviver(key: string, value: any): any {
+    if (key === 'content_type') {
+      return MimeType.reviver(value)
+    }
+    return value
+  }
+
+  static fromJSON(obj: object): NodeDataBlobPreview {
+    obj = lodash.forIn(obj, (value: any, key: string, obj: object): void => {
+      value = NodeExtattrs.reviver(key, value)
+      obj[key] = value
+    })
+    return new NodeDataBlobPreview(obj as INodeDataBlobPreview)
+  }
 }
 
 export interface NodeShare {
