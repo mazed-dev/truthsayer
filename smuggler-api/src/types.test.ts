@@ -1,5 +1,5 @@
 import { NodeExtattrs } from './types'
-import { MimeType } from './util/mime'
+import { Mime } from './util/mime'
 
 test('NodeExtattrs.fromJSON - full', async () => {
   const jsonStr = `{
@@ -17,12 +17,10 @@ test('NodeExtattrs.fromJSON - full', async () => {
       "data": "YWJj"
     }
   }`
-  const nodeExtattrs = NodeExtattrs.fromJSON(JSON.parse(jsonStr))
+  const nodeExtattrs = JSON.parse(jsonStr) as NodeExtattrs
 
-  expect(nodeExtattrs.content_type).toStrictEqual(MimeType.PDF)
-  expect(nodeExtattrs.preview_image?.content_type).toStrictEqual(
-    MimeType.IMAGE_PNG
-  )
+  expect(nodeExtattrs.content_type).toStrictEqual(Mime.PDF)
+  expect(nodeExtattrs.preview_image?.content_type).toStrictEqual(Mime.IMAGE_PNG)
   expect(nodeExtattrs.preview_image?.data).toStrictEqual('YWJj')
   expect(nodeExtattrs.title).toStrictEqual('Node extra title')
   expect(nodeExtattrs.description).toStrictEqual('Node extra description')
@@ -36,8 +34,14 @@ test('NodeExtattrs.fromJSON - mimimal', async () => {
   const jsonStr = `{
     "content_type": "application/pdf"
   }`
-  const nodeExtattrs = NodeExtattrs.fromJSON(JSON.parse(jsonStr))
+  const extattrs = JSON.parse(jsonStr) as NodeExtattrs
 
-  expect(nodeExtattrs.content_type).toStrictEqual(MimeType.PDF)
-  expect(nodeExtattrs.preview_image).toStrictEqual(null)
+  expect(extattrs.content_type).toStrictEqual(Mime.PDF)
+  expect(extattrs.preview_image).toBeFalsy()
+  expect(extattrs.title).toBeFalsy()
+  expect(extattrs.description).toBeFalsy()
+  expect(extattrs.lang).toBeFalsy()
+  expect(extattrs.author).toBeFalsy()
+  expect(extattrs.web).toBeFalsy()
+  expect(extattrs.blob).toBeFalsy()
 })

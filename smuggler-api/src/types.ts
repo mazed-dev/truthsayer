@@ -1,13 +1,12 @@
-import { MimeType } from './util/mime'
+import { MimeType, Mime } from './util/mime'
 
 import { smuggler } from './api'
 import { AccountInterface } from './auth'
 
 import moment from 'moment'
-import lodash from 'lodash'
 
 // TODO: get rid of duplication here with separate "util" package
-export type Optional<T> = T | null
+export type Optional<T> = T | null | undefined
 
 export type SlateText = object[]
 
@@ -40,7 +39,7 @@ export enum NodeType {
 }
 
 // see smuggler/src/types.rs
-export interface INodeExtattrs {
+export type NodeExtattrs = {
   content_type: MimeType
   title: Optional<string>
   description: Optional<string>
@@ -49,70 +48,10 @@ export interface INodeExtattrs {
   preview_image: Optional<PreviewImageSmall>
   web: Optional<NodeExtattrsWeb>
   blob: Optional<NodeExtattrsBlob>
-}
-
-export class NodeExtattrs implements INodeExtattrs {
-  content_type: MimeType
-  title: Optional<string>
-  description: Optional<string>
-  lang: Optional<string>
-  author: Optional<string>
-  preview_image: Optional<PreviewImageSmall>
-  web: Optional<NodeExtattrsWeb>
-  blob: Optional<NodeExtattrsBlob>
-
-  constructor({
-    content_type,
-    title,
-    description,
-    lang,
-    author,
-    preview_image,
-    web,
-    blob,
-  }: INodeExtattrs) {
-    this.content_type = content_type
-    this.title = title
-    this.description = description
-    this.lang = lang
-    this.author = author
-    this.preview_image = preview_image
-    this.web = web
-    this.blob = blob
-  }
-
-  isImage(): boolean {
-    return this.content_type.isImage()
-  }
-
-  static reviver(key: string, value: any): any {
-    if (key === 'content_type') {
-      return MimeType.reviver(value)
-    }
-    return value
-  }
-
-  static fromJSON(obj: object): NodeExtattrs {
-    obj = lodash.forIn(obj, (value: any, key: string, obj: object): void => {
-      value = NodeExtattrs.reviver(key, value)
-      if (key === 'preview_image' && value) {
-        value = PreviewImageSmall.fromJSON(value)
-      }
-      obj[key] = value
-    })
-    lodash.defaults(obj, {
-      preview_image: null,
-    })
-    return new NodeExtattrs(obj as INodeExtattrs)
-  }
-
-  getBlobSource(nid: string): string {
-    return smuggler.blob.getSource(nid)
-  }
 }
 
 // see smuggler/src/types.rs
-export interface IPreviewImageSmall {
+export type PreviewImageSmall = {
   content_type: MimeType
 
   // Base64 encoded image for card preview_image, it must be small so we can
@@ -120,31 +59,6 @@ export interface IPreviewImageSmall {
   // https://stackoverflow.com/questions/8499632/how-to-display-base64-images-in-html
   // https://en.wikipedia.org/wiki/Data_URI_scheme#Syntax
   data: string
-}
-
-export class PreviewImageSmall implements IPreviewImageSmall {
-  content_type: MimeType
-  data: string
-
-  constructor({ content_type, data }: IPreviewImageSmall) {
-    this.content_type = content_type
-    this.data = data
-  }
-
-  static reviver(key: string, value: any): any {
-    if (key === 'content_type') {
-      return MimeType.reviver(value)
-    }
-    return value
-  }
-
-  static fromJSON(obj: object): PreviewImageSmall {
-    obj = lodash.forIn(obj, (value: any, key: string, obj: object): void => {
-      value = NodeExtattrs.reviver(key, value)
-      obj[key] = value
-    })
-    return new PreviewImageSmall(obj as IPreviewImageSmall)
-  }
 }
 
 export type NodeExtattrsBlob = {}
@@ -156,12 +70,12 @@ export type NodeExtattrsWeb = {
   url: string
 }
 
-export interface NodeShare {
+export type NodeShare = {
   by_link: boolean
   with_uids: Optional<string[]>
 }
 
-export interface NodeMeta {
+export type NodeMeta = {
   share: Optional<NodeShare>
   local_secret_id: Optional<string>
   local_signature: Optional<string>
@@ -240,16 +154,18 @@ export class TNode {
 
   isImage() {
     const { ntype, extattrs } = this
-    return ntype === NodeType.Blob && extattrs?.isImage()
+    return (
+      ntype === NodeType.Blob && extattrs && Mime.isImage(extattrs.content_type)
+    )
   }
 
   getBlobSource(): Optional<string> {
-    const { nid, extattrs } = this
-    return extattrs?.getBlobSource(nid) || null
+    const { nid } = this
+    return smuggler.blob.getSource(nid)
   }
 }
 
-export interface EdgeAttributes {
+export type EdgeAttributes = {
   eid: string
   txt?: string
   from_nid: string
@@ -302,7 +218,7 @@ export type EdgeStar = {
   to: Optional<string>
 }
 
-export interface TNodeCrypto {
+export type TNodeCrypto = {
   // Ideally encryption/decryption happens in a layer below TNode, so if code
   // uses TNode object it should not use encryption at all. But layers above
   // should be aware if node is encrypted, successfuly decrypted or
@@ -310,13 +226,6 @@ export interface TNodeCrypto {
   success: boolean
   secret_id: string | null
 }
-
-export interface TNodeAttrs {
-  ngrams: Array<string>
-  salt: string
-}
-
-export interface TImage {}
 
 export type NewNodeResponse = {
   nid: string
