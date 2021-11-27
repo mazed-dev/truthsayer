@@ -34,13 +34,20 @@ export function searchNodeFor(
     // Empty search fall back to show everything
     return node
   }
-  const blocks = getPlainText(node.getText())
-  const matchedIndex = blocks.findIndex((text) => {
-    const ret = text.search(pattern) >= 0
-    return ret
-  })
-  if (matchedIndex < 0) {
-    return null
+  const matchesPattern = (index_element: Optional<string> | undefined) => {
+    return index_element && index_element.search(pattern) >= 0
   }
-  return node
+  const oneOfElementsMatchesPattern = (search_index: string[] | undefined) => {
+    return (
+      search_index !== undefined && search_index.findIndex(matchesPattern) >= 0
+    )
+  }
+
+  const matchFound =
+    oneOfElementsMatchesPattern(node.index_text?.labels) ||
+    oneOfElementsMatchesPattern(node.index_text?.brands) ||
+    matchesPattern(node.index_text?.plaintext) ||
+    oneOfElementsMatchesPattern(getPlainText(node.getText()))
+
+  return matchFound ? node : null
 }
