@@ -187,9 +187,9 @@ async function updateNode({
     'Content-type': Mime.JSON,
   }
   const request: NodePatchRequest = {
-    text: text,
-    index_text: index_text,
-    preserve_update_time: preserve_update_time,
+    text,
+    index_text,
+    preserve_update_time,
   }
   return fetch(makeUrl(`/node/${nid}`), {
     method: 'PATCH',
