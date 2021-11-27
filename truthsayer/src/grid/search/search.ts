@@ -47,10 +47,6 @@ export function searchNodeFor(
     oneOfElementsMatchesPattern(node.index_text?.labels) ||
     oneOfElementsMatchesPattern(node.index_text?.brands) ||
     matchesPattern(node.index_text?.plaintext) ||
-    // TODO [snikitin@outlook.com] Not certain if the part of search
-    // that looks at the contents of node's text itself is relevant
-    // or leftover from the times that pre-date dedicated search index
-    // structures like 'index_text'
     oneOfElementsMatchesPattern(getPlainText(node.getText()))
 
   return matchFound ? node : null
