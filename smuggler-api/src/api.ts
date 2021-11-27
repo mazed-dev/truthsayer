@@ -54,8 +54,8 @@ async function createNode({
   }
   const body: NewNodeRequestBody = {
     text,
-    index_text: index_text || null,
-    extattrs: extattrs || null,
+    index_text,
+    extattrs,
   }
   const resp = await fetch(makeUrl('node/new', query), {
     method: 'POST',
@@ -163,7 +163,7 @@ async function getNode({
     moment(res.headers[kHeaderCreatedAt]),
     moment(res.headers[kHeaderLastModified]),
     meta,
-    extattrs ? NodeExtattrs.fromJson(extattrs) : null,
+    extattrs ? extattrs : null,
     index_text,
     { secret_id, success }
   )
@@ -269,7 +269,6 @@ async function getNodesSlice({ end_time, start_time, offset, signal }) {
       meta = null,
     } = item
     const textObj = text as NodeTextData
-    const extattrsObj = extattrs ? NodeExtattrs.fromJson(extattrs) : null
     return new TNode(
       nid,
       ntype,
@@ -277,7 +276,7 @@ async function getNodesSlice({ end_time, start_time, offset, signal }) {
       moment.unix(crtd),
       moment.unix(upd),
       meta,
-      extattrsObj,
+      extattrs,
       index_text,
       { secret_id: null, success: true }
     )

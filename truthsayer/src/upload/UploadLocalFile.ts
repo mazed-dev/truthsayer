@@ -8,7 +8,7 @@ import * as log from '../util/log'
 import { isAbortError } from '../util/exception'
 
 import { makeDoc } from '../doc/doc_util'
-import { MimeType } from '../util/Mime'
+import { Mime } from 'smuggler-api'
 import { Optional } from '../util/types'
 
 import { FileUploadStatusState } from './UploadNodeButton'
@@ -20,8 +20,7 @@ export function uploadLocalFile(
   updateStatus: (upd: FileUploadStatusState) => void,
   abortSignal: AbortSignal
 ): void {
-  const contextType = MimeType.parse(file.type)
-  if (contextType.isText()) {
+  if (Mime.isText(file.type)) {
     uploadLocalTextFile(file, from_nid, to_nid, updateStatus, abortSignal)
   } else {
     uploadLocalBinaryFile(file, from_nid, to_nid, updateStatus, abortSignal)

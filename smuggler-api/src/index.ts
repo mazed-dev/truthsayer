@@ -1,3 +1,5 @@
 export * from './auth'
 export * from './types'
 export { smuggler } from './api'
+export { Mime } from './util/mime'
+export type { MimeType } from './util/mime'

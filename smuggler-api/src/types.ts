@@ -1,4 +1,4 @@
-import { MimeType } from './util/mime'
+import { MimeType, Mime } from './util/mime'
 
 import { smuggler } from './api'
 import { AccountInterface } from './auth'
@@ -6,7 +6,7 @@ import { AccountInterface } from './auth'
 import moment from 'moment'
 
 // TODO: get rid of duplication here with separate "util" package
-export type Optional<T> = T | null
+export type Optional<T> = T | null | undefined
 
 export type SlateText = object[]
 
@@ -39,67 +39,43 @@ export enum NodeType {
 }
 
 // see smuggler/src/types.rs
-export class NodeExtattrs {
+export type NodeExtattrs = {
   content_type: MimeType
-  preview_image: Optional<NodeDataBlobPreview>
-
-  constructor(
-    content_type: MimeType,
-    preview_image: Optional<NodeDataBlobPreview>
-  ) {
-    this.content_type = content_type
-    this.preview_image = preview_image
-  }
-
-  isImage(): boolean {
-    return this.content_type.isImage()
-  }
-
-  toJson(): object {
-    const content_type = this.content_type.toString()
-    const preview_image = this.preview_image
-    return {
-      content_type,
-      preview_image,
-    }
-  }
-
-  static fromJson({
-    content_type,
-    preview_image = null,
-  }: {
-    content_type: string
-    preview_image: object | null
-  }): NodeExtattrs {
-    // TODO(akindyakov) parse content_type of preview_image too
-    return new NodeExtattrs(
-      MimeType.parse(content_type),
-      preview_image == null ? null : (preview_image as NodeDataBlobPreview)
-    )
-  }
-
-  getBlobSource(nid: string): string {
-    return smuggler.blob.getSource(nid)
-  }
+  title: Optional<string>
+  description: Optional<string>
+  lang: Optional<string>
+  author: Optional<string>
+  preview_image: Optional<PreviewImageSmall>
+  web: Optional<NodeExtattrsWeb>
+  blob: Optional<NodeExtattrsBlob>
 }
 
 // see smuggler/src/types.rs
-export type NodeDataBlobPreview = {
+export type PreviewImageSmall = {
   content_type: MimeType
 
   // Base64 encoded image for card preview_image, it must be small so we can
   // afford to store it to postgres DB
-  // https://stackoverflow.com/questions/8499633/how-to-display-base64-images-in-html
+  // https://stackoverflow.com/questions/8499632/how-to-display-base64-images-in-html
   // https://en.wikipedia.org/wiki/Data_URI_scheme#Syntax
-  data: String
+  data: string
 }
 
-export interface NodeShare {
+export type NodeExtattrsBlob = {}
+
+export type NodeExtattrsWeb = {
+  // Web resource only related attributes
+  // Store here any conditions or credentials to access that resource,
+  // for example the resource is availiable only from certain contries
+  url: string
+}
+
+export type NodeShare = {
   by_link: boolean
   with_uids: Optional<string[]>
 }
 
-export interface NodeMeta {
+export type NodeMeta = {
   share: Optional<NodeShare>
   local_secret_id: Optional<string>
   local_signature: Optional<string>
@@ -188,16 +164,18 @@ export class TNode {
 
   isImage() {
     const { ntype, extattrs } = this
-    return ntype === NodeType.Blob && extattrs?.isImage()
+    return (
+      ntype === NodeType.Blob && extattrs && Mime.isImage(extattrs.content_type)
+    )
   }
 
   getBlobSource(): Optional<string> {
-    const { nid, extattrs } = this
-    return extattrs?.getBlobSource(nid) || null
+    const { nid } = this
+    return smuggler.blob.getSource(nid)
   }
 }
 
-export interface EdgeAttributes {
+export type EdgeAttributes = {
   eid: string
   txt?: string
   from_nid: string
@@ -250,7 +228,7 @@ export type EdgeStar = {
   to: Optional<string>
 }
 
-export interface TNodeCrypto {
+export type TNodeCrypto = {
   // Ideally encryption/decryption happens in a layer below TNode, so if code
   // uses TNode object it should not use encryption at all. But layers above
   // should be aware if node is encrypted, successfuly decrypted or
@@ -258,13 +236,6 @@ export interface TNodeCrypto {
   success: boolean
   secret_id: string | null
 }
-
-export interface TNodeAttrs {
-  ngrams: Array<string>
-  salt: string
-}
-
-export interface TImage {}
 
 export type NewNodeResponse = {
   nid: string
