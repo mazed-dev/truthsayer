@@ -12,6 +12,7 @@
   "private": true,
   "scripts": {
     "build": "tsc --pretty",
+    "postinstall": "yarn build",
     "test": "jest",
     "fix": "yarn fix:prettier && yarn fix:eslint",
     "fix:eslint": "yarn lint:eslint --fix",
@@ -25,6 +26,7 @@
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
     "query-string": "^7.0.0",
+    "typescript": "4.1.3",
     "universal-cookie": "^4.0"
   }
 }
