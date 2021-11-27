@@ -115,6 +115,7 @@ class DynamicGrid extends React.Component {
 }
 
 const _kTimeLimit = Math.floor(Date.now() / 1000) - 2 * 356 * 24 * 60 * 60
+const _kSearchWindowSeconds = 21 * 24 * 60 * 60
 
 export type NodeAttrsSearchItem = {
   nid: string,
@@ -246,7 +247,7 @@ class SearchGridImpl extends React.Component {
         let newOffset
         if (this.isTimeIntervalExhausted(nodes.length, offset, full_size)) {
           newEndTime = start_time
-          newStartTime = start_time - (end_time - start_time)
+          newStartTime = start_time - _kSearchWindowSeconds
           newOffset = 0
         } else {
           newEndTime = end_time
