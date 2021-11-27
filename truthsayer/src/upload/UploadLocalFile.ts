@@ -46,7 +46,7 @@ async function uploadLocalBinaryFile(
   // promises are settled.
   const [uploadResult, indexResult] = await Promise.allSettled([
     smuggler.blob.upload([file], from_nid, to_nid, abortSignal),
-    smuggler.blob_index.create([file], abortSignal),
+    smuggler.blob_index.build([file], abortSignal),
   ])
 
   // If upload fails then what happens with index is not important as there is no

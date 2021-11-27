@@ -97,7 +97,7 @@ async function uploadFiles(
   return await resp.json()
 }
 
-async function createFilesSearchIndex(
+async function buildFilesSearchIndex(
   files: File[],
   signal?: AbortSignal
 ): Promise<GenerateBlobIndexResponse> {
@@ -570,7 +570,7 @@ export const smuggler = {
     getSource: makeBlobSourceUrl,
   },
   blob_index: {
-    create: createFilesSearchIndex,
+    build: buildFilesSearchIndex,
   },
   edge: {
     create: createEdge,
