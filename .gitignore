@@ -32,3 +32,13 @@ yarn-error.log*
 
 # eslintcache
 .eslintcache
+
+# See https://next.yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
+# for more information about the recommended ignore practices for yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

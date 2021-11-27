@@ -1,5 +1,5 @@
 {
-  "name": "truthsayer",
+  "name": "thread-knowledge",
   "workspaces": [
     "archaeologist",
     "elementary",
@@ -13,10 +13,10 @@
     "smuggler-api": "yarn workspace smuggler-api",
     "truthsayer": "yarn workspace truthsayer",
     "elementary": "yarn workspace elementary",
-    "test": "yarn workspaces run test --all --watchAll=false --no-watchman",
-    "lint": "yarn workspaces run lint",
-    "fix": "yarn workspaces run fix",
-    "fix:prettier": "yarn workspaces run fix:prettier"
+    "test": "yarn workspaces foreach run test --all --watchAll=false --no-watchman",
+    "lint": "yarn workspaces foreach run lint",
+    "fix": "yarn workspaces foreach run fix",
+    "fix:prettier": "yarn workspaces foreach run fix:prettier"
   },
   "dependencies": {
     "lodash": "^4.17.21"
@@ -44,5 +44,6 @@
     "ts-jest": "^26.4.2",
     "typescript": "4.1.3",
     "unified": "^6.1.5"
-  }
+  },
+  "packageManager": "yarn@3.1.0"
 }

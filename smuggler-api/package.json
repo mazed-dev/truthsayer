@@ -21,7 +21,6 @@
     "lint:prettier": "prettier --check \"./src/**/*.{css,md,js,json,ts}\"",
     "lint:typescript": "tsc --build ./ --force"
   },
-  "devDependencies": {},
   "dependencies": {
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
