@@ -11,15 +11,15 @@
   "license": "no",
   "private": true,
   "scripts": {
-    "build": "tsc --pretty",
-    "test": "jest",
+    "build": "$(yarn workspace thread-knowledge bin tsc) --pretty",
+    "test": "$(yarn workspace thread-knowledge bin jest)",
     "fix": "yarn fix:prettier && yarn fix:eslint",
     "fix:eslint": "yarn lint:eslint --fix",
     "fix:prettier": "yarn lint:prettier --write",
     "lint": "yarn lint:eslint && yarn lint:prettier",
-    "lint:eslint": "eslint \"./src/**/*.{js,ts}\"",
-    "lint:prettier": "prettier --check \"./src/**/*.{css,md,js,json,ts}\"",
-    "lint:typescript": "tsc --build ./ --force"
+    "lint:eslint": "$(yarn workspace thread-knowledge bin eslint) \"./src/**/*.{js,ts}\"",
+    "lint:prettier": "$(yarn workspace thread-knowledge bin prettier) --check \"./src/**/*.{css,md,js,json,ts}\"",
+    "lint:typescript": "$(yarn workspace thread-knowledge bin tsc) --build ./ --force"
   },
   "dependencies": {
     "lodash": "^4.17.21",

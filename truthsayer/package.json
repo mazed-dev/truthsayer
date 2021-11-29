@@ -57,18 +57,18 @@
     "uuid": "^3.3"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "fmt": "prettier --write $(find src -name '*.css' -o -name '*.js' -o -name '*.jsx')",
+    "start": "$(yarn bin react-scripts) start",
+    "build": "$(yarn bin react-scripts) build",
+    "test": "$(yarn bin react-scripts) test",
+    "eject": "$(yarn bin react-scripts) eject",
+    "fmt": "$(yarn bin prettier) --write $(find src -name '*.css' -o -name '*.js' -o -name '*.jsx')",
     "fix": "yarn fix:prettier && yarn fix:eslint",
     "fix:eslint": "yarn lint:eslint --fix",
     "fix:prettier": "yarn lint:prettier --write",
     "lint": "yarn lint:eslint && yarn lint:prettier",
-    "lint:eslint": "eslint \"./src/**/*.{js,jsx,ts,tsx}\"",
-    "lint:prettier": "prettier --check \"./src/**/*.{css,md,js,jsx,json,ts,tsx}\"",
-    "lint:typescript": "tsc --build ./ --force"
+    "lint:eslint": "$(yarn bin eslint) \"./src/**/*.{js,jsx,ts,tsx}\"",
+    "lint:prettier": "$(yarn bin prettier) --check \"./src/**/*.{css,md,js,jsx,json,ts,tsx}\"",
+    "lint:typescript": "$(yarn bin tsc) --build ./ --force"
   },
   "eslintConfig": {
     "extends": [
