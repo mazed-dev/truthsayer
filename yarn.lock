@@ -15073,6 +15073,8 @@ __metadata:
     moment: ^2.29.1
     prettier: ^2.2
     query-string: ^7.0.0
+    ts-jest: ^26.4.2
+    typescript: 4.1.3
     universal-cookie: ^4.0
   languageName: unknown
   linkType: soft
