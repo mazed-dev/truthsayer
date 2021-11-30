@@ -17,8 +17,6 @@ import {
   _exctractPageImage,
 } from './webPageContent'
 
-import * as log from './util/log'
-
 const { JSDOM } = jsdom
 
 test('_stripText', () => {
