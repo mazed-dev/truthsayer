@@ -12,6 +12,7 @@
   ],
   "scripts": {
     "build": "yarn tsc --build --pretty",
+    "postinstall": "yarn build",
     "test": "yarn jest",
     "fix": "yarn fix:prettier && yarn fix:eslint",
     "fix:eslint": "yarn lint:eslint --fix",
