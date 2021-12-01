@@ -14,8 +14,8 @@
     "truthsayer": "yarn workspace truthsayer",
     "elementary": "yarn workspace elementary",
     "test": "yarn workspaces foreach run test --all --watchAll=false --no-watchman",
-    "lint": "yarn workspaces foreach run lint",
-    "fix": "yarn workspaces foreach run fix",
+    "lint": "yarn syncpack list-mismatches && yarn workspaces foreach run lint",
+    "fix": "yarn syncpack fix-mismatches && yarn workspaces foreach run fix",
     "fix:prettier": "yarn workspaces foreach run fix:prettier"
   },
   "dependencies": {
@@ -25,5 +25,8 @@
     "ts-jest": "^26.4.2",
     "typescript": "4.1.3"
   },
-  "packageManager": "yarn@3.1.0"
+  "packageManager": "yarn@3.1.0",
+  "devDependencies": {
+    "syncpack": "^5.8.15"
+  }
 }
