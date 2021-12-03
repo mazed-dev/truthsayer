@@ -10,19 +10,6 @@ export type Optional<T> = T | null | undefined
 
 export type SlateText = object[]
 
-export function makeEmptySlate(): SlateText {
-  return [
-    {
-      type: 'paragraph',
-      children: [
-        {
-          text: '',
-        },
-      ],
-    },
-  ]
-}
-
 // see smuggler/src/types.rs
 export type NodeTextData = {
   slate: SlateText | undefined
@@ -278,4 +265,40 @@ export type BlobIndex = {
 
 export type GenerateBlobIndexResponse = {
   indexes: Array<BlobIndex>
+}
+
+export type NodeSearchItem = {
+  nid: string
+  ntype: NodeType
+  crtd: number
+  upd: number
+  text: Optional<NodeTextData>
+  extattrs: Optional<NodeExtattrs>
+  index_text: Optional<NodeIndexText>
+  meta: Optional<NodeMeta>
+}
+
+export type NodeAttrsSearchRequest = {
+  upd_after?: number // days, default is 32
+  upd_before?: number // days, default is 0
+
+  start_time?: number // Absolute time - unix timestamp, seconds
+  end_time?: number
+
+  limit?: number // default is 256
+  offset?: number // default is 0
+}
+
+export type NodeAttrsSearchResponse = {
+  nodes: NodeSearchItem[]
+  full_size: number
+  offset: number
+  start_time: number // Absolute time - unix timestamp, seconds
+  end_time: Optional<number>
+}
+
+export type UserBadge = {
+  uid: string
+  name: string
+  photo: Optional<String>
 }

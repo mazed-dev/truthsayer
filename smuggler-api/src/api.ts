@@ -12,6 +12,9 @@ import {
   TEdge,
   TNode,
   UploadMultipartResponse,
+  NodeAttrsSearchRequest,
+  NodeAttrsSearchResponse,
+  UserBadge,
 } from './types'
 
 import { Mime } from './util/mime'
@@ -20,7 +23,7 @@ import { Optional } from './util/optional'
 import moment from 'moment'
 import lodash from 'lodash'
 import { stringify } from 'query-string'
-import { NodePatchRequest } from '.'
+import { NodeMeta, NodePatchRequest } from '.'
 
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
@@ -160,8 +163,8 @@ async function getNode({
     nid,
     ntype,
     text as NodeTextData,
-    moment(res.headers[kHeaderCreatedAt]),
-    moment(res.headers[kHeaderLastModified]),
+    moment(res.headers.get(kHeaderCreatedAt)),
+    moment(res.headers.get(kHeaderLastModified)),
     meta,
     extattrs ? extattrs : null,
     index_text,
@@ -199,7 +202,11 @@ async function updateNode({
   })
 }
 
-async function getAuth({ signal }): Promise<AccountInfo> {
+async function getAuth({
+  signal,
+}: {
+  signal: AbortSignal
+}): Promise<AccountInfo> {
   const resp = await fetch(makeUrl('/auth'), { method: 'GET', signal })
   if (!resp.ok) {
     throw new Error('Retrieving account information failed with an error')
@@ -222,7 +229,7 @@ export async function getAnySecondKey() {
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function getSecondKey({ id }) {
+async function getSecondKey({ id }: { id: string }) {
   const resp = await fetch(makeUrl(`/key/second/${id}`), { method: 'GET' })
   if (resp.ok) {
     return await resp.json()
@@ -230,21 +237,20 @@ async function getSecondKey({ id }) {
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function decryptSecretAttrs(account, secretId, attrsEnc) {
-  if (account && account.isAuthenticated()) {
-    const crypto = account.getLocalCrypto()
-    if (crypto && crypto.has(secretId)) {
-      // If this is encrypted blob, decrypt it first with local secret
-      return await crypto.decryptObj(attrsEnc)
-    }
-  }
-  return {}
-}
-
-async function getNodesSlice({ end_time, start_time, offset, signal }) {
-  const req = {
-    end_time,
-    start_time,
+async function getNodesSlice({
+  end_time,
+  start_time,
+  offset,
+  signal,
+}: {
+  end_time: Optional<number>
+  start_time: Optional<number>
+  offset: Optional<number>
+  signal: AbortSignal
+}) {
+  const req: NodeAttrsSearchRequest = {
+    end_time: end_time || undefined,
+    start_time: start_time || undefined,
     offset: offset || 0,
   }
   const rawResp = await fetch(makeUrl(`/nodes-slice`), {
@@ -256,7 +262,7 @@ async function getNodesSlice({ end_time, start_time, offset, signal }) {
   if (!rawResp.ok) {
     throw new Error(`(${rawResp.status}) ${rawResp.statusText}`)
   }
-  const response = await rawResp.json()
+  const response: NodeAttrsSearchResponse = await rawResp.json()
   const nodes = response.nodes.map((item) => {
     const {
       nid,
@@ -287,7 +293,15 @@ async function getNodesSlice({ end_time, start_time, offset, signal }) {
   }
 }
 
-async function createEdge({ from, to, signal }): Promise<TEdge> {
+async function createEdge({
+  from,
+  to,
+  signal,
+}: {
+  from: Optional<string>
+  to: Optional<string>
+  signal: AbortSignal
+}): Promise<TEdge> {
   verifyIsNotNull(from)
   verifyIsNotNull(to)
   const req = {
@@ -315,26 +329,6 @@ async function createEdge({ from, to, signal }): Promise<TEdge> {
   return new TEdge(edgeOjb)
 }
 
-async function createFewEdges({ edges, signal }) {
-  verifyIsNotNull(edges)
-  const req = {
-    edges,
-  }
-  const resp = await fetch(makeUrl(`/node/some/edge`), {
-    method: 'POST',
-    body: JSON.stringify(req),
-    headers: { 'Content-type': Mime.JSON },
-    signal,
-  })
-  if (!resp.ok) {
-    throw new Error('Edge creation failed')
-  }
-  const { edges: newEdges } = await resp.json()
-  return newEdges.map((edgeObj) => {
-    return new TEdge(edgeObj)
-  })
-}
-
 async function getNodeEdges(
   nid: string,
   dir: '/to' | '/from',
@@ -356,15 +350,37 @@ async function getNodeEdges(
   return star
 }
 
-async function getEdgesToNode({ nid, signal }): Promise<EdgeStar> {
+async function getEdgesToNode({
+  nid,
+  signal,
+}: {
+  nid: string
+  signal: AbortSignal
+}): Promise<EdgeStar> {
   return await getNodeEdges(nid, '/to', signal)
 }
 
-async function getEdgesFromNode({ nid, signal }): Promise<EdgeStar> {
+async function getEdgesFromNode({
+  nid,
+  signal,
+}: {
+  nid: string
+  signal: AbortSignal
+}): Promise<EdgeStar> {
   return await getNodeEdges(nid, '/from', signal)
 }
 
-async function switchEdgeStickiness({ eid, signal, on, off }) {
+async function switchEdgeStickiness({
+  eid,
+  signal,
+  on,
+  off,
+}: {
+  eid: string
+  signal: AbortSignal
+  on: Optional<boolean>
+  off: Optional<boolean>
+}): Promise<true> {
   verifyIsNotNull(eid)
   const req = {
     is_sticky: on != null ? on : !off,
@@ -378,10 +394,16 @@ async function switchEdgeStickiness({ eid, signal, on, off }) {
   if (!resp.ok) {
     throw new Error('Switching edge stickiness failed with error')
   }
-  return await resp.json()
+  return true
 }
 
-async function deleteEdge({ eid, signal }) {
+async function deleteEdge({
+  eid,
+  signal,
+}: {
+  eid: string
+  signal: AbortSignal
+}): Promise<true> {
   verifyIsNotNull(eid)
   const req = { eid }
   const resp = await fetch(makeUrl(`/node/x/edge`), {
@@ -391,12 +413,18 @@ async function deleteEdge({ eid, signal }) {
     headers: { 'Content-type': Mime.JSON },
   })
   if (resp.ok) {
-    return await resp.json()
+    return true
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function getNodeMeta({ nid, signal }) {
+async function getNodeMeta({
+  nid,
+  signal,
+}: {
+  nid: string
+  signal: AbortSignal
+}): Promise<NodeMeta> {
   const resp = await fetch(makeUrl(`/node/${nid}/meta`), {
     method: 'GET',
     signal,
@@ -407,7 +435,15 @@ async function getNodeMeta({ nid, signal }) {
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function updateNodeMeta({ nid, meta, signal }) {
+async function updateNodeMeta({
+  nid,
+  meta,
+  signal,
+}: {
+  nid: string
+  meta: NodeMeta
+  signal: AbortSignal
+}): Promise<true> {
   const req = { meta }
   const resp = await fetch(makeUrl(`/node/${nid}/meta`), {
     method: 'PATCH',
@@ -416,7 +452,7 @@ async function updateNodeMeta({ nid, meta, signal }) {
     signal,
   })
   if (resp.ok) {
-    return await resp.json()
+    return true
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
@@ -458,7 +494,7 @@ async function createSession(
   return await resp.json()
 }
 
-async function deleteSession({ signal }) {
+async function deleteSession({ signal }: { signal: AbortSignal }) {
   const resp = await fetch(makeUrl(`/auth/session`), {
     method: 'DELETE',
     signal,
@@ -469,7 +505,7 @@ async function deleteSession({ signal }) {
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function updateSession({ signal }) {
+async function updateSession({ signal }: { signal: AbortSignal }) {
   const resp = await fetch(makeUrl('/auth/session'), {
     method: 'PATCH',
     signal,
@@ -480,7 +516,13 @@ async function updateSession({ signal }) {
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function getUserBadge({ uid, signal }) {
+async function getUserBadge({
+  uid,
+  signal,
+}: {
+  uid: string
+  signal: AbortSignal
+}): Promise<UserBadge> {
   verifyIsNotNull(uid)
   verifyIsNotNull(signal)
   const resp = await fetch(makeUrl(`/user/${uid}/badge`), {
@@ -493,7 +535,15 @@ async function getUserBadge({ uid, signal }) {
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function registerAccount({ name, email, signal }) {
+async function registerAccount({
+  name,
+  email,
+  signal,
+}: {
+  name: string
+  email: string
+  signal: AbortSignal
+}): Promise<true> {
   const value = { name, email }
   const resp = await fetch(makeUrl('/auth'), {
     method: 'POST',
@@ -502,12 +552,20 @@ async function registerAccount({ name, email, signal }) {
     signal,
   })
   if (resp.ok) {
-    return await resp.json()
+    return true
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function passwordReset({ token, new_password, signal }) {
+async function passwordReset({
+  token,
+  new_password,
+  signal,
+}: {
+  token: string
+  new_password: string
+  signal: AbortSignal
+}): Promise<true> {
   const value = { token, new_password }
   const resp = await fetch(makeUrl('/auth/password-recover/reset'), {
     method: 'POST',
@@ -516,12 +574,18 @@ async function passwordReset({ token, new_password, signal }) {
     signal,
   })
   if (resp.ok) {
-    return await resp.json()
+    return true
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function passwordRecoverRequest({ email, signal }) {
+async function passwordRecoverRequest({
+  email,
+  signal,
+}: {
+  email: string
+  signal: AbortSignal
+}): Promise<true> {
   const value = { email }
   const resp = await fetch(makeUrl('/auth/password-recover/request'), {
     method: 'POST',
@@ -530,7 +594,7 @@ async function passwordRecoverRequest({ email, signal }) {
     signal,
   })
   if (resp.ok) {
-    return await resp.json()
+    return true
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
@@ -573,7 +637,6 @@ export const smuggler = {
   },
   edge: {
     create: createEdge,
-    createFew: createFewEdges,
     getTo: getEdgesToNode,
     getFrom: getEdgesFromNode,
     sticky: switchEdgeStickiness,
