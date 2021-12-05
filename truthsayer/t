@@ -1,0 +1,29 @@
+Unused dependencies
+* @babel/plugin-proposal-class-properties
+* @babel/preset-typescript
+* @emotion/styled
+* @testing-library/dom
+* @testing-library/user-event
+* @types/jest
+* @types/mocha
+* @types/node
+* @types/react-dom
+* draft-js
+* eslint-config-prettier
+* eslint-plugin-prettier
+* immutable
+* joi
+* object-hash
+* react-css-modules
+* react-router
+* ts-node
+* uuid
+Missing dependencies
+* eslint-config-react-app: ./package.json
+* eslint-plugin-flowtype: ./package.json
+* eslint-plugin-jsx-a11y: ./package.json
+* eslint-plugin-react-hooks: ./package.json
+* eslint-plugin-jest: ./package.json
+* eslint-plugin-testing-library: ./package.json
+* lint-staged: ./package.json
+* @trust/webcrypto: ./src/crypto/web_crypto_api.jsx
