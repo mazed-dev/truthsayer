@@ -1,11 +1,6 @@
-import React from 'react'
-
 import { markdownToDraft, draftToMarkdown } from './conv.jsx'
 
 import {
-  TChunk,
-  TDraftDoc,
-  TContentBlock,
   kBlockTypeAtomic,
   kBlockTypeCode,
   kBlockTypeH1,
@@ -20,10 +15,6 @@ import {
   kBlockTypeUnorderedCheckItem,
   kBlockTypeUnorderedItem,
   kBlockTypeUnstyled,
-  kEntityTypeLink,
-  kEntityTypeTime,
-  kEntityMutable,
-  kEntityImmutable,
 } from './../doc/types.ts'
 
 test('raw string', () => {

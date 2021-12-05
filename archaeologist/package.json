@@ -1,27 +1,6 @@
 {
   "name": "archaeologist",
   "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "build:chrome:public": "yarn webpack --config webpack.config.js --mode production --env chrome",
-    "build:chrome:local": "yarn bin webpack --config webpack.config.js --mode development --env chrome --progress --color",
-    "test": "yarn jest",
-    "eject": "yarn react-scripts eject",
-    "fmt": "yarn prettier --write $(find src -name '*.css' -o -name '*.js' -o -name '*.jsx')",
-    "fix": "yarn fix:prettier && yarn fix:eslint",
-    "fix:eslint": "yarn lint:eslint --fix",
-    "fix:prettier": "yarn lint:prettier --write",
-    "lint": "yarn lint:eslint && yarn lint:prettier",
-    "lint:eslint": "yarn eslint \"./src/**/*.{js,jsx,ts,tsx}\"",
-    "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,jsx,json,ts,tsx}\"",
-    "lint:typescript": "yarn tsc --build ./ --force"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -72,5 +51,26 @@
     "webpack": "4.44.2",
     "webpack-cli": "^4.9.0",
     "webpack-dev-server": "3.11.1"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "private": true,
+  "scripts": {
+    "build:chrome:local": "yarn bin webpack --config webpack.config.js --mode development --env chrome --progress --color",
+    "build:chrome:public": "yarn webpack --config webpack.config.js --mode production --env chrome",
+    "eject": "yarn react-scripts eject",
+    "fix": "yarn fix:prettier && yarn fix:eslint",
+    "fix:eslint": "yarn lint:eslint --fix",
+    "fix:prettier": "yarn lint:prettier --write",
+    "fmt": "yarn prettier --write $(find src -name '*.css' -o -name '*.js' -o -name '*.jsx')",
+    "lint": "yarn lint:eslint && yarn lint:prettier",
+    "lint:eslint": "yarn eslint \"./src/**/*.{js,jsx,ts,tsx}\"",
+    "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,jsx,json,ts,tsx}\"",
+    "lint:typescript": "yarn tsc --build ./ --force",
+    "test": "yarn jest"
   }
 }

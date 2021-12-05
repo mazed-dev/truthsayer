@@ -1,38 +1,23 @@
 import moment from 'moment'
 
 import {
-  TChunk,
-  TDraftDoc,
-  TContentBlock,
-  kBlockTypeCode,
-  kBlockTypeH1,
-  kBlockTypeH2,
-  kBlockTypeH3,
-  kBlockTypeH4,
-  kBlockTypeH5,
-  kBlockTypeH6,
-  kBlockTypeHrule,
-  kBlockTypeOrderedItem,
-  kBlockTypeQuote,
   kBlockTypeUnorderedCheckItem,
   kBlockTypeUnorderedItem,
-  kBlockTypeUnstyled,
   kEntityImmutable,
   kEntityMutable,
   kEntityTypeImage,
   kEntityTypeLink,
   kEntityTypeTime,
+  kBlockTypeHrule,
   generateRandomKey,
   makeLinkEntity,
   makeBlock,
-} from './../doc/types.ts'
+} from './../doc/types'
 
 import {
   markdownToDraft as libMarkdownToDraft,
   draftToMarkdown as libDraftToMarkdown,
 } from 'markdown-draft-js'
-
-import { slateToMarkdown, markdownToSlate } from './slate.ts'
 
 import lodash from 'lodash'
 
@@ -68,18 +53,14 @@ function mdLinkToEntity(item) {
   return makeLinkEntity(href)
 }
 
-function mdTableToBlock(item) {
-  return { type: item.type }
-}
-
 function mdHrToBlock(item) {
   return makeBlock({
     type: kBlockTypeHrule,
   })
 }
 
-export function markdownToDraft(source: string): TDraftDoc {
-  const rawObject: TDraftDoc = libMarkdownToDraft(source, {
+export function markdownToDraft(source) {
+  const rawObject = libMarkdownToDraft(source, {
     blockEntities: {
       image: mdImageItemToEntity,
       link_open: mdLinkToEntity,
@@ -88,18 +69,6 @@ export function markdownToDraft(source: string): TDraftDoc {
       hr: mdHrToBlock,
       // TODO(akindyakov) There is a bugS in "markdown-draft-js" library,
       // basically tables are utterly unsupported there. Skip them for now.
-      // table_open: mdTableToBlock,
-      // inline: mdTableToBlock,
-      // tbody_open: mdTableToBlock,
-      // th_open: mdTableToBlock,
-      // tr_open: mdTableToBlock,
-      // thead_open: mdTableToBlock,
-      // tr_close: mdTableToBlock,
-      // thead_close: mdTableToBlock,
-      // td_close: mdTableToBlock,
-      // th_close: mdTableToBlock,
-      // table_close: mdTableToBlock,
-      // tbody_close: mdTableToBlock,
     },
     remarkablePlugins: [],
     remarkablePreset: 'full',
@@ -173,7 +142,7 @@ function makeCustomEntityRenders() {
   }
 }
 
-function convertCheckItemsToUnorderedItem(doc: TDraftDoc): TDraftDoc {
+function convertCheckItemsToUnorderedItem(doc) {
   doc.blocks = doc.blocks.map((block) => {
     if (block.type === kBlockTypeUnorderedCheckItem) {
       if (block.data && block.data.checked) {
@@ -188,7 +157,7 @@ function convertCheckItemsToUnorderedItem(doc: TDraftDoc): TDraftDoc {
   return doc
 }
 
-export function draftToMarkdown(doc: TDraftDoc): string {
+export function draftToMarkdown(doc) {
   doc = convertCheckItemsToUnorderedItem(doc)
   return libDraftToMarkdown(doc, {
     entityItems: makeCustomEntityRenders(),
