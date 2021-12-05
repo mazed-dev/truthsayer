@@ -16,11 +16,11 @@ import UploadImg from '../img/upload-strip.svg'
 
 import styles from './UploadNodeButton.module.css'
 
-type UploadNodeButtonProps = {
+type UploadNodeButtonProps = React.PropsWithChildren<{
   className: string
   from_nid: Optional<string>
   to_nid: Optional<string>
-}
+}>
 
 export const UploadNodeButton = React.forwardRef<
   HTMLButtonElement,
@@ -150,8 +150,8 @@ class FileUploadStatus extends React.Component<
     super(props)
     this.state = {
       progress: 0.0,
-      nid: null,
-      error: null,
+      nid: undefined,
+      error: undefined,
     }
     this.abortControler = new AbortController()
   }

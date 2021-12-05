@@ -4,7 +4,7 @@ import { jcss } from 'elementary'
 
 import styles from './SmallCard.module.css'
 
-function getShadowStyle(n) {
+function getShadowStyle(n: number) {
   switch (Math.max(0, n) /* treat negative numbers as 0 */) {
     case 0:
       return styles.small_card_shadow_0
@@ -22,7 +22,13 @@ function getShadowStyle(n) {
   return styles.small_card_shadow_5
 }
 
-export const SmallCard = React.forwardRef(
+type SmallCardProps = React.PropsWithChildren<{
+  onClick?: React.MouseEventHandler
+  className: string
+  stack_size?: number
+}>
+
+export const SmallCard = React.forwardRef<HTMLDivElement, SmallCardProps>(
   (
     {
       children,
@@ -36,7 +42,7 @@ export const SmallCard = React.forwardRef(
     ref
   ) => {
     let clickableOnClick = null
-    let clickableStyle = null
+    let clickableStyle = undefined
     if (onClick) {
       clickableStyle = styles.clickable_chunks
       clickableOnClick = onClick
