@@ -15,6 +15,8 @@ import {
   NodeAttrsSearchRequest,
   NodeAttrsSearchResponse,
   UserBadge,
+  NodeMeta,
+  NodePatchRequest,
 } from './types'
 
 import { Mime } from './util/mime'
@@ -23,7 +25,6 @@ import { Optional } from './util/optional'
 import moment from 'moment'
 import lodash from 'lodash'
 import { stringify } from 'query-string'
-import { NodeMeta, NodePatchRequest } from '.'
 
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
@@ -380,7 +381,7 @@ async function switchEdgeStickiness({
   signal: AbortSignal
   on: Optional<boolean>
   off: Optional<boolean>
-}): Promise<true> {
+}): Promise<Ack> {
   verifyIsNotNull(eid)
   const req = {
     is_sticky: on != null ? on : !off,
@@ -394,7 +395,7 @@ async function switchEdgeStickiness({
   if (!resp.ok) {
     throw new Error('Switching edge stickiness failed with error')
   }
-  return true
+  return resp.json()
 }
 
 async function deleteEdge({
@@ -403,7 +404,7 @@ async function deleteEdge({
 }: {
   eid: string
   signal: AbortSignal
-}): Promise<true> {
+}): Promise<Ack> {
   verifyIsNotNull(eid)
   const req = { eid }
   const resp = await fetch(makeUrl(`/node/x/edge`), {
@@ -413,7 +414,7 @@ async function deleteEdge({
     headers: { 'Content-type': Mime.JSON },
   })
   if (resp.ok) {
-    return true
+    return resp.json()
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
@@ -443,7 +444,7 @@ async function updateNodeMeta({
   nid: string
   meta: NodeMeta
   signal: AbortSignal
-}): Promise<true> {
+}): Promise<Ack> {
   const req = { meta }
   const resp = await fetch(makeUrl(`/node/${nid}/meta`), {
     method: 'PATCH',
@@ -452,7 +453,7 @@ async function updateNodeMeta({
     signal,
   })
   if (resp.ok) {
-    return true
+    return resp.json()
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
@@ -543,7 +544,7 @@ async function registerAccount({
   name: string
   email: string
   signal: AbortSignal
-}): Promise<true> {
+}): Promise<Ack> {
   const value = { name, email }
   const resp = await fetch(makeUrl('/auth'), {
     method: 'POST',
@@ -552,7 +553,7 @@ async function registerAccount({
     signal,
   })
   if (resp.ok) {
-    return true
+    return resp.json()
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
@@ -565,7 +566,7 @@ async function passwordReset({
   token: string
   new_password: string
   signal: AbortSignal
-}): Promise<true> {
+}): Promise<Ack> {
   const value = { token, new_password }
   const resp = await fetch(makeUrl('/auth/password-recover/reset'), {
     method: 'POST',
@@ -574,7 +575,7 @@ async function passwordReset({
     signal,
   })
   if (resp.ok) {
-    return true
+    return resp.json()
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
@@ -585,7 +586,7 @@ async function passwordRecoverRequest({
 }: {
   email: string
   signal: AbortSignal
-}): Promise<true> {
+}): Promise<Ack> {
   const value = { email }
   const resp = await fetch(makeUrl('/auth/password-recover/request'), {
     method: 'POST',
@@ -594,7 +595,7 @@ async function passwordRecoverRequest({
     signal,
   })
   if (resp.ok) {
-    return true
+    return resp.json()
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
