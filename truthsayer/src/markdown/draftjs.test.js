@@ -1,4 +1,4 @@
-import { markdownToDraft, draftToMarkdown } from './conv.jsx'
+import { markdownToDraft, draftToMarkdown } from './draftjs'
 
 import {
   kBlockTypeAtomic,
