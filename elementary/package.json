@@ -1,8 +1,21 @@
 {
   "name": "elementary",
   "description": "React shared elements",
-  "version": "0.0.1",
   "author": "Thread knowledge",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "yarn tsc --build --pretty",
+    "fix": "yarn fix:prettier && yarn fix:eslint",
+    "fix:eslint": "yarn lint:eslint --fix",
+    "fix:prettier": "yarn lint:prettier --write",
+    "lint": "yarn lint:eslint && yarn lint:prettier",
+    "lint:eslint": "yarn eslint \"./src/**/*.{js,ts}\"",
+    "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,json,ts}\"",
+    "lint:typescript": "yarn tsc --build ./ --force",
+    "postinstall": "yarn build",
+    "test": "yarn jest"
+  },
   "dependencies": {
     "@emotion/react": "^11.6.0",
     "@emotion/styled": "^11.6.0",
@@ -18,27 +31,14 @@
     "ts-jest": "^26.4.2",
     "typescript": "4.1.3"
   },
+  "peerDependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
   "files": [
     "/dist"
   ],
   "license": "no",
   "main": "dist/index.js",
-  "peerDependencies": {
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
-  },
-  "private": true,
-  "scripts": {
-    "build": "yarn tsc --build --pretty",
-    "fix": "yarn fix:prettier && yarn fix:eslint",
-    "fix:eslint": "yarn lint:eslint --fix",
-    "fix:prettier": "yarn lint:prettier --write",
-    "lint": "yarn lint:eslint && yarn lint:prettier",
-    "lint:eslint": "yarn eslint \"./src/**/*.{js,ts}\"",
-    "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,json,ts}\"",
-    "lint:typescript": "yarn tsc --build ./ --force",
-    "postinstall": "yarn build",
-    "test": "yarn jest"
-  },
   "types": "dist/index.d.ts"
 }

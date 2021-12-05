@@ -1,6 +1,21 @@
 {
   "name": "truthsayer",
   "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "yarn react-scripts build",
+    "eject": "yarn react-scripts eject",
+    "fix": "yarn fix:prettier && yarn fix:eslint",
+    "fix:eslint": "yarn lint:eslint --fix",
+    "fix:prettier": "yarn lint:prettier --write",
+    "fmt": "yarn prettier --write $(find src -name '*.css' -o -name '*.js' -o -name '*.jsx')",
+    "lint": "yarn lint:eslint && yarn lint:prettier",
+    "lint:eslint": "yarn eslint \"./src/**/*.{js,jsx,ts,tsx}\"",
+    "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,jsx,json,ts,tsx}\"",
+    "lint:typescript": "yarn tsc --build ./ --force",
+    "start": "yarn react-scripts start",
+    "test": "yarn react-scripts test"
+  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -86,22 +101,7 @@
       "eslint --fix"
     ]
   },
-  "private": true,
   "proxy": "http://0.0.0.0:8080",
-  "scripts": {
-    "build": "yarn react-scripts build",
-    "eject": "yarn react-scripts eject",
-    "fix": "yarn fix:prettier && yarn fix:eslint",
-    "fix:eslint": "yarn lint:eslint --fix",
-    "fix:prettier": "yarn lint:prettier --write",
-    "fmt": "yarn prettier --write $(find src -name '*.css' -o -name '*.js' -o -name '*.jsx')",
-    "lint": "yarn lint:eslint && yarn lint:prettier",
-    "lint:eslint": "yarn eslint \"./src/**/*.{js,jsx,ts,tsx}\"",
-    "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,jsx,json,ts,tsx}\"",
-    "lint:typescript": "yarn tsc --build ./ --force",
-    "start": "yarn react-scripts start",
-    "test": "yarn react-scripts test"
-  },
   "simple-git-hooks": {
     "pre-commit": "yarn lint-staged"
   }

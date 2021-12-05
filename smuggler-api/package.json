@@ -3,6 +3,20 @@
   "description": "Smuggler API artefacts in typescript",
   "version": "0.0.1",
   "author": "Thread knowledge",
+  "license": "no",
+  "private": true,
+  "scripts": {
+    "build": "yarn tsc --pretty",
+    "fix": "yarn fix:prettier && yarn fix:eslint",
+    "fix:eslint": "yarn lint:eslint --fix",
+    "fix:prettier": "yarn lint:prettier --write",
+    "lint": "yarn lint:eslint && yarn lint:prettier",
+    "lint:eslint": "yarn eslint \"./src/**/*.{js,ts}\"",
+    "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,json,ts}\"",
+    "lint:typescript": "yarn tsc --build ./ --force",
+    "postinstall": "yarn build",
+    "test": "yarn jest"
+  },
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^4.5.0",
     "@typescript-eslint/parser": "^4.5.0",
@@ -23,20 +37,6 @@
   "files": [
     "/dist"
   ],
-  "license": "no",
   "main": "dist/index.js",
-  "private": true,
-  "scripts": {
-    "build": "yarn tsc --pretty",
-    "fix": "yarn fix:prettier && yarn fix:eslint",
-    "fix:eslint": "yarn lint:eslint --fix",
-    "fix:prettier": "yarn lint:prettier --write",
-    "lint": "yarn lint:eslint && yarn lint:prettier",
-    "lint:eslint": "yarn eslint \"./src/**/*.{js,ts}\"",
-    "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,json,ts}\"",
-    "lint:typescript": "yarn tsc --build ./ --force",
-    "postinstall": "yarn build",
-    "test": "yarn jest"
-  },
   "types": "dist/index.d.ts"
 }
