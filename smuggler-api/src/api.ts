@@ -395,7 +395,7 @@ async function switchEdgeStickiness({
   if (!resp.ok) {
     throw new Error('Switching edge stickiness failed with error')
   }
-  return resp.json()
+  return await resp.json()
 }
 
 async function deleteEdge({
@@ -414,7 +414,7 @@ async function deleteEdge({
     headers: { 'Content-type': Mime.JSON },
   })
   if (resp.ok) {
-    return resp.json()
+    return await resp.json()
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
@@ -453,7 +453,7 @@ async function updateNodeMeta({
     signal,
   })
   if (resp.ok) {
-    return resp.json()
+    return await resp.json()
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
@@ -553,7 +553,7 @@ async function registerAccount({
     signal,
   })
   if (resp.ok) {
-    return resp.json()
+    return await resp.json()
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
@@ -575,7 +575,7 @@ async function passwordReset({
     signal,
   })
   if (resp.ok) {
-    return resp.json()
+    return await resp.json()
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
@@ -595,7 +595,7 @@ async function passwordRecoverRequest({
     signal,
   })
   if (resp.ok) {
-    return resp.json()
+    return await resp.json()
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
