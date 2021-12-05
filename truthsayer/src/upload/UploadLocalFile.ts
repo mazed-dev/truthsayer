@@ -1,6 +1,6 @@
 import {
   GenerateBlobIndexResponse,
-  NodeTextIndex,
+  NodeIndexText,
   smuggler,
   UploadMultipartResponse,
 } from 'smuggler-api'
@@ -102,7 +102,7 @@ async function uploadLocalBinaryFile(
     return
   }
 
-  const index_text: NodeTextIndex = index.indexes[0].index
+  const index_text: NodeIndexText = index.indexes[0].index
   smuggler.node
     .update({
       nid: upload.nids[0],
@@ -144,7 +144,7 @@ function uploadLocalTextFile(
     makeDoc({ plain: text }).then((doc) => {
       smuggler.node
         .create({
-          doc: doc.toNodeTextData(),
+          text: doc.toNodeTextData(),
           from_nid: from_nid || undefined,
           to_nid: to_nid || undefined,
           signal: abortSignal,
