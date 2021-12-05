@@ -506,7 +506,7 @@ async function deleteSession({ signal }: { signal: AbortSignal }) {
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function updateSession({ signal }: { signal: AbortSignal }) {
+async function updateSession(signal?: AbortSignal) {
   const resp = await fetch(makeUrl('/auth/session'), {
     method: 'PATCH',
     signal,

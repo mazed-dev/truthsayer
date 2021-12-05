@@ -104,5 +104,8 @@
   "proxy": "http://0.0.0.0:8080",
   "simple-git-hooks": {
     "pre-commit": "yarn lint-staged"
+  },
+  "devDependencies": {
+    "@types/crc": "^3.4.0"
   }
 }
