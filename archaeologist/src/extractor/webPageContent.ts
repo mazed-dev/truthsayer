@@ -13,12 +13,39 @@
 
 import lodash from 'lodash'
 
+import { PreviewImageSmall, MimeType, Mime } from 'smuggler-api'
+
 import { Readability as MozillaReadability } from '@mozilla/readability'
 import { stabiliseUrl } from './originId'
 
+async function fetchImageAsBase64(
+  url: string
+): Promise<PreviewImageSmall | null> {
+  const resp = await fetch(url)
+  if (!resp.ok) {
+    // TODO(akindyakov): print error message when we have a better logging
+    // message = `(${resp.status}) ${resp.statusText}`
+    return null
+  }
+  const blob = await resp.blob()
+  const mime = resp.headers.get('Content-type')
+  if (!mime || !Mime.isImage(mime)) {
+    return null
+  }
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = reject
+    reader.onload = () => {
+      const data = reader.result as string | null
+      resolve(data ? { data, content_type: mime } : null)
+    }
+    reader.readAsDataURL(blob)
+  })
+}
+
 export interface WebPageContentImage {
-  icon: string | null // favicon, URL
-  og: string | null // URL
+  content_type: MimeType
+  data: string // Base64 encoded image
 }
 
 export interface WebPageContent {
@@ -29,17 +56,17 @@ export interface WebPageContent {
   author: string[]
   publisher: string[]
   text: string | null
-  image: WebPageContentImage
+  image: PreviewImageSmall | null
 }
 
 export function exctractPageUrl(document_: Document): string {
   return document_.URL || document_.documentURI
 }
 
-export function exctractPageContent(
+export async function exctractPageContent(
   document_: Document,
   baseURL: string
-): WebPageContent {
+): Promise<WebPageContent> {
   const url = stabiliseUrl(document_.URL || document_.documentURI)
   const head = document_.head
   const body = document_.body
@@ -100,7 +127,7 @@ export function exctractPageContent(
     description,
     lang,
     text,
-    image: _exctractPageImage(head || null, baseURL),
+    image: await _exctractPageImage(head || null, baseURL),
   }
 }
 
@@ -285,14 +312,14 @@ function ensureAbsRef(ref: string, baseURL: string): string {
   return ref
 }
 
-export function _exctractPageImage(
+export async function _exctractPageImage(
   head: HTMLHeadElement | null,
   baseURL: string
-): WebPageContentImage {
-  let icon = null
+): Promise<WebPageContentImage | null> {
+  let favicon = null
   let og = null
   if (head == null) {
-    return { icon, og }
+    return null
   }
   for (const elementsGroup of [
     head.querySelectorAll('meta[property="og:image"]'),
@@ -312,9 +339,14 @@ export function _exctractPageImage(
   for (const element of head.querySelectorAll('link[rel="icon"]')) {
     const ref = element.getAttribute('href')?.trim()
     if (ref) {
-      icon = ensureAbsRef(ref, baseURL)
+      favicon = ensureAbsRef(ref, baseURL)
       break
     }
   }
-  return { icon, og }
+  const icon = og
+    ? await fetchImageAsBase64(og)
+    : favicon
+    ? await fetchImageAsBase64(favicon)
+    : null
+  return icon ? icon : null
 }

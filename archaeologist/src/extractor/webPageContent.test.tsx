@@ -178,7 +178,6 @@ test('_exctractPageLanguage', () => {
 </body>
 </html>
 `)
-  const html = dom.window.document.getElementsByTagName('html')[0]
   const lang = _exctractPageLanguage(dom.window.document)
   expect(lang).toStrictEqual('en')
 })
@@ -198,7 +197,7 @@ test('_exctractPagePublisher', () => {
   expect(publisher).toStrictEqual(['The Publisher'])
 })
 
-test('_exctractPageImage', () => {
+test('_exctractPageImage', async () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -210,14 +209,14 @@ test('_exctractPageImage', () => {
 </html>
 `)
   const head = dom.window.document.getElementsByTagName('head')[0]
-  const image = _exctractPageImage(head, 'https://zxc.abc')
+  const image = await _exctractPageImage(head, 'https://zxc.abc')
   expect(image).toStrictEqual({
     icon: 'https://cdn.abc.com/favicon-96x96.png',
     og: 'https://cdn.abc.com/ZgxW.jpg',
   })
 })
 
-test('_exctractPageImage - relative ref', () => {
+test('_exctractPageImage - relative ref', async () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -229,14 +228,14 @@ test('_exctractPageImage - relative ref', () => {
 </html>
 `)
   const head = dom.window.document.getElementsByTagName('head')[0]
-  const image = _exctractPageImage(head, 'https://term.info')
+  const image = await _exctractPageImage(head, 'https://term.info')
   expect(image).toStrictEqual({
     icon: 'https://term.info/favicon-96x96.png',
     og: 'https://term.info/asset/ZgxW.jpg',
   })
 })
 
-test('exctractPageContent - main', () => {
+test('exctractPageContent - main', async () => {
   const originalUrl = 'https://example.org/test.html'
   const origin = 'https://example.org'
   const dom = new JSDOM(
@@ -267,7 +266,7 @@ test('exctractPageContent - main', () => {
 `,
     { url: originalUrl }
   )
-  const content = exctractPageContent(dom.window.document, origin)
+  const content = await exctractPageContent(dom.window.document, origin)
   const { url, title, author, publisher, description, lang, text, image } =
     content
   expect(text).toStrictEqual('First and second Third and forth')

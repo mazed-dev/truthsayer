@@ -16,7 +16,7 @@ import { genOriginId } from './extractor/originId'
 
 async function readPageContent() {
   const baseURL = `${window.location.protocol}//${window.location.host}`
-  const content = exctractPageContent(document, baseURL)
+  const content = await exctractPageContent(document, baseURL)
   const url = exctractPageUrl(document)
   const originId = await genOriginId(url)
   chrome.runtime.sendMessage({

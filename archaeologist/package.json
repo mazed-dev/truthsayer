@@ -8,11 +8,11 @@
     "test": "yarn jest",
     "eject": "yarn react-scripts eject",
     "fix": "yarn fix:prettier && yarn fix:eslint",
-    "fix:eslint": "yarn lint:eslint --fix",
+    "fix:eslint": "yarn lint:eslint --fix --max-warnings 0",
     "fix:prettier": "yarn lint:prettier --write",
     "fmt": "yarn prettier --write $(find src -name '*.css' -o -name '*.js' -o -name '*.jsx')",
     "lint": "yarn lint:eslint && yarn lint:prettier",
-    "lint:eslint": "yarn eslint \"./src/**/*.{js,jsx,ts,tsx}\"",
+    "lint:eslint": "yarn eslint \"./src/**/*.{js,jsx,ts,tsx}\" --max-warnings 0",
     "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,jsx,json,ts,tsx}\"",
     "lint:typescript": "yarn tsc --build ./ --force"
   },
@@ -78,6 +78,7 @@
   "devDependencies": {
     "@types/chrome": "^0.0.154",
     "@types/copy-webpack-plugin": "^8.0.1",
-    "@types/jsdom": "^16.2.13"
+    "@types/jsdom": "^16.2.13",
+    "@types/mozilla-readability": "^0.2.1"
   }
 }

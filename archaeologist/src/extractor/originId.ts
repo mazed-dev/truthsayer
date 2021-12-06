@@ -10,7 +10,7 @@ function str2ArrayBuffer(str: string): Uint8Array {
 }
 
 export async function genOriginId(url: string): Promise<number> {
-  const {h32Raw} = await xxhash()
+  const { h32Raw } = await xxhash()
   return h32Raw(str2ArrayBuffer(stabiliseUrl(url)), kOriginSeed).valueOf()
 }
 

@@ -40,8 +40,6 @@ const requestPageContentToSave = () => {
 const savePage = (url: string, originId: number, content: WebPageContent) => {
   log.debug('Save page content', url, originId, content)
   const text = makeNodeTextData()
-  // from_nid?: string
-  // to_nid?: string
   const index_text: NodeIndexText = {
     plaintext: content.text,
     labels: [],
@@ -50,11 +48,11 @@ const savePage = (url: string, originId: number, content: WebPageContent) => {
   }
   const extattrs: NodeExtattrs = {
     content_type: Mime.TEXT_URI_LIST,
-    preview_image: null,
+    preview_image: content.image,
     title: content.title,
     description: content.description,
     lang: content.lang,
-    author: content.author.join(", "),
+    author: content.author.join(', '),
     web: {
       url: url,
     },
