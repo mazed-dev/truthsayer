@@ -1,4 +1,4 @@
-import { base64 } from './../util/base64.jsx'
+import { base64 } from '../util/base64'
 
 // / Convert string to array
 function str2ArrayBuffer(str: string): ArrayBuffer {
@@ -24,15 +24,15 @@ function arrayBuffer2Str(ab: ArrayBuffer): string {
 }
 
 interface TEncrypted {
-  encrypted: string;
-  iv: string;
-  signature: string;
+  encrypted: string
+  iv: string
+  signature: string
 }
 
 interface TUserLocalKey {
-  id: string;
-  key: ArrayBuffer;
-  sig: ArrayBuffer;
+  id: string
+  key: ArrayBuffer
+  sig: ArrayBuffer
 }
 
 // / Symmetric

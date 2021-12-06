@@ -7,23 +7,23 @@ import {
   genSecretPhraseToRender,
   makeSecret,
   sha1,
-} from './wrapper.jsx'
+} from './wrapper'
 
 import { smuggler } from 'smuggler-api'
 
-import { base64 } from './../util/base64.jsx'
+import { base64 } from '../util/base64'
 
 const ls = require('local-storage')
 
 interface TLocalSecretHash {
-  id: string;
-  is_active: boolean;
+  id: string
+  is_active: boolean
 }
 
 interface TStorage {
-  get: (key: string) => string;
-  set: (key: string, value: string) => void;
-  remove: (key: string) => void;
+  get: (key: string) => string
+  set: (key: string, value: string) => void
+  remove: (key: string) => void
 }
 
 export class LocalCrypto {
@@ -32,12 +32,12 @@ export class LocalCrypto {
   _uid: string = ''
   _storage: TStorage
   _lastSecret: TSecret | null = null
-  _smuggler: Any
+  _smuggler: any
 
   constructor(
     uid: string,
     storage?: TStorage,
-    remote?: Any,
+    remote?: any,
     lastSecret?: TSecret
   ) {
     this._uid = uid
@@ -49,8 +49,8 @@ export class LocalCrypto {
   static async initInstance(
     uid: string,
     storage?: TStorage, // Default one is local storage
-    remote?: Any
-  ): LocalCrypto {
+    remote?: any
+  ): Promise<LocalCrypto> {
     const instance = new LocalCrypto(uid, storage, remote)
     await instance.respawnLocalCrypto()
     LocalCrypto._instance = instance
@@ -63,12 +63,12 @@ export class LocalCrypto {
 
   has(secret_id?: string): boolean {
     if (secret_id) {
-      return this._lastSecret && this._lastSecret.id === secret_id
+      return !!this._lastSecret && this._lastSecret.id === secret_id
     }
     return this._lastSecret != null
   }
 
-  async encryptObj(obj: Any): TEncrypted | null {
+  async encryptObj(obj: any): Promise<TEncrypted | null> {
     if (!this._lastSecret) {
       return null
     }
@@ -76,7 +76,7 @@ export class LocalCrypto {
     return encrypted
   }
 
-  async decryptObj(encrypted: TEncrypted): Promise<Any | null> {
+  async decryptObj(encrypted: TEncrypted): Promise<any | null> {
     const secret = await this._getSecretById(encrypted.secret_id)
     if (secret == null) {
       return null
@@ -84,7 +84,7 @@ export class LocalCrypto {
     return await decryptSignedObject(encrypted, secret)
   }
 
-  async reEncryptObj(encrypted: TEncrypted): TEncrypted | null {
+  async reEncryptObj(encrypted: TEncrypted): Promise<TEncrypted | null> {
     const obj = this.decryptObj(encrypted)
     if (obj == null) {
       return null
@@ -131,8 +131,8 @@ export class LocalCrypto {
 
   getAllSecretIds(): Array<TLocalSecretHash> {
     const allSecretsKeys: string = this._storage.get(this._getAllSecretIdsKey())
-    return allSecretsKeys.map((secret_id) => {
-      const is_active = secret_id === this._lastSecret.id
+    return allSecretsKeys.map((secret_id: string) => {
+      const is_active = secret_id === this._lastSecret?.id
       return {
         id: secret_id,
         is_active,
@@ -148,7 +148,7 @@ export class LocalCrypto {
     return sha1(`${this._uid}//crypto/local/secret/all`)
   }
 
-  async _getSecretById(secret_id: string): TSecret | null {
+  async _getSecretById(secret_id: string): Promise<TSecret | null> {
     if (this._lastSecret && secret_id === this._lastSecret.id) {
       return this._lastSecret
     }
@@ -170,7 +170,7 @@ export class LocalCrypto {
     return secret
   }
 
-  async _storeSecretToLocalStorage(secretPhrase: string): TSecret {
+  async _storeSecretToLocalStorage(secretPhrase: string): Promise<TSecret> {
     const secondKeyData = await this._smuggler.getAnySecondKey()
     // {
     //   key: String,
@@ -207,7 +207,7 @@ export class LocalCrypto {
     return secret
   }
 
-  async respawnLocalCrypto(): void {
+  async respawnLocalCrypto(): Promise<void> {
     const lastSecretId = this._storage.get(this._getLastSecretIdKey())
     if (lastSecretId) {
       const lastSecret = await this._getSecretById(lastSecretId)

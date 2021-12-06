@@ -26,7 +26,7 @@ import { ImgButton } from '../lib/ImgButton'
 import { goto } from '../lib/route'
 import { jcss } from 'elementary'
 import { docAsMarkdown } from '../doc/doc_util'
-import { downloadAsFile } from '../util/download_as_file.jsx'
+import { downloadAsFile } from '../util/download_as_file'
 
 import {
   FootbarDropdown,

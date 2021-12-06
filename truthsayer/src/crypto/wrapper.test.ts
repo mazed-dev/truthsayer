@@ -7,7 +7,7 @@ import {
   makeSecret,
   sha1,
   sign,
-} from './wrapper.jsx'
+} from './wrapper'
 
 // OpenSSL compatible:
 // openssl enc -aes-256-cbc -d -pass pass:"passphrase" -base64 -md md5 -in encrypted

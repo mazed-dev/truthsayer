@@ -5,18 +5,18 @@ import Pkcs7 from 'crypto-js/pad-pkcs7'
 import SHA1 from 'crypto-js/sha1'
 import Utf8 from 'crypto-js/enc-utf8'
 
-import { base64 } from './../util/base64.jsx'
+import { base64 } from './../util/base64'
 
 export interface TEncrypted {
-  encrypted: string;
-  secret_id: string;
-  signature: string;
+  encrypted: string
+  secret_id: string
+  signature: string
 }
 
 export interface TSecret {
-  id: string;
-  key: string;
-  sig: string;
+  id: string
+  key: string
+  sig: string
 }
 
 export const encrypt = (text: string, passphrase: string): string => {

@@ -31,7 +31,7 @@ export async function createUserAccount(
   if (!checkAuth()) {
     return new AnonymousAccount()
   }
-  return await UserAccount.create(abortControler)
+  return await UserAccount.create(abortControler.signal)
 }
 
 type KnockerProps = {}
