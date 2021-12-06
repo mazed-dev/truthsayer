@@ -1,5 +1,3 @@
-import React from 'react'
-import { render } from '@testing-library/react'
 import {
   exctractDocTitle,
   getPlainText,
@@ -7,8 +5,7 @@ import {
   makeLeaf,
   makeDoc,
 } from './doc_util'
-import { makeChunk } from './chunk_util.jsx'
-import { markdownToDraft } from '../markdown/conv'
+import { markdownToDraft } from '../markdown/draftjs'
 import { markdownToSlate } from '../markdown/slate'
 
 import lodash from 'lodash'
@@ -24,30 +21,6 @@ test('exctractDocTitle - empty object', () => {
   const slate = [makeParagraph([makeLeaf('')])]
   const title = exctractDocTitle(slate)
   expect(title).toStrictEqual('Some page' + '\u2026')
-})
-
-test('exctractDocTitle - multiple chunks', async () => {
-  const text = 'RmdB zaGUgdHJpZWQgd G8gd2FzaCBvZm'
-  const doc = await makeDoc({
-    chunks: [makeChunk(text), makeChunk('asdf'), , makeChunk('123')],
-  })
-  const title = exctractDocTitle(doc.slate)
-  expect(title).toStrictEqual(text)
-})
-
-test('getPlainText - chunks', () => {
-  const text = 'RmdB zaGUgdHJpZWQgd G8gd2FzaCBvZm'
-  const texts = getPlainText({
-    chunks: [
-      makeChunk(text) as any,
-      makeChunk('asdf') as any,
-      ,
-      makeChunk('123') as any,
-    ],
-    slate: undefined,
-    draft: undefined,
-  })
-  expect(texts).toStrictEqual([text, 'asdf', '123'])
 })
 
 test('getPlainText - draft', () => {

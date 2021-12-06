@@ -1,26 +1,20 @@
 {
   "name": "elementary",
-  "author": "Thread knowledge",
-  "license": "no",
-  "private": true,
-  "version": "0.0.1",
   "description": "React shared elements",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "/dist"
-  ],
+  "author": "Thread knowledge",
+  "version": "0.0.1",
+  "private": true,
   "scripts": {
     "build": "yarn tsc --build --pretty",
-    "postinstall": "yarn build",
-    "test": "yarn jest",
     "fix": "yarn fix:prettier && yarn fix:eslint",
     "fix:eslint": "yarn lint:eslint --fix",
     "fix:prettier": "yarn lint:prettier --write",
     "lint": "yarn lint:eslint && yarn lint:prettier",
     "lint:eslint": "yarn eslint \"./src/**/*.{js,ts}\"",
     "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,json,ts}\"",
-    "lint:typescript": "yarn tsc --build ./ --force"
+    "lint:typescript": "yarn tsc --build ./ --force",
+    "postinstall": "yarn build",
+    "test": "yarn jest"
   },
   "dependencies": {
     "@emotion/react": "^11.6.0",
@@ -40,5 +34,11 @@
   "peerDependencies": {
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
-  }
+  },
+  "files": [
+    "/dist"
+  ],
+  "license": "no",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts"
 }
