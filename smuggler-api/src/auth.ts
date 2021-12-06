@@ -115,12 +115,12 @@ function getAuthCookieDomain(): string {
 }
 
 export const authCookie = {
-  checkAuth() {
+  check() {
     // Is it too slow?
     const cookies = new Cookies()
     return cookies.get(COOKIES_VEIL_KEY) === 'y'
   },
-  dropAuth() {
+  drop() {
     const cookies = new Cookies()
     cookies.remove(COOKIES_VEIL_KEY)
   },
@@ -156,11 +156,11 @@ export class Knocker {
   }
 
   abort() {
-    if (this._scheduledId) {
-      clearTimeout(this._scheduledId)
+    const { _abortCallback, _abortController, _scheduledId } = this
+    if (_scheduledId) {
+      clearTimeout(_scheduledId)
     }
-    this._abortController.abort()
-    const { _abortCallback } = this
+    _abortController.abort()
     if (_abortCallback) {
       _abortCallback()
     }
