@@ -1,11 +1,9 @@
 import { TChunk, TDraftDoc, SlateText } from './types'
 import { TNode, NodeTextData } from 'smuggler-api'
 
-import { makeAsteriskChunk, isHeaderChunk, isTextChunk } from './chunk_util.jsx'
-
 import { unixToString } from './editor/components/DateTime'
 
-import { draftToMarkdown, markdownToDraft } from '../markdown/conv.jsx'
+import { draftToMarkdown } from '../markdown/draftjs'
 import { slateToMarkdown, markdownToSlate } from '../markdown/slate'
 
 import {
@@ -130,20 +128,6 @@ export function extractDocAsMarkdown(doc: TDoc): string {
     .trim()
 }
 
-// Deprecated
-export async function enforceTopHeader(doc: TDoc): TDoc {
-  if (lodash.isString(doc)) {
-    const slate = await markdownToSlate(doc)
-    doc = await makeDoc({ slate })
-  }
-  const chunks = doc.chunks || []
-  if (chunks.length === 0 || !isHeaderChunk(doc.chunks[0])) {
-    chunks.unshift(makeAsteriskChunk())
-  }
-  doc.chunks = chunks
-  return doc
-}
-
 export async function makeDoc({
   slate,
   chunks,
@@ -178,30 +162,6 @@ export async function makeDoc({
     return new TDoc(slate)
   }
   return new TDoc(makeEmptySlate())
-}
-
-export async function getDocDraft(doc: TDoc): TDraftDoc {
-  // Apply migration technics incrementally to make sure that showing document
-  // has the format of the latest version.
-  if (lodash.isString(doc)) {
-    return markdownToDraft(doc)
-  }
-  doc = doc || {}
-  const { chunks } = doc
-  if (chunks) {
-    const source = chunks.reduce((acc, curr) => {
-      if (isTextChunk(curr)) {
-        return `${acc}\n${curr.source}`
-      }
-      return acc
-    }, '')
-    return markdownToDraft(source)
-  }
-  const { draft } = doc
-  if (draft) {
-    return draft
-  }
-  return await makeDoc({})
 }
 
 export function getPlainText({ slate, draft, chunks }: NodeTextData): string[] {
@@ -328,7 +288,7 @@ export function makeParagraph(children: SlateText): ParagraphElement {
   }
 }
 
-export function makeLink(text, link): LinkElement {
+export function makeLink(text: string, link: string): LinkElement {
   return {
     type: kSlateBlockTypeLink,
     children: [makeLeaf(text)],
@@ -336,7 +296,7 @@ export function makeLink(text, link): LinkElement {
   }
 }
 
-export function makeNodeLink(text, nid): LinkElement {
+export function makeNodeLink(text: string, nid: string): LinkElement {
   return {
     type: kSlateBlockTypeLink,
     children: [makeLeaf(text)],
@@ -345,7 +305,7 @@ export function makeNodeLink(text, nid): LinkElement {
   }
 }
 
-export function makeLeaf(text): LeafElement {
+export function makeLeaf(text: string): LeafElement {
   return { text }
 }
 
@@ -362,15 +322,7 @@ export function makeDateTime(
   }
 }
 
-function enforceMinimalSlate(items: SlateText): SlateText {
-  if (items.length) {
-    return items
-  }
-  return makeEmptySlate()
-}
-
 export function makeTextDoc(text: string): TDoc {
-  return {
-    slate: [makeParagraph([makeLeaf(text)])],
-  }
+  const slate = [makeParagraph([makeLeaf(text)])]
+  return new TDoc(slate)
 }
