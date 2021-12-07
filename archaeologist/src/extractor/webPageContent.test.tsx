@@ -6,6 +6,10 @@ import React from 'react' // eslint-disable-line @typescript-eslint/no-unused-va
  */
 import jsdom from 'jsdom'
 
+import fetchMock from 'jest-fetch-mock'
+
+import { Mime } from 'smuggler-api'
+
 import {
   _stripText,
   _exctractPageText,
@@ -17,7 +21,15 @@ import {
   exctractPageContent,
 } from './webPageContent'
 
+import * as log from '../util/log'
+
+global.fetch = fetchMock
+
 const { JSDOM } = jsdom
+
+beforeEach(() => {
+  fetchMock.doMock()
+})
 
 test('_stripText', () => {
   expect(
@@ -201,13 +213,23 @@ test('_exctractPageImage', async () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta property="og:image" content="https://cdn.abc.com/ZgxW.jpg">
   <link rel="icon" type="image/png" href="https://cdn.abc.com/favicon-96x96.png" sizes="96x96">
 </head>
 <body>
 </body>
 </html>
 `)
+  fetchMock.mockResponse(async () => {
+    log.debug("Call mock 223")
+    return {
+      body: new Blob([], {type: Mime.IMAGE_PNG}),
+      init: {
+        headers: {
+          'Content-type': Mime.IMAGE_PNG,
+        },
+      },
+    }
+  })
   const head = dom.window.document.getElementsByTagName('head')[0]
   const image = await _exctractPageImage(head, 'https://zxc.abc')
   expect(image).toStrictEqual({
@@ -227,6 +249,18 @@ test('_exctractPageImage - relative ref', async () => {
 </body>
 </html>
 `)
+  fetchMock.mockResponse(async () => {
+    log.debug("Call mock : relative ref")
+    return {
+      body: '',
+      init: {
+        headers: {
+          'Content-type': Mime.IMAGE_JPEG,
+        },
+      },
+    }
+  })
+
   const head = dom.window.document.getElementsByTagName('head')[0]
   const image = await _exctractPageImage(head, 'https://term.info')
   expect(image).toStrictEqual({
@@ -243,8 +277,7 @@ test('exctractPageContent - main', async () => {
 <html class="responsive" lang="en">
 <head>
   <title>Some title</title>
-  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
-  <link rel="icon" type="image/png" href="https://cdn.abc.com/favicon-96x96.png" sizes="96x96">
+  <link rel="icon" href="/icon.svg" sizes="any" type="image/svg+xml">
   <meta property="og:image" content="/asset/ZgxW.jpg">
   <meta property="og:image" content="https://cdn.abc.com/ZgxW.jpg">
   <meta property="author" content="Correct First Author">
@@ -266,6 +299,19 @@ test('exctractPageContent - main', async () => {
 `,
     { url: originalUrl }
   )
+
+  fetchMock.mockResponse(async () => {
+    log.debug("Call mock : relative ref")
+    return {
+      body: '',
+      init: {
+        headers: {
+          'Content-type': Mime.IMAGE_SVG_XML,
+        },
+      },
+    }
+  })
+
   const content = await exctractPageContent(dom.window.document, origin)
   const { url, title, author, publisher, description, lang, text, image } =
     content
@@ -280,7 +326,7 @@ test('exctractPageContent - main', async () => {
   expect(description).toStrictEqual('A JavaScript implementation')
   expect(lang).toStrictEqual('en')
   expect(image).toStrictEqual({
-    icon: 'https://example.org/favicon-96x96.png',
-    og: 'https://example.org/asset/ZgxW.jpg',
+    content_type: Mime.IMAGE_SVG_XML,
+    data: '',
   })
 })

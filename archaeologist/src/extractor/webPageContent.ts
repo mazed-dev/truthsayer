@@ -18,6 +18,8 @@ import { PreviewImageSmall, MimeType, Mime } from 'smuggler-api'
 import { Readability as MozillaReadability } from '@mozilla/readability'
 import { stabiliseUrl } from './originId'
 
+import * as log from '../util/log'
+
 async function fetchImageAsBase64(
   url: string
 ): Promise<PreviewImageSmall | null> {
@@ -27,7 +29,10 @@ async function fetchImageAsBase64(
     // message = `(${resp.status}) ${resp.statusText}`
     return null
   }
-  const blob = await resp.blob()
+  const blob: Blob = await resp.blob()
+  if (!blob) {
+    return null
+  }
   const mime = resp.headers.get('Content-type')
   if (!mime || !Mime.isImage(mime)) {
     return null
@@ -39,6 +44,7 @@ async function fetchImageAsBase64(
       const data = reader.result as string | null
       resolve(data ? { data, content_type: mime } : null)
     }
+    log.debug('Blob -> ', blob, mime)
     reader.readAsDataURL(blob)
   })
 }
