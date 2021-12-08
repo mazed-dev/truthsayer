@@ -18,25 +18,26 @@ import { PreviewImageSmall, MimeType, Mime } from 'smuggler-api'
 import { Readability as MozillaReadability } from '@mozilla/readability'
 import { stabiliseUrl } from './originId'
 
-import * as log from '../util/log'
-
 async function fetchImageAsBase64(
   url: string
 ): Promise<PreviewImageSmall | null> {
   const resp = await fetch(url)
   if (!resp.ok) {
-    // TODO(akindyakov): print error message when we have a better logging
-    // message = `(${resp.status}) ${resp.statusText}`
+    // We can't log anything from the context of some random web page, so let's
+    // just treat this as failure to fetch image and return null.
     return null
   }
-  const blob: Blob = await resp.blob()
-  if (!blob) {
+  const data = await resp.arrayBuffer()
+  if (data.byteLength === 0) {
     return null
   }
   const mime = resp.headers.get('Content-type')
   if (!mime || !Mime.isImage(mime)) {
     return null
   }
+  const blob = new Blob([data], {
+    type: mime,
+  })
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onerror = reject
@@ -44,7 +45,6 @@ async function fetchImageAsBase64(
       const data = reader.result as string | null
       resolve(data ? { data, content_type: mime } : null)
     }
-    log.debug('Blob -> ', blob, mime)
     reader.readAsDataURL(blob)
   })
 }
