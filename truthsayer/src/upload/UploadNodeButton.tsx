@@ -75,6 +75,7 @@ const UploadFilesForm = React.forwardRef<
   const history = useHistory()
 
   const handleFileInputChange = () => {
+    // @ts-ignore: Property 'current' does not exist on type '(instance: HTMLInputElement | null) => void'
     const files = ref?.current?.files
     if (!files) {
       return

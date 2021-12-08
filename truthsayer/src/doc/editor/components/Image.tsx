@@ -10,7 +10,13 @@ import styles from './Image.module.css'
 
 import { debug } from '../../../util/log'
 
-export const Image = React.forwardRef(
+type ImageProps = React.PropsWithChildren<{
+  isEditable: boolean
+  attributes: any
+  element: any
+}>
+
+export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
   ({ attributes, children, element }, ref) => {
     let { link, url } = element
     url = url || link

@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import AES from 'crypto-js/aes'
 import Base64 from 'crypto-js/enc-base64'
 import HmacSHA256 from 'crypto-js/hmac-sha256'

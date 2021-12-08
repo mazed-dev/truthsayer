@@ -27,7 +27,7 @@ interface TStorage {
 }
 
 export class LocalCrypto {
-  static _instance = null
+  static _instance: null | LocalCrypto = null
 
   _uid: string = ''
   _storage: TStorage
@@ -58,6 +58,9 @@ export class LocalCrypto {
   }
 
   static getInstance(): LocalCrypto {
+    if (!this._instance) {
+      throw 'Failed to get LocalCrypto instance, initInstance() has to be called first'
+    }
     return this._instance
   }
 
@@ -131,6 +134,7 @@ export class LocalCrypto {
 
   getAllSecretIds(): Array<TLocalSecretHash> {
     const allSecretsKeys: string = this._storage.get(this._getAllSecretIdsKey())
+    // @ts-ignore: Property 'map' does not exist on type 'string'
     return allSecretsKeys.map((secret_id: string) => {
       const is_active = secret_id === this._lastSecret?.id
       return {
@@ -195,6 +199,7 @@ export class LocalCrypto {
     )
 
     const allSecretsHashesKey = this._getAllSecretIdsKey()
+    // @ts-ignore: Type 'string' is not assignable to type 'string[]
     const allSecretsHashes: Array<string> =
       this._storage.get(allSecretsHashesKey) || []
     allSecretsHashes.push(secret.id)
@@ -202,6 +207,7 @@ export class LocalCrypto {
     // Store new
     this._storage.set(secret.id, base64.fromObject(encryptedSecret))
     // Swap hashes list
+    // @ts-ignore: Argument of type 'string[]' is not assignable to parameter of type 'string'
     this._storage.set(allSecretsHashesKey, allSecretsHashes)
 
     return secret

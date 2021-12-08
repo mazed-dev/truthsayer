@@ -12,11 +12,17 @@ import { debug } from '../../../util/log'
 
 import lodash from 'lodash'
 
-export const Paragraph = React.forwardRef(
+type ParagraphProps = React.PropsWithChildren<{
+  className: string
+}>
+
+export const Paragraph = React.forwardRef<HTMLParagraphElement, ParagraphProps>(
   ({ className, children, ...attributes }, ref) => {
     className = jcss('doc_block_paragraph', className)
     const selected = useSelected()
-    if (selected && children.length === 1) {
+    // @ts-ignore: Property 'length' does not exist on type 'ReactNode'
+    if (selected && children?.length === 1) {
+      // @ts-ignore: expression of type '0' can't be used to index type 'ReactNode'
       const text = lodash.get(children[0], 'props.text.text')
       if (text === '') {
         className = jcss(className, styles.tip)

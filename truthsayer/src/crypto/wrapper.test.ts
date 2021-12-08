@@ -7,6 +7,7 @@ import {
   makeSecret,
   sha1,
   sign,
+  TSecret,
 } from './wrapper'
 
 // OpenSSL compatible:

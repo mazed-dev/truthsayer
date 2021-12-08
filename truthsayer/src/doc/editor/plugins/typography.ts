@@ -46,7 +46,11 @@ export const withTypography = (editor: CustomEditor) => {
     if (path.length === 0) {
       const lastChild = lodash.last(editor.children)
       // Insert empty paragraph at the end, if last child is "void"
-      if (editor.isVoid(lastChild)) {
+      if (
+        lastChild &&
+        Element.isElement(lastChild) &&
+        editor.isVoid(lastChild)
+      ) {
         const at: Path = [editor.children.length]
         const paragraph = makeParagraph([])
         Transforms.insertNodes(editor, paragraph, { at })

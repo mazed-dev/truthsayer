@@ -1,6 +1,8 @@
+// @ts-nocheck
+
 import { Descendant } from 'slate'
 import { serialize } from 'remark-slate'
-import unified from 'unified'
+import { unified } from 'unified'
 import markdown from 'remark-parse'
 import slate from 'remark-slate'
 import { defaultNodeTypes } from 'remark-slate'

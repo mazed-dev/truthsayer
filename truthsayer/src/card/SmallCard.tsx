@@ -36,6 +36,7 @@ export const SmallCard = React.forwardRef<HTMLDivElement, SmallCardProps>(
       onClick,
       stack_size,
       // https://github.com/react-bootstrap/react-bootstrap/issues/3595
+      // @ts-ignore: Property 'as' does not exist on type 'PropsWithChildren<...>'
       as: Component = 'div',
       ...kwargs
     },

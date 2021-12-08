@@ -14,8 +14,23 @@ import styles from './global.module.css'
 
 const kMzdToastDefaultDelay = 4943 // Just a random number close to 5 seconds
 
-class MzdToast extends React.Component {
-  constructor(props) {
+type MzdToastProps = {
+  title: string
+  message: string
+  delay: number
+}
+type MzdToastState = {
+  show: boolean
+}
+
+class MzdToast extends React.Component<MzdToastProps, MzdToastState> {
+  static defaultProps: MzdToastProps = {
+    title: '',
+    message: '',
+    delay: kMzdToastDefaultDelay,
+  }
+
+  constructor(props: MzdToastProps) {
     super(props)
     this.state = {
       show: true,
@@ -41,17 +56,20 @@ class MzdToast extends React.Component {
   }
 }
 
-MzdToast.defaultProps = {
-  delay: kMzdToastDefaultDelay,
+type Toaster = {
+  toasts: any[]
+  push: ({ title, message }: { title: string; message: string }) => void
+}
+
+type Topbar = {
+  aux: Map<string, string>
+  reset: (key: string, group: string) => void
 }
 
 export type MzdGlobalContextProps = {
   account: null | AccountInterface
-  topbar: {}
-  toaster: {
-    toasts: string[]
-    push: ({ header, message }: { header: string; message: string }) => void
-  }
+  topbar: Topbar | {}
+  toaster: Toaster
 }
 
 export const MzdGlobalContext = React.createContext<MzdGlobalContextProps>({
@@ -59,14 +77,25 @@ export const MzdGlobalContext = React.createContext<MzdGlobalContextProps>({
   topbar: {},
   toaster: {
     toasts: [],
-    push: ({ header, message }) => {
+    push: ({ title, message }) => {
       // *dbg*/ console.log('Default push() function called: ', header, message)
     },
   },
 })
 
-export class MzdGlobal extends React.Component {
-  constructor(props) {
+type MzdGlobalProps = {}
+type MzdGlobalState = {
+  topbar: Topbar
+  toaster: Toaster
+  account: AccountInterface | null
+}
+
+export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
+  fetchAccountAbortController: AbortController
+  pushToast: ({ message, title }: { message: string; title: string }) => void
+  resetAuxToobar: (key: string, group: string) => void
+
+  constructor(props: MzdGlobalProps) {
     super(props)
     this.pushToast = ({ message, title }) => {
       const uKey = `${crc32(message)}-${Math.random()}`
@@ -86,9 +115,9 @@ export class MzdGlobal extends React.Component {
         const topbar = state.topbar
         // Reset certain section by key and preserve everything else
         if (group) {
-          topbar.aux[key] = group
+          topbar.aux.set(key, group)
         } else {
-          delete topbar.aux[key]
+          topbar.aux.delete(key)
         }
         return {
           topbar,
@@ -102,7 +131,7 @@ export class MzdGlobal extends React.Component {
         push: this.pushToast,
       },
       topbar: {
-        aux: {},
+        aux: new Map(),
         reset: this.resetAuxToobar,
       },
       account: null,
@@ -110,11 +139,9 @@ export class MzdGlobal extends React.Component {
   }
 
   componentDidMount() {
-    createUserAccount(this.fetchAccountAbortController.signal).then(
-      (account) => {
-        this.setState({ account })
-      }
-    )
+    createUserAccount(this.fetchAccountAbortController).then((account) => {
+      this.setState({ account })
+    })
   }
 
   render() {

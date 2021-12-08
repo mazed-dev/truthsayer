@@ -34,28 +34,42 @@ export function unixToString(
   return momentToString(timeMoment, format)
 }
 
-export function momentToString(time: moment, format: Optional<string>): string {
+export function momentToString(
+  time: moment.Moment,
+  format: Optional<string>
+): string {
   return format ? time.format(format) : time.calendar(kDefaultCalendarFormat)
 }
 
-export const DateTimeBadge = React.forwardRef(
-  ({ className, time, format }, ref) => {
-    const str = momentToString(time, format)
-    className = className ? jcss(styles.pill, className) : styles.pill
-    return (
-      <span ref={ref} className={className}>
-        {str}
-      </span>
-    )
-  }
-)
+type DateTimeBadgeAttrs = React.HTMLProps<HTMLSpanElement> & {
+  time: moment.Moment
+  format: Optional<string>
+}
 
-export const DateTime = React.forwardRef(
+export const DateTimeBadge = React.forwardRef<
+  HTMLSpanElement,
+  DateTimeBadgeAttrs
+>(({ className, time, format }, ref) => {
+  const str = momentToString(time, format)
+  className = className ? jcss(styles.pill, className) : styles.pill
+  return (
+    <span ref={ref} className={className}>
+      {str}
+    </span>
+  )
+})
+
+type DateTimeAttrs = React.HTMLProps<HTMLSpanElement> & {
+  attributes: any
+  element: any
+}
+
+export const DateTime = React.forwardRef<HTMLSpanElement, DateTimeAttrs>(
   ({ attributes, children, element }, ref) => {
     const { format, timestamp } = element
     const selected = useSelected()
     const focused = useFocused()
-    const className = selected && focused ? styles.focused : null
+    const className = selected && focused ? styles.focused : undefined
     const time = moment.unix(timestamp)
     return (
       <span {...attributes}>
