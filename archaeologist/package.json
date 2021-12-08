@@ -6,7 +6,7 @@
     "build:chrome:local": "yarn bin webpack --config webpack.config.js --mode development --env chrome --progress --color",
     "build:chrome:public": "yarn webpack --config webpack.config.js --mode production --env chrome",
     "eject": "yarn react-scripts eject",
-    "fix": "yarn fix:prettier && yarn fix:eslint && yarn lint:typescript",
+    "fix": "yarn fix:prettier && yarn fix:eslint",
     "fix:eslint": "yarn lint:eslint --fix",
     "fix:prettier": "yarn lint:prettier --write",
     "fmt": "yarn prettier --write $(find src -name '*.css' -o -name '*.js' -o -name '*.jsx')",
