@@ -2679,6 +2679,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/crc@npm:^3":
+  version: 3.4.0
+  resolution: "@types/crc@npm:3.4.0"
+  dependencies:
+    "@types/node": "*"
+  checksum: 2410d1e74c7406b3d7b5970adb018f5c1a2f51ff5ce215e896161fd2cdfca009cc5ad46b5d1087dacf585f107445f802971ba98110214e17da5cadf274f2bf14
+  languageName: node
+  linkType: hard
+
 "@types/escape-html@npm:^1.0.0":
   version: 1.0.1
   resolution: "@types/escape-html@npm:1.0.1"
@@ -15919,6 +15928,7 @@ __metadata:
     "@testing-library/jest-dom": ^5.14.1
     "@testing-library/react": ^12.1.0
     "@testing-library/user-event": ^12.6
+    "@types/crc": ^3
     "@types/is-url": ^1.2.30
     "@types/jest": ^26.0.0
     "@types/mocha": ^5.2.7
