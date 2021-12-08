@@ -3,6 +3,7 @@
   "description": "React shared elements",
   "author": "Thread knowledge",
   "version": "0.0.1",
+  "license": "no",
   "private": true,
   "scripts": {
     "build": "yarn tsc --build --pretty",
@@ -38,7 +39,6 @@
   "files": [
     "/dist"
   ],
-  "license": "no",
   "main": "dist/index.js",
   "types": "dist/index.d.ts"
 }

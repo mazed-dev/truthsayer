@@ -1,14 +1,13 @@
-import React, { useContext } from 'react'
+import React from 'react'
 
 import { crc32 } from 'crc'
 
 import { Toast, Button } from 'react-bootstrap'
 
-import { createUserAccount, AccountInterface, Knocker } from '../auth/local'
+import { Knocker } from '../auth/Knocker'
 
 import { jcss } from 'elementary'
-import { debug } from '../util/log'
-import { smuggler } from 'smuggler-api'
+import { createUserAccount, AccountInterface } from 'smuggler-api'
 
 import styles from './global.module.css'
 
@@ -139,9 +138,11 @@ export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
   }
 
   componentDidMount() {
-    createUserAccount(this.fetchAccountAbortController).then((account) => {
-      this.setState({ account })
-    })
+    createUserAccount(this.fetchAccountAbortController.signal).then(
+      (account) => {
+        this.setState({ account })
+      }
+    )
   }
 
   render() {
