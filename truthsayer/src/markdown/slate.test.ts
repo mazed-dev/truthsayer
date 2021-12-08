@@ -301,7 +301,7 @@ test('Extra(back-and-forth): checklists', async () => {
 `
   const value = await markdownToSlate(md)
   let backMd: string = slateToMarkdown(value)
-  backMd = backMd.replaceAll('\n\n', '')
+  backMd = backMd.replace('\n\n', '')
   expect(lodash.trim(backMd)).toStrictEqual(lodash.trim(md))
 })
 

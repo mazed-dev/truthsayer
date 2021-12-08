@@ -73,7 +73,7 @@ export function exctractDocTitle(slate?: SlateText): string {
     title = slate.reduce<string>(
       (acc: string, item: Descendant, _index: number, _array: Descendant[]) => {
         if (
-          acc.length !== 0 &&
+          acc.length === 0 &&
           (isHeaderSlateBlock(item) || isTextSlateBlock(item))
         ) {
           const [text, _] = getSlateDescendantAsPlainText(item)
@@ -112,14 +112,13 @@ function _truncateTitle(title: string): string {
 
 function blankSlate(slate: SlateText): SlateText {
   return slate.map((item) => {
-    if (!Element.isElement(item)) {
-      return item
-    }
     if (isCheckListBlock(item)) {
       item.checked = false
     }
+    // @ts-ignore: Property 'children' does not exist on type 'Descendant'
     const { children } = item
     if (lodash.isArray(children)) {
+      // @ts-ignore: Property 'children' does not exist on type 'Descendant'
       item.children = blankSlate(children)
     }
     return item
