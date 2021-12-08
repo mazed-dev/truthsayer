@@ -7,6 +7,7 @@ import { WebPageContent } from './extractor/webPageContent'
 import {
   smuggler,
   makeNodeTextData,
+  NodeType,
   NodeIndexText,
   NodeExtattrs,
   authCookie,
@@ -38,7 +39,7 @@ const requestPageContentToSave = () => {
 }
 
 const savePage = (url: string, originId: number, content: WebPageContent) => {
-  log.debug('Save page content', url, originId, content)
+  log.debug('Save page content', NodeType.Url, url, originId, content)
   const text = makeNodeTextData()
   const index_text: NodeIndexText = {
     plaintext: content.text,
@@ -62,6 +63,7 @@ const savePage = (url: string, originId: number, content: WebPageContent) => {
     text,
     index_text,
     extattrs,
+    ntype: NodeType.Url,
   })
 }
 

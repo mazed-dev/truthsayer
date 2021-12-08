@@ -16,6 +16,7 @@ import {
   NodeAttrsSearchResponse,
   UserBadge,
   NodeMeta,
+  NodeType,
   NodePatchRequest,
 } from './types'
 
@@ -42,6 +43,7 @@ async function createNode({
   to_nid,
   index_text,
   extattrs,
+  ntype,
   signal,
 }: {
   text: NodeTextData
@@ -49,12 +51,14 @@ async function createNode({
   to_nid?: string
   index_text?: NodeIndexText
   extattrs?: NodeExtattrs
+  ntype?: NodeType
   signal?: AbortSignal
 }): Promise<Optional<NewNodeResponse>> {
   signal = signal || undefined
   const query = {
     from: from_nid || undefined,
     to: to_nid || undefined,
+    ntype,
   }
   const body: NewNodeRequestBody = {
     text,

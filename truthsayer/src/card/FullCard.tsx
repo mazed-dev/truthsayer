@@ -5,6 +5,7 @@ import { WideCard } from './WideCard'
 
 import { DocEditor } from '../doc/DocEditor'
 import { ImageNode } from '../doc/image/ImageNode'
+import { WebBookmark } from '../doc/web_bookmark/WebBookmark'
 import { SlateText } from '../doc/types'
 import { TDoc } from '../doc/doc_util'
 
@@ -27,6 +28,19 @@ export function FullCard({ node, addRef, stickyEdges, saveNode }) {
     )
     if (node.isImage()) {
       media = <ImageNode className={styles.media} node={node} />
+    } else if (node.isWebBookmark()) {
+      const { web, preview_image, title, description, lang, author } =
+        node.extattrs
+      media = (
+        <WebBookmark
+          url={web.url}
+          preview_image={preview_image}
+          title={title}
+          description={description}
+          lang={lang}
+          author={author}
+        />
+      )
     }
   }
   const reloadNode = () => {}

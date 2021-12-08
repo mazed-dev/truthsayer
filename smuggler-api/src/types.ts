@@ -177,6 +177,15 @@ export class TNode {
     )
   }
 
+  isWebBookmark() {
+    const { ntype, extattrs } = this
+    return (
+      ntype === NodeType.Url &&
+      extattrs &&
+      extattrs.content_type === Mime.TEXT_URI_LIST
+    )
+  }
+
   getBlobSource(): Optional<string> {
     const { nid } = this
     return smuggler.blob.getSource(nid)
