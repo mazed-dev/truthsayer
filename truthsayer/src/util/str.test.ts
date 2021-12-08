@@ -1,4 +1,4 @@
-import { isSmartCase } from './str.jsx'
+import { isSmartCase } from './str'
 
 test('isSmartCase', () => {
   expect(isSmartCase('')).toBeFalsy()

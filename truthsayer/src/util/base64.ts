@@ -16,11 +16,11 @@ function _fromByteArray(a: Uint8Array): string {
   return Base64.fromUint8Array(a)
 }
 
-function _toObject(a: string): Any {
+function _toObject(a: string): any {
   return JSON.parse(_decode(a))
 }
 
-function _fromObject(o: Any): string {
+function _fromObject(o: any): string {
   return _encode(JSON.stringify(o))
 }
 

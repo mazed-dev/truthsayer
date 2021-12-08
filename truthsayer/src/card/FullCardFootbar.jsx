@@ -26,7 +26,7 @@ import { ImgButton } from '../lib/ImgButton'
 import { goto } from '../lib/route'
 import { jcss } from 'elementary'
 import { docAsMarkdown } from '../doc/doc_util'
-import { downloadAsFile } from '../util/download_as_file.jsx'
+import { downloadAsFile } from '../util/download_as_file'
 
 import {
   FootbarDropdown,
@@ -234,7 +234,7 @@ class PublicFullCardFootbarImpl extends React.Component {
 
 const PublicFullCardFootbar = withRouter(PublicFullCardFootbarImpl)
 
-export function FullCardFootbar({ children, node, ...rest }) {
+export function FullCardFootbar({ /* children,  */ node, ...rest }) {
   const ctx = useContext(MzdGlobalContext)
   const { account } = ctx
   if (node && node.meta) {
@@ -250,16 +250,10 @@ export function FullCardFootbar({ children, node, ...rest }) {
           getMarkdown={getMarkdown}
           context={ctx}
           {...rest}
-        >
-          {children}
-        </PrivateFullCardFootbar>
+        />
       )
     } else {
-      return (
-        <PublicFullCardFootbar nid={nid} context={ctx} {...rest}>
-          {children}
-        </PublicFullCardFootbar>
-      )
+      return <PublicFullCardFootbar nid={nid} context={ctx} {...rest} />
     }
   }
   // TODO(akindyakov): empty footbard to allocate space?

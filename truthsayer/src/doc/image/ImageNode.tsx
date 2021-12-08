@@ -1,8 +1,11 @@
+// @ts-nocheck
+
 import React, { useState, useCallback, useMemo, useEffect } from 'react'
 
 import { Image, Button, ButtonGroup, Modal } from 'react-bootstrap'
 
 import { ImgButton } from '../../lib/ImgButton'
+import { TNode } from 'smuggler-api'
 
 import { jcss } from 'elementary'
 import { debug } from '../../util/log'
@@ -13,7 +16,13 @@ import ZoomResetImg from '../../img/zoom-reset-strip.svg'
 
 import styles from './ImageNode.module.css'
 
-export const ImageNode = ({ className, node }) => {
+export const ImageNode = ({
+  className,
+  node,
+}: {
+  className: string
+  node: TNode
+}) => {
   const source = node.getBlobSource()
   const [show, setShow] = useState(false)
 

@@ -5,7 +5,7 @@ import {
   symmetricDecrypt,
   importSecretBase64Key,
   importSecretBase64Signature,
-} from './web_crypto_api.jsx'
+} from './web_crypto_api'
 
 test('crypto web api: encrypt & decrypt', async () => {
   const key = await symmetricMakeKeys()

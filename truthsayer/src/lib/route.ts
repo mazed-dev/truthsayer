@@ -78,11 +78,6 @@ function gotoLogInToContinue({ history }: HistoryObj) {
   gotoPath(history, kNoticePathPrefix + kNoticeLogInToContinue)
 }
 
-function getNoticePage({ params }) {
-  // *dbg*/ console.log('getNoticePage', params)
-  return params
-}
-
 function reload_(history: History) {
   history.push({ pathname: kEmptyPath })
   history.goBack()
@@ -120,9 +115,6 @@ export const makeRefTo = {
 export const compass = {
   search: {
     get: getSearchAnchor,
-  },
-  notice: {
-    get: getNoticePage,
   },
 }
 

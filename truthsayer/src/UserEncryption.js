@@ -15,7 +15,7 @@ import {
 import { withRouter } from 'react-router-dom'
 
 import { jcss } from 'elementary'
-import { isAscii } from './util/ascii.jsx'
+import { isAscii } from './util/ascii'
 import { Loader } from './lib/loader'
 
 import { Emoji } from './lib/Emoji'

@@ -1,4 +1,4 @@
-import { base64 } from './../util/base64.jsx'
+import { base64 } from '../util/base64'
 
 // / Convert string to array
 function str2ArrayBuffer(str: string): ArrayBuffer {
@@ -24,15 +24,15 @@ function arrayBuffer2Str(ab: ArrayBuffer): string {
 }
 
 interface TEncrypted {
-  encrypted: string;
-  iv: string;
-  signature: string;
+  encrypted: string
+  iv: string
+  signature: string
 }
 
 interface TUserLocalKey {
-  id: string;
-  key: ArrayBuffer;
-  sig: ArrayBuffer;
+  id: string
+  key: ArrayBuffer
+  sig: ArrayBuffer
 }
 
 // / Symmetric
@@ -72,7 +72,11 @@ export function makeIv() {
 }
 
 // Encrypt
-export async function symmetricEncrypt(key, str: string, iv: ArrayBuffer) {
+export async function symmetricEncrypt(
+  key: string,
+  str: string,
+  iv: ArrayBuffer
+) {
   const bytes = str2ArrayBuffer(str)
   const encryptedBytes = await kWebCryptoApiSubtle.encrypt(
     { name: kSymmetricAlgo, iv },
@@ -84,10 +88,10 @@ export async function symmetricEncrypt(key, str: string, iv: ArrayBuffer) {
 
 // Decrypt
 export async function symmetricDecrypt(
-  key,
-  encrypted,
+  key: string,
+  encrypted: string,
   iv: ArrayBuffer
-): string {
+): Promise<string> {
   const encryptedBytes = base64.toByteArray(encrypted)
   const decryptedBytes = await kWebCryptoApiSubtle.decrypt(
     { name: kSymmetricAlgo, iv },
@@ -133,12 +137,16 @@ export async function importSecretBase64Signature(base64Sig: string) {
 }
 
 // Sign
-export async function signatureSign(privateKey, data) {
+export async function signatureSign(privateKey: string, data: string) {
   return await kWebCryptoApiSubtle.sign(kSignatureAlgo, privateKey, data)
 }
 
 // Verify
-export async function signatureVerify(publicKey, signature, data) {
+export async function signatureVerify(
+  publicKey: string,
+  signature: string,
+  data: string
+) {
   return await kWebCryptoApiSubtle.verify(
     kSignatureAlgo,
     publicKey,

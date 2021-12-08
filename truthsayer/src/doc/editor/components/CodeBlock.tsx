@@ -4,14 +4,18 @@ import { jcss } from 'elementary'
 
 import './components.css'
 
-export const CodeBlock = React.forwardRef(
+type CodeBlockQuoteProps = React.PropsWithChildren<{
+  className: string
+}>
+
+export const CodeBlock = React.forwardRef<HTMLElement, CodeBlockQuoteProps>(
   ({ className, children, ...attributes }, ref) => {
     className = jcss('doc_code_block', className)
     return (
       <code
         className={className}
         spellCheck={false}
-        autoComplete={'off'}
+        // autoComplete={'off'}
         autoCorrect={'off'}
         autoCapitalize={'off'}
         ref={ref}

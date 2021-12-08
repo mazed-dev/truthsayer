@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { Descendant } from 'slate'
 import { serialize } from 'remark-slate'
 import unified from 'unified'

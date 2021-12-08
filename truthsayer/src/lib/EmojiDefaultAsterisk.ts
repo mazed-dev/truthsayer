@@ -184,5 +184,5 @@ const kEmojiDefaultAsterisks: string[] = [
 ]
 
 export function genEmoji(): string {
-  return lodash.sample(kEmojiDefaultAsterisks)
+  return lodash.sample(kEmojiDefaultAsterisks) || kEmojiDefaultAsterisks[0]
 }

@@ -3,6 +3,7 @@ import React from 'react'
 import { FullCardFootbar } from './FullCardFootbar'
 import { WideCard } from './WideCard'
 
+import { TEdge, TNode, NodeTextData } from 'smuggler-api'
 import { DocEditor } from '../doc/DocEditor'
 import { ImageNode } from '../doc/image/ImageNode'
 import { SlateText } from '../doc/types'
@@ -12,7 +13,17 @@ import { Loader } from '../lib/loader'
 
 import styles from './FullCard.module.css'
 
-export function FullCard({ node, addRef, stickyEdges, saveNode }) {
+export function FullCard({
+  node,
+  addRef,
+  stickyEdges,
+  saveNode,
+}: {
+  node: TNode
+  addRef: (from: string, to: string) => void
+  stickyEdges: TEdge[]
+  saveNode: (text: NodeTextData) => Promise<Response>
+}) {
   let media
   let editor
   if (node == null) {
