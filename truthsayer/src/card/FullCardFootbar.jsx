@@ -234,7 +234,7 @@ class PublicFullCardFootbarImpl extends React.Component {
 
 const PublicFullCardFootbar = withRouter(PublicFullCardFootbarImpl)
 
-export function FullCardFootbar({ /* children,  */node, ...rest }) {
+export function FullCardFootbar({ /* children,  */ node, ...rest }) {
   const ctx = useContext(MzdGlobalContext)
   const { account } = ctx
   if (node && node.meta) {
@@ -253,9 +253,7 @@ export function FullCardFootbar({ /* children,  */node, ...rest }) {
         />
       )
     } else {
-      return (
-        <PublicFullCardFootbar nid={nid} context={ctx} {...rest}/>
-      )
+      return <PublicFullCardFootbar nid={nid} context={ctx} {...rest} />
     }
   }
   // TODO(akindyakov): empty footbard to allocate space?
