@@ -11,7 +11,7 @@
     "fix:eslint": "yarn lint:eslint --fix --max-warnings 0",
     "fix:prettier": "yarn lint:prettier --write",
     "fmt": "yarn prettier --write $(find src -name '*.css' -o -name '*.js' -o -name '*.jsx')",
-    "lint": "yarn lint:eslint && yarn lint:prettier",
+    "lint": "yarn lint:eslint && yarn lint:prettier && lint:typescript",
     "lint:eslint": "yarn eslint \"./src/**/*.{js,jsx,ts,tsx}\" --max-warnings 0",
     "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,jsx,json,ts,tsx}\"",
     "lint:typescript": "yarn tsc --build ./ --force"
