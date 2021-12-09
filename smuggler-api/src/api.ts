@@ -8,6 +8,7 @@ import {
   NewNodeResponse,
   NodeExtattrs,
   NodeIndexText,
+  NodeOrigin,
   NodeTextData,
   TEdge,
   TNode,
@@ -246,17 +247,20 @@ async function getNodesSlice({
   end_time,
   start_time,
   offset,
+  origin,
   signal,
 }: {
-  end_time: Optional<number>
+  end_time?: number
   start_time: Optional<number>
-  offset: Optional<number>
-  signal: AbortSignal
+  offset?: number
+  origin?: NodeOrigin,
+  signal?: AbortSignal
 }) {
   const req: NodeAttrsSearchRequest = {
     end_time: end_time || undefined,
     start_time: start_time || undefined,
     offset: offset || 0,
+    origin,
   }
   const rawResp = await fetch(makeUrl(`/nodes-slice`), {
     method: 'POST',

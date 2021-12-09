@@ -1,4 +1,4 @@
-import { MessageTypes } from './message/types'
+import { MessageType } from './message/types'
 import * as badge from './badge'
 import * as log from './util/log'
 
@@ -13,10 +13,22 @@ import {
   authCookie,
   Knocker,
   Mime,
+  TNode,
 } from 'smuggler-api'
 
 // To send message to popup
 // chrome.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
+
+function sendMessageToActiveTab(message: MessageType) {
+  // Send message to every active tab
+  chrome.tabs.query({}, (tabs) => {
+    tabs.forEach((tab) => {
+      if (tab.id && tab.active) {
+        chrome.tabs.sendMessage(tab.id, message)
+      }
+    })
+  })
+}
 
 /**
  * Request page to be saved. content.ts is listening for this message and
@@ -24,18 +36,7 @@ import {
  */
 const requestPageContentToSave = () => {
   log.debug('requestPageContentToSave')
-  log.debug('Save page content authenticated:', authCookie.check())
-
-  // send message to every active tab
-  chrome.tabs.query({}, (tabs) => {
-    tabs.forEach((tab) => {
-      log.debug('Tab', tab)
-      if (tab.id && tab.active) {
-        log.debug('Send to', tab)
-        chrome.tabs.sendMessage(tab.id, { type: 'REQUEST_PAGE_TO_SAVE' })
-      }
-    })
-  })
+  sendMessageToActiveTab({ type: 'REQUEST_PAGE_TO_SAVE' })
 }
 
 const savePage = (url: string, originId: number, content: WebPageContent) => {
@@ -67,6 +68,10 @@ const savePage = (url: string, originId: number, content: WebPageContent) => {
   })
 }
 
+const requestPageInActiveTabSavedStatus = async () => {
+  sendMessageToActiveTab({ type: 'REQUEST_PAGE_ORIGIN_ID' })
+}
+
 const _authKnocker = new Knocker(1062599)
 _authKnocker.start()
 
@@ -82,8 +87,18 @@ const sendAuthStatus = () => {
   )
 }
 
-const updateTabSavedStatus = () => {
-  // TODO(akindyakov)
+const updateTabSavedStatus = async (originId: number, url: string) => {
+  const resp = await smuggler.node.slice({
+    start_time: 0, // since the beginning of time
+    origin: {
+      id: originId,
+    },
+  })
+  const node =
+    resp.nodes.find((node: TNode) => {
+      return node.isWebBookmark() && node.extattrs?.web?.url === url
+    }) || null
+  chrome.runtime.sendMessage({ type: 'SAVED_NODE', node })
 }
 
 chrome.cookies.onChanged.addListener((info) => {
@@ -99,7 +114,7 @@ chrome.cookies.onChanged.addListener((info) => {
   }
 })
 
-chrome.runtime.onMessage.addListener((message: MessageTypes) => {
+chrome.runtime.onMessage.addListener((message: MessageType) => {
   log.debug('chrome.runtime.onMessage.addListener - callback', message)
   // process is not defined in browsers extensions - use it to set up axios
   log.debug('background.process.env', process.env.NODE_ENV)
@@ -122,6 +137,9 @@ chrome.runtime.onMessage.addListener((message: MessageTypes) => {
     case 'REQUEST_PAGE_TO_SAVE':
       requestPageContentToSave()
       break
+    case 'REQUEST_SAVED_NODE':
+      requestPageInActiveTabSavedStatus()
+      break
     case 'PAGE_TO_SAVE':
       const { url, content, originId } = message
       savePage(url, originId, content)
@@ -130,7 +148,10 @@ chrome.runtime.onMessage.addListener((message: MessageTypes) => {
       sendAuthStatus()
       break
     case 'PAGE_ORIGIN_ID':
-      updateTabSavedStatus()
+      {
+        const { url, originId } = message
+        updateTabSavedStatus(originId, url)
+      }
       break
     default:
       break

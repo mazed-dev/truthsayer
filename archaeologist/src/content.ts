@@ -5,8 +5,7 @@
  * page that has been loaded into the browser. Content scripts read and modify
  * the DOM of web pages the browser visits.
  */
-import './content.css'
-import { MessageTypes } from './message/types'
+import { MessageType } from './message/types'
 import {
   exctractPageContent,
   exctractPageUrl,
@@ -33,10 +32,11 @@ async function getPageOriginId() {
   chrome.runtime.sendMessage({
     type: 'PAGE_ORIGIN_ID',
     originId,
+    url,
   })
 }
 
-chrome.runtime.onMessage.addListener((message: MessageTypes) => {
+chrome.runtime.onMessage.addListener((message: MessageType) => {
   switch (message.type) {
     case 'REQUEST_PAGE_TO_SAVE':
       readPageContent()

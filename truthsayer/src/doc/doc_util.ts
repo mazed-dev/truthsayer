@@ -204,11 +204,7 @@ function getSlateDescendantAsPlainText(parent: Descendant): string[] {
     entities.push(unixToString(timestamp, format))
   }
   if (children) {
-<<<<<<< HEAD
-    children.forEach((item) => {
-=======
     children.forEach((item: any) => {
->>>>>>> main
       let [itemText, itemEntities] = getSlateDescendantAsPlainText(item)
       itemText = lodash.trim(itemText)
       if (text) {

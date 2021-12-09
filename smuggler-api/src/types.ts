@@ -317,6 +317,15 @@ export type NodeAttrsSearchRequest = {
 
   limit?: number // default is 256
   offset?: number // default is 0
+
+  origin?: NodeOrigin,
+}
+
+// Just for the time when interval types are landed to TS
+export type Int32 = number
+
+export type NodeOrigin = {
+    id: Int32,
 }
 
 export type NodeAttrsSearchResponse = {

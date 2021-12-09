@@ -4,7 +4,7 @@ import React from 'react'
 
 import styled from '@emotion/styled'
 
-import { MessageTypes } from './../message/types'
+import { MessageType } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { Relative, HVCentered } from './../util/layout'
 import { Button } from './Button'
@@ -16,11 +16,11 @@ const AppContainer = styled.div`
   height: 280px;
 `
 
-export const App = () => {
+export const PopUpApp = () => {
   const [authenticated, setAuthenticated] = React.useState(false)
   React.useEffect(() => {
     chrome.runtime.sendMessage({ type: 'REQUEST_AUTH_STATUS' })
-    chrome.runtime.onMessage.addListener((message: MessageTypes) => {
+    chrome.runtime.onMessage.addListener((message: MessageType) => {
       switch (message.type) {
         case 'AUTH_STATUS':
           setAuthenticated(message.status)
@@ -57,4 +57,4 @@ const LoginPage = () => {
   )
 }
 
-export default App
+export default PopUpApp

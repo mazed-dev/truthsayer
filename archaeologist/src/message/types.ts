@@ -1,12 +1,14 @@
 import { WebPageContent } from './../extractor/webPageContent'
 
+import { TNode } from 'smuggler-api'
+
 interface SavedStatusRequest {
-  type: 'REQUEST_SAVED_STATUS'
+  type: 'REQUEST_SAVED_NODE'
 }
 
 interface SavedStatusResponse {
-  type: 'SAVED_STATUS'
-  nid: string | null
+  type: 'SAVED_NODE'
+  node: TNode | null
 }
 
 interface OriginIdRequest {
@@ -16,6 +18,7 @@ interface OriginIdRequest {
 interface OriginIdResponse {
   type: 'PAGE_ORIGIN_ID'
   originId: number
+  url: string
 }
 
 interface AuthStatusRequest {
@@ -45,7 +48,7 @@ interface SavePageResponse {
   content: WebPageContent
 }
 
-export type MessageTypes =
+export type MessageType =
   | SavedStatusRequest
   | SavedStatusResponse
   | SavePageRequest

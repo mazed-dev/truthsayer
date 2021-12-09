@@ -7,7 +7,8 @@ import { authCookie } from 'smuggler-api'
 import { MdiBookmarkAdd, MdiLaunch } from 'elementary'
 import { Button } from './Button'
 
-import { MessageTypes } from './../message/types'
+import { MessageType } from './../message/types'
+import { TNode } from 'smuggler-api'
 
 const Container = styled.div`
   margin: 0;
@@ -18,15 +19,15 @@ const Container = styled.div`
 `
 
 export const SavePageButton = () => {
-  const [savedNid, setSavedNid] = React.useState<string | null>(null)
+  const [savedNode, setSavedNode] = React.useState<TNode | null>(null)
 
   React.useEffect(() => {
-    chrome.runtime.sendMessage({ type: 'REQUEST_SAVED_STATUS' })
+    chrome.runtime.sendMessage({ type: 'REQUEST_SAVED_NODE' })
 
-    chrome.runtime.onMessage.addListener((message: MessageTypes) => {
+    chrome.runtime.onMessage.addListener((message: MessageType) => {
       switch (message.type) {
-        case 'SAVED_STATUS':
-          setSavedNid(message.nid)
+        case 'SAVED_NODE':
+          setSavedNode(message.node)
           break
         default:
           break
@@ -39,10 +40,13 @@ export const SavePageButton = () => {
   }
 
   const handleGoToNode = () => {
-    chrome.tabs.create({ url: `${authCookie.url}/n/${savedNid}` })
+    if (savedNode) {
+      const { nid } = savedNode
+      chrome.tabs.create({ url: `${authCookie.url}/n/${nid}` })
+    }
   }
 
-  if (savedNid) {
+  if (savedNode) {
     return (
       <Container>
         <Button onClick={handleGoToNode}>
