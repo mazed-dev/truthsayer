@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build:chrome:public": "yarn webpack --config webpack.config.js --mode production --env chrome",
-    "build:chrome:local": "yarn webpack --config webpack.config.js --mode development --env chrome --progress --color",
+    "build:chrome:public": "yarn __build --env chrome --mode production",
+    "build:chrome:local": "yarn __build --env chrome --mode development",
+    "__build": "yarn webpack --config webpack.config.js --progress --color",
     "test": "yarn jest",
     "eject": "yarn react-scripts eject",
     "fix": "yarn fix:prettier && yarn fix:eslint",
