@@ -1,8 +1,11 @@
 export interface TDownloadedFile {
-  success: boolean;
+  success: boolean
 }
 
-export async function downloadAsFile(filename, text): TDownloadedFile {
+export async function downloadAsFile(
+  filename: string,
+  text: string
+): Promise<TDownloadedFile> {
   const element = document.createElement('a')
   element.setAttribute(
     'href',

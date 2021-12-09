@@ -10,33 +10,12 @@ import {
 
 import isUrl from 'is-url'
 
-import {
-  kSlateBlockTypeH1,
-  kSlateBlockTypeH2,
-  kSlateBlockTypeH3,
-  kSlateBlockTypeH4,
-  kSlateBlockTypeH5,
-  kSlateBlockTypeH6,
-  kSlateBlockTypeBreak,
-  kSlateBlockTypeCode,
-  kSlateBlockTypeOrderedList,
-  kSlateBlockTypeParagraph,
-  kSlateBlockTypeQuote,
-  kSlateBlockTypeUnorderedList,
-  kSlateBlockTypeListItem,
-  kSlateBlockTypeListCheckItem,
-  kSlateBlockTypeDateTime,
-  kSlateBlockTypeLink,
-  kSlateBlockTypeImage,
-  DateTimeElement,
-  ImageElement,
-  LinkElement,
-} from '../../types'
+import { kSlateBlockTypeLink, LinkElement, CustomEditor } from '../../types'
 
 import { debug } from '../../../util/log'
 import { Optional } from '../../../util/types'
 
-export const withLinks = (editor) => {
+export const withLinks = (editor: CustomEditor) => {
   const { insertData, insertText, isInline } = editor
 
   editor.isInline = (element) => {
@@ -64,13 +43,13 @@ export const withLinks = (editor) => {
   return editor
 }
 
-const insertLink = (editor, url) => {
+const insertLink = (editor: CustomEditor, url: string) => {
   if (editor.selection) {
     wrapLink(editor, url)
   }
 }
 
-const isLinkActive = (editor) => {
+const isLinkActive = (editor: CustomEditor) => {
   const [link] = Editor.nodes(editor, {
     match: (n) =>
       !Editor.isEditor(n) &&
@@ -80,7 +59,7 @@ const isLinkActive = (editor) => {
   return !!link
 }
 
-const unwrapLink = (editor) => {
+const unwrapLink = (editor: CustomEditor) => {
   Transforms.unwrapNodes(editor, {
     match: (n) =>
       !Editor.isEditor(n) &&
@@ -89,7 +68,7 @@ const unwrapLink = (editor) => {
   })
 }
 
-const wrapLink = (editor, link) => {
+const wrapLink = (editor: CustomEditor, link: string) => {
   if (isLinkActive(editor)) {
     unwrapLink(editor)
   }
@@ -101,7 +80,7 @@ const wrapLink = (editor, link) => {
   const isCollapsed = selection && Range.isCollapsed(selection)
   const element: LinkElement = {
     type: kSlateBlockTypeLink,
-    link,
+    url: link,
     children: isCollapsed ? [{ text: link }] : [],
     page: nid != null,
   }

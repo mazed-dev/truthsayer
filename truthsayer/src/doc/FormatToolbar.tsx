@@ -137,6 +137,8 @@ const toggleBlock = (editor: CustomEditor, format: CustomElementType) => {
   Transforms.setNodes(editor, newProperties)
 
   if (!isActive && isList) {
+    // @ts-ignore: Type '{ type: CustomElementType; children: never[]; }' is not assignable
+    // to type 'CustomElement'
     const block: CustomElement = { type: format, children: [] }
     Transforms.wrapNodes(editor, block)
   }

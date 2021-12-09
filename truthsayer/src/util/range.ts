@@ -9,5 +9,5 @@ export function range(
   }
   const n: number = end - start
   step = step || 1
-  return new Array(n).fill(undefined).map((_, i) => i * step + start)
+  return new Array(n).fill(undefined).map((_, i) => i * (step || 0) + start)
 }

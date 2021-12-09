@@ -11,7 +11,12 @@ import { debug } from '../../../util/log'
 
 import './components.css'
 
-export const Link = React.forwardRef(
+type LinkProps = React.PropsWithChildren<{
+  attributes: any
+  element: any
+}>
+
+export const Link = React.forwardRef<HTMLLinkElement, LinkProps>(
   ({ attributes, children, element }, ref) => {
     let { link, url, page } = element
     url = url || link

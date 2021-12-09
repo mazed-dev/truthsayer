@@ -25,6 +25,10 @@ import {
   kSlateBlockTypeDateTime,
   kSlateBlockTypeLink,
   kSlateBlockTypeImage,
+  CustomEditor,
+  UnorderedListElement,
+  CustomElement,
+  CustomElementType,
 } from '../../types'
 
 const SHORTCUTS = {
@@ -44,7 +48,7 @@ const SHORTCUTS = {
   '---': kSlateBlockTypeBreak,
 }
 
-export const withShortcuts = (editor) => {
+export const withShortcuts = (editor: CustomEditor) => {
   const { deleteBackward, insertText } = editor
 
   editor.insertText = (text) => {
@@ -59,7 +63,9 @@ export const withShortcuts = (editor) => {
       const start = Editor.start(editor, path)
       const range = { anchor, focus: start }
       const beforeText = Editor.string(editor, range)
-      const type = SHORTCUTS[beforeText]
+      const type = SHORTCUTS[
+        beforeText as keyof typeof SHORTCUTS
+      ] as CustomElementType
 
       if (type) {
         Transforms.select(editor, range)
@@ -74,7 +80,7 @@ export const withShortcuts = (editor) => {
           type === kSlateBlockTypeListItem ||
           type === kSlateBlockTypeListCheckItem
         ) {
-          const list: BulletedListElement = {
+          const list: UnorderedListElement = {
             type: kSlateBlockTypeUnorderedList,
             children: [],
           }
@@ -103,7 +109,7 @@ export const withShortcuts = (editor) => {
       if (match) {
         const [block, path] = match
         const start = Editor.start(editor, path)
-        const { type } = block
+        const { type } = block as CustomElement
 
         if (
           !Editor.isEditor(block) &&

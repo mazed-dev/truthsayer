@@ -1,6 +1,7 @@
 import { TChunk, TDraftDoc, SlateText } from './types'
 import { TNode, NodeTextData, makeNodeTextData } from 'smuggler-api'
 
+import { Descendant } from 'slate'
 import { unixToString } from './editor/components/DateTime'
 
 import { draftToMarkdown } from '../markdown/draftjs'
@@ -14,10 +15,10 @@ import {
   ThematicBreakElement,
   isHeaderSlateBlock,
   isTextSlateBlock,
+  isCheckListBlock,
   kSlateBlockTypeBreak,
   kSlateBlockTypeDateTime,
   kSlateBlockTypeLink,
-  kSlateBlockTypeListCheckItem,
   kSlateBlockTypeParagraph,
 } from './types'
 
@@ -68,18 +69,24 @@ export class TDoc {
 }
 
 export function exctractDocTitle(slate?: SlateText): string {
-  let title
+  let title: string | null = null
   if (slate) {
-    title = slate.reduce((acc, item) => {
-      if (!acc && (isHeaderSlateBlock(item) || isTextSlateBlock(item))) {
-        const [text, _] = getSlateDescendantAsPlainText(item)
-        const title = _truncateTitle(text)
-        if (title) {
-          return title
+    title = slate.reduce<string>(
+      (acc: string, item: Descendant, _index: number, _array: Descendant[]) => {
+        if (
+          acc.length === 0 &&
+          (isHeaderSlateBlock(item) || isTextSlateBlock(item))
+        ) {
+          const [text, _] = getSlateDescendantAsPlainText(item)
+          const ret = _truncateTitle(text)
+          if (ret) {
+            return ret
+          }
         }
-      }
-      return acc
-    }, null)
+        return acc
+      },
+      ''
+    )
   }
   return title || 'Some page\u2026'
 }
@@ -106,27 +113,17 @@ function _truncateTitle(title: string): string {
 
 function blankSlate(slate: SlateText): SlateText {
   return slate.map((item) => {
-    const { type, children } = item
-    if (type === kSlateBlockTypeListCheckItem) {
+    if (isCheckListBlock(item)) {
       item.checked = false
     }
+    // @ts-ignore: Property 'children' does not exist on type 'Descendant'
+    const { children } = item
     if (lodash.isArray(children)) {
+      // @ts-ignore: Property 'children' does not exist on type 'Descendant'
       item.children = blankSlate(children)
     }
     return item
   })
-}
-
-// Deprecated
-export function extractDocAsMarkdown(doc: TDoc): string {
-  if (lodash.isString(doc)) {
-    return doc
-  }
-  return doc.chunks
-    .reduce((acc, current) => {
-      return `${acc}\n\n${current.source}`
-    }, '')
-    .trim()
 }
 
 export async function makeDoc({
@@ -193,7 +190,9 @@ export function getSlateAsPlainText(children: SlateText): string[] {
 
 function getSlateDescendantAsPlainText(parent: Descendant): string[] {
   const entities = []
+  // @ts-ignore: Property 'text' does not exist on type 'Descendant'
   let { text } = parent
+  // @ts-ignore: Property 'children'/'type'/'link'/... does not exist on type 'Descendant'
   const { children, type, link, caption, timestamp, format } = parent
   if (link) {
     entities.push(link)
@@ -205,7 +204,11 @@ function getSlateDescendantAsPlainText(parent: Descendant): string[] {
     entities.push(unixToString(timestamp, format))
   }
   if (children) {
+<<<<<<< HEAD
     children.forEach((item) => {
+=======
+    children.forEach((item: any) => {
+>>>>>>> main
       let [itemText, itemEntities] = getSlateDescendantAsPlainText(item)
       itemText = lodash.trim(itemText)
       if (text) {
@@ -228,6 +231,7 @@ function getDraftAsTextChunks(draft: TDraftDoc): string[] {
   const entities = lodash
     .values(entityMap)
     .map((entity) => {
+      // @ts-ignore: Property 'data' does not exist on type 'TEntity'
       const { data } = entity
       const { url, src, alt, tm, format } = data
       if (url) {
@@ -272,6 +276,7 @@ export function makeParagraph(children: SlateText): ParagraphElement {
   }
   return {
     type: kSlateBlockTypeParagraph,
+    // @ts-ignore: Type 'SlateText' is not assignable to type 'LeafElement[]'
     children,
   }
 }
@@ -280,7 +285,7 @@ export function makeLink(text: string, link: string): LinkElement {
   return {
     type: kSlateBlockTypeLink,
     children: [makeLeaf(text)],
-    link,
+    url: link,
   }
 }
 
@@ -288,7 +293,7 @@ export function makeNodeLink(text: string, nid: string): LinkElement {
   return {
     type: kSlateBlockTypeLink,
     children: [makeLeaf(text)],
-    link: nid,
+    url: nid,
     page: true,
   }
 }

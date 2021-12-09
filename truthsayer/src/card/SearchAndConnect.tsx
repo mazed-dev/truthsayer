@@ -15,23 +15,27 @@ type SearchAndConnectJinnModalProps = {
 type SearchAndConnectJinnModalState = {
   input: string
   q: string
+  cards: any[]
 }
 
 class SearchAndConnectJinnModal extends React.Component<
   SearchAndConnectJinnModalProps,
   SearchAndConnectJinnModalState
 > {
+  inputRef: React.RefObject<HTMLInputElement>
+
   constructor(props: SearchAndConnectJinnModalProps) {
     super(props)
     this.state = {
       input: '',
       q: '',
+      cards: [],
     }
     this.inputRef = React.createRef()
   }
 
   componentDidMount() {
-    this.inputRef.current.focus()
+    this.inputRef.current?.focus()
   }
 
   handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,7 +55,7 @@ class SearchAndConnectJinnModal extends React.Component<
     this.setState({ cards: [], q: value })
   }, 800)
 
-  addCards = (cards) => {
+  addCards = (cards: any[]) => {
     this.setState((state) => {
       return {
         cards: lodash.concat(state.cards, cards),

@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { LocalCrypto } from './local'
 
 class LocalStorageMock {

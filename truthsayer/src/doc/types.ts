@@ -14,11 +14,11 @@ import { NodeTextData } from 'smuggler-api'
 
 export type SlateText = Descendant[]
 
-export const EChunkType = Object.freeze({
-  Text: 0,
-  Asterisk: 1,
-  Empty: 2,
-})
+enum EChunkType {
+  Text = 0,
+  Asterisk = 1,
+  Empty = 2,
+}
 
 export interface TChunk {
   type: EChunkType
@@ -57,12 +57,35 @@ export const kBlockTypeAtomic = 'atomic'
 export const kBlockTypeHrule = 'hrule'
 export const kBlockTypeUnorderedCheckItem = 'unordered-check-item'
 
+type BlockType =
+  | typeof kBlockTypeH1
+  | typeof kBlockTypeH2
+  | typeof kBlockTypeH3
+  | typeof kBlockTypeH4
+  | typeof kBlockTypeH5
+  | typeof kBlockTypeH6
+  | typeof kBlockTypeQuote
+  | typeof kBlockTypeCode
+  | typeof kBlockTypeUnorderedItem
+  | typeof kBlockTypeOrderedItem
+  | typeof kBlockTypeUnstyled
+  | typeof kBlockTypeAtomic
+  | typeof kBlockTypeHrule
+  | typeof kBlockTypeUnorderedCheckItem
+
 export const kEntityTypeLink = 'LINK'
 export const kEntityTypeTime = 'DATETIME'
 export const kEntityTypeImage = 'IMAGE'
 
+type EntityType =
+  | typeof kEntityTypeLink
+  | typeof kEntityTypeTime
+  | typeof kEntityTypeImage
+
 export const kEntityMutable = 'MUTABLE'
 export const kEntityImmutable = 'IMMUTABLE'
+
+type Mutability = typeof kEntityMutable | typeof kEntityImmutable
 
 /**
  * Slate
@@ -115,7 +138,7 @@ export const kSlateBlockTypeStrongMark = '-bold'
 export const kSlateBlockTypeDeleteMark = '-strike-through'
 export const kSlateBlockTypeInlineCodeMark = '-inline-code'
 
-export function isHeaderBlock(block) {
+export function isHeaderBlock(block: any) {
   const { type } = block
   switch (type) {
     case kBlockTypeH1:
@@ -223,7 +246,10 @@ export type CustomElement =
   | DateTimeElement
   | LinkElement
 
-export function isHeaderSlateBlock(block: Descendant): boolean {
+export function isHeaderSlateBlock(block: Descendant): block is HeadingElement {
+  if (!Element.isElement(block)) {
+    return false
+  }
   const { type } = block
   switch (type) {
     case kSlateBlockTypeH1:
@@ -238,12 +264,25 @@ export function isHeaderSlateBlock(block: Descendant): boolean {
 }
 
 export function isTextSlateBlock(block: Descendant): boolean {
+  if (!Element.isElement(block)) {
+    return false
+  }
   const { type } = block
   switch (type) {
     case kSlateBlockTypeParagraph:
       return true
   }
   return false
+}
+
+export function isCheckListBlock(
+  block: Descendant
+): block is CheckListItemElement {
+  if (!Element.isElement(block)) {
+    return false
+  }
+  const { type } = block
+  return type === kSlateBlockTypeListCheckItem
 }
 
 export function makeHRuleBlock() {
@@ -258,11 +297,19 @@ export function makeHRuleBlock() {
   }
 }
 
-function makeEntity({ type, mutability, data }) {
+function makeEntity({
+  type,
+  mutability,
+  data,
+}: {
+  type: EntityType
+  mutability: Mutability
+  data: any
+}) {
   return { type, mutability, data }
 }
 
-export function makeLinkEntity(href) {
+export function makeLinkEntity(href: any) {
   return makeEntity({
     type: kEntityTypeLink,
     mutability: kEntityMutable,
@@ -281,6 +328,14 @@ export function makeBlock({
   depth,
   entityRanges,
   inlineStyleRanges,
+}: {
+  type: BlockType
+  key: string
+  text: string
+  data: any
+  depth: number
+  entityRanges: any[]
+  inlineStyleRanges: any[]
 }) {
   type = type || kBlockTypeUnstyled
   key = key || generateRandomKey()
@@ -298,44 +353,6 @@ export function makeBlock({
     entityRanges,
     inlineStyleRanges,
   }
-}
-
-function makeEntityRange({ offset, length, key }) {
-  return { offset, length, key }
-}
-
-export function makeUnstyledBlock(text) {
-  return makeBlock({
-    type: kBlockTypeUnstyled,
-    text,
-  })
-}
-
-export function addLinkBlock({
-  draft,
-  text,
-  href,
-  blockType,
-  depth,
-}): TDraftDoc {
-  blockType = blockType || kBlockTypeUnstyled
-  const entity = makeLinkEntity(href)
-  const eKey = generateRandomKey()
-  const block = makeBlock({
-    type: blockType,
-    text,
-    depth,
-    entityRanges: [
-      makeEntityRange({
-        offset: 0,
-        length: text.length,
-        key: eKey,
-      }),
-    ],
-  })
-  draft.blocks = draft.blocks.concat(block)
-  draft.entityMap[eKey] = entity
-  return draft
 }
 
 export function generateRandomKey(): string {

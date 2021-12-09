@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { useState, useCallback, useMemo } from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 import { Editable, Slate, withReact } from 'slate-react'

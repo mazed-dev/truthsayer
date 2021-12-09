@@ -1,23 +1,25 @@
+// @ts-nocheck
+
 import React, { useContext } from 'react'
 import PropTypes from 'prop-types'
 import { withRouter } from 'react-router-dom'
 import { Container, Row, Col } from 'react-bootstrap'
 
-import { SmallCard } from './../card/SmallCard'
-import { SCard } from './../card/ShrinkCard'
-import { TimeBadge } from './../card/AuthorBadge'
-import { SmallCardRender } from './../doc/ReadOnlyRender'
+import { SmallCard } from '../card/SmallCard'
+import { SCard } from '../card/ShrinkCard'
+import { TimeBadge } from '../card/AuthorBadge'
+import { SmallCardRender } from '../doc/ReadOnlyRender'
 
 import { searchNodeFor } from './search/search'
 
 import { smuggler } from 'smuggler-api'
 
 import { jcss } from 'elementary'
-import { range } from './../util/range'
-import { isSmartCase } from './../util/str.jsx'
+import { range } from '../util/range'
+import { isSmartCase } from '../util/str'
 
 import { MzdGlobalContext } from '../lib/global'
-import { Loader } from './../lib/loader'
+import { Loader } from '../lib/loader'
 
 import * as log from '../util/log'
 import { isAbortError } from '../util/exception'
@@ -118,7 +120,7 @@ const _kTimeLimit = Math.floor(Date.now() / 1000) - 2 * 356 * 24 * 60 * 60
 const _kSearchWindowSeconds = 21 * 24 * 60 * 60
 
 export type NodeAttrsSearchItem = {
-  nid: string,
+  nid: string
   // ntype: i32,
   // crtd: u64,
   // upd: u64,

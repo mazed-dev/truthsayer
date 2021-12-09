@@ -12,7 +12,7 @@ import { makeRefTo } from './../lib/route'
 
 import { MzdGlobalContext } from '../lib/global'
 import { HoverTooltip } from '../lib/tooltip'
-import { CheckBox } from './../lib/CheckBox.js'
+import { CheckBox } from './../lib/CheckBox'
 import {
   FootbarDropdown,
   FootbarDropdownItem,

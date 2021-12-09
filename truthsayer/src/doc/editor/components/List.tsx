@@ -13,7 +13,11 @@ import { debug } from '../../../util/log'
 
 import lodash from 'lodash'
 
-const ListItem = React.forwardRef(
+type ListItemProps = React.PropsWithChildren<{
+  className: string
+}>
+
+const ListItem = React.forwardRef<HTMLLIElement, ListItemProps>(
   ({ className, children, ...attributes }, ref) => {
     className = jcss('doc_block_list_item', className)
     return (
@@ -24,7 +28,11 @@ const ListItem = React.forwardRef(
   }
 )
 
-const OrderedList = React.forwardRef(
+type ListProps = React.PropsWithChildren<{
+  className: string
+}>
+
+const OrderedList = React.forwardRef<HTMLOListElement, ListProps>(
   ({ className, children, ...attributes }, ref) => {
     className = jcss('doc_block_ordered_list', className)
     return (
@@ -35,7 +43,7 @@ const OrderedList = React.forwardRef(
   }
 )
 
-const UnorderedList = React.forwardRef(
+const UnorderedList = React.forwardRef<HTMLUListElement, ListProps>(
   ({ className, children, ...attributes }, ref) => {
     className = jcss('doc_block_unordered_list', className)
     return (
@@ -46,7 +54,13 @@ const UnorderedList = React.forwardRef(
   }
 )
 
-const CheckListItem = React.forwardRef(
+type CheckListItemProps = React.PropsWithChildren<{
+  isEditable: boolean
+  attributes: any
+  element: any
+}>
+
+const CheckListItem = React.forwardRef<HTMLDivElement, CheckListItemProps>(
   ({ attributes, children, element, isEditable }, ref) => {
     const { checked = false } = element
     const editor = useSlateStatic()
@@ -60,7 +74,7 @@ const CheckListItem = React.forwardRef(
           <CheckBox
             checked={checked}
             ref={ref}
-            onChange={(event) => {
+            onChange={(event: React.MouseEvent) => {
               const path = ReactEditor.findPath(editor, element)
               const newProperties: Partial<SlateElement> = {
                 checked: !checked,

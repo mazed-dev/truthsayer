@@ -11,7 +11,7 @@ import { ImgButton } from '../../../lib/ImgButton'
 
 import { jcss } from 'elementary'
 
-import { Keys, isSymbol, isHotkeyCopy } from '../../../lib/Keys.jsx'
+import { Keys, isSymbol, isHotkeyCopy } from '../../../lib/Keys'
 import { ClickOutsideDetector } from '../../../lib/ClickOutsideDetector'
 import { goto } from '../../../lib/route'
 
