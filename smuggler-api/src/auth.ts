@@ -105,11 +105,14 @@ function checkRawValue(value: string | null) {
 }
 
 function getAuthCookieDomain(): string {
-  if (process.env.REACT_APP_SMUGGLER_API_URL) {
+  if (window && window.location.hostname) {
+    return window.location.hostname
+  } else if (process.env.REACT_APP_SMUGGLER_API_URL) {
+    // Excption for browser extension background script, which does not have an
+    // access to a window var or any active tab of Truthsayer. Instead browser
+    // extension code uses special env var to specify full URL to smuggler API.
     const url = new URL(process.env.REACT_APP_SMUGGLER_API_URL)
     return url?.hostname
-  } else if (window.location.hostname) {
-    return window.location.hostname
   }
   return ''
 }
