@@ -1,30 +1,45 @@
+/** @jsxImportSource @emotion/react */
+
 import React from 'react'
+
+import { useHistory, useLocation } from 'react-router-dom'
 
 import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
 
-import './Signup.css'
+import { goto, History } from '../lib/route'
 
-import PropTypes from 'prop-types'
+import * as log from '../util/log'
+
 import { smuggler } from 'smuggler-api'
-import { Link, withRouter } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import HttpStatus from 'http-status-codes'
 
-class Signup extends React.Component {
-  constructor(props) {
+type SignupProps = {
+  history: History
+  email?: string
+}
+
+type SignupState = {
+  name: string
+  email: string
+  consent: boolean
+  errorMsg?: string
+}
+
+class SignupImpl extends React.Component<SignupProps, SignupState> {
+  consentRef: React.RefObject<HTMLInputElement>
+  emailInputRef: React.RefObject<HTMLInputElement>
+  nameInputRef: React.RefObject<HTMLInputElement>
+  abortControler: AbortController
+
+  constructor(props: SignupProps) {
     super(props)
-    let email = ''
-    if (
-      this.props.location &&
-      this.props.location.state &&
-      this.props.location.state.email
-    ) {
-      email = this.props.location.state.email
-    }
+    const email = props?.email || ''
     this.state = {
       name: '',
       email,
       consent: false,
-      show_account_exists_error: false,
+      errorMsg: undefined,
     }
     this.consentRef = React.createRef()
     this.emailInputRef = React.createRef()
@@ -33,50 +48,45 @@ class Signup extends React.Component {
     this.abortControler = new AbortController()
   }
 
-  static propTypes = {
-    history: PropTypes.object.isRequired,
-    location: PropTypes.object.isRequired,
-  }
-
   componentDidMount() {
-    this.nameInputRef.current.focus()
+    this.nameInputRef.current?.focus()
   }
 
   componentWillUnmount() {
     this.abortControler.abort()
   }
 
-  handleNameChange = (event) => {
+  handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({ name: event.target.value })
   }
 
-  handleEmailChange = (event) => {
+  handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({ email: event.target.value })
   }
 
-  toggleConsent = (event) => {
-    this.setState({ consent: this.consentRef.current.checked })
+  toggleConsent = (_event: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({ consent: this.consentRef.current?.checked || false })
   }
 
   isReadyToSubmit = () => {
     const isReady =
-      this.state.consent &&
-      this.state.name.length > 1 &&
-      this.emailInputRef.current.validity.valid
+      (this.state.consent &&
+        this.state.name.length > 1 &&
+        this.emailInputRef.current?.validity.valid) ||
+      true
     return isReady
   }
 
   onSuccessfulRegistration = () => {
-    // this.props.onLogin();
-    this.props.history.push('/waiting-for-approval', {
+    goto.waitingForApproval(this.props.history, {
       username: this.state.name,
     })
   }
 
-  onSubmit = (event) => {
+  onSubmit = (event: React.ChangeEvent<HTMLFormElement>) => {
     event.preventDefault()
     this.setState({
-      show_account_exists_error: false,
+      errorMsg: undefined,
     })
     smuggler.user
       .register({
@@ -88,32 +98,29 @@ class Signup extends React.Component {
       .then((res) => {
         if (res) {
           this.onSuccessfulRegistration()
-        } else {
-          this.handleSubmitError(null)
         }
       })
   }
 
-  handleSubmitError = (err) => {
-    if (err.response) {
-      if (err.response.status === HttpStatus.CONFLICT) {
-        this.setState({
-          show_account_exists_error: true,
-        })
-      } else {
-        // *dbg*/ console.log(err.response)
-      }
-    }
+  handleSubmitError = (err: any) => {
+    log.exception(err)
+    this.setState({
+      errorMsg: 'Account with such email already exists',
+    })
   }
 
   render() {
-    let email_error
-    if (this.state.show_account_exists_error) {
-      email_error = (
+    let remoteErrorElement
+    if (this.state.errorMsg) {
+      remoteErrorElement = (
         <Row className="my-2">
           <Col />
-          <Col className="red_text">
-            Account with such email already exists.
+          <Col
+            css={{
+              color: 'red',
+            }}
+          >
+            {this.state.errorMsg}
           </Col>
           <Col>
             <Link
@@ -184,7 +191,7 @@ class Signup extends React.Component {
                   />
                 </Col>
               </Form.Group>
-              {email_error}
+              {remoteErrorElement}
               <Button
                 variant="secondary"
                 type="submit"
@@ -200,4 +207,13 @@ class Signup extends React.Component {
   }
 }
 
-export default withRouter(Signup)
+interface LocationState {
+  email: string
+}
+
+export const Signup = ({}: {}) => {
+  const history = useHistory()
+  const _location = useLocation<LocationState>()
+  const email = _location.state?.email
+  return <SignupImpl history={history} email={email} />
+}

@@ -543,7 +543,7 @@ async function registerAccount({
 }: {
   name: string
   email: string
-  signal: AbortSignal
+  signal?: AbortSignal
 }): Promise<Ack> {
   const value = { name, email }
   const resp = await fetch(makeUrl('/auth'), {
