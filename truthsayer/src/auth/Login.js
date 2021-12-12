@@ -1,3 +1,5 @@
+/** @jsxImportSource @emotion/react */
+
 import React from 'react'
 
 import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
@@ -8,7 +10,6 @@ import { withRouter, Link } from 'react-router-dom'
 import { smuggler } from 'smuggler-api'
 import { goto } from '../lib/route'
 
-import './Signup.css'
 import { debug } from '../util/log'
 
 class Login extends React.Component {
@@ -91,7 +92,15 @@ class Login extends React.Component {
   render() {
     let server_error
     if (this.state.server_error) {
-      server_error = <p className="red_text">{this.state.server_error}</p>
+      server_error = (
+        <p
+          css={{
+            color: 'red',
+          }}
+        >
+          {this.state.server_error}
+        </p>
+      )
     }
     return (
       <Container>
