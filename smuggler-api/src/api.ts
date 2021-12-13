@@ -15,7 +15,6 @@ import {
   NodeAttrsSearchRequest,
   NodeAttrsSearchResponse,
   UserBadge,
-  NodeMeta,
   NodePatchRequest,
 } from './types'
 
@@ -219,25 +218,6 @@ export async function ping(): Promise<void> {
   await fetch(makeUrl(), { method: 'GET' })
 }
 
-export async function getAnySecondKey() {
-  const resp = await fetch(makeUrl('/key/second/*'), {
-    method: 'POST',
-    headers: { 'Content-type': Mime.JSON },
-  })
-  if (resp.ok) {
-    return await resp.json()
-  }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
-}
-
-async function getSecondKey({ id }: { id: string }) {
-  const resp = await fetch(makeUrl(`/key/second/${id}`), { method: 'GET' })
-  if (resp.ok) {
-    return await resp.json()
-  }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
-}
-
 async function getNodesSlice({
   end_time,
   start_time,
@@ -419,45 +399,6 @@ async function deleteEdge({
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function getNodeMeta({
-  nid,
-  signal,
-}: {
-  nid: string
-  signal: AbortSignal
-}): Promise<NodeMeta> {
-  const resp = await fetch(makeUrl(`/node/${nid}/meta`), {
-    method: 'GET',
-    signal,
-  })
-  if (resp.ok) {
-    return await resp.json()
-  }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
-}
-
-async function updateNodeMeta({
-  nid,
-  meta,
-  signal,
-}: {
-  nid: string
-  meta: NodeMeta
-  signal: AbortSignal
-}): Promise<Ack> {
-  const req = { meta }
-  const resp = await fetch(makeUrl(`/node/${nid}/meta`), {
-    method: 'PATCH',
-    body: JSON.stringify(req),
-    headers: { 'Content-type': Mime.JSON },
-    signal,
-  })
-  if (resp.ok) {
-    return await resp.json()
-  }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
-}
-
 function verifyIsNotNull(value: Optional<any>): void {
   if (value == null) {
     throw new Error('Mandatory parameter is null')
@@ -619,9 +560,7 @@ async function passwordChange(
 }
 
 export const smuggler = {
-  getAnySecondKey,
   getAuth,
-  getSecondKey,
   node: {
     get: getNode,
     update: updateNode,
@@ -642,10 +581,6 @@ export const smuggler = {
     getFrom: getEdgesFromNode,
     sticky: switchEdgeStickiness,
     delete: deleteEdge,
-  },
-  meta: {
-    get: getNodeMeta,
-    update: updateNodeMeta,
   },
   snitch: {
     // Todo(akindyakov): monitoring counters and logs
