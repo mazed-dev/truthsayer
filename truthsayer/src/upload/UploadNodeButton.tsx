@@ -9,7 +9,6 @@ import { Emoji } from '../lib/Emoji'
 import { goto } from '../lib/route'
 import { debug } from '../util/log'
 import { jcss } from 'elementary'
-import { smuggler } from 'smuggler-api'
 import { Optional } from '../util/types'
 
 import UploadImg from '../img/upload-strip.svg'
@@ -44,7 +43,8 @@ export const UploadNodeButton = React.forwardRef<
           e.preventDefault()
           const { current } = fileInputRef
           if (current) {
-            // Triger click on <input type="file"> component to open a file selection dialog directly
+            // Triger click on <input type="file"> component to open a file
+            // selection dialog directly.
             current!.click()
           }
         }}

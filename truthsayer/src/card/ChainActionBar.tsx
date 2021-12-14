@@ -189,7 +189,6 @@ const ChainActionBarImpl = ({
 
         <UploadNodeButton
           className={buttonClass}
-          // as={ImgButton}
           from_nid={side === 'right' ? nid : null}
           to_nid={side === 'left' ? nid : null}
         >
