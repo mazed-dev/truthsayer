@@ -49,7 +49,7 @@ async function createNode({
   index_text?: NodeIndexText
   extattrs?: NodeExtattrs
   signal?: AbortSignal
-}): Promise<Optional<NewNodeResponse>> {
+}): Promise<NewNodeResponse> {
   signal = signal || undefined
   const query = {
     from: from_nid || undefined,

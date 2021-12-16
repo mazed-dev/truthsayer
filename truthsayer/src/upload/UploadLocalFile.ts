@@ -150,10 +150,8 @@ function uploadLocalTextFile(
           signal: abortSignal,
         })
         .then((node) => {
-          if (node) {
-            const nid = node.nid
-            updateStatus({ nid, progress: 1.0 })
-          }
+          const { nid } = node
+          updateStatus({ nid, progress: 1.0 })
         })
         .catch((err) => {
           if (isAbortError(err)) {
@@ -168,14 +166,14 @@ function uploadLocalTextFile(
     })
   }
 
-  reader.onerror = (event) => {
+  reader.onerror = () => {
     updateStatus({
       progress: 1,
       error: `reading failed: ${reader.error}`,
     })
   }
 
-  reader.onabort = (event) => {
+  reader.onabort = () => {
     updateStatus({
       progress: 1,
       error: `reading aborted: ${reader.abort}`,

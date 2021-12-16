@@ -7,7 +7,6 @@ import { uploadLocalFile } from './UploadLocalFile'
 
 import { Emoji } from '../lib/Emoji'
 import { goto } from '../lib/route'
-import { debug } from '../util/log'
 import { jcss } from 'elementary'
 import { Optional } from '../util/types'
 
@@ -52,9 +51,9 @@ export const UploadNodeButton = React.forwardRef<
       >
         {children}
       </Button>
-      <UploadFilesForm
-        from_nid={from_nid || null}
-        to_nid={to_nid || null}
+      <UploadFileAsNodeForm
+        from_nid={from_nid || undefined}
+        to_nid={to_nid || undefined}
         ref={fileInputRef}
       />
     </>
@@ -62,14 +61,14 @@ export const UploadNodeButton = React.forwardRef<
 })
 
 type UploadFilesFormProps = {
-  from_nid: Optional<string>
-  to_nid: Optional<string>
+  from_nid?: string
+  to_nid?: string
 }
 
-const UploadFilesForm = React.forwardRef<
+export const UploadFileAsNodeForm = React.forwardRef<
   HTMLInputElement,
   UploadFilesFormProps
->(({ from_nid, to_nid, ...kwargs }, ref) => {
+>(({ from_nid, to_nid }, ref) => {
   const [show, setShow] = useState(false)
   const [items, setItems] = useState<JSX.Element[]>([])
   const history = useHistory()
