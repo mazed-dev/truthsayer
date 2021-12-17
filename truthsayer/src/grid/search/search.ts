@@ -1,8 +1,6 @@
 import { TNode } from 'smuggler-api'
 import { getPlainText } from '../../doc/doc_util'
-
 import { Optional } from './../../util/types'
-import { debug } from './../../util/log'
 
 /**
     nid: nid,
