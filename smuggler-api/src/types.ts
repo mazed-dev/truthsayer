@@ -294,7 +294,7 @@ export type NodeAttrsSearchResponse = {
   full_size: number
   offset: number
   start_time: number // Absolute time - unix timestamp, seconds
-  end_time: Optional<number>
+  end_time: number
 }
 
 export type UserBadge = {
