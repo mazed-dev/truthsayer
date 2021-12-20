@@ -6,20 +6,21 @@ import {
   GenerateBlobIndexResponse,
   NewNodeRequestBody,
   NewNodeResponse,
+  NodeAttrsSearchRequest,
+  NodeAttrsSearchResponse,
   NodeExtattrs,
   NodeIndexText,
   NodeOrigin,
+  NodePatchRequest,
   NodeTextData,
+  NodeType,
   TEdge,
   TNode,
   UploadMultipartResponse,
-  NodeAttrsSearchRequest,
-  NodeAttrsSearchResponse,
   UserBadge,
-  NodeMeta,
-  NodeType,
-  NodePatchRequest,
 } from './types'
+
+import { TNodeSliceIterator } from './node_slice_iterator'
 
 import { Mime } from './util/mime'
 import { Optional } from './util/optional'
@@ -224,42 +225,26 @@ export async function ping(): Promise<void> {
   await fetch(makeUrl(), { method: 'GET' })
 }
 
-export async function getAnySecondKey() {
-  const resp = await fetch(makeUrl('/key/second/*'), {
-    method: 'POST',
-    headers: { 'Content-type': Mime.JSON },
-  })
-  if (resp.ok) {
-    return await resp.json()
-  }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
-}
-
-async function getSecondKey({ id }: { id: string }) {
-  const resp = await fetch(makeUrl(`/key/second/${id}`), { method: 'GET' })
-  if (resp.ok) {
-    return await resp.json()
-  }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
-}
-
-async function getNodesSlice({
+export async function getNodesSlice({
   end_time,
   start_time,
   offset,
+  limit,
   origin,
   signal,
 }: {
   end_time?: number
   start_time: Optional<number>
-  offset?: number
+  offset: Optional<number>
+  limit: Optional<number>
   origin?: NodeOrigin,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 }) {
   const req: NodeAttrsSearchRequest = {
     end_time: end_time || undefined,
     start_time: start_time || undefined,
     offset: offset || 0,
+    limit: limit || undefined,
     origin,
   }
   const rawResp = await fetch(makeUrl(`/nodes-slice`), {
@@ -300,6 +285,29 @@ async function getNodesSlice({
     ...response,
     nodes,
   }
+}
+
+function _getNodesSliceIter({
+  end_time,
+  start_time,
+  limit,
+  signal,
+  origin,
+}: {
+  end_time?: number
+  start_time?: number
+  limit?: number
+  signal?: AbortSignal
+  origin?: NodeOrigin
+}) {
+  return new TNodeSliceIterator(
+    getNodesSlice,
+    signal,
+    start_time,
+    end_time,
+    limit,
+    origin
+  )
 }
 
 async function createEdge({
@@ -427,45 +435,6 @@ async function deleteEdge({
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function getNodeMeta({
-  nid,
-  signal,
-}: {
-  nid: string
-  signal: AbortSignal
-}): Promise<NodeMeta> {
-  const resp = await fetch(makeUrl(`/node/${nid}/meta`), {
-    method: 'GET',
-    signal,
-  })
-  if (resp.ok) {
-    return await resp.json()
-  }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
-}
-
-async function updateNodeMeta({
-  nid,
-  meta,
-  signal,
-}: {
-  nid: string
-  meta: NodeMeta
-  signal: AbortSignal
-}): Promise<Ack> {
-  const req = { meta }
-  const resp = await fetch(makeUrl(`/node/${nid}/meta`), {
-    method: 'PATCH',
-    body: JSON.stringify(req),
-    headers: { 'Content-type': Mime.JSON },
-    signal,
-  })
-  if (resp.ok) {
-    return await resp.json()
-  }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
-}
-
 function verifyIsNotNull(value: Optional<any>): void {
   if (value == null) {
     throw new Error('Mandatory parameter is null')
@@ -551,7 +520,7 @@ async function registerAccount({
 }: {
   name: string
   email: string
-  signal: AbortSignal
+  signal?: AbortSignal
 }): Promise<Ack> {
   const value = { name, email }
   const resp = await fetch(makeUrl('/auth'), {
@@ -627,14 +596,12 @@ async function passwordChange(
 }
 
 export const smuggler = {
-  getAnySecondKey,
   getAuth,
-  getSecondKey,
   node: {
     get: getNode,
     update: updateNode,
     create: createNode,
-    slice: getNodesSlice,
+    slice: _getNodesSliceIter,
     delete: deleteNode,
   },
   blob: {
@@ -650,10 +617,6 @@ export const smuggler = {
     getFrom: getEdgesFromNode,
     sticky: switchEdgeStickiness,
     delete: deleteEdge,
-  },
-  meta: {
-    get: getNodeMeta,
-    update: updateNodeMeta,
   },
   snitch: {
     // Todo(akindyakov): monitoring counters and logs

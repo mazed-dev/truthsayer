@@ -8,6 +8,7 @@ const kLogOutPath = '/logout'
 const kSearchPath = '/search'
 const kEmptyPath = '/empty'
 const kNodePathPrefix = '/n/'
+const kWaitingForApproval = '/waiting-for-approval'
 
 const kNoticePathPrefix = '/notice/'
 
@@ -32,10 +33,10 @@ function getSearchAnchor({ location }: { location: Location }) {
   return { query: params.q || '' }
 }
 
-function gotoPath(history: Optional<History>, path: string) {
+function gotoPath(history: Optional<History>, path: string, state?: any) {
   if (history) {
     // *dbg*/ console.log('History push', path)
-    history.push({ pathname: path })
+    history.push(path, state)
   } else {
     // *dbg*/ console.log('Window location href', path)
     window.location.href = path
@@ -78,6 +79,10 @@ function gotoLogInToContinue({ history }: HistoryObj) {
   gotoPath(history, kNoticePathPrefix + kNoticeLogInToContinue)
 }
 
+function gotoWaitingForApproval(history?: History, state?: any) {
+  gotoPath(history || null, kWaitingForApproval, state)
+}
+
 function reload_(history: History) {
   history.push({ pathname: kEmptyPath })
   history.goBack()
@@ -105,6 +110,7 @@ export const goto = {
     seeYou: gotoSeeYou,
     logInToContinue: gotoLogInToContinue,
   },
+  waitingForApproval: gotoWaitingForApproval,
   reload: reload_,
 }
 
