@@ -12,8 +12,8 @@ export interface INodeIterator {
 
 export class TNodeSliceIterator implements INodeIterator {
   batch_nodes: TNode[]
-  batch_start_time: Optional<number>
-  batch_end_time: Optional<number>
+  batch_start_time: number
+  batch_end_time: number
   batch_offset: number
   bucket_full_size: number
 
@@ -32,10 +32,11 @@ export class TNodeSliceIterator implements INodeIterator {
     limit?: number
   ) {
     this.batch_nodes = []
-    this.batch_start_time = start_time || null
-    this.batch_end_time = end_time || null
+    end_time = end_time || Math.ceil(Date.now() / 1000)
+    this.batch_end_time = end_time
+    this.batch_start_time = start_time || end_time
     this.batch_offset = 0
-    this.bucket_full_size = 1
+    this.bucket_full_size = 0
 
     this.next_index = 0
     this.total_counter = 0
@@ -82,6 +83,8 @@ export class TNodeSliceIterator implements INodeIterator {
     this.batch_offset = resp.offset
     this.batch_start_time = resp.start_time
     this.batch_end_time = resp.end_time
+
+    this.bucket_full_size = resp.full_size
     return resp.nodes.length > 0
   }
 
@@ -105,8 +108,8 @@ export class TNodeSliceIterator implements INodeIterator {
 }
 
 function makeFetchLimits(
-  start_time: Optional<number>,
-  end_time: Optional<number>,
+  start_time: number,
+  end_time: number,
   offset: number,
   bufferLen: number,
   bucketFullSize: number
@@ -118,7 +121,7 @@ function makeFetchLimits(
   const currentBufferPosition = bufferLen + offset
   if (currentBufferPosition < bucketFullSize) {
     // Bucket is not yet exhausted, continue with with it shifting the offset
-    end_time = end_time || Date.now()
+    end_time = end_time
     return {
       start_time,
       end_time,
@@ -126,7 +129,9 @@ function makeFetchLimits(
     }
   } else {
     // Bucket is exhausted, continue with a next one shifting time limits
-    end_time = start_time || Date.now()
+    // -----|-------|------> time
+    //    start    end
+    end_time = start_time
     return {
       start_time: end_time - _kSearchWindowSeconds,
       end_time,
