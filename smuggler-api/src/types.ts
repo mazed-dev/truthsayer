@@ -315,7 +315,7 @@ export type NodeAttrsSearchRequest = {
   limit?: number // default is 256
   offset?: number // default is 0
 
-  origin?: NodeOrigin,
+  origin?: NodeOrigin
 }
 
 export type NodeAttrsSearchResponse = {

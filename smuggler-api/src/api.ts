@@ -233,12 +233,12 @@ export async function getNodesSlice({
   origin,
   signal,
 }: {
-  end_time?: number
+  end_time: Optional<number>
   start_time: Optional<number>
   offset: Optional<number>
   limit: Optional<number>
-  origin?: NodeOrigin,
-  signal?: AbortSignal,
+  origin?: NodeOrigin
+  signal?: AbortSignal
 }) {
   const req: NodeAttrsSearchRequest = {
     end_time: end_time || undefined,

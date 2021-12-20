@@ -2686,6 +2686,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/copy-webpack-plugin@npm:^8.0.1":
+  version: 8.0.1
+  resolution: "@types/copy-webpack-plugin@npm:8.0.1"
+  dependencies:
+    "@types/node": "*"
+    tapable: ^2.0.0
+    webpack: ^5.1.0
+  checksum: e921a28fca72bf1708d51ffad06ee2a4b80b8de7e748639588681ea1912413b92dbd433627f3b7eb51c14b9254a1d9c13cf037f25ca08a718df005871454a696
+  languageName: node
+  linkType: hard
+
+"@types/crc@npm:^3.4.0":
+  version: 3.4.0
+  resolution: "@types/crc@npm:3.4.0"
+  dependencies:
+    "@types/node": "*"
+  checksum: 2410d1e74c7406b3d7b5970adb018f5c1a2f51ff5ce215e896161fd2cdfca009cc5ad46b5d1087dacf585f107445f802971ba98110214e17da5cadf274f2bf14
+  languageName: node
+  linkType: hard
+
 "@types/escape-html@npm:^1.0.0":
   version: 1.0.1
   resolution: "@types/escape-html@npm:1.0.1"
@@ -8650,6 +8670,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hoist-non-react-statics@npm:^2.5.5":
+  version: 2.5.5
+  resolution: "hoist-non-react-statics@npm:2.5.5"
+  checksum: ee2d05e5c7e1398ad84a15b0327f66bd78f38a8e0015e852f954b36434e32eb7e942d5357505020a3a1147f247b165bf1e69d72393e3accab67cafdafeb86230
+  languageName: node
+  linkType: hard
+
 "hoist-non-react-statics@npm:^3.1.0, hoist-non-react-statics@npm:^3.3.1":
   version: 3.3.2
   resolution: "hoist-non-react-statics@npm:3.3.2"
@@ -10887,7 +10914,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:4.x, lodash@npm:>=3.5 <5, lodash@npm:^4.17.11, lodash@npm:^4.17.14, lodash@npm:^4.17.15, lodash@npm:^4.17.19, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:^4.17.4, lodash@npm:^4.17.5, lodash@npm:^4.7.0":
+"lodash@npm:4.x, lodash@npm:>=3.5 <5, lodash@npm:^4.16.6, lodash@npm:^4.17.11, lodash@npm:^4.17.14, lodash@npm:^4.17.15, lodash@npm:^4.17.19, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:^4.17.4, lodash@npm:^4.17.5, lodash@npm:^4.7.0":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: eb835a2e51d381e561e508ce932ea50a8e5a68f4ebdd771ea240d3048244a8d13658acbd502cd4829768c56f2e16bdd4340b9ea141297d472517b83868e677f7
@@ -11872,6 +11899,13 @@ __metadata:
   version: 1.1.1
   resolution: "object-keys@npm:1.1.1"
   checksum: b363c5e7644b1e1b04aa507e88dcb8e3a2f52b6ffd0ea801e4c7a62d5aa559affe21c55a07fd4b1fd55fc03a33c610d73426664b20032405d7b92a1414c34d6a
+  languageName: node
+  linkType: hard
+
+"object-unfreeze@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "object-unfreeze@npm:1.1.0"
+  checksum: a2d974176091f9679d800e4c1561a35786854b8e9e719b30ead4365743d45c31d08401671aa2362c1f813a838f7b87823dda2fe4954c7457f80bac76821c6db9
   languageName: node
   linkType: hard
 
@@ -13781,6 +13815,17 @@ __metadata:
     react: ">=16.14.0"
     react-dom: ">=16.14.0"
   checksum: 54a1a8191f66c6c475c575b565abe5ff67c6111dcbac84b402b82bfea702f683c117bd46290ec0931da56d66185b3887ae4cb13b61b90f83d15bfc092bccc2b0
+  languageName: node
+  linkType: hard
+
+"react-css-modules@npm:^4":
+  version: 4.7.11
+  resolution: "react-css-modules@npm:4.7.11"
+  dependencies:
+    hoist-non-react-statics: ^2.5.5
+    lodash: ^4.16.6
+    object-unfreeze: ^1.1.0
+  checksum: c2c3bee75efb42ef6fc379819e4af7025125d7f30c917093226671be063a4d65b0f269fc99e87d4fc89cc7028edd27cc6ccc911e30946f31710a03915c61232b
   languageName: node
   linkType: hard
 
@@ -16247,6 +16292,8 @@ __metadata:
     prop-types: ^15.7.2
     query-string: ^7.0.0
     react: ^17.0.2
+    react-bootstrap: ^2.0.0
+    react-css-modules: ^4
     react-dom: ^17.0.2
     react-router: ^5.1
     react-router-dom: ^5.1
@@ -16263,6 +16310,7 @@ __metadata:
     unified: ^6.1.5
     universal-cookie: ^4.0
     use-async-effect: ^2.2.3
+    uuid: ^3.3
   languageName: unknown
   linkType: soft
 
@@ -16839,7 +16887,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^3.3.2, uuid@npm:^3.4.0":
+"uuid@npm:^3.3, uuid@npm:^3.3.2, uuid@npm:^3.4.0":
   version: 3.4.0
   resolution: "uuid@npm:3.4.0"
   bin:
