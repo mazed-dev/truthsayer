@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, useRef } from 'react'
 
 import { ButtonToolbar } from 'react-bootstrap'
 import { useHistory } from 'react-router-dom'
@@ -13,10 +13,12 @@ import { smuggler, NewNodeResponse } from 'smuggler-api'
 import { TDoc } from '../doc/doc_util'
 import { TNode } from 'smuggler-api'
 
-import { UploadNodeButton } from '../upload/UploadNodeButton'
+import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
 import { Optional } from '../util/types'
 import { jcss } from 'elementary'
 import { Emoji } from '../lib/Emoji'
+import * as log from '../util/log'
+import { isAbortError } from '../util/exception'
 import { MdiAdd, MdiContentCopy, MdiFileUpload, MdiSearch } from 'elementary'
 
 import { SearchAndConnectJinn } from './SearchAndConnect'
@@ -40,21 +42,37 @@ async function cloneNode({
   if (!nid) {
     return null
   }
-  const node: Optional<TNode> = await smuggler.node.get({
-    nid,
-    signal: abortControler.signal,
-  })
+  const node: Optional<TNode> = await smuggler.node
+    .get({
+      nid,
+      signal: abortControler.signal,
+    })
+    .catch((err) => {
+      if (isAbortError(err)) {
+        return null
+      }
+      log.exception(err)
+      return null
+    })
   if (!node) {
     return null
   }
   let doc = await TDoc.fromNodeTextData(node.getText())
   doc = doc.makeACopy(node.getNid(), isBlank || false)
-  return await smuggler.node.create({
-    text: doc.toNodeTextData(),
-    signal: abortControler.signal,
-    from_nid: from,
-    to_nid: to,
-  })
+  try {
+    return await smuggler.node.create({
+      text: doc.toNodeTextData(),
+      signal: abortControler.signal,
+      from_nid: from,
+      to_nid: to,
+    })
+  } catch (err) {
+    if (isAbortError(err)) {
+      return null
+    }
+    log.exception(err)
+  }
+  return null
 }
 
 class ChainActionHandler {
@@ -155,6 +173,7 @@ const ChainActionBarImpl = ({
 
   const buttonClass = jcss(styles.tool_button, styles.toolbar_layout_item)
 
+  const uploadFileFormRef = useRef<HTMLInputElement>(null)
   return (
     <>
       <ButtonToolbar
@@ -170,7 +189,6 @@ const ChainActionBarImpl = ({
         <ImgButton
           className={buttonClass}
           onClick={() => handler.handleNext(ctx, side)}
-          is_disabled={false}
         >
           <HoverTooltip tooltip={newDescription}>
             <MdiAdd />
@@ -180,29 +198,36 @@ const ChainActionBarImpl = ({
         <ImgButton
           className={buttonClass}
           onClick={() => handler.handleNextClone(ctx, side)}
-          is_disabled={false}
         >
           <HoverTooltip tooltip={newCopyDescription}>
             <MdiContentCopy />
           </HoverTooltip>
         </ImgButton>
 
-        <UploadNodeButton
+        <ImgButton
           className={buttonClass}
-          // as={ImgButton}
-          from_nid={side === 'right' ? nid : null}
-          to_nid={side === 'left' ? nid : null}
+          onClick={(e) => {
+            e.preventDefault()
+            const { current } = uploadFileFormRef
+            if (current) {
+              current.click()
+            }
+          }}
         >
           <HoverTooltip tooltip={uploadDescription}>
             <MdiFileUpload />
           </HoverTooltip>
-        </UploadNodeButton>
+        </ImgButton>
+        <UploadFileAsNodeForm
+          from_nid={side === 'right' ? nid : undefined}
+          to_nid={side === 'left' ? nid : undefined}
+          ref={uploadFileFormRef}
+        />
 
         <ImgButton
           className={buttonClass}
           // className={styles.tool_button_img}
           onClick={() => setShowSearchModal(true)}
-          is_disabled={false}
         >
           <HoverTooltip tooltip={findDescription}>
             <MdiSearch />
