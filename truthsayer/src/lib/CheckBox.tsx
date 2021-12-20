@@ -22,7 +22,7 @@ export const CheckBox = React.forwardRef<HTMLDivElement, CheckBoxProps>(
           disabled ? pointy : undefined,
           className
         )}
-        onClick={disabled ? onChange : undefined}
+        onClick={disabled ? undefined : onChange}
         ref={ref}
         {...kwargs}
       >
