@@ -32,9 +32,8 @@ export class TNodeSliceIterator implements INodeIterator {
     limit?: number
   ) {
     this.batch_nodes = []
-    end_time = end_time || Math.ceil(Date.now() / 1000)
-    this.batch_end_time = end_time
-    this.batch_start_time = start_time || end_time
+    this.batch_end_time = end_time || Math.ceil(Date.now() / 1000)
+    this.batch_start_time = start_time || Math.ceil(Date.now() / 1000)
     this.batch_offset = 0
     this.bucket_full_size = 0
 
@@ -121,7 +120,6 @@ function makeFetchLimits(
   const currentBufferPosition = bufferLen + offset
   if (currentBufferPosition < bucketFullSize) {
     // Bucket is not yet exhausted, continue with with it shifting the offset
-    end_time = end_time
     return {
       start_time,
       end_time,
@@ -129,12 +127,11 @@ function makeFetchLimits(
     }
   } else {
     // Bucket is exhausted, continue with a next one shifting time limits
-    // -----|-------|------> time
-    //    start    end
-    end_time = start_time
+    // --------|-------|---> time
+    //       start    end
     return {
-      start_time: end_time - _kSearchWindowSeconds,
-      end_time,
+      start_time: start_time - _kSearchWindowSeconds,
+      end_time: start_time,
       offset: 0,
     }
   }
