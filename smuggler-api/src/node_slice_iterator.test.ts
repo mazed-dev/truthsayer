@@ -41,7 +41,7 @@ function ensureStartTime(
   start_time: Optional<number>,
   end_time: number
 ): number {
-  return start_time || (end_time - 1000)
+  return start_time || end_time - 1000
 }
 
 test('TNodeSliceIterator next() -> [1]', async () => {
@@ -51,13 +51,11 @@ test('TNodeSliceIterator next() -> [1]', async () => {
     start_time,
     offset,
     limit,
-    signal,
   }: {
     end_time: Optional<number>
     start_time: Optional<number>
     offset: Optional<number>
     limit: Optional<number>
-    signal?: AbortSignal
   }): Promise<{
     nodes: TNode[]
     full_size: number
@@ -65,6 +63,7 @@ test('TNodeSliceIterator next() -> [1]', async () => {
     start_time: number
     end_time: number
   }> => {
+    expect(limit).toBeNull()
     expect(offset).toStrictEqual(0)
     end_time = ensureEndTime(end_time)
     start_time = ensureStartTime(start_time, end_time)
@@ -92,13 +91,11 @@ test('TNodeSliceIterator next() -> [>1]', async () => {
     start_time,
     offset,
     limit,
-    signal,
   }: {
     end_time: Optional<number>
     start_time: Optional<number>
     offset: Optional<number>
     limit: Optional<number>
-    signal?: AbortSignal
   }): Promise<{
     nodes: TNode[]
     full_size: number
@@ -106,6 +103,7 @@ test('TNodeSliceIterator next() -> [>1]', async () => {
     start_time: number
     end_time: number
   }> => {
+    expect(limit).toBeNull()
     expect(offset).toStrictEqual(0)
     const nodes = [
       makeNode((++total).toString()),
@@ -140,13 +138,11 @@ test('TNodeSliceIterator next() -> [>1] with limit', async () => {
     start_time,
     offset,
     limit,
-    signal,
   }: {
     end_time: Optional<number>
     start_time: Optional<number>
     offset: Optional<number>
     limit: Optional<number>
-    signal?: AbortSignal
   }): Promise<{
     nodes: TNode[]
     full_size: number
@@ -194,13 +190,11 @@ test('TNodeSliceIterator next() -> [>1] with offset', async () => {
     start_time,
     offset,
     limit,
-    signal,
   }: {
     end_time: Optional<number>
     start_time: Optional<number>
     offset: Optional<number>
     limit: Optional<number>
-    signal?: AbortSignal
   }): Promise<{
     nodes: TNode[]
     full_size: number
@@ -208,6 +202,7 @@ test('TNodeSliceIterator next() -> [>1] with offset', async () => {
     start_time: number
     end_time: number
   }> => {
+    expect(limit).toBeNull()
     const nodes: TNode[] = []
     const full_size = 8
     offset = offset || 0
@@ -246,13 +241,11 @@ test('TNodeSliceIterator next() -> until exhausted', async () => {
     start_time,
     offset,
     limit,
-    signal,
   }: {
     end_time: Optional<number>
     start_time: Optional<number>
     offset: Optional<number>
     limit: Optional<number>
-    signal?: AbortSignal
   }): Promise<{
     nodes: TNode[]
     full_size: number
@@ -260,6 +253,7 @@ test('TNodeSliceIterator next() -> until exhausted', async () => {
     start_time: number
     end_time: number
   }> => {
+    expect(limit).toBeNull()
     const nodes: TNode[] = []
     if (total < 10) {
       nodes.push(makeNode((++total).toString()))

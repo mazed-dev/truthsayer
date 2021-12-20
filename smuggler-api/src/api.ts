@@ -9,6 +9,7 @@ import {
   NodeExtattrs,
   NodeIndexText,
   NodeTextData,
+  NodeOrigin,
   TEdge,
   TNode,
   UploadMultipartResponse,
@@ -220,24 +221,27 @@ export async function ping(): Promise<void> {
   await fetch(makeUrl(), { method: 'GET' })
 }
 
-export async function _getNodesSlice({
+export async function getNodesSlice({
   end_time,
   start_time,
   offset,
   limit,
   signal,
+  origin,
 }: {
   end_time: Optional<number>
   start_time: Optional<number>
   offset: Optional<number>
   limit: Optional<number>
   signal?: AbortSignal
+  origin?: NodeOrigin
 }) {
   const req: NodeAttrsSearchRequest = {
     end_time: end_time || undefined,
     start_time: start_time || undefined,
     offset: offset || 0,
     limit: limit || undefined,
+    origin,
   }
   const rawResp = await fetch(makeUrl(`/nodes-slice`), {
     method: 'POST',
@@ -279,23 +283,26 @@ export async function _getNodesSlice({
   }
 }
 
-function getNodesSliceIter({
+function _getNodesSliceIter({
   end_time,
   start_time,
   limit,
   signal,
+  origin,
 }: {
   end_time?: number
   start_time?: number
   limit?: number
   signal?: AbortSignal
+  origin?: NodeOrigin
 }) {
   return new TNodeSliceIterator(
-    _getNodesSlice,
+    getNodesSlice,
     signal,
     start_time,
     end_time,
-    limit
+    limit,
+    origin
   )
 }
 
@@ -590,7 +597,7 @@ export const smuggler = {
     get: getNode,
     update: updateNode,
     create: createNode,
-    slice: getNodesSliceIter,
+    slice: _getNodesSliceIter,
     delete: deleteNode,
   },
   blob: {
