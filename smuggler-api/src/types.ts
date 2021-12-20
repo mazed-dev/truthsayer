@@ -279,14 +279,13 @@ export type NodeSearchItem = {
 }
 
 export type NodeAttrsSearchRequest = {
-  upd_after?: number // days, default is 32
-  upd_before?: number // days, default is 0
-
   start_time?: number // Absolute time - unix timestamp, seconds
   end_time?: number
 
   limit?: number // default is 256
   offset?: number // default is 0
+
+  origin?: NodeOrigin
 }
 
 export type NodeAttrsSearchResponse = {
@@ -295,6 +294,13 @@ export type NodeAttrsSearchResponse = {
   offset: number
   start_time: number // Absolute time - unix timestamp, seconds
   end_time: number
+}
+
+// Just for the time when interval types are landed to TS
+export type Int32 = number
+
+export type NodeOrigin = {
+  id: Int32
 }
 
 export type UserBadge = {

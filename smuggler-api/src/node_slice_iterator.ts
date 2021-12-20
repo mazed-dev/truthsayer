@@ -1,6 +1,6 @@
-import { _getNodesSlice } from './api'
+import { getNodesSlice } from './api'
 
-import { TNode } from './types'
+import { TNode, NodeOrigin } from './types'
 
 import { Optional } from './util/optional'
 
@@ -18,18 +18,20 @@ export class TNodeSliceIterator implements INodeIterator {
   bucket_full_size: number
 
   signal?: AbortSignal
-  fetcher: typeof _getNodesSlice
+  fetcher: typeof getNodesSlice
   limit?: number
+  origin?: NodeOrigin
 
   next_index: number
   total_counter: number
 
   constructor(
-    fetcher: typeof _getNodesSlice,
+    fetcher: typeof getNodesSlice,
     signal?: AbortSignal,
     start_time?: number,
     end_time?: number,
-    limit?: number
+    limit?: number,
+    origin?: NodeOrigin
   ) {
     this.batch_nodes = []
     this.batch_end_time = end_time || Math.ceil(Date.now() / 1000)
@@ -42,6 +44,7 @@ export class TNodeSliceIterator implements INodeIterator {
     this.signal = signal
     this.fetcher = fetcher
     this.limit = limit
+    this.origin = origin
   }
 
   total(): number {
@@ -65,6 +68,7 @@ export class TNodeSliceIterator implements INodeIterator {
       fetcher,
       signal,
       limit,
+      origin,
       total_counter,
     } = this
     const resp = await fetcher({
@@ -76,6 +80,7 @@ export class TNodeSliceIterator implements INodeIterator {
         bucket_full_size
       ),
       limit: limit ? limit - total_counter : null,
+      origin,
       signal,
     })
     this.batch_nodes = resp.nodes
