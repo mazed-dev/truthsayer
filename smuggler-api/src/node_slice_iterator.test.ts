@@ -232,7 +232,7 @@ test('TNodeSliceIterator next() -> [>1] with offset', async () => {
   }
 })
 
-test('TNodeSliceIterator next() -> until exhausted', async () => {
+test.only('TNodeSliceIterator next() -> until exhausted', async () => {
   // Once exhausted it should always return null
   // Also it have not to fall into infinite loop there!
   let total = 0
@@ -277,8 +277,9 @@ test('TNodeSliceIterator next() -> until exhausted', async () => {
     expect(node?.nid).toStrictEqual(iter.total().toString())
     expect(iter.total()).toStrictEqual(x + 1)
   }
-  for (const _i of Array(9).keys()) {
+  for (const _i of Array(11).keys()) {
+    // Always return null from exhausted iterator
     const node = await iter.next()
     expect(node).toBeNull()
   }
-}, 500)
+})

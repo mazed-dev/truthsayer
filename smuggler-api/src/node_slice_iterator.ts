@@ -57,8 +57,8 @@ export class TNodeSliceIterator implements INodeIterator {
   exhausted(): boolean {
     const { batch_end_time, total_counter, limit } = this
     return (
-      (!!limit && limit <= total_counter) ||
-      batch_end_time < _kEarliestCreationTime
+      (limit != null && limit <= total_counter) ||
+      (batch_end_time != null && batch_end_time < _kEarliestCreationTime)
     )
   }
 
@@ -82,12 +82,13 @@ export class TNodeSliceIterator implements INodeIterator {
       bucket_full_size
     )
     if (range.end_time <= _kEarliestCreationTime) {
-      this.batch_nodes = []
-      this.batch_offset = 0
-      this.batch_start_time = 0
-      this.batch_end_time = 0
-      this.bucket_full_size = 0
-      return true
+      return this._acceptNextBatch({
+        nodes: [],
+        full_size: 0,
+        offset: 0,
+        start_time: 0,
+        end_time: 0,
+      })
     }
     const resp = await fetcher({
       ...range,
@@ -95,12 +96,28 @@ export class TNodeSliceIterator implements INodeIterator {
       origin,
       signal,
     })
-    this.batch_nodes = resp.nodes
-    this.batch_offset = resp.offset
-    this.batch_start_time = resp.start_time
-    this.batch_end_time = resp.end_time
-    this.bucket_full_size = resp.full_size
-    return resp.nodes.length > 0
+    return this._acceptNextBatch(resp)
+  }
+
+  _acceptNextBatch({
+    nodes,
+    full_size,
+    offset,
+    start_time,
+    end_time,
+  }: {
+    nodes: TNode[]
+    full_size: number
+    offset: number
+    start_time: number
+    end_time: number
+  }): boolean {
+    this.batch_nodes = nodes
+    this.batch_offset = offset
+    this.batch_start_time = start_time
+    this.batch_end_time = end_time
+    this.bucket_full_size = full_size
+    return nodes.length > 0
   }
 
   async next(): Promise<Optional<TNode>> {
@@ -113,12 +130,12 @@ export class TNodeSliceIterator implements INodeIterator {
       this.total_counter += 1
       return this.batch_nodes[next_index]
     }
-    while (!this.exhausted()) {
-      if (await this._fetch()) {
-        this.next_index = 0
-        break
+    while (!(await this._fetch())) {
+      if (this.exhausted()) {
+        return null
       }
     }
+    this.next_index = 0
     return await this.next()
   }
 }
