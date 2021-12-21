@@ -1,5 +1,4 @@
 import { getNodesSlice } from './api'
-
 import { TNode, NodeOrigin } from './types'
 
 import { Optional } from './util/optional'
@@ -35,8 +34,12 @@ export class TNodeSliceIterator implements INodeIterator {
   ) {
     this.batch_nodes = []
     this.batch_end_time = end_time || Math.ceil(Date.now() / 1000)
-    this.batch_start_time = start_time || Math.ceil(Date.now() / 1000)
-    this.batch_offset = 0
+    if (start_time != null) {
+      this.batch_start_time = start_time
+    } else {
+      this.batch_start_time = Math.ceil(Date.now() / 1000)
+    }
+    this.batch_offset = -1 // For the fist batch
     this.bucket_full_size = 0
 
     this.next_index = 0
@@ -55,7 +58,7 @@ export class TNodeSliceIterator implements INodeIterator {
     const { batch_end_time, total_counter, limit } = this
     return (
       (!!limit && limit <= total_counter) ||
-      (!!batch_end_time && batch_end_time < _kEarliestCreationTime)
+      batch_end_time < _kEarliestCreationTime
     )
   }
 
@@ -71,14 +74,23 @@ export class TNodeSliceIterator implements INodeIterator {
       origin,
       total_counter,
     } = this
+    const range = makeFetchLimits(
+      batch_start_time,
+      batch_end_time,
+      batch_offset,
+      this.batch_nodes.length,
+      bucket_full_size
+    )
+    if (range.end_time <= _kEarliestCreationTime) {
+      this.batch_nodes = []
+      this.batch_offset = 0
+      this.batch_start_time = 0
+      this.batch_end_time = 0
+      this.bucket_full_size = 0
+      return true
+    }
     const resp = await fetcher({
-      ...makeFetchLimits(
-        batch_start_time,
-        batch_end_time,
-        batch_offset,
-        this.batch_nodes.length,
-        bucket_full_size
-      ),
+      ...range,
       limit: limit ? limit - total_counter : null,
       origin,
       signal,
@@ -87,27 +99,27 @@ export class TNodeSliceIterator implements INodeIterator {
     this.batch_offset = resp.offset
     this.batch_start_time = resp.start_time
     this.batch_end_time = resp.end_time
-
     this.bucket_full_size = resp.full_size
     return resp.nodes.length > 0
   }
 
   async next(): Promise<Optional<TNode>> {
-    let { next_index } = this
-    if (next_index >= this.batch_nodes.length) {
-      while (!this.exhausted()) {
-        if (await this._fetch()) {
-          break
-        }
-      }
-      if (this.exhausted()) {
-        return null
-      }
-      next_index = 0
+    const { next_index } = this
+    if (this.exhausted()) {
+      return null
     }
-    this.next_index = next_index + 1
-    this.total_counter += 1
-    return this.batch_nodes[next_index]
+    if (next_index < this.batch_nodes.length) {
+      this.next_index = next_index + 1
+      this.total_counter += 1
+      return this.batch_nodes[next_index]
+    }
+    while (!this.exhausted()) {
+      if (await this._fetch()) {
+        this.next_index = 0
+        break
+      }
+    }
+    return await this.next()
   }
 }
 
@@ -118,10 +130,18 @@ function makeFetchLimits(
   bufferLen: number,
   bucketFullSize: number
 ): {
-  start_time: Optional<number>
+  start_time: number
   end_time: number
   offset: number
 } {
+  if (offset < 0) {
+    // First fetch only
+    return {
+      start_time,
+      end_time,
+      offset: 0,
+    }
+  }
   const currentBufferPosition = bufferLen + offset
   if (currentBufferPosition < bucketFullSize) {
     // Bucket is not yet exhausted, continue with with it shifting the offset

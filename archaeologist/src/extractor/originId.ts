@@ -9,9 +9,17 @@ function str2ArrayBuffer(str: string): Uint8Array {
   return encoder.encode(str)
 }
 
+export function _uint32ToInt32(u: number): number {
+  return u > 0x7fffffff ? u - 0x80000000 - 0x80000000 : u
+}
+
 export async function genOriginId(url: string): Promise<number> {
   const { h32Raw } = await xxhash()
-  return h32Raw(str2ArrayBuffer(stabiliseUrl(url)), kOriginSeed).valueOf()
+  const u32Value = h32Raw(
+    str2ArrayBuffer(stabiliseUrl(url)),
+    kOriginSeed
+  ).valueOf()
+  return _uint32ToInt32(u32Value)
 }
 
 export function stabiliseUrl(url: string): string {

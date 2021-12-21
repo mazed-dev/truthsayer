@@ -1,4 +1,4 @@
-import { genOriginId } from './originId'
+import { genOriginId, _uint32ToInt32 } from './originId'
 
 import { urls } from './originId.test.data.json'
 
@@ -55,4 +55,14 @@ test('Query is always normalized', async () => {
 test('Collisions', async () => {
   const ids = await Promise.all(urls.map(async (url) => await genOriginId(url)))
   expect(urls.length).toStrictEqual(ids.length)
+})
+
+test('u32ToI32', () => {
+  expect(_uint32ToInt32(0)).toStrictEqual(0)
+  expect(_uint32ToInt32(1)).toStrictEqual(1)
+  expect(_uint32ToInt32(0x7fffffff)).toStrictEqual(0x7fffffff)
+  expect(_uint32ToInt32(0x7fffffff + 1)).toStrictEqual(-2147483648)
+  expect(_uint32ToInt32(0xffffffff)).toStrictEqual(-1)
+
+  expect(_uint32ToInt32(-1)).toStrictEqual(-1)
 })

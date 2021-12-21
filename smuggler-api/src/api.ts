@@ -4,7 +4,7 @@ import {
   EdgeAttributes,
   EdgeStar,
   GenerateBlobIndexResponse,
-  NewNodeRequestBody,
+  NodeCreateRequestBody,
   NewNodeResponse,
   NodeAttrsSearchRequest,
   NodeAttrsSearchResponse,
@@ -46,6 +46,7 @@ async function createNode({
   index_text,
   extattrs,
   ntype,
+  origin,
   signal,
 }: {
   text: NodeTextData
@@ -54,6 +55,7 @@ async function createNode({
   index_text?: NodeIndexText
   extattrs?: NodeExtattrs
   ntype?: NodeType
+  origin?: NodeOrigin
   signal?: AbortSignal
 }): Promise<Optional<NewNodeResponse>> {
   signal = signal || undefined
@@ -62,10 +64,11 @@ async function createNode({
     to: to_nid || undefined,
     ntype,
   }
-  const body: NewNodeRequestBody = {
+  const body: NodeCreateRequestBody = {
     text,
     index_text: index_text || null,
     extattrs: extattrs || null,
+    origin,
   }
   const resp = await fetch(makeUrl('node/new', query), {
     method: 'POST',
@@ -242,7 +245,7 @@ export async function getNodesSlice({
 }) {
   const req: NodeAttrsSearchRequest = {
     end_time: end_time || undefined,
-    start_time: start_time || undefined,
+    start_time: start_time != null ? start_time : undefined,
     offset: offset || 0,
     limit: limit || undefined,
     origin,

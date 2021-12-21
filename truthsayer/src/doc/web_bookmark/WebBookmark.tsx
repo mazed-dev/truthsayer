@@ -76,9 +76,7 @@ const BadgeBox = styled.div`
   color: inherit;
   text-decoration: none;
   width: 100%;
-  background-color: rgba(250, 250, 250, 0.9);
   display: flex;
-  box-shadow: 0 2px 1px -2px gray;
 `
 
 const TitleBox = styled.div`

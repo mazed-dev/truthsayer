@@ -13,7 +13,6 @@ import {
   authCookie,
   Knocker,
   Mime,
-  TNode,
 } from 'smuggler-api'
 
 // To send message to popup
@@ -65,6 +64,9 @@ const savePage = (url: string, originId: number, content: WebPageContent) => {
     index_text,
     extattrs,
     ntype: NodeType.Url,
+    origin: {
+      id: originId,
+    },
   })
 }
 
@@ -88,17 +90,22 @@ const sendAuthStatus = () => {
 }
 
 const updateTabSavedStatus = async (originId: number, url: string) => {
-  const resp = await smuggler.node.slice({
+  const iter = smuggler.node.slice({
     start_time: 0, // since the beginning of time
     origin: {
       id: originId,
     },
   })
-  const node =
-    resp.nodes.find((node: TNode) => {
-      return node.isWebBookmark() && node.extattrs?.web?.url === url
-    }) || null
-  chrome.runtime.sendMessage({ type: 'SAVED_NODE', node })
+  for (;;) {
+    const node = await iter.next()
+    if (!node) {
+      break
+    }
+    if (node.isWebBookmark() && node.extattrs?.web?.url === url) {
+      chrome.runtime.sendMessage({ type: 'SAVED_NODE', node })
+      break
+    }
+  }
 }
 
 chrome.cookies.onChanged.addListener((info) => {

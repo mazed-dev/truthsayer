@@ -270,10 +270,11 @@ export type AccountInfo = {
   email: string
 }
 
-export type NewNodeRequestBody = {
+export type NodeCreateRequestBody = {
   text: Optional<NodeTextData>
   index_text: Optional<NodeIndexText>
   extattrs: Optional<NodeExtattrs>
+  origin: Optional<NodeOrigin>
 }
 
 export type NodePatchRequest = {

@@ -32,6 +32,12 @@
     "scripting",
     "storage"
   ],
+  "cross_origin_embedder_policy": {
+    "value": "require-corp"
+  },
+  "cross_origin_opener_policy": {
+    "value": "same-origin"
+  },
   "host_permissions": [
     "https://*.mazed.dev/",
     "http://localhost:3000/"
