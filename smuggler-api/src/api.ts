@@ -226,15 +226,15 @@ export async function getNodesSlice({
   start_time,
   offset,
   limit,
-  signal,
   origin,
+  signal,
 }: {
   end_time: Optional<number>
   start_time: Optional<number>
   offset: Optional<number>
   limit: Optional<number>
-  signal?: AbortSignal
   origin?: NodeOrigin
+  signal?: AbortSignal
 }) {
   const req: NodeAttrsSearchRequest = {
     end_time: end_time || undefined,
