@@ -12,7 +12,7 @@
     "fix:eslint": "yarn lint:eslint --fix --max-warnings 0",
     "fix:prettier": "yarn lint:prettier --write",
     "fmt": "yarn prettier --write $(find src -name '*.css' -o -name '*.js' -o -name '*.jsx')",
-    "lint": "yarn lint:eslint && yarn lint:prettier && lint:typescript",
+    "lint": "yarn lint:eslint && yarn lint:prettier && yarn lint:typescript",
     "lint:eslint": "yarn eslint \"./src/**/*.{js,jsx,ts,tsx}\" --max-warnings 0",
     "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,jsx,json,ts,tsx}\"",
     "lint:typescript": "yarn tsc --build ./ --force"
@@ -44,6 +44,7 @@
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.1.0",
     "@testing-library/user-event": "^12.6",
+    "@types/react-dom": "^17.0.11",
     "bootstrap": "^5.1.3",
     "copy-webpack-plugin": "^6.2.1",
     "css-loader": "^4.3.0",
