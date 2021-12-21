@@ -20,4 +20,6 @@
   min-height: 10rem;
   box-shadow: 0px 1px 2px 1px var(--card_shadow_colour);
   border-radius: 8px;
+
+  font-size: 14px;
 }

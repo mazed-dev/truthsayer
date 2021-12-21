@@ -14,6 +14,8 @@ import { Loader } from '../lib/loader'
 
 import styles from './FullCard.module.css'
 
+import * as log from './../util/log'
+
 export function FullCard({
   node,
   addRef,
@@ -39,19 +41,8 @@ export function FullCard({
     )
     if (node.isImage()) {
       media = <ImageNode className={styles.media} node={node} />
-    } else if (node.isWebBookmark()) {
-      const { web, preview_image, title, description, lang, author } =
-        node.extattrs
-      media = (
-        <WebBookmark
-          url={web.url}
-          preview_image={preview_image}
-          title={title}
-          description={description}
-          lang={lang}
-          author={author}
-        />
-      )
+    } else if (node.extattrs && node.isWebBookmark()) {
+      media = <WebBookmark extattrs={node.extattrs} />
     }
   }
   const reloadNode = () => {}

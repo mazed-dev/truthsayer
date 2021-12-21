@@ -1,14 +1,13 @@
 // @ts-nocheck
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react'
+import React, { useState } from 'react'
 
-import { Image, Button, ButtonGroup, Modal } from 'react-bootstrap'
+import { Image, ButtonGroup, Modal } from 'react-bootstrap'
 
 import { ImgButton } from '../../lib/ImgButton'
 import { TNode } from 'smuggler-api'
 
 import { jcss } from 'elementary'
-import { debug } from '../../util/log'
 
 import ZoomInImg from '../../img/zoom-in-strip.svg'
 import ZoomOutImg from '../../img/zoom-out-strip.svg'
