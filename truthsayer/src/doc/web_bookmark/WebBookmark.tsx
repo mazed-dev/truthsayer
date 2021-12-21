@@ -4,6 +4,8 @@ import { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
 import { Optional } from '../../util/types'
 import { BlockQuote } from '../editor/components/BlockQuote'
 
+import { MdiLaunch } from 'elementary'
+
 import styled from '@emotion/styled'
 
 import * as log from '../../util/log'
@@ -22,20 +24,48 @@ const IconImg = styled.img`
   height: 70px;
   object-fit: cover;
 
+  border-radius: 2px;
+
   margin: 0.45em 0.45em 0 0.45em;
 
   background-color: white;
 `
 const IconBox = styled.div`
   padding: 0;
+  position: relative;
 `
 
-const Icon = ({ icon }: { icon: Optional<PreviewImageSmall> }) => {
+const IconLaunch = styled.a`
+  color: inherit;
+  cursor: pointer;
+
+  position: absolute;
+  bottom: 0;
+  left: 30px;
+
+  opacity: 50%;
+
+  &:hover {
+    color: inherit;
+    opacity: 100%;
+  }
+`
+
+const Icon = ({
+  icon,
+  url,
+}: {
+  icon: Optional<PreviewImageSmall>
+  url?: string
+}) => {
   if (icon) {
     const { data } = icon
     return (
       <IconBox>
         <IconImg src={data} />
+        <IconLaunch href={url}>
+          <MdiLaunch />
+        </IconLaunch>
       </IconBox>
     )
   }
@@ -86,15 +116,16 @@ const DescriptionBox = styled.div`
 type WebBookmarkProps = {
   extattrs: NodeExtattrs
 }
+
 export const WebBookmark = ({ extattrs }: WebBookmarkProps) => {
   const { web, preview_image, title, description, lang, author } = extattrs
   const url = web?.url
   const hostname = url ? new URL(url).hostname : null
-  let authorBadge = author ? <Author>by {author}</Author> : null
+  let authorBadge = author ? <Author>{author}</Author> : null
   return (
     <Box>
       <BadgeBox>
-        <Icon icon={preview_image || null} />
+        <Icon icon={preview_image || null} url={url} />
         <TitleBox>
           <Title>{title}</Title>
           <Domain>{hostname}</Domain>
