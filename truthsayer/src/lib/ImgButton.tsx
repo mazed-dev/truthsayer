@@ -9,7 +9,7 @@ import styles from './ImgButton.module.css'
 type ImgButtonProps = React.PropsWithChildren<{
   onClick: React.MouseEventHandler
   className: string
-  is_disabled: boolean
+  is_disabled?: boolean
 }>
 
 export const ImgButton = React.forwardRef<HTMLButtonElement, ImgButtonProps>(
@@ -18,7 +18,7 @@ export const ImgButton = React.forwardRef<HTMLButtonElement, ImgButtonProps>(
       variant="light"
       className={jcss(styles.img_button, className)}
       ref={ref}
-      disabled={is_disabled}
+      disabled={is_disabled || false}
       onClick={(e) => {
         if (onClick) {
           e.preventDefault()

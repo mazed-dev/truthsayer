@@ -4,10 +4,10 @@ import {
   EdgeAttributes,
   EdgeStar,
   GenerateBlobIndexResponse,
-  NodeCreateRequestBody,
   NewNodeResponse,
   NodeAttrsSearchRequest,
   NodeAttrsSearchResponse,
+  NodeCreateRequestBody,
   NodeExtattrs,
   NodeIndexText,
   NodeOrigin,
@@ -57,7 +57,7 @@ async function createNode({
   ntype?: NodeType
   origin?: NodeOrigin
   signal?: AbortSignal
-}): Promise<Optional<NewNodeResponse>> {
+}): Promise<NewNodeResponse> {
   signal = signal || undefined
   const query = {
     from: from_nid || undefined,

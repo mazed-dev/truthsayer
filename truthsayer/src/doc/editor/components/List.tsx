@@ -1,17 +1,15 @@
 import React from 'react'
 
-import { ReactEditor, Slate, useReadOnly, useSlateStatic } from 'slate-react'
+import { ReactEditor, useReadOnly, useSlateStatic } from 'slate-react'
 import { Element as SlateElement, Transforms } from 'slate'
+
+import { CheckListItemElement } from '../../types'
 
 import { jcss } from 'elementary'
 import { CheckBox } from '../../../lib/CheckBox'
 
 import styles from './List.module.css'
 import './components.css'
-
-import { debug } from '../../../util/log'
-
-import lodash from 'lodash'
 
 type ListItemProps = React.PropsWithChildren<{
   className: string
@@ -57,7 +55,7 @@ const UnorderedList = React.forwardRef<HTMLUListElement, ListProps>(
 type CheckListItemProps = React.PropsWithChildren<{
   isEditable: boolean
   attributes: any
-  element: any
+  element: CheckListItemElement
 }>
 
 const CheckListItem = React.forwardRef<HTMLDivElement, CheckListItemProps>(
@@ -74,7 +72,7 @@ const CheckListItem = React.forwardRef<HTMLDivElement, CheckListItemProps>(
           <CheckBox
             checked={checked}
             ref={ref}
-            onChange={(event: React.MouseEvent) => {
+            onChange={(_event: React.MouseEvent) => {
               const path = ReactEditor.findPath(editor, element)
               const newProperties: Partial<SlateElement> = {
                 checked: !checked,
