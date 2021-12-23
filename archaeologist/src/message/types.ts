@@ -1,14 +1,13 @@
 import { WebPageContent } from './../extractor/webPageContent'
 
-import { TNode } from 'smuggler-api'
-
 interface SavedStatusRequest {
   type: 'REQUEST_SAVED_NODE'
 }
 
 interface SavedStatusResponse {
   type: 'SAVED_NODE'
-  node: TNode | null
+  nid?: string
+  unmemorable?: boolean
 }
 
 interface OriginIdRequest {
@@ -17,7 +16,7 @@ interface OriginIdRequest {
 
 interface OriginIdResponse {
   type: 'PAGE_ORIGIN_ID'
-  originId: number
+  originId?: number
   url: string
 }
 
@@ -57,3 +56,7 @@ export type MessageType =
   | AuthStatusResponse
   | OriginIdRequest
   | OriginIdResponse
+
+export const Message = {
+  create: (msg: MessageType): MessageType => msg,
+}

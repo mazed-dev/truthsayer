@@ -8,7 +8,7 @@ import { MdiBookmarkAdd, MdiLaunch } from 'elementary'
 import { Button } from './Button'
 
 import { MessageType } from './../message/types'
-import { TNode } from 'smuggler-api'
+import { Spinner } from 'elementary'
 
 const Container = styled.div`
   margin: 0;
@@ -18,8 +18,14 @@ const Container = styled.div`
   display: block;
 `
 
+type Node = {
+  nid: string
+}
+
 export const SavePageButton = () => {
-  const [savedNode, setSavedNode] = React.useState<TNode | null>(null)
+  const [pageSavedNode, setPageSavedNode] = React.useState<
+    Node | 'loading' | 'unmemorable' | 'memorable'
+  >('loading')
 
   React.useEffect(() => {
     chrome.runtime.sendMessage({ type: 'REQUEST_SAVED_NODE' })
@@ -27,7 +33,14 @@ export const SavePageButton = () => {
     chrome.runtime.onMessage.addListener((message: MessageType) => {
       switch (message.type) {
         case 'SAVED_NODE':
-          setSavedNode(message.node)
+          const { nid, unmemorable } = message
+          if (nid != null) {
+            setPageSavedNode({ nid })
+          } else if (unmemorable) {
+            setPageSavedNode('unmemorable')
+          } else {
+            setPageSavedNode('memorable')
+          }
           break
         default:
           break
@@ -36,31 +49,36 @@ export const SavePageButton = () => {
   }, [])
 
   const handleSave = () => {
+    setPageSavedNode('loading')
     chrome.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
   }
 
   const handleGoToNode = () => {
-    if (savedNode) {
-      const { nid } = savedNode
-      chrome.tabs.create({ url: `${authCookie.url}/n/${nid}` })
-    }
+    const { nid } = pageSavedNode as Node
+    chrome.tabs.create({ url: `${authCookie.url}/n/${nid}` })
   }
 
-  if (savedNode) {
-    return (
-      <Container>
-        <Button onClick={handleGoToNode}>
-          <MdiLaunch />
-        </Button>
-      </Container>
+  let btn
+  if (pageSavedNode === 'memorable') {
+    btn = (
+      <Button onClick={handleSave}>
+        <MdiBookmarkAdd />
+      </Button>
+    )
+  } else if (pageSavedNode === 'loading') {
+    btn = <Spinner.Wheel />
+  } else if (pageSavedNode === 'unmemorable') {
+    btn = (
+      <div>
+        <p>This page can not be bookmarked, sorry for the inconvenience.</p>
+      </div>
     )
   } else {
-    return (
-      <Container>
-        <Button onClick={handleSave}>
-          <MdiBookmarkAdd />
-        </Button>
-      </Container>
+    btn = (
+      <Button onClick={handleGoToNode}>
+        <MdiLaunch />
+      </Button>
     )
   }
+  return <Container>{btn}</Container>
 }

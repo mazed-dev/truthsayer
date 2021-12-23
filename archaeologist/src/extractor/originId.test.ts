@@ -57,6 +57,20 @@ test('Collisions', async () => {
   expect(urls.length).toStrictEqual(ids.length)
 })
 
+test('Stability', async () => {
+  const fixtures = {
+    'https://emotion.sh/docs/styled': -1747687538,
+    'https://github.com/emotion-js/emotion': 209096158,
+    'https://developer.mozilla.org/': 959490071,
+    'https://stackoverflow.com/': 2109468316,
+    'https://yarnpkg.com/': 1988484847,
+  }
+  for (const [url, expectedId] of Object.entries(fixtures)) {
+    const id = await genOriginId(url)
+    expect(id).toStrictEqual(expectedId)
+  }
+})
+
 test('u32ToI32', () => {
   expect(_uint32ToInt32(0)).toStrictEqual(0)
   expect(_uint32ToInt32(1)).toStrictEqual(1)

@@ -18,6 +18,11 @@ import {
 // To send message to popup
 // chrome.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
 
+function sendMessageToPopUp(message: MessageType) {
+  log.debug('sendMessageToPopUp', message)
+  chrome.runtime.sendMessage(message)
+}
+
 function sendMessageToActiveTab(message: MessageType) {
   // Send message to every active tab
   chrome.tabs.query({}, (tabs) => {
@@ -34,7 +39,6 @@ function sendMessageToActiveTab(message: MessageType) {
  * respond with page content message that could be saved to smuggler.
  */
 const requestPageContentToSave = () => {
-  log.debug('requestPageContentToSave')
   sendMessageToActiveTab({ type: 'REQUEST_PAGE_TO_SAVE' })
 }
 
@@ -59,15 +63,21 @@ const savePage = (url: string, originId: number, content: WebPageContent) => {
     },
     blob: null,
   }
-  smuggler.node.create({
-    text,
-    index_text,
-    extattrs,
-    ntype: NodeType.Url,
-    origin: {
-      id: originId,
-    },
-  })
+  smuggler.node
+    .create({
+      text,
+      index_text,
+      extattrs,
+      ntype: NodeType.Url,
+      origin: {
+        id: originId,
+      },
+    })
+    .then((resp) => {
+      if (resp) {
+        sendMessageToPopUp({ type: 'SAVED_NODE', nid: resp.nid })
+      }
+    })
 }
 
 const requestPageInActiveTabSavedStatus = async () => {
@@ -84,12 +94,19 @@ const sendAuthStatus = () => {
       const status = authCookie.checkRawValue(cookie?.value || null)
       log.debug('Got localhost x-magic-veil cookie', cookie, status)
       badge.setActive(status)
-      chrome.runtime.sendMessage({ type: 'AUTH_STATUS', status })
+      sendMessageToPopUp({ type: 'AUTH_STATUS', status })
     }
   )
 }
 
-const updateTabSavedStatus = async (originId: number, url: string) => {
+const checkOriginIdAndUpdatePageStatus = async (
+  url: string,
+  originId?: number
+) => {
+  if (originId == null) {
+    sendMessageToPopUp({ type: 'SAVED_NODE', unmemorable: true })
+    return
+  }
   const iter = smuggler.node.slice({
     start_time: 0, // since the beginning of time
     origin: {
@@ -102,10 +119,11 @@ const updateTabSavedStatus = async (originId: number, url: string) => {
       break
     }
     if (node.isWebBookmark() && node.extattrs?.web?.url === url) {
-      chrome.runtime.sendMessage({ type: 'SAVED_NODE', node })
-      break
+      sendMessageToPopUp({ type: 'SAVED_NODE', nid: node.nid })
+      return
     }
   }
+  sendMessageToPopUp({ type: 'SAVED_NODE' })
 }
 
 chrome.cookies.onChanged.addListener((info) => {
@@ -122,24 +140,8 @@ chrome.cookies.onChanged.addListener((info) => {
 })
 
 chrome.runtime.onMessage.addListener((message: MessageType) => {
-  log.debug('chrome.runtime.onMessage.addListener - callback', message)
+  log.debug('chrome.runtime.onMessage listener', message)
   // process is not defined in browsers extensions - use it to set up axios
-  log.debug('background.process.env', process.env.NODE_ENV)
-  log.debug(
-    'background.process.env.CHROME',
-    process.env.CHROME,
-    process.env.FIREFOX
-  )
-  log.debug(
-    'background.process.env.REACT_APP_*',
-    process.env.REACT_APP_SMUGGLER_API_URL
-  )
-  fetch('http://0.0.0.0:8080/').then(function (response) {
-    log.debug('Fetch /', response)
-  })
-  smuggler.ping().then((d) => {
-    log.debug('Ping', d)
-  })
   switch (message.type) {
     case 'REQUEST_PAGE_TO_SAVE':
       requestPageContentToSave()
@@ -157,7 +159,7 @@ chrome.runtime.onMessage.addListener((message: MessageType) => {
     case 'PAGE_ORIGIN_ID':
       {
         const { url, originId } = message
-        updateTabSavedStatus(originId, url)
+        checkOriginIdAndUpdatePageStatus(url, originId)
       }
       break
     default:

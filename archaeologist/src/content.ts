@@ -5,35 +5,52 @@
  * page that has been loaded into the browser. Content scripts read and modify
  * the DOM of web pages the browser visits.
  */
-import { MessageType } from './message/types'
+import { Message, MessageType } from './message/types'
 import {
   exctractPageContent,
   exctractPageUrl,
 } from './extractor/webPageContent'
 
 import { genOriginId } from './extractor/originId'
+import { isMemorable } from './extractor/unmemorable'
 
 async function readPageContent() {
   const baseURL = `${window.location.protocol}//${window.location.host}`
   const content = await exctractPageContent(document, baseURL)
   const url = exctractPageUrl(document)
+  if (!isMemorable(url)) {
+    chrome.runtime.sendMessage(
+      Message.create({
+        type: 'PAGE_ORIGIN_ID',
+        url,
+      })
+    )
+    return
+  }
   const originId = await genOriginId(url)
-  chrome.runtime.sendMessage({
-    type: 'PAGE_TO_SAVE',
-    content,
-    url,
-    originId,
-  })
+  chrome.runtime.sendMessage(
+    Message.create({
+      type: 'PAGE_TO_SAVE',
+      content,
+      url,
+      originId,
+    })
+  )
 }
 
 async function getPageOriginId() {
   const url = exctractPageUrl(document)
-  const originId = await genOriginId(url)
-  chrome.runtime.sendMessage({
-    type: 'PAGE_ORIGIN_ID',
-    originId,
-    url,
-  })
+  let originId = undefined
+  if (isMemorable(url)) {
+    originId = await genOriginId(url)
+  }
+  chrome.runtime.sendMessage(
+    Message.create({
+      type: 'PAGE_ORIGIN_ID',
+      originId,
+      url,
+    })
+  )
 }
 
 chrome.runtime.onMessage.addListener((message: MessageType) => {
