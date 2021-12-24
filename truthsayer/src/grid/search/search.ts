@@ -1,6 +1,5 @@
 import { TNode, NodeExtattrs } from 'smuggler-api'
 import { getPlainText } from '../../doc/doc_util'
-
 import { Optional } from './../../util/types'
 
 /**

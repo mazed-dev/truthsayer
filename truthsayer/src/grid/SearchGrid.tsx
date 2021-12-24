@@ -12,7 +12,7 @@ import { SmallCardRender } from '../doc/ReadOnlyRender'
 
 import { searchNodeFor } from './search/search'
 
-import { smuggler } from 'smuggler-api'
+import { smuggler, TNodeSliceIterator } from 'smuggler-api'
 
 import { jcss } from 'elementary'
 import { range } from '../util/range'
@@ -116,9 +116,6 @@ class DynamicGrid extends React.Component {
   }
 }
 
-const _kTimeLimit = Math.floor(Date.now() / 1000) - 2 * 356 * 24 * 60 * 60
-const _kSearchWindowSeconds = 21 * 24 * 60 * 60
-
 export type NodeAttrsSearchItem = {
   nid: string
   // ntype: i32,
@@ -130,17 +127,17 @@ export type NodeAttrsSearchItem = {
 }
 
 class SearchGridImpl extends React.Component {
+  ref: React.RefObject<HTMLDivElement>
+  fetchAbortController?: AbortController
+  pattern?: RegExp
+  iter?: TNodeSliceIterator
+
   constructor(props, context) {
     super(props, context)
     this.state = {
       nodes: [],
-      pattern: this.makePattern(),
       fetching: false,
-      end_time: null,
-      start_time: null,
-      offset: 0,
     }
-    this.fetchAbortController = new AbortController()
     this.ref = React.createRef()
   }
 
@@ -152,21 +149,15 @@ class SearchGridImpl extends React.Component {
   }
 
   componentWillUnmount() {
-    this.fetchAbortController.abort()
+    this.fetchAbortController?.abort()
     if (!this.props.portable) {
       window.removeEventListener('scroll', this.handleScroll)
     }
   }
 
   componentDidUpdate(prevProps) {
-    // We need to re-featch only on changes to the search parameters,
-    // changes to extCards or on changes to account from global context.
-    // console.log("componentDidUpdate", prevProps, this.props);
-    if (
-      this.props.q !== prevProps.q ||
-      this.props.extCards !== prevProps.extCards
-    ) {
-      // console.log("SearchGridImpl::componentDidUpdate -> fetchData");
+    // We need to start fetching only on a change to the search parameters.
+    if (this.props.q !== prevProps.q) {
       this.fetchData()
     }
   }
@@ -175,7 +166,7 @@ class SearchGridImpl extends React.Component {
     history: PropTypes.object.isRequired,
   }
 
-  makePattern() {
+  makePattern(): Optional<RegExp> {
     const { q } = this.props
     if (q == null || q.length < 2) {
       return null
@@ -186,96 +177,53 @@ class SearchGridImpl extends React.Component {
   }
 
   fetchData = () => {
+    this.fetchAbortController?.abort()
     if (
       !this.props.defaultSearch &&
       (this.props.q == null || this.props.q.length < 2)
     ) {
       return
     }
-    this.setState(
-      {
-        nodes: [],
-        pattern: this.makePattern(),
-        offset: 0,
-        end_time: null,
-        start_time: null,
-        fetching: true,
-      },
-      this.secureSearchIteration
-    )
+    this.setState({
+      nodes: [],
+    })
+    this.pattern = this.makePattern()
+    this.fetchAbortController = new AbortController()
+    this.iter = smuggler.node.slice({
+      end_time: null,
+      start_time: null,
+      limit: null,
+      signal: this.fetchAbortController.signal,
+    })
+    this.continueFetchingUntilScrolledToBottom()
   }
 
-  secureSearchIteration = () => {
-    const end_time = this.state.end_time
-    const start_time = this.state.start_time
-    const offset = this.state.offset
-    const account = this.props.account
-    smuggler.node
-      .slice({
-        start_time,
-        end_time,
-        offset,
-        signal: this.fetchAbortController.signal,
-        account,
-      })
-      .then((data) => {
-        if (!data) {
-          return
-        }
-        const { nodes, start_time, offset, full_size, end_time } = data
-        const { pattern } = this.state
-        if (pattern) {
-          nodes.forEach((node) => {
-            node = searchNodeFor(node, pattern)
-            if (node) {
-              this.setState((state) => {
-                return { nodes: lodash.concat(state.nodes, node) }
-              })
-            }
-          })
-        } else {
-          this.setState((state) => {
-            return { nodes: lodash.concat(state.nodes, nodes) }
-          })
-        }
-        let next = null
-        let newFetching = false
-        if (this.isScrolledToBottom() && start_time > _kTimeLimit) {
-          next = this.secureSearchIteration
-          newFetching = true
-        }
-        let newEndTime
-        let newStartTime
-        let newOffset
-        if (this.isTimeIntervalExhausted(nodes.length, offset, full_size)) {
-          newEndTime = start_time
-          newStartTime = start_time - _kSearchWindowSeconds
-          newOffset = 0
-        } else {
-          newEndTime = end_time
-          newStartTime = start_time
-          newOffset = offset + nodes.length
-        }
-        this.setState(
-          {
-            end_time: newEndTime,
-            start_time: newStartTime,
-            offset: newOffset,
-            fetching: newFetching,
-          },
-          next
-        )
-      })
-      .catch((err) => {
-        if (isAbortError(err)) {
-          return
-        }
-        log.exception(err)
-      })
-  }
-
-  isTimeIntervalExhausted = (length, offset, full_size) => {
-    return !(length + offset < full_size)
+  continueFetchingUntilScrolledToBottom = async () => {
+    const { iter, pattern, isScrolledToBottom } = this
+    this.setState({ fetching: true })
+    let toBeContinued = true
+    while (toBeContinued && isScrolledToBottom()) {
+      toBeContinued = await iter
+        .next()
+        .catch((err) => {
+          if (!isAbortError(err)) {
+            log.exception(err)
+          }
+          return false
+        })
+        .then((node) => {
+          if (!node) {
+            return false
+          }
+          if (!pattern || searchNodeFor(node, pattern)) {
+            this.setState((state) => {
+              return { nodes: lodash.concat(state.nodes, node) }
+            })
+          }
+          return true
+        })
+    }
+    this.setState({ fetching: false })
   }
 
   isScrolledToBottom = () => {
@@ -287,12 +235,12 @@ class SearchGridImpl extends React.Component {
     const innerHeight = window.innerHeight
     const scrollTop = document.documentElement.scrollTop
     const offsetHeight = document.documentElement.offsetHeight
-    return innerHeight + scrollTop >= offsetHeight
+    return innerHeight + scrollTop + 200 >= offsetHeight
   }
 
   handleScroll = () => {
     if (!this.state.fetching && this.isScrolledToBottom()) {
-      this.secureSearchIteration()
+      this.continueFetchingUntilScrolledToBottom()
     }
   }
 
