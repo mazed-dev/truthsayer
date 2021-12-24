@@ -9,19 +9,64 @@ export interface INodeIterator {
   exhausted: () => boolean
 }
 
+// Terms:
+//  Slice - range of nodes within give time inteval
+//  Bucket - range of nodes within a time sub-inteval
+//  Batch - subrange of nodes in a bucket, defined by offset in given bucket.
+//
+// For example:
+//      [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 ]
+// Slice  |<----------------------------- slice ------------------------------------->|
+// Bucket:|<------- bucket 0 -------->|  |<-------- bucket 1 ------------------------>|
+// Batch: |<-batch 0->|  |<-batch 1 ->|  |<-batch 0 ->|  |<-batch 1 ->|  |<-batch 2 ->|
+// Where
+//  Slice:
+//    slice_start_time: 1
+//    (slice_end_time: 22)
+//  Bucket 0:
+//    (bucket_start_time=1)
+//    bucket_end_time=11
+//    batches:
+//      0:
+//        offset=0
+//      1:
+//        offset=5
+//  Bucket 1:
+//    (bucket_start_time=11)
+//    bucket_end_time=22
+//    batches:
+//      0:
+//        offset=0
+//      1:
+//        offset=4
+//      2:
+//        offset=8
 export class TNodeSliceIterator implements INodeIterator {
-  batch_nodes: TNode[]
-  batch_start_time: number
-  batch_end_time: number
-  batch_offset: number
+  // Slice time range
+  slice_start_time: number
+
+  // Bucket time range
+  bucket_end_time: number
+
+  // Bucket full size
   bucket_full_size: number
+
+  // All nodes of a current batch
+  batch_nodes: TNode[]
+  // Offset of a batch in a bucket
+  batch_offset: number
+  // Index of a next node in batch_nodes to emit
+  next_index_in_batch: number
+
+  origin?: NodeOrigin
 
   signal?: AbortSignal
   fetcher: typeof getNodesSlice
-  limit?: number
-  origin?: NodeOrigin
 
-  next_index: number
+  // Limits total number of nodes emitted
+  limit?: number
+
+  // Total number of nodes emitted
   total_counter: number
 
   constructor(
@@ -32,17 +77,18 @@ export class TNodeSliceIterator implements INodeIterator {
     limit?: number,
     origin?: NodeOrigin
   ) {
-    this.batch_nodes = []
-    this.batch_end_time = end_time || Math.ceil(Date.now() / 1000)
-    if (start_time != null) {
-      this.batch_start_time = start_time
+    this.slice_start_time = start_time || _kEarliestCreationTime
+    if (end_time != null) {
+      this.bucket_end_time = end_time
     } else {
-      this.batch_start_time = Math.ceil(Date.now() / 1000)
+      this.bucket_end_time = Math.ceil(Date.now() / 1000)
     }
-    this.batch_offset = -1 // For the fist batch
     this.bucket_full_size = 0
 
-    this.next_index = 0
+    this.batch_offset = -1 // For the fist batch
+    this.batch_nodes = []
+    this.next_index_in_batch = 0
+
     this.total_counter = 0
     this.signal = signal
     this.fetcher = fetcher
@@ -55,17 +101,16 @@ export class TNodeSliceIterator implements INodeIterator {
   }
 
   exhausted(): boolean {
-    const { batch_end_time, total_counter, limit } = this
+    const { bucket_end_time, total_counter, limit } = this
     return (
       (limit != null && limit <= total_counter) ||
-      (batch_end_time != null && batch_end_time < _kEarliestCreationTime)
+      (bucket_end_time != null && bucket_end_time <= this.slice_start_time)
     )
   }
 
   async _fetch(): Promise<boolean> {
     const {
-      batch_start_time,
-      batch_end_time,
+      bucket_end_time,
       batch_offset,
       bucket_full_size,
       fetcher,
@@ -75,18 +120,16 @@ export class TNodeSliceIterator implements INodeIterator {
       total_counter,
     } = this
     const range = makeFetchLimits(
-      batch_start_time,
-      batch_end_time,
+      bucket_end_time,
       batch_offset,
       this.batch_nodes.length,
       bucket_full_size
     )
-    if (range.end_time <= _kEarliestCreationTime) {
+    if (range.end_time <= this.slice_start_time) {
       return this._acceptNextBatch({
         nodes: [],
         full_size: 0,
         offset: 0,
-        start_time: 0,
         end_time: 0,
       })
     }
@@ -103,46 +146,42 @@ export class TNodeSliceIterator implements INodeIterator {
     nodes,
     full_size,
     offset,
-    start_time,
     end_time,
   }: {
     nodes: TNode[]
     full_size: number
     offset: number
-    start_time: number
     end_time: number
   }): boolean {
     this.batch_nodes = nodes
     this.batch_offset = offset
-    this.batch_start_time = start_time
-    this.batch_end_time = end_time
+    this.bucket_end_time = end_time
     this.bucket_full_size = full_size
     return nodes.length > 0
   }
 
   async next(): Promise<Optional<TNode>> {
-    const { next_index } = this
+    const { next_index_in_batch } = this
     if (this.exhausted()) {
       return null
     }
-    if (next_index < this.batch_nodes.length) {
-      this.next_index = next_index + 1
+    if (next_index_in_batch < this.batch_nodes.length) {
+      this.next_index_in_batch = next_index_in_batch + 1
       this.total_counter += 1
-      return this.batch_nodes[next_index]
+      return this.batch_nodes[next_index_in_batch]
     }
     while (!(await this._fetch())) {
       if (this.exhausted()) {
         return null
       }
     }
-    this.next_index = 0
+    this.next_index_in_batch = 0
     return await this.next()
   }
 }
 
 function makeFetchLimits(
-  start_time: number,
-  end_time: number,
+  bucket_end_time: number,
   offset: number,
   bufferLen: number,
   bucketFullSize: number
@@ -154,8 +193,8 @@ function makeFetchLimits(
   if (offset < 0) {
     // First fetch only
     return {
-      start_time,
-      end_time,
+      start_time: bucket_end_time - _kSearchWindowSeconds,
+      end_time: bucket_end_time,
       offset: 0,
     }
   }
@@ -163,17 +202,18 @@ function makeFetchLimits(
   if (currentBufferPosition < bucketFullSize) {
     // Bucket is not yet exhausted, continue with with it shifting the offset
     return {
-      start_time,
-      end_time,
+      start_time: bucket_end_time - _kSearchWindowSeconds,
+      end_time: bucket_end_time,
       offset: currentBufferPosition,
     }
   } else {
     // Bucket is exhausted, continue with a next one shifting time limits
     // --------|-------|---> time
     //       start    end
+    bucket_end_time = bucket_end_time - _kSearchWindowSeconds
     return {
-      start_time: start_time - _kSearchWindowSeconds,
-      end_time: start_time,
+      start_time: bucket_end_time - _kSearchWindowSeconds,
+      end_time: bucket_end_time,
       offset: 0,
     }
   }
