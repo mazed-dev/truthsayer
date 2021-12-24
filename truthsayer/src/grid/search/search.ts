@@ -1,8 +1,7 @@
-import { TNode } from 'smuggler-api'
+import { TNode, NodeExtattrs } from 'smuggler-api'
 import { getPlainText } from '../../doc/doc_util'
 
 import { Optional } from './../../util/types'
-import { debug } from './../../util/log'
 
 /**
     nid: nid,
@@ -26,6 +25,30 @@ export function searchNodesFor(
   })
 }
 
+export function _matchesPattern(
+  pattern: RegExp,
+  field?: string | null
+): boolean {
+  return field != null && field.search(pattern) >= 0
+}
+
+export function _extattrsMatchesPattern(
+  pattern: RegExp,
+  extattrs: NodeExtattrs | null | undefined
+): boolean {
+  if (extattrs == null) {
+    return false
+  }
+  return (
+    _matchesPattern(pattern, extattrs.title) ||
+    _matchesPattern(pattern, extattrs.description) ||
+    _matchesPattern(pattern, extattrs.lang) ||
+    _matchesPattern(pattern, extattrs.author) ||
+    _matchesPattern(pattern, extattrs.web?.url) ||
+    _matchesPattern(pattern, extattrs.content_type)
+  )
+}
+
 export function searchNodeFor(
   node: TNode,
   pattern: Optional<RegExp>
@@ -35,7 +58,7 @@ export function searchNodeFor(
     return node
   }
   const matchesPattern = (index_element: Optional<string> | undefined) => {
-    return index_element && index_element.search(pattern) >= 0
+    return _matchesPattern(pattern, index_element)
   }
   const oneOfElementsMatchesPattern = (search_index: string[] | undefined) => {
     return (
@@ -47,7 +70,8 @@ export function searchNodeFor(
     oneOfElementsMatchesPattern(node.index_text?.labels) ||
     oneOfElementsMatchesPattern(node.index_text?.brands) ||
     matchesPattern(node.index_text?.plaintext) ||
-    oneOfElementsMatchesPattern(getPlainText(node.getText()))
+    oneOfElementsMatchesPattern(getPlainText(node.getText())) ||
+    _extattrsMatchesPattern(pattern, node.extattrs)
 
   return matchFound ? node : null
 }
