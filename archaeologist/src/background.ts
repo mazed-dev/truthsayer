@@ -84,7 +84,12 @@ const requestPageInActiveTabSavedStatus = async () => {
   sendMessageToActiveTab({ type: 'REQUEST_PAGE_ORIGIN_ID' })
 }
 
-const _authKnocker = new Knocker(1062599)
+// Periodically renew auth token using Knocker
+//
+// Time period in milliseonds (~17 minutes) is a magic prime number to avoid too
+// many weird correlations with running Knocker in web app.
+const _kRenewTokenTimePeriodInSeconds = 1062599
+const _authKnocker = new Knocker(_kRenewTokenTimePeriodInSeconds)
 _authKnocker.start()
 
 const sendAuthStatus = () => {

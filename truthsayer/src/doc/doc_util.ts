@@ -310,8 +310,3 @@ export function makeDateTime(
     children: [makeLeaf('')],
   }
 }
-
-export function makeTextDoc(text: string): TDoc {
-  const slate = [makeParagraph([makeLeaf(text)])]
-  return new TDoc(slate)
-}

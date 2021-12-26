@@ -23,6 +23,8 @@ Later on the extension could be reloaded with a button reload "⟳" in "Extensio
 
 ## Design
 
+[See google chrome extension development documentation for more details](https://developer.chrome.com/docs/extensions/mv3/getstarted/).
+
 ### Entry points
 
 - `src/popup.ts` - pop up window for the extension.

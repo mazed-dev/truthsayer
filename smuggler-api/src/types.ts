@@ -10,7 +10,7 @@ export type Optional<T> = T | null | undefined
 
 export type SlateText = object[]
 
-function makeEmptySlate(plaintext?: string): SlateText {
+function makeSlateFromPlainText(plaintext?: string): SlateText {
   return [
     {
       type: 'paragraph',
@@ -25,7 +25,7 @@ function makeEmptySlate(plaintext?: string): SlateText {
 
 export function makeNodeTextData(plaintext?: string): NodeTextData {
   return {
-    slate: makeEmptySlate(plaintext),
+    slate: makeSlateFromPlainText(plaintext),
     draft: undefined,
     chunks: undefined,
   }
