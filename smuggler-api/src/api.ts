@@ -296,18 +296,21 @@ function _getNodesSliceIter({
   limit,
   signal,
   origin,
+  bucket_time_size,
 }: {
   end_time?: number
   start_time?: number
   limit?: number
   signal?: AbortSignal
   origin?: NodeOrigin
+  bucket_time_size?: number
 }) {
   return new TNodeSliceIterator(
     getNodesSlice,
     signal,
     start_time,
     end_time,
+    bucket_time_size,
     limit,
     origin
   )

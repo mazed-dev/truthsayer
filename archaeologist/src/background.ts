@@ -114,6 +114,7 @@ const checkOriginIdAndUpdatePageStatus = async (
   }
   const iter = smuggler.node.slice({
     start_time: 0, // since the beginning of time
+    bucket_time_size: 366 * 24 * 60 * 60,
     origin: {
       id: originId,
     },
