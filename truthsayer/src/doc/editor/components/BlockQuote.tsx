@@ -5,7 +5,7 @@ import { jcss } from 'elementary'
 import './components.css'
 
 type BlockQuoteProps = React.PropsWithChildren<{
-  className: string
+  className?: string
   cite: string
 }>
 

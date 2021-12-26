@@ -11,39 +11,129 @@
  *   - head.meta[name="description"] : [content]
  */
 
-import * as _log from './util/log'
+import lodash from 'lodash'
+
+import { PreviewImageSmall, MimeType, Mime } from 'smuggler-api'
+
+import { Readability as MozillaReadability } from '@mozilla/readability'
+import { stabiliseUrl } from './originId'
+
+async function fetchImageAsBase64(
+  url: string
+): Promise<PreviewImageSmall | null> {
+  const resp = await fetch(url)
+  if (!resp.ok) {
+    // We can't log anything from the context of some random web page, so let's
+    // just treat this as failure to fetch image and return null.
+    return null
+  }
+  const data = await resp.arrayBuffer()
+  if (data.byteLength === 0) {
+    return null
+  }
+  const mime = resp.headers.get('Content-type')
+  if (!mime || !Mime.isImage(mime)) {
+    return null
+  }
+  const blob = new Blob([data], {
+    type: mime,
+  })
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = reject
+    reader.onload = () => {
+      const data = reader.result as string | null
+      resolve(data ? { data, content_type: mime } : null)
+    }
+    reader.readAsDataURL(blob)
+  })
+}
 
 export interface WebPageContentImage {
-  icon: string | null // favicon, URL
-  og: string | null // URL
+  content_type: MimeType
+  data: string // Base64 encoded image
 }
 
 export interface WebPageContent {
+  url: string
   title: string | null
   description: string | null
   lang: string | null
   author: string[]
   publisher: string[]
-  text: string[]
-  tags: string[]
-  image: WebPageContentImage
+  text: string | null
+  image: PreviewImageSmall | null
 }
 
-export function exctractPageContent(
-  html: HTMLHtmlElement,
+export function exctractPageUrl(document_: Document): string {
+  return document_.URL || document_.documentURI
+}
+
+export async function exctractPageContent(
+  document_: Document,
   baseURL: string
-): WebPageContent {
-  const head = html.getElementsByTagName('head')[0]
-  const body = html.getElementsByTagName('body')[0]
+): Promise<WebPageContent> {
+  const url = stabiliseUrl(document_.URL || document_.documentURI)
+  const head = document_.head
+  const body = document_.body
+
+  // The parse() method of @mozilla/readability works by modifying the DOM. This
+  // removes some elements in the web page. We avoid this by passing the clone
+  // of the document object to the Readability constructor.
+  const article = new MozillaReadability(
+    document_.cloneNode(true) as Document,
+    {
+      keepClasses: false,
+    }
+  ).parse()
+
+  let title: string | null = null
+  let text: string | null = null
+  let description: string | null = null
+  const author: string[] = []
+  const publisher: string[] = []
+  const lang = _exctractPageLanguage(document_)
+
+  if (article) {
+    // Do a best effort with what @mozilla/readability gives us here
+    title = article.title
+    const { textContent, excerpt, byline, siteName } = article
+    text = textContent
+    description = excerpt
+    if (byline) {
+      author.push(byline)
+    }
+    if (siteName) {
+      publisher.push(siteName)
+    }
+  }
+  if (title) {
+    title = _stripText(title)
+  } else {
+    title = head ? _exctractPageTitle(head) : null
+  }
+  if (description) {
+    description = _stripText(description)
+  } else {
+    description = head ? _exctractPageDescription(head) : null
+  }
+  if (text) {
+    text = _stripText(text)
+  } else {
+    text = body ? _exctractPageText(body) : null
+  }
+  if (author.length === 0 && head) {
+    author.push(..._exctractPageAuthor(head))
+  }
   return {
-    title: _exctractPageTitle(head),
-    author: _exctractPageAuthor(head),
-    publisher: _exctractPagePublisher(head),
-    description: _exctractPageDescription(head),
-    lang: _exctractPageLanguage(html),
-    text: _exctractPageText(body),
-    image: _exctractPageImage(head, baseURL),
-    tags: _exctractPageTags(head),
+    url,
+    title,
+    author,
+    publisher,
+    description,
+    lang,
+    text,
+    image: await _exctractPageImage(head || null, baseURL),
   }
 }
 
@@ -76,7 +166,7 @@ export function _stripText(text: string): string {
  *   - ARIA element role: `article`, `main`.
  *   - ? Element class: `content`, `main`
  */
-export function _exctractPageText(body: HTMLBodyElement): string[] {
+export function _exctractPageText(body: HTMLElement): string {
   const ret: string[] = []
   const addedElements: Element[] = []
   for (const elementsGroup of [
@@ -102,7 +192,7 @@ export function _exctractPageText(body: HTMLBodyElement): string[] {
     }
   }
   if (ret.length > 0) {
-    return ret
+    return ret.join(' ')
   }
   for (const elementsGroup of [
     body.querySelectorAll('[role="main"]'),
@@ -126,7 +216,7 @@ export function _exctractPageText(body: HTMLBodyElement): string[] {
       addedElements.push(element)
     }
   }
-  return ret
+  return ret.join(' ')
 }
 
 /**
@@ -193,8 +283,12 @@ export function _exctractPageDescription(head: HTMLHeadElement): string | null {
   return null
 }
 
-export function _exctractPageLanguage(html: HTMLHtmlElement): string | null {
-  return html.lang || html.getAttribute('lang') || null
+export function _exctractPageLanguage(document_: Document): string | null {
+  const html = lodash.head(document_.getElementsByTagName('html'))
+  if (html) {
+    return html.lang || html.getAttribute('lang') || null
+  }
+  return null
 }
 
 export function _exctractPagePublisher(head: HTMLHeadElement): string[] {
@@ -224,12 +318,15 @@ function ensureAbsRef(ref: string, baseURL: string): string {
   return ref
 }
 
-export function _exctractPageImage(
-  head: HTMLHeadElement,
+export async function _exctractPageImage(
+  head: HTMLHeadElement | null,
   baseURL: string
-): WebPageContentImage {
-  let icon = null
+): Promise<WebPageContentImage | null> {
+  let favicon = null
   let og = null
+  if (head == null) {
+    return null
+  }
   for (const elementsGroup of [
     head.querySelectorAll('meta[property="og:image"]'),
     head.querySelectorAll('meta[name="twitter:image"]'),
@@ -248,14 +345,14 @@ export function _exctractPageImage(
   for (const element of head.querySelectorAll('link[rel="icon"]')) {
     const ref = element.getAttribute('href')?.trim()
     if (ref) {
-      icon = ensureAbsRef(ref, baseURL)
+      favicon = ensureAbsRef(ref, baseURL)
       break
     }
   }
-  return { icon, og }
-}
-
-export function _exctractPageTags(head: HTMLHeadElement): string[] {
-  // TODO
-  return []
+  const icon = og
+    ? await fetchImageAsBase64(og)
+    : favicon
+    ? await fetchImageAsBase64(favicon)
+    : null
+  return icon ? icon : null
 }

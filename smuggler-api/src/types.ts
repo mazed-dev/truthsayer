@@ -10,6 +10,27 @@ export type Optional<T> = T | null | undefined
 
 export type SlateText = object[]
 
+function makeSlateFromPlainText(plaintext?: string): SlateText {
+  return [
+    {
+      type: 'paragraph',
+      children: [
+        {
+          text: plaintext || '',
+        },
+      ],
+    },
+  ]
+}
+
+export function makeNodeTextData(plaintext?: string): NodeTextData {
+  return {
+    slate: makeSlateFromPlainText(plaintext),
+    draft: undefined,
+    chunks: undefined,
+  }
+}
+
 // see smuggler/src/types.rs
 export type NodeTextData = {
   slate: SlateText | undefined
@@ -156,6 +177,15 @@ export class TNode {
     )
   }
 
+  isWebBookmark() {
+    const { ntype, extattrs } = this
+    return (
+      ntype === NodeType.Url &&
+      extattrs &&
+      extattrs.content_type === Mime.TEXT_URI_LIST
+    )
+  }
+
   getBlobSource(): Optional<string> {
     const { nid } = this
     return smuggler.blob.getSource(nid)
@@ -240,10 +270,11 @@ export type AccountInfo = {
   email: string
 }
 
-export type NewNodeRequestBody = {
+export type NodeCreateRequestBody = {
   text: Optional<NodeTextData>
   index_text: Optional<NodeIndexText>
   extattrs: Optional<NodeExtattrs>
+  origin: Optional<NodeOrigin>
 }
 
 export type NodePatchRequest = {

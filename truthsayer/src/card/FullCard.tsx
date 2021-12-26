@@ -6,12 +6,15 @@ import { WideCard } from './WideCard'
 import { TEdge, TNode, NodeTextData } from 'smuggler-api'
 import { DocEditor } from '../doc/DocEditor'
 import { ImageNode } from '../doc/image/ImageNode'
+import { WebBookmark } from '../doc/web_bookmark/WebBookmark'
 import { SlateText } from '../doc/types'
 import { TDoc } from '../doc/doc_util'
 
 import { Loader } from '../lib/loader'
 
 import styles from './FullCard.module.css'
+
+import * as log from './../util/log'
 
 export function FullCard({
   node,
@@ -38,6 +41,8 @@ export function FullCard({
     )
     if (node.isImage()) {
       media = <ImageNode className={styles.media} node={node} />
+    } else if (node.extattrs && node.isWebBookmark()) {
+      media = <WebBookmark extattrs={node.extattrs} />
     }
   }
   const reloadNode = () => {}

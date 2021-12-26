@@ -9,6 +9,8 @@ export interface INodeIterator {
   exhausted: () => boolean
 }
 
+// Iterates over nodes' slice fetched lazily in batches
+//
 // Terms:
 //  Slice - range of nodes within give time inteval
 //  Bucket - range of nodes within a time sub-inteval
@@ -48,6 +50,9 @@ export class TNodeSliceIterator implements INodeIterator {
   // Bucket time range
   bucket_end_time: number
 
+  // Size of a bucket in seconds
+  bucket_time_size: number
+
   // Bucket full size
   bucket_full_size: number
 
@@ -74,10 +79,12 @@ export class TNodeSliceIterator implements INodeIterator {
     signal?: AbortSignal,
     start_time?: number,
     end_time?: number,
+    bucket_time_size?: number,
     limit?: number,
     origin?: NodeOrigin
   ) {
     this.slice_start_time = start_time || _kEarliestCreationTime
+    this.bucket_time_size = bucket_time_size || _kBucketTimeSizeDefault
     if (end_time != null) {
       this.bucket_end_time = end_time
     } else {
@@ -118,9 +125,11 @@ export class TNodeSliceIterator implements INodeIterator {
       limit,
       origin,
       total_counter,
+      bucket_time_size,
     } = this
     const range = makeFetchLimits(
       bucket_end_time,
+      bucket_time_size,
       batch_offset,
       this.batch_nodes.length,
       bucket_full_size
@@ -182,6 +191,7 @@ export class TNodeSliceIterator implements INodeIterator {
 
 function makeFetchLimits(
   bucket_end_time: number,
+  bucket_time_size: number,
   offset: number,
   bufferLen: number,
   bucketFullSize: number
@@ -193,7 +203,7 @@ function makeFetchLimits(
   if (offset < 0) {
     // First fetch only
     return {
-      start_time: bucket_end_time - _kSearchWindowSeconds,
+      start_time: bucket_end_time - bucket_time_size,
       end_time: bucket_end_time,
       offset: 0,
     }
@@ -202,7 +212,7 @@ function makeFetchLimits(
   if (currentBufferPosition < bucketFullSize) {
     // Bucket is not yet exhausted, continue with with it shifting the offset
     return {
-      start_time: bucket_end_time - _kSearchWindowSeconds,
+      start_time: bucket_end_time - bucket_time_size,
       end_time: bucket_end_time,
       offset: currentBufferPosition,
     }
@@ -210,14 +220,14 @@ function makeFetchLimits(
     // Bucket is exhausted, continue with a next one shifting time limits
     // --------|-------|---> time
     //       start    end
-    bucket_end_time = bucket_end_time - _kSearchWindowSeconds
+    bucket_end_time = bucket_end_time - bucket_time_size
     return {
-      start_time: bucket_end_time - _kSearchWindowSeconds,
+      start_time: bucket_end_time - bucket_time_size,
       end_time: bucket_end_time,
       offset: 0,
     }
   }
 }
 
-const _kSearchWindowSeconds = 21 * 24 * 60 * 60
+const _kBucketTimeSizeDefault = 21 * 24 * 60 * 60
 const _kEarliestCreationTime = 1576770000

@@ -7,6 +7,7 @@ import LockedImg from './../img/locked.png'
 
 import { ReadOnlyDoc } from './DocEditor.tsx'
 import { ImageNode } from './image/ImageNode'
+import { WebBookmark } from './web_bookmark/WebBookmark'
 
 import { smuggler } from 'smuggler-api'
 
@@ -23,6 +24,8 @@ export function SmallCardRender({ node }) {
     text = <ReadOnlyDoc node={node} className={styles.read_only_text_card} />
     if (node.isImage()) {
       media = <ImageNode node={node} />
+    } else if (node.extattrs && node.isWebBookmark()) {
+      media = <WebBookmark extattrs={node.extattrs} />
     }
   }
   return (

@@ -12,15 +12,14 @@
       "128": "logo-128x128.png",
       "240": "logo-240x240.png"
     },
-    "default_title": "Click Me",
+    "default_title": "Mazed",
     "default_popup": "popup.html"
   },
   "icons": {
       "16": "logo-16x16.png",
       "48": "logo-48x48.png",
       "72": "logo-72x72.png",
-      "128": "logo-128x128.png",
-      "240": "logo-240x240.png"
+      "128": "logo-128x128.png"
   },
   "background": {
     "service_worker": "background.js"
@@ -28,13 +27,20 @@
   "chrome_url_overrides": {},
   "permissions": [
     "activeTab",
-    "scripting",
     "contextMenus",
+    "cookies",
+    "scripting",
     "storage"
   ],
+  "cross_origin_embedder_policy": {
+    "value": "require-corp"
+  },
+  "cross_origin_opener_policy": {
+    "value": "same-origin"
+  },
   "host_permissions": [
-    "https://*.mazed.dev/*",
-    "http://localhost:3000/*"
+    "https://*.mazed.dev/",
+    "http://localhost:3000/"
   ],
   "content_scripts": [
     {

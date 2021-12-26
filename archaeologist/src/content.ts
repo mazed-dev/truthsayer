@@ -5,26 +5,61 @@
  * page that has been loaded into the browser. Content scripts read and modify
  * the DOM of web pages the browser visits.
  */
-import './content.css'
-import { MessageTypes } from './types'
-import { exctractPageContent } from './webPageContent'
+import { Message, MessageType } from './message/types'
+import {
+  exctractPageContent,
+  exctractPageUrl,
+} from './extractor/webPageContent'
 
-async function _readPageContent() {
-  const html = document.getElementsByTagName('html')
-  const url = document.URL || document.documentURI
+import { genOriginId } from './extractor/originId'
+import { isMemorable } from './extractor/unmemorable'
+
+async function readPageContent() {
   const baseURL = `${window.location.protocol}//${window.location.host}`
-  const content = exctractPageContent(html[0], baseURL)
-  chrome.runtime.sendMessage({
-    type: 'SAVE_PAGE',
-    content,
-    url,
-  })
+  const content = await exctractPageContent(document, baseURL)
+  const url = exctractPageUrl(document)
+  if (!isMemorable(url)) {
+    chrome.runtime.sendMessage(
+      Message.create({
+        type: 'PAGE_ORIGIN_ID',
+        url,
+      })
+    )
+    return
+  }
+  const originId = await genOriginId(url)
+  chrome.runtime.sendMessage(
+    Message.create({
+      type: 'PAGE_TO_SAVE',
+      content,
+      url,
+      originId,
+    })
+  )
 }
 
-chrome.runtime.onMessage.addListener((message: MessageTypes) => {
+async function getPageOriginId() {
+  const url = exctractPageUrl(document)
+  let originId = undefined
+  if (isMemorable(url)) {
+    originId = await genOriginId(url)
+  }
+  chrome.runtime.sendMessage(
+    Message.create({
+      type: 'PAGE_ORIGIN_ID',
+      originId,
+      url,
+    })
+  )
+}
+
+chrome.runtime.onMessage.addListener((message: MessageType) => {
   switch (message.type) {
-    case 'REQ_SAVE_PAGE':
-      _readPageContent()
+    case 'REQUEST_PAGE_TO_SAVE':
+      readPageContent()
+      break
+    case 'REQUEST_PAGE_ORIGIN_ID':
+      getPageOriginId()
       break
     default:
       break

@@ -1,6 +1,7 @@
 import { TChunk, TDraftDoc, SlateText } from './types'
-import { TNode, NodeTextData } from 'smuggler-api'
-import { Descendant, Element } from 'slate'
+import { TNode, NodeTextData, makeNodeTextData } from 'smuggler-api'
+
+import { Descendant } from 'slate'
 import { unixToString } from './editor/components/DateTime'
 
 import { draftToMarkdown } from '../markdown/draftjs'
@@ -18,7 +19,6 @@ import {
   kSlateBlockTypeBreak,
   kSlateBlockTypeDateTime,
   kSlateBlockTypeLink,
-  kSlateBlockTypeListCheckItem,
   kSlateBlockTypeParagraph,
 } from './types'
 
@@ -48,7 +48,8 @@ export class TDoc {
   }
 
   static makeEmpty(): TDoc {
-    return new TDoc(makeEmptySlate())
+    const { slate } = makeNodeTextData()
+    return new TDoc(slate as SlateText)
   }
 
   makeACopy(nid: string, isBlankCopy: boolean): TDoc {
@@ -158,7 +159,7 @@ export async function makeDoc({
     const slate = await markdownToSlate(plain)
     return new TDoc(slate)
   }
-  return new TDoc(makeEmptySlate())
+  return new TDoc(makeNodeTextData().slate as SlateText)
 }
 
 export function getPlainText({ slate, draft, chunks }: NodeTextData): string[] {
@@ -258,19 +259,6 @@ export async function docAsMarkdown(node: TNode): Promise<string> {
   return md
 }
 
-export function makeEmptySlate(): SlateText {
-  return [
-    {
-      type: kSlateBlockTypeParagraph,
-      children: [
-        {
-          text: '',
-        },
-      ],
-    },
-  ]
-}
-
 function makeThematicBreak(): ThematicBreakElement {
   return {
     type: kSlateBlockTypeBreak,
@@ -321,9 +309,4 @@ export function makeDateTime(
     type,
     children: [makeLeaf('')],
   }
-}
-
-export function makeTextDoc(text: string): TDoc {
-  const slate = [makeParagraph([makeLeaf(text)])]
-  return new TDoc(slate)
 }

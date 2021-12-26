@@ -4,19 +4,20 @@ import {
   EdgeAttributes,
   EdgeStar,
   GenerateBlobIndexResponse,
-  NewNodeRequestBody,
   NewNodeResponse,
+  NodeAttrsSearchRequest,
+  NodeAttrsSearchResponse,
+  NodeCreateRequestBody,
   NodeExtattrs,
   NodeIndexText,
-  NodeTextData,
   NodeOrigin,
+  NodePatchRequest,
+  NodeTextData,
+  NodeType,
   TEdge,
   TNode,
   UploadMultipartResponse,
-  NodeAttrsSearchRequest,
-  NodeAttrsSearchResponse,
   UserBadge,
-  NodePatchRequest,
 } from './types'
 
 import { TNodeSliceIterator } from './node_slice_iterator'
@@ -44,6 +45,8 @@ async function createNode({
   to_nid,
   index_text,
   extattrs,
+  ntype,
+  origin,
   signal,
 }: {
   text: NodeTextData
@@ -51,17 +54,21 @@ async function createNode({
   to_nid?: string
   index_text?: NodeIndexText
   extattrs?: NodeExtattrs
+  ntype?: NodeType
+  origin?: NodeOrigin
   signal?: AbortSignal
 }): Promise<NewNodeResponse> {
   signal = signal || undefined
   const query = {
     from: from_nid || undefined,
     to: to_nid || undefined,
+    ntype,
   }
-  const body: NewNodeRequestBody = {
+  const body: NodeCreateRequestBody = {
     text,
-    index_text,
-    extattrs,
+    index_text: index_text || null,
+    extattrs: extattrs || null,
+    origin,
   }
   const resp = await fetch(makeUrl('node/new', query), {
     method: 'POST',
@@ -238,7 +245,7 @@ export async function getNodesSlice({
 }) {
   const req: NodeAttrsSearchRequest = {
     end_time: end_time || undefined,
-    start_time: start_time || undefined,
+    start_time: start_time != null ? start_time : undefined,
     offset: offset || 0,
     limit: limit || undefined,
     origin,
@@ -289,18 +296,21 @@ function _getNodesSliceIter({
   limit,
   signal,
   origin,
+  bucket_time_size,
 }: {
   end_time?: number
   start_time?: number
   limit?: number
   signal?: AbortSignal
   origin?: NodeOrigin
+  bucket_time_size?: number
 }) {
   return new TNodeSliceIterator(
     getNodesSlice,
     signal,
     start_time,
     end_time,
+    bucket_time_size,
     limit,
     origin
   )
@@ -479,7 +489,7 @@ async function deleteSession({ signal }: { signal: AbortSignal }) {
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
-async function updateSession(signal?: AbortSignal) {
+async function updateSession(signal?: AbortSignal): Promise<Ack> {
   const resp = await fetch(makeUrl('/auth/session'), {
     method: 'PATCH',
     signal,
