@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 
+set -e
+
 _UNCOMMITTED_CHANGES="$(git status --porcelain=v1 2>/dev/null)"
 
-#if [[ $_UNCOMMITTED_CHANGES ]]; then
-#  echo "There is local uncommitted change. Please commit and merge any changes into public main branch before publishing a new version of chrome extension to Chrome Web Store." >&2
-#  echo "" >&2
-#  echo "$_UNCOMMITTED_CHANGES" >&2
-#  exit 1
-#fi
+if [[ $_UNCOMMITTED_CHANGES ]]; then
+  echo "There is local uncommitted change. Please commit and merge any changes into public main branch before publishing a new version of chrome extension to Chrome Web Store." >&2
+  echo "" >&2
+  echo "$_UNCOMMITTED_CHANGES" >&2
+  exit 1
+fi
 
 for i in $(seq 1 5); do
   echo "Looking for the repo root $i: $(pwd)"
