@@ -9,8 +9,6 @@ import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { Relative, HVCentered } from './../util/layout'
 import { Button } from './Button'
 
-import { authCookie } from 'smuggler-api'
-
 const AppContainer = styled.div`
   width: 280px;
   height: 280px;
@@ -45,7 +43,9 @@ const LogoImg = styled.img`
 
 const LoginPage = () => {
   const onClick = () => {
-    chrome.tabs.create({ url: `${authCookie.url}/login` })
+    let url = new URL(process.env.REACT_APP_SMUGGLER_API_URL || '')
+    url.pathname = '/login'
+    chrome.tabs.create({ url: url.toString() })
   }
   return (
     <Relative>

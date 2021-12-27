@@ -3,7 +3,6 @@
 import * as React from 'react'
 import styled from '@emotion/styled'
 
-import { authCookie } from 'smuggler-api'
 import { MdiBookmarkAdd, MdiLaunch } from 'elementary'
 import { Button } from './Button'
 
@@ -55,7 +54,9 @@ export const SavePageButton = () => {
 
   const handleGoToNode = () => {
     const { nid } = pageSavedNode as Node
-    chrome.tabs.create({ url: `${authCookie.url}/n/${nid}` })
+    let url = new URL(process.env.REACT_APP_SMUGGLER_API_URL || '')
+    url.pathname = `/n/${nid}`
+    chrome.tabs.create({ url: url.toString() })
   }
 
   let btn
