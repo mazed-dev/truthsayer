@@ -7,15 +7,20 @@ To (re)build `archaeologist` you need to build dependencies first:
 1. `yarn smuggler-api build`
 2. `yarn elementary build`
 
-Building and uploading extension process differs for different browsers, therefore there are different build commands and instructions for ever one of them.
+Building and uploading extension process differs for different browsers, therefore there are different build commands and other instructions for each.
 
-Local dev version talks to local instance of mazed (`http://localhost:3000/`), so to play with it locally you need to spin up both `smuggler` and `truthsayer` beforehand.
+
+### Local dev environment
+
+Local dev environment here and further is referenced as just "local" (build/set-up/etc).
+
+Local build of the extension talks to the local instance of `truthsayer` (`http://localhost:3000/`), so to make local build of the extension work you need to spin up both `smuggler` and `truthsayer` beforehand.
 
 ### Chrome: local
 
 To build local dev version run:
 
-```sh
+```
 yarn archaeologist build:chrome:local
 ```
 
@@ -34,7 +39,7 @@ Later on the extension could be reloaded with a button reload "⟳" in "Extensio
 
 To build public version that talks to `https://mazed.dev` run:
 
-```sh
+```
 yarn archaeologist build:chrome:public
 ```
 
