@@ -8,8 +8,7 @@ import { MessageType } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { Relative, HVCentered } from './../util/layout'
 import { Button } from './Button'
-
-import { authCookie } from 'smuggler-api'
+import { mazed } from '../util/mazed'
 
 const AppContainer = styled.div`
   width: 280px;
@@ -45,7 +44,9 @@ const LogoImg = styled.img`
 
 const LoginPage = () => {
   const onClick = () => {
-    chrome.tabs.create({ url: `${authCookie.url}/login` })
+    chrome.tabs.create({
+      url: mazed.makeUrl({ pathname: '/login' }).toString(),
+    })
   }
   return (
     <Relative>

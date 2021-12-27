@@ -3,12 +3,11 @@
 import * as React from 'react'
 import styled from '@emotion/styled'
 
-import { authCookie } from 'smuggler-api'
-import { MdiBookmarkAdd, MdiLaunch } from 'elementary'
+import { MdiBookmarkAdd, MdiLaunch, Spinner } from 'elementary'
 import { Button } from './Button'
 
 import { MessageType } from './../message/types'
-import { Spinner } from 'elementary'
+import { mazed } from '../util/mazed'
 
 const Container = styled.div`
   margin: 0;
@@ -55,7 +54,9 @@ export const SavePageButton = () => {
 
   const handleGoToNode = () => {
     const { nid } = pageSavedNode as Node
-    chrome.tabs.create({ url: `${authCookie.url}/n/${nid}` })
+    chrome.tabs.create({
+      url: mazed.makeNodeUrl(nid).toString(),
+    })
   }
 
   let btn
