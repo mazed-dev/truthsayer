@@ -6,7 +6,7 @@ _CURRENT_DIR="$(pwd)"
 _UNCOMMITTED_CHANGES="$(git status --porcelain=v1 2>/dev/null)"
 
 if [[ $_UNCOMMITTED_CHANGES ]]; then
-  echo "There is local uncommitted change. Please commit and merge any changes into public main branch before publishing a new version of chrome extension to Chrome Web Store." >&2
+  echo "There are local uncommitted changes. Please commit and merge any changes into public main branch before publishing a new version of chrome extension to Chrome Web Store." >&2
   echo "" >&2
   echo "$_UNCOMMITTED_CHANGES" >&2
   exit 1
