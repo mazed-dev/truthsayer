@@ -8,6 +8,7 @@ import { MessageType } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { Relative, HVCentered } from './../util/layout'
 import { Button } from './Button'
+import { mazed } from '../util/mazed'
 
 const AppContainer = styled.div`
   width: 280px;
@@ -43,9 +44,9 @@ const LogoImg = styled.img`
 
 const LoginPage = () => {
   const onClick = () => {
-    let url = new URL(process.env.REACT_APP_SMUGGLER_API_URL || '')
-    url.pathname = '/login'
-    chrome.tabs.create({ url: url.toString() })
+    chrome.tabs.create({
+      url: mazed.makeUrl({ pathname: '/login' }).toString(),
+    })
   }
   return (
     <Relative>
