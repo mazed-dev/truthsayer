@@ -21,7 +21,7 @@ yarn archaeologist build:chrome:local
 
 The result will be in `truthsayer/archaeologist/target/unpacked/`.
 
-Extension from a file can be imported to Chrome or Chromium in dev mode:
+Extension can be imported from a file to Chrome or Chromium in dev mode:
 
 1. Visit [chrome://extensions](chrome://extensions) (via [`omnibox`](https://developer.chrome.com/docs/extensions/reference/omnibox/) or "menu" -> "Tools" -> "Extensions").
 2. Enable "Developer mode" by ticking the checkbox in the top right corner.
@@ -42,7 +42,7 @@ After that repeat steps from importing dev version to your browser.
 
 ### Chrome Web Store
 
-An instructions on how to publish fresh version of Mazed Chrome extension are in [pack/chrome/pack.sh](./pack/chrome/pack.sh).
+An instructions on how to publish fresh version of Mazed Chrome extension are in [`pack/chrome/readme.md`](./pack/chrome/readme.md).
 
 ## Design
 

@@ -2,6 +2,7 @@
 
 set -e
 
+_CURRENT_DIR="$(pwd)"
 _UNCOMMITTED_CHANGES="$(git status --porcelain=v1 2>/dev/null)"
 
 if [[ $_UNCOMMITTED_CHANGES ]]; then
@@ -12,9 +13,9 @@ if [[ $_UNCOMMITTED_CHANGES ]]; then
 fi
 
 for i in $(seq 1 5); do
-  echo "Looking for the repo root $i: $(pwd)"
+  echo "Looking for the repo root $i: $(pwd)" >&2
   if [[ -f "archaeologist/public/manifest.json" ]]; then
-    echo "Repo root found $(pwd)"
+    echo "Repo root found $(pwd)" >&2
     break
   fi
   cd ..
@@ -31,6 +32,14 @@ yarn build:chrome:public
 
 _REV="$(git rev-parse HEAD)"
 
-mkdir -p target/packed/
+cd target
 
-zip -r target/packed/chrome-mazed-$_REV.zip target/unpacked
+mkdir -p packed/
+
+_OUT="packed/chrome-mazed-$_REV.zip"
+
+zip -r $_OUT unpacked
+
+echo "Packed chrome extension: $PWD/$_OUT" >&2
+
+cd "$_CURRENT_DIR"
