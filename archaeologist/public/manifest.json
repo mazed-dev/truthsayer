@@ -3,7 +3,7 @@
   "name": "Mazed",
   "author": "Thread knowledge",
   "version": "0.0.1",
-  "description": "Save your web to Mazed",
+  "description": "Bookmark web pages to Mazed",
   "action": {
     "default_icon": {
       "16": "logo-16x16.png",

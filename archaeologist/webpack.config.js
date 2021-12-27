@@ -9,7 +9,7 @@ const config = (env, argv) => {
       content: path.join(__dirname, "src/content.ts"),
       background: path.join(__dirname, "src/background.ts"),
     },
-    output: {path: path.join(__dirname, "build"), filename: "[name].js"},
+    output: {path: path.join(__dirname, "target/unpacked"), filename: "[name].js"},
     module: {
       rules: [
         {

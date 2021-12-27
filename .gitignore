@@ -18,6 +18,7 @@
 **/build/**
 /deploy/pkgs
 **/dist/**
+**/target/**
 
 # misc
 .DS_Store

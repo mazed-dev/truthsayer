@@ -2,24 +2,52 @@
 
 ## Dev
 
-### Build
-
-Build code in following order:
+To (re)build `archaeologist` you need to build dependencies first:
 
 1. `yarn smuggler-api build`
 2. `yarn elementary build`
-3. `yarn archaeologist build:chrome:local`
 
-### Run: chrome
+Building and uploading extension process differs for different browsers, therefore there are different build commands and other instructions for each.
 
-Extension can be loaded in unpacked mode by following the following steps:
 
-1. Visit [chrome://extensions](chrome://extensions) (via omnibox or "menu" -> "Tools" -> "Extensions").
+### Local dev environment
+
+Local dev environment here and further is referenced as just "local" (build/set-up/etc).
+
+Local build of the extension talks to the local instance of `truthsayer` (`http://localhost:3000/`), so to make local build of the extension work you need to spin up both `smuggler` and `truthsayer` beforehand.
+
+### Chrome: local
+
+To build local dev version run:
+
+```
+yarn archaeologist build:chrome:local
+```
+
+The result will be in `truthsayer/archaeologist/target/unpacked/`.
+
+Extension can be imported from a file to Chrome or Chromium in dev mode:
+
+1. Visit [chrome://extensions](chrome://extensions) (via [`omnibox`](https://developer.chrome.com/docs/extensions/reference/omnibox/) or "menu" -> "Tools" -> "Extensions").
 2. Enable "Developer mode" by ticking the checkbox in the top right corner.
 3. Click on the "Load unpacked extension..." button.
-4. Select the directory containing built extension: `truthsayer/archaeologist/build/`
+4. Select the directory containing built extension: `truthsayer/archaeologist/target/unpacked/`
 
 Later on the extension could be reloaded with a button reload "⟳" in "Extensions" menu.
+
+### Chrome: public
+
+To build public version that talks to `https://mazed.dev` run:
+
+```
+yarn archaeologist build:chrome:public
+```
+
+After that repeat steps from importing dev version to your browser.
+
+### Chrome Web Store
+
+An instructions on how to publish fresh version of Mazed Chrome extension are in [`pack/chrome/readme.md`](./pack/chrome/readme.md).
 
 ## Design
 
