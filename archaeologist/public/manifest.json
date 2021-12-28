@@ -39,13 +39,15 @@
     "value": "same-origin"
   },
   "host_permissions": [
-    "https://*.mazed.dev/",
-    "http://localhost:3000/"
+    ">>> This is set up in webpack config, depending on build options <<<"
   ],
   "content_scripts": [
     {
       "matches": [
         "*://*/*"
+      ],
+      "exclude_matches": [
+        "file:///*"
       ],
       "js": [
         "content.js"
