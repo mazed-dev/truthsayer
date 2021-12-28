@@ -27,10 +27,7 @@
   "chrome_url_overrides": {},
   "permissions": [
     "activeTab",
-    "contextMenus",
-    "cookies",
-    "scripting",
-    "storage"
+    "cookies"
   ],
   "cross_origin_embedder_policy": {
     "value": "require-corp"
