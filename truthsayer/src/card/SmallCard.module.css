@@ -1,40 +1,15 @@
-:root {
-  --small_card_border_colour: rgba(0, 0, 0, 0.192);
-  --small_card_shadow_colour: rgba(0, 0, 0, 0.12);
-}
-
 .small_card {
-  margin: 0;
-  padding: 1px;
-  /* border-color: var(--small_card_border_colour); */
+  margin: 0 0 6px 0;
+  padding: 0;
 
-  /*height: 22rem;*/
   min-height: 10rem;
 
   width: 100%;
 
   border-radius: 5px;
-  box-shadow: 0px 1px 2px 1px var(--small_card_shadow_colour);
+  box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.2);
 
   font-size: 12px;
-}
-
-.card_body {
-  margin-left: 4px;
-  margin-right: 4px;
-  padding: 0.8rem;
-}
-
-@media (max-width: 1420px) {
-  .small_card_width {
-    width: 100%;
-  }
-}
-
-.small_card_waiter {
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .small_card_shadow_0 {
@@ -48,8 +23,7 @@
   box-shadow:
     1px 1px 1px white,
     2px 2px 1px white,
-    3px 3px 1px gray /*,
-    7px 7px 5px var(--small_card_shadow_colour); */;
+    3px 3px 1px gray;
 }
 
 .small_card_shadow_2 {
@@ -60,8 +34,7 @@
     3px 3px 1px gray,
     4px 4px 1px white,
     5px 5px 1px white,
-    6px 6px 1px gray /*,
-    10px 10px 5px var(--small_card_shadow_colour) */;
+    6px 6px 1px gray;
 }
 
 .small_card_shadow_3 {
@@ -75,8 +48,7 @@
     6px 6px 1px gray,
     7px 7px 1px white,
     8px 8px 1px white,
-    9px 9px 1px gray /*,
-    13px 13px 5px var(--small_card_shadow_colour) */;
+    9px 9px 1px gray;
 }
 
 .small_card_shadow_4 {
@@ -93,8 +65,7 @@
     9px 9px 1px gray,
     10px 10px 1px white,
     11px 11px 1px white,
-    12px 12px 1px gray /*,
-    16px 16px 5px var(--small_card_shadow_colour) */;
+    12px 12px 1px gray;
 }
 
 .small_card_shadow_5 {
@@ -114,8 +85,7 @@
     12px 12px 1px gray,
     13px 13px 1px white,
     14px 14px 1px white,
-    15px 15px 1px gray /*,
-    19px 19px 5px var(--small_card_shadow_colour) */;
+    15px 15px 1px gray;
 }
 
 .clickable_chunks {
@@ -123,25 +93,4 @@
 
 .clickable_chunks:hover {
   cursor: pointer;
-}
-
-.locked_img {
-  width: 3rem;
-  height: 3rem;
-
-  opacity: 0.6;
-
-  display: block;
-
-  margin-left: auto;
-  margin-right: auto;
-
-  margin-top: 0.8rem;
-  margin-bottom: 0.6rem;
-}
-
-.locked_secret_id {
-  display: block;
-  margin: 0;
-  color: green;
 }
