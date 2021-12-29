@@ -2,6 +2,37 @@ const webpack = require("webpack");
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
 
+const _getSmugglerApiUrl = (mode) => {
+  return mode === 'development'
+    ? "http://localhost:3000"
+    : "https://mazed.dev/smuggler"
+}
+
+const _manifestTransform = (buffer, mode) => {
+  const manifest = JSON.parse(buffer.toString());
+
+  // Add Mazed URL to host_permissions to grant access to mazed cookies
+  const mazedUrl = new URL(_getSmugglerApiUrl(mode))
+  mazedUrl.pathname = ''
+  manifest["host_permissions"] = [
+    mazedUrl.toString(),
+  ]
+
+  // Exclude Mazed from list of URLs where content.js is injected to
+  mazedUrl.pathname = '*'
+  manifest["content_scripts"].forEach((item, index, theArray) => {
+    const { exclude_matches = [] } = item
+    exclude_matches.push(
+      mazedUrl.toString(),
+    )
+    theArray[index] = {
+      ...item,
+      exclude_matches,
+    }
+  });
+  return JSON.stringify(manifest, null, 2);
+}
+
 const config = (env, argv) => {
   return {
     entry: {
@@ -70,7 +101,15 @@ const config = (env, argv) => {
     devtool: 'source-map',
     plugins: [
       new CopyPlugin({
-        patterns: [{from: "public", to: "."}],
+        patterns: [{
+          from: "public", to: ".",
+          transform: (context, absoluteFrom) => {
+            if (absoluteFrom.endsWith("/manifest.json")) {
+              return _manifestTransform(context, argv.mode)
+            }
+            return context
+          },
+        }],
       }),
       new webpack.ProvidePlugin({
         process: 'process/browser',
@@ -85,9 +124,7 @@ const config = (env, argv) => {
               : (env.safari) ? "safari" : ""
         ),
         'process.env.REACT_APP_SMUGGLER_API_URL': JSON.stringify(
-          argv.mode === 'development'
-            ? "http://localhost:3000"
-            : "https://mazed.dev/smuggler"
+          _getSmugglerApiUrl(argv.mode)
         ),
       }),
     ],

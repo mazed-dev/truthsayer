@@ -27,10 +27,7 @@
   "chrome_url_overrides": {},
   "permissions": [
     "activeTab",
-    "contextMenus",
-    "cookies",
-    "scripting",
-    "storage"
+    "cookies"
   ],
   "cross_origin_embedder_policy": {
     "value": "require-corp"
@@ -39,13 +36,15 @@
     "value": "same-origin"
   },
   "host_permissions": [
-    "https://*.mazed.dev/",
-    "http://localhost:3000/"
+    ">>> This is set up in webpack.config.js, depending on build options <<<"
   ],
   "content_scripts": [
     {
       "matches": [
         "*://*/*"
+      ],
+      "exclude_matches": [
+        "file:///*"
       ],
       "js": [
         "content.js"
