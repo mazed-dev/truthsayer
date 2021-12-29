@@ -29,20 +29,8 @@ type SmallCardProps = React.PropsWithChildren<{
 }>
 
 export const SmallCard = React.forwardRef<HTMLDivElement, SmallCardProps>(
-  (
-    {
-      children,
-      className,
-      onClick,
-      stack_size,
-      // https://github.com/react-bootstrap/react-bootstrap/issues/3595
-      // @ts-ignore: Property 'as' does not exist on type 'PropsWithChildren<...>'
-      as: Component = 'div',
-      ...kwargs
-    },
-    ref
-  ) => {
-    let clickableOnClick = null
+  ({ children, className, onClick, stack_size, ...kwargs }, ref) => {
+    let clickableOnClick = undefined
     let clickableStyle = undefined
     if (onClick) {
       clickableStyle = styles.clickable_chunks
@@ -50,7 +38,7 @@ export const SmallCard = React.forwardRef<HTMLDivElement, SmallCardProps>(
     }
     const shadowStyle = getShadowStyle(stack_size || 0)
     return (
-      <Component
+      <div
         className={jcss(
           styles.small_card,
           clickableStyle,
@@ -62,7 +50,7 @@ export const SmallCard = React.forwardRef<HTMLDivElement, SmallCardProps>(
         {...kwargs}
       >
         {children}
-      </Component>
+      </div>
     )
   }
 )
