@@ -151,6 +151,11 @@ export async function exctractPageContent(
   if (text == null) {
     text = body ? _exctractPageText(body) : null
   }
+  if (text != null) {
+    // Cut string by length 10KiB to avoid blowing up backend with huge JSON.
+    // Later on we can and perhaps should reconsider this limit.
+    text = text.substr(0, 10240)
+  }
   if (author.length === 0 && head) {
     author.push(..._exctractPageAuthor(head))
   }
