@@ -11,7 +11,7 @@ import fetchMock from 'jest-fetch-mock'
 import { Mime } from 'smuggler-api'
 
 import {
-  _stripText,
+  _stripWhitespaceInText,
   _exctractPageText,
   _exctractPageTitle,
   _exctractPageAuthor,
@@ -29,9 +29,9 @@ beforeEach(() => {
   fetchMock.doMock()
 })
 
-test('_stripText', () => {
+test('_stripWhitespaceInText', () => {
   expect(
-    _stripText(`  a  b   c     d   \t \n  e\n\n
+    _stripWhitespaceInText(`  a  b   c     d   \t \n  e\n\n
 @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \\ ] ^ _ \` a b
  c d e f g h i j k l m n o p q r s t u v w x y z { | } ~
   `)
@@ -196,7 +196,7 @@ test('_exctractPagePublisher', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta property="og:site_name" content="The Publisher">
+<meta property="og:site_name" content="The Publisher \n\n Abc">
 </head>
 <body >
 </body>
@@ -204,7 +204,7 @@ test('_exctractPagePublisher', () => {
 `)
   const head = dom.window.document.getElementsByTagName('head')[0]
   const publisher = _exctractPagePublisher(head)
-  expect(publisher).toStrictEqual(['The Publisher'])
+  expect(publisher).toStrictEqual(['The Publisher Abc'])
 })
 
 test('_exctractPageImage', async () => {

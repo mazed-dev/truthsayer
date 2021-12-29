@@ -98,28 +98,26 @@ export async function exctractPageContent(
     // Do a best effort with what @mozilla/readability gives us here
     title = article.title
     const { textContent, excerpt, byline, siteName } = article
-    text = textContent
+    text = _stripWhitespaceInText(textContent)
     description = excerpt
     if (byline) {
-      author.push(byline)
+      author.push(_stripWhitespaceInText(byline))
     }
     if (siteName) {
       publisher.push(siteName)
     }
   }
   if (title) {
-    title = _stripText(title)
+    title = _stripWhitespaceInText(title)
   } else {
     title = head ? _exctractPageTitle(head) : null
   }
   if (description) {
-    description = _stripText(description)
+    description = _stripWhitespaceInText(description)
   } else {
     description = head ? _exctractPageDescription(head) : null
   }
-  if (text) {
-    text = _stripText(text)
-  } else {
+  if (text == null) {
     text = body ? _exctractPageText(body) : null
   }
   if (author.length === 0 && head) {
@@ -153,7 +151,9 @@ const isSameOrDescendant = function (parent: Element, child: Element) {
   return false
 }
 
-export function _stripText(text: string): string {
+// Strip whitespace characters at the beginning and the end of the text, also
+// replace any consecutive row of whitespace characters with a single space.
+export function _stripWhitespaceInText(text: string): string {
   text = text.trim()
   text = text.replace(/[\u00B6\u2202\s]{2,}/g, ' ')
   return text
@@ -187,7 +187,7 @@ export function _exctractPageText(body: HTMLElement): string {
       if (isAdded) {
         continue
       }
-      ret.push(_stripText(textContent))
+      ret.push(_stripWhitespaceInText(textContent))
       addedElements.push(element)
     }
   }
@@ -212,7 +212,7 @@ export function _exctractPageText(body: HTMLElement): string {
       if (isAdded) {
         continue
       }
-      ret.push(_stripText(textContent))
+      ret.push(_stripWhitespaceInText(textContent))
       addedElements.push(element)
     }
   }
@@ -233,7 +233,7 @@ export function _exctractPageTitle(head: HTMLHeadElement): string | null {
     for (const element of headTitles) {
       const title = (element.innerText || element.textContent)?.trim()
       if (title) {
-        return _stripText(title)
+        return _stripWhitespaceInText(title)
       }
     }
   }
@@ -245,7 +245,7 @@ export function _exctractPageTitle(head: HTMLHeadElement): string | null {
     for (const element of elementsGroup) {
       const title = element.getAttribute('content')?.trim()
       if (title) {
-        return _stripText(title)
+        return _stripWhitespaceInText(title)
       }
     }
   }
@@ -260,7 +260,7 @@ export function _exctractPageAuthor(head: HTMLHeadElement): string[] {
     for (const element of elementsGroup) {
       const title = element.getAttribute('content')?.trim()
       if (title) {
-        authors.push(_stripText(title))
+        authors.push(_stripWhitespaceInText(title))
       }
     }
   }
@@ -276,7 +276,7 @@ export function _exctractPageDescription(head: HTMLHeadElement): string | null {
     for (const element of elementsGroup) {
       const title = element.getAttribute('content')?.trim()
       if (title) {
-        return _stripText(title)
+        return _stripWhitespaceInText(title)
       }
     }
   }
@@ -301,7 +301,7 @@ export function _exctractPagePublisher(head: HTMLHeadElement): string[] {
     for (const element of elementsGroup) {
       const p = element.getAttribute('content')?.trim()
       if (p) {
-        publisher.push(_stripText(p))
+        publisher.push(_stripWhitespaceInText(p))
       }
     }
     if (publisher.length > 0) {
