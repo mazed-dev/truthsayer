@@ -18,8 +18,10 @@ import { PreviewImageSmall, MimeType, Mime } from 'smuggler-api'
 import { Readability as MozillaReadability } from '@mozilla/readability'
 import { stabiliseUrl } from './originId'
 
-async function fetchImageAsBase64(
-  url: string
+async function fetchImagePreviewAsBase64(
+  url: string,
+  document_: Document,
+  maxSize: number
 ): Promise<PreviewImageSmall | null> {
   const resp = await fetch(url)
   if (!resp.ok) {
@@ -38,12 +40,41 @@ async function fetchImageAsBase64(
   const blob = new Blob([data], {
     type: mime,
   })
+  // Load the image
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onerror = reject
-    reader.onload = () => {
+    reader.onload = (_readerEvent: ProgressEvent<FileReader>) => {
+      const image = document_.createElement('img')
+      image.onerror = reject
+      image.onload = (_ev) => {
+        // Crop image, getting the biggest square from the center
+        // and resize it down to [maxSize] - we don't need more for preview
+        let canvas = document_.createElement('canvas')
+        let { width, height } = image
+        let sx = 0
+        let sy = 0
+        if (height < width) {
+          sx = Math.floor((width - height) / 2)
+          width = height
+        } else if (width < height) {
+          sy = Math.floor((height - width) / 2)
+          height = width
+        }
+        canvas.width = maxSize
+        canvas.height = maxSize
+        canvas
+          .getContext('2d')
+          ?.drawImage(image, sx, sy, width, height, 0, 0, maxSize, maxSize)
+        const data = canvas.toDataURL(Mime.IMAGE_JPEG)
+        resolve(data ? { data, content_type: Mime.IMAGE_JPEG } : null)
+      }
       const data = reader.result as string | null
-      resolve(data ? { data, content_type: mime } : null)
+      if (data) {
+        image.src = data
+      } else {
+        resolve(null)
+      }
     }
     reader.readAsDataURL(blob)
   })
@@ -131,7 +162,7 @@ export async function exctractPageContent(
     description,
     lang,
     text,
-    image: await _exctractPageImage(head || null, baseURL),
+    image: await _exctractPageImage(document_, baseURL),
   }
 }
 
@@ -319,9 +350,10 @@ function ensureAbsRef(ref: string, baseURL: string): string {
 }
 
 export async function _exctractPageImage(
-  head: HTMLHeadElement | null,
+  document_: Document,
   baseURL: string
 ): Promise<WebPageContentImage | null> {
+  const head = document_.head
   let favicon = null
   let og = null
   if (head == null) {
@@ -350,9 +382,9 @@ export async function _exctractPageImage(
     }
   }
   const icon = og
-    ? await fetchImageAsBase64(og)
+    ? await fetchImagePreviewAsBase64(og, document_, 240)
     : favicon
-    ? await fetchImageAsBase64(favicon)
+    ? await fetchImagePreviewAsBase64(favicon, document_, 240)
     : null
   return icon ? icon : null
 }
