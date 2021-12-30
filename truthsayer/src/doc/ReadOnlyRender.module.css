@@ -1,7 +1,5 @@
 .read_only_card {
   margin: 0;
-
-  /* border-color: var(--small_card_border_colour); */
   border-style: none;
 }
 
