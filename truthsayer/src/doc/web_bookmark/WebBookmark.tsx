@@ -20,8 +20,8 @@ const Box = styled.div`
 `
 
 const IconImg = styled.img`
-  width: 70px;
-  height: 70px;
+  width: 76px;
+  height: 76px;
   object-fit: cover;
 
   border-radius: 2px;

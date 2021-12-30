@@ -21,7 +21,7 @@ import { stabiliseUrl } from './originId'
 async function fetchImagePreviewAsBase64(
   url: string,
   document_: Document,
-  maxSize: number
+  dstSquareSize: number
 ): Promise<PreviewImageSmall | null> {
   const resp = await fetch(url)
   if (!resp.ok) {
@@ -49,23 +49,26 @@ async function fetchImagePreviewAsBase64(
       image.onerror = reject
       image.onload = (_ev) => {
         // Crop image, getting the biggest square from the center
-        // and resize it down to [maxSize] - we don't need more for preview
-        let canvas = document_.createElement('canvas')
-        let { width, height } = image
-        let sx = 0
-        let sy = 0
-        if (height < width) {
-          sx = Math.floor((width - height) / 2)
-          width = height
-        } else if (width < height) {
-          sy = Math.floor((height - width) / 2)
-          height = width
-        }
-        canvas.width = maxSize
-        canvas.height = maxSize
-        canvas
-          .getContext('2d')
-          ?.drawImage(image, sx, sy, width, height, 0, 0, maxSize, maxSize)
+        // and resize it down to [dstSquareSize] - we don't need more for preview
+        const { width, height } = image
+        const toCut = Math.floor((width - height) / 2)
+        const srcDeltaX = toCut > 0 ? toCut : 0
+        const srcDeltaY = toCut < 0 ? -toCut : 0
+        const srcSquareSize = Math.min(width, height)
+        const canvas = document_.createElement('canvas')
+        canvas.width = dstSquareSize
+        canvas.height = dstSquareSize
+        canvas.getContext('2d')?.drawImage(
+          image,
+          srcDeltaX,
+          srcDeltaY,
+          srcSquareSize,
+          srcSquareSize,
+          0, // dstDeltaX
+          0, // dstDeltaY
+          dstSquareSize,
+          dstSquareSize
+        )
         const data = canvas.toDataURL(Mime.IMAGE_JPEG)
         resolve(data ? { data, content_type: Mime.IMAGE_JPEG } : null)
       }
