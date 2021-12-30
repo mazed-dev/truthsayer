@@ -8,8 +8,6 @@ import jsdom from 'jsdom'
 
 import fetchMock from 'jest-fetch-mock'
 
-import { Mime } from 'smuggler-api'
-
 import {
   _stripWhitespaceInText,
   _exctractPageText,
@@ -17,7 +15,6 @@ import {
   _exctractPageAuthor,
   _exctractPageLanguage,
   _exctractPagePublisher,
-  _exctractPageImage,
   exctractPageContent,
 } from './webPageContent'
 
@@ -205,62 +202,6 @@ test('_exctractPagePublisher', () => {
   const head = dom.window.document.getElementsByTagName('head')[0]
   const publisher = _exctractPagePublisher(head)
   expect(publisher).toStrictEqual(['The Publisher Abc'])
-})
-
-/**
- * Couldn't figure out how to test <img> and <canvas> with JSDOM, disabling
- * these tests for now
- */
-test.skip('_exctractPageImage', async () => {
-  const dom = new JSDOM(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
-</head>
-<body>
-</body>
-</html>
-`)
-  fetchMock.mockResponse('\0', {
-    status: 200,
-    headers: {
-      'Content-type': Mime.IMAGE_PNG,
-    },
-    url: 'https://zxc.abc/favicon-96x96.png',
-  })
-  const image = await _exctractPageImage(dom.window.document, 'https://zxc.abc')
-  expect(image).toStrictEqual({
-    content_type: Mime.IMAGE_PNG,
-    data: 'data:image/png;base64,Li4u',
-  })
-})
-
-test.skip('_exctractPageImage - relative ref', async () => {
-  const dom = new JSDOM(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta property="og:image" content="/asset/ZgxW.jpg">
-  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
-</head>
-<body>
-</body>
-</html>
-`)
-  fetchMock.mockResponse('...', {
-    status: 200,
-    headers: {
-      'Content-type': Mime.IMAGE_JPEG,
-    },
-  })
-
-  const image = await _exctractPageImage(
-    dom.window.document,
-    'https://term.info'
-  )
-  expect(image).toStrictEqual({
-    content_type: Mime.IMAGE_JPEG,
-    data: 'data:image/jpeg;base64,Li4u',
-  })
 })
 
 test('exctractPageContent - main', async () => {
