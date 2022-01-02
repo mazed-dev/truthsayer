@@ -20,14 +20,13 @@ import { MzdGlobalContext } from './../lib/global'
 
 import { smuggler } from 'smuggler-api'
 
-import { goto, compass } from './../lib/route'
+import { compass } from './../lib/route'
 
 import { jcss } from 'elementary'
 
 import kUserDefaultPic from './../auth/img/user-default-pic.png'
 
 import { getLogoImage } from './../dev/env'
-import { makeDoc } from './../doc/doc_util'
 
 import { SearchForm } from './SearchForm'
 
@@ -76,31 +75,8 @@ class UserPic extends React.Component {
 }
 
 class PrivateNavButtonsImpl extends React.Component {
-  constructor(props) {
-    super(props)
-    this.newNodeAbortController = new AbortController()
-    this.newNodeAbortController = new AbortController()
-  }
-
   static propTypes = {
-    history: PropTypes.object.isRequired,
     location: PropTypes.object.isRequired,
-  }
-
-  handleNewClick = (event) => {
-    makeDoc({})
-      .then((doc) => {
-        return smuggler.node.create({
-          text: doc.toNodeTextData(),
-          signal: this.newNodeAbortController.signal,
-          signal: this.newNodeAbortController.signal,
-        })
-      })
-      .then((node) => {
-        if (node) {
-          goto.node({ history: this.props.history, nid: node.nid })
-        }
-      })
   }
 
   getAuxGroup = () => {
