@@ -1712,7 +1712,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@emotion/babel-plugin@npm:^11.3.0":
+"@emotion/babel-plugin@npm:^11.3.0, @emotion/babel-plugin@npm:^11.7.2":
   version: 11.7.2
   resolution: "@emotion/babel-plugin@npm:11.7.2"
   dependencies:
@@ -16279,6 +16279,7 @@ __metadata:
     "@babel/core": ^7.15.5
     "@babel/plugin-proposal-class-properties": ^7.13.0
     "@babel/preset-typescript": ^7.7.4
+    "@emotion/babel-plugin": ^11.7.2
     "@emotion/react": ^11.7.1
     "@emotion/styled": ^11.6.0
     "@popperjs/core": ^2.10.2
