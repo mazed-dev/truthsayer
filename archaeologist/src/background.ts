@@ -168,6 +168,7 @@ chrome.tabs.onUpdated.addListener(
     tab: chrome.tabs.Tab
   ) => {
     if (!tab.incognito && changeInfo.status === 'complete') {
+      // Request page saved status on new non-incognito page loading
       requestPageSavedStatus(tabId)
     }
   }
