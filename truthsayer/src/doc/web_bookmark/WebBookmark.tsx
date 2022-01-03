@@ -30,8 +30,8 @@ const IconImgEmpty = styled.div`
   background-color: rgb(0, 0, 0, 0.04);
 `
 const PreviewImageBox = styled.div`
-  width: 76px;
-  height: 76px;
+  width: 72px;
+  height: 72px;
   object-fit: cover;
   border-radius: 2px;
   padding: 0;
