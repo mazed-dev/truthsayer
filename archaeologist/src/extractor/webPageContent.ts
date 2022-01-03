@@ -21,8 +21,10 @@ import { stabiliseUrl } from './originId'
 import * as log from '../util/log'
 import { isAbortError } from '../util/exception'
 
-async function fetchImageAsBase64(
-  url: string
+async function fetchImagePreviewAsBase64(
+  url: string,
+  document_: Document,
+  dstSquareSize: number
 ): Promise<PreviewImageSmall | null> {
   const resp = await fetch(url).catch((err) => {
     if (!isAbortError(err)) {
@@ -46,12 +48,44 @@ async function fetchImageAsBase64(
   const blob = new Blob([data], {
     type: mime,
   })
+  // Load the image
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onerror = reject
-    reader.onload = () => {
+    reader.onload = (_readerEvent: ProgressEvent<FileReader>) => {
+      const image = document_.createElement('img')
+      image.onerror = reject
+      image.onload = (_ev) => {
+        // Crop image, getting the biggest square from the center
+        // and resize it down to [dstSquareSize] - we don't need more for preview
+        const { width, height } = image
+        const toCut = Math.floor((width - height) / 2)
+        const srcDeltaX = toCut > 0 ? toCut : 0
+        const srcDeltaY = toCut < 0 ? -toCut : 0
+        const srcSquareSize = Math.min(width, height)
+        const canvas = document_.createElement('canvas')
+        canvas.width = dstSquareSize
+        canvas.height = dstSquareSize
+        canvas.getContext('2d')?.drawImage(
+          image,
+          srcDeltaX,
+          srcDeltaY,
+          srcSquareSize,
+          srcSquareSize,
+          0, // dstDeltaX
+          0, // dstDeltaY
+          dstSquareSize,
+          dstSquareSize
+        )
+        const data = canvas.toDataURL(Mime.IMAGE_JPEG)
+        resolve(data ? { data, content_type: Mime.IMAGE_JPEG } : null)
+      }
       const data = reader.result as string | null
-      resolve(data ? { data, content_type: mime } : null)
+      if (data) {
+        image.src = data
+      } else {
+        resolve(null)
+      }
     }
     reader.readAsDataURL(blob)
   })
@@ -106,29 +140,32 @@ export async function exctractPageContent(
     // Do a best effort with what @mozilla/readability gives us here
     title = article.title
     const { textContent, excerpt, byline, siteName } = article
-    text = textContent
+    text = _stripWhitespaceInText(textContent)
     description = excerpt
     if (byline) {
-      author.push(byline)
+      author.push(_stripWhitespaceInText(byline))
     }
     if (siteName) {
       publisher.push(siteName)
     }
   }
   if (title) {
-    title = _stripText(title)
+    title = _stripWhitespaceInText(title)
   } else {
     title = head ? _exctractPageTitle(head) : null
   }
   if (description) {
-    description = _stripText(description)
+    description = _stripWhitespaceInText(description)
   } else {
     description = head ? _exctractPageDescription(head) : null
   }
-  if (text) {
-    text = _stripText(text)
-  } else {
+  if (text == null) {
     text = body ? _exctractPageText(body) : null
+  }
+  if (text != null) {
+    // Cut string by length 10KiB to avoid blowing up backend with huge JSON.
+    // Later on we can and perhaps should reconsider this limit.
+    text = text.substr(0, 10240)
   }
   if (author.length === 0 && head) {
     author.push(..._exctractPageAuthor(head))
@@ -141,7 +178,7 @@ export async function exctractPageContent(
     description,
     lang,
     text,
-    image: await _exctractPageImage(head || null, baseURL),
+    image: await _exctractPageImage(document_, baseURL),
   }
 }
 
@@ -161,7 +198,9 @@ const isSameOrDescendant = function (parent: Element, child: Element) {
   return false
 }
 
-export function _stripText(text: string): string {
+// Strip whitespace characters at the beginning and the end of the text, also
+// replace any consecutive row of whitespace characters with a single space.
+export function _stripWhitespaceInText(text: string): string {
   text = text.trim()
   text = text.replace(/[\u00B6\u2202\s]{2,}/g, ' ')
   return text
@@ -195,7 +234,7 @@ export function _exctractPageText(body: HTMLElement): string {
       if (isAdded) {
         continue
       }
-      ret.push(_stripText(textContent))
+      ret.push(_stripWhitespaceInText(textContent))
       addedElements.push(element)
     }
   }
@@ -220,7 +259,7 @@ export function _exctractPageText(body: HTMLElement): string {
       if (isAdded) {
         continue
       }
-      ret.push(_stripText(textContent))
+      ret.push(_stripWhitespaceInText(textContent))
       addedElements.push(element)
     }
   }
@@ -241,7 +280,7 @@ export function _exctractPageTitle(head: HTMLHeadElement): string | null {
     for (const element of headTitles) {
       const title = (element.innerText || element.textContent)?.trim()
       if (title) {
-        return _stripText(title)
+        return _stripWhitespaceInText(title)
       }
     }
   }
@@ -253,7 +292,7 @@ export function _exctractPageTitle(head: HTMLHeadElement): string | null {
     for (const element of elementsGroup) {
       const title = element.getAttribute('content')?.trim()
       if (title) {
-        return _stripText(title)
+        return _stripWhitespaceInText(title)
       }
     }
   }
@@ -268,7 +307,7 @@ export function _exctractPageAuthor(head: HTMLHeadElement): string[] {
     for (const element of elementsGroup) {
       const title = element.getAttribute('content')?.trim()
       if (title) {
-        authors.push(_stripText(title))
+        authors.push(_stripWhitespaceInText(title))
       }
     }
   }
@@ -284,7 +323,7 @@ export function _exctractPageDescription(head: HTMLHeadElement): string | null {
     for (const element of elementsGroup) {
       const title = element.getAttribute('content')?.trim()
       if (title) {
-        return _stripText(title)
+        return _stripWhitespaceInText(title)
       }
     }
   }
@@ -309,7 +348,7 @@ export function _exctractPagePublisher(head: HTMLHeadElement): string[] {
     for (const element of elementsGroup) {
       const p = element.getAttribute('content')?.trim()
       if (p) {
-        publisher.push(_stripText(p))
+        publisher.push(_stripWhitespaceInText(p))
       }
     }
     if (publisher.length > 0) {
@@ -327,9 +366,10 @@ function ensureAbsRef(ref: string, baseURL: string): string {
 }
 
 export async function _exctractPageImage(
-  head: HTMLHeadElement | null,
+  document_: Document,
   baseURL: string
 ): Promise<WebPageContentImage | null> {
+  const head = document_.head
   let favicon = null
   let og = null
   if (head == null) {
@@ -358,9 +398,9 @@ export async function _exctractPageImage(
     }
   }
   const icon = og
-    ? await fetchImageAsBase64(og)
+    ? await fetchImagePreviewAsBase64(og, document_, 240)
     : favicon
-    ? await fetchImageAsBase64(favicon)
+    ? await fetchImagePreviewAsBase64(favicon, document_, 240)
     : null
   return icon ? icon : null
 }
