@@ -8,16 +8,13 @@ import jsdom from 'jsdom'
 
 import fetchMock from 'jest-fetch-mock'
 
-import { Mime } from 'smuggler-api'
-
 import {
-  _stripText,
+  _stripWhitespaceInText,
   _exctractPageText,
   _exctractPageTitle,
   _exctractPageAuthor,
   _exctractPageLanguage,
   _exctractPagePublisher,
-  _exctractPageImage,
   exctractPageContent,
 } from './webPageContent'
 
@@ -29,9 +26,9 @@ beforeEach(() => {
   fetchMock.doMock()
 })
 
-test('_stripText', () => {
+test('_stripWhitespaceInText', () => {
   expect(
-    _stripText(`  a  b   c     d   \t \n  e\n\n
+    _stripWhitespaceInText(`  a  b   c     d   \t \n  e\n\n
 @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \\ ] ^ _ \` a b
  c d e f g h i j k l m n o p q r s t u v w x y z { | } ~
   `)
@@ -196,7 +193,7 @@ test('_exctractPagePublisher', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta property="og:site_name" content="The Publisher">
+<meta property="og:site_name" content="The Publisher \n\n Abc">
 </head>
 <body >
 </body>
@@ -204,58 +201,7 @@ test('_exctractPagePublisher', () => {
 `)
   const head = dom.window.document.getElementsByTagName('head')[0]
   const publisher = _exctractPagePublisher(head)
-  expect(publisher).toStrictEqual(['The Publisher'])
-})
-
-test('_exctractPageImage', async () => {
-  const dom = new JSDOM(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
-</head>
-<body>
-</body>
-</html>
-`)
-  fetchMock.mockResponse('...', {
-    status: 200,
-    headers: {
-      'Content-type': Mime.IMAGE_PNG,
-    },
-    url: 'https://zxc.abc/favicon-96x96.png',
-  })
-  const head = dom.window.document.getElementsByTagName('head')[0]
-  const image = await _exctractPageImage(head, 'https://zxc.abc')
-  expect(image).toStrictEqual({
-    content_type: Mime.IMAGE_PNG,
-    data: 'data:image/png;base64,Li4u',
-  })
-})
-
-test('_exctractPageImage - relative ref', async () => {
-  const dom = new JSDOM(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta property="og:image" content="/asset/ZgxW.jpg">
-  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
-</head>
-<body>
-</body>
-</html>
-`)
-  fetchMock.mockResponse('...', {
-    status: 200,
-    headers: {
-      'Content-type': Mime.IMAGE_JPEG,
-    },
-  })
-
-  const head = dom.window.document.getElementsByTagName('head')[0]
-  const image = await _exctractPageImage(head, 'https://term.info')
-  expect(image).toStrictEqual({
-    content_type: Mime.IMAGE_JPEG,
-    data: 'data:image/jpeg;base64,Li4u',
-  })
+  expect(publisher).toStrictEqual(['The Publisher Abc'])
 })
 
 test('exctractPageContent - main', async () => {
@@ -266,7 +212,6 @@ test('exctractPageContent - main', async () => {
 <html class="responsive" lang="en">
 <head>
   <title>Some title</title>
-  <link rel="icon" href="/icon.svg" sizes="any" type="image/svg+xml">
   <meta property="author" content="Correct First Author">
   <meta property="author" content="Correct Second Author">
   <meta property="og:site_name" content="The Publisher">
@@ -287,16 +232,6 @@ test('exctractPageContent - main', async () => {
     { url: originalUrl }
   )
 
-  fetchMock.mockResponse(
-    '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg></svg>',
-    {
-      status: 200,
-      headers: {
-        'Content-type': Mime.IMAGE_SVG_XML,
-      },
-    }
-  )
-
   const content = await exctractPageContent(dom.window.document, origin)
   const { url, title, author, publisher, description, lang, text, image } =
     content
@@ -310,8 +245,5 @@ test('exctractPageContent - main', async () => {
   expect(publisher).toStrictEqual(['The Publisher'])
   expect(description).toStrictEqual('A JavaScript implementation')
   expect(lang).toStrictEqual('en')
-  expect(image).toStrictEqual({
-    content_type: Mime.IMAGE_SVG_XML,
-    data: 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+PHN2Zz48L3N2Zz4=',
-  })
+  expect(image).toStrictEqual(null)
 })

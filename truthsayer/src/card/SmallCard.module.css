@@ -13,9 +13,6 @@
 }
 
 .small_card_shadow_0 {
-  /* This is actual shadow of the card, which I find not quite pretty for now,
-   * so I deleted it. */
-  /* box-shadow: 4px 4px 5px var(--small_card_shadow_colour); */
 }
 
 .small_card_shadow_1 {
