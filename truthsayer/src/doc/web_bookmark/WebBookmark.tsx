@@ -8,8 +8,6 @@ import { MdiLaunch } from 'elementary'
 
 import styled from '@emotion/styled'
 
-import * as log from '../../util/log'
-
 const Box = styled.div`
   width: 100%;
 
@@ -20,18 +18,24 @@ const Box = styled.div`
 `
 
 const IconImg = styled.img`
-  width: 70px;
-  height: 70px;
-  object-fit: cover;
-
-  border-radius: 2px;
-
-  margin: 0.45em 0.45em 0 0.45em;
-
+  height: inherit;
+  width: inherit;
+  border-radius: inherit;
   background-color: white;
 `
-const IconBox = styled.div`
+const IconImgEmpty = styled.div`
+  height: inherit;
+  width: inherit;
+  border-radius: inherit;
+  background-color: rgb(0, 0, 0, 0.04);
+`
+const PreviewImageBox = styled.div`
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 2px;
   padding: 0;
+  margin: 0.45em 0.45em 0 0.45em;
   position: relative;
 `
 
@@ -41,7 +45,9 @@ const IconLaunch = styled.a`
 
   position: absolute;
   bottom: 0;
-  left: 30px;
+
+  font-size: 14;
+  left: 26px;
 
   opacity: 50%;
 
@@ -51,25 +57,22 @@ const IconLaunch = styled.a`
   }
 `
 
-const Icon = ({
+const PreviewImage = ({
   icon,
   url,
 }: {
   icon: Optional<PreviewImageSmall>
   url?: string
 }) => {
-  if (icon) {
-    const { data } = icon
-    return (
-      <IconBox>
-        <IconImg src={data} />
-        <IconLaunch href={url}>
-          <MdiLaunch />
-        </IconLaunch>
-      </IconBox>
-    )
-  }
-  return null
+  const img = icon == null ? <IconImgEmpty /> : <IconImg src={icon.data} />
+  return (
+    <PreviewImageBox>
+      {img}
+      <IconLaunch href={url}>
+        <MdiLaunch />
+      </IconLaunch>
+    </PreviewImageBox>
+  )
 }
 
 const BadgeBox = styled.div`
@@ -123,7 +126,7 @@ export const WebBookmark = ({ extattrs }: WebBookmarkProps) => {
   return (
     <Box>
       <BadgeBox>
-        <Icon icon={preview_image || null} url={url} />
+        <PreviewImage icon={preview_image || null} url={url} />
         <TitleBox>
           <Title>{title}</Title>
           <Domain>{hostname}</Domain>

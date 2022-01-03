@@ -16,11 +16,9 @@ import { css } from '@emotion/react'
 
 import { Card, Button, Container } from 'react-bootstrap'
 
-import { parse } from 'query-string'
-
 import DoodledBird from './DoodledBird.svg'
 import Triptych from './card/Triptych'
-import { SearchGrid } from './grid/SearchGrid'
+import { SearchGridView } from './grid/SearchGridView'
 
 import GlobalNavBar from './navbar/GlobalNavBar'
 import Login from './auth/Login'
@@ -93,7 +91,7 @@ function AppRouter() {
             <Logout />
           </Route>
           <PrivateRoute path={routes.search}>
-            <SearchView />
+            <SearchGridView />
           </PrivateRoute>
           <Route path={routes.node}>
             <TriptychView />
@@ -314,12 +312,6 @@ function TriptychView() {
   // the dynamic pieces of the URL.
   const { nid } = useParams()
   return <Triptych nid={nid} />
-}
-
-function SearchView() {
-  const location = useLocation()
-  const params = parse(location.search)
-  return <SearchGrid q={params.q} defaultSearch />
 }
 
 export default App
