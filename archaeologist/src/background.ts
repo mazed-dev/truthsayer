@@ -42,7 +42,29 @@ const requestPageContentToSave = () => {
   sendMessageToActiveTab({ type: 'REQUEST_PAGE_TO_SAVE' })
 }
 
-const savePage = (url: string, originId: number, content: WebPageContent) => {
+function updatePageSavedStatus(
+  nid: string | null,
+  tabId?: number,
+  unmemorable?: true
+): void {
+  if (nid) {
+    sendMessageToPopUp({ type: 'SAVED_NODE', nid })
+    badge.resetText(tabId, '1')
+  } else if (unmemorable) {
+    sendMessageToPopUp({ type: 'SAVED_NODE', unmemorable: true })
+    badge.resetText(tabId)
+  } else {
+    sendMessageToPopUp({ type: 'SAVED_NODE' })
+    badge.resetText(tabId)
+  }
+}
+
+const savePage = (
+  url: string,
+  originId: number,
+  content: WebPageContent,
+  tabId?: number
+) => {
   log.debug('Save page content', NodeType.Url, url, originId, content)
   const text = makeNodeTextData()
   const index_text: NodeIndexText = {
@@ -75,13 +97,18 @@ const savePage = (url: string, originId: number, content: WebPageContent) => {
     })
     .then((resp) => {
       if (resp) {
-        sendMessageToPopUp({ type: 'SAVED_NODE', nid: resp.nid })
+        updatePageSavedStatus(resp.nid, tabId)
       }
     })
 }
 
-const requestPageInActiveTabSavedStatus = async () => {
-  sendMessageToActiveTab({ type: 'REQUEST_PAGE_ORIGIN_ID' })
+const requestPageSavedStatus = (tabId?: number) => {
+  const message: MessageType = { type: 'REQUEST_PAGE_ORIGIN_ID' }
+  if (tabId == null) {
+    sendMessageToActiveTab(message)
+  } else {
+    chrome.tabs.sendMessage(tabId, message)
+  }
 }
 
 // Periodically renew auth token using Knocker
@@ -105,11 +132,13 @@ const sendAuthStatus = () => {
 }
 
 const checkOriginIdAndUpdatePageStatus = async (
+  tabId: number | undefined,
   url: string,
   originId?: number
 ) => {
   if (originId == null) {
-    sendMessageToPopUp({ type: 'SAVED_NODE', unmemorable: true })
+    const unmemorable = true
+    updatePageSavedStatus(null, tabId, unmemorable)
     return
   }
   const iter = smuggler.node.slice({
@@ -125,12 +154,24 @@ const checkOriginIdAndUpdatePageStatus = async (
       break
     }
     if (node.isWebBookmark() && node.extattrs?.web?.url === url) {
-      sendMessageToPopUp({ type: 'SAVED_NODE', nid: node.nid })
+      updatePageSavedStatus(node.nid, tabId)
       return
     }
   }
-  sendMessageToPopUp({ type: 'SAVED_NODE' })
+  updatePageSavedStatus(null, tabId)
 }
+
+chrome.tabs.onUpdated.addListener(
+  (
+    tabId: number,
+    changeInfo: chrome.tabs.TabChangeInfo,
+    tab: chrome.tabs.Tab
+  ) => {
+    if (!tab.incognito && changeInfo.status === 'complete') {
+      requestPageSavedStatus(tabId)
+    }
+  }
+)
 
 chrome.cookies.onChanged.addListener((info) => {
   const { value, name, domain } = info.cookie
@@ -145,30 +186,34 @@ chrome.cookies.onChanged.addListener((info) => {
   }
 })
 
-chrome.runtime.onMessage.addListener((message: MessageType) => {
-  log.debug('chrome.runtime.onMessage listener', message)
-  // process is not defined in browsers extensions - use it to set up axios
-  switch (message.type) {
-    case 'REQUEST_PAGE_TO_SAVE':
-      requestPageContentToSave()
-      break
-    case 'REQUEST_SAVED_NODE':
-      requestPageInActiveTabSavedStatus()
-      break
-    case 'PAGE_TO_SAVE':
-      const { url, content, originId } = message
-      savePage(url, originId, content)
-      break
-    case 'REQUEST_AUTH_STATUS':
-      sendAuthStatus()
-      break
-    case 'PAGE_ORIGIN_ID':
-      {
-        const { url, originId } = message
-        checkOriginIdAndUpdatePageStatus(url, originId)
-      }
-      break
-    default:
-      break
+chrome.runtime.onMessage.addListener(
+  (message: MessageType, sender: chrome.runtime.MessageSender) => {
+    log.debug('chrome.runtime.onMessage listener', message, sender)
+    // process is not defined in browsers extensions - use it to set up axios
+    switch (message.type) {
+      case 'REQUEST_PAGE_TO_SAVE':
+        requestPageContentToSave()
+        break
+      case 'REQUEST_SAVED_NODE':
+        requestPageSavedStatus()
+        break
+      case 'PAGE_TO_SAVE':
+        const { url, content, originId } = message
+        const tabId = sender.tab?.id
+        savePage(url, originId, content, tabId)
+        break
+      case 'REQUEST_AUTH_STATUS':
+        sendAuthStatus()
+        break
+      case 'PAGE_ORIGIN_ID':
+        {
+          const { url, originId } = message
+          const tabId = sender.tab?.id
+          checkOriginIdAndUpdatePageStatus(tabId, url, originId)
+        }
+        break
+      default:
+        break
+    }
   }
-})
+)
