@@ -24,7 +24,8 @@ export function setInactive() {
   })
 }
 
-export function resetText(text?: string) {
+export function resetText(tabId?: number, text?: string) {
   text = text || ''
-  chrome.action.setBadgeText({ text })
+  chrome.action.setBadgeText({ text, tabId })
+  chrome.action.setBadgeBackgroundColor({ tabId, color: [148, 148, 148, 255] })
 }
