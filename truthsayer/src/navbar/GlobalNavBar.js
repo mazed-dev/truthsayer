@@ -6,7 +6,6 @@ import styles from './GlobalNavBar.module.css'
 import { Link } from 'react-router-dom'
 
 import {
-  Button,
   ButtonToolbar,
   ButtonGroup,
   Dropdown,
@@ -21,19 +20,15 @@ import { MzdGlobalContext } from './../lib/global'
 
 import { smuggler } from 'smuggler-api'
 
-import { HoverTooltip } from './../lib/tooltip'
-import { goto, compass } from './../lib/route'
+import { compass } from './../lib/route'
 
 import { jcss } from 'elementary'
 
 import kUserDefaultPic from './../auth/img/user-default-pic.png'
 
-import NewImg from './../img/new-button-strip.svg'
 import { getLogoImage } from './../dev/env'
-import { makeDoc } from './../doc/doc_util'
 
 import { SearchForm } from './SearchForm'
-import { UploadNodeButton } from './../upload/UploadNodeButton'
 
 class UserPic extends React.Component {
   constructor(props) {
@@ -80,31 +75,8 @@ class UserPic extends React.Component {
 }
 
 class PrivateNavButtonsImpl extends React.Component {
-  constructor(props) {
-    super(props)
-    this.newNodeAbortController = new AbortController()
-    this.newNodeAbortController = new AbortController()
-  }
-
   static propTypes = {
-    history: PropTypes.object.isRequired,
     location: PropTypes.object.isRequired,
-  }
-
-  handleNewClick = (event) => {
-    makeDoc({})
-      .then((doc) => {
-        return smuggler.node.create({
-          text: doc.toNodeTextData(),
-          signal: this.newNodeAbortController.signal,
-          signal: this.newNodeAbortController.signal,
-        })
-      })
-      .then((node) => {
-        if (node) {
-          goto.node({ history: this.props.history, nid: node.nid })
-        }
-      })
   }
 
   getAuxGroup = () => {
@@ -126,19 +98,6 @@ class PrivateNavButtonsImpl extends React.Component {
     return (
       <>
         <SearchForm from={query} className={styles.search_form} />
-
-        <ButtonToolbar className={styles.creation_toolbar}>
-          <UploadNodeButton className={styles.nav_button} />
-          <Button
-            variant="light"
-            onClick={this.handleNewClick}
-            className={styles.nav_button}
-          >
-            <HoverTooltip tooltip={'New'}>
-              <img src={NewImg} className={styles.new_btn_img} alt="New" />
-            </HoverTooltip>
-          </Button>
-        </ButtonToolbar>
 
         {this.getAuxGroup()}
 
