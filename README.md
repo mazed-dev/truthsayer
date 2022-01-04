@@ -11,7 +11,7 @@ See [yarn workspaces](https://yarnpkg.com/features/workspaces).
 
 ## Docs
 
-For free private repos wiki is not available. Instead there is directory "./docs" in the root of this repo with markdown files.
+- [Labels](./docs/labels.md)
 
 ## Development
 
