@@ -4,7 +4,7 @@ import * as React from 'react'
 import styled from '@emotion/styled'
 
 import { MdiBookmarkAdd, MdiLaunch, Spinner } from 'elementary'
-import { Button } from './Button'
+import { Button, ButtonCreate } from './Button'
 
 import { MessageType } from './../message/types'
 import { mazed } from '../util/mazed'
@@ -62,9 +62,13 @@ export const SavePageButton = () => {
   let btn
   if (pageSavedNode === 'memorable') {
     btn = (
-      <Button onClick={handleSave}>
-        <MdiBookmarkAdd />
-      </Button>
+      <ButtonCreate onClick={handleSave}>
+        <MdiBookmarkAdd
+          css={{
+            verticalAlign: 'top',
+          }}
+        />
+      </ButtonCreate>
     )
   } else if (pageSavedNode === 'loading') {
     btn = <Spinner.Wheel />
@@ -77,7 +81,11 @@ export const SavePageButton = () => {
   } else {
     btn = (
       <Button onClick={handleGoToNode}>
-        <MdiLaunch />
+        <MdiLaunch
+          css={{
+            verticalAlign: 'top',
+          }}
+        />
       </Button>
     )
   }
