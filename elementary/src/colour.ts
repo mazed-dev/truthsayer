@@ -1,27 +1,30 @@
 export enum Colour {
-  ButtonCreateBorderHover = '#146c43',
-  ButtonCreateBackgroundHover = '#157347',
-  ButtonCreateBackground = '#198754',
-  ButtonCreateShadowHover = 'rgba(60,153,110,0.5)',
   White = '#fff',
 }
 
+export enum ColourButtonCreate {
+  BorderHover = '#146c43',
+  BackgroundHover = '#157347',
+  Background = '#198754',
+  ShadowHover = 'rgba(60,153,110,0.5)',
+}
+
 export const StyleButtonCreate = {
-  backgroundColor: Colour.ButtonCreateBackground,
-  borderColor: Colour.ButtonCreateBackground,
+  backgroundColor: ColourButtonCreate.Background,
+  borderColor: ColourButtonCreate.Background,
   color: Colour.White,
   '&:active': {
-    backgroundColor: Colour.ButtonCreateBackgroundHover,
-    borderColor: Colour.ButtonCreateBorderHover,
+    backgroundColor: ColourButtonCreate.BackgroundHover,
+    borderColor: ColourButtonCreate.BorderHover,
   },
   '&:hover': {
-    backgroundColor: Colour.ButtonCreateBackgroundHover,
-    borderColor: Colour.ButtonCreateBorderHover,
+    backgroundColor: ColourButtonCreate.BackgroundHover,
+    borderColor: ColourButtonCreate.BorderHover,
   },
   '&:focus': {
-    backgroundColor: Colour.ButtonCreateBackgroundHover,
-    borderColor: Colour.ButtonCreateBorderHover,
-    boxShadow: `0 0 0 4px ${Colour.ButtonCreateShadowHover}`,
+    backgroundColor: ColourButtonCreate.BackgroundHover,
+    borderColor: ColourButtonCreate.BorderHover,
+    boxShadow: `0 0 0 4px ${ColourButtonCreate.ShadowHover}`,
   },
   transition: `color .15s ease-in-out,
                background-color .15s ease-in-out,
