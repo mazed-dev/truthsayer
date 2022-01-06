@@ -2,20 +2,24 @@
 
 import styled from '@emotion/styled'
 
+import { StyleButtonCreate } from 'elementary'
+
 export const Button = styled.button`
   background-color: #ffffff;
   border-style: solid;
   border-width: 0;
-  border-radius: 28px;
-  opacity: 0.5;
+  border-radius: 32px;
   font-size: 20px;
 
   display: table;
-  padding: 8px 10px 8px 10px;
+  padding: 8px 8px 8px 8px;
   margin: 0;
 
   &:hover {
-    opacity: 1;
     background-color: #d0d1d2;
   }
 `
+
+export const ButtonCreate = styled(Button)({
+  ...StyleButtonCreate,
+})

@@ -7,7 +7,7 @@ import styled from '@emotion/styled'
 import { Dropdown } from 'react-bootstrap'
 import { useHistory } from 'react-router-dom'
 
-import { MdiAdd, MdiFileUpload } from 'elementary'
+import { MdiAdd, MdiFileUpload, StyleButtonCreate } from 'elementary'
 
 import { smuggler } from 'smuggler-api'
 import { goto } from './../lib/route'
@@ -52,6 +52,7 @@ const CustomDropdownToggle = styled(Dropdown.Toggle)({
     // Hide dropdown arrow
     display: 'none',
   },
+  ...StyleButtonCreate,
 })
 
 const CustomDropdownMenu = styled(Dropdown.Menu)({
