@@ -2,6 +2,8 @@ import { MessageType } from './message/types'
 import * as badge from './badge'
 import * as log from './util/log'
 
+import browser from 'webextension-polyfill'
+
 import { WebPageContent } from './extractor/webPageContent'
 
 import {
@@ -20,7 +22,7 @@ import {
 
 function sendMessageToPopUp(message: MessageType) {
   log.debug('sendMessageToPopUp', message)
-  chrome.runtime.sendMessage(message)
+  browser.runtime.sendMessage(message)
 }
 
 function sendMessageToActiveTab(message: MessageType) {
