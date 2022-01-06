@@ -8,12 +8,6 @@ const _getSmugglerApiUrl = (mode) => {
     : "https://mazed.dev/smuggler"
 }
 
-const _getWebextensionPolyfill = (mode) => {
-  return mode === 'development'
-    ? "browser-polyfill.js"
-    : "browser-polyfill.min.js"
-}
-
 const _manifestTransform = (buffer, mode) => {
   const manifest = JSON.parse(buffer.toString());
 
@@ -37,11 +31,6 @@ const _manifestTransform = (buffer, mode) => {
     }
   });
   return JSON.stringify(manifest, null, 2);
-}
-
-const _popUpHtmltTransform = (buffer, mode) => {
-  const webExtPolyfill = _getWebextensionPolyfill(mode)
-  return buffer.toString().replace("WEBEXTENSION_POLYFILL.js", webExtPolyfill)
 }
 
 const config = (env, argv) => {
@@ -117,8 +106,6 @@ const config = (env, argv) => {
           transform: (context, absoluteFrom) => {
             if (absoluteFrom.endsWith("/manifest.json")) {
               return _manifestTransform(context, argv.mode)
-            } else if (absoluteFrom.endsWith("/popup.html")) {
-              return _popUpHtmltTransform(context, argv.mode)
             }
             return context
           },
