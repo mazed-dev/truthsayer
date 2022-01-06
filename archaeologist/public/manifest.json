@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Mazed",
   "author": "Thread knowledge",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Bookmark web pages to Mazed",
   "action": {
     "default_icon": {
