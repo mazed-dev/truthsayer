@@ -1,21 +1,30 @@
 export enum Colour {
-  ButtonCreate1 = '#13653f', // Darker
-  ButtonCreate2 = '#146c43',
-  ButtonCreate3 = '#157347',
-  ButtonCreate4 = '#198754', // Lighter
+  ButtonCreateBorderHover = '#146c43',
+  ButtonCreateBackgroundHover = '#157347',
+  ButtonCreateBackground = '#198754',
+  ButtonCreateShadowHover = 'rgba(60,153,110,0.5)',
   White = '#fff',
 }
 
 export const StyleButtonCreate = {
-  backgroundColor: Colour.ButtonCreate4,
-  borderColor: Colour.ButtonCreate4,
+  backgroundColor: Colour.ButtonCreateBackground,
+  borderColor: Colour.ButtonCreateBackground,
   color: Colour.White,
   '&:active': {
-    backgroundColor: Colour.ButtonCreate2,
-    borderColor: Colour.ButtonCreate1,
+    backgroundColor: Colour.ButtonCreateBackgroundHover,
+    borderColor: Colour.ButtonCreateBorderHover,
   },
   '&:hover': {
-    backgroundColor: Colour.ButtonCreate3,
-    borderColor: Colour.ButtonCreate2,
+    backgroundColor: Colour.ButtonCreateBackgroundHover,
+    borderColor: Colour.ButtonCreateBorderHover,
   },
+  '&:focus': {
+    backgroundColor: Colour.ButtonCreateBackgroundHover,
+    borderColor: Colour.ButtonCreateBorderHover,
+    boxShadow: `0 0 0 4px ${Colour.ButtonCreateShadowHover}`,
+  },
+  transition: `color .15s ease-in-out,
+               background-color .15s ease-in-out,
+               border-color .15s ease-in-out,
+               box-shadow .15s ease-in-out`,
 }
