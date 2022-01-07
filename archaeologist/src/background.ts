@@ -20,33 +20,46 @@ import {
 // To send message to popup
 // browser.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
 
-async function sendMessageToPopUp(message: MessageType) {
-  log.debug('sendMessageToPopUp', message)
-  await browser.runtime.sendMessage(message)
+function makeMessage(message: MessageType) {
+  // This is just a hack to check the message type, needed because
+  // browser.*.sendMessage takes any type as a message
+  return message
 }
 
-async function sendMessageToActiveTab(message: MessageType) {
-  log.debug('sendMessageToActiveTab', message)
-  // Send message to every active tab
-  const tabs = await browser.tabs.query({})
-  const tab = tabs.find((tab) => {
-    return tab.id && tab.active
-  })
-  const tabId = tab?.id
-  if (tabId) {
-    log.debug('sendMessageToActiveTab - found active tab', message, tabId)
-    await browser.tabs.sendMessage(tabId, message)
+async function getActiveTabId(): Promise<number | null> {
+  try {
+    const tabs = await browser.tabs.query({})
+    const tab = tabs.find((tab) => {
+      return tab.id && tab.active
+    })
+    const tabId = tab?.id
+    if (tabId != null) {
+      return tabId
+    }
+  } catch (err) {
+    log.exception(err)
   }
-  log.debug('sendMessageToActiveTab - end', message)
+  return null
 }
 
 /**
  * Request page to be saved. content.ts is listening for this message and
  * respond with page content message that could be saved to smuggler.
  */
-const requestPageContentToSave = async () => {
+async function requestPageContentToSave() {
   log.debug('requestPageContentToSave')
-  await sendMessageToActiveTab({ type: 'REQUEST_PAGE_TO_SAVE' })
+  const tabId = await getActiveTabId()
+  if (tabId == null) {
+    return
+  }
+  try {
+    await browser.tabs.sendMessage(
+      tabId,
+      makeMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
+    )
+  } catch (err) {
+    log.exception(err)
+  }
 }
 
 async function updatePageSavedStatus(
@@ -55,23 +68,25 @@ async function updatePageSavedStatus(
   unmemorable?: true
 ): Promise<void> {
   if (nid) {
-    await sendMessageToPopUp({ type: 'SAVED_NODE', nid })
+    await browser.runtime.sendMessage(makeMessage({ type: 'SAVED_NODE', nid }))
     await badge.resetText(tabId, '1')
   } else if (unmemorable) {
-    await sendMessageToPopUp({ type: 'SAVED_NODE', unmemorable: true })
+    await browser.runtime.sendMessage(
+      makeMessage({ type: 'SAVED_NODE', unmemorable: true })
+    )
     await badge.resetText(tabId)
   } else {
-    await sendMessageToPopUp({ type: 'SAVED_NODE' })
+    await browser.runtime.sendMessage(makeMessage({ type: 'SAVED_NODE' }))
     await badge.resetText(tabId)
   }
 }
 
-const savePage = async (
+async function savePage(
   url: string,
   originId: number,
   content: WebPageContent,
   tabId?: number
-) => {
+) {
   log.debug('Save page content', NodeType.Url, url, originId, content)
   const text = makeNodeTextData()
   const index_text: NodeIndexText = {
@@ -106,24 +121,23 @@ const savePage = async (
   }
 }
 
-const requestPageSavedStatus = async (tabId?: number) => {
+async function requestPageSavedStatus(tabId?: number) {
   const message: MessageType = { type: 'REQUEST_PAGE_ORIGIN_ID' }
   if (tabId == null) {
-    log.debug('requestPageSavedStatus 1', tabId, message)
-    try {
-      await sendMessageToActiveTab(message)
-    } catch (err) {
-      log.exception(err)
-    }
-  } else {
-    log.debug('requestPageSavedStatus 2', tabId, message)
-    try {
-      await browser.tabs.sendMessage(tabId, message)
-    } catch (err) {
-      log.exception(err)
+    const id = await getActiveTabId()
+    if (id != null) {
+      tabId = id
     }
   }
-  log.debug('requestPageSavedStatus end', tabId)
+  if (tabId == null) {
+    log.debug('No active tab to request page saved status')
+    return
+  }
+  try {
+    await browser.tabs.sendMessage(tabId, message)
+  } catch (err) {
+    log.debug('Sending message to active tab failed', err)
+  }
 }
 
 // Periodically renew auth token using Knocker
@@ -134,22 +148,28 @@ const _kRenewTokenTimePeriodInSeconds = 1062599
 const _authKnocker = new Knocker(_kRenewTokenTimePeriodInSeconds)
 _authKnocker.start()
 
-const sendAuthStatus = async () => {
-  const cookie = await browser.cookies.get({
-    url: authCookie.url,
-    name: authCookie.name,
-  })
+async function sendAuthStatus() {
+  const cookie = await browser.cookies
+    .get({
+      url: authCookie.url,
+      name: authCookie.name,
+    })
+    .catch((err) => {
+      log.exception(err)
+      return null
+    })
   const status = authCookie.checkRawValue(cookie?.value || null)
-  log.debug('Got localhost x-magic-veil cookie', cookie, status)
   badge.setActive(status)
-  await sendMessageToPopUp({ type: 'AUTH_STATUS', status })
+  await browser.runtime.sendMessage(
+    makeMessage({ type: 'AUTH_STATUS', status })
+  )
 }
 
-const checkOriginIdAndUpdatePageStatus = async (
+async function checkOriginIdAndUpdatePageStatus(
   tabId: number | undefined,
   url: string,
   originId?: number
-) => {
+) {
   if (originId == null) {
     const unmemorable = true
     await updatePageSavedStatus(null, tabId, unmemorable)
@@ -174,34 +194,6 @@ const checkOriginIdAndUpdatePageStatus = async (
   }
   await updatePageSavedStatus(null, tabId)
 }
-
-browser.tabs.onUpdated.addListener(
-  async (
-    tabId: number,
-    changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
-    tab: browser.Tabs.Tab
-  ) => {
-    log.debug('onUpdated listener', tabId, tab)
-    if (!tab.incognito && changeInfo.status === 'complete') {
-      // Request page saved status on new non-incognito page loading
-      log.debug('onUpdated listener -> complete', tabId, tab)
-      await requestPageSavedStatus(tabId)
-    }
-  }
-)
-
-browser.cookies.onChanged.addListener(async (info) => {
-  const { value, name, domain } = info.cookie
-  if (domain === authCookie.domain && name === authCookie.name) {
-    const status = authCookie.checkRawValue(value || null)
-    await badge.setActive(status)
-    if (status) {
-      _authKnocker.start()
-    } else {
-      _authKnocker.abort()
-    }
-  }
-})
 
 browser.runtime.onMessage.addListener(
   async (message: MessageType, sender: browser.Runtime.MessageSender) => {
@@ -234,3 +226,31 @@ browser.runtime.onMessage.addListener(
     }
   }
 )
+
+browser.tabs.onUpdated.addListener(
+  async (
+    tabId: number,
+    changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
+    tab: browser.Tabs.Tab
+  ) => {
+    log.debug('onUpdated listener', tabId, tab)
+    if (!tab.incognito && changeInfo.status === 'complete') {
+      // Request page saved status on new non-incognito page loading
+      log.debug('onUpdated listener -> complete', tabId, tab)
+      await requestPageSavedStatus(tabId)
+    }
+  }
+)
+
+browser.cookies.onChanged.addListener(async (info) => {
+  const { value, name, domain } = info.cookie
+  if (domain === authCookie.domain && name === authCookie.name) {
+    const status = authCookie.checkRawValue(value || null)
+    await badge.setActive(status)
+    if (status) {
+      _authKnocker.start()
+    } else {
+      _authKnocker.abort()
+    }
+  }
+})
