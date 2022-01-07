@@ -119,6 +119,7 @@ async function savePage(
 }
 
 async function requestPageSavedStatus(tabId?: number) {
+  log.debug('requestPageSavedStatus', tabId)
   let tab: browser.Tabs.Tab | null
   if (tabId) {
     tab = await browser.tabs.get(tabId)
@@ -131,10 +132,12 @@ async function requestPageSavedStatus(tabId?: number) {
         return tab.url && tab.active
       }) || null
   }
+  log.debug('requestPageSavedStatus tab', tab)
   if (tab == null || !tab.url) {
     return
   }
   const originId = await genOriginId(tab.url)
+  log.debug('requestPageSavedStatus origin', originId)
   await checkOriginIdAndUpdatePageStatus(tab.id, tab.url, originId)
 }
 
@@ -168,11 +171,13 @@ async function checkOriginIdAndUpdatePageStatus(
   url: string,
   originId?: number
 ) {
+  log.debug('checkOriginIdAndUpdatePageStatus 1', url)
   if (originId == null) {
     const unmemorable = true
     await updatePageSavedStatus(undefined, tabId, unmemorable)
     return
   }
+  log.debug('checkOriginIdAndUpdatePageStatus 2', url)
   const iter = smuggler.node.slice({
     start_time: 0, // since the beginning of time
     bucket_time_size: 366 * 24 * 60 * 60,
@@ -180,6 +185,7 @@ async function checkOriginIdAndUpdatePageStatus(
       id: originId,
     },
   })
+  log.debug('checkOriginIdAndUpdatePageStatus 3', url)
   for (;;) {
     const node = await iter.next()
     if (!node) {
@@ -190,7 +196,9 @@ async function checkOriginIdAndUpdatePageStatus(
       return
     }
   }
+  log.debug('checkOriginIdAndUpdatePageStatus 4', url)
   await updatePageSavedStatus(undefined, tabId)
+  log.debug('checkOriginIdAndUpdatePageStatus 5', url)
 }
 
 browser.runtime.onMessage.addListener(
