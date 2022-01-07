@@ -4,6 +4,7 @@
   "author": "Thread knowledge",
   "version": "0.0.1",
   "description": "Bookmark web pages to Mazed",
+  "homepage_url": "https://mazed.dev",
   "action": {
     "default_icon": {
       "16": "logo-16x16.png",

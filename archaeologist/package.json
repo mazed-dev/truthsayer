@@ -5,6 +5,8 @@
   "scripts": {
     "build:chrome:public": "yarn __build --env chrome --mode production",
     "build:chrome:local": "yarn __build --env chrome --mode development",
+    "build:firefox:local": "yarn __build --env firefox --mode development",
+    "build:firefox:public": "yarn __build --env firefox --mode production",
     "__build": "yarn webpack --config webpack.config.js --progress --color",
     "test": "yarn jest",
     "eject": "yarn react-scripts eject",
