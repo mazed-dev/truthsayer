@@ -1,6 +1,7 @@
 import { MessageType } from './message/types'
 import * as badge from './badge'
 import * as log from './util/log'
+import { genOriginId } from './extractor/originId'
 
 import browser from 'webextension-polyfill'
 
@@ -28,7 +29,9 @@ function makeMessage(message: MessageType) {
 
 async function getActiveTabId(): Promise<number | null> {
   try {
-    const tabs = await browser.tabs.query({})
+    const tabs = await browser.tabs.query({
+      active: true,
+    })
     const tab = tabs.find((tab) => {
       return tab.id && tab.active
     })
@@ -63,22 +66,16 @@ async function requestPageContentToSave() {
 }
 
 async function updatePageSavedStatus(
-  nid: string | null,
+  nid?: string,
   tabId?: number,
-  unmemorable?: true
+  unmemorable?: boolean
 ): Promise<void> {
-  if (nid) {
-    await browser.runtime.sendMessage(makeMessage({ type: 'SAVED_NODE', nid }))
-    await badge.resetText(tabId, '1')
-  } else if (unmemorable) {
-    await browser.runtime.sendMessage(
-      makeMessage({ type: 'SAVED_NODE', unmemorable: true })
-    )
-    await badge.resetText(tabId)
-  } else {
-    await browser.runtime.sendMessage(makeMessage({ type: 'SAVED_NODE' }))
-    await badge.resetText(tabId)
-  }
+  // Inform PopUp window of saved page status to render right buttons
+  await browser.runtime.sendMessage(
+    makeMessage({ type: 'SAVED_NODE', nid, unmemorable })
+  )
+  // Update badge
+  await badge.resetText(tabId, nid ? '1' : undefined)
 }
 
 async function savePage(
@@ -122,22 +119,23 @@ async function savePage(
 }
 
 async function requestPageSavedStatus(tabId?: number) {
-  const message: MessageType = { type: 'REQUEST_PAGE_ORIGIN_ID' }
-  if (tabId == null) {
-    const id = await getActiveTabId()
-    if (id != null) {
-      tabId = id
-    }
+  let tab: browser.Tabs.Tab | null
+  if (tabId) {
+    tab = await browser.tabs.get(tabId)
+  } else {
+    const tabs = await browser.tabs.query({
+      active: true,
+    })
+    tab =
+      tabs.find((tab) => {
+        return tab.url && tab.active
+      }) || null
   }
-  if (tabId == null) {
-    log.debug('No active tab to request page saved status')
+  if (tab == null || !tab.url) {
     return
   }
-  try {
-    await browser.tabs.sendMessage(tabId, message)
-  } catch (err) {
-    log.debug('Sending message to active tab failed', err)
-  }
+  const originId = await genOriginId(tab.url)
+  await checkOriginIdAndUpdatePageStatus(tab.id, tab.url, originId)
 }
 
 // Periodically renew auth token using Knocker
@@ -172,7 +170,7 @@ async function checkOriginIdAndUpdatePageStatus(
 ) {
   if (originId == null) {
     const unmemorable = true
-    await updatePageSavedStatus(null, tabId, unmemorable)
+    await updatePageSavedStatus(undefined, tabId, unmemorable)
     return
   }
   const iter = smuggler.node.slice({
@@ -192,7 +190,7 @@ async function checkOriginIdAndUpdatePageStatus(
       return
     }
   }
-  await updatePageSavedStatus(null, tabId)
+  await updatePageSavedStatus(undefined, tabId)
 }
 
 browser.runtime.onMessage.addListener(
