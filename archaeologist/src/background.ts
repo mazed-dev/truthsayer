@@ -50,7 +50,6 @@ async function getActiveTabId(): Promise<number | null> {
  * respond with page content message that could be saved to smuggler.
  */
 async function requestPageContentToSave() {
-  log.debug('requestPageContentToSave')
   const tabId = await getActiveTabId()
   if (tabId == null) {
     return
@@ -71,9 +70,16 @@ async function updatePageSavedStatus(
   unmemorable?: boolean
 ): Promise<void> {
   // Inform PopUp window of saved page status to render right buttons
-  await browser.runtime.sendMessage(
-    makeMessage({ type: 'SAVED_NODE', nid, unmemorable })
-  )
+  try {
+    await browser.runtime.sendMessage(
+      makeMessage({ type: 'SAVED_NODE', nid, unmemorable })
+    )
+  } catch (err) {
+    log.debug(
+      'Sending message to pop up window failed, the window might not exist',
+      err
+    )
+  }
   // Update badge
   await badge.resetText(tabId, nid ? '1' : undefined)
 }
@@ -118,27 +124,25 @@ async function savePage(
   }
 }
 
-async function requestPageSavedStatus(tabId?: number) {
-  log.debug('requestPageSavedStatus', tabId)
-  let tab: browser.Tabs.Tab | null
-  if (tabId) {
-    tab = await browser.tabs.get(tabId)
-  } else {
+async function requestPageSavedStatus(tab?: browser.Tabs.Tab) {
+  if (tab == null) {
     const tabs = await browser.tabs.query({
       active: true,
+      currentWindow: true,
     })
-    tab =
-      tabs.find((tab) => {
-        return tab.url && tab.active
-      }) || null
+    tab = tabs.find((tab) => {
+      return tab.url && tab.active
+    })
   }
-  log.debug('requestPageSavedStatus tab', tab)
   if (tab == null || !tab.url) {
     return
   }
-  const originId = await genOriginId(tab.url)
-  log.debug('requestPageSavedStatus origin', originId)
-  await checkOriginIdAndUpdatePageStatus(tab.id, tab.url, originId)
+  const { id, url } = tab
+  if (url == null) {
+    return
+  }
+  const originId = await genOriginId(url)
+  await checkOriginIdAndUpdatePageStatus(id, url, originId)
 }
 
 // Periodically renew auth token using Knocker
@@ -171,13 +175,11 @@ async function checkOriginIdAndUpdatePageStatus(
   url: string,
   originId?: number
 ) {
-  log.debug('checkOriginIdAndUpdatePageStatus 1', url)
   if (originId == null) {
     const unmemorable = true
     await updatePageSavedStatus(undefined, tabId, unmemorable)
     return
   }
-  log.debug('checkOriginIdAndUpdatePageStatus 2', url)
   const iter = smuggler.node.slice({
     start_time: 0, // since the beginning of time
     bucket_time_size: 366 * 24 * 60 * 60,
@@ -185,25 +187,22 @@ async function checkOriginIdAndUpdatePageStatus(
       id: originId,
     },
   })
-  log.debug('checkOriginIdAndUpdatePageStatus 3', url)
+  let nid: string | undefined = undefined
   for (;;) {
     const node = await iter.next()
     if (!node) {
       break
     }
     if (node.isWebBookmark() && node.extattrs?.web?.url === url) {
-      await updatePageSavedStatus(node.nid, tabId)
-      return
+      nid = node.nid
+      break
     }
   }
-  log.debug('checkOriginIdAndUpdatePageStatus 4', url)
-  await updatePageSavedStatus(undefined, tabId)
-  log.debug('checkOriginIdAndUpdatePageStatus 5', url)
+  await updatePageSavedStatus(nid, tabId)
 }
 
 browser.runtime.onMessage.addListener(
   async (message: MessageType, sender: browser.Runtime.MessageSender) => {
-    log.debug('browser.runtime.onMessage listener', message, sender)
     // process is not defined in browsers extensions - use it to set up axios
     switch (message.type) {
       case 'REQUEST_PAGE_TO_SAVE':
@@ -235,15 +234,18 @@ browser.runtime.onMessage.addListener(
 
 browser.tabs.onUpdated.addListener(
   async (
-    tabId: number,
+    _tabId: number,
     changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
     tab: browser.Tabs.Tab
   ) => {
-    log.debug('onUpdated listener', tabId, tab)
-    if (!tab.incognito && changeInfo.status === 'complete') {
+    if (
+      !tab.incognito &&
+      tab.url &&
+      !tab.hidden &&
+      changeInfo.status === 'complete'
+    ) {
       // Request page saved status on new non-incognito page loading
-      log.debug('onUpdated listener -> complete', tabId, tab)
-      await requestPageSavedStatus(tabId)
+      await requestPageSavedStatus(tab)
     }
   }
 )
