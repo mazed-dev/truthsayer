@@ -8,19 +8,24 @@ const _getSmugglerApiUrl = (mode) => {
     : "https://mazed.dev/smuggler"
 }
 
+const _getSmugglerApiUrlMask = (mode) => {
+  const url = new URL(_getSmugglerApiUrl(mode))
+  url.pathname = '*'
+  return url.toString().replace(/:\d+/, '')
+}
+
 const _manifestTransformDowngradeToV2 = (manifest) => {
   manifest.manifest_version = 2
-  // Is supported in V3 only
-  delete manifest.action
   // background scripts are declared differently in v2
   const { service_worker } = manifest.background
   manifest.background.scripts = [ service_worker ]
   delete manifest.background.service_worker
   // host_permissions are not supported in v2
-  const {host_permissions} = manifest
-  manifest.permissions.push(...host_permissions)
-  manifest.permissions.push('<all_urls>')
+  manifest.permissions.push(...manifest.host_permissions)
   delete manifest.host_permissions
+  // Rename action to browser_action
+  manifest.browser_action = manifest.action
+  delete manifest.action
   // Manifest V3 new features
   delete manifest.cross_origin_embedder_policy
   delete manifest.cross_origin_opener_policy
@@ -30,20 +35,18 @@ const _manifestTransformDowngradeToV2 = (manifest) => {
 const _manifestTransform = (buffer, mode, env) => {
   let manifest = JSON.parse(buffer.toString())
 
-  const {firefox=false, chrome=false, safari=false, edge=false} = env
+  const {firefox=false} = env
 
   // Add Mazed URL to host_permissions to grant access to mazed cookies
-  const mazedUrl = new URL(_getSmugglerApiUrl(mode))
-  mazedUrl.pathname = ''
+  const smugglerApiUrlMask = _getSmugglerApiUrlMask(mode)
   manifest["host_permissions"] = [
-    mazedUrl.toString(),
+    smugglerApiUrlMask,
   ]
   // Exclude Mazed from list of URLs where content.js is injected to
-  mazedUrl.pathname = '*'
   manifest["content_scripts"].forEach((item, index, theArray) => {
     const { exclude_matches = [] } = item
     exclude_matches.push(
-      mazedUrl.toString(),
+      smugglerApiUrlMask,
     )
     theArray[index] = {
       ...item,
