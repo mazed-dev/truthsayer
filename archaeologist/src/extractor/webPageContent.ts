@@ -26,68 +26,48 @@ async function fetchImagePreviewAsBase64(
   document_: Document,
   dstSquareSize: number
 ): Promise<PreviewImageSmall | null> {
-  const resp = await fetch(url).catch((err) => {
-    if (!isAbortError(err)) {
-      log.exception(err)
-    }
-    return null
-  })
-  if (!resp?.ok) {
-    // We can't log anything from the context of some random web page, so let's
-    // just treat this as failure to fetch image and return null.
-    return null
-  }
-  const data = await resp.arrayBuffer()
-  if (data.byteLength === 0) {
-    return null
-  }
-  const mime = resp.headers.get('Content-type')
-  if (!mime || !Mime.isImage(mime)) {
-    return null
-  }
-  const blob = new Blob([data], {
-    type: mime,
-  })
+  console.log('fetchImagePreviewAsBase64', url)
   // Load the image
   return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onerror = reject
-    reader.onload = (_readerEvent: ProgressEvent<FileReader>) => {
-      const image = document_.createElement('img')
-      image.onerror = reject
-      image.onload = (_ev) => {
-        // Crop image, getting the biggest square from the center
-        // and resize it down to [dstSquareSize] - we don't need more for preview
-        const { width, height } = image
-        const toCut = Math.floor((width - height) / 2)
-        const srcDeltaX = toCut > 0 ? toCut : 0
-        const srcDeltaY = toCut < 0 ? -toCut : 0
-        const srcSquareSize = Math.min(width, height)
-        const canvas = document_.createElement('canvas')
-        canvas.width = dstSquareSize
-        canvas.height = dstSquareSize
-        canvas.getContext('2d')?.drawImage(
-          image,
-          srcDeltaX,
-          srcDeltaY,
-          srcSquareSize,
-          srcSquareSize,
-          0, // dstDeltaX
-          0, // dstDeltaY
-          dstSquareSize,
-          dstSquareSize
-        )
-        const data = canvas.toDataURL(Mime.IMAGE_JPEG)
-        resolve(data ? { data, content_type: Mime.IMAGE_JPEG } : null)
-      }
-      const data = reader.result as string | null
-      if (data) {
-        image.src = data
-      } else {
-        resolve(null)
+    const image = document_.createElement('img')
+    if (process.env.CHROME) {
+      image.setAttribute('crossorigin', 'anonymous')
+    }
+    image.onerror = reject
+    image.onload = (_ev) => {
+      console.log('fetchImagePreviewAsBase64 image.onload', _ev)
+      // Crop image, getting the biggest square from the center
+      // and resize it down to [dstSquareSize] - we don't need more for preview
+      const { width, height } = image
+      const toCut = Math.floor((width - height) / 2)
+      const srcDeltaX = toCut > 0 ? toCut : 0
+      const srcDeltaY = toCut < 0 ? -toCut : 0
+      const srcSquareSize = Math.min(width, height)
+      const canvas = document_.createElement('canvas')
+      canvas.width = dstSquareSize
+      canvas.height = dstSquareSize
+      canvas.getContext('2d')?.drawImage(
+        image,
+        srcDeltaX,
+        srcDeltaY,
+        srcSquareSize,
+        srcSquareSize,
+        0, // dstDeltaX
+        0, // dstDeltaY
+        dstSquareSize,
+        dstSquareSize
+      )
+      const content_type = Mime.IMAGE_JPEG
+      try {
+        const data = canvas.toDataURL(content_type)
+        resolve(data ? { data, content_type } : null)
+      } catch (err) {
+        if (!isAbortError(err)) {
+          log.exception(err)
+        }
       }
     }
-    reader.readAsDataURL(blob)
+    image.src = url
   })
 }
 

@@ -2,6 +2,7 @@ import { MessageType } from './message/types'
 import * as badge from './badge'
 import * as log from './util/log'
 import { genOriginId } from './extractor/originId'
+import { isAbortError } from './util/exception'
 
 import browser from 'webextension-polyfill'
 
@@ -40,7 +41,9 @@ async function getActiveTabId(): Promise<number | null> {
       return tabId
     }
   } catch (err) {
-    log.exception(err)
+    if (!isAbortError(err)) {
+      log.exception(err)
+    }
   }
   return null
 }
@@ -60,7 +63,9 @@ async function requestPageContentToSave() {
       makeMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
     )
   } catch (err) {
-    log.exception(err)
+    if (!isAbortError(err)) {
+      log.exception(err)
+    }
   }
 }
 
@@ -75,6 +80,9 @@ async function updatePageSavedStatus(
       makeMessage({ type: 'SAVED_NODE', nid, unmemorable })
     )
   } catch (err) {
+    if (isAbortError(err)) {
+      return
+    }
     log.debug(
       'Sending message to pop up window failed, the window might not exist',
       err
@@ -160,7 +168,9 @@ async function sendAuthStatus() {
       name: authCookie.name,
     })
     .catch((err) => {
-      log.exception(err)
+      if (!isAbortError(err)) {
+        log.exception(err)
+      }
       return null
     })
   const status = authCookie.checkRawValue(cookie?.value || null)

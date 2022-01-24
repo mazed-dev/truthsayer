@@ -37,7 +37,6 @@
     "value": "same-origin"
   },
   "host_permissions": [
-    ">>> This is set up in webpack.config.js, depending on build options <<<"
   ],
   "content_scripts": [
     {

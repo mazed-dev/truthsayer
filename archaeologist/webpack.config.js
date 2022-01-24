@@ -15,13 +15,19 @@ const _getSmugglerApiUrlMask = (mode) => {
 }
 
 const _manifestTransformDowngradeToV2 = (manifest) => {
+  // Downgrade manifest to version 2, Firefox does not support version 3 yet
   manifest.manifest_version = 2
   // background scripts are declared differently in v2
   const { service_worker } = manifest.background
   manifest.background.scripts = [ service_worker ]
   delete manifest.background.service_worker
   // host_permissions are not supported in v2
-  manifest.permissions.push(...manifest.host_permissions)
+  manifest.permissions.push(
+    // Need this access to download preview images from an origin different from
+    // original page. For instance images hosted in CDN.
+    "<all_urls>",
+    ...manifest.host_permissions,
+  )
   delete manifest.host_permissions
   // Rename action to browser_action
   manifest.browser_action = manifest.action
@@ -39,11 +45,9 @@ const _manifestTransform = (buffer, mode, env) => {
 
   // Add Mazed URL to host_permissions to grant access to mazed cookies
   const smugglerApiUrlMask = _getSmugglerApiUrlMask(mode)
-  manifest["host_permissions"] = [
-    smugglerApiUrlMask,
-  ]
+  manifest.host_permissions.push(smugglerApiUrlMask)
   // Exclude Mazed from list of URLs where content.js is injected to
-  manifest["content_scripts"].forEach((item, index, theArray) => {
+  manifest.content_scripts.forEach((item, index, theArray) => {
     const { exclude_matches = [] } = item
     exclude_matches.push(
       smugglerApiUrlMask,
