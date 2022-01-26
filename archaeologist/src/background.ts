@@ -90,7 +90,6 @@ async function savePage(
   content: WebPageContent,
   tabId?: number
 ) {
-  log.debug('Save page content', NodeType.Url, url, originId, content)
   const text = makeNodeTextData()
   const index_text: NodeIndexText = {
     plaintext: content.text,
@@ -134,7 +133,7 @@ async function requestPageSavedStatus(tab?: browser.Tabs.Tab) {
       return tab.url && tab.active
     })
   }
-  if (tab == null || !tab.url) {
+  if (tab == null) {
     return
   }
   const { id, url } = tab
