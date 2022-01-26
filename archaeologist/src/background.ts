@@ -47,7 +47,6 @@ async function getActiveTabId(): Promise<number | null> {
  * respond with page content message that could be saved to smuggler.
  */
 async function requestPageContentToSave() {
-  log.debug('requestPageContentToSave')
   const tabId = await getActiveTabId()
   if (tabId == null) {
     return
@@ -87,7 +86,6 @@ async function savePage(
   content: WebPageContent,
   tabId?: number
 ) {
-  log.debug('Save page content', NodeType.Url, url, originId, content)
   const text = makeNodeTextData()
   const index_text: NodeIndexText = {
     plaintext: content.text,
@@ -130,7 +128,6 @@ async function requestPageSavedStatus(tabId?: number) {
     }
   }
   if (tabId == null) {
-    log.debug('No active tab to request page saved status')
     return
   }
   try {
@@ -197,7 +194,6 @@ async function checkOriginIdAndUpdatePageStatus(
 
 browser.runtime.onMessage.addListener(
   async (message: MessageType, sender: browser.Runtime.MessageSender) => {
-    log.debug('browser.runtime.onMessage listener', message, sender)
     // process is not defined in browsers extensions - use it to set up axios
     switch (message.type) {
       case 'REQUEST_PAGE_TO_SAVE':
@@ -233,10 +229,8 @@ browser.tabs.onUpdated.addListener(
     changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
     tab: browser.Tabs.Tab
   ) => {
-    log.debug('onUpdated listener', tabId, tab)
     if (!tab.incognito && changeInfo.status === 'complete') {
       // Request page saved status on new non-incognito page loading
-      log.debug('onUpdated listener -> complete', tabId, tab)
       await requestPageSavedStatus(tabId)
     }
   }
