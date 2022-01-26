@@ -32,7 +32,9 @@ export async function setInactive() {
 }
 
 export async function resetText(tabId?: number, text?: string) {
-  text = text || ''
+  if (text == null) {
+    text = ''
+  }
   await _browserAction.setBadgeText({ text, tabId })
   await _browserAction.setBadgeBackgroundColor({
     tabId,
