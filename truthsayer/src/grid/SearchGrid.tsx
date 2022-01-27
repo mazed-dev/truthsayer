@@ -95,8 +95,8 @@ class DynamicGrid extends React.Component {
       return (
         <Col
           className={styles.grid_col}
-          style={columnStyle}
           key={`cards_column_${col_ind}`}
+          sm='auto'
         >
           {colCards}
         </Col>
@@ -108,7 +108,7 @@ class DynamicGrid extends React.Component {
         className={jcss(styles.grid_container)}
         ref={this.containerRef}
       >
-        <Row className={jcss('justify-content-between', styles.grid_row)}>
+        <Row className={jcss('justify-content-center', styles.grid_row)}>
           {columns}
         </Row>
       </Container>
