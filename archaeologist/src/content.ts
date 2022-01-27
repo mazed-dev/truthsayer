@@ -1,10 +1,11 @@
 /**
  * Extensions that read or write to web pages utilize a
- * [content script](https://developer.chrome.com/docs/extensions/mv3/content_scripts/).
+ * [content script](https://developer.browser.com/docs/extensions/mv3/content_scripts/).
  * The content script contains JavaScript that executes in the contexts of a
  * page that has been loaded into the browser. Content scripts read and modify
  * the DOM of web pages the browser visits.
  */
+import browser from 'webextension-polyfill'
 import { Message, MessageType } from './message/types'
 import {
   exctractPageContent,
@@ -19,7 +20,7 @@ async function readPageContent() {
   const content = await exctractPageContent(document, baseURL)
   const url = exctractPageUrl(document)
   if (!isMemorable(url)) {
-    chrome.runtime.sendMessage(
+    await browser.runtime.sendMessage(
       Message.create({
         type: 'PAGE_ORIGIN_ID',
         url,
@@ -28,7 +29,7 @@ async function readPageContent() {
     return
   }
   const originId = await genOriginId(url)
-  chrome.runtime.sendMessage(
+  await browser.runtime.sendMessage(
     Message.create({
       type: 'PAGE_TO_SAVE',
       content,
@@ -44,7 +45,7 @@ async function getPageOriginId() {
   if (isMemorable(url)) {
     originId = await genOriginId(url)
   }
-  chrome.runtime.sendMessage(
+  await browser.runtime.sendMessage(
     Message.create({
       type: 'PAGE_ORIGIN_ID',
       originId,
@@ -53,13 +54,13 @@ async function getPageOriginId() {
   )
 }
 
-chrome.runtime.onMessage.addListener((message: MessageType) => {
+browser.runtime.onMessage.addListener(async (message: MessageType) => {
   switch (message.type) {
     case 'REQUEST_PAGE_TO_SAVE':
-      readPageContent()
+      await readPageContent()
       break
     case 'REQUEST_PAGE_ORIGIN_ID':
-      getPageOriginId()
+      await getPageOriginId()
       break
     default:
       break

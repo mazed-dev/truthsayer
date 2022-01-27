@@ -2,6 +2,8 @@ import { MessageType } from './message/types'
 import * as badge from './badge'
 import * as log from './util/log'
 
+import browser from 'webextension-polyfill'
+
 import { WebPageContent } from './extractor/webPageContent'
 
 import {
@@ -16,56 +18,74 @@ import {
 } from 'smuggler-api'
 
 // To send message to popup
-// chrome.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
+// browser.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
 
-function sendMessageToPopUp(message: MessageType) {
-  log.debug('sendMessageToPopUp', message)
-  chrome.runtime.sendMessage(message)
+function makeMessage(message: MessageType) {
+  // This is just a hack to check the message type, needed because
+  // browser.*.sendMessage takes any type as a message
+  return message
 }
 
-function sendMessageToActiveTab(message: MessageType) {
-  // Send message to every active tab
-  chrome.tabs.query({}, (tabs) => {
-    tabs.forEach((tab) => {
-      if (tab.id && tab.active) {
-        chrome.tabs.sendMessage(tab.id, message)
-      }
+async function getActiveTabId(): Promise<number | null> {
+  try {
+    const tabs = await browser.tabs.query({})
+    const tab = tabs.find((tab) => {
+      return tab.id && tab.active
     })
-  })
+    const tabId = tab?.id
+    if (tabId != null) {
+      return tabId
+    }
+  } catch (err) {
+    log.exception(err)
+  }
+  return null
 }
 
 /**
  * Request page to be saved. content.ts is listening for this message and
  * respond with page content message that could be saved to smuggler.
  */
-const requestPageContentToSave = () => {
-  sendMessageToActiveTab({ type: 'REQUEST_PAGE_TO_SAVE' })
-}
-
-function updatePageSavedStatus(
-  nid: string | null,
-  tabId?: number,
-  unmemorable?: true
-): void {
-  if (nid) {
-    sendMessageToPopUp({ type: 'SAVED_NODE', nid })
-    badge.resetText(tabId, '1')
-  } else if (unmemorable) {
-    sendMessageToPopUp({ type: 'SAVED_NODE', unmemorable: true })
-    badge.resetText(tabId)
-  } else {
-    sendMessageToPopUp({ type: 'SAVED_NODE' })
-    badge.resetText(tabId)
+async function requestPageContentToSave() {
+  const tabId = await getActiveTabId()
+  if (tabId == null) {
+    return
+  }
+  try {
+    await browser.tabs.sendMessage(
+      tabId,
+      makeMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
+    )
+  } catch (err) {
+    log.exception(err)
   }
 }
 
-const savePage = (
+async function updatePageSavedStatus(
+  nid: string | null,
+  tabId?: number,
+  unmemorable?: true
+): Promise<void> {
+  if (nid) {
+    await browser.runtime.sendMessage(makeMessage({ type: 'SAVED_NODE', nid }))
+    await badge.resetText(tabId, '1')
+  } else if (unmemorable) {
+    await browser.runtime.sendMessage(
+      makeMessage({ type: 'SAVED_NODE', unmemorable: true })
+    )
+    await badge.resetText(tabId)
+  } else {
+    await browser.runtime.sendMessage(makeMessage({ type: 'SAVED_NODE' }))
+    await badge.resetText(tabId)
+  }
+}
+
+async function savePage(
   url: string,
   originId: number,
   content: WebPageContent,
   tabId?: number
-) => {
-  log.debug('Save page content', NodeType.Url, url, originId, content)
+) {
   const text = makeNodeTextData()
   const index_text: NodeIndexText = {
     plaintext: content.text,
@@ -85,29 +105,35 @@ const savePage = (
     },
     blob: null,
   }
-  smuggler.node
-    .create({
-      text,
-      index_text,
-      extattrs,
-      ntype: NodeType.Url,
-      origin: {
-        id: originId,
-      },
-    })
-    .then((resp) => {
-      if (resp) {
-        updatePageSavedStatus(resp.nid, tabId)
-      }
-    })
+  const resp = await smuggler.node.create({
+    text,
+    index_text,
+    extattrs,
+    ntype: NodeType.Url,
+    origin: {
+      id: originId,
+    },
+  })
+  if (resp) {
+    await updatePageSavedStatus(resp.nid, tabId)
+  }
 }
 
-const requestPageSavedStatus = (tabId?: number) => {
+async function requestPageSavedStatus(tabId?: number) {
   const message: MessageType = { type: 'REQUEST_PAGE_ORIGIN_ID' }
   if (tabId == null) {
-    sendMessageToActiveTab(message)
-  } else {
-    chrome.tabs.sendMessage(tabId, message)
+    const id = await getActiveTabId()
+    if (id != null) {
+      tabId = id
+    }
+  }
+  if (tabId == null) {
+    return
+  }
+  try {
+    await browser.tabs.sendMessage(tabId, message)
+  } catch (err) {
+    log.debug('Sending message to active tab failed', err)
   }
 }
 
@@ -119,26 +145,31 @@ const _kRenewTokenTimePeriodInSeconds = 1062599
 const _authKnocker = new Knocker(_kRenewTokenTimePeriodInSeconds)
 _authKnocker.start()
 
-const sendAuthStatus = () => {
-  chrome.cookies.get(
-    { url: authCookie.url, name: authCookie.name },
-    (cookie: chrome.cookies.Cookie | null) => {
-      const status = authCookie.checkRawValue(cookie?.value || null)
-      log.debug('Got localhost x-magic-veil cookie', cookie, status)
-      badge.setActive(status)
-      sendMessageToPopUp({ type: 'AUTH_STATUS', status })
-    }
+async function sendAuthStatus() {
+  const cookie = await browser.cookies
+    .get({
+      url: authCookie.url,
+      name: authCookie.name,
+    })
+    .catch((err) => {
+      log.exception(err)
+      return null
+    })
+  const status = authCookie.checkRawValue(cookie?.value || null)
+  badge.setActive(status)
+  await browser.runtime.sendMessage(
+    makeMessage({ type: 'AUTH_STATUS', status })
   )
 }
 
-const checkOriginIdAndUpdatePageStatus = async (
+async function checkOriginIdAndUpdatePageStatus(
   tabId: number | undefined,
   url: string,
   originId?: number
-) => {
+) {
   if (originId == null) {
     const unmemorable = true
-    updatePageSavedStatus(null, tabId, unmemorable)
+    await updatePageSavedStatus(null, tabId, unmemorable)
     return
   }
   const iter = smuggler.node.slice({
@@ -154,63 +185,36 @@ const checkOriginIdAndUpdatePageStatus = async (
       break
     }
     if (node.isWebBookmark() && node.extattrs?.web?.url === url) {
-      updatePageSavedStatus(node.nid, tabId)
+      await updatePageSavedStatus(node.nid, tabId)
       return
     }
   }
-  updatePageSavedStatus(null, tabId)
+  await updatePageSavedStatus(null, tabId)
 }
 
-chrome.tabs.onUpdated.addListener(
-  (
-    tabId: number,
-    changeInfo: chrome.tabs.TabChangeInfo,
-    tab: chrome.tabs.Tab
-  ) => {
-    if (!tab.incognito && changeInfo.status === 'complete') {
-      // Request page saved status on new non-incognito page loading
-      requestPageSavedStatus(tabId)
-    }
-  }
-)
-
-chrome.cookies.onChanged.addListener((info) => {
-  const { value, name, domain } = info.cookie
-  if (domain === authCookie.domain && name === authCookie.name) {
-    const status = authCookie.checkRawValue(value || null)
-    badge.setActive(status)
-    if (status) {
-      _authKnocker.start()
-    } else {
-      _authKnocker.abort()
-    }
-  }
-})
-
-chrome.runtime.onMessage.addListener(
-  (message: MessageType, sender: chrome.runtime.MessageSender) => {
-    log.debug('chrome.runtime.onMessage listener', message, sender)
+browser.runtime.onMessage.addListener(
+  async (message: MessageType, sender: browser.Runtime.MessageSender) => {
     // process is not defined in browsers extensions - use it to set up axios
     switch (message.type) {
       case 'REQUEST_PAGE_TO_SAVE':
         requestPageContentToSave()
         break
       case 'REQUEST_SAVED_NODE':
-        requestPageSavedStatus()
+        await requestPageSavedStatus()
         break
       case 'PAGE_TO_SAVE':
         const { url, content, originId } = message
         const tabId = sender.tab?.id
-        savePage(url, originId, content, tabId)
+        await savePage(url, originId, content, tabId)
         break
       case 'REQUEST_AUTH_STATUS':
-        sendAuthStatus()
+        await sendAuthStatus()
         break
       case 'PAGE_ORIGIN_ID':
         {
           const { url, originId } = message
           const tabId = sender.tab?.id
-          checkOriginIdAndUpdatePageStatus(tabId, url, originId)
+          await checkOriginIdAndUpdatePageStatus(tabId, url, originId)
         }
         break
       default:
@@ -218,3 +222,29 @@ chrome.runtime.onMessage.addListener(
     }
   }
 )
+
+browser.tabs.onUpdated.addListener(
+  async (
+    tabId: number,
+    changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
+    tab: browser.Tabs.Tab
+  ) => {
+    if (!tab.incognito && changeInfo.status === 'complete') {
+      // Request page saved status on new non-incognito page loading
+      await requestPageSavedStatus(tabId)
+    }
+  }
+)
+
+browser.cookies.onChanged.addListener(async (info) => {
+  const { value, name, domain } = info.cookie
+  if (domain === authCookie.domain && name === authCookie.name) {
+    const status = authCookie.checkRawValue(value || null)
+    await badge.setActive(status)
+    if (status) {
+      _authKnocker.start()
+    } else {
+      _authKnocker.abort()
+    }
+  }
+})

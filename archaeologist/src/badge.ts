@@ -1,6 +1,8 @@
-export function setActive(status?: boolean) {
+import browser from 'webextension-polyfill'
+
+export async function setActive(status?: boolean) {
   if (status) {
-    chrome.action.setIcon({
+    await browser.action.setIcon({
       path: {
         16: 'logo-16x16.png',
         48: 'logo-48x48.png',
@@ -9,12 +11,12 @@ export function setActive(status?: boolean) {
       },
     })
   } else {
-    setInactive()
+    await setInactive()
   }
 }
 
-export function setInactive() {
-  chrome.action.setIcon({
+export async function setInactive() {
+  await browser.action.setIcon({
     path: {
       16: 'logo-fade-16x16.png',
       48: 'logo-fade-48x48.png',
@@ -24,8 +26,11 @@ export function setInactive() {
   })
 }
 
-export function resetText(tabId?: number, text?: string) {
+export async function resetText(tabId?: number, text?: string) {
   text = text || ''
-  chrome.action.setBadgeText({ text, tabId })
-  chrome.action.setBadgeBackgroundColor({ tabId, color: [148, 148, 148, 255] })
+  await browser.action.setBadgeText({ text, tabId })
+  await browser.action.setBadgeBackgroundColor({
+    tabId,
+    color: [148, 148, 148, 255],
+  })
 }

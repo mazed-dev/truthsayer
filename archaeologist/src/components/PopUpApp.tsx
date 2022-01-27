@@ -1,6 +1,9 @@
 /** @jsxImportSource @emotion/react */
 
 import React from 'react'
+import { useAsyncEffect } from 'use-async-effect'
+
+import browser from 'webextension-polyfill'
 
 import styled from '@emotion/styled'
 
@@ -17,9 +20,8 @@ const AppContainer = styled.div`
 
 export const PopUpApp = () => {
   const [authenticated, setAuthenticated] = React.useState(false)
-  React.useEffect(() => {
-    chrome.runtime.sendMessage({ type: 'REQUEST_AUTH_STATUS' })
-    chrome.runtime.onMessage.addListener((message: MessageType) => {
+  useAsyncEffect(async () => {
+    browser.runtime.onMessage.addListener(async (message: MessageType) => {
       switch (message.type) {
         case 'AUTH_STATUS':
           setAuthenticated(message.status)
@@ -28,6 +30,7 @@ export const PopUpApp = () => {
           break
       }
     })
+    await browser.runtime.sendMessage({ type: 'REQUEST_AUTH_STATUS' })
   }, [])
   return (
     <AppContainer>
@@ -44,7 +47,7 @@ const LogoImg = styled.img`
 
 const LoginPage = () => {
   const onClick = () => {
-    chrome.tabs.create({
+    browser.tabs.create({
       url: mazed.makeUrl({ pathname: '/login' }).toString(),
     })
   }
