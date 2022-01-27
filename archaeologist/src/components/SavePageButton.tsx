@@ -1,6 +1,8 @@
 /** @jsxImportSource @emotion/react */
 
 import * as React from 'react'
+import { useAsyncEffect } from 'use-async-effect'
+import browser from 'webextension-polyfill'
 import styled from '@emotion/styled'
 
 import { MdiBookmarkAdd, MdiLaunch, Spinner } from 'elementary'
@@ -26,10 +28,8 @@ export const SavePageButton = () => {
     Node | 'loading' | 'unmemorable' | 'memorable'
   >('loading')
 
-  React.useEffect(() => {
-    chrome.runtime.sendMessage({ type: 'REQUEST_SAVED_NODE' })
-
-    chrome.runtime.onMessage.addListener((message: MessageType) => {
+  useAsyncEffect(async () => {
+    browser.runtime.onMessage.addListener((message: MessageType) => {
       switch (message.type) {
         case 'SAVED_NODE':
           const { nid, unmemorable } = message
@@ -45,16 +45,17 @@ export const SavePageButton = () => {
           break
       }
     })
+    await browser.runtime.sendMessage({ type: 'REQUEST_SAVED_NODE' })
   }, [])
 
   const handleSave = () => {
     setPageSavedNode('loading')
-    chrome.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
+    browser.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
   }
 
   const handleGoToNode = () => {
     const { nid } = pageSavedNode as Node
-    chrome.tabs.create({
+    browser.tabs.create({
       url: mazed.makeNodeUrl(nid).toString(),
     })
   }
