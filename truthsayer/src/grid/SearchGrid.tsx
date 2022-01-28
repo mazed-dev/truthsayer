@@ -88,7 +88,7 @@ class DynamicGrid extends React.Component {
         <Col
           className={styles.grid_col}
           key={`cards_column_${col_ind}`}
-          sm='auto'
+          sm="auto"
         >
           {colCards}
         </Col>

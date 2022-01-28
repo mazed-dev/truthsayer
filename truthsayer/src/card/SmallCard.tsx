@@ -1,26 +1,105 @@
+/** @jsxImportSource @emotion/react */
+
 import React from 'react'
+import styled from '@emotion/styled'
 
-import { jcss } from 'elementary'
+const _smallCardShadow0 = {}
 
-import styles from './SmallCard.module.css'
+const _smallCardShadow1 = {
+  boxShadow: `
+    1px 1px 1px white,
+    2px 2px 1px white,
+    3px 3px 1px gray`,
+}
+
+const _smallCardShadow2 = {
+  boxShadow: `
+    1px 1px 1px white,
+    2px 2px 1px white,
+    3px 3px 1px gray,
+    4px 4px 1px white,
+    5px 5px 1px white,
+    6px 6px 1px gray`,
+}
+
+const _smallCardShadow3 = {
+  boxShadow: `
+    1px 1px 1px white,
+    2px 2px 1px white,
+    3px 3px 1px gray,
+    4px 4px 1px white,
+    5px 5px 1px white,
+    6px 6px 1px gray,
+    7px 7px 1px white,
+    8px 8px 1px white,
+    9px 9px 1px gray`,
+}
+
+const _smallCardShadow4 = {
+  boxShadow: `
+    1px 1px 1px white,
+    2px 2px 1px white,
+    3px 3px 1px gray,
+    4px 4px 1px white,
+    5px 5px 1px white,
+    6px 6px 1px gray,
+    7px 7px 1px white,
+    8px 8px 1px white,
+    9px 9px 1px gray,
+    10px 10px 1px white,
+    11px 11px 1px white,
+    12px 12px 1px gray`,
+}
+
+const _smallCardShadow5 = {
+  boxShadow: `
+    1px 1px 1px white,
+    2px 2px 1px white,
+    3px 3px 1px gray,
+    4px 4px 1px white,
+    5px 5px 1px white,
+    6px 6px 1px gray,
+    7px 7px 1px white,
+    8px 8px 1px white,
+    9px 9px 1px gray,
+    10px 10px 1px white,
+    11px 11px 1px white,
+    12px 12px 1px gray,
+    13px 13px 1px white,
+    14px 14px 1px white,
+    15px 15px 1px gray`,
+}
 
 function getShadowStyle(n: number) {
   switch (Math.max(0, n) /* treat negative numbers as 0 */) {
     case 0:
-      return styles.small_card_shadow_0
+      return _smallCardShadow0
     case 1:
-      return styles.small_card_shadow_1
+      return _smallCardShadow1
     case 2:
-      return styles.small_card_shadow_2
+      return _smallCardShadow2
     case 3:
-      return styles.small_card_shadow_3
+      return _smallCardShadow3
     case 4:
-      return styles.small_card_shadow_4
+      return _smallCardShadow4
     default:
       break
   }
-  return styles.small_card_shadow_5
+  return _smallCardShadow5
 }
+
+const SmallCardBox = styled.div({
+  margin: '0 0 6px 0',
+  padding: '0',
+
+  maxWidth: '226px',
+  minHeight: '232px',
+
+  borderRadius: '5px',
+  boxShadow: '0px 1px 2px 1px rgba(0, 0, 0, 0.2)',
+
+  fontSize: '12px',
+})
 
 type SmallCardProps = React.PropsWithChildren<{
   onClick?: React.MouseEventHandler
@@ -30,29 +109,15 @@ type SmallCardProps = React.PropsWithChildren<{
 
 export const SmallCard = React.forwardRef<HTMLDivElement, SmallCardProps>(
   ({ children, className, onClick, stack_size, ...kwargs }, ref) => {
-    let clickableOnClick = undefined
-    let clickableStyle = undefined
+    let Box = SmallCardBox
     if (onClick) {
-      clickableStyle = styles.clickable_chunks
-      clickableOnClick = onClick
+      Box = styled(Box)({ '&:hover': { cursor: 'pointer' } })
     }
-    const shadowStyle = getShadowStyle(stack_size || 0)
+    Box = styled(Box)(getShadowStyle(stack_size || 0))
     return (
-      <div
-        className={jcss(
-          styles.small_card,
-          clickableStyle,
-          shadowStyle,
-          className
-        )}
-        ref={ref}
-        onClick={clickableOnClick}
-        {...kwargs}
-      >
+      <Box className={className} ref={ref} onClick={onClick} {...kwargs}>
         {children}
-      </div>
+      </Box>
     )
   }
 )
-
-export default SmallCard
