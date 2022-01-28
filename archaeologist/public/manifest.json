@@ -26,6 +26,7 @@
   "chrome_url_overrides": {},
   "permissions": [
     "activeTab",
+    "tabs",
     "cookies"
   ],
   "cross_origin_embedder_policy": {
