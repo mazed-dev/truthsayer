@@ -63,19 +63,11 @@ class DynamicGrid extends React.Component {
     const containerEl = this.containerRef.current
     const width = containerEl.clientWidth || window.innerWidth
     const height = containerEl.clientHeight || window.innerHeight
-    const fontSize = parseFloat(
-      getComputedStyle(document.documentElement).fontSize
-    )
-    const fn = (cardWidth) => {
-      const nf = width / (fontSize * cardWidth)
-      let n = Math.floor(nf)
-      const delta = nf - n
-      if (delta > 0.8) {
-        n = n + 1
-      }
-      return n
-    }
-    const ncols = Math.max(2, fn(14))
+
+    const cardWidth = 226
+    const minGap = 6
+    const nf = Math.floor(width / (cardWidth + minGap))
+    const ncols = Math.max(2, nf)
     this.setState({
       width,
       height,
