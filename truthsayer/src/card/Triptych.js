@@ -285,7 +285,6 @@ class Triptych extends React.Component {
             nidIsPrivate={nodeIsPrivate}
             abortControler={this.createNodeAbortController.signal}
             addRef={this.addRef}
-            className={styles.ref_card}
           />
           {leftRefs}
         </Col>
@@ -297,7 +296,6 @@ class Triptych extends React.Component {
             nidIsPrivate={nodeIsPrivate}
             abortControler={this.createNodeAbortController.signal}
             addRef={this.addRef}
-            className={styles.ref_card}
           />
           {rightRefs}
         </Col>

@@ -20,7 +20,7 @@ import {
   FootbarDropdownToggle,
 } from './Footbar'
 
-import { jcss, MaterialIcon, MdiOpenInFull, MdiMoreHoriz } from 'elementary'
+import { jcss, MaterialIcon, MdiLaunch, MdiMoreHoriz } from 'elementary'
 
 class PrivateMenu extends React.Component {
   constructor(props) {
@@ -182,7 +182,7 @@ export function SmallCardFootbar({
         to={makeRefTo.node(nid)}
         className={jcss(styles.tool_button, styles.toolbar_layout_item)}
       >
-        <MdiOpenInFull />
+        <MdiLaunch />
       </Button>
       <Menu
         edge={edge}

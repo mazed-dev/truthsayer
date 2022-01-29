@@ -93,7 +93,7 @@ const SmallCardBox = styled.div({
   padding: '0',
 
   maxWidth: '226px',
-  minHeight: '232px',
+  //minHeight: '232px',
 
   borderRadius: '5px',
   boxShadow: '0px 1px 2px 1px rgba(0, 0, 0, 0.2)',
@@ -103,7 +103,7 @@ const SmallCardBox = styled.div({
 
 type SmallCardProps = React.PropsWithChildren<{
   onClick?: React.MouseEventHandler
-  className: string
+  className?: string
   stack_size?: number
 }>
 

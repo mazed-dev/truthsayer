@@ -14,7 +14,7 @@
 
   color: black;
   opacity: 0.5;
-  z-index: 1001;
+  z-index: 101;
 }
 
 .tool_button:hover {

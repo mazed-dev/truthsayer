@@ -39,7 +39,7 @@ export const GridCard = React.forwardRef(
   }
 )
 
-class DynamicGrid extends React.Component {
+export class DynamicGrid extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
