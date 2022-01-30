@@ -2210,6 +2210,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@microsoft/microsoft-graph-types@npm:^2.13.0":
+  version: 2.13.0
+  resolution: "@microsoft/microsoft-graph-types@npm:2.13.0"
+  checksum: 54bfa1c246bd13570970c851c8360e953d6b30a20c4dceec38c9a1c83545f6c0423b5783e707de35fec748dfecc2a8b887254ef2389fc6d5b4d4b48840704dfe
+  languageName: node
+  linkType: hard
+
 "@mozilla/readability@npm:^0.4.1":
   version: 0.4.1
   resolution: "@mozilla/readability@npm:0.4.1"
@@ -16312,6 +16319,7 @@ __metadata:
     "@emotion/babel-plugin": ^11.7.2
     "@emotion/react": ^11.7.1
     "@emotion/styled": ^11.6.0
+    "@microsoft/microsoft-graph-types": ^2.13.0
     "@popperjs/core": ^2.10.2
     "@testing-library/dom": ^7.29
     "@testing-library/jest-dom": ^5.14.1

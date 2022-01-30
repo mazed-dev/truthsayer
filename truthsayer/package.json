@@ -25,6 +25,7 @@
     "@emotion/babel-plugin": "^11.7.2",
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
+    "@microsoft/microsoft-graph-types": "^2.13.0",
     "@popperjs/core": "^2.10.2",
     "@testing-library/dom": "^7.29",
     "@testing-library/jest-dom": "^5.14.1",
