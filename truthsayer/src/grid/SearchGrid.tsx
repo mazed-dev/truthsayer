@@ -3,7 +3,6 @@
 import React, { useContext } from 'react'
 import PropTypes from 'prop-types'
 import { withRouter } from 'react-router-dom'
-import { Container, Row, Col } from 'react-bootstrap'
 
 import { SmallCard } from '../card/SmallCard'
 import { SCard } from '../card/ShrinkCard'
@@ -15,7 +14,6 @@ import { searchNodeFor } from './search/search'
 import { smuggler, TNodeSliceIterator } from 'smuggler-api'
 
 import { jcss } from 'elementary'
-import { range } from '../util/range'
 import { isSmartCase } from '../util/str'
 
 import { MzdGlobalContext } from '../lib/global'
@@ -23,6 +21,8 @@ import { Loader } from '../lib/loader'
 
 import * as log from '../util/log'
 import { isAbortError } from '../util/exception'
+
+import { DynamicGrid } from './DynamicGrid'
 
 import styles from './SearchGrid.module.css'
 
@@ -38,85 +38,6 @@ export const GridCard = React.forwardRef(
     )
   }
 )
-
-export class DynamicGrid extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      width: 640,
-      height: 480,
-      ncols: 1,
-    }
-    this.containerRef = React.createRef()
-  }
-
-  componentDidMount() {
-    this.updateWindowDimensions()
-    window.addEventListener('resize', this.updateWindowDimensions)
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.updateWindowDimensions)
-  }
-
-  updateWindowDimensions = () => {
-    const containerEl = this.containerRef.current
-    const width = containerEl.clientWidth || window.innerWidth
-    const height = containerEl.clientHeight || window.innerHeight
-
-    const cardWidth = 226
-    const minGap = 6
-    const nf = Math.floor(width / (cardWidth + minGap))
-    const ncols = Math.max(2, nf)
-    this.setState({
-      width,
-      height,
-      ncols,
-    })
-  }
-
-  render() {
-    const colWidth = Math.floor(100 / this.state.ncols)
-    const columnStyle = {
-      width: `${colWidth}%`,
-    }
-    const columns = range(this.state.ncols).map((_, col_ind) => {
-      const colCards = this.props.children.filter((_, card_ind) => {
-        return card_ind % this.state.ncols === col_ind
-      })
-      return (
-        <Col
-          className={styles.grid_col}
-          key={`cards_column_${col_ind}`}
-          sm="auto"
-        >
-          {colCards}
-        </Col>
-      )
-    })
-    return (
-      <Container
-        fluid
-        className={jcss(styles.grid_container)}
-        ref={this.containerRef}
-      >
-        <Row className={jcss('justify-content-center', styles.grid_row)}>
-          {columns}
-        </Row>
-      </Container>
-    )
-  }
-}
-
-export type NodeAttrsSearchItem = {
-  nid: string
-  // ntype: i32,
-  // crtd: u64,
-  // upd: u64,
-  // attrs: Optional<String>,
-  // data: Optional<String>,
-  // meta: Optional<NodeMetaPub>,
-}
 
 class SearchGridImpl extends React.Component {
   ref: React.RefObject<HTMLDivElement>

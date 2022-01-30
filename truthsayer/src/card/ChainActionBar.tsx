@@ -232,9 +232,7 @@ export const ChainActionBar = ({
         <CustomDropdownMenu>
           <CustomDropdownItem onClick={() => handler.handleNext(ctx, side)}>
             <MdiAdd css={{ verticalAlign: 'middle' }} />
-            <DropdownItemText>
-              Create new and link
-            </DropdownItemText>
+            <DropdownItemText>Create new and link</DropdownItemText>
           </CustomDropdownItem>
           <CustomDropdownItem
             onClick={() => handler.handleNextClone(ctx, side)}
@@ -252,9 +250,7 @@ export const ChainActionBar = ({
             }}
           >
             <MdiFileUpload css={{ verticalAlign: 'middle' }} />
-            <DropdownItemText>
-              Upload file and link
-            </DropdownItemText>
+            <DropdownItemText>Upload file and link</DropdownItemText>
           </CustomDropdownItem>
           <CustomDropdownItem onClick={() => setShowSearchModal(true)}>
             <MdiSearch css={{ verticalAlign: 'middle' }} />
