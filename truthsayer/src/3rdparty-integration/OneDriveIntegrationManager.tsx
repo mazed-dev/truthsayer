@@ -26,10 +26,7 @@ const Button = styled.button`
   border-width: 0;
   border-radius: 32px;
 
-  // I do not understand why, but 'line-height' property makes the children
-  // of this button centered vertically. See https://stackoverflow.com/a/59179284/3375765
-  line-height: 90%;
-
+  vertical-align: middle;
   &:hover {
     background-color: #d0d1d2;
   }

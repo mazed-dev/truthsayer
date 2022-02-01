@@ -119,7 +119,7 @@ class PrivateNavButtonsImpl extends React.Component {
               Manage your account
             </Dropdown.Item>
             <Dropdown.Item as={Link} to="/3rdparty-integrations">
-              3rd-party integrations
+              [experimental] 3rd-party integrations
             </Dropdown.Item>
             <Dropdown.Item as={Link} to="/help">
               Help
