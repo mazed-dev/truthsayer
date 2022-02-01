@@ -5,6 +5,34 @@ __metadata:
   version: 5
   cacheKey: 8
 
+"@azure/msal-browser@npm:^2.21.0":
+  version: 2.21.0
+  resolution: "@azure/msal-browser@npm:2.21.0"
+  dependencies:
+    "@azure/msal-common": ^6.0.0
+  checksum: 5c6633d253cd94f5582d08654557af9cef6843565a4e219853120cc568680eab6a6f69352b2d6281781f160cdcb3f3fbdb705b1065e5a831f5adbc170ada6d49
+  languageName: node
+  linkType: hard
+
+"@azure/msal-common@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "@azure/msal-common@npm:6.0.0"
+  dependencies:
+    debug: ^4.1.1
+  checksum: b9f5230ea44d2d6a03c3bbc09845ca44cc298c353ecac70c8e549caa0a5aa24aa391a42d781741f9b7782905e4689fe6034e9befe3987a38863700875c037ee6
+  languageName: node
+  linkType: hard
+
+"@azure/msal-react@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@azure/msal-react@npm:1.2.0"
+  peerDependencies:
+    "@azure/msal-browser": ^2.21.0
+    react: ^16.8.0 || ^17
+  checksum: 4bfa392491a51c6e3d6f075787e138f7e9474a0a8153125887d8a0dac51a91e5694ef5b96b842db8fc070c97dfbd1eabea3537ba97621c927b65c4b50ed59afa
+  languageName: node
+  linkType: hard
+
 "@babel/code-frame@npm:7.10.4":
   version: 7.10.4
   resolution: "@babel/code-frame@npm:7.10.4"
@@ -1986,6 +2014,13 @@ __metadata:
     "@types/yargs": ^15.0.0
     chalk: ^4.0.0
   checksum: a0bd3d2f22f26ddb23f41fddf6e6a30bf4fab2ce79ec1cb6ce6fdfaf90a72e00f4c71da91ec61e13db3b10c41de22cf49d07c57ff2b59171d64b29f909c1d8d6
+  languageName: node
+  linkType: hard
+
+"@microsoft/microsoft-graph-types@npm:^2.13.0":
+  version: 2.13.0
+  resolution: "@microsoft/microsoft-graph-types@npm:2.13.0"
+  checksum: 54bfa1c246bd13570970c851c8360e953d6b30a20c4dceec38c9a1c83545f6c0423b5783e707de35fec748dfecc2a8b887254ef2389fc6d5b4d4b48840704dfe
   languageName: node
   linkType: hard
 
@@ -16040,12 +16075,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "truthsayer@workspace:truthsayer"
   dependencies:
+    "@azure/msal-browser": ^2.21.0
+    "@azure/msal-react": ^1.2.0
     "@babel/core": ^7.15.5
     "@babel/plugin-proposal-class-properties": ^7.13.0
     "@babel/preset-typescript": ^7.7.4
     "@emotion/babel-plugin": ^11.7.2
     "@emotion/react": ^11.7.1
     "@emotion/styled": ^11.6.0
+    "@microsoft/microsoft-graph-types": ^2.13.0
     "@popperjs/core": ^2.10.2
     "@testing-library/dom": ^7.29
     "@testing-library/jest-dom": ^5.14.1
