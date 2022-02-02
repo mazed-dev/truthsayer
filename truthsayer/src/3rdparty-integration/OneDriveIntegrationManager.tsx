@@ -1,3 +1,13 @@
+/**
+ * @file Implements UI widgets that user can use to manage integration between
+ * their Mazed & Microsoft OneDrive.
+ *
+ * On a high level integration with OneDrive consists of two major parts:
+ *    1. authentication & authorization (@see setupMsalInstance() )
+ *    2. interactions with user data via Microsoft Graph to on behalf of an
+ *      authenticated Microsoft account (@see graph() )
+ */
+
 // Significant chunk of the code for integration with OneDrive was taken from
 // https://docs.microsoft.com/en-us/azure/active-directory/develop/tutorial-v2-react
 import styled from '@emotion/styled'
@@ -102,7 +112,7 @@ function scopes(array: MsGraphScope[]): MsGraphScope[] {
   return array
 }
 
-function setupMicrosoftSalInstance(): PublicClientApplication {
+function setupMsalInstance(): PublicClientApplication {
   // MSAL & Microsoft Graph support a variaty of different authentication &
   // authorisation flows, each applicable to a different kind of application.
   // For single-page web applications like Mazed, the "Authorization Code Grant"
@@ -197,7 +207,7 @@ async function signOut(msalApp: IPublicClientApplication) {
 
 /** Allows to manage user's integration of Microsoft OneDrive with Mazed */
 export function OneDriveIntegrationManager() {
-  const msalInstance = setupMicrosoftSalInstance()
+  const msalInstance = setupMsalInstance()
   return (
     // Having MsalProvider as parent grants all children access to
     // '@azure/msal-react' context, hooks and components
