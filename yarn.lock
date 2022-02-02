@@ -2017,10 +2017,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/microsoft-graph-types@npm:^2.13.0":
-  version: 2.13.0
-  resolution: "@microsoft/microsoft-graph-types@npm:2.13.0"
-  checksum: 54bfa1c246bd13570970c851c8360e953d6b30a20c4dceec38c9a1c83545f6c0423b5783e707de35fec748dfecc2a8b887254ef2389fc6d5b4d4b48840704dfe
+"@microsoft/microsoft-graph-client@npm:^3.0.0":
+  version: 3.0.1
+  resolution: "@microsoft/microsoft-graph-client@npm:3.0.1"
+  dependencies:
+    "@babel/runtime": ^7.12.5
+    tslib: ^2.2.0
+  peerDependenciesMeta:
+    "@azure/identity":
+      optional: true
+    "@azure/msal-browser":
+      optional: true
+    buffer:
+      optional: true
+    stream-browserify:
+      optional: true
+  checksum: 21d5726a276290528a5cee40dffa1def37605d92485b80238352504243e1ed502e30725f9ccfa064397c3254c8d20a3ab015dc8c4019fd8c13099c0919f2ad84
   languageName: node
   linkType: hard
 
@@ -2746,6 +2758,13 @@ __metadata:
   dependencies:
     "@types/unist": "*"
   checksum: 3f587bfc0a9a2403ecadc220e61031b01734fedaf82e27eb4d5ba039c0eb54db8c85681ccc070ab4df3f7ec711b736a82b990e69caa14c74bf7ac0ccf2ac7313
+  languageName: node
+  linkType: hard
+
+"@types/microsoft-graph@npm:^2.13.0":
+  version: 2.13.0
+  resolution: "@types/microsoft-graph@npm:2.13.0"
+  checksum: a9f8be8bddc6fc4be1df4a199cdcd35132a3cea223799fc13d34997ab66186fae8e788257f7142c2f43b1cf57e9eb448d6ebdda85e08b893b5bc5451fa8a4e4d
   languageName: node
   linkType: hard
 
@@ -16083,7 +16102,7 @@ __metadata:
     "@emotion/babel-plugin": ^11.7.2
     "@emotion/react": ^11.7.1
     "@emotion/styled": ^11.6.0
-    "@microsoft/microsoft-graph-types": ^2.13.0
+    "@microsoft/microsoft-graph-client": ^3.0.0
     "@popperjs/core": ^2.10.2
     "@testing-library/dom": ^7.29
     "@testing-library/jest-dom": ^5.14.1
@@ -16092,6 +16111,7 @@ __metadata:
     "@types/crc": ^3.4.0
     "@types/is-url": ^1.2.30
     "@types/jest": ^26.0.0
+    "@types/microsoft-graph": ^2.13.0
     "@types/mocha": ^5.2.7
     "@types/node": ^14.14
     "@types/react": ^17.0
@@ -16240,7 +16260,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.0.3":
+"tslib@npm:^2.0.3, tslib@npm:^2.2.0":
   version: 2.3.1
   resolution: "tslib@npm:2.3.1"
   checksum: de17a98d4614481f7fcb5cd53ffc1aaf8654313be0291e1bfaee4b4bb31a20494b7d218ff2e15017883e8ea9626599b3b0e0229c18383ba9dce89da2adf15cb9
