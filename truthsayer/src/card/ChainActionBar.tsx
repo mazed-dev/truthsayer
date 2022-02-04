@@ -206,12 +206,14 @@ export const ChainActionBar = ({
   nidIsPrivate,
   abortControler,
   addRef,
+  className,
 }: {
   side: ChainActionBarSide
   nid: string
   nidIsPrivate: boolean
   abortControler: AbortController
   addRef: ({ from, to }: { from: string; to: string }) => void
+  className?: string
 }) => {
   const history = useHistory()
   const [showSearchModal, setShowSearchModal] = useState(false)
@@ -224,7 +226,7 @@ export const ChainActionBar = ({
   const uploadFileFormRef = useRef<HTMLInputElement>(null)
   const ctx = useContext(MzdGlobalContext)
   return (
-    <SmallCard>
+    <SmallCard className={className}>
       <CustomDropdown>
         <CustomDropdownToggle variant="success" id="dropdown-basic">
           <CreateNodeBigIcon />

@@ -9,14 +9,12 @@ import { range } from '../util/range'
 import styles from './SearchGrid.module.css'
 import * as log from '../util/log'
 
-import { jcss } from 'elementary'
-
 type JustifyContentType =
-  | 'justify-content-start'
-  | 'justify-content-end'
-  | 'justify-content-center'
-  | 'justify-content-between'
-  | 'justify-content-around'
+  | 'start'
+  | 'end'
+  | 'center'
+  | 'space-between'
+  | 'space-around'
 
 export const DynamicGrid = ({
   children,
@@ -37,7 +35,7 @@ export const DynamicGrid = ({
   const containerRef = useRef<HTMLDivElement>(null)
   log.debug('DynamicGrid.className', className)
 
-  justify_content = justify_content || 'justify-content-center'
+  justify_content = justify_content || 'center'
 
   useEffect(() => {
     const updateWindowDimensions = () => {
@@ -57,23 +55,8 @@ export const DynamicGrid = ({
     }
   })
 
-  const columns = range(ncols).map((_, col_ind) => {
-    const colCards = children.filter((_, card_ind) => {
-      return card_ind % ncols === col_ind
-    })
-    return (
-      <Col
-        className={styles.grid_col}
-        key={`cards_column_${col_ind}`}
-        sm="auto"
-      >
-        {colCards}
-      </Col>
-    )
-  })
   return (
-    <Container
-      fluid
+    <div
       className={className}
       css={{
         position: 'relative',
@@ -81,10 +64,14 @@ export const DynamicGrid = ({
         maxWidth: '100%',
         margin: 0,
         padding: 0,
+        display: 'grid',
+        gridTemplateColumns: 'auto '.repeat(ncols),
+        justifyContent: justify_content,
+        gridGap: '6px',
       }}
       ref={containerRef}
     >
-      <Row className={jcss(justify_content, styles.grid_row)}>{columns}</Row>
-    </Container>
+      {children}
+    </div>
   )
 }

@@ -26,11 +26,11 @@ import { css } from '@emotion/react'
 
 import lodash from 'lodash'
 
-function RefNodeCard({ nid, edge, switchStickiness, cutOffRef }) {
+function RefNodeCard({ nid, edge, switchStickiness, cutOffRef, className }) {
   const [showMore, setShowMore] = useState(false)
   const toggleMoreLess = () => setShowMore(!showMore)
   return (
-    <SmallCard>
+    <SmallCard className={className}>
       <ShrinkCard showMore={showMore}>
         <ReadOnlyRender nid={nid} />
       </ShrinkCard>
@@ -57,17 +57,27 @@ function NodeRefs({ side, nid, edges, switchStickiness, cutOffRef }) {
         switchStickiness={switchStickiness}
         cutOffRef={cutOffRef}
         key={edge.eid}
+        css={css`
+          @media (max-width: 480px) {
+            width: initial;
+            max-width: 226px;
+          }
+        `}
       />
     )
   })
   const width = side === 'left' ? 240 : '100%'
-  const justify_content =
-    side === 'left' ? 'justify-content-end' : 'justify-content-start'
+  const justify_content = side === 'left' ? 'end' : 'start'
   return (
     <DynamicGrid
       columns_n_max={maxColumns}
       justify_content={justify_content}
-      css={{ width }}
+      css={css`
+        width: ${width};
+        @media (max-width: 480px) {
+          width: 100%;
+        }
+      `}
     >
       {refs}
     </DynamicGrid>
@@ -317,6 +327,13 @@ class Triptych extends React.Component {
             nidIsPrivate={nodeIsPrivate}
             abortControler={this.createNodeAbortController.signal}
             addRef={this.addRef}
+            css={css`
+              margin-bottom: 6px;
+              @media (max-width: 480px) {
+                width: initial;
+                max-width: 226px;
+              }
+            `}
           />
           <NodeRefs
             side="left"
@@ -331,7 +348,7 @@ class Triptych extends React.Component {
             ${colBaseCss};
             margin: 0 32px 0 32px;
             flex: 0 0;
-            width: 600px;
+            max-width: 600px;
           `}
         >
           {nodeCard}
@@ -339,7 +356,7 @@ class Triptych extends React.Component {
         <Col
           css={css`
             ${colBaseCss};
-            flex: 1 0;
+            flex: 1 1;
           `}
         >
           <ChainActionBar
@@ -348,6 +365,13 @@ class Triptych extends React.Component {
             nidIsPrivate={nodeIsPrivate}
             abortControler={this.createNodeAbortController.signal}
             addRef={this.addRef}
+            css={css`
+              margin-bottom: 6px;
+              @media (max-width: 480px) {
+                width: initial;
+                max-width: 226px;
+              }
+            `}
           />
           <NodeRefs
             side="right"
