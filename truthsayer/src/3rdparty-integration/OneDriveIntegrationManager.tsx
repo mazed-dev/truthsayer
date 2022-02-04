@@ -172,7 +172,7 @@ function graph(msalApp: PublicClientApplication): MsGraphClient {
     )
   }
   const options: AuthCodeMSALBrowserAuthenticationProviderOptions = {
-    account: account, // the AccountInfo instance to acquire the token for.
+    account, // the AccountInfo instance to acquire the token for.
     interactionType: InteractionType.Popup, // msal-browser InteractionType
     scopes: scopes(['User.Read']),
   }
