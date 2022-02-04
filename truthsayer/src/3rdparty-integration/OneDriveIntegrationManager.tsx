@@ -1,3 +1,13 @@
+/**
+ * @file Implements UI widgets that user can use to manage integration between
+ * their Mazed & Microsoft OneDrive.
+ *
+ * On a high level integration with OneDrive consists of two major parts:
+ *    1. authentication & authorization (@see setupMsalInstance() )
+ *    2. interactions with user data via Microsoft Graph to on behalf of an
+ *      authenticated Microsoft account (@see graph() )
+ */
+
 // Significant chunk of the code for integration with OneDrive was taken from
 // https://docs.microsoft.com/en-us/azure/active-directory/develop/tutorial-v2-react
 import styled from '@emotion/styled'
@@ -10,13 +20,19 @@ import {
   AuthenticationResult,
   Configuration,
   PopupRequest,
+  InteractionType,
 } from '@azure/msal-browser'
 import {
   MsalProvider,
   AuthenticatedTemplate,
   UnauthenticatedTemplate,
 } from '@azure/msal-react'
-import { User as MsGraphUser } from '@microsoft/microsoft-graph-types'
+import { User as MsGraphUser } from 'microsoft-graph'
+import { Client as MsGraphClient } from '@microsoft/microsoft-graph-client'
+import {
+  AuthCodeMSALBrowserAuthenticationProvider,
+  AuthCodeMSALBrowserAuthenticationProviderOptions,
+} from '@microsoft/microsoft-graph-client/authProviders/authCodeMsalBrowser'
 
 import { MdiInsertLink, MdiLinkOff, MdiLaunch } from 'elementary'
 
@@ -51,8 +67,8 @@ type MsEnvironment = {
   /** Authentication and authorisation resource */
   authority: string
   /**
-   * Common prefix for all Microsoft Graph endpoints. Full list of
-   * endpoints can be found at https://docs.microsoft.com/en-us/graph/api/overview?view=graph-rest-1.0
+   * Common prefix for all Microsoft Graph endpoints. See 'MsGraphEndpoint' for
+   * more details
    */
   graph: string
 }
@@ -68,7 +84,9 @@ const MsProductionEnv: MsEnvironment = {
 }
 
 // When concatanated with a `MsEnvironment.graph` prefix, produces a Microsoft
-// graph endpoint.
+// graph REST endpoint. Concatanation is required if raw REST APIs are used,
+// while 'MsGraphEndpoint' can be used on its own without a prefix if used with
+// '@microsoft/microsoft-graph-client'
 //
 // See full list of endpoints at
 // https://docs.microsoft.com/en-us/graph/api/overview?view=graph-rest-1.0
@@ -83,15 +101,18 @@ type MsGraphEndpoint = '/me'
 type MsGraphScope = 'User.Read'
 
 /**
- * Trivial function to help enforce TypeScript checks in places
- * where scopes need to be passed to Microsoft APIs that expect them as raw
- * strings.
+ * Trivial functions to help enforce TypeScript checks in places
+ * where endpoints and scopes need to be passed to Microsoft APIs that expect
+ * them as raw strings.
  */
-function scopes(input: MsGraphScope[]): MsGraphScope[] {
-  return input
+function endpoint(path: MsGraphEndpoint): MsGraphEndpoint {
+  return path
+}
+function scopes(array: MsGraphScope[]): MsGraphScope[] {
+  return array
 }
 
-function setupMicrosoftSalInstance(): PublicClientApplication {
+function setupMsalInstance(): PublicClientApplication {
   // MSAL & Microsoft Graph support a variaty of different authentication &
   // authorisation flows, each applicable to a different kind of application.
   // For single-page web applications like Mazed, the "Authorization Code Grant"
@@ -104,9 +125,9 @@ function setupMicrosoftSalInstance(): PublicClientApplication {
       clientId: 'a87d78c3-d208-470b-b433-5d7a5fa77b7b',
       authority: MsProductionEnv.authority,
       // Although I couldn't find a description of how '/' value should behave
-      // in the docs, it seems to be equivalent to '<current-base-url>/',
-      // e.g. 'http://localhost:3000' which is convenient since it can work
-      // both during local testing and in prod.
+      // in the docs, but based on live tests it seems to be equivalent to
+      // '<current-base-url>/', e.g. 'http://localhost:3000' which is convenient
+      // since it can work both during local testing and in prod.
       //
       // NOTE: full URI has to be registered in Azure Active Directory,
       // see https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-spa-app-registration
@@ -140,6 +161,32 @@ function setupMicrosoftSalInstance(): PublicClientApplication {
   return msalInstance
 }
 
+function graph(msalApp: PublicClientApplication): MsGraphClient {
+  // Implementation of this funciton is taken from this example:
+  // https://github.com/microsoftgraph/msgraph-sdk-javascript/blob/91ef52b3a8b405e5c30ac07d9268a9956a9acd40/docs/AuthCodeMSALBrowserAuthenticationProvider.md
+
+  const account = msalApp.getActiveAccount()
+  if (!account) {
+    throw new Error(
+      `Attempted to use MS Graph client without a signed in Microsoft Account`
+    )
+  }
+  const options: AuthCodeMSALBrowserAuthenticationProviderOptions = {
+    account, // the AccountInfo instance to acquire the token for.
+    interactionType: InteractionType.Popup, // msal-browser InteractionType
+    scopes: scopes(['User.Read']),
+  }
+
+  const authProvider = new AuthCodeMSALBrowserAuthenticationProvider(
+    msalApp,
+    options
+  )
+
+  return MsGraphClient.initWithMiddleware({
+    authProvider,
+  })
+}
+
 async function signIn(msalApp: IPublicClientApplication) {
   const loginRequest: PopupRequest = {
     // Below is the list of Microsoft Graph scopes the client application
@@ -158,46 +205,9 @@ async function signOut(msalApp: IPublicClientApplication) {
   })
 }
 
-async function callMsGraph(
-  msalApp: IPublicClientApplication,
-  endpoint: MsGraphEndpoint,
-  scopes: MsGraphScope[]
-) {
-  const account = msalApp.getActiveAccount()
-  if (!account) {
-    throw Error(
-      'No active account! Verify a user has been signed in and setActiveAccount has been called.'
-    )
-  }
-
-  const response = await msalApp.acquireTokenSilent({
-    scopes,
-    account: account,
-  })
-
-  const headers = new Headers()
-  // See https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow#use-the-access-token
-  // for official description of the 'Authorization' header.
-  headers.append('Authorization', `Bearer ${response.accessToken}`)
-
-  const options = {
-    method: 'GET',
-    headers: headers,
-  }
-
-  return fetch(`${MsProductionEnv.graph}${endpoint}`, options)
-}
-
-async function fetchMsUserProfile(
-  msalApp: IPublicClientApplication
-): Promise<MsGraphUser> {
-  const response = await callMsGraph(msalApp, '/me', ['User.Read'])
-  return await response.json()
-}
-
 /** Allows to manage user's integration of Microsoft OneDrive with Mazed */
 export function OneDriveIntegrationManager() {
-  const msalInstance = setupMicrosoftSalInstance()
+  const msalInstance = setupMsalInstance()
   return (
     // Having MsalProvider as parent grants all children access to
     // '@azure/msal-react' context, hooks and components
@@ -215,7 +225,9 @@ export function OneDriveIntegrationManager() {
         </Button>
         <Button
           onClick={() => {
-            fetchMsUserProfile(msalInstance)
+            graph(msalInstance)
+              .api(endpoint('/me'))
+              .get()
               .then((user: MsGraphUser) =>
                 console.log(`Your name is ${user.displayName}`)
               )
