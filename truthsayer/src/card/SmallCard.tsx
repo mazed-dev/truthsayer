@@ -88,11 +88,13 @@ function getShadowStyle(n: number) {
   return _smallCardShadow5
 }
 
+const kSmallCardWidthMax = '226px'
+
 const SmallCardBox = styled.div({
   margin: '0 0 6px 0',
   padding: '0',
 
-  maxWidth: '226px',
+  width: kSmallCardWidthMax,
 
   borderRadius: '5px',
   boxShadow: '0px 1px 2px 1px rgba(0, 0, 0, 0.2)',

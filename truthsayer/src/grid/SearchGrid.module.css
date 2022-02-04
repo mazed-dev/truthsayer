@@ -1,16 +1,3 @@
-/**
- * https://stackoverflow.com/questions/34140793/bootstrap-4-responsive-cards-in-card-columns
- */
-.grid_container {
-  position: relative;
-
-  width: 100%;
-  max-width: 100%;
-
-  margin: 0;
-  padding: 0;
-}
-
 .grid_row {
   margin: 0;
   padding: 0;

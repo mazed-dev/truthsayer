@@ -1,8 +1,8 @@
+/** @jsxImportSource @emotion/react */
+
 import React, { useState } from 'react'
 
 import { Row, Col } from 'react-bootstrap'
-
-import styles from './Triptych.module.css'
 
 import { FullCard } from './FullCard'
 
@@ -12,15 +12,17 @@ import { ReadOnlyRender } from './../doc/ReadOnlyRender'
 
 import { SmallCardFootbar } from './SmallCardFootbar'
 import { ChainActionBar } from './ChainActionBar'
+import { DynamicGrid } from '../grid/DynamicGrid'
 
 import { withRouter } from 'react-router-dom'
 
 import { MzdGlobalContext } from '../lib/global'
-import { jcss } from 'elementary'
 import * as log from '../util/log'
 import { isAbortError } from '../util/exception'
 
 import { smuggler } from 'smuggler-api'
+
+import { css } from '@emotion/react'
 
 import lodash from 'lodash'
 
@@ -28,7 +30,7 @@ function RefNodeCard({ nid, edge, switchStickiness, cutOffRef }) {
   const [showMore, setShowMore] = useState(false)
   const toggleMoreLess = () => setShowMore(!showMore)
   return (
-    <SmallCard className={styles.ref_card}>
+    <SmallCard>
       <ShrinkCard showMore={showMore}>
         <ReadOnlyRender nid={nid} />
       </ShrinkCard>
@@ -44,7 +46,8 @@ function RefNodeCard({ nid, edge, switchStickiness, cutOffRef }) {
   )
 }
 
-function NodeRefs({ className, nid, edges, switchStickiness, cutOffRef }) {
+function NodeRefs({ side, nid, edges, switchStickiness, cutOffRef }) {
+  const maxColumns = side === 'left' ? 1 : undefined
   const refs = edges.map((edge) => {
     const refCardNid = edge.from_nid === nid ? edge.to_nid : edge.from_nid
     return (
@@ -57,7 +60,18 @@ function NodeRefs({ className, nid, edges, switchStickiness, cutOffRef }) {
       />
     )
   })
-  return <div className={className}>{refs}</div>
+  const width = side === 'left' ? 240 : '100%'
+  const justify_content =
+    side === 'left' ? 'justify-content-end' : 'justify-content-start'
+  return (
+    <DynamicGrid
+      columns_n_max={maxColumns}
+      justify_content={justify_content}
+      css={{ width }}
+    >
+      {refs}
+    </DynamicGrid>
+  )
 }
 
 class Triptych extends React.Component {
@@ -250,23 +264,6 @@ class Triptych extends React.Component {
   }
 
   render() {
-    const leftRefs = (
-      <NodeRefs
-        nid={this.props.nid}
-        edges={this.state.edges_left}
-        cutOffRef={this.cutOffRef}
-        switchStickiness={this.switchStickiness}
-        className={styles.node_refs_left}
-      />
-    )
-    const rightRefs = (
-      <NodeRefs
-        nid={this.props.nid}
-        edges={this.state.edges_right}
-        cutOffRef={this.cutOffRef}
-        switchStickiness={this.switchStickiness}
-      />
-    )
     const nodeCard = (
       <FullCard
         node={this.state.node}
@@ -276,9 +273,44 @@ class Triptych extends React.Component {
       />
     )
     const nodeIsPrivate = this.state.node?.isOwnedBy(this.context.account)
+    const colBaseCss = css`
+      margin: 0;
+      padding: 0;
+      @media (max-width: 480px) {
+        width: 100vw;
+        height: 100vw;
+        max-width: 100%;
+        display: inline-block;
+        flex: none;
+        scroll-snap-align: center;
+        scroll-snap-stop: always;
+      }
+    `
     return (
-      <Row className={jcss(styles.row)}>
-        <Col className={jcss(styles.refs_col, styles.col)}>
+      <Row
+        css={css`
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          display: flex;
+          flex: none;
+          flex-flow: row nowrap;
+          justify-content: flex-start;
+
+          @media (max-width: 480px) {
+            overflow: auto;
+            scroll-snap-type: x mandatory;
+            height: 100vw;
+          }
+        `}
+      >
+        <Col
+          css={css`
+            ${colBaseCss};
+            width: 240px;
+            flex: 0 0;
+          `}
+        >
           <ChainActionBar
             side="left"
             nid={this.props.nid}
@@ -286,10 +318,30 @@ class Triptych extends React.Component {
             abortControler={this.createNodeAbortController.signal}
             addRef={this.addRef}
           />
-          {leftRefs}
+          <NodeRefs
+            side="left"
+            nid={this.props.nid}
+            edges={this.state.edges_left}
+            cutOffRef={this.cutOffRef}
+            switchStickiness={this.switchStickiness}
+          />
         </Col>
-        <Col className={jcss(styles.node_card_col, styles.col)}>{nodeCard}</Col>
-        <Col className={jcss(styles.refs_col, styles.col)}>
+        <Col
+          css={css`
+            ${colBaseCss};
+            margin: 0 32px 0 32px;
+            flex: 0 0;
+            width: 600px;
+          `}
+        >
+          {nodeCard}
+        </Col>
+        <Col
+          css={css`
+            ${colBaseCss};
+            flex: 1 0;
+          `}
+        >
           <ChainActionBar
             side="right"
             nid={this.props.nid}
@@ -297,7 +349,13 @@ class Triptych extends React.Component {
             abortControler={this.createNodeAbortController.signal}
             addRef={this.addRef}
           />
-          {rightRefs}
+          <NodeRefs
+            side="right"
+            nid={this.props.nid}
+            edges={this.state.edges_right}
+            cutOffRef={this.cutOffRef}
+            switchStickiness={this.switchStickiness}
+          />
         </Col>
       </Row>
     )

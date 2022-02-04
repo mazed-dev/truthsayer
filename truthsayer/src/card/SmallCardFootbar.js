@@ -1,3 +1,5 @@
+/** @jsxImportSource @emotion/react */
+
 import React, { useContext } from 'react'
 
 import { Link } from 'react-router-dom'
@@ -175,14 +177,17 @@ export function SmallCardFootbar({
         onClick={toggleMore}
         className={jcss(styles.tool_button, styles.toolbar_layout_item)}
       >
-        <MaterialIcon type={showMore ? 'expand_less' : 'expand_more'} />
+        <MaterialIcon
+          css={{ fontSize: '20px' }}
+          type={showMore ? 'expand_less' : 'expand_more'}
+        />
       </Button>
       <Button
         as={Link}
         to={makeRefTo.node(nid)}
         className={jcss(styles.tool_button, styles.toolbar_layout_item)}
       >
-        <MdiLaunch />
+        <MdiLaunch css={{ fontSize: '20px' }} />
       </Button>
       <Menu
         edge={edge}
@@ -191,7 +196,7 @@ export function SmallCardFootbar({
         className={jcss(styles.tool_button, styles.toolbar_layout_item)}
         isOwned={isOwned}
       >
-        <MdiMoreHoriz />
+        <MdiMoreHoriz css={{ fontSize: '20px' }} />
       </Menu>
     </ButtonToolbar>
   )
