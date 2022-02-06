@@ -28,16 +28,16 @@
   height: 8rem;
 }
 
-.everything_xxs {
+.everything_s {
   min-height: 8rem;
 }
 
 .card_xs {
-  height: 10rem;
+  height: 8rem;
 }
 
 .card_s {
-  height: 136px;
+  height: 10rem;
 }
 .card_m {
   height: 18rem;
