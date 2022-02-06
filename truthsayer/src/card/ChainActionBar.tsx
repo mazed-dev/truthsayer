@@ -34,12 +34,12 @@ export type ChainActionBarSide = 'left' | 'right'
 async function cloneNode({
   from,
   to,
-  abortControler,
+  abortSignal,
   isBlank = false,
 }: {
   from?: string
   to?: string
-  abortControler: AbortController
+  abortSignal?: AbortSignal
   isBlank?: boolean
 }): Promise<Optional<NewNodeResponse>> {
   const nid: Optional<string> = from ? from : to ? to : null
@@ -49,7 +49,7 @@ async function cloneNode({
   const node: Optional<TNode> = await smuggler.node
     .get({
       nid,
-      signal: abortControler.signal,
+      signal: abortSignal,
     })
     .catch((err) => {
       if (isAbortError(err)) {
@@ -66,7 +66,7 @@ async function cloneNode({
   try {
     return await smuggler.node.create({
       text: doc.toNodeTextData(),
-      signal: abortControler.signal,
+      signal: abortSignal,
       from_nid: from,
       to_nid: to,
     })
@@ -82,23 +82,23 @@ async function cloneNode({
 class ChainActionHandler {
   nid: string
   nidIsPrivate: boolean
-  abortControler: AbortController
+  abortSignal?: AbortSignal
   history: History
 
   constructor({
     nid,
     nidIsPrivate,
     history,
-    abortControler,
+    abortSignal,
   }: {
     nid: string
     nidIsPrivate: boolean
-    abortControler: AbortController
+    abortSignal?: AbortSignal
     history: History
   }) {
     this.nid = nid
     this.nidIsPrivate = nidIsPrivate
-    this.abortControler = abortControler
+    this.abortSignal = abortSignal
     this.history = history
   }
 
@@ -114,7 +114,7 @@ class ChainActionHandler {
     smuggler.node
       .create({
         text: TDoc.makeEmpty().toNodeTextData(),
-        signal: this.abortControler.signal,
+        signal: this.abortSignal,
         from_nid: side === 'right' ? this.nid : undefined,
         to_nid: side === 'left' ? this.nid : undefined,
       })
@@ -137,7 +137,7 @@ class ChainActionHandler {
     cloneNode({
       from: side === 'right' ? this.nid : undefined,
       to: side === 'left' ? this.nid : undefined,
-      abortControler: this.abortControler,
+      abortSignal: this.abortSignal,
     }).then((node) => {
       if (node) {
         const { nid } = node
@@ -147,15 +147,9 @@ class ChainActionHandler {
   }
 }
 
-const Box = styled.div({
-  margin: '0 0 6px 0',
-})
-
 const CreateNodeBigIcon = styled(MdiAdd)({
   fontSize: '24px',
 })
-
-const kShadow = '0px 1px 2px 1px rgba(0, 0, 0, 0.2)'
 
 const CustomDropdownToggle = styled(Dropdown.Toggle)({
   fontSize: 0,
@@ -204,14 +198,14 @@ export const ChainActionBar = ({
   side,
   nid,
   nidIsPrivate,
-  abortControler,
+  abortSignal,
   addRef,
   className,
 }: {
   side: ChainActionBarSide
   nid: string
   nidIsPrivate: boolean
-  abortControler: AbortController
+  abortSignal?: AbortSignal
   addRef: ({ from, to }: { from: string; to: string }) => void
   className?: string
 }) => {
@@ -220,7 +214,7 @@ export const ChainActionBar = ({
   const handler = new ChainActionHandler({
     nid,
     nidIsPrivate,
-    abortControler,
+    abortSignal,
     history,
   })
   const uploadFileFormRef = useRef<HTMLInputElement>(null)

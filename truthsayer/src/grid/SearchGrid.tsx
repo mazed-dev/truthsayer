@@ -1,3 +1,4 @@
+/** @jsxImportSource @emotion/react */
 // @ts-nocheck
 
 import React, { useContext } from 'react'
@@ -215,7 +216,7 @@ class SearchGridImpl extends React.Component {
         onScroll={this.handleScroll}
         ref={this.ref}
       >
-        <DynamicGrid>{cards}</DynamicGrid>
+        <DynamicGrid css={{ justifyContent: 'center' }}>{cards}</DynamicGrid>
         {fetchingLoader}
       </div>
     )

@@ -8,31 +8,51 @@ import { FullCard } from './FullCard'
 
 import { SmallCard } from './SmallCard'
 import { ShrinkCard } from './ShrinkCard'
-import { ReadOnlyRender } from './../doc/ReadOnlyRender'
+import { ReadOnlyRender } from '../doc/ReadOnlyRender'
 
 import { SmallCardFootbar } from './SmallCardFootbar'
 import { ChainActionBar } from './ChainActionBar'
 import { DynamicGrid } from '../grid/DynamicGrid'
 
-import { withRouter } from 'react-router-dom'
-
 import { MzdGlobalContext } from '../lib/global'
 import * as log from '../util/log'
+import { Optional } from '../util/types'
 import { isAbortError } from '../util/exception'
 
-import { smuggler } from 'smuggler-api'
+import { smuggler, TNode, NodeTextData, TEdge } from 'smuggler-api'
 
-import { css } from '@emotion/react'
+import { css, SerializedStyles } from '@emotion/react'
+import { Spinner } from 'elementary'
 
 import lodash from 'lodash'
 
-function RefNodeCard({ nid, edge, switchStickiness, cutOffRef, className }) {
+function styleMobileOnly(style: SerializedStyles): SerializedStyles {
+  return css`
+    @media (max-width: 480px) {
+      ${style};
+    }
+  `
+}
+
+function RefNodeCard({
+  nid,
+  edge,
+  switchStickiness,
+  cutOffRef,
+  className,
+}: {
+  nid: string
+  edge: any
+  switchStickiness: any
+  cutOffRef: any
+  className?: string
+}) {
   const [showMore, setShowMore] = useState(false)
   const toggleMoreLess = () => setShowMore(!showMore)
   return (
     <SmallCard className={className}>
       <ShrinkCard showMore={showMore}>
-        <ReadOnlyRender nid={nid} />
+        <ReadOnlyRender nid={nid} node={null} />
       </ShrinkCard>
       <SmallCardFootbar
         nid={nid}
@@ -46,7 +66,19 @@ function RefNodeCard({ nid, edge, switchStickiness, cutOffRef, className }) {
   )
 }
 
-function NodeRefs({ side, nid, edges, switchStickiness, cutOffRef }) {
+function NodeRefs({
+  side,
+  nid,
+  edges,
+  switchStickiness,
+  cutOffRef,
+}: {
+  side: 'left' | 'right'
+  nid: string
+  edges: any[]
+  switchStickiness: any
+  cutOffRef: any
+}) {
   const maxColumns = side === 'left' ? 1 : undefined
   const refs = edges.map((edge) => {
     const refCardNid = edge.from_nid === nid ? edge.to_nid : edge.from_nid
@@ -58,25 +90,22 @@ function NodeRefs({ side, nid, edges, switchStickiness, cutOffRef }) {
         cutOffRef={cutOffRef}
         key={edge.eid}
         css={css`
-          @media (max-width: 480px) {
-            width: initial;
-            max-width: 226px;
-          }
+          ${styleMobileOnly(css`
+            width: 100%;
+          `)}
         `}
       />
     )
   })
-  const width = side === 'left' ? 240 : '100%'
-  const justify_content = side === 'left' ? 'end' : 'start'
   return (
     <DynamicGrid
       columns_n_max={maxColumns}
-      justify_content={justify_content}
       css={css`
-        width: ${width};
-        @media (max-width: 480px) {
-          width: 100%;
-        }
+        width: 100%;
+        justify-content: ${side === 'left' ? 'end' : 'start'};
+        ${styleMobileOnly(css`
+          grid-template-columns: 50% 50%;
+        `)}
       `}
     >
       {refs}
@@ -84,8 +113,24 @@ function NodeRefs({ side, nid, edges, switchStickiness, cutOffRef }) {
   )
 }
 
-class Triptych extends React.Component {
-  constructor(props) {
+type TriptychProps = {
+  nid: string
+}
+type TriptychState = {
+  node: Optional<TNode>
+  edges_left: TEdge[]
+  edges_right: TEdge[]
+  edges_sticky: TEdge[]
+}
+
+export class Triptych extends React.Component<TriptychProps, TriptychState> {
+  fetchToEdgesAbortController: AbortController
+  fetchFromEdgesAbortController: AbortController
+  fetchNodeAbortController: AbortController
+  createEdgeAbortController: AbortController
+  createNodeAbortController: AbortController
+
+  constructor(props: TriptychProps) {
     super(props)
     this.state = {
       node: null,
@@ -111,7 +156,7 @@ class Triptych extends React.Component {
     this.fetchNodeAbortController.abort()
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: TriptychProps) {
     // Don't forget to compare props!
     if (this.props.nid !== prevProps.nid) {
       this.fetchEdges()
@@ -135,11 +180,9 @@ class Triptych extends React.Component {
           const edges_sticky = star.edges.filter((edge) => {
             return edge.is_sticky
           })
-          this.setState((state) => {
-            return {
-              edges_left: star.edges,
-              edges_sticky: state.edges_sticky.concat(edges_sticky),
-            }
+          this.setState({
+            edges_left: star.edges,
+            edges_sticky: this.state.edges_sticky.concat(edges_sticky),
           })
         }
       })
@@ -178,12 +221,10 @@ class Triptych extends React.Component {
   fetchNode = async () => {
     this.setState({ node: null })
     const nid = this.props.nid
-    const account = this.context.account
     return smuggler.node
       .get({
         nid,
         signal: this.fetchNodeAbortController.signal,
-        account,
       })
       .then((node) => {
         this.setState({ node })
@@ -197,19 +238,15 @@ class Triptych extends React.Component {
   }
 
   saveNode = lodash.debounce(
-    (text) => {
+    async (text: NodeTextData) => {
       // TODO(akindyakov): move conversion from raw slate to doc to here
       // TODO(akindyakov): collect stats here
       const nid = this.props.nid
-      return smuggler.node
-        .update({
-          nid,
-          text,
-          signal: this.fetchNodeAbortController.signal,
-        })
-        .then((resp) => {
-          return resp
-        })
+      return await smuggler.node.update({
+        nid,
+        text,
+        signal: this.fetchNodeAbortController.signal,
+      })
     },
     757,
     {
@@ -219,9 +256,9 @@ class Triptych extends React.Component {
     }
   )
 
-  cutOffRef = (eid) => {
+  cutOffRef = (eid: string) => {
     this.setState((state) => {
-      const rm = (edge) => edge.eid !== eid
+      const rm = (edge: TEdge) => edge.eid !== eid
       return {
         edges_left: state.edges_left.filter(rm),
         edges_right: state.edges_right.filter(rm),
@@ -230,30 +267,26 @@ class Triptych extends React.Component {
     })
   }
 
-  addRef = ({ from, to }) => {
+  addRef = async ({ from, to }: { from: string; to: string }) => {
+    const { edges_right, edges_left } = this.state
     const { nid } = this.props
-    smuggler.edge
-      .create({
-        from,
-        to,
-        signal: this.createEdgeAbortController.signal,
+    const edge = await smuggler.edge.create({
+      from,
+      to,
+      signal: this.createEdgeAbortController.signal,
+    })
+    if (to === nid) {
+      this.setState({
+        edges_left: edges_left.concat([edge]),
       })
-      .then((edge) => {
-        this.setState((state) => {
-          if (to === nid) {
-            return {
-              edges_left: state.edges_left.concat([edge]),
-            }
-          } else {
-            return {
-              edges_right: state.edges_right.concat([edge]),
-            }
-          }
-        })
+    } else {
+      this.setState({
+        edges_right: edges_right.concat([edge]),
       })
+    }
   }
 
-  switchStickiness = (edge, on = false) => {
+  switchStickiness = (edge: TEdge, on = false) => {
     if (on) {
       edge.is_sticky = true
       this.setState((state) => {
@@ -263,7 +296,7 @@ class Triptych extends React.Component {
         }
       })
     } else {
-      const rm = (e) => edge.eid !== e.eid
+      const rm = (e: TEdge) => edge.eid !== e.eid
       this.setState((state) => {
         const filtered = state.edges_sticky.filter(rm)
         return {
@@ -274,27 +307,32 @@ class Triptych extends React.Component {
   }
 
   render() {
-    const nodeCard = (
-      <FullCard
-        node={this.state.node}
-        addRef={this.addRef}
-        stickyEdges={this.state.edges_sticky}
-        saveNode={this.saveNode}
-      />
-    )
-    const nodeIsPrivate = this.state.node?.isOwnedBy(this.context.account)
+    const { node, edges_sticky, edges_right, edges_left } = this.state
+    const nodeCard =
+      node !== null ? (
+        <FullCard
+          node={node}
+          addRef={this.addRef}
+          stickyEdges={edges_sticky}
+          saveNode={this.saveNode}
+        />
+      ) : (
+        <Spinner.Wheel />
+      )
+    const nodeIsPrivate =
+      this.state.node?.isOwnedBy(this.context.account) || true
     const colBaseCss = css`
       margin: 0;
       padding: 0;
-      @media (max-width: 480px) {
+      ${styleMobileOnly(css`
         width: 100vw;
-        height: 100vw;
+        height: 100vh;
         max-width: 100%;
         display: inline-block;
         flex: none;
         scroll-snap-align: center;
         scroll-snap-stop: always;
-      }
+      `)}
     `
     return (
       <Row
@@ -306,12 +344,11 @@ class Triptych extends React.Component {
           flex: none;
           flex-flow: row nowrap;
           justify-content: flex-start;
-
-          @media (max-width: 480px) {
+          ${styleMobileOnly(css`
+            height: 100vh;
             overflow: auto;
             scroll-snap-type: x mandatory;
-            height: 100vw;
-          }
+          `)}
         `}
       >
         <Col
@@ -325,20 +362,19 @@ class Triptych extends React.Component {
             side="left"
             nid={this.props.nid}
             nidIsPrivate={nodeIsPrivate}
-            abortControler={this.createNodeAbortController.signal}
+            abortSignal={this.createNodeAbortController.signal}
             addRef={this.addRef}
             css={css`
-              margin-bottom: 6px;
-              @media (max-width: 480px) {
-                width: initial;
-                max-width: 226px;
-              }
+              margin: 0 0 6px auto;
+              ${styleMobileOnly(css`
+                width: 50%;
+              `)}
             `}
           />
           <NodeRefs
             side="left"
             nid={this.props.nid}
-            edges={this.state.edges_left}
+            edges={edges_left}
             cutOffRef={this.cutOffRef}
             switchStickiness={this.switchStickiness}
           />
@@ -346,7 +382,7 @@ class Triptych extends React.Component {
         <Col
           css={css`
             ${colBaseCss};
-            margin: 0 32px 0 32px;
+            margin: 0 28px 0 28px;
             flex: 0 0;
             max-width: 600px;
           `}
@@ -363,20 +399,19 @@ class Triptych extends React.Component {
             side="right"
             nid={this.props.nid}
             nidIsPrivate={nodeIsPrivate}
-            abortControler={this.createNodeAbortController.signal}
+            abortSignal={this.createNodeAbortController.signal}
             addRef={this.addRef}
             css={css`
-              margin-bottom: 6px;
-              @media (max-width: 480px) {
-                width: initial;
-                max-width: 226px;
-              }
+              margin: 0 auto 6px 0;
+              ${styleMobileOnly(css`
+                width: 50%;
+              `)}
             `}
           />
           <NodeRefs
             side="right"
             nid={this.props.nid}
-            edges={this.state.edges_right}
+            edges={edges_right}
             cutOffRef={this.cutOffRef}
             switchStickiness={this.switchStickiness}
           />
@@ -387,5 +422,3 @@ class Triptych extends React.Component {
 }
 
 Triptych.contextType = MzdGlobalContext
-
-export default withRouter(Triptych)
