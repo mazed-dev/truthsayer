@@ -2,6 +2,7 @@
 
 import React, { useRef, useState, useEffect } from 'react'
 import * as log from '../util/log'
+import { kSmallCardWidth } from '../card/SmallCard'
 
 export const DynamicGrid = ({
   children,
@@ -20,7 +21,7 @@ export const DynamicGrid = ({
   const containerRef = useRef<HTMLDivElement>(null)
 
   // TODO(akindyakov): calculate gap size and card width properly here
-  const cardWidth = 226
+  const cardWidth = kSmallCardWidth
   const minGap = 6
 
   useEffect(() => {

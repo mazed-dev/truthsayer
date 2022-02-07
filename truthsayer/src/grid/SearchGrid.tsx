@@ -130,9 +130,7 @@ class SearchGridImpl extends React.Component {
             return false
           }
           if (!pattern || searchNodeFor(node, pattern)) {
-            this.setState((state) => {
-              return { nodes: lodash.concat(state.nodes, node) }
-            })
+            this.setState({ nodes: lodash.concat(this.state.nodes, node) })
           }
           return true
         })
