@@ -1,4 +1,7 @@
+/** @jsxImportSource @emotion/react */
+
 import React, { useContext } from 'react'
+import { css } from '@emotion/react'
 
 import { withRouter } from 'react-router-dom'
 import { ButtonToolbar } from 'react-bootstrap'
@@ -137,7 +140,13 @@ class PrivateFullCardFootbarImpl extends React.Component {
   render() {
     return (
       <>
-        <ButtonToolbar className={jcss(styles.toolbar)}>
+        <div
+          css={css`
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+          `}
+        >
           <ImgButton
             onClick={this.showShareDialog}
             className={jcss(styles.tool_button, styles.toolbar_layout_item)}
@@ -145,7 +154,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
             {this.getShareBtn()}
           </ImgButton>
 
-          <FootbarDropdown>
+          <FootbarDropdown className={jcss(styles.toolbar_layout_item)}>
             <FootbarDropdownToggleMeatballs
               id={'more-options-for-fullsize-card'}
             />
@@ -200,7 +209,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
               </FootbarDropdownItem>
             </FootbarDropdownMenu>
           </FootbarDropdown>
-        </ButtonToolbar>
+        </div>
         <ShareModal
           show={this.state.modalShareShow}
           nid={this.props.nid}

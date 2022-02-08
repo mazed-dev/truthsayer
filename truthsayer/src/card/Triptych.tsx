@@ -100,6 +100,7 @@ function NodeRefs({
   return (
     <DynamicGrid
       columns_n_max={maxColumns}
+      columns_n_min={1}
       css={css`
         width: 100%;
         justify-content: ${side === 'left' ? 'end' : 'start'};
