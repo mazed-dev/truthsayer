@@ -1,231 +1,222 @@
 /** @jsxImportSource @emotion/react */
-// @ts-nocheck
 
-import React, { useContext } from 'react'
-import PropTypes from 'prop-types'
-import { withRouter } from 'react-router-dom'
+import React, { useRef, useState, useContext } from 'react'
 
-import { SmallCard } from '../card/SmallCard'
-import { SCard } from '../card/ShrinkCard'
-import { TimeBadge } from '../card/AuthorBadge'
-import { SmallCardRender } from '../doc/ReadOnlyRender'
+import { css } from '@emotion/react'
+import { useAsyncEffect } from 'use-async-effect'
+import { useHistory } from 'react-router-dom'
 
-import { searchNodeFor } from './search/search'
-
-import { smuggler, TNodeSliceIterator } from 'smuggler-api'
-
-import { jcss } from 'elementary'
-import { isSmartCase } from '../util/str'
-
-import { MzdGlobalContext } from '../lib/global'
-import { Loader } from '../lib/loader'
-
-import * as log from '../util/log'
-import { isAbortError } from '../util/exception'
-
-import { DynamicGrid } from './DynamicGrid'
+import { jcss, Spinner } from 'elementary'
+import { smuggler, TNodeSliceIterator, TNode } from 'smuggler-api'
 
 import styles from './SearchGrid.module.css'
+import { DynamicGrid } from './DynamicGrid'
+import { MzdGlobalContext } from '../lib/global'
+import { Optional } from '../util/types'
+import { SCard } from '../card/ShrinkCard'
+import { SmallCard } from '../card/SmallCard'
+import { SmallCardRender } from '../doc/ReadOnlyRender'
+import { TimeBadge } from '../card/AuthorBadge'
+import { isAbortError } from '../util/exception'
+import { isSmartCase } from '../util/str'
+import { searchNodeFor } from './search/search'
+import { styleMobileTouchOnly } from '../util/xstyle'
 
-import lodash from 'lodash'
+import * as log from '../util/log'
 
-export const GridCard = React.forwardRef(
-  ({ onClick, className, children }, ref) => {
-    className = jcss(styles.grid_cell, className)
-    return (
-      <SmallCard onClick={onClick} className={className} ref={ref}>
-        {children}
-      </SmallCard>
-    )
+export const GridCard = ({
+  onClick,
+  className,
+  children,
+}: React.PropsWithChildren<{
+  onClick: () => void
+  className?: string
+}>) => {
+  className = jcss(styles.grid_cell, className)
+  return (
+    <SmallCard
+      onClick={onClick}
+      className={className}
+      css={css`
+        ${styleMobileTouchOnly(css`
+          width: 100%;
+        `)}
+      `}
+    >
+      {children}
+    </SmallCard>
+  )
+}
+
+function makePattern(
+  q: string | null,
+  defaultSearch?: boolean
+): Optional<RegExp> {
+  if (!defaultSearch && (q == null || q.length < 2)) {
+    return null
   }
-)
+  if (q == null || q.length < 2) {
+    return null
+  }
+  // TODO(akindyakov) Use multiline search here
+  const flags = isSmartCase(q) ? '' : 'i'
+  return new RegExp(q, flags)
+}
 
-class SearchGridImpl extends React.Component {
-  ref: React.RefObject<HTMLDivElement>
-  fetchAbortController?: AbortController
-  pattern?: RegExp
-  iter?: TNodeSliceIterator
+export const SearchGrid = ({
+  q,
+  children,
+  onCardClick,
+  portable,
+  defaultSearch,
+}: React.PropsWithChildren<{
+  q: string | null
+  onCardClick?: (arg0: TNode) => void
+  portable?: boolean
+  defaultSearch?: boolean
+}>) => {
+  const history = useHistory()
+  const ref = useRef<HTMLDivElement>(null)
+  const fetchAbortController = new AbortController()
+  const pattern = makePattern(q, defaultSearch)
+  const ctx = useContext(MzdGlobalContext)
+  const account = ctx.account
+  const [nodes, setNodes] = useState<TNode[]>([])
+  const [fetching, setFetching] = useState<boolean>(false)
+  const [iter, setIter] = useState<TNodeSliceIterator | undefined>()
 
-  constructor(props, context) {
-    super(props, context)
-    this.state = {
-      nodes: [],
-      fetching: false,
+  const isScrolledToBottom = () => {
+    let innerHeight: number = 0
+    let scrollTop: number = 0
+    let offsetHeight: number = 0
+    if (portable) {
+      innerHeight = ref.current?.clientHeight || 0
+      scrollTop = ref.current?.scrollTop || 0
+      offsetHeight = ref.current?.scrollHeight || 0
     }
-    this.ref = React.createRef()
-  }
-
-  componentDidMount() {
-    if (!this.props.portable) {
-      window.addEventListener('scroll', this.handleScroll, { passive: true })
-    }
-    this.fetchData()
-  }
-
-  componentWillUnmount() {
-    this.fetchAbortController?.abort()
-    if (!this.props.portable) {
-      window.removeEventListener('scroll', this.handleScroll)
-    }
-  }
-
-  componentDidUpdate(prevProps) {
-    // We need to start fetching only on a change to the search parameters.
-    if (this.props.q !== prevProps.q) {
-      this.fetchData()
-    }
-  }
-
-  static propTypes = {
-    history: PropTypes.object.isRequired,
-  }
-
-  makePattern(): Optional<RegExp> {
-    const { q } = this.props
-    if (q == null || q.length < 2) {
-      return null
-    }
-    // TODO(akindyakov) Use multiline search here
-    const flags = isSmartCase(this.props.q) ? '' : 'i'
-    return new RegExp(this.props.q, flags)
-  }
-
-  fetchData = () => {
-    this.fetchAbortController?.abort()
-    if (
-      !this.props.defaultSearch &&
-      (this.props.q == null || this.props.q.length < 2)
-    ) {
-      return
-    }
-    this.setState({
-      nodes: [],
-    })
-    this.pattern = this.makePattern()
-    this.fetchAbortController = new AbortController()
-    this.iter = smuggler.node.slice({
-      end_time: null,
-      start_time: null,
-      limit: null,
-      signal: this.fetchAbortController.signal,
-    })
-    this.continueFetchingUntilScrolledToBottom()
-  }
-
-  continueFetchingUntilScrolledToBottom = async () => {
-    const { iter, pattern, isScrolledToBottom } = this
-    this.setState({ fetching: true })
-    let toBeContinued = true
-    while (toBeContinued && isScrolledToBottom()) {
-      toBeContinued = await iter
-        .next()
-        .catch((err) => {
-          if (!isAbortError(err)) {
-            log.exception(err)
-          }
-          return false
-        })
-        .then((node) => {
-          if (!node) {
-            return false
-          }
-          if (!pattern || searchNodeFor(node, pattern)) {
-            this.setState({ nodes: lodash.concat(this.state.nodes, node) })
-          }
-          return true
-        })
-    }
-    this.setState({ fetching: false })
-  }
-
-  isScrolledToBottom = () => {
-    if (this.props.portable) {
-      const scrollTop = this.ref.current.scrollTop
-      const scrollTopMax = this.ref.current.scrollTopMax
-      return scrollTop === scrollTopMax
-    }
-    const innerHeight = window.innerHeight
-    const scrollTop = document.documentElement.scrollTop
-    const offsetHeight = document.documentElement.offsetHeight
+    innerHeight = window.innerHeight
+    scrollTop = document.documentElement.scrollTop
+    offsetHeight = document.documentElement.offsetHeight
+    log.debug('isScrolledToBottom', innerHeight, scrollTop, offsetHeight)
     return innerHeight + scrollTop + 200 >= offsetHeight
   }
 
-  handleScroll = () => {
-    if (!this.state.fetching && this.isScrolledToBottom()) {
-      this.continueFetchingUntilScrolledToBottom()
+  const fetchData = async () => {
+    if (pattern == null) {
+      setNodes([])
+    }
+    const iter_ = smuggler.node.slice({
+      signal: fetchAbortController.signal,
+    })
+    setIter(iter_)
+    await continueFetchingUntilScrolledToBottom(iter_)
+  }
+
+  const continueFetchingUntilScrolledToBottom = async (
+    iter_: TNodeSliceIterator
+  ) => {
+    setFetching(true)
+    try {
+      while (isScrolledToBottom()) {
+        const node = await iter_.next()
+        if (!node) {
+          break
+        }
+        if (!pattern || searchNodeFor(node, pattern)) {
+          setNodes((prev) => [...prev, node])
+        }
+      }
+    } catch (err) {
+      if (!isAbortError(err)) {
+        log.exception(err)
+      }
+    }
+    setFetching(false)
+  }
+
+  const handleScroll = () => {
+    if (!fetching && isScrolledToBottom() && iter != null) {
+      continueFetchingUntilScrolledToBottom(iter)
     }
   }
 
-  render() {
-    const { account, onCardClick, children = [] } = this.props
-    if (account == null) {
-      return (
-        <div className={styles.search_grid_waiter}>
-          <Loader size={'large'} />
-        </div>
-      )
+  useAsyncEffect(async () => {
+    if (!portable) {
+      window.addEventListener('scroll', handleScroll, { passive: true })
     }
-
-    const used = {}
-    let cards = this.state.nodes
-      .filter((node) => {
-        const { nid } = node
-        if (nid in used) {
-          //* dbg*/ console.log("Search grid overlap", node.nid, item);
-          return false
-        }
-        used[nid] = true
-        return true
-      })
-      .map((node) => {
-        const { nid } = node
-        const onClick = () => {
-          if (onCardClick) {
-            onCardClick(node)
-          } else {
-            this.props.history.push({
-              pathname: `/n/${nid}`,
-            })
-          }
-        }
-        return (
-          <GridCard onClick={onClick} key={nid}>
-            <SCard>
-              <SmallCardRender node={node} />
-            </SCard>
-            <TimeBadge
-              created_at={node.created_at}
-              updated_at={node.updated_at}
-            />
-          </GridCard>
-        )
-      })
-    cards = lodash.concat(children, cards)
-
-    const fetchingLoader = this.state.fetching ? (
+    return () => {
+      if (!portable) {
+        window.removeEventListener('scroll', handleScroll)
+      }
+    }
+  }, [])
+  useAsyncEffect(async () => {
+    // We have to start fetching only on a change to the search parameters.
+    await fetchData()
+    return () => {
+      fetchAbortController.abort()
+    }
+  }, [q])
+  const fetchingLoader =
+    fetching || account == null ? (
       <div className={styles.search_grid_loader}>
-        <Loader size={'medium'} />
+        <Spinner.Wheel />
       </div>
     ) : null
-    const gridStyle = this.props.portable ? styles.search_grid_portable : null
-    return (
-      <div
-        className={jcss(gridStyle, styles.search_grid)}
-        onScroll={this.handleScroll}
-        ref={this.ref}
+  const used = new Set<string>()
+  const cards: JSX.Element[] = nodes
+    .filter((node) => {
+      const { nid } = node
+      if (used.has(nid)) {
+        // Node ids collision on search grid, too bad, should not happend
+        return false
+      }
+      used.add(nid)
+      return true
+    })
+    .map((node) => {
+      const { nid } = node
+      const onClick = () => {
+        if (onCardClick) {
+          onCardClick(node)
+        } else {
+          history.push({
+            pathname: `/n/${nid}`,
+          })
+        }
+      }
+      return (
+        <GridCard onClick={onClick} key={nid}>
+          <SCard>
+            <SmallCardRender node={node} />
+          </SCard>
+          <TimeBadge
+            created_at={node.created_at}
+            updated_at={node.updated_at}
+          />
+        </GridCard>
+      )
+    })
+  used.clear() // A clean up, we don't need the interminent value further
+  const gridStyle = portable ? styles.search_grid_portable : undefined
+  return (
+    <div
+      className={jcss(gridStyle, styles.search_grid)}
+      onScroll={handleScroll}
+      ref={ref}
+    >
+      <DynamicGrid
+        css={css`
+          justify-content: center;
+          ${styleMobileTouchOnly(css`
+            grid-template-columns: 50% 50%;
+          `)}
+        `}
       >
-        <DynamicGrid css={{ justifyContent: 'center' }}>{cards}</DynamicGrid>
-        {fetchingLoader}
-      </div>
-    )
-  }
+        <>{children}</>
+        <>{cards}</>
+      </DynamicGrid>
+      {fetchingLoader}
+    </div>
+  )
 }
-
-const SearchGridRouter = withRouter(SearchGridImpl)
-
-export function SearchGrid({ ...rest }) {
-  const ctx = useContext(MzdGlobalContext)
-  return <SearchGridRouter account={ctx.account} {...rest} />
-}
-
-export default SearchGrid

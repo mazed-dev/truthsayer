@@ -1,7 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useRef, useState, useEffect } from 'react'
-import * as log from '../util/log'
+import { useRef, useState, useEffect } from 'react'
 import { kSmallCardWidth } from '../card/SmallCard'
 
 export const DynamicGrid = ({
@@ -17,7 +16,7 @@ export const DynamicGrid = ({
 }) => {
   const columnsNMin = columns_n_min || 2
   const columnsNMax = columns_n_max || 99
-  const [ncols, setNCols] = useState(columnsNMin)
+  const [ncols, setNCols] = useState<number>(columnsNMin)
   const containerRef = useRef<HTMLDivElement>(null)
 
   // TODO(akindyakov): calculate gap size and card width properly here

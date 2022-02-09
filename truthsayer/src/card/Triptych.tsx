@@ -18,21 +18,14 @@ import { MzdGlobalContext } from '../lib/global'
 import * as log from '../util/log'
 import { Optional } from '../util/types'
 import { isAbortError } from '../util/exception'
+import { styleMobileTouchOnly } from '../util/xstyle'
 
 import { smuggler, TNode, NodeTextData, TEdge } from 'smuggler-api'
 
-import { css, SerializedStyles } from '@emotion/react'
+import { css } from '@emotion/react'
 import { Spinner } from 'elementary'
 
 import lodash from 'lodash'
-
-function styleMobileOnly(style: SerializedStyles): SerializedStyles {
-  return css`
-    @media (max-width: 480px) {
-      ${style};
-    }
-  `
-}
 
 function RefNodeCard({
   nid,
@@ -90,7 +83,7 @@ function NodeRefs({
         cutOffRef={cutOffRef}
         key={edge.eid}
         css={css`
-          ${styleMobileOnly(css`
+          ${styleMobileTouchOnly(css`
             width: 100%;
           `)}
         `}
@@ -104,7 +97,7 @@ function NodeRefs({
       css={css`
         width: 100%;
         justify-content: ${side === 'left' ? 'end' : 'start'};
-        ${styleMobileOnly(css`
+        ${styleMobileTouchOnly(css`
           grid-template-columns: 50% 50%;
         `)}
       `}
@@ -325,7 +318,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
     const colBaseCss = css`
       margin: 0;
       padding: 0;
-      ${styleMobileOnly(css`
+      ${styleMobileTouchOnly(css`
         width: 100vw;
         height: 100vh;
         max-width: 100%;
@@ -345,7 +338,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
           flex: none;
           flex-flow: row nowrap;
           justify-content: flex-start;
-          ${styleMobileOnly(css`
+          ${styleMobileTouchOnly(css`
             height: 100vh;
             overflow: auto;
             scroll-snap-type: x mandatory;
@@ -367,7 +360,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
             addRef={this.addRef}
             css={css`
               margin: 0 0 6px auto;
-              ${styleMobileOnly(css`
+              ${styleMobileTouchOnly(css`
                 width: 50%;
               `)}
             `}
@@ -404,7 +397,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
             addRef={this.addRef}
             css={css`
               margin: 0 auto 6px 0;
-              ${styleMobileOnly(css`
+              ${styleMobileTouchOnly(css`
                 width: 50%;
               `)}
             `}
