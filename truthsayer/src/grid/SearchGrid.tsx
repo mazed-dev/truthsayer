@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useRef, useState, useContext } from 'react'
+import React, { useRef, useEffect, useState, useContext } from 'react'
 
 import { css } from '@emotion/react'
 import { useAsyncEffect } from 'use-async-effect'
@@ -48,13 +48,7 @@ export const GridCard = ({
   )
 }
 
-function makePattern(
-  q: string | null,
-  defaultSearch?: boolean
-): Optional<RegExp> {
-  if (!defaultSearch && (q == null || q.length < 2)) {
-    return null
-  }
+function makePattern(q: string | null): Optional<RegExp> {
   if (q == null || q.length < 2) {
     return null
   }
@@ -77,48 +71,56 @@ export const SearchGrid = ({
 }>) => {
   const history = useHistory()
   const ref = useRef<HTMLDivElement>(null)
-  const fetchAbortController = new AbortController()
-  const pattern = makePattern(q, defaultSearch)
+  // const fetchAbortController = new AbortController()
+  const pattern = makePattern(q)
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
   const [nodes, setNodes] = useState<TNode[]>([])
   const [fetching, setFetching] = useState<boolean>(false)
-  const [iter, setIter] = useState<TNodeSliceIterator | undefined>()
+  const [nextBatchTrigger, setNextBatchTrigger] = useState<number>(0)
+  const [iter, setIter] = useState<TNodeSliceIterator | null>()
+  const [fetchAbortController, setFetchAbortController] =
+    useState<AbortController | null>(null)
 
   const isScrolledToBottom = () => {
-    let innerHeight: number = 0
+    let height: number = 0
     let scrollTop: number = 0
     let offsetHeight: number = 0
     if (portable) {
-      innerHeight = ref.current?.clientHeight || 0
+      height = ref.current?.offsetHeight || 0
       scrollTop = ref.current?.scrollTop || 0
       offsetHeight = ref.current?.scrollHeight || 0
+      return height + scrollTop + 300 > offsetHeight
     }
-    innerHeight = window.innerHeight
+    height = window.innerHeight
     scrollTop = document.documentElement.scrollTop
     offsetHeight = document.documentElement.offsetHeight
-    log.debug('isScrolledToBottom', innerHeight, scrollTop, offsetHeight)
-    return innerHeight + scrollTop + 200 >= offsetHeight
+    return height + scrollTop + 300 >= offsetHeight
   }
 
   const fetchData = async () => {
-    if (pattern == null) {
-      setNodes([])
+    setNodes([])
+    if (pattern == null && !defaultSearch) {
+      setIter(null)
+      return
     }
+    if (fetchAbortController != null) {
+      fetchAbortController.abort()
+    }
+    const newAbortController = new AbortController()
+    setFetchAbortController(newAbortController)
     const iter_ = smuggler.node.slice({
-      signal: fetchAbortController.signal,
+      signal: newAbortController.signal,
     })
     setIter(iter_)
-    await continueFetchingUntilScrolledToBottom(iter_)
+    setNextBatchTrigger((prev) => prev + 1)
   }
 
-  const continueFetchingUntilScrolledToBottom = async (
-    iter_: TNodeSliceIterator
-  ) => {
+  useAsyncEffect(async () => {
     setFetching(true)
     try {
       while (isScrolledToBottom()) {
-        const node = await iter_.next()
+        const node = await iter?.next()
         if (!node) {
           break
         }
@@ -132,11 +134,11 @@ export const SearchGrid = ({
       }
     }
     setFetching(false)
-  }
+  }, [nextBatchTrigger])
 
   const handleScroll = () => {
-    if (!fetching && isScrolledToBottom() && iter != null) {
-      continueFetchingUntilScrolledToBottom(iter)
+    if (!fetching && isScrolledToBottom()) {
+      setNextBatchTrigger((prev) => prev + 1)
     }
   }
 
@@ -150,11 +152,11 @@ export const SearchGrid = ({
       }
     }
   }, [])
+  // We have to start fetching only on a change to the search parameters.
   useAsyncEffect(async () => {
-    // We have to start fetching only on a change to the search parameters.
     await fetchData()
     return () => {
-      fetchAbortController.abort()
+      fetchAbortController?.abort()
     }
   }, [q])
   const fetchingLoader =
