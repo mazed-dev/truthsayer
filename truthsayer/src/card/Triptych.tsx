@@ -331,13 +331,12 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
     return (
       <Row
         css={css`
-          margin: 0;
+          margin: 1px 0 0 0;
           padding: 0;
           width: 100%;
           display: flex;
           flex: none;
           flex-flow: row nowrap;
-          justify-content: flex-start;
           ${styleMobileTouchOnly(css`
             height: 100vh;
             overflow: auto;
@@ -348,8 +347,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
         <Col
           css={css`
             ${colBaseCss};
-            width: 240px;
-            flex: 0 0;
+            flex: 0 0 240px;
           `}
         >
           <ChainActionBar
@@ -376,9 +374,13 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
         <Col
           css={css`
             ${colBaseCss};
-            margin: 0 28px 0 28px;
-            flex: 0 0;
-            max-width: 600px;
+            flex: 0 4 580px;
+            width: 580px;
+            margin: 0 24px 0 24px;
+            @media (max-width: 1100px) {
+              margin: 0 6px 0 6px;
+              width: 480px;
+            }
           `}
         >
           {nodeCard}
