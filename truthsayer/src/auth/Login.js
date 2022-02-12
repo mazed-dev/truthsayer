@@ -10,8 +10,6 @@ import { withRouter, Link } from 'react-router-dom'
 import { smuggler } from 'smuggler-api'
 import { goto } from '../lib/route'
 
-import { debug } from '../util/log'
-
 class Login extends React.Component {
   constructor(props) {
     super(props)

@@ -21,8 +21,8 @@ import { isSmartCase } from '../util/str'
 import { MzdGlobalContext } from '../lib/global'
 import { Loader } from '../lib/loader'
 
-import * as log from '../util/log'
-import { isAbortError } from '../util/exception'
+import { log } from 'armoury'
+import { isAbortError } from 'armoury'
 
 import styles from './SearchGrid.module.css'
 

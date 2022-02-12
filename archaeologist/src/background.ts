@@ -1,7 +1,8 @@
 import { MessageType } from './message/types'
 import * as badge from './badge'
-import * as log from './util/log'
+import { log } from 'armoury'
 import { genOriginId } from './extractor/originId'
+import { isAbortError } from 'armoury'
 
 import browser from 'webextension-polyfill'
 

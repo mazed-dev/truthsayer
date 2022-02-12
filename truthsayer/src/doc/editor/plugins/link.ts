@@ -1,19 +1,15 @@
 import {
-  Descendant,
   Editor,
   Element as SlateElement,
-  Point,
   Range,
   Transforms,
-  createEditor,
 } from 'slate'
 
 import isUrl from 'is-url'
 
 import { kSlateBlockTypeLink, LinkElement, CustomEditor } from '../../types'
 
-import { debug } from '../../../util/log'
-import { Optional } from '../../../util/types'
+import { Optional, log } from 'armoury'
 
 export const withLinks = (editor: CustomEditor) => {
   const { insertData, insertText, isInline } = editor
@@ -104,7 +100,7 @@ const getPageFromLink = (link: string): Optional<string> => {
       return url.pathname.split('/', 3)[2]
     }
   } catch (err) {
-    debug('getPageFromLink error', err)
+    log.debug('getPageFromLink error', err)
   }
   return null
 }

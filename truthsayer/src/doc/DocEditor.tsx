@@ -39,7 +39,7 @@ import {
 
 import { withHistory } from 'slate-history'
 
-import { Optional } from './../util/types'
+import { Optional } from 'armoury'
 
 import { withJinn, Jinn } from './editor/plugins/jinn'
 import { withTypography } from './editor/plugins/typography'

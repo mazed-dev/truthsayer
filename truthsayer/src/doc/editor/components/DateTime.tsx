@@ -2,13 +2,10 @@ import React from 'react'
 
 import { useSelected, useFocused } from 'slate-react'
 
-import { Badge } from 'react-bootstrap'
-
 import moment from 'moment'
 
 import { jcss } from 'elementary'
-import { Optional } from '../../../util/types'
-import { debug } from '../../../util/log'
+import { Optional } from 'armoury'
 
 import './components.css'
 

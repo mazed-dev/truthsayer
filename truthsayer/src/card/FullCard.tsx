@@ -14,7 +14,7 @@ import { Loader } from '../lib/loader'
 
 import styles from './FullCard.module.css'
 
-import * as log from './../util/log'
+import { log } from 'armoury'
 
 export function FullCard({
   node,

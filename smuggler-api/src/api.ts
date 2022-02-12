@@ -23,7 +23,7 @@ import {
 import { TNodeSliceIterator } from './node_slice_iterator'
 
 import { Mime } from './util/mime'
-import { Optional } from './util/optional'
+import { Optional } from 'armoury'
 
 import moment from 'moment'
 import lodash from 'lodash'

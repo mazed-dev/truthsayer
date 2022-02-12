@@ -6,7 +6,7 @@ import {
   NodeExtattrs,
   NodeIndexText,
 } from './types'
-import { Optional } from './util/optional'
+import { Optional } from 'armoury'
 
 import moment from 'moment'
 
