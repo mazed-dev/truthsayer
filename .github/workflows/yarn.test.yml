@@ -33,6 +33,9 @@ jobs:
       - name: Run linters
         run: yarn lint
 
+      - name: Build armoury
+        run: yarn armoury build
+
       - name: Build smuggler-api
         run: yarn smuggler-api build
 
