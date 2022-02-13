@@ -8,7 +8,7 @@ import { log } from 'armoury'
 import { isAbortError } from 'armoury'
 
 import { makeDoc } from '../doc/doc_util'
-import { Mime } from 'smuggler-api'
+import { Mime } from 'armoury'
 import { Optional } from 'armoury'
 
 import { FileUploadStatusState } from './UploadNodeButton'

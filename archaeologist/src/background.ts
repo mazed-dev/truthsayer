@@ -16,8 +16,9 @@ import {
   NodeExtattrs,
   authCookie,
   Knocker,
-  Mime,
 } from 'smuggler-api'
+
+import { Mime } from 'armoury'
 
 // To send message to popup
 // browser.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })

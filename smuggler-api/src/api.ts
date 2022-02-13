@@ -22,8 +22,7 @@ import {
 
 import { TNodeSliceIterator } from './node_slice_iterator'
 
-import { Mime } from './util/mime'
-import type { Optional } from 'armoury'
+import type { Optional, Mime } from 'armoury'
 
 import moment from 'moment'
 import lodash from 'lodash'

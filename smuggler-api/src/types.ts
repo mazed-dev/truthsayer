@@ -1,5 +1,5 @@
 import { AccountInterface } from './auth'
-import { MimeType, Mime } from './util/mime'
+import type { MimeType, Mime } from 'armoury'
 import { smuggler } from './api'
 
 import moment from 'moment'

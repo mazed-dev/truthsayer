@@ -1,5 +1,5 @@
 import { NodeExtattrs } from './types'
-import { Mime } from './util/mime'
+import { Mime } from 'armoury'
 
 test('NodeExtattrs.fromJSON - full', async () => {
   const jsonStr = `{

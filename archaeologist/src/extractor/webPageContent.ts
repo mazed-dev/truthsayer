@@ -13,12 +13,12 @@
 
 import lodash from 'lodash'
 
-import { PreviewImageSmall, MimeType, Mime } from 'smuggler-api'
+import { PreviewImageSmall } from 'smuggler-api'
 
 import { Readability as MozillaReadability } from '@mozilla/readability'
 import { stabiliseUrl } from './originId'
 
-import { log } from 'armoury'
+import { MimeType, Mime, log } from 'armoury'
 import { isAbortError } from 'armoury'
 
 async function fetchImagePreviewAsBase64(
