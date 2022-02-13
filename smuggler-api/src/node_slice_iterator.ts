@@ -1,7 +1,6 @@
 import { getNodesSlice } from './api'
 import { TNode, NodeOrigin } from './types'
-
-import { Optional } from 'armoury'
+import type { Optional } from 'armoury'
 
 export interface INodeIterator {
   next: () => Promise<Optional<TNode>>

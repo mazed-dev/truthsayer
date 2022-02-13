@@ -2,7 +2,7 @@ import Cookies from 'universal-cookie'
 
 import { smuggler } from './api'
 
-import { Optional } from 'armoury'
+import type { Optional } from 'armoury'
 
 import lodash from 'lodash'
 

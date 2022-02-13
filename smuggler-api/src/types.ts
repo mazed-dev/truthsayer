@@ -1,12 +1,8 @@
-import { MimeType, Mime } from './util/mime'
-
-import { smuggler } from './api'
 import { AccountInterface } from './auth'
+import { MimeType, Mime } from './util/mime'
+import { smuggler } from './api'
 
 import moment from 'moment'
-
-// TODO: get rid of duplication here with separate "util" package
-export type Optional<T> = T | null | undefined
 
 export type SlateText = object[]
 
@@ -49,13 +45,13 @@ export enum NodeType {
 // see smuggler/src/types.rs
 export type NodeExtattrs = {
   content_type: MimeType
-  title: Optional<string>
-  description: Optional<string>
-  lang: Optional<string>
-  author: Optional<string>
-  preview_image: Optional<PreviewImageSmall>
-  web: Optional<NodeExtattrsWeb>
-  blob: Optional<NodeExtattrsBlob>
+  title?: string
+  description?: string
+  lang?: string
+  author?: string
+  preview_image?: PreviewImageSmall
+  web?: NodeExtattrsWeb
+  blob?: NodeExtattrsBlob
 }
 
 // see smuggler/src/types.rs
@@ -80,13 +76,13 @@ export type NodeExtattrsWeb = {
 
 export type NodeShare = {
   by_link: boolean
-  with_uids: Optional<string[]>
+  with_uids?: string[]
 }
 
 export type NodeMeta = {
-  share: Optional<NodeShare>
-  local_secret_id: Optional<string>
-  local_signature: Optional<string>
+  share?: NodeShare
+  local_secret_id?: string
+  local_signature?: string
   uid: string
 }
 
@@ -98,7 +94,7 @@ export type Color = {
 }
 
 export type NodeIndexText = {
-  plaintext: Optional<string>
+  plaintext?: string
   labels: string[]
   brands: string[]
   dominant_colors: Color[]
@@ -115,17 +111,17 @@ export class TNode {
    * For Blob type of nodes (see NodeType::Blob) with externally saved large
    * blob of binary data like image, PDF, audio etc.
    */
-  extattrs: Optional<NodeExtattrs>
+  extattrs?: NodeExtattrs
 
-  index_text: Optional<NodeIndexText>
+  index_text?: NodeIndexText
 
   created_at: moment.Moment
   updated_at: moment.Moment
 
-  meta: Optional<NodeMeta>
+  meta?: NodeMeta
 
   // Information about node security
-  crypto: TNodeCrypto
+  crypto?: TNodeCrypto
 
   ntype: NodeType
 
@@ -135,10 +131,10 @@ export class TNode {
     text: NodeTextData,
     created_at: moment.Moment,
     updated_at: moment.Moment,
-    meta: Optional<NodeMeta>,
-    extattrs: Optional<NodeExtattrs>,
-    index_text: Optional<NodeIndexText>,
-    _crypto: TNodeCrypto
+    meta?: NodeMeta,
+    extattrs?: NodeExtattrs,
+    index_text?: NodeIndexText,
+    _crypto?: TNodeCrypto
   ) {
     this.nid = nid
     this.ntype = ntype
@@ -151,14 +147,14 @@ export class TNode {
     this.crypto = _crypto
   }
 
-  isOwnedBy(account: Optional<AccountInterface>): boolean {
+  isOwnedBy(account?: AccountInterface): boolean {
     return (
       (account?.isAuthenticated() && account?.getUid() === this.getOwner()) ||
       false
     )
   }
 
-  getOwner(): Optional<string> {
+  getOwner(): string | null {
     return this.meta?.uid || null
   }
 
@@ -186,7 +182,7 @@ export class TNode {
     )
   }
 
-  getBlobSource(): Optional<string> {
+  getBlobSource(): string | null {
     const { nid } = this
     return smuggler.blob.getSource(nid)
   }
@@ -231,7 +227,7 @@ export class TEdge {
     return this.owned_by
   }
 
-  isOwnedBy(account: Optional<AccountInterface>): boolean {
+  isOwnedBy(account?: AccountInterface): boolean {
     return (
       (account?.isAuthenticated() && account?.getUid() === this.getOwner()) ||
       false
@@ -241,8 +237,8 @@ export class TEdge {
 
 export type EdgeStar = {
   edges: TEdge[]
-  from: Optional<string>
-  to: Optional<string>
+  from?: string
+  to?: string
 }
 
 export type TNodeCrypto = {
@@ -256,8 +252,8 @@ export type TNodeCrypto = {
 
 export type NewNodeResponse = {
   nid: string
-  from: Optional<string>
-  to: Optional<string>
+  from?: string
+  to?: string
 }
 
 export type Ack = {
@@ -271,10 +267,10 @@ export type AccountInfo = {
 }
 
 export type NodeCreateRequestBody = {
-  text: Optional<NodeTextData>
-  index_text: Optional<NodeIndexText>
-  extattrs: Optional<NodeExtattrs>
-  origin: Optional<NodeOrigin>
+  text?: NodeTextData
+  index_text?: NodeIndexText
+  extattrs?: NodeExtattrs
+  origin?: NodeOrigin
 }
 
 export type NodePatchRequest = {
@@ -285,8 +281,8 @@ export type NodePatchRequest = {
 
 export type UploadMultipartResponse = {
   nids: string[]
-  from: Optional<string>
-  to: Optional<string>
+  from?: string
+  to?: string
 }
 
 export type BlobIndex = {
@@ -303,10 +299,10 @@ export type NodeSearchItem = {
   ntype: NodeType
   crtd: number
   upd: number
-  text: Optional<NodeTextData>
-  extattrs: Optional<NodeExtattrs>
-  index_text: Optional<NodeIndexText>
-  meta: Optional<NodeMeta>
+  text?: NodeTextData
+  extattrs?: NodeExtattrs
+  index_text?: NodeIndexText
+  meta?: NodeMeta
 }
 
 export type NodeAttrsSearchRequest = {
@@ -337,5 +333,5 @@ export type NodeOrigin = {
 export type UserBadge = {
   uid: string
   name: string
-  photo: Optional<String>
+  photo?: String
 }

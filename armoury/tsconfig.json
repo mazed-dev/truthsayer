@@ -11,13 +11,8 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "@emotion/react",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "module": "esnext",
+    "lib": [ "es6" ],
+    "module": "es6",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
@@ -31,7 +26,7 @@
     "target": "es6"
   },
   "include": [
-    "src"
+    "./src/**/*"
   ],
   "exclude": [
     "node_modules",

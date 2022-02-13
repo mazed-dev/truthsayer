@@ -15023,6 +15023,7 @@ __metadata:
   dependencies:
     "@typescript-eslint/eslint-plugin": ^4.5.0
     "@typescript-eslint/parser": ^4.5.0
+    armoury: 0.0.1
     eslint: ^7.11.0
     eslint-config-prettier: ^6.7.0
     eslint-plugin-import: ^2.18.2

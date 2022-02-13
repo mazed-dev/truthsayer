@@ -10,8 +10,8 @@
     "sourceMap":true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "lib": [ "dom", "esnext" ],
-    "module": "esnext",
+    "lib": [ "es6" ],
+    "module": "es6",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
@@ -24,6 +24,11 @@
     "strict": true,
     "target": "es6"
   },
+  "references": [
+    {
+      "path": "../armoury"
+    }
+  ],
   "include": [ "src" ],
   "exclude": [ "node_modules" ]
 }

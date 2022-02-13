@@ -1,9 +1,4 @@
-import {
-  Editor,
-  Element as SlateElement,
-  Range,
-  Transforms,
-} from 'slate'
+import { Editor, Element as SlateElement, Range, Transforms } from 'slate'
 
 import isUrl from 'is-url'
 

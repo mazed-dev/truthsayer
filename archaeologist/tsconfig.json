@@ -10,7 +10,7 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "esnext"
+      "es6"
     ],
     "module": "es6",
     "moduleResolution": "node",
@@ -31,6 +31,9 @@
     },
     {
       "path": "../elementary"
+    },
+    {
+      "path": "../armoury"
     }
   ],
   "include": [

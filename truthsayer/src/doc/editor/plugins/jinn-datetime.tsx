@@ -7,10 +7,7 @@ import { Button, Card } from 'react-bootstrap'
 import moment from 'moment'
 
 import { GridCard } from '../../../grid/SearchGrid'
-import {
-  DateTimeBadge,
-  kDefaultDateFormat,
-} from '../components/DateTime'
+import { DateTimeBadge, kDefaultDateFormat } from '../components/DateTime'
 import { makeDateTime } from '../../doc_util'
 
 import { base64 } from '../../../util/base64'
