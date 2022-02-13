@@ -1,8 +1,9 @@
-import { AccountInterface } from './auth'
-import type { MimeType, Mime } from 'armoury'
-import { smuggler } from './api'
-
+import type { MimeType } from 'armoury'
+import { Mime } from 'armoury'
 import moment from 'moment'
+
+import { AccountInterface } from './auth'
+import { smuggler } from './api'
 
 export type SlateText = object[]
 
