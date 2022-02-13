@@ -374,8 +374,8 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
         <Col
           css={css`
             ${colBaseCss};
-            flex: 0 4 580px;
-            width: 580px;
+            flex: 0 1 510px;
+            width: 510px;
             margin: 0 24px 0 24px;
             @media (max-width: 1100px) {
               margin: 0 6px 0 6px;
