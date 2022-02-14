@@ -15,7 +15,7 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "es6"
+      "esnext"
     ],
     "module": "esnext",
     "moduleResolution": "node",
