@@ -10,7 +10,7 @@
     "sourceMap":true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "lib": [ "esnext" ],
+    "lib": [ "es6", "esnext" ],
     "module": "esnext",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
