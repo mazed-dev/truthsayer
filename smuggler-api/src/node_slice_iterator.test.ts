@@ -17,9 +17,9 @@ function makeNode(nid: string): TNode {
     kText,
     kCreatedAt,
     kUpdatedAt,
-    undefined, // meta
-    undefined, // extattrs
-    undefined, // index_text
+    undefined,
+    undefined,
+    undefined,
     kCrypto
   )
 }
