@@ -8,8 +8,7 @@ import { useHistory } from 'react-router-dom'
 
 import { jcss, Spinner } from 'elementary'
 
-import { smuggler, TNodeSliceIterator } from 'smuggler-api'
-
+import { smuggler, TNodeSliceIterator, TNode } from 'smuggler-api'
 
 import { log, isAbortError, Optional } from 'armoury'
 

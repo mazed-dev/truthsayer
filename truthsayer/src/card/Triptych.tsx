@@ -15,7 +15,7 @@ import { ChainActionBar } from './ChainActionBar'
 import { DynamicGrid } from '../grid/DynamicGrid'
 
 import { MzdGlobalContext } from '../lib/global'
-import { Optional, isAbortError } from 'armoury'
+import { Optional, isAbortError, log } from 'armoury'
 import { styleMobileTouchOnly } from '../util/xstyle'
 
 import { smuggler, TNode, NodeTextData, TEdge } from 'smuggler-api'

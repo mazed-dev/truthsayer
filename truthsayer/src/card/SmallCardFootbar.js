@@ -3,7 +3,7 @@
 import React, { useContext } from 'react'
 import { css } from '@emotion/react'
 import { Link } from 'react-router-dom'
-import { Button, ButtonToolbar } from 'react-bootstrap'
+import { Button } from 'react-bootstrap'
 
 import { smuggler } from 'smuggler-api'
 

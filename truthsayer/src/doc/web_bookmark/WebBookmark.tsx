@@ -119,7 +119,7 @@ type WebBookmarkProps = {
 }
 
 export const WebBookmark = ({ extattrs }: WebBookmarkProps) => {
-  const { web, preview_image, title, description, lang, author } = extattrs
+  const { web, preview_image, title, description, author } = extattrs
   const url = web?.url
   const hostname = url ? new URL(url).hostname : null
   let authorBadge = author ? <Author>{author}</Author> : null
