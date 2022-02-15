@@ -1,5 +1,5 @@
-import type { MimeType } from 'armoury'
 import { Mime } from 'armoury'
+import type { MimeType } from 'armoury'
 import moment from 'moment'
 
 import { AccountInterface } from './auth'

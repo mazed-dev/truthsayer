@@ -16,9 +16,9 @@
       "dom",
       "dom.iterable",
       "es6",
-      "esnext"
+      "ES2020"
     ],
-    "module": "esnext",
+    "module": "ES2020",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
