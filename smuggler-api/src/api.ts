@@ -570,7 +570,7 @@ async function passwordRecoverRequest({
   email: string
   signal: AbortSignal
 }): Promise<Ack> {
-  const value = { email }
+  const value = { emails: [email] }
   const resp = await fetch(makeUrl('/auth/password-recover/request'), {
     method: 'POST',
     body: JSON.stringify(value),
