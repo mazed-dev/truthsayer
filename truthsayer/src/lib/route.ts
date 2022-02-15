@@ -1,6 +1,6 @@
 import { stringify, parse } from 'query-string'
 import { RouteComponentProps } from 'react-router-dom'
-import { Optional } from '../util/types'
+import { Optional } from 'armoury'
 
 const kLogInPath = '/login'
 const kSignUpPath = '/signup'

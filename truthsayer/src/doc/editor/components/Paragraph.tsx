@@ -8,8 +8,6 @@ import './components.css'
 
 import styles from './Paragraph.module.css'
 
-import { debug } from '../../../util/log'
-
 import lodash from 'lodash'
 
 type ParagraphProps = React.PropsWithChildren<{

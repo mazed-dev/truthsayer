@@ -1,12 +1,6 @@
 import { TNodeSliceIterator } from './node_slice_iterator'
-import {
-  TNode,
-  NodeTextData,
-  NodeMeta,
-  NodeExtattrs,
-  NodeIndexText,
-} from './types'
-import { Optional } from './util/optional'
+import { TNode, NodeTextData } from './types'
+import type { Optional } from 'armoury'
 
 import moment from 'moment'
 
@@ -14,9 +8,6 @@ const kNtype = 0
 const kText: NodeTextData = { slate: [], draft: undefined, chunks: undefined }
 const kCreatedAt = moment()
 const kUpdatedAt = moment()
-const kMeta: Optional<NodeMeta> = null
-const kExtattrs: Optional<NodeExtattrs> = null
-const kIndexText: Optional<NodeIndexText> = null
 const kCrypto = { success: true, secret_id: null }
 
 function makeNode(nid: string): TNode {
@@ -26,9 +17,9 @@ function makeNode(nid: string): TNode {
     kText,
     kCreatedAt,
     kUpdatedAt,
-    kMeta,
-    kExtattrs,
-    kIndexText,
+    undefined,
+    undefined,
+    undefined,
     kCrypto
   )
 }

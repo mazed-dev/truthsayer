@@ -1,28 +1,28 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useRef, useEffect, useState, useContext } from 'react'
+import React, { useRef, useState, useContext } from 'react'
 
 import { css } from '@emotion/react'
 import { useAsyncEffect } from 'use-async-effect'
 import { useHistory } from 'react-router-dom'
 
 import { jcss, Spinner } from 'elementary'
-import { smuggler, TNodeSliceIterator, TNode } from 'smuggler-api'
+
+import { smuggler, TNodeSliceIterator } from 'smuggler-api'
+
+
+import { log, isAbortError, Optional } from 'armoury'
 
 import styles from './SearchGrid.module.css'
 import { DynamicGrid } from './DynamicGrid'
 import { MzdGlobalContext } from '../lib/global'
-import { Optional } from '../util/types'
 import { SCard } from '../card/ShrinkCard'
 import { SmallCard } from '../card/SmallCard'
 import { SmallCardRender } from '../doc/ReadOnlyRender'
 import { TimeBadge } from '../card/AuthorBadge'
-import { isAbortError } from '../util/exception'
 import { isSmartCase } from '../util/str'
 import { searchNodeFor } from './search/search'
 import { styleMobileTouchOnly } from '../util/xstyle'
-
-import * as log from '../util/log'
 
 export const GridCard = ({
   onClick,

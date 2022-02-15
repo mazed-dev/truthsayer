@@ -1,6 +1,6 @@
 import { MessageType } from './message/types'
 import * as badge from './badge'
-import * as log from './util/log'
+import { log, isAbortError } from 'armoury'
 import { genOriginId } from './extractor/originId'
 
 import browser from 'webextension-polyfill'
@@ -15,8 +15,9 @@ import {
   NodeExtattrs,
   authCookie,
   Knocker,
-  Mime,
 } from 'smuggler-api'
+
+import { Mime } from 'armoury'
 
 // To send message to popup
 // browser.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
@@ -40,7 +41,9 @@ async function getActiveTabId(): Promise<number | null> {
       return tabId
     }
   } catch (err) {
-    log.exception(err)
+    if (!isAbortError(err)) {
+      log.exception(err)
+    }
   }
   return null
 }
@@ -60,7 +63,9 @@ async function requestPageContentToSave() {
       makeMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
     )
   } catch (err) {
-    log.exception(err)
+    if (!isAbortError(err)) {
+      log.exception(err)
+    }
   }
 }
 
@@ -75,6 +80,9 @@ async function updatePageSavedStatus(
       makeMessage({ type: 'SAVED_NODE', nid, unmemorable })
     )
   } catch (err) {
+    if (isAbortError(err)) {
+      return
+    }
     log.debug(
       'Sending message to pop up window failed, the window might not exist',
       err
@@ -92,22 +100,22 @@ async function savePage(
 ) {
   const text = makeNodeTextData()
   const index_text: NodeIndexText = {
-    plaintext: content.text,
+    plaintext: content.text || undefined,
     labels: [],
     brands: [],
     dominant_colors: [],
   }
   const extattrs: NodeExtattrs = {
     content_type: Mime.TEXT_URI_LIST,
-    preview_image: content.image,
-    title: content.title,
-    description: content.description,
-    lang: content.lang,
+    preview_image: content.image || undefined,
+    title: content.title || undefined,
+    description: content.description || undefined,
+    lang: content.lang || undefined,
     author: content.author.join(', '),
     web: {
       url: url,
     },
-    blob: null,
+    blob: undefined,
   }
   const resp = await smuggler.node.create({
     text,
@@ -159,7 +167,9 @@ async function sendAuthStatus() {
       name: authCookie.name,
     })
     .catch((err) => {
-      log.exception(err)
+      if (!isAbortError(err)) {
+        log.exception(err)
+      }
       return null
     })
   const status = authCookie.checkRawValue(cookie?.value || null)

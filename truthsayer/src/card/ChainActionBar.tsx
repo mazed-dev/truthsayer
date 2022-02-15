@@ -16,9 +16,6 @@ import { TNode } from 'smuggler-api'
 import { SmallCard } from './SmallCard'
 
 import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
-import { Optional } from '../util/types'
-import * as log from '../util/log'
-import { isAbortError } from '../util/exception'
 import {
   MdiAdd,
   MdiContentCopy,
@@ -26,6 +23,9 @@ import {
   MdiSearch,
   StyleButtonWhite,
 } from 'elementary'
+import { Optional } from 'armoury'
+import { log } from 'armoury'
+import { isAbortError } from 'armoury'
 
 import { SearchAndConnectJinn } from './SearchAndConnect'
 

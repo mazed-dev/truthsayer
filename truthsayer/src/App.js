@@ -35,6 +35,7 @@ import UserEncryption from './UserEncryption'
 import { routes } from './lib/route'
 import { Loader } from './lib/loader'
 import { initDevEnv } from './dev/env'
+import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegrationsOverview'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
 
@@ -101,6 +102,9 @@ function AppRouter() {
           </PrivateRoute>
           <PrivateRoute path="/user-preferences">
             <UserPreferences />
+          </PrivateRoute>
+          <PrivateRoute path="/3rdparty-integrations">
+            <IntegrationsOverview />
           </PrivateRoute>
           <PrivateRoute path="/user-encryption">
             <UserEncryption />

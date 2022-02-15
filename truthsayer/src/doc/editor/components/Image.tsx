@@ -8,8 +8,6 @@ import './components.css'
 
 import styles from './Image.module.css'
 
-import { debug } from '../../../util/log'
-
 type ImageProps = React.PropsWithChildren<{
   isEditable: boolean
   attributes: any

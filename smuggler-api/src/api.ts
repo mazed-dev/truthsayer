@@ -22,8 +22,8 @@ import {
 
 import { TNodeSliceIterator } from './node_slice_iterator'
 
-import { Mime } from './util/mime'
-import { Optional } from './util/optional'
+import { Mime } from 'armoury'
+import type { Optional } from 'armoury'
 
 import moment from 'moment'
 import lodash from 'lodash'
@@ -66,8 +66,8 @@ async function createNode({
   }
   const body: NodeCreateRequestBody = {
     text,
-    index_text: index_text || null,
-    extattrs: extattrs || null,
+    index_text,
+    extattrs,
     origin,
   }
   const resp = await fetch(makeUrl('node/new', query), {
@@ -267,9 +267,9 @@ export async function getNodesSlice({
       upd,
       text,
       ntype,
-      extattrs = null,
-      index_text = null,
-      meta = null,
+      extattrs = undefined,
+      index_text = undefined,
+      meta = undefined,
     } = item
     const textObj = text as NodeTextData
     return new TNode(
@@ -570,7 +570,7 @@ async function passwordRecoverRequest({
   email: string
   signal: AbortSignal
 }): Promise<Ack> {
-  const value = { email }
+  const value = { emails: [email] }
   const resp = await fetch(makeUrl('/auth/password-recover/request'), {
     method: 'POST',
     body: JSON.stringify(value),

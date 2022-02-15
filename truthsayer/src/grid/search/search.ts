@@ -1,8 +1,8 @@
 import { TNode, NodeExtattrs } from 'smuggler-api'
 import { getPlainText } from '../../doc/doc_util'
-import { Optional } from './../../util/types'
+import { Optional } from 'armoury'
 
-import * as log from './../../util/log'
+import { log } from 'armoury'
 
 /**
     nid: nid,

@@ -8,28 +8,58 @@ const _getSmugglerApiUrl = (mode) => {
     : "https://mazed.dev/smuggler"
 }
 
-const _manifestTransform = (buffer, mode) => {
-  const manifest = JSON.parse(buffer.toString());
+const _getSmugglerApiUrlMask = (mode) => {
+  const url = new URL(_getSmugglerApiUrl(mode))
+  url.pathname = '*'
+  return url.toString().replace(/:\d+/, '')
+}
+
+const _manifestTransformDowngradeToV2 = (manifest) => {
+  // Downgrade manifest to version 2, Firefox does not support version 3 yet
+  manifest.manifest_version = 2
+  // background scripts are declared differently in v2
+  const { service_worker } = manifest.background
+  manifest.background.scripts = [ service_worker ]
+  delete manifest.background.service_worker
+  // host_permissions are not supported in v2
+  manifest.permissions.push(
+    // Need this access to download preview images from an origin different from
+    // original page. For instance images hosted in CDN.
+    "<all_urls>",
+    ...manifest.host_permissions,
+  )
+  delete manifest.host_permissions
+  // Rename action to browser_action
+  manifest.browser_action = manifest.action
+  delete manifest.action
+  // Manifest V3 new features
+  delete manifest.cross_origin_embedder_policy
+  delete manifest.cross_origin_opener_policy
+  return manifest
+}
+
+const _manifestTransform = (buffer, mode, env) => {
+  let manifest = JSON.parse(buffer.toString())
+
+  const {firefox=false} = env
 
   // Add Mazed URL to host_permissions to grant access to mazed cookies
-  const mazedUrl = new URL(_getSmugglerApiUrl(mode))
-  mazedUrl.pathname = ''
-  manifest["host_permissions"] = [
-    mazedUrl.toString(),
-  ]
-
+  const smugglerApiUrlMask = _getSmugglerApiUrlMask(mode)
+  manifest.host_permissions.push(smugglerApiUrlMask)
   // Exclude Mazed from list of URLs where content.js is injected to
-  mazedUrl.pathname = '*'
-  manifest["content_scripts"].forEach((item, index, theArray) => {
+  manifest.content_scripts.forEach((item, index, theArray) => {
     const { exclude_matches = [] } = item
     exclude_matches.push(
-      mazedUrl.toString(),
+      smugglerApiUrlMask,
     )
     theArray[index] = {
       ...item,
       exclude_matches,
     }
   });
+  if (firefox) {
+    manifest = _manifestTransformDowngradeToV2(manifest)
+  }
   return JSON.stringify(manifest, null, 2);
 }
 
@@ -105,7 +135,7 @@ const config = (env, argv) => {
           from: "public", to: ".",
           transform: (context, absoluteFrom) => {
             if (absoluteFrom.endsWith("/manifest.json")) {
-              return _manifestTransform(context, argv.mode)
+              return _manifestTransform(context, argv.mode, env)
             }
             return context
           },

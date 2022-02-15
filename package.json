@@ -5,6 +5,7 @@
   "scripts": {
     "archaeologist": "yarn workspace archaeologist",
     "elementary": "yarn workspace elementary",
+    "armoury": "yarn workspace armoury",
     "fix": "yarn syncpack fix-mismatches && yarn workspaces foreach run fix",
     "fix:prettier": "yarn workspaces foreach run fix:prettier",
     "lint": "yarn syncpack list-mismatches && yarn workspaces foreach run lint",
@@ -14,6 +15,7 @@
   },
   "workspaces": [
     "archaeologist",
+    "armoury",
     "elementary",
     "smuggler-api",
     "truthsayer"

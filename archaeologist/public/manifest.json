@@ -4,6 +4,7 @@
   "author": "Thread knowledge",
   "version": "0.0.3",
   "description": "Bookmark web pages to Mazed",
+  "homepage_url": "https://mazed.dev",
   "action": {
     "default_icon": {
       "16": "logo-16x16.png",
@@ -36,7 +37,6 @@
     "value": "same-origin"
   },
   "host_permissions": [
-    ">>> This is set up in webpack.config.js, depending on build options <<<"
   ],
   "content_scripts": [
     {

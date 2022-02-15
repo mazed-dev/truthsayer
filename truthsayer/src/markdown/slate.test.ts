@@ -1,34 +1,23 @@
 // @ts-nocheck
 
-import React from 'react'
-
 import { Descendant } from 'slate'
 
 import { slateToMarkdown, markdownToSlate, _siftUpBlocks } from './slate'
 
-import { debug } from '../util/log'
-
 import {
   kSlateBlockTypeBreak,
-  // kSlateBlockTypeCheckListItem,
   kSlateBlockTypeCode,
   kSlateBlockTypeDateTime,
-  kSlateBlockTypeDeleteMark,
-  kSlateBlockTypeEmphasisMark,
   kSlateBlockTypeH1,
   kSlateBlockTypeH2,
   kSlateBlockTypeH3,
   kSlateBlockTypeH4,
   kSlateBlockTypeH5,
   kSlateBlockTypeH6,
-  kSlateBlockTypeInlineCodeMark,
-  kSlateBlockTypeLink,
   kSlateBlockTypeImage,
-  kSlateBlockTypeListItem,
   kSlateBlockTypeOrderedList,
   kSlateBlockTypeParagraph,
   kSlateBlockTypeQuote,
-  kSlateBlockTypeStrongMark,
   kSlateBlockTypeUnorderedList,
   kSlateBlockTypeListCheckItem,
 } from '../doc/types'

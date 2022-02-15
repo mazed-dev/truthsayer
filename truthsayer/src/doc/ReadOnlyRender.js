@@ -12,8 +12,8 @@ import { WebBookmark } from './web_bookmark/WebBookmark'
 import { smuggler } from 'smuggler-api'
 
 import { MzdGlobalContext } from '../lib/global'
-import * as log from '../util/log'
-import { isAbortError } from '../util/exception'
+import { log } from 'armoury'
+import { isAbortError } from 'armoury'
 
 export function SmallCardRender({ node }) {
   let media
