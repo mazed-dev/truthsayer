@@ -20,6 +20,7 @@ export function stabiliseUrl(url: string): string {
     forceHttps: true,
     normalizeProtocol: true,
     removeTrailingSlash: true,
+    removeQueryParameters: false, // Do not turn it on, it's broken for firefox
     sortQueryParameters: true,
     stripAuthentication: true,
     stripHash: true,
