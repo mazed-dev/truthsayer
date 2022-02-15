@@ -8,7 +8,7 @@ import { uploadLocalFile } from './UploadLocalFile'
 import { Emoji } from '../lib/Emoji'
 import { goto } from '../lib/route'
 import { jcss } from 'elementary'
-import { Optional } from '../util/types'
+import { Optional } from 'armoury'
 
 import UploadImg from '../img/upload-strip.svg'
 

@@ -1,17 +1,16 @@
 {
   "compilerOptions": {
-    "allowJs": false,
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "composite": true,
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
-    "inlineSources": false,
     "sourceMap":true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "lib": [ "dom", "esnext" ],
-    "module": "esnext",
+    "lib": [ "ES2020" ],
+    "module": "ES2020",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
@@ -24,6 +23,11 @@
     "strict": true,
     "target": "es6"
   },
+  "references": [
+    {
+      "path": "../armoury"
+    }
+  ],
   "include": [ "src" ],
   "exclude": [ "node_modules" ]
 }

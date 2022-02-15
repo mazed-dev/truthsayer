@@ -15,39 +15,20 @@ test('_extattrsMatchesPattern', () => {
   expect(
     _extattrsMatchesPattern(/png/, {
       content_type: 'image/jpg',
-      title: null,
-      description: null,
-      lang: null,
-      author: null,
-      preview_image: null,
-      web: null,
-      blob: null,
     })
   ).toStrictEqual(false)
 
   expect(
     _extattrsMatchesPattern(/en/, {
       content_type: 'image/jpg',
-      title: null,
-      description: null,
       lang: 'en',
-      author: null,
-      preview_image: null,
-      web: null,
-      blob: null,
     })
   ).toStrictEqual(true)
 
   expect(
     _extattrsMatchesPattern(/Dickens/, {
       content_type: 'image/jpg',
-      title: null,
-      description: null,
-      lang: null,
       author: 'by Charles Dickens',
-      preview_image: null,
-      web: null,
-      blob: null,
     })
   ).toStrictEqual(true)
 
@@ -55,12 +36,6 @@ test('_extattrsMatchesPattern', () => {
     _extattrsMatchesPattern(/twist/i, {
       content_type: 'image/jpg',
       title: 'Oliver Twist',
-      description: null,
-      lang: null,
-      author: null,
-      preview_image: null,
-      web: null,
-      blob: null,
     })
   ).toStrictEqual(true)
 
@@ -69,11 +44,6 @@ test('_extattrsMatchesPattern', () => {
       content_type: 'image/jpg',
       title: 'Oliver Twist',
       description: '...Born in a workhouse, the orphan...',
-      lang: null,
-      author: null,
-      preview_image: null,
-      web: null,
-      blob: null,
     })
   ).toStrictEqual(true)
 
@@ -81,13 +51,6 @@ test('_extattrsMatchesPattern', () => {
   expect(
     _extattrsMatchesPattern(/image/, {
       content_type: 'image/jpg',
-      title: null,
-      description: null,
-      lang: null,
-      author: null,
-      preview_image: null,
-      web: null,
-      blob: null,
     })
   ).toStrictEqual(true)
 })

@@ -15,14 +15,11 @@ import { searchNodeFor } from './search/search'
 import { smuggler, TNodeSliceIterator } from 'smuggler-api'
 
 import { jcss } from 'elementary'
-import { range } from '../util/range'
 import { isSmartCase } from '../util/str'
 
 import { MzdGlobalContext } from '../lib/global'
 import { Loader } from '../lib/loader'
-
-import * as log from '../util/log'
-import { isAbortError } from '../util/exception'
+import { log, isAbortError, range } from 'armoury'
 
 import styles from './SearchGrid.module.css'
 

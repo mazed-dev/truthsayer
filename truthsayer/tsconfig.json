@@ -10,9 +10,9 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "esnext"
+      "ES2020"
     ],
-    "module": "esnext",
+    "module": "ES2020",
     "moduleResolution": "node",
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
@@ -30,6 +30,9 @@
     },
     {
       "path": "../elementary"
+    },
+    {
+      "path": "../armoury"
     }
   ],
   "include": [

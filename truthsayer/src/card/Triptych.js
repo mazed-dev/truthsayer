@@ -17,8 +17,8 @@ import { withRouter } from 'react-router-dom'
 
 import { MzdGlobalContext } from '../lib/global'
 import { jcss } from 'elementary'
-import * as log from '../util/log'
-import { isAbortError } from '../util/exception'
+import { log } from 'armoury'
+import { isAbortError } from 'armoury'
 
 import { smuggler } from 'smuggler-api'
 

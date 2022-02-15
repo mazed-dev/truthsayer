@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
-import { Optional } from '../../util/types'
+import { Optional } from 'armoury'
 import { BlockQuote } from '../editor/components/BlockQuote'
 
 import { MdiLaunch } from 'elementary'

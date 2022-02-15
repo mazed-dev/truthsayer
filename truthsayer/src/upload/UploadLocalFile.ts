@@ -4,12 +4,12 @@ import {
   smuggler,
   UploadMultipartResponse,
 } from 'smuggler-api'
-import * as log from '../util/log'
-import { isAbortError } from '../util/exception'
+import { log } from 'armoury'
+import { isAbortError } from 'armoury'
 
 import { makeDoc } from '../doc/doc_util'
-import { Mime } from 'smuggler-api'
-import { Optional } from '../util/types'
+import { Mime } from 'armoury'
+import { Optional } from 'armoury'
 
 import { FileUploadStatusState } from './UploadNodeButton'
 

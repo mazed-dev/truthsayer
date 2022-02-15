@@ -27,14 +27,21 @@ import {
   AuthenticatedTemplate,
   UnauthenticatedTemplate,
 } from '@azure/msal-react'
-import { User as MsGraphUser } from 'microsoft-graph'
-import { Client as MsGraphClient } from '@microsoft/microsoft-graph-client'
+import { DriveItem as MsGraphDriveItem } from 'microsoft-graph'
+import {
+  Client as MsGraphClient,
+  AuthenticationHandler,
+  RetryHandler,
+  RetryHandlerOptions,
+  HTTPMessageHandler,
+} from '@microsoft/microsoft-graph-client'
 import {
   AuthCodeMSALBrowserAuthenticationProvider,
   AuthCodeMSALBrowserAuthenticationProviderOptions,
 } from '@microsoft/microsoft-graph-client/authProviders/authCodeMsalBrowser'
 
 import { MdiInsertLink, MdiLinkOff, MdiLaunch } from 'elementary'
+import { Mime, log } from 'armoury'
 
 const Button = styled.button`
   background-color: #ffffff;
@@ -98,7 +105,13 @@ type MsGraphEndpoint = '/me'
 //
 // See https://docs.microsoft.com/en-us/graph/permissions-reference for the
 // full list of scopes.
-type MsGraphScope = 'User.Read'
+//
+// NOTE: This TS type is expected to be useful because if a developer tries to
+// use a scope not listed here, it can work as a reminder that *all* scopes that
+// an application needs not only have to be explicitely passed to MS Graph APIs,
+// but also have to be registered in Azure Active Directory, in the "API permissions"
+// section.
+type MsGraphScope = 'User.Read' | 'Files.Read'
 
 /**
  * Trivial functions to help enforce TypeScript checks in places
@@ -110,6 +123,22 @@ function endpoint(path: MsGraphEndpoint): MsGraphEndpoint {
 }
 function scopes(array: MsGraphScope[]): MsGraphScope[] {
   return array
+}
+
+/**
+ * Type describing responses from REST endpoints that follow OData protocol.
+ *
+ * "OData" stands for "Open Data Protocol" and is used in Microsoft Graph.
+ * Most interactions with Microsoft Graph have a type definition in
+ * '@types/microsoft-graph', however not all of them. In particular, OData
+ * responses don't have type definitions at the time of this writing - see
+ * https://github.com/microsoftgraph/msgraph-typescript-typings/issues/235
+ *
+ * See https://www.odata.org/ for more details.
+ */
+type ODataResponse<T> = {
+  [key: string]: any
+  value: T[]
 }
 
 function setupMsalInstance(): PublicClientApplication {
@@ -162,7 +191,7 @@ function setupMsalInstance(): PublicClientApplication {
 }
 
 function graph(msalApp: PublicClientApplication): MsGraphClient {
-  // Implementation of this funciton is taken from this example:
+  // Implementation of this funciton is based on this example:
   // https://github.com/microsoftgraph/msgraph-sdk-javascript/blob/91ef52b3a8b405e5c30ac07d9268a9956a9acd40/docs/AuthCodeMSALBrowserAuthenticationProvider.md
 
   const account = msalApp.getActiveAccount()
@@ -173,8 +202,8 @@ function graph(msalApp: PublicClientApplication): MsGraphClient {
   }
   const options: AuthCodeMSALBrowserAuthenticationProviderOptions = {
     account, // the AccountInfo instance to acquire the token for.
-    interactionType: InteractionType.Popup, // msal-browser InteractionType
-    scopes: scopes(['User.Read']),
+    interactionType: InteractionType.Popup,
+    scopes: scopes(['User.Read', 'Files.Read']),
   }
 
   const authProvider = new AuthCodeMSALBrowserAuthenticationProvider(
@@ -182,8 +211,25 @@ function graph(msalApp: PublicClientApplication): MsGraphClient {
     options
   )
 
+  // Below code constructs an instance of MsGraphClient. Microsoft Graph SDK
+  // expects that in most cases it should be sufficient to construct it with the
+  // "default" set of capabilities (or "middlewares" in MS terminology).
+  // See https://github.com/microsoftgraph/msgraph-sdk-javascript/blob/dev/docs/CreatingClientInstance.md
+  // for more information of what middlewares a default client will have.
+  //
+  // Although that works well for some Graph APIs, telemetry middleware
+  // (implemented via microsoft-graph-client.TelemetryHandler) causes CORS
+  // issues when downloading OneDrive files.
+  // Below is a workaround for that issue, see
+  // https://github.com/microsoftgraph/msgraph-sdk-javascript/issues/265#issuecomment-579654141
+  // for more details
+  const authenticationHandler = new AuthenticationHandler(authProvider)
+  const retryHandler = new RetryHandler(new RetryHandlerOptions())
+  const httpMessageHandler = new HTTPMessageHandler()
+  authenticationHandler.setNext(retryHandler)
+  retryHandler.setNext(httpMessageHandler)
   return MsGraphClient.initWithMiddleware({
-    authProvider,
+    middleware: authenticationHandler,
   })
 }
 
@@ -191,10 +237,7 @@ async function signIn(msalApp: IPublicClientApplication) {
   const loginRequest: PopupRequest = {
     // Below is the list of Microsoft Graph scopes the client application
     // will ask authorization for. User will need to explicitely consent.
-    //
-    // In addition to being listed here, application also needs to register
-    // them in Azure Active Directory, in the "API permissions" section.
-    scopes: scopes(['User.Read']),
+    scopes: scopes(['User.Read', 'Files.Read']),
   }
   return msalApp.loginPopup(loginRequest)
 }
@@ -203,6 +246,53 @@ async function signOut(msalApp: IPublicClientApplication) {
   return msalApp.logoutPopup({
     mainWindowRedirectUri: '/',
   })
+}
+
+async function readAllFrom(reader: ReadableStreamDefaultReader<string>) {
+  let data = ''
+  for (
+    let chunk: { done: boolean; value?: string } = { done: false };
+    !chunk.done;
+    chunk = await reader.read()
+  ) {
+    if (chunk.value) data += chunk.value
+  }
+
+  return data
+}
+
+async function printFilesFromFolder(
+  msalInstance: PublicClientApplication,
+  folderPath: string
+) {
+  let client = graph(msalInstance)
+  let response: ODataResponse<MsGraphDriveItem> = await client
+    .api(`/me/drive/root:${folderPath}:/children`)
+    .get()
+  let driveItems: MsGraphDriveItem[] = response.value
+  for (const item of driveItems) {
+    if (!item.file) {
+      log.debug(
+        `Skipping ${folderPath}/${item.name} due to unsupported item type`
+      )
+      continue
+    }
+    if (item.file.mimeType !== Mime.TEXT_PLAIN) {
+      log.debug(
+        `Skipping ${folderPath}/${item.name} due to unsupported Mime type ${item.file.mimeType}`
+      )
+      continue
+    }
+
+    let stream: ReadableStream = await client
+      .api(`/me/drive/items/${item.id}/content`)
+      .getStream()
+    let text = await readAllFrom(
+      stream.pipeThrough(new TextDecoderStream()).getReader()
+    )
+
+    log.debug(`Content of ${folderPath}/${item.name}: ${JSON.stringify(text)}`)
+  }
 }
 
 /** Allows to manage user's integration of Microsoft OneDrive with Mazed */
@@ -224,19 +314,15 @@ export function OneDriveIntegrationManager() {
           <MdiLinkOff />
         </Button>
         <Button
-          onClick={() => {
-            graph(msalInstance)
-              .api(endpoint('/me'))
-              .get()
-              .then((user: MsGraphUser) =>
-                console.log(`Your name is ${user.displayName}`)
+          onClick={() =>
+            printFilesFromFolder(msalInstance, '/mazed-test').catch((error) =>
+              console.error(
+                `Failed to call Microsoft Graph, error = '${JSON.stringify(
+                  error
+                )}'`
               )
-              .catch((error) =>
-                console.error(
-                  `Failed to fetch user profile via Microsoft Graph, error = '${error}'`
-                )
-              )
-          }}
+            )
+          }
         >
           <MdiLaunch />
         </Button>

@@ -2,28 +2,14 @@ import { Editor, Element, Transforms, Path, Node } from 'slate'
 
 import {
   kSlateBlockTypeBreak,
-  kSlateBlockTypeImage,
   kSlateBlockTypeParagraph,
   isHeaderSlateBlock,
 } from '../../types'
 import { makeParagraph } from '../../doc_util'
 
-import { debug } from '../../../util/log'
 import { CustomEditor, CustomElement } from '../../types'
 
 import lodash from 'lodash'
-
-const TYPES_NOT_TO_BE_LAST = new Set([
-  kSlateBlockTypeBreak,
-  kSlateBlockTypeImage,
-])
-
-function pathsEqual(lhs: Path | undefined, rhs: Path | undefined): boolean {
-  if (lhs === undefined || rhs === undefined) {
-    return false
-  }
-  return Path.equals(lhs, rhs)
-}
 
 function elementAtCurrentFocus(
   editor: CustomEditor
