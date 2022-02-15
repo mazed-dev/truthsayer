@@ -2,20 +2,14 @@
 
 import React from 'react'
 
-import { Row, Col, Button, Card } from 'react-bootstrap'
-import { Descendant, Editor, Point, Range, Transforms } from 'slate'
+import { Button, Card } from 'react-bootstrap'
 
 import moment from 'moment'
 
 import { GridCard } from '../../../grid/SearchGrid'
-import {
-  DateTimeBadge,
-  kDefaultDateFormat,
-  kDefaultTimeFormat,
-} from '../components/DateTime'
+import { DateTimeBadge, kDefaultDateFormat } from '../components/DateTime'
 import { makeDateTime } from '../../doc_util'
 
-import { debug } from '../../../util/log'
 import { base64 } from '../../../util/base64'
 
 import styles from './jinn-datetime.module.css'

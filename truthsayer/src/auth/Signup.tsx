@@ -8,7 +8,7 @@ import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
 
 import { goto, History } from '../lib/route'
 
-import * as log from '../util/log'
+import { log } from 'armoury'
 
 import { smuggler } from 'smuggler-api'
 import { Link } from 'react-router-dom'

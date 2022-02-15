@@ -8,8 +8,6 @@ import { MeatballsButton } from './MeatballsButton'
 
 import { jcss } from 'elementary'
 
-import { debug } from './../util/log'
-
 export const FootbarDropdown = React.forwardRef(
   ({ children, onClick, className }, ref) => (
     <Dropdown

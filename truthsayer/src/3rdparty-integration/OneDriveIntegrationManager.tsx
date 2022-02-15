@@ -41,7 +41,7 @@ import {
 } from '@microsoft/microsoft-graph-client/authProviders/authCodeMsalBrowser'
 
 import { MdiInsertLink, MdiLinkOff, MdiLaunch } from 'elementary'
-import { Mime } from 'smuggler-api'
+import { Mime, log } from 'armoury'
 
 const Button = styled.button`
   background-color: #ffffff;
@@ -272,13 +272,13 @@ async function printFilesFromFolder(
   let driveItems: MsGraphDriveItem[] = response.value
   for (const item of driveItems) {
     if (!item.file) {
-      console.log(
+      log.debug(
         `Skipping ${folderPath}/${item.name} due to unsupported item type`
       )
       continue
     }
     if (item.file.mimeType !== Mime.TEXT_PLAIN) {
-      console.log(
+      log.debug(
         `Skipping ${folderPath}/${item.name} due to unsupported Mime type ${item.file.mimeType}`
       )
       continue
@@ -291,9 +291,7 @@ async function printFilesFromFolder(
       stream.pipeThrough(new TextDecoderStream()).getReader()
     )
 
-    console.log(
-      `Content of ${folderPath}/${item.name}: ${JSON.stringify(text)}`
-    )
+    log.debug(`Content of ${folderPath}/${item.name}: ${JSON.stringify(text)}`)
   }
 }
 

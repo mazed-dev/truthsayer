@@ -33,8 +33,6 @@ import {
   kSlateBlockTypeUnorderedList,
 } from '../doc/types'
 
-import { debug } from '../util/log'
-
 import lodash from 'lodash'
 
 /**

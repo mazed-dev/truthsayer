@@ -10,7 +10,7 @@ import {
   Transforms,
 } from 'slate'
 
-import { Optional } from '../../../util/types'
+import { Optional } from 'armoury'
 
 import { Modal, Form } from 'react-bootstrap'
 
