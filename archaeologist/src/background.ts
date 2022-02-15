@@ -1,13 +1,11 @@
 import { MessageType } from './message/types'
 import * as badge from './badge'
-import { log } from 'armoury'
+import { log, isAbortError } from 'armoury'
 import { genOriginId } from './extractor/originId'
-import { isAbortError } from './util/exception'
 
 import browser from 'webextension-polyfill'
 
 import { WebPageContent } from './extractor/webPageContent'
-import { isAbortError } from 'armoury'
 
 import {
   smuggler,
