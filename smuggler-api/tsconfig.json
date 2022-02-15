@@ -2,6 +2,7 @@
   "compilerOptions": {
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
+    "composite": true,
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
