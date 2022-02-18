@@ -46,7 +46,7 @@ const IconLaunch = styled.a`
   position: absolute;
   bottom: 0;
 
-  font-size: 14;
+  font-size: 14px;
   left: 26px;
 
   opacity: 50%;
@@ -88,24 +88,24 @@ const TitleBox = styled.div`
 `
 
 const Title = styled.p`
-  font-size: 1.1em;
+  font-size: 1em;
   font-weight: 500;
 
   margin: 0 0 0.36em 0;
 `
 
 const Domain = styled.p`
-  font-size: 0.75rem;
+  font-size: 11px;
   letter-spacing: 0.025em;
   color: #80868b;
   font-weight: 400;
-  line-height: 1rem;
+  line-height: 1em;
 
   margin: 0 0 0.42em 0;
 `
 
 const Author = styled.p`
-  font-size: 0.75rem;
+  font-size: 11px;
   margin: 0 0 0.42em 0;
 `
 

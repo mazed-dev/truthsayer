@@ -6,7 +6,7 @@ import { Row, Col } from 'react-bootstrap'
 
 import { FullCard } from './FullCard'
 
-import { SmallCard } from './SmallCard'
+import { SmallCard, kSmallCardWidth } from './SmallCard'
 import { ShrinkCard } from './ShrinkCard'
 import { ReadOnlyRender } from '../doc/ReadOnlyRender'
 
@@ -345,7 +345,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
         <Col
           css={css`
             ${colBaseCss};
-            flex: 0 0 240px;
+            flex: 0 0 ${kSmallCardWidth}px;
           `}
         >
           <ChainActionBar

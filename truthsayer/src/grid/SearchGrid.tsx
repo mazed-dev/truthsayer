@@ -70,7 +70,6 @@ export const SearchGrid = ({
 }>) => {
   const history = useHistory()
   const ref = useRef<HTMLDivElement>(null)
-  // const fetchAbortController = new AbortController()
   const pattern = makePattern(q)
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
@@ -97,25 +96,9 @@ export const SearchGrid = ({
     return height + scrollTop + 300 >= offsetHeight
   }
 
-  const fetchData = async () => {
-    setNodes([])
-    if (pattern == null && !defaultSearch) {
-      setIter(null)
-      return
-    }
-    if (fetchAbortController != null) {
-      fetchAbortController.abort()
-    }
-    const newAbortController = new AbortController()
-    setFetchAbortController(newAbortController)
-    const iter_ = smuggler.node.slice({
-      signal: newAbortController.signal,
-    })
-    setIter(iter_)
-    setNextBatchTrigger((prev) => prev + 1)
-  }
-
   useAsyncEffect(async () => {
+    // Continue fetching until visual space is filled with cards to the bottom and beyond.
+    // Thus if use scrolled to the bottom this loop would start fetching again adding more cards.
     setFetching(true)
     try {
       while (isScrolledToBottom()) {
@@ -133,6 +116,9 @@ export const SearchGrid = ({
       }
     }
     setFetching(false)
+    return () => {
+      fetchAbortController?.abort()
+    }
   }, [nextBatchTrigger])
 
   const handleScroll = () => {
@@ -151,12 +137,30 @@ export const SearchGrid = ({
       }
     }
   }, [])
-  // We have to start fetching only on a change to the search parameters.
   useAsyncEffect(async () => {
-    await fetchData()
-    return () => {
-      fetchAbortController?.abort()
+    // This is an effect to spin up a new search only from search text "q", this
+    // is why thie effect is called only when "q" props is changed.
+    //
+    // It creates a new iterator from search string and assign it to state:
+    // - iter - iterator itself to do fetching step by step;
+    // - fetchAbortController - to be able to cancel an iteration;
+    // - nextBatchTrigger - to trigger first iteration of fetching with another
+    // react effect declared above.
+    setNodes([])
+    if (pattern == null && !defaultSearch) {
+      setIter(null)
+      return
     }
+    if (fetchAbortController != null) {
+      fetchAbortController.abort()
+    }
+    const newAbortController = new AbortController()
+    setFetchAbortController(newAbortController)
+    const iter_ = smuggler.node.slice({
+      signal: newAbortController.signal,
+    })
+    setIter(iter_)
+    setNextBatchTrigger((prev) => prev + 1)
   }, [q])
   const fetchingLoader =
     fetching || account == null ? (
@@ -164,41 +168,26 @@ export const SearchGrid = ({
         <Spinner.Wheel />
       </div>
     ) : null
-  const used = new Set<string>()
-  const cards: JSX.Element[] = nodes
-    .filter((node) => {
-      const { nid } = node
-      if (used.has(nid)) {
-        // Node ids collision on search grid, too bad, should not happend
-        return false
+  const cards: JSX.Element[] = nodes.map((node) => {
+    const { nid } = node
+    const onClick = () => {
+      if (onCardClick) {
+        onCardClick(node)
+      } else {
+        history.push({
+          pathname: `/n/${nid}`,
+        })
       }
-      used.add(nid)
-      return true
-    })
-    .map((node) => {
-      const { nid } = node
-      const onClick = () => {
-        if (onCardClick) {
-          onCardClick(node)
-        } else {
-          history.push({
-            pathname: `/n/${nid}`,
-          })
-        }
-      }
-      return (
-        <GridCard onClick={onClick} key={nid}>
-          <SCard>
-            <SmallCardRender node={node} />
-          </SCard>
-          <TimeBadge
-            created_at={node.created_at}
-            updated_at={node.updated_at}
-          />
-        </GridCard>
-      )
-    })
-  used.clear() // A clean up, we don't need the interminent value further
+    }
+    return (
+      <GridCard onClick={onClick} key={nid}>
+        <SCard>
+          <SmallCardRender node={node} />
+        </SCard>
+        <TimeBadge created_at={node.created_at} updated_at={node.updated_at} />
+      </GridCard>
+    )
+  })
   const gridStyle = portable ? styles.search_grid_portable : undefined
   return (
     <div

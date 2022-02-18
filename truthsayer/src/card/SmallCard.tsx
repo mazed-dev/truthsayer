@@ -88,7 +88,7 @@ function getShadowStyle(n: number) {
   return _smallCardShadow5
 }
 
-export const kSmallCardWidth = 240
+export const kSmallCardWidth = 232
 
 const SmallCardBox = styled.div({
   width: `${kSmallCardWidth}px`,

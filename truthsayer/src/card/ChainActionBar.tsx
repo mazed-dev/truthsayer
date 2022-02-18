@@ -3,6 +3,7 @@
 import React, { useContext, useState, useRef } from 'react'
 
 import styled from '@emotion/styled'
+import { css } from '@emotion/react'
 
 import { Dropdown } from 'react-bootstrap'
 import { useHistory } from 'react-router-dom'
@@ -220,7 +221,15 @@ export const ChainActionBar = ({
   const uploadFileFormRef = useRef<HTMLInputElement>(null)
   const ctx = useContext(MzdGlobalContext)
   return (
-    <SmallCard className={className}>
+    <SmallCard
+      className={className}
+      css={css`
+        border-width: 1px;
+        border-color: rgba(0, 0, 0, 0.28);
+        border-style: dashed;
+        box-shadow: none;
+      `}
+    >
       <CustomDropdown>
         <CustomDropdownToggle variant="success" id="dropdown-basic">
           <CreateNodeBigIcon />
