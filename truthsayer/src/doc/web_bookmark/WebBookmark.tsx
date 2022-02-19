@@ -35,7 +35,7 @@ const PreviewImageBox = styled.div`
   object-fit: cover;
   border-radius: 2px;
   padding: 0;
-  margin: 0.45em 0.45em 0 0.45em;
+  margin: 5px 5px 0 5px;
   position: relative;
 `
 
@@ -46,7 +46,7 @@ const IconLaunch = styled.a`
   position: absolute;
   bottom: 0;
 
-  font-size: 14;
+  font-size: 14px;
   left: 26px;
 
   opacity: 50%;
@@ -84,28 +84,28 @@ const BadgeBox = styled.div`
 
 const TitleBox = styled.div`
   display: inline-block;
-  margin: 0.7em 0.7em 0 0.7em;
+  margin: 5px 4px 0 5px;
 `
 
 const Title = styled.p`
-  font-size: 1.1em;
+  font-size: 1em;
   font-weight: 500;
 
   margin: 0 0 0.36em 0;
 `
 
 const Domain = styled.p`
-  font-size: 0.75rem;
+  font-size: 11px;
   letter-spacing: 0.025em;
   color: #80868b;
   font-weight: 400;
-  line-height: 1rem;
+  line-height: 1em;
 
   margin: 0 0 0.42em 0;
 `
 
 const Author = styled.p`
-  font-size: 0.75rem;
+  font-size: 11px;
   margin: 0 0 0.42em 0;
 `
 
@@ -119,7 +119,7 @@ type WebBookmarkProps = {
 }
 
 export const WebBookmark = ({ extattrs }: WebBookmarkProps) => {
-  const { web, preview_image, title, description, lang, author } = extattrs
+  const { web, preview_image, title, description, author } = extattrs
   const url = web?.url
   const hostname = url ? new URL(url).hostname : null
   let authorBadge = author ? <Author>{author}</Author> : null

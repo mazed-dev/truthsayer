@@ -16,35 +16,23 @@ import { jcss } from 'elementary'
  * +-------------------+
  */
 
-export const XxsCard = React.forwardRef(({ children }, ref) => {
-  return (
-    <div className={jcss(styles.card_xxs, styles.shrinkable)}>
-      {children}
-      <div className={styles.fade} />
-    </div>
-  )
-})
+type SCardProps = React.PropsWithChildren<{}>
 
-export const XsCard = React.forwardRef(({ children }, ref) => {
-  return (
-    <div className={jcss(styles.card_xs, styles.shrinkable)}>
-      {children}
-      <div className={styles.fade} />
-    </div>
-  )
-})
-
-export const SCard = React.forwardRef(({ children }, ref) => {
+export const SCard = ({ children }: SCardProps) => {
   return (
     <div className={jcss(styles.card_s, styles.shrinkable)}>
       {children}
       <div className={styles.fade} />
     </div>
   )
-})
+}
 
-export const ShrinkCard = ({ children, showMore }) => {
-  const shrinkStyle = showMore ? styles.everything_xxs : styles.card_xxs
+type ShrinkCardProps = React.PropsWithChildren<{
+  showMore?: boolean
+}>
+
+export const ShrinkCard = ({ children, showMore }: ShrinkCardProps) => {
+  const shrinkStyle = showMore ? styles.everything_s : styles.card_s
   return (
     <div className={jcss(styles.shrinkable, shrinkStyle)}>
       {children}

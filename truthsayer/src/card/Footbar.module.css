@@ -2,19 +2,23 @@
 }
 
 .tool_button {
-  margin-top: 2px;
+  margin: 0 auto 0 auto;
   background-color: #ffffff;
 
   border-style: solid;
   border-width: 0;
-  border-radius: 2em;
+  border-radius: 64px;
+  font-size: 0;
 
-  /* top right bottom left */
-  padding: 0.5em 0.5em 0 0.5em;
+  display: block;
+  padding: 2px;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: baseline;
 
   color: black;
   opacity: 0.5;
-  z-index: 1001;
+  z-index: 101;
 }
 
 .tool_button:hover {
@@ -33,6 +37,7 @@
 .footbar_dropdown_item {
   padding-right: 14px;
   padding-left: 14px;
+  display: block;
 }
 
 .dropdown_menu_inline_img {
@@ -40,11 +45,6 @@
   width: 1.4rem;
   margin-left: 0.6rem;
   margin-right: 0.6rem;
-}
-
-.toolbar_layout_item {
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .menu_item_pic {

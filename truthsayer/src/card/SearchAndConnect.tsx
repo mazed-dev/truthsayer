@@ -1,7 +1,7 @@
 import React from 'react'
 import { Modal, Form } from 'react-bootstrap'
 
-import { SearchGrid, NodeAttrsSearchItem } from '../grid/SearchGrid'
+import { SearchGrid } from '../grid/SearchGrid'
 
 import lodash from 'lodash'
 
@@ -16,6 +16,16 @@ type SearchAndConnectJinnModalState = {
   input: string
   q: string
   cards: any[]
+}
+
+type NodeAttrsSearchItem = {
+  nid: string
+  // ntype: i32,
+  // crtd: u64,
+  // upd: u64,
+  // attrs: Optional<String>,
+  // data: Optional<String>,
+  // meta: Optional<NodeMetaPub>,
 }
 
 class SearchAndConnectJinnModal extends React.Component<
