@@ -55,7 +55,7 @@ function makeStyledHeader(depth, baseClassName) {
   return StyledHeader
 }
 
-export const Header = makeStyledHeader(1, 'doc_block_header_1')
+export const Header = makeStyledHeader(2, 'doc_block_header_1')
 export const Header1 = makeStyledHeader(1, 'doc_block_header_1')
 export const Header2 = makeStyledHeader(2, 'doc_block_header_2')
 export const Header3 = makeStyledHeader(3, 'doc_block_header_3')
