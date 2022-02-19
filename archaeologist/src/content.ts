@@ -12,8 +12,9 @@ import {
   exctractPageUrl,
 } from './extractor/webPageContent'
 
-import { genOriginId } from './extractor/originId'
 import { isMemorable } from './extractor/unmemorable'
+
+import { genOriginId } from 'armoury'
 
 async function readPageContent() {
   const baseURL = `${window.location.protocol}//${window.location.host}`
