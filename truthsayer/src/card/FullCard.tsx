@@ -14,8 +14,6 @@ import { Loader } from '../lib/loader'
 
 import styles from './FullCard.module.css'
 
-import { log } from 'armoury'
-
 export function FullCard({
   node,
   addRef,
@@ -23,9 +21,9 @@ export function FullCard({
   saveNode,
 }: {
   node: TNode
-  addRef: (from: string, to: string) => void
+  addRef: ({ from, to }: { from: string; to: string }) => void
   stickyEdges: TEdge[]
-  saveNode: (text: NodeTextData) => Promise<Response>
+  saveNode: (text: NodeTextData) => Promise<Response> | undefined
 }) {
   let media
   let editor

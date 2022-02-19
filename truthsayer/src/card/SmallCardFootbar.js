@@ -1,7 +1,9 @@
-import React, { useContext } from 'react'
+/** @jsxImportSource @emotion/react */
 
+import React, { useContext } from 'react'
+import { css } from '@emotion/react'
 import { Link } from 'react-router-dom'
-import { Button, ButtonToolbar } from 'react-bootstrap'
+import { Button } from 'react-bootstrap'
 
 import { smuggler } from 'smuggler-api'
 
@@ -20,7 +22,7 @@ import {
   FootbarDropdownToggle,
 } from './Footbar'
 
-import { jcss, MaterialIcon, MdiOpenInFull, MdiMoreHoriz } from 'elementary'
+import { jcss, MaterialIcon, MdiLaunch, MdiMoreHoriz } from 'elementary'
 
 class PrivateMenu extends React.Component {
   constructor(props) {
@@ -80,7 +82,7 @@ class PrivateMenu extends React.Component {
       : 'Magnetise the link'
     const { className, children } = this.props
     return (
-      <FootbarDropdown>
+      <FootbarDropdown className={this.props.className}>
         <FootbarDropdownToggle
           id={'more-options-for-fullsize-card'}
           className={className}
@@ -106,13 +108,13 @@ class PrivateMenu extends React.Component {
   }
 }
 
-const PublicMenu = ({ children, edge }) => {
+const PublicMenu = ({ children, edge, className }) => {
   const { isSticky } = edge
   const tooltip = isSticky
     ? 'This is a magnet link'
     : 'This is a not-magnet link'
   return (
-    <div className={jcss(styles.tool_button, styles.toolbar_layout_item)}>
+    <div className={jcss(styles.tool_button, className)}>
       <HoverTooltip tooltip={tooltip}>{children}</HoverTooltip>
     </div>
   )
@@ -132,13 +134,17 @@ const Menu = ({
         edge={edge}
         switchStickiness={switchStickiness}
         cutOffRef={cutOffRef}
-        className={jcss(styles.tool_button, styles.toolbar_layout_item)}
+        className={jcss(styles.tool_button, className)}
       >
         {children}
       </PrivateMenu>
     )
   } else {
-    return <PublicMenu edge={edge}>{children}</PublicMenu>
+    return (
+      <PublicMenu edge={edge} className={jcss(styles.tool_button, className)}>
+        {children}
+      </PublicMenu>
+    )
   }
 }
 
@@ -169,30 +175,39 @@ export function SmallCardFootbar({
   const account = ctx.account
   const isOwned = edge.isOwnedBy(account)
   return (
-    <ButtonToolbar className={jcss(styles.toolbar)}>
+    <div
+      css={css`
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+      `}
+    >
       <Button
         as={SeeMoreButton}
         onClick={toggleMore}
-        className={jcss(styles.tool_button, styles.toolbar_layout_item)}
+        className={jcss(styles.tool_button)}
       >
-        <MaterialIcon type={showMore ? 'expand_less' : 'expand_more'} />
+        <MaterialIcon
+          css={{ fontSize: '20px' }}
+          type={showMore ? 'expand_less' : 'expand_more'}
+        />
       </Button>
       <Button
         as={Link}
         to={makeRefTo.node(nid)}
-        className={jcss(styles.tool_button, styles.toolbar_layout_item)}
+        className={jcss(styles.tool_button)}
       >
-        <MdiOpenInFull />
+        <MdiLaunch css={{ fontSize: '20px' }} />
       </Button>
       <Menu
         edge={edge}
         switchStickiness={switchStickiness}
         cutOffRef={cutOffRef}
-        className={jcss(styles.tool_button, styles.toolbar_layout_item)}
+        className={jcss(styles.tool_button)}
         isOwned={isOwned}
       >
-        <MdiMoreHoriz />
+        <MdiMoreHoriz css={{ fontSize: '20px' }} />
       </Menu>
-    </ButtonToolbar>
+    </div>
   )
 }

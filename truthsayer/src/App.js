@@ -17,7 +17,7 @@ import { css } from '@emotion/react'
 import { Card, Button, Container } from 'react-bootstrap'
 
 import DoodledBird from './DoodledBird.svg'
-import Triptych from './card/Triptych'
+import { Triptych } from './card/Triptych'
 import { SearchGridView } from './grid/SearchGridView'
 
 import GlobalNavBar from './navbar/GlobalNavBar'

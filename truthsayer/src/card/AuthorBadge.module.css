@@ -7,7 +7,7 @@
 }
 
 .user_name {
-  font-size: 1rem;
+  font-size: 11px;
   font-style: italic;
   height: 1.2rem;
   text-align: right;
@@ -15,16 +15,13 @@
 
 .created_at_date {
   color: #6c757d;
-  font-size: 0.8rem;
+  font-size: 11px;
   font-style: italic;
   text-align: right;
 }
 
 .badge {
-  padding-left: 14px;
-  padding-right: 14px;
-  padding-top: 10px;
-  padding-bottom: 8px;
+  padding: 8px 14px 8px 14px;
 }
 
 /* Clear floats after the columns */

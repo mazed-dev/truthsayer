@@ -6,43 +6,26 @@
   display: flex;
   flex: none;
   flex-flow: row nowrap;
+  justify-content: flex-start;
 }
 
 .col {
 }
 
 .node_card_col {
-  width: 36%;
-  max-width: 46rem;
-
-  margin: 3px 0 0 0;
-
-  padding-top: 0.2rem;
-  padding-right: 2rem;
-  padding-bottom: 0;
-  padding-left: 2rem;
 }
 
 .refs_col {
-  width: 20%;
-  max-width: 30rem;
   margin: 3px 0 0 0;
   padding: 0 1rem 0 1rem;
 }
 
-.ref_card {
-  margin: 0 0 8px 0 !important;
-}
-
 @media (max-width: 1420px) {
   .node_card_col {
-    width: 45%;
     max-width: 46rem;
     padding: 0 1rem 0 1rem;
   }
   .refs_col {
-    width: 24%;
-    max-width: 30rem;
     padding: 0 4px 0 4px;
   }
 }
@@ -52,13 +35,9 @@
    * Small wide screen
    */
   .node_card_col {
-    width: 50%;
-    max-width: 50%;
     padding: 0 4px 0 4px;
   }
   .refs_col {
-    width: 24%;
-    max-width: 24%;
     padding: 0 2px 0 2px;
   }
 }
@@ -94,9 +73,6 @@
   .refs_col {
     margin: 3px 0 0 0;
     padding: 0 2px 3px 2px;
-  }
-  .ref_card {
-    margin: 0 0 4px 0;
   }
 }
 

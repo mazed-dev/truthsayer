@@ -321,8 +321,8 @@ async function createEdge({
   to,
   signal,
 }: {
-  from: Optional<string>
-  to: Optional<string>
+  from?: string
+  to?: string
   signal: AbortSignal
 }): Promise<TEdge> {
   verifyIsNotNull(from)

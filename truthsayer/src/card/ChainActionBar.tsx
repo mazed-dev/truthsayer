@@ -1,41 +1,46 @@
+/** @jsxImportSource @emotion/react */
+
 import React, { useContext, useState, useRef } from 'react'
 
-import { ButtonToolbar } from 'react-bootstrap'
+import styled from '@emotion/styled'
+import { css } from '@emotion/react'
+
+import { Dropdown } from 'react-bootstrap'
 import { useHistory } from 'react-router-dom'
 
-import { ImgButton } from '../lib/ImgButton'
-import { HoverTooltip } from '../lib/tooltip'
 import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
 import { goto, History } from '../lib/route'
-import { SmallCard } from './SmallCard'
 
 import { smuggler, NewNodeResponse } from 'smuggler-api'
 import { TDoc } from '../doc/doc_util'
 import { TNode } from 'smuggler-api'
+import { SmallCard } from './SmallCard'
 
 import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
+import {
+  MdiAdd,
+  MdiContentCopy,
+  MdiFileUpload,
+  MdiSearch,
+  StyleButtonWhite,
+} from 'elementary'
 import { Optional } from 'armoury'
-import { jcss } from 'elementary'
-import { Emoji } from '../lib/Emoji'
 import { log } from 'armoury'
 import { isAbortError } from 'armoury'
-import { MdiAdd, MdiContentCopy, MdiFileUpload, MdiSearch } from 'elementary'
 
 import { SearchAndConnectJinn } from './SearchAndConnect'
-
-import styles from './ChainActionBar.module.css'
 
 export type ChainActionBarSide = 'left' | 'right'
 
 async function cloneNode({
   from,
   to,
-  abortControler,
+  abortSignal,
   isBlank = false,
 }: {
   from?: string
   to?: string
-  abortControler: AbortController
+  abortSignal?: AbortSignal
   isBlank?: boolean
 }): Promise<Optional<NewNodeResponse>> {
   const nid: Optional<string> = from ? from : to ? to : null
@@ -45,7 +50,7 @@ async function cloneNode({
   const node: Optional<TNode> = await smuggler.node
     .get({
       nid,
-      signal: abortControler.signal,
+      signal: abortSignal,
     })
     .catch((err) => {
       if (isAbortError(err)) {
@@ -62,7 +67,7 @@ async function cloneNode({
   try {
     return await smuggler.node.create({
       text: doc.toNodeTextData(),
-      signal: abortControler.signal,
+      signal: abortSignal,
       from_nid: from,
       to_nid: to,
     })
@@ -78,23 +83,23 @@ async function cloneNode({
 class ChainActionHandler {
   nid: string
   nidIsPrivate: boolean
-  abortControler: AbortController
+  abortSignal?: AbortSignal
   history: History
 
   constructor({
     nid,
     nidIsPrivate,
     history,
-    abortControler,
+    abortSignal,
   }: {
     nid: string
     nidIsPrivate: boolean
-    abortControler: AbortController
+    abortSignal?: AbortSignal
     history: History
   }) {
     this.nid = nid
     this.nidIsPrivate = nidIsPrivate
-    this.abortControler = abortControler
+    this.abortSignal = abortSignal
     this.history = history
   }
 
@@ -110,7 +115,7 @@ class ChainActionHandler {
     smuggler.node
       .create({
         text: TDoc.makeEmpty().toNodeTextData(),
-        signal: this.abortControler.signal,
+        signal: this.abortSignal,
         from_nid: side === 'right' ? this.nid : undefined,
         to_nid: side === 'left' ? this.nid : undefined,
       })
@@ -133,7 +138,7 @@ class ChainActionHandler {
     cloneNode({
       from: side === 'right' ? this.nid : undefined,
       to: side === 'left' ? this.nid : undefined,
-      abortControler: this.abortControler,
+      abortSignal: this.abortSignal,
     }).then((node) => {
       if (node) {
         const { nid } = node
@@ -143,136 +148,132 @@ class ChainActionHandler {
   }
 }
 
-const ChainActionBarImpl = ({
-  side,
-  nid,
-  nidIsPrivate,
-  abortControler,
-  addRef,
-}: {
-  side: 'right' | 'left'
-  nid: string
-  nidIsPrivate: boolean
-  abortControler: AbortController
-  addRef: ({ from, to }: { from: string; to: string }) => void
-}) => {
-  const history = useHistory()
-  const ctx = useContext(MzdGlobalContext)
-  const [showSearchModal, setShowSearchModal] = useState(false)
-  const handler = new ChainActionHandler({
-    nid,
-    nidIsPrivate,
-    abortControler,
-    history,
-  })
+const CreateNodeBigIcon = styled(MdiAdd)({
+  fontSize: '24px',
+})
 
-  const newDescription = `Create new & link to the ${side}`
-  const newCopyDescription = `Copy & link to the ${side}`
-  const uploadDescription = `Upload & link to the ${side}`
-  const findDescription = `Find & link to the ${side}`
+const CustomDropdownToggle = styled(Dropdown.Toggle)({
+  fontSize: 0,
+  borderRadius: '42px',
+  padding: '6px',
+  borderWidth: 0,
+  '&:after': {
+    // Hide dropdown arrow
+    display: 'none',
+  },
+  ...StyleButtonWhite,
+})
 
-  const buttonClass = jcss(styles.tool_button, styles.toolbar_layout_item)
+const CustomDropdownMenu = styled(Dropdown.Menu)({
+  border: '1px solid rgba(0,0,0,.15)',
+  borderRadius: '6px',
+  padding: '4px 0 4px 0',
+})
 
-  const uploadFileFormRef = useRef<HTMLInputElement>(null)
-  return (
-    <>
-      <ButtonToolbar
-        className={jcss(
-          'd-flex',
-          'justify-content-end',
-          // buttons should be in opposite order on different sides
-          // for visual symmetry
-          side === 'left' ? 'flex-row-reverse' : '',
-          styles.toolbar
-        )}
-      >
-        <ImgButton
-          className={buttonClass}
-          onClick={() => handler.handleNext(ctx, side)}
-        >
-          <HoverTooltip tooltip={newDescription}>
-            <MdiAdd />
-          </HoverTooltip>
-        </ImgButton>
+const CustomDropdownItem = styled(Dropdown.Item)({
+  backgroundColor: 'white',
+  padding: '8px 8px 8px 8px',
+  margin: '0 10px 0 0',
+  '&:active': {
+    backgroundColor: '#008000',
+    boxShadow: '0 0 0 .25rem rgba(60,153,110,.5)',
+    border: 'none',
+  },
+})
 
-        <ImgButton
-          className={buttonClass}
-          onClick={() => handler.handleNextClone(ctx, side)}
-        >
-          <HoverTooltip tooltip={newCopyDescription}>
-            <MdiContentCopy />
-          </HoverTooltip>
-        </ImgButton>
+const DropdownItemText = styled.span`
+  font-size: 14px;
+  display: inline-block;
+  vertical-align: middle;
+  padding-left: 12px;
+`
 
-        <ImgButton
-          className={buttonClass}
-          onClick={(e) => {
-            e.preventDefault()
-            const { current } = uploadFileFormRef
-            if (current) {
-              current.click()
-            }
-          }}
-        >
-          <HoverTooltip tooltip={uploadDescription}>
-            <MdiFileUpload />
-          </HoverTooltip>
-        </ImgButton>
-        <UploadFileAsNodeForm
-          from_nid={side === 'right' ? nid : undefined}
-          to_nid={side === 'left' ? nid : undefined}
-          ref={uploadFileFormRef}
-        />
-
-        <ImgButton
-          className={buttonClass}
-          // className={styles.tool_button_img}
-          onClick={() => setShowSearchModal(true)}
-        >
-          <HoverTooltip tooltip={findDescription}>
-            <MdiSearch />
-          </HoverTooltip>
-        </ImgButton>
-      </ButtonToolbar>
-      <SearchAndConnectJinn
-        nid={nid}
-        addRef={addRef}
-        show={showSearchModal}
-        left={side === 'left'}
-        setShow={setShowSearchModal}
-      />
-    </>
-  )
-}
+const CustomDropdown = styled(Dropdown)({
+  marginRight: 'auto',
+  marginLeft: 'auto',
+  padding: '2px 0 2px 0',
+  width: '36px',
+})
 
 export const ChainActionBar = ({
   side,
   nid,
   nidIsPrivate,
-  abortControler,
+  abortSignal,
   addRef,
   className,
 }: {
   side: ChainActionBarSide
   nid: string
   nidIsPrivate: boolean
-  abortControler: AbortController
+  abortSignal?: AbortSignal
   addRef: ({ from, to }: { from: string; to: string }) => void
-  className: string
+  className?: string
 }) => {
+  const history = useHistory()
+  const [showSearchModal, setShowSearchModal] = useState(false)
+  const handler = new ChainActionHandler({
+    nid,
+    nidIsPrivate,
+    abortSignal,
+    history,
+  })
+  const uploadFileFormRef = useRef<HTMLInputElement>(null)
+  const ctx = useContext(MzdGlobalContext)
   return (
-    <SmallCard className={jcss(className, styles.card)}>
-      <span className={styles.side_title}>
-        {side === 'left' ? <Emoji>👈 </Emoji> : null}
-        Add to the {side}
-        {side === 'right' ? <Emoji> 👉 </Emoji> : null}
-      </span>
-      <ChainActionBarImpl
-        side={side}
+    <SmallCard
+      className={className}
+      css={css`
+        border-width: 1px;
+        border-color: rgba(0, 0, 0, 0.28);
+        border-style: dashed;
+        box-shadow: none;
+      `}
+    >
+      <CustomDropdown>
+        <CustomDropdownToggle variant="success" id="dropdown-basic">
+          <CreateNodeBigIcon />
+        </CustomDropdownToggle>
+        <CustomDropdownMenu>
+          <CustomDropdownItem onClick={() => handler.handleNext(ctx, side)}>
+            <MdiAdd css={{ verticalAlign: 'middle' }} />
+            <DropdownItemText>Create new and link</DropdownItemText>
+          </CustomDropdownItem>
+          <CustomDropdownItem
+            onClick={() => handler.handleNextClone(ctx, side)}
+          >
+            <MdiContentCopy css={{ verticalAlign: 'middle' }} />
+            <DropdownItemText>Copy and link</DropdownItemText>
+          </CustomDropdownItem>
+          <CustomDropdownItem
+            onClick={(e) => {
+              e.preventDefault()
+              const { current } = uploadFileFormRef
+              if (current) {
+                current.click()
+              }
+            }}
+          >
+            <MdiFileUpload css={{ verticalAlign: 'middle' }} />
+            <DropdownItemText>Upload file and link</DropdownItemText>
+          </CustomDropdownItem>
+          <CustomDropdownItem onClick={() => setShowSearchModal(true)}>
+            <MdiSearch css={{ verticalAlign: 'middle' }} />
+            <DropdownItemText>Find and link to the {side}</DropdownItemText>
+          </CustomDropdownItem>
+        </CustomDropdownMenu>
+      </CustomDropdown>
+      <UploadFileAsNodeForm
+        from_nid={side === 'right' ? nid : undefined}
+        to_nid={side === 'left' ? nid : undefined}
+        ref={uploadFileFormRef}
+      />
+      <SearchAndConnectJinn
         nid={nid}
-        nidIsPrivate={nidIsPrivate}
-        abortControler={abortControler}
         addRef={addRef}
+        show={showSearchModal}
+        left={side === 'left'}
+        setShow={setShowSearchModal}
       />
     </SmallCard>
   )
