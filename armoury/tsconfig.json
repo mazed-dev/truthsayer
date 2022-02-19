@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "allowJs": false,
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "composite": true,
     "declaration": true,
@@ -23,7 +23,7 @@
     "rootDir": "src",
     "skipLibCheck": true,
     "strict": true,
-    "target": "es6"
+    "target": "es6",
   },
   "include": [
     "./src/**/*"

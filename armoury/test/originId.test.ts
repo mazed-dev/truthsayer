@@ -1,4 +1,4 @@
-import { genOriginId, _uint32ToInt32 } from './originId'
+import { genOriginId, _uint32ToInt32 } from '../src/originId'
 
 import { urls } from './originId.test.data.json'
 

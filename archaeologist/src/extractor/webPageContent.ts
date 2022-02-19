@@ -16,9 +16,8 @@ import lodash from 'lodash'
 import { PreviewImageSmall } from 'smuggler-api'
 
 import { Readability as MozillaReadability } from '@mozilla/readability'
-import { stabiliseUrl } from './originId'
 
-import { MimeType, Mime, log, isAbortError } from 'armoury'
+import { MimeType, Mime, log, isAbortError, stabiliseUrl } from 'armoury'
 
 async function fetchImagePreviewAsBase64(
   url: string,
