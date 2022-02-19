@@ -113,5 +113,10 @@
   "proxy": "http://0.0.0.0:8080",
   "simple-git-hooks": {
     "pre-commit": "yarn lint-staged"
+  },
+  "jest": {
+    "transformIgnorePatterns": [
+      "/node_modules/(?!normalize-url/)"
+    ]
   }
 }
