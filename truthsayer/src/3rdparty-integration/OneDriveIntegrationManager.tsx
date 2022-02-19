@@ -322,7 +322,7 @@ async function uploadFilesFromFolder(
     const extattrs: NodeExtattrs = {
       content_type: Mime.TEXT_URI_LIST,
       preview_image: undefined,
-      title: '☁:' + folderPath + '/' + item.name,
+      title: '☁ ' + folderPath + '/' + item.name,
       description: beginningOf(fileText),
       lang: undefined,
       author: item.createdByUser?.displayName || undefined,
