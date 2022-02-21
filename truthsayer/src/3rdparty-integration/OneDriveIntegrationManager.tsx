@@ -325,7 +325,7 @@ async function uploadFilesFromFolder(
       title: '☁ ' + folderPath + '/' + item.name,
       description: beginningOf(fileText),
       lang: undefined,
-      author: item.createdByUser?.displayName || undefined,
+      author: item.createdBy?.user?.displayName || undefined,
       web: {
         url: item.webUrl,
       },
