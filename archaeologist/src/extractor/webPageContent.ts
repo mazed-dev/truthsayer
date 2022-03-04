@@ -361,10 +361,9 @@ export async function _exctractPageImage(
       }
     }
   }
-  // These are possible favicon locations according to
-  // https://en.wikipedia.org/wiki/Favicon, with edge cases:
-  //
-  // + apple specific web page icon.
+  // These are possible favicon element locations according to
+  // https://en.wikipedia.org/wiki/Favicon, with edge case for apple specific
+  // web page icon.
   for (const path of [
     'link[rel="shortcut icon"]',
     'link[rel="icon"]',
