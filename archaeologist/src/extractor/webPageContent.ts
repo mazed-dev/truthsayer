@@ -27,12 +27,6 @@ async function fetchImagePreviewAsBase64(
   // Load the image
   return new Promise((resolve, reject) => {
     const image = document_.createElement('img')
-    // Set certain background colour to the element here because some images,
-    // such as PNG, could have transparent background. So to save prevew image
-    // as JPEG we have to specify what colour to use as background. Default
-    // background colour depends on multiple user settings in browser, so we
-    // can't rely on default value here.
-    image.setAttribute('style', 'background-color: white;')
     if (process.env.CHROME) {
       image.setAttribute('crossorigin', 'anonymous')
     }
@@ -48,7 +42,17 @@ async function fetchImagePreviewAsBase64(
       const canvas = document_.createElement('canvas')
       canvas.width = dstSquareSize
       canvas.height = dstSquareSize
-      canvas.getContext('2d')?.drawImage(
+      const ctx = canvas.getContext('2d')
+      if (ctx == null) {
+        throw new Error()
+      }
+      // Render white rectangle behind main image for images, such as PNG, that
+      // could have transparent background. Default background colour depends on
+      // multiple user settings in browser, so we can't rely on it.
+      // https://stackoverflow.com/a/52672952
+      ctx.fillStyle = '#FFF'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.drawImage(
         image,
         srcDeltaX,
         srcDeltaY,
