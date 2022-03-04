@@ -17,7 +17,7 @@ import { PreviewImageSmall } from 'smuggler-api'
 
 import { Readability as MozillaReadability } from '@mozilla/readability'
 
-import { MimeType, Mime, log, isAbortError, stabiliseUrl } from 'armoury'
+import { MimeType, Mime, log, stabiliseUrl } from 'armoury'
 
 async function fetchImagePreviewAsBase64(
   url: string,
