@@ -17,14 +17,13 @@ import { PreviewImageSmall } from 'smuggler-api'
 
 import { Readability as MozillaReadability } from '@mozilla/readability'
 
-import { MimeType, Mime, log, isAbortError, stabiliseUrl } from 'armoury'
+import { MimeType, Mime, log, stabiliseUrl } from 'armoury'
 
 async function fetchImagePreviewAsBase64(
   url: string,
   document_: Document,
   dstSquareSize: number
-): Promise<PreviewImageSmall | null> {
-  console.log('fetchImagePreviewAsBase64', url)
+): Promise<PreviewImageSmall> {
   // Load the image
   return new Promise((resolve, reject) => {
     const image = document_.createElement('img')
@@ -33,7 +32,6 @@ async function fetchImagePreviewAsBase64(
     }
     image.onerror = reject
     image.onload = (_ev) => {
-      console.log('fetchImagePreviewAsBase64 image.onload', _ev)
       // Crop image, getting the biggest square from the center
       // and resize it down to [dstSquareSize] - we don't need more for preview
       const { width, height } = image
@@ -44,7 +42,17 @@ async function fetchImagePreviewAsBase64(
       const canvas = document_.createElement('canvas')
       canvas.width = dstSquareSize
       canvas.height = dstSquareSize
-      canvas.getContext('2d')?.drawImage(
+      const ctx = canvas.getContext('2d')
+      if (ctx == null) {
+        throw new Error()
+      }
+      // Render white rectangle behind main image for images, such as PNG, that
+      // could have transparent background. Default background colour depends on
+      // multiple user settings in browser, so we can't rely on it.
+      // https://stackoverflow.com/a/52672952
+      ctx.fillStyle = '#FFF'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.drawImage(
         image,
         srcDeltaX,
         srcDeltaY,
@@ -56,13 +64,11 @@ async function fetchImagePreviewAsBase64(
         dstSquareSize
       )
       const content_type = Mime.IMAGE_JPEG
-      try {
-        const data = canvas.toDataURL(content_type)
-        resolve(data ? { data, content_type } : null)
-      } catch (err) {
-        if (!isAbortError(err)) {
-          log.exception(err)
-        }
+      const data = canvas.toDataURL(content_type)
+      if (data) {
+        resolve({ data, content_type })
+      } else {
+        throw new Error()
       }
     }
     image.src = url
@@ -348,37 +354,46 @@ export async function _exctractPageImage(
   baseURL: string
 ): Promise<WebPageContentImage | null> {
   const head = document_.head
-  let favicon = null
-  let og = null
+  const refs: string[] = []
   if (head == null) {
     return null
   }
-  for (const elementsGroup of [
-    head.querySelectorAll('meta[property="og:image"]'),
-    head.querySelectorAll('meta[name="twitter:image"]'),
+  for (const path of [
+    'meta[property="og:image"]',
+    'meta[name="twitter:image"]',
+    'meta[name="vk:image"]',
   ]) {
-    for (const element of elementsGroup) {
+    for (const element of head.querySelectorAll(path)) {
       const ref = element.getAttribute('content')?.trim()
       if (ref) {
-        og = ensureAbsRef(ref, baseURL)
-        break
+        const og = ensureAbsRef(ref, baseURL)
+        refs.push(og)
       }
     }
-    if (og !== null) {
-      break
+  }
+  // These are possible favicon element locations according to
+  // https://en.wikipedia.org/wiki/Favicon, with edge case for apple specific
+  // web page icon.
+  for (const path of [
+    'link[rel="shortcut icon"]',
+    'link[rel="icon"]',
+    'link[rel="apple-touch-icon"]',
+  ]) {
+    for (const element of head.querySelectorAll(path)) {
+      const ref = element.getAttribute('href')?.trim()
+      if (ref) {
+        const favicon = ensureAbsRef(ref, baseURL)
+        refs.push(favicon)
+      }
     }
   }
-  for (const element of head.querySelectorAll('link[rel="icon"]')) {
-    const ref = element.getAttribute('href')?.trim()
-    if (ref) {
-      favicon = ensureAbsRef(ref, baseURL)
-      break
+  for (const ref of refs) {
+    try {
+      const icon = await fetchImagePreviewAsBase64(ref, document_, 240)
+      return icon
+    } catch (err) {
+      log.debug('Mazed: preview image extraction failed with', err)
     }
   }
-  const icon = og
-    ? await fetchImagePreviewAsBase64(og, document_, 240)
-    : favicon
-    ? await fetchImagePreviewAsBase64(favicon, document_, 240)
-    : null
-  return icon ? icon : null
+  return null
 }

@@ -40,8 +40,16 @@ import {
   AuthCodeMSALBrowserAuthenticationProviderOptions,
 } from '@microsoft/microsoft-graph-client/authProviders/authCodeMsalBrowser'
 
+import {
+  makeNodeTextData,
+  NodeExtattrs,
+  NodeExtattrsWeb,
+  NodeIndexText,
+  NodeType,
+  smuggler,
+} from 'smuggler-api'
 import { MdiInsertLink, MdiLinkOff, MdiLaunch } from 'elementary'
-import { Mime, log } from 'armoury'
+import { Mime, log, genOriginId } from 'armoury'
 
 const Button = styled.button`
   background-color: #ffffff;
@@ -261,7 +269,14 @@ async function readAllFrom(reader: ReadableStreamDefaultReader<string>) {
   return data
 }
 
-async function printFilesFromFolder(
+function beginningOf(text: string) {
+  if (text.length < 256) {
+    return text
+  }
+  return text.length < 256 ? text : text.substring(0, 256) + '...'
+}
+
+async function uploadFilesFromFolder(
   msalInstance: PublicClientApplication,
   folderPath: string
 ) {
@@ -283,15 +298,50 @@ async function printFilesFromFolder(
       )
       continue
     }
+    if (!item.webUrl) {
+      log.debug(
+        `OneDrive item ${folderPath}/${item.name} unexpedly does not have a web URL set`
+      )
+      continue
+    }
 
-    let stream: ReadableStream = await client
+    const stream: ReadableStream = await client
       .api(`/me/drive/items/${item.id}/content`)
       .getStream()
-    let text = await readAllFrom(
+
+    const fileText = await readAllFrom(
       stream.pipeThrough(new TextDecoderStream()).getReader()
     )
+    const nodeTextData = makeNodeTextData()
+    const index_text: NodeIndexText = {
+      plaintext: fileText,
+      labels: [],
+      brands: [],
+      dominant_colors: [],
+    }
+    const extattrs: NodeExtattrs = {
+      content_type: Mime.TEXT_URI_LIST,
+      preview_image: undefined,
+      title: '☁ ' + folderPath + '/' + item.name,
+      description: beginningOf(fileText),
+      lang: undefined,
+      author: item.createdBy?.user?.displayName || undefined,
+      web: {
+        url: item.webUrl,
+      },
+      blob: undefined,
+    }
 
-    log.debug(`Content of ${folderPath}/${item.name}: ${JSON.stringify(text)}`)
+    const response = await smuggler.node.create({
+      text: nodeTextData,
+      index_text,
+      extattrs,
+      ntype: NodeType.Url,
+      origin: {
+        id: await genOriginId(item.webUrl),
+      },
+    })
+    log.debug(`Response to node creation: ${JSON.stringify(response)}`)
   }
 }
 
@@ -315,7 +365,7 @@ export function OneDriveIntegrationManager() {
         </Button>
         <Button
           onClick={() =>
-            printFilesFromFolder(msalInstance, '/mazed-test').catch((error) =>
+            uploadFilesFromFolder(msalInstance, '/mazed-test').catch((error) =>
               console.error(
                 `Failed to call Microsoft Graph, error = '${JSON.stringify(
                   error
