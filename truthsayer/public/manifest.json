@@ -3,12 +3,17 @@
   "name": "Mazed - knit your ideas",
   "icons": [
     {
-      "src": "logo.png",
-      "sizes": "64x64 32x32 24x24 16x16 128x128 512x512",
+      "src": "logo-128x128.png",
+      "sizes": "16x16 32x32 48x48 128x128 256x256",
       "type": "image/png"
     },
     {
-      "src": "logo.svg",
+      "src": "logo-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "logo-strip.svg",
       "type": "image/svg+xml"
     }
   ],
