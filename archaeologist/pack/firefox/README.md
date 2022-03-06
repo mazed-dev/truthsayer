@@ -3,7 +3,6 @@
 This is an instruction how to build, pack and submit archaeologist to Mozilla web store.
 
 We have an account for [Mozilla Developers Hub](https://addons.mozilla.org/en-GB/developers/), registered for an email `thread.knowledge@gmail.com`. Ask @akindyakov for credentials.
-'
 
 All commands listed here should be ran at the root of this repo.
 
