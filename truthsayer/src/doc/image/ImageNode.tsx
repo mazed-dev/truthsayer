@@ -6,12 +6,7 @@ import { Image, ButtonGroup, Modal } from 'react-bootstrap'
 
 import { ImgButton } from '../../lib/ImgButton'
 import { TNode } from 'smuggler-api'
-
-import { jcss } from 'elementary'
-
-import ZoomInImg from '../../img/zoom-in-strip.svg'
-import ZoomOutImg from '../../img/zoom-out-strip.svg'
-import ZoomResetImg from '../../img/zoom-reset-strip.svg'
+import { jcss, MdiFitScreen, MdiZoomIn, MdiZoomOut } from 'elementary'
 
 import styles from './ImageNode.module.css'
 
@@ -64,24 +59,18 @@ export const ImageNode = ({
           <Modal.Title className={styles.zoom_image_title}>
             <ButtonGroup className={styles.zoom_button_group}>
               <ImgButton onClick={handleZoomOut}>
-                <img
-                  src={ZoomOutImg}
-                  className={styles.zoom_button_image}
-                  alt="Zoom out image"
+                <MdiZoomOut
+                  css={{ fontSize: '24px', verticalAlign: 'middle' }}
                 />
               </ImgButton>
               <ImgButton onClick={handleZoomReset}>
-                <img
-                  src={ZoomResetImg}
-                  className={styles.zoom_button_image}
-                  alt="Reset image zoom"
+                <MdiFitScreen
+                  css={{ fontSize: '24px', verticalAlign: 'middle' }}
                 />
               </ImgButton>
               <ImgButton onClick={handleZoomIn}>
-                <img
-                  src={ZoomInImg}
-                  className={styles.zoom_button_image}
-                  alt="Zoom in image"
+                <MdiZoomIn
+                  css={{ fontSize: '24px', verticalAlign: 'middle' }}
                 />
               </ImgButton>
             </ButtonGroup>
