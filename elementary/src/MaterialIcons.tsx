@@ -14,6 +14,7 @@ export type MaterialIconType =
   | 'bookmark_add'
   | 'code'
   | 'content_copy'
+  | 'content_cut'
   | 'expand_less'
   | 'expand_more'
   | 'file_upload'
@@ -71,6 +72,7 @@ export const MdiMoreHoriz = _makeMaterialIcon('more_horiz')
 export const MdiOpenInFull = _makeMaterialIcon('open_in_full')
 export const MdiAdd = _makeMaterialIcon('add')
 export const MdiContentCopy = _makeMaterialIcon('content_copy')
+export const MdiContentCut = _makeMaterialIcon('content_cut')
 export const MdiFileUpload = _makeMaterialIcon('file_upload')
 export const MdiSearch = _makeMaterialIcon('search')
 export const MdiBookmarkAdd = _makeMaterialIcon('bookmark_add')
