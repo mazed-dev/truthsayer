@@ -44,10 +44,11 @@ async function fetchImagePreviewAsBase64(
       canvas.height = dstSquareSize
       const ctx = canvas.getContext('2d')
       if (ctx == null) {
-        throw new Error()
+        throw new Error("Can't make a canvas with the received image")
       }
-      // Render white rectangle behind main image for images, such as PNG, that
-      // could have transparent background. Default background colour depends on
+      // Render white rectangle behind the image, just in case the image has
+      // transparent background. Without it the background has a random colour,
+      // black in my browser for instance. Default background colour depends on
       // multiple user settings in browser, so we can't rely on it.
       // https://stackoverflow.com/a/52672952
       ctx.fillStyle = '#FFF'
@@ -65,11 +66,7 @@ async function fetchImagePreviewAsBase64(
       )
       const content_type = Mime.IMAGE_JPEG
       const data = canvas.toDataURL(content_type)
-      if (data) {
-        resolve({ data, content_type })
-      } else {
-        throw new Error()
-      }
+      resolve({ data, content_type })
     }
     image.src = url
   })
@@ -358,32 +355,25 @@ export async function _exctractPageImage(
   if (head == null) {
     return null
   }
-  for (const path of [
-    'meta[property="og:image"]',
-    'meta[name="twitter:image"]',
-    'meta[name="vk:image"]',
+  // These are possible HTML DOM elements that might contain preview image.
+  // - Open Graph image.
+  // - Twitter preview image.
+  // - VK preview image.
+  // - Favicon, locations according to https://en.wikipedia.org/wiki/Favicon,
+  //    with edge case for Apple specific web page icon.
+  for (const [selector, attribute] of [
+    ['meta[property="og:image"]', 'content'],
+    ['meta[name="twitter:image"]', 'content'],
+    ['meta[name="vk:image"]', 'content'],
+    ['link[rel="apple-touch-icon"]', 'href'],
+    ['link[rel="shortcut icon"]', 'href'],
+    ['link[rel="icon"]', 'href'],
   ]) {
-    for (const element of head.querySelectorAll(path)) {
-      const ref = element.getAttribute('content')?.trim()
+    for (const element of head.querySelectorAll(selector)) {
+      const ref = element.getAttribute(attribute)?.trim()
       if (ref) {
-        const og = ensureAbsRef(ref, baseURL)
-        refs.push(og)
-      }
-    }
-  }
-  // These are possible favicon element locations according to
-  // https://en.wikipedia.org/wiki/Favicon, with edge case for apple specific
-  // web page icon.
-  for (const path of [
-    'link[rel="shortcut icon"]',
-    'link[rel="icon"]',
-    'link[rel="apple-touch-icon"]',
-  ]) {
-    for (const element of head.querySelectorAll(path)) {
-      const ref = element.getAttribute('href')?.trim()
-      if (ref) {
-        const favicon = ensureAbsRef(ref, baseURL)
-        refs.push(favicon)
+        const absRef = ensureAbsRef(ref, baseURL)
+        refs.push(absRef)
       }
     }
   }
