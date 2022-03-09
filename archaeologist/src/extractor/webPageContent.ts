@@ -65,11 +65,7 @@ async function fetchImagePreviewAsBase64(
       )
       const content_type = Mime.IMAGE_JPEG
       const data = canvas.toDataURL(content_type)
-      if (data) {
-        resolve({ data, content_type })
-      } else {
-        throw new Error()
-      }
+      resolve({ data, content_type })
     }
     image.src = url
   })
@@ -358,32 +354,25 @@ export async function _exctractPageImage(
   if (head == null) {
     return null
   }
-  for (const path of [
-    'meta[property="og:image"]',
-    'meta[name="twitter:image"]',
-    'meta[name="vk:image"]',
+  // These are possible HTML DOM elements that might contain preview image.
+  // - Open Graph image.
+  // - Twitter preview image.
+  // - VK preview image.
+  // - Favicon, locations according to https://en.wikipedia.org/wiki/Favicon,
+  //    with edge case for Apple specific web page icon.
+  for (const [selector, attribute] of [
+    ['meta[property="og:image"]', 'content'],
+    ['meta[name="twitter:image"]', 'content'],
+    ['meta[name="vk:image"]', 'content'],
+    ['link[rel="apple-touch-icon"]', 'href'],
+    ['link[rel="shortcut icon"]', 'href'],
+    ['link[rel="icon"]', 'href'],
   ]) {
-    for (const element of head.querySelectorAll(path)) {
-      const ref = element.getAttribute('content')?.trim()
+    for (const element of head.querySelectorAll(selector)) {
+      const ref = element.getAttribute(attribute)?.trim()
       if (ref) {
-        const og = ensureAbsRef(ref, baseURL)
-        refs.push(og)
-      }
-    }
-  }
-  // These are possible favicon element locations according to
-  // https://en.wikipedia.org/wiki/Favicon, with edge case for apple specific
-  // web page icon.
-  for (const path of [
-    'link[rel="shortcut icon"]',
-    'link[rel="icon"]',
-    'link[rel="apple-touch-icon"]',
-  ]) {
-    for (const element of head.querySelectorAll(path)) {
-      const ref = element.getAttribute('href')?.trim()
-      if (ref) {
-        const favicon = ensureAbsRef(ref, baseURL)
-        refs.push(favicon)
+        const absRef = ensureAbsRef(ref, baseURL)
+        refs.push(absRef)
       }
     }
   }
