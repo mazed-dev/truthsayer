@@ -44,7 +44,7 @@ async function fetchImagePreviewAsBase64(
       canvas.height = dstSquareSize
       const ctx = canvas.getContext('2d')
       if (ctx == null) {
-        throw new Error()
+        throw new Error("Can't make a canvas with the received image")
       }
       // Render white rectangle behind main image for images, such as PNG, that
       // could have transparent background. Default background colour depends on
