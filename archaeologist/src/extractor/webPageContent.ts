@@ -42,7 +42,18 @@ async function fetchImagePreviewAsBase64(
       const canvas = document_.createElement('canvas')
       canvas.width = dstSquareSize
       canvas.height = dstSquareSize
-      canvas.getContext('2d')?.drawImage(
+      const ctx = canvas.getContext('2d')
+      if (ctx == null) {
+        throw new Error("Can't make a canvas with the received image")
+      }
+      // Render white rectangle behind the image, just in case the image has
+      // transparent background. Without it the background has a random colour,
+      // black in my browser for instance. Default background colour depends on
+      // multiple user settings in browser, so we can't rely on it.
+      // https://stackoverflow.com/a/52672952
+      ctx.fillStyle = '#FFF'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.drawImage(
         image,
         srcDeltaX,
         srcDeltaY,

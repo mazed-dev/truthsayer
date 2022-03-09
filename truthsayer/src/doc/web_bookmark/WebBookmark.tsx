@@ -21,7 +21,6 @@ const IconImg = styled.img`
   height: inherit;
   width: inherit;
   border-radius: inherit;
-  background-color: white;
 `
 const IconImgEmpty = styled.div`
   height: inherit;
