@@ -28,7 +28,6 @@ import {
   MdiMoreHoriz,
   MdiContentCut,
 } from 'elementary'
-import { log } from 'armoury'
 
 class PrivateMenu extends React.Component {
   constructor(props) {
@@ -173,7 +172,6 @@ export function SmallCardFootbar({
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
   const isOwned = edge.isOwnedBy(account)
-  log.debug('SmallCardFootbar isOwnedBy', isOwned, account)
   return (
     <div
       css={css`
