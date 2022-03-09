@@ -6,7 +6,7 @@ import { Editable, Slate, withReact } from 'slate-react'
 import {
   Descendant,
   Editor,
-  Element as SlateElement,
+  Element,
   Range,
   Transforms,
   createEditor,
@@ -80,7 +80,31 @@ export type CheckListItemElement = {
   children: Descendant[]
 }
 
-export const DocEditor = ({ className, node, saveText }) => {
+export const NodeTextEditor = ({
+  className,
+  node,
+  saveText,
+}: {
+  node: TNode
+  saveText?: (text: SlateText) => void
+  className?: string
+}) => {
+  return saveText == null ? (
+    <ReadOnlyText className={className} node={node} />
+  ) : (
+    <TextEditor className={className} node={node} saveText={saveText} />
+  )
+}
+
+const TextEditor = ({
+  className,
+  node,
+  saveText,
+}: {
+  node: TNode
+  saveText: (text: SlateText) => void
+  className?: string
+}) => {
   const [value, setValue] = useState<SlateText>([])
   const [showJinn, setShowJinn] = useState<boolean>(false)
   const nid = node.nid
@@ -94,7 +118,7 @@ export const DocEditor = ({ className, node, saveText }) => {
     [nid]
   )
   const renderElement = useCallback(
-    (props) => <Element nid={nid} {...props} />,
+    (props) => <EditableElement nid={nid} {...props} />,
     [nid]
   )
   const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
@@ -136,7 +160,7 @@ export const DocEditor = ({ className, node, saveText }) => {
   )
 }
 
-export const ReadOnlyDoc = ({ className, node }) => {
+const ReadOnlyText = ({ className, node }) => {
   const [value, setValue] = useState<Descendant[]>([])
   useAsyncEffect(
     async (isMounted) => {
@@ -280,7 +304,7 @@ const isDateTimeActive = (editor) => {
   const [element] = Editor.nodes(editor, {
     match: (n) =>
       !Editor.isEditor(n) &&
-      SlateElement.isElement(n) &&
+      Element.isElement(n) &&
       n.type === kSlateBlockTypeDateTime,
   })
   return !!element
@@ -290,7 +314,7 @@ const unwrapDateTime = (editor) => {
   Transforms.unwrapNodes(editor, {
     match: (n) =>
       !Editor.isEditor(n) &&
-      SlateElement.isElement(n) &&
+      Element.isElement(n) &&
       n.type === kSlateBlockTypeDateTime,
   })
 }
@@ -436,7 +460,5 @@ const _makeElementRender = (isEditable: boolean) => {
   })
 }
 
-const Element = _makeElementRender(true)
+const EditableElement = _makeElementRender(true)
 const ReadOnlyElement = _makeElementRender(false)
-
-export default DocEditor

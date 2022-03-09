@@ -1,10 +1,7 @@
 import React from 'react'
 
-import { FullCardFootbar } from './FullCardFootbar'
-import { WideCard } from './WideCard'
-
-import { TEdge, TNode, NodeTextData } from 'smuggler-api'
-import { DocEditor } from '../doc/DocEditor'
+import { TNode, NodeTextData } from 'smuggler-api'
+import { NodeTextEditor } from '../doc/DocEditor'
 import { ImageNode } from '../doc/image/ImageNode'
 import { WebBookmark } from '../doc/web_bookmark/WebBookmark'
 import { SlateText } from '../doc/types'
@@ -16,26 +13,31 @@ import styles from './FullCard.module.css'
 
 export function FullCard({
   node,
-  addRef,
-  stickyEdges,
   saveNode,
+  className,
 }: {
   node: TNode
-  addRef: ({ from, to }: { from: string; to: string }) => void
-  stickyEdges: TEdge[]
-  saveNode: (text: NodeTextData) => Promise<Response> | undefined
+  saveNode?: (text: NodeTextData) => Promise<Response> | undefined
+  className?: string
 }) {
   let media
   let editor
   if (node == null) {
     editor = <Loader />
   } else {
-    const saveText = (text: SlateText) => {
-      const doc = new TDoc(text)
-      saveNode(doc.toNodeTextData())
-    }
+    const saveText =
+      saveNode == null
+        ? undefined
+        : (text: SlateText) => {
+            const doc = new TDoc(text)
+            saveNode(doc.toNodeTextData())
+          }
     editor = (
-      <DocEditor className={styles.editor} node={node} saveText={saveText} />
+      <NodeTextEditor
+        className={styles.editor}
+        node={node}
+        saveText={saveText}
+      />
     )
     if (node.isImage()) {
       media = <ImageNode className={styles.media} node={node} />
@@ -43,17 +45,10 @@ export function FullCard({
       media = <WebBookmark extattrs={node.extattrs} />
     }
   }
-  const reloadNode = () => {}
   return (
-    <WideCard>
+    <div className={className}>
       {media}
       {editor}
-      <FullCardFootbar
-        addRef={addRef}
-        node={node}
-        stickyEdges={stickyEdges}
-        reloadNode={reloadNode}
-      />
-    </WideCard>
+    </div>
   )
 }

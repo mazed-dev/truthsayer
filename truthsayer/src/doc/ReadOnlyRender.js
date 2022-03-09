@@ -4,37 +4,13 @@ import styles from './ReadOnlyRender.module.css'
 
 import { Loader } from '../lib/loader'
 import LockedImg from './../img/locked.png'
-
-import { ReadOnlyDoc } from './DocEditor.tsx'
-import { ImageNode } from './image/ImageNode'
-import { WebBookmark } from './web_bookmark/WebBookmark'
+import { FullCard } from './../card/FullCard'
 
 import { smuggler } from 'smuggler-api'
 
 import { MzdGlobalContext } from '../lib/global'
 import { log } from 'armoury'
 import { isAbortError } from 'armoury'
-
-export function SmallCardRender({ node }) {
-  let media
-  let text
-  if (node == null) {
-    media = <Loader />
-  } else {
-    text = <ReadOnlyDoc node={node} className={styles.read_only_text_card} />
-    if (node.isImage()) {
-      media = <ImageNode node={node} />
-    } else if (node.extattrs && node.isWebBookmark()) {
-      media = <WebBookmark extattrs={node.extattrs} />
-    }
-  }
-  return (
-    <div className={styles.read_only_card}>
-      {media}
-      {text}
-    </div>
-  )
-}
 
 class ReadDocRender extends React.Component {
   render() {
@@ -59,7 +35,7 @@ class ReadDocRender extends React.Component {
         )
       } else {
         // TODO(akindyakov): trim card here if shrinked!
-        body = <SmallCardRender node={node} />
+        body = <FullCard node={node} className={styles.read_only_text_card} />
       }
     }
     return <div className={styles.read_only_card}>{body}</div>
