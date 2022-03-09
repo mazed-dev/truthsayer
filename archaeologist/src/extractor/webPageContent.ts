@@ -46,8 +46,9 @@ async function fetchImagePreviewAsBase64(
       if (ctx == null) {
         throw new Error("Can't make a canvas with the received image")
       }
-      // Render white rectangle behind main image for images, such as PNG, that
-      // could have transparent background. Default background colour depends on
+      // Render white rectangle behind the image, just in case the image has
+      // transparent background. Without it the background has a random colour,
+      // black in my browser for instance. Default background colour depends on
       // multiple user settings in browser, so we can't rely on it.
       // https://stackoverflow.com/a/52672952
       ctx.fillStyle = '#FFF'
