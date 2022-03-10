@@ -34,7 +34,6 @@ const PreviewImageBox = styled.div`
   object-fit: cover;
   border-radius: 2px;
   padding: 0;
-  margin: 5px 5px 0 5px;
   position: relative;
 `
 
@@ -110,7 +109,10 @@ const Author = styled.p`
 
 const DescriptionBox = styled.div`
   font-size: 1em;
-  padding: 0.7em 0.7em 0 0.7em;
+  padding: 4px 0 0;
+`
+const Description = styled(BlockQuote)`
+  margin: 4px 0 14px 0;
 `
 
 type WebBookmarkProps = {
@@ -133,7 +135,7 @@ export const WebBookmark = ({ extattrs }: WebBookmarkProps) => {
         </TitleBox>
       </BadgeBox>
       <DescriptionBox>
-        <BlockQuote cite={url || ''}>{description}</BlockQuote>
+        <Description cite={url || ''}>{description}</Description>
       </DescriptionBox>
     </Box>
   )

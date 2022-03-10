@@ -17,7 +17,7 @@ import { DynamicGrid } from './DynamicGrid'
 import { MzdGlobalContext } from '../lib/global'
 import { SCard } from '../card/ShrinkCard'
 import { SmallCard } from '../card/SmallCard'
-import { FullCard } from '../card/FullCard'
+import { NodeCard } from '../card/NodeCard'
 import { TimeBadge } from '../card/AuthorBadge'
 import { isSmartCase } from '../util/str'
 import { searchNodeFor } from './search/search'
@@ -182,7 +182,7 @@ export const SearchGrid = ({
     return (
       <GridCard onClick={onClick} key={nid}>
         <SCard>
-          <FullCard node={node} />
+          <NodeCard node={node} />
         </SCard>
         <TimeBadge created_at={node.created_at} updated_at={node.updated_at} />
       </GridCard>

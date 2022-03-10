@@ -4,13 +4,13 @@ import React, { useState } from 'react'
 
 import { Row, Col } from 'react-bootstrap'
 
-import { FullCard } from './FullCard'
+import { NodeCard } from './NodeCard'
 import { WideCard } from './WideCard'
 import { FullCardFootbar } from './FullCardFootbar'
 
 import { SmallCard, kSmallCardWidth } from './SmallCard'
 import { ShrinkCard } from './ShrinkCard'
-import { ReadOnlyRender } from '../doc/ReadOnlyRender'
+import { NodeCardFetching } from '../card/NodeCard'
 
 import { SmallCardFootbar } from './SmallCardFootbar'
 import { ChainActionBar } from './ChainActionBar'
@@ -45,7 +45,7 @@ function RefNodeCard({
   return (
     <SmallCard className={className}>
       <ShrinkCard showMore={showMore}>
-        <ReadOnlyRender nid={nid} node={null} />
+        <NodeCardFetching nid={nid} />
       </ShrinkCard>
       <SmallCardFootbar
         nid={nid}
@@ -304,7 +304,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
     const { node, edges_sticky, edges_right, edges_left } = this.state
     const nodeCard =
       node !== null ? (
-        <FullCard node={node} saveNode={this.saveNode} />
+        <NodeCard node={node} saveNode={this.saveNode} />
       ) : (
         <Spinner.Wheel />
       )
