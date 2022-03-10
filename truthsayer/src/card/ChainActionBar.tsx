@@ -228,6 +228,7 @@ export const ChainActionBar = ({
         border-color: rgba(0, 0, 0, 0.28);
         border-style: dashed;
         box-shadow: none;
+        padding: 0;
       `}
     >
       <CustomDropdown>

@@ -20,6 +20,7 @@ import { css } from '@emotion/react'
 
 type ShrinkCardProps = React.PropsWithChildren<{
   showMore?: boolean
+  className?: string
 }>
 
 const Fade = styled.div`
@@ -43,10 +44,10 @@ const Shrinkable = styled.div`
   border-radius: inherit;
 `
 
-export const ShrinkCard = ({ children, showMore }: ShrinkCardProps) => {
-  const shrinkStyle = showMore ? css`min-height: 9em;` : css`height: 10em;`
+export const ShrinkCard = ({ children, showMore, className }: ShrinkCardProps) => {
+  const shrinkStyle = showMore ? css`min-height: 10em;` : css`height: 10em;`
   return (
-    <Shrinkable css={shrinkStyle} >
+    <Shrinkable css={shrinkStyle} className={className} >
       {children}
       <Fade />
     </Shrinkable>

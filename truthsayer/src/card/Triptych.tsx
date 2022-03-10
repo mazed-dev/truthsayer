@@ -46,10 +46,19 @@ function RefNodeCard({
   const [showMore, setShowMore] = useState(false)
   const toggleMoreLess = () => setShowMore(!showMore)
   return (
-    <SmallCard className={className}>
-      <ShrinkCard showMore={showMore}>
+    <SmallCard className={className} css={css`position: relative;`}>
+      <ShrinkCard showMore={showMore} css={css`margin-bottom: 12px;`}>
         <NodeCardFetching nid={nid} />
       </ShrinkCard>
+      <div
+        css={css`
+          width: 100%;
+          position: absolute;
+          bottom: 0;
+          right: 0;
+          z-index: 1000;
+        `}
+      >
       <SmallCardFootbar
         nid={nid}
         edge={edge}
@@ -58,6 +67,7 @@ function RefNodeCard({
         switchStickiness={switchStickiness}
         cutOffRef={cutOffRef}
       />
+    </div>
     </SmallCard>
   )
 }

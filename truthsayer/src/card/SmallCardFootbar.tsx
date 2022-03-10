@@ -1,11 +1,12 @@
 /** @jsxImportSource @emotion/react */
+// @ts-nocheck
 
 import React, { useContext } from 'react'
 import { css } from '@emotion/react'
 import { Link } from 'react-router-dom'
 import { Button } from 'react-bootstrap'
 
-import { smuggler } from 'smuggler-api'
+import { smuggler, TEdge } from 'smuggler-api'
 
 import styles from './Footbar.module.css'
 
@@ -170,6 +171,15 @@ export function SmallCardFootbar({
   toggleMore,
   switchStickiness,
   cutOffRef,
+  className,
+}: {
+  nid: string
+  edge: TEdge
+  showMore: boolean
+  toggleMore: () => void
+  switchStickiness: (edge: TEdge, on: boolean)=> void
+  cutOffRef: (eid: string) => void
+  className?: string
 }) {
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
@@ -181,6 +191,7 @@ export function SmallCardFootbar({
         display: flex;
         justify-content: space-between;
       `}
+      className={className}
     >
       <Button
         as={SeeMoreButton}
