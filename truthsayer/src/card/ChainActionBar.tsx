@@ -14,7 +14,6 @@ import { goto, History } from '../lib/route'
 import { smuggler, NewNodeResponse } from 'smuggler-api'
 import { TDoc } from '../doc/doc_util'
 import { TNode } from 'smuggler-api'
-import { SmallCard } from './SmallCard'
 
 import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
 import {
@@ -23,6 +22,7 @@ import {
   MdiFileUpload,
   MdiSearch,
   StyleButtonWhite,
+  SmallCard,
 } from 'elementary'
 import { Optional } from 'armoury'
 import { log } from 'armoury'

@@ -5,11 +5,8 @@ import React, { useState } from 'react'
 import { Row, Col } from 'react-bootstrap'
 
 import { NodeCard } from './NodeCard'
-import { WideCard } from './WideCard'
 import { FullCardFootbar } from './FullCardFootbar'
 
-import { SmallCard, kSmallCardWidth } from './SmallCard'
-import { ShrinkCard } from './ShrinkCard'
 import { NodeCardFetching } from '../card/NodeCard'
 
 import { SmallCardFootbar } from './SmallCardFootbar'
@@ -23,7 +20,13 @@ import { styleMobileTouchOnly } from '../util/xstyle'
 import { smuggler, TNode, NodeTextData, TEdge } from 'smuggler-api'
 
 import { css } from '@emotion/react'
-import { Spinner } from 'elementary'
+import {
+  Spinner,
+  WideCard,
+  SmallCard,
+  kSmallCardWidth,
+  ShrinkCard,
+} from 'elementary'
 
 import lodash from 'lodash'
 
