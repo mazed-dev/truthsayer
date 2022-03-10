@@ -4,7 +4,7 @@ import styles from './AuthorBadge.module.css'
 
 import { smuggler } from 'smuggler-api'
 
-import { HoverTooltip } from '../lib/tooltip'
+import { HoverTooltip } from 'elementary'
 
 import UserDefaultPic from './../auth/img/user-default-pic.png'
 

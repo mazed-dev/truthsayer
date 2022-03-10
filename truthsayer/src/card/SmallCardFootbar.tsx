@@ -14,7 +14,6 @@ import CutTheRefImg from './../img/cut-the-ref.png'
 import { makeRefTo } from './../lib/route'
 
 import { MzdGlobalContext } from '../lib/global'
-import { HoverTooltip } from '../lib/tooltip'
 import { CheckBox } from './../lib/CheckBox'
 import {
   FootbarDropdown,
@@ -23,7 +22,13 @@ import {
   FootbarDropdownToggle,
 } from './Footbar'
 
-import { jcss, MaterialIcon, MdiLaunch, MdiMoreHoriz } from 'elementary'
+import {
+  jcss,
+  MaterialIcon,
+  MdiLaunch,
+  MdiMoreHoriz,
+  HoverTooltip,
+} from 'elementary'
 
 class PrivateMenu extends React.Component {
   constructor(props) {
@@ -177,7 +182,7 @@ export function SmallCardFootbar({
   edge: TEdge
   showMore: boolean
   toggleMore: () => void
-  switchStickiness: (edge: TEdge, on: boolean)=> void
+  switchStickiness: (edge: TEdge, on: boolean) => void
   cutOffRef: (eid: string) => void
   className?: string
 }) {
