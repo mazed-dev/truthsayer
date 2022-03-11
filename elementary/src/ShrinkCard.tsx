@@ -44,10 +44,20 @@ const Shrinkable = styled.div`
   border-radius: inherit;
 `
 
-export const ShrinkCard = ({ children, showMore, className }: ShrinkCardProps) => {
-  const shrinkStyle = showMore ? css`min-height: 10em;` : css`height: 10em;`
+export const ShrinkCard = ({
+  children,
+  showMore,
+  className,
+}: ShrinkCardProps) => {
+  const shrinkStyle = showMore
+    ? css`
+        min-height: 10em;
+      `
+    : css`
+        height: 10em;
+      `
   return (
-    <Shrinkable css={shrinkStyle} className={className} >
+    <Shrinkable css={shrinkStyle} className={className}>
       {children}
       <Fade />
     </Shrinkable>

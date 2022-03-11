@@ -12,7 +12,7 @@
     "fix:prettier": "yarn lint:prettier --write",
     "lint": "yarn lint:eslint && yarn lint:prettier && yarn lint:typescript",
     "lint:eslint": "yarn eslint \"./src/**/*.{js,ts}\"",
-    "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,json,ts}\"",
+    "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,json,ts,tsx}\"",
     "lint:typescript": "yarn tsc --build ./ --force",
     "postinstall": "yarn build",
     "test": "yarn jest"

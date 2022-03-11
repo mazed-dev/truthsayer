@@ -6,7 +6,7 @@ import { css } from '@emotion/react'
 import { useAsyncEffect } from 'use-async-effect'
 import { useHistory } from 'react-router-dom'
 
-import { jcss, Spinner, SmallCard, ShrinkCard } from 'elementary'
+import { jcss, Spinner, SmallCard, ShrinkCard, NodeTimeBadge } from 'elementary'
 
 import { smuggler, TNodeSliceIterator, TNode } from 'smuggler-api'
 
@@ -16,7 +16,6 @@ import styles from './SearchGrid.module.css'
 import { DynamicGrid } from './DynamicGrid'
 import { MzdGlobalContext } from '../lib/global'
 import { NodeCard } from '../card/NodeCard'
-import { TimeBadge } from '../card/AuthorBadge'
 import { isSmartCase } from '../util/str'
 import { searchNodeFor } from './search/search'
 import { styleMobileTouchOnly } from '../util/xstyle'
@@ -182,7 +181,10 @@ export const SearchGrid = ({
         <ShrinkCard>
           <NodeCard node={node} />
         </ShrinkCard>
-        <TimeBadge created_at={node.created_at} updated_at={node.updated_at} />
+        <NodeTimeBadge
+          created_at={node.created_at}
+          updated_at={node.updated_at}
+        />
       </GridCard>
     )
   })

@@ -1,17 +1,17 @@
 /** @jsx jsx */
 
 import styled from '@emotion/styled'
-import {jsx, keyframes} from '@emotion/react'
+import { jsx, keyframes } from '@emotion/react'
 
 type Props = {
   width?: number
 }
-const Container = styled.div<Props>(props => ({
+const Container = styled.div<Props>((props) => ({
   transform: `scale(${(props.width || 64) / 64})`,
 }))
 
 const Box = styled.div`
-  Scaled-sizing: border-Scaled;
+  scaled-sizing: border-Scaled;
   color: black;
   display: inline-block;
   position: relative;
@@ -28,12 +28,12 @@ const rotation = keyframes`
 `
 
 const ChildBase = styled.div`
-  Scaled-sizing: border-Scaled;
+  scaled-sizing: border-Scaled;
   transform-origin: 32px 32px;
   animation: ${rotation} 1.2s linear infinite;
   &:after {
-    Scaled-sizing: border-Scaled;
-    content: " ";
+    scaled-sizing: border-Scaled;
+    content: ' ';
     display: block;
     position: absolute;
     top: 3.2px;

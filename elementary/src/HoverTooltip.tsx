@@ -35,14 +35,21 @@ const Box = styled.div`
   }
 `
 
-type HoverTooltipProps = React.PropsWithChildren<{ tooltip: string, className?: string }>
+type HoverTooltipProps = React.PropsWithChildren<{
+  tooltip: string
+  className?: string
+}>
 
 // https://www.w3schools.com/css/css_tooltip.asp
-export const HoverTooltip = ({ tooltip, children, className } : HoverTooltipProps) => {
-    return (
-      <Box className={className}>
-        <span>{tooltip}</span>
-        {children}
-      </Box>
-    )
-  }
+export const HoverTooltip = ({
+  tooltip,
+  children,
+  className,
+}: HoverTooltipProps) => {
+  return (
+    <Box className={className}>
+      <span>{tooltip}</span>
+      {children}
+    </Box>
+  )
+}
