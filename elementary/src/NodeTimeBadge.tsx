@@ -36,11 +36,6 @@ const CreatedAt = styled.div`
 
 const Badge = styled.div`
   padding: 4px 4px 0 4px;
-  &:after {
-    content: '';
-    display: table;
-    clear: both;
-  }
 `
 
 const Column = styled.div`
