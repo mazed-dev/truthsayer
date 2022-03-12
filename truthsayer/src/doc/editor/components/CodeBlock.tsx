@@ -1,18 +1,15 @@
 import React from 'react'
 
-import { jcss } from 'elementary'
-
-import './components.css'
+import {CodeBlockBox} from './components'
 
 type CodeBlockQuoteProps = React.PropsWithChildren<{
-  className: string
+  className?: string
 }>
 
 export const CodeBlock = React.forwardRef<HTMLElement, CodeBlockQuoteProps>(
   ({ className, children, ...attributes }, ref) => {
-    className = jcss('doc_code_block', className)
     return (
-      <code
+      <CodeBlockBox
         className={className}
         spellCheck={false}
         // autoComplete={'off'}
@@ -22,7 +19,7 @@ export const CodeBlock = React.forwardRef<HTMLElement, CodeBlockQuoteProps>(
         {...attributes}
       >
         {children}
-      </code>
+      </CodeBlockBox>
     )
   }
 )

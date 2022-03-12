@@ -1,8 +1,5 @@
 import React from 'react'
-
-import { jcss } from 'elementary'
-
-import './components.css'
+import { Blockquote } from  './components'
 
 type BlockQuoteProps = React.PropsWithChildren<{
   className?: string
@@ -11,11 +8,11 @@ type BlockQuoteProps = React.PropsWithChildren<{
 
 export const BlockQuote = React.forwardRef<HTMLQuoteElement, BlockQuoteProps>(
   ({ className, children, cite, ...attributes }, ref) => {
-    className = jcss('doc_block_blockquote', className)
+    console.log('Blockquote' , Blockquote)
     return (
-      <blockquote className={className} cite={cite} ref={ref} {...attributes}>
+      <Blockquote cite={cite} ref={ref} {...attributes}>
         {children}
-      </blockquote>
+      </Blockquote>
     )
   }
 )
