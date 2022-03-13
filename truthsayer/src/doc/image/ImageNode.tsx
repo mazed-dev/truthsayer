@@ -7,13 +7,9 @@ import { Image, ButtonGroup, Modal } from 'react-bootstrap'
 import { ImgButton } from '../../lib/ImgButton'
 import { TNode } from 'smuggler-api'
 
-import { jcss } from 'elementary'
-
 import ZoomInImg from '../../img/zoom-in-strip.svg'
 import ZoomOutImg from '../../img/zoom-out-strip.svg'
 import ZoomResetImg from '../../img/zoom-reset-strip.svg'
-
-import styles from './ImageNode.module.css'
 
 import styled from '@emotion/styled'
 
@@ -35,6 +31,39 @@ const ImageFull = styled(ImageBase)`
 
   vertical-align: middle;
   display: inline;
+`
+
+const ButtonsUnderImage = styled.div`
+  width: 100%;
+  display: flex;
+  align-items: right;
+  justify-content: right;
+  padding-right: 4px;
+`
+
+const ZoomButtonImage = styled.img`
+  height: 1.5rem;
+  width: 1.5rem;
+  padding: 2px;
+`
+
+const ZoomImageTitle = styled(Modal.Title)`
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`
+
+const ImageFullModalBody = styled(Modal.Body)`
+  white-space: nowrap;
+  text-align: center;
+`
+
+const ImageFullHelper = styled.span`
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
 `
 
 export const ImageNode = ({
@@ -74,56 +103,32 @@ export const ImageNode = ({
 
   return (
     <div className={className}>
-      <Image
-        src={source}
-        className={jcss(styles.image, styles.image_in_card)}
-        ref={setImageRef}
-      />
-      <div className={styles.buttons_under_image}>
+      <ImageInCard src={source} ref={setImageRef} />
+      <ButtonsUnderImage>
         <ImgButton onClick={() => setShow(true)}>
-          <img
-            src={ZoomInImg}
-            className={styles.zoom_button_image}
-            alt="Zoom image"
-          />
+          <ZoomButtonImage src={ZoomInImg} alt="Zoom image" />
         </ImgButton>
-      </div>
+      </ButtonsUnderImage>
       <Modal show={show} fullscreen scrollable onHide={() => setShow(false)}>
         <Modal.Header closeButton>
-          <Modal.Title className={styles.zoom_image_title}>
-            <ButtonGroup className={styles.zoom_button_group}>
+          <ZoomImageTitle>
+            <ButtonGroup>
               <ImgButton onClick={handleZoomOut}>
-                <img
-                  src={ZoomOutImg}
-                  className={styles.zoom_button_image}
-                  alt="Zoom out image"
-                />
+                <ZoomButtonImage src={ZoomOutImg} alt="Zoom out image" />
               </ImgButton>
               <ImgButton onClick={handleZoomReset}>
-                <img
-                  src={ZoomResetImg}
-                  className={styles.zoom_button_image}
-                  alt="Reset image zoom"
-                />
+                <ZoomButtonImage src={ZoomResetImg} alt="Reset image zoom" />
               </ImgButton>
               <ImgButton onClick={handleZoomIn}>
-                <img
-                  src={ZoomInImg}
-                  className={styles.zoom_button_image}
-                  alt="Zoom in image"
-                />
+                <ZoomButtonImage src={ZoomInImg} alt="Zoom in image" />
               </ImgButton>
             </ButtonGroup>
-          </Modal.Title>
+          </ZoomImageTitle>
         </Modal.Header>
-        <Modal.Body className={styles.image_full_modal_body}>
-          <span className={styles.image_full_helper} />
-          <Image
-            src={source}
-            className={jcss(styles.image, styles.image_full)}
-            ref={setImageRef}
-          />
-        </Modal.Body>
+        <ImageFullModalBody>
+          <ImageFullHelper />
+          <ImageFull src={source} ref={setImageRef} />
+        </ImageFullModalBody>
       </Modal>
     </div>
   )
