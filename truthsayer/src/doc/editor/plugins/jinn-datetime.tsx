@@ -1,3 +1,4 @@
+/** @jsxImportSource @emotion/react */
 // @ts-nocheck
 
 import React from 'react'
@@ -12,27 +13,36 @@ import { makeDateTime } from '../../doc_util'
 
 import { base64 } from '../../../util/base64'
 
-import styles from './jinn-datetime.module.css'
-
 import lodash from 'lodash'
 
-export const DateTimeCardItem = React.forwardRef(
-  ({ time, format, onInsert }, ref) => {
-    const onClick = () => onInsert(time.unix(), format)
-    return (
-      <div className={styles.row}>
-        <div className={styles.col_date}>
-          <DateTimeBadge time={time} format={format} />
-        </div>
-        <div className={styles.col_btn}>
-          <Button onClick={onClick} variant={'success'} className={styles.btn}>
-            Insert
-          </Button>
-        </div>
+import styled from '@emotion/styled'
+
+const ColBtn = styled.div`
+  height: 3.4em;
+  position: relative;
+`
+
+const Btn = styled(Button)`
+  position: absolute;
+  right: 0;
+  top: 2px;
+`
+
+export const DateTimeCardItem = ({ time, format, onInsert }) => {
+  const onClick = () => onInsert(time.unix(), format)
+  return (
+    <div>
+      <div>
+        <DateTimeBadge time={time} format={format} />
       </div>
-    )
-  }
-)
+      <ColBtn>
+        <Btn onClick={onClick} variant={'success'}>
+          Insert
+        </Btn>
+      </ColBtn>
+    </div>
+  )
+}
 
 export const DateTimeCard = React.forwardRef(({ items, onInsert }, ref) => {
   // TODO(akindyakov): continue here
@@ -49,7 +59,7 @@ export const DateTimeCard = React.forwardRef(({ items, onInsert }, ref) => {
     )
   })
   return (
-    <GridCard onClick={null} className={styles.card} ref={ref}>
+    <GridCard onClick={null} css={{ padding: '8px' }} ref={ref}>
       <Card.Title>Date & time</Card.Title>
       {children}
     </GridCard>

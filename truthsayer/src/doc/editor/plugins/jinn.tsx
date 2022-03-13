@@ -20,8 +20,6 @@ import { makeNodeLink, exctractDocTitle } from '../../doc_util'
 
 import { dateTimeJinnSearch } from './jinn-datetime'
 
-import styles from './jinn.module.css'
-
 import lodash from 'lodash'
 
 type JinnModalProps = {
@@ -62,7 +60,7 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
     )
   }
 
-  handleSumbit = (event) => {}
+  handleSumbit = () => {}
 
   startSmartSearch = lodash.debounce((value) => {
     this.setState({ cards: [], q: value }, () => {
@@ -76,8 +74,6 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
   }
 
   dateTimeSearch = async function (value) {
-    const { editor, selection, setShow } = this.props
-    //* dbg*/ console.log("dateTimeSearch", this.props.nid);
     const item = dateTimeJinnSearch(value, this.insertElement)
     if (item != null) {
       this.addCards([item])
@@ -118,7 +114,7 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
     const { q, input, cards } = this.state
     // extCards={this.state.cards}
     return (
-      <div className={styles.autocomplete_modal}>
+      <div>
         <Form.Control
           aria-label="Search-to-link"
           aria-describedby="basic-addon1"
@@ -189,10 +185,6 @@ export const withJinn = (setShowJinn, editor) => {
       const { anchor } = selection
       const start = movePoint(anchor, -1)
       if (start) {
-        const block = Editor.above(editor, {
-          match: (n) => Editor.isBlock(editor, n),
-        })
-        const path = block ? block[1] : []
         const range = { anchor, focus: start }
         const beforeText = Editor.string(editor, range)
         if (beforeText === '/') {
