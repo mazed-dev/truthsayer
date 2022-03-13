@@ -9,7 +9,6 @@ import { smuggler } from 'smuggler-api'
 
 import styles from './Footbar.module.css'
 
-import CutTheRefImg from './../img/cut-the-ref.png'
 import { makeRefTo } from './../lib/route'
 
 import { MzdGlobalContext } from '../lib/global'
@@ -22,7 +21,13 @@ import {
   FootbarDropdownToggle,
 } from './Footbar'
 
-import { jcss, MaterialIcon, MdiLaunch, MdiMoreHoriz } from 'elementary'
+import {
+  jcss,
+  MaterialIcon,
+  MdiLaunch,
+  MdiMoreHoriz,
+  MdiContentCut,
+} from 'elementary'
 
 class PrivateMenu extends React.Component {
   constructor(props) {
@@ -83,19 +88,12 @@ class PrivateMenu extends React.Component {
     const { className, children } = this.props
     return (
       <FootbarDropdown className={this.props.className}>
-        <FootbarDropdownToggle
-          id={'more-options-for-fullsize-card'}
-          className={className}
-        >
+        <FootbarDropdownToggle id={'more-options-for-fullsize-card'}>
           {children}
         </FootbarDropdownToggle>
         <FootbarDropdownMenu>
           <FootbarDropdownItem onClick={this.handleRefCutOff}>
-            <img
-              src={CutTheRefImg}
-              className={jcss(styles.tool_button_img, styles.menu_item_pic)}
-              alt={cutTooltip}
-            />
+            <MdiContentCut css={{ fontSize: '20px' }} />
             {cutTooltip}
           </FootbarDropdownItem>
           <FootbarDropdownItem onClick={this.switchStickiness}>
