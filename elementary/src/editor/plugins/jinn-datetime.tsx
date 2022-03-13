@@ -82,7 +82,11 @@ const kLastWeekDay =
 const kNextWeekDay =
   /(next)? *((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?)\b/i
 
-export function _parse12hAm(hour: string, minute: string, a: string): moment {
+export function _parse12hAm(
+  hour: string,
+  minute: string,
+  a: string
+): moment.Moment {
   a = a.slice(0, 1).toLowerCase()
   let h = lodash.parseInt(hour)
   let m = lodash.parseInt(minute)

@@ -18,6 +18,7 @@ import {
   kSlateBlockTypeH1,
   kSlateBlockTypeH2,
 } from './types'
+
 import {
   MdiFormatBold,
   MdiFormatItalic,

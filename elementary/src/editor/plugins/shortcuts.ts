@@ -1,5 +1,4 @@
 import {
-  Descendant,
   Editor,
   Element as SlateElement,
   Point,
@@ -16,20 +15,16 @@ import {
   kSlateBlockTypeH6,
   kSlateBlockTypeBreak,
   kSlateBlockTypeCode,
-  kSlateBlockTypeOrderedList,
   kSlateBlockTypeParagraph,
   kSlateBlockTypeQuote,
   kSlateBlockTypeUnorderedList,
   kSlateBlockTypeListItem,
   kSlateBlockTypeListCheckItem,
-  kSlateBlockTypeDateTime,
-  kSlateBlockTypeLink,
-  kSlateBlockTypeImage,
   CustomEditor,
   UnorderedListElement,
   CustomElement,
   CustomElementType,
-} from '../../types'
+} from '../types'
 
 const SHORTCUTS = {
   '*': kSlateBlockTypeListItem,

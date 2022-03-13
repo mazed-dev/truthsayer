@@ -31,7 +31,7 @@ import {
   kSlateBlockTypeQuote,
   kSlateBlockTypeStrongMark,
   kSlateBlockTypeUnorderedList,
-} from '../doc/types'
+} from 'elementary'
 
 import lodash from 'lodash'
 

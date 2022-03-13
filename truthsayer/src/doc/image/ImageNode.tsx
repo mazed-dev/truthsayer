@@ -15,6 +15,28 @@ import ZoomResetImg from '../../img/zoom-reset-strip.svg'
 
 import styles from './ImageNode.module.css'
 
+import styled from '@emotion/styled'
+
+const ImageBase = styled(Image)`
+  height: auto;
+  display: block;
+  margin: auto;
+`
+
+const ImageInCard = styled(ImageBase)`
+  max-width: 100%;
+
+  border-style: none;
+  border-radius: inherit;
+`
+
+const ImageFull = styled(ImageBase)`
+  max-width: 100%;
+
+  vertical-align: middle;
+  display: inline;
+`
+
 export const ImageNode = ({
   className,
   node,

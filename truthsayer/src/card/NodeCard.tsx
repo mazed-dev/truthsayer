@@ -2,10 +2,9 @@ import React, { useState } from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 
 import { TNode, NodeTextData, smuggler } from 'smuggler-api'
-import { NodeTextEditor } from '../doc/DocEditor'
+import { NodeTextEditor, SlateText } from 'elementary'
 import { ImageNode } from '../doc/image/ImageNode'
 import { WebBookmark } from '../doc/web_bookmark/WebBookmark'
-import { SlateText } from '../doc/types'
 import { TDoc } from '../doc/doc_util'
 import { Spinner } from 'elementary'
 

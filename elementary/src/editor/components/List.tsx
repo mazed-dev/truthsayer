@@ -1,11 +1,9 @@
 import React from 'react'
-
 import { ReactEditor, useReadOnly, useSlateStatic } from 'slate-react'
 import { Element as SlateElement, Transforms } from 'slate'
 
-import { CheckListItemElement } from '../../types'
-
-import { CheckBox } from '../../../lib/CheckBox'
+import { CheckListItemElement } from '../types'
+import { CheckBox } from '../../CheckBox'
 
 import {
   CheckItemBox,

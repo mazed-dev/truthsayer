@@ -2,7 +2,7 @@ import { Editor, Element as SlateElement, Range, Transforms } from 'slate'
 
 import isUrl from 'is-url'
 
-import { kSlateBlockTypeLink, LinkElement, CustomEditor } from '../../types'
+import { kSlateBlockTypeLink, LinkElement, CustomEditor } from '../types'
 
 import { Optional, log } from 'armoury'
 
@@ -32,12 +32,6 @@ export const withLinks = (editor: CustomEditor) => {
   }
 
   return editor
-}
-
-const insertLink = (editor: CustomEditor, url: string) => {
-  if (editor.selection) {
-    wrapLink(editor, url)
-  }
 }
 
 const isLinkActive = (editor: CustomEditor) => {

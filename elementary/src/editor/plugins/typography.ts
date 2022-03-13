@@ -4,10 +4,9 @@ import {
   kSlateBlockTypeBreak,
   kSlateBlockTypeParagraph,
   isHeaderSlateBlock,
-} from '../../types'
-import { makeParagraph } from '../../doc_util'
-
-import { CustomEditor, CustomElement } from '../../types'
+  CustomEditor,
+  CustomElement,
+} from '../types'
 
 import lodash from 'lodash'
 
@@ -38,7 +37,7 @@ export const withTypography = (editor: CustomEditor) => {
         editor.isVoid(lastChild)
       ) {
         const at: Path = [editor.children.length]
-        const paragraph = makeParagraph([])
+        const paragraph = [{ text: '' }]
         Transforms.insertNodes(editor, paragraph, { at })
       }
     }

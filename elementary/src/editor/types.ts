@@ -374,3 +374,8 @@ declare module 'slate' {
     Text: CustomText
   }
 }
+
+export type BulletedListElement = {
+  type: typeof kSlateBlockTypeUnorderedList
+  children: Descendant[]
+}

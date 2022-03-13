@@ -16,24 +16,24 @@ import imageExtensions from 'image-extensions'
 import isUrl from 'is-url'
 
 import {
+  DateTimeElement,
+  kSlateBlockTypeBreak,
+  kSlateBlockTypeCode,
+  kSlateBlockTypeDateTime,
   kSlateBlockTypeH1,
   kSlateBlockTypeH2,
   kSlateBlockTypeH3,
   kSlateBlockTypeH4,
   kSlateBlockTypeH5,
   kSlateBlockTypeH6,
-  kSlateBlockTypeBreak,
-  kSlateBlockTypeCode,
+  kSlateBlockTypeImage,
+  kSlateBlockTypeLink,
+  kSlateBlockTypeListCheckItem,
+  kSlateBlockTypeListItem,
   kSlateBlockTypeOrderedList,
   kSlateBlockTypeParagraph,
   kSlateBlockTypeQuote,
   kSlateBlockTypeUnorderedList,
-  kSlateBlockTypeListItem,
-  kSlateBlockTypeListCheckItem,
-  kSlateBlockTypeDateTime,
-  kSlateBlockTypeLink,
-  kSlateBlockTypeImage,
-  DateTimeElement,
   ImageElement,
 } from './types'
 
@@ -68,17 +68,6 @@ import { Leaf } from './editor/components/Leaf'
 import { FormatToolbar } from './FormatToolbar'
 import { TDoc } from './doc_util'
 import { SlateText } from './types'
-
-export type BulletedListElement = {
-  type: kSlateBlockTypeUnorderedList
-  children: Descendant[]
-}
-
-export type CheckListItemElement = {
-  type: kSlateBlockTypeListCheckItem
-  checked: boolean
-  children: Descendant[]
-}
 
 export const NodeTextEditor = ({
   className,

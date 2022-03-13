@@ -4,7 +4,7 @@ import { InlineCodeBox } from './components'
 import { RenderLeafProps } from 'slate-react'
 
 export const Leaf = React.forwardRef<HTMLSpanElement, RenderLeafProps>(
-  ({ attributes, children, leaf }, ref) => {
+  ({ attributes, children, leaf }: RenderLeafProps, ref) => {
     if (leaf.bold) {
       children = <strong ref={ref}>{children}</strong>
     }
