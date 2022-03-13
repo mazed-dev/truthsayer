@@ -41,10 +41,10 @@ import { withHistory } from 'slate-history'
 
 import { Optional } from 'armoury'
 
-import { withJinn, Jinn } from './editor/plugins/jinn'
-import { withTypography } from './editor/plugins/typography'
-import { withShortcuts } from './editor/plugins/shortcuts'
-import { withLinks } from './editor/plugins/link'
+import { withJinn, Jinn } from './plugins/jinn'
+import { withTypography } from './plugins/typography'
+import { withShortcuts } from './plugins/shortcuts'
+import { withLinks } from './plugins/link'
 
 import {
   Header1,
@@ -53,21 +53,19 @@ import {
   Header4,
   Header5,
   Header6,
-} from './editor/components/Header'
-
-import { HRule } from './editor/components/HRule'
-import { BlockQuote } from './editor/components/BlockQuote'
-import { CodeBlock } from './editor/components/CodeBlock'
-import { Paragraph } from './editor/components/Paragraph'
-import { List } from './editor/components/List'
-import { Image } from './editor/components/Image'
-import { DateTime } from './editor/components/DateTime'
-import { Link } from './editor/components/Link'
-import { Leaf } from './editor/components/Leaf'
+} from './components/Header'
+import { HRule } from './components/HRule'
+import { BlockQuote } from './components/BlockQuote'
+import { CodeBlock } from './components/CodeBlock'
+import { Paragraph } from './components/Paragraph'
+import { List } from './components/List'
+import { Image } from './components/Image'
+import { DateTime } from './components/DateTime'
+import { Link } from './components/Link'
+import { Leaf } from './components/Leaf'
 
 import { FormatToolbar } from './FormatToolbar'
-import { TDoc } from './doc_util'
-import { SlateText } from './types'
+import { TDoc, SlateText } from './types'
 
 export const NodeTextEditor = ({
   className,

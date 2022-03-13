@@ -1,6 +1,12 @@
 import { Descendant, Element, BaseEditor } from 'slate'
 import { ReactEditor } from 'slate-react'
 import { HistoryEditor } from 'slate-history'
+import { NodeTextData, makeNodeTextData } from 'smuggler-api'
+
+import { Optional } from 'armoury'
+
+import lodash from 'lodash'
+import moment from 'moment'
 
 export type SlateText = Descendant[]
 
@@ -378,4 +384,209 @@ declare module 'slate' {
 export type BulletedListElement = {
   type: typeof kSlateBlockTypeUnorderedList
   children: Descendant[]
+}
+
+function _truncateTitle(title: string): string {
+  title = title.slice(0, 128).replace(/\s+/g, ' ')
+  if (title.length > 36) {
+    title = title.slice(0, 36)
+    return `${title}\u2026`
+  } else {
+    return title
+  }
+}
+
+const kDefaultDateFormat: string = 'YYYY MMMM DD, dddd'
+const kDefaultTimeFormat: string = 'HH:mm'
+
+const kDefaultCalendarFormat = {
+  sameDay: `[Today], ${kDefaultTimeFormat}`,
+  nextDay: `[Tomorrow], ${kDefaultTimeFormat}`,
+  nextWeek: `dddd, ${kDefaultTimeFormat}`,
+  lastDay: `[Yesterday], ${kDefaultTimeFormat}`,
+  lastWeek: `[Last] dddd, ${kDefaultTimeFormat}`,
+  sameElse: `${kDefaultDateFormat}, ${kDefaultTimeFormat}`,
+}
+
+function momentToString(time: moment.Moment, format: Optional<string>): string {
+  return format ? time.format(format) : time.calendar(kDefaultCalendarFormat)
+}
+
+function unixToString(timestamp: number, format: Optional<string>): string {
+  const timeMoment = moment.unix(timestamp)
+  return momentToString(timeMoment, format)
+}
+
+function getSlateDescendantAsPlainText(parent: Descendant): string[] {
+  const entities = []
+  // @ts-ignore: Property 'text' does not exist on type 'Descendant'
+  let { text } = parent
+  // @ts-ignore: Property 'children'/'type'/'link'/... does not exist on type 'Descendant'
+  const { children, type, link, caption, timestamp, format } = parent
+  if (link) {
+    entities.push(link)
+  }
+  if (caption) {
+    entities.push(caption)
+  }
+  if (timestamp) {
+    entities.push(unixToString(timestamp, format))
+  }
+  if (children) {
+    children.forEach((item: any) => {
+      let [itemText, itemEntities] = getSlateDescendantAsPlainText(item)
+      itemText = lodash.trim(itemText)
+      if (text) {
+        text += ' '
+        text += itemText
+      } else {
+        text = itemText
+      }
+      entities.push(...itemEntities)
+    })
+  }
+  return [text, entities]
+}
+
+function exctractDocTitle(slate?: SlateText): string {
+  let title: string | null = null
+  if (slate) {
+    title = slate.reduce<string>(
+      (acc: string, item: Descendant, _index: number, _array: Descendant[]) => {
+        if (
+          acc.length === 0 &&
+          (isHeaderSlateBlock(item) || isTextSlateBlock(item))
+        ) {
+          const text = getSlateDescendantAsPlainText(item)[0]
+          const ret = _truncateTitle(text)
+          if (ret) {
+            return ret
+          }
+        }
+        return acc
+      },
+      ''
+    )
+  }
+  return title || 'Some page\u2026'
+}
+
+export function getSlateAsPlainText(children: SlateText): string[] {
+  const texts: string[] = []
+  const entities: string[] = []
+  children.forEach((item) => {
+    const [text, itemEntities] = getSlateDescendantAsPlainText(item)
+    if (text) {
+      texts.push(text)
+    }
+    entities.push(...itemEntities)
+  })
+  return lodash.concat(texts, entities)
+}
+
+function blankSlate(slate: SlateText): SlateText {
+  return slate.map((item) => {
+    if (isCheckListBlock(item)) {
+      item.checked = false
+    }
+    // @ts-ignore: Property 'children' does not exist on type 'Descendant'
+    const { children } = item
+    if (lodash.isArray(children)) {
+      // @ts-ignore: Property 'children' does not exist on type 'Descendant'
+      item.children = blankSlate(children)
+    }
+    return item
+  })
+}
+
+function makeThematicBreak(): ThematicBreakElement {
+  return {
+    type: kSlateBlockTypeBreak,
+    children: [makeLeaf('')],
+  }
+}
+
+export function makeParagraph(children: SlateText): ParagraphElement {
+  if (!children) {
+    children = [makeLeaf('')]
+  }
+  return {
+    type: kSlateBlockTypeParagraph,
+    // @ts-ignore: Type 'SlateText' is not assignable to type 'LeafElement[]'
+    children,
+  }
+}
+
+export function makeLink(text: string, link: string): LinkElement {
+  return {
+    type: kSlateBlockTypeLink,
+    children: [makeLeaf(text)],
+    url: link,
+  }
+}
+
+export function makeNodeLink(text: string, nid: string): LinkElement {
+  return {
+    type: kSlateBlockTypeLink,
+    children: [makeLeaf(text)],
+    url: nid,
+    page: true,
+  }
+}
+
+export function makeLeaf(text: string): LeafElement {
+  return { text }
+}
+
+export function makeDateTime(
+  timestamp: number,
+  format?: string
+): DateTimeElement {
+  const type = kSlateBlockTypeDateTime
+  return {
+    timestamp,
+    format,
+    type,
+    children: [makeLeaf('')],
+  }
+}
+
+export class TDoc {
+  slate: SlateText
+
+  constructor(slate: SlateText) {
+    this.slate = slate
+  }
+
+  toNodeTextData(): NodeTextData {
+    const { slate } = this
+    return { slate, draft: null, chunks: null }
+  }
+
+  static async fromNodeTextData({ slate }: NodeTextData): Promise<TDoc> {
+    if (slate) {
+      return new TDoc(slate as SlateText)
+    }
+    throw Error()
+  }
+
+  static makeEmpty(): TDoc {
+    const { slate } = makeNodeTextData()
+    return new TDoc(slate as SlateText)
+  }
+
+  makeACopy(nid: string, isBlankCopy: boolean): TDoc {
+    let { slate } = this
+    const title = exctractDocTitle(slate)
+    let label
+    if (isBlankCopy) {
+      slate = blankSlate(slate)
+      label = `Blank copy of "${title}"`
+    } else {
+      slate = lodash.cloneDeep(slate)
+      label = `Copy of "${title}"`
+    }
+    slate.push(makeThematicBreak(), makeParagraph([makeNodeLink(label, nid)]))
+    return new TDoc(slate)
+  }
 }

@@ -24,10 +24,8 @@ import PublicImg from './../img/public.png'
 import { ShareModal } from './ShareModal'
 
 import { MzdGlobalContext } from '../lib/global'
-import { HoverTooltip } from 'elementary'
-import { ImgButton } from '../lib/ImgButton'
+import { HoverTooltip, ImgButton, jcss } from 'elementary'
 import { goto } from '../lib/route'
-import { jcss } from 'elementary'
 import { docAsMarkdown } from '../doc/doc_util'
 import { downloadAsFile } from '../util/download_as_file'
 

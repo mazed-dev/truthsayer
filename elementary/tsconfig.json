@@ -31,6 +31,14 @@
     "strict": true,
     "target": "es6"
   },
+  "references": [
+    {
+      "path": "../smuggler-api"
+    },
+    {
+      "path": "../armoury"
+    }
+  ],
   "include": [
     "src"
   ],

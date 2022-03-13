@@ -2,13 +2,11 @@ import React, { useState } from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 
 import { TNode, NodeTextData, smuggler } from 'smuggler-api'
-import { NodeTextEditor, SlateText } from 'elementary'
-import { ImageNode } from '../doc/image/ImageNode'
-import { WebBookmark } from '../doc/web_bookmark/WebBookmark'
-import { TDoc } from '../doc/doc_util'
-import { Spinner } from 'elementary'
-
-import styles from './NodeCard.module.css'
+import { NodeTextEditor } from './editor/NodeTextEditor'
+import { SlateText, TDoc } from './editor/types'
+import { ImageNode } from './ImageNode'
+import { Spinner } from './spinner/mod'
+import { WebBookmark } from './WebBookmark'
 
 export function NodeCard({
   node,
@@ -28,7 +26,7 @@ export function NodeCard({
         }
   let media
   if (node.isImage()) {
-    media = <ImageNode className={styles.media} node={node} />
+    media = <ImageNode node={node} />
   } else if (node.extattrs && node.isWebBookmark()) {
     media = <WebBookmark extattrs={node.extattrs} />
   }

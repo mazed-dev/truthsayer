@@ -13,7 +13,6 @@ import styles from './Footbar.module.css'
 import { makeRefTo } from './../lib/route'
 
 import { MzdGlobalContext } from '../lib/global'
-import { CheckBox } from './../lib/CheckBox'
 import {
   FootbarDropdown,
   FootbarDropdownItem,
@@ -23,6 +22,7 @@ import {
 
 import {
   jcss,
+  CheckBox,
   MaterialIcon,
   MdiLaunch,
   MdiMoreHoriz,

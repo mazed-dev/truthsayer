@@ -2,23 +2,32 @@
 
 import React, { useRef, useState, useContext } from 'react'
 
+import styled from '@emotion/styled'
+
 import { css } from '@emotion/react'
 import { useAsyncEffect } from 'use-async-effect'
 import { useHistory } from 'react-router-dom'
 
-import { jcss, Spinner, SmallCard, ShrinkCard, NodeTimeBadge } from 'elementary'
+import { Spinner, SmallCard, ShrinkCard, NodeTimeBadge } from 'elementary'
 
 import { smuggler, TNodeSliceIterator, TNode } from 'smuggler-api'
 
 import { log, isAbortError, Optional } from 'armoury'
 
-import styles from './SearchGrid.module.css'
 import { DynamicGrid } from './DynamicGrid'
 import { MzdGlobalContext } from '../lib/global'
 import { NodeCard } from '../card/NodeCard'
 import { isSmartCase } from '../util/str'
 import { searchNodeFor } from './search/search'
 import { styleMobileTouchOnly } from '../util/xstyle'
+
+const BoxPortable = styled.div`
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+
+  /* height: calc(50vh - 156px); */
+  height: 80vh;
+`
 
 export const GridCard = ({
   onClick,
@@ -28,7 +37,6 @@ export const GridCard = ({
   onClick: () => void
   className?: string
 }>) => {
-  className = jcss(styles.grid_cell, className)
   return (
     <SmallCard
       onClick={onClick}
@@ -59,11 +67,13 @@ export const SearchGrid = ({
   onCardClick,
   portable,
   defaultSearch,
+  className,
 }: React.PropsWithChildren<{
   q: string | null
   onCardClick?: (arg0: TNode) => void
   portable?: boolean
   defaultSearch?: boolean
+  className?: string
 }>) => {
   const history = useHistory()
   const ref = useRef<HTMLDivElement>(null)
@@ -161,7 +171,11 @@ export const SearchGrid = ({
   }, [q])
   const fetchingLoader =
     fetching || account == null ? (
-      <div className={styles.search_grid_loader}>
+      <div
+        css={css`
+          margin: 2rem;
+        `}
+      >
         <Spinner.Wheel />
       </div>
     ) : null
@@ -188,13 +202,8 @@ export const SearchGrid = ({
       </GridCard>
     )
   })
-  const gridStyle = portable ? styles.search_grid_portable : undefined
-  return (
-    <div
-      className={jcss(gridStyle, styles.search_grid)}
-      onScroll={handleScroll}
-      ref={ref}
-    >
+  const grid = (
+    <>
       <DynamicGrid
         css={css`
           justify-content: center;
@@ -207,6 +216,19 @@ export const SearchGrid = ({
         <>{cards}</>
       </DynamicGrid>
       {fetchingLoader}
-    </div>
+    </>
   )
+  if (portable) {
+    return (
+      <BoxPortable className={className} onScroll={handleScroll} ref={ref}>
+        {grid}
+      </BoxPortable>
+    )
+  } else {
+    return (
+      <div className={className} onScroll={handleScroll} ref={ref}>
+        {grid}
+      </div>
+    )
+  }
 }

@@ -2,9 +2,24 @@ import React from 'react'
 
 import { Button } from 'react-bootstrap'
 
-import { jcss } from 'elementary'
+import styled from '@emotion/styled'
 
-import styles from './ImgButton.module.css'
+const Box = styled(Button)`
+  background-color: #ffffff;
+
+  border-style: solid;
+  border-width: 0;
+  border-radius: 4em;
+
+  opacity: 0.5;
+
+  padding: 0.5em;
+
+  &:hover {
+    opacity: 1;
+    background-color: #d0d1d2;
+  }
+`
 
 type ImgButtonProps = React.PropsWithChildren<{
   onClick: React.MouseEventHandler
@@ -14,9 +29,9 @@ type ImgButtonProps = React.PropsWithChildren<{
 
 export const ImgButton = React.forwardRef<HTMLButtonElement, ImgButtonProps>(
   ({ children, onClick, className, is_disabled, ...kwargs }, ref) => (
-    <Button
+    <Box
       variant="light"
-      className={jcss(styles.img_button, className)}
+      className={className}
       ref={ref}
       disabled={is_disabled || false}
       onClick={(e) => {
@@ -28,6 +43,6 @@ export const ImgButton = React.forwardRef<HTMLButtonElement, ImgButtonProps>(
       {...kwargs}
     >
       {children}
-    </Button>
+    </Box>
   )
 )

@@ -1,11 +1,9 @@
 import React from 'react'
 import { ButtonGroup } from 'react-bootstrap'
 
+import styled from '@emotion/styled'
 import { Editor, Transforms, Element as SlateElement } from 'slate'
 import { useSlate } from 'slate-react'
-
-import { jcss } from 'elementary'
-import styles from './FormatToolbar.module.css'
 
 import {
   CustomEditor,
@@ -29,10 +27,38 @@ import {
   MdiFormatQuote,
   MdiFormatListNumbered,
   MdiFormatListBulleted,
-} from 'elementary'
+} from '../MaterialIcons'
+
+const ToolbarButtonInactive = styled.span`
+  padding: 1px 10px 0px;
+  border-radius: 50px;
+  font-size: 24px;
+  color: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  &:hover {
+    background: rgba(82, 82, 82, 0.3);
+    transition: 0.3s;
+  }
+`
+
+const ToolbarButtonActive = styled(ToolbarButtonInactive)`
+  color: black;
+`
+
+const ToolbarBox = styled(ButtonGroup)`
+  border-bottom: 1px solid #eee;
+  margin: 0 0 8px 0;
+  padding: 0 0 5px 0px;
+  display: flex;
+  /* To make usable on narrow screens */
+  /* https://www.w3schools.com/howto/howto_css_menu_horizontal_scroll.asp */
+  overflow-x: auto;
+  white-space: nowrap;
+`
 
 type ReactiveButtonProps = {
   active: boolean
+  onMouseDown: (event: React.MouseEvent) => void
 } & React.HTMLProps<HTMLButtonElement>
 
 // Button that flips between two different visual styles depending on
@@ -40,18 +66,27 @@ type ReactiveButtonProps = {
 const ReactiveButton = ({
   active,
   children,
-  ...props
+  onMouseDown,
 }: React.PropsWithChildren<ReactiveButtonProps>) => {
-  const className = jcss(
-    'material-icons',
-    styles.toolbar_button_inactive,
-    active ? styles.toolbar_button_active : ''
-  )
-  return (
-    <span {...props} className={className}>
-      {children}
-    </span>
-  )
+  if (active) {
+    return (
+      <ToolbarButtonActive
+        onMouseDown={onMouseDown}
+        className={'material-icons'}
+      >
+        {children}
+      </ToolbarButtonActive>
+    )
+  } else {
+    return (
+      <ToolbarButtonInactive
+        onMouseDown={onMouseDown}
+        className={'material-icons'}
+      >
+        {children}
+      </ToolbarButtonInactive>
+    )
+  }
 }
 
 const MarkButton = ({
@@ -97,7 +132,7 @@ const BlockButton = ({
   return (
     <ReactiveButton
       active={isBlockActive(editor, format)}
-      onMouseDown={(event) => {
+      onMouseDown={(event: React.MouseEvent) => {
         event.preventDefault()
         toggleBlock(editor, format)
       }}
@@ -147,7 +182,7 @@ const toggleBlock = (editor: CustomEditor, format: CustomElementType) => {
 
 export const FormatToolbar = () => {
   return (
-    <ButtonGroup className={styles.toolbar}>
+    <ToolbarBox>
       <MarkButton mark="bold">
         <MdiFormatBold />
       </MarkButton>
@@ -175,6 +210,6 @@ export const FormatToolbar = () => {
       <BlockButton format={kSlateBlockTypeQuote}>
         <MdiFormatQuote />
       </BlockButton>
-    </ButtonGroup>
+    </ToolbarBox>
   )
 }

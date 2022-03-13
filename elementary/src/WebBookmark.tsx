@@ -2,9 +2,9 @@ import React from 'react'
 
 import { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
 import { Optional } from 'armoury'
-import { BlockQuote } from '../editor/components/BlockQuote'
+import { BlockQuote } from './editor/components/BlockQuote'
 
-import { MdiLaunch } from 'elementary'
+import { MdiLaunch } from './MaterialIcons'
 
 import styled from '@emotion/styled'
 

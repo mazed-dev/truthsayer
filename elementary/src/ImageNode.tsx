@@ -1,14 +1,13 @@
 /** @jsxImportSource @emotion/react */
 
 import React, { useState, useRef } from 'react'
-
 import { Image, ButtonGroup, Modal } from 'react-bootstrap'
-
-import { ImgButton } from '../../lib/ImgButton'
-import { TNode } from 'smuggler-api'
-import { MdiFitScreen, MdiZoomIn, MdiZoomOut } from 'elementary'
-
 import styled from '@emotion/styled'
+
+import { TNode } from 'smuggler-api'
+import { MdiFitScreen, MdiZoomIn, MdiZoomOut } from './MaterialIcons'
+
+import { ImgButton } from './ImgButton'
 
 const ImageBase = styled(Image)`
   height: auto;
@@ -53,7 +52,7 @@ export const ImageNode = ({
   className,
   node,
 }: {
-  className: string
+  className?: string
   node: TNode
 }) => {
   const source = node.getBlobSource()

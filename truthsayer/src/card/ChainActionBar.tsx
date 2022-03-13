@@ -12,7 +12,7 @@ import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
 import { goto, History } from '../lib/route'
 
 import { smuggler, NewNodeResponse } from 'smuggler-api'
-import { TDoc } from '../doc/doc_util'
+import { TDoc } from 'elementary'
 import { TNode } from 'smuggler-api'
 
 import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
