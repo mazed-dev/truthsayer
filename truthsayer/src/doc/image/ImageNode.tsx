@@ -1,15 +1,12 @@
-// @ts-nocheck
+/** @jsxImportSource @emotion/react */
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 
 import { Image, ButtonGroup, Modal } from 'react-bootstrap'
 
 import { ImgButton } from '../../lib/ImgButton'
 import { TNode } from 'smuggler-api'
-
-import ZoomInImg from '../../img/zoom-in-strip.svg'
-import ZoomOutImg from '../../img/zoom-out-strip.svg'
-import ZoomResetImg from '../../img/zoom-reset-strip.svg'
+import { MdiFitScreen, MdiZoomIn, MdiZoomOut } from 'elementary'
 
 import styled from '@emotion/styled'
 
@@ -31,20 +28,6 @@ const ImageFull = styled(ImageBase)`
 
   vertical-align: middle;
   display: inline;
-`
-
-const ButtonsUnderImage = styled.div`
-  width: 100%;
-  display: flex;
-  align-items: right;
-  justify-content: right;
-  padding-right: 4px;
-`
-
-const ZoomButtonImage = styled.img`
-  height: 1.5rem;
-  width: 1.5rem;
-  padding: 2px;
 `
 
 const ZoomImageTitle = styled(Modal.Title)`
@@ -76,58 +59,61 @@ export const ImageNode = ({
   const source = node.getBlobSource()
   const [show, setShow] = useState(false)
 
-  let imageRef
-  const setImageRef = (element) => {
-    imageRef = element
-  }
-
+  const imageRef = useRef<HTMLImageElement>(null)
   const handleZoomIn = () => {
-    if (imageRef) {
-      const newMaxWidth = imageRef.offsetWidth * 1.1
-      imageRef.style.maxWidth = `${newMaxWidth}px`
+    const current = imageRef?.current
+    if (current != null) {
+      const newMaxWidth = current.offsetWidth * 1.1
+      current.style.maxWidth = `${newMaxWidth}px`
     }
   }
 
   const handleZoomOut = () => {
-    if (imageRef) {
-      const newMaxWidth = imageRef.offsetWidth * 0.9091
-      imageRef.style.maxWidth = `${newMaxWidth}px`
+    const current = imageRef?.current
+    if (current != null) {
+      const newMaxWidth = current.offsetWidth * 0.9091
+      current.style.maxWidth = `${newMaxWidth}px`
     }
   }
 
   const handleZoomReset = () => {
-    if (imageRef) {
-      imageRef.style.maxWidth = '100%'
+    const current = imageRef?.current
+    if (current != null) {
+      current.style.maxWidth = '100%'
     }
   }
 
+  if (source == null) {
+    return null
+  }
   return (
     <div className={className}>
-      <ImageInCard src={source} ref={setImageRef} />
-      <ButtonsUnderImage>
-        <ImgButton onClick={() => setShow(true)}>
-          <ZoomButtonImage src={ZoomInImg} alt="Zoom image" />
-        </ImgButton>
-      </ButtonsUnderImage>
+      <ImageInCard src={source} />
       <Modal show={show} fullscreen scrollable onHide={() => setShow(false)}>
         <Modal.Header closeButton>
           <ZoomImageTitle>
             <ButtonGroup>
               <ImgButton onClick={handleZoomOut}>
-                <ZoomButtonImage src={ZoomOutImg} alt="Zoom out image" />
+                <MdiZoomOut
+                  css={{ fontSize: '24px', verticalAlign: 'middle' }}
+                />
               </ImgButton>
               <ImgButton onClick={handleZoomReset}>
-                <ZoomButtonImage src={ZoomResetImg} alt="Reset image zoom" />
+                <MdiFitScreen
+                  css={{ fontSize: '24px', verticalAlign: 'middle' }}
+                />
               </ImgButton>
               <ImgButton onClick={handleZoomIn}>
-                <ZoomButtonImage src={ZoomInImg} alt="Zoom in image" />
+                <MdiZoomIn
+                  css={{ fontSize: '24px', verticalAlign: 'middle' }}
+                />
               </ImgButton>
             </ButtonGroup>
           </ZoomImageTitle>
         </Modal.Header>
         <ImageFullModalBody>
           <ImageFullHelper />
-          <ImageFull src={source} ref={setImageRef} />
+          <ImageFull src={source} ref={imageRef} />
         </ImageFullModalBody>
       </Modal>
     </div>

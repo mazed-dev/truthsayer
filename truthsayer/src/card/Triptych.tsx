@@ -38,7 +38,7 @@ function RefNodeCard({
   className,
 }: {
   nid: string
-  edge: any
+  edge: TEdge
   switchStickiness: any
   cutOffRef: any
   className?: string
@@ -91,7 +91,7 @@ function NodeRefs({
 }: {
   side: 'left' | 'right'
   nid: string
-  edges: any[]
+  edges: TEdge[]
   switchStickiness: any
   cutOffRef: any
 }) {
