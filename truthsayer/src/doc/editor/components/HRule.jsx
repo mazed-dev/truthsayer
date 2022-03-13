@@ -1,13 +1,12 @@
 import React from 'react'
 
-import './components.css'
+import { HorizontalRule } from './components'
 
 export const HRule = React.forwardRef(({ attributes, children }, ref) => {
-  const className = 'doc_block_hrule'
   return (
     <div {...attributes}>
       <div contentEditable={false}>
-        <div ref={ref} className={className} />
+        <HorizontalRule ref={ref} />
         {children}
       </div>
     </div>

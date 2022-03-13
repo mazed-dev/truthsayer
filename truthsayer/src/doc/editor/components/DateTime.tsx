@@ -2,11 +2,10 @@
 
 import React from 'react'
 
-import styled from '@emotion/styled'
-
 import moment from 'moment'
 
 import { Optional } from 'armoury'
+import { DateTimePill } from './components'
 
 export const kDefaultDateFormat: string = 'YYYY MMMM DD, dddd'
 export const kDefaultTimeFormat: string = 'HH:mm'
@@ -35,38 +34,6 @@ export function momentToString(
   return format ? time.format(format) : time.calendar(kDefaultCalendarFormat)
 }
 
-const Pill = styled.span`
-  color: #fff;
-  background-color: #6c757d;
-
-  border-radius: 10em;
-
-  display: inline-block;
-
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-right: 0.6em;
-  padding-left: 0.6em;
-
-  margin-bottom: 0;
-  margin-top: 0;
-  margin-right: 0.2em;
-  margin-left: 0.2em;
-
-  font-weight: 600;
-
-  white-space: nowrap;
-  vertical-align: baseline;
-
-  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
-    border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-
-  &:before {
-    content: '📅 ';
-    margin-right: 0.2em;
-  }
-`
-
 type DateTimeBadgeAttrs = React.HTMLProps<HTMLSpanElement> & {
   time: moment.Moment
   format: Optional<string>
@@ -78,9 +45,9 @@ export const DateTimeBadge = React.forwardRef<
 >(({ className, time, format }, ref) => {
   const str = momentToString(time, format)
   return (
-    <Pill ref={ref} className={className}>
+    <DateTimePill ref={ref} className={className}>
       {str}
-    </Pill>
+    </DateTimePill>
   )
 })
 
@@ -96,11 +63,7 @@ export const DateTime = React.forwardRef<HTMLSpanElement, DateTimeAttrs>(
     return (
       <span {...attributes}>
         <span contentEditable={false}>
-          <DateTimeBadge
-            time={time}
-            format={format}
-            ref={ref}
-          />
+          <DateTimeBadge time={time} format={format} ref={ref} />
           {children}
         </span>
       </span>

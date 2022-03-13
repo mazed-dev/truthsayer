@@ -1,12 +1,12 @@
 import React from 'react'
+import styled from '@emotion/styled'
 
-import { useSelected, useFocused } from 'slate-react'
-
-import { jcss } from 'elementary'
-
-import './components.css'
-
-import styles from './Image.module.css'
+const ImageBox = styled.img`
+  display: block;
+  max-width: 100%;
+  max-height: 20em;
+  box-shadow: 'none';
+`
 
 type ImageProps = React.PropsWithChildren<{
   isEditable: boolean
@@ -16,18 +16,12 @@ type ImageProps = React.PropsWithChildren<{
 
 export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
   ({ attributes, children, element }, ref) => {
-    let { link, url } = element
-    url = url || link
-    let className = styles.image
-    const selected = useSelected()
-    const focused = useFocused()
-    if (selected && focused) {
-      className = jcss(className, styles.image_selected)
-    }
+    const { link, url } = element
+    const src = url || link
     return (
       <div {...attributes}>
         <div contentEditable={false}>
-          <img src={url} className={className} ref={ref} />
+          <ImageBox src={src} ref={ref} />
         </div>
         {children}
       </div>

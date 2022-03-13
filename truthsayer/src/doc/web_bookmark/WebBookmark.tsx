@@ -32,7 +32,6 @@ const PreviewImageBox = styled.div`
   width: 72px;
   height: 72px;
   object-fit: cover;
-  border-radius: 2px;
   padding: 0;
   position: relative;
 `
@@ -82,7 +81,7 @@ const BadgeBox = styled.div`
 
 const TitleBox = styled.div`
   display: inline-block;
-  margin: 5px 4px 0 5px;
+  margin: 5px 4px 0 10px;
 `
 
 const Title = styled.p`

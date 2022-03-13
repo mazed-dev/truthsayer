@@ -1,22 +1,26 @@
 import React from 'react'
 
-import styles from './Leaf.module.css'
+import { InlineCodeBox } from './components'
 import { RenderLeafProps } from 'slate-react'
 
 export const Leaf = React.forwardRef<HTMLSpanElement, RenderLeafProps>(
   ({ attributes, children, leaf }, ref) => {
     if (leaf.bold) {
-      children = <strong>{children}</strong>
+      children = <strong ref={ref}>{children}</strong>
     }
     if (leaf.code) {
-      children = <code className={styles.inline_code}>{children}</code>
+      children = <InlineCodeBox ref={ref}>{children}</InlineCodeBox>
     }
     if (leaf.italic) {
-      children = <em>{children}</em>
+      children = <em ref={ref}>{children}</em>
     }
     if (leaf.underline) {
-      children = <u>{children}</u>
+      children = <u ref={ref}>{children}</u>
     }
-    return <span {...attributes}>{children}</span>
+    return (
+      <span {...attributes} ref={ref}>
+        {children}
+      </span>
+    )
   }
 )

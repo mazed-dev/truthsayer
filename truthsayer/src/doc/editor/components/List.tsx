@@ -5,11 +5,17 @@ import { Element as SlateElement, Transforms } from 'slate'
 
 import { CheckListItemElement } from '../../types'
 
-import { jcss } from 'elementary'
 import { CheckBox } from '../../../lib/CheckBox'
 
-import styles from './List.module.css'
-import './components.css'
+import {
+  CheckItemBox,
+  CheckBoxBox,
+  CheckLineBox,
+  CheckLineCheckedBox,
+  OrderedListBox,
+  UnorderedListBox,
+  ListItemBox,
+} from './components'
 
 type ListItemProps = React.PropsWithChildren<{
   className: string
@@ -17,11 +23,10 @@ type ListItemProps = React.PropsWithChildren<{
 
 const ListItem = React.forwardRef<HTMLLIElement, ListItemProps>(
   ({ className, children, ...attributes }, ref) => {
-    className = jcss('doc_block_list_item', className)
     return (
-      <li className={className} ref={ref} {...attributes}>
+      <ListItemBox className={className} ref={ref} {...attributes}>
         {children}
-      </li>
+      </ListItemBox>
     )
   }
 )
@@ -32,22 +37,20 @@ type ListProps = React.PropsWithChildren<{
 
 const OrderedList = React.forwardRef<HTMLOListElement, ListProps>(
   ({ className, children, ...attributes }, ref) => {
-    className = jcss('doc_block_ordered_list', className)
     return (
-      <ol ref={ref} className={className} {...attributes}>
+      <OrderedListBox ref={ref} className={className} {...attributes}>
         {children}
-      </ol>
+      </OrderedListBox>
     )
   }
 )
 
 const UnorderedList = React.forwardRef<HTMLUListElement, ListProps>(
   ({ className, children, ...attributes }, ref) => {
-    className = jcss('doc_block_unordered_list', className)
     return (
-      <ul ref={ref} className={className} {...attributes}>
+      <UnorderedListBox ref={ref} className={className} {...attributes}>
         {children}
-      </ul>
+      </UnorderedListBox>
     )
   }
 )
@@ -63,12 +66,21 @@ const CheckListItem = React.forwardRef<HTMLDivElement, CheckListItemProps>(
     const { checked = false } = element
     const editor = useSlateStatic()
     const readOnly = useReadOnly()
-    const checkLineStyle = checked
-      ? styles.check_line_span_checked
-      : styles.check_line_span
+    const line = checked ? (
+      <CheckLineCheckedBox
+        contentEditable={!readOnly}
+        suppressContentEditableWarning
+      >
+        {children}
+      </CheckLineCheckedBox>
+    ) : (
+      <CheckLineBox contentEditable={!readOnly} suppressContentEditableWarning>
+        {children}
+      </CheckLineBox>
+    )
     return (
-      <div {...attributes} className={styles.check_item_span}>
-        <span contentEditable={false} className={styles.check_box_span}>
+      <CheckItemBox {...attributes}>
+        <CheckBoxBox contentEditable={false}>
           <CheckBox
             checked={checked}
             ref={ref}
@@ -81,15 +93,9 @@ const CheckListItem = React.forwardRef<HTMLDivElement, CheckListItemProps>(
             }}
             disabled={!isEditable}
           />
-        </span>
-        <span
-          contentEditable={!readOnly}
-          suppressContentEditableWarning
-          className={checkLineStyle}
-        >
-          {children}
-        </span>
-      </div>
+        </CheckBoxBox>
+        {line}
+      </CheckItemBox>
     )
   }
 )

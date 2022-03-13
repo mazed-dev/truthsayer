@@ -41,7 +41,6 @@ const Fade = styled.div`
 const Shrinkable = styled.div`
   overflow: hidden;
   position: relative;
-  border-radius: inherit;
 `
 
 export const ShrinkCard = ({

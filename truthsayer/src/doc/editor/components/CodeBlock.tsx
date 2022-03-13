@@ -1,6 +1,6 @@
 import React from 'react'
 
-import {CodeBlockBox} from './components'
+import { CodeBlockBox } from './components'
 
 type CodeBlockQuoteProps = React.PropsWithChildren<{
   className?: string
