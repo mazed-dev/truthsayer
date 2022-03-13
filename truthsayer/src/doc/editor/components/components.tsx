@@ -235,5 +235,5 @@ export const ListItemBox = styled.li`
 export const ParagraphBox = styled.p`
   white-space: pre-wrap;
   margin: 0 0 14px 0;
-  display: inline-flex;
+  display: block;
 `
