@@ -3,7 +3,8 @@
 }
 
 .tip:after {
-  content: 'Type // to open an auto suggestion dialogue...';
+  content: 'Type // to insert...';
   opacity: 0.32;
   margin-left: 2px;
+  cursor: text;
 }
