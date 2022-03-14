@@ -4,18 +4,18 @@ import React, { useState } from 'react'
 
 import { Row, Col } from 'react-bootstrap'
 
-import { NodeCard } from './NodeCard'
+import { NodeCard } from 'elementary'
 import { FullCardFootbar } from './FullCardFootbar'
 
-import { NodeCardFetching } from '../card/NodeCard'
+import { NodeCardFetching } from 'elementary'
 
 import { SmallCardFootbar } from './SmallCardFootbar'
 import { ChainActionBar } from './ChainActionBar'
-import { DynamicGrid } from '../grid/DynamicGrid'
+import { DynamicGrid } from 'elementary'
 
 import { MzdGlobalContext } from '../lib/global'
 import { Optional, isAbortError, log } from 'armoury'
-import { styleMobileTouchOnly } from '../util/xstyle'
+import { styleMobileTouchOnly } from 'elementary'
 
 import { smuggler, TNode, NodeTextData, TEdge } from 'smuggler-api'
 

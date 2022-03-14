@@ -1,6 +1,7 @@
 // @ts-nocheck
 
-import { Descendant } from 'slate'
+import lodash from 'lodash'
+import type { Descendant } from 'slate'
 
 import { slateToMarkdown, markdownToSlate, _siftUpBlocks } from './slate'
 
@@ -20,9 +21,7 @@ import {
   kSlateBlockTypeQuote,
   kSlateBlockTypeUnorderedList,
   kSlateBlockTypeListCheckItem,
-} from '../doc/types'
-
-import lodash from 'lodash'
+} from '../types'
 
 test('Markdown to Slate state', async () => {
   const md = `

@@ -1,8 +1,9 @@
 // @ts-nocheck
 
-import { Descendant } from 'slate'
+import type { Descendant } from 'slate'
 import { serialize } from 'remark-slate'
 import unified from 'unified'
+import { TNode } from 'smuggler-api'
 import markdown from 'remark-parse'
 import slate from 'remark-slate'
 import { defaultNodeTypes } from 'remark-slate'
@@ -31,7 +32,7 @@ import {
   kSlateBlockTypeQuote,
   kSlateBlockTypeStrongMark,
   kSlateBlockTypeUnorderedList,
-} from 'elementary'
+} from '../types'
 
 import lodash from 'lodash'
 
@@ -347,4 +348,18 @@ function serializeExtraDateTime(item: Descendant): Descendant {
   const date = moment.unix(timestamp)
   const text = date.format(format)
   return { text, children }
+}
+
+export async function nodeToMarkdown(node: TNode): Promise<string> {
+  let md = ''
+  if (node.isImage()) {
+    const source = node.getBlobSource()
+    md = md.concat(`![](${source})`)
+  }
+  const text = node.getText()
+  if (text) {
+    const doc = await TDoc.fromNodeTextData(text)
+    md = md.concat(slateToMarkdown(doc.slate))
+  }
+  return md
 }

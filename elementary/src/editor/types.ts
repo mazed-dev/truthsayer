@@ -1,9 +1,10 @@
-import { Descendant, Element, BaseEditor } from 'slate'
+import type { Descendant, BaseEditor } from 'slate'
+import { Element } from 'slate'
 import { ReactEditor } from 'slate-react'
 import { HistoryEditor } from 'slate-history'
-import { NodeTextData, makeNodeTextData } from 'smuggler-api'
-
-import { Optional } from 'armoury'
+import { makeNodeTextData } from 'smuggler-api'
+import type { NodeTextData } from 'smuggler-api'
+import type { Optional } from 'armoury'
 
 import lodash from 'lodash'
 import moment from 'moment'
@@ -422,7 +423,7 @@ function getSlateDescendantAsPlainText(parent: Descendant): string[] {
   // @ts-ignore: Property 'text' does not exist on type 'Descendant'
   let { text } = parent
   // @ts-ignore: Property 'children'/'type'/'link'/... does not exist on type 'Descendant'
-  const { children, type, link, caption, timestamp, format } = parent
+  const { children, link, caption, timestamp, format } = parent
   if (link) {
     entities.push(link)
   }
@@ -448,30 +449,7 @@ function getSlateDescendantAsPlainText(parent: Descendant): string[] {
   return [text, entities]
 }
 
-function exctractDocTitle(slate?: SlateText): string {
-  let title: string | null = null
-  if (slate) {
-    title = slate.reduce<string>(
-      (acc: string, item: Descendant, _index: number, _array: Descendant[]) => {
-        if (
-          acc.length === 0 &&
-          (isHeaderSlateBlock(item) || isTextSlateBlock(item))
-        ) {
-          const text = getSlateDescendantAsPlainText(item)[0]
-          const ret = _truncateTitle(text)
-          if (ret) {
-            return ret
-          }
-        }
-        return acc
-      },
-      ''
-    )
-  }
-  return title || 'Some page\u2026'
-}
-
-export function getSlateAsPlainText(children: SlateText): string[] {
+function getSlateAsPlainText(children: SlateText): string[] {
   const texts: string[] = []
   const entities: string[] = []
   children.forEach((item) => {
@@ -482,21 +460,6 @@ export function getSlateAsPlainText(children: SlateText): string[] {
     entities.push(...itemEntities)
   })
   return lodash.concat(texts, entities)
-}
-
-function blankSlate(slate: SlateText): SlateText {
-  return slate.map((item) => {
-    if (isCheckListBlock(item)) {
-      item.checked = false
-    }
-    // @ts-ignore: Property 'children' does not exist on type 'Descendant'
-    const { children } = item
-    if (lodash.isArray(children)) {
-      // @ts-ignore: Property 'children' does not exist on type 'Descendant'
-      item.children = blankSlate(children)
-    }
-    return item
-  })
 }
 
 function makeThematicBreak(): ThematicBreakElement {
@@ -577,10 +540,10 @@ export class TDoc {
 
   makeACopy(nid: string, isBlankCopy: boolean): TDoc {
     let { slate } = this
-    const title = exctractDocTitle(slate)
+    const title = this.genTitle()
     let label
     if (isBlankCopy) {
-      slate = blankSlate(slate)
+      slate = this.genBlankSlate()
       label = `Blank copy of "${title}"`
     } else {
       slate = lodash.cloneDeep(slate)
@@ -588,5 +551,45 @@ export class TDoc {
     }
     slate.push(makeThematicBreak(), makeParagraph([makeNodeLink(label, nid)]))
     return new TDoc(slate)
+  }
+
+  genTitle(): string {
+    let title: string | null = null
+    title = this.slate.reduce<string>(
+      (acc: string, item: Descendant, _index: number, _array: Descendant[]) => {
+        if (
+          acc.length === 0 &&
+          (isHeaderSlateBlock(item) || isTextSlateBlock(item))
+        ) {
+          const text = getSlateDescendantAsPlainText(item)[0]
+          const ret = _truncateTitle(text)
+          if (ret) {
+            return ret
+          }
+        }
+        return acc
+      },
+      ''
+    )
+    return title || 'Some page\u2026'
+  }
+
+  genBlankSlate(): SlateText {
+    return this.slate.map((item) => {
+      if (isCheckListBlock(item)) {
+        item.checked = false
+      }
+      // @ts-ignore: Property 'children' does not exist on type 'Descendant'
+      const { children } = item
+      if (lodash.isArray(children)) {
+        // @ts-ignore: Property 'children' does not exist on type 'Descendant'
+        item.children = blankSlate(children)
+      }
+      return item
+    })
+  }
+
+  genPlainText(): string[] {
+    return getSlateAsPlainText(this.slate)
   }
 }

@@ -1,6 +1,6 @@
-import { TNode, NodeExtattrs } from 'smuggler-api'
-import { getPlainText } from '../../doc/doc_util'
-import { Optional } from 'armoury'
+import type { TNode, NodeExtattrs } from 'smuggler-api'
+import type { Optional } from 'armoury'
+import { TDoc, SlateText } from '../../editor/types'
 
 /**
     nid: nid,
@@ -64,12 +64,18 @@ export function searchNodeFor(
       search_index !== undefined && search_index.findIndex(matchesPattern) >= 0
     )
   }
+  const { slate } = node.getText()
+  if (slate == null) {
+    throw Error(`Obsolete document type detected${node.getText()}`)
+  }
+  const doc = new TDoc(slate as SlateText)
+  const plaintext = doc.genPlainText()
 
   const matchFound =
     oneOfElementsMatchesPattern(node.index_text?.labels) ||
     oneOfElementsMatchesPattern(node.index_text?.brands) ||
     matchesPattern(node.index_text?.plaintext) ||
-    oneOfElementsMatchesPattern(getPlainText(node.getText())) ||
+    oneOfElementsMatchesPattern(plaintext) ||
     _extattrsMatchesPattern(pattern, node.extattrs)
 
   return matchFound ? node : null

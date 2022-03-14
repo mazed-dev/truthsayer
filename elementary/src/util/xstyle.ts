@@ -2,7 +2,8 @@
  * Helpers to adjust styles for various devices, screen sizes and platforms
  */
 
-import { css, SerializedStyles } from '@emotion/react'
+import type { SerializedStyles } from '@emotion/react'
+import { css } from '@emotion/react'
 
 /**
  * Enable styles given as an argument on mobile devices with touch screen only

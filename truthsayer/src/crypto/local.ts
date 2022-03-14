@@ -11,7 +11,7 @@ import {
 
 import { smuggler } from 'smuggler-api'
 
-import { base64 } from '../util/base64'
+import { base64 } from 'armoury'
 
 const ls = require('local-storage')
 

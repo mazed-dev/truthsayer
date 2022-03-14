@@ -7,11 +7,11 @@ import { Button, Card } from 'react-bootstrap'
 
 import moment from 'moment'
 
-import { GridCard } from '../../../grid/SearchGrid'
-import { DateTimeBadge, kDefaultDateFormat } from '../components/DateTime'
-import { makeDateTime } from '../../doc_util'
+import { GridCard } from '../../grid/SearchGrid'
+import { DateTimeBadge } from '../components/DateTime'
+import { makeDateTime } from '../types'
 
-import { base64 } from '../../../util/base64'
+import { base64 } from 'armoury'
 
 import lodash from 'lodash'
 
@@ -81,6 +81,7 @@ const kLastWeekDay =
   /last *((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?)\b/i
 const kNextWeekDay =
   /(next)? *((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?)\b/i
+const kDefaultDateFormat: string = 'YYYY MMMM DD, dddd'
 
 export function _parse12hAm(
   hour: string,

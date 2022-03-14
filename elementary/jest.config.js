@@ -1,4 +1,5 @@
 module.exports = {
+  verbose: true,
 
   // The root of your source code, typically /src
   // `<rootDir>` is a token Jest substitutes

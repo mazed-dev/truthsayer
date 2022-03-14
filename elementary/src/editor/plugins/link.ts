@@ -4,7 +4,8 @@ import isUrl from 'is-url'
 
 import { kSlateBlockTypeLink, LinkElement, CustomEditor } from '../types'
 
-import { Optional, log } from 'armoury'
+import type { Optional } from 'armoury'
+import { log } from 'armoury'
 
 export const withLinks = (editor: CustomEditor) => {
   const { insertData, insertText, isInline } = editor

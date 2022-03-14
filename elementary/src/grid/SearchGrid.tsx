@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useRef, useState, useContext } from 'react'
+import React, { useRef, useState } from 'react'
 
 import styled from '@emotion/styled'
 
@@ -8,16 +8,18 @@ import { css } from '@emotion/react'
 import { useAsyncEffect } from 'use-async-effect'
 import { useHistory } from 'react-router-dom'
 
-import { Spinner, SmallCard, ShrinkCard, NodeTimeBadge } from 'elementary'
+import { Spinner } from '../spinner/mod'
+import { SmallCard } from '../SmallCard'
+import { ShrinkCard } from '../ShrinkCard'
+import { NodeTimeBadge } from '../NodeTimeBadge'
 
 import { smuggler, TNodeSliceIterator, TNode } from 'smuggler-api'
 
 import { log, isAbortError, Optional } from 'armoury'
 
 import { DynamicGrid } from './DynamicGrid'
-import { MzdGlobalContext } from '../lib/global'
-import { NodeCard } from '../card/NodeCard'
-import { isSmartCase } from '../util/str'
+import { NodeCard } from '../NodeCard'
+import { isSmartCase } from 'armoury'
 import { searchNodeFor } from './search/search'
 import { styleMobileTouchOnly } from '../util/xstyle'
 
@@ -78,8 +80,6 @@ export const SearchGrid = ({
   const history = useHistory()
   const ref = useRef<HTMLDivElement>(null)
   const pattern = makePattern(q)
-  const ctx = useContext(MzdGlobalContext)
-  const account = ctx.account
   const [nodes, setNodes] = useState<TNode[]>([])
   const [fetching, setFetching] = useState<boolean>(false)
   const [nextBatchTrigger, setNextBatchTrigger] = useState<number>(0)
@@ -169,16 +169,15 @@ export const SearchGrid = ({
     setIter(iter_)
     setNextBatchTrigger((prev) => prev + 1)
   }, [q])
-  const fetchingLoader =
-    fetching || account == null ? (
-      <div
-        css={css`
-          margin: 2rem;
-        `}
-      >
-        <Spinner.Wheel />
-      </div>
-    ) : null
+  const fetchingLoader = fetching ? (
+    <div
+      css={css`
+        margin: 2rem;
+      `}
+    >
+      <Spinner.Wheel />
+    </div>
+  ) : null
   const cards: JSX.Element[] = nodes.map((node) => {
     const { nid } = node
     const onClick = () => {

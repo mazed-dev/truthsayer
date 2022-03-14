@@ -14,9 +14,9 @@ import { Optional } from 'armoury'
 
 import { Modal, Form } from 'react-bootstrap'
 
-import { SearchGrid } from '../../../grid/SearchGrid'
+import { SearchGrid } from '../../grid/SearchGrid'
 
-import { makeNodeLink, exctractDocTitle } from '../../doc_util'
+import { makeNodeLink, TDoc } from '../types'
 
 import { dateTimeJinnSearch } from './jinn-datetime'
 
@@ -105,7 +105,8 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
   onNodeCardClick = (node) => {
     const nid = node.getNid()
     const text = node.getText()
-    const title = exctractDocTitle(text.slate)
+    const doc = new TDoc(text.slate)
+    const title = doc.exctractDocTitle()
     const element = makeNodeLink(title, nid)
     this.insertElement(element)
   }

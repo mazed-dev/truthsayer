@@ -8,10 +8,15 @@ export * from './ShrinkCard'
 export * from './SmallCard'
 export * from './WebBookmark'
 export * from './WideCard'
+export * from './NodeCard'
 export * from './colour'
 export * from './editor/NodeTextEditor'
+export * from './grid/DynamicGrid'
+export * from './grid/SearchGrid'
 export * from './jcss'
 export * from './spinner/mod'
+export * from './util/xstyle'
+export { nodeToMarkdown, markdownToSlate } from './editor/markdown/slate'
 
 export type {
   SlateText,

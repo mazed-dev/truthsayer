@@ -24,9 +24,8 @@ import PublicImg from './../img/public.png'
 import { ShareModal } from './ShareModal'
 
 import { MzdGlobalContext } from '../lib/global'
-import { HoverTooltip, ImgButton, jcss } from 'elementary'
+import { HoverTooltip, ImgButton, jcss, nodeToMarkdown } from 'elementary'
 import { goto } from '../lib/route'
-import { docAsMarkdown } from '../doc/doc_util'
 import { downloadAsFile } from '../util/download_as_file'
 
 import {
@@ -248,7 +247,7 @@ export function FullCardFootbar({ /* children,  */ node, ...rest }) {
     const { nid, meta } = node
     if (node.isOwnedBy(account)) {
       const getMarkdown = async () => {
-        return await docAsMarkdown(node)
+        return await nodeToMarkdown(node)
       }
       return (
         <PrivateFullCardFootbar
