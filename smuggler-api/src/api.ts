@@ -20,24 +20,17 @@ import {
   UserBadge,
 } from './types'
 
-import { TNodeSliceIterator } from './node_slice_iterator'
+import { makeUrl } from './api_url'
+
+import { TNodeSliceIterator, GetNodesSliceFn } from './node_slice_iterator'
 
 import { Mime } from 'armoury'
 import type { Optional } from 'armoury'
 
 import moment from 'moment'
-import lodash from 'lodash'
-import { stringify } from 'query-string'
 
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
-
-export function makeUrl(path?: string, query?: Record<string, any>): string {
-  const q = query ? `?${stringify(query)}` : ''
-  const p = lodash.trim(path || '', '/')
-  const base = lodash.trimEnd(process.env.REACT_APP_SMUGGLER_API_URL || '', '/')
-  return `${base}/${p}${q}`
-}
 
 async function createNode({
   text,
@@ -228,7 +221,7 @@ export async function ping(): Promise<void> {
   await fetch(makeUrl(), { method: 'GET' })
 }
 
-export async function getNodesSlice({
+export const getNodesSlice: GetNodesSliceFn = async ({
   end_time,
   start_time,
   offset,
@@ -242,7 +235,7 @@ export async function getNodesSlice({
   limit: Optional<number>
   origin?: NodeOrigin
   signal?: AbortSignal
-}) {
+}) => {
   const req: NodeAttrsSearchRequest = {
     end_time: end_time || undefined,
     start_time: start_time != null ? start_time : undefined,

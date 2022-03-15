@@ -1,4 +1,4 @@
-import { makeUrl } from './api'
+import { makeUrl } from './api_url'
 
 describe('test suite for makeUrl', () => {
   const SAVED_ENV = process.env

@@ -3,7 +3,7 @@ import type { MimeType } from 'armoury'
 import moment from 'moment'
 
 import { AccountInterface } from './auth'
-import { smuggler } from './api'
+import { makeUrl } from './api_url'
 
 export type SlateText = object[]
 
@@ -185,7 +185,7 @@ export class TNode {
 
   getBlobSource(): string | null {
     const { nid } = this
-    return smuggler.blob.getSource(nid)
+    return makeUrl(`/blob/${nid}`)
   }
 }
 
