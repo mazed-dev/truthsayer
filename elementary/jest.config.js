@@ -8,7 +8,7 @@ module.exports = {
   // Jest transformations -- this adds support for TypeScript
   // using ts-jest
   transform: {
-    "^.+\\.[tj]sx?$": "ts-jest"
+    "^.+\\.tsx?$": "ts-jest"
   },
 
   // Runs special logic, such as cleaning up components
@@ -25,5 +25,5 @@ module.exports = {
   testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$",
 
   // Module file extensions for importing
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"]
+  moduleFileExtensions: ["ts", "tsx", "js", "json"]
 };

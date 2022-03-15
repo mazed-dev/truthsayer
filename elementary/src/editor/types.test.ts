@@ -5,7 +5,7 @@ import lodash from 'lodash'
 
 test('exctractDocTitle - raw string', async () => {
   const text = 'RmdBzaGUgdHJpZWQgdG8gd2FzaCBvZm'
-  const doc = new TDoc([{ text }])
+  const doc = new TDoc([makeParagraph([makeLeaf(text)])])
   const title = doc.genTitle()
   expect(title).toStrictEqual(text)
 })

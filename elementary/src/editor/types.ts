@@ -2,12 +2,12 @@ import type { Descendant, BaseEditor } from 'slate'
 import { Element } from 'slate'
 import { ReactEditor } from 'slate-react'
 import { HistoryEditor } from 'slate-history'
-import { makeNodeTextData } from 'smuggler-api'
 import type { NodeTextData } from 'smuggler-api'
-import type { Optional } from 'armoury'
 
 import lodash from 'lodash'
 import moment from 'moment'
+
+import type { Optional } from 'armoury'
 
 export type SlateText = Descendant[]
 
@@ -534,7 +534,13 @@ export class TDoc {
   }
 
   static makeEmpty(): TDoc {
-    const { slate } = makeNodeTextData()
+    const text = ''
+    const slate = [
+      {
+        type: kSlateBlockTypeParagraph,
+        children: [{ text }],
+      },
+    ]
     return new TDoc(slate as SlateText)
   }
 
@@ -554,8 +560,7 @@ export class TDoc {
   }
 
   genTitle(): string {
-    let title: string | null = null
-    title = this.slate.reduce<string>(
+    const title: string | null = this.slate.reduce<string>(
       (acc: string, item: Descendant, _index: number, _array: Descendant[]) => {
         if (
           acc.length === 0 &&

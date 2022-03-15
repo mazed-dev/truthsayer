@@ -1,4 +1,5 @@
 module.exports = {
+  verbose: true,
 
   // The root of your source code, typically /src
   // `<rootDir>` is a token Jest substitutes
@@ -12,6 +13,7 @@ module.exports = {
 
   transformIgnorePatterns: [
     "/node_modules/(?!normalize-url/)",
+    "/armoury/dist/",
   ],
 
   // Runs special logic, such as cleaning up components
