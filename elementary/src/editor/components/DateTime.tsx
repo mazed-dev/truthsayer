@@ -4,7 +4,7 @@ import React from 'react'
 
 import moment from 'moment'
 
-import { Optional } from 'armoury'
+import type { Optional } from 'armoury'
 import { DateTimePill } from './components'
 
 export const kDefaultDateFormat: string = 'YYYY MMMM DD, dddd'

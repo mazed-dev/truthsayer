@@ -5,9 +5,9 @@ import { Image, ButtonGroup, Modal } from 'react-bootstrap'
 import styled from '@emotion/styled'
 
 import { TNode } from 'smuggler-api'
-import { MdiFitScreen, MdiZoomIn, MdiZoomOut } from './MaterialIcons'
+import { MdiFitScreen, MdiZoomIn, MdiZoomOut } from '../MaterialIcons'
 
-import { ImgButton } from './ImgButton'
+import { ImgButton } from '../ImgButton'
 
 const ImageBase = styled(Image)`
   height: auto;

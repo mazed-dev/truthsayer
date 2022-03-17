@@ -15,11 +15,11 @@ import { NodeTimeBadge } from '../NodeTimeBadge'
 
 import { smuggler, TNodeSliceIterator, TNode } from 'smuggler-api'
 
-import { log, isAbortError, Optional } from 'armoury'
+import type { Optional } from 'armoury'
+import { log, isAbortError, isSmartCase } from 'armoury'
 
 import { DynamicGrid } from './DynamicGrid'
-import { NodeCard } from '../NodeCard'
-import { isSmartCase } from 'armoury'
+import { NodeCardReadOnly } from '../NodeCardReadOnly'
 import { searchNodeFor } from './search/search'
 import { styleMobileTouchOnly } from '../util/xstyle'
 
@@ -192,7 +192,7 @@ export const SearchGrid = ({
     return (
       <GridCard onClick={onClick} key={nid}>
         <ShrinkCard>
-          <NodeCard node={node} />
+          <NodeCardReadOnly node={node} />
         </ShrinkCard>
         <NodeTimeBadge
           created_at={node.created_at}

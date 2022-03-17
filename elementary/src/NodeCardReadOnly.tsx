@@ -1,44 +1,31 @@
 import React, { useState } from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 
-import type { NodeTextData } from 'smuggler-api'
 import { TNode, smuggler } from 'smuggler-api'
-import { NodeTextEditor } from './editor/NodeTextEditor'
-import { SlateText, TDoc } from './editor/types'
+import { NodeTextReader } from './editor/NodeTextReader'
 import { Spinner } from './spinner/mod'
 import { NodeMedia } from './media/NodeMedia'
 
-export function NodeCard({
+export function NodeCardReadOnly({
   node,
-  saveNode,
   className,
 }: {
   node: TNode
-  saveNode: (text: NodeTextData) => Promise<Response> | undefined
   className?: string
 }) {
-  const saveText =
-    saveNode == null
-      ? undefined
-      : (text: SlateText) => {
-          const doc = new TDoc(text)
-          saveNode(doc.toNodeTextData())
-        }
   return (
     <div className={className}>
       <NodeMedia node={node} />
-      <NodeTextEditor node={node} saveText={saveText} />
+      <NodeTextReader node={node} />
     </div>
   )
 }
 
-export function NodeCardFetching({
+export function NodeCardReadOnlyFetching({
   nid,
-  saveNode,
   className,
 }: {
   nid: string
-  saveNode: (text: NodeTextData) => Promise<Response> | undefined
   className?: string
 }) {
   const [node, setNode] = useState<TNode | null>(null)
@@ -58,5 +45,5 @@ export function NodeCardFetching({
   if (node == null) {
     return <Spinner.Wheel />
   }
-  return <NodeCard node={node} saveNode={saveNode} className={className} />
+  return <NodeCardReadOnly node={node} className={className} />
 }

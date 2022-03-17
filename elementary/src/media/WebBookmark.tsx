@@ -1,10 +1,10 @@
 import React from 'react'
 
-import { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
-import { Optional } from 'armoury'
-import { BlockQuote } from './editor/components/BlockQuote'
+import type { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
+import type { Optional } from 'armoury'
+import { BlockQuote } from '../editor/components/BlockQuote'
 
-import { MdiLaunch } from './MaterialIcons'
+import { MdiLaunch } from '../MaterialIcons'
 
 import styled from '@emotion/styled'
 
@@ -116,15 +116,16 @@ const Description = styled(BlockQuote)`
 
 type WebBookmarkProps = {
   extattrs: NodeExtattrs
+  className?: string
 }
 
-export const WebBookmark = ({ extattrs }: WebBookmarkProps) => {
+export const WebBookmark = ({ extattrs, className }: WebBookmarkProps) => {
   const { web, preview_image, title, description, author } = extattrs
   const url = web?.url
   const hostname = url ? new URL(url).hostname : null
-  let authorBadge = author ? <Author>{author}</Author> : null
+  const authorBadge = author ? <Author>{author}</Author> : null
   return (
-    <Box>
+    <Box className={className}>
       <BadgeBox>
         <PreviewImage icon={preview_image || null} url={url} />
         <TitleBox>
