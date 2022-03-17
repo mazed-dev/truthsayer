@@ -13,7 +13,6 @@ module.exports = {
 
   transformIgnorePatterns: [
     "/node_modules/(?!normalize-url/)",
-    "/armoury/dist/",
   ],
 
   // Runs special logic, such as cleaning up components

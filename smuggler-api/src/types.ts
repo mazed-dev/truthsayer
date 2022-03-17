@@ -2,7 +2,6 @@ import { Mime } from 'armoury'
 import type { MimeType } from 'armoury'
 import moment from 'moment'
 
-import { AccountInterface } from './auth'
 import { makeUrl } from './api_url'
 
 export type SlateText = object[]
@@ -335,4 +334,18 @@ export type UserBadge = {
   uid: string
   name: string
   photo?: String
+}
+
+/**
+ * Local encryption is not ready to use yet, in fact it is not
+ * part of our MVP, mock it for now.
+ */
+export class LocalCrypto {}
+
+export interface AccountInterface {
+  isAuthenticated: () => boolean
+  getUid: () => string
+  getName: () => string
+  getEmail: () => string
+  getLocalCrypto: () => LocalCrypto
 }
