@@ -3922,7 +3922,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"argparse@npm:^1.0.10, argparse@npm:^1.0.7":
+"argparse@npm:^1.0.7":
   version: 1.0.10
   resolution: "argparse@npm:1.0.10"
   dependencies:
@@ -4179,15 +4179,6 @@ __metadata:
   bin:
     atob: bin/atob.js
   checksum: dfeeeb70090c5ebea7be4b9f787f866686c645d9f39a0d184c817252d0cf08455ed25267d79c03254d3be1f03ac399992a792edcd5ffb9c91e097ab5ef42833a
-  languageName: node
-  linkType: hard
-
-"autolinker@npm:^3.11.0":
-  version: 3.14.3
-  resolution: "autolinker@npm:3.14.3"
-  dependencies:
-    tslib: ^1.9.3
-  checksum: 4a2bce8d7a77cfb8386ce10b4fb0f8267256af3dbc216c016ba4b970bfd1c9afcd70c2a17f3bc8f81c3de414f8690dbee71eb767519f07f3d6c03c15a9264260
   languageName: node
   linkType: hard
 
@@ -10949,15 +10940,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"markdown-draft-js@npm:^2.2.1":
-  version: 2.4.0
-  resolution: "markdown-draft-js@npm:2.4.0"
-  dependencies:
-    remarkable: ^2.0.1
-  checksum: ccbfe0256373cdc1b018619c6f085d75458ef97d0d64d48aada62c3a6b02dbb6af3adcca1885183dd4d396bb3ef3e3361205deb2d7f76dda3adad997217ed2f3
-  languageName: node
-  linkType: hard
-
 "md5.js@npm:^1.3.4":
   version: 1.3.5
   resolution: "md5.js@npm:1.3.5"
@@ -14150,18 +14132,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remarkable@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "remarkable@npm:2.0.1"
-  dependencies:
-    argparse: ^1.0.10
-    autolinker: ^3.11.0
-  bin:
-    remarkable: bin/remarkable.js
-  checksum: aee83ece531a7196f92e668aa76450f17bc1af77ce2939153f57b289b54f3aa3a72f355f4d57680336ab8205d53dca7ae06e6e743355ad2d4868cc7c85eafe89
-  languageName: node
-  linkType: hard
-
 "remove-trailing-separator@npm:^1.0.1":
   version: 1.1.0
   resolution: "remove-trailing-separator@npm:1.1.0"
@@ -16166,7 +16136,6 @@ __metadata:
     keycode: ^2.2
     local-storage: ^2.0
     lodash: ^4.17.21
-    markdown-draft-js: ^2.2.1
     moment: ^2.29.1
     node-emoji: ^1
     prettier: ^2.2
@@ -16183,7 +16152,6 @@ __metadata:
     smuggler-api: 0.0.1
     ts-node: ^9.1.1
     typescript: 4.1.3
-    unified: ^6.1.5
     universal-cookie: ^4.0
     use-async-effect: ^2.2.3
     uuid: ^3.3
@@ -16279,7 +16247,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^1.8.1, tslib@npm:^1.9.3":
+"tslib@npm:^1.8.1":
   version: 1.14.1
   resolution: "tslib@npm:1.14.1"
   checksum: dbe628ef87f66691d5d2959b3e41b9ca0045c3ee3c7c7b906cc1e328b39f199bb1ad9e671c39025bd56122ac57dfbf7385a94843b1cc07c60a4db74795829acd
