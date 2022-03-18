@@ -8,7 +8,7 @@ import styles from './ImgButton.module.css'
 
 type ImgButtonProps = React.PropsWithChildren<{
   onClick: React.MouseEventHandler
-  className: string
+  className?: string
   is_disabled?: boolean
 }>
 
