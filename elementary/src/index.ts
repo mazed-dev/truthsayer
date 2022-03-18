@@ -1,14 +1,13 @@
 export * from './CheckBox'
 export * from './HoverTooltip'
-// export * from './media/ImageNode'
 export * from './ImgButton'
 export * from './MaterialIcons'
 export * from './NodeTimeBadge'
 export * from './ShrinkCard'
 export * from './SmallCard'
-// export * from './media/WebBookmark'
 export * from './WideCard'
 export * from './NodeCard'
+export * from './NodeCardReadOnly'
 export * from './colour'
 export * from './editor/NodeTextEditor'
 export * from './grid/DynamicGrid'
@@ -28,6 +27,7 @@ export type {
   ParagraphElement,
   ThematicBreakElement,
 } from './editor/types'
+
 export {
   TDoc,
   isHeaderSlateBlock,

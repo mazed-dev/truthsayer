@@ -1,13 +1,12 @@
 import isUrl from 'is-url'
 
 import { Editor, Transforms } from 'slate'
-import { ReactEditor } from 'slate-react'
 
 import imageExtensions from 'image-extensions'
 
-import { kSlateBlockTypeImage, ImageElement } from '../types'
+import { kSlateBlockTypeImage, ImageElement, CustomEditor } from '../types'
 
-export const withImages = (editor: ReactEditor) => {
+export const withImages = (editor: CustomEditor) => {
   const { insertData, isVoid } = editor
 
   editor.isVoid = (element) => {

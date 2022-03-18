@@ -7,7 +7,7 @@ import { Row, Col } from 'react-bootstrap'
 import { NodeCard } from 'elementary'
 import { FullCardFootbar } from './FullCardFootbar'
 
-import { NodeCardFetching } from 'elementary'
+import { NodeCardReadOnlyFetching } from 'elementary'
 
 import { SmallCardFootbar } from './SmallCardFootbar'
 import { ChainActionBar } from './ChainActionBar'
@@ -58,7 +58,7 @@ function RefNodeCard({
           margin-bottom: 12px;
         `}
       >
-        <NodeCardFetching nid={nid} />
+        <NodeCardReadOnlyFetching nid={nid} />
       </ShrinkCard>
       <div
         css={css`

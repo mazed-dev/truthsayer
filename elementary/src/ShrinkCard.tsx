@@ -41,6 +41,8 @@ const Fade = styled.div`
 const Shrinkable = styled.div`
   overflow: hidden;
   position: relative;
+  border-top-right-radius: inherit;
+  border-top-left-radius: inherit;
 `
 
 export const ShrinkCard = ({
@@ -50,10 +52,10 @@ export const ShrinkCard = ({
 }: ShrinkCardProps) => {
   const shrinkStyle = showMore
     ? css`
-        min-height: 10em;
+        min-height: 160px;
       `
     : css`
-        height: 10em;
+        height: 160px;
       `
   return (
     <Shrinkable css={shrinkStyle} className={className}>

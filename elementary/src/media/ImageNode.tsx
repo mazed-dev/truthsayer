@@ -17,14 +17,14 @@ const ImageBase = styled(Image)`
 
 const ImageInCard = styled(ImageBase)`
   max-width: 100%;
-
   border-style: none;
-  border-radius: inherit;
+  border-top-right-radius: inherit;
+  border-top-left-radius: inherit;
+  cursor: zoom-in;
 `
 
 const ImageFull = styled(ImageBase)`
   max-width: 100%;
-
   vertical-align: middle;
   display: inline;
 `
@@ -86,8 +86,12 @@ export const ImageNode = ({
     return null
   }
   return (
-    <div className={className}>
-      <ImageInCard src={source} />
+    <>
+      <ImageInCard
+        src={source}
+        className={className}
+        onClick={() => setShow(true)}
+      />
       <Modal show={show} fullscreen scrollable onHide={() => setShow(false)}>
         <Modal.Header closeButton>
           <ZoomImageTitle>
@@ -115,6 +119,6 @@ export const ImageNode = ({
           <ImageFull src={source} ref={imageRef} />
         </ImageFullModalBody>
       </Modal>
-    </div>
+    </>
   )
 }

@@ -34,6 +34,7 @@ const PreviewImageBox = styled.div`
   object-fit: cover;
   padding: 0;
   position: relative;
+  border-top-left-radius: inherit;
 `
 
 const IconLaunch = styled.a`
@@ -77,6 +78,8 @@ const BadgeBox = styled.div`
   text-decoration: none;
   width: 100%;
   display: flex;
+  border-top-right-radius: inherit;
+  border-top-left-radius: inherit;
 `
 
 const TitleBox = styled.div`
@@ -108,7 +111,8 @@ const Author = styled.p`
 
 const DescriptionBox = styled.div`
   font-size: 1em;
-  padding: 4px 0 0;
+  padding: 0;
+  margin: 8px 1em 0 1em;
 `
 const Description = styled(BlockQuote)`
   margin: 4px 0 14px 0;

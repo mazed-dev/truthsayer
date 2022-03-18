@@ -64,11 +64,7 @@ export function searchNodeFor(
       search_index !== undefined && search_index.findIndex(matchesPattern) >= 0
     )
   }
-  const { slate } = node.getText()
-  if (slate == null) {
-    throw Error(`Obsolete document type detected${node.getText()}`)
-  }
-  const doc = new TDoc(slate as SlateText)
+  const doc = TDoc.fromNodeTextData(node.getText())
   const plaintext = doc.genPlainText()
 
   const matchFound =

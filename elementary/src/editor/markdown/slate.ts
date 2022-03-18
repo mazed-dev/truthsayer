@@ -350,7 +350,7 @@ function serializeExtraDateTime(item: Descendant): Descendant {
   return { text, children }
 }
 
-export async function nodeToMarkdown(node: TNode): Promise<string> {
+export async function nodeToMarkdown(node: TNode): string {
   let md = ''
   if (node.isImage()) {
     const source = node.getBlobSource()
@@ -358,7 +358,7 @@ export async function nodeToMarkdown(node: TNode): Promise<string> {
   }
   const text = node.getText()
   if (text) {
-    const doc = await TDoc.fromNodeTextData(text)
+    const doc = TDoc.fromNodeTextData(text)
     md = md.concat(slateToMarkdown(doc.slate))
   }
   return md

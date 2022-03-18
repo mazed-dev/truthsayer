@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import styled from '@emotion/styled'
 
@@ -87,6 +87,21 @@ export const SearchGrid = ({
   const [fetchAbortController, setFetchAbortController] =
     useState<AbortController | null>(null)
 
+  const handleScroll = () => {
+    if (!fetching && isScrolledToBottom()) {
+      setNextBatchTrigger((prev) => prev + 1)
+    }
+  }
+  useEffect(() => {
+    if (!portable) {
+      window.addEventListener('scroll', handleScroll, { passive: true })
+      return () => {
+        window.removeEventListener('scroll', handleScroll)
+      }
+    }
+    return () => {}
+  }, [])
+
   const isScrolledToBottom = () => {
     let height: number = 0
     let scrollTop: number = 0
@@ -127,23 +142,6 @@ export const SearchGrid = ({
       fetchAbortController?.abort()
     }
   }, [nextBatchTrigger])
-
-  const handleScroll = () => {
-    if (!fetching && isScrolledToBottom()) {
-      setNextBatchTrigger((prev) => prev + 1)
-    }
-  }
-
-  useAsyncEffect(async () => {
-    if (!portable) {
-      window.addEventListener('scroll', handleScroll, { passive: true })
-    }
-    return () => {
-      if (!portable) {
-        window.removeEventListener('scroll', handleScroll)
-      }
-    }
-  }, [])
   useAsyncEffect(async () => {
     // This is an effect to spin up a new search only from search text "q", this
     // is why thie effect is called only when "q" props is changed.

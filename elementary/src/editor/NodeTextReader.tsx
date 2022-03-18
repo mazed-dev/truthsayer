@@ -1,7 +1,7 @@
-// @ts-nocheck
+/** @jsxImportSource @emotion/react */
 
-import React, { useState, useCallback, useMemo } from 'react'
-import { useAsyncEffect } from 'use-async-effect'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import { css } from '@emotion/react'
 import { Editable, Slate, withReact } from 'slate-react'
 import type { Descendant } from 'slate'
 import { createEditor } from 'slate'
@@ -14,6 +14,7 @@ import { withImages } from './plugins/image'
 import { Leaf } from './components/Leaf'
 
 import { TDoc } from './types'
+import { TNode } from 'smuggler-api'
 
 import { makeElementRender } from './ElementRender'
 
@@ -25,15 +26,10 @@ export const NodeTextReader = ({
   className?: string
 }) => {
   const [value, setValue] = useState<Descendant[]>([])
-  useAsyncEffect(
-    async (isMounted) => {
-      const doc = await TDoc.fromNodeTextData(node.getText())
-      if (isMounted()) {
-        setValue(doc.slate)
-      }
-    },
-    [node]
-  )
+  useEffect(() => {
+    const doc = TDoc.fromNodeTextData(node.text)
+    setValue(doc.slate)
+  }, [node])
   const renderElement = useCallback(
     (props) => <ReadOnlyElement nid={node.nid} {...props} />,
     [node]
@@ -57,6 +53,9 @@ export const NodeTextReader = ({
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           readOnly
+          css={css`
+            padding: 1em;
+          `}
         />
       </Slate>
     </div>

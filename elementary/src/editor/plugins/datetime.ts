@@ -1,16 +1,18 @@
-import { ReactEditor } from 'slate-react'
-
 import { Editor, Element, Range, Transforms } from 'slate'
 
 import type { Moment } from 'moment'
 
-import { kSlateBlockTypeDateTime, DateTimeElement } from '../types'
+import {
+  kSlateBlockTypeDateTime,
+  DateTimeElement,
+  CustomEditor,
+} from '../types'
 
 const tryParseDate = (text: string): Moment | null => {
   return null
 }
 
-export const withDateTime = (editor: ReactEditor) => {
+export const withDateTime = (editor: CustomEditor) => {
   const { insertData, insertText, isInline, isVoid } = editor
 
   editor.isInline = (element) => {
@@ -45,7 +47,7 @@ export const withDateTime = (editor: ReactEditor) => {
   return editor
 }
 
-const insertDateTime = (editor: ReactEditor, text?: string) => {
+const insertDateTime = (editor: CustomEditor, text?: string) => {
   if (editor.selection && text != null) {
     const date = tryParseDate(text)
     if (date) {
@@ -54,7 +56,7 @@ const insertDateTime = (editor: ReactEditor, text?: string) => {
   }
 }
 
-const isDateTimeActive = (editor: ReactEditor) => {
+const isDateTimeActive = (editor: CustomEditor) => {
   const [element] = Editor.nodes(editor as Editor, {
     match: (n) =>
       !Editor.isEditor(n) &&
@@ -64,7 +66,7 @@ const isDateTimeActive = (editor: ReactEditor) => {
   return !!element
 }
 
-const unwrapDateTime = (editor: ReactEditor) => {
+const unwrapDateTime = (editor: CustomEditor) => {
   Transforms.unwrapNodes(editor as Editor, {
     match: (n) =>
       !Editor.isEditor(n) &&
@@ -73,7 +75,7 @@ const unwrapDateTime = (editor: ReactEditor) => {
   })
 }
 
-const wrapDateTime = (editor: ReactEditor, text: string, date: Moment) => {
+const wrapDateTime = (editor: CustomEditor, text: string, date: Moment) => {
   if (isDateTimeActive(editor)) {
     unwrapDateTime(editor)
   }

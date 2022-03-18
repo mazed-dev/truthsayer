@@ -526,12 +526,12 @@ export class TDoc {
     return { slate, draft: null, chunks: null }
   }
 
-  static async fromNodeTextData(text: NodeTextData): Promise<TDoc> {
+  static fromNodeTextData(text: NodeTextData): TDoc {
     const { slate } = text
     if (slate) {
       return new TDoc(slate as SlateText)
     }
-    throw Error(`Incorrect text data ${text}`)
+    return this.makeEmpty()
   }
 
   static makeEmpty(): TDoc {

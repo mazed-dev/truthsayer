@@ -1,5 +1,8 @@
+/** @jsxImportSource @emotion/react */
+
 import React, { useState } from 'react'
 import { useAsyncEffect } from 'use-async-effect'
+import styled from '@emotion/styled'
 
 import type { NodeTextData } from 'smuggler-api'
 import { TNode, smuggler } from 'smuggler-api'
@@ -7,6 +10,10 @@ import { NodeTextEditor } from './editor/NodeTextEditor'
 import { SlateText, TDoc } from './editor/types'
 import { Spinner } from './spinner/mod'
 import { NodeMedia } from './media/NodeMedia'
+
+const Box = styled.div`
+  border-radius: inherit;
+`
 
 export function NodeCard({
   node,
@@ -17,18 +24,15 @@ export function NodeCard({
   saveNode: (text: NodeTextData) => Promise<Response> | undefined
   className?: string
 }) {
-  const saveText =
-    saveNode == null
-      ? undefined
-      : (text: SlateText) => {
-          const doc = new TDoc(text)
-          saveNode(doc.toNodeTextData())
-        }
+  const saveText = (text: SlateText) => {
+    const doc = new TDoc(text)
+    saveNode(doc.toNodeTextData())
+  }
   return (
-    <div className={className}>
+    <Box className={className}>
       <NodeMedia node={node} />
       <NodeTextEditor node={node} saveText={saveText} />
-    </div>
+    </Box>
   )
 }
 

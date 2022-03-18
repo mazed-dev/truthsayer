@@ -35,7 +35,7 @@ const CreatedAt = styled.div`
 `
 
 const Badge = styled.div`
-  padding: 4px 4px 0 4px;
+  padding: 4px 8px 20px 0;
 `
 
 const Column = styled.div`
@@ -45,16 +45,18 @@ const Column = styled.div`
 export const NodeTimeBadge = ({
   created_at,
   updated_at,
+  className,
 }: {
   created_at: moment.Moment
   updated_at: moment.Moment
+  className?: string
 }) => {
   let tooltip = `Created ${formatFullDate(created_at)}`
   if (!created_at.isSame(updated_at)) {
     tooltip += `, updated ${formatFullDate(updated_at)}`
   }
   return (
-    <Badge>
+    <Badge className={className}>
       <Column>
         <HoverTooltip tooltip={tooltip}>
           <CreatedAt>{formatDate(created_at)}</CreatedAt>
