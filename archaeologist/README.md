@@ -18,20 +18,20 @@ Local build of the extension talks to the local instance of `truthsayer` (`http:
 
 To build and run local version of archaeologist for **Chrome** run:
 ```
-% yarn archaeologist run:chrome:local
+yarn archaeologist run:chrome:local
 ```
 for public version (which uses prod smuggler) run:
 ```
-% yarn archaeologist run:chrome:public
+yarn archaeologist run:chrome:public
 ```
 
 To build and run local version of archaeologist for **Firefox** run:
 ```
-% yarn archaeologist run:firefox:local
+yarn archaeologist run:firefox:local
 ```
 for public version (which uses prod smuggler) run:
 ```
-% yarn archaeologist run:firefox:public
+yarn archaeologist run:firefox:public
 ```
 
 ### How to publish
