@@ -3,6 +3,7 @@
  */
 
 import * as queryString from 'query-string'
+import { Optional } from './optional'
 
 export type MimeParamsValue = string | string[] | null
 export type MimeParams = Record<string, MimeParamsValue>
@@ -37,6 +38,71 @@ function isImage(mime: MimeType): boolean {
   return parse(mime).type === 'image'
 }
 
+/**
+ * Ensure an input raw string is one of the supported Mime types
+ *
+ * Mime types described as raw strings can be encountered at a variaty of
+ * outer boundaries of Mazed, e.g. 3rd-party APIs. Inside the codebase itself
+ * however there is a finite number of types recognised by the system, enumerated
+ * by MimeType.
+ * This function may be useful to sanitise raw strings and ensure that only
+ * supported types propagate through the system.
+ */
+function fromString(rawMime: string): Optional<MimeType> {
+  // The implementation of this function may look very bizzare and a reader
+  // may wonder why a more robust, shorter implementation like
+  // https://stackoverflow.com/questions/43804805/check-if-value-exists-in-enum-in-typescript/47755096#47755096
+  // has not been used.
+  //
+  // A lengthy switch-case has been chosen delibirately because of performance
+  // implications of Object.values(). Minor gains in performance were considered
+  // meaningful as this method may be called in parts of the code which iterate
+  // over storages of user files which can include very large numbers of items.
+  switch (rawMime) {
+    case Mime.JSON: {
+      return Mime.JSON
+    }
+    case Mime.PDF: {
+      return Mime.PDF
+    }
+    case Mime.FORM_DATA: {
+      return Mime.FORM_DATA
+    }
+    case Mime.TEXT_URI_LIST: {
+      return Mime.TEXT_URI_LIST
+    }
+    case Mime.TEXT_PLAIN: {
+      return Mime.TEXT_PLAIN
+    }
+    case Mime.TEXT_PLAIN_UTF_8: {
+      return Mime.TEXT_PLAIN_UTF_8
+    }
+    case Mime.IMAGE_BMP: {
+      return Mime.IMAGE_BMP
+    }
+    case Mime.IMAGE_GIF: {
+      return Mime.IMAGE_GIF
+    }
+    case Mime.IMAGE_JPEG: {
+      return Mime.IMAGE_JPEG
+    }
+    case Mime.IMAGE_PNG: {
+      return Mime.IMAGE_PNG
+    }
+    case Mime.IMAGE_SVG_XML: {
+      return Mime.IMAGE_SVG_XML
+    }
+    case Mime.IMAGE_TIFF: {
+      return Mime.IMAGE_TIFF
+    }
+    case Mime.IMAGE_WEBP: {
+      return Mime.IMAGE_WEBP
+    }
+    default:
+      return null
+  }
+}
+
 export const Mime = {
   JSON: 'application/json',
   PDF: 'application/pdf',
@@ -53,6 +119,7 @@ export const Mime = {
   IMAGE_WEBP: 'image/webp',
 
   parse,
+  fromString,
 
   isImage,
   isText,

@@ -1,4 +1,5 @@
 import { MimeType, Mime } from './mime'
+import { Optional } from './optional'
 
 test('Mime.parse', () => {
   ;[
@@ -32,5 +33,23 @@ test('Mime.isText', () => {
     Mime.TEXT_URI_LIST,
   ].forEach((m: MimeType) => {
     expect(Mime.isText(m)).toStrictEqual(true)
+  })
+})
+
+test('Mime.fromString is exhaustive and covers all supported types', () => {
+  // GIVEN
+  const supportedTypes = Object.values(Mime).filter(
+    // filter out non-enum values, e.g. methods like fromString()
+    (value): value is string => {
+      return typeof value === 'string'
+    }
+  )
+
+  supportedTypes.forEach((typeString: string) => {
+    // WHEN
+    const parsed: Optional<MimeType> = Mime.fromString(typeString)
+    // THEN
+    expect(parsed).not.toBeNull()
+    expect(parsed).toBe(typeString)
   })
 })
