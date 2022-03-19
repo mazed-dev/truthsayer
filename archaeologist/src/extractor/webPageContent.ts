@@ -17,14 +17,13 @@ import { PreviewImageSmall } from 'smuggler-api'
 
 import { Readability as MozillaReadability } from '@mozilla/readability'
 
-import { MimeType, Mime, log, isAbortError, stabiliseUrl } from 'armoury'
+import { MimeType, Mime, log, stabiliseUrl } from 'armoury'
 
 async function fetchImagePreviewAsBase64(
   url: string,
   document_: Document,
   dstSquareSize: number
-): Promise<PreviewImageSmall | null> {
-  console.log('fetchImagePreviewAsBase64', url)
+): Promise<PreviewImageSmall> {
   // Load the image
   return new Promise((resolve, reject) => {
     const image = document_.createElement('img')
@@ -33,7 +32,6 @@ async function fetchImagePreviewAsBase64(
     }
     image.onerror = reject
     image.onload = (_ev) => {
-      console.log('fetchImagePreviewAsBase64 image.onload', _ev)
       // Crop image, getting the biggest square from the center
       // and resize it down to [dstSquareSize] - we don't need more for preview
       const { width, height } = image
@@ -44,7 +42,18 @@ async function fetchImagePreviewAsBase64(
       const canvas = document_.createElement('canvas')
       canvas.width = dstSquareSize
       canvas.height = dstSquareSize
-      canvas.getContext('2d')?.drawImage(
+      const ctx = canvas.getContext('2d')
+      if (ctx == null) {
+        throw new Error("Can't make a canvas with the received image")
+      }
+      // Render white rectangle behind the image, just in case the image has
+      // transparent background. Without it the background has a random colour,
+      // black in my browser for instance. Default background colour depends on
+      // multiple user settings in browser, so we can't rely on it.
+      // https://stackoverflow.com/a/52672952
+      ctx.fillStyle = '#FFF'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.drawImage(
         image,
         srcDeltaX,
         srcDeltaY,
@@ -56,14 +65,8 @@ async function fetchImagePreviewAsBase64(
         dstSquareSize
       )
       const content_type = Mime.IMAGE_JPEG
-      try {
-        const data = canvas.toDataURL(content_type)
-        resolve(data ? { data, content_type } : null)
-      } catch (err) {
-        if (!isAbortError(err)) {
-          log.exception(err)
-        }
-      }
+      const data = canvas.toDataURL(content_type)
+      resolve({ data, content_type })
     }
     image.src = url
   })
@@ -348,37 +351,39 @@ export async function _exctractPageImage(
   baseURL: string
 ): Promise<WebPageContentImage | null> {
   const head = document_.head
-  let favicon = null
-  let og = null
+  const refs: string[] = []
   if (head == null) {
     return null
   }
-  for (const elementsGroup of [
-    head.querySelectorAll('meta[property="og:image"]'),
-    head.querySelectorAll('meta[name="twitter:image"]'),
+  // These are possible HTML DOM elements that might contain preview image.
+  // - Open Graph image.
+  // - Twitter preview image.
+  // - VK preview image.
+  // - Favicon, locations according to https://en.wikipedia.org/wiki/Favicon,
+  //    with edge case for Apple specific web page icon.
+  for (const [selector, attribute] of [
+    ['meta[property="og:image"]', 'content'],
+    ['meta[name="twitter:image"]', 'content'],
+    ['meta[name="vk:image"]', 'content'],
+    ['link[rel="apple-touch-icon"]', 'href'],
+    ['link[rel="shortcut icon"]', 'href'],
+    ['link[rel="icon"]', 'href'],
   ]) {
-    for (const element of elementsGroup) {
-      const ref = element.getAttribute('content')?.trim()
+    for (const element of head.querySelectorAll(selector)) {
+      const ref = element.getAttribute(attribute)?.trim()
       if (ref) {
-        og = ensureAbsRef(ref, baseURL)
-        break
+        const absRef = ensureAbsRef(ref, baseURL)
+        refs.push(absRef)
       }
     }
-    if (og !== null) {
-      break
+  }
+  for (const ref of refs) {
+    try {
+      const icon = await fetchImagePreviewAsBase64(ref, document_, 240)
+      return icon
+    } catch (err) {
+      log.debug('Mazed: preview image extraction failed with', err)
     }
   }
-  for (const element of head.querySelectorAll('link[rel="icon"]')) {
-    const ref = element.getAttribute('href')?.trim()
-    if (ref) {
-      favicon = ensureAbsRef(ref, baseURL)
-      break
-    }
-  }
-  const icon = og
-    ? await fetchImagePreviewAsBase64(og, document_, 240)
-    : favicon
-    ? await fetchImagePreviewAsBase64(favicon, document_, 240)
-    : null
-  return icon ? icon : null
+  return null
 }

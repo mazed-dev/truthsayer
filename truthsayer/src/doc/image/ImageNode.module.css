@@ -9,6 +9,8 @@
 
   border-style: none;
   border-radius: inherit;
+
+  cursor: zoom-in;
 }
 
 .image_full {

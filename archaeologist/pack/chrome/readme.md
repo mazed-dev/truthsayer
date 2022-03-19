@@ -1,5 +1,9 @@
 # Chrome/Chrome extension
 
+## Link in Chrome web store
+
+[Latest published archaeologist for Chrome can be found here](https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc).
+
 ## Import extension from zip archive
 
 Build a latest `.zip` archive with extension with:
