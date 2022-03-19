@@ -16,38 +16,28 @@ Local dev environment here and further is referenced as just "local" (build/set-
 
 Local build of the extension talks to the local instance of `truthsayer` (`http://localhost:3000/`), so to make local build of the extension work you need to spin up both `smuggler` and `truthsayer` beforehand.
 
-### Chrome: local
-
-To build local dev version run:
-
+To build and run local version of archaeologist for **Chrome** run:
 ```
-yarn archaeologist build:chrome:local
+yarn archaeologist run:chrome:local
 ```
-
-The result will be in `truthsayer/archaeologist/target/unpacked/`.
-
-Extension can be imported from a file to Chrome or Chromium in dev mode:
-
-1. Visit [chrome://extensions](chrome://extensions) (via [`omnibox`](https://developer.chrome.com/docs/extensions/reference/omnibox/) or "menu" -> "Tools" -> "Extensions").
-2. Enable "Developer mode" by ticking the checkbox in the top right corner.
-3. Click on the "Load unpacked extension..." button.
-4. Select the directory containing built extension: `truthsayer/archaeologist/target/unpacked/`
-
-Later on the extension could be reloaded with a button reload "⟳" in "Extensions" menu.
-
-### Chrome: public
-
-To build public version that talks to `https://mazed.dev` run:
-
+for public version (which uses prod smuggler) run:
 ```
-yarn archaeologist build:chrome:public
+yarn archaeologist run:chrome:public
 ```
 
-After that repeat steps from importing dev version to your browser.
+To build and run local version of archaeologist for **Firefox** run:
+```
+yarn archaeologist run:firefox:local
+```
+for public version (which uses prod smuggler) run:
+```
+yarn archaeologist run:firefox:public
+```
 
-### Chrome Web Store
+### How to publish
 
-An instructions on how to publish fresh version of Mazed Chrome extension are in [`pack/chrome/readme.md`](./pack/chrome/readme.md).
+- For Chrome web store see [`pack/chrome/readme.md`](./pack/chrome/readme.md).
+- For Mozilla web store see [`pack/firefox/readme.md`](./pack/firefox/readme.md).
 
 ## Design
 
