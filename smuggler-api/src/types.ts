@@ -186,6 +186,56 @@ export class TNode {
     const { nid } = this
     return makeUrl(`/blob/${nid}`)
   }
+
+  toJson(): any {
+    const {
+      nid,
+      ntype,
+      text,
+      created_at,
+      updated_at,
+      meta,
+      extattrs,
+      index_text,
+      crypto,
+    } = this
+    return {
+      nid,
+      ntype,
+      text,
+      created_at: created_at.unix(),
+      updated_at: updated_at.unix(),
+      meta,
+      extattrs,
+      index_text,
+      crypto,
+    }
+  }
+
+  static fromJson(json: any): TNode {
+    const {
+      nid,
+      ntype,
+      text,
+      created_at,
+      updated_at,
+      meta,
+      extattrs,
+      index_text,
+      crypto,
+    } = json
+    return new TNode(
+      nid,
+      ntype,
+      text,
+      moment.unix(created_at),
+      moment.unix(updated_at),
+      meta,
+      extattrs,
+      index_text,
+      crypto
+    )
+  }
 }
 
 export type EdgeAttributes = {

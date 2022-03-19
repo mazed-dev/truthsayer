@@ -6,7 +6,7 @@ interface SavedStatusRequest {
 
 interface SavedStatusResponse {
   type: 'SAVED_NODE'
-  nid?: string
+  node?: any
   unmemorable?: boolean
 }
 

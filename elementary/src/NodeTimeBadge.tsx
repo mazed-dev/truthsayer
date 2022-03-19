@@ -23,7 +23,7 @@ function formatDate(m: moment.Moment) {
   })
 }
 
-function formatFullDate(m: moment.Moment) {
+function formatFullDate(m: moment.Moment): string {
   return m.format('dddd, MMMM Do YYYY, HH:mm')
 }
 
