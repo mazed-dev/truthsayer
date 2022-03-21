@@ -4146,7 +4146,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"argparse@npm:^1.0.10, argparse@npm:^1.0.7":
+"argparse@npm:^1.0.7":
   version: 1.0.10
   resolution: "argparse@npm:1.0.10"
   dependencies:
@@ -4193,6 +4193,7 @@ __metadata:
     "@types/xxhashjs": ^0.2.2
     eslint: ^7.11.0
     jest: 26.6.0
+    js-base64: ^3.6
     normalize-url: ^7.0.3
     prettier: ^2.2
     query-string: ^7.0.0
@@ -4446,15 +4447,6 @@ __metadata:
   version: 1.0.0
   resolution: "atomic-sleep@npm:1.0.0"
   checksum: b95275afb2f80732f22f43a60178430c468906a415a7ff18bcd0feeebc8eec3930b51250aeda91a476062a90e07132b43a1794e8d8ffcf9b650e8139be75fa36
-  languageName: node
-  linkType: hard
-
-"autolinker@npm:^3.11.0":
-  version: 3.14.3
-  resolution: "autolinker@npm:3.14.3"
-  dependencies:
-    tslib: ^1.9.3
-  checksum: 4a2bce8d7a77cfb8386ce10b4fb0f8267256af3dbc216c016ba4b970bfd1c9afcd70c2a17f3bc8f81c3de414f8690dbee71eb767519f07f3d6c03c15a9264260
   languageName: node
   linkType: hard
 
@@ -7324,15 +7316,31 @@ __metadata:
     "@testing-library/jest-dom": ^5.14.1
     "@testing-library/react": ^12.1.0
     "@testing-library/user-event": ^12.6
+    "@types/is-url": ^1.2.30
     "@types/jsdom": ^16.2.13
+    armoury: 0.0.1
     eslint: ^7.11.0
+    image-extensions: ^1.1.0
+    is-url: ^1.2.4
     jest: 26.6.0
     jsdom: ^17.0.0
+    lodash: ^4.17.21
+    moment: ^2.29.1
     prettier: ^2.2
+    react: ^17.0.2
+    react-bootstrap: ^2.0.0
+    react-router-dom: ^5.1
+    remark-parse: ^9.0.0
+    remark-slate: ^1.8.0
+    slate: ^0.65.3
+    slate-history: ^0.65.3
+    slate-react: ^0.65.3
+    smuggler-api: 0.0.1
     ts-jest: ^26.4.2
     typescript: 4.1.3
+    unified: ^6.1.5
+    use-async-effect: ^2.2.3
   peerDependencies:
-    react: ^17.0.2
     react-dom: ^17.0.2
   languageName: unknown
   linkType: soft
@@ -12243,15 +12251,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"markdown-draft-js@npm:^2.2.1":
-  version: 2.4.0
-  resolution: "markdown-draft-js@npm:2.4.0"
-  dependencies:
-    remarkable: ^2.0.1
-  checksum: ccbfe0256373cdc1b018619c6f085d75458ef97d0d64d48aada62c3a6b02dbb6af3adcca1885183dd4d396bb3ef3e3361205deb2d7f76dda3adad997217ed2f3
-  languageName: node
-  linkType: hard
-
 "marky@npm:^1.2.2":
   version: 1.2.4
   resolution: "marky@npm:1.2.4"
@@ -15778,18 +15777,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remarkable@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "remarkable@npm:2.0.1"
-  dependencies:
-    argparse: ^1.0.10
-    autolinker: ^3.11.0
-  bin:
-    remarkable: bin/remarkable.js
-  checksum: aee83ece531a7196f92e668aa76450f17bc1af77ce2939153f57b289b54f3aa3a72f355f4d57680336ab8205d53dca7ae06e6e743355ad2d4868cc7c85eafe89
-  languageName: node
-  linkType: hard
-
 "remove-trailing-separator@npm:^1.0.1":
   version: 1.1.0
   resolution: "remove-trailing-separator@npm:1.1.0"
@@ -18079,13 +18066,10 @@ __metadata:
     eslint-plugin-react: ^7.16.0
     fbjs: ^3.0.0
     http-status-codes: 2.1.4
-    image-extensions: ^1.1.0
     is-url: ^1.2.4
-    js-base64: ^3.6
     keycode: ^2.2
     local-storage: ^2.0
     lodash: ^4.17.21
-    markdown-draft-js: ^2.2.1
     moment: ^2.29.1
     node-emoji: ^1
     prettier: ^2.2
@@ -18099,15 +18083,9 @@ __metadata:
     react-router-dom: ^5.1
     react-scripts: ^4.0.3
     regenerator-runtime: ^0.13.7
-    remark-parse: ^9.0.0
-    remark-slate: ^1.8.0
-    slate: ^0.65.3
-    slate-history: ^0.65.3
-    slate-react: ^0.65.3
     smuggler-api: 0.0.1
     ts-node: ^9.1.1
     typescript: 4.1.3
-    unified: ^6.1.5
     universal-cookie: ^4.0
     use-async-effect: ^2.2.3
     uuid: ^3.3
@@ -18203,7 +18181,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^1.8.1, tslib@npm:^1.9.3":
+"tslib@npm:^1.8.1":
   version: 1.14.1
   resolution: "tslib@npm:1.14.1"
   checksum: dbe628ef87f66691d5d2959b3e41b9ca0045c3ee3c7c7b906cc1e328b39f199bb1ad9e671c39025bd56122ac57dfbf7385a94843b1cc07c60a4db74795829acd

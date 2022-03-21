@@ -12,9 +12,8 @@ import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
 import { goto, History } from '../lib/route'
 
 import { smuggler, NewNodeResponse } from 'smuggler-api'
-import { TDoc } from '../doc/doc_util'
+import { TDoc } from 'elementary'
 import { TNode } from 'smuggler-api'
-import { SmallCard } from './SmallCard'
 
 import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
 import {
@@ -23,6 +22,7 @@ import {
   MdiFileUpload,
   MdiSearch,
   StyleButtonWhite,
+  SmallCard,
 } from 'elementary'
 import { Optional } from 'armoury'
 import { log } from 'armoury'
@@ -62,7 +62,7 @@ async function cloneNode({
   if (!node) {
     return null
   }
-  let doc = await TDoc.fromNodeTextData(node.getText())
+  let doc = TDoc.fromNodeTextData(node.getText())
   doc = doc.makeACopy(node.getNid(), isBlank || false)
   try {
     return await smuggler.node.create({
@@ -228,6 +228,7 @@ export const ChainActionBar = ({
         border-color: rgba(0, 0, 0, 0.28);
         border-style: dashed;
         box-shadow: none;
+        padding: 0;
       `}
     >
       <CustomDropdown>
