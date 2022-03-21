@@ -84,7 +84,7 @@ const BadgeBox = styled.div`
 
 const TitleBox = styled.div`
   display: inline-block;
-  margin: 5px 4px 0 10px;
+  margin: 8px 4px 0 8px;
 `
 
 const Title = styled.p`
