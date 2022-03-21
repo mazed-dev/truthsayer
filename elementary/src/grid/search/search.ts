@@ -1,6 +1,42 @@
 import type { TNode, NodeExtattrs } from 'smuggler-api'
 import type { Optional } from 'armoury'
-import { TDoc, SlateText } from '../../editor/types'
+import { TDoc } from '../../editor/types'
+
+export class Beagle {
+  all: RegExp[]
+
+  constructor(all: RegExp[]) {
+    this.all = all
+  }
+
+  static fromString(s: string): Beagle {
+    const all: RegExp[] = []
+    const exactRe = /"(.*?)"/g
+    let exactMatch
+    while ((exactMatch = exactRe.exec(s)) !== null) {
+      const phrase = exactMatch[1]
+      all.push(new RegExp(phrase))
+    }
+    s = s.replace(exactRe, ' ')
+    for (const word of s.split(/[.,:;!?\s]/)) {
+      const lower = word.toLowerCase().trim()
+      if (lower) {
+        all.push(new RegExp(lower, 'i'))
+      }
+    }
+    return new Beagle(all)
+  }
+}
+
+function makePattern(q: string | null): Optional<RegExp> {
+  if (q == null || q.length < 1) {
+    return null
+  }
+  // TODO(akindyakov) Use multiline search here
+  const flags = true ? '' : 'i'
+  return new RegExp(q, flags)
+}
+
 
 /**
     nid: nid,

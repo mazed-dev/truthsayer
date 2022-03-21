@@ -15,8 +15,7 @@ import { NodeTimeBadge } from '../NodeTimeBadge'
 
 import { smuggler, TNodeSliceIterator, TNode } from 'smuggler-api'
 
-import type { Optional } from 'armoury'
-import { log, isAbortError, isSmartCase } from 'armoury'
+import { log, isAbortError } from 'armoury'
 
 import { DynamicGrid } from './DynamicGrid'
 import { NodeCardReadOnly } from '../NodeCardReadOnly'
@@ -52,15 +51,6 @@ export const GridCard = ({
       {children}
     </SmallCard>
   )
-}
-
-function makePattern(q: string | null): Optional<RegExp> {
-  if (q == null || q.length < 2) {
-    return null
-  }
-  // TODO(akindyakov) Use multiline search here
-  const flags = isSmartCase(q) ? '' : 'i'
-  return new RegExp(q, flags)
 }
 
 export const SearchGrid = ({

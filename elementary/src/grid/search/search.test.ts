@@ -1,4 +1,4 @@
-import { _matchesPattern, _extattrsMatchesPattern } from './search'
+import { _matchesPattern, _extattrsMatchesPattern, Beagle } from './search'
 
 test('_matchesPattern', () => {
   expect(_matchesPattern(/.*/, null)).toStrictEqual(false)
@@ -53,4 +53,12 @@ test('_extattrsMatchesPattern', () => {
       content_type: 'image/jpg',
     })
   ).toStrictEqual(true)
+})
+
+test('Beagle.fromString', () => {
+  const beagle = Beagle.fromString('Oxygen "font family"')
+  expect(beagle.all).toStrictEqual([
+    /font family/,
+    /oxygen/i,
+  ])
 })
