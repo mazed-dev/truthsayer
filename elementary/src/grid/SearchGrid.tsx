@@ -19,7 +19,7 @@ import { log, isAbortError } from 'armoury'
 
 import { DynamicGrid } from './DynamicGrid'
 import { NodeCardReadOnly } from '../NodeCardReadOnly'
-import { searchNodeFor } from './search/search'
+import { Beagle } from './search/search'
 import { styleMobileTouchOnly } from '../util/xstyle'
 
 const BoxPortable = styled.div`
@@ -69,7 +69,7 @@ export const SearchGrid = ({
 }>) => {
   const history = useHistory()
   const ref = useRef<HTMLDivElement>(null)
-  const pattern = makePattern(q)
+  const [beagle, setBeagle] = useState<Beagle | null>(null)
   const [nodes, setNodes] = useState<TNode[]>([])
   const [fetching, setFetching] = useState<boolean>(false)
   const [nextBatchTrigger, setNextBatchTrigger] = useState<number>(0)
@@ -115,10 +115,10 @@ export const SearchGrid = ({
     try {
       while (isScrolledToBottom()) {
         const node = await iter?.next()
-        if (!node) {
+        if (node == null) {
           break
         }
-        if (!pattern || searchNodeFor(node, pattern)) {
+        if (beagle == null || beagle?.searchNode(node) != null) {
           setNodes((prev) => [...prev, node])
         }
       }
@@ -142,9 +142,13 @@ export const SearchGrid = ({
     // - nextBatchTrigger - to trigger first iteration of fetching with another
     // react effect declared above.
     setNodes([])
-    if (pattern == null && !defaultSearch) {
-      setIter(null)
-      return
+    if (q != null) {
+      setBeagle(Beagle.fromString(q))
+    } else {
+      if (!defaultSearch) {
+        setIter(null)
+        return
+      }
     }
     if (fetchAbortController != null) {
       fetchAbortController.abort()

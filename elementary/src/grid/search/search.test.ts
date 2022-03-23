@@ -1,64 +1,29 @@
-import { _matchesPattern, _extattrsMatchesPattern, Beagle } from './search'
+import { _searchFieldsFor, _exactPatternsFromString } from './search'
 
-test('_matchesPattern', () => {
-  expect(_matchesPattern(/.*/, null)).toStrictEqual(false)
-  expect(_matchesPattern(/.*/, undefined)).toStrictEqual(false)
-
-  expect(_matchesPattern(/.*/, '')).toStrictEqual(true)
-
-  expect(_matchesPattern(/abc/, '--abc--')).toStrictEqual(true)
-  expect(_matchesPattern(/aBc/, 'aBc--')).toStrictEqual(true)
-  expect(_matchesPattern(/aBc/, '--aBc')).toStrictEqual(true)
+test('Beagle.fromString simple', () => {
+  const allOf = _exactPatternsFromString('Oxygen font family')
+  expect(allOf).toStrictEqual([/oxygen/i, /font/i, /family/i])
 })
 
-test('_extattrsMatchesPattern', () => {
-  expect(
-    _extattrsMatchesPattern(/png/, {
-      content_type: 'image/jpg',
-    })
-  ).toStrictEqual(false)
-
-  expect(
-    _extattrsMatchesPattern(/en/, {
-      content_type: 'image/jpg',
-      lang: 'en',
-    })
-  ).toStrictEqual(true)
-
-  expect(
-    _extattrsMatchesPattern(/Dickens/, {
-      content_type: 'image/jpg',
-      author: 'by Charles Dickens',
-    })
-  ).toStrictEqual(true)
-
-  expect(
-    _extattrsMatchesPattern(/twist/i, {
-      content_type: 'image/jpg',
-      title: 'Oliver Twist',
-    })
-  ).toStrictEqual(true)
-
-  expect(
-    _extattrsMatchesPattern(/orphan/i, {
-      content_type: 'image/jpg',
-      title: 'Oliver Twist',
-      description: '...Born in a workhouse, the orphan...',
-    })
-  ).toStrictEqual(true)
-
-  // Search by mime type
-  expect(
-    _extattrsMatchesPattern(/image/, {
-      content_type: 'image/jpg',
-    })
-  ).toStrictEqual(true)
+test('Beagle.fromString exact string', () => {
+  const allOf = _exactPatternsFromString('Oxygen "Font family"')
+  expect(allOf).toStrictEqual([/Font family/, /oxygen/i])
 })
 
-test('Beagle.fromString', () => {
-  const beagle = Beagle.fromString('Oxygen "font family"')
-  expect(beagle.all).toStrictEqual([
-    /font family/,
-    /oxygen/i,
-  ])
+test('searchFieldsFor allOf', () => {
+  const fields = [
+    'Glass can form naturally from volcanic magma.',
+    'Obsidian is a common volcanic glass with high silica (SiO2) content formed when felsic lava extruded from a volcano cools rapidly.',
+  ]
+  expect(_searchFieldsFor(fields, [/obsidian/i])).toStrictEqual(true)
+
+  expect(
+    _searchFieldsFor(fields, [/obsidian/i, /common volcanic glass/, /magma/])
+  ).toStrictEqual(true)
+
+  expect(_searchFieldsFor(fields, [/magma obsidian/i, /silica/])).toStrictEqual(
+    false
+  )
+
+  expect(_searchFieldsFor(fields, [/silica SiO2/i])).toStrictEqual(false)
 })
