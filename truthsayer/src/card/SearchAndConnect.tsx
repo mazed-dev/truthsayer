@@ -1,7 +1,7 @@
 import React from 'react'
 import { Modal, Form } from 'react-bootstrap'
 
-import { SearchGrid } from '../grid/SearchGrid'
+import { SearchGrid } from 'elementary'
 
 import lodash from 'lodash'
 

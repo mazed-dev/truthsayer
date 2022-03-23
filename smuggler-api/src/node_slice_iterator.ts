@@ -1,4 +1,3 @@
-import { getNodesSlice } from './api'
 import { TNode, NodeOrigin } from './types'
 import type { Optional } from 'armoury'
 
@@ -7,6 +6,28 @@ export interface INodeIterator {
   total: () => number
   exhausted: () => boolean
 }
+
+export type GetNodesSliceFn = ({
+  end_time,
+  start_time,
+  offset,
+  limit,
+  origin,
+  signal,
+}: {
+  end_time: Optional<number>
+  start_time: Optional<number>
+  offset: Optional<number>
+  limit: Optional<number>
+  origin?: NodeOrigin
+  signal?: AbortSignal
+}) => Promise<{
+  nodes: TNode[]
+  full_size: number
+  offset: number
+  start_time: number
+  end_time: number
+}>
 
 // Iterates over nodes' slice fetched lazily in batches
 //
@@ -65,7 +86,7 @@ export class TNodeSliceIterator implements INodeIterator {
   origin?: NodeOrigin
 
   signal?: AbortSignal
-  fetcher: typeof getNodesSlice
+  fetcher: GetNodesSliceFn
 
   // Limits total number of nodes emitted
   limit?: number
@@ -74,7 +95,7 @@ export class TNodeSliceIterator implements INodeIterator {
   total_counter: number
 
   constructor(
-    fetcher: typeof getNodesSlice,
+    fetcher: GetNodesSliceFn,
     signal?: AbortSignal,
     start_time?: number,
     end_time?: number,

@@ -3,9 +3,8 @@ import React from 'react'
 import { Modal, ListGroup } from 'react-bootstrap'
 
 import { Loader } from './../lib/loader'
-import { ImgButton } from './../lib/ImgButton'
 import { smuggler } from 'smuggler-api'
-import { jcss } from 'elementary'
+import { ImgButton, jcss } from 'elementary'
 
 import styles from './ShareModal.module.css'
 

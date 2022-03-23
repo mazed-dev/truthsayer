@@ -7,7 +7,7 @@ import Pkcs7 from 'crypto-js/pad-pkcs7'
 import SHA1 from 'crypto-js/sha1'
 import Utf8 from 'crypto-js/enc-utf8'
 
-import { base64 } from './../util/base64'
+import { base64 } from 'armoury'
 
 export interface TEncrypted {
   encrypted: string

@@ -7,7 +7,7 @@ import {
 import { log } from 'armoury'
 import { isAbortError } from 'armoury'
 
-import { makeDoc } from '../doc/doc_util'
+import { markdownToSlate, TDoc } from 'elementary'
 import { Mime } from 'armoury'
 import { Optional } from 'armoury'
 
@@ -141,7 +141,8 @@ function uploadLocalTextFile(
       Math.round((file.size * 100) / 1024) * 100
     }KiB\`)*\n`
     const text = (event.target?.result || '') + appendix
-    makeDoc({ plain: text }).then((doc) => {
+    markdownToSlate(text).then((slate) => {
+      const doc = new TDoc(slate)
       smuggler.node
         .create({
           text: doc.toNodeTextData(),
