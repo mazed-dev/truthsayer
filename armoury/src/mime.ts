@@ -49,58 +49,13 @@ function isImage(mime: MimeType): boolean {
  * supported types propagate through the system.
  */
 function fromString(rawMime: string): Optional<MimeType> {
-  // The implementation of this function may look very bizzare and a reader
-  // may wonder why a more robust, shorter implementation like
-  // https://stackoverflow.com/questions/43804805/check-if-value-exists-in-enum-in-typescript/47755096#47755096
-  // has not been used.
-  //
-  // A lengthy switch-case has been chosen delibirately because of performance
-  // implications of Object.values(). Minor gains in performance were considered
-  // meaningful as this method may be called in parts of the code which iterate
-  // over storages of user files which can include very large numbers of items.
-  switch (rawMime) {
-    case Mime.JSON: {
-      return Mime.JSON
-    }
-    case Mime.PDF: {
-      return Mime.PDF
-    }
-    case Mime.FORM_DATA: {
-      return Mime.FORM_DATA
-    }
-    case Mime.TEXT_URI_LIST: {
-      return Mime.TEXT_URI_LIST
-    }
-    case Mime.TEXT_PLAIN: {
-      return Mime.TEXT_PLAIN
-    }
-    case Mime.TEXT_PLAIN_UTF_8: {
-      return Mime.TEXT_PLAIN_UTF_8
-    }
-    case Mime.IMAGE_BMP: {
-      return Mime.IMAGE_BMP
-    }
-    case Mime.IMAGE_GIF: {
-      return Mime.IMAGE_GIF
-    }
-    case Mime.IMAGE_JPEG: {
-      return Mime.IMAGE_JPEG
-    }
-    case Mime.IMAGE_PNG: {
-      return Mime.IMAGE_PNG
-    }
-    case Mime.IMAGE_SVG_XML: {
-      return Mime.IMAGE_SVG_XML
-    }
-    case Mime.IMAGE_TIFF: {
-      return Mime.IMAGE_TIFF
-    }
-    case Mime.IMAGE_WEBP: {
-      return Mime.IMAGE_WEBP
-    }
-    default:
-      return null
+  const isTargetValue = (value: MimeType, index: number, obj: MimeType[]) => {
+    return value === rawMime
   }
+  if (kKnownMimeTypes.findIndex(isTargetValue) < 0) {
+    return null
+  }
+  return rawMime as MimeType
 }
 
 export const Mime = {
@@ -139,3 +94,19 @@ export type MimeType =
   | typeof Mime.IMAGE_SVG_XML
   | typeof Mime.IMAGE_TIFF
   | typeof Mime.IMAGE_WEBP
+
+const kKnownMimeTypes: MimeType[] = [
+  Mime.JSON,
+  Mime.PDF,
+  Mime.FORM_DATA,
+  Mime.TEXT_URI_LIST,
+  Mime.TEXT_PLAIN,
+  Mime.TEXT_PLAIN_UTF_8,
+  Mime.IMAGE_BMP,
+  Mime.IMAGE_GIF,
+  Mime.IMAGE_JPEG,
+  Mime.IMAGE_PNG,
+  Mime.IMAGE_SVG_XML,
+  Mime.IMAGE_TIFF,
+  Mime.IMAGE_WEBP,
+]

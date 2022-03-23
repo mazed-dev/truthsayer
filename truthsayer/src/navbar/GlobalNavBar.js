@@ -188,13 +188,13 @@ function GlobalNavBar() {
   return (
     <>
       <Navbar fixed="top" className={styles.navbar}>
-        <Navbar.Brand as={Link} to="/" className={jcss(styles.brand)}>
+        <Navbar.Brand as={Link} to="/" className={styles.brand}>
           <img
             src={getLogoImage()}
             alt={'Mazed logo'}
             className={styles.logo_image}
           />
-          <div className="d-none d-sm-none d-md-block"> Mazed </div>
+          <div className="d-none d-sm-none d-md-block">Mazed</div>
         </Navbar.Brand>
         {buttons}
       </Navbar>

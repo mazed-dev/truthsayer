@@ -18,12 +18,10 @@ import {
   AuthenticatedTemplate,
   UnauthenticatedTemplate,
 } from '@azure/msal-react'
-import { DriveItem as MsGraphDriveItem } from 'microsoft-graph'
 
 import {
   makeNodeTextData,
   NodeExtattrs,
-  NodeExtattrsWeb,
   NodeIndexText,
   NodeType,
   smuggler,
@@ -34,6 +32,7 @@ import * as MsGraph from './MicrosoftGraph'
 import * as MsAuthentication from './MicrosoftAuthentication'
 import { Client as MsGraphClient } from '@microsoft/microsoft-graph-client'
 import { Queue } from './FilesystemModificationQueue'
+
 const Button = styled.button`
   background-color: #ffffff;
   border-style: solid;

@@ -7,11 +7,10 @@ import styled from '@emotion/styled'
 import { Dropdown } from 'react-bootstrap'
 import { useHistory } from 'react-router-dom'
 
-import { MdiAdd, MdiFileUpload, StyleButtonCreate } from 'elementary'
+import { MdiAdd, MdiFileUpload, StyleButtonCreate, TDoc } from 'elementary'
 
 import { smuggler } from 'smuggler-api'
 import { goto } from './../lib/route'
-import { TDoc } from './../doc/doc_util'
 import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
 
 const CreateNodeBigIcon = styled(MdiAdd)`

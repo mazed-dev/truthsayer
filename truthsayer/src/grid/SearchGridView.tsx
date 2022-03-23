@@ -4,7 +4,7 @@ import styled from '@emotion/styled'
 import { useLocation } from 'react-router-dom'
 import { parse } from 'query-string'
 
-import { SearchGrid } from './SearchGrid'
+import { SearchGrid } from 'elementary'
 import { CreateNewNodeMenu } from './CreateNewNodeMenu'
 
 import lodash from 'lodash'
