@@ -1,4 +1,3 @@
-import { file } from '@babel/types'
 import { Client as MsGraphClient } from '@microsoft/microsoft-graph-client'
 import { log, MimeType, Mime, Optional } from 'armoury'
 import assert from 'assert'
@@ -143,7 +142,7 @@ async function fetchChildrenOf(
     if (!proxy) {
       continue
     }
-    if (proxy.category == 'file') {
+    if (proxy.category === 'file') {
       ret.files.push(proxy)
     } else {
       ret.folders.push(proxy)
@@ -249,43 +248,29 @@ function oldestModifiedFirstComparator(lhs: FsItem, rhs: FsItem) {
   return 1
 }
 
-export type QueueParams = {
-  graph: MsGraphClient
-  lastProcessed: Date
+export type QueueParams = {}
+
+/**
+ * Fetch a list of files from a filesystem, ordered by their last modification
+ * date (first elements are the oldest modified, last elements are most recently
+ * modified)
+ */
+export async function make(
+  graph: MsGraphClient,
+  lastModificationNotOlderThan: Date,
   targetFolderPath: string
-}
-
-export class Queue {
-  #graph: MsGraphClient
-  #lastProcessed: Date
-  #targetFolderPath: string
-  files: FileProxy[]
-
-  static async make(params: QueueParams): Promise<Queue> {
-    const ret = new Queue(params)
-    await ret.init()
-    return ret
+): Promise<FileProxy[]> {
+  const targetFolder: FolderProxy = {
+    category: 'folder',
+    path: targetFolderPath,
+    id: `fake-folder-id-for-${targetFolderPath}`,
+    lastModDate: new Date(MAX_TIMESTAMP),
+    children: null,
   }
 
-  private constructor({ graph, lastProcessed, targetFolderPath }: QueueParams) {
-    this.#graph = graph
-    this.#lastProcessed = lastProcessed
-    this.#targetFolderPath = targetFolderPath
-    this.files = []
-  }
-
-  private async init(): Promise<void> {
-    const targetFolder: FolderProxy = {
-      category: 'folder',
-      path: this.#targetFolderPath,
-      id: `fake-folder-id-for-${this.#targetFolderPath}`,
-      lastModDate: new Date(MAX_TIMESTAMP),
-      children: null,
-    }
-
-    this.files = await loadAllFilesInRange(this.#graph, targetFolder, {
-      start: this.#lastProcessed,
-    })
-    this.files.sort(oldestModifiedFirstComparator)
-  }
+  const files = await loadAllFilesInRange(graph, targetFolder, {
+    start: lastModificationNotOlderThan,
+  })
+  files.sort(oldestModifiedFirstComparator)
+  return files
 }

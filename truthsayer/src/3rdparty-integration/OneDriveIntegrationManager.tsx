@@ -31,7 +31,7 @@ import { Mime, log, genOriginId } from 'armoury'
 import * as MsGraph from './MicrosoftGraph'
 import * as MsAuthentication from './MicrosoftAuthentication'
 import { Client as MsGraphClient } from '@microsoft/microsoft-graph-client'
-import { Queue } from './FilesystemModificationQueue'
+import * as FsModificationQueue from './FilesystemModificationQueue'
 
 const Button = styled.button`
   background-color: #ffffff;
@@ -81,12 +81,8 @@ function beginningOf(text: string) {
 }
 
 async function uploadFilesFromFolder(graph: MsGraphClient, folderPath: string) {
-  const fileQueue = await Queue.make({
-    graph,
-    lastProcessed: new Date(0),
-    targetFolderPath: folderPath,
-  })
-  for (const file of fileQueue.files) {
+  const files = await FsModificationQueue.make(graph, new Date(0), folderPath)
+  for (const file of files) {
     if (file.mimeType !== Mime.TEXT_PLAIN) {
       log.debug(
         `Skipping ${file.path} due to unsupported Mime type ${file.mimeType}`
