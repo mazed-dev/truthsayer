@@ -100,7 +100,7 @@ export type NodeIndexText = {
   dominant_colors: Color[]
 }
 
-export class TNode {
+export class TNodeJson {
   nid: string
 
   // There is no proper Unions or typed Enums in TypeScript, so I used optional
@@ -145,6 +145,31 @@ export class TNode {
     this.extattrs = extattrs
     this.index_text = index_text
     this.crypto = _crypto
+  }
+}
+
+export class TNode extends TNodeJson {
+  constructor(
+    nid: string,
+    ntype: number,
+    text: NodeTextData,
+    created_at: moment.Moment,
+    updated_at: moment.Moment,
+    meta?: NodeMeta,
+    extattrs?: NodeExtattrs,
+    index_text?: NodeIndexText,
+    _crypto?: TNodeCrypto
+  ) {
+    super(
+     nid,
+     ntype,
+     text,
+     created_at,
+     updated_at,
+     meta,
+     extattrs,
+     index_text,
+     _crypto,)
   }
 
   isOwnedBy(account?: AccountInterface): boolean {

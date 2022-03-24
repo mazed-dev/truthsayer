@@ -39,7 +39,6 @@ export const ViewActiveTabStatus = () => {
         case 'SAVED_NODE':
           const { node, unmemorable } = message
           if (node != null) {
-            // setPageSavedNode(TNode.fromJson(node))
             setPageSavedNode(node)
             setPageStatus('saved')
           } else if (unmemorable) {
