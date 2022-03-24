@@ -24,7 +24,7 @@ import {
   StyleButtonWhite,
   SmallCard,
 } from 'elementary'
-import { Optional } from 'armoury'
+import { errorise, Optional } from 'armoury'
 import { log } from 'armoury'
 import { isAbortError } from 'armoury'
 
@@ -52,7 +52,8 @@ async function cloneNode({
       nid,
       signal: abortSignal,
     })
-    .catch((err) => {
+    .catch((exception) => {
+      const err = errorise(exception)
       if (isAbortError(err)) {
         return null
       }
@@ -71,7 +72,8 @@ async function cloneNode({
       from_nid: from,
       to_nid: to,
     })
-  } catch (err) {
+  } catch (exception) {
+    const err = errorise(exception)
     if (isAbortError(err)) {
       return null
     }

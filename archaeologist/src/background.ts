@@ -1,6 +1,6 @@
 import { MessageType } from './message/types'
 import * as badge from './badge'
-import { log, isAbortError, genOriginId } from 'armoury'
+import { log, errorise, isAbortError, genOriginId } from 'armoury'
 
 import browser from 'webextension-polyfill'
 
@@ -39,7 +39,8 @@ async function getActiveTabId(): Promise<number | null> {
     if (tabId != null) {
       return tabId
     }
-  } catch (err) {
+  } catch (exception) {
+    const err = errorise(exception)
     if (!isAbortError(err)) {
       log.exception(err)
     }
@@ -61,7 +62,8 @@ async function requestPageContentToSave() {
       tabId,
       makeMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
     )
-  } catch (err) {
+  } catch (exception) {
+    const err = errorise(exception)
     if (!isAbortError(err)) {
       log.exception(err)
     }
@@ -78,7 +80,8 @@ async function updatePageSavedStatus(
     await browser.runtime.sendMessage(
       makeMessage({ type: 'SAVED_NODE', nid, unmemorable })
     )
-  } catch (err) {
+  } catch (exception) {
+    const err = errorise(exception)
     if (isAbortError(err)) {
       return
     }
