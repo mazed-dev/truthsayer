@@ -3,6 +3,7 @@
  */
 
 import * as queryString from 'query-string'
+import { Optional } from './optional'
 
 export type MimeParamsValue = string | string[] | null
 export type MimeParams = Record<string, MimeParamsValue>
@@ -37,6 +38,26 @@ function isImage(mime: MimeType): boolean {
   return parse(mime).type === 'image'
 }
 
+/**
+ * Ensure an input raw string is one of the supported Mime types
+ *
+ * Mime types described as raw strings can be encountered at a variaty of
+ * outer boundaries of Mazed, e.g. 3rd-party APIs. Inside the codebase itself
+ * however there is a finite number of types recognised by the system, enumerated
+ * by MimeType.
+ * This function may be useful to sanitise raw strings and ensure that only
+ * supported types propagate through the system.
+ */
+function fromString(rawMime: string): Optional<MimeType> {
+  const isTargetValue = (value: MimeType, index: number, obj: MimeType[]) => {
+    return value === rawMime
+  }
+  if (kKnownMimeTypes.findIndex(isTargetValue) < 0) {
+    return null
+  }
+  return rawMime as MimeType
+}
+
 export const Mime = {
   JSON: 'application/json',
   PDF: 'application/pdf',
@@ -53,6 +74,7 @@ export const Mime = {
   IMAGE_WEBP: 'image/webp',
 
   parse,
+  fromString,
 
   isImage,
   isText,
@@ -72,3 +94,19 @@ export type MimeType =
   | typeof Mime.IMAGE_SVG_XML
   | typeof Mime.IMAGE_TIFF
   | typeof Mime.IMAGE_WEBP
+
+const kKnownMimeTypes: MimeType[] = [
+  Mime.JSON,
+  Mime.PDF,
+  Mime.FORM_DATA,
+  Mime.TEXT_URI_LIST,
+  Mime.TEXT_PLAIN,
+  Mime.TEXT_PLAIN_UTF_8,
+  Mime.IMAGE_BMP,
+  Mime.IMAGE_GIF,
+  Mime.IMAGE_JPEG,
+  Mime.IMAGE_PNG,
+  Mime.IMAGE_SVG_XML,
+  Mime.IMAGE_TIFF,
+  Mime.IMAGE_WEBP,
+]
