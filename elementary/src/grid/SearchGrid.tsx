@@ -67,15 +67,41 @@ export const SearchGrid = ({
   defaultSearch?: boolean
   className?: string
 }>) => {
+  if (q == null && !defaultSearch) {
+    return null
+  }
+  return (
+    <SearchGridScroll
+      beagle={q == null ? null : Beagle.fromString(q)}
+      iter={smuggler.node.slice({})}
+      onCardClick={onCardClick}
+      portable={portable}
+      className={className}
+    >
+      {children}
+    </SearchGridScroll>
+  )
+}
+
+const SearchGridScroll = ({
+  beagle,
+  iter,
+  children,
+  onCardClick,
+  portable,
+  className,
+}: React.PropsWithChildren<{
+  beagle: Beagle | null
+  iter: TNodeSliceIterator
+  onCardClick?: (arg0: TNode) => void
+  portable?: boolean
+  className?: string
+}>) => {
   const history = useHistory()
   const ref = useRef<HTMLDivElement>(null)
-  const [beagle, setBeagle] = useState<Beagle | null>(null)
   const [nodes, setNodes] = useState<TNode[]>([])
   const [fetching, setFetching] = useState<boolean>(false)
   const [nextBatchTrigger, setNextBatchTrigger] = useState<number>(0)
-  const [iter, setIter] = useState<TNodeSliceIterator | null>()
-  const [fetchAbortController, setFetchAbortController] =
-    useState<AbortController | null>(null)
 
   const handleScroll = () => {
     if (!fetching && isScrolledToBottom()) {
@@ -91,6 +117,10 @@ export const SearchGrid = ({
     }
     return () => {}
   }, [])
+  useEffect(() => {
+    // To clean up grid on changed search conditions
+    setNodes([])
+  }, [beagle])
 
   const isScrolledToBottom = () => {
     let height: number = 0
@@ -114,11 +144,11 @@ export const SearchGrid = ({
     setFetching(true)
     try {
       while (isScrolledToBottom()) {
-        const node = await iter?.next()
+        const node = await iter.next()
         if (node == null) {
           break
         }
-        if (beagle == null || beagle?.searchNode(node) != null) {
+        if (beagle == null || beagle.searchNode(node) != null) {
           setNodes((prev) => [...prev, node])
         }
       }
@@ -129,38 +159,9 @@ export const SearchGrid = ({
     }
     setFetching(false)
     return () => {
-      fetchAbortController?.abort()
+      iter.abort()
     }
-  }, [nextBatchTrigger])
-  useAsyncEffect(async () => {
-    // This is an effect to spin up a new search only from search text "q", this
-    // is why thie effect is called only when "q" props is changed.
-    //
-    // It creates a new iterator from search string and assign it to state:
-    // - iter - iterator itself to do fetching step by step;
-    // - fetchAbortController - to be able to cancel an iteration;
-    // - nextBatchTrigger - to trigger first iteration of fetching with another
-    // react effect declared above.
-    setNodes([])
-    if (q != null) {
-      setBeagle(Beagle.fromString(q))
-    } else {
-      if (!defaultSearch) {
-        setIter(null)
-        return
-      }
-    }
-    if (fetchAbortController != null) {
-      fetchAbortController.abort()
-    }
-    const newAbortController = new AbortController()
-    setFetchAbortController(newAbortController)
-    const iter_ = smuggler.node.slice({
-      signal: newAbortController.signal,
-    })
-    setIter(iter_)
-    setNextBatchTrigger((prev) => prev + 1)
-  }, [q])
+  }, [nextBatchTrigger, beagle, iter])
   const fetchingLoader = fetching ? (
     <div
       css={css`
