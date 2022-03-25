@@ -14,6 +14,7 @@ import {
   NodeExtattrs,
   authCookie,
   Knocker,
+  TNode,
 } from 'smuggler-api'
 
 import { Mime } from 'armoury'
@@ -69,14 +70,14 @@ async function requestPageContentToSave() {
 }
 
 async function updatePageSavedStatus(
-  nid?: string,
+  node?: TNode,
   tabId?: number,
   unmemorable?: boolean
 ): Promise<void> {
   // Inform PopUp window of saved page status to render right buttons
   try {
     await browser.runtime.sendMessage(
-      makeMessage({ type: 'SAVED_NODE', nid, unmemorable })
+      makeMessage({ type: 'SAVED_NODE', node: node?.toJson(), unmemorable })
     )
   } catch (err) {
     if (isAbortError(err)) {
@@ -88,7 +89,7 @@ async function updatePageSavedStatus(
     )
   }
   // Update badge
-  await badge.resetText(tabId, nid ? '1' : undefined)
+  await badge.resetText(tabId, node != null ? '1' : undefined)
 }
 
 async function savePage(
@@ -126,7 +127,9 @@ async function savePage(
     },
   })
   if (resp) {
-    await updatePageSavedStatus(resp.nid, tabId)
+    const { nid } = resp
+    const node = await smuggler.node.get({ nid })
+    await updatePageSavedStatus(node, tabId)
   }
 }
 
@@ -195,18 +198,18 @@ async function checkOriginIdAndUpdatePageStatus(
       id: originId,
     },
   })
-  let nid: string | undefined = undefined
+  let node: TNode | undefined = undefined
   for (;;) {
-    const node = await iter.next()
-    if (!node) {
+    const nodeItem = await iter.next()
+    if (nodeItem == null) {
       break
     }
-    if (node.isWebBookmark() && node.extattrs?.web?.url === url) {
-      nid = node.nid
+    if (nodeItem.isWebBookmark() && nodeItem.extattrs?.web?.url === url) {
+      node = nodeItem
       break
     }
   }
-  await updatePageSavedStatus(nid, tabId)
+  await updatePageSavedStatus(node, tabId)
 }
 
 browser.runtime.onMessage.addListener(

@@ -90,16 +90,16 @@ function getShadowStyle(n: number) {
 
 export const kSmallCardWidth = 232
 
-const SmallCardBox = styled.div({
-  width: `${kSmallCardWidth}px`,
+const SmallCardBox = styled.div`
+  width: ${kSmallCardWidth}px;
 
-  borderRadius: '5px',
-  boxShadow: '0px 1px 2px 1px rgba(0, 0, 0, 0.2)',
+  border-radius: 5px;
+  box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.2);
 
-  margin: 0,
-  padding: 0,
-  fontSize: '12px',
-})
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+`
 
 type SmallCardProps = React.PropsWithChildren<{
   onClick?: React.MouseEventHandler
