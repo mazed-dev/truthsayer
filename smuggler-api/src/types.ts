@@ -100,19 +100,24 @@ export type NodeIndexText = {
   dominant_colors: Color[]
 }
 
+export type TNodeJson = {
+  nid: string
+  ntype: NodeType
+  text: NodeTextData
+  extattrs?: NodeExtattrs
+  index_text?: NodeIndexText
+  created_at: number
+  updated_at: number
+  meta?: NodeMeta
+  crypto?: TNodeCrypto
+}
+
 export class TNode {
   nid: string
+  ntype: NodeType
 
-  // There is no proper Unions or typed Enums in TypeScript, so I used optional
-  // fields to represent different types of node: image or text document.
   text: NodeTextData
-
-  /**
-   * For Blob type of nodes (see NodeType::Blob) with externally saved large
-   * blob of binary data like image, PDF, audio etc.
-   */
   extattrs?: NodeExtattrs
-
   index_text?: NodeIndexText
 
   created_at: moment.Moment
@@ -122,8 +127,6 @@ export class TNode {
 
   // Information about node security
   crypto?: TNodeCrypto
-
-  ntype: NodeType
 
   constructor(
     nid: string,
@@ -185,6 +188,44 @@ export class TNode {
   getBlobSource(): string | null {
     const { nid } = this
     return makeUrl(`/blob/${nid}`)
+  }
+
+  toJson(): TNodeJson {
+    return {
+      nid: this.nid,
+      ntype: this.ntype,
+      text: this.text,
+      created_at: this.created_at.unix(),
+      updated_at: this.updated_at.unix(),
+      meta: this.meta,
+      extattrs: this.extattrs,
+      index_text: this.index_text,
+      crypto: this.crypto,
+    }
+  }
+
+  static fromJson({
+    nid,
+    ntype,
+    text,
+    created_at,
+    updated_at,
+    meta,
+    extattrs,
+    index_text,
+    crypto,
+  }: TNodeJson): TNode {
+    return new TNode(
+      nid,
+      ntype,
+      text,
+      moment.unix(created_at),
+      moment.unix(updated_at),
+      meta,
+      extattrs,
+      index_text,
+      crypto
+    )
   }
 }
 

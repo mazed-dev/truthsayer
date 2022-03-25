@@ -84,7 +84,7 @@ const BadgeBox = styled.div`
 
 const TitleBox = styled.div`
   display: inline-block;
-  margin: 5px 4px 0 10px;
+  margin: 8px 4px 0 8px;
 `
 
 const Title = styled.p`
@@ -112,7 +112,7 @@ const Author = styled.p`
 const DescriptionBox = styled.div`
   font-size: 1em;
   padding: 0;
-  margin: 8px 1em 0 1em;
+  margin: 8px 8px 0 8px;
 `
 const Description = styled(BlockQuote)`
   margin: 4px 0 14px 0;
