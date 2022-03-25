@@ -11,7 +11,7 @@ const Box = styled.div({
 
   minHeight: '10rem',
   // boxShadow: '0px 1px 2px 1px rgb(0, 0, 0, 0.12)',
-  border: '1px solid rgba(229,229,229,1)',
+  border: '1px solid #eee',
   borderRadius: '8px',
 
   fontSize: '14px',

@@ -224,9 +224,7 @@ export const ChainActionBar = ({
     <SmallCard
       className={className}
       css={css`
-        border-width: 1px;
-        border-color: rgba(0, 0, 0, 0.28);
-        border-style: dashed;
+        border: 1px dashed #eee;
         box-shadow: none;
         padding: 0;
       `}

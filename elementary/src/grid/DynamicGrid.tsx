@@ -49,7 +49,7 @@ export const DynamicGrid = ({
         padding: 0,
         display: 'grid',
         gridTemplateColumns: 'auto '.repeat(ncols),
-        gridGap: '6px',
+        gridGap: '4px',
       }}
       ref={containerRef}
     >

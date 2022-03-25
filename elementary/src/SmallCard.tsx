@@ -94,7 +94,7 @@ const SmallCardBox = styled.div`
   width: ${kSmallCardWidth}px;
 
   border-radius: 5px;
-  border: 1px solid rgba(229,229,229,1);
+  border: 1px solid #eee;
 
   margin: 0;
   padding: 0;
