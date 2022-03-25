@@ -10,7 +10,8 @@ const Box = styled.div({
   padding: 0, // '14px 14px 0 14px',
 
   minHeight: '10rem',
-  boxShadow: '0px 1px 2px 1px rgb(0, 0, 0, 0.12)',
+  // boxShadow: '0px 1px 2px 1px rgb(0, 0, 0, 0.12)',
+  border: '1px solid rgba(229,229,229,1)',
   borderRadius: '8px',
 
   fontSize: '14px',
