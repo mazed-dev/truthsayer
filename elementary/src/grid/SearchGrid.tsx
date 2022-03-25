@@ -148,6 +148,7 @@ const SearchGridScroll = ({
         if (node == null) {
           break
         }
+        log.debug('Beagle iter search', beagle)
         if (beagle == null || beagle.searchNode(node) != null) {
           setNodes((prev) => [...prev, node])
         }
@@ -161,7 +162,7 @@ const SearchGridScroll = ({
     return () => {
       iter.abort()
     }
-  }, [nextBatchTrigger, beagle, iter])
+  }, [nextBatchTrigger, beagle])
   const fetchingLoader = fetching ? (
     <div
       css={css`
