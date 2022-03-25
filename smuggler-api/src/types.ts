@@ -100,19 +100,24 @@ export type NodeIndexText = {
   dominant_colors: Color[]
 }
 
-export class TNodeJson {
+export type TNodeJson = {
   nid: string
-
-  // There is no proper Unions or typed Enums in TypeScript, so I used optional
-  // fields to represent different types of node: image or text document.
+  ntype: NodeType
   text: NodeTextData
-
-  /**
-   * For Blob type of nodes (see NodeType::Blob) with externally saved large
-   * blob of binary data like image, PDF, audio etc.
-   */
   extattrs?: NodeExtattrs
+  index_text?: NodeIndexText
+  created_at: number
+  updated_at: number
+  meta?: NodeMeta
+  crypto?: TNodeCrypto
+}
 
+export class TNode {
+  nid: string
+  ntype: NodeType
+
+  text: NodeTextData
+  extattrs?: NodeExtattrs
   index_text?: NodeIndexText
 
   created_at: moment.Moment
@@ -122,8 +127,6 @@ export class TNodeJson {
 
   // Information about node security
   crypto?: TNodeCrypto
-
-  ntype: NodeType
 
   constructor(
     nid: string,
@@ -145,31 +148,6 @@ export class TNodeJson {
     this.extattrs = extattrs
     this.index_text = index_text
     this.crypto = _crypto
-  }
-}
-
-export class TNode extends TNodeJson {
-  constructor(
-    nid: string,
-    ntype: number,
-    text: NodeTextData,
-    created_at: moment.Moment,
-    updated_at: moment.Moment,
-    meta?: NodeMeta,
-    extattrs?: NodeExtattrs,
-    index_text?: NodeIndexText,
-    _crypto?: TNodeCrypto
-  ) {
-    super(
-     nid,
-     ntype,
-     text,
-     created_at,
-     updated_at,
-     meta,
-     extattrs,
-     index_text,
-     _crypto,)
   }
 
   isOwnedBy(account?: AccountInterface): boolean {
@@ -212,43 +190,31 @@ export class TNode extends TNodeJson {
     return makeUrl(`/blob/${nid}`)
   }
 
-  toJson(): any {
-    const {
-      nid,
-      ntype,
-      text,
-      created_at,
-      updated_at,
-      meta,
-      extattrs,
-      index_text,
-      crypto,
-    } = this
+  toJson(): TNodeJson {
     return {
-      nid,
-      ntype,
-      text,
-      created_at: created_at.unix(),
-      updated_at: updated_at.unix(),
-      meta,
-      extattrs,
-      index_text,
-      crypto,
+      nid: this.nid,
+      ntype: this.ntype,
+      text: this.text,
+      created_at: this.created_at.unix(),
+      updated_at: this.updated_at.unix(),
+      meta: this.meta,
+      extattrs: this.extattrs,
+      index_text: this.index_text,
+      crypto: this.crypto,
     }
   }
 
-  static fromJson(json: any): TNode {
-    const {
-      nid,
-      ntype,
-      text,
-      created_at,
-      updated_at,
-      meta,
-      extattrs,
-      index_text,
-      crypto,
-    } = json
+  static fromJson({
+    nid,
+    ntype,
+    text,
+    created_at,
+    updated_at,
+    meta,
+    extattrs,
+    index_text,
+    crypto,
+  }: TNodeJson): TNode {
     return new TNode(
       nid,
       ntype,

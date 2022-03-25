@@ -1,4 +1,5 @@
 import { WebPageContent } from './../extractor/webPageContent'
+import { TNodeJson } from 'smuggler-api'
 
 interface SavedStatusRequest {
   type: 'REQUEST_SAVED_NODE'
@@ -6,7 +7,7 @@ interface SavedStatusRequest {
 
 interface SavedStatusResponse {
   type: 'SAVED_NODE'
-  node?: any
+  node?: TNodeJson
   unmemorable?: boolean
 }
 
