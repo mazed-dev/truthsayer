@@ -113,7 +113,9 @@ async function loadAllFilesInRange(
     folder.children = await fetchChildrenOf(graph, folder)
   }
 
-  const ret: FileProxy[] = folder.children.files
+  const ret: FileProxy[] = folder.children.files.filter(
+    (file) => file.lastModDate > searchRange.start
+  )
   for (const childFolder of folder.children.folders) {
     ret.concat(await loadAllFilesInRange(graph, childFolder, searchRange))
   }
@@ -163,7 +165,7 @@ function toProxy(
   const path = `${parentPath}/${msItem.name}`
 
   if (!id || !lastModDate) {
-    console.debug(
+    log.debug(
       'To implement progress tracking of how far did the application ' +
         'progress in indexing filesystem it requires a number of mandatory ' +
         'pieces of information about each filesystem item:\n' +
@@ -179,7 +181,7 @@ function toProxy(
       ? Mime.fromString(fsNativeMimeType)
       : null
     if (!mimeType) {
-      console.debug(
+      log.debug(
         `File ${path} has Mime type ${fsNativeMimeType} which is not one ` +
           'of types supported by the application'
       )
@@ -212,7 +214,7 @@ function toProxy(
     }
   }
 
-  console.debug(
+  log.debug(
     `Filesystem item ${path} is of unknown category - it's neither a file nor a folder`
   )
   return null
