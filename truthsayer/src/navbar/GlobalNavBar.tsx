@@ -117,12 +117,11 @@ export function GlobalNavBar() {
   if (account == null) {
     return <></>
   }
-  let buttons
-  if (account.isAuthenticated()) {
-    buttons = <PrivateNavButtons />
-  } else {
-    buttons = <PublicNavButtons />
-  }
+  const buttons = account.isAuthenticated() ? (
+    <PrivateNavButtons />
+  ) : (
+    <PublicNavButtons />
+  )
   return (
     <>
       <CustomNavbar fixed="top" className={styles.navbar}>
