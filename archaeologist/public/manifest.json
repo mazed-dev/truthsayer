@@ -27,8 +27,10 @@
   "chrome_url_overrides": {},
   "permissions": [
     "activeTab",
-    "tabs",
-    "cookies"
+    "clipboardWrite",
+    "contextMenus",
+    "cookies",
+    "tabs"
   ],
   "cross_origin_embedder_policy": {
     "value": "require-corp"
