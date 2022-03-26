@@ -4,6 +4,11 @@ import assert from 'assert'
 import { DriveItem as MsGraphDriveItem } from 'microsoft-graph'
 import * as MsGraph from './MicrosoftGraph'
 
+/**
+ * This module implements the algorithm for consuming files and processing
+ * them into Mazed, described in https://github.com/Thread-knowledge/truthsayer/issues/148
+ */
+
 /** Largest integer timestamp that Javascript's native Date
  * type can handle.
  * In this module it is used as a proxy for "infinity" date,
@@ -13,17 +18,27 @@ import * as MsGraph from './MicrosoftGraph'
  */
 const MAX_TIMESTAMP: number = 8640000000000000
 
-// TODO[snikitin@outlook.com] Describe that the reason why this type
-// exists:
-//  - to bring code closer to supporting storages other than OneDrive
-//  - to reduce the amount of memory Queue consumes (MsGraphDriveItem
-// is very large for example)
+/**
+ * A filesystem-agnostic shallow version of a file stored in user's file storage
+ * that has all the attributes (regardless of which file system it came from)
+ * required for Mazed to process it.
+ *
+ * "Shallow" in this context means that it intentionally doesn't fetch the
+ * contents of the file. This is expected to be important as queues of
+ * all unprocessed files may have a large size if a user has a lot of data,
+ * in which case loading all files at the same time in memory would be
+ * disadvanageous.
+ */
 type FileProxy = {
   category: 'file'
+  /** A filepath of this file (expected to mostly be useful for debugging) */
   path: string
+  /** An ID that uniquely identifies this file within its filesystem */
   id: string
+  /** A URL that a user can use to open this file in it's native filesystem */
   webUrl: string
 
+  /** Date when this file was last modified by a user within its filesystem */
   lastModDate: Date
   createdBy: string
   mimeType: MimeType
@@ -42,12 +57,6 @@ type FolderProxy = {
 
   children: null /** data not fetched yet */ | ChildrenProxy
 }
-
-// type RootFolder = FolderProxy & {
-//   path: '/'
-// }
-
-type FsItem = FolderProxy | FileProxy
 
 type ModificationSearchRange = {
   start: Date
@@ -230,7 +239,7 @@ function toProxy(
  * In other words - if there are two items with the same last modifification
  * date, their output order should be predictable.
  */
-function oldestModifiedFirstComparator(lhs: FsItem, rhs: FsItem) {
+function oldestModifiedFirstComparator(lhs: FileProxy, rhs: FileProxy) {
   // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#description
   // for more information on how custom comparator functions
   // should be implemented
