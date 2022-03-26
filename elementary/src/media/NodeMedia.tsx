@@ -13,8 +13,11 @@ export function NodeMedia({
 }) {
   if (node.isImage()) {
     return <ImageNode node={node} className={className} />
-  } else if (node.extattrs && node.isWebBookmark()) {
-    return <WebBookmark extattrs={node.extattrs} className={className} />
+  } else if (node.isWebBookmark()) {
+    const { extattrs } = node
+    if (extattrs != null) {
+      return <WebBookmark extattrs={extattrs} className={className} />
+    }
   }
   return null
 }

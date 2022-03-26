@@ -1,17 +1,16 @@
-/** @jsxImportSource @emotion/react */
-
 import React from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 
 import browser from 'webextension-polyfill'
 
 import styled from '@emotion/styled'
+import { css } from '@emotion/react'
 
 import { MessageType } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
-import { Relative, HVCentered } from './../util/layout'
 import { Button } from './Button'
 import { mazed } from '../util/mazed'
+import { MdiLaunch } from 'elementary'
 
 const AppContainer = styled.div`
   width: 280px;
@@ -45,6 +44,18 @@ const LogoImg = styled.img`
   margin: 12px;
 `
 
+const LoginPageBox = styled.div``
+const LoginImageBox = styled.div`
+  margin: 42px auto 0 auto;
+  display: flex;
+  justify-content: center;
+`
+const LoginBtnBox = styled.div`
+  margin: 24px auto 0 auto;
+  display: flex;
+  justify-content: center;
+`
+
 const LoginPage = () => {
   const onClick = () => {
     browser.tabs.create({
@@ -52,12 +63,21 @@ const LoginPage = () => {
     })
   }
   return (
-    <Relative>
-      <HVCentered>
+    <LoginPageBox>
+      <LoginImageBox>
         <LogoImg src="/logo-128x128.png" />
-        <Button onClick={onClick}>Login</Button>
-      </HVCentered>
-    </Relative>
+      </LoginImageBox>
+      <LoginBtnBox>
+        <Button onClick={onClick}>
+          Login
+          <MdiLaunch
+            css={css`
+              vertical-align: middle;
+            `}
+          />
+        </Button>
+      </LoginBtnBox>
+    </LoginPageBox>
   )
 }
 

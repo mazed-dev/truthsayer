@@ -9,7 +9,12 @@ type BlockQuoteProps = React.PropsWithChildren<{
 export const BlockQuote = React.forwardRef<HTMLQuoteElement, BlockQuoteProps>(
   ({ className, children, cite, ...attributes }, ref) => {
     return (
-      <BlockquoteBox cite={cite} ref={ref} {...attributes}>
+      <BlockquoteBox
+        cite={cite}
+        className={className}
+        ref={ref}
+        {...attributes}
+      >
         {children}
       </BlockquoteBox>
     )
