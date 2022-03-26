@@ -1,26 +1,3 @@
-.navbar {
-  /**
-   *
-   * 1.The horizontal offset of the shadow, positive means the shadow will be on the right of the box, a negative offset will put the shadow on the left of the box.
-   * 2. The vertical offset of the shadow, a negative one means the box-shadow will be above the box, a positive one means the shadow will be below the box.
-   * 3. The blur radius (optional), if set to 0 the shadow will be sharp, the higher the number, the more blurred it will be.
-   * 4. The spread radius (optional), positive values increase the size of the shadow, negative values decrease the size. Default is 0 (the shadow is same size as blur).
-   * 5. Color
-   **/
-  -moz-box-shadow: 0 1px 2px 1px rgba(0, 0, 0, 0.1);
-  -webkit-box-shadow: 0 1px 2px 1px rgba(0, 0, 0, 0.1);
-  box-shadow: 0 1px 2px 1px rgba(0, 0, 0, 0.1);
-
-  background-color: white;
-
-  height: 2.8rem;
-
-  padding-left: 0.8rem;
-  padding-right: 0.8rem;
-
-  justify-content: space-between;
-}
-
 .navbar_filler {
   margin-bottom: 3.4rem;
   width: 100%;
@@ -49,10 +26,6 @@
   margin-right: 4px;
 }
 
-.user_pic {
-  margin: 0;
-}
-
 .user_pic_image {
   width: 1.4rem;
   height: 1.4rem;
@@ -60,9 +33,6 @@
   margin-bottom: auto;
   margin-right: 0.4rem;
   margin-left: 0.4rem;
-}
-
-.account_dropdown {
 }
 
 .account_dropdown_toggle {

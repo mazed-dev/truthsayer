@@ -20,7 +20,7 @@ import DoodledBird from './DoodledBird.svg'
 import { Triptych } from './card/Triptych'
 import { SearchGridView } from './grid/SearchGridView'
 
-import GlobalNavBar from './navbar/GlobalNavBar'
+import { GlobalNavBar } from './navbar/GlobalNavBar'
 import Login from './auth/Login'
 import Logout from './auth/Logout'
 import { Signup } from './auth/Signup'
