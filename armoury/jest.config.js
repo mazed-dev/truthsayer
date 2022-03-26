@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   verbose: true,
 
   // The root of your source code, typically /src
@@ -11,7 +11,16 @@ module.exports = {
     '^.+\\.[tj]sx?$': 'ts-jest',
   },
 
-  transformIgnorePatterns: ['/node_modules/(?!normalize-url/)'],
+  globals: {
+    'ts-jest': {
+      useESM: true,
+    },
+  },
+
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
+
+  // transformIgnorePatterns: ['/node_modules/(?!normalize-url/)'],
+  // transformIgnorePatterns: [],
 
   // Test spec file resolution pattern
   // Matches parent folder `__tests__` and filename
@@ -19,5 +28,5 @@ module.exports = {
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
 
   // Module file extensions for importing
-  moduleFileExtensions: ['ts', 'js', 'json', 'node'],
+  moduleFileExtensions: ['ts', 'js', 'mjs', 'json', 'node'],
 }
