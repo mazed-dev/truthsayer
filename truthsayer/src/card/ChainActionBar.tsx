@@ -12,7 +12,7 @@ import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
 import { goto, History } from '../lib/route'
 
 import { smuggler, NewNodeResponse } from 'smuggler-api'
-import { TDoc } from 'elementary'
+import { TDoc, kCardBorderColour } from 'elementary'
 import { TNode } from 'smuggler-api'
 
 import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
@@ -224,7 +224,7 @@ export const ChainActionBar = ({
     <SmallCard
       className={className}
       css={css`
-        border: 1px dashed #eee;
+        border: 1px dashed ${kCardBorderColour};
         box-shadow: none;
         padding: 0;
       `}

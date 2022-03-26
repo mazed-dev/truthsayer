@@ -3,19 +3,20 @@
 import React from 'react'
 import styled from '@emotion/styled'
 
-const Box = styled.div({
-  width: '100%',
+import { kCardBorder } from './colour'
 
-  margin: 0,
-  padding: 0, // '14px 14px 0 14px',
+const Box = styled.div`
+  width: 100%;
 
-  minHeight: '10rem',
-  // boxShadow: '0px 1px 2px 1px rgb(0, 0, 0, 0.12)',
-  border: '1px solid #eee',
-  borderRadius: '8px',
+  margin: 0;
+  padding: 0;
 
-  fontSize: '14px',
-})
+  min-height: 10rem;
+  border-radius: 8px;
+  ${kCardBorder};
+
+  font-size: 14px;
+`
 
 type WideCardProps = React.PropsWithChildren<{
   className?: string

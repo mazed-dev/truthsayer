@@ -6,7 +6,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { ButtonGroup, Dropdown, Navbar, Nav } from 'react-bootstrap'
 
 import { compass } from './../lib/route'
-import { jcss, MdiAccountCircle } from 'elementary'
+import { jcss, MdiAccountCircle, kCardBorder } from 'elementary'
 import { getLogoImage } from './../dev/env'
 import { SearchForm } from './SearchForm'
 import { MzdGlobalContext } from '../lib/global'
@@ -41,12 +41,7 @@ const PrivateNavButtons = () => {
     <>
       <SearchForm from={query} className={styles.search_form} />
 
-      <Dropdown
-        className={jcss(styles.account_dropdown)}
-        as={ButtonGroup}
-        navbar
-        drop="start"
-      >
+      <Dropdown as={ButtonGroup} navbar drop="start">
         <Dropdown.Toggle
           variant="light"
           className={jcss(styles.account_dropdown_toggle)}
@@ -107,6 +102,15 @@ const PublicNavButtons = () => {
   )
 }
 
+const CustomNavbar = styled(Navbar)`
+  background-color: white;
+  height: 2.8rem;
+  padding-left: 0.8rem;
+  padding-right: 0.8rem;
+  justify-content: space-between;
+  ${kCardBorder};
+`
+
 export function GlobalNavBar() {
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
@@ -121,7 +125,7 @@ export function GlobalNavBar() {
   }
   return (
     <>
-      <Navbar fixed="top" className={styles.navbar}>
+      <CustomNavbar fixed="top" className={styles.navbar}>
         <Navbar.Brand as={Link} to="/" className={styles.brand}>
           <img
             src={getLogoImage()}
@@ -131,7 +135,7 @@ export function GlobalNavBar() {
           <div className="d-none d-sm-none d-md-block">Mazed</div>
         </Navbar.Brand>
         {buttons}
-      </Navbar>
+      </CustomNavbar>
       <div className={styles.navbar_filler} />
     </>
   )

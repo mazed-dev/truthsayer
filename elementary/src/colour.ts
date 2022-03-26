@@ -1,6 +1,6 @@
 export enum Colour {
   White = '#fff',
-  ThinGrey = 'rgb(222,222,222)',
+  ThinGrey = '#ececec',
 }
 
 export enum ColourButtonCreate {
@@ -69,4 +69,5 @@ export const StyleButtonWhite = {
   transition: _kButtonTransition,
 }
 
-export const CardBorder = Colour.ThinGrey
+export const kCardBorderColour = Colour.ThinGrey
+export const kCardBorder = `border: 1px solid ${Colour.ThinGrey}`
