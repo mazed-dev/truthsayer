@@ -27,7 +27,7 @@ import {
   smuggler,
 } from 'smuggler-api'
 import { MdiInsertLink, MdiLinkOff, MdiLaunch } from 'elementary'
-import { Mime, log, genOriginId } from 'armoury'
+import { Mime, log, genOriginId, errorise } from 'armoury'
 import * as MsGraph from './MicrosoftGraph'
 import * as MsAuthentication from './MicrosoftAuthentication'
 import { Client as MsGraphClient } from '@microsoft/microsoft-graph-client'
@@ -151,11 +151,10 @@ export function OneDriveIntegrationManager() {
         <Button
           onClick={() => {
             const graph: MsGraphClient = MsGraph.client(msAuthentication)
-            uploadFilesFromFolder(graph, '/mazed-test').catch((error) =>
+            uploadFilesFromFolder(graph, '/mazed-test').catch((exception) =>
               log.exception(
-                `Failed to call Microsoft Graph, error = '${JSON.stringify(
-                  error
-                )}'`
+                errorise(exception),
+                `Failed to call Microsoft Graph`
               )
             )
           }}
