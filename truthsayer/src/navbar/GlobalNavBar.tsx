@@ -35,7 +35,10 @@ const UserBadge = () => {
 
 const PrivateNavButtons = () => {
   const location = useLocation()
-  const { query } = compass.search.get({ location })
+  let { query } = compass.search.get({ location })
+  if (Array.isArray(query)) {
+    query = query.join(' ')
+  }
   const userpic = <UserBadge />
   return (
     <>
