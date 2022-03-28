@@ -281,68 +281,79 @@ browser.contextMenus.create({
 })
 
 browser.contextMenus.onClicked.addListener(
-  (
+  async (
     info: browser.Menus.OnClickData,
     tab: browser.Tabs.Tab | undefined,
   ) => {
     console.log("contextMenus.onClicked.addListener", info, tab)
     if (info.menuItemId === "copy-link-to-clipboard") {
-      if (tab == null) { return }
+      if (tab?.id == null) { return }
         // Examples: text and HTML to be copied.
         const text = "This is text: " + info.linkUrl
         // Always HTML-escape external input to avoid XSS.
         const safeUrl = escapeHTML(info.linkUrl)
         const html = `This is HTML: <a href="${safeUrl}">${safeUrl}</a>`
 
+        try {
+          await browser.tabs.sendMessage(
+            tab.id,
+            makeMessage({ type: 'REQUEST_SELECTED_QUOTE' })
+          )
+        } catch (err) {
+          if (!isAbortError(err)) {
+            log.exception(err)
+          }
+        }
+
         // The example will show how data can be copied, but since background
         // pages cannot directly write to the clipboard, we will run a content
         // script that copies the actual content.
 
         // clipboard-helper.js defines function copyToClipboard.
-        const code = "copyToClipboard(" +
-            JSON.stringify(text) + "," +
-            JSON.stringify(html) + ");";
-
-        browser.tabs.executeScript({
-            code: "typeof copyToClipboard === 'function';",
-        }).then((results) => {
-            console.log("executeScript 309", results)
-            // The content script's last expression will be true if the function
-            // has been defined. If this is not the case, then we need to run
-            // clipboard-helper.js to define function copyToClipboard.
-            if (!results || results[0] !== true) {
-                return browser.tabs.executeScript(tab.id, {
-                    code: `
-// This function must be called in a visible page, such as a browserAction popup
-// or a content script. Calling it in a background page has no effect!
-function copyToClipboard(text, html) {
-    console.log("inline copyToClipboard", text, html)
-    function oncopy(event) {
-        console.log("inline copyToClipboard::oncopy", event)
-        document.removeEventListener("copy", oncopy, true);
-        // Hide the event from the page to prevent tampering.
-        event.stopImmediatePropagation();
-
-        // Overwrite the clipboard content.
-        event.preventDefault();
-        event.clipboardData.setData("text/plain", text);
-        event.clipboardData.setData("text/html", html);
-    }
-    document.addEventListener("copy", oncopy, true);
-    // Requires the clipboardWrite permission, or a user gesture:
-    document.execCommand("copy");
-}`
-                });
-            }
-            return []
-        }).then((results) => {
-            console.log("executeScript 337", results)
-            return browser.tabs.executeScript(tab.id, { code, });
-        }).catch((error) => {
-            // This could happen if the extension is not allowed to run code in
-            // the page, for example if the tab is a privileged page.
-            console.error("Failed to copy text: " + error);
-        });
+//         const code = "copyToClipboard(" +
+//             JSON.stringify(text) + "," +
+//             JSON.stringify(html) + ");";
+// 
+//         browser.tabs.executeScript({
+//             code: "typeof copyToClipboard === 'function';",
+//         }).then((results) => {
+//             console.log("executeScript 309", results)
+//             // The content script's last expression will be true if the function
+//             // has been defined. If this is not the case, then we need to run
+//             // clipboard-helper.js to define function copyToClipboard.
+//             if (!results || results[0] !== true) {
+//                 return browser.tabs.executeScript(tab.id, {
+//                     code: `
+// // This function must be called in a visible page, such as a browserAction popup
+// // or a content script. Calling it in a background page has no effect!
+// function copyToClipboard(text, html) {
+//     console.log("inline copyToClipboard", text, html)
+//     function oncopy(event) {
+//         console.log("inline copyToClipboard::oncopy", event)
+//         document.removeEventListener("copy", oncopy, true);
+//         // Hide the event from the page to prevent tampering.
+//         event.stopImmediatePropagation();
+// 
+//         // Overwrite the clipboard content.
+//         event.preventDefault();
+//         event.clipboardData.setData("text/plain", text);
+//         event.clipboardData.setData("text/html", html);
+//     }
+//     document.addEventListener("copy", oncopy, true);
+//     // Requires the clipboardWrite permission, or a user gesture:
+//     document.execCommand("copy");
+// }`
+//                 });
+//             }
+//             return []
+//         }).then((results) => {
+//             console.log("executeScript 337", results)
+//             return browser.tabs.executeScript(tab.id, { code, });
+//         }).catch((error) => {
+//             // This could happen if the extension is not allowed to run code in
+//             // the page, for example if the tab is a privileged page.
+//             console.error("Failed to copy text: " + error);
+//         });
     }
 });
 

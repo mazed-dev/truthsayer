@@ -30,6 +30,14 @@ interface AuthStatusResponse {
   status: boolean
 }
 
+interface GetSelectedQuoteRequest {
+  type: 'REQUEST_SELECTED_QUOTE'
+}
+
+interface GetSelectedQuoteResponse {
+  type: 'SELECTED_QUOTE'
+}
+
 /**
  * Save page command chain
  * [ User -> popup.ts -> REQUEST_PAGE_TO_SAVE ]
@@ -57,6 +65,8 @@ export type MessageType =
   | AuthStatusResponse
   | OriginIdRequest
   | OriginIdResponse
+| GetSelectedQuoteRequest
+| GetSelectedQuoteResponse
 
 export const Message = {
   create: (msg: MessageType): MessageType => msg,
