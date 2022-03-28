@@ -282,6 +282,5 @@ export async function make(
   const files = await loadAllFilesInRange(graph, targetFolder, {
     start: lastModificationNotOlderThan,
   })
-  files.sort(oldestModifiedFirstComparator)
-  return files
+  return files.sort(oldestModifiedFirstComparator)
 }

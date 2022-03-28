@@ -152,7 +152,7 @@ export function OneDriveIntegrationManager() {
           onClick={() => {
             const graph: MsGraphClient = MsGraph.client(msAuthentication)
             uploadFilesFromFolder(graph, '/mazed-test').catch((error) =>
-              console.error(
+              log.exception(
                 `Failed to call Microsoft Graph, error = '${JSON.stringify(
                   error
                 )}'`
