@@ -10,6 +10,7 @@ import { jcss } from './jcss'
  * https://google.github.io/material-design-icons/ font
  */
 export type MaterialIconType =
+  | 'account_circle'
   | 'add'
   | 'bookmark_add'
   | 'code'
@@ -60,6 +61,7 @@ const _makeMaterialIcon = (type: MaterialIconType) => {
   )
 }
 
+export const MdiAccountCircle = _makeMaterialIcon('account_circle')
 export const MdiAdd = _makeMaterialIcon('add')
 export const MdiBookmarkAdd = _makeMaterialIcon('bookmark_add')
 export const MdiCode = _makeMaterialIcon('code')
