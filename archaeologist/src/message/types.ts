@@ -65,8 +65,8 @@ export type MessageType =
   | AuthStatusResponse
   | OriginIdRequest
   | OriginIdResponse
-| GetSelectedQuoteRequest
-| GetSelectedQuoteResponse
+  | GetSelectedQuoteRequest
+  | GetSelectedQuoteResponse
 
 export const Message = {
   create: (msg: MessageType): MessageType => msg,

@@ -11,10 +11,11 @@ import {
   exctractPageContent,
   exctractPageUrl,
 } from './extractor/webPageContent'
-
+import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/unmemorable'
 
 import { genOriginId } from 'armoury'
+import { renderMain } from './content/Main'
 
 async function readPageContent() {
   const baseURL = `${window.location.protocol}//${window.location.host}`
@@ -55,52 +56,26 @@ async function getPageOriginId() {
   )
 }
 
-function genElementDomPath(el: Element): string[] {
-  const stack = [];
-  while (el.parentNode != null) {
-    console.log(el.nodeName)
-    let sibCountOfType = 0
-    let sibIndex = 0
-    el.parentNode.childNodes.forEach((sibling: ChildNode, key: number) => {
-      console.log('node === node', sibling.nodeName, el.nodeName)
-      if (sibling.nodeName === el.nodeName) {
-        if (sibling === el) {
-          // Children in selector is 1-indexed
-          sibIndex = key + 1
-        }
-        ++sibCountOfType
-      }
-    })
-    if (el.id != '') {
-      stack.push(el.nodeName.toLowerCase() + '#' + el.id)
-    } else if (sibCountOfType > 1) {
-      // https://drafts.csswg.org/selectors/#the-nth-child-pseudo
-      stack.push(el.nodeName.toLowerCase() + ':nth-of-type(' + sibCountOfType + ')')
-    } else {
-      stack.push(el.nodeName.toLowerCase())
-    }
-    el = el.parentNode as Element
-  }
-  stack.reverse()
-  return stack.slice(1)
-}
-
 async function getSelectedText() {
   function oncopy(event: ClipboardEvent) {
-      console.log('Oncopy', event)
-      document.removeEventListener("copy", oncopy, true)
-      event.stopImmediatePropagation()
-      event.preventDefault()
-      const {target} = event
-      if (target) {
-        const path = genElementDomPath(target as Element)
-        const selected = document.querySelector(path.join(' '))
-        console.log('Path', path, selected)
+    console.log('Oncopy', event)
+    document.removeEventListener('copy', oncopy, true)
+    event.stopImmediatePropagation()
+    event.preventDefault()
+    const { target } = event
+    if (target) {
+      const path = genElementDomPath(target as Element)
+      const selected = document.querySelector(path.join(' '))
+      console.log('Path', path.join(' '))
+      console.log('Selected', selected)
+      if (selected != null) {
+        selected.appendChild(root)
       }
-      // TODO(akindyakov): ...
+    }
+    // TODO(akindyakov): ...
   }
-  document.addEventListener("copy", oncopy, true)
-  document.execCommand("copy")
+  document.addEventListener('copy', oncopy, true)
+  document.execCommand('copy')
 }
 
 browser.runtime.onMessage.addListener(async (message: MessageType) => {
@@ -118,3 +93,9 @@ browser.runtime.onMessage.addListener(async (message: MessageType) => {
       break
   }
 })
+
+const root = document.createElement('div')
+root.id = 'mazed-archaeologist-content-root'
+
+document.body.appendChild(root)
+renderMain(root)
