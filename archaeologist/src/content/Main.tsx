@@ -3,16 +3,12 @@ import ReactDOM from 'react-dom'
 
 import { QuoteMark, QuoteHint } from './QuoteMark'
 
-export const Main = ({path}:{
-  path: string
-}) => {
+export const Main = ({ path }: { path: string }) => {
   return (
     <div>
       <div>akindyakov</div>
-      <QuoteMark
-        path={path}
-      >
-          <QuoteHint />
+      <QuoteMark path={path}>
+        <QuoteHint nid={'asdfc'} />
       </QuoteMark>
     </div>
   )

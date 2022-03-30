@@ -42,10 +42,13 @@ const Mark = styled.span`
 }
 `
 
-export const QuoteHint = ({}:{}) => {
-  return <Box><Mark>&#62;</Mark></Box>
+export const QuoteHint = ({ nid }: { nid: string }) => {
+  return (
+    <Box>
+      <Mark id={nid}>&#62;</Mark>
+    </Box>
+  )
 }
-
 
 export const QuoteMark = ({
   path,
