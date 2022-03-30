@@ -14,6 +14,7 @@ import {
 import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/unmemorable'
 
+import type { Optional } from 'armoury'
 import { genOriginId } from 'armoury'
 import { renderMain } from './content/Main'
 
@@ -60,26 +61,25 @@ const root = document.createElement('div')
 root.id = 'mazed-archaeologist-content-root'
 document.body.appendChild(root)
 
-async function getSelectedText() {
+async function getSelectionPath(): Promise<Optional<string[]>> {
+  let path: string[] | null = null
   function oncopy(event: ClipboardEvent) {
-    console.log('Oncopy', event)
     document.removeEventListener('copy', oncopy, true)
     event.stopImmediatePropagation()
     event.preventDefault()
     const { target } = event
     if (target) {
-      const path = genElementDomPath(target as Element)
-      const selected = document.querySelector(path.join(' '))
-      console.log('Path', path.join(' '))
-      console.log('Selected', selected)
-      if (selected != null) {
-        renderMain(root, path.join(' '))
-      }
+      path = genElementDomPath(target as Element)
+      // const selected = document.querySelector(path.join(' '))
+      // if (selected != null) {
+      //   renderMain(root, path.join(' '))
+      // }
     }
     // TODO(akindyakov): ...
   }
   document.addEventListener('copy', oncopy, true)
   document.execCommand('copy')
+  return path || null
 }
 
 browser.runtime.onMessage.addListener(async (message: MessageType) => {
@@ -91,7 +91,15 @@ browser.runtime.onMessage.addListener(async (message: MessageType) => {
       await getPageOriginId()
       break
     case 'REQUEST_SELECTED_QUOTE':
-      await getSelectedText()
+      {
+        const { text } = message
+        const path = await getSelectionPath()
+        if (path != null) {
+          await browser.runtime.sendMessage(
+            Message.create({ type: 'SELECTED_QUOTE', text, path })
+          )
+        }
+      }
       break
     default:
       break

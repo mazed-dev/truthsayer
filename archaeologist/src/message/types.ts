@@ -32,10 +32,13 @@ interface AuthStatusResponse {
 
 interface GetSelectedQuoteRequest {
   type: 'REQUEST_SELECTED_QUOTE'
+  text: string
 }
 
 interface GetSelectedQuoteResponse {
   type: 'SELECTED_QUOTE'
+  text: string
+  path: string[]
 }
 
 /**

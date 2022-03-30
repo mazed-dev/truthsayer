@@ -133,6 +133,14 @@ async function savePage(
   }
 }
 
+async function savePageQuote(
+  url: string,
+  originId: number,
+  text: string,
+  path: string[],
+  tabId?: number
+) {}
+
 async function requestPageSavedStatus(tab?: browser.Tabs.Tab) {
   if (tab == null) {
     const tabs = await browser.tabs.query({
@@ -237,6 +245,11 @@ browser.runtime.onMessage.addListener(
           await checkOriginIdAndUpdatePageStatus(tabId, url, originId)
         }
         break
+      case 'SELECTED_QUOTE':
+        {
+          const { text, path } = message
+        }
+        break
       default:
         break
     }
@@ -276,8 +289,8 @@ browser.cookies.onChanged.addListener(async (info) => {
 
 browser.contextMenus.create({
   id: 'copy-link-to-clipboard',
-  title: 'Copy link to clipboard',
-  contexts: ['link', 'selection', 'image', 'editable'],
+  title: 'Save to Mazed',
+  contexts: ['selection', 'image', 'editable'],
 })
 
 browser.contextMenus.onClicked.addListener(
@@ -290,66 +303,20 @@ browser.contextMenus.onClicked.addListener(
       if (tab?.id == null) {
         return
       }
+      const { selectionText } = info
+      if (selectionText == null) {
+        return
+      }
       try {
         await browser.tabs.sendMessage(
           tab.id,
-          makeMessage({ type: 'REQUEST_SELECTED_QUOTE' })
+          makeMessage({ type: 'REQUEST_SELECTED_QUOTE', text: selectionText })
         )
       } catch (err) {
         if (!isAbortError(err)) {
           log.exception(err)
         }
       }
-
-      // The example will show how data can be copied, but since background
-      // pages cannot directly write to the clipboard, we will run a content
-      // script that copies the actual content.
-
-      // clipboard-helper.js defines function copyToClipboard.
-      //         const code = "copyToClipboard(" +
-      //             JSON.stringify(text) + "," +
-      //             JSON.stringify(html) + ");";
-      //
-      //         browser.tabs.executeScript({
-      //             code: "typeof copyToClipboard === 'function';",
-      //         }).then((results) => {
-      //             console.log("executeScript 309", results)
-      //             // The content script's last expression will be true if the function
-      //             // has been defined. If this is not the case, then we need to run
-      //             // clipboard-helper.js to define function copyToClipboard.
-      //             if (!results || results[0] !== true) {
-      //                 return browser.tabs.executeScript(tab.id, {
-      //                     code: `
-      // // This function must be called in a visible page, such as a browserAction popup
-      // // or a content script. Calling it in a background page has no effect!
-      // function copyToClipboard(text, html) {
-      //     console.log("inline copyToClipboard", text, html)
-      //     function oncopy(event) {
-      //         console.log("inline copyToClipboard::oncopy", event)
-      //         document.removeEventListener("copy", oncopy, true);
-      //         // Hide the event from the page to prevent tampering.
-      //         event.stopImmediatePropagation();
-      //
-      //         // Overwrite the clipboard content.
-      //         event.preventDefault();
-      //         event.clipboardData.setData("text/plain", text);
-      //         event.clipboardData.setData("text/html", html);
-      //     }
-      //     document.addEventListener("copy", oncopy, true);
-      //     // Requires the clipboardWrite permission, or a user gesture:
-      //     document.execCommand("copy");
-      // }`
-      //                 });
-      //             }
-      //             return []
-      //         }).then((results) => {
-      //             console.log("executeScript 337", results)
-      //             return browser.tabs.executeScript(tab.id, { code, });
-      //         }).catch((error) => {
-      //             // This could happen if the extension is not allowed to run code in
-      //             // the page, for example if the tab is a privileged page.
-      //             console.error("Failed to copy text: " + error);
-      //         });
     }
   }
 )
