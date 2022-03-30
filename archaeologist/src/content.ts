@@ -56,6 +56,10 @@ async function getPageOriginId() {
   )
 }
 
+const root = document.createElement('div')
+root.id = 'mazed-archaeologist-content-root'
+document.body.appendChild(root)
+
 async function getSelectedText() {
   function oncopy(event: ClipboardEvent) {
     console.log('Oncopy', event)
@@ -69,7 +73,7 @@ async function getSelectedText() {
       console.log('Path', path.join(' '))
       console.log('Selected', selected)
       if (selected != null) {
-        selected.appendChild(root)
+        renderMain(root, path.join(' '))
       }
     }
     // TODO(akindyakov): ...
@@ -93,9 +97,3 @@ browser.runtime.onMessage.addListener(async (message: MessageType) => {
       break
   }
 })
-
-const root = document.createElement('div')
-root.id = 'mazed-archaeologist-content-root'
-
-document.body.appendChild(root)
-renderMain(root)
