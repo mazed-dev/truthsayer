@@ -3,6 +3,7 @@ import React from 'react'
 import { TNode } from 'smuggler-api'
 import { ImageNode } from './ImageNode'
 import { WebBookmark } from './WebBookmark'
+import { WebQuote } from './WebQuote'
 
 export function NodeMedia({
   node,
@@ -11,12 +12,16 @@ export function NodeMedia({
   node: TNode
   className?: string
 }) {
+  const { extattrs } = node
   if (node.isImage()) {
     return <ImageNode node={node} className={className} />
   } else if (node.isWebBookmark()) {
-    const { extattrs } = node
     if (extattrs != null) {
       return <WebBookmark extattrs={extattrs} className={className} />
+    }
+  } else if (node.isWebQuote()) {
+    if (extattrs != null) {
+      return <WebQuote extattrs={extattrs} className={className} />
     }
   }
   return null
