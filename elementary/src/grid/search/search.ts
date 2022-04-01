@@ -31,8 +31,18 @@ export class Beagle {
     const { extattrs, index_text } = node
     const fields: (string | undefined)[] = plaintext
     if (extattrs != null) {
-      const { title, description, lang, author, web, content_type } = extattrs
-      fields.push(title, description, lang, author, web?.url, content_type)
+      const { title, description, lang, author, content_type, web, web_quote } =
+        extattrs
+      fields.push(
+        title,
+        description,
+        lang,
+        author,
+        content_type,
+        web?.url,
+        web_quote?.url,
+        web_quote?.text
+      )
     }
     if (index_text != null) {
       const { labels, brands, plaintext } = index_text

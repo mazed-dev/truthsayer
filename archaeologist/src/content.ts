@@ -14,9 +14,7 @@ import {
 import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/unmemorable'
 
-import type { Optional } from 'armoury'
 import { genOriginId } from 'armoury'
-import { renderMain } from './content/Main'
 
 async function readPageContent() {
   const baseURL = `${window.location.protocol}//${window.location.host}`
@@ -42,7 +40,7 @@ async function readPageContent() {
   )
 }
 
-async function getPageOriginId() {
+async function readPageOriginId() {
   const url = exctractPageUrl(document)
   let originId = undefined
   if (isMemorable(url)) {
@@ -61,25 +59,31 @@ const root = document.createElement('div')
 root.id = 'mazed-archaeologist-content-root'
 document.body.appendChild(root)
 
-async function getSelectionPath(): Promise<Optional<string[]>> {
-  let path: string[] | null = null
+async function readSelectedText(text: string): Promise<void> {
+  const lang = document.documentElement.lang
+  const url = exctractPageUrl(document)
+  const originId = await genOriginId(url)
   function oncopy(event: ClipboardEvent) {
     document.removeEventListener('copy', oncopy, true)
     event.stopImmediatePropagation()
     event.preventDefault()
     const { target } = event
     if (target) {
-      path = genElementDomPath(target as Element)
-      // const selected = document.querySelector(path.join(' '))
-      // if (selected != null) {
-      //   renderMain(root, path.join(' '))
-      // }
+      const path = genElementDomPath(target as Element)
+      browser.runtime.sendMessage(
+        Message.create({
+          type: 'SELECTED_WEB_QUOTE',
+          text,
+          path,
+          lang,
+          url,
+          originId,
+        })
+      )
     }
-    // TODO(akindyakov): ...
   }
   document.addEventListener('copy', oncopy, true)
   document.execCommand('copy')
-  return path || null
 }
 
 browser.runtime.onMessage.addListener(async (message: MessageType) => {
@@ -88,18 +92,10 @@ browser.runtime.onMessage.addListener(async (message: MessageType) => {
       await readPageContent()
       break
     case 'REQUEST_PAGE_ORIGIN_ID':
-      await getPageOriginId()
+      await readPageOriginId()
       break
-    case 'REQUEST_SELECTED_QUOTE':
-      {
-        const { text } = message
-        const path = await getSelectionPath()
-        if (path != null) {
-          await browser.runtime.sendMessage(
-            Message.create({ type: 'SELECTED_QUOTE', text, path })
-          )
-        }
-      }
+    case 'REQUEST_SELECTED_WEB_QUOTE':
+      await readSelectedText(message.text)
       break
     default:
       break

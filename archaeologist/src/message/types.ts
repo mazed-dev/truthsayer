@@ -7,7 +7,8 @@ interface SavedStatusRequest {
 
 interface SavedStatusResponse {
   type: 'SAVED_NODE'
-  node?: TNodeJson
+  bookmark?: TNodeJson
+  quotes: TNodeJson[]
   unmemorable?: boolean
 }
 
@@ -31,14 +32,17 @@ interface AuthStatusResponse {
 }
 
 interface GetSelectedQuoteRequest {
-  type: 'REQUEST_SELECTED_QUOTE'
+  type: 'REQUEST_SELECTED_WEB_QUOTE'
   text: string
 }
 
 interface GetSelectedQuoteResponse {
-  type: 'SELECTED_QUOTE'
+  type: 'SELECTED_WEB_QUOTE'
   text: string
   path: string[]
+  url: string
+  originId: number
+  lang?: string
 }
 
 /**
