@@ -31,25 +31,25 @@ export const InlineLinkNode = styled(ReactRouterLink)`
   }
 `
 
-export const BlockquoteBox = styled.blockquote`
-  padding: 5px;
+export const BlockQuoteBox = styled.div`
+  padding: 6px 0 6px 0;
+  margin: 0 0 1em 0;
   background: #eeeeeea5;
   border-radius: 5px;
   font-style: italic;
+`
 
-  &:after {
-    content: '\\201D';
-  }
-  &:before {
-    content: '\\201C';
-  }
+export const BlockQuotePad = styled.blockquote`
+  padding: 0 5px 0 8px;
+  margin: 0 0 0 8px;
+  border-left: 1px solid rgb(204, 204, 204);
 `
 
 export const CodeBlockBox = styled.code`
   margin: 0;
   padding: 6px 12px 0 12px;
 
-  background-color: rgb(246, 248, 250);
+  background-color: rgb(248, 250, 248);
   color: black;
 
   font-family: 'SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace';
