@@ -29,13 +29,13 @@ async function readPageContent() {
     )
     return
   }
-  const originId = await genOriginId(url)
+  const { id } = await genOriginId(url)
   await browser.runtime.sendMessage(
     Message.create({
       type: 'PAGE_TO_SAVE',
       content,
       url,
-      originId,
+      originId: id,
     })
   )
 }
@@ -44,7 +44,8 @@ async function getPageOriginId() {
   const url = exctractPageUrl(document)
   let originId = undefined
   if (isMemorable(url)) {
-    originId = await genOriginId(url)
+    const { id } = await genOriginId(url)
+    originId = id
   }
   await browser.runtime.sendMessage(
     Message.create({

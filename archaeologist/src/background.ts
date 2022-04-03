@@ -150,8 +150,8 @@ async function requestPageSavedStatus(tab?: browser.Tabs.Tab) {
   if (url == null) {
     return
   }
-  const originId = await genOriginId(url)
-  await checkOriginIdAndUpdatePageStatus(id, url, originId)
+  const { id: originId, url: stableUrl } = await genOriginId(url)
+  await checkOriginIdAndUpdatePageStatus(id, stableUrl, originId)
 }
 
 // Periodically renew auth token using Knocker
