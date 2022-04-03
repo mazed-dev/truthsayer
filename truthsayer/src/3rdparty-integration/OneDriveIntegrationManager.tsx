@@ -18,20 +18,20 @@ import {
   AuthenticatedTemplate,
   UnauthenticatedTemplate,
 } from '@azure/msal-react'
-import { DriveItem as MsGraphDriveItem } from 'microsoft-graph'
 
 import {
   makeNodeTextData,
   NodeExtattrs,
-  NodeExtattrsWeb,
   NodeIndexText,
   NodeType,
   smuggler,
 } from 'smuggler-api'
 import { MdiInsertLink, MdiLinkOff, MdiLaunch } from 'elementary'
-import { Mime, log, genOriginId } from 'armoury'
+import { Mime, log, genOriginId, errorise } from 'armoury'
 import * as MsGraph from './MicrosoftGraph'
 import * as MsAuthentication from './MicrosoftAuthentication'
+import { Client as MsGraphClient } from '@microsoft/microsoft-graph-client'
+import * as FsModificationQueue from './FilesystemModificationQueue'
 
 const Button = styled.button`
   background-color: #ffffff;
@@ -80,37 +80,18 @@ function beginningOf(text: string) {
   return text.length < 256 ? text : text.substring(0, 256) + '...'
 }
 
-async function uploadFilesFromFolder(
-  msalInstance: PublicClientApplication,
-  folderPath: string
-) {
-  let client = MsGraph.client(msalInstance)
-  let response: MsGraph.ODataResponse<MsGraphDriveItem> = await client
-    .api(`/me/drive/root:${folderPath}:/children`)
-    .get()
-  let driveItems: MsGraphDriveItem[] = response.value
-  for (const item of driveItems) {
-    if (!item.file) {
+async function uploadFilesFromFolder(graph: MsGraphClient, folderPath: string) {
+  const files = await FsModificationQueue.make(graph, new Date(0), folderPath)
+  for (const file of files) {
+    if (file.mimeType !== Mime.TEXT_PLAIN) {
       log.debug(
-        `Skipping ${folderPath}/${item.name} due to unsupported item type`
-      )
-      continue
-    }
-    if (item.file.mimeType !== Mime.TEXT_PLAIN) {
-      log.debug(
-        `Skipping ${folderPath}/${item.name} due to unsupported Mime type ${item.file.mimeType}`
-      )
-      continue
-    }
-    if (!item.webUrl) {
-      log.debug(
-        `OneDrive item ${folderPath}/${item.name} unexpedly does not have a web URL set`
+        `Skipping ${file.path} due to unsupported Mime type ${file.mimeType}`
       )
       continue
     }
 
-    const stream: ReadableStream = await client
-      .api(`/me/drive/items/${item.id}/content`)
+    const stream: ReadableStream = await graph
+      .api(`/me/drive/items/${file.id}/content`)
       .getStream()
 
     const fileText = await readAllFrom(
@@ -126,12 +107,12 @@ async function uploadFilesFromFolder(
     const extattrs: NodeExtattrs = {
       content_type: Mime.TEXT_URI_LIST,
       preview_image: undefined,
-      title: '☁ ' + folderPath + '/' + item.name,
+      title: '☁ ' + file.path,
       description: beginningOf(fileText),
       lang: undefined,
-      author: item.createdBy?.user?.displayName || undefined,
+      author: file.createdBy,
       web: {
-        url: item.webUrl,
+        url: file.webUrl,
       },
       blob: undefined,
     }
@@ -142,7 +123,7 @@ async function uploadFilesFromFolder(
       extattrs,
       ntype: NodeType.Url,
       origin: {
-        id: await genOriginId(item.webUrl),
+        id: await genOriginId(file.webUrl),
       },
     })
     log.debug(`Response to node creation: ${JSON.stringify(response)}`)
@@ -168,16 +149,15 @@ export function OneDriveIntegrationManager() {
           <MdiLinkOff />
         </Button>
         <Button
-          onClick={() =>
-            uploadFilesFromFolder(msAuthentication, '/mazed-test').catch(
-              (error) =>
-                console.error(
-                  `Failed to call Microsoft Graph, error = '${JSON.stringify(
-                    error
-                  )}'`
-                )
+          onClick={() => {
+            const graph: MsGraphClient = MsGraph.client(msAuthentication)
+            uploadFilesFromFolder(graph, '/mazed-test').catch((exception) =>
+              log.exception(
+                errorise(exception),
+                `Failed to call Microsoft Graph`
+              )
             )
-          }
+          }}
         >
           <MdiLaunch />
         </Button>
