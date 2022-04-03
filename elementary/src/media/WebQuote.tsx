@@ -1,12 +1,14 @@
 import React from 'react'
 
-import type { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
-import type { Optional } from 'armoury'
+import type { NodeExtattrs } from 'smuggler-api'
+import { Mime, log } from 'armoury'
 import { BlockQuote } from '../editor/components/BlockQuote'
 
 import { MdiLaunch } from '../MaterialIcons'
 
 import styled from '@emotion/styled'
+
+import lodash from 'lodash'
 
 const Box = styled.div`
   width: 100%;
@@ -17,32 +19,69 @@ const Box = styled.div`
   border-bottom-left-radius: 0;
 `
 
-const Author = styled.p`
-  font-size: 11px;
-  margin: 0 0 0.42em 0;
+const Quotation = styled(BlockQuote)`
+  margin: 0;
+  padding: 10px 8px 10px 0;
 `
 
-export const WebQuote = ({ extattrs, className }: {
+const RefBox = styled.p`
+  margin: 0;
+  padding: 8px 14px 0 0;
+  text-align: right;
+`
+
+const RefLink = styled.a`
+  letter-spacing: 0.025em;
+  color: #80868b;
+  line-height: 1em;
+  font-size: 12px;
+  font-weight: 400;
+  text-decoration: none;
+  &:hover {
+    color: #80868b;
+  }
+`
+const Author = styled.span`
+  font-style: italic;
+`
+const RefLinkIcon = styled(MdiLaunch)`
+  margin-left: 4px;
+  font-size: 14px;
+  vertical-align: middle;
+`
+
+export const WebQuote = ({
+  extattrs,
+  nid,
+  className,
+}: {
   extattrs: NodeExtattrs
+  nid: string
   className?: string
 }) => {
   const { web_quote, author, content_type } = extattrs
-  if (web_quote == null) { return null }
-  const { url, path, plaintext } = web_quote
-  const authorBadge = 
+  const authorElement = author ? <Author>&mdash; {author} </Author> : null
+  if (web_quote == null) {
+    return null
+  }
+  if (content_type !== Mime.TEXT_PLAIN_UTF_8) {
+    log.debug(`Can not render quotation of type ${content_type}, skip it.`)
+    return null
+  }
+  const { text, url } = web_quote
+  const quoteUrl = new URL(url)
+  quoteUrl.hash = nid
+  const hostname = quoteUrl.hostname
   return (
     <Box className={className}>
-      <BadgeBox>
-        <PreviewImage icon={preview_image || null} url={url} />
-        <TitleBox>
-          <Title>{title}</Title>
-          <Domain>{hostname}</Domain>
-          {author ? <Author>{author}</Author> : null}
-        </TitleBox>
-      </BadgeBox>
-      <DescriptionBox>
-        <Description cite={url || ''}>{description}</Description>
-      </DescriptionBox>
+      <Quotation cite={web_quote.url}>{text}</Quotation>
+      <RefBox>
+        <RefLink href={quoteUrl.toString()}>
+          {authorElement}
+          {hostname}
+          <RefLinkIcon />
+        </RefLink>
+      </RefBox>
     </Box>
   )
 }

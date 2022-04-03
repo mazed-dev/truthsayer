@@ -34,7 +34,7 @@ export const InlineLinkNode = styled(ReactRouterLink)`
 export const BlockQuoteBox = styled.div`
   padding: 6px 0 6px 0;
   margin: 0 0 1em 0;
-  background: #eeeeeea5;
+  background: #f8f8f8;
   border-radius: 5px;
   font-style: italic;
 `

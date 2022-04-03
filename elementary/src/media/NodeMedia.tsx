@@ -12,7 +12,7 @@ export function NodeMedia({
   node: TNode
   className?: string
 }) {
-  const { extattrs } = node
+  const { extattrs, nid } = node
   if (node.isImage()) {
     return <ImageNode node={node} className={className} />
   } else if (node.isWebBookmark()) {
@@ -21,7 +21,7 @@ export function NodeMedia({
     }
   } else if (node.isWebQuote()) {
     if (extattrs != null) {
-      return <WebQuote extattrs={extattrs} className={className} />
+      return <WebQuote nid={nid} extattrs={extattrs} className={className} />
     }
   }
   return null

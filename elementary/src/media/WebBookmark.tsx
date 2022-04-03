@@ -2,6 +2,7 @@ import React from 'react'
 
 import type { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
 import type { Optional } from 'armoury'
+import { log } from 'armoury'
 import { BlockQuote } from '../editor/components/BlockQuote'
 
 import { MdiLaunch } from '../MaterialIcons'
@@ -105,8 +106,9 @@ const Domain = styled.p`
 `
 
 const Author = styled.p`
-  font-size: 11px;
   margin: 0 0 0.42em 0;
+  font-size: 11px;
+  font-style: italic;
 `
 
 const DescriptionBox = styled.div`
@@ -125,12 +127,16 @@ type WebBookmarkProps = {
 
 export const WebBookmark = ({ extattrs, className }: WebBookmarkProps) => {
   const { web, preview_image, title, description, author } = extattrs
-  const url = web?.url
-  const hostname = url ? new URL(url).hostname : null
-  const authorBadge = author ? <Author>{author}</Author> : null
+  if (web == null) {
+    log.debug('Empty web bookmark node')
+    return null
+  }
+  const url = web.url
+  const hostname = new URL(url).hostname
+  const authorBadge = author ? <Author>&mdash; {author}</Author> : null
   const descriptionElement = description ? (
     <DescriptionBox>
-      <Description cite={url || ''}>{description}</Description>
+      <Description cite={url}>{description}</Description>
     </DescriptionBox>
   ) : null
   return (
