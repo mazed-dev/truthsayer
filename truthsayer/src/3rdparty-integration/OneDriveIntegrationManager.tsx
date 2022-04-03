@@ -117,13 +117,14 @@ async function uploadFilesFromFolder(graph: MsGraphClient, folderPath: string) {
       blob: undefined,
     }
 
+    const { id: originId } = await genOriginId(file.webUrl)
     const response = await smuggler.node.create({
       text: nodeTextData,
       index_text,
       extattrs,
       ntype: NodeType.Url,
       origin: {
-        id: await genOriginId(file.webUrl),
+        id: originId,
       },
     })
     log.debug(`Response to node creation: ${JSON.stringify(response)}`)
