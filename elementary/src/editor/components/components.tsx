@@ -47,12 +47,11 @@ export const BlockQuotePad = styled.blockquote`
 
 export const CodeBlockBox = styled.code`
   margin: 0;
-  padding: 6px 12px 0 12px;
+  padding: 4px 12px 4px 12px;
 
-  background-color: rgb(248, 250, 248);
+  background-color: rgb(246, 248, 248);
   color: black;
 
-  font-family: 'SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace';
   direction: ltr;
   font-weight: 400;
   display: block;
@@ -123,8 +122,7 @@ export const Header1Box = styled.h6`
   /* color: #1a4301; */
   color: #004b23;
 
-  margin-top: 0;
-  margin-bottom: 0.68em;
+  margin: 0 0 1em 0;
 `
 
 export const Header2Box = styled.h6`
@@ -134,8 +132,7 @@ export const Header2Box = styled.h6`
   color: #006400;
   display: block;
 
-  margin-top: 0;
-  margin-bottom: 0.64em;
+  margin: 0 0 1em 0;
 `
 
 export const Header3Box = styled.h6`
@@ -145,8 +142,7 @@ export const Header3Box = styled.h6`
   color: #007200;
   display: block;
 
-  margin-top: 0;
-  margin-bottom: 0.56em;
+  margin: 0 0 1em 0;
 `
 
 export const Header4Box = styled.h6`
@@ -156,8 +152,7 @@ export const Header4Box = styled.h6`
   color: #008000;
   display: block;
 
-  margin-top: 0;
-  margin-bottom: 0.56em;
+  margin: 0 0 1em 0;
 `
 
 export const Header5Box = styled.h6`
@@ -167,8 +162,7 @@ export const Header5Box = styled.h6`
   color: #38b000;
   display: block;
 
-  margin-top: 0;
-  margin-bottom: 0.48em;
+  margin: 0 0 1em 0;
 `
 
 export const Header6Box = styled.h6`
@@ -178,8 +172,7 @@ export const Header6Box = styled.h6`
   color: #70e000;
   display: block;
 
-  margin-top: 0;
-  margin-bottom: 0.42em;
+  margin: 0 0 1em 0;
 `
 
 const kColourCodeBg = 'rgba(27, 31, 35, 0.05)'
@@ -234,6 +227,6 @@ export const ListItemBox = styled.li`
 
 export const ParagraphBox = styled.p`
   white-space: pre-wrap;
-  margin: 0 0 14px 0;
+  margin: 0 0 1em 0;
   display: block;
 `
