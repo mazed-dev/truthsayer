@@ -14,9 +14,7 @@ export function _uint32ToInt32(u: number): number {
  * @param {string} url - URL string to generate ID for.
  * @returns {number, string} generated origin ID and stabilised URL
  */
-export async function genOriginId(
-  url: string
-): Promise<{
+export async function genOriginId(url: string): Promise<{
   id: number
   url: string
 }> {

@@ -1,6 +1,6 @@
-import { MessageType } from './message/types'
+import { MessageType, Message } from './message/types'
 import * as badge from './badge'
-import { log, isAbortError, genOriginId } from 'armoury'
+import { log, isAbortError, genOriginId, stabiliseOriginUrl } from 'armoury'
 
 import browser from 'webextension-polyfill'
 
@@ -19,15 +19,6 @@ import {
 } from 'smuggler-api'
 
 import { Mime } from 'armoury'
-
-// To send message to popup
-// browser.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
-
-function makeMessage(message: MessageType) {
-  // This is just a hack to check the message type, needed because
-  // browser.*.sendMessage takes any type as a message
-  return message
-}
 
 async function getActiveTabId(): Promise<number | null> {
   try {
@@ -61,7 +52,7 @@ async function requestPageContentToSave() {
   try {
     await browser.tabs.sendMessage(
       tabId,
-      makeMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
+      Message.create({ type: 'REQUEST_PAGE_TO_SAVE' })
     )
   } catch (err) {
     if (!isAbortError(err)) {
@@ -79,7 +70,7 @@ async function updatePageSavedStatus(
   // Inform PopUp window of saved page status to render right buttons
   try {
     await browser.runtime.sendMessage(
-      makeMessage({
+      Message.create({
         type: 'SAVED_NODE',
         bookmark: bookmark?.toJson(),
         quotes: quotes.map((node) => node.toJson()),
@@ -103,9 +94,15 @@ async function updatePageSavedStatus(
 async function savePage(
   url: string,
   originId: number,
-  content: WebPageContent,
+  content?: WebPageContent,
   tabId?: number
 ) {
+  if (content == null) {
+    // Page is not memorable
+    const unmemorable = true
+    await updatePageSavedStatus([], undefined, tabId, unmemorable)
+    return
+  }
   const text = makeNodeTextData()
   const index_text: NodeIndexText = {
     plaintext: content.text || undefined,
@@ -211,7 +208,7 @@ async function sendAuthStatus() {
   const status = authCookie.checkRawValue(cookie?.value || null)
   badge.setActive(status)
   await browser.runtime.sendMessage(
-    makeMessage({ type: 'AUTH_STATUS', status })
+    Message.create({ type: 'AUTH_STATUS', status })
   )
 }
 
@@ -239,11 +236,16 @@ async function checkOriginIdAndUpdatePageStatus(
     if (node == null) {
       break
     }
-    if (node.isWebBookmark() && node.extattrs?.web?.url === url) {
-      bookmark = node
+    const { extattrs } = node
+    if (node.isWebBookmark()) {
+      if (extattrs?.web && stabiliseOriginUrl(extattrs?.web?.url) === url) {
+        bookmark = node
+      }
     }
-    if (node.isWebQuote() && node.extattrs?.web_quote?.url === url) {
-      quotes.push(node)
+    if (node.isWebQuote()) {
+      if (extattrs?.web_quote && extattrs?.web_quote?.url === url) {
+        quotes.push(node)
+      }
     }
   }
   await updatePageSavedStatus(quotes, bookmark, tabId)
@@ -266,12 +268,6 @@ browser.runtime.onMessage.addListener(
         break
       case 'REQUEST_AUTH_STATUS':
         await sendAuthStatus()
-        break
-      case 'PAGE_ORIGIN_ID':
-        {
-          const { url, originId } = message
-          await checkOriginIdAndUpdatePageStatus(tabId, url, originId)
-        }
         break
       case 'SELECTED_WEB_QUOTE':
         {
@@ -327,7 +323,6 @@ browser.contextMenus.onClicked.addListener(
     info: browser.Menus.OnClickData,
     tab: browser.Tabs.Tab | undefined
   ) => {
-    console.log('contextMenus.onClicked.addListener', info, tab)
     if (info.menuItemId === 'copy-link-to-clipboard') {
       if (tab?.id == null) {
         return
@@ -339,7 +334,7 @@ browser.contextMenus.onClicked.addListener(
       try {
         await browser.tabs.sendMessage(
           tab.id,
-          makeMessage({
+          Message.create({
             type: 'REQUEST_SELECTED_WEB_QUOTE',
             text: selectionText,
           })

@@ -18,40 +18,24 @@ import { genOriginId } from 'armoury'
 
 async function readPageContent() {
   const baseURL = `${window.location.protocol}//${window.location.host}`
-  const content = await exctractPageContent(document, baseURL)
-  const url = exctractPageUrl(document)
+  const { id: originId, url } = await genOriginId(exctractPageUrl(document))
   if (!isMemorable(url)) {
     await browser.runtime.sendMessage(
       Message.create({
-        type: 'PAGE_ORIGIN_ID',
+        type: 'PAGE_TO_SAVE',
         url,
+        originId,
       })
     )
     return
   }
-  const { id } = await genOriginId(url)
+  const content = await exctractPageContent(document, baseURL)
   await browser.runtime.sendMessage(
     Message.create({
       type: 'PAGE_TO_SAVE',
-      content,
       url,
-      originId: id,
-    })
-  )
-}
-
-async function readPageOriginId() {
-  const url = exctractPageUrl(document)
-  let originId = undefined
-  if (isMemorable(url)) {
-    const { id } = await genOriginId(url)
-    originId = id
-  }
-  await browser.runtime.sendMessage(
-    Message.create({
-      type: 'PAGE_ORIGIN_ID',
       originId,
-      url,
+      content,
     })
   )
 }
@@ -62,8 +46,7 @@ document.body.appendChild(root)
 
 async function readSelectedText(text: string): Promise<void> {
   const lang = document.documentElement.lang
-  const url = exctractPageUrl(document)
-  const originId = await genOriginId(url)
+  const { id: originId, url } = await genOriginId(exctractPageUrl(document))
   function oncopy(event: ClipboardEvent) {
     document.removeEventListener('copy', oncopy, true)
     event.stopImmediatePropagation()
@@ -91,9 +74,6 @@ browser.runtime.onMessage.addListener(async (message: MessageType) => {
   switch (message.type) {
     case 'REQUEST_PAGE_TO_SAVE':
       await readPageContent()
-      break
-    case 'REQUEST_PAGE_ORIGIN_ID':
-      await readPageOriginId()
       break
     case 'REQUEST_SELECTED_WEB_QUOTE':
       await readSelectedText(message.text)

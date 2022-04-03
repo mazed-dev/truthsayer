@@ -8,8 +8,6 @@ import { MdiLaunch } from '../MaterialIcons'
 
 import styled from '@emotion/styled'
 
-import lodash from 'lodash'
-
 const Box = styled.div`
   width: 100%;
 
@@ -25,8 +23,8 @@ const Quotation = styled(BlockQuote)`
 `
 
 const RefBox = styled.p`
-  margin: 0;
-  padding: 8px 14px 0 0;
+  margin: 2px 10px 0 0;
+  padding: 0;
   text-align: right;
 `
 
@@ -34,7 +32,7 @@ const RefLink = styled.a`
   letter-spacing: 0.025em;
   color: #80868b;
   line-height: 1em;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 400;
   text-decoration: none;
   &:hover {
@@ -54,10 +52,12 @@ export const WebQuote = ({
   extattrs,
   nid,
   className,
+  strippedRefs,
 }: {
   extattrs: NodeExtattrs
   nid: string
   className?: string
+  strippedRefs?: boolean
 }) => {
   const { web_quote, author, content_type } = extattrs
   const authorElement = author ? <Author>&mdash; {author} </Author> : null
@@ -75,13 +75,15 @@ export const WebQuote = ({
   return (
     <Box className={className}>
       <Quotation cite={web_quote.url}>{text}</Quotation>
-      <RefBox>
-        <RefLink href={quoteUrl.toString()}>
-          {authorElement}
-          {hostname}
-          <RefLinkIcon />
-        </RefLink>
-      </RefBox>
+      {strippedRefs ? null : (
+        <RefBox>
+          <RefLink href={quoteUrl.toString()}>
+            {authorElement}
+            {hostname}
+            <RefLinkIcon />
+          </RefLink>
+        </RefBox>
+      )}
     </Box>
   )
 }

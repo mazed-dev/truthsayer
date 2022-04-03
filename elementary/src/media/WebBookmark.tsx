@@ -67,9 +67,11 @@ const PreviewImage = ({
   return (
     <PreviewImageBox>
       {img}
-      <IconLaunch href={url}>
-        <MdiLaunch />
-      </IconLaunch>
+      {url != null ? (
+        <IconLaunch href={url}>
+          <MdiLaunch />
+        </IconLaunch>
+      ) : null}
     </PreviewImageBox>
   )
 }
@@ -123,9 +125,14 @@ const Description = styled(BlockQuote)`
 type WebBookmarkProps = {
   extattrs: NodeExtattrs
   className?: string
+  strippedRefs?: boolean
 }
 
-export const WebBookmark = ({ extattrs, className }: WebBookmarkProps) => {
+export const WebBookmark = ({
+  extattrs,
+  className,
+  strippedRefs,
+}: WebBookmarkProps) => {
   const { web, preview_image, title, description, author } = extattrs
   if (web == null) {
     log.debug('Empty web bookmark node')
@@ -142,7 +149,10 @@ export const WebBookmark = ({ extattrs, className }: WebBookmarkProps) => {
   return (
     <Box className={className}>
       <BadgeBox>
-        <PreviewImage icon={preview_image || null} url={url} />
+        <PreviewImage
+          icon={preview_image || null}
+          url={strippedRefs ? undefined : url}
+        />
         <TitleBox>
           <Title>{title}</Title>
           <Domain>{hostname}</Domain>

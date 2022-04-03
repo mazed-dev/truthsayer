@@ -12,16 +12,6 @@ interface SavedStatusResponse {
   unmemorable?: boolean
 }
 
-interface OriginIdRequest {
-  type: 'REQUEST_PAGE_ORIGIN_ID'
-}
-
-interface OriginIdResponse {
-  type: 'PAGE_ORIGIN_ID'
-  originId?: number
-  url: string
-}
-
 interface AuthStatusRequest {
   type: 'REQUEST_AUTH_STATUS'
 }
@@ -60,7 +50,7 @@ interface SavePageResponse {
   type: 'PAGE_TO_SAVE'
   url: string
   originId: number
-  content: WebPageContent
+  content?: WebPageContent
 }
 
 export type MessageType =
@@ -70,11 +60,11 @@ export type MessageType =
   | SavePageResponse
   | AuthStatusRequest
   | AuthStatusResponse
-  | OriginIdRequest
-  | OriginIdResponse
   | GetSelectedQuoteRequest
   | GetSelectedQuoteResponse
 
 export const Message = {
+  // This is just a hack to check the message type, needed because
+  // browser.*.sendMessage takes any type as a message
   create: (msg: MessageType): MessageType => msg,
 }

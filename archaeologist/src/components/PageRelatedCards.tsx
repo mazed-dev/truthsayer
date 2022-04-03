@@ -1,12 +1,10 @@
 import React from 'react'
-import browser from 'webextension-polyfill'
 import styled from '@emotion/styled'
 
-import {TNode} from 'smuggler-api'
+import { TNode } from 'smuggler-api'
 
-import {mazed} from '../util/mazed'
-import {kSmallCardWidth} from 'elementary'
-import {NodeCard} from './NodeCard'
+import { kSmallCardWidth } from 'elementary'
+import { NodeCard } from './NodeCard'
 
 const Box = styled.div`
   margin: 12px auto 0 auto;
@@ -14,20 +12,33 @@ const Box = styled.div`
   background-color: white;
   display: block;
 `
+const sortNodesByCreationTimeEarliestFirst = (a: TNode, b: TNode) => {
+  if (a.created_at === b.created_at) {
+    return 0
+  } else if (a.created_at < b.created_at) {
+    return -1
+  }
+  return 1
+}
 
-export const PageRelatedCards = ({bookmark, quotes}: {
+const RefNodeCard = styled(NodeCard)`
+  margin-top: 4px;
+`
+
+export const PageRelatedCards = ({
+  bookmark,
+  quotes,
+}: {
   bookmark: TNode | undefined
   quotes: TNode[]
 }) => {
-  const refs = quotes.map((node: TNode) => {
-    return <NodeCard onClick={() => {}} node={node} key={node.nid} />
-  })
-  const bookmarkElement = bookmark == null ? null : (
-    <NodeCard onClick={() => {
-      browser.tabs.create({
-        url: mazed.makeNodeUrl(bookmark.nid).toString(),
-      })
-    }} node={bookmark} key={bookmark.nid} />)
+  const refs = quotes
+    .sort(sortNodesByCreationTimeEarliestFirst)
+    .map((node: TNode) => {
+      return <RefNodeCard node={node} key={node.nid} />
+    })
+  const bookmarkElement =
+    bookmark == null ? null : <NodeCard node={bookmark} key={bookmark.nid} />
   return (
     <Box>
       {bookmarkElement}

@@ -1,17 +1,17 @@
 /** @jsxImportSource @emotion/react */
 
 import React from 'react'
-import {useAsyncEffect} from 'use-async-effect'
+import { useAsyncEffect } from 'use-async-effect'
 import browser from 'webextension-polyfill'
 import styled from '@emotion/styled'
 
-import {TNode} from 'smuggler-api'
+import { TNode, TNodeJson } from 'smuggler-api'
 
-import {MdiBookmarkAdd, Spinner} from 'elementary'
-import {ButtonCreate} from './Button'
+import { MdiBookmarkAdd, Spinner } from 'elementary'
+import { ButtonCreate } from './Button'
 
-import {MessageType} from './../message/types'
-import {PageRelatedCards} from './PageRelatedCards'
+import { MessageType } from './../message/types'
+import { PageRelatedCards } from './PageRelatedCards'
 
 const Container = styled.div`
   margin: 0;
@@ -38,7 +38,7 @@ export const ViewActiveTabStatus = () => {
     browser.runtime.onMessage.addListener((message: MessageType) => {
       switch (message.type) {
         case 'SAVED_NODE':
-          const {bookmark, quotes, unmemorable} = message
+          const { bookmark, quotes, unmemorable } = message
           if (bookmark != null) {
             const node = TNode.fromJson(bookmark)
             setPageSavedNode(node)
@@ -49,19 +49,21 @@ export const ViewActiveTabStatus = () => {
             setPageStatus('memorable')
           }
           if (quotes) {
-            setPageSavedQuotes(quotes.map((json) => TNode.fromJson(json)))
+            setPageSavedQuotes(
+              quotes.map((json: TNodeJson) => TNode.fromJson(json))
+            )
           }
           break
         default:
           break
       }
     })
-    await browser.runtime.sendMessage({type: 'REQUEST_SAVED_NODE'})
+    await browser.runtime.sendMessage({ type: 'REQUEST_SAVED_NODE' })
   }, [])
 
   const handleSave = () => {
     setPageStatus('loading')
-    browser.runtime.sendMessage({type: 'REQUEST_PAGE_TO_SAVE'})
+    browser.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
   }
 
   let btn
@@ -79,10 +81,12 @@ export const ViewActiveTabStatus = () => {
   } else if (pageStatus === 'loading') {
     btn = <Spinner.Wheel />
   } else {
-    grid = (<PageRelatedCards 
-            bookmark={pageSavedNode || undefined} 
-            quotes={pageSavedQuotes} 
-            />)
+    grid = (
+      <PageRelatedCards
+        bookmark={pageSavedNode || undefined}
+        quotes={pageSavedQuotes}
+      />
+    )
   }
   return (
     <Container>
