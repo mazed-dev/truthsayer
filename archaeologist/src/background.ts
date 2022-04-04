@@ -316,19 +316,18 @@ browser.cookies.onChanged.addListener(async (info) => {
   }
 })
 
+const kMazedContextMenuItemId = 'save-selection-to-mazed'
 browser.contextMenus.create({
-  id: 'copy-link-to-clipboard',
   title: 'Save to Mazed',
-  contexts: ['selection', 'image', 'editable'],
-})
-
-browser.contextMenus.onClicked.addListener(
-  async (
+  type: 'normal',
+  id: kMazedContextMenuItemId,
+  contexts: ['selection', 'editable'],
+  viewTypes: ['tab'],
+  onclick: async (
     info: browser.Menus.OnClickData,
     tab: browser.Tabs.Tab | undefined
   ) => {
-    console.log('contextMenus.onClicked.addListener', info, tab)
-    if (info.menuItemId === 'copy-link-to-clipboard') {
+    if (info.menuItemId === kMazedContextMenuItemId) {
       if (tab?.id == null) {
         return
       }
@@ -350,5 +349,5 @@ browser.contextMenus.onClicked.addListener(
         }
       }
     }
-  }
-)
+  },
+})
