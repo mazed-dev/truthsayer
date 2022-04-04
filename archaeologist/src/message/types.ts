@@ -12,16 +12,6 @@ interface SavedStatusResponse {
   unmemorable?: boolean
 }
 
-interface OriginIdRequest {
-  type: 'REQUEST_PAGE_ORIGIN_ID'
-}
-
-interface OriginIdResponse {
-  type: 'PAGE_ORIGIN_ID'
-  originId?: number
-  url: string
-}
-
 interface AuthStatusRequest {
   type: 'REQUEST_AUTH_STATUS'
 }
@@ -60,7 +50,8 @@ interface SavePageResponse {
   type: 'PAGE_TO_SAVE'
   url: string
   originId: number
-  content: WebPageContent
+  // Missing content is for a page that can not be saved
+  content?: WebPageContent
 }
 
 export type MessageType =
@@ -70,8 +61,6 @@ export type MessageType =
   | SavePageResponse
   | AuthStatusRequest
   | AuthStatusResponse
-  | OriginIdRequest
-  | OriginIdResponse
   | GetSelectedQuoteRequest
   | GetSelectedQuoteResponse
 

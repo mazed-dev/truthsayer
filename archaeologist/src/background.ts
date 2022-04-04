@@ -1,6 +1,6 @@
 import { MessageType } from './message/types'
 import * as badge from './badge'
-import { log, isAbortError, genOriginId } from 'armoury'
+import { log, isAbortError, genOriginId, stabiliseOriginUrl } from 'armoury'
 
 import browser from 'webextension-polyfill'
 
@@ -103,9 +103,14 @@ async function updatePageSavedStatus(
 async function savePage(
   url: string,
   originId: number,
-  content: WebPageContent,
+  content?: WebPageContent,
   tabId?: number
 ) {
+  if (content == null) {
+    // Page can not be saved
+    await updatePageSavedStatus([], undefined, tabId)
+    return
+  }
   const text = makeNodeTextData()
   const index_text: NodeIndexText = {
     plaintext: content.text || undefined,
@@ -239,11 +244,16 @@ async function checkOriginIdAndUpdatePageStatus(
     if (node == null) {
       break
     }
-    if (node.isWebBookmark() && node.extattrs?.web?.url === url) {
-      bookmark = node
+    const { extattrs } = node
+    if (node.isWebBookmark() && extattrs?.web) {
+      if (stabiliseOriginUrl(extattrs.web.url) === url) {
+        bookmark = node
+      }
     }
-    if (node.isWebQuote() && node.extattrs?.web_quote?.url === url) {
-      quotes.push(node)
+    if (node.isWebQuote() && extattrs?.web_quote) {
+      if (stabiliseOriginUrl(extattrs.web_quote.url) === url) {
+        quotes.push(node)
+      }
     }
   }
   await updatePageSavedStatus(quotes, bookmark, tabId)
@@ -266,12 +276,6 @@ browser.runtime.onMessage.addListener(
         break
       case 'REQUEST_AUTH_STATUS':
         await sendAuthStatus()
-        break
-      case 'PAGE_ORIGIN_ID':
-        {
-          const { url, originId } = message
-          await checkOriginIdAndUpdatePageStatus(tabId, url, originId)
-        }
         break
       case 'SELECTED_WEB_QUOTE':
         {
@@ -316,14 +320,15 @@ browser.cookies.onChanged.addListener(async (info) => {
   }
 })
 
-const kMazedContextMenuItemId = 'save-selection-to-mazed'
+const kMazedContextMenuItemId = 'selection-to-mazed-context-menu-item'
 browser.contextMenus.create({
   title: 'Save to Mazed',
   type: 'normal',
   id: kMazedContextMenuItemId,
   contexts: ['selection', 'editable'],
-  viewTypes: ['tab'],
-  onclick: async (
+})
+browser.contextMenus.onClicked.addListener(
+  async (
     info: browser.Menus.OnClickData,
     tab: browser.Tabs.Tab | undefined
   ) => {
@@ -349,5 +354,5 @@ browser.contextMenus.create({
         }
       }
     }
-  },
-})
+  }
+)
