@@ -115,7 +115,7 @@ const DescriptionBox = styled.div`
   margin: 8px 8px 0 8px;
 `
 const Description = styled(BlockQuote)`
-  margin: 4px 0 14px 0;
+  margin: 4px 0 6px 0;
 `
 
 type WebBookmarkProps = {
@@ -128,6 +128,11 @@ export const WebBookmark = ({ extattrs, className }: WebBookmarkProps) => {
   const url = web?.url
   const hostname = url ? new URL(url).hostname : null
   const authorBadge = author ? <Author>{author}</Author> : null
+  const descriptionElement = description ? (
+    <DescriptionBox>
+      <Description cite={url || ''}>{description}</Description>
+    </DescriptionBox>
+  ) : null
   return (
     <Box className={className}>
       <BadgeBox>
@@ -138,9 +143,7 @@ export const WebBookmark = ({ extattrs, className }: WebBookmarkProps) => {
           {authorBadge}
         </TitleBox>
       </BadgeBox>
-      <DescriptionBox>
-        <Description cite={url || ''}>{description}</Description>
-      </DescriptionBox>
+      {descriptionElement}
     </Box>
   )
 }
