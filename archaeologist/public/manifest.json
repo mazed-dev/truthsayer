@@ -27,7 +27,6 @@
   "chrome_url_overrides": {},
   "permissions": [
     "activeTab",
-    "clipboardWrite",
     "contextMenus",
     "cookies",
     "tabs"

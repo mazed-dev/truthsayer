@@ -50,6 +50,7 @@ interface SavePageResponse {
   type: 'PAGE_TO_SAVE'
   url: string
   originId: number
+  // Missing content is for a page that can not be saved
   content?: WebPageContent
 }
 

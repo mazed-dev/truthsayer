@@ -181,7 +181,7 @@ async function requestPageSavedStatus(tab?: browser.Tabs.Tab) {
   if (url == null) {
     return
   }
-  const { id: originId, url: stableUrl } = await genOriginId(url)
+  const { id: originId, stableUrl } = await genOriginId(url)
   await checkOriginIdAndUpdatePageStatus(id, stableUrl, originId)
 }
 
@@ -312,18 +312,19 @@ browser.cookies.onChanged.addListener(async (info) => {
   }
 })
 
+const kMazedContextMenuItemId = 'selection-to-mazed-context-menu-item'
 browser.contextMenus.create({
-  id: 'copy-link-to-clipboard',
   title: 'Save to Mazed',
-  contexts: ['selection', 'image', 'editable'],
+  type: 'normal',
+  id: kMazedContextMenuItemId,
+  contexts: ['selection', 'editable'],
 })
-
 browser.contextMenus.onClicked.addListener(
   async (
     info: browser.Menus.OnClickData,
     tab: browser.Tabs.Tab | undefined
   ) => {
-    if (info.menuItemId === 'copy-link-to-clipboard') {
+    if (info.menuItemId === kMazedContextMenuItemId) {
       if (tab?.id == null) {
         return
       }
