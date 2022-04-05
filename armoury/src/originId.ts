@@ -8,25 +8,27 @@ export function _uint32ToInt32(u: number): number {
   return u > 0x7fffffff ? u & (0xffffffff - 0x80000000 - 0x80000000) : u
 }
 
-/**
- * Generate origin ID for given URL.
- *
- * @param {string} url - URL string to generate ID for.
- * @returns {number, string} generated origin ID and stabilised URL
- */
-export async function genOriginId(url: string): Promise<{
+export type OriginId = {
   id: number
-  url: string
-}> {
-  url = stabiliseOriginUrl(url)
-  const h = xxh.h32(kOriginSeed)
-  h.update(url)
-  const u32Value = h.digest().toNumber()
-  const id = _uint32ToInt32(u32Value)
-  return { id, url }
+  stableUrl: string
 }
 
-export function stabiliseOriginUrl(url: string): string {
+/**
+ * Generate origin OriginId for given URL.
+ *
+ * @param {string} url - URL string to generate OriginId for.
+ * @returns {number, string} generated origin OriginId and stabilised URL
+ */
+export async function genOriginId(url: string): Promise<OriginId> {
+  const stableUrl = stabiliseUrlForOriginId(url)
+  const h = xxh.h32(kOriginSeed)
+  h.update(stableUrl)
+  const u32Value = h.digest().toNumber()
+  const id = _uint32ToInt32(u32Value)
+  return { id, stableUrl }
+}
+
+export function stabiliseUrlForOriginId(url: string): string {
   return normalizeUrl(url.toLowerCase(), {
     forceHttps: true,
     normalizeProtocol: true,

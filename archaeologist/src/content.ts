@@ -17,17 +17,17 @@ import { isMemorable } from './extractor/unmemorable'
 import { genOriginId } from 'armoury'
 
 async function readPageContent() {
-  const { id: originId, url } = await genOriginId(exctractPageUrl(document))
+  const { id: originId, stableUrl } = await genOriginId(exctractPageUrl(document))
   const baseURL = `${window.location.protocol}//${window.location.host}`
-  const content = isMemorable(url)
+  const content = isMemorable(stableUrl)
     ? await exctractPageContent(document, baseURL)
     : undefined
   await browser.runtime.sendMessage(
     Message.create({
       type: 'PAGE_TO_SAVE',
       content,
-      url,
       originId,
+      url: stableUrl,
     })
   )
 }
@@ -38,7 +38,7 @@ document.body.appendChild(root)
 
 async function readSelectedText(text: string): Promise<void> {
   const lang = document.documentElement.lang
-  const { id: originId, url } = await genOriginId(exctractPageUrl(document))
+  const { id: originId, stableUrl } = await genOriginId(exctractPageUrl(document))
   function oncopy(event: ClipboardEvent) {
     document.removeEventListener('copy', oncopy, true)
     event.stopImmediatePropagation()
@@ -52,8 +52,8 @@ async function readSelectedText(text: string): Promise<void> {
           text,
           path,
           lang,
-          url,
           originId,
+          url: stableUrl,
         })
       )
     }
