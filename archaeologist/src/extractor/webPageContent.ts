@@ -17,7 +17,7 @@ import { PreviewImageSmall } from 'smuggler-api'
 
 import { Readability as MozillaReadability } from '@mozilla/readability'
 
-import { MimeType, Mime, log, stabiliseUrl } from 'armoury'
+import { MimeType, Mime, log, stabiliseUrlForOriginId } from 'armoury'
 
 async function fetchImagePreviewAsBase64(
   url: string,
@@ -96,7 +96,7 @@ export async function exctractPageContent(
   document_: Document,
   baseURL: string
 ): Promise<WebPageContent> {
-  const url = stabiliseUrl(document_.URL || document_.documentURI)
+  const url = stabiliseUrlForOriginId(document_.URL || document_.documentURI)
   const head = document_.head
   const body = document_.body
 
