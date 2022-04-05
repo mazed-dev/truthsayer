@@ -2,7 +2,7 @@ import React from 'react'
 
 import type { NodeExtattrs } from 'smuggler-api'
 import { Mime, log } from 'armoury'
-import { BlockQuote } from '../editor/components/BlockQuote'
+import { BlockQuoteBox, BlockQuotePad } from '../editor/components/components'
 
 import { MdiLaunch } from '../MaterialIcons'
 
@@ -17,13 +17,8 @@ const Box = styled.div`
   border-bottom-left-radius: 0;
 `
 
-const Quotation = styled(BlockQuote)`
-  margin: 0;
-  padding: 10px 8px 10px 0;
-`
-
 const RefBox = styled.p`
-  margin: 2px 10px 0 0;
+  margin: 2px 1em 0 0;
   padding: 0;
   text-align: right;
 `
@@ -46,6 +41,15 @@ const RefLinkIcon = styled(MdiLaunch)`
   margin-left: 4px;
   font-size: 14px;
   vertical-align: middle;
+`
+
+const WebBlockQuoteBox = styled(BlockQuoteBox)`
+  padding: 0.6em 0 5px 0;
+  margin: 0;
+`
+const WebBlockQuotePad = styled(BlockQuotePad)`
+  padding: 0 0.8em 0 0.8em;
+  margin: 0 0 0 0.8em;
 `
 
 export const WebQuote = ({
@@ -74,16 +78,18 @@ export const WebQuote = ({
   const hostname = quoteUrl.hostname
   return (
     <Box className={className}>
-      <Quotation cite={web_quote.url}>{text}</Quotation>
-      {strippedRefs ? null : (
-        <RefBox>
-          <RefLink href={quoteUrl.toString()}>
-            {authorElement}
-            {hostname}
-            <RefLinkIcon />
-          </RefLink>
-        </RefBox>
-      )}
+      <WebBlockQuoteBox className={className}>
+        <WebBlockQuotePad cite={web_quote.url}>{text}</WebBlockQuotePad>
+        {strippedRefs ? null : (
+          <RefBox>
+            <RefLink href={quoteUrl.toString()}>
+              {authorElement}
+              {hostname}
+              <RefLinkIcon />
+            </RefLink>
+          </RefBox>
+        )}
+      </WebBlockQuoteBox>
     </Box>
   )
 }

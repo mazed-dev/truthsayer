@@ -67,7 +67,6 @@ export const ViewActiveTabStatus = () => {
   }
 
   let btn
-  let grid
   if (pageStatus === 'memorable' && pageSavedNode == null) {
     btn = (
       <ButtonCreate onClick={handleSave}>
@@ -80,18 +79,14 @@ export const ViewActiveTabStatus = () => {
     )
   } else if (pageStatus === 'loading') {
     btn = <Spinner.Wheel />
-  } else {
-    grid = (
-      <PageRelatedCards
-        bookmark={pageSavedNode || undefined}
-        quotes={pageSavedQuotes}
-      />
-    )
   }
   return (
     <Container>
       <Toolbar>{btn}</Toolbar>
-      {grid}
+      <PageRelatedCards
+        bookmark={pageSavedNode || undefined}
+        quotes={pageSavedQuotes}
+      />
     </Container>
   )
 }
