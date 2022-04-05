@@ -17,7 +17,9 @@ import { isMemorable } from './extractor/unmemorable'
 import { genOriginId } from 'armoury'
 
 async function readPageContent() {
-  const { id: originId, stableUrl } = await genOriginId(exctractPageUrl(document))
+  const { id: originId, stableUrl } = await genOriginId(
+    exctractPageUrl(document)
+  )
   const baseURL = `${window.location.protocol}//${window.location.host}`
   const content = isMemorable(stableUrl)
     ? await exctractPageContent(document, baseURL)
@@ -38,7 +40,9 @@ document.body.appendChild(root)
 
 async function readSelectedText(text: string): Promise<void> {
   const lang = document.documentElement.lang
-  const { id: originId, stableUrl } = await genOriginId(exctractPageUrl(document))
+  const { id: originId, stableUrl } = await genOriginId(
+    exctractPageUrl(document)
+  )
   function oncopy(event: ClipboardEvent) {
     document.removeEventListener('copy', oncopy, true)
     event.stopImmediatePropagation()

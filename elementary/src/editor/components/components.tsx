@@ -40,8 +40,8 @@ export const BlockQuoteBox = styled.div`
 `
 
 export const BlockQuotePad = styled.blockquote`
-  padding: 0 5px 0 8px;
-  margin: 0 0 0 8px;
+  padding: 0 5px 0 0.8em;
+  margin: 0 0 0 0.8em;
   border-left: 1px solid rgb(204, 204, 204);
 `
 
