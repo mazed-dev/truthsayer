@@ -242,19 +242,13 @@ async function checkOriginIdAndUpdatePageStatus(
       break
     }
     const { extattrs } = node
-    if (node.isWebBookmark()) {
-      if (
-        extattrs?.web &&
-        stabiliseUrlForOriginId(extattrs?.web?.url) === url
-      ) {
+    if (node.isWebBookmark() && extattrs?.web) {
+      if (stabiliseUrlForOriginId(extattrs.web.url) === url) {
         bookmark = node
       }
     }
-    if (node.isWebQuote()) {
-      if (
-        extattrs?.web_quote &&
-        stabiliseUrlForOriginId(extattrs?.web_quote?.url) === url
-      ) {
+    if (node.isWebQuote() && extattrs?.web_quote) {
+      if (stabiliseUrlForOriginId(extattrs.web_quote.url) === url) {
         quotes.push(node)
       }
     }
