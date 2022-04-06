@@ -66,19 +66,26 @@ async function requestPageContentToSave() {
   }
 }
 
-async function updatePageSavedStatus(
+/**
+ * Update content (saved nodes) in:
+ *   - Pop up window.
+ *   - Content augmentation.
+ *   - Badge counter.
+ */
+async function updateContent(
   quotes: TNode[],
   bookmark?: TNode,
   tabId?: number,
   unmemorable?: boolean
 ): Promise<void> {
-  // Inform PopUp window of saved page status to render right buttons
+  const quotesJson = quotes.map((node) => node.toJson())
+  // Inform PopUp window of saved bookmark and web quotes
   try {
     await browser.runtime.sendMessage(
       Message.create({
         type: 'SAVED_NODE',
         bookmark: bookmark?.toJson(),
-        quotes: quotes.map((node) => node.toJson()),
+        quotes: quotesJson,
         unmemorable,
       })
     )
@@ -91,9 +98,19 @@ async function updatePageSavedStatus(
       err
     )
   }
-  // Update badge
+  // Update badge counter
   const n = quotes.length + (bookmark != null ? 1 : 0)
   await badge.resetText(tabId, n !== 0 ? n.toString() : undefined)
+  // Update content augmentation
+  if (tabId != null) {
+    await browser.tabs.sendMessage(
+      tabId,
+      Message.create({
+        type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
+        quotes: quotesJson,
+      })
+    )
+  }
 }
 
 async function savePage(
@@ -105,7 +122,7 @@ async function savePage(
   if (content == null) {
     // Page is not memorable
     const unmemorable = true
-    await updatePageSavedStatus([], undefined, tabId, unmemorable)
+    await updateContent([], undefined, tabId, unmemorable)
     return
   }
   const text = makeNodeTextData()
@@ -139,7 +156,7 @@ async function savePage(
   if (resp) {
     const { nid } = resp
     const node = await smuggler.node.get({ nid })
-    await updatePageSavedStatus([], node, tabId)
+    await updateContent([], node, tabId)
   }
 }
 
@@ -165,7 +182,7 @@ async function savePageQuote(
   if (resp) {
     const { nid } = resp
     const node = await smuggler.node.get({ nid })
-    await updatePageSavedStatus([], node, tabId)
+    await updateContent([node], undefined, tabId)
   }
 }
 
@@ -224,7 +241,7 @@ async function checkOriginIdAndUpdatePageStatus(
 ) {
   if (originId == null) {
     const unmemorable = true
-    await updatePageSavedStatus([], undefined, tabId, unmemorable)
+    await updateContent([], undefined, tabId, unmemorable)
     return
   }
   const iter = smuggler.node.slice({
@@ -253,7 +270,7 @@ async function checkOriginIdAndUpdatePageStatus(
       }
     }
   }
-  await updatePageSavedStatus(quotes, bookmark, tabId)
+  await updateContent(quotes, bookmark, tabId)
 }
 
 browser.runtime.onMessage.addListener(

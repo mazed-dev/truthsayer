@@ -35,6 +35,11 @@ interface GetSelectedQuoteResponse {
   lang?: string
 }
 
+interface UpdateContentAugmentationRequest {
+  type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION'
+  quotes: TNodeJson[]
+}
+
 /**
  * Save page command chain
  * [ User -> popup.ts -> REQUEST_PAGE_TO_SAVE ]
@@ -63,6 +68,7 @@ export type MessageType =
   | AuthStatusResponse
   | GetSelectedQuoteRequest
   | GetSelectedQuoteResponse
+  | UpdateContentAugmentationRequest
 
 export const Message = {
   // This is just a hack to check the message type, needed because

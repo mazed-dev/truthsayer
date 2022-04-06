@@ -13,8 +13,16 @@ import {
 } from './extractor/webPageContent'
 import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/unmemorable'
-
+import { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId } from 'armoury'
+import { renderPageAugmentation } from './content/Main'
+
+/**
+ * Single socket point in a web page DOM for all Mazed augmentations
+ */
+const socket = document.createElement('div')
+socket.id = 'mazed-archaeologist-content-socket'
+document.body.appendChild(socket)
 
 async function readPageContent() {
   const { id: originId, stableUrl } = await genOriginId(
@@ -62,6 +70,11 @@ async function readSelectedText(text: string): Promise<void> {
   document.execCommand('copy')
 }
 
+async function updateContentAugmentation(quotes: TNode[]): Promise<void> {
+  console.log('updateContentAugmentation', socket, quotes)
+  renderPageAugmentation(socket, quotes)
+}
+
 browser.runtime.onMessage.addListener(async (message: MessageType) => {
   switch (message.type) {
     case 'REQUEST_PAGE_TO_SAVE':
@@ -69,6 +82,11 @@ browser.runtime.onMessage.addListener(async (message: MessageType) => {
       break
     case 'REQUEST_SELECTED_WEB_QUOTE':
       await readSelectedText(message.text)
+      break
+    case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
+      await updateContentAugmentation(
+        message.quotes.map((json: TNodeJson) => TNode.fromJson(json))
+      )
       break
     default:
       break
