@@ -37,9 +37,9 @@ export const ViewActiveTabStatus = () => {
     browser.runtime.onMessage.addListener((message: MessageType) => {
       switch (message.type) {
         case 'SAVED_NODE':
-          const { node, unmemorable } = message
-          if (node != null) {
-            setPageSavedNode(node)
+          const { bookmark, unmemorable } = message
+          if (bookmark != null) {
+            setPageSavedNode(bookmark)
             setPageStatus('saved')
           } else if (unmemorable) {
             setPageStatus('unmemorable')
