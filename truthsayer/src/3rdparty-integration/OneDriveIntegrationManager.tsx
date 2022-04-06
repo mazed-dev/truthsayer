@@ -83,6 +83,7 @@ function beginningOf(text: string) {
 
 async function uploadFilesFromFolder(graph: MsGraphClient, folderPath: string) {
   const fsid: UserFilesystemId = {
+    // TODO[snikitin@outlook.com] Replace this with user's real UID
     uid: 'w9j8n6qmege57t6dggspt46hsud6zmyb8ndate1z7jz3k',
     fs_key: 'onedrive',
   }
@@ -138,7 +139,7 @@ async function uploadFilesFromFolder(graph: MsGraphClient, folderPath: string) {
       },
     })
     log.debug(`Response to node creation: ${JSON.stringify(response)}`)
-    smuggler.user.thirdparty.fs.progress.advance(fsid, {
+    await smuggler.user.thirdparty.fs.progress.advance(fsid, {
       ingested_until: file.lastModTimestamp,
     })
   }

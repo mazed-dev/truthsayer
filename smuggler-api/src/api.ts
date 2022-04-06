@@ -614,7 +614,7 @@ async function advanceUserFsIngestionProgress(
   fsid: UserFilesystemId,
   new_progress: AdvanceUserFsIngestionProgress,
   signal?: AbortSignal
-) {
+): Promise<Ack> {
   const resp = await fetch(
     makeUrl(`/user/${fsid.uid}/3rdparty/fs/${fsid.fs_key}/progress`),
     {
