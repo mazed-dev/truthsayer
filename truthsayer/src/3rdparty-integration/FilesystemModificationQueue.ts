@@ -38,8 +38,8 @@ type FileProxy = {
   /** A URL that a user can use to open this file in it's native filesystem */
   webUrl: string
 
-  /** Date when this file was last modified by a user within its filesystem */
-  lastModDate: Date
+  /** Unix timestamp (seconds) when this file was last modified by a user within its filesystem */
+  lastModTimestamp: number
   createdBy: string
   mimeType: MimeType
 }
@@ -53,13 +53,24 @@ type FolderProxy = {
   category: 'folder'
   path: string
   id: string
-  lastModDate: Date
+  /**
+   * Unix timestamp (seconds) when this folder was last modified by a user
+   * within its filesystem.
+   *
+   * Note that folder modification date may not behave as intuitively as
+   * a @see FileProxy modification date. See https://github.com/Thread-knowledge/truthsayer/issues/148#issuecomment-1048580828
+   * for more information
+   */
+  lastModTimestamp: number
 
   children: null /** data not fetched yet */ | ChildrenProxy
 }
 
 type ModificationSearchRange = {
-  start: Date
+  /**
+   * Unix timestamp (seconds), @see FileProxy for more information
+   */
+  start: number
   // TODO[snikitin@outlook.com] Currently the algorithm has no way to narrow the
   // search range from the right side. It means it will greedily look for
   // everything in [start, infinity). If a filesystem gets processed by Mazed
@@ -104,7 +115,7 @@ async function loadAllFilesInRange(
   //  than search range                                     then search range
   //  start, should be                                      end, should be
   //  skipped                                               skipped
-  if (folder.lastModDate < searchRange.start) {
+  if (folder.lastModTimestamp < searchRange.start) {
     // if last modification date of the whole folder is older than the start
     // of search range then it means that there are no files in this folder
     // that were modified in the given search range.
@@ -123,7 +134,7 @@ async function loadAllFilesInRange(
   }
 
   const ret: FileProxy[] = folder.children.files.filter(
-    (file) => file.lastModDate > searchRange.start
+    (file) => file.lastModTimestamp > searchRange.start
   )
   for (const childFolder of folder.children.folders) {
     ret.concat(await loadAllFilesInRange(graph, childFolder, searchRange))
@@ -163,6 +174,14 @@ async function fetchChildrenOf(
   return ret
 }
 
+/**
+ * @returns A Unix timestamp with seconds precision
+ */
+function toUnixSecTimestamp(date: Date): number {
+  // See https://stackoverflow.com/a/1792009/3375765 for more info about the implementation
+  return date.getTime() / 1000
+}
+
 function toProxy(
   msItem: MsGraphDriveItem,
   parentPath: string
@@ -184,6 +203,7 @@ function toProxy(
     return null
   }
 
+  const lastModTimestamp = toUnixSecTimestamp(lastModDate)
   if (msItem.file) {
     const fsNativeMimeType = msItem.file.mimeType
     const mimeType: Optional<MimeType> = fsNativeMimeType
@@ -210,7 +230,7 @@ function toProxy(
       id,
       webUrl: msItem.webUrl,
       createdBy: msItem.createdBy?.user?.displayName || 'Unknown author',
-      lastModDate,
+      lastModTimestamp,
       mimeType,
     }
   } else if (msItem.folder) {
@@ -218,7 +238,7 @@ function toProxy(
       category: 'folder',
       path,
       id,
-      lastModDate,
+      lastModTimestamp,
       children: { files: [], folders: [] },
     }
   }
@@ -243,7 +263,7 @@ function oldestModifiedFirstComparator(lhs: FileProxy, rhs: FileProxy) {
   // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#description
   // for more information on how custom comparator functions
   // should be implemented
-  if (lhs.lastModDate === rhs.lastModDate) {
+  if (lhs.lastModTimestamp === rhs.lastModTimestamp) {
     assert(
       lhs.id !== rhs.id,
       `Two elements with identical IDs ${lhs.id}` +
@@ -253,7 +273,7 @@ function oldestModifiedFirstComparator(lhs: FileProxy, rhs: FileProxy) {
       return -1
     }
     return 1
-  } else if (lhs.lastModDate < rhs.lastModDate) {
+  } else if (lhs.lastModTimestamp < rhs.lastModTimestamp) {
     return -1
   }
   return 1
@@ -265,17 +285,20 @@ export type QueueParams = {}
  * Fetch a list of files from a filesystem, ordered by their last modification
  * date (first elements are the oldest modified, last elements are most recently
  * modified)
+ *
+ * @param lastModificationNotOlderThan A Unix timestamp (seconds), defines
+ * "last modification date" timerange boundary that will be used to limit file search
  */
 export async function make(
   graph: MsGraphClient,
-  lastModificationNotOlderThan: Date,
+  lastModificationNotOlderThan: number,
   targetFolderPath: string
 ): Promise<FileProxy[]> {
   const targetFolder: FolderProxy = {
     category: 'folder',
     path: targetFolderPath,
     id: `fake-folder-id-for-${targetFolderPath}`,
-    lastModDate: new Date(MAX_TIMESTAMP),
+    lastModTimestamp: MAX_TIMESTAMP,
     children: null,
   }
 

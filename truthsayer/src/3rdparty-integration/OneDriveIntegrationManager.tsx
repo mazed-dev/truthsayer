@@ -25,8 +25,9 @@ import {
   NodeIndexText,
   NodeType,
   smuggler,
+  UserFilesystemId,
 } from 'smuggler-api'
-import { MdiInsertLink, MdiLinkOff, MdiLaunch } from 'elementary'
+import { MdiInsertLink, MdiLinkOff, MdiSync } from 'elementary'
 import { Mime, log, genOriginId, errorise } from 'armoury'
 import * as MsGraph from './MicrosoftGraph'
 import * as MsAuthentication from './MicrosoftAuthentication'
@@ -81,7 +82,16 @@ function beginningOf(text: string) {
 }
 
 async function uploadFilesFromFolder(graph: MsGraphClient, folderPath: string) {
-  const files = await FsModificationQueue.make(graph, new Date(0), folderPath)
+  const fsid: UserFilesystemId = {
+    uid: 'w9j8n6qmege57t6dggspt46hsud6zmyb8ndate1z7jz3k',
+    fs_key: 'onedrive',
+  }
+  const current_progress = await smuggler.user.thirdparty.fs.progress.get(fsid)
+  const files = await FsModificationQueue.make(
+    graph,
+    current_progress.ingested_until,
+    folderPath
+  )
   for (const file of files) {
     if (file.mimeType !== Mime.TEXT_PLAIN) {
       log.debug(
@@ -128,6 +138,9 @@ async function uploadFilesFromFolder(graph: MsGraphClient, folderPath: string) {
       },
     })
     log.debug(`Response to node creation: ${JSON.stringify(response)}`)
+    smuggler.user.thirdparty.fs.progress.advance(fsid, {
+      ingested_until: file.lastModTimestamp,
+    })
   }
 }
 
@@ -160,7 +173,7 @@ export function OneDriveIntegrationManager() {
             )
           }}
         >
-          <MdiLaunch />
+          <MdiSync />
         </Button>
       </AuthenticatedTemplate>
       <UnauthenticatedTemplate>

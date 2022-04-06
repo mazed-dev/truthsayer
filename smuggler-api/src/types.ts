@@ -390,3 +390,18 @@ export interface AccountInterface {
   getEmail: () => string
   getLocalCrypto: () => LocalCrypto
 }
+
+export type UserFilesystemId = {
+  uid: string
+  // A value that uniquely identifies one of filesystems of a specific uid
+  fs_key: string
+}
+
+export type UserFsIngestionProgress = {
+  fsid: UserFilesystemId
+  ingested_until: number // Absolute time - unix timestamp, seconds
+}
+
+export type AdvanceUserFsIngestionProgress = {
+  ingested_until: number // See UserFsIngestionProgress
+}

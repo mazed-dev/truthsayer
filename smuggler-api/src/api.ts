@@ -1,6 +1,7 @@
 import {
   AccountInfo,
   Ack,
+  AdvanceUserFsIngestionProgress,
   EdgeAttributes,
   EdgeStar,
   GenerateBlobIndexResponse,
@@ -18,6 +19,8 @@ import {
   TNode,
   UploadMultipartResponse,
   UserBadge,
+  UserFilesystemId,
+  UserFsIngestionProgress,
 } from './types'
 
 import { makeUrl } from './api_url'
@@ -591,6 +594,42 @@ async function passwordChange(
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
+async function getUserFsIngestionProgress(
+  fsid: UserFilesystemId,
+  signal?: AbortSignal
+): Promise<UserFsIngestionProgress> {
+  const resp = await fetch(
+    makeUrl(`/user/${fsid.uid}/3rdparty/fs/${fsid.fs_key}/progress`),
+    {
+      method: 'GET',
+      signal,
+    }
+  )
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
+}
+async function advanceUserFsIngestionProgress(
+  fsid: UserFilesystemId,
+  new_progress: AdvanceUserFsIngestionProgress,
+  signal?: AbortSignal
+) {
+  const resp = await fetch(
+    makeUrl(`/user/${fsid.uid}/3rdparty/fs/${fsid.fs_key}/progress`),
+    {
+      method: 'PATCH',
+      body: JSON.stringify(new_progress),
+      headers: { 'Content-type': Mime.JSON },
+      signal,
+    }
+  )
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw new Error(`(${resp.status}) ${resp.statusText}`)
+}
+
 export const smuggler = {
   getAuth,
   node: {
@@ -634,6 +673,14 @@ export const smuggler = {
       change: passwordChange,
     },
     register: registerAccount,
+    thirdparty: {
+      fs: {
+        progress: {
+          get: getUserFsIngestionProgress,
+          advance: advanceUserFsIngestionProgress,
+        },
+      },
+    },
   },
   ping,
 }
