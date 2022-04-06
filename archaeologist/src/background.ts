@@ -1,6 +1,11 @@
 import { MessageType } from './message/types'
 import * as badge from './badge'
-import { log, isAbortError, genOriginId, stabiliseOriginUrl } from 'armoury'
+import {
+  log,
+  isAbortError,
+  genOriginId,
+  stabiliseUrlForOriginId,
+} from 'armoury'
 
 import browser from 'webextension-polyfill'
 
@@ -246,12 +251,12 @@ async function checkOriginIdAndUpdatePageStatus(
     }
     const { extattrs } = node
     if (node.isWebBookmark() && extattrs?.web) {
-      if (stabiliseOriginUrl(extattrs.web.url) === url) {
+      if (stabiliseUrlForOriginId(extattrs.web.url) === url) {
         bookmark = node
       }
     }
     if (node.isWebQuote() && extattrs?.web_quote) {
-      if (stabiliseOriginUrl(extattrs.web_quote.url) === url) {
+      if (stabiliseUrlForOriginId(extattrs.web_quote.url) === url) {
         quotes.push(node)
       }
     }

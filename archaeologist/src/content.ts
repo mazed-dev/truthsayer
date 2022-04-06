@@ -34,10 +34,6 @@ async function readPageContent() {
   )
 }
 
-const root = document.createElement('div')
-root.id = 'mazed-archaeologist-content-root'
-document.body.appendChild(root)
-
 async function readSelectedText(text: string): Promise<void> {
   const lang = document.documentElement.lang
   const { id: originId, stableUrl } = await genOriginId(
