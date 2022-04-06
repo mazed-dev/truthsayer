@@ -318,12 +318,14 @@ browser.cookies.onChanged.addListener(async (info) => {
 })
 
 const kMazedContextMenuItemId = 'selection-to-mazed-context-menu-item'
+
 browser.contextMenus.create({
   title: 'Save to Mazed',
   type: 'normal',
   id: kMazedContextMenuItemId,
   contexts: ['selection', 'editable'],
 })
+
 browser.contextMenus.onClicked.addListener(
   async (
     info: browser.Menus.OnClickData,
