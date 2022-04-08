@@ -281,7 +281,7 @@ browser.runtime.onMessage.addListener(
       case 'REQUEST_PAGE_TO_SAVE':
         requestPageContentToSave()
         break
-      case 'REQUEST_SAVED_NODE':
+      case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS':
         await requestPageSavedStatus()
         break
       case 'PAGE_TO_SAVE':

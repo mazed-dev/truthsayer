@@ -37,7 +37,7 @@ export const ViewActiveTabStatus = () => {
   useAsyncEffect(async () => {
     browser.runtime.onMessage.addListener((message: MessageType) => {
       switch (message.type) {
-        case 'SAVED_NODE':
+        case 'UPDATE_POPUP_CARDS':
           const { bookmark, quotes, unmemorable } = message
           if (bookmark != null) {
             const node = TNode.fromJson(bookmark)
@@ -58,7 +58,9 @@ export const ViewActiveTabStatus = () => {
           break
       }
     })
-    await browser.runtime.sendMessage({ type: 'REQUEST_SAVED_NODE' })
+    await browser.runtime.sendMessage({
+      type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS',
+    })
   }, [])
 
   const handleSave = () => {

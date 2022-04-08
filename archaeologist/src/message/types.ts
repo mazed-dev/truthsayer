@@ -1,12 +1,12 @@
 import { WebPageContent } from './../extractor/webPageContent'
 import { TNodeJson } from 'smuggler-api'
 
-interface SavedStatusRequest {
-  type: 'REQUEST_SAVED_NODE'
+interface PageInActiveTabStatusRequest {
+  type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS'
 }
 
 interface SavedStatusResponse {
-  type: 'SAVED_NODE'
+  type: 'UPDATE_POPUP_CARDS'
   bookmark?: TNodeJson
   quotes: TNodeJson[]
   unmemorable?: boolean
@@ -60,7 +60,7 @@ interface SavePageResponse {
 }
 
 export type MessageType =
-  | SavedStatusRequest
+  | PageInActiveTabStatusRequest
   | SavedStatusResponse
   | SavePageRequest
   | SavePageResponse
