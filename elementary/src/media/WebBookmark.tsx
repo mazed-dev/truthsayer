@@ -56,6 +56,12 @@ const IconLaunch = styled.a`
   }
 `
 
+/**
+ * This is a preview image element, we use it to render reference to the orginal
+ * web page with "launch" incon rendered over the image as link-button. When
+ * `strippedRefs=true` we are not rendering the reference button, only the
+ * preview image. This is the only case when url param is `undefined`.
+ */
 const PreviewImage = ({
   icon,
   url,
