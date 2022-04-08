@@ -29,7 +29,7 @@ const MAX_TIMESTAMP: number = 8640000000000000
  * in which case loading all files at the same time in memory would be
  * disadvanageous.
  */
-type FileProxy = {
+export type FileProxy = {
   category: 'file'
   /** A filepath of this file (expected to mostly be useful for debugging) */
   path: string
@@ -306,4 +306,28 @@ export async function make(
     start: lastModificationNotOlderThan,
   })
   return files.sort(oldestModifiedFirstComparator)
+}
+
+export function batchIterator(queue: FileProxy[]) {
+  // Implemented according to https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators#user-defined_iterables
+  return {
+    *[Symbol.iterator]() {
+      for (let batchStart = 0; batchStart < queue.length; ) {
+        const isFromNextBatch = (file: FileProxy) => {
+          assert(
+            !(file.lastModTimestamp < queue[batchStart].lastModTimestamp),
+            'batchIterator expects file queue to be sorted by last modification timestamp'
+          )
+          return file.lastModTimestamp > queue[batchStart].lastModTimestamp
+        }
+        const nextBatchStart = queue
+          .slice(batchStart)
+          .findIndex(isFromNextBatch)
+        const batchEnd = nextBatchStart === -1 ? queue.length : nextBatchStart
+        yield queue.slice(batchStart, batchEnd)
+
+        batchStart = batchEnd
+      }
+    },
+  }
 }

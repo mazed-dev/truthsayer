@@ -93,56 +93,65 @@ async function uploadFilesFromFolder(graph: MsGraphClient, folderPath: string) {
     current_progress.ingested_until,
     folderPath
   )
-  for (const file of files) {
-    if (file.mimeType !== Mime.TEXT_PLAIN) {
-      log.debug(
-        `Skipping ${file.path} due to unsupported Mime type ${file.mimeType}`
-      )
-      continue
+  for (const batch of FsModificationQueue.batchIterator(files)) {
+    for (const file of batch) {
+      uploadSingleFile(graph, file)
     }
-
-    const stream: ReadableStream = await graph
-      .api(`/me/drive/items/${file.id}/content`)
-      .getStream()
-
-    const fileText = await readAllFrom(
-      stream.pipeThrough(new TextDecoderStream()).getReader()
-    )
-    const nodeTextData = makeNodeTextData()
-    const index_text: NodeIndexText = {
-      plaintext: fileText,
-      labels: [],
-      brands: [],
-      dominant_colors: [],
-    }
-    const extattrs: NodeExtattrs = {
-      content_type: Mime.TEXT_URI_LIST,
-      preview_image: undefined,
-      title: '☁ ' + file.path,
-      description: beginningOf(fileText),
-      lang: undefined,
-      author: file.createdBy,
-      web: {
-        url: file.webUrl,
-      },
-      blob: undefined,
-    }
-
-    const { id: originId } = await genOriginId(file.webUrl)
-    const response = await smuggler.node.create({
-      text: nodeTextData,
-      index_text,
-      extattrs,
-      ntype: NodeType.Url,
-      origin: {
-        id: originId,
-      },
-    })
-    log.debug(`Response to node creation: ${JSON.stringify(response)}`)
     await smuggler.user.thirdparty.fs.progress.advance(fsid, {
-      ingested_until: file.lastModTimestamp,
+      ingested_until: batch[0].lastModTimestamp,
     })
   }
+}
+
+async function uploadSingleFile(
+  graph: MsGraphClient,
+  file: FsModificationQueue.FileProxy
+) {
+  if (file.mimeType !== Mime.TEXT_PLAIN) {
+    log.debug(
+      `Skipping ${file.path} due to unsupported Mime type ${file.mimeType}`
+    )
+    return
+  }
+
+  const stream: ReadableStream = await graph
+    .api(`/me/drive/items/${file.id}/content`)
+    .getStream()
+
+  const fileText = await readAllFrom(
+    stream.pipeThrough(new TextDecoderStream()).getReader()
+  )
+  const nodeTextData = makeNodeTextData()
+  const index_text: NodeIndexText = {
+    plaintext: fileText,
+    labels: [],
+    brands: [],
+    dominant_colors: [],
+  }
+  const extattrs: NodeExtattrs = {
+    content_type: Mime.TEXT_URI_LIST,
+    preview_image: undefined,
+    title: '☁ ' + file.path,
+    description: beginningOf(fileText),
+    lang: undefined,
+    author: file.createdBy,
+    web: {
+      url: file.webUrl,
+    },
+    blob: undefined,
+  }
+
+  const { id: originId } = await genOriginId(file.webUrl)
+  const response = await smuggler.node.create({
+    text: nodeTextData,
+    index_text,
+    extattrs,
+    ntype: NodeType.Url,
+    origin: {
+      id: originId,
+    },
+  })
+  log.debug(`Response to node creation: ${JSON.stringify(response)}`)
 }
 
 /** Allows to manage user's integration of Microsoft OneDrive with Mazed */
