@@ -1,4 +1,4 @@
-import { MessageType } from './message/types'
+import { MessageType, Message } from './message/types'
 import * as badge from './badge'
 import {
   log,
@@ -24,15 +24,6 @@ import {
 } from 'smuggler-api'
 
 import { Mime } from 'armoury'
-
-// To send message to popup
-// browser.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
-
-function makeMessage(message: MessageType) {
-  // This is just a hack to check the message type, needed because
-  // browser.*.sendMessage takes any type as a message
-  return message
-}
 
 async function getActiveTabId(): Promise<number | null> {
   try {
@@ -66,7 +57,7 @@ async function requestPageContentToSave() {
   try {
     await browser.tabs.sendMessage(
       tabId,
-      makeMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
+      Message.create({ type: 'REQUEST_PAGE_TO_SAVE' })
     )
   } catch (err) {
     if (!isAbortError(err)) {
@@ -84,7 +75,7 @@ async function updatePageSavedStatus(
   // Inform PopUp window of saved page status to render right buttons
   try {
     await browser.runtime.sendMessage(
-      makeMessage({
+      Message.create({
         type: 'SAVED_NODE',
         bookmark: bookmark?.toJson(),
         quotes: quotes.map((node) => node.toJson()),
@@ -112,8 +103,9 @@ async function savePage(
   tabId?: number
 ) {
   if (content == null) {
-    // Page can not be saved
-    await updatePageSavedStatus([], undefined, tabId)
+    // Page is not memorable
+    const unmemorable = true
+    await updatePageSavedStatus([], undefined, tabId, unmemorable)
     return
   }
   const text = makeNodeTextData()
@@ -221,7 +213,7 @@ async function sendAuthStatus() {
   const status = authCookie.checkRawValue(cookie?.value || null)
   badge.setActive(status)
   await browser.runtime.sendMessage(
-    makeMessage({ type: 'AUTH_STATUS', status })
+    Message.create({ type: 'AUTH_STATUS', status })
   )
 }
 
@@ -326,12 +318,14 @@ browser.cookies.onChanged.addListener(async (info) => {
 })
 
 const kMazedContextMenuItemId = 'selection-to-mazed-context-menu-item'
+
 browser.contextMenus.create({
   title: 'Save to Mazed',
   type: 'normal',
   id: kMazedContextMenuItemId,
   contexts: ['selection', 'editable'],
 })
+
 browser.contextMenus.onClicked.addListener(
   async (
     info: browser.Menus.OnClickData,
@@ -348,7 +342,7 @@ browser.contextMenus.onClicked.addListener(
       try {
         await browser.tabs.sendMessage(
           tab.id,
-          makeMessage({
+          Message.create({
             type: 'REQUEST_SELECTED_WEB_QUOTE',
             text: selectionText,
           })

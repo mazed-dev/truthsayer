@@ -77,7 +77,7 @@ export const NodeTextEditor = ({
           spellCheck
           autoFocus
           css={css`
-            padding: 1em;
+            padding: 1em 1em 0 1em;
           `}
         />
       </Slate>

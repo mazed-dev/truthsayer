@@ -65,5 +65,7 @@ export type MessageType =
   | GetSelectedQuoteResponse
 
 export const Message = {
+  // This is just a hack to check the message type, needed because
+  // browser.*.sendMessage takes any type as a message
   create: (msg: MessageType): MessageType => msg,
 }
