@@ -1,8 +1,11 @@
 import React from 'react'
 import styled from '@emotion/styled'
 
+// All CSS properties are tagged as `!important` here to protect Mazed
+// augmentation against overrides from WebPage CSS.
+
 const Box = styled.span`
-  position: relative;
+  position: relative !important;
 
   background-color: grey !important;
   color: green !important;
@@ -15,8 +18,8 @@ const Box = styled.span`
   letter-spacing: normal !important;
   line-height: normal !important;
 
-  height: 0 !important;
-  width: 0 !important;
+  height: 0;
+  width: 0;
 `
 
 const Mark = styled.span`
@@ -29,27 +32,29 @@ const Mark = styled.span`
 
   display: block;
   position: relative;
-  width: 4px;
+  width: 8px;
   height: 24px;
-  background: #38b000;
+  background: #38b000 !important;
 
   &:after {
-    content: "";
+    content: '';
     position: absolute;
     left: 100%;
     top: 0;
     width: 0;
     height: 0;
-    border-top: 12px solid transparent;
-    border-left: 8px solid #38b000;
-    border-bottom: 12px solid transparent;
+    border-top: 12px solid transparent !important;
+    border-left: 8px solid #38b000 !important;
+    border-bottom: 12px solid transparent !important;
   }
 `
 
+// z-index here is just a big enough number to make sure Mazed augmentation is
+// rendered over everything else on a web page.
 const BoxAbs = styled.span`
   position: absolute;
-  top: -1em;
-  left: -2em;
+  left: calc(0px - 1em - 2px);
+  z-index: 2022;
 `
 
 const BoxPad = styled.span`
@@ -61,7 +66,7 @@ export const QuoteSticker = ({ nid }: { nid: string }) => {
     <Box id={nid}>
       <BoxAbs>
         <BoxPad>
-          <Mark></Mark>
+          <Mark />
         </BoxPad>
       </BoxAbs>
     </Box>
