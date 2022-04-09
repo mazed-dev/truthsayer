@@ -1,3 +1,4 @@
+/** @jsxImportSource @emotion/react */
 /**
  * @file Implements UI widgets that user can use to manage integration between
  * their Mazed & Microsoft OneDrive.
@@ -38,8 +39,9 @@ const Button = styled.button`
   border-style: solid;
   border-width: 0;
   border-radius: 32px;
+  padding: 0;
+  margin: 0;
 
-  vertical-align: middle;
   &:hover {
     background-color: #d0d1d2;
   }
@@ -160,7 +162,9 @@ export function OneDriveIntegrationManager() {
             )
           }}
         >
-          <MdiLaunch />
+          <MdiLaunch
+            css={{ verticalAlign: 'middle', padding: '4px', fontSize: '18px' }}
+          />
         </Button>
       </AuthenticatedTemplate>
       <UnauthenticatedTemplate>
@@ -169,7 +173,9 @@ export function OneDriveIntegrationManager() {
             signIn(msAuthentication)
           }}
         >
-          <MdiInsertLink />
+          <MdiInsertLink
+            css={{ verticalAlign: 'middle', padding: '4px', fontSize: '18px' }}
+          />
         </Button>
       </UnauthenticatedTemplate>
     </MsalProvider>
