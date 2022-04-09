@@ -19,6 +19,7 @@ const Box = styled.span`
   text-align: right !important;
   letter-spacing: normal !important;
   line-height: normal !important;
+  vertical-align: middle;
 
   height: 0;
   width: 0;
@@ -27,15 +28,15 @@ const Box = styled.span`
 const Mark = styled.span`
   cursor: pointer !important;
 
-  opacity: 0.5;
+  opacity: 0.4;
   &:hover {
-    opacity: 1;
+    opacity: 0.6;
   }
 
   display: block;
   position: relative;
-  width: 8px;
-  height: 24px;
+  width: 32px;
+  height: calc(1em + 6px);
   background: #38b000 !important;
 
   &:after {
@@ -45,9 +46,8 @@ const Mark = styled.span`
     top: 0;
     width: 0;
     height: 0;
-    border-top: 12px solid transparent !important;
-    border-left: 8px solid #38b000 !important;
-    border-bottom: 12px solid transparent !important;
+    border-bottom: calc(1em + 6px) solid transparent !important;
+    border-left: calc(1em + 1px) solid #38b000 !important;
   }
 `
 
@@ -55,7 +55,8 @@ const Mark = styled.span`
 // rendered over everything else on a web page.
 const BoxAbs = styled.span`
   position: absolute;
-  left: calc(0px - 1em - 2px);
+  top: -2px;
+  left: -8px;
   z-index: 2022;
 `
 

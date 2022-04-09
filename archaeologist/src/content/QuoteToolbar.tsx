@@ -14,6 +14,7 @@ import LogoImage from '../../public/logo-48x48.png'
 //border: 1px solid ${HighlightColour.Green}7f;
 const Box = styled.div`
   display: flex;
+  width: max-content !important;
   margin: 4px;
   background: #ffffff !important;
   border: 1px solid #ececec !important;
@@ -26,7 +27,8 @@ const ItemCommon = css`
   margin: 4px 2px 4px 0;
   padding: 8px;
   border-radius: 8px;
-  cursor: pointer;
+  cursor: pointer !important;
+  font-size: 14px !important;
   ${StyleButtonWhite};
 `
 
@@ -46,8 +48,7 @@ const RefItem = styled.a`
 const Logo = styled.img`
   width: 20px;
   height: 20px;
-  margin: auto 2px auto 2px;
-  padding: 4px;
+  margin: auto 6px auto 6px;
 `
 
 export const QuoteToolbar = ({
