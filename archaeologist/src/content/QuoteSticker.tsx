@@ -1,7 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from '@emotion/styled'
 
-// All CSS properties are tagged as `!important` here to protect Mazed
+import { QuoteToolbar } from './QuoteToolbar'
+
+// Almost all CSS properties are tagged as `!important` here to protect Mazed
 // augmentation against overrides from WebPage CSS.
 
 const Box = styled.span`
@@ -62,11 +64,19 @@ const BoxPad = styled.span`
 `
 
 export const QuoteSticker = ({ nid }: { nid: string }) => {
+  const [showButtons, setShowButtons] = useState<boolean>(false)
+  const toolbar = showButtons ? (
+    <QuoteToolbar nid={nid} onExit={() => setShowButtons(false)} />
+  ) : null
+  const onClick = () => {
+    setShowButtons((value) => !value)
+  }
   return (
     <Box id={nid}>
       <BoxAbs>
         <BoxPad>
-          <Mark />
+          <Mark onClick={onClick} />
+          {toolbar}
         </BoxPad>
       </BoxAbs>
     </Box>
