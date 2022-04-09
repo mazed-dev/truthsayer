@@ -1,32 +1,29 @@
-import { MessageType } from './message/types'
+import { MessageType, Message } from './message/types'
 import * as badge from './badge'
-import { log, isAbortError, genOriginId } from 'armoury'
+import {
+  log,
+  isAbortError,
+  genOriginId,
+  stabiliseUrlForOriginId,
+} from 'armoury'
 
 import browser from 'webextension-polyfill'
 
 import { WebPageContent } from './extractor/webPageContent'
 
 import {
-  smuggler,
-  makeNodeTextData,
-  NodeType,
-  NodeIndexText,
-  NodeExtattrs,
-  authCookie,
   Knocker,
+  NodeExtattrs,
+  NodeExtattrsWebQuote,
+  NodeIndexText,
+  NodeType,
   TNode,
+  authCookie,
+  makeNodeTextData,
+  smuggler,
 } from 'smuggler-api'
 
 import { Mime } from 'armoury'
-
-// To send message to popup
-// browser.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
-
-function makeMessage(message: MessageType) {
-  // This is just a hack to check the message type, needed because
-  // browser.*.sendMessage takes any type as a message
-  return message
-}
 
 async function getActiveTabId(): Promise<number | null> {
   try {
@@ -60,7 +57,7 @@ async function requestPageContentToSave() {
   try {
     await browser.tabs.sendMessage(
       tabId,
-      makeMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
+      Message.create({ type: 'REQUEST_PAGE_TO_SAVE' })
     )
   } catch (err) {
     if (!isAbortError(err)) {
@@ -70,14 +67,20 @@ async function requestPageContentToSave() {
 }
 
 async function updatePageSavedStatus(
-  node?: TNode,
+  quotes: TNode[],
+  bookmark?: TNode,
   tabId?: number,
   unmemorable?: boolean
 ): Promise<void> {
   // Inform PopUp window of saved page status to render right buttons
   try {
     await browser.runtime.sendMessage(
-      makeMessage({ type: 'SAVED_NODE', node: node?.toJson(), unmemorable })
+      Message.create({
+        type: 'SAVED_NODE',
+        bookmark: bookmark?.toJson(),
+        quotes: quotes.map((node) => node.toJson()),
+        unmemorable,
+      })
     )
   } catch (err) {
     if (isAbortError(err)) {
@@ -89,15 +92,22 @@ async function updatePageSavedStatus(
     )
   }
   // Update badge
-  await badge.resetText(tabId, node != null ? '1' : undefined)
+  const n = quotes.length + (bookmark != null ? 1 : 0)
+  await badge.resetText(tabId, n !== 0 ? n.toString() : undefined)
 }
 
 async function savePage(
   url: string,
   originId: number,
-  content: WebPageContent,
+  content?: WebPageContent,
   tabId?: number
 ) {
+  if (content == null) {
+    // Page is not memorable
+    const unmemorable = true
+    await updatePageSavedStatus([], undefined, tabId, unmemorable)
+    return
+  }
   const text = makeNodeTextData()
   const index_text: NodeIndexText = {
     plaintext: content.text || undefined,
@@ -129,7 +139,33 @@ async function savePage(
   if (resp) {
     const { nid } = resp
     const node = await smuggler.node.get({ nid })
-    await updatePageSavedStatus(node, tabId)
+    await updatePageSavedStatus([], node, tabId)
+  }
+}
+
+async function savePageQuote(
+  originId: number,
+  { url, path, text }: NodeExtattrsWebQuote,
+  lang?: string,
+  tabId?: number
+) {
+  const extattrs: NodeExtattrs = {
+    content_type: Mime.TEXT_PLAIN_UTF_8,
+    lang: lang || undefined,
+    web_quote: { url, path, text },
+  }
+  const resp = await smuggler.node.create({
+    text: makeNodeTextData(),
+    ntype: NodeType.WebQuote,
+    origin: {
+      id: originId,
+    },
+    extattrs,
+  })
+  if (resp) {
+    const { nid } = resp
+    const node = await smuggler.node.get({ nid })
+    await updatePageSavedStatus([], node, tabId)
   }
 }
 
@@ -177,7 +213,7 @@ async function sendAuthStatus() {
   const status = authCookie.checkRawValue(cookie?.value || null)
   badge.setActive(status)
   await browser.runtime.sendMessage(
-    makeMessage({ type: 'AUTH_STATUS', status })
+    Message.create({ type: 'AUTH_STATUS', status })
   )
 }
 
@@ -188,7 +224,7 @@ async function checkOriginIdAndUpdatePageStatus(
 ) {
   if (originId == null) {
     const unmemorable = true
-    await updatePageSavedStatus(undefined, tabId, unmemorable)
+    await updatePageSavedStatus([], undefined, tabId, unmemorable)
     return
   }
   const iter = smuggler.node.slice({
@@ -198,23 +234,32 @@ async function checkOriginIdAndUpdatePageStatus(
       id: originId,
     },
   })
-  let node: TNode | undefined = undefined
+  let bookmark: TNode | undefined = undefined
+  let quotes: TNode[] = []
   for (;;) {
-    const nodeItem = await iter.next()
-    if (nodeItem == null) {
+    const node = await iter.next()
+    if (node == null) {
       break
     }
-    if (nodeItem.isWebBookmark() && nodeItem.extattrs?.web?.url === url) {
-      node = nodeItem
-      break
+    const { extattrs } = node
+    if (node.isWebBookmark() && extattrs?.web) {
+      if (stabiliseUrlForOriginId(extattrs.web.url) === url) {
+        bookmark = node
+      }
+    }
+    if (node.isWebQuote() && extattrs?.web_quote) {
+      if (stabiliseUrlForOriginId(extattrs.web_quote.url) === url) {
+        quotes.push(node)
+      }
     }
   }
-  await updatePageSavedStatus(node, tabId)
+  await updatePageSavedStatus(quotes, bookmark, tabId)
 }
 
 browser.runtime.onMessage.addListener(
   async (message: MessageType, sender: browser.Runtime.MessageSender) => {
     // process is not defined in browsers extensions - use it to set up axios
+    const tabId = sender.tab?.id
     switch (message.type) {
       case 'REQUEST_PAGE_TO_SAVE':
         requestPageContentToSave()
@@ -224,17 +269,15 @@ browser.runtime.onMessage.addListener(
         break
       case 'PAGE_TO_SAVE':
         const { url, content, originId } = message
-        const tabId = sender.tab?.id
         await savePage(url, originId, content, tabId)
         break
       case 'REQUEST_AUTH_STATUS':
         await sendAuthStatus()
         break
-      case 'PAGE_ORIGIN_ID':
+      case 'SELECTED_WEB_QUOTE':
         {
-          const { url, originId } = message
-          const tabId = sender.tab?.id
-          await checkOriginIdAndUpdatePageStatus(tabId, url, originId)
+          const { originId, url, text, path, lang } = message
+          await savePageQuote(originId, { url, path, text }, lang, tabId)
         }
         break
       default:
@@ -273,3 +316,42 @@ browser.cookies.onChanged.addListener(async (info) => {
     }
   }
 })
+
+const kMazedContextMenuItemId = 'selection-to-mazed-context-menu-item'
+
+browser.contextMenus.create({
+  title: 'Save to Mazed',
+  type: 'normal',
+  id: kMazedContextMenuItemId,
+  contexts: ['selection', 'editable'],
+})
+
+browser.contextMenus.onClicked.addListener(
+  async (
+    info: browser.Menus.OnClickData,
+    tab: browser.Tabs.Tab | undefined
+  ) => {
+    if (info.menuItemId === kMazedContextMenuItemId) {
+      if (tab?.id == null) {
+        return
+      }
+      const { selectionText } = info
+      if (selectionText == null) {
+        return
+      }
+      try {
+        await browser.tabs.sendMessage(
+          tab.id,
+          Message.create({
+            type: 'REQUEST_SELECTED_WEB_QUOTE',
+            text: selectionText,
+          })
+        )
+      } catch (err) {
+        if (!isAbortError(err)) {
+          log.exception(err)
+        }
+      }
+    }
+  }
+)

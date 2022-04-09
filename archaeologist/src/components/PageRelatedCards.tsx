@@ -1,10 +1,8 @@
 import React from 'react'
-import browser from 'webextension-polyfill'
 import styled from '@emotion/styled'
 
 import { TNode } from 'smuggler-api'
 
-import { mazed } from '../util/mazed'
 import { kSmallCardWidth } from 'elementary'
 import { NodeCard } from './NodeCard'
 
@@ -14,16 +12,37 @@ const Box = styled.div`
   background-color: white;
   display: block;
 `
-
-export const PageRelatedCards = ({ node }: { node: TNode }) => {
-  const handleGoToNode = () => {
-    browser.tabs.create({
-      url: mazed.makeNodeUrl(node.nid).toString(),
-    })
+const sortNodesByCreationTimeEarliestFirst = (a: TNode, b: TNode) => {
+  if (a.created_at === b.created_at) {
+    return 0
+  } else if (a.created_at < b.created_at) {
+    return -1
   }
+  return 1
+}
+
+const RefNodeCard = styled(NodeCard)`
+  margin-top: 4px;
+`
+
+export const PageRelatedCards = ({
+  bookmark,
+  quotes,
+}: {
+  bookmark: TNode | undefined
+  quotes: TNode[]
+}) => {
+  const refs = quotes
+    .sort(sortNodesByCreationTimeEarliestFirst)
+    .map((node: TNode) => {
+      return <RefNodeCard node={node} key={node.nid} />
+    })
+  const bookmarkElement =
+    bookmark == null ? null : <NodeCard node={bookmark} key={bookmark.nid} />
   return (
     <Box>
-      <NodeCard onClick={handleGoToNode} node={node} />
+      {bookmarkElement}
+      {refs}
     </Box>
   )
 }

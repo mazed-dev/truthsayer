@@ -40,6 +40,7 @@ export enum NodeType {
   Text = 0,
   Blob = 1,
   Url = 2,
+  WebQuote = 3,
 }
 
 // see smuggler/src/types.rs
@@ -52,6 +53,7 @@ export type NodeExtattrs = {
   preview_image?: PreviewImageSmall
   web?: NodeExtattrsWeb
   blob?: NodeExtattrsBlob
+  web_quote?: NodeExtattrsWebQuote
 }
 
 // see smuggler/src/types.rs
@@ -72,6 +74,13 @@ export type NodeExtattrsWeb = {
   // Store here any conditions or credentials to access that resource,
   // for example the resource is availiable only from certain contries
   url: string
+}
+
+// / Represents textual quotation on a web page
+export type NodeExtattrsWebQuote = {
+  url: string
+  path: string[]
+  text: string
 }
 
 export type NodeShare = {
@@ -183,6 +192,11 @@ export class TNode {
       extattrs &&
       extattrs.content_type === Mime.TEXT_URI_LIST
     )
+  }
+
+  isWebQuote() {
+    const { ntype } = this
+    return ntype === NodeType.WebQuote
   }
 
   getBlobSource(): string | null {

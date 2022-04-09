@@ -54,7 +54,7 @@ export const NodeTextReader = ({
           renderLeaf={renderLeaf}
           readOnly
           css={css`
-            padding: 1em;
+            padding: 1em 1em 0 1em;
           `}
         />
       </Slate>

@@ -11,49 +11,55 @@ import {
   exctractPageContent,
   exctractPageUrl,
 } from './extractor/webPageContent'
-
+import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/unmemorable'
 
 import { genOriginId } from 'armoury'
 
 async function readPageContent() {
+  const { id: originId, stableUrl } = await genOriginId(
+    exctractPageUrl(document)
+  )
   const baseURL = `${window.location.protocol}//${window.location.host}`
-  const content = await exctractPageContent(document, baseURL)
-  const url = exctractPageUrl(document)
-  if (!isMemorable(url)) {
-    await browser.runtime.sendMessage(
-      Message.create({
-        type: 'PAGE_ORIGIN_ID',
-        url,
-      })
-    )
-    return
-  }
-  const { id } = await genOriginId(url)
+  const content = isMemorable(stableUrl)
+    ? await exctractPageContent(document, baseURL)
+    : undefined
   await browser.runtime.sendMessage(
     Message.create({
       type: 'PAGE_TO_SAVE',
       content,
-      url,
-      originId: id,
+      originId,
+      url: stableUrl,
     })
   )
 }
 
-async function getPageOriginId() {
-  const url = exctractPageUrl(document)
-  let originId = undefined
-  if (isMemorable(url)) {
-    const { id } = await genOriginId(url)
-    originId = id
-  }
-  await browser.runtime.sendMessage(
-    Message.create({
-      type: 'PAGE_ORIGIN_ID',
-      originId,
-      url,
-    })
+async function readSelectedText(text: string): Promise<void> {
+  const lang = document.documentElement.lang
+  const { id: originId, stableUrl } = await genOriginId(
+    exctractPageUrl(document)
   )
+  function oncopy(event: ClipboardEvent) {
+    document.removeEventListener('copy', oncopy, true)
+    event.stopImmediatePropagation()
+    event.preventDefault()
+    const { target } = event
+    if (target) {
+      const path = genElementDomPath(target as Element)
+      browser.runtime.sendMessage(
+        Message.create({
+          type: 'SELECTED_WEB_QUOTE',
+          text,
+          path,
+          lang,
+          originId,
+          url: stableUrl,
+        })
+      )
+    }
+  }
+  document.addEventListener('copy', oncopy, true)
+  document.execCommand('copy')
 }
 
 browser.runtime.onMessage.addListener(async (message: MessageType) => {
@@ -61,8 +67,8 @@ browser.runtime.onMessage.addListener(async (message: MessageType) => {
     case 'REQUEST_PAGE_TO_SAVE':
       await readPageContent()
       break
-    case 'REQUEST_PAGE_ORIGIN_ID':
-      await getPageOriginId()
+    case 'REQUEST_SELECTED_WEB_QUOTE':
+      await readSelectedText(message.text)
       break
     default:
       break

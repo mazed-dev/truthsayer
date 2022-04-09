@@ -21,6 +21,7 @@ import { css } from '@emotion/react'
 type ShrinkCardProps = React.PropsWithChildren<{
   showMore?: boolean
   className?: string
+  onClick?: (event: React.MouseEvent<Element, MouseEvent>) => void
 }>
 
 const Fade = styled.div`
@@ -49,6 +50,7 @@ export const ShrinkCard = ({
   children,
   showMore,
   className,
+  onClick,
 }: ShrinkCardProps) => {
   const shrinkStyle = showMore
     ? css`
@@ -58,7 +60,7 @@ export const ShrinkCard = ({
         height: 160px;
       `
   return (
-    <Shrinkable css={shrinkStyle} className={className}>
+    <Shrinkable onClick={onClick} css={shrinkStyle} className={className}>
       {children}
       <Fade />
     </Shrinkable>

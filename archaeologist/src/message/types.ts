@@ -7,18 +7,9 @@ interface SavedStatusRequest {
 
 interface SavedStatusResponse {
   type: 'SAVED_NODE'
-  node?: TNodeJson
+  bookmark?: TNodeJson
+  quotes: TNodeJson[]
   unmemorable?: boolean
-}
-
-interface OriginIdRequest {
-  type: 'REQUEST_PAGE_ORIGIN_ID'
-}
-
-interface OriginIdResponse {
-  type: 'PAGE_ORIGIN_ID'
-  originId?: number
-  url: string
 }
 
 interface AuthStatusRequest {
@@ -28,6 +19,20 @@ interface AuthStatusRequest {
 interface AuthStatusResponse {
   type: 'AUTH_STATUS'
   status: boolean
+}
+
+interface GetSelectedQuoteRequest {
+  type: 'REQUEST_SELECTED_WEB_QUOTE'
+  text: string
+}
+
+interface GetSelectedQuoteResponse {
+  type: 'SELECTED_WEB_QUOTE'
+  text: string
+  path: string[]
+  url: string
+  originId: number
+  lang?: string
 }
 
 /**
@@ -45,7 +50,8 @@ interface SavePageResponse {
   type: 'PAGE_TO_SAVE'
   url: string
   originId: number
-  content: WebPageContent
+  // Missing content is for a page that can not be saved
+  content?: WebPageContent
 }
 
 export type MessageType =
@@ -55,9 +61,11 @@ export type MessageType =
   | SavePageResponse
   | AuthStatusRequest
   | AuthStatusResponse
-  | OriginIdRequest
-  | OriginIdResponse
+  | GetSelectedQuoteRequest
+  | GetSelectedQuoteResponse
 
 export const Message = {
+  // This is just a hack to check the message type, needed because
+  // browser.*.sendMessage takes any type as a message
   create: (msg: MessageType): MessageType => msg,
 }

@@ -5,7 +5,7 @@ import { useAsyncEffect } from 'use-async-effect'
 import browser from 'webextension-polyfill'
 import styled from '@emotion/styled'
 
-import { TNode } from 'smuggler-api'
+import { TNode, TNodeJson } from 'smuggler-api'
 
 import { MdiBookmarkAdd, Spinner } from 'elementary'
 import { ButtonCreate } from './Button'
@@ -31,20 +31,27 @@ export const ViewActiveTabStatus = () => {
   const [pageStatus, setPageStatus] = React.useState<
     'saved' | 'loading' | 'unmemorable' | 'memorable'
   >('loading')
-  const [pageSavedNode, setPageSavedNode] = React.useState<any | null>(null)
+  const [pageSavedNode, setPageSavedNode] = React.useState<TNode | null>(null)
+  const [pageSavedQuotes, setPageSavedQuotes] = React.useState<TNode[]>([])
 
   useAsyncEffect(async () => {
     browser.runtime.onMessage.addListener((message: MessageType) => {
       switch (message.type) {
         case 'SAVED_NODE':
-          const { node, unmemorable } = message
-          if (node != null) {
+          const { bookmark, quotes, unmemorable } = message
+          if (bookmark != null) {
+            const node = TNode.fromJson(bookmark)
             setPageSavedNode(node)
             setPageStatus('saved')
           } else if (unmemorable) {
             setPageStatus('unmemorable')
           } else {
             setPageStatus('memorable')
+          }
+          if (quotes) {
+            setPageSavedQuotes(
+              quotes.map((json: TNodeJson) => TNode.fromJson(json))
+            )
           }
           break
         default:
@@ -60,8 +67,7 @@ export const ViewActiveTabStatus = () => {
   }
 
   let btn
-  let grid
-  if (pageStatus === 'memorable') {
+  if (pageStatus === 'memorable' && pageSavedNode == null) {
     btn = (
       <ButtonCreate onClick={handleSave}>
         <MdiBookmarkAdd
@@ -73,28 +79,14 @@ export const ViewActiveTabStatus = () => {
     )
   } else if (pageStatus === 'loading') {
     btn = <Spinner.Wheel />
-  } else if (pageStatus === 'unmemorable') {
-    btn = (
-      <div>
-        <p>This page can not be bookmarked, sorry for the inconvenience.</p>
-      </div>
-    )
-  } else if (pageStatus === 'saved') {
-    if (pageSavedNode != null) {
-      const node = TNode.fromJson(pageSavedNode)
-      grid = <PageRelatedCards node={node} />
-    } else {
-      btn = (
-        <div>
-          <p>Internal error</p>
-        </div>
-      )
-    }
   }
   return (
     <Container>
       <Toolbar>{btn}</Toolbar>
-      {grid}
+      <PageRelatedCards
+        bookmark={pageSavedNode || undefined}
+        quotes={pageSavedQuotes}
+      />
     </Container>
   )
 }
