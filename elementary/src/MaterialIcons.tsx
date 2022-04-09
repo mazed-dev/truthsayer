@@ -37,6 +37,7 @@ export type MaterialIconType =
   | 'search'
   | 'zoom_in'
   | 'zoom_out'
+  | 'sync'
 
 type MaterialIconAttrs = React.HTMLProps<HTMLSpanElement>
 
@@ -88,3 +89,4 @@ export const MdiOpenInFull = _makeMaterialIcon('open_in_full')
 export const MdiSearch = _makeMaterialIcon('search')
 export const MdiZoomIn = _makeMaterialIcon('zoom_in')
 export const MdiZoomOut = _makeMaterialIcon('zoom_out')
+export const MdiSync = _makeMaterialIcon('sync')
