@@ -70,9 +70,17 @@ async function readSelectedText(text: string): Promise<void> {
   document.execCommand('copy')
 }
 
-async function updateContentAugmentation(quotes: TNode[]): Promise<void> {
+const kQuotesForAugmentation: TNode[] = []
+async function updateContentAugmentation(
+  quotes: TNode[],
+  mode: 'append' | 'reset'
+): Promise<void> {
   console.log('updateContentAugmentation', socket, quotes)
-  renderPageAugmentation(socket, quotes)
+  if (mode === 'reset') {
+    kQuotesForAugmentation.length = 0
+  }
+  kQuotesForAugmentation.push(...quotes)
+  renderPageAugmentation(socket, kQuotesForAugmentation)
 }
 
 browser.runtime.onMessage.addListener(async (message: MessageType) => {
@@ -84,9 +92,13 @@ browser.runtime.onMessage.addListener(async (message: MessageType) => {
       await readSelectedText(message.text)
       break
     case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
-      await updateContentAugmentation(
-        message.quotes.map((json: TNodeJson) => TNode.fromJson(json))
-      )
+      {
+        const { quotes, mode } = message
+        await updateContentAugmentation(
+          quotes.map((json: TNodeJson) => TNode.fromJson(json)),
+          mode
+        )
+      }
       break
     default:
       break

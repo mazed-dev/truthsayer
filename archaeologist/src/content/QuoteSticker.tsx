@@ -25,7 +25,7 @@ const Box = styled.span`
 const Mark = styled.span`
   cursor: pointer !important;
 
-  opacity: 0.6;
+  opacity: 0.5;
   &:hover {
     opacity: 1;
   }

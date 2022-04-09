@@ -5,11 +5,18 @@ interface PageInActiveTabStatusRequest {
   type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS'
 }
 
-interface SavedStatusResponse {
+interface UpdatePopUpCards {
   type: 'UPDATE_POPUP_CARDS'
   bookmark?: TNodeJson
   quotes: TNodeJson[]
   unmemorable?: boolean
+
+  // 'reset':
+  //    - for quotes and bookmark, reset (replace) existing ones in PopUp window
+  // 'append':
+  //    - for quotes append quotes to existing ones in PopUp window
+  //    - for bookmark, replace existing one in PopUp window, if specified
+  mode: 'reset' | 'append'
 }
 
 interface AuthStatusRequest {
@@ -38,6 +45,7 @@ interface GetSelectedQuoteResponse {
 interface UpdateContentAugmentationRequest {
   type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION'
   quotes: TNodeJson[]
+  mode: 'reset' | 'append'
 }
 
 /**
@@ -61,7 +69,7 @@ interface SavePageResponse {
 
 export type MessageType =
   | PageInActiveTabStatusRequest
-  | SavedStatusResponse
+  | UpdatePopUpCards
   | SavePageRequest
   | SavePageResponse
   | AuthStatusRequest
