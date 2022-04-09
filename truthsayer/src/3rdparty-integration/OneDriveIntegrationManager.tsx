@@ -99,7 +99,7 @@ async function uploadFilesFromFolder(
   )
   for (const batch of FsModificationQueue.modTimestampBatchIterator(files)) {
     for (const file of batch) {
-      uploadSingleFile(graph, file)
+      await uploadSingleFile(graph, file)
     }
     await smuggler.user.thirdparty.fs.progress.advance(fsid, {
       ingested_until: batch[0].lastModTimestamp,
@@ -145,17 +145,17 @@ async function uploadSingleFile(
     blob: undefined,
   }
 
-  const { id: originId } = await genOriginId(file.webUrl)
-  const response = await smuggler.node.create({
+  const origin = await genOriginId(file.webUrl)
+  const response = await smuggler.node.createOrUpdate({
     text: nodeTextData,
     index_text,
     extattrs,
     ntype: NodeType.Url,
     origin: {
-      id: originId,
+      id: origin.id,
     },
   })
-  log.debug(`Response to node creation: ${JSON.stringify(response)}`)
+  log.debug(`Response to node creation/update: ${JSON.stringify(response)}`)
 }
 
 /** Allows to manage user's integration of Microsoft OneDrive with Mazed */

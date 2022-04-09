@@ -27,24 +27,16 @@ import { makeUrl } from './api_url'
 
 import { TNodeSliceIterator, GetNodesSliceFn } from './node_slice_iterator'
 
-import { Mime } from 'armoury'
+import { genOriginId, Mime, stabiliseUrlForOriginId } from 'armoury'
 import type { Optional } from 'armoury'
 
+import lodash from 'lodash'
 import moment from 'moment'
 
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
 
-async function createNode({
-  text,
-  from_nid,
-  to_nid,
-  index_text,
-  extattrs,
-  ntype,
-  origin,
-  signal,
-}: {
+type CreateNodeArgs = {
   text: NodeTextData
   from_nid?: string
   to_nid?: string
@@ -52,8 +44,13 @@ async function createNode({
   extattrs?: NodeExtattrs
   ntype?: NodeType
   origin?: NodeOrigin
+}
+
+async function createNode(
+  args: CreateNodeArgs,
   signal?: AbortSignal
-}): Promise<NewNodeResponse> {
+): Promise<NewNodeResponse> {
+  const { text, from_nid, to_nid, index_text, extattrs, ntype, origin } = args
   signal = signal || undefined
   const query = {
     from: from_nid || undefined,
@@ -76,6 +73,126 @@ async function createNode({
     return await resp.json()
   }
   throw new Error(`(${resp.status}) ${resp.statusText}`)
+}
+
+async function createOrUpdateNode(
+  args: CreateNodeArgs,
+  signal?: AbortSignal
+): Promise<NewNodeResponse> {
+  const existingNode: TNode | undefined = args.extattrs?.web?.url
+    ? await findNodeByUrl(args.extattrs?.web?.url)
+    : undefined
+
+  if (!existingNode) {
+    return createNode(args, signal)
+  }
+
+  const diff = describeWhatWouldPreventNodeUpdate(args, existingNode)
+  if (diff) {
+    throw new Error(
+      `Failed to update node ${existingNode.nid} because some specified fields ` +
+        `do not support update:\n${diff}`
+    )
+  }
+
+  const updateArgs: UpdateNodeArgs = {
+    nid: existingNode.nid,
+    text: args.text,
+    index_text: args.index_text,
+  }
+
+  const resp = await updateNode(updateArgs, signal)
+  if (!resp.ok) {
+    throw new Error(
+      `Failed to update node ${existingNode.nid} (${resp.status}) ${resp.statusText}`
+    )
+  }
+  return {
+    nid: existingNode.nid,
+  }
+}
+
+/**
+ * At the time of this writing some datapoints that can be specified at
+ * node creation can't be modified at node update due to API differences
+ * (@see CreateNodeArgs and @see UpdateNodeArgs).
+ * This presents a problem for @see createOrUpdate because some of the datapoints
+ * caller passed in will be ignored in 'update' case, which is not obvious
+ * and would be unexpected by the caller.
+ * As a hack this helper tries to check if these datapoints are actually
+ * different from node's current state. If they are the same then update will
+ * not result in anything unexpected.
+ */
+function describeWhatWouldPreventNodeUpdate(args: CreateNodeArgs, node: TNode) {
+  let diff = ''
+  const extattrsFieldsOfLittleConsequence = ['description']
+  const updatableExtattrsFields = ['text', 'index_text']
+  for (const field in args.extattrs) {
+    const isTargetField = (v: string) => v === field
+    const isNonUpdatable =
+      updatableExtattrsFields.findIndex(isTargetField) === -1
+    const isOfLittleConsequence =
+      extattrsFieldsOfLittleConsequence.findIndex(isTargetField) !== -1
+    if (!isNonUpdatable || isOfLittleConsequence) {
+      continue
+    }
+    // @ts-ignore: No index signature with a parameter of type 'string' was found on type 'NodeExtattrs'
+    const lhs = args.extattrs[field]
+    // @ts-ignore: No index signature with a parameter of type 'string' was found on type 'NodeExtattrs'
+    const rhs = node.extattrs[field]
+    if (!lodash.isEqual(lhs, rhs)) {
+      diff +=
+        `\n\textattrs.${field} - ` +
+        `${JSON.stringify(lhs)} vs ${JSON.stringify(rhs)}`
+    }
+  }
+  if (args.ntype !== node.ntype) {
+    diff += `\n\tntype - ${JSON.stringify(args.ntype)} vs ${JSON.stringify(
+      node.ntype
+    )}`
+  }
+  // At the time of this writing some datapoints that can be set on
+  // creation of a node do not get sent back when nodes are later retrieved
+  // from smuggler. That makes it difficult to verify if values in 'args' differ
+  // from what's stored on smuggler side or not. A conservative validation
+  // strategy is used ("if a value is set, treat is as an error") to cut corners.
+  if (args.from_nid) {
+    diff += `\n\tfrom_nid - ${args.from_nid} vs (data not exposed via smuggler)`
+  }
+  if (args.to_nid) {
+    diff += `\n\tto_nid - ${args.to_nid} vs (data not exposed via smuggler)`
+  }
+
+  if (!diff) {
+    return null
+  }
+
+  return '[what] - [attempted update arg] vs [existing node value]:' + diff
+}
+
+// TODO[snikitin@outlook.com] See if this can be used in checkOriginIdAndUpdatePageStatus()
+//
+// TODO[snikitin@outlook.com] This function does not take into account
+// URLs that can have many nodes associated with them, @see TNode.isWebQuote()
+// This has to be handled somehow.
+async function findNodeByUrl(url: string) {
+  const origin = await genOriginId(url)
+
+  const iter = smuggler.node.slice({
+    start_time: 0, // since the beginning of time
+    bucket_time_size: 366 * 24 * 60 * 60,
+    origin: {
+      id: origin.id,
+    },
+  })
+
+  for (let node = await iter.next(); node != null; node = await iter.next()) {
+    const nodeUrl = node.extattrs?.web?.url
+    if (nodeUrl && stabiliseUrlForOriginId(nodeUrl) === origin.stableUrl) {
+      return node
+    }
+  }
+  return undefined
 }
 
 async function uploadFiles(
@@ -179,19 +296,15 @@ async function getNode({
   return node
 }
 
-async function updateNode({
-  nid,
-  signal,
-  text,
-  index_text,
-  preserve_update_time,
-}: {
+type UpdateNodeArgs = {
   nid: string
   text?: NodeTextData
   index_text?: NodeIndexText
   preserve_update_time?: boolean
-  signal?: AbortSignal
-}) {
+}
+
+async function updateNode(args: UpdateNodeArgs, signal?: AbortSignal) {
+  const { nid, text, index_text, preserve_update_time } = args
   const headers = {
     'Content-type': Mime.JSON,
   }
@@ -642,6 +755,7 @@ export const smuggler = {
     get: getNode,
     update: updateNode,
     create: createNode,
+    createOrUpdate: createOrUpdateNode,
     slice: _getNodesSliceIter,
     delete: deleteNode,
   },
