@@ -26,6 +26,7 @@ import {
   NodeType,
   smuggler,
   UserFilesystemId,
+  AccountInterface,
 } from 'smuggler-api'
 import { MdiInsertLink, MdiLinkOff, MdiSync } from 'elementary'
 import { Mime, log, genOriginId, errorise } from 'armoury'
@@ -81,10 +82,13 @@ function beginningOf(text: string) {
   return text.length < 256 ? text : text.substring(0, 256) + '...'
 }
 
-async function uploadFilesFromFolder(graph: MsGraphClient, folderPath: string) {
+async function uploadFilesFromFolder(
+  graph: MsGraphClient,
+  account: AccountInterface,
+  folderPath: string
+) {
   const fsid: UserFilesystemId = {
-    // TODO[snikitin@outlook.com] Replace this with user's real UID
-    uid: 'w9j8n6qmege57t6dggspt46hsud6zmyb8ndate1z7jz3k',
+    uid: account.getUid(),
     fs_key: 'onedrive',
   }
   const current_progress = await smuggler.user.thirdparty.fs.progress.get(fsid)
@@ -93,7 +97,7 @@ async function uploadFilesFromFolder(graph: MsGraphClient, folderPath: string) {
     current_progress.ingested_until,
     folderPath
   )
-  for (const batch of FsModificationQueue.batchIterator(files)) {
+  for (const batch of FsModificationQueue.modTimestampBatchIterator(files)) {
     for (const file of batch) {
       uploadSingleFile(graph, file)
     }
@@ -155,7 +159,11 @@ async function uploadSingleFile(
 }
 
 /** Allows to manage user's integration of Microsoft OneDrive with Mazed */
-export function OneDriveIntegrationManager() {
+export function OneDriveIntegrationManager({
+  account,
+}: {
+  account: AccountInterface
+}) {
   const msAuthentication = MsAuthentication.makeInstance()
   return (
     // Having MsalProvider as parent grants all children access to
@@ -175,11 +183,12 @@ export function OneDriveIntegrationManager() {
         <Button
           onClick={() => {
             const graph: MsGraphClient = MsGraph.client(msAuthentication)
-            uploadFilesFromFolder(graph, '/mazed-test').catch((exception) =>
-              log.exception(
-                errorise(exception),
-                `Failed to call Microsoft Graph`
-              )
+            uploadFilesFromFolder(graph, account, '/mazed-test').catch(
+              (exception) =>
+                log.exception(
+                  errorise(exception),
+                  `Failed to call Microsoft Graph`
+                )
             )
           }}
         >

@@ -308,7 +308,14 @@ export async function make(
   return files.sort(oldestModifiedFirstComparator)
 }
 
-export function batchIterator(queue: FileProxy[]) {
+/**
+ * Create an iterable that groups all files with exactly the same last modification
+ * timestamp into a single 'batch'.
+ *
+ * @param queue A queue of files, sorted by their last modification timestamp
+ * (e.g. created by @see make)
+ */
+export function modTimestampBatchIterator(queue: FileProxy[]) {
   // Implemented according to https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators#user-defined_iterables
   return {
     *[Symbol.iterator]() {
@@ -316,7 +323,7 @@ export function batchIterator(queue: FileProxy[]) {
         const isFromNextBatch = (file: FileProxy) => {
           assert(
             !(file.lastModTimestamp < queue[batchStart].lastModTimestamp),
-            'batchIterator expects file queue to be sorted by last modification timestamp'
+            'modTimestampBatchIterator expects file queue to be sorted by last modification timestamp'
           )
           return file.lastModTimestamp > queue[batchStart].lastModTimestamp
         }
