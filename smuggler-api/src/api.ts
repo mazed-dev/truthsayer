@@ -608,7 +608,10 @@ async function getUserFsIngestionProgress(
   if (resp.ok) {
     return await resp.json()
   }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
+  throw new Error(
+    `Failed to get ingestion progress for ${JSON.stringify(fsid)}` +
+      ` (${resp.status}) ${resp.statusText}`
+  )
 }
 async function advanceUserFsIngestionProgress(
   fsid: UserFilesystemId,
@@ -627,7 +630,10 @@ async function advanceUserFsIngestionProgress(
   if (resp.ok) {
     return await resp.json()
   }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
+  throw new Error(
+    `Failed to advance ingestion progress for ${JSON.stringify(fsid)}` +
+      ` (${resp.status}) ${resp.statusText}`
+  )
 }
 
 export const smuggler = {
