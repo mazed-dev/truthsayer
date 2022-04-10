@@ -5,18 +5,22 @@ import {
   EdgeAttributes,
   EdgeStar,
   GenerateBlobIndexResponse,
+  isUniqueLookupKey,
   NewNodeResponse,
   NodeAttrsSearchRequest,
   NodeAttrsSearchResponse,
   NodeCreateRequestBody,
   NodeExtattrs,
   NodeIndexText,
+  NodeLookupKey,
   NodeOrigin,
   NodePatchRequest,
   NodeTextData,
   NodeType,
+  NonUniqueNodeLookupKey,
   TEdge,
   TNode,
+  UniqueNodeLookupKey,
   UploadMultipartResponse,
   UserBadge,
   UserFilesystemId,
@@ -75,13 +79,28 @@ async function createNode(
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
+function lookupKeyOf(args: CreateNodeArgs): NodeLookupKey | undefined {
+  if (args.extattrs?.web?.url) {
+    return { webQuote: { url: args.extattrs.web.url } }
+  } else if (args.extattrs?.web_quote?.url) {
+    return { webQuote: { url: args.extattrs.web_quote.url } }
+  }
+  return undefined
+}
+
 async function createOrUpdateNode(
   args: CreateNodeArgs,
   signal?: AbortSignal
 ): Promise<NewNodeResponse> {
-  const existingNode: TNode | undefined = args.extattrs?.web?.url
-    ? await findNodeByUrl(args.extattrs?.web?.url)
-    : undefined
+  const lookupKey = lookupKeyOf(args)
+  if (!lookupKey || !isUniqueLookupKey(lookupKey)) {
+    throw new Error(
+      `Attempt was made to create a node or, if it exists, update it, ` +
+        `but the input node used look up key ${JSON.stringify(lookupKey)} ` +
+        `that is not unique, which makes it impossible to correctly handle the 'update' case`
+    )
+  }
+  const existingNode: TNode | undefined = await lookupNodes(lookupKey)
 
   if (!existingNode) {
     return createNode(args, signal)
@@ -170,28 +189,73 @@ function describeWhatWouldPreventNodeUpdate(args: CreateNodeArgs, node: TNode) {
   return '[what] - [attempted update arg] vs [existing node value]:' + diff
 }
 
-// TODO[snikitin@outlook.com] See if this can be used in checkOriginIdAndUpdatePageStatus()
-//
-// TODO[snikitin@outlook.com] This function does not take into account
-// URLs that can have many nodes associated with them, @see TNode.isWebQuote()
-// This has to be handled somehow.
-async function findNodeByUrl(url: string) {
-  const origin = await genOriginId(url)
-
-  const iter = smuggler.node.slice({
+/**
+ * Lookup all the nodes that match a given key. For unique lookup keys either
+ * 0 or 1 nodes will be returned. For non-unique more than 1 node can be returned.
+ */
+async function lookupNodes(
+  key: UniqueNodeLookupKey,
+  signal?: AbortSignal
+): Promise<TNode | undefined>
+async function lookupNodes(
+  key: NonUniqueNodeLookupKey,
+  signal?: AbortSignal
+): Promise<TNode[]>
+async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
+  const SLICE_ALL = {
     start_time: 0, // since the beginning of time
     bucket_time_size: 366 * 24 * 60 * 60,
-    origin: {
-      id: origin.id,
-    },
-  })
-
-  for (let node = await iter.next(); node != null; node = await iter.next()) {
-    const nodeUrl = node.extattrs?.web?.url
-    if (nodeUrl && stabiliseUrlForOriginId(nodeUrl) === origin.stableUrl) {
-      return node
-    }
   }
+  if ('nid' in key) {
+    return getNode({ nid: key.nid, signal })
+  } else if ('webBookmark' in key) {
+    const origin = await genOriginId(key.webBookmark.url)
+    const query = { ...SLICE_ALL, origin: { id: origin.id } }
+    const iter = smuggler.node.slice(query)
+
+    for (let node = await iter.next(); node != null; node = await iter.next()) {
+      const nodeUrl = node.extattrs?.web?.url
+      if (nodeUrl && stabiliseUrlForOriginId(nodeUrl) === origin.stableUrl) {
+        return node
+      }
+    }
+  } else if ('webQuote' in key) {
+    const origin = await genOriginId(key.webQuote.url)
+    const query = { ...SLICE_ALL, origin: { id: origin.id } }
+    const iter = smuggler.node.slice(query)
+
+    let nodes: TNode[] = []
+    for (let node = await iter.next(); node != null; node = await iter.next()) {
+      if (node.isWebQuote() && node.extattrs?.web_quote) {
+        if (
+          stabiliseUrlForOriginId(node.extattrs.web_quote.url) ===
+          key.webQuote.url
+        ) {
+          nodes.push(node)
+        }
+      }
+    }
+    return nodes
+  } else if ('url' in key) {
+    const origin = await genOriginId(key.url)
+    const query = { ...SLICE_ALL, origin: { id: origin.id } }
+    const iter = smuggler.node.slice(query)
+
+    let nodes: TNode[] = []
+    for (let node = await iter.next(); node != null; node = await iter.next()) {
+      if (node.isWebBookmark() && node.extattrs?.web) {
+        if (stabiliseUrlForOriginId(node.extattrs.web.url) === key.url) {
+          nodes.push(node)
+        }
+      } else if (node.isWebQuote() && node.extattrs?.web_quote) {
+        if (stabiliseUrlForOriginId(node.extattrs.web_quote.url) === key.url) {
+          nodes.push(node)
+        }
+      }
+    }
+    return nodes
+  }
+
   return undefined
 }
 
@@ -757,6 +821,7 @@ export const smuggler = {
     create: createNode,
     createOrUpdate: createOrUpdateNode,
     slice: _getNodesSliceIter,
+    lookup: lookupNodes,
     delete: deleteNode,
   },
   blob: {

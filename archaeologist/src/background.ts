@@ -227,30 +227,14 @@ async function checkOriginIdAndUpdatePageStatus(
     await updatePageSavedStatus([], undefined, tabId, unmemorable)
     return
   }
-  const iter = smuggler.node.slice({
-    start_time: 0, // since the beginning of time
-    bucket_time_size: 366 * 24 * 60 * 60,
-    origin: {
-      id: originId,
-    },
-  })
+  const nodes = await smuggler.node.lookup({ url })
   let bookmark: TNode | undefined = undefined
   let quotes: TNode[] = []
-  for (;;) {
-    const node = await iter.next()
-    if (node == null) {
-      break
-    }
-    const { extattrs } = node
-    if (node.isWebBookmark() && extattrs?.web) {
-      if (stabiliseUrlForOriginId(extattrs.web.url) === url) {
-        bookmark = node
-      }
-    }
-    if (node.isWebQuote() && extattrs?.web_quote) {
-      if (stabiliseUrlForOriginId(extattrs.web_quote.url) === url) {
-        quotes.push(node)
-      }
+  for (const node of nodes) {
+    if (node.isWebBookmark()) {
+      bookmark = node
+    } else if (node.isWebQuote()) {
+      quotes.push(node)
     }
   }
   await updatePageSavedStatus(quotes, bookmark, tabId)
