@@ -7,8 +7,8 @@ import { QuoteSocket } from './QuoteSocket'
 import { QuoteSticker } from './QuoteSticker'
 
 export const Main = ({ quotes }: { quotes: TNode[] }) => {
-  // TODO(akindyakov): Use `scrollIntoView` to scroll to a certain quote if URL
-  // hash is the nid of that quote:
+  // TODO(akindyakov): Use `scrollIntoView` to scroll to a certain quote using
+  // the fact that each quote has id="<nid>".
   // document.getElementById('<nid>').scrollIntoView()
   const stickers = quotes.map((node: TNode) => {
     const { nid, extattrs } = node

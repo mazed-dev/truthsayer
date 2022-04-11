@@ -70,12 +70,20 @@ async function readSelectedText(text: string): Promise<void> {
   document.execCommand('copy')
 }
 
+/**
+ * Augmentation here is a set of elements added to a web page by archaeologist.
+ *
+ * - `quotes` - highlightings in web page.
+ *
+ * Today we use statefull approach, where we keep current state in `content.ts`
+ * script and update or reset it as needed using `mode` before re-rendering all
+ * augmentations.
+ */
 const kQuotesForAugmentation: TNode[] = []
 async function updateContentAugmentation(
   quotes: TNode[],
   mode: 'append' | 'reset'
 ): Promise<void> {
-  console.log('updateContentAugmentation', socket, quotes)
   if (mode === 'reset') {
     kQuotesForAugmentation.length = 0
   }
