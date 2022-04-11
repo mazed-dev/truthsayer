@@ -5,22 +5,18 @@ import {
   EdgeAttributes,
   EdgeStar,
   GenerateBlobIndexResponse,
-  isUniqueLookupKey,
   NewNodeResponse,
   NodeAttrsSearchRequest,
   NodeAttrsSearchResponse,
   NodeCreateRequestBody,
   NodeExtattrs,
   NodeIndexText,
-  NodeLookupKey,
   NodeOrigin,
   NodePatchRequest,
   NodeTextData,
   NodeType,
-  NonUniqueNodeLookupKey,
   TEdge,
   TNode,
-  UniqueNodeLookupKey,
   UploadMultipartResponse,
   UserBadge,
   UserFilesystemId,
@@ -39,6 +35,41 @@ import moment from 'moment'
 
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
+
+/**
+ * Unique lookup keys that can match at most 1 node
+ */
+export type UniqueNodeLookupKey =
+  /** Due to nid's nature there can be at most 1 node with a particular nid */
+  | { nid: string }
+  /** Unique because many nodes can refer to the same URL, but only one of them
+   * can be a bookmark */
+  | { webBookmark: { url: string } }
+
+export type NonUniqueNodeLookupKey =
+  /** Can match more than 1 node because multiple parts of a single web page
+   * can be quoted */
+  | { webQuote: { url: string } }
+  /** Can match more than 1 node because many nodes can refer to
+   * the same URL:
+   *    - 0 or 1 can be @see NoteType.Url
+   *    - AND at the same time more than 1 can be @see NodeType.WebQuote */
+  | { url: string }
+
+/**
+ * All the different types of keys that can be used to identify (during lookup,
+ * for example) one or more nodes.
+ */
+export type NodeLookupKey = UniqueNodeLookupKey | NonUniqueNodeLookupKey
+
+export function isUniqueLookupKey(
+  key: NodeLookupKey
+): key is UniqueNodeLookupKey {
+  if ('nid' in key || 'webBookmark' in key) {
+    return true
+  }
+  return false
+}
 
 type CreateNodeArgs = {
   text: NodeTextData
@@ -188,7 +219,7 @@ function describeWhatWouldPreventNodeUpdate(args: CreateNodeArgs, node: TNode) {
     return null
   }
 
-  return '[what] - [attempted update arg] vs [existing node value]:' + diff
+  return `[what] - [attempted update arg] vs [existing node value]: ${diff}`
 }
 
 /**
@@ -211,27 +242,27 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
   if ('nid' in key) {
     return getNode({ nid: key.nid, signal })
   } else if ('webBookmark' in key) {
-    const origin = await genOriginId(key.webBookmark.url)
-    const query = { ...SLICE_ALL, origin: { id: origin.id } }
+    const { id, stableUrl } = await genOriginId(key.webBookmark.url)
+    const query = { ...SLICE_ALL, origin: { id } }
     const iter = smuggler.node.slice(query)
 
     for (let node = await iter.next(); node != null; node = await iter.next()) {
       const nodeUrl = node.extattrs?.web?.url
-      if (nodeUrl && stabiliseUrlForOriginId(nodeUrl) === origin.stableUrl) {
+      if (nodeUrl && stabiliseUrlForOriginId(nodeUrl) === stableUrl) {
         return node
       }
     }
+    return undefined
   } else if ('webQuote' in key) {
-    const origin = await genOriginId(key.webQuote.url)
-    const query = { ...SLICE_ALL, origin: { id: origin.id } }
+    const { id, stableUrl } = await genOriginId(key.webQuote.url)
+    const query = { ...SLICE_ALL, origin: { id } }
     const iter = smuggler.node.slice(query)
 
     const nodes: TNode[] = []
     for (let node = await iter.next(); node != null; node = await iter.next()) {
       if (node.isWebQuote() && node.extattrs?.web_quote) {
         if (
-          stabiliseUrlForOriginId(node.extattrs.web_quote.url) ===
-          key.webQuote.url
+          stabiliseUrlForOriginId(node.extattrs.web_quote.url) === stableUrl
         ) {
           nodes.push(node)
         }
@@ -239,18 +270,20 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
     }
     return nodes
   } else if ('url' in key) {
-    const origin = await genOriginId(key.url)
-    const query = { ...SLICE_ALL, origin: { id: origin.id } }
+    const { id, stableUrl } = await genOriginId(key.url)
+    const query = { ...SLICE_ALL, origin: { id } }
     const iter = smuggler.node.slice(query)
 
     const nodes: TNode[] = []
     for (let node = await iter.next(); node != null; node = await iter.next()) {
       if (node.isWebBookmark() && node.extattrs?.web) {
-        if (stabiliseUrlForOriginId(node.extattrs.web.url) === key.url) {
+        if (stabiliseUrlForOriginId(node.extattrs.web.url) === stableUrl) {
           nodes.push(node)
         }
       } else if (node.isWebQuote() && node.extattrs?.web_quote) {
-        if (stabiliseUrlForOriginId(node.extattrs.web_quote.url) === key.url) {
+        if (
+          stabiliseUrlForOriginId(node.extattrs.web_quote.url) === stableUrl
+        ) {
           nodes.push(node)
         }
       }
@@ -258,7 +291,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
     return nodes
   }
 
-  return undefined
+  throw new Error(`Failed to lookup nodes, unsupported key ${key}`)
 }
 
 async function uploadFiles(

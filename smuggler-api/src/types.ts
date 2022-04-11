@@ -39,48 +39,13 @@ export type NodeTextData = {
 export enum NodeType {
   Text = 0,
   Blob = 1,
-  /** A node that refers to a URL web page *as a whole* (as opposed to @see WebQuote ) */
+  /** A node that refers to a an entity described by a URL, *as a whole* (as opposed to @see WebQuote ) */
   Url = 2,
   /** A node that refers to a *part of* a URL web page (as opposed to @see Url ) */
   WebQuote = 3,
 
   // NOTE: When extending this enum, consider if existing node lookup methods
   // need to change (see NodeLookupKey)
-}
-
-/**
- * Unique lookup keys that can match at most 1 node
- */
-export type UniqueNodeLookupKey =
-  /** Due to nid's nature there can be at most 1 node with a particular nid */
-  | { nid: string }
-  /** Unique because many nodes can refer to the same URL, but only one of them
-   * can be a bookmark */
-  | { webBookmark: { url: string } }
-
-export type NonUniqueNodeLookupKey =
-  /** Can match more than 1 node because multiple parts of a single web page
-   * can be quoted */
-  | { webQuote: { url: string } }
-  /** Can match more than 1 node because many nodes can refer to
-   * the same URL:
-   *    - 0 or 1 can be @see NoteType.Url
-   *    - AND at the same time more than 1 can be @see NodeType.WebQuote */
-  | { url: string }
-
-/**
- * All the different types of keys that can be used to identify (during lookup,
- * for example) one or more nodes.
- */
-export type NodeLookupKey = UniqueNodeLookupKey | NonUniqueNodeLookupKey
-
-export function isUniqueLookupKey(
-  key: NodeLookupKey
-): key is UniqueNodeLookupKey {
-  if ('nid' in key || 'webBookmark' in key) {
-    return true
-  }
-  return false
 }
 
 // see smuggler/src/types.rs
