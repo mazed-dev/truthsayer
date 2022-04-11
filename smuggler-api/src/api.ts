@@ -226,7 +226,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
     const query = { ...SLICE_ALL, origin: { id: origin.id } }
     const iter = smuggler.node.slice(query)
 
-    let nodes: TNode[] = []
+    const nodes: TNode[] = []
     for (let node = await iter.next(); node != null; node = await iter.next()) {
       if (node.isWebQuote() && node.extattrs?.web_quote) {
         if (
@@ -243,7 +243,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
     const query = { ...SLICE_ALL, origin: { id: origin.id } }
     const iter = smuggler.node.slice(query)
 
-    let nodes: TNode[] = []
+    const nodes: TNode[] = []
     for (let node = await iter.next(); node != null; node = await iter.next()) {
       if (node.isWebBookmark() && node.extattrs?.web) {
         if (stabiliseUrlForOriginId(node.extattrs.web.url) === key.url) {
