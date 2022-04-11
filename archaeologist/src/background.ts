@@ -66,20 +66,29 @@ async function requestPageContentToSave() {
   }
 }
 
-async function updatePageSavedStatus(
+/**
+ * Update content (saved nodes) in:
+ *   - Pop up window.
+ *   - Content augmentation.
+ *   - Badge counter.
+ */
+async function updateContent(
+  mode: 'append' | 'reset',
   quotes: TNode[],
   bookmark?: TNode,
   tabId?: number,
   unmemorable?: boolean
 ): Promise<void> {
-  // Inform PopUp window of saved page status to render right buttons
+  const quotesJson = quotes.map((node) => node.toJson())
+  // Inform PopUp window of saved bookmark and web quotes
   try {
     await browser.runtime.sendMessage(
       Message.create({
-        type: 'SAVED_NODE',
+        type: 'UPDATE_POPUP_CARDS',
         bookmark: bookmark?.toJson(),
-        quotes: quotes.map((node) => node.toJson()),
+        quotes: quotesJson,
         unmemorable,
+        mode,
       })
     )
   } catch (err) {
@@ -91,9 +100,28 @@ async function updatePageSavedStatus(
       err
     )
   }
-  // Update badge
-  const n = quotes.length + (bookmark != null ? 1 : 0)
-  await badge.resetText(tabId, n !== 0 ? n.toString() : undefined)
+  // Update badge counter
+  let badgeText: string | undefined = '✓'
+  if (mode === 'reset') {
+    const n = quotes.length + (bookmark != null ? 1 : 0)
+    if (n !== 0) {
+      badgeText = n.toString()
+    } else {
+      badgeText = undefined
+    }
+  }
+  await badge.resetText(tabId, badgeText)
+  // Update content augmentation
+  if (tabId != null) {
+    await browser.tabs.sendMessage(
+      tabId,
+      Message.create({
+        type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
+        quotes: quotesJson,
+        mode,
+      })
+    )
+  }
 }
 
 async function savePage(
@@ -105,7 +133,7 @@ async function savePage(
   if (content == null) {
     // Page is not memorable
     const unmemorable = true
-    await updatePageSavedStatus([], undefined, tabId, unmemorable)
+    await updateContent('append', [], undefined, tabId, unmemorable)
     return
   }
   const text = makeNodeTextData()
@@ -139,7 +167,7 @@ async function savePage(
   if (resp) {
     const { nid } = resp
     const node = await smuggler.node.get({ nid })
-    await updatePageSavedStatus([], node, tabId)
+    await updateContent('append', [], node, tabId)
   }
 }
 
@@ -165,7 +193,7 @@ async function savePageQuote(
   if (resp) {
     const { nid } = resp
     const node = await smuggler.node.get({ nid })
-    await updatePageSavedStatus([], node, tabId)
+    await updateContent('append', [node], undefined, tabId)
   }
 }
 
@@ -224,7 +252,7 @@ async function checkOriginIdAndUpdatePageStatus(
 ) {
   if (originId == null) {
     const unmemorable = true
-    await updatePageSavedStatus([], undefined, tabId, unmemorable)
+    await updateContent('reset', [], undefined, tabId, unmemorable)
     return
   }
   const nodes = await smuggler.node.lookup({ url })
@@ -237,7 +265,7 @@ async function checkOriginIdAndUpdatePageStatus(
       quotes.push(node)
     }
   }
-  await updatePageSavedStatus(quotes, bookmark, tabId)
+  await updateContent('reset', quotes, bookmark, tabId)
 }
 
 browser.runtime.onMessage.addListener(
@@ -248,7 +276,7 @@ browser.runtime.onMessage.addListener(
       case 'REQUEST_PAGE_TO_SAVE':
         requestPageContentToSave()
         break
-      case 'REQUEST_SAVED_NODE':
+      case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS':
         await requestPageSavedStatus()
         break
       case 'PAGE_TO_SAVE':
