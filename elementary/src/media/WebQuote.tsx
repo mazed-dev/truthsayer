@@ -74,7 +74,6 @@ export const WebQuote = ({
   }
   const { text, url } = web_quote
   const quoteUrl = new URL(url)
-  quoteUrl.hash = nid
   const hostname = quoteUrl.hostname
   return (
     <Box className={className}>

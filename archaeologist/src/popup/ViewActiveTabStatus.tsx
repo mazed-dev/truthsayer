@@ -37,28 +37,39 @@ export const ViewActiveTabStatus = () => {
   useAsyncEffect(async () => {
     browser.runtime.onMessage.addListener((message: MessageType) => {
       switch (message.type) {
-        case 'SAVED_NODE':
-          const { bookmark, quotes, unmemorable } = message
-          if (bookmark != null) {
-            const node = TNode.fromJson(bookmark)
-            setPageSavedNode(node)
-            setPageStatus('saved')
-          } else if (unmemorable) {
-            setPageStatus('unmemorable')
-          } else {
-            setPageStatus('memorable')
-          }
-          if (quotes) {
-            setPageSavedQuotes(
-              quotes.map((json: TNodeJson) => TNode.fromJson(json))
-            )
+        case 'UPDATE_POPUP_CARDS':
+          {
+            const { bookmark, quotes, unmemorable, mode } = message
+            if (bookmark != null) {
+              const node = TNode.fromJson(bookmark)
+              setPageSavedNode(node)
+              setPageStatus('saved')
+            } else {
+              if (mode === 'reset') {
+                setPageSavedNode(null)
+              }
+            }
+            if (unmemorable) {
+              setPageStatus('unmemorable')
+            } else {
+              setPageStatus('memorable')
+            }
+            const added = quotes.map((json: TNodeJson) => TNode.fromJson(json))
+            setPageSavedQuotes((existing: TNode[]) => {
+              if (mode === 'reset') {
+                return added
+              }
+              return existing.concat(added)
+            })
           }
           break
         default:
           break
       }
     })
-    await browser.runtime.sendMessage({ type: 'REQUEST_SAVED_NODE' })
+    await browser.runtime.sendMessage({
+      type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS',
+    })
   }, [])
 
   const handleSave = () => {
