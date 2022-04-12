@@ -1,11 +1,6 @@
 import { MessageType, Message } from './message/types'
 import * as badge from './badge'
-import {
-  log,
-  isAbortError,
-  genOriginId,
-  stabiliseUrlForOriginId,
-} from 'armoury'
+import { log, isAbortError, genOriginId } from 'armoury'
 
 import browser from 'webextension-polyfill'
 
