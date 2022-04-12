@@ -1,4 +1,5 @@
 // Do not remove this import
+// tslint:disable-next-line
 import React from 'react' // eslint-disable-line @typescript-eslint/no-unused-vars
 
 /**
