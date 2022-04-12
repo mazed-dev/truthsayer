@@ -97,7 +97,6 @@ export async function exctractPageContent(
   baseURL: string
 ): Promise<WebPageContent> {
   const url = stabiliseUrlForOriginId(document_.URL || document_.documentURI)
-  const head = document_.head
   const body = document_.body
 
   // The parse() method of @mozilla/readability works by modifying the DOM. This
@@ -110,36 +109,45 @@ export async function exctractPageContent(
     }
   ).parse()
 
-  let title: string | null = null
   let text: string | null = null
-  let description: string | null = null
-  const author: string[] = []
   const publisher: string[] = []
   const lang = _exctractPageLanguage(document_)
+  let title: string | null = _exctractPageTitle(document_)
+  let description: string | null = _exctractPageDescription(document_)
+  let author: string[] = _exctractPageAuthor(document_)
 
   if (article) {
     // Do a best effort with what @mozilla/readability gives us here
-    title = article.title
-    const { textContent, excerpt, byline, siteName } = article
+    const {
+      title: articleTitle,
+      textContent,
+      excerpt,
+      byline,
+      siteName,
+    } = article
+    if (title == null && articleTitle) {
+      // We don't trust MozillaReadability with title, it fails to extract title
+      // on some web sites such as YouTube. So we get back to it only if our own
+      // title extractor discovered no good title.
+      title = articleTitle
+    }
+    if (description == null && excerpt) {
+      // Same story for a description, we can't fully rely on MozillaReadability
+      // with page description, but get back to it when our own description
+      // extractor fails.
+      description = excerpt
+    }
     text = _stripWhitespaceInText(textContent)
-    description = excerpt
-    if (byline) {
+    if (author.length === 0 && byline) {
       author.push(_stripWhitespaceInText(byline))
     }
     if (siteName) {
       publisher.push(siteName)
     }
   }
-  if (title) {
-    title = _stripWhitespaceInText(title)
-  } else {
-    title = head ? _exctractPageTitle(head) : null
-  }
-  if (description) {
-    description = _stripWhitespaceInText(description)
-  } else {
-    description = head ? _exctractPageDescription(head) : null
-  }
+  author = author.filter((value: string, index: number, self: string[]) => {
+    return self.indexOf(value) === index
+  })
   if (text == null) {
     text = body ? _exctractPageText(body) : null
   }
@@ -147,9 +155,6 @@ export async function exctractPageContent(
     // Cut string by length 10KiB to avoid blowing up backend with huge JSON.
     // Later on we can and perhaps should reconsider this limit.
     text = text.substr(0, 10240)
-  }
-  if (author.length === 0 && head) {
-    author.push(..._exctractPageAuthor(head))
   }
   return {
     url,
@@ -255,56 +260,79 @@ export function _exctractPageText(body: HTMLElement): string {
  * - <meta name="twitter:title" content="Page title">
  * - <meta property="og:title" content="Page title">
  */
-export function _exctractPageTitle(head: HTMLHeadElement): string | null {
-  const headTitles = head.getElementsByTagName('title')
-  if (headTitles.length > 0) {
-    for (const element of headTitles) {
-      const title = (element.innerText || element.textContent)?.trim()
-      if (title) {
-        return _stripWhitespaceInText(title)
-      }
-    }
+export function _exctractPageTitle(document_: Document): string | null {
+  const title = _stripWhitespaceInText(document_.title)
+  if (title) {
+    return title
   }
-  // Last resort
-  for (const elementsGroup of [
-    head.querySelectorAll('meta[property="og:title"]'),
-    head.querySelectorAll('meta[property="twitter:title"]'),
+  for (const [selector, attribute] of [
+    ['meta[property="og:title"]', 'content'],
+    ['meta[name="twitter:title"]', 'content'],
   ]) {
-    for (const element of elementsGroup) {
-      const title = element.getAttribute('content')?.trim()
+    for (const element of document_.querySelectorAll(selector)) {
+      const title = _stripWhitespaceInText(
+        element.getAttribute(attribute)?.trim() || ''
+      )
       if (title) {
-        return _stripWhitespaceInText(title)
+        return title
       }
     }
   }
   return null
 }
 
-export function _exctractPageAuthor(head: HTMLHeadElement): string[] {
+export function _exctractPageAuthor(document_: Document): string[] {
   const authors: string[] = []
-  for (const elementsGroup of [
-    head.querySelectorAll('meta[property="author"]'),
+  for (const selector of [
+    '#upload-info ytd-channel-name#channel-name', // YouTube specific selector
   ]) {
-    for (const element of elementsGroup) {
-      const title = element.getAttribute('content')?.trim()
-      if (title) {
-        authors.push(_stripWhitespaceInText(title))
+    for (const element of document_.querySelectorAll(selector)) {
+      const htmlElement = element as HTMLElement | null
+      const author = _stripWhitespaceInText(htmlElement?.innerText.trim() || '')
+      if (author) {
+        authors.push(author)
+      }
+    }
+  }
+  if (authors.length !== 0) {
+    return authors
+  }
+  for (const [selector, attribute] of [
+    ['meta[property="author"]', 'content'],
+  ]) {
+    for (const element of document_.querySelectorAll(selector)) {
+      const author = _stripWhitespaceInText(
+        element.getAttribute(attribute)?.trim() || ''
+      )
+      if (author) {
+        authors.push(author)
       }
     }
   }
   return authors
 }
 
-export function _exctractPageDescription(head: HTMLHeadElement): string | null {
-  for (const elementsGroup of [
-    head.querySelectorAll('meta[name="description"]'),
-    head.querySelectorAll('meta[property="og:description"]'),
-    head.querySelectorAll('meta[name="twitter:description"]'),
+export function _exctractPageDescription(document_: Document): string | null {
+  for (const selector of ['#content #description']) {
+    for (const element of document_.querySelectorAll(selector)) {
+      const htmlElement = element as HTMLElement | null
+      const text = _stripWhitespaceInText(htmlElement?.innerText.trim() || '')
+      if (text) {
+        return text
+      }
+    }
+  }
+  for (const [selector, attribute] of [
+    ['meta[name="description"]', 'content'],
+    ['meta[property="og:description"]', 'content'],
+    ['meta[name="twitter:description"]', 'content'],
   ]) {
-    for (const element of elementsGroup) {
-      const title = element.getAttribute('content')?.trim()
-      if (title) {
-        return _stripWhitespaceInText(title)
+    for (const element of document_.querySelectorAll(selector)) {
+      const text = _stripWhitespaceInText(
+        element.getAttribute(attribute)?.trim() || ''
+      )
+      if (text) {
+        return text
       }
     }
   }

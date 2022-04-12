@@ -135,8 +135,7 @@ test('_exctractPageTitle - <title>', () => {
 </body>
 </html>
 `)
-  const head = dom.window.document.getElementsByTagName('head')[0]
-  const text = _exctractPageTitle(head)
+  const text = _exctractPageTitle(dom.window.document)
   expect(text).toStrictEqual('Correct title')
 })
 
@@ -151,8 +150,7 @@ test('_exctractPageTitle - <meta property="og:title">', () => {
 </body>
 </html>
 `)
-  const head = dom.window.document.getElementsByTagName('head')[0]
-  const text = _exctractPageTitle(head)
+  const text = _exctractPageTitle(dom.window.document)
   expect(text).toStrictEqual('Correct title')
 })
 
@@ -168,8 +166,7 @@ test('_exctractPageAuthor', () => {
 </body>
 </html>
 `)
-  const head = dom.window.document.getElementsByTagName('head')[0]
-  const author = _exctractPageAuthor(head)
+  const author = _exctractPageAuthor(dom.window.document)
   expect(author).toStrictEqual([
     'Correct First Author',
     'Correct Second Author',
