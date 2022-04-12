@@ -2,13 +2,14 @@ import { genOriginId, _uint32ToInt32 } from '../src/originId'
 
 import { urls } from './originId.test.data.json'
 
-test('Case does not mater', async () => {
-  const url = 'https://Load.IO/c/k'
-  expect(await genOriginId(url)).toStrictEqual(
-    await genOriginId(url.toLowerCase())
+test('Case does mater for everything after domain name', async () => {
+  expect(await genOriginId('https://Load.IO/c/k?q=qWeRtY')).toStrictEqual(
+    await genOriginId('https://load.io/c/k?q=qWeRtY')
   )
-  expect(await genOriginId(url)).toStrictEqual(
-    await genOriginId(url.toUpperCase())
+  expect(
+    await genOriginId('https://High.Load.IO/En/Dry?q=qWeRtY&Promise=None')
+  ).toStrictEqual(
+    await genOriginId('https://high.load.io/En/Dry?q=qWeRtY&Promise=None')
   )
 })
 
