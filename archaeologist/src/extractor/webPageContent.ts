@@ -350,11 +350,7 @@ export async function _exctractPageImage(
   document_: Document,
   baseURL: string
 ): Promise<WebPageContentImage | null> {
-  const head = document_.head
   const refs: string[] = []
-  if (head == null) {
-    return null
-  }
   // These are possible HTML DOM elements that might contain preview image.
   // - Open Graph image.
   // - Twitter preview image.
@@ -369,7 +365,7 @@ export async function _exctractPageImage(
     ['link[rel="shortcut icon"]', 'href'],
     ['link[rel="icon"]', 'href'],
   ]) {
-    for (const element of head.querySelectorAll(selector)) {
+    for (const element of document_.querySelectorAll(selector)) {
       const ref = element.getAttribute(attribute)?.trim()
       if (ref) {
         const absRef = ensureAbsRef(ref, baseURL)

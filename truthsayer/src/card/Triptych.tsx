@@ -66,7 +66,7 @@ function RefNodeCard({
           position: absolute;
           bottom: 0;
           right: 0;
-          z-index: 1000;
+          z-index: 900;
         `}
       >
         <SmallCardFootbar

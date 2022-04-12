@@ -2,6 +2,8 @@
 
 import React from 'react'
 
+import styled from '@emotion/styled'
+
 import {
   Editor,
   Element as SlateElement,
@@ -34,6 +36,10 @@ type JinnModalState = {
   q: string
   cursor: number
 }
+
+const JinnInput = styled(Form.Control)`
+  margin-bottom: 8px;
+`
 
 class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
   state: JinnModalState = {
@@ -116,7 +122,7 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
     // extCards={this.state.cards}
     return (
       <div>
-        <Form.Control
+        <JinnInput
           aria-label="Search-to-link"
           aria-describedby="basic-addon1"
           onChange={this.handleChange}
