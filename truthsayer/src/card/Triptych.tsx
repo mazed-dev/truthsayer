@@ -259,11 +259,13 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
       // TODO(akindyakov): move conversion from raw slate to doc to here
       // TODO(akindyakov): collect stats here
       const nid = this.props.nid
-      return await smuggler.node.update({
-        nid,
-        text,
-        signal: this.fetchNodeAbortController.signal,
-      })
+      return await smuggler.node.update(
+        {
+          nid,
+          text,
+        },
+        this.fetchNodeAbortController.signal
+      )
     },
     757,
     {
