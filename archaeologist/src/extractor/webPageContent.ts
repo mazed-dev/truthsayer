@@ -280,20 +280,6 @@ export function _exctractPageTitle(document_: Document): string | null {
 
 export function _exctractPageAuthor(document_: Document): string[] {
   const authors: string[] = []
-  for (const selector of [
-    '#upload-info ytd-channel-name#channel-name', // YouTube specific selector
-  ]) {
-    for (const element of document_.querySelectorAll(selector)) {
-      const htmlElement = element as HTMLElement | null
-      const author = _stripWhitespaceInText(htmlElement?.innerText.trim() || '')
-      if (author) {
-        authors.push(author)
-      }
-    }
-  }
-  if (authors.length !== 0) {
-    return authors
-  }
   for (const [selector, attribute] of [
     ['meta[property="author"]', 'content'],
   ]) {
@@ -310,15 +296,6 @@ export function _exctractPageAuthor(document_: Document): string[] {
 }
 
 export function _exctractPageDescription(document_: Document): string | null {
-  for (const selector of ['#content #description']) {
-    for (const element of document_.querySelectorAll(selector)) {
-      const htmlElement = element as HTMLElement | null
-      const text = _stripWhitespaceInText(htmlElement?.innerText.trim() || '')
-      if (text) {
-        return text
-      }
-    }
-  }
   for (const [selector, attribute] of [
     ['meta[name="description"]', 'content'],
     ['meta[property="og:description"]', 'content'],
