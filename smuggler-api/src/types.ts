@@ -39,8 +39,13 @@ export type NodeTextData = {
 export enum NodeType {
   Text = 0,
   Blob = 1,
+  /** A node that refers to a an entity described by a URL, *as a whole* (as opposed to @see WebQuote ) */
   Url = 2,
+  /** A node that refers to a *part of* a URL web page (as opposed to @see Url ) */
   WebQuote = 3,
+
+  // NOTE: When extending this enum, consider if existing node lookup methods
+  // need to change (see NodeLookupKey)
 }
 
 // see smuggler/src/types.rs

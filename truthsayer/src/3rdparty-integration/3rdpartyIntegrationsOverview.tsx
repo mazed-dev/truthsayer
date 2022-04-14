@@ -5,7 +5,6 @@ import { jcss } from 'elementary'
 
 import { OneDriveIntegrationManager } from './OneDriveIntegrationManager'
 import { MzdGlobalContext } from '../lib/global'
-import { assert } from 'console'
 
 type IntegrationProps = React.PropsWithChildren<{
   icon: string
