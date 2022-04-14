@@ -97,8 +97,9 @@ export async function exctractPageContent(
   baseURL: string
 ): Promise<WebPageContent> {
   const url = stabiliseUrlForOriginId(document_.URL || document_.documentURI)
-  const body = document_.body
-
+  let { title, description, lang, author, publisher, thumbnailUrls } =
+    _extractPageAttributes(document_, baseURL)
+  let text: string | null = null
   // The parse() method of @mozilla/readability works by modifying the DOM. This
   // removes some elements in the web page. We avoid this by passing the clone
   // of the document object to the Readability constructor.
@@ -108,14 +109,6 @@ export async function exctractPageContent(
       keepClasses: false,
     }
   ).parse()
-
-  let text: string | null = null
-  const publisher: string[] = []
-  const lang = _exctractPageLanguage(document_)
-  let title: string | null = _exctractPageTitle(document_)
-  let description: string | null = _exctractPageDescription(document_)
-  let author: string[] = _exctractPageAuthor(document_)
-
   if (article) {
     // Do a best effort with what @mozilla/readability gives us here
     const {
@@ -149,7 +142,10 @@ export async function exctractPageContent(
     return self.indexOf(value) === index
   })
   if (text == null) {
-    text = body ? _exctractPageText(body) : null
+    // With page text we trust MozillaReadability way more, so only if it fails
+    // to extract, we try to do it ourself. Because this is what
+    // MozillaReadability library does on the first place.
+    text = _exctractPageText(document_)
   }
   if (text != null) {
     // Cut string by length 10KiB to avoid blowing up backend with huge JSON.
@@ -158,13 +154,13 @@ export async function exctractPageContent(
   }
   return {
     url,
-    title,
+    title: title || null,
     author,
     publisher,
-    description,
-    lang,
+    description: description || null,
+    lang: lang || null,
     text,
-    image: await _exctractPageImage(document_, baseURL),
+    image: await _fetchAnyPageThumbnailImage(document_, thumbnailUrls),
   }
 }
 
@@ -199,7 +195,8 @@ export function _stripWhitespaceInText(text: string): string {
  *   - ARIA element role: `article`, `main`.
  *   - ? Element class: `content`, `main`
  */
-export function _exctractPageText(body: HTMLElement): string {
+export function _exctractPageText(document_: Document): string {
+  const body = document_.body
   const ret: string[] = []
   const addedElements: Element[] = []
   for (const elementsGroup of [
@@ -367,6 +364,80 @@ export function _exctractPagePublisher(head: HTMLHeadElement): string[] {
   return publisher
 }
 
+export interface VideoObjectSchema {
+  name: string
+  description: string
+  author: string
+  thumbnailUrl: string[]
+  duration: string
+  uploadDate: string
+  genre?: string
+}
+
+export function _exctractYouTubeVideoObjectSchema(
+  document_: Document
+): VideoObjectSchema | null {
+  let json: string | null = null
+  for (const element of document_.querySelectorAll(
+    'ytd-player-microformat-renderer > script.ytd-player-microformat-renderer'
+  )) {
+    if (element.getAttribute('type') === 'application/ld+json') {
+      json = element.innerHTML
+    }
+  }
+  if (json === null) {
+    return null
+  }
+  const data = JSON.parse(json)
+  return { ...data }
+}
+
+interface ExtractedPageAttributes {
+  title?: string
+  description?: string
+  lang?: string
+  author: string[]
+  publisher: string[]
+  thumbnailUrls: string[]
+}
+/**
+ * Our own set of extractors to read page attributes
+ */
+export function _extractPageAttributes(
+  document_: Document,
+  baseURL: string
+): ExtractedPageAttributes {
+  const lang = _exctractPageLanguage(document_) || undefined
+  let title: string | undefined
+  let description: string | undefined
+  const author: string[] = []
+  const publisher: string[] = []
+  const thumbnailUrls: string[] = []
+  // Special extractors have a priority
+  const youtubeUrlRe = new RegExp('https?://(www.)?youtube.com')
+  if (youtubeUrlRe.test(baseURL)) {
+    const youtube = _exctractYouTubeVideoObjectSchema(document_)
+    if (youtube !== null) {
+      title = youtube.name
+      description = youtube.description
+      author.push(youtube.author)
+      thumbnailUrls.push(...youtube.thumbnailUrl)
+      publisher.push('YouTube')
+    }
+  }
+  if (title == null) {
+    title = _exctractPageTitle(document_) || undefined
+  }
+  if (description == null) {
+    description = _exctractPageDescription(document_) || undefined
+  }
+  if (author.length === 0) {
+    author.push(..._exctractPageAuthor(document_))
+  }
+  thumbnailUrls.push(..._extractPageThumbnailUrls(document_, baseURL))
+  return { lang, title, description, author, publisher, thumbnailUrls }
+}
+
 function ensureAbsRef(ref: string, baseURL: string): string {
   if (ref.startsWith('/')) {
     return `${baseURL}${ref}`
@@ -374,10 +445,10 @@ function ensureAbsRef(ref: string, baseURL: string): string {
   return ref
 }
 
-export async function _exctractPageImage(
+export function _extractPageThumbnailUrls(
   document_: Document,
   baseURL: string
-): Promise<WebPageContentImage | null> {
+): string[] {
   const refs: string[] = []
   // These are possible HTML DOM elements that might contain preview image.
   // - Open Graph image.
@@ -392,6 +463,8 @@ export async function _exctractPageImage(
     ['link[rel="apple-touch-icon"]', 'href'],
     ['link[rel="shortcut icon"]', 'href'],
     ['link[rel="icon"]', 'href'],
+    ['link[rel="image_src"]', 'href'],
+    ['link[itemprop="thumbnailUrl"]', 'href'],
   ]) {
     for (const element of document_.querySelectorAll(selector)) {
       const ref = element.getAttribute(attribute)?.trim()
@@ -401,9 +474,21 @@ export async function _exctractPageImage(
       }
     }
   }
-  for (const ref of refs) {
+  return refs
+}
+
+/**
+ * Try to fetch images for given urls. First successfully retrieved image is
+ * returned, so sort urls by priority beforehands placing best options for a
+ * preview image at the front of the `thumbnailUrls` array.
+ */
+export async function _fetchAnyPageThumbnailImage(
+  document_: Document,
+  thumbnailUrls: string[]
+): Promise<WebPageContentImage | null> {
+  for (const url of thumbnailUrls) {
     try {
-      const icon = await fetchImagePreviewAsBase64(ref, document_, 240)
+      const icon = await fetchImagePreviewAsBase64(url, document_, 240)
       return icon
     } catch (err) {
       log.debug('Mazed: preview image extraction failed with', err)

@@ -9,12 +9,14 @@ import jsdom from 'jsdom'
 import fetchMock from 'jest-fetch-mock'
 
 import {
-  _stripWhitespaceInText,
-  _exctractPageText,
-  _exctractPageTitle,
   _exctractPageAuthor,
   _exctractPageLanguage,
   _exctractPagePublisher,
+  _exctractPageText,
+  _exctractPageTitle,
+  _exctractYouTubeVideoObjectSchema,
+  _extractPageAttributes,
+  _stripWhitespaceInText,
   exctractPageContent,
 } from './webPageContent'
 
@@ -56,8 +58,7 @@ test('_exctractPageText - main', () => {
 </body>
 </html>
 `)
-  const body = dom.window.document.getElementsByTagName('body')[0]
-  const text = _exctractPageText(body)
+  const text = _exctractPageText(dom.window.document)
   expect(text).toStrictEqual('First and second Third and forth')
 })
 
@@ -77,8 +78,7 @@ test('_exctractPageText - article', () => {
 </body>
 </html>
 `)
-  const body = dom.window.document.getElementsByTagName('body')[0]
-  const text = _exctractPageText(body)
+  const text = _exctractPageText(dom.window.document)
   expect(text).toStrictEqual('First and second Third and forth')
 })
 
@@ -98,8 +98,7 @@ test('_exctractPageText - <div role="main">', () => {
 </body>
 </html>
 `)
-  const body = dom.window.document.getElementsByTagName('body')[0]
-  const text = _exctractPageText(body)
+  const text = _exctractPageText(dom.window.document)
   expect(text).toStrictEqual('First and second Third and forth')
 })
 
@@ -119,8 +118,7 @@ test('_exctractPageText - nested elements', () => {
 </body>
 </html>
 `)
-  const body = dom.window.document.getElementsByTagName('body')[0]
-  const text = _exctractPageText(body)
+  const text = _exctractPageText(dom.window.document)
   expect(text).toStrictEqual('First and second Third and forth')
 })
 
@@ -146,7 +144,6 @@ test('_exctractPageTitle - <meta property="og:title">', () => {
 <meta property="og:title" content="Correct title">
 </head>
 <body >
-  <title>Wrong title</title>
 </body>
 </html>
 `)
@@ -243,4 +240,43 @@ test('exctractPageContent - main', async () => {
   expect(description).toStrictEqual('A JavaScript implementation')
   expect(lang).toStrictEqual('en')
   expect(image).toStrictEqual(null)
+})
+
+const kYoutubeUrl = 'https://www.youtube.com/watch?v=AsDabC'
+const kYoutubeDom = new JSDOM(
+  `<!DOCTYPE html>
+<html lang="en">
+<head></head>
+<body><div>
+<ytd-player-microformat-renderer class="style-scope ytd-watch-flexy"><!--css-build:shady--><script type="application/ld+json" id="scriptTag" nonce="SRMkA" class="style-scope ytd-player-microformat-renderer">{"@context":"https://schema.org","@type":"VideoObject","description":"Lorem Ipsum is simply dummy text of the printing and typesetting industry.","duration":"PT6302S","embedUrl":"https://www.youtube.com/embed/WAIcDx8B1_0","interactionCount":"7","name":"Lorem Ipsum","thumbnailUrl":["https://i.ytimg.com/vi/WAIcDx8B1_0/hqdefault.jpg"],"uploadDate":"2021-04-12","genre":"Nonprofits & Activism","author":"Finibus Bonorum et Malorum"}</script></ytd-player-microformat-renderer>
+</div></body></html>`,
+  { url: kYoutubeUrl }
+)
+test('YouTube special extractor', () => {
+  const videoObject = _exctractYouTubeVideoObjectSchema(
+    kYoutubeDom.window.document
+  )
+  expect(videoObject?.name).toStrictEqual('Lorem Ipsum')
+  expect(videoObject?.description).toStrictEqual(
+    'Lorem Ipsum is simply dummy text of the printing and typesetting industry.'
+  )
+  expect(videoObject?.author).toStrictEqual('Finibus Bonorum et Malorum')
+  expect(videoObject?.thumbnailUrl).toStrictEqual([
+    'https://i.ytimg.com/vi/WAIcDx8B1_0/hqdefault.jpg',
+  ])
+})
+
+test('YouTube special extractor has a priority', () => {
+  let { title, description, lang, author, publisher, thumbnailUrls } =
+    _extractPageAttributes(kYoutubeDom.window.document, kYoutubeUrl)
+  expect(title).toStrictEqual('Lorem Ipsum')
+  expect(description).toStrictEqual(
+    'Lorem Ipsum is simply dummy text of the printing and typesetting industry.'
+  )
+  expect(author).toStrictEqual(['Finibus Bonorum et Malorum'])
+  expect(lang).toStrictEqual('en')
+  expect(publisher).toStrictEqual(['YouTube'])
+  expect(thumbnailUrls).toStrictEqual([
+    'https://i.ytimg.com/vi/WAIcDx8B1_0/hqdefault.jpg',
+  ])
 })
