@@ -433,15 +433,18 @@ export function _extractPageThumbnailUrls(
   // - VK preview image.
   // - Favicon, locations according to https://en.wikipedia.org/wiki/Favicon,
   //    with edge case for Apple specific web page icon.
+  // - Thumbnail image
+  //
+  // Order of elements does mater here, the best options come first.
   for (const [selector, attribute] of [
     ['meta[property="og:image"]', 'content'],
     ['meta[name="twitter:image"]', 'content'],
     ['meta[name="vk:image"]', 'content'],
+    ['link[rel="image_src"]', 'href'],
+    ['link[itemprop="thumbnailUrl"]', 'href'],
     ['link[rel="apple-touch-icon"]', 'href'],
     ['link[rel="shortcut icon"]', 'href'],
     ['link[rel="icon"]', 'href'],
-    ['link[rel="image_src"]', 'href'],
-    ['link[itemprop="thumbnailUrl"]', 'href'],
   ]) {
     for (const element of document_.querySelectorAll(selector)) {
       const ref = element.getAttribute(attribute)?.trim()

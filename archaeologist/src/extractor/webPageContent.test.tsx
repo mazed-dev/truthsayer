@@ -1,5 +1,5 @@
-// Do not remove this import
-import React from 'react' // eslint-disable-line @typescript-eslint/no-unused-vars
+// @ts-ignore: Do not remove this import, it's somewhat needed for jsdom
+import type React from 'react' // eslint-disable-line @typescript-eslint/no-unused-vars
 
 /**
  * @jest-environment jsdom
@@ -16,6 +16,7 @@ import {
   _exctractPageTitle,
   _exctractYouTubeVideoObjectSchema,
   _extractPageAttributes,
+  _extractPageThumbnailUrls,
   _stripWhitespaceInText,
   exctractPageContent,
 } from './webPageContent'
@@ -278,5 +279,39 @@ test('YouTube special extractor has a priority', () => {
   expect(publisher).toStrictEqual(['YouTube'])
   expect(thumbnailUrls).toStrictEqual([
     'https://i.ytimg.com/vi/WAIcDx8B1_0/hqdefault.jpg',
+  ])
+})
+
+test('_extractPageThumbnailUrls', () => {
+  const dom = new JSDOM(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="shortcut icon" href="https://www.youtube.com/s/e69b/img/favicon.ico" type="image/x-icon">
+<meta property="og:image" content="https://og.ytimg.com/vi/p3bdV/og.jpg">
+<meta name="twitter:image" content="https://twitter.ytimg.com/vi/kKGRQ/twitter.jpg">
+<meta name="vk:image" content="https://vk.ytimg.com/vi/ddd/vk.jpg">
+<link rel="apple-touch-icon" href="/apple-touch-icon-1024.png">
+<link rel="image_src" href="https://abc.abc/images/007/qOoFNK6Z7.png">
+<link itemprop="thumbnailUrl" href="https://thumb.ytimg.com/vi/RQ/df.jpg">
+</head>
+<body >
+</body>
+</html>
+`)
+  const refs = _extractPageThumbnailUrls(
+    dom.window.document,
+    'https://base.ytimg.com'
+  )
+  // Order of elements does mater here, the best options come first.
+  expect(refs).toStrictEqual([
+    'https://og.ytimg.com/vi/p3bdV/og.jpg',
+    'https://twitter.ytimg.com/vi/kKGRQ/twitter.jpg',
+    'https://vk.ytimg.com/vi/ddd/vk.jpg',
+    'https://abc.abc/images/007/qOoFNK6Z7.png',
+    'https://thumb.ytimg.com/vi/RQ/df.jpg',
+    'https://base.ytimg.com/apple-touch-icon-1024.png',
+    'https://www.youtube.com/s/e69b/img/favicon.ico',
+    'https://base.ytimg.com/favicon.ico',
   ])
 })
