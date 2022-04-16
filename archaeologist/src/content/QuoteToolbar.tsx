@@ -30,6 +30,7 @@ const ItemCommon = css`
   cursor: pointer !important;
   font-size: 14px !important;
   ${StyleButtonWhite};
+  box-shadow: none !important;
 `
 
 const BtnItem = styled.div`
