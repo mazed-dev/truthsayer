@@ -96,7 +96,8 @@
     "download": "^8.0.0",
     "express": "^4.17.2",
     "jest-fetch-mock": "^3.0.3",
-    "safe-compare": "^1.1.4"
+    "safe-compare": "^1.1.4",
+    "terser-webpack-plugin": "^4.2.3"
   },
   "jest": {
     "automock": false,

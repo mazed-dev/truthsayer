@@ -1,6 +1,7 @@
 const webpack = require("webpack");
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
+const TerserPlugin = require('terser-webpack-plugin');
 
 const _getSmugglerApiUrl = (mode) => {
   return mode === 'development'
@@ -18,8 +19,8 @@ const _manifestTransformDowngradeToV2 = (manifest) => {
   // Downgrade manifest to version 2, Firefox does not support version 3 yet
   manifest.manifest_version = 2
   // background scripts are declared differently in v2
-  const { service_worker } = manifest.background
-  manifest.background.scripts = [ service_worker ]
+  const {service_worker} = manifest.background
+  manifest.background.scripts = [service_worker]
   delete manifest.background.service_worker
   // host_permissions are not supported in v2
   manifest.permissions.push(
@@ -41,14 +42,14 @@ const _manifestTransformDowngradeToV2 = (manifest) => {
 const _manifestTransform = (buffer, mode, env) => {
   let manifest = JSON.parse(buffer.toString())
 
-  const {firefox=false} = env
+  const {firefox = false} = env
 
   // Add Mazed URL to host_permissions to grant access to mazed cookies
   const smugglerApiUrlMask = _getSmugglerApiUrlMask(mode)
   manifest.host_permissions.push(smugglerApiUrlMask)
   // Exclude Mazed from list of URLs where content.js is injected to
   manifest.content_scripts.forEach((item, index, theArray) => {
-    const { exclude_matches = [] } = item
+    const {exclude_matches = []} = item
     exclude_matches.push(
       smugglerApiUrlMask,
     )
@@ -121,6 +122,32 @@ const config = (env, argv) => {
       hints: false,
       maxEntrypointSize: 512000,
       maxAssetSize: 512000
+    },
+    optimization: {
+      minimize: true,
+      minimizer: [
+        new TerserPlugin({
+          terserOptions: {
+            compress: {
+              defaults: true,
+              arguments: true,
+              toplevel: true,
+              ecma: 6,
+            },
+            output: {
+              // Always insert braces in if, for, do, while or with statements,
+              // even if their body is a single statement
+              braces: true,
+              // Preserve JSDoc-style comments that contain "@license" or "@preserve"
+              comments: "some",
+              // Escape Unicode characters in strings and regexps. Chrome does
+              // not accept minified files with UTF8 encodding for some reason.
+              ascii_only: true,
+            }
+          },
+          // Extract some legal comments into a separate file
+          extractComments: true,
+        })],
     },
     stats: {
       errorDetails: true,
