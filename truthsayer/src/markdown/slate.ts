@@ -35,17 +35,14 @@ import {
   kSlateBlockTypeUnorderedList,
 } from 'elementary'
 
-import cloneDeep from 'lodash.clonedeep'
-import isArray from 'lodash.isarray'
-import last from 'lodash.last'
-import invert from 'lodash.invert'
+import lodash from 'lodash'
 
 /**
  * Slate object to Markdown:
  * serialize slate state to a markdown string
  */
 export function slateToMarkdown(state: Descendant[]): string {
-  state = serializeExtraBlocks(cloneDeep(state))
+  state = serializeExtraBlocks(lodash.cloneDeep(state))
   return state.map((block) => serialize(block)).join('')
 }
 
@@ -85,7 +82,7 @@ const kMazedBlockTypeToRemarkSlate: Record<string, string> = {
   [kSlateBlockTypeDeleteMark]: defaultNodeTypes.strikeThrough,
   [kSlateBlockTypeInlineCodeMark]: defaultNodeTypes.code,
 }
-const kRemarkSlateBlockTypeToMazed: Record<string, string> = invert(
+const kRemarkSlateBlockTypeToMazed: Record<string, string> = lodash.invert(
   kMazedBlockTypeToRemarkSlate
 )
 
@@ -209,7 +206,7 @@ export function _dissolveNestedParagraphs(
   const newContents: Descendant[] = []
   contents.forEach((item) => {
     const { children } = item
-    if (isArray(children)) {
+    if (lodash.isArray(children)) {
       item.children = _dissolveNestedParagraphsRec(children)
     }
     newContents.push(item)
@@ -234,7 +231,7 @@ export function _siftUpBlocks(contents: Descendant[]): Descendant[] {
   const newContents: Descendant[] = []
   contents.forEach((item) => {
     const { children } = item
-    if (isArray(children)) {
+    if (lodash.isArray(children)) {
       const [topChildren, newChildren] = _siftUpBlocksRec(children)
       newContents.push(...topChildren)
       // We can't leave empty element and we can't just delete it, let's add one
@@ -301,7 +298,7 @@ function serializeExtraBlocks(children: Descendant[]): Descendant[] {
 
 function hackListItemSerialisation(item: Descendant): Descendant {
   const { children } = item
-  const lastChild: Descendant = last(children || [])
+  const lastChild: Descendant = lodash.last(children || [])
   if (lastChild?.text?.endsWith('\n')) {
     // nothing
   } else {
