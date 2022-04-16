@@ -7,7 +7,8 @@ import {
 import { log } from 'armoury'
 import { isAbortError } from 'armoury'
 
-import { markdownToSlate, TDoc } from 'elementary'
+import { TDoc } from 'elementary'
+import { markdownToSlate } from '../markdown/slate'
 import { Mime } from 'armoury'
 import { Optional } from 'armoury'
 

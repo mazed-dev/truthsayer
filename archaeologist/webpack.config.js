@@ -116,9 +116,6 @@ const config = (env, argv) => {
     },
     resolve: {
       extensions: [".js", ".jsx", ".tsx", ".ts"],
-      alias: {
-        "react-dom": "@hot-loader/react-dom",
-      },
     },
     performance: {
       hints: false,
@@ -129,7 +126,16 @@ const config = (env, argv) => {
       errorDetails: true,
     },
     devtool: 'source-map',
+    // Following `node.global = false` and `plugins[?].global = 'window'` are
+    // added to disable usage of dangerous 'eval' functionality by webpack.
+    // https://github.com/webpack/webpack/issues/5627#issuecomment-394309966
+    node: {
+      global: false
+    },
     plugins: [
+      new webpack.DefinePlugin({
+         global: 'window' // Placeholder for global used in any node_modules
+      }),
       new CopyPlugin({
         patterns: [{
           from: "public", to: ".",

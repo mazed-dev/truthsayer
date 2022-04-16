@@ -54,12 +54,10 @@ const WebBlockQuotePad = styled(BlockQuotePad)`
 
 export const WebQuote = ({
   extattrs,
-  nid,
   className,
   strippedRefs,
 }: {
   extattrs: NodeExtattrs
-  nid: string
   className?: string
   strippedRefs?: boolean
 }) => {

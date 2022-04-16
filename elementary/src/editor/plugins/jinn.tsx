@@ -89,7 +89,7 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
   addCards = (cards) => {
     this.setState((state) => {
       return {
-        cards: lodash.concat(state.cards, cards),
+        cards: state.cards.concat(cards),
       }
     })
   }
