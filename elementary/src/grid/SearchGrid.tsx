@@ -139,18 +139,18 @@ const SearchGridScroll = ({
   }
 
   useAsyncEffect(
-    async (isActive: () => boolean) => {
+    async (isMounted: () => boolean) => {
       // Continue fetching until visual space is filled with cards to the bottom and beyond.
       // Thus if use scrolled to the bottom this loop would start fetching again adding more cards.
       setFetching(true)
       try {
         while (isScrolledToBottom()) {
-          if (!isActive()) {
+          if (!isMounted()) {
             iter.abort()
             return
           }
           const node = await iter.next()
-          if (!isActive() || node == null) {
+          if (!isMounted() || node == null) {
             iter.abort()
             break
           }
