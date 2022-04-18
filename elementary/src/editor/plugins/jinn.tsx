@@ -37,7 +37,7 @@ function JinnModal({
   useEffect(() => inputRef?.current?.focus())
   const [input, setInput] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState<string>('')
-  const [extCards, setExtCards] = useState<React.ReactNode[]>([])
+  const [extraCards, setExtraCards] = useState<React.ReactNode[]>([])
   const insertElement = (element: SlateElement) => {
     // Delete '//' first of all
     Transforms.delete(editor, {
@@ -51,11 +51,11 @@ function JinnModal({
     onHide()
   }
   const doSmartSearch = (value: string) => {
-    setExtCards([])
+    setExtraCards([])
     setSearchQuery(value)
     const item = dateTimeJinnSearch(value, insertElement)
     if (item != null) {
-      setExtCards((cards) => [item, ...cards])
+      setExtraCards((cards) => [item, ...cards])
     }
   }
   // Debounce in react functional component works only with useRef,
@@ -94,7 +94,7 @@ function JinnModal({
         onCardClick={onNodeCardClick}
         portable
       >
-        {extCards}
+        {extraCards}
       </SearchGrid>
     </div>
   )
