@@ -114,7 +114,7 @@ function lookupKeyOf(args: CreateNodeArgs): NodeLookupKey | undefined {
   // TODO[snikitin@outlook.com]: This ideally should match with TNode.isWebBookmark(),
   // TNode.isWebQuote() etc but unclear how to reliably do so.
   if (args.extattrs?.web?.url) {
-    return { webQuote: { url: args.extattrs.web.url } }
+    return { webBookmark: { url: args.extattrs.web.url } }
   } else if (args.extattrs?.web_quote?.url) {
     return { webQuote: { url: args.extattrs.web_quote.url } }
   }
