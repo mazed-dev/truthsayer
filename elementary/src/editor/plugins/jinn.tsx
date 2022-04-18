@@ -1,9 +1,6 @@
-// @ts-nocheck
-
-import React from 'react'
-
+import React, { useRef, useState, useEffect } from 'react'
+import { Modal, Form } from 'react-bootstrap'
 import styled from '@emotion/styled'
-
 import {
   Editor,
   Element as SlateElement,
@@ -11,92 +8,38 @@ import {
   Range,
   Transforms,
 } from 'slate'
-
-import type { Optional } from 'armoury'
-
-import { Modal, Form } from 'react-bootstrap'
-
-import { SearchGrid } from '../../grid/SearchGrid'
-
-import { makeNodeLink, TDoc } from '../types'
-
-import { dateTimeJinnSearch } from './jinn-datetime'
-
 import lodash from 'lodash'
 
-type JinnModalProps = {
-  nid: string
-  editor: Editor
-  selection: Range
-  setShow: (show: boolean) => void
-}
+import type { Optional } from 'armoury'
+import { TNode } from 'smuggler-api'
 
-type JinnModalState = {
-  input: string
-  q: string
-  cursor: number
-}
+import { SearchGrid } from '../../grid/SearchGrid'
+import { makeNodeLink, TDoc, CustomEditor } from '../types'
+import { dateTimeJinnSearch } from './jinn-datetime'
 
 const JinnInput = styled(Form.Control)`
   margin-bottom: 8px;
 `
 
-class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
-  state: JinnModalState = {
-    input: '',
-    q: '',
-    cursor: 0,
+function JinnModal({
+  editor,
+  selection,
+  onHide,
+}: {
+  editor: Editor
+  selection: Range | null
+  onHide: () => void
+}) {
+  if (selection == null) {
+    return null
   }
-
-  constructor(props) {
-    super(props)
-    this.inputRef = React.createRef()
-  }
-
-  handleChange = (event) => {
-    const { value } = event.target
-    this.startSmartSearch.cancel() // Do we need it?
-    this.setState(
-      {
-        input: value,
-      },
-      () => {
-        this.startSmartSearch(value)
-      }
-    )
-  }
-
-  handleSumbit = () => {}
-
-  startSmartSearch = lodash.debounce((value) => {
-    this.setState({ cards: [], q: value }, () => {
-      // if (this.props.suggestNewRef) {
-      this.dateTimeSearch(value)
-    })
-  }, 800)
-
-  componentDidMount() {
-    this.inputRef.current.focus()
-  }
-
-  dateTimeSearch = async function (value) {
-    const item = dateTimeJinnSearch(value, this.insertElement)
-    if (item != null) {
-      this.addCards([item])
-    }
-  }
-
-  addCards = (cards) => {
-    this.setState((state) => {
-      return {
-        cards: state.cards.concat(cards),
-      }
-    })
-  }
-
-  insertElement = (element: SlateElement) => {
-    const { editor, selection, setShow } = this.props
-    // Delete key '//' first of all
+  const inputRef = useRef<HTMLInputElement>(null)
+  useEffect(() => inputRef?.current?.focus())
+  const [input, setInput] = useState<string>('')
+  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [extraCards, setExtraCards] = useState<React.ReactNode[]>([])
+  const insertElement = (element: SlateElement) => {
+    // Delete '//' first of all
     Transforms.delete(editor, {
       distance: 2,
       unit: 'character',
@@ -105,52 +48,73 @@ class JinnModal extends React.Component<JinnModalProps, JinnModalState> {
     })
     const start = Range.start(selection)
     Transforms.insertNodes(editor, element, { at: start })
-    setShow(false)
+    onHide()
+  }
+  const doSmartSearch = (value: string) => {
+    setExtraCards([])
+    setSearchQuery(value)
+    const item = dateTimeJinnSearch(value, insertElement)
+    if (item != null) {
+      setExtraCards((cards) => [item, ...cards])
+    }
+  }
+  // Debounce in react functional component works only with useRef,
+  // see https://stackoverflow.com/a/64856090
+  const initiateSmartSearch = useRef(lodash.debounce(doSmartSearch, 800))
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target
+    setInput(value)
+    initiateSmartSearch.current(value)
   }
 
-  onNodeCardClick = (node) => {
+  const handleSumbit = () => {}
+
+  const onNodeCardClick = (node: TNode) => {
     const nid = node.getNid()
-    const text = node.getText()
-    const doc = new TDoc(text.slate)
-    const title = doc.exctractDocTitle()
+    const doc = TDoc.fromNodeTextData(node.getText())
+    const title = doc.genTitle()
     const element = makeNodeLink(title, nid)
-    this.insertElement(element)
+    insertElement(element)
   }
 
-  render() {
-    const { q, input, cards } = this.state
-    // extCards={this.state.cards}
-    return (
-      <div>
-        <JinnInput
-          aria-label="Search-to-link"
-          aria-describedby="basic-addon1"
-          onChange={this.handleChange}
-          onSubmit={this.handleSumbit}
-          value={input}
-          placeholder="Type something"
-          ref={this.inputRef}
-        />
-        <SearchGrid
-          q={q}
-          defaultSearch
-          onCardClick={this.onNodeCardClick}
-          portable
-        >
-          {cards}
-        </SearchGrid>
-      </div>
-    )
-  }
+  return (
+    <div>
+      <JinnInput
+        aria-label="Search-to-link"
+        aria-describedby="basic-addon1"
+        onChange={handleChange}
+        onSubmit={handleSumbit}
+        value={input}
+        placeholder="Type something"
+        ref={inputRef}
+      />
+      <SearchGrid
+        q={searchQuery}
+        defaultSearch
+        onCardClick={onNodeCardClick}
+        portable
+      >
+        {extraCards}
+      </SearchGrid>
+    </div>
+  )
 }
 
-export const Jinn = ({ show, setShow, nid, editor }) => {
+export const Jinn = ({
+  isShown,
+  onHide,
+  editor,
+}: {
+  isShown: boolean
+  onHide: () => void
+  editor: CustomEditor
+}) => {
   // Preserve editor selection to pass it to modal
   const { selection } = editor
   return (
     <Modal
-      show={show}
-      onHide={() => setShow(false)}
+      show={isShown}
+      onHide={onHide}
       size="xl"
       aria-labelledby="contained-modal-title-vcenter"
       centered
@@ -161,12 +125,7 @@ export const Jinn = ({ show, setShow, nid, editor }) => {
       scrollable
       enforceFocus
     >
-      <JinnModal
-        nid={nid}
-        setShow={setShow}
-        editor={editor}
-        selection={selection}
-      />
+      <JinnModal onHide={onHide} editor={editor} selection={selection} />
     </Modal>
   )
 }
@@ -183,7 +142,10 @@ function movePoint(point: Point, num: number): Optional<Point> {
   }
 }
 
-export const withJinn = (setShowJinn, editor) => {
+export const withJinn = (
+  showJinn: () => void,
+  editor: CustomEditor
+): CustomEditor => {
   const { insertText } = editor
 
   editor.insertText = (text) => {
@@ -195,7 +157,7 @@ export const withJinn = (setShowJinn, editor) => {
         const range = { anchor, focus: start }
         const beforeText = Editor.string(editor, range)
         if (beforeText === '/') {
-          setShowJinn(true)
+          showJinn()
         }
       }
     }
