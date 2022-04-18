@@ -27,22 +27,23 @@ export function SearchForm({
     }
   }, [inFocus])
 
-  const gotoSearchResults = lodash.debounce((query: string) => {
+  const gotoSearchResults_ = (query: string) => {
     if (value === '' || value.length > 1) {
       goto.search({ history, query })
     }
-  }, 597)
+  }
+  const gotoSearchResultsDebounced = useRef(lodash.debounce(gotoSearchResults_, 597))
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const v = event.target.value
     setValue(v)
-    gotoSearchResults(v)
+    gotoSearchResultsDebounced.current(v)
   }
 
   const handleSumbit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     goto.search({ history: history, query: value })
-    gotoSearchResults(value)
+    gotoSearchResultsDebounced.current(value)
   }
 
   return (

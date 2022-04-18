@@ -11,7 +11,6 @@ import {
 import lodash from 'lodash'
 
 import type { Optional } from 'armoury'
-import { log } from 'armoury'
 import { TNode } from 'smuggler-api'
 
 import { SearchGrid } from '../../grid/SearchGrid'
@@ -52,7 +51,6 @@ function JinnModal({
     onHide()
   }
   const doSmartSearch = (value: string) => {
-    log.debug('startSmartSearch: ', value)
     setExtCards([])
     setSearchQuery(value)
     const item = dateTimeJinnSearch(value, insertElement)
