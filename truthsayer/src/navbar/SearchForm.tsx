@@ -32,7 +32,9 @@ export function SearchForm({
       goto.search({ history, query })
     }
   }
-  const gotoSearchResultsDebounced = useRef(lodash.debounce(gotoSearchResults_, 597))
+  const gotoSearchResultsDebounced = useRef(
+    lodash.debounce(gotoSearchResults_, 597)
+  )
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const v = event.target.value
