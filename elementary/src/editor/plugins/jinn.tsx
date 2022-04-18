@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { Modal, Form } from 'react-bootstrap'
 import styled from '@emotion/styled'
 import {
@@ -11,6 +11,7 @@ import {
 import lodash from 'lodash'
 
 import type { Optional } from 'armoury'
+import { log } from 'armoury'
 import { TNode } from 'smuggler-api'
 
 import { SearchGrid } from '../../grid/SearchGrid'
@@ -34,6 +35,7 @@ function JinnModal({
     return null
   }
   const inputRef = useRef<HTMLInputElement>(null)
+  useEffect(() => inputRef?.current?.focus())
   const [input, setInput] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [extCards, setExtCards] = useState<React.ReactNode[]>([])
@@ -49,19 +51,22 @@ function JinnModal({
     Transforms.insertNodes(editor, element, { at: start })
     onHide()
   }
-  const startSmartSearch = lodash.debounce((value: string) => {
+  const doSmartSearch = (value: string) => {
+    log.debug('startSmartSearch: ', value)
     setExtCards([])
     setSearchQuery(value)
     const item = dateTimeJinnSearch(value, insertElement)
     if (item != null) {
-      setExtCards((cards) => cards.concat(item))
+      setExtCards((cards) => [item, ...cards])
     }
-  }, 900)
+  }
+  // Debounce in react functional component works only with useRef,
+  // see https://stackoverflow.com/a/64856090
+  const initiateSmartSearch = useRef(lodash.debounce(doSmartSearch, 800))
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target
-    startSmartSearch.cancel() // Do we need it?
     setInput(value)
-    startSmartSearch(value)
+    initiateSmartSearch.current(value)
   }
 
   const handleSumbit = () => {}
