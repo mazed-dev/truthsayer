@@ -1,8 +1,8 @@
-import lodash from 'lodash'
-
-const makeUrl = (params: { pathname?: string }): URL => {
+const makeUrl = ({ pathname }: { pathname?: string }): URL => {
   let url = new URL(process.env.REACT_APP_SMUGGLER_API_URL || '')
-  lodash.extend(url, params)
+  if (pathname != null) {
+    url.pathname = pathname
+  }
   return url
 }
 

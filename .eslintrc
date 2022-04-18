@@ -114,6 +114,7 @@
         "no-var": "error",
         "no-void": "error",
         "no-with": "error",
+        "no-eval": "error",
         "object-shorthand": [
             "error",
             "always"

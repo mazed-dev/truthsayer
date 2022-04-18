@@ -11,8 +11,6 @@
  *   - head.meta[name="description"] : [content]
  */
 
-import lodash from 'lodash'
-
 import { PreviewImageSmall } from 'smuggler-api'
 
 import { Readability as MozillaReadability } from '@mozilla/readability'
@@ -314,9 +312,10 @@ export function _exctractPageDescription(document_: Document): string | null {
 }
 
 export function _exctractPageLanguage(document_: Document): string | null {
-  const html = lodash.head(document_.getElementsByTagName('html'))
-  if (html) {
-    return html.lang || html.getAttribute('lang') || null
+  for (const html of document_.getElementsByTagName('html')) {
+    if (html) {
+      return html.lang || html.getAttribute('lang') || null
+    }
   }
   return null
 }

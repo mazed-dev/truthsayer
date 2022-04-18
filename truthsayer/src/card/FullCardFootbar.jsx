@@ -9,6 +9,7 @@ import { ButtonToolbar } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 
 import { smuggler } from 'smuggler-api'
+import { HoverTooltip, ImgButton, jcss } from 'elementary'
 
 import styles from './FullCardFootbar.module.css'
 
@@ -24,7 +25,7 @@ import PublicImg from './../img/public.png'
 import { ShareModal } from './ShareModal'
 
 import { MzdGlobalContext } from '../lib/global'
-import { HoverTooltip, ImgButton, jcss, nodeToMarkdown } from 'elementary'
+import { nodeToMarkdown } from '../markdown/slate'
 import { goto } from '../lib/route'
 import { downloadAsFile } from '../util/download_as_file'
 
