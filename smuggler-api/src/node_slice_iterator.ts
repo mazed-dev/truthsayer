@@ -135,6 +135,7 @@ export class TNodeSliceIterator implements INodeIterator {
 
   abort(): void {
     this.abortControler?.abort()
+    this.limit = -1
   }
 
   async _fetch(): Promise<boolean> {

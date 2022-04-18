@@ -33,7 +33,7 @@ export const NodeTextEditor = ({
   className?: string
 }) => {
   const [value, setValue] = useState<SlateText>([])
-  const [showJinn, setShowJinn] = useState<boolean>(false)
+  const [isJinnShown, setShowJinn] = useState<boolean>(false)
   const nid = node.nid
   useEffect(() => {
     const doc = TDoc.fromNodeTextData(node.getText())
@@ -47,7 +47,7 @@ export const NodeTextEditor = ({
   const editor = useMemo(
     () =>
       withJinn(
-        setShowJinn,
+        () => setShowJinn(true),
         withTypography(
           withLinks(
             withDateTime(
@@ -60,7 +60,11 @@ export const NodeTextEditor = ({
   )
   return (
     <div className={className}>
-      <Jinn nid={nid} show={showJinn} setShow={setShowJinn} editor={editor} />
+      <Jinn
+        isShown={isJinnShown}
+        onHide={() => setShowJinn(false)}
+        editor={editor}
+      />
       <Slate
         editor={editor}
         value={value}

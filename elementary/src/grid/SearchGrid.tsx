@@ -120,7 +120,7 @@ const SearchGridScroll = ({
   useEffect(() => {
     // To clean up grid on changed search conditions
     setNodes([])
-  }, [beagle])
+  }, [beagle, iter])
 
   const isScrolledToBottom = () => {
     let height: number = 0
@@ -138,30 +138,35 @@ const SearchGridScroll = ({
     return height + scrollTop + 300 >= offsetHeight
   }
 
-  useAsyncEffect(async () => {
-    // Continue fetching until visual space is filled with cards to the bottom and beyond.
-    // Thus if use scrolled to the bottom this loop would start fetching again adding more cards.
-    setFetching(true)
-    try {
-      while (isScrolledToBottom()) {
-        const node = await iter.next()
-        if (node == null) {
-          break
+  useAsyncEffect(
+    async (isActive: () => boolean) => {
+      // Continue fetching until visual space is filled with cards to the bottom and beyond.
+      // Thus if use scrolled to the bottom this loop would start fetching again adding more cards.
+      setFetching(true)
+      try {
+        while (isScrolledToBottom()) {
+          if (!isActive()) {
+            iter.abort()
+            return
+          }
+          const node = await iter.next()
+          if (!isActive() || node == null) {
+            iter.abort()
+            break
+          }
+          if (beagle == null || beagle.searchNode(node) != null) {
+            setNodes((prev) => prev.concat(node))
+          }
         }
-        if (beagle == null || beagle.searchNode(node) != null) {
-          setNodes((prev) => [...prev, node])
+      } catch (err) {
+        if (!isAbortError(err)) {
+          log.exception(err)
         }
       }
-    } catch (err) {
-      if (!isAbortError(err)) {
-        log.exception(err)
-      }
-    }
-    setFetching(false)
-    return () => {
-      iter.abort()
-    }
-  }, [nextBatchTrigger, beagle])
+      setFetching(false)
+    },
+    [nextBatchTrigger, beagle, iter]
+  )
   const fetchingLoader = fetching ? (
     <div
       css={css`
@@ -172,18 +177,17 @@ const SearchGridScroll = ({
     </div>
   ) : null
   const cards: JSX.Element[] = nodes.map((node) => {
-    const { nid } = node
     const onClick = () => {
       if (onCardClick) {
         onCardClick(node)
       } else {
         history.push({
-          pathname: `/n/${nid}`,
+          pathname: `/n/${node.nid}`,
         })
       }
     }
     return (
-      <GridCard onClick={onClick} key={nid}>
+      <GridCard onClick={onClick} key={node.nid}>
         <ShrinkCard>
           <NodeCardReadOnly node={node} />
         </ShrinkCard>
