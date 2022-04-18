@@ -15,7 +15,6 @@ export * from './grid/SearchGrid'
 export * from './jcss'
 export * from './spinner/mod'
 export * from './util/xstyle'
-export { nodeToMarkdown, markdownToSlate } from './editor/markdown/slate'
 
 export type {
   SlateText,

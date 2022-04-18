@@ -14,7 +14,7 @@ export function NodeMedia({
   className?: string
   strippedRefs?: boolean
 }) {
-  const { extattrs, nid } = node
+  const { extattrs } = node
   if (node.isImage()) {
     return <ImageNode node={node} className={className} />
   } else if (node.isWebBookmark()) {
@@ -31,7 +31,6 @@ export function NodeMedia({
     if (extattrs != null) {
       return (
         <WebQuote
-          nid={nid}
           extattrs={extattrs}
           strippedRefs={strippedRefs}
           className={className}
