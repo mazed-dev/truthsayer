@@ -1,6 +1,5 @@
 import { Editor, Element, Range, Transforms } from 'slate'
 
-import moment from 'moment'
 import type { Moment } from 'moment'
 
 import {
@@ -9,8 +8,8 @@ import {
   CustomEditor,
 } from '../types'
 
-const tryParseDate = (text: string): Moment | null => {
-  return moment(text)
+const tryParseDate = (_text: string): Moment | null => {
+  return null
 }
 
 export const withDateTime = (editor: CustomEditor) => {

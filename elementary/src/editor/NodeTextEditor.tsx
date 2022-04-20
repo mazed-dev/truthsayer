@@ -12,7 +12,6 @@ import { withJinn, Jinn } from './plugins/jinn'
 import { withTypography } from './plugins/typography'
 import { withShortcuts } from './plugins/shortcuts'
 import { withLinks } from './plugins/link'
-import { withDateTime } from './plugins/datetime'
 import { withImages } from './plugins/image'
 
 import { Leaf } from './components/Leaf'
@@ -50,9 +49,7 @@ export const NodeTextEditor = ({
         () => setShowJinn(true),
         withTypography(
           withLinks(
-            withDateTime(
-              withImages(withShortcuts(withReact(withHistory(createEditor()))))
-            )
+            withImages(withShortcuts(withReact(withHistory(createEditor()))))
           )
         )
       ),
