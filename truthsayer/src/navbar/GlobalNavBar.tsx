@@ -56,8 +56,11 @@ const PrivateNavButtons = () => {
           <Dropdown.Item as={Link} to="/user-preferences">
             Manage your account
           </Dropdown.Item>
+          <Dropdown.Item as={Link} to="/apps-to-install">
+            Apps
+          </Dropdown.Item>
           <Dropdown.Item as={Link} to="/3rdparty-integrations">
-            3rd-party integrations
+            [experimental] 3rd-party integrations
           </Dropdown.Item>
           <Dropdown.Item as={Link} to="/help">
             Help

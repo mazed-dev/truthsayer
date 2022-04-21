@@ -1,4 +1,3 @@
-/** @jsxImportSource @emotion/react */
 /**
  * @file Implements UI widgets that user can use to manage integration between
  * their Mazed & Microsoft OneDrive.
@@ -29,7 +28,7 @@ import {
   UserFilesystemId,
   AccountInterface,
 } from 'smuggler-api'
-import { MdiCloudSync, MdiLinkOff, MdiSync } from 'elementary'
+import { MdiInsertLink, MdiLinkOff, MdiSync } from 'elementary'
 import { Mime, log, genOriginId, errorise } from 'armoury'
 import * as MsGraph from './MicrosoftGraph'
 import * as MsAuthentication from './MicrosoftAuthentication'
@@ -41,9 +40,8 @@ const Button = styled.button`
   border-style: solid;
   border-width: 0;
   border-radius: 32px;
-  padding: 0;
-  margin: 0;
 
+  vertical-align: middle;
   &:hover {
     background-color: #d0d1d2;
   }
@@ -194,9 +192,7 @@ export function OneDriveIntegrationManager({
             )
           }}
         >
-          <MdiSync
-            css={{ verticalAlign: 'middle', padding: '4px', fontSize: '18px' }}
-          />
+          <MdiSync />
         </Button>
       </AuthenticatedTemplate>
       <UnauthenticatedTemplate>
@@ -205,9 +201,7 @@ export function OneDriveIntegrationManager({
             signIn(msAuthentication)
           }}
         >
-          <MdiCloudSync
-            css={{ verticalAlign: 'middle', padding: '4px', fontSize: '18px' }}
-          />
+          <MdiInsertLink />
         </Button>
       </UnauthenticatedTemplate>
     </MsalProvider>

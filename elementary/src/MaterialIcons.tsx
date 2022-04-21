@@ -13,7 +13,6 @@ export type MaterialIconType =
   | 'account_circle'
   | 'add'
   | 'bookmark_add'
-  | 'cloud_sync'
   | 'code'
   | 'content_copy'
   | 'content_cut'
@@ -91,4 +90,3 @@ export const MdiSearch = _makeMaterialIcon('search')
 export const MdiZoomIn = _makeMaterialIcon('zoom_in')
 export const MdiZoomOut = _makeMaterialIcon('zoom_out')
 export const MdiSync = _makeMaterialIcon('sync')
-export const MdiCloudSync = _makeMaterialIcon('cloud_sync')
