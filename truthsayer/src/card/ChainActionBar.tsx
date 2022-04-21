@@ -65,12 +65,14 @@ async function cloneNode({
   let doc = TDoc.fromNodeTextData(node.getText())
   doc = doc.makeACopy(node.getNid(), isBlank || false)
   try {
-    return await smuggler.node.create({
-      text: doc.toNodeTextData(),
-      signal: abortSignal,
-      from_nid: from,
-      to_nid: to,
-    })
+    return await smuggler.node.create(
+      {
+        text: doc.toNodeTextData(),
+        from_nid: from,
+        to_nid: to,
+      },
+      abortSignal
+    )
   } catch (err) {
     if (isAbortError(err)) {
       return null
@@ -113,12 +115,14 @@ class ChainActionHandler {
       return
     }
     smuggler.node
-      .create({
-        text: TDoc.makeEmpty().toNodeTextData(),
-        signal: this.abortSignal,
-        from_nid: side === 'right' ? this.nid : undefined,
-        to_nid: side === 'left' ? this.nid : undefined,
-      })
+      .create(
+        {
+          text: TDoc.makeEmpty().toNodeTextData(),
+          from_nid: side === 'right' ? this.nid : undefined,
+          to_nid: side === 'left' ? this.nid : undefined,
+        },
+        this.abortSignal
+      )
       .then((node) => {
         if (node) {
           const { nid } = node

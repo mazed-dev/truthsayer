@@ -116,9 +116,6 @@ const config = (env, argv) => {
     },
     resolve: {
       extensions: [".js", ".jsx", ".tsx", ".ts"],
-      alias: {
-        "react-dom": "@hot-loader/react-dom",
-      },
     },
     performance: {
       hints: false,

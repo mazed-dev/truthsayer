@@ -11,8 +11,6 @@
  *   - head.meta[name="description"] : [content]
  */
 
-import lodash from 'lodash'
-
 import { PreviewImageSmall } from 'smuggler-api'
 
 import { Readability as MozillaReadability } from '@mozilla/readability'
@@ -97,9 +95,9 @@ export async function exctractPageContent(
   baseURL: string
 ): Promise<WebPageContent> {
   const url = stabiliseUrlForOriginId(document_.URL || document_.documentURI)
-  const head = document_.head
-  const body = document_.body
-
+  let { title, description, lang, author, publisher, thumbnailUrls } =
+    _extractPageAttributes(document_, baseURL)
+  let text: string | null = null
   // The parse() method of @mozilla/readability works by modifying the DOM. This
   // removes some elements in the web page. We avoid this by passing the clone
   // of the document object to the Readability constructor.
@@ -109,57 +107,58 @@ export async function exctractPageContent(
       keepClasses: false,
     }
   ).parse()
-
-  let title: string | null = null
-  let text: string | null = null
-  let description: string | null = null
-  const author: string[] = []
-  const publisher: string[] = []
-  const lang = _exctractPageLanguage(document_)
-
   if (article) {
     // Do a best effort with what @mozilla/readability gives us here
-    title = article.title
-    const { textContent, excerpt, byline, siteName } = article
+    const {
+      title: articleTitle,
+      textContent,
+      excerpt,
+      byline,
+      siteName,
+    } = article
+    if (title == null && articleTitle) {
+      // We don't trust MozillaReadability with title, it fails to extract title
+      // on some web sites such as YouTube. So we get back to it only if our own
+      // title extractor discovered no good title.
+      title = articleTitle
+    }
+    if (description == null && excerpt) {
+      // Same story for a description, we can't fully rely on MozillaReadability
+      // with page description, but get back to it when our own description
+      // extractor fails.
+      description = excerpt
+    }
     text = _stripWhitespaceInText(textContent)
-    description = excerpt
-    if (byline) {
+    if (author.length === 0 && byline) {
       author.push(_stripWhitespaceInText(byline))
     }
     if (siteName) {
       publisher.push(siteName)
     }
   }
-  if (title) {
-    title = _stripWhitespaceInText(title)
-  } else {
-    title = head ? _exctractPageTitle(head) : null
-  }
-  if (description) {
-    description = _stripWhitespaceInText(description)
-  } else {
-    description = head ? _exctractPageDescription(head) : null
-  }
+  author = author.filter((value: string, index: number, self: string[]) => {
+    return self.indexOf(value) === index
+  })
   if (text == null) {
-    text = body ? _exctractPageText(body) : null
+    // With page text we trust MozillaReadability way more, so only if it fails
+    // to extract, we try to do it ourself. Because this is what
+    // MozillaReadability library does on the first place.
+    text = _exctractPageText(document_)
   }
   if (text != null) {
     // Cut string by length 10KiB to avoid blowing up backend with huge JSON.
     // Later on we can and perhaps should reconsider this limit.
     text = text.substr(0, 10240)
   }
-  if (author.length === 0 && head) {
-    author.push(..._exctractPageAuthor(head))
-  }
   return {
     url,
-    title,
+    title: title || null,
     author,
     publisher,
-    description,
-    lang,
+    description: description || null,
+    lang: lang || null,
     text,
-    image: await _exctractPageImage(document_, baseURL),
+    image: await _fetchAnyPageThumbnailImage(document_, thumbnailUrls),
   }
 }
 
@@ -194,7 +193,8 @@ export function _stripWhitespaceInText(text: string): string {
  *   - ARIA element role: `article`, `main`.
  *   - ? Element class: `content`, `main`
  */
-export function _exctractPageText(body: HTMLElement): string {
+export function _exctractPageText(document_: Document): string {
+  const body = document_.body
   const ret: string[] = []
   const addedElements: Element[] = []
   for (const elementsGroup of [
@@ -255,56 +255,56 @@ export function _exctractPageText(body: HTMLElement): string {
  * - <meta name="twitter:title" content="Page title">
  * - <meta property="og:title" content="Page title">
  */
-export function _exctractPageTitle(head: HTMLHeadElement): string | null {
-  const headTitles = head.getElementsByTagName('title')
-  if (headTitles.length > 0) {
-    for (const element of headTitles) {
-      const title = (element.innerText || element.textContent)?.trim()
-      if (title) {
-        return _stripWhitespaceInText(title)
-      }
-    }
+export function _exctractPageTitle(document_: Document): string | null {
+  const title = _stripWhitespaceInText(document_.title)
+  if (title) {
+    return title
   }
-  // Last resort
-  for (const elementsGroup of [
-    head.querySelectorAll('meta[property="og:title"]'),
-    head.querySelectorAll('meta[property="twitter:title"]'),
+  for (const [selector, attribute] of [
+    ['meta[property="og:title"]', 'content'],
+    ['meta[name="twitter:title"]', 'content'],
   ]) {
-    for (const element of elementsGroup) {
-      const title = element.getAttribute('content')?.trim()
+    for (const element of document_.querySelectorAll(selector)) {
+      const title = _stripWhitespaceInText(
+        element.getAttribute(attribute)?.trim() || ''
+      )
       if (title) {
-        return _stripWhitespaceInText(title)
+        return title
       }
     }
   }
   return null
 }
 
-export function _exctractPageAuthor(head: HTMLHeadElement): string[] {
+export function _exctractPageAuthor(document_: Document): string[] {
   const authors: string[] = []
-  for (const elementsGroup of [
-    head.querySelectorAll('meta[property="author"]'),
+  for (const [selector, attribute] of [
+    ['meta[property="author"]', 'content'],
   ]) {
-    for (const element of elementsGroup) {
-      const title = element.getAttribute('content')?.trim()
-      if (title) {
-        authors.push(_stripWhitespaceInText(title))
+    for (const element of document_.querySelectorAll(selector)) {
+      const author = _stripWhitespaceInText(
+        element.getAttribute(attribute)?.trim() || ''
+      )
+      if (author) {
+        authors.push(author)
       }
     }
   }
   return authors
 }
 
-export function _exctractPageDescription(head: HTMLHeadElement): string | null {
-  for (const elementsGroup of [
-    head.querySelectorAll('meta[name="description"]'),
-    head.querySelectorAll('meta[property="og:description"]'),
-    head.querySelectorAll('meta[name="twitter:description"]'),
+export function _exctractPageDescription(document_: Document): string | null {
+  for (const [selector, attribute] of [
+    ['meta[name="description"]', 'content'],
+    ['meta[property="og:description"]', 'content'],
+    ['meta[name="twitter:description"]', 'content'],
   ]) {
-    for (const element of elementsGroup) {
-      const title = element.getAttribute('content')?.trim()
-      if (title) {
-        return _stripWhitespaceInText(title)
+    for (const element of document_.querySelectorAll(selector)) {
+      const text = _stripWhitespaceInText(
+        element.getAttribute(attribute)?.trim() || ''
+      )
+      if (text) {
+        return text
       }
     }
   }
@@ -312,9 +312,10 @@ export function _exctractPageDescription(head: HTMLHeadElement): string | null {
 }
 
 export function _exctractPageLanguage(document_: Document): string | null {
-  const html = lodash.head(document_.getElementsByTagName('html'))
-  if (html) {
-    return html.lang || html.getAttribute('lang') || null
+  for (const html of document_.getElementsByTagName('html')) {
+    if (html) {
+      return html.lang || html.getAttribute('lang') || null
+    }
   }
   return null
 }
@@ -339,6 +340,80 @@ export function _exctractPagePublisher(head: HTMLHeadElement): string[] {
   return publisher
 }
 
+export interface VideoObjectSchema {
+  name: string
+  description: string
+  author: string
+  thumbnailUrl: string[]
+  duration: string
+  uploadDate: string
+  genre?: string
+}
+
+export function _exctractYouTubeVideoObjectSchema(
+  document_: Document
+): VideoObjectSchema | null {
+  let json: string | null = null
+  for (const element of document_.querySelectorAll(
+    'ytd-player-microformat-renderer > script.ytd-player-microformat-renderer'
+  )) {
+    if (element.getAttribute('type') === 'application/ld+json') {
+      json = element.innerHTML
+    }
+  }
+  if (json === null) {
+    return null
+  }
+  const data = JSON.parse(json)
+  return { ...data }
+}
+
+interface ExtractedPageAttributes {
+  title?: string
+  description?: string
+  lang?: string
+  author: string[]
+  publisher: string[]
+  thumbnailUrls: string[]
+}
+/**
+ * Our own set of extractors to read page attributes
+ */
+export function _extractPageAttributes(
+  document_: Document,
+  baseURL: string
+): ExtractedPageAttributes {
+  const lang = _exctractPageLanguage(document_) || undefined
+  let title: string | undefined
+  let description: string | undefined
+  const author: string[] = []
+  const publisher: string[] = []
+  const thumbnailUrls: string[] = []
+  // Special extractors have a priority
+  const youtubeUrlRe = new RegExp('https?://(www.)?youtube.com')
+  if (youtubeUrlRe.test(baseURL)) {
+    const youtube = _exctractYouTubeVideoObjectSchema(document_)
+    if (youtube !== null) {
+      title = youtube.name
+      description = youtube.description
+      author.push(youtube.author)
+      thumbnailUrls.push(...youtube.thumbnailUrl)
+      publisher.push('YouTube')
+    }
+  }
+  if (title == null) {
+    title = _exctractPageTitle(document_) || undefined
+  }
+  if (description == null) {
+    description = _exctractPageDescription(document_) || undefined
+  }
+  if (author.length === 0) {
+    author.push(..._exctractPageAuthor(document_))
+  }
+  thumbnailUrls.push(..._extractPageThumbnailUrls(document_, baseURL))
+  return { lang, title, description, author, publisher, thumbnailUrls }
+}
+
 function ensureAbsRef(ref: string, baseURL: string): string {
   if (ref.startsWith('/')) {
     return `${baseURL}${ref}`
@@ -346,30 +421,31 @@ function ensureAbsRef(ref: string, baseURL: string): string {
   return ref
 }
 
-export async function _exctractPageImage(
+export function _extractPageThumbnailUrls(
   document_: Document,
   baseURL: string
-): Promise<WebPageContentImage | null> {
-  const head = document_.head
+): string[] {
   const refs: string[] = []
-  if (head == null) {
-    return null
-  }
   // These are possible HTML DOM elements that might contain preview image.
   // - Open Graph image.
   // - Twitter preview image.
   // - VK preview image.
   // - Favicon, locations according to https://en.wikipedia.org/wiki/Favicon,
   //    with edge case for Apple specific web page icon.
+  // - Thumbnail image
+  //
+  // Order of elements does mater here, the best options come first.
   for (const [selector, attribute] of [
     ['meta[property="og:image"]', 'content'],
     ['meta[name="twitter:image"]', 'content'],
     ['meta[name="vk:image"]', 'content'],
+    ['link[rel="image_src"]', 'href'],
+    ['link[itemprop="thumbnailUrl"]', 'href'],
     ['link[rel="apple-touch-icon"]', 'href'],
     ['link[rel="shortcut icon"]', 'href'],
     ['link[rel="icon"]', 'href'],
   ]) {
-    for (const element of head.querySelectorAll(selector)) {
+    for (const element of document_.querySelectorAll(selector)) {
       const ref = element.getAttribute(attribute)?.trim()
       if (ref) {
         const absRef = ensureAbsRef(ref, baseURL)
@@ -377,9 +453,21 @@ export async function _exctractPageImage(
       }
     }
   }
-  for (const ref of refs) {
+  return refs
+}
+
+/**
+ * Try to fetch images for given urls. First successfully retrieved image is
+ * returned, so sort urls by priority beforehands placing best options for a
+ * preview image at the front of the `thumbnailUrls` array.
+ */
+export async function _fetchAnyPageThumbnailImage(
+  document_: Document,
+  thumbnailUrls: string[]
+): Promise<WebPageContentImage | null> {
+  for (const url of thumbnailUrls) {
     try {
-      const icon = await fetchImagePreviewAsBase64(ref, document_, 240)
+      const icon = await fetchImagePreviewAsBase64(url, document_, 240)
       return icon
     } catch (err) {
       log.debug('Mazed: preview image extraction failed with', err)

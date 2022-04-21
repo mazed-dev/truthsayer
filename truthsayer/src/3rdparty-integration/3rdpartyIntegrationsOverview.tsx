@@ -1,5 +1,5 @@
 import React from 'react'
-import { Container, Row, Col } from 'react-bootstrap'
+import { Container } from 'react-bootstrap'
 import styled from '@emotion/styled'
 
 import { jcss, MdiLaunch, MdiCloudSync, MdiPublic } from 'elementary'
@@ -7,21 +7,7 @@ import { jcss, MdiLaunch, MdiCloudSync, MdiPublic } from 'elementary'
 import { Emoji } from '../lib/Emoji'
 
 import { OneDriveIntegrationManager } from './OneDriveIntegrationManager'
-
-type IntegrationProps = React.PropsWithChildren<{
-  icon: string
-  name: string
-}>
-
-function Integration({ icon, name, children }: IntegrationProps) {
-  return (
-    <Row>
-      <Col>{icon}</Col>
-      <Col>{name}</Col>
-      <Col>{children}</Col>
-    </Row>
-  )
-}
+import { MzdGlobalContext } from '../lib/global'
 
 const Line = styled.div`
   display: flex;
@@ -54,13 +40,20 @@ const Box = styled(Container)`
 `
 
 export function IntegrationsOverview() {
+  const ctx = React.useContext(MzdGlobalContext)
+  const account = ctx.account
+  if (!account) {
+    throw Error(
+      'Thirdparty integrations require a valid Mazed account available'
+    )
+  }
   return (
     <Box className={jcss('justify-content-center')}>
       <Line>
         <Name>
           <Emoji symbol="☁" /> OneDrive sync
         </Name>
-        <OneDriveIntegrationManager />
+        <OneDriveIntegrationManager account={account} />
       </Line>
       <Line>
         <Name>Mazed for Chrome</Name>

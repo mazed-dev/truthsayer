@@ -26,8 +26,10 @@ import {
   NodeIndexText,
   NodeType,
   smuggler,
+  UserFilesystemId,
+  AccountInterface,
 } from 'smuggler-api'
-import { MdiInsertLink, MdiLinkOff, MdiLaunch } from 'elementary'
+import { MdiInsertLink, MdiLinkOff, MdiSync } from 'elementary'
 import { Mime, log, genOriginId, errorise } from 'armoury'
 import * as MsGraph from './MicrosoftGraph'
 import * as MsAuthentication from './MicrosoftAuthentication'
@@ -82,59 +84,88 @@ function beginningOf(text: string) {
   return text.length < 256 ? text : text.substring(0, 256) + '...'
 }
 
-async function uploadFilesFromFolder(graph: MsGraphClient, folderPath: string) {
-  const files = await FsModificationQueue.make(graph, new Date(0), folderPath)
-  for (const file of files) {
-    if (file.mimeType !== Mime.TEXT_PLAIN) {
-      log.debug(
-        `Skipping ${file.path} due to unsupported Mime type ${file.mimeType}`
-      )
-      continue
+async function uploadFilesFromFolder(
+  graph: MsGraphClient,
+  account: AccountInterface,
+  folderPath: string
+) {
+  const fsid: UserFilesystemId = {
+    uid: account.getUid(),
+    fs_key: 'onedrive',
+  }
+  const current_progress = await smuggler.user.thirdparty.fs.progress.get(fsid)
+  const files = await FsModificationQueue.make(
+    graph,
+    current_progress.ingested_until,
+    folderPath
+  )
+  for (const batch of FsModificationQueue.modTimestampBatchIterator(files)) {
+    for (const file of batch) {
+      await uploadSingleFile(graph, file)
     }
-
-    const stream: ReadableStream = await graph
-      .api(`/me/drive/items/${file.id}/content`)
-      .getStream()
-
-    const fileText = await readAllFrom(
-      stream.pipeThrough(new TextDecoderStream()).getReader()
-    )
-    const nodeTextData = makeNodeTextData()
-    const index_text: NodeIndexText = {
-      plaintext: fileText,
-      labels: [],
-      brands: [],
-      dominant_colors: [],
-    }
-    const extattrs: NodeExtattrs = {
-      content_type: Mime.TEXT_URI_LIST,
-      preview_image: undefined,
-      title: '☁ ' + file.path,
-      description: beginningOf(fileText),
-      lang: undefined,
-      author: file.createdBy,
-      web: {
-        url: file.webUrl,
-      },
-      blob: undefined,
-    }
-
-    const { id: originId } = await genOriginId(file.webUrl)
-    const response = await smuggler.node.create({
-      text: nodeTextData,
-      index_text,
-      extattrs,
-      ntype: NodeType.Url,
-      origin: {
-        id: originId,
-      },
+    await smuggler.user.thirdparty.fs.progress.advance(fsid, {
+      ingested_until: batch[0].lastModTimestamp,
     })
-    log.debug(`Response to node creation: ${JSON.stringify(response)}`)
   }
 }
 
+async function uploadSingleFile(
+  graph: MsGraphClient,
+  file: FsModificationQueue.FileProxy
+) {
+  if (file.mimeType !== Mime.TEXT_PLAIN) {
+    log.debug(
+      `Skipping ${file.path} due to unsupported Mime type ${file.mimeType}`
+    )
+    return
+  }
+
+  const stream: ReadableStream = await graph
+    .api(`/me/drive/items/${file.id}/content`)
+    .getStream()
+
+  const fileText = await readAllFrom(
+    stream.pipeThrough(new TextDecoderStream()).getReader()
+  )
+  const nodeTextData = makeNodeTextData()
+  const index_text: NodeIndexText = {
+    plaintext: fileText,
+    labels: [],
+    brands: [],
+    dominant_colors: [],
+  }
+  const extattrs: NodeExtattrs = {
+    content_type: Mime.TEXT_URI_LIST,
+    preview_image: undefined,
+    title: '☁ ' + file.path,
+    description: beginningOf(fileText),
+    lang: undefined,
+    author: file.createdBy,
+    web: {
+      url: file.webUrl,
+    },
+    blob: undefined,
+  }
+
+  const origin = await genOriginId(file.webUrl)
+  const response = await smuggler.node.createOrUpdate({
+    text: nodeTextData,
+    index_text,
+    extattrs,
+    ntype: NodeType.Url,
+    origin: {
+      id: origin.id,
+    },
+  })
+  log.debug(`Response to node creation/update: ${JSON.stringify(response)}`)
+}
+
 /** Allows to manage user's integration of Microsoft OneDrive with Mazed */
-export function OneDriveIntegrationManager() {
+export function OneDriveIntegrationManager({
+  account,
+}: {
+  account: AccountInterface
+}) {
   const msAuthentication = MsAuthentication.makeInstance()
   return (
     // Having MsalProvider as parent grants all children access to
@@ -154,18 +185,19 @@ export function OneDriveIntegrationManager() {
         <Button
           onClick={() => {
             const graph: MsGraphClient = MsGraph.client(msAuthentication)
-            uploadFilesFromFolder(graph, '/mazed-test').catch((exception) =>
-              log.exception(
-                errorise(exception),
-                `Failed to call Microsoft Graph`
-              )
+            uploadFilesFromFolder(graph, account, '/mazed-test').catch(
+              (exception) =>
+                log.exception(
+                  errorise(exception),
+                  `Failed to call Microsoft Graph`
+                )
             )
           }}
         >
-          <MdiLaunch
+          <MdiSync
             css={{ verticalAlign: 'middle', padding: '4px', fontSize: '18px' }}
           />
-        </Button>
+          </Button>
       </AuthenticatedTemplate>
       <UnauthenticatedTemplate>
         <Button

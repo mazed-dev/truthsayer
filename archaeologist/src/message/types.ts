@@ -1,15 +1,22 @@
 import { WebPageContent } from './../extractor/webPageContent'
 import { TNodeJson } from 'smuggler-api'
 
-interface SavedStatusRequest {
-  type: 'REQUEST_SAVED_NODE'
+interface PageInActiveTabStatusRequest {
+  type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS'
 }
 
-interface SavedStatusResponse {
-  type: 'SAVED_NODE'
+interface UpdatePopUpCards {
+  type: 'UPDATE_POPUP_CARDS'
   bookmark?: TNodeJson
   quotes: TNodeJson[]
   unmemorable?: boolean
+
+  // 'reset':
+  //    - for quotes and bookmark, reset (replace) existing ones in PopUp window
+  // 'append':
+  //    - for quotes append quotes to existing ones in PopUp window
+  //    - for bookmark, replace existing one in PopUp window, if specified
+  mode: 'reset' | 'append'
 }
 
 interface AuthStatusRequest {
@@ -35,6 +42,12 @@ interface GetSelectedQuoteResponse {
   lang?: string
 }
 
+interface UpdateContentAugmentationRequest {
+  type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION'
+  quotes: TNodeJson[]
+  mode: 'reset' | 'append'
+}
+
 /**
  * Save page command chain
  * [ User -> popup.ts -> REQUEST_PAGE_TO_SAVE ]
@@ -55,14 +68,15 @@ interface SavePageResponse {
 }
 
 export type MessageType =
-  | SavedStatusRequest
-  | SavedStatusResponse
+  | PageInActiveTabStatusRequest
+  | UpdatePopUpCards
   | SavePageRequest
   | SavePageResponse
   | AuthStatusRequest
   | AuthStatusResponse
   | GetSelectedQuoteRequest
   | GetSelectedQuoteResponse
+  | UpdateContentAugmentationRequest
 
 export const Message = {
   // This is just a hack to check the message type, needed because

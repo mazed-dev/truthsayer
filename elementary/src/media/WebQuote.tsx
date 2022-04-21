@@ -54,12 +54,10 @@ const WebBlockQuotePad = styled(BlockQuotePad)`
 
 export const WebQuote = ({
   extattrs,
-  nid,
   className,
   strippedRefs,
 }: {
   extattrs: NodeExtattrs
-  nid: string
   className?: string
   strippedRefs?: boolean
 }) => {
@@ -74,7 +72,6 @@ export const WebQuote = ({
   }
   const { text, url } = web_quote
   const quoteUrl = new URL(url)
-  quoteUrl.hash = nid
   const hostname = quoteUrl.hostname
   return (
     <Box className={className}>

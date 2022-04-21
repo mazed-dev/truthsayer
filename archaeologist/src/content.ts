@@ -13,8 +13,16 @@ import {
 } from './extractor/webPageContent'
 import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/unmemorable'
-
+import { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId } from 'armoury'
+import { renderPageAugmentation } from './content/Main'
+
+/**
+ * Single socket point in a web page DOM for all Mazed augmentations
+ */
+const socket = document.createElement('div')
+socket.id = 'mazed-archaeologist-content-socket'
+document.body.appendChild(socket)
 
 async function readPageContent() {
   const { id: originId, stableUrl } = await genOriginId(
@@ -62,6 +70,27 @@ async function readSelectedText(text: string): Promise<void> {
   document.execCommand('copy')
 }
 
+/**
+ * Augmentation here is a set of elements added to a web page by archaeologist.
+ *
+ * - `quotes` - highlightings in web page.
+ *
+ * Today we use statefull approach, where we keep current state in `content.ts`
+ * script and update or reset it as needed using `mode` before re-rendering all
+ * augmentations.
+ */
+const kQuotesForAugmentation: TNode[] = []
+async function updateContentAugmentation(
+  quotes: TNode[],
+  mode: 'append' | 'reset'
+): Promise<void> {
+  if (mode === 'reset') {
+    kQuotesForAugmentation.length = 0
+  }
+  kQuotesForAugmentation.push(...quotes)
+  renderPageAugmentation(socket, kQuotesForAugmentation)
+}
+
 browser.runtime.onMessage.addListener(async (message: MessageType) => {
   switch (message.type) {
     case 'REQUEST_PAGE_TO_SAVE':
@@ -69,6 +98,15 @@ browser.runtime.onMessage.addListener(async (message: MessageType) => {
       break
     case 'REQUEST_SELECTED_WEB_QUOTE':
       await readSelectedText(message.text)
+      break
+    case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
+      {
+        const { quotes, mode } = message
+        await updateContentAugmentation(
+          quotes.map((json: TNodeJson) => TNode.fromJson(json)),
+          mode
+        )
+      }
       break
     default:
       break

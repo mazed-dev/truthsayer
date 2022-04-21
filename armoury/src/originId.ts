@@ -29,7 +29,7 @@ export async function genOriginId(url: string): Promise<OriginId> {
 }
 
 export function stabiliseUrlForOriginId(url: string): string {
-  return normalizeUrl(url.toLowerCase(), {
+  return normalizeUrl(url, {
     forceHttps: true,
     normalizeProtocol: true,
     removeTrailingSlash: true,
