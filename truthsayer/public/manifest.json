@@ -1,6 +1,8 @@
 {
   "short_name": "Mazed",
   "name": "Mazed - knit your ideas",
+  "version": "0.0.1",
+  "manifest_version": 2,
   "icons": [
     {
       "src": "logo-128x128.png",
