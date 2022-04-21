@@ -51,7 +51,7 @@ export function IntegrationsOverview() {
     <Box className={jcss('justify-content-center')}>
       <Line>
         <Name>
-          <Emoji symbol="☁" /> OneDrive sync
+          <Emoji symbol="☁" /> OneDrive sync [experimental]
         </Name>
         <OneDriveIntegrationManager account={account} />
       </Line>

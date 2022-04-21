@@ -29,7 +29,7 @@ import {
   UserFilesystemId,
   AccountInterface,
 } from 'smuggler-api'
-import { MdiInsertLink, MdiLinkOff, MdiSync } from 'elementary'
+import { MdiCloudSync, MdiLinkOff, MdiSync } from 'elementary'
 import { Mime, log, genOriginId, errorise } from 'armoury'
 import * as MsGraph from './MicrosoftGraph'
 import * as MsAuthentication from './MicrosoftAuthentication'
@@ -205,7 +205,7 @@ export function OneDriveIntegrationManager({
             signIn(msAuthentication)
           }}
         >
-          <MdiInsertLink
+          <MdiCloudSync
             css={{ verticalAlign: 'middle', padding: '4px', fontSize: '18px' }}
           />
         </Button>
