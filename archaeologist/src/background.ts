@@ -1,4 +1,4 @@
-import { MessageType } from './message/types'
+import { MessageType, Message } from './message/types'
 import * as badge from './badge'
 import { log, isAbortError, genOriginId } from 'armoury'
 
@@ -7,25 +7,18 @@ import browser from 'webextension-polyfill'
 import { WebPageContent } from './extractor/webPageContent'
 
 import {
-  smuggler,
-  makeNodeTextData,
-  NodeType,
-  NodeIndexText,
-  NodeExtattrs,
-  authCookie,
   Knocker,
+  NodeExtattrs,
+  NodeExtattrsWebQuote,
+  NodeIndexText,
+  NodeType,
+  TNode,
+  authCookie,
+  makeNodeTextData,
+  smuggler,
 } from 'smuggler-api'
 
 import { Mime } from 'armoury'
-
-// To send message to popup
-// browser.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
-
-function makeMessage(message: MessageType) {
-  // This is just a hack to check the message type, needed because
-  // browser.*.sendMessage takes any type as a message
-  return message
-}
 
 async function getActiveTabId(): Promise<number | null> {
   try {
@@ -59,7 +52,7 @@ async function requestPageContentToSave() {
   try {
     await browser.tabs.sendMessage(
       tabId,
-      makeMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
+      Message.create({ type: 'REQUEST_PAGE_TO_SAVE' })
     )
   } catch (err) {
     if (!isAbortError(err)) {
@@ -68,15 +61,30 @@ async function requestPageContentToSave() {
   }
 }
 
-async function updatePageSavedStatus(
-  nid?: string,
+/**
+ * Update content (saved nodes) in:
+ *   - Pop up window.
+ *   - Content augmentation.
+ *   - Badge counter.
+ */
+async function updateContent(
+  mode: 'append' | 'reset',
+  quotes: TNode[],
+  bookmark?: TNode,
   tabId?: number,
   unmemorable?: boolean
 ): Promise<void> {
-  // Inform PopUp window of saved page status to render right buttons
+  const quotesJson = quotes.map((node) => node.toJson())
+  // Inform PopUp window of saved bookmark and web quotes
   try {
     await browser.runtime.sendMessage(
-      makeMessage({ type: 'SAVED_NODE', nid, unmemorable })
+      Message.create({
+        type: 'UPDATE_POPUP_CARDS',
+        bookmark: bookmark?.toJson(),
+        quotes: quotesJson,
+        unmemorable,
+        mode,
+      })
     )
   } catch (err) {
     if (isAbortError(err)) {
@@ -87,16 +95,42 @@ async function updatePageSavedStatus(
       err
     )
   }
-  // Update badge
-  await badge.resetText(tabId, nid ? '1' : undefined)
+  // Update badge counter
+  let badgeText: string | undefined = '✓'
+  if (mode === 'reset') {
+    const n = quotes.length + (bookmark != null ? 1 : 0)
+    if (n !== 0) {
+      badgeText = n.toString()
+    } else {
+      badgeText = undefined
+    }
+  }
+  await badge.resetText(tabId, badgeText)
+  // Update content augmentation
+  if (tabId != null) {
+    await browser.tabs.sendMessage(
+      tabId,
+      Message.create({
+        type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
+        quotes: quotesJson,
+        mode,
+      })
+    )
+  }
 }
 
 async function savePage(
   url: string,
   originId: number,
-  content: WebPageContent,
+  content?: WebPageContent,
   tabId?: number
 ) {
+  if (content == null) {
+    // Page is not memorable
+    const unmemorable = true
+    await updateContent('append', [], undefined, tabId, unmemorable)
+    return
+  }
   const text = makeNodeTextData()
   const index_text: NodeIndexText = {
     plaintext: content.text || undefined,
@@ -126,7 +160,35 @@ async function savePage(
     },
   })
   if (resp) {
-    await updatePageSavedStatus(resp.nid, tabId)
+    const { nid } = resp
+    const node = await smuggler.node.get({ nid })
+    await updateContent('append', [], node, tabId)
+  }
+}
+
+async function savePageQuote(
+  originId: number,
+  { url, path, text }: NodeExtattrsWebQuote,
+  lang?: string,
+  tabId?: number
+) {
+  const extattrs: NodeExtattrs = {
+    content_type: Mime.TEXT_PLAIN_UTF_8,
+    lang: lang || undefined,
+    web_quote: { url, path, text },
+  }
+  const resp = await smuggler.node.create({
+    text: makeNodeTextData(),
+    ntype: NodeType.WebQuote,
+    origin: {
+      id: originId,
+    },
+    extattrs,
+  })
+  if (resp) {
+    const { nid } = resp
+    const node = await smuggler.node.get({ nid })
+    await updateContent('append', [node], undefined, tabId)
   }
 }
 
@@ -147,8 +209,8 @@ async function requestPageSavedStatus(tab?: browser.Tabs.Tab) {
   if (url == null) {
     return
   }
-  const originId = await genOriginId(url)
-  await checkOriginIdAndUpdatePageStatus(id, url, originId)
+  const { id: originId, stableUrl } = await genOriginId(url)
+  await checkOriginIdAndUpdatePageStatus(id, stableUrl, originId)
 }
 
 // Periodically renew auth token using Knocker
@@ -174,7 +236,7 @@ async function sendAuthStatus() {
   const status = authCookie.checkRawValue(cookie?.value || null)
   badge.setActive(status)
   await browser.runtime.sendMessage(
-    makeMessage({ type: 'AUTH_STATUS', status })
+    Message.create({ type: 'AUTH_STATUS', status })
   )
 }
 
@@ -185,53 +247,44 @@ async function checkOriginIdAndUpdatePageStatus(
 ) {
   if (originId == null) {
     const unmemorable = true
-    await updatePageSavedStatus(undefined, tabId, unmemorable)
+    await updateContent('reset', [], undefined, tabId, unmemorable)
     return
   }
-  const iter = smuggler.node.slice({
-    start_time: 0, // since the beginning of time
-    bucket_time_size: 366 * 24 * 60 * 60,
-    origin: {
-      id: originId,
-    },
-  })
-  let nid: string | undefined = undefined
-  for (;;) {
-    const node = await iter.next()
-    if (!node) {
-      break
-    }
-    if (node.isWebBookmark() && node.extattrs?.web?.url === url) {
-      nid = node.nid
-      break
+  const nodes = await smuggler.node.lookup({ url })
+  let bookmark: TNode | undefined = undefined
+  let quotes: TNode[] = []
+  for (const node of nodes) {
+    if (node.isWebBookmark()) {
+      bookmark = node
+    } else if (node.isWebQuote()) {
+      quotes.push(node)
     }
   }
-  await updatePageSavedStatus(nid, tabId)
+  await updateContent('reset', quotes, bookmark, tabId)
 }
 
 browser.runtime.onMessage.addListener(
   async (message: MessageType, sender: browser.Runtime.MessageSender) => {
     // process is not defined in browsers extensions - use it to set up axios
+    const tabId = sender.tab?.id
     switch (message.type) {
       case 'REQUEST_PAGE_TO_SAVE':
         requestPageContentToSave()
         break
-      case 'REQUEST_SAVED_NODE':
+      case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS':
         await requestPageSavedStatus()
         break
       case 'PAGE_TO_SAVE':
         const { url, content, originId } = message
-        const tabId = sender.tab?.id
         await savePage(url, originId, content, tabId)
         break
       case 'REQUEST_AUTH_STATUS':
         await sendAuthStatus()
         break
-      case 'PAGE_ORIGIN_ID':
+      case 'SELECTED_WEB_QUOTE':
         {
-          const { url, originId } = message
-          const tabId = sender.tab?.id
-          await checkOriginIdAndUpdatePageStatus(tabId, url, originId)
+          const { originId, url, text, path, lang } = message
+          await savePageQuote(originId, { url, path, text }, lang, tabId)
         }
         break
       default:
@@ -270,3 +323,42 @@ browser.cookies.onChanged.addListener(async (info) => {
     }
   }
 })
+
+const kMazedContextMenuItemId = 'selection-to-mazed-context-menu-item'
+
+browser.contextMenus.create({
+  title: 'Save to Mazed',
+  type: 'normal',
+  id: kMazedContextMenuItemId,
+  contexts: ['selection', 'editable'],
+})
+
+browser.contextMenus.onClicked.addListener(
+  async (
+    info: browser.Menus.OnClickData,
+    tab: browser.Tabs.Tab | undefined
+  ) => {
+    if (info.menuItemId === kMazedContextMenuItemId) {
+      if (tab?.id == null) {
+        return
+      }
+      const { selectionText } = info
+      if (selectionText == null) {
+        return
+      }
+      try {
+        await browser.tabs.sendMessage(
+          tab.id,
+          Message.create({
+            type: 'REQUEST_SELECTED_WEB_QUOTE',
+            text: selectionText,
+          })
+        )
+      } catch (err) {
+        if (!isAbortError(err)) {
+          log.exception(err)
+        }
+      }
+    }
+  }
+)

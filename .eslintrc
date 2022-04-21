@@ -68,6 +68,7 @@
         "import/no-named-as-default": "error",
         "import/no-named-as-default-member": "error",
         "import/no-unresolved": "error",
+        "import/no-cycle": "error",
         "linebreak-style": "error",
         "no-array-constructor": "error",
         "no-class-assign": "error",
@@ -91,7 +92,12 @@
         "no-new-object": "error",
         "no-new-symbol": "error",
         "no-path-concat": "error",
-        "no-redeclare": "error",
+        // base 'no-redeclare' rule is disabled in favour of typescript-eslint
+        // version that correctly handles typescript overrides.
+        // See https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/docs/rules/no-redeclare.md
+        // for more info
+        "no-redeclare": "off",
+        "@typescript-eslint/no-redeclare": ["error"],
         "no-regex-spaces": "error",
         "no-sequences": "error",
         "no-tabs": "error",
@@ -108,6 +114,7 @@
         "no-var": "error",
         "no-void": "error",
         "no-with": "error",
+        "no-eval": "error",
         "object-shorthand": [
             "error",
             "always"

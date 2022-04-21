@@ -3,8 +3,7 @@ import React from 'react'
 import styles from './AuthorBadge.module.css'
 
 import { smuggler } from 'smuggler-api'
-
-import { HoverTooltip } from '../lib/tooltip'
+import { NodeTimeBadge } from 'elementary'
 
 import UserDefaultPic from './../auth/img/user-default-pic.png'
 
@@ -69,42 +68,6 @@ export class AuthorBadge extends React.Component {
   }
 }
 
-function formatDate(m) {
-  const sameElse = function (now) {
-    if (this.year() === now.year()) {
-      return 'dddd, D MMM'
-    } else {
-      return 'dddd, D MMM YYYY'
-    }
-  }
-  return m.calendar({
-    sameDay: '[Today]',
-    lastDay: '[Yesterday]',
-    lastWeek: '[Last] dddd',
-    sameElse,
-  })
-}
-
-function formatFullDate(m) {
-  return m.format('dddd, MMMM Do YYYY, HH:mm')
-}
-
-export const TimeBadge = ({ created_at, updated_at }) => {
-  let tooltip = `Created ${formatFullDate(created_at)}`
-  if (!created_at.isSame(updated_at)) {
-    tooltip += `, updated ${formatFullDate(updated_at)}`
-  }
-  return (
-    <div className={styles.badge}>
-      <div className={styles.column}>
-        <HoverTooltip tooltip={tooltip}>
-          <div className={styles.created_at_date}>{formatDate(created_at)}</div>
-        </HoverTooltip>
-      </div>
-    </div>
-  )
-}
-
 export class AuthorFooter extends React.Component {
   // static contextType = MzdGlobalContext;
   render() {
@@ -116,7 +79,7 @@ export class AuthorFooter extends React.Component {
     if (account && node.isOwnedBy(account)) {
       return (
         <footer className={styles.author_footer}>
-          <TimeBadge
+          <NodeTimeBadge
             created_at={node.created_at}
             updated_at={node.updated_at}
           />

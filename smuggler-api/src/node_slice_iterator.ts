@@ -1,4 +1,3 @@
-import { getNodesSlice } from './api'
 import { TNode, NodeOrigin } from './types'
 import type { Optional } from 'armoury'
 
@@ -7,6 +6,28 @@ export interface INodeIterator {
   total: () => number
   exhausted: () => boolean
 }
+
+export type GetNodesSliceFn = ({
+  end_time,
+  start_time,
+  offset,
+  limit,
+  origin,
+  signal,
+}: {
+  end_time: Optional<number>
+  start_time: Optional<number>
+  offset: Optional<number>
+  limit: Optional<number>
+  origin?: NodeOrigin
+  signal?: AbortSignal
+}) => Promise<{
+  nodes: TNode[]
+  full_size: number
+  offset: number
+  start_time: number
+  end_time: number
+}>
 
 // Iterates over nodes' slice fetched lazily in batches
 //
@@ -64,8 +85,8 @@ export class TNodeSliceIterator implements INodeIterator {
 
   origin?: NodeOrigin
 
-  signal?: AbortSignal
-  fetcher: typeof getNodesSlice
+  abortControler?: AbortController
+  fetcher: GetNodesSliceFn
 
   // Limits total number of nodes emitted
   limit?: number
@@ -74,8 +95,7 @@ export class TNodeSliceIterator implements INodeIterator {
   total_counter: number
 
   constructor(
-    fetcher: typeof getNodesSlice,
-    signal?: AbortSignal,
+    fetcher: GetNodesSliceFn,
     start_time?: number,
     end_time?: number,
     bucket_time_size?: number,
@@ -96,7 +116,6 @@ export class TNodeSliceIterator implements INodeIterator {
     this.next_index_in_batch = 0
 
     this.total_counter = 0
-    this.signal = signal
     this.fetcher = fetcher
     this.limit = limit
     this.origin = origin
@@ -114,13 +133,18 @@ export class TNodeSliceIterator implements INodeIterator {
     )
   }
 
+  abort(): void {
+    this.abortControler?.abort()
+    this.limit = -1
+  }
+
   async _fetch(): Promise<boolean> {
     const {
       bucket_end_time,
       batch_offset,
       bucket_full_size,
       fetcher,
-      signal,
+      abortControler,
       limit,
       origin,
       total_counter,
@@ -144,8 +168,8 @@ export class TNodeSliceIterator implements INodeIterator {
     const resp = await fetcher({
       ...range,
       limit: limit ? limit - total_counter : null,
+      signal: abortControler?.signal,
       origin,
-      signal,
     })
     return this._acceptNextBatch(resp)
   }

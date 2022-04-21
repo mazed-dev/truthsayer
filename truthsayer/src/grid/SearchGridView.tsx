@@ -4,7 +4,7 @@ import styled from '@emotion/styled'
 import { useLocation } from 'react-router-dom'
 import { parse } from 'query-string'
 
-import { SearchGrid } from './SearchGrid'
+import { SearchGrid } from 'elementary'
 import { CreateNewNodeMenu } from './CreateNewNodeMenu'
 
 import lodash from 'lodash'
@@ -14,7 +14,7 @@ const Box = styled.div`
   max-width: 100%;
 `
 
-export const SearchGridView = ({}: {}) => {
+export const SearchGridView = () => {
   const location = useLocation()
   const params = parse(location.search)
   let { q } = params

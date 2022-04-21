@@ -1,4 +1,4 @@
-import { base64 } from '../util/base64'
+import { base64 } from 'armoury'
 
 // / Convert string to array
 function str2ArrayBuffer(str: string): ArrayBuffer {

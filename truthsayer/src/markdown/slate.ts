@@ -1,8 +1,9 @@
 // @ts-nocheck
-
-import { Descendant } from 'slate'
+//
+import type { Descendant } from 'slate'
 import { serialize } from 'remark-slate'
 import unified from 'unified'
+import { TNode } from 'smuggler-api'
 import markdown from 'remark-parse'
 import slate from 'remark-slate'
 import { defaultNodeTypes } from 'remark-slate'
@@ -10,6 +11,7 @@ import { defaultNodeTypes } from 'remark-slate'
 import moment from 'moment'
 
 import {
+  TDoc,
   kSlateBlockTypeBreak,
   kSlateBlockTypeCode,
   kSlateBlockTypeDateTime,
@@ -31,7 +33,7 @@ import {
   kSlateBlockTypeQuote,
   kSlateBlockTypeStrongMark,
   kSlateBlockTypeUnorderedList,
-} from '../doc/types'
+} from 'elementary'
 
 import lodash from 'lodash'
 
@@ -121,10 +123,10 @@ function parseExtraBlocks(content: Descendant[]): Descendant[] {
 
 function parseListItem(item: Descendant): Descendant {
   const children: Descendant[] = flattenDescendants(item.children || [])
-  const first: Descendant = lodash.head(children)
+  const first: Descendant = children[0]
   if (first) {
     const { text, type } = first
-    if (text && lodash.isUndefined(type)) {
+    if (text && type == null) {
       const prefix: string = text.slice(0, 4).toLowerCase()
       const isChecked: boolean = prefix === '[x] '
       const isNotChecked: boolean = prefix === '[ ] '
@@ -161,7 +163,7 @@ function flattenDescendants(elements: Descendant[]): Descendant[] {
   elements.forEach((item: Descendant) => {
     const { type, children, text } = item
     if (_kSlateBlocksToFlatten.has(type)) {
-      flattened = lodash.concat(flattened, flattenDescendants(children || []))
+      flattened = flattened.concat(flattenDescendants(children || []))
     } else {
       flattened.push(item)
     }
@@ -263,11 +265,11 @@ function _siftUpBlocksRec(content: Descendant[]): [Descendant[], Descendant[]] {
       }
       return item
     })
-    .filter((item) => !lodash.isNull(item))
+    .filter((item) => item != null)
   return [tops, content]
 }
 
-function serializeExtraBlocks(children: Descendant): Descendant {
+function serializeExtraBlocks(children: Descendant[]): Descendant[] {
   return children.map((item: Descendant) => {
     switch (item.type) {
       case kSlateBlockTypeListCheckItem:
@@ -296,8 +298,8 @@ function serializeExtraBlocks(children: Descendant): Descendant {
 
 function hackListItemSerialisation(item: Descendant): Descendant {
   const { children } = item
-  const last: Descendant = lodash.last(children || [])
-  if (last && last.text && last.text.endsWith('\n')) {
+  const lastChild: Descendant = lodash.last(children || [])
+  if (lastChild?.text?.endsWith('\n')) {
     // nothing
   } else {
     children.push({
@@ -313,7 +315,7 @@ function hackListItemSerialisation(item: Descendant): Descendant {
 function serializeExtraListCheckItem(item: Descendant): Descendant {
   const { children, checked } = item
   let prefix = checked ? '[x]' : '[ ]'
-  const first: Descendant = lodash.head(children || [])
+  const first: Descendant | undefined = children ? children[0] : undefined
   if (first && first.text && first.text.startsWith(' ')) {
     // nothing
   } else {
@@ -347,4 +349,18 @@ function serializeExtraDateTime(item: Descendant): Descendant {
   const date = moment.unix(timestamp)
   const text = date.format(format)
   return { text, children }
+}
+
+export async function nodeToMarkdown(node: TNode): string {
+  let md = ''
+  if (node.isImage()) {
+    const source = node.getBlobSource()
+    md = md.concat(`![](${source})`)
+  }
+  const text = node.getText()
+  if (text) {
+    const doc = TDoc.fromNodeTextData(text)
+    md = md.concat(slateToMarkdown(doc.slate))
+  }
+  return md
 }

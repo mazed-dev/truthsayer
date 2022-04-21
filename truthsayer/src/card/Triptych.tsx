@@ -4,24 +4,29 @@ import React, { useState } from 'react'
 
 import { Row, Col } from 'react-bootstrap'
 
-import { FullCard } from './FullCard'
+import { NodeCard } from 'elementary'
+import { FullCardFootbar } from './FullCardFootbar'
 
-import { SmallCard, kSmallCardWidth } from './SmallCard'
-import { ShrinkCard } from './ShrinkCard'
-import { ReadOnlyRender } from '../doc/ReadOnlyRender'
+import { NodeCardReadOnlyFetching } from 'elementary'
 
 import { SmallCardFootbar } from './SmallCardFootbar'
 import { ChainActionBar } from './ChainActionBar'
-import { DynamicGrid } from '../grid/DynamicGrid'
+import { DynamicGrid } from 'elementary'
 
 import { MzdGlobalContext } from '../lib/global'
 import { Optional, isAbortError, log } from 'armoury'
-import { styleMobileTouchOnly } from '../util/xstyle'
+import { styleMobileTouchOnly } from 'elementary'
 
 import { smuggler, TNode, NodeTextData, TEdge } from 'smuggler-api'
 
 import { css } from '@emotion/react'
-import { Spinner } from 'elementary'
+import {
+  Spinner,
+  WideCard,
+  SmallCard,
+  kSmallCardWidth,
+  ShrinkCard,
+} from 'elementary'
 
 import lodash from 'lodash'
 
@@ -33,7 +38,7 @@ function RefNodeCard({
   className,
 }: {
   nid: string
-  edge: any
+  edge: TEdge
   switchStickiness: any
   cutOffRef: any
   className?: string
@@ -41,18 +46,38 @@ function RefNodeCard({
   const [showMore, setShowMore] = useState(false)
   const toggleMoreLess = () => setShowMore(!showMore)
   return (
-    <SmallCard className={className}>
-      <ShrinkCard showMore={showMore}>
-        <ReadOnlyRender nid={nid} node={null} />
-      </ShrinkCard>
-      <SmallCardFootbar
-        nid={nid}
-        edge={edge}
+    <SmallCard
+      className={className}
+      css={css`
+        position: relative;
+      `}
+    >
+      <ShrinkCard
         showMore={showMore}
-        toggleMore={toggleMoreLess}
-        switchStickiness={switchStickiness}
-        cutOffRef={cutOffRef}
-      />
+        css={css`
+          margin-bottom: 12px;
+        `}
+      >
+        <NodeCardReadOnlyFetching nid={nid} />
+      </ShrinkCard>
+      <div
+        css={css`
+          width: 100%;
+          position: absolute;
+          bottom: 0;
+          right: 0;
+          z-index: 900;
+        `}
+      >
+        <SmallCardFootbar
+          nid={nid}
+          edge={edge}
+          showMore={showMore}
+          toggleMore={toggleMoreLess}
+          switchStickiness={switchStickiness}
+          cutOffRef={cutOffRef}
+        />
+      </div>
     </SmallCard>
   )
 }
@@ -66,7 +91,7 @@ function NodeRefs({
 }: {
   side: 'left' | 'right'
   nid: string
-  edges: any[]
+  edges: TEdge[]
   switchStickiness: any
   cutOffRef: any
 }) {
@@ -234,11 +259,13 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
       // TODO(akindyakov): move conversion from raw slate to doc to here
       // TODO(akindyakov): collect stats here
       const nid = this.props.nid
-      return await smuggler.node.update({
-        nid,
-        text,
-        signal: this.fetchNodeAbortController.signal,
-      })
+      return await smuggler.node.update(
+        {
+          nid,
+          text,
+        },
+        this.fetchNodeAbortController.signal
+      )
     },
     757,
     {
@@ -302,12 +329,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
     const { node, edges_sticky, edges_right, edges_left } = this.state
     const nodeCard =
       node !== null ? (
-        <FullCard
-          node={node}
-          addRef={this.addRef}
-          stickyEdges={edges_sticky}
-          saveNode={this.saveNode}
-        />
+        <NodeCard node={node} saveNode={this.saveNode} />
       ) : (
         <Spinner.Wheel />
       )
@@ -381,7 +403,15 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
             }
           `}
         >
-          {nodeCard}
+          <WideCard>
+            {nodeCard}
+            <FullCardFootbar
+              node={node}
+              addRef={this.addRef}
+              stickyEdges={edges_sticky}
+              saveNode={this.saveNode}
+            />
+          </WideCard>
         </Col>
         <Col
           css={css`

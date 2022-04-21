@@ -1,9 +1,0 @@
-.tip {
-  display: inline-flex;
-}
-
-.tip:after {
-  content: 'Type // to open an auto suggestion dialogue...';
-  opacity: 0.32;
-  margin-left: 2px;
-}

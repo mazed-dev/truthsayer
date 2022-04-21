@@ -1,26 +1,13 @@
 import Cookies from 'universal-cookie'
 
 import { smuggler } from './api'
+import { AccountInterface, LocalCrypto } from './types'
 
 import type { Optional } from 'armoury'
 
 import lodash from 'lodash'
 
 export const COOKIES_VEIL_KEY: string = 'x-magic-veil'
-
-/**
- * Local encryption is not ready to use yet, in fact it is not
- * part of our MVP, mock it for now.
- */
-export class LocalCrypto {}
-
-export interface AccountInterface {
-  isAuthenticated: () => boolean
-  getUid: () => string
-  getName: () => string
-  getEmail: () => string
-  getLocalCrypto: () => LocalCrypto
-}
 
 export class AnonymousAccount implements AccountInterface {
   isAuthenticated(): boolean {

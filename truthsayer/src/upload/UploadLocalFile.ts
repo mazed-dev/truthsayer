@@ -7,7 +7,8 @@ import {
 import { log } from 'armoury'
 import { isAbortError } from 'armoury'
 
-import { makeDoc } from '../doc/doc_util'
+import { TDoc } from 'elementary'
+import { markdownToSlate } from '../markdown/slate'
 import { Mime } from 'armoury'
 import { Optional } from 'armoury'
 
@@ -104,11 +105,13 @@ async function uploadLocalBinaryFile(
 
   const index_text: NodeIndexText = index.indexes[0].index
   smuggler.node
-    .update({
-      nid: upload.nids[0],
-      index_text,
-      signal: abortSignal,
-    })
+    .update(
+      {
+        nid: upload.nids[0],
+        index_text,
+      },
+      abortSignal
+    )
     .then((resp) => {
       if (resp.ok) {
         updateStatus({ nid, progress: 1.0 })
@@ -141,14 +144,17 @@ function uploadLocalTextFile(
       Math.round((file.size * 100) / 1024) * 100
     }KiB\`)*\n`
     const text = (event.target?.result || '') + appendix
-    makeDoc({ plain: text }).then((doc) => {
+    markdownToSlate(text).then((slate) => {
+      const doc = new TDoc(slate)
       smuggler.node
-        .create({
-          text: doc.toNodeTextData(),
-          from_nid: from_nid || undefined,
-          to_nid: to_nid || undefined,
-          signal: abortSignal,
-        })
+        .create(
+          {
+            text: doc.toNodeTextData(),
+            from_nid: from_nid || undefined,
+            to_nid: to_nid || undefined,
+          },
+          abortSignal
+        )
         .then((node) => {
           const { nid } = node
           updateStatus({ nid, progress: 1.0 })

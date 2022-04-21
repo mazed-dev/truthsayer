@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-import { Descendant } from 'slate'
+import type { Descendant } from 'slate'
 
 import { slateToMarkdown, markdownToSlate, _siftUpBlocks } from './slate'
 
@@ -20,9 +20,8 @@ import {
   kSlateBlockTypeQuote,
   kSlateBlockTypeUnorderedList,
   kSlateBlockTypeListCheckItem,
-} from '../doc/types'
-
-import lodash from 'lodash'
+  TDoc,
+} from 'elementary'
 
 test('Markdown to Slate state', async () => {
   const md = `
@@ -291,7 +290,7 @@ test('Extra(back-and-forth): checklists', async () => {
   const value = await markdownToSlate(md)
   let backMd: string = slateToMarkdown(value)
   backMd = backMd.replace('\n\n', '')
-  expect(lodash.trim(backMd)).toStrictEqual(lodash.trim(md))
+  expect(backMd.trim()).toStrictEqual(md.trim())
 })
 
 test('Extra(backward): links as date and back', async () => {
@@ -300,7 +299,7 @@ test('Extra(backward): links as date and back', async () => {
   expect(value.length).toStrictEqual(1)
   const backMd: string = slateToMarkdown(value)
   // To match the same time in different timezones depending on the locale
-  expect(lodash.trim(backMd)).toMatch(/^QrPSc 2021 April 1., .+day nk8SGb$/)
+  expect(backMd.trim()).toMatch(/^QrPSc 2021 April 1., .+day nk8SGb$/)
 })
 
 test('Extra(image): only top level images', async () => {
@@ -385,5 +384,55 @@ test('Extra(list hack): from md and back', async () => {
 - Gb KxYtZ p6vAdVQG8z/Orc`
   const value = await markdownToSlate(md)
   const backMd = slateToMarkdown(value)
-  expect(lodash.trim(backMd)).toStrictEqual(md)
+  expect(backMd.trim()).toStrictEqual(md)
+})
+
+test('getPlainText - slate', async () => {
+  const source: string = `
+# Header 1
+## Header 2
+
+Emphasis, aka italics, with *asterisks* or _underscores_.
+
+Strong emphasis, aka bold, with **asterisks** or __underscores__.
+
+Combined emphasis with **asterisks and _underscores_**.
+
+- Schools
+- [Travel history](https://wq8k.su/ip3t8x85eckumpsezhr4ek6qatraghtohr38khg)
+- [Housing history](94ogoxqapi84je7hkbt1qtt8k1oeycqc43haij57pimhn)
+
+[Inline-style link](https://github.com)
+
+![Stormtroopocat](https://octodex.github.com/images/stormtroopocat.jpg "The Stormtroopocat")
+
+__Trees were swaying__
+
+[](@1618686400/YYYY-MMMM-DD-dddd)
+
+-----`
+  const doc = new TDoc(await markdownToSlate(source))
+  const texts = doc.genPlainText()
+  expect(texts).toContain('Header 1')
+  expect(texts).toContain('Header 2')
+  expect(texts).toContain(
+    'Emphasis, aka italics, with asterisks or underscores .'
+  )
+  expect(texts).toContain(
+    'Strong emphasis, aka bold, with asterisks or underscores .'
+  )
+  expect(texts).toContain('Combined emphasis with asterisks and underscores .')
+  expect(texts).toContain('Schools Travel history Housing history')
+  expect(texts).toContain('Inline-style link')
+  expect(texts).toContain('Trees were swaying')
+  expect(texts).toContain(
+    'https://wq8k.su/ip3t8x85eckumpsezhr4ek6qatraghtohr38khg'
+  )
+  expect(texts).toContain('94ogoxqapi84je7hkbt1qtt8k1oeycqc43haij57pimhn')
+  expect(texts).toContain('https://github.com')
+  expect(texts).toContain(
+    'https://octodex.github.com/images/stormtroopocat.jpg'
+  )
+  expect(texts).toContain('Stormtroopocat')
+  expect(texts[texts.length - 1]).toMatch(/2021-April-1.-[SMTWF].+day/)
 })
