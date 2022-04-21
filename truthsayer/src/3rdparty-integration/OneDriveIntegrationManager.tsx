@@ -197,7 +197,7 @@ export function OneDriveIntegrationManager({
           <MdiSync
             css={{ verticalAlign: 'middle', padding: '4px', fontSize: '18px' }}
           />
-          </Button>
+        </Button>
       </AuthenticatedTemplate>
       <UnauthenticatedTemplate>
         <Button

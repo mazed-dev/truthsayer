@@ -2,7 +2,7 @@ import React from 'react'
 import { Container } from 'react-bootstrap'
 import styled from '@emotion/styled'
 
-import { jcss, MdiLaunch, MdiCloudSync, MdiPublic } from 'elementary'
+import { jcss, MdiLaunch } from 'elementary'
 
 import { Emoji } from '../lib/Emoji'
 
@@ -57,14 +57,8 @@ export function IntegrationsOverview() {
       </Line>
       <Line>
         <Name>Mazed for Chrome</Name>
-        <ExtLink>
-          <ExtLinkIcon href="https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc" />
-        </ExtLink>
-      </Line>
-      <Line>
-        <Name>Mazed for Firefox</Name>
-        <ExtLink>
-          <ExtLinkIcon href="" />
+        <ExtLink href="https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc">
+          <ExtLinkIcon />
         </ExtLink>
       </Line>
     </Box>
