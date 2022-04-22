@@ -1,8 +1,5 @@
-import { Client as MsGraphClient } from '@microsoft/microsoft-graph-client'
-import { log, MimeType, Mime, Optional } from 'armoury'
 import assert from 'assert'
-import { DriveItem as MsGraphDriveItem } from 'microsoft-graph'
-import * as MsGraph from './MicrosoftGraph'
+import { ThirdpartyFs, FileProxy, FolderProxy } from './3rdPartyFilesystem'
 
 /**
  * This module implements the algorithm for consuming files and processing
@@ -17,54 +14,6 @@ import * as MsGraph from './MicrosoftGraph'
  * See https://stackoverflow.com/a/43794682/3375765 for more details
  */
 const MAX_TIMESTAMP: number = 8640000000000000
-
-/**
- * A filesystem-agnostic shallow version of a file stored in user's file storage
- * that has all the attributes (regardless of which file system it came from)
- * required for Mazed to process it.
- *
- * "Shallow" in this context means that it intentionally doesn't fetch the
- * contents of the file. This is expected to be important as queues of
- * all unprocessed files may have a large size if a user has a lot of data,
- * in which case loading all files at the same time in memory would be
- * disadvanageous.
- */
-export type FileProxy = {
-  category: 'file'
-  /** A filepath of this file (expected to mostly be useful for debugging) */
-  path: string
-  /** An ID that uniquely identifies this file within its filesystem */
-  id: string
-  /** A URL that a user can use to open this file in it's native filesystem */
-  webUrl: string
-
-  /** Unix timestamp (seconds) when this file was last modified by a user within its filesystem */
-  lastModTimestamp: number
-  createdBy: string
-  mimeType: MimeType
-}
-
-type ChildrenProxy = {
-  files: FileProxy[]
-  folders: FolderProxy[]
-}
-
-type FolderProxy = {
-  category: 'folder'
-  path: string
-  id: string
-  /**
-   * Unix timestamp (seconds) when this folder was last modified by a user
-   * within its filesystem.
-   *
-   * Note that folder modification date may not behave as intuitively as
-   * a @see FileProxy modification date. See https://github.com/Thread-knowledge/truthsayer/issues/148#issuecomment-1048580828
-   * for more information
-   */
-  lastModTimestamp: number
-
-  children: null /** data not fetched yet */ | ChildrenProxy
-}
 
 type ModificationSearchRange = {
   /**
@@ -99,7 +48,7 @@ type ModificationSearchRange = {
 }
 
 async function loadAllFilesInRange(
-  graph: MsGraphClient,
+  fs: ThirdpartyFs,
   folder: FolderProxy,
   searchRange: ModificationSearchRange
 ): Promise<FileProxy[]> {
@@ -130,123 +79,17 @@ async function loadAllFilesInRange(
   }
 
   if (!folder.children) {
-    folder.children = await fetchChildrenOf(graph, folder)
+    folder.children = await fs.childrenOf(folder)
   }
 
   const ret: FileProxy[] = folder.children.files.filter(
     (file) => file.lastModTimestamp > searchRange.start
   )
   for (const childFolder of folder.children.folders) {
-    ret.concat(await loadAllFilesInRange(graph, childFolder, searchRange))
+    ret.concat(await loadAllFilesInRange(fs, childFolder, searchRange))
   }
 
   return ret
-}
-
-async function fetchChildrenOf(
-  graph: MsGraphClient,
-  parent: FolderProxy
-): Promise<ChildrenProxy> {
-  assert(!parent.children, `Attempted to fetch folder ${parent.path} twice`)
-
-  const response: MsGraph.ODataResponse<MsGraphDriveItem> = await graph
-    .api(`/me/drive/root:${parent.path}:/children`)
-    .get()
-  const items: MsGraphDriveItem[] = response.value
-
-  const ret: ChildrenProxy = {
-    files: [],
-    folders: [],
-  }
-
-  for (const item of items) {
-    const proxy = toProxy(item, parent.path)
-    if (!proxy) {
-      continue
-    }
-    if (proxy.category === 'file') {
-      ret.files.push(proxy)
-    } else {
-      ret.folders.push(proxy)
-    }
-  }
-
-  return ret
-}
-
-/**
- * @returns A Unix timestamp with seconds precision
- */
-function toUnixSecTimestamp(date: Date): number {
-  // See https://stackoverflow.com/a/1792009/3375765 for more info about the implementation
-  return date.getTime() / 1000
-}
-
-function toProxy(
-  msItem: MsGraphDriveItem,
-  parentPath: string
-): FileProxy | FolderProxy | null {
-  const id = msItem.id
-  const fsNativeLastModDate = msItem.fileSystemInfo?.lastModifiedDateTime
-  const lastModDate = fsNativeLastModDate ? new Date(fsNativeLastModDate) : null
-
-  const path = `${parentPath}/${msItem.name}`
-
-  if (!id || !lastModDate) {
-    log.debug(
-      'To implement progress tracking of how far did the application ' +
-        'progress in indexing filesystem it requires a number of mandatory ' +
-        'pieces of information about each filesystem item:\n' +
-        `- unique ID (actual = ${msItem.id})\n` +
-        `- last modification date (actual = ${msItem.fileSystemInfo?.lastModifiedDateTime})\n`
-    )
-    return null
-  }
-
-  const lastModTimestamp = toUnixSecTimestamp(lastModDate)
-  if (msItem.file) {
-    const fsNativeMimeType = msItem.file.mimeType
-    const mimeType: Optional<MimeType> = fsNativeMimeType
-      ? Mime.fromString(fsNativeMimeType)
-      : null
-    if (!mimeType) {
-      log.debug(
-        `File ${path} has Mime type ${fsNativeMimeType} which is not one ` +
-          'of types supported by the application'
-      )
-      return null
-    }
-    if (!msItem.webUrl) {
-      log.debug(
-        `File ${path} unexpedly does not have a web URL, without it a Mazed` +
-          'clicking on a Mazed card that represents it will not be able to open the file'
-      )
-      return null
-    }
-
-    return {
-      category: 'file',
-      path,
-      id,
-      webUrl: msItem.webUrl,
-      createdBy: msItem.createdBy?.user?.displayName || 'Unknown author',
-      lastModTimestamp,
-      mimeType,
-    }
-  } else if (msItem.folder) {
-    return {
-      category: 'folder',
-      path,
-      id,
-      lastModTimestamp,
-      children: { files: [], folders: [] },
-    }
-  }
-
-  log.debug(
-    `Filesystem item ${path} is of unknown category - it's neither a file nor a folder`
-  )
-  return null
 }
 
 /** Comparator that should sort an array of filesystem items such
@@ -279,8 +122,6 @@ function oldestModifiedFirstComparator(lhs: FileProxy, rhs: FileProxy) {
   return 1
 }
 
-export type QueueParams = {}
-
 /**
  * Fetch a list of files from a filesystem, ordered by their last modification
  * date (first elements are the oldest modified, last elements are most recently
@@ -290,7 +131,7 @@ export type QueueParams = {}
  * "last modification date" timerange boundary that will be used to limit file search
  */
 export async function make(
-  graph: MsGraphClient,
+  fs: ThirdpartyFs,
   lastModificationNotOlderThan: number,
   targetFolderPath: string
 ): Promise<FileProxy[]> {
@@ -302,7 +143,7 @@ export async function make(
     children: null,
   }
 
-  const files = await loadAllFilesInRange(graph, targetFolder, {
+  const files = await loadAllFilesInRange(fs, targetFolder, {
     start: lastModificationNotOlderThan,
   })
   return files.sort(oldestModifiedFirstComparator)
