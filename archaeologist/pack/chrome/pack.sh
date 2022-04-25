@@ -36,7 +36,7 @@ cd target
 
 mkdir -p packed/
 
-_OUT="packed/chrome-mazed-$_REV.zip"
+_OUT="packed/mazed-for-chrome-$_REV.zip"
 
 zip -r $_OUT unpacked
 
