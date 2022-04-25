@@ -1,10 +1,33 @@
 import React from 'react'
 import { Container, Row, Col } from 'react-bootstrap'
+import styled from '@emotion/styled'
 
-import { jcss } from 'elementary'
+import {
+  MsalProvider,
+  AuthenticatedTemplate,
+  UnauthenticatedTemplate,
+} from '@azure/msal-react'
 
-import { OneDriveIntegrationManager } from './OneDriveIntegrationManager'
+import { MdiInsertLink, MdiLinkOff, jcss, MdiSync } from 'elementary'
+import { errorise, log } from 'armoury'
+import { AccountInterface } from 'smuggler-api'
+
 import { MzdGlobalContext } from '../lib/global'
+import * as MsAuthentication from './MicrosoftAuthentication'
+import { OneDriveFs } from './OneDriveFilesystem'
+import { uploadFilesFromFolder } from './3rdPartyFilesystemSync'
+
+const Button = styled.button`
+  background-color: #ffffff;
+  border-style: solid;
+  border-width: 0;
+  border-radius: 32px;
+
+  vertical-align: middle;
+  &:hover {
+    background-color: #d0d1d2;
+  }
+`
 
 type IntegrationProps = React.PropsWithChildren<{
   icon: string
@@ -18,6 +41,66 @@ function Integration({ icon, name, children }: IntegrationProps) {
       <Col>{name}</Col>
       <Col>{children}</Col>
     </Row>
+  )
+}
+
+/**
+ * Implements UI widgets that user can use to manage integration between
+ * their Mazed & Microsoft OneDrive.
+ *
+ * On a high level integration with OneDrive consists of two major parts:
+ *    1. authentication & authorization (@see setupMsalInstance() )
+ *    2. interactions with user data via Microsoft Graph to on behalf of an
+ *      authenticated Microsoft account (@see graph() )
+ */
+export function OneDriveIntegrationManager({
+  account,
+}: {
+  account: AccountInterface
+}) {
+  // Significant chunk of the code for integration with OneDrive was taken from
+  // https://docs.microsoft.com/en-us/azure/active-directory/develop/tutorial-v2-react
+  const msAuthentication = MsAuthentication.makeInstance()
+  const oneDriveFs = new OneDriveFs(msAuthentication)
+  return (
+    // Having MsalProvider as parent grants all children access to
+    // '@azure/msal-react' context, hooks and components
+    <MsalProvider instance={msAuthentication}>
+      {/* Pair of AuthenticatedTemplate and UnauthenticatedTemplate
+      render their children conditionally - first if the user has logged in
+      to a Microsoft account, second one if they didn't*/}
+      <AuthenticatedTemplate>
+        <Button
+          onClick={() => {
+            oneDriveFs.signOut()
+          }}
+        >
+          <MdiLinkOff />
+        </Button>
+        <Button
+          onClick={() => {
+            uploadFilesFromFolder(oneDriveFs, account, '/mazed-test').catch(
+              (exception) =>
+                log.exception(
+                  errorise(exception),
+                  `Failed to call Microsoft Graph`
+                )
+            )
+          }}
+        >
+          <MdiSync />
+        </Button>
+      </AuthenticatedTemplate>
+      <UnauthenticatedTemplate>
+        <Button
+          onClick={() => {
+            oneDriveFs.signIn()
+          }}
+        >
+          <MdiInsertLink />
+        </Button>
+      </UnauthenticatedTemplate>
+    </MsalProvider>
   )
 }
 
