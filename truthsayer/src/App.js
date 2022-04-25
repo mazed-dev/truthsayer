@@ -36,6 +36,7 @@ import { routes } from './lib/route'
 import { Loader } from './lib/loader'
 import { initDevEnv } from './dev/env'
 import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegrationsOverview'
+import { AppsList } from './apps-list/AppsList'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
 
@@ -109,6 +110,9 @@ function AppRouter() {
           <PrivateRoute path="/user-encryption">
             <UserEncryption />
           </PrivateRoute>
+          <Route path="/apps-to-install">
+            <AppsList />
+          </Route>
           <Route path="/help">
             <HelpInfo />
           </Route>
