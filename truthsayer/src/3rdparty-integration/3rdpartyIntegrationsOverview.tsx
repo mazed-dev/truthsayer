@@ -8,7 +8,13 @@ import {
   UnauthenticatedTemplate,
 } from '@azure/msal-react'
 
-import { MdiInsertLink, MdiLinkOff, jcss, MdiSync } from 'elementary'
+import {
+  MdiInsertLink,
+  MdiLinkOff,
+  jcss,
+  MdiSync,
+  MdiCloudSync,
+} from 'elementary'
 import { errorise, log, Mime } from 'armoury'
 import { AccountInterface, smuggler, UserFilesystemId } from 'smuggler-api'
 
@@ -49,7 +55,8 @@ function Integration({ icon, name, children }: IntegrationProps) {
 async function uploadFilesFromFolder(
   fs: ThirdpartyFs,
   fsid: UserFilesystemId,
-  folderPath: string
+  folderPath: string,
+  progressUpdateCallback: (filesToUploadLeft: number) => void
 ) {
   const current_progress = await smuggler.user.thirdparty.fs.progress.get(fsid)
   const files = await FsModificationQueue.make(
@@ -57,7 +64,12 @@ async function uploadFilesFromFolder(
     current_progress.ingested_until,
     folderPath
   )
+  progressUpdateCallback(files.length)
+  let files_left = files.length
   for (const batch of FsModificationQueue.modTimestampBatchIterator(files)) {
+    if (batch.length === 0) {
+      continue
+    }
     for (const file of batch) {
       if (file.mimeType !== Mime.TEXT_PLAIN) {
         log.debug(
@@ -73,6 +85,8 @@ async function uploadFilesFromFolder(
     await smuggler.user.thirdparty.fs.progress.advance(fsid, {
       ingested_until: batch[0].lastModTimestamp,
     })
+    files_left -= batch.length
+    progressUpdateCallback(files_left)
   }
 }
 
@@ -92,13 +106,21 @@ export function OneDriveIntegrationManager({
 }) {
   // Significant chunk of the code for integration with OneDrive was taken from
   // https://docs.microsoft.com/en-us/azure/active-directory/develop/tutorial-v2-react
-  const msAuthentication = MsAuthentication.makeInstance()
-  const oneDriveFs = new OneDriveFs(msAuthentication)
+  const [msAuthentication] = React.useState(MsAuthentication.makeInstance())
+  const [oneDriveFs] = React.useState(new OneDriveFs(msAuthentication))
+  const [oneDriveUploadCounter, setOneDriveUploadCounter] = React.useState(0)
+
+  const oneDriveSyncButton =
+    oneDriveUploadCounter === 0 ? (
+      <MdiSync /> // This icon is intended to invite user to initiate a new sync attempt
+    ) : (
+      <MdiCloudSync />
+    ) // This icon is intended to show a user that sync is already in progress
+
   const oneDriveFsid: UserFilesystemId = {
     uid: account.getUid(),
     fs_key: 'onedrive',
   }
-
   return (
     // Having MsalProvider as parent grants all children access to
     // '@azure/msal-react' context, hooks and components
@@ -119,16 +141,20 @@ export function OneDriveIntegrationManager({
             uploadFilesFromFolder(
               oneDriveFs,
               oneDriveFsid,
-              '/mazed-test'
-            ).catch((exception) =>
-              log.exception(
-                errorise(exception),
-                `Failed to call Microsoft Graph`
-              )
+              '/mazed-test',
+              setOneDriveUploadCounter
             )
+              .catch((exception) => {
+                log.exception(
+                  errorise(exception),
+                  `Failed to call Microsoft Graph`
+                )
+              })
+              .finally(() => setOneDriveUploadCounter(0))
           }}
         >
-          <MdiSync />
+          {oneDriveSyncButton}
+          {oneDriveUploadCounter > 0 ? oneDriveUploadCounter : null}
         </Button>
       </AuthenticatedTemplate>
       <UnauthenticatedTemplate>
