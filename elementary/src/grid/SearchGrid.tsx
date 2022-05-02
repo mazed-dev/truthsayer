@@ -189,7 +189,7 @@ const SearchGridScroll = ({
     return (
       <GridCard onClick={onClick} key={node.nid}>
         <ShrinkCard>
-          <NodeCardReadOnly node={node} />
+          <NodeCardReadOnly node={node} strippedRefs strippedActions />
         </ShrinkCard>
         <NodeTimeBadge
           created_at={node.created_at}
