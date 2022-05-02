@@ -59,7 +59,11 @@ function RefNodeCard({
         `}
         onClick={() => history.push({ pathname: `/n/${nid}` })}
       >
-        <NodeCardReadOnlyFetching nid={nid} strippedRefs={true} strippedActions={true} />
+        <NodeCardReadOnlyFetching
+          nid={nid}
+          strippedRefs={true}
+          strippedActions={true}
+        />
       </ShrinkCard>
       <div
         css={css`
