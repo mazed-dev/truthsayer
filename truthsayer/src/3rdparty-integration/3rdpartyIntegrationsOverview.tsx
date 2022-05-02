@@ -65,11 +65,8 @@ async function uploadFilesFromFolder(
     folderPath
   )
   progressUpdateCallback(files.length)
-  let files_left = files.length
+  let filesLeft = files.length
   for (const batch of FsModificationQueue.modTimestampBatchIterator(files)) {
-    if (batch.length === 0) {
-      continue
-    }
     for (const file of batch) {
       if (file.mimeType !== Mime.TEXT_PLAIN) {
         log.debug(
@@ -85,8 +82,8 @@ async function uploadFilesFromFolder(
     await smuggler.user.thirdparty.fs.progress.advance(fsid, {
       ingested_until: batch[0].lastModTimestamp,
     })
-    files_left -= batch.length
-    progressUpdateCallback(files_left)
+    filesLeft -= batch.length
+    progressUpdateCallback(filesLeft)
   }
 }
 
