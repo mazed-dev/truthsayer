@@ -9,9 +9,9 @@
     "build:firefox:public": "yarn __build --env firefox --mode production",
     "__build": "yarn webpack --config webpack.config.js --progress --color",
     "run:chrome:local": "yarn build:chrome:local && yarn __run --target chromium",
-    "run:chrome:public": "yarn build:chrome:local && yarn __run --target chromium",
+    "run:chrome:public": "yarn build:chrome:public && yarn __run --target chromium",
     "run:firefox:local": "yarn build:firefox:local && yarn __run --target firefox-desktop",
-    "run:firefox:public": "yarn build:firefox:local && yarn __run --target firefox-desktop",
+    "run:firefox:public": "yarn build:firefox:public && yarn __run --target firefox-desktop",
     "__run": "yarn web-ext run --source-dir target/unpacked --artifacts-dir target/packed --start-url localhost:3000",
     "lint:for-store:firefox:local": "yarn build:firefox:local && yarn web-ext lint --source-dir target/unpacked --artifacts-dir target/packed",
     "lint:for-store:firefox:public": "yarn build:firefox:public && yarn web-ext lint --source-dir target/unpacked --artifacts-dir target/packed",
@@ -96,7 +96,8 @@
     "download": "^8.0.0",
     "express": "^4.17.2",
     "jest-fetch-mock": "^3.0.3",
-    "safe-compare": "^1.1.4"
+    "safe-compare": "^1.1.4",
+    "terser-webpack-plugin": "^4.2.3"
   },
   "jest": {
     "automock": false,

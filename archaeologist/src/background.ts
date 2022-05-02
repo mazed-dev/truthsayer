@@ -1,6 +1,6 @@
 import { MessageType, Message } from './message/types'
 import * as badge from './badge'
-import { log, isAbortError, genOriginId } from 'armoury'
+import { log, isAbortError, errorise, genOriginId } from 'armoury'
 
 import browser from 'webextension-polyfill'
 
@@ -107,7 +107,10 @@ async function updateContent(
   }
   await badge.resetText(tabId, badgeText)
   // Update content augmentation
-  if (tabId != null) {
+  if (tabId == null) {
+    return
+  }
+  try {
     await browser.tabs.sendMessage(
       tabId,
       Message.create({
@@ -116,6 +119,19 @@ async function updateContent(
         mode,
       })
     )
+  } catch (exception) {
+    const error = errorise(exception)
+    if (isAbortError(error)) {
+      return
+    }
+    if (error.message.search(/receiving end does not exist/i) >= 0) {
+      log.debug(
+        'Can not send augmentation to the current tab, content script is not listening',
+        error
+      )
+      return
+    }
+    log.exception(error, 'Content augmentation sending failed')
   }
 }
 
@@ -235,9 +251,16 @@ async function sendAuthStatus() {
     })
   const status = authCookie.checkRawValue(cookie?.value || null)
   badge.setActive(status)
-  await browser.runtime.sendMessage(
-    Message.create({ type: 'AUTH_STATUS', status })
-  )
+
+  try {
+    await browser.runtime.sendMessage(
+      Message.create({ type: 'AUTH_STATUS', status })
+    )
+  } catch (err) {
+    if (!isAbortError(err)) {
+      log.exception(err, 'Could not send auth status')
+    }
+  }
 }
 
 async function checkOriginIdAndUpdatePageStatus(
@@ -250,7 +273,13 @@ async function checkOriginIdAndUpdatePageStatus(
     await updateContent('reset', [], undefined, tabId, unmemorable)
     return
   }
-  const nodes = await smuggler.node.lookup({ url })
+  let nodes
+  try {
+    nodes = await smuggler.node.lookup({ url })
+  } catch (err) {
+    log.debug('Lookup by origin ID failed, consider page as non saved', err)
+    return
+  }
   let bookmark: TNode | undefined = undefined
   let quotes: TNode[] = []
   for (const node of nodes) {
