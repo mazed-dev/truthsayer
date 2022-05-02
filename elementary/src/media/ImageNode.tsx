@@ -20,6 +20,13 @@ const ImageInCard = styled(ImageBase)`
   border-style: none;
   border-top-right-radius: inherit;
   border-top-left-radius: inherit;
+`
+
+const ImageInCardZoom = styled(ImageInCard)`
+  max-width: 100%;
+  border-style: none;
+  border-top-right-radius: inherit;
+  border-top-left-radius: inherit;
   cursor: zoom-in;
 `
 
@@ -49,15 +56,22 @@ const ImageFullHelper = styled.span`
 `
 
 export const ImageNode = ({
-  className,
   node,
+  className,
+  strippedActions,
 }: {
-  className?: string
   node: TNode
+  className?: string
+  strippedActions?: boolean
 }) => {
   const source = node.getBlobSource()
+  if (source == null) {
+    return null
+  }
+  if (strippedActions) {
+    return <ImageInCard src={source} className={className} />
+  }
   const [show, setShow] = useState(false)
-
   const imageRef = useRef<HTMLImageElement>(null)
   const handleZoomIn = () => {
     const current = imageRef?.current
@@ -66,7 +80,6 @@ export const ImageNode = ({
       current.style.maxWidth = `${newMaxWidth}px`
     }
   }
-
   const handleZoomOut = () => {
     const current = imageRef?.current
     if (current != null) {
@@ -74,20 +87,15 @@ export const ImageNode = ({
       current.style.maxWidth = `${newMaxWidth}px`
     }
   }
-
   const handleZoomReset = () => {
     const current = imageRef?.current
     if (current != null) {
       current.style.maxWidth = '100%'
     }
   }
-
-  if (source == null) {
-    return null
-  }
   return (
     <>
-      <ImageInCard
+      <ImageInCardZoom
         src={source}
         className={className}
         onClick={() => setShow(true)}
