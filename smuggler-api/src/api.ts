@@ -71,7 +71,7 @@ export function isUniqueLookupKey(
   return false
 }
 
-type CreateNodeArgs = {
+export type CreateNodeArgs = {
   text: NodeTextData
   from_nid?: string
   to_nid?: string

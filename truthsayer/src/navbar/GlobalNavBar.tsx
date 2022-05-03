@@ -60,7 +60,7 @@ const PrivateNavButtons = () => {
             Apps
           </Dropdown.Item>
           <Dropdown.Item as={Link} to="/3rdparty-integrations">
-            [experimental] 3rd-party integrations
+            3rd-party integrations
           </Dropdown.Item>
           <Dropdown.Item as={Link} to="/help">
             Help

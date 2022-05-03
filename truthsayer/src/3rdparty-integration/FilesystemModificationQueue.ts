@@ -171,7 +171,8 @@ export function modTimestampBatchIterator(queue: FileProxy[]) {
         const nextBatchStart = queue
           .slice(batchStart)
           .findIndex(isFromNextBatch)
-        const batchEnd = nextBatchStart === -1 ? queue.length : nextBatchStart
+        const batchEnd =
+          nextBatchStart === -1 ? queue.length : batchStart + nextBatchStart
         yield queue.slice(batchStart, batchEnd)
 
         batchStart = batchEnd
