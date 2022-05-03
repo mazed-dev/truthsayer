@@ -20,18 +20,16 @@ import {
 
 import { Mime } from 'armoury'
 
-async function getActiveTabId(): Promise<number | null> {
+async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
     const tabs = await browser.tabs.query({
       active: true,
+      currentWindow: true,
     })
     const tab = tabs.find((tab) => {
-      return tab.id && tab.active
+      return tab.id && tab.url && tab.active
     })
-    const tabId = tab?.id
-    if (tabId != null) {
-      return tabId
-    }
+    return tab || null
   } catch (err) {
     if (!isAbortError(err)) {
       log.exception(err)
@@ -44,8 +42,11 @@ async function getActiveTabId(): Promise<number | null> {
  * Request page to be saved. content.ts is listening for this message and
  * respond with page content message that could be saved to smuggler.
  */
-async function requestPageContentToSave() {
-  const tabId = await getActiveTabId()
+async function requestPageContentToSave(tab?: browser.Tabs.Tab) {
+  if (tab == null) {
+    tab = (await getActiveTab()) || undefined
+  }
+  const tabId = tab?.id
   if (tabId == null) {
     return
   }
@@ -215,13 +216,7 @@ async function savePageQuote(
 
 async function requestPageSavedStatus(tab?: browser.Tabs.Tab) {
   if (tab == null) {
-    const tabs = await browser.tabs.query({
-      active: true,
-      currentWindow: true,
-    })
-    tab = tabs.find((tab) => {
-      return tab.url && tab.active
-    })
+    tab = (await getActiveTab()) || undefined
   }
   if (tab == null) {
     return
