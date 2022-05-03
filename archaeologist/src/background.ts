@@ -182,6 +182,11 @@ async function savePage(
   }
 }
 
+async function requestPageFromTabToSaveIfNotYetSaved(
+) {
+
+}
+
 async function savePageQuote(
   originId: number,
   { url, path, text }: NodeExtattrsWebQuote,
