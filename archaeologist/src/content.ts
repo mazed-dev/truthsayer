@@ -74,19 +74,25 @@ async function readSelectedText(text: string): Promise<void> {
  * Augmentation here is a set of elements added to a web page by archaeologist.
  *
  * - `quotes` - highlightings in web page.
+ * - `bookmark` - saved web page as a web bookmark.
  *
  * Today we use statefull approach, where we keep current state in `content.ts`
  * script and update or reset it as needed using `mode` before re-rendering all
  * augmentations.
  */
 const kQuotesForAugmentation: TNode[] = []
+let kSavedPageAsBookmark: TNode | null = null
+
 async function updateContentAugmentation(
   quotes: TNode[],
-  mode: 'append' | 'reset'
+  bookmark: TNode | null,
+  mode: 'append' | 'reset',
 ): Promise<void> {
   if (mode === 'reset') {
     kQuotesForAugmentation.length = 0
+    kSavedPageAsBookmark = null
   }
+  kSavedPageAsBookmark = bookmark
   kQuotesForAugmentation.push(...quotes)
   renderPageAugmentation(socket, kQuotesForAugmentation)
 }
@@ -101,10 +107,11 @@ browser.runtime.onMessage.addListener(async (message: MessageType) => {
       break
     case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
       {
-        const { quotes, mode } = message
+        const { quotes, bookmark, mode } = message
         await updateContentAugmentation(
           quotes.map((json: TNodeJson) => TNode.fromJson(json)),
-          mode
+          (bookmark != null ? TNode.fromJson(bookmark) : null),
+          mode,
         )
       }
       break

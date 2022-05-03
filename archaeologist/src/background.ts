@@ -184,7 +184,19 @@ async function savePage(
 }
 
 async function requestPageFromTabToSaveIfNotYetSaved(
-) {
+tab?: browser.Tabs.Tab) {
+  if (tab == null) {
+    tab = (await getActiveTab()) || undefined
+  }
+  if (tab == null) {
+    return
+  }
+  const { id, url } = tab
+  if (url == null) {
+    return
+  }
+  const { id: originId, stableUrl } = await genOriginId(url)
+  await checkOriginIdAndUpdatePageStatus(id, stableUrl, originId)
 
 }
 

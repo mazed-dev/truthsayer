@@ -40,11 +40,13 @@ interface GetSelectedQuoteResponse {
   url: string
   originId: number
   lang?: string
+  bookmarkNid: string
 }
 
 interface UpdateContentAugmentationRequest {
   type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION'
   quotes: TNodeJson[]
+  bookmark?: TNodeJson
   mode: 'reset' | 'append'
 }
 
