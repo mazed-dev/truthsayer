@@ -3,14 +3,10 @@
 
 import React, { useContext } from 'react'
 import { css } from '@emotion/react'
-import { Link } from 'react-router-dom'
-import { Button } from 'react-bootstrap'
 
 import { smuggler, TEdge } from 'smuggler-api'
 
 import styles from './Footbar.module.css'
-
-import { makeRefTo } from './../lib/route'
 
 import { MzdGlobalContext } from '../lib/global'
 import {
@@ -23,12 +19,13 @@ import {
 import {
   jcss,
   CheckBox,
-  MaterialIcon,
-  MdiLaunch,
   MdiMoreHoriz,
   HoverTooltip,
   MdiContentCut,
+  NodeTimeBadge,
 } from 'elementary'
+
+import moment from 'moment'
 
 class PrivateMenu extends React.Component {
   constructor(props) {
@@ -88,13 +85,19 @@ class PrivateMenu extends React.Component {
       : 'Magnetise the link'
     const { className, children } = this.props
     return (
-      <FootbarDropdown className={this.props.className}>
+      <FootbarDropdown className={className}>
         <FootbarDropdownToggle id={'more-options-for-fullsize-card'}>
           {children}
         </FootbarDropdownToggle>
         <FootbarDropdownMenu>
           <FootbarDropdownItem onClick={this.handleRefCutOff}>
-            <MdiContentCut css={{ fontSize: '20px' }} />
+            <MdiContentCut
+              css={{
+                fontSize: '20px',
+                verticalAlign: 'middle',
+                marginRight: '5px',
+              }}
+            />
             {cutTooltip}
           </FootbarDropdownItem>
           <FootbarDropdownItem onClick={this.switchStickiness}>
@@ -147,34 +150,14 @@ const Menu = ({
   }
 }
 
-const SeeMoreButton = React.forwardRef(
-  ({ children, onClick, className, disabled }, ref) => {
-    return (
-      <div
-        className={jcss(styles.a_see_more, className)}
-        ref={ref}
-        onClick={onClick}
-        disabled={disabled}
-      >
-        {children}
-      </div>
-    )
-  }
-)
-
 export function SmallCardFootbar({
-  nid,
   edge,
-  showMore,
-  toggleMore,
   switchStickiness,
   cutOffRef,
   className,
 }: {
   nid: string
   edge: TEdge
-  showMore: boolean
-  toggleMore: () => void
   switchStickiness: (edge: TEdge, on: boolean) => void
   cutOffRef: (eid: string) => void
   className?: string
@@ -191,23 +174,6 @@ export function SmallCardFootbar({
       `}
       className={className}
     >
-      <Button
-        as={SeeMoreButton}
-        onClick={toggleMore}
-        className={jcss(styles.tool_button)}
-      >
-        <MaterialIcon
-          css={{ fontSize: '20px' }}
-          type={showMore ? 'expand_less' : 'expand_more'}
-        />
-      </Button>
-      <Button
-        as={Link}
-        to={makeRefTo.node(nid)}
-        className={jcss(styles.tool_button)}
-      >
-        <MdiLaunch css={{ fontSize: '20px' }} />
-      </Button>
       <Menu
         edge={edge}
         switchStickiness={switchStickiness}

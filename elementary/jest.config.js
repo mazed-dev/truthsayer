@@ -3,12 +3,12 @@ module.exports = {
 
   // The root of your source code, typically /src
   // `<rootDir>` is a token Jest substitutes
-  roots: ["<rootDir>/src"],
+  roots: ['<rootDir>/src'],
 
   // Jest transformations -- this adds support for TypeScript
   // using ts-jest
   transform: {
-    "^.+\\.[tj]sx?$": "ts-jest"
+    '^.+\\.[tj]sx?$': 'ts-jest',
   },
 
   // Runs special logic, such as cleaning up components
@@ -22,8 +22,8 @@ module.exports = {
   // Test spec file resolution pattern
   // Matches parent folder `__tests__` and filename
   // should contain `test` or `spec`.
-  testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$",
+  testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
 
   // Module file extensions for importing
-  moduleFileExtensions: ["ts", "tsx", "js", "json"]
-};
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'json'],
+}

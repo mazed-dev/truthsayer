@@ -1,6 +1,6 @@
 export enum Colour {
   White = '#fff',
-  ThinGrey = '#ececec',
+  ThinGrey = '#e3e3e3',
 }
 
 export enum ColourButtonCreate {

@@ -29,6 +29,8 @@ import {
   MdiFormatListBulleted,
 } from '../MaterialIcons'
 
+import { kCardBorderColour } from '../colour'
+
 const ToolbarButtonInactive = styled.span`
   padding: 1px 10px 0px;
   border-radius: 50px;
@@ -46,7 +48,7 @@ const ToolbarButtonActive = styled(ToolbarButtonInactive)`
 `
 
 const ToolbarBox = styled(ButtonGroup)`
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid ${kCardBorderColour};
   padding: 6px 0 6px 0px;
   margin: 0;
   display: flex;

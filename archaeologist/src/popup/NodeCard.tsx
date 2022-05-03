@@ -37,7 +37,7 @@ export const NodeCard = ({
           })
         }
       >
-        <NodeCardReadOnly node={node} strippedRefs />
+        <NodeCardReadOnly node={node} strippedRefs strippedActions />
       </FixedShrinkCard>
       <NodeTimeBadge
         created_at={node.created_at}
