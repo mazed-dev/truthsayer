@@ -40,7 +40,9 @@ interface GetSelectedQuoteResponse {
   url: string
   originId: number
   lang?: string
-  bookmarkNid: string
+  // If specified, the requested web quote is connected to the bookmark on the
+  // right hand side
+  fromNid?: string
 }
 
 interface UpdateContentAugmentationRequest {
