@@ -34,7 +34,7 @@ document.body.appendChild(socket)
  * script and update or reset it as needed using `mode` before re-rendering all
  * augmentations.
  */
-const augmentation : {
+const augmentation: {
   quotes: TNode[]
   bookmark: TNode | null
 } = {
@@ -93,7 +93,7 @@ async function readSelectedText(text: string): Promise<void> {
 async function updateContentAugmentation(
   quotes: TNode[],
   bookmark: TNode | null,
-  mode: 'append' | 'reset',
+  mode: 'append' | 'reset'
 ): Promise<void> {
   if (mode === 'reset') {
     augmentation.quotes.length = 0
@@ -121,8 +121,8 @@ browser.runtime.onMessage.addListener(async (message: MessageType) => {
         const { quotes, bookmark, mode } = message
         await updateContentAugmentation(
           quotes.map((json: TNodeJson) => TNode.fromJson(json)),
-          (bookmark != null ? TNode.fromJson(bookmark) : null),
-          mode,
+          bookmark != null ? TNode.fromJson(bookmark) : null,
+          mode
         )
       }
       break

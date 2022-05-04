@@ -190,7 +190,7 @@ async function savePageQuote(
   { url, path, text }: NodeExtattrsWebQuote,
   lang?: string,
   tabId?: number,
-  fromNid?: string,
+  fromNid?: string
 ) {
   const extattrs: NodeExtattrs = {
     content_type: Mime.TEXT_PLAIN_UTF_8,
@@ -312,7 +312,13 @@ browser.runtime.onMessage.addListener(
       case 'SELECTED_WEB_QUOTE':
         {
           const { originId, url, text, path, lang, fromNid } = message
-          await savePageQuote(originId, { url, path, text }, lang, tabId, fromNid)
+          await savePageQuote(
+            originId,
+            { url, path, text },
+            lang,
+            tabId,
+            fromNid
+          )
         }
         break
       default:
