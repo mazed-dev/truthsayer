@@ -69,6 +69,8 @@ interface SavePageResponse {
   originId: number
   // Missing content is for a page that can not be saved
   content?: WebPageContent
+  // Saving page quotes to connect as right hand side cards
+  quoteNids: string[]
 }
 
 export type MessageType =

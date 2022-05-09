@@ -56,6 +56,7 @@ async function readPageContent() {
       content,
       originId,
       url: stableUrl,
+      quoteNids: augmentation.quotes.map((node) => node.nid),
     })
   )
 }
