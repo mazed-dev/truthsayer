@@ -68,8 +68,8 @@ async function cloneNode({
     return await smuggler.node.create(
       {
         text: doc.toNodeTextData(),
-        from_nid: from,
-        to_nid: to,
+        from_nid: from ? [from] : undefined,
+        to_nid: to ? [to] : undefined,
       },
       abortSignal
     )
@@ -118,8 +118,8 @@ class ChainActionHandler {
       .create(
         {
           text: TDoc.makeEmpty().toNodeTextData(),
-          from_nid: side === 'right' ? this.nid : undefined,
-          to_nid: side === 'left' ? this.nid : undefined,
+          from_nid: side === 'right' ? [this.nid] : undefined,
+          to_nid: side === 'left' ? [this.nid] : undefined,
         },
         this.abortSignal
       )

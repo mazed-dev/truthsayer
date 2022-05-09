@@ -150,8 +150,8 @@ function uploadLocalTextFile(
         .create(
           {
             text: doc.toNodeTextData(),
-            from_nid: from_nid || undefined,
-            to_nid: to_nid || undefined,
+            from_nid: from_nid ? [from_nid] : undefined,
+            to_nid: to_nid ? [to_nid] : undefined,
           },
           abortSignal
         )
