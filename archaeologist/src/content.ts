@@ -24,6 +24,24 @@ const socket = document.createElement('div')
 socket.id = 'mazed-archaeologist-content-socket'
 document.body.appendChild(socket)
 
+/**
+ * Augmentation here is a set of elements added to a web page by archaeologist.
+ *
+ * - `quotes` - highlightings in web page.
+ * - `bookmark` - saved web page as a web bookmark.
+ *
+ * Today we use statefull approach, where we keep current state in `content.ts`
+ * script and update or reset it as needed using `mode` before re-rendering all
+ * augmentations.
+ */
+const augmentation: {
+  quotes: TNode[]
+  bookmark: TNode | null
+} = {
+  quotes: [],
+  bookmark: null,
+}
+
 async function readPageContent() {
   const { id: originId, stableUrl } = await genOriginId(
     exctractPageUrl(document)
@@ -43,6 +61,7 @@ async function readPageContent() {
 }
 
 async function readSelectedText(text: string): Promise<void> {
+  console.log('Mazed augmentation', augmentation)
   const lang = document.documentElement.lang
   const { id: originId, stableUrl } = await genOriginId(
     exctractPageUrl(document)
@@ -62,6 +81,7 @@ async function readSelectedText(text: string): Promise<void> {
           lang,
           originId,
           url: stableUrl,
+          fromNid: augmentation.bookmark?.nid,
         })
       )
     }
@@ -70,25 +90,22 @@ async function readSelectedText(text: string): Promise<void> {
   document.execCommand('copy')
 }
 
-/**
- * Augmentation here is a set of elements added to a web page by archaeologist.
- *
- * - `quotes` - highlightings in web page.
- *
- * Today we use statefull approach, where we keep current state in `content.ts`
- * script and update or reset it as needed using `mode` before re-rendering all
- * augmentations.
- */
-const kQuotesForAugmentation: TNode[] = []
 async function updateContentAugmentation(
   quotes: TNode[],
+  bookmark: TNode | null,
   mode: 'append' | 'reset'
 ): Promise<void> {
   if (mode === 'reset') {
-    kQuotesForAugmentation.length = 0
+    augmentation.quotes.length = 0
+    augmentation.bookmark = null
   }
-  kQuotesForAugmentation.push(...quotes)
-  renderPageAugmentation(socket, kQuotesForAugmentation)
+  if (bookmark != null) {
+    // If mode is not 'reset', null bookmark in arguments should not discard
+    // existing bookmark
+    augmentation.bookmark = bookmark
+  }
+  augmentation.quotes.push(...quotes)
+  renderPageAugmentation(socket, augmentation.quotes)
 }
 
 browser.runtime.onMessage.addListener(async (message: MessageType) => {
@@ -101,9 +118,10 @@ browser.runtime.onMessage.addListener(async (message: MessageType) => {
       break
     case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
       {
-        const { quotes, mode } = message
+        const { quotes, bookmark, mode } = message
         await updateContentAugmentation(
           quotes.map((json: TNodeJson) => TNode.fromJson(json)),
+          bookmark != null ? TNode.fromJson(bookmark) : null,
           mode
         )
       }
