@@ -5,12 +5,10 @@
 export function genElementDomPath(el: Element): string[] {
   const stack = []
   while (el.parentNode != null) {
-    console.log('Node', el.nodeName)
     let sibCountOfType = 0
     let sibTypeInd = 0
     for (let key = 0; key < el.parentNode.childNodes.length; ++key) {
       const sibling = el.parentNode.childNodes[key]
-      console.log('Sibling', sibling.nodeName, key)
       if (sibling.nodeName === el.nodeName) {
         ++sibCountOfType
         if (sibling === el) {

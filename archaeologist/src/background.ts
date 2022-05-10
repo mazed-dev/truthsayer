@@ -76,12 +76,13 @@ async function updateContent(
   unmemorable?: boolean
 ): Promise<void> {
   const quotesJson = quotes.map((node) => node.toJson())
+  const bookmarkJson = bookmark?.toJson()
   // Inform PopUp window of saved bookmark and web quotes
   try {
     await browser.runtime.sendMessage(
       Message.create({
         type: 'UPDATE_POPUP_CARDS',
-        bookmark: bookmark?.toJson(),
+        bookmark: bookmarkJson,
         quotes: quotesJson,
         unmemorable,
         mode,
@@ -117,6 +118,7 @@ async function updateContent(
       Message.create({
         type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
         quotes: quotesJson,
+        bookmark: bookmarkJson,
         mode,
       })
     )
@@ -187,7 +189,8 @@ async function savePageQuote(
   originId: number,
   { url, path, text }: NodeExtattrsWebQuote,
   lang?: string,
-  tabId?: number
+  tabId?: number,
+  fromNid?: string
 ) {
   const extattrs: NodeExtattrs = {
     content_type: Mime.TEXT_PLAIN_UTF_8,
@@ -200,6 +203,7 @@ async function savePageQuote(
     origin: {
       id: originId,
     },
+    from_nid: fromNid,
     extattrs,
   })
   if (resp) {
@@ -307,8 +311,14 @@ browser.runtime.onMessage.addListener(
         break
       case 'SELECTED_WEB_QUOTE':
         {
-          const { originId, url, text, path, lang } = message
-          await savePageQuote(originId, { url, path, text }, lang, tabId)
+          const { originId, url, text, path, lang, fromNid } = message
+          await savePageQuote(
+            originId,
+            { url, path, text },
+            lang,
+            tabId,
+            fromNid
+          )
         }
         break
       default:
