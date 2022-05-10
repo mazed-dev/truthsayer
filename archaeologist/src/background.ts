@@ -203,7 +203,7 @@ async function savePageQuote(
     origin: {
       id: originId,
     },
-    from_nid: fromNid,
+    from_nid: fromNid ? [fromNid] : undefined,
     extattrs,
   })
   if (resp) {

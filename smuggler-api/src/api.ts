@@ -73,8 +73,8 @@ export function isUniqueLookupKey(
 
 export type CreateNodeArgs = {
   text: NodeTextData
-  from_nid?: string
-  to_nid?: string
+  from_nid?: string[]
+  to_nid?: string[]
   index_text?: NodeIndexText
   extattrs?: NodeExtattrs
   ntype?: NodeType
@@ -82,10 +82,17 @@ export type CreateNodeArgs = {
 }
 
 async function createNode(
-  args: CreateNodeArgs,
+  {
+    text,
+    from_nid,
+    to_nid,
+    index_text,
+    extattrs,
+    ntype,
+    origin,
+  }: CreateNodeArgs,
   signal?: AbortSignal
 ): Promise<NewNodeResponse> {
-  const { text, from_nid, to_nid, index_text, extattrs, ntype, origin } = args
   signal = signal || undefined
   const query = {
     from: from_nid || undefined,
