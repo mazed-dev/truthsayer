@@ -53,7 +53,7 @@ export type FolderProxy = {
 
 export interface ThirdpartyFs {
   childrenOf: (folder: FolderProxy) => Promise<ChildrenProxy>
-  download: (file: FileProxy) => Promise<ReadableStream>
+  download: (file: FileProxy) => Promise<File>
   signIn: () => Promise<void>
   signOut: () => Promise<void>
 }

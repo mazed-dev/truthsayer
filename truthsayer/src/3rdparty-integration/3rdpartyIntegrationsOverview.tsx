@@ -68,13 +68,15 @@ async function uploadFilesFromFolder(
   let filesLeft = files.length
   for (const batch of FsModificationQueue.modTimestampBatchIterator(files)) {
     for (const file of batch) {
+      // TODO[snikitin@outlook.com] replace with a check that will let
+      // all supported mime types through
       if (file.mimeType !== Mime.TEXT_PLAIN) {
         log.debug(
           `Skipping ${file.path} due to unsupported Mime type ${file.mimeType}`
         )
         return
       }
-      const contents: ReadableStream = await fs.download(file)
+      const contents: File = await fs.download(file)
       const node = await fileToNode(file, contents)
       const response = await smuggler.node.createOrUpdate(node)
       log.debug(`Response to node creation/update: ${JSON.stringify(response)}`)
