@@ -7,22 +7,28 @@ import { NodeIndexText } from '../types'
 import { Mime } from 'armoury'
 import type { MimeType } from 'armoury'
 
-async function readAllFrom(reader: ReadableStreamDefaultReader) {
+async function readAtMost(file: File, maxChars: number) {
+  const reader = file.stream().getReader()
+  let totalCharsRead = 0
   const data: string[] = []
   for (
     let chunk: { done: boolean; value?: string } = { done: false };
-    !chunk.done;
+    !chunk.done && totalCharsRead < maxChars;
     chunk = await reader.read()
   ) {
-    if (chunk.value) data.push(chunk.value)
+    if (chunk.value === undefined) {
+      continue
+    }
+
+    const maxCharsLeft = maxChars - totalCharsRead
+    const end =
+      chunk.value.length < maxCharsLeft ? chunk.value.length : maxCharsLeft
+    totalCharsRead += end
+
+    data.push(chunk.value.substring(0, end))
   }
 
-  return data
-}
-
-async function fileAsString(file: File) {
-  const chunks = await readAllFrom(file.stream().getReader())
-  return chunks.join('')
+  return data.join('')
 }
 
 /**
@@ -42,7 +48,9 @@ export async function nodeIndexFromFile(
 
   if (Mime.isText(file.type)) {
     return {
-      plaintext: await fileAsString(file),
+      // Cut string by length 10KiB to avoid blowing up backend with huge JSON.
+      // Later on we can and perhaps should reconsider this limit.
+      plaintext: await readAtMost(file, 10240),
       labels: [],
       brands: [],
       dominant_colors: [],

@@ -40,7 +40,7 @@ export async function createNodeFromLocalBinary(
     )
   }
   if (file.size > 8000000) {
-    throw new Error(`reading failed: file is too big ( ${file.size} > 2MiB)`)
+    throw new Error(`reading failed: file is too big ( ${file.size} > 8MiB)`)
   }
 
   // Launch both upload & index *generation* at the same time, wait until all
