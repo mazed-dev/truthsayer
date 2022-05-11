@@ -31,14 +31,19 @@ export function uploadLocalFile(
         updateStatus({ progress: 1, nid: result.nid, error: result.warning })
       })
       .catch((error) => {
+        if (isAbortError(error)) {
+          return
+        }
         updateStatus({ progress: 1, error: errorise(error).message })
       })
   }
 }
 
 // TODO[snikitin@outlook.com] See if this can be moved into steroid.node
-// and merged with createFromLocalBinary to form a more general
-// steroid.node.createFromLocal
+// and merged with createFromLocalBinary into a more general
+// steroid.node.createFromLocal.
+// At the time of this writing it is mostly prevented by the usage of markdownToSlate()
+// which is not available at 'steroid' level
 function uploadLocalTextFile(
   file: File,
   from_nid: Optional<string>,
