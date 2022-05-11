@@ -12,8 +12,8 @@ import { log, Mime, Optional, isAbortError, errorise } from 'armoury'
 
 // TODO[snikitin@outlook.com] As functions in this module perform
 // generation of a file search index, they share a lot of similarities
-// with @see nodeIndexFromFile(). It should be beneficial if we can consolidate
-// them since right now new index-related features have to be implemented
+// with @see nodeIndexFromFile(). It may be beneficial if we can reuse one
+// from another since right now new index-related features have to be implemented
 // multiple times.
 
 export type FileUploadComplete = {
