@@ -20,18 +20,16 @@ import {
 
 import { Mime } from 'armoury'
 
-async function getActiveTabId(): Promise<number | null> {
+async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
     const tabs = await browser.tabs.query({
       active: true,
+      currentWindow: true,
     })
     const tab = tabs.find((tab) => {
-      return tab.id && tab.active
+      return tab.id && tab.url && tab.active
     })
-    const tabId = tab?.id
-    if (tabId != null) {
-      return tabId
-    }
+    return tab || null
   } catch (err) {
     if (!isAbortError(err)) {
       log.exception(err)
@@ -44,8 +42,11 @@ async function getActiveTabId(): Promise<number | null> {
  * Request page to be saved. content.ts is listening for this message and
  * respond with page content message that could be saved to smuggler.
  */
-async function requestPageContentToSave() {
-  const tabId = await getActiveTabId()
+async function requestPageContentToSave(tab?: browser.Tabs.Tab) {
+  if (tab == null) {
+    tab = (await getActiveTab()) || undefined
+  }
+  const tabId = tab?.id
   if (tabId == null) {
     return
   }
@@ -75,12 +76,13 @@ async function updateContent(
   unmemorable?: boolean
 ): Promise<void> {
   const quotesJson = quotes.map((node) => node.toJson())
+  const bookmarkJson = bookmark?.toJson()
   // Inform PopUp window of saved bookmark and web quotes
   try {
     await browser.runtime.sendMessage(
       Message.create({
         type: 'UPDATE_POPUP_CARDS',
-        bookmark: bookmark?.toJson(),
+        bookmark: bookmarkJson,
         quotes: quotesJson,
         unmemorable,
         mode,
@@ -116,6 +118,7 @@ async function updateContent(
       Message.create({
         type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
         quotes: quotesJson,
+        bookmark: bookmarkJson,
         mode,
       })
     )
@@ -138,6 +141,7 @@ async function updateContent(
 async function savePage(
   url: string,
   originId: number,
+  quoteNids: string[],
   content?: WebPageContent,
   tabId?: number
 ) {
@@ -174,6 +178,7 @@ async function savePage(
     origin: {
       id: originId,
     },
+    to_nid: quoteNids,
   })
   if (resp) {
     const { nid } = resp
@@ -186,7 +191,8 @@ async function savePageQuote(
   originId: number,
   { url, path, text }: NodeExtattrsWebQuote,
   lang?: string,
-  tabId?: number
+  tabId?: number,
+  fromNid?: string
 ) {
   const extattrs: NodeExtattrs = {
     content_type: Mime.TEXT_PLAIN_UTF_8,
@@ -199,6 +205,7 @@ async function savePageQuote(
     origin: {
       id: originId,
     },
+    from_nid: fromNid ? [fromNid] : undefined,
     extattrs,
   })
   if (resp) {
@@ -210,13 +217,7 @@ async function savePageQuote(
 
 async function requestPageSavedStatus(tab?: browser.Tabs.Tab) {
   if (tab == null) {
-    const tabs = await browser.tabs.query({
-      active: true,
-      currentWindow: true,
-    })
-    tab = tabs.find((tab) => {
-      return tab.url && tab.active
-    })
+    tab = (await getActiveTab()) || undefined
   }
   if (tab == null) {
     return
@@ -304,16 +305,22 @@ browser.runtime.onMessage.addListener(
         await requestPageSavedStatus()
         break
       case 'PAGE_TO_SAVE':
-        const { url, content, originId } = message
-        await savePage(url, originId, content, tabId)
+        const { url, content, originId, quoteNids } = message
+        await savePage(url, originId, quoteNids, content, tabId)
         break
       case 'REQUEST_AUTH_STATUS':
         await sendAuthStatus()
         break
       case 'SELECTED_WEB_QUOTE':
         {
-          const { originId, url, text, path, lang } = message
-          await savePageQuote(originId, { url, path, text }, lang, tabId)
+          const { originId, url, text, path, lang, fromNid } = message
+          await savePageQuote(
+            originId,
+            { url, path, text },
+            lang,
+            tabId,
+            fromNid
+          )
         }
         break
       default:
