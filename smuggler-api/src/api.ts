@@ -27,8 +27,8 @@ import { makeUrl } from './api_url'
 
 import { TNodeSliceIterator, GetNodesSliceFn } from './node_slice_iterator'
 
-import { genOriginId, Mime, MimeType, stabiliseUrlForOriginId } from 'armoury'
-import type { Optional } from 'armoury'
+import { genOriginId, Mime, stabiliseUrlForOriginId } from 'armoury'
+import type { Optional, MimeType } from 'armoury'
 
 import lodash from 'lodash'
 import moment from 'moment'

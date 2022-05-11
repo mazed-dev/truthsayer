@@ -4,10 +4,11 @@
 
 import { smuggler } from '../api'
 import { NodeIndexText } from '../types'
-import { Mime, MimeType } from 'armoury'
+import { Mime } from 'armoury'
+import type { MimeType } from 'armoury'
 
 async function readAllFrom(reader: ReadableStreamDefaultReader) {
-  let data: string[] = []
+  const data: string[] = []
   for (
     let chunk: { done: boolean; value?: string } = { done: false };
     !chunk.done;

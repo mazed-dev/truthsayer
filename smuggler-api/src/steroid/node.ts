@@ -8,7 +8,8 @@ import {
   UploadMultipartResponse,
 } from '../types'
 import { smuggler } from '../api'
-import { log, Mime, Optional, isAbortError, errorise } from 'armoury'
+import { log, Mime, isAbortError, errorise } from 'armoury'
+import type { Optional } from 'armoury'
 
 // TODO[snikitin@outlook.com] As functions in this module perform
 // generation of a file search index, they share a lot of similarities
