@@ -28,7 +28,7 @@ import { makeUrl } from './api_url'
 import { TNodeSliceIterator, GetNodesSliceFn } from './node_slice_iterator'
 
 import { genOriginId, Mime, stabiliseUrlForOriginId } from 'armoury'
-import type { Optional } from 'armoury'
+import type { Optional, MimeType } from 'armoury'
 
 import lodash from 'lodash'
 import moment from 'moment'
@@ -334,7 +334,9 @@ async function buildFilesSearchIndex(
   signal?: AbortSignal
 ): Promise<GenerateBlobIndexResponse> {
   const value = new FormData()
-  files.forEach((file) => value.append('file', file, file.name))
+  files.forEach((file) => {
+    value.append('file', file, file.name)
+  })
   const resp = await fetch(makeUrl('/blob-index'), {
     method: 'POST',
     body: value,
@@ -344,6 +346,10 @@ async function buildFilesSearchIndex(
     throw new Error(`(${resp.status}) ${resp.statusText}`)
   }
   return await resp.json()
+}
+
+function mimeTypeIsSupportedByBuildIndex(mimeType: MimeType) {
+  return Mime.isImage(mimeType)
 }
 
 function makeBlobSourceUrl(nid: string): string {
@@ -872,6 +878,19 @@ export const smuggler = {
   },
   blob_index: {
     build: buildFilesSearchIndex,
+    /** 'cfg' section is intended to expose properties of one of smuggler's
+     * endpoints *without using network*. This information is unlikely to change
+     * during application runtime which makes repeated network usage wasteful.
+     *
+     * It may be tempting to bake them into respective endpoint methods directly
+     * (e.g. into 'blob_index.build'), but that is intentionally avoided to
+     * keep a clearer boundary between raw REST endpoints and helper functionality.
+     *
+     * Similar sections may become useful for other endpoints
+     */
+    cfg: {
+      supportsMime: mimeTypeIsSupportedByBuildIndex,
+    },
   },
   edge: {
     create: createEdge,
