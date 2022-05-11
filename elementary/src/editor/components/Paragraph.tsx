@@ -30,7 +30,10 @@ export const Paragraph = React.forwardRef<HTMLParagraphElement, ParagraphProps>(
   ({ className, children, ...attributes }, ref) => {
     let tip
     if (React.Children.count(children) === 1) {
-      const text = lodash.get(React.Children.toArray(children)[0], 'props.text.text')
+      const text = lodash.get(
+        React.Children.toArray(children)[0],
+        'props.text.text'
+      )
       if (text === '') {
         tip = <TipBox contentEditable={false} />
       }
