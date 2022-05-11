@@ -141,6 +141,7 @@ async function updateContent(
 async function savePage(
   url: string,
   originId: number,
+  quoteNids: string[],
   content?: WebPageContent,
   tabId?: number
 ) {
@@ -177,6 +178,7 @@ async function savePage(
     origin: {
       id: originId,
     },
+    to_nid: quoteNids,
   })
   if (resp) {
     const { nid } = resp
@@ -303,8 +305,8 @@ browser.runtime.onMessage.addListener(
         await requestPageSavedStatus()
         break
       case 'PAGE_TO_SAVE':
-        const { url, content, originId } = message
-        await savePage(url, originId, content, tabId)
+        const { url, content, originId, quoteNids } = message
+        await savePage(url, originId, quoteNids, content, tabId)
         break
       case 'REQUEST_AUTH_STATUS':
         await sendAuthStatus()
