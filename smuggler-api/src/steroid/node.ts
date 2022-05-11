@@ -1,9 +1,13 @@
+/**
+ * Node-related APIs "on steroids" (see @alias steroid.ts for more information)
+ */
+
 import {
   GenerateBlobIndexResponse,
   NodeIndexText,
   UploadMultipartResponse,
-} from './types'
-import { smuggler } from './api'
+} from '../types'
+import { smuggler } from '../api'
 import { log, Mime, Optional, isAbortError, errorise } from 'armoury'
 
 // TODO[snikitin@outlook.com] As functions in this module perform

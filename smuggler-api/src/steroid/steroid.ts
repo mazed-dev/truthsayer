@@ -12,8 +12,8 @@
  * wrapper around individual smuggler's REST API)
  */
 
-import { nodeIndexFromFile } from './steroidBuildIndex'
-import { createNodeFromLocalBinary } from './steroidNode'
+import { nodeIndexFromFile } from './buildIndex'
+import { createNodeFromLocalBinary } from './node'
 
 export const steroid = {
   build_index: {

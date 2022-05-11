@@ -1,5 +1,9 @@
-import { smuggler } from './api'
-import { NodeIndexText } from './types'
+/**
+ * APIs that build node indexes "on steroids" (see @alias steroid.ts for more information)
+ */
+
+import { smuggler } from '../api'
+import { NodeIndexText } from '../types'
 import { Mime } from 'armoury'
 
 async function readAllFrom(reader: ReadableStreamDefaultReader) {
