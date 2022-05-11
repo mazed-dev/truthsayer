@@ -12,12 +12,18 @@
  * wrapper around individual smuggler's REST API)
  */
 
-import { nodeIndexFromFile } from './buildIndex'
+import {
+  nodeIndexFromFile,
+  mimeTypeIsSupportedByBuildIndex,
+} from './buildIndex'
 import { createNodeFromLocalBinary } from './node'
 
 export const steroid = {
   build_index: {
     build: nodeIndexFromFile,
+    cfg: {
+      supportsMime: mimeTypeIsSupportedByBuildIndex,
+    },
   },
   node: {
     // TODO[snikitin@outlook.com] See if this can be merged with

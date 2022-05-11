@@ -15,13 +15,21 @@ import {
   MdiSync,
   MdiCloudSync,
 } from 'elementary'
-import { errorise, log, Mime } from 'armoury'
-import { AccountInterface, smuggler, UserFilesystemId } from 'smuggler-api'
+import { errorise, genOriginId, log, Mime } from 'armoury'
+import {
+  AccountInterface,
+  CreateNodeArgs,
+  smuggler,
+  steroid,
+  UserFilesystemId,
+  NodeType,
+  makeNodeTextData,
+} from 'smuggler-api'
 
 import { MzdGlobalContext } from '../lib/global'
 import * as MsAuthentication from './MicrosoftAuthentication'
 import { OneDriveFs } from './OneDriveFilesystem'
-import { fileToNode } from './3rdPartyFilesystemProxyUtil'
+import { extattrsFromFile } from './3rdPartyFilesystemProxyUtil'
 import { ThirdpartyFs } from './3rdPartyFilesystem'
 import * as FsModificationQueue from './FilesystemModificationQueue'
 
@@ -68,16 +76,26 @@ async function uploadFilesFromFolder(
   let filesLeft = files.length
   for (const batch of FsModificationQueue.modTimestampBatchIterator(files)) {
     for (const file of batch) {
-      // TODO[snikitin@outlook.com] replace with a check that will let
-      // all supported mime types through
-      if (file.mimeType !== Mime.TEXT_PLAIN) {
+      if (!steroid.build_index.cfg.supportsMime(file.mimeType)) {
         log.debug(
           `Skipping ${file.path} due to unsupported Mime type ${file.mimeType}`
         )
         return
       }
       const contents: File = await fs.download(file)
-      const node = await fileToNode(file, contents)
+      const index_text = await steroid.build_index.build(contents)
+      const extattrs = await extattrsFromFile(file, contents)
+      const origin = await genOriginId(file.webUrl)
+      const node: CreateNodeArgs = {
+        text: makeNodeTextData(),
+        index_text,
+        extattrs,
+        ntype: NodeType.Url,
+        origin: {
+          id: origin.id,
+        },
+      }
+
       const response = await smuggler.node.createOrUpdate(node)
       log.debug(`Response to node creation/update: ${JSON.stringify(response)}`)
     }

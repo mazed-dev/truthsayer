@@ -4,7 +4,7 @@
 
 import { smuggler } from '../api'
 import { NodeIndexText } from '../types'
-import { Mime } from 'armoury'
+import { Mime, MimeType } from 'armoury'
 
 async function readAllFrom(reader: ReadableStreamDefaultReader) {
   let data: string[] = []
@@ -57,4 +57,8 @@ export async function nodeIndexFromFile(
   throw new Error(
     `Attempted to make node index from ${file.name}, Mime type ${file.type} is not supported`
   )
+}
+
+export function mimeTypeIsSupportedByBuildIndex(mimeType: MimeType) {
+  return Mime.isImage(mimeType) || Mime.isText(mimeType)
 }

@@ -3,14 +3,8 @@
  * like @see FileProxy and @see FolderProxy
  */
 
-import {
-  makeNodeTextData,
-  NodeExtattrs,
-  NodeType,
-  CreateNodeArgs,
-  steroid,
-} from 'smuggler-api'
-import { Mime, genOriginId } from 'armoury'
+import { NodeExtattrs } from 'smuggler-api'
+import { Mime } from 'armoury'
 import { FileProxy } from './3rdPartyFilesystem'
 
 async function beginningOf(blob: Blob) {
@@ -27,13 +21,13 @@ async function beginningOf(blob: Blob) {
 }
 
 /**
- * Convert a thirdparty filesystem file to a representation of a node
+ * Compose @see NodeExtattrs for a thirdparty filesystem file
  */
-export async function fileToNode(
+export async function extattrsFromFile(
   file: FileProxy,
   contents: File
-): Promise<CreateNodeArgs> {
-  const extattrs: NodeExtattrs = {
+): Promise<NodeExtattrs> {
+  return {
     content_type: Mime.TEXT_URI_LIST,
     preview_image: undefined,
     title: '☁ ' + file.path,
@@ -44,16 +38,5 @@ export async function fileToNode(
       url: file.webUrl,
     },
     blob: undefined,
-  }
-
-  const origin = await genOriginId(file.webUrl)
-  return {
-    text: makeNodeTextData(),
-    index_text: await steroid.build_index.build(contents),
-    extattrs,
-    ntype: NodeType.Url,
-    origin: {
-      id: origin.id,
-    },
   }
 }
