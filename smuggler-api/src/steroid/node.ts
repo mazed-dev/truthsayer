@@ -21,6 +21,12 @@ export type FileUploadComplete = {
   warning?: string
 }
 
+/**
+ * Upload a local binary file as a *fully featured* Mazed node
+ * (as opposed to, for example, @see smuggler.blob.upload that
+ * at the time of this writing creates a node that *doesn't support some
+ * Mazed features* like search index).
+ */
 export async function createNodeFromLocalBinary(
   file: File,
   from_nid: Optional<string>,
