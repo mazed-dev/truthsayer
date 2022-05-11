@@ -1,9 +1,9 @@
 import {
   GenerateBlobIndexResponse,
   NodeIndexText,
-  smuggler,
   UploadMultipartResponse,
-} from 'smuggler-api'
+} from './types'
+import { smuggler } from './api'
 import { log, Mime, Optional, isAbortError, errorise } from 'armoury'
 
 // TODO[snikitin@outlook.com] As functions in this module perform
