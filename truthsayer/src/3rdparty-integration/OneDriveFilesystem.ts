@@ -92,6 +92,27 @@ function toProxy(
   return null
 }
 
+async function readAllFrom(reader: ReadableStreamDefaultReader) {
+  let data: string[] = []
+  for (
+    let chunk: { done: boolean; value?: string } = { done: false };
+    !chunk.done;
+    chunk = await reader.read()
+  ) {
+    if (chunk.value) data.push(chunk.value)
+  }
+
+  return data
+}
+
+async function streamAsFile(file: FileProxy, contents: ReadableStream) {
+  const chunks = await readAllFrom(contents.getReader())
+  return new File(chunks, file.path, {
+    lastModified: file.lastModTimestamp,
+    type: file.mimeType,
+  })
+}
+
 export class OneDriveFs implements ThirdpartyFs {
   constructor(msAuthentication: MsPublicClientApplication) {
     this.#auth = msAuthentication
@@ -124,8 +145,11 @@ export class OneDriveFs implements ThirdpartyFs {
     return ret
   }
 
-  public async download(file: FileProxy): Promise<ReadableStream> {
-    return this.#graph.api(`/me/drive/items/${file.id}/content`).getStream()
+  public async download(file: FileProxy): Promise<File> {
+    const stream: ReadableStream = await this.#graph
+      .api(`/me/drive/items/${file.id}/content`)
+      .getStream()
+    return streamAsFile(file, stream)
   }
 
   public async signIn() {
