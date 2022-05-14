@@ -16,7 +16,8 @@ type IconType = {
 
 function verifyManifestLogo(icons: IconType[]) {
   icons.forEach((icon: IconType) => {
-    expect(Mime.isImage(icon.type)).toStrictEqual(true)
+    const mime = Mime.fromString(icon.type)
+    expect(Mime.isImage(mime!)).toStrictEqual(true)
     expect(fs.existsSync(`./public/${icon.src}`)).toStrictEqual(true)
   })
 }
