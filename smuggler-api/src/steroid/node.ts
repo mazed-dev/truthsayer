@@ -34,7 +34,8 @@ export async function createNodeFromLocalBinary(
   to_nid: Optional<string>,
   abortSignal: AbortSignal
 ): Promise<FileUploadComplete> {
-  if (!Mime.isImage(file.type)) {
+  const mime = Mime.fromString(file.type)
+  if (!mime || !Mime.isImage(mime)) {
     throw new Error(
       `Attempted to upload a binary file of unsupported type ${file.type}`
     )

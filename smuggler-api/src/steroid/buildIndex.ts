@@ -40,13 +40,14 @@ export async function nodeIndexFromFile(
   file: File,
   signal?: AbortSignal
 ): Promise<NodeIndexText> {
-  if (!file.type) {
+  const mime = Mime.fromString(file.type)
+  if (!mime) {
     throw new Error(
-      `Attempted to make node index from ${file.name}, but Mime type is not set`
+      `Attempted to make node index from ${file.name} of unsupported type ${file.type}`
     )
   }
 
-  if (Mime.isText(file.type)) {
+  if (Mime.isText(mime)) {
     return {
       // Cut string by length 10KiB to avoid blowing up backend with huge JSON.
       // Later on we can and perhaps should reconsider this limit.
@@ -55,7 +56,7 @@ export async function nodeIndexFromFile(
       brands: [],
       dominant_colors: [],
     }
-  } else if (smuggler.blob_index.cfg.supportsMime(file.type)) {
+  } else if (smuggler.blob_index.cfg.supportsMime(mime)) {
     const index = await smuggler.blob_index.build([file], signal)
     if (index.indexes.length !== 1) {
       throw new Error(`No index generated for image ${file.name}`)

@@ -1,7 +1,7 @@
 import React from 'react'
 
 import type { NodeExtattrs } from 'smuggler-api'
-import { Mime, log } from 'armoury'
+import { Mime, log, MimeType } from 'armoury'
 import { BlockQuoteBox, BlockQuotePad } from '../editor/components/components'
 
 import { MdiLaunch } from '../MaterialIcons'
@@ -66,7 +66,7 @@ export const WebQuote = ({
   if (web_quote == null) {
     return null
   }
-  if (content_type !== Mime.TEXT_PLAIN_UTF_8) {
+  if (content_type !== MimeType.TEXT_PLAIN_UTF_8) {
     log.debug(`Can not render quotation of type ${content_type}, skip it.`)
     return null
   }

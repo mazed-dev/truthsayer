@@ -15,7 +15,7 @@ import { PreviewImageSmall } from 'smuggler-api'
 
 import { Readability as MozillaReadability } from '@mozilla/readability'
 
-import { MimeType, Mime, log, stabiliseUrlForOriginId } from 'armoury'
+import { MimeType, log, stabiliseUrlForOriginId } from 'armoury'
 
 async function fetchImagePreviewAsBase64(
   url: string,
@@ -62,7 +62,7 @@ async function fetchImagePreviewAsBase64(
         dstSquareSize,
         dstSquareSize
       )
-      const content_type = Mime.IMAGE_JPEG
+      const content_type = MimeType.IMAGE_JPEG
       const data = canvas.toDataURL(content_type)
       resolve({ data, content_type })
     }

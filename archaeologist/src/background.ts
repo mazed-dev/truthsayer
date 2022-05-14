@@ -18,7 +18,7 @@ import {
   smuggler,
 } from 'smuggler-api'
 
-import { Mime } from 'armoury'
+import { MimeType } from 'armoury'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
@@ -159,7 +159,7 @@ async function savePage(
     dominant_colors: [],
   }
   const extattrs: NodeExtattrs = {
-    content_type: Mime.TEXT_URI_LIST,
+    content_type: MimeType.TEXT_URI_LIST,
     preview_image: content.image || undefined,
     title: content.title || undefined,
     description: content.description || undefined,
@@ -195,7 +195,7 @@ async function savePageQuote(
   fromNid?: string
 ) {
   const extattrs: NodeExtattrs = {
-    content_type: Mime.TEXT_PLAIN_UTF_8,
+    content_type: MimeType.TEXT_PLAIN_UTF_8,
     lang: lang || undefined,
     web_quote: { url, path, text },
   }

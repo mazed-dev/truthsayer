@@ -22,7 +22,13 @@ export function uploadLocalFile(
   updateStatus: (upd: FileUploadStatusState) => void,
   abortSignal: AbortSignal
 ): void {
-  if (Mime.isText(file.type)) {
+  const mime = Mime.fromString(file.type)
+  if (!mime) {
+    throw new Error(
+      `Attempted to upload local file ${file.name} of unsupported type ${file.type}`
+    )
+  }
+  if (Mime.isText(mime)) {
     uploadLocalTextFile(file, from_nid, to_nid, updateStatus, abortSignal)
   } else {
     steroid.node

@@ -28,7 +28,8 @@ import { makeUrl } from './api_url'
 import { TNodeSliceIterator, GetNodesSliceFn } from './node_slice_iterator'
 
 import { genOriginId, Mime, stabiliseUrlForOriginId } from 'armoury'
-import type { Optional, MimeType } from 'armoury'
+import type { Optional } from 'armoury'
+import { MimeType } from 'armoury'
 
 import lodash from 'lodash'
 import moment from 'moment'
@@ -108,7 +109,7 @@ async function createNode(
   const resp = await fetch(makeUrl('node/new', query), {
     method: 'POST',
     body: JSON.stringify(body),
-    headers: { 'Content-type': Mime.JSON },
+    headers: { 'Content-type': MimeType.JSON },
     signal,
   })
   if (resp.ok) {
@@ -418,7 +419,7 @@ type UpdateNodeArgs = {
 async function updateNode(args: UpdateNodeArgs, signal?: AbortSignal) {
   const { nid, text, index_text, preserve_update_time } = args
   const headers = {
-    'Content-type': Mime.JSON,
+    'Content-type': MimeType.JSON,
   }
   const request: NodePatchRequest = {
     text,
@@ -474,7 +475,7 @@ export const getNodesSlice: GetNodesSliceFn = async ({
   const rawResp = await fetch(makeUrl(`/nodes-slice`), {
     method: 'POST',
     body: JSON.stringify(req),
-    headers: { 'Content-type': Mime.JSON },
+    headers: { 'Content-type': MimeType.JSON },
     signal,
   })
   if (!rawResp.ok) {
@@ -556,7 +557,7 @@ async function createEdge({
   const resp = await fetch(makeUrl(`/node/${from}/edge`), {
     method: 'POST',
     body: JSON.stringify(req),
-    headers: { 'Content-type': Mime.JSON },
+    headers: { 'Content-type': MimeType.JSON },
     signal,
   })
   if (!resp.ok) {
@@ -629,7 +630,7 @@ async function switchEdgeStickiness({
   const resp = await fetch(makeUrl(`/edge/${eid}`), {
     method: 'PATCH',
     body: JSON.stringify(req),
-    headers: { 'Content-type': Mime.JSON },
+    headers: { 'Content-type': MimeType.JSON },
     signal,
   })
   if (!resp.ok) {
@@ -651,7 +652,7 @@ async function deleteEdge({
     method: 'DELETE',
     signal,
     body: JSON.stringify(req),
-    headers: { 'Content-type': Mime.JSON },
+    headers: { 'Content-type': MimeType.JSON },
   })
   if (resp.ok) {
     return await resp.json()
@@ -685,7 +686,7 @@ async function createSession(
   const resp = await fetch(makeUrl('/auth/session'), {
     method: 'POST',
     body: JSON.stringify(req),
-    headers: { 'Content-type': Mime.JSON },
+    headers: { 'Content-type': MimeType.JSON },
     signal,
   })
   if (!resp.ok) {
@@ -750,7 +751,7 @@ async function registerAccount({
   const resp = await fetch(makeUrl('/auth'), {
     method: 'POST',
     body: JSON.stringify(value),
-    headers: { 'Content-type': Mime.JSON },
+    headers: { 'Content-type': MimeType.JSON },
     signal,
   })
   if (resp.ok) {
@@ -772,7 +773,7 @@ async function passwordReset({
   const resp = await fetch(makeUrl('/auth/password-recover/reset'), {
     method: 'POST',
     body: JSON.stringify(value),
-    headers: { 'Content-type': Mime.JSON },
+    headers: { 'Content-type': MimeType.JSON },
     signal,
   })
   if (resp.ok) {
@@ -792,7 +793,7 @@ async function passwordRecoverRequest({
   const resp = await fetch(makeUrl('/auth/password-recover/request'), {
     method: 'POST',
     body: JSON.stringify(value),
-    headers: { 'Content-type': Mime.JSON },
+    headers: { 'Content-type': MimeType.JSON },
     signal,
   })
   if (resp.ok) {
@@ -810,7 +811,7 @@ async function passwordChange(
   const resp = await fetch(makeUrl('/auth/password-recover/change'), {
     method: 'POST',
     body: JSON.stringify(value),
-    headers: { 'Content-type': Mime.JSON },
+    headers: { 'Content-type': MimeType.JSON },
     signal,
   })
   if (resp.ok) {
@@ -848,7 +849,7 @@ async function advanceUserFsIngestionProgress(
     {
       method: 'PATCH',
       body: JSON.stringify(new_progress),
-      headers: { 'Content-type': Mime.JSON },
+      headers: { 'Content-type': MimeType.JSON },
       signal,
     }
   )
