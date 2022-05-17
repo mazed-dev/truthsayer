@@ -1,5 +1,5 @@
 import { Mime } from 'armoury'
-import type { MimeType } from 'armoury'
+import { MimeType } from 'armoury'
 import moment from 'moment'
 
 import { makeUrl } from './api_url'
@@ -195,7 +195,7 @@ export class TNode {
     return (
       ntype === NodeType.Url &&
       extattrs &&
-      extattrs.content_type === Mime.TEXT_URI_LIST
+      extattrs.content_type === MimeType.TEXT_URI_LIST
     )
   }
 

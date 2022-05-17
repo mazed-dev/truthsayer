@@ -3,20 +3,20 @@ import { Optional } from './optional'
 
 test('Mime.parse', () => {
   ;[
-    Mime.FORM_DATA,
-    Mime.IMAGE_BMP,
-    Mime.IMAGE_GIF,
-    Mime.IMAGE_JPEG,
-    Mime.IMAGE_PNG,
-    Mime.IMAGE_SVG_XML,
-    Mime.IMAGE_TIFF,
-    Mime.IMAGE_WEBP,
-    Mime.JSON,
-    Mime.PDF,
-    Mime.TEXT_PLAIN,
-    Mime.TEXT_PLAIN_UTF_8,
-    Mime.TEXT_URI_LIST,
-    Mime.TEXT_URI_LIST,
+    MimeType.FORM_DATA,
+    MimeType.IMAGE_BMP,
+    MimeType.IMAGE_GIF,
+    MimeType.IMAGE_JPEG,
+    MimeType.IMAGE_PNG,
+    MimeType.IMAGE_SVG_XML,
+    MimeType.IMAGE_TIFF,
+    MimeType.IMAGE_WEBP,
+    MimeType.JSON,
+    MimeType.PDF,
+    MimeType.TEXT_PLAIN,
+    MimeType.TEXT_PLAIN_UTF_8,
+    MimeType.TEXT_URI_LIST,
+    MimeType.TEXT_URI_LIST,
   ].forEach((m: MimeType) => {
     const mimeStruct = Mime.parse(m)
     expect(mimeStruct.type.length).toBeGreaterThan(0)
@@ -27,10 +27,10 @@ test('Mime.parse', () => {
 
 test('Mime.isText', () => {
   ;[
-    Mime.TEXT_PLAIN,
-    Mime.TEXT_PLAIN_UTF_8,
-    Mime.TEXT_URI_LIST,
-    Mime.TEXT_URI_LIST,
+    MimeType.TEXT_PLAIN,
+    MimeType.TEXT_PLAIN_UTF_8,
+    MimeType.TEXT_URI_LIST,
+    MimeType.TEXT_URI_LIST,
   ].forEach((m: MimeType) => {
     expect(Mime.isText(m)).toStrictEqual(true)
   })
@@ -38,12 +38,7 @@ test('Mime.isText', () => {
 
 test('Mime.fromString is exhaustive and covers all supported types', () => {
   // GIVEN
-  const supportedTypes = Object.values(Mime).filter(
-    // filter out non-enum values, e.g. methods like fromString()
-    (value): value is string => {
-      return typeof value === 'string'
-    }
-  )
+  const supportedTypes = Object.values(MimeType)
 
   supportedTypes.forEach((typeString: string) => {
     // WHEN

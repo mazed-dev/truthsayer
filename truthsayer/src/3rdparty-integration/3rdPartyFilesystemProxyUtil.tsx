@@ -4,7 +4,7 @@
  */
 
 import { NodeExtattrs } from 'smuggler-api'
-import { Mime } from 'armoury'
+import { Mime, MimeType } from 'armoury'
 import { FileProxy } from './3rdPartyFilesystem'
 
 async function beginningOf(blob: Blob) {
@@ -28,7 +28,7 @@ export async function extattrsFromFile(
   contents: File
 ): Promise<NodeExtattrs> {
   return {
-    content_type: Mime.TEXT_URI_LIST,
+    content_type: MimeType.TEXT_URI_LIST,
     preview_image: undefined,
     title: '☁ ' + file.path,
     description: Mime.isText(file.mimeType) ? await beginningOf(contents) : '',

@@ -58,21 +58,23 @@ function fromString(rawMime: string): Optional<MimeType> {
   return rawMime as MimeType
 }
 
-export const Mime = {
-  JSON: 'application/json',
-  PDF: 'application/pdf',
-  FORM_DATA: 'multipart/form-data',
-  TEXT_URI_LIST: 'text/uri-list',
-  TEXT_PLAIN: 'text/plain',
-  TEXT_PLAIN_UTF_8: 'text/plain; charset=utf-8',
-  IMAGE_BMP: 'image/bmp',
-  IMAGE_GIF: 'image/gif',
-  IMAGE_JPEG: 'image/jpeg',
-  IMAGE_PNG: 'image/png',
-  IMAGE_SVG_XML: 'image/svg+xml',
-  IMAGE_TIFF: 'image/tiff',
-  IMAGE_WEBP: 'image/webp',
+export enum MimeType {
+  JSON = 'application/json',
+  PDF = 'application/pdf',
+  FORM_DATA = 'multipart/form-data',
+  TEXT_URI_LIST = 'text/uri-list',
+  TEXT_PLAIN = 'text/plain',
+  TEXT_PLAIN_UTF_8 = 'text/plain; charset=utf-8',
+  IMAGE_BMP = 'image/bmp',
+  IMAGE_GIF = 'image/gif',
+  IMAGE_JPEG = 'image/jpeg',
+  IMAGE_PNG = 'image/png',
+  IMAGE_SVG_XML = 'image/svg+xml',
+  IMAGE_TIFF = 'image/tiff',
+  IMAGE_WEBP = 'image/webp',
+}
 
+export const Mime = {
   parse,
   fromString,
 
@@ -80,33 +82,4 @@ export const Mime = {
   isText,
 }
 
-export type MimeType =
-  | typeof Mime.JSON
-  | typeof Mime.PDF
-  | typeof Mime.FORM_DATA
-  | typeof Mime.TEXT_URI_LIST
-  | typeof Mime.TEXT_PLAIN
-  | typeof Mime.TEXT_PLAIN_UTF_8
-  | typeof Mime.IMAGE_BMP
-  | typeof Mime.IMAGE_GIF
-  | typeof Mime.IMAGE_JPEG
-  | typeof Mime.IMAGE_PNG
-  | typeof Mime.IMAGE_SVG_XML
-  | typeof Mime.IMAGE_TIFF
-  | typeof Mime.IMAGE_WEBP
-
-const kKnownMimeTypes: MimeType[] = [
-  Mime.JSON,
-  Mime.PDF,
-  Mime.FORM_DATA,
-  Mime.TEXT_URI_LIST,
-  Mime.TEXT_PLAIN,
-  Mime.TEXT_PLAIN_UTF_8,
-  Mime.IMAGE_BMP,
-  Mime.IMAGE_GIF,
-  Mime.IMAGE_JPEG,
-  Mime.IMAGE_PNG,
-  Mime.IMAGE_SVG_XML,
-  Mime.IMAGE_TIFF,
-  Mime.IMAGE_WEBP,
-]
+const kKnownMimeTypes = Object.values(MimeType)
