@@ -41,7 +41,7 @@ export async function nodeIndexFromFile(
   signal?: AbortSignal
 ): Promise<NodeIndexText> {
   const mime = Mime.fromString(file.type)
-  if (!mime) {
+  if (mime == null) {
     throw new Error(
       `Attempted to make node index from ${file.name} of unsupported type ${file.type}`
     )

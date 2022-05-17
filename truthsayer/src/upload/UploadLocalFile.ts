@@ -23,7 +23,7 @@ export function uploadLocalFile(
   abortSignal: AbortSignal
 ): void {
   const mime = Mime.fromString(file.type)
-  if (!mime) {
+  if (mime == null) {
     throw new Error(
       `Attempted to upload local file ${file.name} of unsupported type ${file.type}`
     )
