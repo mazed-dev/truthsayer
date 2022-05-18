@@ -16,12 +16,16 @@ export const Main = ({ quotes }: { quotes: TNode[] }) => {
     if (!node.isWebQuote() || path == null) {
       return null
     }
+    const target = document.querySelector(path.join(' > '))
+    if (target == null) {
+      return null
+    }
     return (
-      <QuoteSocket key={nid} path={path.join(' > ')}>
+      <QuoteSocket key={nid} target={target}>
         <QuoteSticker nid={nid} />
       </QuoteSocket>
     )
-  })
+  }).filter(item => !!item)
   return <div>{stickers}</div>
 }
 
