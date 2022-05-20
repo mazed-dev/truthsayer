@@ -19,8 +19,6 @@ type Highlight = {
   slice: Slice
 }
 
-type HighlightSlicer = (textContent: string, highlightPlaintext: string) => Slice
-
 /*
  * 1 |<--textContent-->|
  *   |<-highlight->|
@@ -40,23 +38,25 @@ type HighlightSlicer = (textContent: string, highlightPlaintext: string) => Slic
  * 6 |<--textContent-->|
  *           |<--highlight-->|
 */
-const getHighlightBeginingSlice: HighlightSlicer = (textContent, highlightPlaintext) {
+const getHighlightSlice = (textContent: string, highlightPlaintext: string): Slice | null => {
   if (highlightPlaintext.length <= textContent.length) {
-    const ind = textContent.indexOf(highlightPlaintext)
-    if (ind >= 0) {
+    const start = textContent.indexOf(highlightPlaintext)
+    if (start >= 0) {
       // Hooray, full string discovered
-      return { start: ind, end: ind + highlightPlaintext.length }
-    }
+      return { start, end: start + highlightPlaintext.length }
+    } else {
+      return null }
   }
-  let end = Math.min(textContent.length, highlightPlaintext.length)
-  while (!textContent.endsWith(highlightPlaintext.slice(0, end)) && end >= 0) {
-    --end
+  let start = 0 // Math.min(textContent.length, highlightPlaintext.length)
+  let end = textContent.length
+  //while (!textContent.endsWith(highlightPlaintext.slice(0, end)) && end >= 0) {
+  while (!highlightPlaintext.startsWith(
+    textContent.slice(start, end)) && start !== end) {
+    start++
   }
-  return { start: textContent.length - end, end }
-}
-
-const getHighlightSlice: HighlightSlicer = (textContent, highlightPlaintext) {
-  return { start: 0, end: 0}
+  if (start === end) {
+    return null}
+  return { start, end }
 }
 
 function traverse(element: ChildNode, highlightPlaintext: string): Node[] {
@@ -66,7 +66,7 @@ function traverse(element: ChildNode, highlightPlaintext: string): Node[] {
     console.log('ChildNode', i, child.nodeType, child.textContent)
     if (child.nodeType === Node.TEXT_NODE) {
       elements.push(child)
-      console.log('- text', child.textContent, child.nodeValue)
+      //console.log('- text', child.textContent, child.nodeValue)
       // const mark = document_.createElement('mark')
       // mark.textContent = child.textContent
       // element.replaceChild(child, mark)
@@ -91,11 +91,20 @@ test('_exctractPageText - main', () => {
 `)
   const elements = dom.window.document.getElementsByTagName('p')
   const element = elements[0]
-  const highlights = traverse(element, dom.window.document)
+  const highlights = traverse(element, '')
   for (const el of highlights) {
     const mark = dom.window.document.createElement('mark')
     mark.textContent = el.textContent
     el.parentNode?.replaceChild(mark, el)
   }
   expect(dom.window.document.body.innerHTML).toStrictEqual('First')
+})
+
+test('getHighlightSlice', () => {
+  expect(getHighlightSlice("", "")).toStrictEqual({start: 0, end: 0})
+  expect(getHighlightSlice("abc", "abc")).toStrictEqual({start: 0, end: 3})
+  expect(getHighlightSlice("-abc", "abc")).toStrictEqual({start: 1, end: 4})
+  expect(getHighlightSlice("--abc", "abc")).toStrictEqual({start: 2, end: 5})
+  expect(getHighlightSlice("--abc--", "abc")).toStrictEqual({start: 2, end: 5})
+  expect(getHighlightSlice("--abc", "abc--")).toStrictEqual({start: 2, end: 5})
 })
