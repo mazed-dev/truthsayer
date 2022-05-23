@@ -4,28 +4,32 @@ import ReactDOM from 'react-dom'
 import { TNode } from 'smuggler-api'
 
 import { QuoteSocket } from './QuoteSocket'
-import { QuoteSticker } from './QuoteSticker'
 
 export const Main = ({ quotes }: { quotes: TNode[] }) => {
   // TODO(akindyakov): Use `scrollIntoView` to scroll to a certain quote using
   // the fact that each quote has id="<nid>".
   // document.getElementById('<nid>').scrollIntoView()
-  const stickers = quotes.map((node: TNode) => {
-    const { nid, extattrs } = node
-    const path = extattrs?.web_quote?.path
-    if (!node.isWebQuote() || path == null) {
-      return null
-    }
-    const target = document.querySelector(path.join(' > '))
-    if (target == null) {
-      return null
-    }
-    return (
-      <QuoteSocket key={nid} target={target}>
-        <QuoteSticker nid={nid} />
-      </QuoteSocket>
-    )
-  }).filter(item => !!item)
+  const stickers = quotes
+    .map((node: TNode) => {
+      const { nid, extattrs } = node
+      const web_quote = extattrs?.web_quote
+      if (web_quote == null) {
+        return null
+      }
+      const { path, text } = web_quote
+      if (!node.isWebQuote() || path == null) {
+        return null
+      }
+      return (
+        <QuoteSocket
+          nid={nid}
+          key={nid}
+          path={path.join(' > ')}
+          plaintext={text}
+        />
+      )
+    })
+    .filter((item) => !!item)
   return <div>{stickers}</div>
 }
 

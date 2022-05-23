@@ -6,105 +6,105 @@ import type React from 'react' // eslint-disable-line @typescript-eslint/no-unus
  */
 import jsdom from 'jsdom'
 
+import {
+  renderInElementHighlight,
+  Slice,
+  Highlight,
+  getHighlightSlice,
+  discoverHighlightsInElement,
+} from './highlight'
+
 const { JSDOM } = jsdom
 
+const _document = window.document
 
-type Slice = {
-  start: number
-  end?: number
-}
-
-type Highlight = {
-  target: Node
-  slice: Slice
-}
-
-/*
- * 1 |<--textContent-->|
- *   |<-highlight->|
- *
- * 2 |<--textContent-->|
- *   |<---highlight--->|
- *
- * 3 |<--textContent-->|
- *     |<-highlight->|
- *
- * 4 |<--textContent-->|
- *       |<-highlight->|
- *
- * 5 |<--textContent-->|
- *   |<-----highlight----->|
- *
- * 6 |<--textContent-->|
- *           |<--highlight-->|
-*/
-const getHighlightSlice = (textContent: string, highlightPlaintext: string): Slice | null => {
-  if (highlightPlaintext.length <= textContent.length) {
-    const start = textContent.indexOf(highlightPlaintext)
-    if (start >= 0) {
-      // Hooray, full string discovered
-      return { start, end: start + highlightPlaintext.length }
-    } else {
-      return null }
-  }
-  let start = 0 // Math.min(textContent.length, highlightPlaintext.length)
-  let end = textContent.length
-  //while (!textContent.endsWith(highlightPlaintext.slice(0, end)) && end >= 0) {
-  while (!highlightPlaintext.startsWith(
-    textContent.slice(start, end)) && start !== end) {
-    start++
-  }
-  if (start === end) {
-    return null}
-  return { start, end }
-}
-
-function traverse(element: ChildNode, highlightPlaintext: string): Node[] {
-  let elements: Node[] = []
-  for (let i = 0; i < element.childNodes.length; ++i) {
-    const child = element.childNodes[i]
-    console.log('ChildNode', i, child.nodeType, child.textContent)
-    if (child.nodeType === Node.TEXT_NODE) {
-      elements.push(child)
-      //console.log('- text', child.textContent, child.nodeValue)
-      // const mark = document_.createElement('mark')
-      // mark.textContent = child.textContent
-      // element.replaceChild(child, mark)
-    }
-    elements.push(...traverse(child, highlightPlaintext))
-  }
-  return elements
-}
+afterEach(() => {
+  Object.defineProperty(window, 'document', {
+    writable: true,
+    value: _document,
+  })
+})
 
 test('_exctractPageText - main', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
-<html class="responsive">
-<head>
-  <title>Some title</title>
-</head>
+<html>
 <body >
-  <main id="content" class="social social-popover">
-    <p>Hungary <a href="https://flower.bloom/a/QGI5OkXp" title="Embargo on Oil Imports"><meta content="rpm3">hardened its public stance</a> Wednesday, saying it would withdraw its threat to block an embargo only if its imports via pipelines are excluded.</p>
+  <main>
+    <p>Hungary <a href="https://flower.co" title="Embargo on Oil Imports"><meta content="rpm3">hardened its public stance</a> Wednesday, saying it would withdraw its threat to block an embargo only if its imports via pipelines are excluded.</p>
   </main>
 </body>
 </html>
 `)
   const elements = dom.window.document.getElementsByTagName('p')
   const element = elements[0]
-  const highlights = traverse(element, '')
-  for (const el of highlights) {
-    const mark = dom.window.document.createElement('mark')
-    mark.textContent = el.textContent
-    el.parentNode?.replaceChild(mark, el)
+  const highlights = discoverHighlightsInElement(
+    element,
+    'Hungary Wednesday, saying it'
+  )
+  for (const { target, slice } of highlights) {
+    const text = target.textContent
+    const highlighted = text?.slice(slice.start, slice.end)
+    if (highlighted) {
+      const box = dom.window.document.createElement('mazed-highlight-box')
+      const mark = dom.window.document.createElement('mazed-highlight')
+      mark.textContent = highlighted
+      const prefix = text?.slice(0, slice.start)
+      const suffix = text?.slice(slice.end)
+      if (prefix) {
+        box.appendChild(dom.window.document.createTextNode(prefix))
+      }
+      box.appendChild(mark)
+      if (suffix) {
+        box.appendChild(dom.window.document.createTextNode(suffix))
+      }
+      target.parentNode?.replaceChild(box, target)
+    }
   }
   expect(dom.window.document.body.innerHTML).toStrictEqual('First')
 })
 
+test('renderInElementHighlight', () => {
+  const dom = new JSDOM(`<!DOCTYPE html>
+<html>
+<body>
+  <main>
+    <p>Lorem Ipsum is simply dummy text of the printing industry.</p>
+  </main>
+</body>
+</html>
+`)
+  const document_ = dom.window.document
+  const elements = document_.getElementsByTagName('p')
+  const p = elements[0]
+  const target = p.childNodes[0]
+  const slice: Slice = { start: 22, end: 32 }
+  const revertCallback = renderInElementHighlight({ target, slice }, document_)
+  expect(p.outerHTML).toStrictEqual(
+    '<p><mazed-highlight-box>Lorem Ipsum is simply <mazed-highlight>dummy text</mazed-highlight> of the printing industry.</mazed-highlight-box></p>'
+  )
+  revertCallback()
+  expect(p.outerHTML).toStrictEqual(
+    '<p>Lorem Ipsum is simply dummy text of the printing industry.</p>'
+  )
+})
+
 test('getHighlightSlice', () => {
-  expect(getHighlightSlice("", "")).toStrictEqual({start: 0, end: 0})
-  expect(getHighlightSlice("abc", "abc")).toStrictEqual({start: 0, end: 3})
-  expect(getHighlightSlice("-abc", "abc")).toStrictEqual({start: 1, end: 4})
-  expect(getHighlightSlice("--abc", "abc")).toStrictEqual({start: 2, end: 5})
-  expect(getHighlightSlice("--abc--", "abc")).toStrictEqual({start: 2, end: 5})
-  expect(getHighlightSlice("--abc", "abc--")).toStrictEqual({start: 2, end: 5})
+  expect(getHighlightSlice('', '')).toStrictEqual(null)
+  expect(getHighlightSlice('abc', 'abc')).toStrictEqual({ start: 0, end: 3 })
+  expect(getHighlightSlice('-abc', 'abc')).toStrictEqual({ start: 1, end: 4 })
+  expect(getHighlightSlice('--abc', 'abc')).toStrictEqual({ start: 2, end: 5 })
+  expect(getHighlightSlice('--abc--', 'abc')).toStrictEqual({
+    start: 2,
+    end: 5,
+  })
+  expect(getHighlightSlice('--abc', 'abc--')).toStrictEqual({
+    start: 2,
+    end: 5,
+  })
+  expect(getHighlightSlice('--abc', 'abc-qwertyuiop')).toStrictEqual({
+    start: 2,
+    end: 5,
+  })
+  expect(getHighlightSlice('', 'abc')).toStrictEqual(null)
+  expect(getHighlightSlice('123', 'abc')).toStrictEqual(null)
 })

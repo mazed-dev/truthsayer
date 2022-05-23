@@ -1,19 +1,42 @@
 import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom'
 
+import { QuoteSticker } from './QuoteSticker'
+import {
+  discoverHighlightsInElement,
+  renderInElementHighlight,
+  Highlight,
+} from './highlight/highlight'
+
 /**
- * Invisible custom element to render children by given HTML path
+ * Invisible custom element to prepend children to a given target element
+ *
+ * TODO(akindyakov) rename element
  */
 export const QuoteSocket = ({
-  target,
-  children,
-}: React.PropsWithChildren<{ target: Element }>) => {
+  nid,
+  path,
+  plaintext,
+}: {
+  nid: string
+  path: string
+  plaintext: string
+}) => {
+  const target = document.querySelector(path)
+  if (target == null) {
+    return null
+  }
   const element = document.createElement('mazed-quotation')
   useEffect(() => {
+    const highlights = discoverHighlightsInElement(target, plaintext)
+    const reverts = highlights.map((highlight: Highlight) =>
+      renderInElementHighlight(highlight, document)
+    )
     target.prepend(element)
     return () => {
       target.removeChild(element)
+      reverts.forEach((callback) => callback())
     }
   })
-  return ReactDOM.createPortal(children, element)
+  return ReactDOM.createPortal(<QuoteSticker nid={nid} />, element)
 }
