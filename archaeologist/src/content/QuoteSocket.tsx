@@ -5,7 +5,7 @@ import { QuoteSticker } from './QuoteSticker'
 import {
   discoverHighlightsInElement,
   renderInElementHighlight,
-  Highlight,
+  ElementHighlight,
 } from './highlight/highlight'
 
 /**
@@ -29,7 +29,7 @@ export const QuoteSocket = ({
   const element = document.createElement('mazed-quotation')
   useEffect(() => {
     const highlights = discoverHighlightsInElement(target, plaintext)
-    const reverts = highlights.map((highlight: Highlight) =>
+    const reverts = highlights.map((highlight: ElementHighlight) =>
       renderInElementHighlight(highlight, document)
     )
     target.prepend(element)

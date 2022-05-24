@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom'
+import styled from '@emotion/styled'
 
 export type Slice = {
   start: number
   end: number
 }
 
-export type Highlight = {
+export type ElementHighlight = {
   target: Node
   slice: Slice
 }
@@ -31,9 +32,10 @@ export type Highlight = {
  *           |<--highlight-->|
  */
 export const getHighlightSlice = (
-  textContent: string,
+  textContent: string | null,
   highlightPlaintext: string
 ): Slice | null => {
+  textContent = textContent?.replace(/\s+/g, ' ') || ''
   if (highlightPlaintext.length === 0) {
     return null
   }
@@ -44,15 +46,13 @@ export const getHighlightSlice = (
       return { start, end: start + highlightPlaintext.length }
     }
   }
-  let start = 0 // Math.min(textContent.length, highlightPlaintext.length)
-  let end = textContent.length
-  //while (!textContent.endsWith(highlightPlaintext.slice(0, end)) && end >= 0) {
+  let start = 0
   while (
-    !highlightPlaintext.startsWith(textContent.slice(start, end)) &&
-    start !== end
+    !highlightPlaintext.startsWith(textContent.slice(start))
   ) {
     start++
   }
+  const end = textContent.length
   if (start === end) {
     return null
   }
@@ -68,12 +68,29 @@ export const getHighlightSlice = (
 export function discoverHighlightsInElement(
   element: ChildNode,
   highlightPlaintext: string
-): Highlight[] {
-  let highlights: Highlight[] = []
+): ElementHighlight[] {
+  let [highlights, restOfhighlightPlaintext] = discoverHighlightsInElementTraverse(element, highlightPlaintext)
+  let i=0;
+  while(restOfhighlightPlaintext.length > 0 && element.nextSibling && i < 5) {
+    element = element.nextSibling
+    const [moreHighlights, restRestOfhighlightPlaintext] = discoverHighlightsInElementTraverse(
+      element, restOfhighlightPlaintext)
+    restOfhighlightPlaintext = restRestOfhighlightPlaintext
+    highlights.push(...moreHighlights)
+    i++
+  }
+  return highlights
+}
+
+function discoverHighlightsInElementTraverse(
+  element: ChildNode,
+  highlightPlaintext: string
+): [ElementHighlight[], string] {
+  let highlights: ElementHighlight[] = []
   for (let i = 0; i < element.childNodes.length; ++i) {
     const child = element.childNodes[i]
     if (child.nodeType === Node.TEXT_NODE && child.textContent != null) {
-      const slice = getHighlightSlice(child.textContent, highlightPlaintext)
+      const slice = getHighlightSlice(child.nodeValue, highlightPlaintext)
       if (slice !== null) {
         highlights.push({
           target: child,
@@ -82,13 +99,15 @@ export function discoverHighlightsInElement(
         highlightPlaintext = highlightPlaintext.slice(slice.end - slice.start)
       }
     }
-    highlights.push(...discoverHighlightsInElement(child, highlightPlaintext))
+    const [moreHighlights, restOfhighlightPlaintext] = discoverHighlightsInElementTraverse(child, highlightPlaintext)
+    highlightPlaintext = restOfhighlightPlaintext
+    highlights.push(...moreHighlights)
   }
-  return highlights
+  return [highlights, highlightPlaintext]
 }
 
 export function renderInElementHighlight(
-  { target, slice }: Highlight,
+  { target, slice }: ElementHighlight,
   document_: Document
 ) {
   const text = target.textContent
@@ -108,8 +127,50 @@ export function renderInElementHighlight(
   if (suffix) {
     box.appendChild(document_.createTextNode(suffix))
   }
-  target.parentNode?.replaceChild(box, target)
+  const parentNode = target.parentNode
+  parentNode?.replaceChild(box, target)
   return () => {
-    box.parentNode?.replaceChild(target, box)
+    parentNode?.replaceChild(target, box)
   }
+}
+
+const HighlightedText = styled('mark')`
+  text-decoration-line: underline;
+  text-decoration-color: green;
+  text-decoration-style: solid;
+  text-decoration-thickness: 0.14em;
+  background: inherit;
+  color: inherit;
+
+  &:hover {
+    background: #b4ffb99e;
+  }
+`
+
+export const HighlightAtom = ({
+  target,
+  slice,
+}: {
+  target: Node
+  slice: Slice
+}) => {
+  const { textContent, parentNode } = target
+  const box = document.createElement('mazed-highlighted-text')
+  useEffect(() => {
+    parentNode?.replaceChild(box, target)
+    return () => {
+      parentNode?.replaceChild(target, box)
+    }
+  })
+  const prefix = textContent?.slice(0, slice.start)
+  const highlighted = textContent?.slice(slice.start, slice.end)
+  const suffix = textContent?.slice(slice.end)
+  return ReactDOM.createPortal(
+    <>
+      {prefix}
+      <HighlightedText>{highlighted}</HighlightedText>
+      {suffix}
+    </>,
+    box
+  )
 }

@@ -3,33 +3,37 @@ import ReactDOM from 'react-dom'
 
 import { TNode } from 'smuggler-api'
 
-import { QuoteSocket } from './QuoteSocket'
+import {
+  discoverHighlightsInElement,
+  HighlightAtom,
+} from './highlight/highlight'
 
 export const Main = ({ quotes }: { quotes: TNode[] }) => {
   // TODO(akindyakov): Use `scrollIntoView` to scroll to a certain quote using
   // the fact that each quote has id="<nid>".
   // document.getElementById('<nid>').scrollIntoView()
-  const stickers = quotes
-    .map((node: TNode) => {
+  const stickers: JSX.Element[] = []
+  quotes.forEach((node: TNode) => {
       const { nid, extattrs } = node
       const web_quote = extattrs?.web_quote
       if (web_quote == null) {
-        return null
+        return
       }
       const { path, text } = web_quote
       if (!node.isWebQuote() || path == null) {
-        return null
+        return
       }
-      return (
-        <QuoteSocket
-          nid={nid}
-          key={nid}
-          path={path.join(' > ')}
-          plaintext={text}
-        />
+      const target = document.querySelector(path.join(' > '))
+      if (target == null) {
+        return
+      }
+      discoverHighlightsInElement(target, text).forEach(
+        ({ target, slice }, index) => {
+          const key = `${nid}_${index}`
+          stickers.push(<HighlightAtom key={key} target={target} slice={slice} />)
+        }
       )
     })
-    .filter((item) => !!item)
   return <div>{stickers}</div>
 }
 

@@ -9,7 +9,6 @@ import jsdom from 'jsdom'
 import {
   renderInElementHighlight,
   Slice,
-  Highlight,
   getHighlightSlice,
   discoverHighlightsInElement,
 } from './highlight'
