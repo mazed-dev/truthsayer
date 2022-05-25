@@ -24,7 +24,7 @@ afterEach(() => {
   })
 })
 
-test('_exctractPageText - main', () => {
+test('discoverHighlightsInElement - plain', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html>
 <body >
@@ -36,30 +36,51 @@ test('_exctractPageText - main', () => {
 `)
   const elements = dom.window.document.getElementsByTagName('p')
   const element = elements[0]
-  const highlights = discoverHighlightsInElement(
-    element,
-    'Hungary Wednesday, saying it'
-  )
+  const highlightPlaintext = 'gary Wednesday, saying it'
+  const highlights = discoverHighlightsInElement(element, highlightPlaintext)
+  const text: string[] = []
   for (const { target, slice } of highlights) {
-    const text = target.textContent
-    const highlighted = text?.slice(slice.start, slice.end)
-    if (highlighted) {
-      const box = dom.window.document.createElement('mazed-highlight-box')
-      const mark = dom.window.document.createElement('mazed-highlight')
-      mark.textContent = highlighted
-      const prefix = text?.slice(0, slice.start)
-      const suffix = text?.slice(slice.end)
-      if (prefix) {
-        box.appendChild(dom.window.document.createTextNode(prefix))
-      }
-      box.appendChild(mark)
-      if (suffix) {
-        box.appendChild(dom.window.document.createTextNode(suffix))
-      }
-      target.parentNode?.replaceChild(box, target)
+    const { textContent } = target
+    if (textContent != null) {
+      text.push(textContent.slice(slice.start, slice.end))
     }
   }
-  expect(dom.window.document.body.innerHTML).toStrictEqual('First')
+  expect(text.join('')).toStrictEqual(highlightPlaintext)
+})
+
+test('discoverHighlightsInElement - nested lists', () => {
+  const dom = new JSDOM(`<!DOCTYPE html>
+<html>
+<body >
+<main>
+<ol>
+  <li>Lists can be nested
+    <ul><li>Four spaces
+        <ul><li>Eight spaces
+            <ul><li>Twelve spaces</li></ul></li></ul></li></ul></li>
+  <li>And back</li>
+</ol>
+</main>
+</body>
+</html>
+`)
+  const highlightPlaintext = `Lists can be nested
+    Four spaces
+        Eight spaces
+            Twelve spaces
+  And back
+`
+  const elements = dom.window.document.getElementsByTagName('li')
+  const element = elements[0]
+  const highlights = discoverHighlightsInElement(element, highlightPlaintext)
+  const text: string[] = []
+  for (const { target, slice } of highlights) {
+    const { textContent } = target
+    if (textContent != null) {
+      text.push(textContent.slice(slice.start, slice.end))
+    }
+  }
+  expect(text.join('')).toStrictEqual(highlightPlaintext)
 })
 
 test('renderInElementHighlight', () => {
