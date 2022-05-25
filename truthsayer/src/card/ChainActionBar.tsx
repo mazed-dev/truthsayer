@@ -12,7 +12,7 @@ import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
 import { goto, History } from '../lib/route'
 
 import { smuggler, NewNodeResponse } from 'smuggler-api'
-import { TDoc } from 'elementary'
+import { TDoc, kCardBorderColour } from 'elementary'
 import { TNode } from 'smuggler-api'
 
 import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
@@ -66,12 +66,14 @@ async function cloneNode({
   let doc = TDoc.fromNodeTextData(node.getText())
   doc = doc.makeACopy(node.getNid(), isBlank || false)
   try {
-    return await smuggler.node.create({
-      text: doc.toNodeTextData(),
-      signal: abortSignal,
-      from_nid: from,
-      to_nid: to,
-    })
+    return await smuggler.node.create(
+      {
+        text: doc.toNodeTextData(),
+        from_nid: from ? [from] : undefined,
+        to_nid: to ? [to] : undefined,
+      },
+      abortSignal
+    )
   } catch (exception) {
     const err = errorise(exception)
     if (isAbortError(err)) {
@@ -115,12 +117,14 @@ class ChainActionHandler {
       return
     }
     smuggler.node
-      .create({
-        text: TDoc.makeEmpty().toNodeTextData(),
-        signal: this.abortSignal,
-        from_nid: side === 'right' ? this.nid : undefined,
-        to_nid: side === 'left' ? this.nid : undefined,
-      })
+      .create(
+        {
+          text: TDoc.makeEmpty().toNodeTextData(),
+          from_nid: side === 'right' ? [this.nid] : undefined,
+          to_nid: side === 'left' ? [this.nid] : undefined,
+        },
+        this.abortSignal
+      )
       .then((node) => {
         if (node) {
           const { nid } = node
@@ -226,9 +230,7 @@ export const ChainActionBar = ({
     <SmallCard
       className={className}
       css={css`
-        border-width: 1px;
-        border-color: rgba(0, 0, 0, 0.28);
-        border-style: dashed;
+        border: 1px dashed ${kCardBorderColour};
         box-shadow: none;
         padding: 0;
       `}

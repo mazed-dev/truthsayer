@@ -31,6 +31,22 @@ export function makeInstance(): PublicClientApplication {
       redirectUri: '/',
       postLogoutRedirectUri: '/',
     },
+    cache: {
+      // When a user authenticates with Microsoft Graph via MSAL,
+      // MSAL automatically caches the results and reuses them later if possible
+      // to reduce the amount of login prompts user has to see.
+      // 'cacheLocation' configures how access tokens are stored in a browser.
+      // The default value is 'sessionStorage' which doesn't allow the login
+      // session to be shared between tabs.
+      //
+      // If Mazed is used in a browser (as opposed to a dedicated app),
+      // 'localStorage' is more convenient as it allows to reuse cached tokens
+      // across multiple tabs (note that closing a tab & then opening it again
+      // also falls into this category).
+      // See https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-js-sso#sso-between-browser-tabs
+      // for more details.
+      cacheLocation: 'localStorage',
+    },
   }
 
   // "Public" in MSAL terminology means "not trusted to know a secret key".

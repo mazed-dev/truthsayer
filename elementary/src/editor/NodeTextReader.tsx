@@ -8,7 +8,6 @@ import { createEditor } from 'slate'
 
 import { withTypography } from './plugins/typography'
 import { withLinks } from './plugins/link'
-import { withDateTime } from './plugins/datetime'
 import { withImages } from './plugins/image'
 
 import { Leaf } from './components/Leaf'
@@ -36,10 +35,7 @@ export const NodeTextReader = ({
   )
   const renderLeaf = useCallback((props) => <Leaf {...props} />, [node])
   const editor = useMemo(
-    () =>
-      withTypography(
-        withLinks(withDateTime(withImages(withReact(createEditor()))))
-      ),
+    () => withTypography(withLinks(withImages(withReact(createEditor())))),
     []
   )
   return (
@@ -54,7 +50,7 @@ export const NodeTextReader = ({
           renderLeaf={renderLeaf}
           readOnly
           css={css`
-            padding: 1em;
+            padding: 1em 1em 0 1em;
           `}
         />
       </Slate>

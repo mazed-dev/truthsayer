@@ -223,7 +223,7 @@ test('TNodeSliceIterator next() -> [>1] with offset', async () => {
   }
 })
 
-test.only('TNodeSliceIterator next() -> until exhausted', async () => {
+test('TNodeSliceIterator next() -> until exhausted', async () => {
   // Once exhausted it should always return null
   // Also it have not to fall into infinite loop there!
   let total = 0

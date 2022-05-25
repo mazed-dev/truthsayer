@@ -1,6 +1,7 @@
 const webpack = require("webpack");
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
+const TerserPlugin = require('terser-webpack-plugin');
 
 const _getSmugglerApiUrl = (mode) => {
   return mode === 'development'
@@ -41,7 +42,7 @@ const _manifestTransformDowngradeToV2 = (manifest) => {
 const _manifestTransform = (buffer, mode, env) => {
   let manifest = JSON.parse(buffer.toString())
 
-  const {firefox=false} = env
+  const { firefox=false } = env
 
   // Add Mazed URL to host_permissions to grant access to mazed cookies
   const smugglerApiUrlMask = _getSmugglerApiUrlMask(mode)
@@ -116,14 +117,37 @@ const config = (env, argv) => {
     },
     resolve: {
       extensions: [".js", ".jsx", ".tsx", ".ts"],
-      alias: {
-        "react-dom": "@hot-loader/react-dom",
-      },
     },
     performance: {
       hints: false,
       maxEntrypointSize: 512000,
       maxAssetSize: 512000
+    },
+    optimization: {
+      minimize: true,
+      minimizer: [
+        new TerserPlugin({
+          terserOptions: {
+            compress: {
+              defaults: true,
+              arguments: true,
+              toplevel: true,
+              ecma: 6,
+            },
+            output: {
+              // Always insert braces in if, for, do, while or with statements,
+              // even if their body is a single statement
+              braces: true,
+              // Preserve JSDoc-style comments that contain "@license" or "@preserve"
+              comments: "some",
+              // Escape Unicode characters in strings and regexps. Chrome does
+              // not accept minified files with UTF8 encodding for some reason.
+              ascii_only: true,
+            }
+          },
+          // Extract some legal comments into a separate file
+          extractComments: true,
+        })],
     },
     stats: {
       errorDetails: true,

@@ -1,6 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useState } from 'react'
+import React from 'react'
+import { useHistory } from 'react-router-dom'
 
 import { Row, Col } from 'react-bootstrap'
 
@@ -43,8 +44,7 @@ function RefNodeCard({
   cutOffRef: any
   className?: string
 }) {
-  const [showMore, setShowMore] = useState(false)
-  const toggleMoreLess = () => setShowMore(!showMore)
+  const history = useHistory()
   return (
     <SmallCard
       className={className}
@@ -53,12 +53,17 @@ function RefNodeCard({
       `}
     >
       <ShrinkCard
-        showMore={showMore}
         css={css`
           margin-bottom: 12px;
+          cursor: pointer;
         `}
+        onClick={() => history.push({ pathname: `/n/${nid}` })}
       >
-        <NodeCardReadOnlyFetching nid={nid} />
+        <NodeCardReadOnlyFetching
+          nid={nid}
+          strippedRefs={true}
+          strippedActions={true}
+        />
       </ShrinkCard>
       <div
         css={css`
@@ -66,14 +71,12 @@ function RefNodeCard({
           position: absolute;
           bottom: 0;
           right: 0;
-          z-index: 1000;
+          z-index: 900;
         `}
       >
         <SmallCardFootbar
           nid={nid}
           edge={edge}
-          showMore={showMore}
-          toggleMore={toggleMoreLess}
           switchStickiness={switchStickiness}
           cutOffRef={cutOffRef}
         />
@@ -259,11 +262,13 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
       // TODO(akindyakov): move conversion from raw slate to doc to here
       // TODO(akindyakov): collect stats here
       const nid = this.props.nid
-      return await smuggler.node.update({
-        nid,
-        text,
-        signal: this.fetchNodeAbortController.signal,
-      })
+      return await smuggler.node.update(
+        {
+          nid,
+          text,
+        },
+        this.fetchNodeAbortController.signal
+      )
     },
     757,
     {
@@ -393,12 +398,8 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
           css={css`
             ${colBaseCss};
             flex: 0 1 510px;
-            width: 510px;
-            margin: 0 24px 0 24px;
-            @media (max-width: 1100px) {
-              margin: 0 6px 0 6px;
-              width: 480px;
-            }
+            margin: 0 8px 0 8px;
+            width: 480px;
           `}
         >
           <WideCard>

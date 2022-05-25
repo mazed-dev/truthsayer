@@ -12,7 +12,6 @@ import { withJinn, Jinn } from './plugins/jinn'
 import { withTypography } from './plugins/typography'
 import { withShortcuts } from './plugins/shortcuts'
 import { withLinks } from './plugins/link'
-import { withDateTime } from './plugins/datetime'
 import { withImages } from './plugins/image'
 
 import { Leaf } from './components/Leaf'
@@ -33,7 +32,7 @@ export const NodeTextEditor = ({
   className?: string
 }) => {
   const [value, setValue] = useState<SlateText>([])
-  const [showJinn, setShowJinn] = useState<boolean>(false)
+  const [isJinnShown, setShowJinn] = useState<boolean>(false)
   const nid = node.nid
   useEffect(() => {
     const doc = TDoc.fromNodeTextData(node.getText())
@@ -47,12 +46,10 @@ export const NodeTextEditor = ({
   const editor = useMemo(
     () =>
       withJinn(
-        setShowJinn,
+        () => setShowJinn(true),
         withTypography(
           withLinks(
-            withDateTime(
-              withImages(withShortcuts(withReact(withHistory(createEditor()))))
-            )
+            withImages(withShortcuts(withReact(withHistory(createEditor()))))
           )
         )
       ),
@@ -60,7 +57,11 @@ export const NodeTextEditor = ({
   )
   return (
     <div className={className}>
-      <Jinn nid={nid} show={showJinn} setShow={setShowJinn} editor={editor} />
+      <Jinn
+        isShown={isJinnShown}
+        onHide={() => setShowJinn(false)}
+        editor={editor}
+      />
       <Slate
         editor={editor}
         value={value}
@@ -77,7 +78,7 @@ export const NodeTextEditor = ({
           spellCheck
           autoFocus
           css={css`
-            padding: 1em;
+            padding: 1em 1em 0 1em;
           `}
         />
       </Slate>

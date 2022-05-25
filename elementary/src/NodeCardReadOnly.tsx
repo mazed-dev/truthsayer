@@ -14,13 +14,21 @@ const Box = styled.div`
 export function NodeCardReadOnly({
   node,
   className,
+  strippedRefs,
+  strippedActions,
 }: {
   node: TNode
   className?: string
+  strippedRefs?: boolean
+  strippedActions?: boolean
 }) {
   return (
     <Box className={className}>
-      <NodeMedia node={node} />
+      <NodeMedia
+        node={node}
+        strippedRefs={strippedRefs}
+        strippedActions={strippedActions}
+      />
       <NodeTextReader node={node} />
     </Box>
   )
@@ -29,9 +37,13 @@ export function NodeCardReadOnly({
 export function NodeCardReadOnlyFetching({
   nid,
   className,
+  strippedRefs,
+  strippedActions,
 }: {
   nid: string
   className?: string
+  strippedRefs?: boolean
+  strippedActions?: boolean
 }) {
   const [node, setNode] = useState<TNode | null>(null)
   const fetchNodeAbortController = new AbortController()
@@ -50,5 +62,12 @@ export function NodeCardReadOnlyFetching({
   if (node == null) {
     return <Spinner.Wheel />
   }
-  return <NodeCardReadOnly node={node} className={className} />
+  return (
+    <NodeCardReadOnly
+      node={node}
+      strippedRefs={strippedRefs}
+      strippedActions={strippedActions}
+      className={className}
+    />
+  )
 }

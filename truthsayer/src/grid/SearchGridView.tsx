@@ -14,7 +14,7 @@ const Box = styled.div`
   max-width: 100%;
 `
 
-export const SearchGridView = ({}: {}) => {
+export const SearchGridView = () => {
   const location = useLocation()
   const params = parse(location.search)
   let { q } = params

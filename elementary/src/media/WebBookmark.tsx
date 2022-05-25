@@ -2,6 +2,7 @@ import React from 'react'
 
 import type { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
 import type { Optional } from 'armoury'
+import { log } from 'armoury'
 import { BlockQuote } from '../editor/components/BlockQuote'
 
 import { MdiLaunch } from '../MaterialIcons'
@@ -55,6 +56,12 @@ const IconLaunch = styled.a`
   }
 `
 
+/**
+ * This is a preview image element, we use it to render reference to the orginal
+ * web page with "launch" incon rendered over the image as link-button. When
+ * `strippedRefs=true` we are not rendering the reference button, only the
+ * preview image. This is the only case when url param is `undefined`.
+ */
 const PreviewImage = ({
   icon,
   url,
@@ -66,9 +73,11 @@ const PreviewImage = ({
   return (
     <PreviewImageBox>
       {img}
-      <IconLaunch href={url}>
-        <MdiLaunch />
-      </IconLaunch>
+      {url != null ? (
+        <IconLaunch href={url}>
+          <MdiLaunch />
+        </IconLaunch>
+      ) : null}
     </PreviewImageBox>
   )
 }
@@ -84,7 +93,7 @@ const BadgeBox = styled.div`
 
 const TitleBox = styled.div`
   display: inline-block;
-  margin: 5px 4px 0 10px;
+  margin: 8px 4px 0 8px;
 `
 
 const Title = styled.p`
@@ -105,42 +114,58 @@ const Domain = styled.p`
 `
 
 const Author = styled.p`
-  font-size: 11px;
   margin: 0 0 0.42em 0;
+  font-size: 11px;
+  font-style: italic;
 `
 
 const DescriptionBox = styled.div`
   font-size: 1em;
   padding: 0;
-  margin: 8px 1em 0 1em;
+  margin: 8px 8px 0 8px;
 `
 const Description = styled(BlockQuote)`
-  margin: 4px 0 14px 0;
+  margin: 4px 0 6px 0;
 `
 
 type WebBookmarkProps = {
   extattrs: NodeExtattrs
   className?: string
+  strippedRefs?: boolean
 }
 
-export const WebBookmark = ({ extattrs, className }: WebBookmarkProps) => {
+export const WebBookmark = ({
+  extattrs,
+  className,
+  strippedRefs,
+}: WebBookmarkProps) => {
   const { web, preview_image, title, description, author } = extattrs
-  const url = web?.url
-  const hostname = url ? new URL(url).hostname : null
-  const authorBadge = author ? <Author>{author}</Author> : null
+  if (web == null) {
+    log.debug('Empty web bookmark node')
+    return null
+  }
+  const url = web.url
+  const hostname = new URL(url).hostname
+  const authorBadge = author ? <Author>&mdash; {author}</Author> : null
+  const descriptionElement = description ? (
+    <DescriptionBox>
+      <Description cite={url}>{description}</Description>
+    </DescriptionBox>
+  ) : null
   return (
     <Box className={className}>
       <BadgeBox>
-        <PreviewImage icon={preview_image || null} url={url} />
+        <PreviewImage
+          icon={preview_image || null}
+          url={strippedRefs ? undefined : url}
+        />
         <TitleBox>
           <Title>{title}</Title>
           <Domain>{hostname}</Domain>
           {authorBadge}
         </TitleBox>
       </BadgeBox>
-      <DescriptionBox>
-        <Description cite={url || ''}>{description}</Description>
-      </DescriptionBox>
+      {descriptionElement}
     </Box>
   )
 }

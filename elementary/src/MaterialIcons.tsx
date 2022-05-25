@@ -10,6 +10,7 @@ import { jcss } from './jcss'
  * https://google.github.io/material-design-icons/ font
  */
 export type MaterialIconType =
+  | 'account_circle'
   | 'add'
   | 'bookmark_add'
   | 'code'
@@ -36,6 +37,8 @@ export type MaterialIconType =
   | 'search'
   | 'zoom_in'
   | 'zoom_out'
+  | 'sync'
+  | 'cloud_sync'
 
 type MaterialIconAttrs = React.HTMLProps<HTMLSpanElement>
 
@@ -60,6 +63,7 @@ const _makeMaterialIcon = (type: MaterialIconType) => {
   )
 }
 
+export const MdiAccountCircle = _makeMaterialIcon('account_circle')
 export const MdiAdd = _makeMaterialIcon('add')
 export const MdiBookmarkAdd = _makeMaterialIcon('bookmark_add')
 export const MdiCode = _makeMaterialIcon('code')
@@ -86,3 +90,5 @@ export const MdiOpenInFull = _makeMaterialIcon('open_in_full')
 export const MdiSearch = _makeMaterialIcon('search')
 export const MdiZoomIn = _makeMaterialIcon('zoom_in')
 export const MdiZoomOut = _makeMaterialIcon('zoom_out')
+export const MdiSync = _makeMaterialIcon('sync')
+export const MdiCloudSync = _makeMaterialIcon('cloud_sync')

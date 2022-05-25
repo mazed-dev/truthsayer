@@ -1,5 +1,5 @@
 import { Mime } from 'armoury'
-import type { MimeType } from 'armoury'
+import { MimeType } from 'armoury'
 import moment from 'moment'
 
 import { makeUrl } from './api_url'
@@ -39,7 +39,13 @@ export type NodeTextData = {
 export enum NodeType {
   Text = 0,
   Blob = 1,
+  /** A node that refers to a an entity described by a URL, *as a whole* (as opposed to @see WebQuote ) */
   Url = 2,
+  /** A node that refers to a *part of* a URL web page (as opposed to @see Url ) */
+  WebQuote = 3,
+
+  // NOTE: When extending this enum, consider if existing node lookup methods
+  // need to change (see NodeLookupKey)
 }
 
 // see smuggler/src/types.rs
@@ -52,6 +58,7 @@ export type NodeExtattrs = {
   preview_image?: PreviewImageSmall
   web?: NodeExtattrsWeb
   blob?: NodeExtattrsBlob
+  web_quote?: NodeExtattrsWebQuote
 }
 
 // see smuggler/src/types.rs
@@ -72,6 +79,13 @@ export type NodeExtattrsWeb = {
   // Store here any conditions or credentials to access that resource,
   // for example the resource is availiable only from certain contries
   url: string
+}
+
+// / Represents textual quotation on a web page
+export type NodeExtattrsWebQuote = {
+  url: string
+  path: string[]
+  text: string
 }
 
 export type NodeShare = {
@@ -100,19 +114,24 @@ export type NodeIndexText = {
   dominant_colors: Color[]
 }
 
+export type TNodeJson = {
+  nid: string
+  ntype: NodeType
+  text: NodeTextData
+  extattrs?: NodeExtattrs
+  index_text?: NodeIndexText
+  created_at: number
+  updated_at: number
+  meta?: NodeMeta
+  crypto?: TNodeCrypto
+}
+
 export class TNode {
   nid: string
+  ntype: NodeType
 
-  // There is no proper Unions or typed Enums in TypeScript, so I used optional
-  // fields to represent different types of node: image or text document.
   text: NodeTextData
-
-  /**
-   * For Blob type of nodes (see NodeType::Blob) with externally saved large
-   * blob of binary data like image, PDF, audio etc.
-   */
   extattrs?: NodeExtattrs
-
   index_text?: NodeIndexText
 
   created_at: moment.Moment
@@ -122,8 +141,6 @@ export class TNode {
 
   // Information about node security
   crypto?: TNodeCrypto
-
-  ntype: NodeType
 
   constructor(
     nid: string,
@@ -178,13 +195,56 @@ export class TNode {
     return (
       ntype === NodeType.Url &&
       extattrs &&
-      extattrs.content_type === Mime.TEXT_URI_LIST
+      extattrs.content_type === MimeType.TEXT_URI_LIST
     )
+  }
+
+  isWebQuote() {
+    const { ntype } = this
+    return ntype === NodeType.WebQuote
   }
 
   getBlobSource(): string | null {
     const { nid } = this
     return makeUrl(`/blob/${nid}`)
+  }
+
+  toJson(): TNodeJson {
+    return {
+      nid: this.nid,
+      ntype: this.ntype,
+      text: this.text,
+      created_at: this.created_at.unix(),
+      updated_at: this.updated_at.unix(),
+      meta: this.meta,
+      extattrs: this.extattrs,
+      index_text: this.index_text,
+      crypto: this.crypto,
+    }
+  }
+
+  static fromJson({
+    nid,
+    ntype,
+    text,
+    created_at,
+    updated_at,
+    meta,
+    extattrs,
+    index_text,
+    crypto,
+  }: TNodeJson): TNode {
+    return new TNode(
+      nid,
+      ntype,
+      text,
+      moment.unix(created_at),
+      moment.unix(updated_at),
+      meta,
+      extattrs,
+      index_text,
+      crypto
+    )
   }
 }
 
@@ -348,4 +408,19 @@ export interface AccountInterface {
   getName: () => string
   getEmail: () => string
   getLocalCrypto: () => LocalCrypto
+}
+
+export type UserFilesystemId = {
+  uid: string
+  // A value that uniquely identifies one of filesystems of a specific uid
+  fs_key: string
+}
+
+export type UserFsIngestionProgress = {
+  fsid: UserFilesystemId
+  ingested_until: number // Absolute time - unix timestamp, seconds
+}
+
+export type AdvanceUserFsIngestionProgress = {
+  ingested_until: number // See UserFsIngestionProgress
 }

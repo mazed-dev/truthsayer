@@ -20,7 +20,7 @@ import DoodledBird from './DoodledBird.svg'
 import { Triptych } from './card/Triptych'
 import { SearchGridView } from './grid/SearchGridView'
 
-import GlobalNavBar from './navbar/GlobalNavBar'
+import { GlobalNavBar } from './navbar/GlobalNavBar'
 import Login from './auth/Login'
 import Logout from './auth/Logout'
 import { Signup } from './auth/Signup'
@@ -36,6 +36,7 @@ import { routes } from './lib/route'
 import { Loader } from './lib/loader'
 import { initDevEnv } from './dev/env'
 import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegrationsOverview'
+import { AppsList } from './apps-list/AppsList'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
 
@@ -109,6 +110,9 @@ function AppRouter() {
           <PrivateRoute path="/user-encryption">
             <UserEncryption />
           </PrivateRoute>
+          <Route path="/apps-to-install">
+            <AppsList />
+          </Route>
           <Route path="/help">
             <HelpInfo />
           </Route>

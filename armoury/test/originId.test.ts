@@ -2,13 +2,14 @@ import { genOriginId, _uint32ToInt32 } from '../src/originId'
 
 import { urls } from './originId.test.data.json'
 
-test('Case does not mater', async () => {
-  const url = 'https://Load.IO/c/k'
-  expect(await genOriginId(url)).toStrictEqual(
-    await genOriginId(url.toLowerCase())
+test('Case does mater for everything after domain name', async () => {
+  expect(await genOriginId('https://Load.IO/c/k?q=qWeRtY')).toStrictEqual(
+    await genOriginId('https://load.io/c/k?q=qWeRtY')
   )
-  expect(await genOriginId(url)).toStrictEqual(
-    await genOriginId(url.toUpperCase())
+  expect(
+    await genOriginId('https://High.Load.IO/En/Dry?q=qWeRtY&Promise=None')
+  ).toStrictEqual(
+    await genOriginId('https://high.load.io/En/Dry?q=qWeRtY&Promise=None')
   )
 })
 
@@ -53,7 +54,12 @@ test('Query is always normalized', async () => {
 })
 
 test('Collisions', async () => {
-  const ids = await Promise.all(urls.map(async (url) => await genOriginId(url)))
+  const ids = await Promise.all(
+    urls.map(async (url: string) => {
+      const { id } = await genOriginId(url)
+      return id
+    })
+  )
   expect(urls.length).toStrictEqual(ids.length)
 })
 
@@ -66,7 +72,7 @@ test('Stability', async () => {
     'https://yarnpkg.com/': 1988484847,
   }
   for (const [url, expectedId] of Object.entries(fixtures)) {
-    const id = await genOriginId(url)
+    const { id } = await genOriginId(url)
     expect(id).toStrictEqual(expectedId)
   }
 })

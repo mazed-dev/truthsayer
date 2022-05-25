@@ -74,6 +74,6 @@ export const dateTimeJinnSearch = (
   const onInsert = (timestamp: number, format?: string) => {
     insertElement(makeDateTime(timestamp, format))
   }
-  const key = 'mzd-date-time-jinn-card'
+  const key = 'mazed-date-time-jinn-card'
   return <DateTimeCard items={items} key={key} onInsert={onInsert} />
 }
