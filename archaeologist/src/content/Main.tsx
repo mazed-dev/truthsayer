@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 
 import { TNode } from 'smuggler-api'
 
-import { QuoteHighlight } from './highlight/highlight'
+import { QuoteHighlight } from './quote/QuoteHighlight'
 
 export const Main = ({ quotes }: { quotes: TNode[] }) => {
   // TODO(akindyakov): Use `scrollIntoView` to scroll to a certain quote using
@@ -20,6 +20,7 @@ export const Main = ({ quotes }: { quotes: TNode[] }) => {
       return null
     }
     const target = document.querySelector(path.join(' > '))
+    console.log('Target', target, path.join(' > '))
     if (target == null) {
       return null
     }
