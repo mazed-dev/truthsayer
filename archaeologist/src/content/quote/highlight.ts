@@ -41,7 +41,6 @@ export const getHighlightSlice = (
   // left in both highlightPlaintext and textContent.
   textContent = (textContent || '').replace(/\u00A0/g, ' ')
   highlightPlaintext = highlightPlaintext.replace(/\u00A0/g, ' ')
-  console.log('"' + textContent+ '"','"' + highlightPlaintext+ '"',)
   if (highlightPlaintext.length === 0) {
     return null
   }

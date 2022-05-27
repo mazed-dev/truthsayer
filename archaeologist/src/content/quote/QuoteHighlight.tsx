@@ -1,11 +1,15 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 import styled from '@emotion/styled'
 import { jsx } from '@emotion/react'
 
 import { QuoteToolbar } from './QuoteToolbar'
 
-import { Slice, discoverHighlightsInElement } from './highlight'
+import {
+  Slice,
+  ElementHighlight,
+  discoverHighlightsInElement,
+} from './highlight'
 
 const HighlightedText = styled('mark')`
   text-decoration-line: underline !important;
@@ -121,21 +125,30 @@ export const HighlightAtom = ({
 
 export const QuoteHighlight = ({
   nid,
-  target,
+  path,
   highlightPlaintext,
 }: {
   nid: string
-  target: Element
+  path: string[]
   highlightPlaintext: string
 }) => {
-  const atoms = discoverHighlightsInElement(target, highlightPlaintext).map(
-    ({ target: element, slice }, index) => {
-      const key = `${nid}_${index}`
-      console.log('discoverHighlightsInElement::element', element, slice, key)
-      return (
-        <HighlightAtom key={key} nid={nid} target={element} slice={slice} />
-      )
+  const [highlights, setHighlights] = useState<ElementHighlight[]>([])
+  useEffect(() => {
+    const target = document.querySelector(path.join(' > '))
+    console.log('Target', path.join(' > '), target)
+    if (target == null) {
+      setHighlights([])
     }
+    setHighlights(discoverHighlightsInElement(target, highlightPlaintext))
+  }, [nid, path, highlightPlaintext])
+  return (
+    <>
+      {highlights.map(({ target: element, slice }, index) => {
+        const key = `${nid}_${index}`
+        return (
+          <HighlightAtom key={key} nid={nid} target={element} slice={slice} />
+        )
+      })}
+    </>
   )
-  return <>{atoms}</>
 }
