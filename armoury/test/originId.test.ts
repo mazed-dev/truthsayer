@@ -1,6 +1,7 @@
 import { genOriginId, _uint32ToInt32 } from '../src/originId'
 
-import { urls } from './originId.test.data.json'
+import data from './originId.test.data.json'
+const urls = data.urls
 
 test('Case does mater for everything after domain name', async () => {
   expect(await genOriginId('https://Load.IO/c/k?q=qWeRtY')).toStrictEqual(

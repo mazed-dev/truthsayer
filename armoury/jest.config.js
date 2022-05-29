@@ -16,11 +16,7 @@ export default {
       useESM: true,
     },
   },
-
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
-
-  // transformIgnorePatterns: ['/node_modules/(?!normalize-url/)'],
-  // transformIgnorePatterns: [],
 
   // Test spec file resolution pattern
   // Matches parent folder `__tests__` and filename
@@ -28,5 +24,5 @@ export default {
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
 
   // Module file extensions for importing
-  moduleFileExtensions: ['ts', 'js', 'mjs', 'json', 'node'],
+  moduleFileExtensions: ['ts', 'mjs', 'js', 'json', 'node'],
 }
