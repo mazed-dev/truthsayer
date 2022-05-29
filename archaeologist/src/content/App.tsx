@@ -2,15 +2,17 @@ import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 
 import browser from 'webextension-polyfill'
+
+import { TNode, TNodeJson } from 'smuggler-api'
+import { genOriginId } from 'armoury'
+
 import { Message, MessageType } from './../message/types'
+import { genElementDomPath } from './../extractor/html'
+import { isMemorable } from './../extractor/unmemorable'
 import {
   exctractPageContent,
   exctractPageUrl,
 } from './../extractor/webPageContent'
-import { genElementDomPath } from './../extractor/html'
-import { isMemorable } from './../extractor/unmemorable'
-import { TNode, TNodeJson } from 'smuggler-api'
-import { genOriginId } from 'armoury'
 
 import { Quotes } from './quote/Quotes'
 
@@ -46,6 +48,9 @@ async function readSelectedText(
   // precision of selection and stabilise `target` extraction in general.
   // The approach with "copy" might fail due to browser security checks, because
   // we use `clipboardWrite` permission without claiming it in `manifest.json`.
+  //
+  // https://github.com/Thread-knowledge/truthsayer/issues/216
+  //
   // console.log('Selection', window.getSelection())
   function oncopy(event: ClipboardEvent) {
     document.removeEventListener('copy', oncopy, true)
@@ -114,6 +119,6 @@ const App = () => {
   return <Quotes quotes={quotes} />
 }
 
-export function renderPageAugmentationApp(socket: HTMLDivElement) {
-  ReactDOM.render(<App />, socket)
+export function renderPageAugmentationApp(mount: HTMLDivElement) {
+  ReactDOM.render(<App />, mount)
 }

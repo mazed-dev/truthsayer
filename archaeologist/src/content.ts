@@ -8,10 +8,10 @@
 import { renderPageAugmentationApp } from './content/App'
 
 /**
- * Single socket point in a web page DOM for all Mazed augmentations
+ * Single mount point in a page DOM for Mazed content state.
  */
-const socket = document.createElement('div')
-socket.id = 'mazed-archaeologist-content-socket'
-document.body.appendChild(socket)
+const mount = document.createElement('div')
+mount.id = 'mazed-archaeologist-content-mount'
+document.body.appendChild(mount)
 
-renderPageAugmentationApp(socket)
+renderPageAugmentationApp(mount)
