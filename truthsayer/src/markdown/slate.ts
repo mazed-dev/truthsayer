@@ -2,7 +2,7 @@
 //
 import type { Descendant } from 'slate'
 import { serialize } from 'remark-slate'
-import unified from 'unified'
+import { unified } from 'unified'
 import { TNode } from 'smuggler-api'
 import markdown from 'remark-parse'
 import slate from 'remark-slate'

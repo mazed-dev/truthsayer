@@ -8,7 +8,7 @@ import {
 import { errorise, log } from 'armoury'
 import { isAbortError } from 'armoury'
 
-import { TDoc } from 'elementary'
+import { TDoc, SlateText } from 'elementary'
 import { markdownToSlate } from '../markdown/slate'
 import { Mime } from 'armoury'
 import { Optional } from 'armoury'
@@ -70,7 +70,7 @@ function uploadLocalTextFile(
     }KiB\`)*\n`
     const text = (event.target?.result || '') + appendix
     markdownToSlate(text).then((slate) => {
-      const doc = new TDoc(slate)
+      const doc = new TDoc(slate as SlateText)
       smuggler.node
         .create(
           {
