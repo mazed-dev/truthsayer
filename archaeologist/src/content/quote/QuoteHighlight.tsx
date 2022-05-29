@@ -91,14 +91,18 @@ export const HighlightAtom = ({
   target: Node
   slice: Slice
 }) => {
-  const { textContent, parentNode } = target
   const box = document.createElement('mazed-highlighted-text')
   useEffect(() => {
+    // The parentNode field has to be extracted inside effect callback to catch
+    // entire target as a closure. Take it seriosly please, otherwise React
+    // partial updates simply don't work here.
+    const { parentNode } = target
     parentNode?.replaceChild(box, target)
     return () => {
       parentNode?.replaceChild(target, box)
     }
   })
+  const { textContent } = target
   const prefix = textContent?.slice(0, slice.start)
   const highlighted = textContent?.slice(slice.start, slice.end)
   const suffix = textContent?.slice(slice.end)
@@ -135,18 +139,17 @@ export const QuoteHighlight = ({
   const [highlights, setHighlights] = useState<ElementHighlight[]>([])
   useEffect(() => {
     const target = document.querySelector(path.join(' > '))
-    console.log('Target', path.join(' > '), target)
-    if (target == null) {
+    if (target != null) {
       setHighlights([])
     }
     setHighlights(discoverHighlightsInElement(target, highlightPlaintext))
   }, [nid, path, highlightPlaintext])
   return (
     <>
-      {highlights.map(({ target: element, slice }, index) => {
+      {highlights.map(({ target, slice }, index) => {
         const key = `${nid}_${index}`
         return (
-          <HighlightAtom key={key} nid={nid} target={element} slice={slice} />
+          <HighlightAtom key={key} nid={nid} target={target} slice={slice} />
         )
       })}
     </>

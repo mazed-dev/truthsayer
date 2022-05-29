@@ -41,6 +41,12 @@ async function readSelectedText(
   const { id: originId, stableUrl } = await genOriginId(
     exctractPageUrl(document)
   )
+  // TODO(akindyakov): Use window.getSelection() to obtain `anchorNode` instead
+  // of this hacky approach with "copy" event. This way we can get a better
+  // precision of selection and stabilise `target` extraction in general.
+  // The approach with "copy" might fail due to browser security checks, because
+  // we use `clipboardWrite` permission without claiming it in `manifest.json`.
+  // console.log('Selection', window.getSelection())
   function oncopy(event: ClipboardEvent) {
     document.removeEventListener('copy', oncopy, true)
     event.stopImmediatePropagation()
@@ -79,18 +85,18 @@ const App = () => {
       case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
         {
           const { quotes, bookmark, mode } = message
-          const q = quotes.map((json: TNodeJson) => TNode.fromJson(json))
-          const b = bookmark != null ? TNode.fromJson(bookmark) : null
+          const qs = quotes.map((json: TNodeJson) => TNode.fromJson(json))
+          const bm = bookmark != null ? TNode.fromJson(bookmark) : null
           if (mode === 'reset') {
-            setQuotes(q)
-            setBookmark(b)
+            setQuotes(qs)
+            setBookmark(bm)
           } else {
-            if (b != null) {
+            if (bm != null) {
               // If mode is not 'reset', null bookmark in arguments should not discard
               // existing bookmark
-              setBookmark(b)
+              setBookmark(bm)
             }
-            setQuotes((current) => current.concat(...q))
+            setQuotes((current) => current.concat(...qs))
           }
         }
         break
@@ -103,7 +109,8 @@ const App = () => {
     return () => {
       browser.runtime.onMessage.removeListener(listener)
     }
-  })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   return <Quotes quotes={quotes} />
 }
 
