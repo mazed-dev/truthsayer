@@ -1,4 +1,4 @@
-import { toBase64, fromBase64 } from './base64'
+import { toBase64, fromBase64 } from '../src/base64'
 
 test('toBase64 and back fromBase64', () => {
   const inputText = 'Rural tranquillity'

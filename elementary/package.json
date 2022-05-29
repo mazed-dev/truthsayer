@@ -5,6 +5,7 @@
   "version": "0.0.1",
   "license": "no",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "yarn tsc --build --pretty",
     "fix": "yarn fix:prettier && yarn fix:eslint",

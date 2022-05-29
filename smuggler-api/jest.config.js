@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   verbose: true,
 
   // The root of your source code, typically /src
@@ -11,7 +11,14 @@ module.exports = {
     '^.+\\.[tj]s$': 'ts-jest',
   },
 
-  transformIgnorePatterns: ['/node_modules/(?!normalize-url/)'],
+  globals: {
+    'ts-jest': {
+      useESM: true,
+    },
+  },
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
+
+  // transformIgnorePatterns: ['/node_modules/(?!normalize-url/)'],
 
   // Runs special logic, such as cleaning up components
   // when using React Testing Library and adds special
@@ -27,5 +34,5 @@ module.exports = {
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
 
   // Module file extensions for importing
-  moduleFileExtensions: ['ts', 'js', 'json', 'node'],
+  moduleFileExtensions: ['ts', 'mjs', 'js', 'json', 'node'],
 }

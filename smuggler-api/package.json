@@ -5,6 +5,7 @@
   "author": "Thread knowledge",
   "license": "no",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "yarn tsc --build --pretty",
     "fix": "yarn fix:prettier && yarn fix:eslint",
@@ -15,7 +16,7 @@
     "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,json,ts}\"",
     "lint:typescript": "yarn tsc --build ./ --force",
     "postinstall": "yarn build",
-    "test": "yarn jest"
+    "test": "NODE_OPTIONS=--experimental-vm-modules yarn jest"
   },
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^4.5.0",

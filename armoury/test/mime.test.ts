@@ -1,5 +1,5 @@
-import { MimeType, Mime } from './mime'
-import { Optional } from './optional'
+import { MimeType, Mime } from '../src/mime'
+import { Optional } from '../src/optional'
 
 test('Mime.parse', () => {
   ;[

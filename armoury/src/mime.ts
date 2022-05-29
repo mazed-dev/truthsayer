@@ -3,7 +3,7 @@
  */
 
 import * as queryString from 'query-string'
-import { Optional } from './optional'
+import { Optional } from './optional.js'
 
 export type MimeParamsValue = string | string[] | null
 export type MimeParams = Record<string, MimeParamsValue>
