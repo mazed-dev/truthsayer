@@ -4436,7 +4436,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/unist@npm:*, @types/unist@npm:^2.0.0, @types/unist@npm:^2.0.2":
+"@types/unist@npm:*, @types/unist@npm:^2.0.0":
   version: 2.0.6
   resolution: "@types/unist@npm:2.0.6"
   checksum: 25cb860ff10dde48b54622d58b23e66214211a61c84c0f15f88d38b61aa1b53d4d46e42b557924a93178c501c166aa37e28d7f6d994aba13d24685326272d5db
@@ -4540,7 +4540,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/eslint-plugin@npm:^5.5.0":
+"@typescript-eslint/eslint-plugin@npm:^5.26.0, @typescript-eslint/eslint-plugin@npm:^5.5.0":
   version: 5.26.0
   resolution: "@typescript-eslint/eslint-plugin@npm:5.26.0"
   dependencies:
@@ -4607,7 +4607,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/parser@npm:^5.5.0":
+"@typescript-eslint/parser@npm:^5.26.0, @typescript-eslint/parser@npm:^5.5.0":
   version: 5.26.0
   resolution: "@typescript-eslint/parser@npm:5.26.0"
   dependencies:
@@ -5400,7 +5400,7 @@ __metadata:
     css-loader: ^4.3.0
     download: ^8.0.0
     elementary: 0.0.1
-    eslint: ^7.11.0
+    eslint: ^8.16.0
     express: ^4.17.2
     jest: 26.6.0
     jest-fetch-mock: ^3.0.3
@@ -6631,31 +6631,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"character-entities-legacy@npm:^1.0.0":
-  version: 1.1.4
-  resolution: "character-entities-legacy@npm:1.1.4"
-  checksum: fe03a82c154414da3a0c8ab3188e4237ec68006cbcd681cf23c7cfb9502a0e76cd30ab69a2e50857ca10d984d57de3b307680fff5328ccd427f400e559c3a811
-  languageName: node
-  linkType: hard
-
-"character-entities@npm:^1.0.0":
-  version: 1.2.4
-  resolution: "character-entities@npm:1.2.4"
-  checksum: e1545716571ead57beac008433c1ff69517cd8ca5b336889321c5b8ff4a99c29b65589a701e9c086cda8a5e346a67295e2684f6c7ea96819fe85cbf49bf8686d
-  languageName: node
-  linkType: hard
-
 "character-entities@npm:^2.0.0":
   version: 2.0.1
   resolution: "character-entities@npm:2.0.1"
   checksum: 1165064dbe1cc1f3cd5b28eba0e94f051d97bdd65463b0e763d6a8aae527443596f9e0e774a79c4a66de0c47ad95c94fc5fb2c7f6bec6551b5580f730a8da341
-  languageName: node
-  linkType: hard
-
-"character-reference-invalid@npm:^1.0.0":
-  version: 1.1.4
-  resolution: "character-reference-invalid@npm:1.1.4"
-  checksum: 20274574c70e05e2f81135f3b93285536bc8ff70f37f0809b0d17791a832838f1e49938382899ed4cb444e5bbd4314ca1415231344ba29f4222ce2ccf24fea0b
   languageName: node
   linkType: hard
 
@@ -8471,7 +8450,7 @@ __metadata:
     "@types/is-url": ^1.2.30
     "@types/jsdom": ^16.2.13
     armoury: 0.0.1
-    eslint: ^7.11.0
+    eslint: ^8.16.0
     image-extensions: ^1.1.0
     is-url: ^1.2.4
     jest: 26.6.0
@@ -8485,9 +8464,9 @@ __metadata:
     react-router-dom: ^5.1
     remark-parse: ^10.0.1
     remark-slate: ^1.8.6
-    slate: ^0.72.8
+    slate: ^0.80.0
     slate-history: ^0.66.0
-    slate-react: ^0.72.9
+    slate-react: ^0.80.0
     smuggler-api: 0.0.1
     ts-jest: ^26.4.2
     typescript: 4.1.3
@@ -9260,7 +9239,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^8.3.0":
+"eslint@npm:^8.16.0, eslint@npm:^8.3.0":
   version: 8.16.0
   resolution: "eslint@npm:8.16.0"
   dependencies:
@@ -11418,23 +11397,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-alphabetical@npm:^1.0.0":
-  version: 1.0.4
-  resolution: "is-alphabetical@npm:1.0.4"
-  checksum: 6508cce44fd348f06705d377b260974f4ce68c74000e7da4045f0d919e568226dc3ce9685c5a2af272195384df6930f748ce9213fc9f399b5d31b362c66312cb
-  languageName: node
-  linkType: hard
-
-"is-alphanumerical@npm:^1.0.0":
-  version: 1.0.4
-  resolution: "is-alphanumerical@npm:1.0.4"
-  dependencies:
-    is-alphabetical: ^1.0.0
-    is-decimal: ^1.0.0
-  checksum: e2e491acc16fcf5b363f7c726f666a9538dba0a043665740feb45bba1652457a73441e7c5179c6768a638ed396db3437e9905f403644ec7c468fb41f4813d03f
-  languageName: node
-  linkType: hard
-
 "is-arguments@npm:^1.0.4":
   version: 1.1.1
   resolution: "is-arguments@npm:1.1.1"
@@ -11557,13 +11519,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-decimal@npm:^1.0.0":
-  version: 1.0.4
-  resolution: "is-decimal@npm:1.0.4"
-  checksum: ed483a387517856dc395c68403a10201fddcc1b63dc56513fbe2fe86ab38766120090ecdbfed89223d84ca8b1cd28b0641b93cb6597b6e8f4c097a7c24e3fb96
-  languageName: node
-  linkType: hard
-
 "is-descriptor@npm:^0.1.0":
   version: 0.1.6
   resolution: "is-descriptor@npm:0.1.6"
@@ -11638,13 +11593,6 @@ __metadata:
   dependencies:
     is-extglob: ^2.1.1
   checksum: d381c1319fcb69d341cc6e6c7cd588e17cd94722d9a32dbd60660b993c4fb7d0f19438674e68dfec686d09b7c73139c9166b47597f846af387450224a8101ab4
-  languageName: node
-  linkType: hard
-
-"is-hexadecimal@npm:^1.0.0":
-  version: 1.0.4
-  resolution: "is-hexadecimal@npm:1.0.4"
-  checksum: a452e047587b6069332d83130f54d30da4faf2f2ebaa2ce6d073c27b5703d030d58ed9e0b729c8e4e5b52c6f1dab26781bb77b7bc6c7805f14f320e328ff8cd5
   languageName: node
   linkType: hard
 
@@ -13986,19 +13934,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mdast-util-from-markdown@npm:^0.8.0":
-  version: 0.8.5
-  resolution: "mdast-util-from-markdown@npm:0.8.5"
-  dependencies:
-    "@types/mdast": ^3.0.0
-    mdast-util-to-string: ^2.0.0
-    micromark: ~2.11.0
-    parse-entities: ^2.0.0
-    unist-util-stringify-position: ^2.0.0
-  checksum: 5a9d0d753a42db763761e874c22365d0c7c9934a5a18b5ff76a0643610108a208a041ffdb2f3d3dd1863d3d915225a4020a0aade282af0facfd0df110601eee6
-  languageName: node
-  linkType: hard
-
 "mdast-util-from-markdown@npm:^1.0.0":
   version: 1.2.0
   resolution: "mdast-util-from-markdown@npm:1.2.0"
@@ -14016,13 +13951,6 @@ __metadata:
     unist-util-stringify-position: ^3.0.0
     uvu: ^0.5.0
   checksum: fadc3521a3d95f4adbadad462ca27c28b3bfe08740ae158dc0c4a22329bf5593254d98b8fd4024ecad8c47c77ec275454dfacfb907ff1b98ff8f5de25c716d40
-  languageName: node
-  linkType: hard
-
-"mdast-util-to-string@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "mdast-util-to-string@npm:2.0.0"
-  checksum: 0b2113ada10e002fbccb014170506dabe2f2ddacaacbe4bc1045c33f986652c5a162732a2c057c5335cdb58419e2ad23e368e5be226855d4d4e280b81c4e9ec2
   languageName: node
   linkType: hard
 
@@ -14346,16 +14274,6 @@ __metadata:
     micromark-util-types: ^1.0.1
     uvu: ^0.5.0
   checksum: 04663fe0308cccfbf338111b41d3d82d6445d1d2b834c9fc1880e1ea3874c4a3b81adfafe62b0bc7708ba0a86889885ea31b4dbb39f1f72190c3aab46b743bb1
-  languageName: node
-  linkType: hard
-
-"micromark@npm:~2.11.0":
-  version: 2.11.4
-  resolution: "micromark@npm:2.11.4"
-  dependencies:
-    debug: ^4.0.0
-    parse-entities: ^2.0.0
-  checksum: f8a5477d394908a5d770227aea71657a76423d420227c67ea0699e659a5f62eb39d504c1f7d69ec525a6af5aaeb6a7bffcdba95614968c03d41d3851edecb0d6
   languageName: node
   linkType: hard
 
@@ -15531,20 +15449,6 @@ __metadata:
   dependencies:
     callsites: ^3.0.0
   checksum: 6ba8b255145cae9470cf5551eb74be2d22281587af787a2626683a6c20fbb464978784661478dd2a3f1dad74d1e802d403e1b03c1a31fab310259eec8ac560ff
-  languageName: node
-  linkType: hard
-
-"parse-entities@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "parse-entities@npm:2.0.0"
-  dependencies:
-    character-entities: ^1.0.0
-    character-entities-legacy: ^1.0.0
-    character-reference-invalid: ^1.0.0
-    is-alphanumerical: ^1.0.0
-    is-decimal: ^1.0.0
-    is-hexadecimal: ^1.0.0
-  checksum: 7addfd3e7d747521afac33c8121a5f23043c6973809756920d37e806639b4898385d386fcf4b3c8e2ecf1bc28aac5ae97df0b112d5042034efbe80f44081ebce
   languageName: node
   linkType: hard
 
@@ -17682,25 +17586,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remark-parse@npm:^9.0.0":
-  version: 9.0.0
-  resolution: "remark-parse@npm:9.0.0"
-  dependencies:
-    mdast-util-from-markdown: ^0.8.0
-  checksum: 50104880549639b7dd7ae6f1e23c214915fe9c054f02f3328abdaee3f6de6d7282bf4357c3c5b106958fe75e644a3c248c2197755df34f9955e8e028fc74868f
-  languageName: node
-  linkType: hard
-
-"remark-slate@npm:^1.8.0":
-  version: 1.8.2
-  resolution: "remark-slate@npm:1.8.2"
-  dependencies:
-    "@types/escape-html": ^1.0.0
-    escape-html: ^1.0.3
-  checksum: ce739686f4d1a20e542c66d7864606adc988c51504602a7f6b73bbe954642b401136a115af9229c011b2571ae7e47bb7a1f7af340eb196dd4c2cbfd13eadf4b6
-  languageName: node
-  linkType: hard
-
 "remark-slate@npm:^1.8.6":
   version: 1.8.6
   resolution: "remark-slate@npm:1.8.6"
@@ -18610,9 +18495,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"slate-react@npm:^0.72.9":
-  version: 0.72.9
-  resolution: "slate-react@npm:0.72.9"
+"slate-react@npm:^0.80.0":
+  version: 0.80.0
+  resolution: "slate-react@npm:0.80.0"
   dependencies:
     "@types/is-hotkey": ^0.1.1
     "@types/lodash": ^4.14.149
@@ -18626,18 +18511,18 @@ __metadata:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
     slate: ">=0.65.3"
-  checksum: 40dea16df65f69e23f45be12f42915e2b0f6dc331c7068b2e17a875d7227de04032d7787f344ba699a019d6ad1a333575a6cceb51d0b20505bc9f15553023dbd
+  checksum: c6058b80594b44eb8f51b284812a8620b89983000650bbe753f7629f0a18563812a7a6185ee76c7a89da8a0808669df2ee7f30d13154e74333d72c57bdda9426
   languageName: node
   linkType: hard
 
-"slate@npm:^0.72.8":
-  version: 0.72.8
-  resolution: "slate@npm:0.72.8"
+"slate@npm:^0.80.0":
+  version: 0.80.0
+  resolution: "slate@npm:0.80.0"
   dependencies:
     immer: ^9.0.6
     is-plain-object: ^5.0.0
     tiny-warning: ^1.0.3
-  checksum: 42788ac153139b1166a66f48f8b095cfd3eea27d4580a4ebfb67ee9c2eaca17aa9187180d8c3abdc3367a05ee9ce1f25d11a9909464bd43db4dabc3535a842b7
+  checksum: 89b092963820dbc6e90c3222dc1a03eb8d60b8a1ba8a802c3d2c5d236b3390fc7ba4d6cd283f4c66d1075c814f1028bb00dc79dd0d55434b3d75b746f251a955
   languageName: node
   linkType: hard
 
@@ -18666,7 +18551,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^4.5.0
     "@typescript-eslint/parser": ^4.5.0
     armoury: 0.0.1
-    eslint: ^7.11.0
+    eslint: ^8.16.0
     eslint-config-prettier: ^6.7.0
     eslint-plugin-import: ^2.18.2
     eslint-plugin-prettier: ^3.1.1
@@ -20049,8 +19934,8 @@ __metadata:
     "@types/node": ^14.14
     "@types/react": ^17.0
     "@types/react-router-dom": ^5.1.8
-    "@typescript-eslint/eslint-plugin": ^4.5.0
-    "@typescript-eslint/parser": ^4.5.0
+    "@typescript-eslint/eslint-plugin": ^5.26.0
+    "@typescript-eslint/parser": ^5.26.0
     armoury: 0.0.1
     babel-eslint: ^10.0.3
     bootstrap: ^5.1.3
@@ -20058,8 +19943,9 @@ __metadata:
     crc: ^3.4.0
     crypto-js: ^4.0.0
     elementary: 0.0.1
-    eslint: ^7.11.0
+    eslint: ^8.16.0
     eslint-config-react: ^1.1.7
+    eslint-config-react-app: ^7.0.1
     eslint-plugin-import: ^2.18.2
     eslint-plugin-react: ^7.16.0
     fbjs: ^3.0.0
@@ -20081,8 +19967,8 @@ __metadata:
     react-router-dom: ^5.1
     react-scripts: ^5.0.1
     regenerator-runtime: ^0.13.7
-    remark-parse: ^9.0.0
-    remark-slate: ^1.8.0
+    remark-parse: ^10.0.1
+    remark-slate: ^1.8.6
     smuggler-api: 0.0.1
     ts-node: ^9.1.1
     typescript: 4.1.3
@@ -20467,15 +20353,6 @@ __metadata:
   dependencies:
     crypto-random-string: ^2.0.0
   checksum: ef68f639136bcfe040cf7e3cd7a8dff076a665288122855148a6f7134092e6ed33bf83a7f3a9185e46c98dddc445a0da6ac25612afa1a7c38b8b654d6c02498e
-  languageName: node
-  linkType: hard
-
-"unist-util-stringify-position@npm:^2.0.0":
-  version: 2.0.3
-  resolution: "unist-util-stringify-position@npm:2.0.3"
-  dependencies:
-    "@types/unist": ^2.0.2
-  checksum: f755cadc959f9074fe999578a1a242761296705a7fe87f333a37c00044de74ab4b184b3812989a57d4cd12211f0b14ad397b327c3a594c7af84361b1c25a7f09
   languageName: node
   linkType: hard
 

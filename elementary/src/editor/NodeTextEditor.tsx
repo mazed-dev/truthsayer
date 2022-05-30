@@ -36,6 +36,7 @@ export const NodeTextEditor = ({
   const nid = node.nid
   useEffect(() => {
     const doc = TDoc.fromNodeTextData(node.getText())
+    console.log('Slate doc', doc.slate)
     setValue(doc.slate)
   }, [nid])
   const renderElement = useCallback(

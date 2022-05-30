@@ -16,7 +16,6 @@ import { css } from '@emotion/react'
 
 import { Card, Button, Container } from 'react-bootstrap'
 
-import DoodledBird from './DoodledBird.svg'
 import { Triptych } from './card/Triptych'
 import { SearchGridView } from './grid/SearchGridView'
 
@@ -226,13 +225,6 @@ function About() {
   return (
     <Container>
       <Card>
-        <Card.Img
-          variant="top"
-          className="mt-4"
-          src={DoodledBird}
-          width={300}
-          height={300}
-        />
         <Card.Body>
           <Card.Title>To be done</Card.Title>
           <Card.Text>To be done</Card.Text>
@@ -273,13 +265,6 @@ function PrivacyPolicy() {
   return (
     <Container>
       <Card border="light">
-        <Card.Img
-          variant="top"
-          className="mt-4"
-          src={DoodledBird}
-          width={300}
-          height={300}
-        />
         <Card.Body>
           <Card.Title>Privacy policy</Card.Title>
           <Card.Text>To be done soon</Card.Text>
