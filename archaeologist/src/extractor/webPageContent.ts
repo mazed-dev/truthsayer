@@ -71,8 +71,8 @@ async function fetchImagePreviewAsBase64(
 }
 
 export interface WebPageContentImage {
-  content_type: MimeType
-  data: string // Base64 encoded image
+  content_type?: MimeType
+  data?: string // Base64 encoded image
 }
 
 export interface WebPageContent {
