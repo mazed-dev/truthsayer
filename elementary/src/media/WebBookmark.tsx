@@ -69,7 +69,8 @@ const PreviewImage = ({
   icon: Optional<PreviewImageSmall>
   url?: string
 }) => {
-  const img = icon == null ? <IconImgEmpty /> : <IconImg src={icon.data} />
+  const img =
+    icon == null ? <IconImgEmpty /> : <IconImg src={icon.data || icon.url} />
   return (
     <PreviewImageBox>
       {img}

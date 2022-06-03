@@ -63,13 +63,18 @@ export type NodeExtattrs = {
 
 // see smuggler/src/types.rs
 export type PreviewImageSmall = {
-  content_type: MimeType
+  content_type?: MimeType
 
   // Base64 encoded image for card preview_image, it must be small so we can
   // afford to store it to postgres DB
   // https://stackoverflow.com/questions/8499632/how-to-display-base64-images-in-html
   // https://en.wikipedia.org/wiki/Data_URI_scheme#Syntax
-  data: string
+  data?: string
+
+  // URL where a preview image can be downloaded from (at the time of this
+  // writing, used for previews of nodes that represent files hosted on 3rd-party
+  // filesystems)
+  url?: string
 }
 
 export type NodeExtattrsBlob = {}

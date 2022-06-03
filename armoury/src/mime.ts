@@ -34,7 +34,7 @@ function isText(mime: MimeType): boolean {
   return parse(mime).type === 'text'
 }
 
-function isImage(mime: MimeType): boolean {
+function isImage(mime: MimeType): mime is ImageMimeType {
   return parse(mime).type === 'image'
 }
 
@@ -73,6 +73,24 @@ export enum MimeType {
   IMAGE_TIFF = 'image/tiff',
   IMAGE_WEBP = 'image/webp',
 }
+
+export type ApplicationMimeType = MimeType.JSON | MimeType.PDF
+
+export type MultipartMimeType = MimeType.FORM_DATA
+
+export type TextMimeType =
+  | MimeType.TEXT_URI_LIST
+  | MimeType.TEXT_PLAIN
+  | MimeType.TEXT_PLAIN_UTF_8
+
+export type ImageMimeType =
+  | MimeType.IMAGE_BMP
+  | MimeType.IMAGE_GIF
+  | MimeType.IMAGE_JPEG
+  | MimeType.IMAGE_PNG
+  | MimeType.IMAGE_SVG_XML
+  | MimeType.IMAGE_TIFF
+  | MimeType.IMAGE_WEBP
 
 export const Mime = {
   parse,
