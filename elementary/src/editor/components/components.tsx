@@ -1,7 +1,11 @@
 import styled from '@emotion/styled'
+import type { StyledComponent } from '@emotion/styled'
+
 import { css } from '@emotion/react'
+import type { Theme } from '@emotion/react'
 
 import { Link as ReactRouterLink } from 'react-router-dom'
+import type { LinkProps } from 'react-router-dom'
 
 const InlineLink = css`
   font-weight: 500;
@@ -23,7 +27,14 @@ export const InlineLinkExt = styled.a`
   }
 `
 
-export const InlineLinkNode = styled(ReactRouterLink)`
+export const InlineLinkNode: StyledComponent<
+  LinkProps<unknown> &
+    React.RefAttributes<HTMLAnchorElement> & {
+      theme?: Theme | undefined
+    },
+  {},
+  {}
+> = styled(ReactRouterLink)`
   ${InlineLink};
   &:before {
     content: '📄 ';

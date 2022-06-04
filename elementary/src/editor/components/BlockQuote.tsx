@@ -7,10 +7,10 @@ type BlockQuoteProps = React.PropsWithChildren<{
 }>
 
 export const BlockQuote = React.forwardRef<HTMLQuoteElement, BlockQuoteProps>(
-  ({ className, children, cite, ...attributes }, ref) => {
+  ({ className, children, cite }, ref) => {
     return (
       <BlockQuoteBox className={className}>
-        <BlockQuotePad ref={ref} cite={cite} {...attributes}>
+        <BlockQuotePad ref={ref} cite={cite}>
           {children}
         </BlockQuotePad>
       </BlockQuoteBox>

@@ -159,7 +159,7 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
                   onChange={this.toggleConsent}
                   ref={this.consentRef}
                 />
-                <Form.Label sm="2">
+                <Form.Label sm={2}>
                   I am aware that Mazed currently is under active development,
                   therefore there are no guarantees of any kind
                 </Form.Label>
