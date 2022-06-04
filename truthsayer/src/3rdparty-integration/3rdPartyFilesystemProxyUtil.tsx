@@ -11,7 +11,7 @@ async function beginningOf(blob: Blob) {
   const reader = blob.stream().getReader()
   let ret = ''
   for (
-    let chunk: { done: boolean; value?: string } = { done: false };
+    let chunk: { done: boolean; value?: Uint8Array } = { done: false };
     !chunk.done && ret.length < 256;
     chunk = await reader.read()
   ) {

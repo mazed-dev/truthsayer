@@ -42,10 +42,7 @@ async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
  * Request page to be saved. content.ts is listening for this message and
  * respond with page content message that could be saved to smuggler.
  */
-async function requestPageContentToSave(tab?: browser.Tabs.Tab) {
-  if (tab == null) {
-    tab = (await getActiveTab()) || undefined
-  }
+async function requestPageContentToSave(tab: browser.Tabs.Tab | null) {
   const tabId = tab?.id
   if (tabId == null) {
     return
@@ -215,10 +212,7 @@ async function savePageQuote(
   }
 }
 
-async function requestPageSavedStatus(tab?: browser.Tabs.Tab) {
-  if (tab == null) {
-    tab = (await getActiveTab()) || undefined
-  }
+async function requestPageSavedStatus(tab: browser.Tabs.Tab | null) {
   if (tab == null) {
     return
   }
@@ -296,17 +290,17 @@ async function checkOriginIdAndUpdatePageStatus(
 browser.runtime.onMessage.addListener(
   async (message: MessageType, sender: browser.Runtime.MessageSender) => {
     // process is not defined in browsers extensions - use it to set up axios
-    const tabId = sender.tab?.id
+    const tab = sender.tab ?? (await getActiveTab())
     switch (message.type) {
       case 'REQUEST_PAGE_TO_SAVE':
-        requestPageContentToSave()
+        requestPageContentToSave(tab)
         break
       case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS':
-        await requestPageSavedStatus()
+        await requestPageSavedStatus(tab)
         break
       case 'PAGE_TO_SAVE':
         const { url, content, originId, quoteNids } = message
-        await savePage(url, originId, quoteNids, content, tabId)
+        await savePage(url, originId, quoteNids, content, tab?.id)
         break
       case 'REQUEST_AUTH_STATUS':
         await sendAuthStatus()
@@ -318,7 +312,7 @@ browser.runtime.onMessage.addListener(
             originId,
             { url, path, text },
             lang,
-            tabId,
+            tab?.id,
             fromNid
           )
         }

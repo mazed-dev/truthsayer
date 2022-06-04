@@ -2,7 +2,7 @@
 //
 import type { Descendant } from 'slate'
 import { serialize } from 'remark-slate'
-import unified from 'unified'
+import { unified } from 'unified'
 import { TNode } from 'smuggler-api'
 import markdown from 'remark-parse'
 import slate from 'remark-slate'
@@ -161,7 +161,7 @@ const _kSlateBlocksToFlatten = new Set([
 function flattenDescendants(elements: Descendant[]): Descendant[] {
   let flattened: Descendant[] = []
   elements.forEach((item: Descendant) => {
-    const { type, children, text } = item
+    const { type, children } = item
     if (_kSlateBlocksToFlatten.has(type)) {
       flattened = flattened.concat(flattenDescendants(children || []))
     } else {

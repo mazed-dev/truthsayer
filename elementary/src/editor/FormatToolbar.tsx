@@ -172,7 +172,7 @@ const toggleBlock = (editor: CustomEditor, format: CustomElementType) => {
   const newProperties: Partial<SlateElement> = {
     type: isActive ? 'paragraph' : isList ? 'list-item' : format,
   }
-  Transforms.setNodes(editor, newProperties)
+  Transforms.setNodes<SlateElement>(editor, newProperties)
 
   if (!isActive && isList) {
     // @ts-ignore: Type '{ type: CustomElementType; children: never[]; }' is not assignable
