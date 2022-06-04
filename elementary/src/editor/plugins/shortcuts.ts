@@ -68,7 +68,7 @@ export const withShortcuts = (editor: CustomEditor) => {
         const newProperties: Partial<SlateElement> = {
           type,
         }
-        Transforms.setNodes(editor, newProperties, {
+        Transforms.setNodes<SlateElement>(editor, newProperties, {
           match: (n) => Editor.isBlock(editor, n),
         })
         if (

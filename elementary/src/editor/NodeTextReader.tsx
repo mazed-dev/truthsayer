@@ -1,9 +1,8 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { css } from '@emotion/react'
 import { Editable, Slate, withReact } from 'slate-react'
-import type { Descendant } from 'slate'
 import { createEditor } from 'slate'
 
 import { withTypography } from './plugins/typography'
@@ -24,10 +23,9 @@ export const NodeTextReader = ({
   node: TNode
   className?: string
 }) => {
-  const [value, setValue] = useState<Descendant[]>([])
-  useEffect(() => {
-    const doc = TDoc.fromNodeTextData(node.text)
-    setValue(doc.slate)
+  const initialValue = useMemo(() => {
+    const doc = TDoc.fromNodeTextData(node.getText())
+    return doc.slate
   }, [node])
   const renderElement = useCallback(
     (props) => <ReadOnlyElement nid={node.nid} {...props} />,
@@ -40,11 +38,7 @@ export const NodeTextReader = ({
   )
   return (
     <div className={className}>
-      <Slate
-        editor={editor}
-        value={value}
-        onChange={(value) => setValue(value)}
-      >
+      <Slate editor={editor} value={initialValue}>
         <Editable
           renderElement={renderElement}
           renderLeaf={renderLeaf}

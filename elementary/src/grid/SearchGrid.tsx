@@ -15,7 +15,7 @@ import { NodeTimeBadge } from '../NodeTimeBadge'
 
 import { smuggler, TNodeSliceIterator, TNode } from 'smuggler-api'
 
-import { log, errorise, isAbortError } from 'armoury'
+import { log, isAbortError, errorise } from 'armoury'
 
 import { DynamicGrid } from './DynamicGrid'
 import { NodeCardReadOnly } from '../NodeCardReadOnly'
@@ -158,10 +158,10 @@ const SearchGridScroll = ({
             setNodes((prev) => prev.concat(node))
           }
         }
-      } catch (exception) {
-        const err = errorise(exception)
-        if (!isAbortError(err)) {
-          log.exception(err)
+      } catch (err) {
+        const error = errorise(err)
+        if (!isAbortError(error)) {
+          log.exception(error)
         }
       }
       setFetching(false)

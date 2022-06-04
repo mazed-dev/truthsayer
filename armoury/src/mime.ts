@@ -19,7 +19,10 @@ function parse(s: MimeType): MimeTypeStruct {
   let params: MimeParams = {}
   const fullTypeAndParam = s.split(';')
   if (fullTypeAndParam.length > 1) {
-    params = queryString.parse(fullTypeAndParam[1].toLowerCase())
+    params = queryString.parse(fullTypeAndParam[1].toLowerCase(), {
+      parseNumbers: false,
+      parseBooleans: false,
+    }) as MimeParams
   }
   const fullType = fullTypeAndParam[0]
   const typeAndSubType = fullType.split('/')

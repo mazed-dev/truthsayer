@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 
 import { css } from '@emotion/react'
 import { Editable, Slate, withReact } from 'slate-react'
@@ -31,20 +31,19 @@ export const NodeTextEditor = ({
   saveText: (text: SlateText) => void
   className?: string
 }) => {
-  const [value, setValue] = useState<SlateText>([])
   const [isJinnShown, setShowJinn] = useState<boolean>(false)
   const nid = node.nid
-  useEffect(() => {
-    const doc = TDoc.fromNodeTextData(node.getText())
-    setValue(doc.slate)
-  }, [nid])
   const renderElement = useCallback(
-    (props) => <EditableElement nid={nid} {...props} />,
+    (props) => {
+      return <EditableElement nid={nid} {...props} />
+    },
     [nid]
   )
-  const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
-  const editor = useMemo(
-    () =>
+  const renderLeaf = useCallback((props) => {
+    return <Leaf {...props} />
+  }, [])
+  const editor = useMemo(() => {
+    return withHistory(
       withJinn(
         () => setShowJinn(true),
         withTypography(
@@ -52,9 +51,13 @@ export const NodeTextEditor = ({
             withImages(withShortcuts(withReact(withHistory(createEditor()))))
           )
         )
-      ),
-    []
-  )
+      )
+    )
+  }, [])
+  const initialValue = useMemo(() => {
+    const doc = TDoc.fromNodeTextData(node.getText())
+    return doc.slate
+  }, [nid])
   return (
     <div className={className}>
       <Jinn
@@ -64,11 +67,15 @@ export const NodeTextEditor = ({
       />
       <Slate
         editor={editor}
-        value={value}
+        value={initialValue}
         onChange={(value) => {
-          setValue(value)
-          // Save the value to remote
-          saveText(value)
+          const isAstChange = editor.operations.some(
+            (op) => op.type !== 'set_selection'
+          )
+          if (isAstChange) {
+            // Save the value to remote
+            saveText(value)
+          }
         }}
       >
         <FormatToolbar />

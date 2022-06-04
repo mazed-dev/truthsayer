@@ -24,9 +24,7 @@ import {
   StyleButtonWhite,
   SmallCard,
 } from 'elementary'
-import { errorise, Optional } from 'armoury'
-import { log } from 'armoury'
-import { isAbortError } from 'armoury'
+import { Optional, errorise, log, isAbortError } from 'armoury'
 
 import { SearchAndConnectJinn } from './SearchAndConnect'
 
@@ -74,12 +72,12 @@ async function cloneNode({
       },
       abortSignal
     )
-  } catch (exception) {
-    const err = errorise(exception)
-    if (isAbortError(err)) {
+  } catch (err) {
+    const error = errorise(err)
+    if (isAbortError(error)) {
       return null
     }
-    log.exception(err)
+    log.exception(error)
   }
   return null
 }
