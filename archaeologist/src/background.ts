@@ -392,3 +392,7 @@ browser.contextMenus.onClicked.addListener(
     }
   }
 )
+
+browser.omnibox.setDefaultSuggestion({
+  description: "Type the name of a CSS property"
+})
