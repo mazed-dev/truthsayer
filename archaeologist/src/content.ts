@@ -14,8 +14,11 @@ import {
 import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/unmemorable'
 import { TNode, TNodeJson } from 'smuggler-api'
-import { genOriginId } from 'armoury'
+import { log, genOriginId } from 'armoury'
 import { renderPageAugmentation } from './content/Main'
+
+log.debug('Mazed content script')
+console.log('Mazed content script')
 
 /**
  * Single socket point in a web page DOM for all Mazed augmentations
@@ -110,6 +113,7 @@ async function updateContentAugmentation(
 }
 
 browser.runtime.onMessage.addListener(async (message: MessageType) => {
+  log.debug('Content message listener', message)
   switch (message.type) {
     case 'REQUEST_PAGE_TO_SAVE':
       await readPageContent()

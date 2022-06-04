@@ -26,7 +26,7 @@
     "lodash": "^4.17.21",
     "prettier": "^2.2",
     "ts-jest": "^26.4.2",
-    "typescript": "4.7.2"
+    "typescript": "4.1.3"
   },
   "devDependencies": {
     "syncpack": "^5.8.15"

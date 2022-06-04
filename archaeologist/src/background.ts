@@ -43,8 +43,11 @@ async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
  * respond with page content message that could be saved to smuggler.
  */
 async function requestPageContentToSave(tab?: browser.Tabs.Tab) {
+  log.debug('requestPageContentToSave', tab)
   if (tab == null) {
+    log.debug('requestPageContentToSave - tab is not provided, request...')
     tab = (await getActiveTab()) || undefined
+    log.debug('requestPageContentToSave - active tab is:', tab)
   }
   const tabId = tab?.id
   if (tabId == null) {
@@ -296,13 +299,14 @@ async function checkOriginIdAndUpdatePageStatus(
 browser.runtime.onMessage.addListener(
   async (message: MessageType, sender: browser.Runtime.MessageSender) => {
     // process is not defined in browsers extensions - use it to set up axios
+    log.debug('message.listener', message, sender)
     const tabId = sender.tab?.id
     switch (message.type) {
       case 'REQUEST_PAGE_TO_SAVE':
-        requestPageContentToSave()
+        requestPageContentToSave(sender.tab)
         break
       case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS':
-        await requestPageSavedStatus()
+        await requestPageSavedStatus(sender.tab)
         break
       case 'PAGE_TO_SAVE':
         const { url, content, originId, quoteNids } = message
