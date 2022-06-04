@@ -1,4 +1,4 @@
-// import assert from 'assert'
+import assert from 'assert'
 import { ThirdpartyFs, FileProxy, FolderProxy } from './3rdPartyFilesystem'
 
 /**
@@ -162,10 +162,10 @@ export function modTimestampBatchIterator(queue: FileProxy[]) {
     *[Symbol.iterator]() {
       for (let batchStart = 0; batchStart < queue.length; ) {
         const isFromNextBatch = (file: FileProxy) => {
-          // assert(
-          //   !(file.lastModTimestamp < queue[batchStart].lastModTimestamp),
-          //   'modTimestampBatchIterator expects file queue to be sorted by last modification timestamp'
-          // )
+          assert(
+            !(file.lastModTimestamp < queue[batchStart].lastModTimestamp),
+            'modTimestampBatchIterator expects file queue to be sorted by last modification timestamp'
+          )
           return file.lastModTimestamp > queue[batchStart].lastModTimestamp
         }
         const nextBatchStart = queue

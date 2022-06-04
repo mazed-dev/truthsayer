@@ -21,7 +21,7 @@
     "@azure/msal-react": "^1.2.0",
     "@babel/core": "^7.15.5",
     "@babel/plugin-proposal-class-properties": "^7.13.0",
-    "@babel/preset-typescript": "^7.7.4",
+    "@babel/preset-typescript": "^7.17.12",
     "@emotion/babel-plugin": "^11.9.2",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
