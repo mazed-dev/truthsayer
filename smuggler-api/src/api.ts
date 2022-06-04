@@ -21,11 +21,11 @@ import {
   UserBadge,
   UserFilesystemId,
   UserFsIngestionProgress,
-} from './types'
+} from './types.js'
 
-import { makeUrl } from './api_url'
+import { makeUrl } from './api_url.js'
 
-import { TNodeSliceIterator, GetNodesSliceFn } from './node_slice_iterator'
+import { TNodeSliceIterator, GetNodesSliceFn } from './node_slice_iterator.js'
 
 import { genOriginId, Mime, stabiliseUrlForOriginId } from 'armoury'
 import type { Optional } from 'armoury'

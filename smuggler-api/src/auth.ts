@@ -1,7 +1,7 @@
-import Cookies from 'universal-cookie'
+import { default as Cookies } from 'universal-cookie'
 
-import { smuggler } from './api'
-import { AccountInterface, LocalCrypto } from './types'
+import { smuggler } from './api.js'
+import { AccountInterface, LocalCrypto } from './types.js'
 
 import type { Optional } from 'armoury'
 

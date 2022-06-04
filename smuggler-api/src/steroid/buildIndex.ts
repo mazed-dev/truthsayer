@@ -2,8 +2,8 @@
  * APIs that build node indexes "on steroids" (see @alias steroid.ts for more information)
  */
 
-import { smuggler } from '../api'
-import { NodeIndexText } from '../types'
+import { smuggler } from '../api.js'
+import { NodeIndexText } from '../types.js'
 import { Mime } from 'armoury'
 import type { MimeType } from 'armoury'
 
@@ -21,7 +21,7 @@ async function readAtMost(file: File, maxChars: number) {
     }
     const chunkStr = new TextDecoder().decode(chunk.value)
     const maxCharsLeft = maxChars - totalCharsRead
-    const end = Math.min(chunkStr .length, maxCharsLeft)
+    const end = Math.min(chunkStr.length, maxCharsLeft)
     totalCharsRead += end
     data.push(chunkStr.substring(0, end))
   }

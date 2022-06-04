@@ -1,5 +1,5 @@
-import { TNodeSliceIterator } from './node_slice_iterator'
-import { TNode, NodeTextData } from './types'
+import { TNodeSliceIterator } from './node_slice_iterator.js'
+import { TNode, NodeTextData } from './types.js'
 import type { Optional } from 'armoury'
 
 import moment from 'moment'

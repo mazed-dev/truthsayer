@@ -1,4 +1,4 @@
-import { TNode, NodeOrigin } from './types'
+import { TNode, NodeOrigin } from './types.js'
 import type { Optional } from 'armoury'
 
 export interface INodeIterator {

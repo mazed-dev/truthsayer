@@ -6,8 +6,8 @@ import {
   GenerateBlobIndexResponse,
   NodeIndexText,
   UploadMultipartResponse,
-} from '../types'
-import { smuggler } from '../api'
+} from '../types.js'
+import { smuggler } from '../api.js'
 import { log, Mime, isAbortError, errorise } from 'armoury'
 import type { Optional } from 'armoury'
 

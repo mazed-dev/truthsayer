@@ -2,7 +2,7 @@ import { Mime } from 'armoury'
 import { MimeType } from 'armoury'
 import moment from 'moment'
 
-import { makeUrl } from './api_url'
+import { makeUrl } from './api_url.js'
 
 export type SlateText = object[]
 

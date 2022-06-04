@@ -15,8 +15,8 @@
 import {
   nodeIndexFromFile,
   mimeTypeIsSupportedByBuildIndex,
-} from './buildIndex'
-import { createNodeFromLocalBinary } from './node'
+} from './buildIndex.js'
+import { createNodeFromLocalBinary } from './node.js'
 
 export const steroid = {
   build_index: {
