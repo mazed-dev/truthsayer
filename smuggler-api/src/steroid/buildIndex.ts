@@ -12,20 +12,18 @@ async function readAtMost(file: File, maxChars: number) {
   let totalCharsRead = 0
   const data: string[] = []
   for (
-    let chunk: { done: boolean; value?: string } = { done: false };
+    let chunk: { done: boolean; value?: Uint8Array } = { done: false };
     !chunk.done && totalCharsRead < maxChars;
     chunk = await reader.read()
   ) {
     if (chunk.value === undefined) {
       continue
     }
-
+    const chunkStr = new TextDecoder().decode(chunk.value)
     const maxCharsLeft = maxChars - totalCharsRead
-    const end =
-      chunk.value.length < maxCharsLeft ? chunk.value.length : maxCharsLeft
+    const end = Math.min(chunkStr .length, maxCharsLeft)
     totalCharsRead += end
-
-    data.push(chunk.value.substring(0, end))
+    data.push(chunkStr.substring(0, end))
   }
 
   return data.join('')

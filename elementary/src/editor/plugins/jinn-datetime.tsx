@@ -45,7 +45,7 @@ export const DateTimeCard = React.forwardRef(({ items, onInsert }, ref) => {
   // TODO(akindyakov): continue here
   const children = items.map((item) => {
     const { time, format } = item
-    const key = `${time.valueOf()}-${base64.fromStr(format)}`
+    const key = `${time.valueOf()}-${base64.string.fromObject(format)}`
     return (
       <DateTimeCardItem
         time={time}

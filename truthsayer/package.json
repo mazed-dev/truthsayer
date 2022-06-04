@@ -14,7 +14,7 @@
     "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,jsx,json,ts,tsx}\"",
     "lint:typescript": "yarn tsc --build ./ --force",
     "start": "yarn react-scripts start",
-    "test": "yarn react-scripts test"
+    "test": "yarn react-scripts test --env=./src/test/customEnvironment.js"
   },
   "dependencies": {
     "@azure/msal-browser": "^2.21.0",
@@ -33,7 +33,7 @@
     "@testing-library/user-event": "^12.6",
     "@types/crc": "^3.4.0",
     "@types/is-url": "^1.2.30",
-    "@types/jest": "^26.0.0",
+    "@types/jest": "26.0.24",
     "@types/microsoft-graph": "^2.13.0",
     "@types/mocha": "^5.2.7",
     "@types/node": "^14.14",
@@ -54,6 +54,7 @@
     "fbjs": "^3.0.0",
     "http-status-codes": "2.1.4",
     "is-url": "^1.2.4",
+    "jsdom": "^17.0.0",
     "keycode": "^2.2",
     "local-storage": "^2.0",
     "lodash": "^4.17.21",

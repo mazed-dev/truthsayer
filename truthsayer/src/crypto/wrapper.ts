@@ -76,7 +76,7 @@ export async function encryptAndSignObject(
   obj: Any,
   secret: TSecret
 ): TEncrypted {
-  const encrypted = encrypt(base64.fromObject(obj), secret.key)
+  const encrypted = encrypt(base64.string.fromObject(obj), secret.key)
   const signature = sign(encrypted, secret.sig)
   const encryptedObj: TEncrypted = {
     encrypted,
@@ -99,5 +99,5 @@ export async function decryptSignedObject(
     return null
   }
   const secretStr = decrypt(encryptedObj.encrypted, secret.key)
-  return base64.toObject(secretStr)
+  return base64.string.toObject(secretStr)
 }
