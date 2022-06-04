@@ -1,4 +1,3 @@
-import assert from 'assert'
 import { ThirdpartyFs, FileProxy, FolderProxy } from './3rdPartyFilesystem'
 
 /**
@@ -107,11 +106,12 @@ function oldestModifiedFirstComparator(lhs: FileProxy, rhs: FileProxy) {
   // for more information on how custom comparator functions
   // should be implemented
   if (lhs.lastModTimestamp === rhs.lastModTimestamp) {
-    // assert(
-    //   lhs.id !== rhs.id,
-    //   `Two elements with identical IDs ${lhs.id}` +
-    //     'have been detected in an array of filesystem items'
-    // )
+    if (lhs.id === rhs.id) {
+      throw new Error(
+        `Two elements with identical IDs ${lhs.id}` +
+          'have been detected in an array of filesystem items'
+      )
+    }
     if (lhs.id < rhs.id) {
       return -1
     }
@@ -162,10 +162,11 @@ export function modTimestampBatchIterator(queue: FileProxy[]) {
     *[Symbol.iterator]() {
       for (let batchStart = 0; batchStart < queue.length; ) {
         const isFromNextBatch = (file: FileProxy) => {
-          assert(
-            !(file.lastModTimestamp < queue[batchStart].lastModTimestamp),
-            'modTimestampBatchIterator expects file queue to be sorted by last modification timestamp'
-          )
+          if (file.lastModTimestamp < queue[batchStart].lastModTimestamp) {
+            throw new Error(
+              'modTimestampBatchIterator expects file queue to be sorted by last modification timestamp'
+            )
+          }
           return file.lastModTimestamp > queue[batchStart].lastModTimestamp
         }
         const nextBatchStart = queue
