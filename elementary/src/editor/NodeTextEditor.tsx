@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 
 import { css } from '@emotion/react'
 import { Editable, Slate, withReact } from 'slate-react'
@@ -39,12 +39,9 @@ export const NodeTextEditor = ({
     },
     [nid]
   )
-  const renderLeaf = useCallback(
-    (props) => {
-      return <Leaf {...props} />
-    },
-    []
-  )
+  const renderLeaf = useCallback((props) => {
+    return <Leaf {...props} />
+  }, [])
   const editor = useMemo(() => {
     return withHistory(
       withJinn(

@@ -85,7 +85,7 @@ const config = (env, argv) => {
         },
         {
           test: /\.(png|jpg|gif)$/i,
-          type: "asset/resource",
+          type: "asset/inline",
         },
       ],
     },

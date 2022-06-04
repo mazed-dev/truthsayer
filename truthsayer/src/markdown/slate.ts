@@ -161,7 +161,7 @@ const _kSlateBlocksToFlatten = new Set([
 function flattenDescendants(elements: Descendant[]): Descendant[] {
   let flattened: Descendant[] = []
   elements.forEach((item: Descendant) => {
-    const { type, children, text } = item
+    const { type, children } = item
     if (_kSlateBlocksToFlatten.has(type)) {
       flattened = flattened.concat(flattenDescendants(children || []))
     } else {

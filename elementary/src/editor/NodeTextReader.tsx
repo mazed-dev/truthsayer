@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import { useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { css } from '@emotion/react'
 import { Editable, Slate, withReact } from 'slate-react'
 import { createEditor } from 'slate'
@@ -38,10 +38,7 @@ export const NodeTextReader = ({
   )
   return (
     <div className={className}>
-      <Slate
-        editor={editor}
-        value={initialValue}
-      >
+      <Slate editor={editor} value={initialValue}>
         <Editable
           renderElement={renderElement}
           renderLeaf={renderLeaf}
