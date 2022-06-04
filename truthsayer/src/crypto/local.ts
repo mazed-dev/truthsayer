@@ -161,7 +161,7 @@ export class LocalCrypto {
       // *dbg*/ console.log('Error: local user secret is not defined', secret_id)
       return null
     }
-    const secretEnc: TEncrypted = base64.toObject(secretBase64)
+    const secretEnc: TEncrypted = base64.string.toObject(secretBase64)
     const secondKeyData = await this._smuggler.getSecondKey({
       id: secretEnc.secret_id,
     })
@@ -205,7 +205,7 @@ export class LocalCrypto {
     allSecretsHashes.push(secret.id)
 
     // Store new
-    this._storage.set(secret.id, base64.fromObject(encryptedSecret))
+    this._storage.set(secret.id, base64.string.fromObject(encryptedSecret))
     // Swap hashes list
     // @ts-ignore: Argument of type 'string[]' is not assignable to parameter of type 'string'
     this._storage.set(allSecretsHashesKey, allSecretsHashes)
