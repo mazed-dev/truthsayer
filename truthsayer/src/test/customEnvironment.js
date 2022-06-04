@@ -1,7 +1,7 @@
 const Environment = require('jest-environment-jsdom')
 
 // Custom test environment copied from https://github.com/jsdom/jsdom/issues/2524
-// in order to add TextEncoder to jsdom. TextEncoder is expected by jose.
+// in order to add TextEncoder to jsdom.
 module.exports = class CustomTestEnvironment extends Environment {
   async setup() {
     await super.setup()
