@@ -1,4 +1,4 @@
-import { genOriginId, _uint32ToInt32 } from '../src/originId'
+import { genOriginId, _uint32ToInt32 } from '../src/originId.js'
 
 import data from './originId.test.data.json'
 const urls = data.urls

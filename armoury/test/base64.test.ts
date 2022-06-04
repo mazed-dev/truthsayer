@@ -1,5 +1,4 @@
-import { base64 } from '../src/base64'
-
+import { base64 } from '../src/base64.js'
 
 test('Object, toBase64 and back', () => {
   const obj = {
