@@ -1,5 +1,6 @@
 import { MessageType, Message } from './message/types'
 import * as badge from './badge/badge'
+import { register as registerOmnibox } from './omnibox/omnibox'
 import { log, isAbortError, errorise, genOriginId } from 'armoury'
 
 import browser from 'webextension-polyfill'
@@ -393,6 +394,4 @@ browser.contextMenus.onClicked.addListener(
   }
 )
 
-browser.omnibox.setDefaultSuggestion({
-  description: "Type the name of a CSS property"
-})
+registerOmnibox()
