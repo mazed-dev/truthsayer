@@ -1,5 +1,5 @@
 import { MessageType, Message } from './message/types'
-import * as badge from './badge'
+import * as badge from './badge/badge'
 import { log, isAbortError, errorise, genOriginId } from 'armoury'
 
 import browser from 'webextension-polyfill'
