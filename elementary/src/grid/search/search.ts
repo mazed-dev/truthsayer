@@ -5,6 +5,8 @@ import { TDoc } from '../../editor/types'
 
 import lodash from 'lodash'
 
+export type Woof = {}
+
 export class Beagle {
   allOf: RegExp[]
 
@@ -12,7 +14,10 @@ export class Beagle {
     this.allOf = allOf
   }
 
-  static fromString(q: string): Beagle {
+  static fromString(q?: string): Beagle {
+    if (q == null) {
+      return new Beagle([])
+    }
     const allOf: RegExp[] = _exactPatternsFromString(q)
     return new Beagle(allOf)
   }
@@ -21,10 +26,10 @@ export class Beagle {
     return this.allOf.length === 0
   }
 
-  searchNode(node: TNode): Optional<TNode> {
+  searchNode(node: TNode): Optional<Woof> {
     if (this.isEmpty()) {
       // Empty search fall back to show everything
-      return node
+      return {}
     }
     const doc = TDoc.fromNodeTextData(node.getText())
     const plaintext = doc.genPlainText()
@@ -54,7 +59,7 @@ export class Beagle {
         fieldsToSearchIn.push(field)
       }
     }
-    return _searchFieldsFor(fieldsToSearchIn, this.allOf) ? node : null
+    return _searchFieldsFor(fieldsToSearchIn, this.allOf) ? {} : null
   }
 }
 
