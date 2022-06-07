@@ -1,5 +1,3 @@
-// @ts-nocheck
-//
 import type { Descendant } from 'slate'
 import { serialize } from 'remark-slate'
 import { unified } from 'unified'
@@ -33,6 +31,7 @@ import {
   kSlateBlockTypeQuote,
   kSlateBlockTypeStrongMark,
   kSlateBlockTypeUnorderedList,
+  Descendant,
 } from 'elementary'
 
 import lodash from 'lodash'
@@ -50,7 +49,8 @@ export function slateToMarkdown(state: Descendant[]): string {
  * Markdown to Slate object:
  */
 export async function markdownToSlate(text: string): Promise<Descendant[]> {
-  let { contents } = await unified().use(markdown).use(slate).process(text)
+  const vf = await unified().use(markdown).use(slate).process(text)
+  let contents = vf.result as Descendant[]
   contents = parseExtraBlocks(contents)
   contents = _siftUpBlocks(contents)
   contents = _dissolveNestedParagraphs(contents)
@@ -77,10 +77,10 @@ const kMazedBlockTypeToRemarkSlate: Record<string, string> = {
   [kSlateBlockTypeListItem]: defaultNodeTypes.listItem,
   [kSlateBlockTypeLink]: defaultNodeTypes.link,
   [kSlateBlockTypeImage]: defaultNodeTypes.image,
-  [kSlateBlockTypeEmphasisMark]: defaultNodeTypes.italic,
-  [kSlateBlockTypeStrongMark]: defaultNodeTypes.bold,
-  [kSlateBlockTypeDeleteMark]: defaultNodeTypes.strikeThrough,
-  [kSlateBlockTypeInlineCodeMark]: defaultNodeTypes.code,
+  [kSlateBlockTypeEmphasisMark]: defaultNodeTypes.emphasis_mark,
+  [kSlateBlockTypeStrongMark]: defaultNodeTypes.strong_mark,
+  [kSlateBlockTypeDeleteMark]: defaultNodeTypes.delete_mark,
+  [kSlateBlockTypeInlineCodeMark]: defaultNodeTypes.inline_code_mark,
 }
 const kRemarkSlateBlockTypeToMazed: Record<string, string> = lodash.invert(
   kMazedBlockTypeToRemarkSlate
@@ -351,7 +351,7 @@ function serializeExtraDateTime(item: Descendant): Descendant {
   return { text, children }
 }
 
-export async function nodeToMarkdown(node: TNode): string {
+export async function nodeToMarkdown(node: TNode): Promise<string> {
   let md = ''
   if (node.isImage()) {
     const source = node.getBlobSource()

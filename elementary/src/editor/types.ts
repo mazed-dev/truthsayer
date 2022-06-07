@@ -9,6 +9,7 @@ import moment from 'moment'
 
 import type { Optional } from 'armoury'
 
+export type { Descendant }
 export type SlateText = Descendant[]
 
 enum EChunkType {
