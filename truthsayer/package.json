@@ -49,6 +49,7 @@
     "http-status-codes": "2.1.4",
     "is-url": "^1.2.4",
     "keycode": "^2.2",
+    "librarius": "0.0.1",
     "local-storage": "^2.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.2",

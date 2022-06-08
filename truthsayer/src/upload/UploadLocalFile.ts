@@ -9,7 +9,7 @@ import { errorise, log } from 'armoury'
 import { isAbortError } from 'armoury'
 
 import { TDoc, SlateText } from 'elementary'
-import { markdownToSlate } from '../markdown/slate'
+import { markdownToSlate } from 'librarius'
 import { Mime } from 'armoury'
 import { Optional } from 'armoury'
 

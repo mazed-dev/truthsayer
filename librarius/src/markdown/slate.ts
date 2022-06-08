@@ -1,10 +1,9 @@
-import type { Descendant } from 'slate'
-import { serialize } from 'remark-slate'
 import { unified } from 'unified'
 import { TNode } from 'smuggler-api'
 import markdown from 'remark-parse'
+import { serialize } from 'remark-slate'
 import slate from 'remark-slate'
-import { defaultNodeTypes } from 'remark-slate'
+import { defaultNodeTypes, BlockType as RemarkBlock } from 'remark-slate'
 
 import moment from 'moment'
 
@@ -31,6 +30,8 @@ import {
   kSlateBlockTypeQuote,
   kSlateBlockTypeStrongMark,
   kSlateBlockTypeUnorderedList,
+  CustomElementType,
+  CustomTextType,
   Descendant,
 } from 'elementary'
 
@@ -50,7 +51,7 @@ export function slateToMarkdown(state: Descendant[]): string {
  */
 export async function markdownToSlate(text: string): Promise<Descendant[]> {
   const vf = await unified().use(markdown).use(slate).process(text)
-  let contents = vf.result as Descendant[]
+  let contents = vf.result as RemarkBlock[]
   contents = parseExtraBlocks(contents)
   contents = _siftUpBlocks(contents)
   contents = _dissolveNestedParagraphs(contents)
@@ -61,7 +62,30 @@ export async function markdownToSlate(text: string): Promise<Descendant[]> {
  * Slate blocks
  */
 
-const kMazedBlockTypeToRemarkSlate: Record<string, string> = {
+type RemarkNodeTypes =
+  | typeof defaultNodeTypes.heading[1]
+  | typeof defaultNodeTypes.heading[2]
+  | typeof defaultNodeTypes.heading[3]
+  | typeof defaultNodeTypes.heading[4]
+  | typeof defaultNodeTypes.heading[5]
+  | typeof defaultNodeTypes.heading[6]
+  | typeof defaultNodeTypes.thematic_break
+  | typeof defaultNodeTypes.code_block
+  | typeof defaultNodeTypes.ol_list
+  | typeof defaultNodeTypes.paragraph
+  | typeof defaultNodeTypes.block_quote
+  | typeof defaultNodeTypes.ul_list
+  | typeof defaultNodeTypes.listItem
+  | typeof defaultNodeTypes.link
+  | typeof defaultNodeTypes.image
+  | typeof defaultNodeTypes.emphasis_mark
+  | typeof defaultNodeTypes.strong_mark
+  | typeof defaultNodeTypes.delete_mark
+  | typeof defaultNodeTypes.inline_code_mark
+
+const kMazedBlockTypeToRemarkSlate: {
+  [key in CustomElementType | CustomTextType]?: RemarkNodeTypes
+} = {
   [kSlateBlockTypeH1]: defaultNodeTypes.heading[1],
   [kSlateBlockTypeH2]: defaultNodeTypes.heading[2],
   [kSlateBlockTypeH3]: defaultNodeTypes.heading[3],
@@ -82,15 +106,22 @@ const kMazedBlockTypeToRemarkSlate: Record<string, string> = {
   [kSlateBlockTypeDeleteMark]: defaultNodeTypes.delete_mark,
   [kSlateBlockTypeInlineCodeMark]: defaultNodeTypes.inline_code_mark,
 }
-const kRemarkSlateBlockTypeToMazed: Record<string, string> = lodash.invert(
-  kMazedBlockTypeToRemarkSlate
-)
 
-function _mazedBlockTypeToRemarkSlate(type: string): string {
+const kRemarkSlateBlockTypeToMazed = lodash.invert(
+  kMazedBlockTypeToRemarkSlate
+) as {
+  [key in RemarkNodeTypes]?: CustomElementType | CustomTextType
+}
+
+function _mazedBlockTypeToRemarkSlate(
+  type: CustomElementType | CustomTextType
+): RemarkNodeTypes {
   return kMazedBlockTypeToRemarkSlate[type] || defaultNodeTypes.paragraph
 }
 
-function _remarkSlateBlockTypeToMazed(type: string): string {
+function _remarkSlateBlockTypeToMazed(
+  type: RemarkNodeTypes
+): CustomElementType | CustomTextType {
   return kRemarkSlateBlockTypeToMazed[type] || kSlateBlockTypeParagraph
 }
 
@@ -98,14 +129,12 @@ function _remarkSlateBlockTypeToMazed(type: string): string {
  * Implemtations
  * not to be exported
  */
-function parseExtraBlocks(content: Descendant[]): Descendant[] {
-  return content.map((item: Descendant) => {
-    let { type } = item
-    if (type) {
-      type = _remarkSlateBlockTypeToMazed(type)
-      item.type = type
-    }
-    switch (type) {
+function parseExtraBlocks(content: RemarkBlock[]): Descendant[] {
+  return content.map((item: RemarkBlock) => {
+    let type = item.type
+    type = _remarkSlateBlockTypeToMazed(type as RemarkNodeTypes)
+    item.type = type
+    switch (item.type) {
       case kSlateBlockTypeListItem:
         item = parseListItem(item)
         break
@@ -113,15 +142,14 @@ function parseExtraBlocks(content: Descendant[]): Descendant[] {
         item = parseLinkExtraSyntax(item)
         break
     }
-    const { children } = item
-    if (children) {
-      item.children = parseExtraBlocks(children)
+    if ('children' in item) {
+      item.children = parseExtraBlocks(item.children)
     }
     return item
-  })
+  }) as Descendant[]
 }
 
-function parseListItem(item: Descendant): Descendant {
+function parseListItem(item: RemarkBlock): Descendant {
   const children: Descendant[] = flattenDescendants(item.children || [])
   const first: Descendant = children[0]
   if (first) {

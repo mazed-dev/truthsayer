@@ -21,10 +21,14 @@ export type {
   TChunk,
   TDraftDoc,
   DateTimeElement,
-  LeafElement,
+  CustomText,
+  CustomTextType,
+  CustomElement,
+  CustomElementType,
   LinkElement,
   ParagraphElement,
   ThematicBreakElement,
+  Descendant,
 } from './editor/types'
 
 export {

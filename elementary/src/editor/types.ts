@@ -9,7 +9,6 @@ import moment from 'moment'
 
 import type { Optional } from 'armoury'
 
-export type { Descendant }
 export type SlateText = Descendant[]
 
 enum EChunkType {
@@ -108,6 +107,14 @@ export const kSlateBlockTypeDateTime = 'datetime'
 // [snikitin] Why does link has the same prefix pattern as "marks"?
 export const kSlateBlockTypeLink = '-link'
 
+/**
+ * Slate Leafs:
+ */
+export const kSlateBlockTypeEmphasisMark = '-italic'
+export const kSlateBlockTypeStrongMark = '-bold'
+export const kSlateBlockTypeDeleteMark = '-strike-through'
+export const kSlateBlockTypeInlineCodeMark = '-inline-code'
+
 export type CustomElementType =
   | typeof kSlateBlockTypeH1
   | typeof kSlateBlockTypeH2
@@ -127,14 +134,11 @@ export type CustomElementType =
   | typeof kSlateBlockTypeDateTime
   | typeof kSlateBlockTypeLink
 
-/**
- * Slate
- * Leafs:
- */
-export const kSlateBlockTypeEmphasisMark = '-italic'
-export const kSlateBlockTypeStrongMark = '-bold'
-export const kSlateBlockTypeDeleteMark = '-strike-through'
-export const kSlateBlockTypeInlineCodeMark = '-inline-code'
+export type CustomTextType =
+  | typeof kSlateBlockTypeEmphasisMark
+  | typeof kSlateBlockTypeStrongMark
+  | typeof kSlateBlockTypeDeleteMark
+  | typeof kSlateBlockTypeInlineCodeMark
 
 export function isHeaderBlock(block: any) {
   const { type } = block
@@ -150,12 +154,6 @@ export function isHeaderBlock(block: any) {
   return false
 }
 
-// [snikitin] I believe LeafElement should be replaced with CustomText
-// as it is a more correct representation of a text element
-// (alternatively, as there are files like Leaf.tsx already, perhaps
-// CustomText should be renamed as LeafElement instead)
-export type LeafElement = CustomText
-
 export type HeadingElement = {
   type:
     | typeof kSlateBlockTypeH1
@@ -164,17 +162,17 @@ export type HeadingElement = {
     | typeof kSlateBlockTypeH4
     | typeof kSlateBlockTypeH5
     | typeof kSlateBlockTypeH6
-  children: LeafElement[]
+  children: CustomText[]
 }
 
 export type ThematicBreakElement = {
   type: typeof kSlateBlockTypeBreak
-  children: LeafElement[]
+  children: CustomText[]
 }
 
 export type CodeBlockElement = {
   type: typeof kSlateBlockTypeCode
-  children: LeafElement[]
+  children: CustomText[]
 }
 
 export type UnorderedListElement = {
@@ -184,7 +182,7 @@ export type UnorderedListElement = {
 
 export type ParagraphElement = {
   type: typeof kSlateBlockTypeParagraph
-  children: LeafElement[]
+  children: CustomText[]
 }
 
 export type BlockQuoteElement = {
@@ -211,19 +209,19 @@ export type CheckListItemElement = {
 export type ImageElement = {
   type: typeof kSlateBlockTypeImage
   url: string
-  children: LeafElement[]
+  children: CustomText[]
 }
 
 export type DateTimeElement = {
   type: typeof kSlateBlockTypeDateTime
-  children: LeafElement[] // Do we need this?
+  children: CustomText[] // Do we need this?
   format?: string
   timestamp: number
 }
 
 export type LinkElement = {
   type: typeof kSlateBlockTypeLink
-  children: LeafElement[]
+  children: CustomText[]
   url: string
   page?: boolean
 }
@@ -381,6 +379,8 @@ declare module 'slate' {
   }
 }
 
+export type { CustomTypes, Descendant } from 'slate'
+
 export type BulletedListElement = {
   type: typeof kSlateBlockTypeUnorderedList
   children: Descendant[]
@@ -474,7 +474,7 @@ export function makeParagraph(children: SlateText): ParagraphElement {
   }
   return {
     type: kSlateBlockTypeParagraph,
-    // @ts-ignore: Type 'SlateText' is not assignable to type 'LeafElement[]'
+    // @ts-ignore: Type 'SlateText' is not assignable to type 'CustomText[]'
     children,
   }
 }
@@ -496,7 +496,7 @@ export function makeNodeLink(text: string, nid: string): LinkElement {
   }
 }
 
-export function makeLeaf(text: string): LeafElement {
+export function makeLeaf(text: string): CustomText {
   return { text }
 }
 
