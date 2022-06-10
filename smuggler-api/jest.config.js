@@ -18,19 +18,7 @@ export default {
   },
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
 
-  // modulePaths: ['<rootDir>/../armoury/dist'],
-  // moduleDirectories: ['node_modules', 'armoury'],
-
-  // transformIgnorePatterns: ['/node_modules/(?!normalize-url/)'],
-  // transformIgnorePatterns: ['node_modules/(?!armoury)'],
-
-  // Runs special logic, such as cleaning up components
-  // when using React Testing Library and adds special
-  // extended assertions to Jest
-  // setupFilesAfterEnv: [
-  //   "@testing-library/react/cleanup-after-each",
-  //   "@testing-library/jest-dom/extend-expect"
-  // ],
+  transformIgnorePatterns: ['node_modules/(?!armoury)', 'armoury/dist/.*\\.js'],
 
   // Test spec file resolution pattern
   // Matches parent folder `__tests__` and filename
@@ -47,11 +35,4 @@ export default {
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
-
-  modulePaths: [
-    '<rootDir>/armoury',
-    '<rootDir>/../../armoury',
-    '<rootDir>/../armoury',
-    '<rootDir>/../',
-  ],
 }

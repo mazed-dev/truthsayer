@@ -15,7 +15,6 @@
     "lint:eslint": "yarn eslint \"./src/**/*.{js,ts}\"",
     "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,json,ts}\"",
     "lint:typescript": "yarn tsc --build ./ --force",
-    "postinstall": "yarn build",
     "test": "NODE_OPTIONS=--experimental-vm-modules yarn jest"
   },
   "dependencies": {
@@ -43,8 +42,8 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     }
-  },
-  "types": "dist/index.d.ts"
+  }
 }
