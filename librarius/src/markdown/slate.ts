@@ -1,8 +1,9 @@
+// @ts-nocheck
 import { unified } from 'unified'
 import { TNode } from 'smuggler-api'
 import markdown from 'remark-parse'
 import { serialize } from 'remark-slate'
-import slate from 'remark-slate'
+import * as SlateRemark from 'remark-slate'
 import { defaultNodeTypes, BlockType as RemarkBlock } from 'remark-slate'
 
 import moment from 'moment'
@@ -50,11 +51,14 @@ export function slateToMarkdown(state: Descendant[]): string {
  * Markdown to Slate object:
  */
 export async function markdownToSlate(text: string): Promise<Descendant[]> {
-  const vf = await unified().use(markdown).use(slate).process(text)
+  const vf = await unified()
+    .use(markdown)
+    .use<SlateRemark.O>(SlateRemark.default)
+    .process(text)
   let contents = vf.result as RemarkBlock[]
   contents = parseExtraBlocks(contents)
   contents = _siftUpBlocks(contents)
-  contents = _dissolveNestedParagraphs(contents)
+  // contents = _dissolveNestedParagraphs(contents)
   return contents
 }
 

@@ -2,11 +2,13 @@
 
 import type { Descendant } from 'slate'
 
-import { slateToMarkdown, markdownToSlate, _siftUpBlocks } from './slate'
+import { slateToMarkdown, _siftUpBlocks } from './slate'
+import { markdownToSlate } from './slate-remark'
 
 import {
   kSlateBlockTypeBreak,
   kSlateBlockTypeCode,
+  kSlateBlockTypeListItem,
   kSlateBlockTypeDateTime,
   kSlateBlockTypeH1,
   kSlateBlockTypeH2,
@@ -23,7 +25,7 @@ import {
   TDoc,
 } from 'elementary'
 
-test('Markdown to Slate state', async () => {
+test.only('Markdown to Slate state', () => {
   const md = `
 # Header 1
 ## Header 2
@@ -32,9 +34,11 @@ test('Markdown to Slate state', async () => {
 ##### Header 5
 ###### Header 6
 
+Alternative heading level 1
+===============
+
 - Schools
 - [Travel history](wq8ksuip3t8x85eckumpsezhr4ek6qatraghtohr38khg)
-- [Housing history](94ogoxqapi84je7hkbt1qtt8k1oeycqc43haij57pimhn)
 - Passports
 
 \`static_cast<typename std::remove_reference<T>::type&&>(t)\`
@@ -67,37 +71,127 @@ print s
 
 [](@1619823600/day)
 `
-
-  const value = await markdownToSlate(md)
+  const value = markdownToSlate(md)
   value.forEach((block) => {
     expect(block).toHaveProperty('type')
     expect(block).toHaveProperty('children')
   })
-  expect(value[0].type).toStrictEqual(kSlateBlockTypeH1)
-  expect(value[1].type).toStrictEqual(kSlateBlockTypeH2)
-  expect(value[2].type).toStrictEqual(kSlateBlockTypeH3)
-  expect(value[3].type).toStrictEqual(kSlateBlockTypeH4)
-  expect(value[4].type).toStrictEqual(kSlateBlockTypeH5)
-  expect(value[5].type).toStrictEqual(kSlateBlockTypeH6)
-  expect(value[6].type).toStrictEqual(kSlateBlockTypeUnorderedList)
-  expect(value[7].type).toStrictEqual(kSlateBlockTypeParagraph)
-  expect(value[8].type).toStrictEqual(kSlateBlockTypeParagraph)
-  expect(value[9].type).toStrictEqual(kSlateBlockTypeBreak)
-  expect(value[10].type).toStrictEqual(kSlateBlockTypeCode)
-  expect(value[11].type).toStrictEqual(kSlateBlockTypeParagraph)
-  expect(value[12].type).toStrictEqual(kSlateBlockTypeQuote)
-  expect(value[13].type).toStrictEqual(kSlateBlockTypeUnorderedList)
-  expect(value[14].type).toStrictEqual(kSlateBlockTypeOrderedList)
-  expect(value[15].type).toStrictEqual(kSlateBlockTypeImage)
-  expect(value[16].type).toStrictEqual(kSlateBlockTypeParagraph)
-  expect(value[17].type).toStrictEqual(kSlateBlockTypeParagraph)
+  expect(value[0]).toStrictEqual({
+    type: kSlateBlockTypeH1,
+    children: [
+      {
+        text: 'Header 1',
+      },
+    ],
+  })
+  expect(value[1]).toStrictEqual({
+    type: kSlateBlockTypeH2,
+    children: [
+      {
+        text: 'Header 2',
+      },
+    ],
+  })
+  expect(value[2]).toStrictEqual({
+    type: kSlateBlockTypeH3,
+    children: [
+      {
+        text: 'Header 3',
+      },
+    ],
+  })
+  expect(value[3]).toStrictEqual({
+    type: kSlateBlockTypeH4,
+    children: [
+      {
+        text: 'Header 4',
+      },
+    ],
+  })
+  expect(value[4]).toStrictEqual({
+    type: kSlateBlockTypeH5,
+    children: [
+      {
+        text: 'Header 5',
+      },
+    ],
+  })
+  expect(value[5]).toStrictEqual({
+    type: kSlateBlockTypeH6,
+    children: [
+      {
+        text: 'Header 6',
+      },
+    ],
+  })
+  expect(value[6]).toStrictEqual({
+    type: kSlateBlockTypeH1,
+    children: [
+      {
+        text: 'Alternative heading level 1',
+      },
+    ],
+  })
+  expect(value[7]).toStrictEqual({ type: kSlateBlockTypeUnorderedList,
+    children: [
+         {
+           children: [
+             {
+               children: [
+                 {
+                   text: "Schools",
+                 },
+               ],
+               type: kSlateBlockTypeParagraph,
+             },
+           ],
+           type: kSlateBlockTypeListItem,
+         },
+         {
+           children: [
+             {
+               children: [
+                 {
+                   children: [
+                     {
+                       "text": "Travel history",
+                     },
+                   ],
+                   title: undefined,
+                   type: "-link",
+                   url: "wq8ksuip3t8x85eckumpsezhr4ek6qatraghtohr38khg",
+                 },
+               ],
+               type: kSlateBlockTypeParagraph,
+             },
+           ],
+           type: kSlateBlockTypeListItem,
+         },
+         {
+           children: [
+             {
+               children: [
+                 {
+                   "text": "Passports",
+                 },
+               ],
+               type: kSlateBlockTypeParagraph,
+             },
+           ],
+           type: kSlateBlockTypeListItem,
+         },
+       ],
+  })
+  expect(value[8]).toStrictEqual({ type: kSlateBlockTypeParagraph,
+    children: [
+         {
+           code: true,
+           text: "static_cast<typename std::remove_reference<T>::type&&>(t)",
+         },
+       ],
 
-  expect(value[0].children[0].text).toStrictEqual('Header 1')
-  expect(value[1].children[0].text).toStrictEqual('Header 2')
-  expect(value[2].children[0].text).toStrictEqual('Header 3')
-  expect(value[3].children[0].text).toStrictEqual('Header 4')
-  expect(value[4].children[0].text).toStrictEqual('Header 5')
-  expect(value[5].children[0].text).toStrictEqual('Header 6')
+  })
+  expect(value[9]).toStrictEqual({ type: kSlateBlockTypeParagraph,
 })
 
 test('Slate state to Markdown', () => {
@@ -149,7 +243,7 @@ test('Slate state to Markdown', () => {
   expect(md).toStrictEqual(`## ${headerText}\n${paragraphText}\n`)
 })
 
-test('Checklist in Markdown', async () => {
+test('Checklist in Markdown', () => {
   const md: string = `
 - [x] Drink a glass of water
 - [X] Make your bed
@@ -157,7 +251,7 @@ test('Checklist in Markdown', async () => {
 - [ ] Stay unplugged
 - [x] Sneak in a little me-time
   `
-  const value = await markdownToSlate(md)
+  const value = markdownToSlate(md)
   expect(value.length).toStrictEqual(1)
   const { children, type } = value[0]
   expect(type).toStrictEqual(kSlateBlockTypeUnorderedList)
@@ -177,7 +271,7 @@ test('Checklist in Markdown', async () => {
   )
 })
 
-test('Multi checklist in Markdown', async () => {
+test('Multi checklist in Markdown', () => {
   const md: string = `
 - [x] First
   - [x] aaa
@@ -189,7 +283,7 @@ test('Multi checklist in Markdown', async () => {
   - [x] BBB
   - [X] CCC
   `
-  const value = await markdownToSlate(md)
+  const value = markdownToSlate(md)
   expect(value.length).toStrictEqual(1)
   const { children, type } = value[0]
   expect(type).toStrictEqual(kSlateBlockTypeUnorderedList)
@@ -264,9 +358,9 @@ test('Multi checklist in Markdown', async () => {
   )
 })
 
-test('Extra(backward): links as date', async () => {
+test('Extra(backward): links as date', () => {
   const md: string = `[](@1619823600/day)`
-  const value = await markdownToSlate(md)
+  const value = markdownToSlate(md)
   expect(value.length).toStrictEqual(1)
   const { children } = value[0]
   expect(children.length).toStrictEqual(1)
@@ -275,7 +369,7 @@ test('Extra(backward): links as date', async () => {
   expect(timestamp).toStrictEqual(1619823600)
 })
 
-test('Extra(back-and-forth): checklists', async () => {
+test('Extra(back-and-forth): checklists', () => {
   const md: string = `
 - [x] First o+0Gl42yGkGxspc 3YO
   - [x] aaa Toss2wiF/dfVpkJzAun
@@ -287,7 +381,7 @@ test('Extra(back-and-forth): checklists', async () => {
   - [x] BBB iVUd+eqy5OUq/XIymhP
   - [x] CCC +92+5kenT/8K ObrJ
 `
-  const value = await markdownToSlate(md)
+  const value = markdownToSlate(md)
   let backMd: string = slateToMarkdown(value)
   backMd = backMd.replace('\n\n', '')
   expect(backMd.trim()).toStrictEqual(md.trim())
@@ -295,7 +389,7 @@ test('Extra(back-and-forth): checklists', async () => {
 
 test('Extra(backward): links as date and back', async () => {
   const md: string = `QrPSc [](@1618686400/day) nk8SGb`
-  const value = await markdownToSlate(md)
+  const value = markdownToSlate(md)
   expect(value.length).toStrictEqual(1)
   const backMd: string = slateToMarkdown(value)
   // To match the same time in different timezones depending on the locale
@@ -378,16 +472,16 @@ test('Extra(image): only top level images', async () => {
   ])
 })
 
-test('Extra(list hack): from md and back', async () => {
+test('Extra(list hack): from md and back', () => {
   const md = `- QfCCz 7uBC D13Vqj/mjm
 - Y lpeidC iCPUfx f4lpFuLU
 - Gb KxYtZ p6vAdVQG8z/Orc`
-  const value = await markdownToSlate(md)
+  const value = markdownToSlate(md)
   const backMd = slateToMarkdown(value)
   expect(backMd.trim()).toStrictEqual(md)
 })
 
-test('getPlainText - slate', async () => {
+test('getPlainText - slate', () => {
   const source: string = `
 # Header 1
 ## Header 2
@@ -411,7 +505,7 @@ __Trees were swaying__
 [](@1618686400/YYYY-MMMM-DD-dddd)
 
 -----`
-  const doc = new TDoc(await markdownToSlate(source))
+  const doc = new TDoc(markdownToSlate(source))
   const texts = doc.genPlainText()
   expect(texts).toContain('Header 1')
   expect(texts).toContain('Header 2')

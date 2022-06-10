@@ -173,6 +173,8 @@ export type ThematicBreakElement = {
 export type CodeBlockElement = {
   type: typeof kSlateBlockTypeCode
   children: CustomText[]
+  lang: string | null | undefined
+  meta: string | null | undefined
 }
 
 export type UnorderedListElement = {
@@ -210,6 +212,8 @@ export type ImageElement = {
   type: typeof kSlateBlockTypeImage
   url: string
   children: CustomText[]
+  title?: string
+  alt?: string
 }
 
 export type DateTimeElement = {
@@ -223,6 +227,7 @@ export type LinkElement = {
   type: typeof kSlateBlockTypeLink
   children: CustomText[]
   url: string
+  title?: string
   page?: boolean
 }
 
@@ -359,13 +364,14 @@ export function generateRandomKey(): string {
 // via marks and "semantic meaning" formatting (like turning text into a
 // bullet-point list, a quote etc.) that is applicable to 'Element' nodes.
 // See https://docs.slatejs.org/concepts/09-rendering for more information
-export type MarkType = 'bold' | 'italic' | 'underline' | 'code'
+export type MarkType = 'bold' | 'italic' | 'underline' | 'code' | 'linethrough'
 
 export type CustomText = {
   bold?: boolean
   italic?: boolean
   underline?: boolean
   code?: boolean
+  linethrough?: boolean
   text: string
 }
 
