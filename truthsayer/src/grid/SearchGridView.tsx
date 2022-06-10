@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom'
 import { parse } from 'query-string'
 
 import { SearchGrid } from 'elementary'
-import { CreateNewNodeMenu } from './CreateNewNodeMenu'
+import { CreateNewNodeMenu } from './CreateNewNodeMenu.js'
 
 import lodash from 'lodash'
 

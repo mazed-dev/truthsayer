@@ -7,8 +7,8 @@ import ReactDOM from 'react-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css'
 
-import App from './App'
-import { unregister } from './serviceWorker'
+import App from './App.js'
+import { unregister } from './serviceWorker.js'
 
 ReactDOM.render(
   <React.StrictMode>

@@ -4,7 +4,7 @@ import { Form } from 'react-bootstrap'
 
 import styles from './SearchForm.module.css'
 
-import { goto } from './../lib/route'
+import { goto } from './../lib/route.js'
 
 import lodash from 'lodash'
 

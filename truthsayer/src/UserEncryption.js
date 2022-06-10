@@ -15,10 +15,10 @@ import {
 import { withRouter } from 'react-router-dom'
 
 import { jcss } from 'elementary'
-import { isAscii } from './util/ascii'
-import { Loader } from './lib/loader'
+import { isAscii } from './util/ascii.js'
+import { Loader } from './lib/loader.js'
 
-import { Emoji } from './lib/Emoji'
+import { Emoji } from './lib/Emoji.js'
 
 import styles from './UserEncryption.module.css'
 

@@ -8,7 +8,7 @@ import PropTypes from 'prop-types'
 import { withRouter, Link } from 'react-router-dom'
 
 import { smuggler } from 'smuggler-api'
-import { goto } from '../lib/route'
+import { goto } from '../lib/route.js'
 
 class Login extends React.Component {
   constructor(props) {

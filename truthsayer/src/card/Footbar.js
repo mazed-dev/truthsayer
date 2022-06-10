@@ -4,7 +4,7 @@ import { ButtonGroup, Dropdown } from 'react-bootstrap'
 
 import styles from './Footbar.module.css'
 
-import { MeatballsButton } from './MeatballsButton'
+import { MeatballsButton } from './MeatballsButton.js'
 
 import { jcss } from 'elementary'
 

@@ -5,7 +5,7 @@
 
 import { NodeExtattrs } from 'smuggler-api'
 import { Mime, MimeType } from 'armoury'
-import { FileProxy } from './3rdPartyFilesystem'
+import { FileProxy } from './3rdPartyFilesystem.js'
 
 async function beginningOf(blob: Blob) {
   const reader = blob.stream().getReader()

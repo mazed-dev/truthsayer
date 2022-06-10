@@ -5,11 +5,11 @@ import { Link, useLocation } from 'react-router-dom'
 
 import { ButtonGroup, Dropdown, Navbar, Nav } from 'react-bootstrap'
 
-import { compass } from './../lib/route'
+import { compass } from './../lib/route.js'
 import { jcss, MdiAccountCircle, kCardBorder } from 'elementary'
-import { getLogoImage } from './../dev/env'
-import { SearchForm } from './SearchForm'
-import { MzdGlobalContext } from '../lib/global'
+import { getLogoImage } from './../dev/env.js'
+import { SearchForm } from './SearchForm.js'
+import { MzdGlobalContext } from '../lib/global.js'
 
 import styles from './GlobalNavBar.module.css'
 

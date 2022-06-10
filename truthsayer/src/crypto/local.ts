@@ -7,13 +7,14 @@ import {
   genSecretPhraseToRender,
   makeSecret,
   sha1,
-} from './wrapper'
+} from './wrapper.js'
 
 import { smuggler } from 'smuggler-api'
 
 import { base64 } from 'armoury'
 
-const ls = require('local-storage')
+// @ts-ignore: Could not find a declaration file for module 'local-storage'
+import ls from 'local-storage'
 
 interface TLocalSecretHash {
   id: string
@@ -41,7 +42,7 @@ export class LocalCrypto {
     lastSecret?: TSecret
   ) {
     this._uid = uid
-    this._storage = storage || ls
+    this._storage = storage || (ls as unknown as TStorage)
     this._smuggler = remote || smuggler
     this._lastSecret = lastSecret || null
   }

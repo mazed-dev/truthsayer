@@ -14,8 +14,8 @@ import {
   FileProxy,
   FolderProxy,
   ThirdpartyFs,
-} from './3rdPartyFilesystem'
-import * as MsGraph from './MicrosoftGraph'
+} from './3rdPartyFilesystem.js'
+import * as MsGraph from './MicrosoftGraph.js'
 
 /**
  * @returns A Unix timestamp with seconds precision

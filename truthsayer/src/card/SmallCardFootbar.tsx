@@ -8,13 +8,13 @@ import { smuggler, TEdge } from 'smuggler-api'
 
 import styles from './Footbar.module.css'
 
-import { MzdGlobalContext } from '../lib/global'
+import { MzdGlobalContext } from '../lib/global.js'
 import {
   FootbarDropdown,
   FootbarDropdownItem,
   FootbarDropdownMenu,
   FootbarDropdownToggle,
-} from './Footbar'
+} from './Footbar.js'
 
 import {
   jcss,

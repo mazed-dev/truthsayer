@@ -3,10 +3,10 @@ import React, { useState, useRef } from 'react'
 import { Link, useHistory } from 'react-router-dom'
 import { Button, Form, ListGroup, Modal } from 'react-bootstrap'
 
-import { uploadLocalFile } from './UploadLocalFile'
+import { uploadLocalFile } from './UploadLocalFile.js'
 
-import { Emoji } from '../lib/Emoji'
-import { goto } from '../lib/route'
+import { Emoji } from '../lib/Emoji.js'
+import { goto } from '../lib/route.js'
 import { jcss } from 'elementary'
 import { Optional } from 'armoury'
 
@@ -38,7 +38,7 @@ export const UploadNodeButton = React.forwardRef<
       <Button
         className={className}
         ref={ref}
-        onClick={(e) => {
+        onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
           e.preventDefault()
           const { current } = fileInputRef
           if (current) {

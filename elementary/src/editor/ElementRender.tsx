@@ -20,7 +20,7 @@ import {
   kSlateBlockTypeParagraph,
   kSlateBlockTypeQuote,
   kSlateBlockTypeUnorderedList,
-} from './types'
+} from './types.js'
 
 import {
   Header1,
@@ -29,15 +29,15 @@ import {
   Header4,
   Header5,
   Header6,
-} from './components/Header'
-import { HRule } from './components/HRule'
-import { BlockQuote } from './components/BlockQuote'
-import { CodeBlock } from './components/CodeBlock'
-import { Paragraph } from './components/Paragraph'
-import { List } from './components/List'
-import { Image } from './components/Image'
-import { DateTime } from './components/DateTime'
-import { Link } from './components/Link'
+} from './components/Header.js'
+import { HRule } from './components/HRule.js'
+import { BlockQuote } from './components/BlockQuote.js'
+import { CodeBlock } from './components/CodeBlock.js'
+import { Paragraph } from './components/Paragraph.js'
+import { List } from './components/List.js'
+import { Image } from './components/Image.js'
+import { DateTime } from './components/DateTime.js'
+import { Link } from './components/Link.js'
 
 export const makeElementRender = (isEditable: boolean) => {
   return ({ attributes, children, element, nid }) => {

@@ -1,4 +1,4 @@
-import { ThirdpartyFs, FileProxy, FolderProxy } from './3rdPartyFilesystem'
+import { ThirdpartyFs, FileProxy, FolderProxy } from './3rdPartyFilesystem.js'
 
 /**
  * This module implements the algorithm for consuming files and processing

@@ -4,7 +4,7 @@ import { crc32 } from 'crc'
 
 import { Toast, Button } from 'react-bootstrap'
 
-import { Knocker } from '../auth/Knocker'
+import { Knocker } from '../auth/Knocker.js'
 
 import { jcss } from 'elementary'
 import { createUserAccount, AccountInterface } from 'smuggler-api'

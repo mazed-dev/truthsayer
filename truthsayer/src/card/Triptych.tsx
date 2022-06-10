@@ -6,15 +6,15 @@ import { useHistory } from 'react-router-dom'
 import { Row, Col } from 'react-bootstrap'
 
 import { NodeCard } from 'elementary'
-import { FullCardFootbar } from './FullCardFootbar'
+import { FullCardFootbar } from './FullCardFootbar.js'
 
 import { NodeCardReadOnlyFetching } from 'elementary'
 
-import { SmallCardFootbar } from './SmallCardFootbar'
-import { ChainActionBar } from './ChainActionBar'
+import { SmallCardFootbar } from './SmallCardFootbar.js'
+import { ChainActionBar } from './ChainActionBar.js'
 import { DynamicGrid } from 'elementary'
 
-import { MzdGlobalContext } from '../lib/global'
+import { MzdGlobalContext } from '../lib/global.js'
 import { Optional, isAbortError, log } from 'armoury'
 import { styleMobileTouchOnly } from 'elementary'
 

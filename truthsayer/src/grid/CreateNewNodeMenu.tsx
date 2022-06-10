@@ -10,8 +10,8 @@ import { useHistory } from 'react-router-dom'
 import { MdiAdd, MdiFileUpload, StyleButtonCreate, TDoc } from 'elementary'
 
 import { smuggler } from 'smuggler-api'
-import { goto } from './../lib/route'
-import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
+import { goto } from './../lib/route.js'
+import { UploadFileAsNodeForm } from '../upload/UploadNodeButton.js'
 
 const CreateNodeBigIcon = styled(MdiAdd)`
   font-size: 46px;

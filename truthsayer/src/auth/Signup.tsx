@@ -6,7 +6,7 @@ import { useHistory, useLocation } from 'react-router-dom'
 
 import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
 
-import { goto, History } from '../lib/route'
+import { goto, History } from '../lib/route.js'
 
 import { log } from 'armoury'
 

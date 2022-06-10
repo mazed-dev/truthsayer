@@ -8,14 +8,14 @@ import { css } from '@emotion/react'
 import { Dropdown } from 'react-bootstrap'
 import { useHistory } from 'react-router-dom'
 
-import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
-import { goto, History } from '../lib/route'
+import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global.js'
+import { goto, History } from '../lib/route.js'
 
 import { smuggler, NewNodeResponse } from 'smuggler-api'
 import { TDoc, kCardBorderColour } from 'elementary'
 import { TNode } from 'smuggler-api'
 
-import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
+import { UploadFileAsNodeForm } from '../upload/UploadNodeButton.js'
 import {
   MdiAdd,
   MdiContentCopy,
@@ -26,7 +26,7 @@ import {
 } from 'elementary'
 import { Optional, errorise, log, isAbortError } from 'armoury'
 
-import { SearchAndConnectJinn } from './SearchAndConnect'
+import { SearchAndConnectJinn } from './SearchAndConnect.js'
 
 export type ChainActionBarSide = 'left' | 'right'
 
@@ -249,7 +249,7 @@ export const ChainActionBar = ({
             <DropdownItemText>Copy and link</DropdownItemText>
           </CustomDropdownItem>
           <CustomDropdownItem
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent<HTMLElement, MouseEvent>) => {
               e.preventDefault()
               const { current } = uploadFileFormRef
               if (current) {

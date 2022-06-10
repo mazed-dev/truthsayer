@@ -5,10 +5,10 @@ import React from 'react'
 
 import { Button, Card } from 'react-bootstrap'
 
-import { GridCard } from '../../grid/SearchGrid'
-import { DateTimeBadge } from '../components/DateTime'
+import { GridCard } from '../../grid/SearchGrid.js'
+import { DateTimeBadge } from '../components/DateTime.js'
 import { makeDateTime } from '../types.js'
-import { tryToParseDate } from './jinn-datetime-parse'
+import { tryToParseDate } from './jinn-datetime-parse.js'
 
 import { base64 } from 'armoury'
 

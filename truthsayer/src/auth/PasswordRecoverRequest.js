@@ -10,7 +10,7 @@ import {
   ButtonGroup,
 } from 'react-bootstrap'
 
-import { Emoji } from './../lib/Emoji'
+import { Emoji } from './../lib/Emoji.js'
 import PropTypes from 'prop-types'
 import { smuggler } from 'smuggler-api'
 import { withRouter } from 'react-router-dom'

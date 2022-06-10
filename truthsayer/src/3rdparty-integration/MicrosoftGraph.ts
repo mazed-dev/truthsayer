@@ -9,6 +9,8 @@ import { PublicClientApplication, InteractionType } from '@azure/msal-browser'
 import {
   AuthCodeMSALBrowserAuthenticationProvider,
   AuthCodeMSALBrowserAuthenticationProviderOptions,
+  // @ts-ignore: Cannot find module '@microsoft/microsoft-graph-client/authProviders/authCodeMsalBrowser'
+  // or its corresponding type declarations.
 } from '@microsoft/microsoft-graph-client/authProviders/authCodeMsalBrowser'
 
 // When concatanated with a `MsEnvironment.graph` prefix, produces a Microsoft

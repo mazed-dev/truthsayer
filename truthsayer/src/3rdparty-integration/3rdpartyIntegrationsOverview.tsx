@@ -26,12 +26,12 @@ import {
   makeNodeTextData,
 } from 'smuggler-api'
 
-import { MzdGlobalContext } from '../lib/global'
-import * as MsAuthentication from './MicrosoftAuthentication'
-import { OneDriveFs } from './OneDriveFilesystem'
-import { extattrsFromFile } from './3rdPartyFilesystemProxyUtil'
-import { ThirdpartyFs } from './3rdPartyFilesystem'
-import * as FsModificationQueue from './FilesystemModificationQueue'
+import { MzdGlobalContext } from '../lib/global.js'
+import * as MsAuthentication from './MicrosoftAuthentication.js'
+import { OneDriveFs } from './OneDriveFilesystem.js'
+import { extattrsFromFile } from './3rdPartyFilesystemProxyUtil.js'
+import { ThirdpartyFs } from './3rdPartyFilesystem.js'
+import * as FsModificationQueue from './FilesystemModificationQueue.js'
 
 const Button = styled.button`
   background-color: #ffffff;

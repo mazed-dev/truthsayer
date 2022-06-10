@@ -22,12 +22,12 @@ import EncryptedImg from './../img/encrypted.png'
 import PrivateImg from './../img/private.png'
 import PublicImg from './../img/public.png'
 
-import { ShareModal } from './ShareModal'
+import { ShareModal } from './ShareModal.js'
 
-import { MzdGlobalContext } from '../lib/global'
-import { nodeToMarkdown } from '../markdown/slate'
-import { goto } from '../lib/route'
-import { downloadAsFile } from '../util/download_as_file'
+import { MzdGlobalContext } from '../lib/global.js'
+import { nodeToMarkdown } from '../markdown/slate.js'
+import { goto } from '../lib/route.js'
+import { downloadAsFile } from '../util/download_as_file.js'
 
 import {
   FootbarDropdown,
@@ -35,7 +35,7 @@ import {
   FootbarDropdownItem,
   FootbarDropdownMenu,
   FootbarDropdownToggleMeatballs,
-} from './Footbar'
+} from './Footbar.js'
 
 class PrivateFullCardFootbarImpl extends React.Component {
   constructor(props) {

@@ -5,8 +5,6 @@
 import { Mime } from 'armoury'
 import fs from 'fs'
 
-export {}
-
 type IconType = {
   src: string
   type: string
@@ -22,7 +20,9 @@ function verifyManifestLogo(icons: IconType[]) {
   })
 }
 
-test('manifest tests', () => {
-  const manifest = require('../public/manifest.json')
-  verifyManifestLogo(manifest['icons'])
+test('manifest tests', async () => {
+  // @ts-ignore: public/manifest.json' is not under 'rootDir' 'truthsayer/truthsayer/src'.
+  // 'rootDir' is expected to contain all source files
+  const manifest = await import('../public/manifest.json')
+  verifyManifestLogo(manifest.default['icons'])
 })

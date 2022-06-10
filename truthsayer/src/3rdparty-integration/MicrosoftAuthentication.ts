@@ -6,7 +6,7 @@ import {
   Configuration,
 } from '@azure/msal-browser'
 
-import { MsProductionEnv } from './MicrosoftEnv'
+import { MsProductionEnv } from './MicrosoftEnv.js'
 
 export function makeInstance(): PublicClientApplication {
   // MSAL & Microsoft Graph support a variaty of different authentication &

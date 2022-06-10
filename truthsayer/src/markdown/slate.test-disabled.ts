@@ -2,7 +2,7 @@
 
 import type { Descendant } from 'slate'
 
-import { slateToMarkdown, markdownToSlate, _siftUpBlocks } from './slate'
+import { slateToMarkdown, markdownToSlate, _siftUpBlocks } from './slate.js'
 
 import {
   kSlateBlockTypeBreak,
