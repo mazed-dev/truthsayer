@@ -1,6 +1,5 @@
-import { TNodeSliceIterator } from './node_slice_iterator.js'
-import { TNode, NodeTextData } from './types.js'
-import type { Optional } from 'armoury'
+import { TNodeSliceIterator } from '../src/node_slice_iterator.js'
+import { TNode, NodeTextData } from '../src/types.js'
 
 import moment from 'moment'
 
@@ -24,14 +23,11 @@ function makeNode(nid: string): TNode {
   )
 }
 
-function ensureEndTime(end_time: Optional<number>): number {
+function ensureEndTime(end_time: number | null): number {
   return end_time || Math.ceil(Date.now() / 1000)
 }
 
-function ensureStartTime(
-  start_time: Optional<number>,
-  end_time: number
-): number {
+function ensureStartTime(start_time: number | null, end_time: number): number {
   return start_time || end_time - 1000
 }
 
@@ -43,10 +39,10 @@ test('TNodeSliceIterator next() -> [1]', async () => {
     offset,
     limit,
   }: {
-    end_time: Optional<number>
-    start_time: Optional<number>
-    offset: Optional<number>
-    limit: Optional<number>
+    end_time: number | null
+    start_time: number | null
+    offset: number | null
+    limit: number | null
   }): Promise<{
     nodes: TNode[]
     full_size: number
@@ -83,10 +79,10 @@ test('TNodeSliceIterator next() -> [>1]', async () => {
     offset,
     limit,
   }: {
-    end_time: Optional<number>
-    start_time: Optional<number>
-    offset: Optional<number>
-    limit: Optional<number>
+    end_time: number | null
+    start_time: number | null
+    offset: number | null
+    limit: number | null
   }): Promise<{
     nodes: TNode[]
     full_size: number
@@ -130,10 +126,10 @@ test('TNodeSliceIterator next() -> [>1] with limit', async () => {
     offset,
     limit,
   }: {
-    end_time: Optional<number>
-    start_time: Optional<number>
-    offset: Optional<number>
-    limit: Optional<number>
+    end_time: number | null
+    start_time: number | null
+    offset: number | null
+    limit: number | null
   }): Promise<{
     nodes: TNode[]
     full_size: number
@@ -182,10 +178,10 @@ test('TNodeSliceIterator next() -> [>1] with offset', async () => {
     offset,
     limit,
   }: {
-    end_time: Optional<number>
-    start_time: Optional<number>
-    offset: Optional<number>
-    limit: Optional<number>
+    end_time: number | null
+    start_time: number | null
+    offset: number | null
+    limit: number | null
   }): Promise<{
     nodes: TNode[]
     full_size: number
@@ -233,10 +229,10 @@ test('TNodeSliceIterator next() -> until exhausted', async () => {
     offset,
     limit,
   }: {
-    end_time: Optional<number>
-    start_time: Optional<number>
-    offset: Optional<number>
-    limit: Optional<number>
+    end_time: number | null
+    start_time: number | null
+    offset: number | null
+    limit: number | null
   }): Promise<{
     nodes: TNode[]
     full_size: number

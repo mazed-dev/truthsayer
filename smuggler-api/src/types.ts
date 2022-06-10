@@ -1,5 +1,4 @@
-import { Mime } from 'armoury'
-import { MimeType } from 'armoury'
+import { Mime, MimeType } from 'armoury'
 import moment from 'moment'
 
 import { makeUrl } from './api_url.js'
