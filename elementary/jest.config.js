@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   verbose: true,
 
   // The root of your source code, typically /src
@@ -10,6 +10,13 @@ module.exports = {
   transform: {
     '^.+\\.[tj]sx?$': 'ts-jest',
   },
+
+  globals: {
+    'ts-jest': {
+      useESM: true,
+    },
+  },
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
 
   // Runs special logic, such as cleaning up components
   // when using React Testing Library and adds special
@@ -26,4 +33,10 @@ module.exports = {
 
   // Module file extensions for importing
   moduleFileExtensions: ['ts', 'tsx', 'js', 'json'],
+
+  // If you'd like to know what the below regex does, see comment to
+  // 'moduleNameMapper' section of armoury/jest.config.js for more information
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
 }

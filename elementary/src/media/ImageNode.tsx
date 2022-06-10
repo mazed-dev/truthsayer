@@ -2,12 +2,12 @@
 
 import React, { useState, useRef } from 'react'
 import { Image, ButtonGroup, Modal } from 'react-bootstrap'
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 import { TNode } from 'smuggler-api'
-import { MdiFitScreen, MdiZoomIn, MdiZoomOut } from '../MaterialIcons'
+import { MdiFitScreen, MdiZoomIn, MdiZoomOut } from '../MaterialIcons.js'
 
-import { ImgButton } from '../ImgButton'
+import { ImgButton } from '../ImgButton.js'
 
 const ImageBase = styled(Image)`
   height: auto;

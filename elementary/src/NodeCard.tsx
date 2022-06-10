@@ -2,14 +2,14 @@
 
 import React, { useState } from 'react'
 import { useAsyncEffect } from 'use-async-effect'
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 import type { NodeTextData } from 'smuggler-api'
 import { TNode, smuggler } from 'smuggler-api'
-import { NodeTextEditor } from './editor/NodeTextEditor'
-import { SlateText, TDoc } from './editor/types'
-import { Spinner } from './spinner/mod'
-import { NodeMedia } from './media/NodeMedia'
+import { NodeTextEditor } from './editor/NodeTextEditor.js'
+import { SlateText, TDoc } from './editor/types.js'
+import { Spinner } from './spinner/mod.js'
+import { NodeMedia } from './media/NodeMedia.js'
 
 const Box = styled.div`
   border-radius: inherit;

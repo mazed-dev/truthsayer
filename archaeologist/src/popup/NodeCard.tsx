@@ -2,7 +2,7 @@ import React from 'react'
 import browser from 'webextension-polyfill'
 import { mazed } from '../util/mazed'
 
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 import {
   SmallCard,
   ShrinkCard,

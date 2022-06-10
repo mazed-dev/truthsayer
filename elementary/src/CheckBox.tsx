@@ -1,6 +1,6 @@
 import React from 'react'
 
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 const Box = styled.div`
   margin: 0;

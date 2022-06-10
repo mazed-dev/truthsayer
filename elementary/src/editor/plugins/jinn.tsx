@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { Modal, Form } from 'react-bootstrap'
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 import {
   Editor,
   Element as SlateElement,
@@ -13,9 +13,9 @@ import lodash from 'lodash'
 import type { Optional } from 'armoury'
 import { TNode } from 'smuggler-api'
 
-import { SearchGrid } from '../../grid/SearchGrid'
-import { makeNodeLink, TDoc, CustomEditor } from '../types'
-import { dateTimeJinnSearch } from './jinn-datetime'
+import { SearchGrid } from '../../grid/SearchGrid.js'
+import { makeNodeLink, TDoc, CustomEditor } from '../types.js'
+import { dateTimeJinnSearch } from './jinn-datetime.js'
 
 const JinnInput = styled(Form.Control)`
   margin-bottom: 8px;

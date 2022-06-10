@@ -24,7 +24,7 @@ import {
   UnorderedListElement,
   CustomElement,
   CustomElementType,
-} from '../types'
+} from '../types.js'
 
 const SHORTCUTS = {
   '*': kSlateBlockTypeListItem,

@@ -3,7 +3,7 @@
 import React from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 import browser from 'webextension-polyfill'
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 import { TNode, TNodeJson } from 'smuggler-api'
 

@@ -1,9 +1,9 @@
 import React from 'react'
 
 import { TNode } from 'smuggler-api'
-import { ImageNode } from './ImageNode'
-import { WebBookmark } from './WebBookmark'
-import { WebQuote } from './WebQuote'
+import { ImageNode } from './ImageNode.js'
+import { WebBookmark } from './WebBookmark.js'
+import { WebQuote } from './WebQuote.js'
 
 export function NodeMedia({
   node,

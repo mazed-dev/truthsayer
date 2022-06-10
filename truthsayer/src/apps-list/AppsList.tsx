@@ -1,6 +1,6 @@
 import React from 'react'
 import { Container } from 'react-bootstrap'
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 import { jcss, MdiInsertLink } from 'elementary'
 

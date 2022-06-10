@@ -1,4 +1,4 @@
-import { _parse12hAm } from './jinn-datetime-parse'
+import { _parse12hAm } from './jinn-datetime-parse.js'
 
 test('_parse12hAm 00:00', () => {
   const m = _parse12hAm('12', '00', 'am')

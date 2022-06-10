@@ -3,7 +3,7 @@
 import React from 'react'
 
 import { NavLink } from 'react-router-dom'
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 import {
   Header1Box,
@@ -12,7 +12,7 @@ import {
   Header4Box,
   Header5Box,
   Header6Box,
-} from './components'
+} from './components.js'
 
 const StdHeader = React.forwardRef(({ depth, ...attributes }, ref) => {
   switch (depth) {

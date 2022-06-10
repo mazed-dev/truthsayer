@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 export const Relative = styled.div`
   display: contents;

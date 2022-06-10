@@ -1,5 +1,5 @@
 import React, { useContext } from 'react'
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 import { Link, useLocation } from 'react-router-dom'
 

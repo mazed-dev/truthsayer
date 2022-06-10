@@ -2,11 +2,14 @@ import React from 'react'
 
 import type { NodeExtattrs } from 'smuggler-api'
 import { Mime, log, MimeType } from 'armoury'
-import { BlockQuoteBox, BlockQuotePad } from '../editor/components/components'
+import {
+  BlockQuoteBox,
+  BlockQuotePad,
+} from '../editor/components/components.js'
 
-import { MdiLaunch } from '../MaterialIcons'
+import { MdiLaunch } from '../MaterialIcons.js'
 
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 const Box = styled.div`
   width: 100%;

@@ -1,9 +1,9 @@
 /** @jsxImportSource @emotion/react */
 
 import React from 'react'
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
-import { kCardBorder } from './colour'
+import { kCardBorder } from './colour.js'
 
 const Box = styled.div`
   width: 100%;

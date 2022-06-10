@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Button } from 'react-bootstrap'
 
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 const Box = styled(Button)`
   background-color: #ffffff;
@@ -34,7 +34,7 @@ export const ImgButton = React.forwardRef<HTMLButtonElement, ImgButtonProps>(
       className={className}
       ref={ref}
       disabled={is_disabled || false}
-      onClick={(e) => {
+      onClick={(e: any) => {
         if (onClick) {
           e.preventDefault()
           onClick(e)

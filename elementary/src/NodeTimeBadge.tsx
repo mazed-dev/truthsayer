@@ -1,10 +1,10 @@
 import React from 'react'
 
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 import moment from 'moment'
 
-import { HoverTooltip } from './HoverTooltip'
+import { HoverTooltip } from './HoverTooltip.js'
 
 function formatDate(m: moment.Moment) {
   const sameElse = function (m?: moment.MomentInput, now?: moment.Moment) {

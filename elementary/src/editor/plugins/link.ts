@@ -2,7 +2,7 @@ import { Editor, Element as SlateElement, Range, Transforms } from 'slate'
 
 import isUrl from 'is-url'
 
-import { kSlateBlockTypeLink, LinkElement, CustomEditor } from '../types'
+import { kSlateBlockTypeLink, LinkElement, CustomEditor } from '../types.js'
 
 import type { Optional } from 'armoury'
 import { log } from 'armoury'

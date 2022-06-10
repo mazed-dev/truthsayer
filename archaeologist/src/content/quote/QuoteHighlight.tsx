@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 import { jsx } from '@emotion/react'
 
 import { QuoteToolbar } from './QuoteToolbar'

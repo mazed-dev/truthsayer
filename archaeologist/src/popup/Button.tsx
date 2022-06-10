@@ -1,4 +1,4 @@
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 import { StyleButtonCreate } from 'elementary'
 

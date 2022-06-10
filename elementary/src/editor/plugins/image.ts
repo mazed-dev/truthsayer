@@ -2,9 +2,9 @@ import isUrl from 'is-url'
 
 import { Editor, Transforms } from 'slate'
 
-import imageExtensions from 'image-extensions'
+import * as imageExtensions from 'image-extensions'
 
-import { kSlateBlockTypeImage, ImageElement, CustomEditor } from '../types'
+import { kSlateBlockTypeImage, ImageElement, CustomEditor } from '../types.js'
 
 export const withImages = (editor: CustomEditor) => {
   const { insertData, isVoid } = editor

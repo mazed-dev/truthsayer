@@ -8,19 +8,19 @@ import { createEditor } from 'slate'
 
 import { withHistory } from 'slate-history'
 
-import { withJinn, Jinn } from './plugins/jinn'
-import { withTypography } from './plugins/typography'
-import { withShortcuts } from './plugins/shortcuts'
-import { withLinks } from './plugins/link'
-import { withImages } from './plugins/image'
+import { withJinn, Jinn } from './plugins/jinn.js'
+import { withTypography } from './plugins/typography.js'
+import { withShortcuts } from './plugins/shortcuts.js'
+import { withLinks } from './plugins/link.js'
+import { withImages } from './plugins/image.js'
 
-import { Leaf } from './components/Leaf'
+import { Leaf } from './components/Leaf.js'
 
-import { FormatToolbar } from './FormatToolbar'
-import { TDoc, SlateText } from './types'
+import { FormatToolbar } from './FormatToolbar.js'
+import { TDoc, SlateText } from './types.js'
 import { TNode } from 'smuggler-api'
 
-import { makeElementRender } from './ElementRender'
+import { makeElementRender } from './ElementRender.js'
 
 export const NodeTextEditor = ({
   className,

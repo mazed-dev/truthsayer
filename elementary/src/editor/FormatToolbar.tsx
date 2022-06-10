@@ -1,7 +1,7 @@
 import React from 'react'
 import { ButtonGroup } from 'react-bootstrap'
 
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 import { Editor, Transforms, Element as SlateElement } from 'slate'
 import { useSlate } from 'slate-react'
 
@@ -15,7 +15,7 @@ import {
   kSlateBlockTypeQuote,
   kSlateBlockTypeH1,
   kSlateBlockTypeH2,
-} from './types'
+} from './types.js'
 
 import {
   MdiFormatBold,
@@ -27,9 +27,9 @@ import {
   MdiFormatQuote,
   MdiFormatListNumbered,
   MdiFormatListBulleted,
-} from '../MaterialIcons'
+} from '../MaterialIcons.js'
 
-import { kCardBorderColour } from '../colour'
+import { kCardBorderColour } from '../colour.js'
 
 const ToolbarButtonInactive = styled.span`
   padding: 1px 10px 0px;

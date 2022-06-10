@@ -1,6 +1,6 @@
 import React from 'react'
-import styled from '@emotion/styled'
-import { ParagraphBox } from './components'
+import { default as styled } from '@emotion/styled'
+import { ParagraphBox } from './components.js'
 
 import lodash from 'lodash'
 

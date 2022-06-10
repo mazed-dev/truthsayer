@@ -1,20 +1,20 @@
-export * from './CheckBox'
-export * from './HoverTooltip'
-export * from './ImgButton'
-export * from './MaterialIcons'
-export * from './NodeTimeBadge'
-export * from './ShrinkCard'
-export * from './SmallCard'
-export * from './WideCard'
-export * from './NodeCard'
-export * from './NodeCardReadOnly'
-export * from './colour'
-export * from './editor/NodeTextEditor'
-export * from './grid/DynamicGrid'
-export * from './grid/SearchGrid'
-export * from './jcss'
-export * from './spinner/mod'
-export * from './util/xstyle'
+export * from './CheckBox.js'
+export * from './HoverTooltip.js'
+export * from './ImgButton.js'
+export * from './MaterialIcons.js'
+export * from './NodeTimeBadge.js'
+export * from './ShrinkCard.js'
+export * from './SmallCard.js'
+export * from './WideCard.js'
+export * from './NodeCard.js'
+export * from './NodeCardReadOnly.js'
+export * from './colour.js'
+export * from './editor/NodeTextEditor.js'
+export * from './grid/DynamicGrid.js'
+export * from './grid/SearchGrid.js'
+export * from './jcss.js'
+export * from './spinner/mod.js'
+export * from './util/xstyle.js'
 
 export type {
   SlateText,
@@ -25,7 +25,7 @@ export type {
   LinkElement,
   ParagraphElement,
   ThematicBreakElement,
-} from './editor/types'
+} from './editor/types.js'
 
 export {
   TDoc,
@@ -53,4 +53,4 @@ export {
   kSlateBlockTypeQuote,
   kSlateBlockTypeStrongMark,
   kSlateBlockTypeUnorderedList,
-} from './editor/types'
+} from './editor/types.js'

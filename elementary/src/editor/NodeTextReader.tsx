@@ -5,16 +5,16 @@ import { css } from '@emotion/react'
 import { Editable, Slate, withReact } from 'slate-react'
 import { createEditor } from 'slate'
 
-import { withTypography } from './plugins/typography'
-import { withLinks } from './plugins/link'
-import { withImages } from './plugins/image'
+import { withTypography } from './plugins/typography.js'
+import { withLinks } from './plugins/link.js'
+import { withImages } from './plugins/image.js'
 
-import { Leaf } from './components/Leaf'
+import { Leaf } from './components/Leaf.js'
 
-import { TDoc } from './types'
+import { TDoc } from './types.js'
 import { TNode } from 'smuggler-api'
 
-import { makeElementRender } from './ElementRender'
+import { makeElementRender } from './ElementRender.js'
 
 export const NodeTextReader = ({
   className,

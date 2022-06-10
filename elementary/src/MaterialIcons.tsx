@@ -3,7 +3,7 @@
  * work with Google's Material Design libraries
  */
 import React from 'react'
-import { jcss } from './jcss'
+import { jcss } from './jcss.js'
 
 /**
  * A non-exhaustive list of valid icon ligatures from

@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { useAsyncEffect } from 'use-async-effect'
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 import { TNode, smuggler } from 'smuggler-api'
-import { NodeTextReader } from './editor/NodeTextReader'
-import { Spinner } from './spinner/mod'
-import { NodeMedia } from './media/NodeMedia'
+import { NodeTextReader } from './editor/NodeTextReader.js'
+import { Spinner } from './spinner/mod.js'
+import { NodeMedia } from './media/NodeMedia.js'
 
 const Box = styled.div`
   border-radius: inherit;

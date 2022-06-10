@@ -7,12 +7,12 @@ import { Button, Card } from 'react-bootstrap'
 
 import { GridCard } from '../../grid/SearchGrid'
 import { DateTimeBadge } from '../components/DateTime'
-import { makeDateTime } from '../types'
+import { makeDateTime } from '../types.js'
 import { tryToParseDate } from './jinn-datetime-parse'
 
 import { base64 } from 'armoury'
 
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 const ColBtn = styled.div`
   height: 3.4em;

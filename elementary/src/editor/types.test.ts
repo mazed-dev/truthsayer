@@ -1,4 +1,4 @@
-import { makeParagraph, makeLeaf, TDoc } from './types'
+import { makeParagraph, makeLeaf, TDoc } from './types.js'
 
 test('exctractDocTitle - raw string', async () => {
   const text = 'RmdBzaGUgdHJpZWQgdG8gd2FzaCBvZm'

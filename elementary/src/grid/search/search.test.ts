@@ -1,4 +1,4 @@
-import { _searchFieldsFor, _exactPatternsFromString } from './search'
+import { _searchFieldsFor, _exactPatternsFromString } from './search.js'
 
 test('Beagle.fromString simple', () => {
   const allOf = _exactPatternsFromString('Oxygen font family')

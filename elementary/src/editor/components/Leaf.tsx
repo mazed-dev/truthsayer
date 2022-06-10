@@ -2,7 +2,7 @@ import React from 'react'
 
 import type { RenderLeafProps } from 'slate-react'
 
-import { InlineCodeBox } from './components'
+import { InlineCodeBox } from './components.js'
 
 export const Leaf = React.forwardRef<HTMLSpanElement, RenderLeafProps>(
   ({ attributes, children, leaf }: RenderLeafProps, ref) => {

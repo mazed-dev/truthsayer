@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 import { useLocation } from 'react-router-dom'
 import { parse } from 'query-string'
 

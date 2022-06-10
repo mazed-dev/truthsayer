@@ -3,11 +3,11 @@ import React from 'react'
 import type { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
 import type { Optional } from 'armoury'
 import { log } from 'armoury'
-import { BlockQuote } from '../editor/components/BlockQuote'
+import { BlockQuote } from '../editor/components/BlockQuote.js'
 
-import { MdiLaunch } from '../MaterialIcons'
+import { MdiLaunch } from '../MaterialIcons.js'
 
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 const Box = styled.div`
   width: 100%;

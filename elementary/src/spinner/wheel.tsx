@@ -1,6 +1,6 @@
 /** @jsx jsx */
 
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 import { jsx, keyframes } from '@emotion/react'
 
 type Props = {

@@ -6,7 +6,7 @@ import {
   kSlateBlockTypeDateTime,
   DateTimeElement,
   CustomEditor,
-} from '../types'
+} from '../types.js'
 
 const tryParseDate = (_text: string): Moment | null => {
   return null

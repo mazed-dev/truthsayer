@@ -2,8 +2,8 @@ import React from 'react'
 import { ReactEditor, useReadOnly, useSlateStatic } from 'slate-react'
 import { Element as SlateElement, Transforms } from 'slate'
 
-import { CheckListItemElement } from '../types'
-import { CheckBox } from '../../CheckBox'
+import { CheckListItemElement } from '../types.js'
+import { CheckBox } from '../../CheckBox.js'
 
 import {
   CheckItemBox,
@@ -13,7 +13,7 @@ import {
   OrderedListBox,
   UnorderedListBox,
   ListItemBox,
-} from './components'
+} from './components.js'
 
 type ListItemProps = React.PropsWithChildren<{
   className: string

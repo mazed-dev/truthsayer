@@ -6,7 +6,7 @@ import {
   isHeaderSlateBlock,
   CustomEditor,
   CustomElement,
-} from '../types'
+} from '../types.js'
 
 import lodash from 'lodash'
 

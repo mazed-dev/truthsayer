@@ -1,7 +1,7 @@
 import type { TNode } from 'smuggler-api'
 import type { Optional } from 'armoury'
 
-import { TDoc } from '../../editor/types'
+import { TDoc } from '../../editor/types.js'
 
 import lodash from 'lodash'
 

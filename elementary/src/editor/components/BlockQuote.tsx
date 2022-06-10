@@ -1,5 +1,5 @@
 import React from 'react'
-import { BlockQuoteBox, BlockQuotePad } from './components'
+import { BlockQuoteBox, BlockQuotePad } from './components.js'
 
 type BlockQuoteProps = React.PropsWithChildren<{
   className?: string

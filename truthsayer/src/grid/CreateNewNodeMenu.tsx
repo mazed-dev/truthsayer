@@ -2,7 +2,7 @@
 
 import React, { useRef } from 'react'
 
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 import { Dropdown } from 'react-bootstrap'
 import { useHistory } from 'react-router-dom'

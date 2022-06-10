@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { HorizontalRule } from './components'
+import { HorizontalRule } from './components.js'
 
 type HRuleProps = React.PropsWithChildren<{}>
 

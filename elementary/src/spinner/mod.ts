@@ -1,4 +1,4 @@
-import { Wheel } from './wheel'
+import { Wheel } from './wheel.js'
 
 export const Spinner = {
   Wheel,

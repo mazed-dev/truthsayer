@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { InlineLinkExt, InlineLinkNode } from './components'
+import { InlineLinkExt, InlineLinkNode } from './components.js'
 
 type LinkProps = React.PropsWithChildren<{
   attributes: any

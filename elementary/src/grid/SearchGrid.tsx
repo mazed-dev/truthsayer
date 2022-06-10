@@ -2,25 +2,25 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 
-import styled from '@emotion/styled'
+import { default as styled } from '@emotion/styled'
 
 import { css } from '@emotion/react'
 import { useAsyncEffect } from 'use-async-effect'
 import { useHistory } from 'react-router-dom'
 
-import { Spinner } from '../spinner/mod'
-import { SmallCard } from '../SmallCard'
-import { ShrinkCard } from '../ShrinkCard'
-import { NodeTimeBadge } from '../NodeTimeBadge'
+import { Spinner } from '../spinner/mod.js'
+import { SmallCard } from '../SmallCard.js'
+import { ShrinkCard } from '../ShrinkCard.js'
+import { NodeTimeBadge } from '../NodeTimeBadge.js'
 
 import { smuggler, TNodeSliceIterator, TNode } from 'smuggler-api'
 
 import { log, isAbortError, errorise } from 'armoury'
 
-import { DynamicGrid } from './DynamicGrid'
-import { NodeCardReadOnly } from '../NodeCardReadOnly'
-import { Beagle } from './search/search'
-import { styleMobileTouchOnly } from '../util/xstyle'
+import { DynamicGrid } from './DynamicGrid.js'
+import { NodeCardReadOnly } from '../NodeCardReadOnly.js'
+import { Beagle } from './search/search.js'
+import { styleMobileTouchOnly } from '../util/xstyle.js'
 
 const BoxPortable = styled.div`
   overflow-y: scroll;

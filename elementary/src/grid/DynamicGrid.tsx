@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
 import React, { useRef, useState, useEffect } from 'react'
-import { kSmallCardWidth } from '../SmallCard'
+import { kSmallCardWidth } from '../SmallCard.js'
 
 export const DynamicGrid = ({
   children,
