@@ -12,7 +12,7 @@ module.exports = {
   },
 
   transformIgnorePatterns: [
-    "/node_modules/(?!normalize-url/|unified/|bail/|is-plain-obj/|trough/|vfile/|vfile-message/|unist-util-stringify-position/|remark-parse/|mdast-util-from-markdown/|mdast-util-to-string/|micromark.*/|decode-named-character-reference/|character-entities/)",
+    "/node_modules/(?!normalize-url/|unified/|bail/|is-plain-obj/|trough/|vfile/|vfile-message/|mdast-util-.*/|micromark.*/|decode-named-character-reference/|character-entities/|remark-gfm/|remark-parse/|remark-stringify/|ccount/|escape-string-regexp/|unist-util-.*/|markdown-table/|zwitch/|longest-streak/)",
   ],
 
   // Test spec file resolution pattern

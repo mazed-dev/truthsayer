@@ -1,1 +1,1 @@
-export { markdownToSlate, slateToMarkdown } from './markdown/slate'
+export { markdownToSlate, slateToMarkdown } from './markdown/slate-remark'

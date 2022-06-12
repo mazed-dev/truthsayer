@@ -101,19 +101,16 @@ export const kSlateBlockTypeParagraph = 'paragraph'
 export const kSlateBlockTypeQuote = 'block-quote'
 export const kSlateBlockTypeUnorderedList = 'u-list'
 export const kSlateBlockTypeListItem = 'list-item'
-export const kSlateBlockTypeListCheckItem = 'list-check-item'
+export const kSlateBlockTypeListCheckItem = 'list-check-item' // Deprecated, use 'list-item' with defined 'checked' attribute instead (true/false)
 export const kSlateBlockTypeImage = 'image'
 export const kSlateBlockTypeDateTime = 'datetime'
 // [snikitin] Why does link has the same prefix pattern as "marks"?
 export const kSlateBlockTypeLink = '-link'
 
-/**
- * Slate Leafs:
- */
-export const kSlateBlockTypeEmphasisMark = '-italic'
-export const kSlateBlockTypeStrongMark = '-bold'
-export const kSlateBlockTypeDeleteMark = '-strike-through'
-export const kSlateBlockTypeInlineCodeMark = '-inline-code'
+export const kSlateBlockTypeEmphasisMark = 'italic'
+export const kSlateBlockTypeStrongMark = 'bold'
+export const kSlateBlockTypeStrikeThroughMark = 'strike-through'
+export const kSlateBlockTypeInlineCodeMark = 'inline-code'
 
 export type CustomElementType =
   | typeof kSlateBlockTypeH1
@@ -137,7 +134,7 @@ export type CustomElementType =
 export type CustomTextType =
   | typeof kSlateBlockTypeEmphasisMark
   | typeof kSlateBlockTypeStrongMark
-  | typeof kSlateBlockTypeDeleteMark
+  | typeof kSlateBlockTypeStrikeThroughMark
   | typeof kSlateBlockTypeInlineCodeMark
 
 export function isHeaderBlock(block: any) {
@@ -364,14 +361,19 @@ export function generateRandomKey(): string {
 // via marks and "semantic meaning" formatting (like turning text into a
 // bullet-point list, a quote etc.) that is applicable to 'Element' nodes.
 // See https://docs.slatejs.org/concepts/09-rendering for more information
-export type MarkType = 'bold' | 'italic' | 'underline' | 'code' | 'linethrough'
+export type MarkType =
+  | 'bold'
+  | 'italic'
+  | 'underline'
+  | 'code'
+  | 'strikeThrough'
 
 export type CustomText = {
   bold?: boolean
   italic?: boolean
   underline?: boolean
   code?: boolean
-  linethrough?: boolean
+  strikeThrough?: boolean
   text: string
 }
 
@@ -402,69 +404,41 @@ function _truncateTitle(title: string): string {
   }
 }
 
-const kDefaultDateFormat: string = 'YYYY MMMM DD, dddd'
-const kDefaultTimeFormat: string = 'HH:mm'
-
-const kDefaultCalendarFormat = {
-  sameDay: `[Today], ${kDefaultTimeFormat}`,
-  nextDay: `[Tomorrow], ${kDefaultTimeFormat}`,
-  nextWeek: `dddd, ${kDefaultTimeFormat}`,
-  lastDay: `[Yesterday], ${kDefaultTimeFormat}`,
-  lastWeek: `[Last] dddd, ${kDefaultTimeFormat}`,
-  sameElse: `${kDefaultDateFormat}, ${kDefaultTimeFormat}`,
-}
-
-function momentToString(time: moment.Moment, format: Optional<string>): string {
-  return format ? time.format(format) : time.calendar(kDefaultCalendarFormat)
-}
-
-function unixToString(timestamp: number, format: Optional<string>): string {
-  const timeMoment = moment.unix(timestamp)
-  return momentToString(timeMoment, format)
-}
-
-function getSlateDescendantAsPlainText(parent: Descendant): string[] {
-  const entities = []
+function getSlateDescendantAsPlainText(node: Descendant): [string[], string[]] {
+  const entities: string[] = []
   // @ts-ignore: Property 'text' does not exist on type 'Descendant'
-  let { text } = parent
-  // @ts-ignore: Property 'children'/'type'/'link'/... does not exist on type 'Descendant'
-  const { children, link, caption, timestamp, format } = parent
-  if (link) {
-    entities.push(link)
+  const texts: string[] = []
+  if ('text' in node) {
+    texts.push(node.text)
   }
-  if (caption) {
-    entities.push(caption)
+  if ('url' in node) {
+    entities.push(node.url)
   }
-  if (timestamp) {
-    entities.push(unixToString(timestamp, format))
+  if ('title' in node) {
+    entities.push(node.title || '')
   }
-  if (children) {
-    children.forEach((item: any) => {
-      let [itemText, itemEntities] = getSlateDescendantAsPlainText(item)
-      itemText = lodash.trim(itemText)
-      if (text) {
-        text += ' '
-        text += itemText
-      } else {
-        text = itemText
-      }
+  if ('alt' in node) {
+    entities.push(node.alt || '')
+  }
+  if ('children' in node) {
+    node.children.forEach((item: any) => {
+      const [itemText, itemEntities] = getSlateDescendantAsPlainText(item)
+      texts.push(...itemText)
       entities.push(...itemEntities)
     })
   }
-  return [text, entities]
+  return [texts, entities]
 }
 
-function getSlateAsPlainText(children: SlateText): string[] {
+function getSlateAsPlainText(children: SlateText): string {
   const texts: string[] = []
   const entities: string[] = []
   children.forEach((item) => {
-    const [text, itemEntities] = getSlateDescendantAsPlainText(item)
-    if (text) {
-      texts.push(text)
-    }
+    const [itemTexts, itemEntities] = getSlateDescendantAsPlainText(item)
+    texts.push(...itemTexts)
     entities.push(...itemEntities)
   })
-  return lodash.concat(texts, entities)
+  return [...texts, ...entities].join(' ')
 }
 
 function makeThematicBreak(): ThematicBreakElement {
@@ -573,7 +547,7 @@ export class TDoc {
           (isHeaderSlateBlock(item) || isTextSlateBlock(item))
         ) {
           const text = getSlateDescendantAsPlainText(item)[0]
-          const ret = _truncateTitle(text)
+          const ret = _truncateTitle(text.join(' '))
           if (ret) {
             return ret
           }
@@ -600,7 +574,7 @@ export class TDoc {
     })
   }
 
-  genPlainText(): string[] {
+  genPlainText(): string {
     return getSlateAsPlainText(this.slate)
   }
 }

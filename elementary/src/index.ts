@@ -17,18 +17,24 @@ export * from './spinner/mod'
 export * from './util/xstyle'
 
 export type {
+  BlockQuoteElement,
+  CheckListItemElement,
+  CodeBlockElement,
+  CustomElement,
+  CustomElementType,
+  CustomText,
+  CustomTextType,
+  DateTimeElement,
+  Descendant,
+  ImageElement,
+  LinkElement,
+  OrderedListElement,
+  ParagraphElement,
   SlateText,
   TChunk,
   TDraftDoc,
-  DateTimeElement,
-  CustomText,
-  CustomTextType,
-  CustomElement,
-  CustomElementType,
-  LinkElement,
-  ParagraphElement,
   ThematicBreakElement,
-  Descendant,
+  UnorderedListElement,
 } from './editor/types'
 
 export {
@@ -39,7 +45,7 @@ export {
   kSlateBlockTypeBreak,
   kSlateBlockTypeCode,
   kSlateBlockTypeDateTime,
-  kSlateBlockTypeDeleteMark,
+  kSlateBlockTypeStrikeThroughMark,
   kSlateBlockTypeEmphasisMark,
   kSlateBlockTypeH1,
   kSlateBlockTypeH2,
