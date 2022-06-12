@@ -179,7 +179,7 @@ Text after
   const value = markdownToSlate(md)
   expect(value[1]).toStrictEqual({
     type: kSlateBlockTypeBreak,
-    children: [],
+    children: [{ text: '' }],
   })
 })
 
@@ -354,6 +354,26 @@ test('Markdown to Slate state - MD native image', () => {
         alt: 'Stormtroopocat - github',
         url: 'https://octodex.github.com/images/stormtroopocat.jpg',
         children: [{ text: '' }],
+      },
+    ],
+  })
+})
+
+test('Markdown to Slate state - inline code', () => {
+  const md = 'This would be an `<input type="checkbox">` element'
+  const value = markdownToSlate(md)
+  expect(value[0]).toStrictEqual({
+    type: kSlateBlockTypeParagraph,
+    children: [
+      {
+        text: 'this would be an ',
+      },
+      {
+        code: true,
+        text: '<input type="checkbox">',
+      },
+      {
+        text: ' element',
       },
     ],
   })

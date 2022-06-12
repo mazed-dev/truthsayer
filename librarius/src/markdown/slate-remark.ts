@@ -138,6 +138,15 @@ function getListItemChildren(
   return ret
 }
 
+function ensureChildren(
+  children: (CustomElement | CustomText)[]
+): (CustomElement | CustomText)[] {
+  if (children.length === 0) {
+    return [{ text: '' }]
+  }
+  return children
+}
+
 export function markdownToSlate(text: string): Descendant[] {
   const r2s = unified()
     .use(markdown)
@@ -172,33 +181,31 @@ export function markdownToSlate(text: string): Descendant[] {
         }),
         heading: (node, next) => ({
           type: depthToHeadingType(node.depth),
-          children: next(node.children),
+          children: ensureChildren(next(node.children)),
         }),
         blockquote: (node, next) => ({
           type: kSlateBlockTypeQuote,
-          children: next(node.children),
+          children: ensureChildren(next(node.children)),
         }),
         paragraph: (node, next) => ({
           type: kSlateBlockTypeParagraph,
-          children: next(node.children),
+          children: ensureChildren(next(node.children)),
         }),
         thematicBreak: () => ({
           type: kSlateBlockTypeBreak,
-          children: [],
+          children: ensureChildren([]),
         }),
         list: (node, next) => ({
           type: node.ordered
             ? kSlateBlockTypeOrderedList
             : kSlateBlockTypeUnorderedList,
-          children: next(node.children),
+          children: ensureChildren(next(node.children)),
         }),
-        listItem: (node, next) => {
-          return {
-            type: kSlateBlockTypeListItem,
-            checked: node.checked ?? undefined,
-            children: getListItemChildren(node.children, next),
-          }
-        },
+        listItem: (node, next) => ({
+          type: kSlateBlockTypeListItem,
+          checked: node.checked ?? undefined,
+          children: ensureChildren(getListItemChildren(node.children, next)),
+        }),
         code: (node) => ({
           type: kSlateBlockTypeCode,
           children: [{ text: node.value }],
@@ -209,14 +216,14 @@ export function markdownToSlate(text: string): Descendant[] {
           type: kSlateBlockTypeLink,
           url: node.url,
           title: node.title || undefined,
-          children: next(node.children),
+          children: ensureChildren(next(node.children)),
         }),
         image: (node) => ({
           type: kSlateBlockTypeImage,
           url: node.url,
           title: node.title || undefined,
           alt: node.alt || undefined,
-          children: [{ text: '' }],
+          children: ensureChildren([]),
         }),
       },
     })
