@@ -5,84 +5,8 @@ import { HistoryEditor } from 'slate-history'
 import type { NodeTextData } from 'smuggler-api'
 
 import lodash from 'lodash'
-import moment from 'moment'
-
-import type { Optional } from 'armoury'
 
 export type SlateText = Descendant[]
-
-enum EChunkType {
-  Text = 0,
-  Asterisk = 1,
-  Empty = 2,
-}
-
-export interface TChunk {
-  type: EChunkType
-  source: string | null
-}
-
-export interface TContentBlock {
-  key: string
-  text: string
-  type: string
-  characterList: null
-  depth: number
-  data: Map<any, any>
-}
-
-export interface TEntity {}
-
-export interface TDraftDoc {
-  blocks: TContentBlock[]
-  entityMap: TEntity[]
-}
-
-export const kBlockTypeH1 = 'header-one'
-export const kBlockTypeH2 = 'header-two'
-export const kBlockTypeH3 = 'header-three'
-export const kBlockTypeH4 = 'header-four'
-export const kBlockTypeH5 = 'header-five'
-export const kBlockTypeH6 = 'header-six'
-export const kBlockTypeQuote = 'blockquote'
-export const kBlockTypeCode = 'code-block'
-export const kBlockTypeUnorderedItem = 'unordered-list-item'
-export const kBlockTypeOrderedItem = 'ordered-list-item'
-export const kBlockTypeUnstyled = 'unstyled'
-export const kBlockTypeAtomic = 'atomic'
-
-export const kBlockTypeHrule = 'hrule'
-export const kBlockTypeUnorderedCheckItem = 'unordered-check-item'
-
-type BlockType =
-  | typeof kBlockTypeH1
-  | typeof kBlockTypeH2
-  | typeof kBlockTypeH3
-  | typeof kBlockTypeH4
-  | typeof kBlockTypeH5
-  | typeof kBlockTypeH6
-  | typeof kBlockTypeQuote
-  | typeof kBlockTypeCode
-  | typeof kBlockTypeUnorderedItem
-  | typeof kBlockTypeOrderedItem
-  | typeof kBlockTypeUnstyled
-  | typeof kBlockTypeAtomic
-  | typeof kBlockTypeHrule
-  | typeof kBlockTypeUnorderedCheckItem
-
-export const kEntityTypeLink = 'LINK'
-export const kEntityTypeTime = 'DATETIME'
-export const kEntityTypeImage = 'IMAGE'
-
-type EntityType =
-  | typeof kEntityTypeLink
-  | typeof kEntityTypeTime
-  | typeof kEntityTypeImage
-
-export const kEntityMutable = 'MUTABLE'
-export const kEntityImmutable = 'IMMUTABLE'
-
-type Mutability = typeof kEntityMutable | typeof kEntityImmutable
 
 /**
  * Slate
@@ -107,11 +31,6 @@ export const kSlateBlockTypeDateTime = 'datetime'
 // [snikitin] Why does link has the same prefix pattern as "marks"?
 export const kSlateBlockTypeLink = '-link'
 
-export const kSlateBlockTypeEmphasisMark = 'italic'
-export const kSlateBlockTypeStrongMark = 'bold'
-export const kSlateBlockTypeStrikeThroughMark = 'strike-through'
-export const kSlateBlockTypeInlineCodeMark = 'inline-code'
-
 export type CustomElementType =
   | typeof kSlateBlockTypeH1
   | typeof kSlateBlockTypeH2
@@ -130,26 +49,6 @@ export type CustomElementType =
   | typeof kSlateBlockTypeImage
   | typeof kSlateBlockTypeDateTime
   | typeof kSlateBlockTypeLink
-
-export type CustomTextType =
-  | typeof kSlateBlockTypeEmphasisMark
-  | typeof kSlateBlockTypeStrongMark
-  | typeof kSlateBlockTypeStrikeThroughMark
-  | typeof kSlateBlockTypeInlineCodeMark
-
-export function isHeaderBlock(block: any) {
-  const { type } = block
-  switch (type) {
-    case kBlockTypeH1:
-    case kBlockTypeH2:
-    case kBlockTypeH3:
-    case kBlockTypeH4:
-    case kBlockTypeH5:
-    case kBlockTypeH6:
-      return true
-  }
-  return false
-}
 
 export type HeadingElement = {
   type:
@@ -259,7 +158,7 @@ export function isHeaderSlateBlock(block: Descendant): block is HeadingElement {
   return false
 }
 
-export function isTextSlateBlock(block: Descendant): boolean {
+function isTextSlateBlock(block: Descendant): boolean {
   if (!Element.isElement(block)) {
     return false
   }
@@ -271,88 +170,12 @@ export function isTextSlateBlock(block: Descendant): boolean {
   return false
 }
 
-export function isCheckListBlock(
-  block: Descendant
-): block is CheckListItemElement {
+function isCheckListBlock(block: Descendant): block is CheckListItemElement {
   if (!Element.isElement(block)) {
     return false
   }
   const { type } = block
   return type === kSlateBlockTypeListCheckItem
-}
-
-export function makeHRuleBlock() {
-  return {
-    type: kBlockTypeHrule,
-    key: generateRandomKey(),
-    text: '',
-    data: {},
-    depth: 0,
-    entityRanges: [],
-    inlineStyleRanges: [],
-  }
-}
-
-function makeEntity({
-  type,
-  mutability,
-  data,
-}: {
-  type: EntityType
-  mutability: Mutability
-  data: any
-}) {
-  return { type, mutability, data }
-}
-
-export function makeLinkEntity(href: any) {
-  return makeEntity({
-    type: kEntityTypeLink,
-    mutability: kEntityMutable,
-    data: {
-      url: href,
-      href,
-    },
-  })
-}
-
-export function makeBlock({
-  type,
-  key,
-  text,
-  data,
-  depth,
-  entityRanges,
-  inlineStyleRanges,
-}: {
-  type: BlockType
-  key: string
-  text: string
-  data: any
-  depth: number
-  entityRanges: any[]
-  inlineStyleRanges: any[]
-}) {
-  type = type || kBlockTypeUnstyled
-  key = key || generateRandomKey()
-  text = text || ''
-  data = data || {}
-  depth = depth || 0
-  entityRanges = entityRanges || []
-  inlineStyleRanges = inlineStyleRanges || []
-  return {
-    type,
-    key,
-    text,
-    data,
-    depth,
-    entityRanges,
-    inlineStyleRanges,
-  }
-}
-
-export function generateRandomKey(): string {
-  return Math.random().toString(32).substring(2)
 }
 
 // A "mark" is how Slate represents rich text formatting which controls text's

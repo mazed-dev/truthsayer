@@ -366,7 +366,7 @@ test('Markdown to Slate state - inline code', () => {
     type: kSlateBlockTypeParagraph,
     children: [
       {
-        text: 'this would be an ',
+        text: 'This would be an ',
       },
       {
         code: true,
