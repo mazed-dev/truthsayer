@@ -153,9 +153,7 @@ export function isHeaderBlock(block: any) {
 // as it is a more correct representation of a text element
 // (alternatively, as there are files like Leaf.tsx already, perhaps
 // CustomText should be renamed as LeafElement instead)
-export type LeafElement = {
-  text: string
-}
+export type LeafElement = CustomText
 
 export type HeadingElement = {
   type:
