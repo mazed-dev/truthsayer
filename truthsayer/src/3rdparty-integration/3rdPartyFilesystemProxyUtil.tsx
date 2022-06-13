@@ -28,6 +28,16 @@ function isImageProxy(details: FileProxyDetails): details is ImageProxyDetails {
   return Mime.isImage(details.mimeType)
 }
 
+async function imageUrlToDataUrl(imageUrl: string) {
+  let blob = await fetch(imageUrl).then((r) => r.blob())
+  let dataUrl = await new Promise<string>((resolve) => {
+    let reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.readAsDataURL(blob)
+  })
+  return dataUrl
+}
+
 /**
  * Compose @see NodeExtattrs for a thirdparty filesystem file
  */
@@ -38,7 +48,7 @@ export async function extattrsFromFile(
   return {
     content_type: MimeType.TEXT_URI_LIST,
     preview_image: isImageProxy(file.details)
-      ? { url: file.details.previewUrl }
+      ? { data: await imageUrlToDataUrl(file.details.previewUrl) }
       : undefined,
     title: '☁ ' + file.path,
     description: Mime.isText(file.details.mimeType)
