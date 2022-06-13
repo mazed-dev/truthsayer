@@ -35,7 +35,6 @@ const inputEnteredListener = (
   disposition: browser.Omnibox.OnInputEnteredDisposition
 ) => {
   const url = getUrlToOpen(text).toString()
-  console.log('Mazed omnibox inputEnteredListener', text, disposition, url)
   if (disposition === 'newForegroundTab') {
     browser.tabs.create({ url, active: true })
   } else if (disposition === 'newBackgroundTab') {
@@ -46,27 +45,27 @@ const inputEnteredListener = (
   }
 }
 
-function shortenBy(text: string, limit?: number): string {
-  limit = limit ?? 12
-  if (text.length > limit) {
-    return `${text.slice(0, limit - 1)}…`
-  }
-  return text
+function _truncate(text: string, length?: number): string {
+  return lodash.truncate(text, {
+    length: length ?? 12,
+    omission: '…',
+    separator: /./u,
+  })
 }
 
-function shortenUrlBy(url: string, limit?: number): string {
+function _truncateUrl(url: string, length?: number): string {
   const u = new URL(url)
-  return shortenBy([u.hostname, u.pathname].join(''), limit)
+  return _truncate([u.hostname, u.pathname].join(''), length)
 }
 
 const inputChangedListener = (
   text: string,
   suggest: (suggestResults: browser.Omnibox.SuggestResult[]) => void
 ) => {
-  console.log('Mazed omnibox inputChangedListener', text, suggest)
   browser.omnibox.setDefaultSuggestion({
-    description: `Search <match>${text}</match> - <dim>Mazed</dim>`,
+    description: `Search "${text}" - <dim>Mazed</dim>`,
   })
+  // TODO(akindyakov): The output XML is still incorrect sometimes, that results in omnibox failure. Fix it before merge.
   lookUpFor(text, 12)?.then((nodes) => {
     suggest(
       nodes.map((node) => {
@@ -74,30 +73,30 @@ const inputChangedListener = (
         const url = node.extattrs?.web?.url || node.extattrs?.web_quote?.url
         if (url != null) {
           if (node.isWebQuote()) {
-            const title = shortenBy(node.extattrs?.web_quote?.text || '', 32)
-            const shortUrl = shortenUrlBy(url, 19)
+            const title = _truncate(node.extattrs?.web_quote?.text || '', 32)
+            const shortUrl = _truncateUrl(url, 19)
             return {
               content: url,
-              description: `"<match>${title}</match>" <dim>${shortUrl}</dim> - <dim>Mazed</dim>`,
+              description: `"${title}" <dim>${shortUrl}</dim> - <dim>Mazed</dim>`,
             }
           }
           if (node.isWebBookmark()) {
-            const title = shortenBy(
+            const title = _truncate(
               node.extattrs?.title ?? node.extattrs?.description ?? '',
               32
             )
-            const shortUrl = shortenUrlBy(url, 19)
+            const shortUrl = _truncateUrl(url, 19)
             return {
               content: url,
-              description: `<match>"${title}"</match> <dim>${shortUrl}</dim> - <dim>Mazed</dim>`,
+              description: `"${title}" <dim>${shortUrl}</dim> - <dim>Mazed</dim>`,
             }
           }
         }
         const doc = TDoc.fromNodeTextData(node.getText())
-        const title = doc.genTitle()
+        const title = doc.genTitle(32)
         return {
           content: mazed.makeNodeUrl(nid).toString(),
-          description: `<match>"${title}"</match> - <dim>Mazed</dim>`,
+          description: `"${title}" - <dim>Mazed</dim>`,
         }
       })
     )

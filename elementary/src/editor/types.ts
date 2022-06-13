@@ -385,16 +385,6 @@ export type BulletedListElement = {
   children: Descendant[]
 }
 
-function _truncateTitle(title: string): string {
-  title = title.slice(0, 128).replace(/\s+/g, ' ')
-  if (title.length > 36) {
-    title = title.slice(0, 36)
-    return `${title}\u2026`
-  } else {
-    return title
-  }
-}
-
 const kDefaultDateFormat: string = 'YYYY MMMM DD, dddd'
 const kDefaultTimeFormat: string = 'HH:mm'
 
@@ -558,24 +548,24 @@ export class TDoc {
     return new TDoc(slate)
   }
 
-  genTitle(): string {
-    const title: string | null = this.slate.reduce<string>(
-      (acc: string, item: Descendant, _index: number, _array: Descendant[]) => {
-        if (
-          acc.length === 0 &&
-          (isHeaderSlateBlock(item) || isTextSlateBlock(item))
-        ) {
-          const text = getSlateDescendantAsPlainText(item)[0]
-          const ret = _truncateTitle(text)
-          if (ret) {
-            return ret
-          }
-        }
-        return acc
-      },
-      ''
-    )
-    return title || 'Some page\u2026'
+  genTitle(length?: number): string {
+    length = length ?? 36
+    const fullLengthMax: number = length * 2
+    let fullLength: number = 0
+    const texts: string[] = []
+    for (const item of this.slate) {
+      const text = getSlateDescendantAsPlainText(item)[0]
+      fullLength += text.length
+      texts.push(text)
+      if (fullLength > fullLengthMax) {
+        break
+      }
+    }
+    return lodash.truncate(texts.join(' ').replaceAll(/\s+/g, ' ') || '…', {
+      length,
+      omission: '…',
+      separator: /./u,
+    })
   }
 
   genBlankSlate(): SlateText {
