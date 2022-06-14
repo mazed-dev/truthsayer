@@ -58,6 +58,17 @@ function _truncateUrl(url: string, length?: number): string {
   return _truncate([u.hostname, u.pathname].join(''), length)
 }
 
+function _formatDescription(title: string, url?: string): string {
+  if (process.env.CHROME) {
+    const prettyUrl = url != null ? `<dim>${url}</dim>` : ''
+    return `"${title}" ${prettyUrl} - <dim>Mazed</dim>`
+  } else {
+    // Firefoc doesn't support any markup in description
+    const prettyUrl = url != null ? url : ''
+    return `"${title}" ${prettyUrl} - Mazed`
+  }
+}
+
 const inputChangedListener = (
   text: string,
   suggest: (suggestResults: browser.Omnibox.SuggestResult[]) => void
@@ -77,7 +88,7 @@ const inputChangedListener = (
             const shortUrl = _truncateUrl(url, 19)
             return {
               content: url,
-              description: `"${title}" <dim>${shortUrl}</dim> - <dim>Mazed</dim>`,
+              description: _formatDescription(title, shortUrl),
             }
           }
           if (node.isWebBookmark()) {
@@ -88,7 +99,7 @@ const inputChangedListener = (
             const shortUrl = _truncateUrl(url, 19)
             return {
               content: url,
-              description: `"${title}" <dim>${shortUrl}</dim> - <dim>Mazed</dim>`,
+              description: _formatDescription(title, shortUrl),
             }
           }
         }
@@ -96,7 +107,7 @@ const inputChangedListener = (
         const title = doc.genTitle(32)
         return {
           content: mazed.makeNodeUrl(nid).toString(),
-          description: `"${title}" - <dim>Mazed</dim>`,
+          description: _formatDescription(title),
         }
       })
     )
