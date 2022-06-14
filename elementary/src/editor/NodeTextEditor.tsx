@@ -56,6 +56,8 @@ export const NodeTextEditor = ({
   }, [])
   const initialValue = useMemo(() => {
     const doc = TDoc.fromNodeTextData(node.getText())
+    // TODO(akindyakov): Verify that result slate tree is valid, otherwise the
+    // whole app would crash. Slate doesn't really like invalid docs.
     return doc.slate
   }, [nid])
   return (

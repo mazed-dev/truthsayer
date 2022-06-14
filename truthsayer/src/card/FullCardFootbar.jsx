@@ -9,7 +9,7 @@ import { ButtonToolbar } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 
 import { smuggler } from 'smuggler-api'
-import { HoverTooltip, ImgButton, jcss } from 'elementary'
+import { HoverTooltip, ImgButton, jcss, TDoc } from 'elementary'
 
 import styles from './FullCardFootbar.module.css'
 
@@ -25,7 +25,7 @@ import PublicImg from './../img/public.png'
 import { ShareModal } from './ShareModal'
 
 import { MzdGlobalContext } from '../lib/global'
-import { nodeToMarkdown } from '../markdown/slate'
+import { slateToMarkdown } from 'librarius'
 import { goto } from '../lib/route'
 import { downloadAsFile } from '../util/download_as_file'
 
@@ -36,6 +36,20 @@ import {
   FootbarDropdownMenu,
   FootbarDropdownToggleMeatballs,
 } from './Footbar'
+
+function nodeToMarkdown(node) {
+  let md = ''
+  if (node.isImage()) {
+    const source = node.getBlobSource()
+    md = md.concat(`![](${source})`)
+  }
+  const text = node.getText()
+  if (text) {
+    const doc = TDoc.fromNodeTextData(text)
+    md = md.concat(slateToMarkdown(doc.slate))
+  }
+  return md
+}
 
 class PrivateFullCardFootbarImpl extends React.Component {
   constructor(props) {
@@ -248,7 +262,7 @@ export function FullCardFootbar({ /* children,  */ node, ...rest }) {
     const { nid, meta } = node
     if (node.isOwnedBy(account)) {
       const getMarkdown = async () => {
-        return await nodeToMarkdown(node)
+        return nodeToMarkdown(node)
       }
       return (
         <PrivateFullCardFootbar

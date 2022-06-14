@@ -9,7 +9,7 @@ import { errorise, log } from 'armoury'
 import { isAbortError } from 'armoury'
 
 import { TDoc, SlateText } from 'elementary'
-import { markdownToSlate } from '../markdown/slate'
+import { markdownToSlate } from 'librarius'
 import { Mime } from 'armoury'
 import { Optional } from 'armoury'
 
@@ -65,36 +65,35 @@ function uploadLocalTextFile(
   }
   const reader = new FileReader()
   reader.onload = (event) => {
-    const appendix = `\n---\n*From file - "${file.name}" (\`${
+    const appendix = `\n---\n*From file - "${file.name}" (${
       Math.round((file.size * 100) / 1024) * 100
-    }KiB\`)*\n`
+    }KiB)*\n`
     const text = (event.target?.result || '') + appendix
-    markdownToSlate(text).then((slate) => {
-      const doc = new TDoc(slate as SlateText)
-      smuggler.node
-        .create(
-          {
-            text: doc.toNodeTextData(),
-            from_nid: from_nid ? [from_nid] : undefined,
-            to_nid: to_nid ? [to_nid] : undefined,
-          },
-          abortSignal
-        )
-        .then((node) => {
-          const { nid } = node
-          updateStatus({ nid, progress: 1.0 })
+    const slate = markdownToSlate(text)
+    const doc = new TDoc(slate as SlateText)
+    smuggler.node
+      .create(
+        {
+          text: doc.toNodeTextData(),
+          from_nid: from_nid ? [from_nid] : undefined,
+          to_nid: to_nid ? [to_nid] : undefined,
+        },
+        abortSignal
+      )
+      .then((node) => {
+        const { nid } = node
+        updateStatus({ nid, progress: 1.0 })
+      })
+      .catch((err) => {
+        if (isAbortError(err)) {
+          return
+        }
+        log.exception(err)
+        updateStatus({
+          progress: 1,
+          error: `Submission failed: ${err}`,
         })
-        .catch((err) => {
-          if (isAbortError(err)) {
-            return
-          }
-          log.exception(err)
-          updateStatus({
-            progress: 1,
-            error: `Submission failed: ${err}`,
-          })
-        })
-    })
+      })
   }
 
   reader.onerror = () => {

@@ -16,11 +16,25 @@ import {
 } from './components'
 
 type ListItemProps = React.PropsWithChildren<{
-  className: string
+  className?: string
+  isEditable: boolean
+  element: CheckListItemElement
 }>
 
 const ListItem = React.forwardRef<HTMLLIElement, ListItemProps>(
-  ({ className, children, ...attributes }, ref) => {
+  ({ className, children, isEditable, element, ...attributes }, ref) => {
+    const checked = element.checked
+    if (checked != null) {
+      return (
+        <CheckListItem
+          element={element}
+          isEditable={isEditable}
+          {...attributes}
+        >
+          {children}
+        </CheckListItem>
+      )
+    }
     return (
       <ListItemBox className={className} ref={ref} {...attributes}>
         {children}
@@ -55,12 +69,11 @@ const UnorderedList = React.forwardRef<HTMLUListElement, ListProps>(
 
 type CheckListItemProps = React.PropsWithChildren<{
   isEditable: boolean
-  attributes: any
   element: CheckListItemElement
 }>
 
 const CheckListItem = React.forwardRef<HTMLDivElement, CheckListItemProps>(
-  ({ attributes, children, element, isEditable }, ref) => {
+  ({ children, element, isEditable, ...attributes }, ref) => {
     const { checked = false } = element
     const editor = useSlateStatic()
     const readOnly = useReadOnly()
@@ -102,5 +115,4 @@ export const List = {
   Ordered: OrderedList,
   Unordered: UnorderedList,
   Item: ListItem,
-  CheckItem: CheckListItem,
 }

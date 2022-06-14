@@ -8,7 +8,7 @@ import { Mime } from 'armoury'
 import type { MimeType } from 'armoury'
 
 async function readAtMost(file: File, maxChars: number) {
-  const reader = file.stream().getReader()
+  const reader = file.stream().pipeThrough(new TextDecoderStream()).getReader()
   let totalCharsRead = 0
   const data: string[] = []
   for (
