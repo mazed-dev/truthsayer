@@ -76,9 +76,9 @@ async function uploadFilesFromFolder(
   let filesLeft = files.length
   for (const batch of FsModificationQueue.modTimestampBatchIterator(files)) {
     for (const file of batch) {
-      if (!steroid.build_index.cfg.supportsMime(file.mimeType)) {
+      if (!steroid.build_index.cfg.supportsMime(file.details.mimeType)) {
         log.debug(
-          `Skipping ${file.path} due to unsupported Mime type ${file.mimeType}`
+          `Skipping ${file.path} due to unsupported Mime type ${file.details.mimeType}`
         )
         return
       }

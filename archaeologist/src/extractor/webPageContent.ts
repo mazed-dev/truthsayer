@@ -64,14 +64,13 @@ async function fetchImagePreviewAsBase64(
       )
       const content_type = MimeType.IMAGE_JPEG
       const data = canvas.toDataURL(content_type)
-      resolve({ data, content_type })
+      resolve({ data })
     }
     image.src = url
   })
 }
 
 export interface WebPageContentImage {
-  content_type: MimeType
   data: string // Base64 encoded image
 }
 

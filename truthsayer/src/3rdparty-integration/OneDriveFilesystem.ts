@@ -4,7 +4,10 @@
 
 import { Client as MsGraphClient } from '@microsoft/microsoft-graph-client'
 import { log, MimeType, Mime, Optional } from 'armoury'
-import { DriveItem as MsGraphDriveItem } from 'microsoft-graph'
+import {
+  DriveItem as MsGraphDriveItem,
+  ThumbnailSet as MsThumbnailSet,
+} from 'microsoft-graph'
 import {
   PopupRequest,
   PublicClientApplication as MsPublicClientApplication,
@@ -12,6 +15,7 @@ import {
 import {
   ChildrenProxy,
   FileProxy,
+  FileProxyDetails,
   FolderProxy,
   ThirdpartyFs,
 } from './3rdPartyFilesystem'
@@ -23,6 +27,15 @@ import * as MsGraph from './MicrosoftGraph'
 function toUnixSecTimestamp(date: Date): number {
   // See https://stackoverflow.com/a/1792009/3375765 for more info about the implementation
   return date.getTime() / 1000
+}
+
+function thumbnailUrlFrom(
+  thumbnails: MsThumbnailSet[] | null | undefined
+): string | undefined {
+  if (!thumbnails) {
+    return
+  }
+  return thumbnails[0].small?.url || undefined
 }
 
 function toProxy(
@@ -67,6 +80,16 @@ function toProxy(
       return null
     }
 
+    // TODO[snikitin@outlook.com] This should probably be some local image, deployed
+    // alongside truthsayer
+    const nopreviewUrl: string =
+      'https://image.shutterstock.com/image-vector/picture-line-icon-image-vector-600w-1841782459.jpg'
+    const details: FileProxyDetails = Mime.isImage(mimeType)
+      ? {
+          mimeType,
+          previewUrl: thumbnailUrlFrom(msItem.thumbnails) || nopreviewUrl,
+        }
+      : { mimeType }
     return {
       category: 'file',
       path,
@@ -74,7 +97,7 @@ function toProxy(
       webUrl: msItem.webUrl,
       createdBy: msItem.createdBy?.user?.displayName || 'Unknown author',
       lastModTimestamp,
-      mimeType,
+      details,
     }
   } else if (msItem.folder) {
     return {
@@ -109,19 +132,21 @@ async function streamAsFile(file: FileProxy, contents: ReadableStream) {
   const chunks = await readAllFrom(contents.getReader())
   return new File(chunks, file.path, {
     lastModified: file.lastModTimestamp,
-    type: file.mimeType,
+    type: file.details.mimeType,
   })
 }
 
 export class OneDriveFs implements ThirdpartyFs {
   constructor(msAuthentication: MsPublicClientApplication) {
     this.#auth = msAuthentication
-    this.#graph = MsGraph.client(msAuthentication)
+    this.#graph = null
   }
 
   public async childrenOf(folder: FolderProxy): Promise<ChildrenProxy> {
-    const response: MsGraph.ODataResponse<MsGraphDriveItem> = await this.#graph
+    const response: MsGraph.ODataResponse<MsGraphDriveItem> = await this.graph()
       .api(`/me/drive/root:${folder.path}:/children`)
+      // In addition to default-populated fields, opt-in to request MsGraphDriveItem.thumbnails
+      .expand('thumbnails')
       .get()
     const items: MsGraphDriveItem[] = response.value
 
@@ -146,7 +171,7 @@ export class OneDriveFs implements ThirdpartyFs {
   }
 
   public async download(file: FileProxy): Promise<File> {
-    const stream: ReadableStream = await this.#graph
+    const stream: ReadableStream = await this.graph()
       .api(`/me/drive/items/${file.id}/content`)
       .getStream()
     return streamAsFile(file, stream)
@@ -169,6 +194,13 @@ export class OneDriveFs implements ThirdpartyFs {
     })
   }
 
-  #graph: MsGraphClient
+  private graph() {
+    if (!this.#graph) {
+      this.#graph = MsGraph.client(this.#auth)
+    }
+    return this.#graph
+  }
+
+  #graph: MsGraphClient | null
   #auth: MsPublicClientApplication
 }
