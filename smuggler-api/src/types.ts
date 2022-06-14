@@ -63,7 +63,8 @@ export type NodeExtattrs = {
 
 // see smuggler/src/types.rs
 export type PreviewImageSmall = {
-  content_type: MimeType
+  /** DEPRECATED, DO NOT USE */
+  content_type?: MimeType
 
   // Base64 encoded image for card preview_image, it must be small so we can
   // afford to store it to postgres DB

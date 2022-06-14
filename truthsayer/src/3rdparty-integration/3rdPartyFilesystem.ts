@@ -1,7 +1,13 @@
 /**
  * @file Primitives to work generically with a thirdparty cloud filesystem
  */
-import { MimeType } from 'armoury'
+import {
+  ApplicationMimeType,
+  ImageMimeType,
+  MimeType,
+  MultipartMimeType,
+  TextMimeType,
+} from 'armoury'
 
 /**
  * A filesystem-agnostic shallow version of a file stored in user's file storage
@@ -26,7 +32,27 @@ export type FileProxy = {
   /** Unix timestamp (seconds) when this file was last modified by a user within its filesystem */
   lastModTimestamp: number
   createdBy: string
-  mimeType: MimeType
+
+  details: FileProxyDetails
+}
+
+/** In addition to properties that every file should have, some properties may
+  only make sense for a subset of Mime types. This is expressed below through
+  addition of mutually exclusive groups of properties specific to a particular Mime category.
+  An alternative implementation could be to merge all property groups into one
+  and mark all fields inside as "possibly undefined". However this is intentionally
+  avoided as it weakens type safety and doesn't allow to express things like
+  "every image must have a preview" */
+export type FileProxyDetails = BoringProxyDetails | ImageProxyDetails
+
+export type ImageProxyDetails = {
+  mimeType: ImageMimeType
+  previewUrl: string
+}
+
+/** A type to represent all Mime types that don't require any special data */
+export type BoringProxyDetails = {
+  mimeType: ApplicationMimeType | MultipartMimeType | TextMimeType
 }
 
 export type ChildrenProxy = {
