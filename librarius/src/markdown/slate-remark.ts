@@ -68,41 +68,16 @@ function depthToHeadingType(
   }
 }
 
-function headingTypeToDepth(
-  type:
-    | typeof kSlateBlockTypeH1
-    | typeof kSlateBlockTypeH2
-    | typeof kSlateBlockTypeH3
-    | typeof kSlateBlockTypeH4
-    | typeof kSlateBlockTypeH5
-    | typeof kSlateBlockTypeH6
-): number {
-  switch (type) {
-    case kSlateBlockTypeH1:
-      return 1
-    case kSlateBlockTypeH2:
-      return 2
-    case kSlateBlockTypeH3:
-      return 3
-    case kSlateBlockTypeH4:
-      return 4
-    case kSlateBlockTypeH5:
-      return 5
-    case kSlateBlockTypeH6:
-      return 6
-    default:
-      return 6
-  }
-}
-
-type NextForPhrasingContentFn = (child: mdast.PhrasingContent[]) => CustomText[]
+type BuildElementsFromPhrasingContentFn = (
+  child: mdast.PhrasingContent[]
+) => CustomText[]
 function getTextFromPhrasingContent(
   children: mdast.PhrasingContent[],
-  next: NextForPhrasingContentFn
+  buildElements: BuildElementsFromPhrasingContentFn
 ): string {
   const ret: string[] = []
   for (const child of children) {
-    for (const element of next([child])) {
+    for (const element of buildElements([child])) {
       const { text } = element
       ret.push(text)
     }
@@ -112,13 +87,13 @@ function getTextFromPhrasingContent(
 
 function getTableCode(
   table: mdast.TableRow[],
-  next: NextForPhrasingContentFn
+  buildElements: BuildElementsFromPhrasingContentFn
 ): string {
   const rows: string[] = []
   for (const row of table) {
     const cells: string[] = []
     for (const cell of row.children) {
-      cells.push(getTextFromPhrasingContent(cell.children, next))
+      cells.push(getTextFromPhrasingContent(cell.children, buildElements))
     }
     rows.push(`| ${cells.join(' | ')} |`)
   }
@@ -127,12 +102,12 @@ function getTableCode(
 
 function getListItemChildren(
   children: (mdast.BlockContent | mdast.DefinitionContent)[],
-  next: (children: any[]) => CustomText[]
+  buildElements: (children: any[]) => CustomText[]
 ): CustomText[] {
   const ret: CustomText[] = []
   for (const p of children) {
     if ('children' in p) {
-      ret.push(...next(p.children))
+      ret.push(...buildElements(p.children))
     }
   }
   return ret
@@ -156,55 +131,60 @@ export function markdownToSlate(text: string): Descendant[] {
         text: (node) => ({
           text: node.value,
         }),
-        emphasis: (node, next) => ({
+        emphasis: (node, buildElements) => ({
           italic: true,
           text: getTextFromPhrasingContent(
             node.children,
-            next as NextForPhrasingContentFn
+            buildElements as BuildElementsFromPhrasingContentFn
           ),
         }),
-        strong: (node, next) => ({
+        strong: (node, buildElements) => ({
           bold: true,
           text: getTextFromPhrasingContent(
             node.children,
-            next as NextForPhrasingContentFn
+            buildElements as BuildElementsFromPhrasingContentFn
           ),
         }),
         inlineCode: (node) => ({
           text: node.value,
           code: true,
         }),
-        table: (node, next) => ({
+        table: (node, buildElements) => ({
           type: kSlateBlockTypeCode,
           lang: 'markdown',
-          text: getTableCode(node.children, next as NextForPhrasingContentFn),
+          text: getTableCode(
+            node.children,
+            buildElements as BuildElementsFromPhrasingContentFn
+          ),
         }),
-        heading: (node, next) => ({
+        heading: (node, buildElements) => ({
           type: depthToHeadingType(node.depth),
-          children: ensureChildren(next(node.children)),
+          children: ensureChildren(buildElements(node.children)),
         }),
-        blockquote: (node, next) => ({
+        blockquote: (node, buildElements) => ({
           type: kSlateBlockTypeQuote,
-          children: ensureChildren(next(node.children)),
+          children: ensureChildren(buildElements(node.children)),
         }),
-        paragraph: (node, next) => ({
+        paragraph: (node, buildElements) => ({
           type: kSlateBlockTypeParagraph,
-          children: ensureChildren(next(node.children)),
+          children: ensureChildren(buildElements(node.children)),
         }),
         thematicBreak: () => ({
           type: kSlateBlockTypeBreak,
           children: ensureChildren([]),
         }),
-        list: (node, next) => ({
+        list: (node, buildElements) => ({
           type: node.ordered
             ? kSlateBlockTypeOrderedList
             : kSlateBlockTypeUnorderedList,
-          children: ensureChildren(next(node.children)),
+          children: ensureChildren(buildElements(node.children)),
         }),
-        listItem: (node, next) => ({
+        listItem: (node, buildElements) => ({
           type: kSlateBlockTypeListItem,
           checked: node.checked ?? undefined,
-          children: ensureChildren(getListItemChildren(node.children, next)),
+          children: ensureChildren(
+            getListItemChildren(node.children, buildElements)
+          ),
         }),
         code: (node) => ({
           type: kSlateBlockTypeCode,
@@ -212,11 +192,11 @@ export function markdownToSlate(text: string): Descendant[] {
           lang: node.lang,
           meta: node.meta || undefined,
         }),
-        link: (node, next) => ({
+        link: (node, buildElements) => ({
           type: kSlateBlockTypeLink,
           url: node.url,
           title: node.title || undefined,
-          children: ensureChildren(next(node.children)),
+          children: ensureChildren(buildElements(node.children)),
         }),
         image: (node) => ({
           type: kSlateBlockTypeImage,
@@ -235,98 +215,98 @@ export function slateToMarkdown(children: Descendant[]): string {
   const processor = unified()
     .use(slateToRemark, {
       overrides: {
-        [kSlateBlockTypeH1]: (node, next) => ({
+        [kSlateBlockTypeH1]: (node, buildElements) => ({
           type: 'heading',
           depth: 1,
-          children: next((node as CustomElement).children),
+          children: buildElements((node as CustomElement).children),
         }),
-        [kSlateBlockTypeH2]: (node, next) => ({
+        [kSlateBlockTypeH2]: (node, buildElements) => ({
           type: 'heading',
           depth: 2,
-          children: next((node as CustomElement).children),
+          children: buildElements((node as CustomElement).children),
         }),
-        [kSlateBlockTypeH3]: (node, next) => ({
+        [kSlateBlockTypeH3]: (node, buildElements) => ({
           type: 'heading',
           depth: 3,
-          children: next((node as CustomElement).children),
+          children: buildElements((node as CustomElement).children),
         }),
-        [kSlateBlockTypeH4]: (node, next) => ({
+        [kSlateBlockTypeH4]: (node, buildElements) => ({
           type: 'heading',
           depth: 4,
-          children: next((node as CustomElement).children),
+          children: buildElements((node as CustomElement).children),
         }),
-        [kSlateBlockTypeH5]: (node, next) => ({
+        [kSlateBlockTypeH5]: (node, buildElements) => ({
           type: 'heading',
           depth: 5,
-          children: next((node as CustomElement).children),
+          children: buildElements((node as CustomElement).children),
         }),
-        [kSlateBlockTypeH6]: (node, next) => ({
+        [kSlateBlockTypeH6]: (node, buildElements) => ({
           type: 'heading',
           depth: 6,
-          children: next((node as CustomElement).children),
+          children: buildElements((node as CustomElement).children),
         }),
-        [kSlateBlockTypeUnorderedList]: (node, next) => {
+        [kSlateBlockTypeUnorderedList]: (node, buildElements) => {
           return {
             type: 'list',
             ordered: false,
-            children: next((node as UnorderedListElement).children),
+            children: buildElements((node as UnorderedListElement).children),
           }
         },
-        [kSlateBlockTypeOrderedList]: (node, next) => ({
+        [kSlateBlockTypeOrderedList]: (node, buildElements) => ({
           type: 'list',
           ordered: true,
-          children: next((node as OrderedListElement).children),
+          children: buildElements((node as OrderedListElement).children),
         }),
-        [kSlateBlockTypeListItem]: (node, next) => {
+        [kSlateBlockTypeListItem]: (node, buildElements) => {
           return {
             type: 'listItem',
             checked: (node as CheckListItemElement).checked,
-            children: next((node as CheckListItemElement).children),
+            children: buildElements((node as CheckListItemElement).children),
           }
         },
-        [kSlateBlockTypeListCheckItem]: (node, next) => {
+        [kSlateBlockTypeListCheckItem]: (node, buildElements) => {
           return {
             type: 'listItem',
             ordered: true,
             checked: (node as CheckListItemElement).checked,
-            children: next((node as CheckListItemElement).children),
+            children: buildElements((node as CheckListItemElement).children),
           }
         },
-        [kSlateBlockTypeBreak]: (node, next) => ({
+        [kSlateBlockTypeBreak]: (node, buildElements) => ({
           type: 'thematicBreak',
-          children: next((node as ThematicBreakElement).children),
+          children: buildElements((node as ThematicBreakElement).children),
         }),
-        [kSlateBlockTypeCode]: (node, next) => {
+        [kSlateBlockTypeCode]: (node, buildElements) => {
           const { children, lang, meta } = node as CodeBlockElement
           return {
             type: 'code',
-            children: next(children),
+            children: buildElements(children),
             lang,
             meta,
           }
         },
-        [kSlateBlockTypeParagraph]: (node, next) => ({
+        [kSlateBlockTypeParagraph]: (node, buildElements) => ({
           type: 'paragraph',
-          children: next((node as ParagraphElement).children),
+          children: buildElements((node as ParagraphElement).children),
         }),
-        [kSlateBlockTypeQuote]: (node, next) => ({
+        [kSlateBlockTypeQuote]: (node, buildElements) => ({
           type: 'blockquote',
-          children: next((node as BlockQuoteElement).children),
+          children: buildElements((node as BlockQuoteElement).children),
         }),
         [kSlateBlockTypeImage]: (node) => {
           const { url, title, alt } = node as ImageElement
           return { type: 'image', url, title, alt }
         },
-        [kSlateBlockTypeLink]: (node, next) => ({
+        [kSlateBlockTypeLink]: (node, buildElements) => ({
           type: 'link',
-          children: next((node as LinkElement).children),
+          children: buildElements((node as LinkElement).children),
         }),
       },
     })
     .use(stringify)
   const ast = processor.runSync({
     type: 'root',
-    // @ts-ignore
+    // @ts-ignore: Argument of type '{ type: string; children: (CustomText | HeadingElement | ThematicBreakElement | UnorderedListElement | ... 8 more ... | LinkElement)[]; }' is not assignable to parameter of type 'Node<Data>'.
     children,
   })
   const text = processor.stringify(ast)

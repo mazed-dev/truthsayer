@@ -65,9 +65,9 @@ function uploadLocalTextFile(
   }
   const reader = new FileReader()
   reader.onload = (event) => {
-    const appendix = `\n---\nFrom file - "${file.name}" (\`${
+    const appendix = `\n---\n*From file - "${file.name}" (${
       Math.round((file.size * 100) / 1024) * 100
-    }KiB\`)\n`
+    }KiB)*\n`
     const text = (event.target?.result || '') + appendix
     const slate = markdownToSlate(text)
     const doc = new TDoc(slate as SlateText)
