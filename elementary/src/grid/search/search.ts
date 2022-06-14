@@ -29,7 +29,7 @@ export class Beagle {
     const doc = TDoc.fromNodeTextData(node.getText())
     const plaintext = doc.genPlainText()
     const { extattrs, index_text } = node
-    const fields: (string | undefined)[] = plaintext
+    const fields: (string | undefined)[] = [plaintext]
     if (extattrs != null) {
       const { title, description, lang, author, content_type, web, web_quote } =
         extattrs

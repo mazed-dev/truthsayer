@@ -47,16 +47,11 @@ export const makeElementRender = (isEditable: boolean) => {
       case kSlateBlockTypeOrderedList:
         return <List.Ordered {...attributes}>{children}</List.Ordered>
       case kSlateBlockTypeListItem:
-        return <List.Item {...attributes}>{children}</List.Item>
       case kSlateBlockTypeListCheckItem:
         return (
-          <List.CheckItem
-            element={element}
-            attributes={attributes}
-            isEditable={isEditable}
-          >
+          <List.Item isEditable={isEditable} element={element} {...attributes}>
             {children}
-          </List.CheckItem>
+          </List.Item>
         )
       case kSlateBlockTypeH1:
         return (

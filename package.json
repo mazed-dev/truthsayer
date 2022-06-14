@@ -8,6 +8,7 @@
     "armoury": "yarn workspace armoury",
     "fix": "yarn syncpack fix-mismatches && yarn workspaces foreach run fix",
     "fix:prettier": "yarn workspaces foreach run fix:prettier",
+    "librarius": "yarn workspace librarius",
     "lint": "yarn syncpack list-mismatches && yarn workspaces foreach run lint",
     "smuggler-api": "yarn workspace smuggler-api",
     "test": "yarn workspaces foreach run test --all --watchAll=false --no-watchman",
@@ -17,6 +18,7 @@
     "archaeologist",
     "armoury",
     "elementary",
+    "librarius",
     "smuggler-api",
     "truthsayer"
   ],

@@ -5,84 +5,8 @@ import { HistoryEditor } from 'slate-history'
 import type { NodeTextData } from 'smuggler-api'
 
 import lodash from 'lodash'
-import moment from 'moment'
-
-import type { Optional } from 'armoury'
 
 export type SlateText = Descendant[]
-
-enum EChunkType {
-  Text = 0,
-  Asterisk = 1,
-  Empty = 2,
-}
-
-export interface TChunk {
-  type: EChunkType
-  source: string | null
-}
-
-export interface TContentBlock {
-  key: string
-  text: string
-  type: string
-  characterList: null
-  depth: number
-  data: Map<any, any>
-}
-
-export interface TEntity {}
-
-export interface TDraftDoc {
-  blocks: TContentBlock[]
-  entityMap: TEntity[]
-}
-
-export const kBlockTypeH1 = 'header-one'
-export const kBlockTypeH2 = 'header-two'
-export const kBlockTypeH3 = 'header-three'
-export const kBlockTypeH4 = 'header-four'
-export const kBlockTypeH5 = 'header-five'
-export const kBlockTypeH6 = 'header-six'
-export const kBlockTypeQuote = 'blockquote'
-export const kBlockTypeCode = 'code-block'
-export const kBlockTypeUnorderedItem = 'unordered-list-item'
-export const kBlockTypeOrderedItem = 'ordered-list-item'
-export const kBlockTypeUnstyled = 'unstyled'
-export const kBlockTypeAtomic = 'atomic'
-
-export const kBlockTypeHrule = 'hrule'
-export const kBlockTypeUnorderedCheckItem = 'unordered-check-item'
-
-type BlockType =
-  | typeof kBlockTypeH1
-  | typeof kBlockTypeH2
-  | typeof kBlockTypeH3
-  | typeof kBlockTypeH4
-  | typeof kBlockTypeH5
-  | typeof kBlockTypeH6
-  | typeof kBlockTypeQuote
-  | typeof kBlockTypeCode
-  | typeof kBlockTypeUnorderedItem
-  | typeof kBlockTypeOrderedItem
-  | typeof kBlockTypeUnstyled
-  | typeof kBlockTypeAtomic
-  | typeof kBlockTypeHrule
-  | typeof kBlockTypeUnorderedCheckItem
-
-export const kEntityTypeLink = 'LINK'
-export const kEntityTypeTime = 'DATETIME'
-export const kEntityTypeImage = 'IMAGE'
-
-type EntityType =
-  | typeof kEntityTypeLink
-  | typeof kEntityTypeTime
-  | typeof kEntityTypeImage
-
-export const kEntityMutable = 'MUTABLE'
-export const kEntityImmutable = 'IMMUTABLE'
-
-type Mutability = typeof kEntityMutable | typeof kEntityImmutable
 
 /**
  * Slate
@@ -101,7 +25,7 @@ export const kSlateBlockTypeParagraph = 'paragraph'
 export const kSlateBlockTypeQuote = 'block-quote'
 export const kSlateBlockTypeUnorderedList = 'u-list'
 export const kSlateBlockTypeListItem = 'list-item'
-export const kSlateBlockTypeListCheckItem = 'list-check-item'
+export const kSlateBlockTypeListCheckItem = 'list-check-item' // Deprecated, use 'list-item' with defined 'checked' attribute instead (true/false)
 export const kSlateBlockTypeImage = 'image'
 export const kSlateBlockTypeDateTime = 'datetime'
 // [snikitin] Why does link has the same prefix pattern as "marks"?
@@ -126,35 +50,6 @@ export type CustomElementType =
   | typeof kSlateBlockTypeDateTime
   | typeof kSlateBlockTypeLink
 
-/**
- * Slate
- * Leafs:
- */
-export const kSlateBlockTypeEmphasisMark = '-italic'
-export const kSlateBlockTypeStrongMark = '-bold'
-export const kSlateBlockTypeDeleteMark = '-strike-through'
-export const kSlateBlockTypeInlineCodeMark = '-inline-code'
-
-export function isHeaderBlock(block: any) {
-  const { type } = block
-  switch (type) {
-    case kBlockTypeH1:
-    case kBlockTypeH2:
-    case kBlockTypeH3:
-    case kBlockTypeH4:
-    case kBlockTypeH5:
-    case kBlockTypeH6:
-      return true
-  }
-  return false
-}
-
-// [snikitin] I believe LeafElement should be replaced with CustomText
-// as it is a more correct representation of a text element
-// (alternatively, as there are files like Leaf.tsx already, perhaps
-// CustomText should be renamed as LeafElement instead)
-export type LeafElement = CustomText
-
 export type HeadingElement = {
   type:
     | typeof kSlateBlockTypeH1
@@ -163,17 +58,19 @@ export type HeadingElement = {
     | typeof kSlateBlockTypeH4
     | typeof kSlateBlockTypeH5
     | typeof kSlateBlockTypeH6
-  children: LeafElement[]
+  children: CustomText[]
 }
 
 export type ThematicBreakElement = {
   type: typeof kSlateBlockTypeBreak
-  children: LeafElement[]
+  children: CustomText[]
 }
 
 export type CodeBlockElement = {
   type: typeof kSlateBlockTypeCode
-  children: LeafElement[]
+  children: CustomText[]
+  lang: string | null | undefined
+  meta: string | null | undefined
 }
 
 export type UnorderedListElement = {
@@ -183,7 +80,7 @@ export type UnorderedListElement = {
 
 export type ParagraphElement = {
   type: typeof kSlateBlockTypeParagraph
-  children: LeafElement[]
+  children: CustomText[]
 }
 
 export type BlockQuoteElement = {
@@ -210,20 +107,23 @@ export type CheckListItemElement = {
 export type ImageElement = {
   type: typeof kSlateBlockTypeImage
   url: string
-  children: LeafElement[]
+  children: CustomText[]
+  title?: string
+  alt?: string
 }
 
 export type DateTimeElement = {
   type: typeof kSlateBlockTypeDateTime
-  children: LeafElement[] // Do we need this?
+  children: CustomText[] // Do we need this?
   format?: string
   timestamp: number
 }
 
 export type LinkElement = {
   type: typeof kSlateBlockTypeLink
-  children: LeafElement[]
+  children: CustomText[]
   url: string
+  title?: string
   page?: boolean
 }
 
@@ -258,7 +158,7 @@ export function isHeaderSlateBlock(block: Descendant): block is HeadingElement {
   return false
 }
 
-export function isTextSlateBlock(block: Descendant): boolean {
+function isTextSlateBlock(block: Descendant): boolean {
   if (!Element.isElement(block)) {
     return false
   }
@@ -270,88 +170,12 @@ export function isTextSlateBlock(block: Descendant): boolean {
   return false
 }
 
-export function isCheckListBlock(
-  block: Descendant
-): block is CheckListItemElement {
+function isCheckListBlock(block: Descendant): block is CheckListItemElement {
   if (!Element.isElement(block)) {
     return false
   }
   const { type } = block
   return type === kSlateBlockTypeListCheckItem
-}
-
-export function makeHRuleBlock() {
-  return {
-    type: kBlockTypeHrule,
-    key: generateRandomKey(),
-    text: '',
-    data: {},
-    depth: 0,
-    entityRanges: [],
-    inlineStyleRanges: [],
-  }
-}
-
-function makeEntity({
-  type,
-  mutability,
-  data,
-}: {
-  type: EntityType
-  mutability: Mutability
-  data: any
-}) {
-  return { type, mutability, data }
-}
-
-export function makeLinkEntity(href: any) {
-  return makeEntity({
-    type: kEntityTypeLink,
-    mutability: kEntityMutable,
-    data: {
-      url: href,
-      href,
-    },
-  })
-}
-
-export function makeBlock({
-  type,
-  key,
-  text,
-  data,
-  depth,
-  entityRanges,
-  inlineStyleRanges,
-}: {
-  type: BlockType
-  key: string
-  text: string
-  data: any
-  depth: number
-  entityRanges: any[]
-  inlineStyleRanges: any[]
-}) {
-  type = type || kBlockTypeUnstyled
-  key = key || generateRandomKey()
-  text = text || ''
-  data = data || {}
-  depth = depth || 0
-  entityRanges = entityRanges || []
-  inlineStyleRanges = inlineStyleRanges || []
-  return {
-    type,
-    key,
-    text,
-    data,
-    depth,
-    entityRanges,
-    inlineStyleRanges,
-  }
-}
-
-export function generateRandomKey(): string {
-  return Math.random().toString(32).substring(2)
 }
 
 // A "mark" is how Slate represents rich text formatting which controls text's
@@ -360,13 +184,19 @@ export function generateRandomKey(): string {
 // via marks and "semantic meaning" formatting (like turning text into a
 // bullet-point list, a quote etc.) that is applicable to 'Element' nodes.
 // See https://docs.slatejs.org/concepts/09-rendering for more information
-export type MarkType = 'bold' | 'italic' | 'underline' | 'code'
+export type MarkType =
+  | 'bold'
+  | 'italic'
+  | 'underline'
+  | 'code'
+  | 'strikeThrough'
 
 export type CustomText = {
   bold?: boolean
   italic?: boolean
   underline?: boolean
   code?: boolean
+  strikeThrough?: boolean
   text: string
 }
 
@@ -379,6 +209,8 @@ declare module 'slate' {
     Text: CustomText
   }
 }
+
+export type { CustomTypes, Descendant } from 'slate'
 
 export type BulletedListElement = {
   type: typeof kSlateBlockTypeUnorderedList
@@ -395,69 +227,41 @@ function _truncateTitle(title: string): string {
   }
 }
 
-const kDefaultDateFormat: string = 'YYYY MMMM DD, dddd'
-const kDefaultTimeFormat: string = 'HH:mm'
-
-const kDefaultCalendarFormat = {
-  sameDay: `[Today], ${kDefaultTimeFormat}`,
-  nextDay: `[Tomorrow], ${kDefaultTimeFormat}`,
-  nextWeek: `dddd, ${kDefaultTimeFormat}`,
-  lastDay: `[Yesterday], ${kDefaultTimeFormat}`,
-  lastWeek: `[Last] dddd, ${kDefaultTimeFormat}`,
-  sameElse: `${kDefaultDateFormat}, ${kDefaultTimeFormat}`,
-}
-
-function momentToString(time: moment.Moment, format: Optional<string>): string {
-  return format ? time.format(format) : time.calendar(kDefaultCalendarFormat)
-}
-
-function unixToString(timestamp: number, format: Optional<string>): string {
-  const timeMoment = moment.unix(timestamp)
-  return momentToString(timeMoment, format)
-}
-
-function getSlateDescendantAsPlainText(parent: Descendant): string[] {
-  const entities = []
+function getSlateDescendantAsPlainText(node: Descendant): [string[], string[]] {
+  const entities: string[] = []
   // @ts-ignore: Property 'text' does not exist on type 'Descendant'
-  let { text } = parent
-  // @ts-ignore: Property 'children'/'type'/'link'/... does not exist on type 'Descendant'
-  const { children, link, caption, timestamp, format } = parent
-  if (link) {
-    entities.push(link)
+  const texts: string[] = []
+  if ('text' in node) {
+    texts.push(node.text)
   }
-  if (caption) {
-    entities.push(caption)
+  if ('url' in node) {
+    entities.push(node.url)
   }
-  if (timestamp) {
-    entities.push(unixToString(timestamp, format))
+  if ('title' in node) {
+    entities.push(node.title || '')
   }
-  if (children) {
-    children.forEach((item: any) => {
-      let [itemText, itemEntities] = getSlateDescendantAsPlainText(item)
-      itemText = lodash.trim(itemText)
-      if (text) {
-        text += ' '
-        text += itemText
-      } else {
-        text = itemText
-      }
+  if ('alt' in node) {
+    entities.push(node.alt || '')
+  }
+  if ('children' in node) {
+    node.children.forEach((item: any) => {
+      const [itemText, itemEntities] = getSlateDescendantAsPlainText(item)
+      texts.push(...itemText)
       entities.push(...itemEntities)
     })
   }
-  return [text, entities]
+  return [texts, entities]
 }
 
-function getSlateAsPlainText(children: SlateText): string[] {
+function getSlateAsPlainText(children: SlateText): string {
   const texts: string[] = []
   const entities: string[] = []
   children.forEach((item) => {
-    const [text, itemEntities] = getSlateDescendantAsPlainText(item)
-    if (text) {
-      texts.push(text)
-    }
+    const [itemTexts, itemEntities] = getSlateDescendantAsPlainText(item)
+    texts.push(...itemTexts)
     entities.push(...itemEntities)
   })
-  return lodash.concat(texts, entities)
+  return [...texts, ...entities].join(' ')
 }
 
 function makeThematicBreak(): ThematicBreakElement {
@@ -473,7 +277,7 @@ export function makeParagraph(children: SlateText): ParagraphElement {
   }
   return {
     type: kSlateBlockTypeParagraph,
-    // @ts-ignore: Type 'SlateText' is not assignable to type 'LeafElement[]'
+    // @ts-ignore: Type 'SlateText' is not assignable to type 'CustomText[]'
     children,
   }
 }
@@ -495,7 +299,7 @@ export function makeNodeLink(text: string, nid: string): LinkElement {
   }
 }
 
-export function makeLeaf(text: string): LeafElement {
+export function makeLeaf(text: string): CustomText {
   return { text }
 }
 
@@ -566,7 +370,7 @@ export class TDoc {
           (isHeaderSlateBlock(item) || isTextSlateBlock(item))
         ) {
           const text = getSlateDescendantAsPlainText(item)[0]
-          const ret = _truncateTitle(text)
+          const ret = _truncateTitle(text.join(' '))
           if (ret) {
             return ret
           }
@@ -593,7 +397,7 @@ export class TDoc {
     })
   }
 
-  genPlainText(): string[] {
+  genPlainText(): string {
     return getSlateAsPlainText(this.slate)
   }
 }
