@@ -217,7 +217,6 @@ export type BulletedListElement = {
   children: Descendant[]
 }
 
-
 function _truncateTitle(title: string): string {
   title = title.slice(0, 128).replace(/\s+/g, ' ')
   if (title.length > 36) {
@@ -228,7 +227,10 @@ function _truncateTitle(title: string): string {
   }
 }
 
-function getSlateDescendantAsPlainText(node: Descendant): { texts: string[], entities: string[]} {
+function getSlateDescendantAsPlainText(node: Descendant): {
+  texts: string[]
+  entities: string[]
+} {
   const entities: string[] = []
   const texts: string[] = []
   if ('text' in node) {
@@ -245,19 +247,21 @@ function getSlateDescendantAsPlainText(node: Descendant): { texts: string[], ent
   }
   if ('children' in node) {
     node.children.forEach((item: any) => {
-      const {texts: itemTexts, entities: itemEntities} = getSlateDescendantAsPlainText(item)
+      const { texts: itemTexts, entities: itemEntities } =
+        getSlateDescendantAsPlainText(item)
       texts.push(...itemTexts)
       entities.push(...itemEntities)
     })
   }
-  return {texts, entities}
+  return { texts, entities }
 }
 
 function getSlateAsPlainText(children: SlateText): string {
   const texts: string[] = []
   const entities: string[] = []
   children.forEach((item) => {
-    const {texts: itemTexts, entities: itemEntities} = getSlateDescendantAsPlainText(item)
+    const { texts: itemTexts, entities: itemEntities } =
+      getSlateDescendantAsPlainText(item)
     texts.push(...itemTexts)
     entities.push(...itemEntities)
   })
@@ -368,9 +372,12 @@ export class TDoc {
     let fullLength: number = 0
     const texts: string[] = []
     for (const item of this.slate) {
-      const { texts } = getSlateDescendantAsPlainText(item)
-      fullLength += texts.reduce((acc: number, s: string) => acc + s.length, 0)
-      texts.push(...texts)
+      const { texts: itemTexts } = getSlateDescendantAsPlainText(item)
+      fullLength += itemTexts.reduce(
+        (acc: number, s: string) => acc + s.length,
+        0
+      )
+      texts.push(...itemTexts)
       if (fullLength > fullLengthMax) {
         break
       }
