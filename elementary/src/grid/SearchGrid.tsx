@@ -72,7 +72,7 @@ export const SearchGrid = ({
   }
   return (
     <SearchGridScroll
-      beagle={q == null ? null : Beagle.fromString(q)}
+      beagle={Beagle.fromString(q || undefined)}
       iter={smuggler.node.slice({})}
       onCardClick={onCardClick}
       portable={portable}
@@ -91,7 +91,7 @@ const SearchGridScroll = ({
   portable,
   className,
 }: React.PropsWithChildren<{
-  beagle: Beagle | null
+  beagle: Beagle
   iter: TNodeSliceIterator
   onCardClick?: (arg0: TNode) => void
   portable?: boolean
@@ -154,7 +154,7 @@ const SearchGridScroll = ({
             iter.abort()
             break
           }
-          if (beagle == null || beagle.searchNode(node) != null) {
+          if (beagle.searchNode(node) != null) {
             setNodes((prev) => prev.concat(node))
           }
         }

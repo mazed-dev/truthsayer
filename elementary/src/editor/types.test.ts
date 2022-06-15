@@ -10,5 +10,12 @@ test('exctractDocTitle - raw string', async () => {
 test('exctractDocTitle - empty object', () => {
   const doc = new TDoc([makeParagraph([makeLeaf('')])])
   const title = doc.genTitle()
-  expect(title).toStrictEqual('Some page' + '\u2026')
+  expect(title).toStrictEqual('…')
+})
+
+test('exctractDocTitle - make sure wide (unicode) characters are not cut in half', () => {
+  const ustr = '☀️🐥📦⏳☕️💡🏗'.repeat(100)
+  const doc = new TDoc([makeParagraph([makeLeaf(ustr)])])
+  const title = doc.genTitle(19)
+  expect(title).toStrictEqual('☀️🐥📦⏳☕️💡🏗☀️🐥📦⏳☕️💡🏗☀️🐥📦⏳…')
 })

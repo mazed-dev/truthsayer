@@ -16,6 +16,7 @@
       "dom",
       "dom.iterable",
       "es6",
+      "ESNext",
       "ES2020"
     ],
     "module": "ES2020",

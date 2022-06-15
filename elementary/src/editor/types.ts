@@ -227,9 +227,11 @@ function _truncateTitle(title: string): string {
   }
 }
 
-function getSlateDescendantAsPlainText(node: Descendant): [string[], string[]] {
+function getSlateDescendantAsPlainText(node: Descendant): {
+  texts: string[]
+  entities: string[]
+} {
   const entities: string[] = []
-  // @ts-ignore: Property 'text' does not exist on type 'Descendant'
   const texts: string[] = []
   if ('text' in node) {
     texts.push(node.text)
@@ -245,19 +247,21 @@ function getSlateDescendantAsPlainText(node: Descendant): [string[], string[]] {
   }
   if ('children' in node) {
     node.children.forEach((item: any) => {
-      const [itemText, itemEntities] = getSlateDescendantAsPlainText(item)
-      texts.push(...itemText)
+      const { texts: itemTexts, entities: itemEntities } =
+        getSlateDescendantAsPlainText(item)
+      texts.push(...itemTexts)
       entities.push(...itemEntities)
     })
   }
-  return [texts, entities]
+  return { texts, entities }
 }
 
 function getSlateAsPlainText(children: SlateText): string {
   const texts: string[] = []
   const entities: string[] = []
   children.forEach((item) => {
-    const [itemTexts, itemEntities] = getSlateDescendantAsPlainText(item)
+    const { texts: itemTexts, entities: itemEntities } =
+      getSlateDescendantAsPlainText(item)
     texts.push(...itemTexts)
     entities.push(...itemEntities)
   })
@@ -362,24 +366,27 @@ export class TDoc {
     return new TDoc(slate)
   }
 
-  genTitle(): string {
-    const title: string | null = this.slate.reduce<string>(
-      (acc: string, item: Descendant, _index: number, _array: Descendant[]) => {
-        if (
-          acc.length === 0 &&
-          (isHeaderSlateBlock(item) || isTextSlateBlock(item))
-        ) {
-          const text = getSlateDescendantAsPlainText(item)[0]
-          const ret = _truncateTitle(text.join(' '))
-          if (ret) {
-            return ret
-          }
-        }
-        return acc
-      },
-      ''
-    )
-    return title || 'Some page\u2026'
+  genTitle(length?: number): string {
+    length = length ?? 36
+    const fullLengthMax: number = length * 2
+    let fullLength: number = 0
+    const texts: string[] = []
+    for (const item of this.slate) {
+      const { texts: itemTexts } = getSlateDescendantAsPlainText(item)
+      fullLength += itemTexts.reduce(
+        (acc: number, s: string) => acc + s.length,
+        0
+      )
+      texts.push(...itemTexts)
+      if (fullLength > fullLengthMax) {
+        break
+      }
+    }
+    return lodash.truncate(texts.join(' ').replaceAll(/\s+/g, ' ') || '…', {
+      length,
+      omission: '…',
+      separator: /./u,
+    })
   }
 
   genBlankSlate(): SlateText {

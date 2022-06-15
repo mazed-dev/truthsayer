@@ -1,5 +1,6 @@
+import * as badge from './badge/badge'
+import * as omnibox from './omnibox/omnibox'
 import { MessageType, Message } from './message/types'
-import * as badge from './badge'
 import { log, isAbortError, errorise, genOriginId } from 'armoury'
 
 import browser from 'webextension-polyfill'
@@ -355,7 +356,7 @@ browser.cookies.onChanged.addListener(async (info) => {
 })
 
 const kMazedContextMenuItemId = 'selection-to-mazed-context-menu-item'
-
+browser.contextMenus.removeAll()
 browser.contextMenus.create({
   title: 'Save to Mazed',
   type: 'normal',
@@ -392,3 +393,5 @@ browser.contextMenus.onClicked.addListener(
     }
   }
 )
+
+omnibox.register()
