@@ -53,20 +53,26 @@ function _truncate(text: string, length?: number): string {
   })
 }
 
+const kTitleLengthMax = 128
+const kUrlLengthMax = 42
 function _truncateUrl(url: string, length?: number): string {
   const u = new URL(url)
-  return _truncate([u.hostname, u.pathname].join(''), length)
+  return _truncate([u.hostname, u.pathname].join(''), length ?? kUrlLengthMax)
 }
 
 function _formatDescription(title: string, url?: string): string {
   if (process.env.CHROME) {
-    const prettyUrl = url != null ? `<dim>${url}</dim>` : ''
-    return `"${title}" ${prettyUrl} - <dim>Mazed</dim>`
+    // We must escape 5 predefined characters of XML to display them in Chrome
+    // https://developer.chrome.com/docs/extensions/reference/omnibox/#type-SuggestResult
+    title = lodash.escape(title)
+    url = url != null ? ` — <url>${lodash.escape(url)}</url>` : ''
   } else {
-    // Firefoc doesn't support any markup in description
-    const prettyUrl = url != null ? url : ''
-    return `"${title}" ${prettyUrl} - Mazed`
+    // Firefoc doesn't support any markup in description and it always shows
+    // content as a part of description, so no need for us to add URL to a
+    // description here, so we just skipping it.
+    url = ''
   }
+  return `${title}${url}`
 }
 
 const inputChangedListener = (
@@ -74,7 +80,7 @@ const inputChangedListener = (
   suggest: (suggestResults: browser.Omnibox.SuggestResult[]) => void
 ) => {
   browser.omnibox.setDefaultSuggestion({
-    description: `Search "${text}" - <dim>Mazed</dim>`,
+    description: _formatDescription(`Search for "${text}"`),
   })
   // TODO(akindyakov): The output XML is still incorrect sometimes, that results in omnibox failure. Fix it before merge.
   lookUpFor(text, 12)?.then((nodes) => {
@@ -84,8 +90,11 @@ const inputChangedListener = (
         const url = node.extattrs?.web?.url || node.extattrs?.web_quote?.url
         if (url != null) {
           if (node.isWebQuote()) {
-            const title = _truncate(node.extattrs?.web_quote?.text || '', 32)
-            const shortUrl = _truncateUrl(url, 19)
+            const title = _truncate(
+              node.extattrs?.web_quote?.text || '',
+              kTitleLengthMax
+            )
+            const shortUrl = _truncateUrl(url)
             return {
               content: url,
               description: _formatDescription(title, shortUrl),
@@ -94,9 +103,9 @@ const inputChangedListener = (
           if (node.isWebBookmark()) {
             const title = _truncate(
               node.extattrs?.title ?? node.extattrs?.description ?? '',
-              32
+              kTitleLengthMax
             )
-            const shortUrl = _truncateUrl(url, 19)
+            const shortUrl = _truncateUrl(url)
             return {
               content: url,
               description: _formatDescription(title, shortUrl),
@@ -104,7 +113,7 @@ const inputChangedListener = (
           }
         }
         const doc = TDoc.fromNodeTextData(node.getText())
-        const title = doc.genTitle(32)
+        const title = doc.genTitle(kTitleLengthMax)
         return {
           content: mazed.makeNodeUrl(nid).toString(),
           description: _formatDescription(title),
@@ -115,13 +124,9 @@ const inputChangedListener = (
   })
 }
 
-const inputStartedListener = () => {
-  console.log('Mazed omnibox inputStartedListener')
-}
+const inputStartedListener = () => {}
 
-const inputCancelledListener = () => {
-  console.log('Mazed omnibox inputCancelledListener')
-}
+const inputCancelledListener = () => {}
 
 export function register() {
   if (!browser.omnibox.onInputEntered.hasListener(inputEnteredListener)) {
