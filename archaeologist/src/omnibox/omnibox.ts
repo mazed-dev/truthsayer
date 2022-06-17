@@ -5,6 +5,8 @@ import { mazed } from '../util/mazed'
 import browser from 'webextension-polyfill'
 import lodash from 'lodash'
 
+import { formatDescription } from './suggestion-item-description'
+
 const lookUpFor = lodash.debounce(
   async (text: string, limit: number): Promise<TNode[]> => {
     const beagle = Beagle.fromString(text)
@@ -60,30 +62,16 @@ function _truncateUrl(url: string, length?: number): string {
   return _truncate([u.hostname, u.pathname].join(''), length ?? kUrlLengthMax)
 }
 
-function _formatDescription(title: string, url?: string): string {
-  if (process.env.CHROME) {
-    // We must escape 5 predefined characters of XML to display them in Chrome
-    // https://developer.chrome.com/docs/extensions/reference/omnibox/#type-SuggestResult
-    title = lodash.escape(title)
-    url = url != null ? ` — <url>${lodash.escape(url)}</url>` : ''
-  } else {
-    // Firefoc doesn't support any markup in description and it always shows
-    // content as a part of description, so no need for us to add URL to a
-    // description here, so we just skipping it.
-    url = ''
-  }
-  return `${title}${url}`
-}
-
 const inputChangedListener = (
   text: string,
   suggest: (suggestResults: browser.Omnibox.SuggestResult[]) => void
 ) => {
   browser.omnibox.setDefaultSuggestion({
-    description: _formatDescription(`Search for "${text}"`),
+    description: formatDescription(`Search for "${text === '' ? '…' : text}"`),
   })
-  // TODO(akindyakov): The output XML is still incorrect sometimes, that results in omnibox failure. Fix it before merge.
-  lookUpFor(text, 12)?.then((nodes) => {
+  // Omnibox suggestions fit in only 10 elements, no need to look for more.
+  // 1 + 9: 1 default suggestion and 9 search results
+  lookUpFor(text, 9)?.then((nodes) => {
     suggest(
       nodes.map((node) => {
         const { nid } = node
@@ -97,7 +85,7 @@ const inputChangedListener = (
             const shortUrl = _truncateUrl(url)
             return {
               content: url,
-              description: _formatDescription(title, shortUrl),
+              description: formatDescription(title, shortUrl),
             }
           }
           if (node.isWebBookmark()) {
@@ -108,7 +96,7 @@ const inputChangedListener = (
             const shortUrl = _truncateUrl(url)
             return {
               content: url,
-              description: _formatDescription(title, shortUrl),
+              description: formatDescription(title, shortUrl),
             }
           }
         }
@@ -116,7 +104,7 @@ const inputChangedListener = (
         const title = doc.genTitle(kTitleLengthMax)
         return {
           content: mazed.makeNodeUrl(nid).toString(),
-          description: _formatDescription(title),
+          description: formatDescription(title),
         }
       })
     )
