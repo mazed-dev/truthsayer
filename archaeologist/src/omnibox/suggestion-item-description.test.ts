@@ -11,12 +11,15 @@ const { JSDOM } = jsdom
 
 describe('test suite for makeUrl', () => {
   const SAVED_ENV = process.env
+
   beforeEach(() => {
     process.env = { ...SAVED_ENV } // Make a copy
   })
+
   afterAll(() => {
     process.env = SAVED_ENV // Restore old environment
   })
+
   test('_formatDescription - valid XML in output', () => {
     process.env.CHROME = 'true'
     const rooted = (xml: string) => `<root>${xml}</root>`
@@ -34,5 +37,11 @@ describe('test suite for makeUrl', () => {
     assertXml(formatDescription('a', 'https://abc.es'))
     assertXml(formatDescription('""', 'https://abc.es'))
     assertXml(formatDescription('a > b', 'https://abc.es'))
+  })
+
+  test('_formatDescription - no XML in output for Firefox', () => {
+    process.env.CHROME = undefined
+    expect(formatDescription('a')).toStrictEqual('a')
+    expect(formatDescription('a', 'https://abc.es').search(/<\w+>/)).toStrictEqual(-1)
   })
 })
