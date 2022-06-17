@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Mazed",
   "author": "Thread knowledge",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Bookmark web pages to Mazed",
   "homepage_url": "https://mazed.dev",
   "action": {
@@ -26,7 +26,6 @@
   },
   "chrome_url_overrides": {},
   "permissions": [
-    "activeTab",
     "contextMenus",
     "cookies",
     "tabs"
