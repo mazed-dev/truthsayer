@@ -42,6 +42,8 @@ describe('test suite for makeUrl', () => {
   test('_formatDescription - no XML in output for Firefox', () => {
     process.env.CHROME = undefined
     expect(formatDescription('a')).toStrictEqual('a')
-    expect(formatDescription('a', 'https://abc.es').search(/<\w+>/)).toStrictEqual(-1)
+    expect(
+      formatDescription('a', 'https://abc.es').search(/<\w+>/)
+    ).toStrictEqual(-1)
   })
 })
