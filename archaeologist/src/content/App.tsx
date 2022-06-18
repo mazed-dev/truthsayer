@@ -15,6 +15,7 @@ import {
 } from './../extractor/webPageContent'
 
 import { Quotes } from './quote/Quotes'
+import { ReadingDetector } from './reading/ReadingDetector'
 
 async function readPageContent(quotes: TNode[]) {
   const { id: originId, stableUrl } = await genOriginId(
@@ -116,7 +117,7 @@ const App = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  return <Quotes quotes={quotes} />
+  return <><Quotes quotes={quotes} /><ReadingDetector /></>
 }
 
 export function renderPageAugmentationApp(mount: HTMLDivElement) {
