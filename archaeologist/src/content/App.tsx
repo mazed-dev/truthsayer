@@ -7,12 +7,12 @@ import { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId } from 'armoury'
 
 import { Message, MessageType } from './../message/types'
-import { genElementDomPath } from './../extractor/html'
-import { isMemorable } from './../extractor/unmemorable'
+import { genElementDomPath } from './extractor/html'
+import { isMemorable } from './extractor/unmemorable'
 import {
   exctractPageContent,
   exctractPageUrl,
-} from './../extractor/webPageContent'
+} from './extractor/webPageContent'
 
 import { Quotes } from './quote/Quotes'
 import { ReadingDetector } from './reading/ReadingDetector'
@@ -117,7 +117,17 @@ const App = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  return <><Quotes quotes={quotes} /><ReadingDetector /></>
+  return (
+    <>
+      <Quotes quotes={quotes} />
+      {
+        // Detect active reading only if tab is active and page is not yet saved
+        bookmark != null ? null : (
+          <ReadingDetector onSavePage={() => readPageContent(quotes)} />
+        )
+      }
+    </>
+  )
 }
 
 export function renderPageAugmentationApp(mount: HTMLDivElement) {

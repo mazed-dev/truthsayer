@@ -1,4 +1,4 @@
-import { WebPageContent } from './../extractor/webPageContent'
+import { WebPageContent } from './../content/extractor/webPageContent'
 import { TNodeJson } from 'smuggler-api'
 
 interface PageInActiveTabStatusRequest {

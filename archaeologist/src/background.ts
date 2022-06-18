@@ -5,7 +5,7 @@ import { log, isAbortError, errorise, genOriginId } from 'armoury'
 
 import browser from 'webextension-polyfill'
 
-import { WebPageContent } from './extractor/webPageContent'
+import { WebPageContent } from './content/extractor/webPageContent'
 
 import {
   Knocker,

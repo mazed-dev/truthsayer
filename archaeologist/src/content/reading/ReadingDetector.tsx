@@ -1,21 +1,37 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { log } from 'armoury'
+import lodash from 'lodash'
 
 /**
  * This is virtual element to pack up detection of pages to save
  */
-export const ReadingDetector = () => {
+export const ReadingDetector = ({ onSavePage }: { onSavePage: () => void }) => {
+  const [readingTime, setReadingTime] = React.useState<number>(0) // seconds
+  const checkReadingTotalTime = lodash.throttle(
+    () => {
+      setReadingTime((v: number) => {
+        // Every X * 1000 milliseconds of activity increase total time counter by
+        // X seconds, this is indirect way to measure active reading time.
+        v = v + 2
+        log.debug('checkReadingTotalTime', v)
+        if (v > 60) {
+          onSavePage()
+        }
+        return v
+      })
+    },
+    2000,
+    {}
+  )
   const mouseMoveListener = (/*ev: MouseEvent*/) => {
-    // log.debug('Mazed.ReadingDetector.mouseMoveListener', ev)
+    checkReadingTotalTime()
   }
-  const clipboardCopyListener = (ev: ClipboardEvent) => {
-    log.debug('Mazed.ReadingDetector.clipboardCopyListener', ev)
+  const scrollListener = (/*ev: Event*/) => {
+    checkReadingTotalTime()
   }
-  const scrollListener = (ev: Event) => {
-    log.debug('Mazed.ReadingDetector.scrollListener', ev)
-  }
+  const clipboardCopyListener = (/*ev: ClipboardEvent*/) => {}
   // Add and remove activity listeners
-  useEffect(() => {
+  React.useEffect(() => {
     document.addEventListener('mousemove', mouseMoveListener, { passive: true })
     document.addEventListener('copy', clipboardCopyListener, { passive: true })
     document.addEventListener('scroll', scrollListener, { passive: true })
