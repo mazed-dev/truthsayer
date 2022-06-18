@@ -18,15 +18,17 @@ export const ReadingDetector = ({ onSavePage }: { onSavePage: () => void }) => {
     // We simply don't have time for it today, but we will get back to fix it
     // if it becomes a problem.
     const text = exctractReadableTextFromPage(document)
-    const genuineEstimation = getTimeToRead(text).asSeconds()
-    log.debug('Page estimated reading time, seconds', genuineEstimation)
+    const estimation = getTimeToRead(text).asSeconds()
+    log.debug('Page estimated reading time, seconds', estimation)
     // But who are we lying to, we have an attention span of a golden fish, if
-    // we spend more than 4 minutes on something, that's already a big
+    // we spend more than 2 minutes on something, that's already a big
     // achievement. So limit reading time by that.
-    return Math.min(240, genuineEstimation)
+    // Also, we are limiting minimal time by 10 seconds, to avoid immidiatelly
+    // saving pages without text at all.
+    return Math.max(10, Math.min(120, estimation))
   }, [])
   const checkReadingTotalTime = React.useMemo(() => {
-    const timerStep = moment.duration(6, 'seconds')
+    const timerStep = moment.duration(4, 'seconds')
     return lodash.throttle(
       () => {
         setTotalReadingTime((totalReadingTime: number) => {
@@ -38,11 +40,9 @@ export const ReadingDetector = ({ onSavePage }: { onSavePage: () => void }) => {
             totalReadingTime,
             readingTimeEstimation
           )
-          // If user reading a page for 12 seconds (~40 words),
-          // we can check if they read everything as page can be saved
           if (totalReadingTime >= readingTimeEstimation) {
             log.debug(
-              `User spent ${totalReadingTime}s reading the page, it exceeds predicted time - ${readingTimeEstimation}s. Saving page as a bookmark to Mazed`
+              `📒 User spent ${totalReadingTime}s reading the page, it exceeds predicted time - ${readingTimeEstimation}s. Saving page as a bookmark to Mazed`
             )
             onSavePage()
           }

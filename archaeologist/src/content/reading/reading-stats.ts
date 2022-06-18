@@ -5,8 +5,8 @@ export function getWordCount(plaintext: string): number {
 }
 
 export function getTimeToRead(plaintext: string): moment.Duration {
-  // 220 words per minute is an average reading spead in English, so we take it
+  // 240 words per minute is an average reading spead in English, so we take it
   // as a solution to-go. We shall adjeust it based on language and each
   // individual user.
-  return moment.duration(getWordCount(plaintext) / 220, 'minutes')
+  return moment.duration(getWordCount(plaintext) / 240, 'minutes')
 }

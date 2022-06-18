@@ -19,6 +19,6 @@ test('getWordCount', () => {
 })
 
 test('getTimeToRead', () => {
-  expect(getTimeToRead('abc abc').asSeconds()).toStrictEqual(0.6)
-  expect(getTimeToRead(kMultilineText).asSeconds()).toStrictEqual(27.6)
+  expect(getTimeToRead('abc abc abc abc').asSeconds()).toStrictEqual(1)
+  expect(getTimeToRead(kMultilineText).asSeconds()).toStrictEqual(23)
 })
