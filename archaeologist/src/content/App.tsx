@@ -17,6 +17,7 @@ import {
 import { Quotes } from './quote/Quotes'
 import { ReadingDetector } from './reading/ReadingDetector'
 import { isPageReadable } from './reading/unreadable'
+import { Toaster } from './toaster/Toaster'
 
 async function readPageContent(quotes: TNode[]) {
   const { id: originId, stableUrl } = await genOriginId(
@@ -121,6 +122,7 @@ const App = () => {
   return (
     <>
       <Quotes quotes={quotes} />
+      <Toaster />
       {
         // Detect active reading only if page is readable and not yet saved
         bookmark == null && isPageReadable(window.location.toString()) ? (
