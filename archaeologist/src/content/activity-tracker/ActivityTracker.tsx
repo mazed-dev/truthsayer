@@ -6,6 +6,7 @@ import moment from 'moment'
 import { exctractReadableTextFromPage } from './../extractor/webPageContent'
 import { getTimeToRead } from './reading-stats'
 import { isPageReadable } from './unreadable'
+import { ToastContext } from './../toaster/Toaster'
 
 /**
  * This is virtual element to wrap trackers of users activity on a page and
@@ -46,6 +47,7 @@ const ReadingTimeTracker = ({ bookmarkPage }: { bookmarkPage: () => void }) => {
     // saving pages without text at all.
     return Math.max(10, Math.min(120, estimation))
   }, [])
+  const toaster = React.useContext(ToastContext)
   const checkReadingTotalTime = React.useMemo(() => {
     const timerStep = moment.duration(2, 'seconds')
     return lodash.throttle(
@@ -58,6 +60,9 @@ const ReadingTimeTracker = ({ bookmarkPage }: { bookmarkPage: () => void }) => {
             totalReadingTime,
             readingTimeEstimation
           )
+          log.debug('Upsert')
+          const key = toaster.upsert(<span>{totalReadingTime}/{readingTimeEstimation}</span>, 'abc')
+          log.debug('Upserted', key)
           if (totalReadingTime >= readingTimeEstimation) {
             log.debug(
               `📒 User spent ${totalReadingTime}s reading the page, it exceeds predicted time - ${readingTimeEstimation}s. Saving page as a bookmark to Mazed`

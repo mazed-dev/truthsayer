@@ -121,11 +121,12 @@ const App = () => {
   return (
     <>
       <Quotes quotes={quotes} />
-      <Toaster />
-      <ActivityTracker
-        bookmarkPage={() => bookmarkPage(quotes)}
-        disabled={bookmark != null}
-      />
+      <Toaster>
+        <ActivityTracker
+          bookmarkPage={() => bookmarkPage(quotes)}
+          disabled={bookmark != null}
+        />
+      </Toaster>
     </>
   )
 }
