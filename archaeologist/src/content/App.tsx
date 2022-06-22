@@ -15,11 +15,10 @@ import {
 } from './extractor/webPageContent'
 
 import { Quotes } from './quote/Quotes'
-import { ReadingDetector } from './reading/ReadingDetector'
-import { isPageReadable } from './reading/unreadable'
+import { ActivityTracker } from './activity-tracker/ActivityTracker'
 import { Toaster } from './toaster/Toaster'
 
-async function readPageContent(quotes: TNode[]) {
+async function bookmarkPage(quotes: TNode[]) {
   const { id: originId, stableUrl } = await genOriginId(
     exctractPageUrl(document)
   )
@@ -38,7 +37,7 @@ async function readPageContent(quotes: TNode[]) {
   )
 }
 
-async function readSelectedText(
+async function saveSelectedTextAsQuote(
   text: string,
   bookmark: TNode | null
 ): Promise<void> {
@@ -85,10 +84,10 @@ const App = () => {
   const listener = async (message: MessageType) => {
     switch (message.type) {
       case 'REQUEST_PAGE_TO_SAVE':
-        await readPageContent(quotes)
+        await bookmarkPage(quotes)
         break
       case 'REQUEST_SELECTED_WEB_QUOTE':
-        await readSelectedText(message.text, bookmark)
+        await saveSelectedTextAsQuote(message.text, bookmark)
         break
       case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
         {
@@ -123,12 +122,10 @@ const App = () => {
     <>
       <Quotes quotes={quotes} />
       <Toaster />
-      {
-        // Detect active reading only if page is readable and not yet saved
-        bookmark == null && isPageReadable(window.location.toString()) ? (
-          <ReadingDetector onSavePage={() => readPageContent(quotes)} />
-        ) : null
-      }
+      <ActivityTracker
+        bookmarkPage={() => bookmarkPage(quotes)}
+        disabled={bookmark != null}
+      />
     </>
   )
 }

@@ -5,11 +5,30 @@ import moment from 'moment'
 
 import { exctractReadableTextFromPage } from './../extractor/webPageContent'
 import { getTimeToRead } from './reading-stats'
+import { isPageReadable } from './unreadable'
 
 /**
- * This is virtual element to pack up detection of pages to save
+ * This is virtual element to wrap trackers of users activity on a page and
+ * decision making to bookmark the page or quote some text on the page.
  */
-export const ReadingDetector = ({ onSavePage }: { onSavePage: () => void }) => {
+export const ActivityTracker = ({
+  bookmarkPage,
+  disabled,
+}: {
+  bookmarkPage: () => void
+  disabled?: boolean
+}) => {
+  if (disabled || !isPageReadable(window.location.toString())) {
+    return null
+  }
+  return <ReadingTimeTracker bookmarkPage={bookmarkPage} />
+}
+
+/**
+ * This is virtual element to wrap trackers of users activity on a page and
+ * decision making to bookmark the page or quote some text on the page.
+ */
+const ReadingTimeTracker = ({ bookmarkPage }: { bookmarkPage: () => void }) => {
   const [, setTotalReadingTime] = React.useState<number>(0) // seconds
   const readingTimeEstimation = React.useMemo(() => {
     // TODO(akindyakov): This is quite expensive call to do on every open page,
@@ -28,13 +47,12 @@ export const ReadingDetector = ({ onSavePage }: { onSavePage: () => void }) => {
     return Math.max(10, Math.min(120, estimation))
   }, [])
   const checkReadingTotalTime = React.useMemo(() => {
-    const timerStep = moment.duration(4, 'seconds')
+    const timerStep = moment.duration(2, 'seconds')
     return lodash.throttle(
       () => {
         setTotalReadingTime((totalReadingTime: number) => {
           // Every X * 1000 milliseconds of activity increase total time counter by
           // X seconds, this is indirect way to measure active reading time.
-          totalReadingTime = totalReadingTime + timerStep.asSeconds()
           log.debug(
             'User is actively reading the page, reading time',
             totalReadingTime,
@@ -44,18 +62,18 @@ export const ReadingDetector = ({ onSavePage }: { onSavePage: () => void }) => {
             log.debug(
               `📒 User spent ${totalReadingTime}s reading the page, it exceeds predicted time - ${readingTimeEstimation}s. Saving page as a bookmark to Mazed`
             )
-            onSavePage()
+            bookmarkPage()
           }
-          return totalReadingTime
+          return totalReadingTime + timerStep.asSeconds()
         })
       },
       timerStep.asMilliseconds(),
       {
-        leading: false,
-        trailing: true,
+        leading: true,
+        trailing: false,
       }
     )
-  }, [readingTimeEstimation, onSavePage])
+  }, [readingTimeEstimation, bookmarkPage])
   // Add and remove activity listeners
   React.useEffect(() => {
     const mouseMoveListener = (/*ev: MouseEvent*/) => {
