@@ -12,7 +12,7 @@ import LogoImage from '../../../public/logo-48x48.png'
 // augmentation against overrides from WebPage CSS.
 
 //border: 1px solid ${HighlightColour.Green}7f;
-const Box = styled.div`
+export const Box = styled.div`
   display: flex !important;
   width: max-content !important;
   margin: 4px !important;

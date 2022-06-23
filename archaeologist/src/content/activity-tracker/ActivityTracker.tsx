@@ -6,7 +6,7 @@ import moment from 'moment'
 import { exctractReadableTextFromPage } from './../extractor/webPageContent'
 import { getTimeToRead } from './reading-stats'
 import { isPageReadable } from './unreadable'
-import { ToastContext } from './../toaster/Toaster'
+import { ToasterPorta, Toast } from './../toaster/Toaster'
 
 /**
  * This is virtual element to wrap trackers of users activity on a page and
@@ -29,8 +29,9 @@ export const ActivityTracker = ({
  * This is virtual element to wrap trackers of users activity on a page and
  * decision making to bookmark the page or quote some text on the page.
  */
+const kActivityTimerStep = moment.duration(2, 'seconds')
 const ReadingTimeTracker = ({ bookmarkPage }: { bookmarkPage: () => void }) => {
-  const [, setTotalReadingTime] = React.useState<number>(0) // seconds
+  const [totalReadingTime, setTotalReadingTime] = React.useState<number>(0) // seconds
   const readingTimeEstimation = React.useMemo(() => {
     // TODO(akindyakov): This is quite expensive call to do on every open page,
     // ideally we could do it only if user spend more that 12 seconds on a page,
@@ -47,38 +48,19 @@ const ReadingTimeTracker = ({ bookmarkPage }: { bookmarkPage: () => void }) => {
     // saving pages without text at all.
     return Math.max(10, Math.min(120, estimation))
   }, [])
-  const toaster = React.useContext(ToastContext)
-  const checkReadingTotalTime = React.useMemo(() => {
-    const timerStep = moment.duration(2, 'seconds')
-    return lodash.throttle(
-      () => {
-        setTotalReadingTime((totalReadingTime: number) => {
-          // Every X * 1000 milliseconds of activity increase total time counter by
-          // X seconds, this is indirect way to measure active reading time.
-          log.debug(
-            'User is actively reading the page, reading time',
-            totalReadingTime,
-            readingTimeEstimation
-          )
-          log.debug('Upsert')
-          const key = toaster.upsert(<span>{totalReadingTime}/{readingTimeEstimation}</span>, 'abc')
-          log.debug('Upserted', key)
-          if (totalReadingTime >= readingTimeEstimation) {
-            log.debug(
-              `📒 User spent ${totalReadingTime}s reading the page, it exceeds predicted time - ${readingTimeEstimation}s. Saving page as a bookmark to Mazed`
-            )
-            bookmarkPage()
-          }
-          return totalReadingTime + timerStep.asSeconds()
-        })
-      },
-      timerStep.asMilliseconds(),
-      {
-        leading: true,
-        trailing: false,
-      }
-    )
-  }, [readingTimeEstimation, bookmarkPage])
+  const _b_ = bookmarkPage
+  const checkReadingTotalTime = React.useCallback(
+    lodash.throttle(() => {
+      log.debug('In throttle', totalReadingTime, readingTimeEstimation)
+      setTotalReadingTime((total) => {
+        log.debug('In setTotalReadingTime', total, readingTimeEstimation)
+        // Every X * 1000 milliseconds of activity increase total time counter by
+        // X seconds, this is indirect way to measure active reading time.
+        return total + kActivityTimerStep.asSeconds()
+      })
+    }, kActivityTimerStep.asMilliseconds()),
+    [readingTimeEstimation]
+  )
   // Add and remove activity listeners
   React.useEffect(() => {
     const mouseMoveListener = (/*ev: MouseEvent*/) => {
@@ -95,5 +77,13 @@ const ReadingTimeTracker = ({ bookmarkPage }: { bookmarkPage: () => void }) => {
       document.removeEventListener('scroll', scrollListener)
     }
   }, [checkReadingTotalTime])
-  return <></>
+  return (
+    <>
+      <ToasterPorta>
+        <span key={'activity-tracker-status'}>
+          {totalReadingTime}/{readingTimeEstimation}
+        </span>
+      </ToasterPorta>
+    </>
+  )
 }

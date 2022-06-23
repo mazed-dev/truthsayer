@@ -16,7 +16,6 @@ import {
 
 import { Quotes } from './quote/Quotes'
 import { ActivityTracker } from './activity-tracker/ActivityTracker'
-import { Toaster } from './toaster/Toaster'
 
 async function bookmarkPage(quotes: TNode[]) {
   const { id: originId, stableUrl } = await genOriginId(
@@ -121,12 +120,10 @@ const App = () => {
   return (
     <>
       <Quotes quotes={quotes} />
-      <Toaster>
-        <ActivityTracker
-          bookmarkPage={() => bookmarkPage(quotes)}
-          disabled={bookmark != null}
-        />
-      </Toaster>
+      <ActivityTracker
+        bookmarkPage={() => bookmarkPage(quotes)}
+        disabled={bookmark != null}
+      />
     </>
   )
 }
