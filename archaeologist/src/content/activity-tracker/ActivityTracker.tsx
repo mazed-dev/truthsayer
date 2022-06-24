@@ -24,56 +24,61 @@ export const ActivityTracker = ({
   return <ReadingTimeTracker bookmarkPage={bookmarkPage} />
 }
 
+const kActivityTimerStep = moment.duration({ seconds: 2 })
+const kActivityTimerSaved = moment.duration({ years: 999 })
 /**
  * This is virtual element to wrap trackers of users activity on a page and
  * decision making to bookmark the page or quote some text on the page.
  */
 const ReadingTimeTracker = ({ bookmarkPage }: { bookmarkPage: () => void }) => {
-  const [, setTotalReadingTime] = React.useState<number>(0) // seconds
-  const readingTimeEstimation = React.useMemo(() => {
+  // Save total reading time as a number to avoid difficulties with algebraic
+  // operations with it
+  const [totalReadingTimeSeconds, addTotalReadingTime] = React.useReducer(
+    (state: number, delta: moment.Duration) => state + delta.asSeconds(),
+    0
+  )
+  const totalReadingTimeEstimation = React.useMemo(() => {
     // TODO(akindyakov): This is quite expensive call to do on every open page,
     // ideally we could do it only if user spend more that 12 seconds on a page,
     // see `checkReadingTotalTime` for more details.
     // We simply don't have time for it today, but we will get back to fix it
     // if it becomes a problem.
     const text = exctractReadableTextFromPage(document)
-    const estimation = getTimeToRead(text).asSeconds()
+    const estimation = getTimeToRead(text)
     log.debug('Page estimated reading time, seconds', estimation)
     // But who are we lying to, we have an attention span of a golden fish, if
     // we spend more than 2 minutes on something, that's already a big
     // achievement. So limit reading time by that.
     // Also, we are limiting minimal time by 10 seconds, to avoid immidiatelly
     // saving pages without text at all.
-    return Math.max(10, Math.min(120, estimation))
+    if (estimation.asMinutes() > 2) {
+      return moment.duration({ minutes: 2 })
+    } else if (estimation.asSeconds() < 10) {
+      return moment.duration({ seconds: 10 })
+    }
+    return estimation
   }, [])
-  const checkReadingTotalTime = React.useMemo(() => {
-    const timerStep = moment.duration(2, 'seconds')
-    return lodash.throttle(
-      () => {
-        setTotalReadingTime((totalReadingTime: number) => {
-          // Every X * 1000 milliseconds of activity increase total time counter by
-          // X seconds, this is indirect way to measure active reading time.
-          log.debug(
-            'User is actively reading the page, reading time',
-            totalReadingTime,
-            readingTimeEstimation
-          )
-          if (totalReadingTime >= readingTimeEstimation) {
-            log.debug(
-              `📒 User spent ${totalReadingTime}s reading the page, it exceeds predicted time - ${readingTimeEstimation}s. Saving page as a bookmark to Mazed`
-            )
-            bookmarkPage()
-          }
-          return totalReadingTime + timerStep.asSeconds()
-        })
-      },
-      timerStep.asMilliseconds(),
-      {
-        leading: true,
-        trailing: false,
-      }
-    )
-  }, [readingTimeEstimation, bookmarkPage])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const checkReadingTotalTime = React.useCallback(
+    lodash.throttle(() => {
+      // Every X * 1000 milliseconds of activity increase total time counter by
+      // X seconds, this is indirect way to measure active reading time.
+      addTotalReadingTime(kActivityTimerStep)
+    }, kActivityTimerStep.asMilliseconds()),
+    [totalReadingTimeEstimation]
+  )
+  React.useEffect(() => {
+    if (
+      totalReadingTimeSeconds >= totalReadingTimeEstimation.asSeconds() &&
+      totalReadingTimeSeconds < kActivityTimerSaved.asSeconds()
+    ) {
+      log.debug('Time is up, bookmark the page', totalReadingTimeSeconds)
+      bookmarkPage()
+      // Add `kActivityTimerSaved` to `totalReadingTimeSeconds` to avoid double
+      // bookmarking of the page
+      addTotalReadingTime(kActivityTimerSaved)
+    }
+  }, [totalReadingTimeEstimation, totalReadingTimeSeconds, bookmarkPage])
   // Add and remove activity listeners
   React.useEffect(() => {
     const mouseMoveListener = (/*ev: MouseEvent*/) => {
