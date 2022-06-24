@@ -13,7 +13,7 @@ function _isArticleUrl(url: URL): boolean {
       return url.pathname.match(r)
     })
   ) {
-    log.debug('The page is a homepage - unreadable')
+    log.debug(`The page ${url.pathname} is a homepage - unreadable`)
     return false
   }
   if (
@@ -21,7 +21,7 @@ function _isArticleUrl(url: URL): boolean {
       return url.hostname.match(r)
     })
   ) {
-    log.debug('The page is a tool - unreadable')
+    log.debug(`The page ${url.hostname} is a tool - unreadable`)
     return false
   }
   return true
