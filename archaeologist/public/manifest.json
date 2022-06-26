@@ -27,6 +27,7 @@
   "chrome_url_overrides": {},
   "permissions": [
     "contextMenus",
+    "history",
     "cookies",
     "tabs"
   ],

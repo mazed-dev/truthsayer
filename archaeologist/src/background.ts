@@ -4,6 +4,7 @@ import { MessageType, Message } from './message/types'
 import { log, isAbortError, errorise, genOriginId } from 'armoury'
 
 import browser from 'webextension-polyfill'
+import moment from 'moment'
 
 import { WebPageContent } from './content/extractor/webPageContent'
 
@@ -286,6 +287,46 @@ async function checkOriginIdAndUpdatePageStatus(
     }
   }
   await updateContent('reset', quotes, bookmark, tabId)
+  await addPageToTimelineIfVisitedOftenEnough(tabId, url, bookmark, quotes)
+}
+
+async function addPageToTimelineIfVisitedOftenEnough(
+  tabId: number | undefined,
+  url: string,
+  bookmark: TNode | undefined,
+  quotes: TNode[]
+): Promise<void> {
+  // Check visits and add page to users timeline if it was visited often
+  if (bookmark != null || quotes.length !== 0) {
+    return
+  }
+  // All limits and conditions to add or not to add the page to users timeline
+  // is arbitrary, feel free to alter them if needed.
+  const visits = await browser.history.getVisits({
+    url: url,
+  })
+  if (visits.length > 8) {
+    // save
+    log.debug('All visits of the url', url, tabId, visits)
+  }
+  const dayLimit = moment().subtract(24, 'hours')
+  const dayVisits = visits.filter((visit) => {
+    const m = visit.visitTime ? moment(visit.visitTime) : null
+    return m?.isAfter(dayLimit)
+  })
+  log.debug('Day visits of the url', url, dayVisits)
+  const weekLimit = moment().subtract(7, 'days')
+  const weekVisits = visits.filter((visit) => {
+    const m = visit.visitTime ? moment(visit.visitTime) : null
+    return m?.isAfter(weekLimit) && m?.isBefore(dayLimit)
+  })
+  log.debug('Week visits of the url', url, weekVisits)
+  const monthLimit = moment().subtract(30, 'days')
+  const monthVisits = visits.filter((visit) => {
+    const m = visit.visitTime ? moment(visit.visitTime) : null
+    return m?.isAfter(monthLimit) && m?.isBefore(weekLimit)
+  })
+  log.debug('Month visits of the url', url, monthVisits)
 }
 
 browser.runtime.onMessage.addListener(
@@ -330,7 +371,11 @@ browser.tabs.onUpdated.addListener(
     changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
     tab: browser.Tabs.Tab
   ) => {
-    log.debug('background. try to requestPageSavedStatus', tab)
+    log.debug('background::tabs.onUpdated', tab, changeInfo)
+    if (!tab.incognito && changeInfo.url != null) {
+      // TODO: This is a condition is true when new URL is opened whether in a
+      // new tab or existing one, record page visit here with smuggler API
+    }
     if (
       !tab.incognito &&
       tab.url &&
