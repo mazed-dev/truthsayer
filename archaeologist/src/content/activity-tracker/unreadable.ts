@@ -13,7 +13,7 @@ function _isArticleUrl(url: URL): boolean {
       return url.pathname.match(r)
     })
   ) {
-    log.debug(`The page ${url.pathname} is a homepage - unreadable`)
+    log.debug(`The pathname ${url.pathname} is a homepage path - unreadable`)
     return false
   }
   if (

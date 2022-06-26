@@ -26,7 +26,12 @@ export const ActivityTracker = ({
 }
 
 const kActivityTimerStep = moment.duration({ seconds: 2 })
+/**
+ * A huge `kActivityTimerSaved` duration to add it to `totalReadingTimeSeconds`
+ * to avoid double bookmarking of the page
+ */
 const kActivityTimerSaved = moment.duration({ years: 999 })
+
 /**
  * This is virtual element to wrap trackers of users activity on a page and
  * decision making to bookmark the page or quote some text on the page.
