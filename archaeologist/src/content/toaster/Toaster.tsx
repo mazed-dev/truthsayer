@@ -74,7 +74,7 @@ export const DisappearingToast = ({
   React.useEffect(() => {
     const callbackId = setTimeout(() => {
       setShow(false)
-    }, timeoutMsec ?? 2909100)
+    }, timeoutMsec ?? 3100)
     return () => clearTimeout(callbackId)
   }, [text, tooltip, timeoutMsec, id])
   return show ? (
