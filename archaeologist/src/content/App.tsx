@@ -16,7 +16,11 @@ import {
 
 import { Quotes } from './quote/Quotes'
 import { ActivityTracker } from './activity-tracker/ActivityTracker'
-import { Toaster } from './toaster/Toaster'
+import {
+  Toaster,
+  DisappearingToast,
+  DisappearingToastProps,
+} from './toaster/Toaster'
 
 async function bookmarkPage(quotes: TNode[]) {
   const { id: originId, stableUrl } = await genOriginId(
@@ -81,13 +85,26 @@ async function saveSelectedTextAsQuote(
 const App = () => {
   const [quotes, setQuotes] = useState<TNode[]>([])
   const [bookmark, setBookmark] = useState<TNode | null>(null)
+  const [notification, setNotification] =
+    useState<DisappearingToastProps | null>(null)
+  const bookmarkPageAndShowNotification = React.useCallback(async () => {
+    await bookmarkPage(quotes)
+    setNotification({
+      text: 'Added 📎',
+      tooltip: 'Page is added to your timeline',
+    })
+  }, [quotes])
   const listener = async (message: MessageType) => {
     switch (message.type) {
       case 'REQUEST_PAGE_TO_SAVE':
-        await bookmarkPage(quotes)
+        await bookmarkPageAndShowNotification()
         break
       case 'REQUEST_SELECTED_WEB_QUOTE':
         await saveSelectedTextAsQuote(message.text, bookmark)
+        setNotification({
+          text: 'Added 💬',
+          tooltip: 'Quote is added to your timeline',
+        })
         break
       case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
         {
@@ -118,15 +135,15 @@ const App = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  // It's important to mount Toaster ahead of everything else
-  // TODO(akindyakov) explain why
   return (
     <>
       <Toaster />
+      {notification ? (
+        <DisappearingToast {...notification}></DisappearingToast>
+      ) : null}
       <Quotes quotes={quotes} />
       <ActivityTracker
-        bookmarkPage={() => bookmarkPage(quotes)}
+        bookmarkPage={bookmarkPageAndShowNotification}
         disabled={bookmark != null}
       />
     </>

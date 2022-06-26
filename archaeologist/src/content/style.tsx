@@ -32,7 +32,7 @@ const ItemCommon = css`
 `
 const ButtonItemCommon = css`
   ${StyleButtonWhite};
-  margin: 4px 2px 4px 0 !important;
+  margin: auto 2px auto 2px !important;
 `
 
 export const ButtonItem = styled.div`
@@ -43,7 +43,6 @@ export const ButtonItem = styled.div`
 export const RefItem = styled.a`
   ${ItemCommon};
   ${ButtonItemCommon};
-  margin: 4px 2px 4px 0 !important;
   &:hover: {
     text-decoration: none !important;
   }
@@ -52,7 +51,7 @@ export const RefItem = styled.a`
 export const TextItem = styled.div`
   ${ItemCommon};
   ${StyleButtonWhite};
-  margin: auto !important;
+  margin: auto 2px auto 2px !important;
 `
 
 const LogoSmallImg = styled.img`
@@ -60,6 +59,11 @@ const LogoSmallImg = styled.img`
   height: 20px !important;
   margin: auto 6px auto 6px !important;
   padding: 0 !important;
+
+  opacity: 0.5 !important;
+  div:hover & {
+    opacity: 1 !important;
+  }
 `
 
 export const LogoSmall = ({ className }: { className?: string }) => (
