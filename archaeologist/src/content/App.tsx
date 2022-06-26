@@ -16,6 +16,7 @@ import {
 
 import { Quotes } from './quote/Quotes'
 import { ActivityTracker } from './activity-tracker/ActivityTracker'
+import { Toaster } from './toaster/Toaster'
 
 async function bookmarkPage(quotes: TNode[]) {
   const { id: originId, stableUrl } = await genOriginId(
@@ -117,8 +118,12 @@ const App = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // It's important to mount Toaster ahead of everything else
+  // TODO(akindyakov) explain why
   return (
     <>
+      <Toaster />
       <Quotes quotes={quotes} />
       <ActivityTracker
         bookmarkPage={() => bookmarkPage(quotes)}

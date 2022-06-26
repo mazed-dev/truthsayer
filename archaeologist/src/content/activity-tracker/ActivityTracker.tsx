@@ -2,11 +2,13 @@ import React from 'react'
 import { log } from 'armoury'
 import lodash from 'lodash'
 import moment from 'moment'
+import { HoverTooltip } from 'elementary'
 
 import { exctractReadableTextFromPage } from './../extractor/webPageContent'
 import { getTimeToRead } from './reading-stats'
 import { isPageReadable } from './unreadable'
-import { ToasterPorta } from './../toaster/Toaster'
+import { Toast } from './../toaster/Toaster'
+import { TextItem, ButtonItem, LogoSmall } from './../style'
 
 /**
  * This is virtual element to wrap trackers of users activity on a page and
@@ -26,11 +28,6 @@ export const ActivityTracker = ({
 }
 
 const kActivityTimerStep = moment.duration({ seconds: 2 })
-/**
- * A huge `kActivityTimerSaved` duration to add it to `totalReadingTimeSeconds`
- * to avoid double bookmarking of the page
- */
-const kActivityTimerSaved = moment.duration({ years: 999 })
 
 /**
  * This is virtual element to wrap trackers of users activity on a page and
@@ -43,6 +40,7 @@ const ReadingTimeTracker = ({ bookmarkPage }: { bookmarkPage: () => void }) => {
     (state: number, delta: moment.Duration) => state + delta.asSeconds(),
     0
   )
+  const [disabled, setDisabled] = React.useState(false)
   const totalReadingTimeEstimation = React.useMemo(() => {
     // TODO(akindyakov): This is quite expensive call to do on every open page,
     // ideally we could do it only if user spend more that 12 seconds on a page,
@@ -51,14 +49,14 @@ const ReadingTimeTracker = ({ bookmarkPage }: { bookmarkPage: () => void }) => {
     // if it becomes a problem.
     const text = exctractReadableTextFromPage(document)
     const estimation = getTimeToRead(text)
-    log.debug('Page estimated reading time, seconds', estimation)
+    log.debug('Page estimated reading time, seconds', estimation.asSeconds())
     // But who are we lying to, we have an attention span of a golden fish, if
     // we spend more than 2 minutes on something, that's already a big
     // achievement. So limit reading time by that.
     // Also, we are limiting minimal time by 10 seconds, to avoid immidiatelly
     // saving pages without text at all.
     if (estimation.asMinutes() > 2) {
-      return moment.duration({ minutes: 2 })
+      return moment.duration({ minutes: 2, seconds: 4 })
     } else if (estimation.asSeconds() < 10) {
       return moment.duration({ seconds: 10 })
     }
@@ -69,22 +67,29 @@ const ReadingTimeTracker = ({ bookmarkPage }: { bookmarkPage: () => void }) => {
     lodash.throttle(() => {
       // Every X * 1000 milliseconds of activity increase total time counter by
       // X seconds, this is indirect way to measure active reading time.
+      log.debug(
+        'Increase the reading counter by',
+        kActivityTimerStep.asSeconds()
+      )
       addTotalReadingTime(kActivityTimerStep)
     }, kActivityTimerStep.asMilliseconds()),
     [totalReadingTimeEstimation]
   )
   React.useEffect(() => {
     if (
-      totalReadingTimeSeconds >= totalReadingTimeEstimation.asSeconds() &&
-      totalReadingTimeSeconds < kActivityTimerSaved.asSeconds()
+      !disabled &&
+      totalReadingTimeSeconds >= totalReadingTimeEstimation.asSeconds()
     ) {
       log.debug('Time is up, bookmark the page', totalReadingTimeSeconds)
       bookmarkPage()
-      // Add `kActivityTimerSaved` to `totalReadingTimeSeconds` to avoid double
-      // bookmarking of the page
-      addTotalReadingTime(kActivityTimerSaved)
+      setDisabled(true)
     }
-  }, [totalReadingTimeEstimation, totalReadingTimeSeconds, bookmarkPage])
+  }, [
+    totalReadingTimeEstimation,
+    totalReadingTimeSeconds,
+    bookmarkPage,
+    disabled,
+  ])
   // Add and remove activity listeners
   React.useEffect(() => {
     const mouseMoveListener = (/*ev: MouseEvent*/) => {
@@ -101,13 +106,82 @@ const ReadingTimeTracker = ({ bookmarkPage }: { bookmarkPage: () => void }) => {
       document.removeEventListener('scroll', scrollListener)
     }
   }, [checkReadingTotalTime])
+  if (disabled) {
+    return null
+  }
   return (
     <>
-      <ToasterPorta>
-        <span key={'activity-tracker-status'}>
-          {totalReadingTimeSeconds}/{totalReadingTimeEstimation.asSeconds()}
-        </span>
-      </ToasterPorta>
+      <Toast id={'activity-tracker-status'}>
+        <LogoSmall />
+        <ReadingTimeLeftItem
+          totalReadingTime={moment.duration({
+            seconds: totalReadingTimeSeconds,
+          })}
+          totalReadingTimeEstimation={totalReadingTimeEstimation}
+        />
+        <ButtonItem
+          onClick={() => {
+            bookmarkPage()
+            setDisabled(true)
+          }}
+        >
+          Add
+        </ButtonItem>
+        <ButtonItem
+          onClick={() => {
+            setDisabled(true)
+          }}
+        >
+          Cancel
+        </ButtonItem>
+      </Toast>
     </>
   )
+}
+
+const ReadingTimeLeftItem = ({
+  totalReadingTime,
+  totalReadingTimeEstimation,
+}: {
+  totalReadingTime: moment.Duration
+  totalReadingTimeEstimation: moment.Duration
+}) => {
+  const readingTimeLeft = totalReadingTimeEstimation
+    .clone()
+    .subtract(totalReadingTime)
+  const tooltip = `${timeLeftPrettyFull(
+    readingTimeLeft
+  )} reading time left until page is added to your timeline`
+  return (
+    <TextItem>
+      <HoverTooltip tooltip={tooltip}>
+        {timeLeftPrettyShort(readingTimeLeft)}
+      </HoverTooltip>
+    </TextItem>
+  )
+}
+
+const timeLeftPrettyShort = (readingTimeLeft: moment.Duration): string => {
+  if (readingTimeLeft.asMinutes() > 1) {
+    return `⏱  ${Math.floor(readingTimeLeft.asMinutes())} min`
+  }
+  return `⏱  ${Math.floor(readingTimeLeft.asSeconds())} sec`
+}
+
+const timeLeftPrettyFull = (readingTimeLeft: moment.Duration): string => {
+  let parts: string[] = []
+  const hours = Math.floor(readingTimeLeft.asHours())
+  const minutes = Math.floor(readingTimeLeft.asMinutes()) - hours * 60
+  const seconds =
+    Math.floor(readingTimeLeft.asSeconds()) - hours * 60 - minutes * 60
+  if (hours > 0) {
+    parts.push(`${hours}h`)
+  }
+  if (minutes > 0) {
+    parts.push(`${minutes}m`)
+  }
+  if (seconds > 0) {
+    parts.push(`${seconds}s`)
+  }
+  return parts.join(' ')
 }

@@ -1,26 +1,57 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import styled from '@emotion/styled'
-import { Box } from './../quote/QuoteToolbar'
+import { Box } from './../style'
 
-const ToastBox = styled(Box)``
-export const Toast = ({ children }: React.PropsWithChildren<{}>) => {
-  return <ToastBox>{children}</ToastBox>
+const kToasterBoxElementId = 'mazed-archaeologist-toaster-id'
+const ToasterBox = styled.div`
+  position: fixed !important;
+  top: 24px !important;
+  right: 32px !important;
+`
+export const Toaster = ({ children }: React.PropsWithChildren<{}>) => {
+  const container = document.createElement(
+    'mazed-archaeologist-toaster-container'
+  )
+  React.useEffect(
+    () => {
+      const target = document.body
+      target.appendChild(container)
+      return () => {
+        target.removeChild(container)
+      }
+    }
+    /**
+     * There is no dependency list here on purpose, otherwise content updates to
+     * the container are not get through.
+     */
+  )
+  return ReactDOM.createPortal(
+    <ToasterBox id={kToasterBoxElementId}>{children}</ToasterBox>,
+    container
+  )
 }
 
-const ToasterBox = styled.div`
-  position: fixed;
-  top: 32px;
-  right: 32px;
+const ToastBox = styled(Box)`
+  z-index: 99999;
 `
-export const ToasterPorta = ({ children }: React.PropsWithChildren<{}>) => {
-  const box = document.createElement('mazed-toaster-box')
-  React.useEffect(() => {
-    const target = document.body
-    target.appendChild(box)
-    return () => {
-      target.removeChild(box)
+export const Toast = ({
+  children,
+  id,
+}: React.PropsWithChildren<{ id: string }>) => {
+  const box = document.createElement('mazed-archaeologist-toast')
+  React.useEffect(
+    () => {
+      const target = document.getElementById(kToasterBoxElementId)
+      target?.appendChild(box)
+      return () => {
+        target?.removeChild(box)
+      }
     }
-  })
-  return ReactDOM.createPortal(<ToasterBox>{children}</ToasterBox>, box)
+    /**
+     * There is no dependency list here on purpose, otherwise content updates to
+     * the container are not get through.
+     */
+  )
+  return ReactDOM.createPortal(<ToastBox key={id}>{children}</ToastBox>, box)
 }

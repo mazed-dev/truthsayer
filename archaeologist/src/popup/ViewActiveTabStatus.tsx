@@ -7,7 +7,7 @@ import styled from '@emotion/styled'
 
 import { TNode, TNodeJson } from 'smuggler-api'
 
-import { MdiBookmarkAdd, Spinner } from 'elementary'
+import { MdiBookmarkAdd, Spinner, HoverTooltip } from 'elementary'
 import { ButtonCreate } from './Button'
 
 import { MessageType } from './../message/types'
@@ -81,11 +81,13 @@ export const ViewActiveTabStatus = () => {
   if (pageStatus === 'memorable' && pageSavedNode == null) {
     btn = (
       <ButtonCreate onClick={handleSave}>
-        <MdiBookmarkAdd
-          css={{
-            verticalAlign: 'top',
-          }}
-        />
+        <HoverTooltip tooltip={'Add page to your timeline'}>
+          <MdiBookmarkAdd
+            css={{
+              verticalAlign: 'top',
+            }}
+          />
+        </HoverTooltip>
       </ButtonCreate>
     )
   } else if (pageStatus === 'loading') {
