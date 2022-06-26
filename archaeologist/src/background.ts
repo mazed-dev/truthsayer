@@ -5,7 +5,7 @@ import { log, isAbortError, errorise, genOriginId } from 'armoury'
 
 import browser from 'webextension-polyfill'
 
-import { WebPageContent } from './extractor/webPageContent'
+import { WebPageContent } from './content/extractor/webPageContent'
 
 import {
   Knocker,
@@ -330,6 +330,7 @@ browser.tabs.onUpdated.addListener(
     changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
     tab: browser.Tabs.Tab
   ) => {
+    log.debug('background. try to requestPageSavedStatus', tab)
     if (
       !tab.incognito &&
       tab.url &&

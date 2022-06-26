@@ -7,16 +7,17 @@ import { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId } from 'armoury'
 
 import { Message, MessageType } from './../message/types'
-import { genElementDomPath } from './../extractor/html'
-import { isMemorable } from './../extractor/unmemorable'
+import { genElementDomPath } from './extractor/html'
+import { isMemorable } from './extractor/unmemorable'
 import {
   exctractPageContent,
   exctractPageUrl,
-} from './../extractor/webPageContent'
+} from './extractor/webPageContent'
 
 import { Quotes } from './quote/Quotes'
+import { ActivityTracker } from './activity-tracker/ActivityTracker'
 
-async function readPageContent(quotes: TNode[]) {
+async function bookmarkPage(quotes: TNode[]) {
   const { id: originId, stableUrl } = await genOriginId(
     exctractPageUrl(document)
   )
@@ -35,7 +36,7 @@ async function readPageContent(quotes: TNode[]) {
   )
 }
 
-async function readSelectedText(
+async function saveSelectedTextAsQuote(
   text: string,
   bookmark: TNode | null
 ): Promise<void> {
@@ -82,10 +83,10 @@ const App = () => {
   const listener = async (message: MessageType) => {
     switch (message.type) {
       case 'REQUEST_PAGE_TO_SAVE':
-        await readPageContent(quotes)
+        await bookmarkPage(quotes)
         break
       case 'REQUEST_SELECTED_WEB_QUOTE':
-        await readSelectedText(message.text, bookmark)
+        await saveSelectedTextAsQuote(message.text, bookmark)
         break
       case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
         {
@@ -116,7 +117,15 @@ const App = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  return <Quotes quotes={quotes} />
+  return (
+    <>
+      <Quotes quotes={quotes} />
+      <ActivityTracker
+        bookmarkPage={() => bookmarkPage(quotes)}
+        disabled={bookmark != null}
+      />
+    </>
+  )
 }
 
 export function renderPageAugmentationApp(mount: HTMLDivElement) {
