@@ -130,6 +130,7 @@ const App = () => {
   }
   useEffect(() => {
     browser.runtime.onMessage.addListener(listener)
+    log.debug('Archaeologist content script is loaded')
     return () => {
       browser.runtime.onMessage.removeListener(listener)
     }
