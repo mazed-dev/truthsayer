@@ -7,22 +7,64 @@ import lodash from 'lodash'
 
 import { formatDescription } from './suggestion-item-description'
 
-const lookUpFor = lodash.debounce(
-  async (text: string, limit: number): Promise<TNode[]> => {
+function nodeToSuggestion(node: TNode): browser.Omnibox.SuggestResult {
+  const { nid } = node
+  const url = node.extattrs?.web?.url || node.extattrs?.web_quote?.url
+  if (url != null) {
+    if (node.isWebQuote()) {
+      const title = _truncate(
+        node.extattrs?.web_quote?.text || '',
+        kTitleLengthMax
+      )
+      const shortUrl = _truncateUrl(url)
+      return {
+        content: url,
+        description: formatDescription(title, shortUrl),
+      }
+    }
+    if (node.isWebBookmark()) {
+      const title = _truncate(
+        node.extattrs?.title ?? node.extattrs?.description ?? '',
+        kTitleLengthMax
+      )
+      const shortUrl = _truncateUrl(url)
+      return {
+        content: url,
+        description: formatDescription(title, shortUrl),
+      }
+    }
+  }
+  const doc = TDoc.fromNodeTextData(node.getText())
+  const title = doc.genTitle(kTitleLengthMax)
+  return {
+    content: mazed.makeNodeUrl(nid).toString(),
+    description: formatDescription(title),
+  }
+}
+
+const lookUpAndSuggestFor = lodash.debounce(
+  async (
+    text: string,
+    limit: number,
+    suggest: (suggestResults: browser.Omnibox.SuggestResult[]) => void
+  ): Promise<void> => {
     const beagle = Beagle.fromString(text)
     const iter = smuggler.node.slice({})
-    const results: TNode[] = []
+    const suggestions: browser.Omnibox.SuggestResult[] = []
     for (
       let node = await iter.next();
-      node != null && results.length < limit;
+      node != null && suggestions.length < limit;
       node = await iter.next()
     ) {
       if (beagle.searchNode(node) != null) {
-        results.push(node)
+        suggestions.push(nodeToSuggestion(node))
+        // Update suggestions on every found node, to show it in search results
+        // as quick as possible.
+        suggest(suggestions)
       }
     }
-    return results
-  }
+  },
+  421
 )
 
 function getUrlToOpen(text: string): URL {
@@ -71,50 +113,16 @@ const inputChangedListener = (
   })
   // Omnibox suggestions fit in only 10 elements, no need to look for more.
   // 1 + 9: 1 default suggestion and 9 search results
-  lookUpFor(text, 9)?.then((nodes) => {
-    suggest(
-      nodes.map((node) => {
-        const { nid } = node
-        const url = node.extattrs?.web?.url || node.extattrs?.web_quote?.url
-        if (url != null) {
-          if (node.isWebQuote()) {
-            const title = _truncate(
-              node.extattrs?.web_quote?.text || '',
-              kTitleLengthMax
-            )
-            const shortUrl = _truncateUrl(url)
-            return {
-              content: url,
-              description: formatDescription(title, shortUrl),
-            }
-          }
-          if (node.isWebBookmark()) {
-            const title = _truncate(
-              node.extattrs?.title ?? node.extattrs?.description ?? '',
-              kTitleLengthMax
-            )
-            const shortUrl = _truncateUrl(url)
-            return {
-              content: url,
-              description: formatDescription(title, shortUrl),
-            }
-          }
-        }
-        const doc = TDoc.fromNodeTextData(node.getText())
-        const title = doc.genTitle(kTitleLengthMax)
-        return {
-          content: mazed.makeNodeUrl(nid).toString(),
-          description: formatDescription(title),
-        }
-      })
-    )
-    suggest([])
-  })
+  lookUpAndSuggestFor(text, 9, suggest)
 }
 
-const inputStartedListener = () => {}
+const inputStartedListener = () => {
+  lookUpAndSuggestFor.cancel()
+}
 
-const inputCancelledListener = () => {}
+const inputCancelledListener = () => {
+  lookUpAndSuggestFor.cancel()
+}
 
 export function register() {
   if (!browser.omnibox.onInputEntered.hasListener(inputEnteredListener)) {
