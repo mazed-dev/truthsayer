@@ -73,6 +73,16 @@ interface SavePageResponse {
   quoteNids: string[]
 }
 
+namespace ToContent {
+  export interface ShowDisappearingNotification {
+    type: 'SHOW_DISAPPEARING_NOTIFICATION'
+    text: string
+    href?: string
+    tooltip?: string
+    timeoutMsec?: number
+  }
+}
+
 export type MessageType =
   | PageInActiveTabStatusRequest
   | UpdatePopUpCards
@@ -83,6 +93,7 @@ export type MessageType =
   | GetSelectedQuoteRequest
   | GetSelectedQuoteResponse
   | UpdateContentAugmentationRequest
+  | ToContent.ShowDisappearingNotification
 
 export const Message = {
   // This is just a hack to check the message type, needed because

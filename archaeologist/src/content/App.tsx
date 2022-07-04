@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom'
 import browser from 'webextension-polyfill'
 
 import { TNode, TNodeJson } from 'smuggler-api'
-import { genOriginId } from 'armoury'
+import { genOriginId, log } from 'armoury'
 
 import { Message, MessageType } from './../message/types'
 import { genElementDomPath } from './extractor/html'
@@ -87,24 +87,13 @@ const App = () => {
   const [bookmark, setBookmark] = useState<TNode | null>(null)
   const [notification, setNotification] =
     useState<DisappearingToastProps | null>(null)
-  const bookmarkPageAndShowNotification = React.useCallback(async () => {
-    await bookmarkPage(quotes)
-    setNotification({
-      text: 'Added 📎',
-      tooltip: 'Page is added to your timeline',
-    })
-  }, [quotes])
   const listener = async (message: MessageType) => {
     switch (message.type) {
       case 'REQUEST_PAGE_TO_SAVE':
-        await bookmarkPageAndShowNotification()
+        await bookmarkPage(quotes)
         break
       case 'REQUEST_SELECTED_WEB_QUOTE':
         await saveSelectedTextAsQuote(message.text, bookmark)
-        setNotification({
-          text: 'Added 💬',
-          tooltip: 'Quote is added to your timeline',
-        })
         break
       case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
         {
@@ -122,6 +111,17 @@ const App = () => {
             }
             setQuotes((current) => current.concat(...qs))
           }
+        }
+        break
+      case 'SHOW_DISAPPEARING_NOTIFICATION':
+        {
+          const { text, href, tooltip, timeoutMsec } = message
+          setNotification({
+            text,
+            tooltip,
+            href,
+            timeoutMsec,
+          })
         }
         break
       default:
@@ -143,7 +143,7 @@ const App = () => {
       ) : null}
       <Quotes quotes={quotes} />
       <ActivityTracker
-        bookmarkPage={bookmarkPageAndShowNotification}
+        bookmarkPage={() => bookmarkPage(quotes)}
         disabled={bookmark != null}
       />
     </>

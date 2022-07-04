@@ -2,13 +2,10 @@ import React from 'react'
 import { log } from 'armoury'
 import lodash from 'lodash'
 import moment from 'moment'
-import { HoverTooltip } from 'elementary'
 
 import { exctractReadableTextFromPage } from './../extractor/webPageContent'
 import { getTimeToRead } from './reading-stats'
 import { isPageReadable } from './unreadable'
-import { Toast } from './../toaster/Toaster'
-import { TextItem, ButtonItem, LogoSmall } from './../style'
 
 /**
  * This is virtual element to wrap trackers of users activity on a page and
@@ -106,82 +103,5 @@ const ReadingTimeTracker = ({ bookmarkPage }: { bookmarkPage: () => void }) => {
       document.removeEventListener('scroll', scrollListener)
     }
   }, [checkReadingTotalTime])
-  if (disabled) {
-    return null
-  }
-  return (
-    <>
-      <Toast id={'activity-tracker-status'}>
-        <LogoSmall />
-        <ReadingTimeLeftItem
-          totalReadingTime={moment.duration({
-            seconds: totalReadingTimeSeconds,
-          })}
-          totalReadingTimeEstimation={totalReadingTimeEstimation}
-        />
-        <ButtonItem
-          onClick={() => {
-            bookmarkPage()
-            setDisabled(true)
-          }}
-        >
-          Add
-        </ButtonItem>
-        <ButtonItem
-          onClick={() => {
-            setDisabled(true)
-          }}
-        >
-          Cancel
-        </ButtonItem>
-      </Toast>
-    </>
-  )
-}
-
-const ReadingTimeLeftItem = ({
-  totalReadingTime,
-  totalReadingTimeEstimation,
-}: {
-  totalReadingTime: moment.Duration
-  totalReadingTimeEstimation: moment.Duration
-}) => {
-  const readingTimeLeft = totalReadingTimeEstimation
-    .clone()
-    .subtract(totalReadingTime)
-  const tooltip = `${timeLeftPrettyFull(
-    readingTimeLeft
-  )} reading time left until page is added to your timeline`
-  return (
-    <TextItem>
-      <HoverTooltip tooltip={tooltip}>
-        {timeLeftPrettyShort(readingTimeLeft)}
-      </HoverTooltip>
-    </TextItem>
-  )
-}
-
-const timeLeftPrettyShort = (readingTimeLeft: moment.Duration): string => {
-  if (readingTimeLeft.asMinutes() > 1) {
-    return `⏱  ${Math.floor(readingTimeLeft.asMinutes())} min`
-  }
-  return `⏱  ${Math.floor(readingTimeLeft.asSeconds())} sec`
-}
-
-const timeLeftPrettyFull = (readingTimeLeft: moment.Duration): string => {
-  let parts: string[] = []
-  const hours = Math.floor(readingTimeLeft.asHours())
-  const minutes = Math.floor(readingTimeLeft.asMinutes()) - hours * 60
-  const seconds =
-    Math.floor(readingTimeLeft.asSeconds()) - hours * 60 - minutes * 60
-  if (hours > 0) {
-    parts.push(`${hours}h`)
-  }
-  if (minutes > 0) {
-    parts.push(`${minutes}m`)
-  }
-  if (seconds > 0) {
-    parts.push(`${seconds}s`)
-  }
-  return parts.join(' ')
+  return <></>
 }

@@ -1,7 +1,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import styled from '@emotion/styled'
-import { Box, LogoSmall, ButtonItem, TextItem } from './../style'
+import { keyframes } from '@emotion/react'
+import { Box, LogoSmall, RefItem } from './../style'
 import { HoverTooltip } from 'elementary'
 
 const kToasterBoxElementId = 'mazed-archaeologist-toaster-id'
@@ -33,8 +34,20 @@ export const Toaster = ({ children }: React.PropsWithChildren<{}>) => {
   )
 }
 
+const kShowUpAnimation = keyframes`
+  0% {
+    transform: scale(.025, 1);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+`
+
 const ToastBox = styled(Box)`
   z-index: 99999;
+  animation-name: ${kShowUpAnimation};
+  animation-duration: 0.25s;
+  animation-iteration-count: 1;
 `
 export const Toast = ({
   children,
@@ -59,6 +72,7 @@ export const Toast = ({
 
 export type DisappearingToastProps = {
   text: string
+  href?: string
   tooltip?: string
   timeoutMsec?: number
   id?: string
@@ -66,6 +80,7 @@ export type DisappearingToastProps = {
 
 export const DisappearingToast = ({
   text,
+  href,
   tooltip,
   timeoutMsec,
   id,
@@ -74,16 +89,15 @@ export const DisappearingToast = ({
   React.useEffect(() => {
     const callbackId = setTimeout(() => {
       setShow(false)
-    }, timeoutMsec ?? 3100)
+    }, timeoutMsec ?? 3099)
     return () => clearTimeout(callbackId)
   }, [text, tooltip, timeoutMsec, id])
   return show ? (
     <Toast id={'disappearing-toast'}>
       <LogoSmall />
-      <TextItem>
+      <RefItem href={href}>
         <HoverTooltip tooltip={tooltip ?? text}>{text}</HoverTooltip>
-      </TextItem>
-      <ButtonItem onClick={() => setShow(false)}>Close</ButtonItem>
+      </RefItem>
     </Toast>
   ) : null
 }
