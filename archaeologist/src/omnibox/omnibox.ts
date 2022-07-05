@@ -1,5 +1,6 @@
 import { smuggler, TNode } from 'smuggler-api'
 import { Beagle, TDoc } from 'elementary'
+import { log } from 'armoury'
 import { mazed } from '../util/mazed'
 
 import browser from 'webextension-polyfill'
@@ -109,7 +110,7 @@ const inputChangedListener = (
   suggest: (suggestResults: browser.Omnibox.SuggestResult[]) => void
 ) => {
   browser.omnibox.setDefaultSuggestion({
-    description: formatDescription(`Search for "${text === '' ? '…' : text}"`),
+    description: formatDescription(`Search Mazed for "${text === '' ? '…' : text}"`),
   })
   // Omnibox suggestions fit in only 10 elements, no need to look for more.
   // 1 + 9: 1 default suggestion and 9 search results
@@ -137,6 +138,7 @@ export function register() {
   if (!browser.omnibox.onInputCancelled.hasListener(inputCancelledListener)) {
     browser.omnibox.onInputCancelled.addListener(inputCancelledListener)
   }
+  log.debug('Omnibox listeners are registered')
   return () => {
     browser.omnibox.onInputEntered.removeListener(inputEnteredListener)
     browser.omnibox.onInputChanged.removeListener(inputChangedListener)
