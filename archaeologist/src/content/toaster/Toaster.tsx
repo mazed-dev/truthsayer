@@ -25,7 +25,7 @@ export const Toaster = ({ children }: React.PropsWithChildren<{}>) => {
     }
     /**
      * There is no dependency list here on purpose, otherwise content updates to
-     * the container are not get through.
+     * the container do not get through.
      */
   )
   return ReactDOM.createPortal(
