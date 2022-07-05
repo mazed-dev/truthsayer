@@ -1,6 +1,6 @@
 import * as badge from './badge/badge'
 import * as omnibox from './omnibox/omnibox'
-import { ToBackgroundMessage, ToPopUp, ToContent } from './message/types'
+import { ToBackgroundMessage, ToPopUp, ToContent, FromContent } from './message/types'
 import { log, isAbortError, errorise, genOriginId } from 'armoury'
 
 import browser from 'webextension-polyfill'
@@ -311,11 +311,15 @@ browser.runtime.onMessage.addListener(
           )
         }
         break
+      case 'ATTENTION_TIME_CHUNK':
       default:
         break
     }
   }
 )
+
+async function registerAttentionTime(message:FromContent.AttentionTimeChunk): Promise<void> {
+}
 
 browser.tabs.onUpdated.addListener(
   async (

@@ -116,7 +116,14 @@ export namespace FromContent {
     // right hand side
     fromNid?: string
   }
-  export type Message = GetSelectedQuoteResponse | SavePageResponse
+  export interface AttentionTimeChunk {
+    type: 'ATTENTION_TIME_CHUNK'
+    seconds: number
+    estimated_total_seconds: number
+    url: string
+    originId: number
+  }
+  export type Message = GetSelectedQuoteResponse | SavePageResponse | AttentionTimeChunk
   export function sendMessage(message: Message): Promise<void> {
     return browser.runtime.sendMessage(message)
   }
