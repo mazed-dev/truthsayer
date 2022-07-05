@@ -121,8 +121,3 @@ export namespace FromContent {
     return browser.runtime.sendMessage(message)
   }
 }
-
-/**
- * This is a combined type for all messages that background.ts can receive
- */
-export type ToBackgroundMessage = FromContent.Message | FromPopUp.Message
