@@ -1,6 +1,6 @@
 import * as badge from './badge/badge'
 import * as omnibox from './omnibox/omnibox'
-import { MessageType, Message } from './message/types'
+import { ToBackgroundMessage, ToPopUp, ToContent } from './message/types'
 import { log, isAbortError, errorise, genOriginId } from 'armoury'
 
 import browser from 'webextension-polyfill'
@@ -49,10 +49,7 @@ async function requestPageContentToSave(tab: browser.Tabs.Tab | null) {
     return
   }
   try {
-    await browser.tabs.sendMessage(
-      tabId,
-      Message.create({ type: 'REQUEST_PAGE_TO_SAVE' })
-    )
+    await ToContent.sendMessage(tabId, { type: 'REQUEST_PAGE_CONTENT' })
   } catch (err) {
     if (!isAbortError(err)) {
       log.exception(err)
@@ -77,15 +74,13 @@ async function updateContent(
   const bookmarkJson = bookmark?.toJson()
   // Inform PopUp window of saved bookmark and web quotes
   try {
-    await browser.runtime.sendMessage(
-      Message.create({
-        type: 'UPDATE_POPUP_CARDS',
-        bookmark: bookmarkJson,
-        quotes: quotesJson,
-        unmemorable,
-        mode,
-      })
-    )
+    await ToPopUp.sendMessage({
+      type: 'UPDATE_POPUP_CARDS',
+      bookmark: bookmarkJson,
+      quotes: quotesJson,
+      unmemorable,
+      mode,
+    })
   } catch (err) {
     if (isAbortError(err)) {
       return
@@ -111,15 +106,12 @@ async function updateContent(
     return
   }
   try {
-    await browser.tabs.sendMessage(
-      tabId,
-      Message.create({
-        type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
-        quotes: quotesJson,
-        bookmark: bookmarkJson,
-        mode,
-      })
-    )
+    await ToContent.sendMessage(tabId, {
+      type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
+      quotes: quotesJson,
+      bookmark: bookmarkJson,
+      mode,
+    })
   } catch (exception) {
     const error = errorise(exception)
     if (isAbortError(error)) {
@@ -249,9 +241,7 @@ async function sendAuthStatus() {
   badge.setActive(status)
 
   try {
-    await browser.runtime.sendMessage(
-      Message.create({ type: 'AUTH_STATUS', status })
-    )
+    await ToPopUp.sendMessage({ type: 'AUTH_STATUS', status })
   } catch (err) {
     if (!isAbortError(err)) {
       log.exception(err, 'Could not send auth status')
@@ -289,7 +279,10 @@ async function checkOriginIdAndUpdatePageStatus(
 }
 
 browser.runtime.onMessage.addListener(
-  async (message: MessageType, sender: browser.Runtime.MessageSender) => {
+  async (
+    message: ToBackgroundMessage,
+    sender: browser.Runtime.MessageSender
+  ) => {
     // process is not defined in browsers extensions - use it to set up axios
     const tab = sender.tab ?? (await getActiveTab())
     switch (message.type) {
@@ -379,13 +372,10 @@ browser.contextMenus.onClicked.addListener(
         return
       }
       try {
-        await browser.tabs.sendMessage(
-          tab.id,
-          Message.create({
-            type: 'REQUEST_SELECTED_WEB_QUOTE',
-            text: selectionText,
-          })
-        )
+        await ToContent.sendMessage(tab.id, {
+          type: 'REQUEST_SELECTED_WEB_QUOTE',
+          text: selectionText,
+        })
       } catch (err) {
         if (!isAbortError(err)) {
           log.exception(err)

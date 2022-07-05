@@ -1,91 +1,128 @@
 import { WebPageContent } from './../content/extractor/webPageContent'
 import { TNodeJson } from 'smuggler-api'
+import browser from 'webextension-polyfill'
 
-interface PageInActiveTabStatusRequest {
-  type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS'
+/**
+ * There are 3 kind of message senders/receivers:
+ *   - popup
+ *   - content (all browser tabs)
+ *   - background
+ *
+ * First 2 can talk only to background and not to each other, so there are 2
+ * communication channels and 4 groups of messages:
+ *   - `ToPopUp` - from background to popup
+ *   - `FromPopUp` - from popup to background
+ *   - `ToContent` - from background to content (any of the tabs)
+ *   - `FromContent` - from content (any tab) to background
+ *
+ *   +-------+       +------------+     +---------+
+ *   | popup |  -->  | background | --> | content |-+
+ *   +-------+  <--  +------------+ <-- +---------+ |-+
+ *                                        +---------+ |
+ *                                         +----------+
+ */
+
+export namespace FromPopUp {
+  export interface AuthStatusRequest {
+    type: 'REQUEST_AUTH_STATUS'
+  }
+
+  export interface PageInActiveTabStatusRequest {
+    type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS'
+  }
+  /**
+   * Save page command chain
+   * [ User -> popup -> REQUEST_PAGE_TO_SAVE -> background
+   *   -> REQUEST_PAGE_CONTENT -> content -> PAGE_TO_SAVE -> background ]
+   */
+  export interface SavePageRequest {
+    type: 'REQUEST_PAGE_TO_SAVE'
+  }
+  export type Message =
+    | SavePageRequest
+    | PageInActiveTabStatusRequest
+    | AuthStatusRequest
+
+  export function sendMessage(message: Message): Promise<void> {
+    return browser.runtime.sendMessage(message)
+  }
+}
+export namespace ToPopUp {
+  export interface AuthStatusResponse {
+    type: 'AUTH_STATUS'
+    status: boolean
+  }
+  export interface UpdatePopUpCards {
+    type: 'UPDATE_POPUP_CARDS'
+    bookmark?: TNodeJson
+    quotes: TNodeJson[]
+    unmemorable?: boolean
+
+    // 'reset':
+    //    - for quotes and bookmark, reset (replace) existing ones in PopUp window
+    // 'append':
+    //    - for quotes append quotes to existing ones in PopUp window
+    //    - for bookmark, replace existing one in PopUp window, if specified
+    mode: 'reset' | 'append'
+  }
+
+  export type Message = UpdatePopUpCards | AuthStatusResponse
+  export function sendMessage(message: Message): Promise<void> {
+    return browser.runtime.sendMessage(message)
+  }
 }
 
-interface UpdatePopUpCards {
-  type: 'UPDATE_POPUP_CARDS'
-  bookmark?: TNodeJson
-  quotes: TNodeJson[]
-  unmemorable?: boolean
+export namespace ToContent {
+  export interface RequestPageContent {
+    type: 'REQUEST_PAGE_CONTENT'
+  }
+  export interface UpdateContentAugmentationRequest {
+    type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION'
+    quotes: TNodeJson[]
+    bookmark?: TNodeJson
+    mode: 'reset' | 'append'
+  }
+  export interface GetSelectedQuoteRequest {
+    type: 'REQUEST_SELECTED_WEB_QUOTE'
+    text: string
+  }
+  export type Message =
+    | RequestPageContent
+    | UpdateContentAugmentationRequest
+    | GetSelectedQuoteRequest
 
-  // 'reset':
-  //    - for quotes and bookmark, reset (replace) existing ones in PopUp window
-  // 'append':
-  //    - for quotes append quotes to existing ones in PopUp window
-  //    - for bookmark, replace existing one in PopUp window, if specified
-  mode: 'reset' | 'append'
+  export function sendMessage(tabId: number, message: Message): Promise<void> {
+    return browser.tabs.sendMessage(tabId, message)
+  }
 }
-
-interface AuthStatusRequest {
-  type: 'REQUEST_AUTH_STATUS'
-}
-
-interface AuthStatusResponse {
-  type: 'AUTH_STATUS'
-  status: boolean
-}
-
-interface GetSelectedQuoteRequest {
-  type: 'REQUEST_SELECTED_WEB_QUOTE'
-  text: string
-}
-
-interface GetSelectedQuoteResponse {
-  type: 'SELECTED_WEB_QUOTE'
-  text: string
-  path: string[]
-  url: string
-  originId: number
-  lang?: string
-  // If specified, the requested web quote is connected to the bookmark on the
-  // right hand side
-  fromNid?: string
-}
-
-interface UpdateContentAugmentationRequest {
-  type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION'
-  quotes: TNodeJson[]
-  bookmark?: TNodeJson
-  mode: 'reset' | 'append'
+export namespace FromContent {
+  export interface SavePageResponse {
+    type: 'PAGE_TO_SAVE'
+    url: string
+    originId: number
+    // Missing content is for a page that can not be saved
+    content?: WebPageContent
+    // Saving page quotes to connect as right hand side cards
+    quoteNids: string[]
+  }
+  export interface GetSelectedQuoteResponse {
+    type: 'SELECTED_WEB_QUOTE'
+    text: string
+    path: string[]
+    url: string
+    originId: number
+    lang?: string
+    // If specified, the requested web quote is connected to the bookmark on the
+    // right hand side
+    fromNid?: string
+  }
+  export type Message = GetSelectedQuoteResponse | SavePageResponse
+  export function sendMessage(message: Message): Promise<void> {
+    return browser.runtime.sendMessage(message)
+  }
 }
 
 /**
- * Save page command chain
- * [ User -> popup.ts -> REQUEST_PAGE_TO_SAVE ]
- * -> [ REQUEST_PAGE_TO_SAVE -> background.ts -> REQUEST_PAGE_TO_SAVE ]
- * -> [ REQUEST_PAGE_TO_SAVE -> content.ts -> PAGE_TO_SAVE ]
- * -> [ PAGE_TO_SAVE -> background.ts ]
+ * This is a combined type for all messages that background.ts can receive
  */
-interface SavePageRequest {
-  type: 'REQUEST_PAGE_TO_SAVE'
-}
-
-interface SavePageResponse {
-  type: 'PAGE_TO_SAVE'
-  url: string
-  originId: number
-  // Missing content is for a page that can not be saved
-  content?: WebPageContent
-  // Saving page quotes to connect as right hand side cards
-  quoteNids: string[]
-}
-
-export type MessageType =
-  | PageInActiveTabStatusRequest
-  | UpdatePopUpCards
-  | SavePageRequest
-  | SavePageResponse
-  | AuthStatusRequest
-  | AuthStatusResponse
-  | GetSelectedQuoteRequest
-  | GetSelectedQuoteResponse
-  | UpdateContentAugmentationRequest
-
-export const Message = {
-  // This is just a hack to check the message type, needed because
-  // browser.*.sendMessage takes any type as a message
-  create: (msg: MessageType): MessageType => msg,
-}
+export type ToBackgroundMessage = FromContent.Message | FromPopUp.Message
