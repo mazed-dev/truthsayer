@@ -12,37 +12,38 @@ import { isPageReadable } from './unreadable'
  * decision making to bookmark the page or quote some text on the page.
  */
 export const ActivityTracker = ({
-  bookmarkPage,
+  registerAttentionTime,
   disabled,
 }: {
-  bookmarkPage: () => void
+  registerAttentionTime: (
+    totalSeconds: number,
+    totalSecondsEstimation: number
+  ) => void
   disabled?: boolean
 }) => {
   if (disabled || !isPageReadable(window.location.toString())) {
     return null
   }
-  return <ReadingTimeTracker bookmarkPage={bookmarkPage} />
+  return <ReadingTimeTracker registerAttentionTime={registerAttentionTime} />
 }
 
 const kActivityTimerStep = moment.duration({ seconds: 2 })
 
 /**
- * A huge `kActivityTimerSaved` duration to add it to `totalReadingTimeSeconds`
- * to avoid double bookmarking of the page
- */
-const kActivityTimerSaved = moment.duration({ years: 999 })
-
-/**
  * This is virtual element to wrap trackers of users activity on a page and
  * decision making to bookmark the page or quote some text on the page.
  */
-const ReadingTimeTracker = ({ bookmarkPage }: { bookmarkPage: () => void }) => {
+const ReadingTimeTracker = ({
+  registerAttentionTime,
+}: {
+  registerAttentionTime: (
+    totalSeconds: number,
+    totalSecondsEstimation: number
+  ) => void
+}) => {
   // Save total reading time as a number to avoid difficulties with algebraic
   // operations with it
-  const [totalReadingTimeSeconds, addTotalReadingTime] = React.useReducer(
-    (state: number, delta: moment.Duration) => state + delta.asSeconds(),
-    0
-  )
+  const setTotalReadingTime = React.useState<number>(0)[1]
   const totalReadingTimeEstimation = React.useMemo(() => {
     // TODO(akindyakov): This is quite expensive call to do on every open page,
     // ideally we could do it only if user spend more that 12 seconds on a page,
@@ -51,7 +52,7 @@ const ReadingTimeTracker = ({ bookmarkPage }: { bookmarkPage: () => void }) => {
     // if it becomes a problem.
     const text = exctractReadableTextFromPage(document)
     const estimation = getTimeToRead(text)
-    log.debug('Page estimated reading time, seconds', estimation)
+    log.debug('Page estimated reading time, seconds', estimation.asSeconds())
     // But who are we lying to, we have an attention span of a golden fish, if
     // we spend more than 2 minutes on something, that's already a big
     // achievement. So limit reading time by that.
@@ -69,24 +70,19 @@ const ReadingTimeTracker = ({ bookmarkPage }: { bookmarkPage: () => void }) => {
     lodash.throttle(() => {
       // Every X * 1000 milliseconds of activity increase total time counter by
       // X seconds, this is indirect way to measure active reading time.
-      addTotalReadingTime(kActivityTimerStep)
+      setTotalReadingTime((current: number) => {
+        const totalSeconds = current + kActivityTimerStep.asSeconds()
+        registerAttentionTime(
+          totalSeconds,
+          totalReadingTimeEstimation.asSeconds()
+        )
+        return totalSeconds
+      })
     }, kActivityTimerStep.asMilliseconds()),
     [totalReadingTimeEstimation]
   )
   React.useEffect(() => {
-    if (
-      totalReadingTimeSeconds >= totalReadingTimeEstimation.asSeconds() &&
-      totalReadingTimeSeconds < kActivityTimerSaved.asSeconds()
-    ) {
-      log.debug('Time is up, bookmark the page', totalReadingTimeSeconds)
-      bookmarkPage()
-      // Add `kActivityTimerSaved` to `totalReadingTimeSeconds` to avoid double
-      // bookmarking of the page
-      addTotalReadingTime(kActivityTimerSaved)
-    }
-  }, [totalReadingTimeEstimation, totalReadingTimeSeconds, bookmarkPage])
-  // Add and remove activity listeners
-  React.useEffect(() => {
+    // Add and remove activity listeners
     const mouseMoveListener = (/*ev: MouseEvent*/) => {
       checkReadingTotalTime()
     }

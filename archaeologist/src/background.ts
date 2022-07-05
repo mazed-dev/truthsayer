@@ -1,6 +1,6 @@
 import * as badge from './badge/badge'
 import * as omnibox from './omnibox/omnibox'
-import { ToBackgroundMessage, ToPopUp, ToContent, FromContent } from './message/types'
+import { ToPopUp, ToContent, FromPopUp, FromContent } from './message/types'
 import { log, isAbortError, errorise, genOriginId } from 'armoury'
 
 import browser from 'webextension-polyfill'
@@ -278,26 +278,42 @@ async function checkOriginIdAndUpdatePageStatus(
   await updateContent('reset', quotes, bookmark, tabId)
 }
 
+async function registerAttentionTime(
+  tab: browser.Tabs.Tab | null,
+  message: FromContent.AttentionTimeChunk
+): Promise<void> {
+  if (tab == null) {
+    log.debug("Can't register attention time for a tab: ", tab)
+    return
+  }
+  const { totalSeconds, totalSecondsEstimation } = message
+  log.debug(
+    'Register Attention Time',
+    tab,
+    totalSeconds,
+    totalSecondsEstimation
+  )
+  // TODO: upsert attention time to smuggler here
+  if (totalSeconds >= totalSecondsEstimation) {
+    log.debug(
+      'Enough attention time for the tab, bookmark it',
+      totalSeconds,
+      tab
+    )
+    requestPageContentToSave(tab)
+  }
+}
+
 browser.runtime.onMessage.addListener(
   async (
-    message: ToBackgroundMessage,
+    message: FromContent.Message,
     sender: browser.Runtime.MessageSender
   ) => {
-    // process is not defined in browsers extensions - use it to set up axios
     const tab = sender.tab ?? (await getActiveTab())
     switch (message.type) {
-      case 'REQUEST_PAGE_TO_SAVE':
-        requestPageContentToSave(tab)
-        break
-      case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS':
-        await requestPageSavedStatus(tab)
-        break
       case 'PAGE_TO_SAVE':
         const { url, content, originId, quoteNids } = message
         await savePage(url, originId, quoteNids, content, tab?.id)
-        break
-      case 'REQUEST_AUTH_STATUS':
-        await sendAuthStatus()
         break
       case 'SELECTED_WEB_QUOTE':
         {
@@ -312,14 +328,31 @@ browser.runtime.onMessage.addListener(
         }
         break
       case 'ATTENTION_TIME_CHUNK':
+        await registerAttentionTime(tab, message)
+        break
       default:
         break
     }
   }
 )
 
-async function registerAttentionTime(message:FromContent.AttentionTimeChunk): Promise<void> {
-}
+browser.runtime.onMessage.addListener(async (message: FromPopUp.Message) => {
+  // process is not defined in browsers extensions - use it to set up axios
+  const activeTab = await getActiveTab()
+  switch (message.type) {
+    case 'REQUEST_PAGE_TO_SAVE':
+      requestPageContentToSave(activeTab)
+      break
+    case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS':
+      await requestPageSavedStatus(activeTab)
+      break
+    case 'REQUEST_AUTH_STATUS':
+      await sendAuthStatus()
+      break
+    default:
+      break
+  }
+})
 
 browser.tabs.onUpdated.addListener(
   async (

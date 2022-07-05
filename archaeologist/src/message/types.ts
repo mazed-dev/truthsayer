@@ -118,18 +118,14 @@ export namespace FromContent {
   }
   export interface AttentionTimeChunk {
     type: 'ATTENTION_TIME_CHUNK'
-    seconds: number
-    estimated_total_seconds: number
-    url: string
-    originId: number
+    totalSeconds: number
+    totalSecondsEstimation: number
   }
-  export type Message = GetSelectedQuoteResponse | SavePageResponse | AttentionTimeChunk
+  export type Message =
+    | GetSelectedQuoteResponse
+    | SavePageResponse
+    | AttentionTimeChunk
   export function sendMessage(message: Message): Promise<void> {
     return browser.runtime.sendMessage(message)
   }
 }
-
-/**
- * This is a combined type for all messages that background.ts can receive
- */
-export type ToBackgroundMessage = FromContent.Message | FromPopUp.Message

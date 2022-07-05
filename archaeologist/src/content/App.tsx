@@ -79,7 +79,10 @@ const App = () => {
   const listener = async (message: ToContent.Message) => {
     switch (message.type) {
       case 'REQUEST_PAGE_CONTENT':
-        await bookmarkPage(quotes)
+        if (bookmark == null) {
+          // Bookmark if not yet bookmarked
+          await bookmarkPage(quotes)
+        }
         break
       case 'REQUEST_SELECTED_WEB_QUOTE':
         await saveSelectedTextAsQuote(message.text, bookmark)
@@ -117,7 +120,16 @@ const App = () => {
     <>
       <Quotes quotes={quotes} />
       <ActivityTracker
-        bookmarkPage={() => bookmarkPage(quotes)}
+        registerAttentionTime={(
+          totalSeconds: number,
+          totalSecondsEstimation: number
+        ) =>
+          FromContent.sendMessage({
+            type: 'ATTENTION_TIME_CHUNK',
+            totalSeconds,
+            totalSecondsEstimation,
+          })
+        }
         disabled={bookmark != null}
       />
     </>
