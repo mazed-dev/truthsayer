@@ -110,7 +110,9 @@ const inputChangedListener = (
   suggest: (suggestResults: browser.Omnibox.SuggestResult[]) => void
 ) => {
   browser.omnibox.setDefaultSuggestion({
-    description: formatDescription(`Search Mazed for "${text === '' ? '…' : text}"`),
+    description: formatDescription(
+      `Search Mazed for "${text === '' ? '…' : text}"`
+    ),
   })
   // Omnibox suggestions fit in only 10 elements, no need to look for more.
   // 1 + 9: 1 default suggestion and 9 search results
