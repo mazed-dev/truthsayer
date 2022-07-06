@@ -4,9 +4,9 @@ import ReactDOM from 'react-dom'
 import browser from 'webextension-polyfill'
 
 import { TNode, TNodeJson } from 'smuggler-api'
-import { genOriginId } from 'armoury'
+import { genOriginId, log } from 'armoury'
 
-import { Message, MessageType } from './../message/types'
+import { FromContent, ToContent } from './../message/types'
 import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/unmemorable'
 import {
@@ -16,6 +16,11 @@ import {
 
 import { Quotes } from './quote/Quotes'
 import { ActivityTracker } from './activity-tracker/ActivityTracker'
+import {
+  Toaster,
+  DisappearingToast,
+  DisappearingToastProps,
+} from './toaster/Toaster'
 
 async function bookmarkPage(quotes: TNode[]) {
   const { id: originId, stableUrl } = await genOriginId(
@@ -25,15 +30,13 @@ async function bookmarkPage(quotes: TNode[]) {
   const content = isMemorable(stableUrl)
     ? await exctractPageContent(document, baseURL)
     : undefined
-  await browser.runtime.sendMessage(
-    Message.create({
-      type: 'PAGE_TO_SAVE',
-      content,
-      originId,
-      url: stableUrl,
-      quoteNids: quotes.map((node) => node.nid),
-    })
-  )
+  await FromContent.sendMessage({
+    type: 'PAGE_TO_SAVE',
+    content,
+    originId,
+    url: stableUrl,
+    quoteNids: quotes.map((node) => node.nid),
+  })
 }
 
 async function saveSelectedTextAsQuote(
@@ -60,17 +63,15 @@ async function saveSelectedTextAsQuote(
     const { target } = event
     if (target) {
       const path = genElementDomPath(target as Element)
-      browser.runtime.sendMessage(
-        Message.create({
-          type: 'SELECTED_WEB_QUOTE',
-          text,
-          path,
-          lang,
-          originId,
-          url: stableUrl,
-          fromNid: bookmark?.nid,
-        })
-      )
+      FromContent.sendMessage({
+        type: 'SELECTED_WEB_QUOTE',
+        text,
+        path,
+        lang,
+        originId,
+        url: stableUrl,
+        fromNid: bookmark?.nid,
+      })
     }
   }
   document.addEventListener('copy', oncopy, true)
@@ -80,9 +81,11 @@ async function saveSelectedTextAsQuote(
 const App = () => {
   const [quotes, setQuotes] = useState<TNode[]>([])
   const [bookmark, setBookmark] = useState<TNode | null>(null)
-  const listener = async (message: MessageType) => {
+  const [notification, setNotification] =
+    useState<DisappearingToastProps | null>(null)
+  const listener = async (message: ToContent.Message) => {
     switch (message.type) {
-      case 'REQUEST_PAGE_TO_SAVE':
+      case 'REQUEST_PAGE_CONTENT':
         await bookmarkPage(quotes)
         break
       case 'REQUEST_SELECTED_WEB_QUOTE':
@@ -106,12 +109,24 @@ const App = () => {
           }
         }
         break
+      case 'SHOW_DISAPPEARING_NOTIFICATION':
+        {
+          const { text, href, tooltip, timeoutMsec } = message
+          setNotification({
+            text,
+            tooltip,
+            href,
+            timeoutMsec,
+          })
+        }
+        break
       default:
         break
     }
   }
   useEffect(() => {
     browser.runtime.onMessage.addListener(listener)
+    log.debug('Archaeologist content script is loaded')
     return () => {
       browser.runtime.onMessage.removeListener(listener)
     }
@@ -119,6 +134,10 @@ const App = () => {
   }, [])
   return (
     <>
+      <Toaster />
+      {notification ? (
+        <DisappearingToast {...notification}></DisappearingToast>
+      ) : null}
       <Quotes quotes={quotes} />
       <ActivityTracker
         bookmarkPage={() => bookmarkPage(quotes)}
