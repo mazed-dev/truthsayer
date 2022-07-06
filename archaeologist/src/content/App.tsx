@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom'
 import browser from 'webextension-polyfill'
 
 import { TNode, TNodeJson } from 'smuggler-api'
-import { genOriginId } from 'armoury'
+import { genOriginId, log } from 'armoury'
 
 import { FromContent, ToContent } from './../message/types'
 import { genElementDomPath } from './extractor/html'
@@ -16,6 +16,11 @@ import {
 
 import { Quotes } from './quote/Quotes'
 import { ActivityTracker } from './activity-tracker/ActivityTracker'
+import {
+  Toaster,
+  DisappearingToast,
+  DisappearingToastProps,
+} from './toaster/Toaster'
 
 async function bookmarkPage(quotes: TNode[]) {
   const { id: originId, stableUrl } = await genOriginId(
@@ -76,6 +81,8 @@ async function saveSelectedTextAsQuote(
 const App = () => {
   const [quotes, setQuotes] = useState<TNode[]>([])
   const [bookmark, setBookmark] = useState<TNode | null>(null)
+  const [notification, setNotification] =
+    useState<DisappearingToastProps | null>(null)
   const listener = async (message: ToContent.Message) => {
     switch (message.type) {
       case 'REQUEST_PAGE_CONTENT':
@@ -102,12 +109,24 @@ const App = () => {
           }
         }
         break
+      case 'SHOW_DISAPPEARING_NOTIFICATION':
+        {
+          const { text, href, tooltip, timeoutMsec } = message
+          setNotification({
+            text,
+            tooltip,
+            href,
+            timeoutMsec,
+          })
+        }
+        break
       default:
         break
     }
   }
   useEffect(() => {
     browser.runtime.onMessage.addListener(listener)
+    log.debug('Archaeologist content script is loaded')
     return () => {
       browser.runtime.onMessage.removeListener(listener)
     }
@@ -115,6 +134,10 @@ const App = () => {
   }, [])
   return (
     <>
+      <Toaster />
+      {notification ? (
+        <DisappearingToast {...notification}></DisappearingToast>
+      ) : null}
       <Quotes quotes={quotes} />
       <ActivityTracker
         bookmarkPage={() => bookmarkPage(quotes)}

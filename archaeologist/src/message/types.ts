@@ -86,11 +86,18 @@ export namespace ToContent {
     type: 'REQUEST_SELECTED_WEB_QUOTE'
     text: string
   }
+  export interface ShowDisappearingNotification {
+    type: 'SHOW_DISAPPEARING_NOTIFICATION'
+    text: string
+    href?: string
+    tooltip?: string
+    timeoutMsec?: number
+  }
   export type Message =
     | RequestPageContent
     | UpdateContentAugmentationRequest
     | GetSelectedQuoteRequest
-
+    | ShowDisappearingNotification
   export function sendMessage(tabId: number, message: Message): Promise<void> {
     return browser.tabs.sendMessage(tabId, message)
   }
