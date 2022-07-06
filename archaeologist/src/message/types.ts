@@ -15,11 +15,11 @@ import browser from 'webextension-polyfill'
  *   - `ToContent` - from background to content (any of the tabs)
  *   - `FromContent` - from content (any tab) to background
  *
- *   +-------+       +------------+     +---------+
- *   | popup |  -->  | background | --> | content |-+
- *   +-------+  <--  +------------+ <-- +---------+ |-+
- *                                        +---------+ |
- *                                         +----------+
+ *   ┌───────┐       ┌────────────┐       ┌─────────┐
+ *   │ popup │  ──▷  │ background │  ──▷  │ content │─┐
+ *   └───────┘  ◁──  └────────────┘  ◁──  └───(#1)──┘ │─┐
+ *                                          └───(#2)──┘ │
+ *                                            └───(#3)──┘
  */
 
 export namespace FromPopUp {
