@@ -215,13 +215,10 @@ async function showDisappearingNotification(
     return
   }
   try {
-    await browser.tabs.sendMessage(
-      tabId,
-      Message.create({
-        type: 'SHOW_DISAPPEARING_NOTIFICATION',
-        ...notification,
-      })
-    )
+    await ToContent.sendMessage(tabId, {
+      type: 'SHOW_DISAPPEARING_NOTIFICATION',
+      ...notification,
+    })
   } catch (err) {
     if (isAbortError(err)) {
       return
