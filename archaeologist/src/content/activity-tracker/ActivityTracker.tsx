@@ -59,7 +59,7 @@ const ReadingTimeTracker = ({
     // Also, we are limiting minimal time by 10 seconds, to avoid immidiatelly
     // saving pages without text at all.
     if (estimation.asMinutes() > 2) {
-      return moment.duration({ minutes: 2 })
+      return moment.duration({ minutes: 2, seconds: 4 })
     } else if (estimation.asSeconds() < 10) {
       return moment.duration({ seconds: 10 })
     }
@@ -76,6 +76,7 @@ const ReadingTimeTracker = ({
           totalSeconds,
           totalReadingTimeEstimation.asSeconds()
         )
+        log.debug('New reading time, seconds:', kActivityTimerStep.asSeconds())
         return totalSeconds
       })
     }, kActivityTimerStep.asMilliseconds()),
