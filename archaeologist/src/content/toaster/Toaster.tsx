@@ -25,7 +25,7 @@ export const Toaster = ({ children }: React.PropsWithChildren<{}>) => {
     }
     /**
      * There is no dependency list here on purpose, otherwise content updates to
-     * the container are not get through.
+     * the container do not get through.
      */
   )
   return ReactDOM.createPortal(
@@ -64,7 +64,7 @@ export const Toast = ({
     }
     /**
      * There is no dependency list here on purpose, otherwise content updates to
-     * the container are not get through.
+     * the box do not get through.
      */
   )
   return ReactDOM.createPortal(<ToastBox key={toastKey}>{children}</ToastBox>, box)
