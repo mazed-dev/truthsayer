@@ -10,7 +10,7 @@ export enum ColourButtonCreate {
   ShadowHover = 'rgba(60,153,110,0.5)',
 }
 
-enum ColourButtonWhite {
+export enum ColourButtonWhite {
   Foreground = 'rgba(38,38,38,0.5) !important',
   Background = '#ffffff !important',
   BackgroundHover = '#d0d1d2 !important',

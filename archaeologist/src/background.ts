@@ -1,8 +1,10 @@
 import * as badge from './badge/badge'
 import * as omnibox from './omnibox/omnibox'
 import { MessageType, Message } from './message/types'
-import { log, isAbortError, errorise, genOriginId } from 'armoury'
+import { mazed } from './util/mazed'
+import { DisappearingToastProps } from './content/toaster/Toaster'
 
+import { log, isAbortError, errorise, genOriginId } from 'armoury'
 import browser from 'webextension-polyfill'
 
 import { WebPageContent } from './content/extractor/webPageContent'
@@ -178,11 +180,14 @@ async function savePage(
     },
     to_nid: quoteNids,
   })
-  if (resp) {
-    const { nid } = resp
-    const node = await smuggler.node.get({ nid })
-    await updateContent('append', [], node, tabId)
-  }
+  const { nid } = resp
+  const node = await smuggler.node.get({ nid })
+  await updateContent('append', [], node, tabId)
+  await showDisappearingNotification(tabId, {
+    text: 'Added',
+    tooltip: 'Page is added to your timeline',
+    href: mazed.makeNodeUrl(nid).toString(),
+  })
 }
 
 async function savePageQuote(
@@ -210,6 +215,32 @@ async function savePageQuote(
     const { nid } = resp
     const node = await smuggler.node.get({ nid })
     await updateContent('append', [node], undefined, tabId)
+  }
+}
+
+async function showDisappearingNotification(
+  tabId: number | undefined,
+  notification: DisappearingToastProps
+) {
+  if (tabId == null) {
+    return
+  }
+  try {
+    await browser.tabs.sendMessage(
+      tabId,
+      Message.create({
+        type: 'SHOW_DISAPPEARING_NOTIFICATION',
+        ...notification,
+      })
+    )
+  } catch (err) {
+    if (isAbortError(err)) {
+      return
+    }
+    log.debug(
+      'Request to show disappearing notification in the tab failed',
+      err
+    )
   }
 }
 
