@@ -51,8 +51,8 @@ const ToastBox = styled(Box)`
 `
 export const Toast = ({
   children,
-  id,
-}: React.PropsWithChildren<{ id: string }>) => {
+  toastKey,
+}: React.PropsWithChildren<{ toastKey: string }>) => {
   const box = document.createElement('mazed-archaeologist-toast')
   React.useEffect(
     () => {
@@ -67,7 +67,7 @@ export const Toast = ({
      * the container are not get through.
      */
   )
-  return ReactDOM.createPortal(<ToastBox key={id}>{children}</ToastBox>, box)
+  return ReactDOM.createPortal(<ToastBox key={toastKey}>{children}</ToastBox>, box)
 }
 
 export type DisappearingToastProps = {
@@ -93,7 +93,7 @@ export const DisappearingToast = ({
     return () => clearTimeout(callbackId)
   }, [text, tooltip, timeoutMsec, id])
   return show ? (
-    <Toast id={'disappearing-toast'}>
+    <Toast toastKey={'disappearing-toast'}>
       <LogoSmall />
       <RefItem href={href}>
         <HoverTooltip tooltip={tooltip ?? text}>{text}</HoverTooltip>
