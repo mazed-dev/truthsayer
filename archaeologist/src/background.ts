@@ -1,5 +1,6 @@
 import * as badge from './badge/badge'
 import * as omnibox from './omnibox/omnibox'
+import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import { MessageType, Message } from './message/types'
 import { mazed } from './util/mazed'
 import { DisappearingToastProps } from './content/toaster/Toaster'
@@ -427,3 +428,4 @@ browser.contextMenus.onClicked.addListener(
 )
 
 omnibox.register()
+browserBookmarks.register()
