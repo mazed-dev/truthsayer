@@ -319,7 +319,8 @@ async function registerAttentionTime(
     totalSeconds,
     totalSecondsEstimation
   )
-  // TODO: upsert attention time to smuggler here
+  // TODO: upsert attention time to smuggler here, see
+  // https://github.com/Thread-knowledge/smuggler/pull/76
   if (totalSeconds >= totalSecondsEstimation) {
     log.debug(
       'Enough attention time for the tab, bookmark it',
