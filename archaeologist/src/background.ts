@@ -1,15 +1,14 @@
 import * as badge from './badge/badge'
 import * as omnibox from './omnibox/omnibox'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
-import { MessageType, Message } from './message/types'
+import { ToPopUp, ToContent, FromPopUp, FromContent } from './message/types'
 import { mazed } from './util/mazed'
 import { DisappearingToastProps } from './content/toaster/Toaster'
 
-import { log, isAbortError, errorise, genOriginId } from 'armoury'
-import browser from 'webextension-polyfill'
-
 import { WebPageContent } from './content/extractor/webPageContent'
 
+import browser from 'webextension-polyfill'
+import { log, isAbortError, errorise, genOriginId, MimeType } from 'armoury'
 import {
   Knocker,
   NodeExtattrs,
@@ -21,8 +20,6 @@ import {
   makeNodeTextData,
   smuggler,
 } from 'smuggler-api'
-
-import { MimeType } from 'armoury'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
@@ -52,10 +49,7 @@ async function requestPageContentToSave(tab: browser.Tabs.Tab | null) {
     return
   }
   try {
-    await browser.tabs.sendMessage(
-      tabId,
-      Message.create({ type: 'REQUEST_PAGE_TO_SAVE' })
-    )
+    await ToContent.sendMessage(tabId, { type: 'REQUEST_PAGE_CONTENT' })
   } catch (err) {
     if (!isAbortError(err)) {
       log.exception(err)
@@ -80,15 +74,13 @@ async function updateContent(
   const bookmarkJson = bookmark?.toJson()
   // Inform PopUp window of saved bookmark and web quotes
   try {
-    await browser.runtime.sendMessage(
-      Message.create({
-        type: 'UPDATE_POPUP_CARDS',
-        bookmark: bookmarkJson,
-        quotes: quotesJson,
-        unmemorable,
-        mode,
-      })
-    )
+    await ToPopUp.sendMessage({
+      type: 'UPDATE_POPUP_CARDS',
+      bookmark: bookmarkJson,
+      quotes: quotesJson,
+      unmemorable,
+      mode,
+    })
   } catch (err) {
     if (isAbortError(err)) {
       return
@@ -114,15 +106,12 @@ async function updateContent(
     return
   }
   try {
-    await browser.tabs.sendMessage(
-      tabId,
-      Message.create({
-        type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
-        quotes: quotesJson,
-        bookmark: bookmarkJson,
-        mode,
-      })
-    )
+    await ToContent.sendMessage(tabId, {
+      type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
+      quotes: quotesJson,
+      bookmark: bookmarkJson,
+      mode,
+    })
   } catch (exception) {
     const error = errorise(exception)
     if (isAbortError(error)) {
@@ -227,13 +216,10 @@ async function showDisappearingNotification(
     return
   }
   try {
-    await browser.tabs.sendMessage(
-      tabId,
-      Message.create({
-        type: 'SHOW_DISAPPEARING_NOTIFICATION',
-        ...notification,
-      })
-    )
+    await ToContent.sendMessage(tabId, {
+      type: 'SHOW_DISAPPEARING_NOTIFICATION',
+      ...notification,
+    })
   } catch (err) {
     if (isAbortError(err)) {
       return
@@ -281,9 +267,7 @@ async function sendAuthStatus() {
   badge.setActive(status)
 
   try {
-    await browser.runtime.sendMessage(
-      Message.create({ type: 'AUTH_STATUS', status })
-    )
+    await ToPopUp.sendMessage({ type: 'AUTH_STATUS', status })
   } catch (err) {
     if (!isAbortError(err)) {
       log.exception(err, 'Could not send auth status')
@@ -321,22 +305,15 @@ async function checkOriginIdAndUpdatePageStatus(
 }
 
 browser.runtime.onMessage.addListener(
-  async (message: MessageType, sender: browser.Runtime.MessageSender) => {
-    // process is not defined in browsers extensions - use it to set up axios
+  async (
+    message: FromContent.Message,
+    sender: browser.Runtime.MessageSender
+  ) => {
     const tab = sender.tab ?? (await getActiveTab())
     switch (message.type) {
-      case 'REQUEST_PAGE_TO_SAVE':
-        requestPageContentToSave(tab)
-        break
-      case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS':
-        await requestPageSavedStatus(tab)
-        break
       case 'PAGE_TO_SAVE':
         const { url, content, originId, quoteNids } = message
         await savePage(url, originId, quoteNids, content, tab?.id)
-        break
-      case 'REQUEST_AUTH_STATUS':
-        await sendAuthStatus()
         break
       case 'SELECTED_WEB_QUOTE':
         {
@@ -355,6 +332,24 @@ browser.runtime.onMessage.addListener(
     }
   }
 )
+
+browser.runtime.onMessage.addListener(async (message: FromPopUp.Message) => {
+  // process is not defined in browsers extensions - use it to set up axios
+  const activeTab = await getActiveTab()
+  switch (message.type) {
+    case 'REQUEST_PAGE_TO_SAVE':
+      requestPageContentToSave(activeTab)
+      break
+    case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS':
+      await requestPageSavedStatus(activeTab)
+      break
+    case 'REQUEST_AUTH_STATUS':
+      await sendAuthStatus()
+      break
+    default:
+      break
+  }
+})
 
 browser.tabs.onUpdated.addListener(
   async (
@@ -411,13 +406,10 @@ browser.contextMenus.onClicked.addListener(
         return
       }
       try {
-        await browser.tabs.sendMessage(
-          tab.id,
-          Message.create({
-            type: 'REQUEST_SELECTED_WEB_QUOTE',
-            text: selectionText,
-          })
-        )
+        await ToContent.sendMessage(tab.id, {
+          type: 'REQUEST_SELECTED_WEB_QUOTE',
+          text: selectionText,
+        })
       } catch (err) {
         if (!isAbortError(err)) {
           log.exception(err)

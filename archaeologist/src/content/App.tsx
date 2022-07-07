@@ -6,7 +6,7 @@ import browser from 'webextension-polyfill'
 import { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId, log } from 'armoury'
 
-import { Message, MessageType } from './../message/types'
+import { FromContent, ToContent } from './../message/types'
 import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/unmemorable'
 import {
@@ -30,15 +30,13 @@ async function bookmarkPage(quotes: TNode[]) {
   const content = isMemorable(stableUrl)
     ? await exctractPageContent(document, baseURL)
     : undefined
-  await browser.runtime.sendMessage(
-    Message.create({
-      type: 'PAGE_TO_SAVE',
-      content,
-      originId,
-      url: stableUrl,
-      quoteNids: quotes.map((node) => node.nid),
-    })
-  )
+  await FromContent.sendMessage({
+    type: 'PAGE_TO_SAVE',
+    content,
+    originId,
+    url: stableUrl,
+    quoteNids: quotes.map((node) => node.nid),
+  })
 }
 
 async function saveSelectedTextAsQuote(
@@ -65,17 +63,15 @@ async function saveSelectedTextAsQuote(
     const { target } = event
     if (target) {
       const path = genElementDomPath(target as Element)
-      browser.runtime.sendMessage(
-        Message.create({
-          type: 'SELECTED_WEB_QUOTE',
-          text,
-          path,
-          lang,
-          originId,
-          url: stableUrl,
-          fromNid: bookmark?.nid,
-        })
-      )
+      FromContent.sendMessage({
+        type: 'SELECTED_WEB_QUOTE',
+        text,
+        path,
+        lang,
+        originId,
+        url: stableUrl,
+        fromNid: bookmark?.nid,
+      })
     }
   }
   document.addEventListener('copy', oncopy, true)
@@ -87,9 +83,9 @@ const App = () => {
   const [bookmark, setBookmark] = useState<TNode | null>(null)
   const [notification, setNotification] =
     useState<DisappearingToastProps | null>(null)
-  const listener = async (message: MessageType) => {
+  const listener = async (message: ToContent.Message) => {
     switch (message.type) {
-      case 'REQUEST_PAGE_TO_SAVE':
+      case 'REQUEST_PAGE_CONTENT':
         await bookmarkPage(quotes)
         break
       case 'REQUEST_SELECTED_WEB_QUOTE':
