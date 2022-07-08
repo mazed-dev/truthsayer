@@ -318,6 +318,18 @@ browser.runtime.onMessage.addListener(
           )
         }
         break
+      case 'READ_URL_CONTENTS_SILENTLY': {
+        const { url } = message
+        console.log(`Trying to fetch ${url}`)
+        const response = await fetch(url, { method: 'GET' })
+        if (response.ok) {
+          console.log('Success response received')
+          console.log(JSON.stringify(await response.json()))
+        } else {
+          console.log(`Error: ${JSON.stringify(response)}`)
+        }
+        break
+      }
       default:
         break
     }

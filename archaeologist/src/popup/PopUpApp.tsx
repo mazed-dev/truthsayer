@@ -1,4 +1,5 @@
 import React from 'react'
+import { Container, Row } from 'react-bootstrap'
 import { useAsyncEffect } from 'use-async-effect'
 
 import browser from 'webextension-polyfill'
@@ -31,9 +32,22 @@ export const PopUpApp = () => {
     })
     await browser.runtime.sendMessage({ type: 'REQUEST_AUTH_STATUS' })
   }, [])
+
+  if (!authenticated) {
+    return (
+      <AppContainer>
+        <LoginPage />
+      </AppContainer>
+    )
+  }
   return (
     <AppContainer>
-      {authenticated ? <ViewActiveTabStatus /> : <LoginPage />}
+      <Container>
+        <Row>
+          <ViewActiveTabStatus />
+          <SyncBrowserHistoryButton />
+        </Row>
+      </Container>
     </AppContainer>
   )
 }
@@ -55,6 +69,23 @@ const LoginBtnBox = styled.div`
   display: flex;
   justify-content: center;
 `
+
+async function printHistory() {
+  console.log('Printing history for Mazed')
+  const history = await browser.history.search({ text: '' })
+  await browser.runtime.sendMessage({
+    type: 'READ_URL_CONTENTS_SILENTLY',
+    url: 'https://arstechnica.com/gadgets/2022/06/apples-ar-vr-headset-will-arrive-in-january-2023-analyst-projects/',
+  })
+
+  // for (const item of await browser.history.search({ text: '' })) {
+  //   console.log(item)
+  // }
+}
+
+const SyncBrowserHistoryButton = () => {
+  return <Button onClick={printHistory}>Sync browser history</Button>
+}
 
 const LoginPage = () => {
   const onClick = () => {

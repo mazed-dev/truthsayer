@@ -73,6 +73,11 @@ interface SavePageResponse {
   quoteNids: string[]
 }
 
+type ReadUrlContentsSilentlyRequest = {
+  type: 'READ_URL_CONTENTS_SILENTLY'
+  url: string
+}
+
 export type MessageType =
   | PageInActiveTabStatusRequest
   | UpdatePopUpCards
@@ -83,6 +88,7 @@ export type MessageType =
   | GetSelectedQuoteRequest
   | GetSelectedQuoteResponse
   | UpdateContentAugmentationRequest
+  | ReadUrlContentsSilentlyRequest
 
 export const Message = {
   // This is just a hack to check the message type, needed because
