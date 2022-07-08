@@ -18,6 +18,7 @@ import {
   authCookie,
   makeNodeTextData,
   smuggler,
+  OriginHash,
 } from 'smuggler-api'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
@@ -129,7 +130,7 @@ async function updateContent(
 
 async function savePage(
   url: string,
-  originId: number,
+  originId: OriginHash,
   quoteNids: string[],
   content?: WebPageContent,
   tabId?: number
@@ -180,7 +181,7 @@ async function savePage(
 }
 
 async function savePageQuote(
-  originId: number,
+  originId: OriginHash,
   { url, path, text }: NodeExtattrsWebQuote,
   lang?: string,
   tabId?: number,
@@ -277,7 +278,7 @@ async function sendAuthStatus() {
 async function checkOriginIdAndUpdatePageStatus(
   tabId: number | undefined,
   url: string,
-  originId?: number
+  originId?: OriginHash
 ) {
   if (originId == null) {
     const unmemorable = true
