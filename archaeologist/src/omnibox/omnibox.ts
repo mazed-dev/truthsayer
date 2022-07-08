@@ -59,13 +59,18 @@ const lookUpAndSuggestFor = lodash.debounce(
     ) {
       if (beagle.searchNode(node) != null) {
         suggestions.push(nodeToSuggestion(node))
-        // Update suggestions on every found node, to show it in search results
-        // as quick as possible.
-        suggest(suggestions)
+        // Update suggestions on every discovered node, to show it in search
+        // results as quick as possible __on Chrome like browsers only__,
+        // because Firefox expects `suggest` to be called once per change.
+        if (process.env.CHROME) {
+          suggest(suggestions)
+        }
       }
     }
-  },
-  421
+    if (!process.env.CHROME) {
+      suggest(suggestions)
+    }
+  }, 241
 )
 
 function getUrlToOpen(text: string): URL {
@@ -105,6 +110,19 @@ function _truncateUrl(url: string, length?: number): string {
   return _truncate([u.hostname, u.pathname].join(''), length ?? kUrlLengthMax)
 }
 
+function getSuggestionsLimit(): number {
+  if (process.env.CHROME) {
+    return 9
+  } else if (process.env.FIREFOX) {
+    // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/omnibox/onInputChanged
+    // > a callback function which the listener can call with an array of
+    // > `omnibox.SuggestResult` objects, one for each suggestion. Only the
+    // > first __six__ suggestions will be displayed.
+    return 6
+  }
+  return 9
+}
+
 const inputChangedListener = (
   text: string,
   suggest: (suggestResults: browser.Omnibox.SuggestResult[]) => void
@@ -116,7 +134,7 @@ const inputChangedListener = (
   })
   // Omnibox suggestions fit in only 10 elements, no need to look for more.
   // 1 + 9: 1 default suggestion and 9 search results
-  lookUpAndSuggestFor(text, 9, suggest)
+  lookUpAndSuggestFor(text, getSuggestionsLimit(), suggest)
 }
 
 const inputStartedListener = () => {
