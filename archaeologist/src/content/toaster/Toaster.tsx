@@ -7,6 +7,7 @@ import { HoverTooltip } from 'elementary'
 
 const kToasterBoxElementId = 'mazed-archaeologist-toaster-id'
 const ToasterBox = styled.div`
+  z-index: 2147483647;
   position: fixed !important;
   top: 24px !important;
   right: 32px !important;
@@ -49,7 +50,6 @@ const kShowUpAnimation = keyframes`
 `
 
 const ToastBox = styled(Box)`
-  z-index: 99999;
   animation-name: ${kShowUpAnimation};
   animation-duration: 0.25s;
   animation-iteration-count: 1;
