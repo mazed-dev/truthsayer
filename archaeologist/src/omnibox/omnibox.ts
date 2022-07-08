@@ -70,7 +70,8 @@ const lookUpAndSuggestFor = lodash.debounce(
     if (!process.env.CHROME) {
       suggest(suggestions)
     }
-  }, 241
+  },
+  241
 )
 
 function getUrlToOpen(text: string): URL {
@@ -112,6 +113,8 @@ function _truncateUrl(url: string, length?: number): string {
 
 function getSuggestionsLimit(): number {
   if (process.env.CHROME) {
+    // For Chrome there is no documented limit for number of suggestions as for
+    // Firefox, but in practice no more than 9 are shown
     return 9
   } else if (process.env.FIREFOX) {
     // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/omnibox/onInputChanged
@@ -120,7 +123,9 @@ function getSuggestionsLimit(): number {
     // > first __six__ suggestions will be displayed.
     return 6
   }
-  return 9
+  // Use 10 as a default, no other reason for it other than to have it bigger
+  // than browser specific ones
+  return 10
 }
 
 const inputChangedListener = (
