@@ -18,7 +18,10 @@ export const ActivityTracker = ({
   bookmarkPage: () => void
   disabled?: boolean
 }) => {
-  if (disabled || !isPageReadable(window.location.toString())) {
+  if (
+    disabled ||
+    !isPageReadable(window.location.toString(), window.document)
+  ) {
     return null
   }
   return <ReadingTimeTracker bookmarkPage={bookmarkPage} />
