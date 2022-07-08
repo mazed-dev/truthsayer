@@ -20,3 +20,17 @@ export async function requestPageContentToSave(tab: browser.Tabs.Tab | null) {
   }
 }
 
+export async function requestPageContentToSaveByUrl(url: string) {
+  try {
+    const tabs = await browser.tabs.query({ url })
+    const tab = tabs.find((tab) => tab.id && tab.url)
+    if (tab == null) {
+      throw new Error(`Request of a page content for URL ${url} failed`)
+    }
+    await requestPageContentToSave(tab)
+  } catch (err) {
+    if (!isAbortError(err)) {
+      log.exception(err)
+    }
+  }
+}
