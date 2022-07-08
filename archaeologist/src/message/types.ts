@@ -123,6 +123,7 @@ export namespace FromContent {
     // right hand side
     fromNid?: string
   }
+  /** Describes for how long a user actively paid attention to a particular webpage */
   export interface AttentionTimeChunk {
     type: 'ATTENTION_TIME_CHUNK'
     totalSeconds: number
