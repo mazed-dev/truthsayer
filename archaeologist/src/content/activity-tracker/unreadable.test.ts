@@ -1,4 +1,4 @@
-import { _isArticleUrl } from './unreadable'
+import { _isArticleUrl, _isManuallyAllowed } from './unreadable'
 
 test('unreadable.homepage', () => {
   expect(_isArticleUrl(new URL('https://stackoverflow.com/'))).toStrictEqual(
@@ -24,4 +24,29 @@ test('unreadable.tools', () => {
       )
     )
   ).toStrictEqual(false)
+})
+test('unreadable.manually-default', () => {
+  ;[
+    'https://irs.gov/individuals/international-taxpayers/claiming-tax-treaty-benefits',
+  ].forEach((url) => {
+    expect(_isManuallyAllowed(url)).toStrictEqual(true)
+  })
+})
+test('unreadable.manually-blocked', () => {
+  ;[
+    'https://keep.google.com/u/0/',
+    'https://keep.google.com/u/1/',
+    'https://keep.google.com/u/0/#home',
+    'https://keep.google.com/u/2/#home',
+  ].forEach((url) => {
+    expect(_isManuallyAllowed(url)).toStrictEqual(false)
+  })
+})
+test('unreadable.manually-allowed', () => {
+  ;[
+    'https://keep.google.com/u/0/#NOTE/RVAk4qmHZLuUvgIYV',
+    'https://keep.google.com/u/0/#note/RVAk4qmHZLuUvgIYV',
+  ].forEach((url) => {
+    expect(_isManuallyAllowed(url)).toStrictEqual(true)
+  })
 })
