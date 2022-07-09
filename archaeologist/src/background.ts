@@ -356,7 +356,6 @@ browser.tabs.onUpdated.addListener(
     changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
     tab: browser.Tabs.Tab
   ) => {
-    log.debug('background. try to requestPageSavedStatus', tab)
     if (
       !tab.incognito &&
       tab.url &&
