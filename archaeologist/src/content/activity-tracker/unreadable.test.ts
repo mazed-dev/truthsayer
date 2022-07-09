@@ -17,13 +17,9 @@ test('unreadable.homepage', () => {
 })
 
 test('unreadable.tools', () => {
-  expect(
-    _isArticleUrl(
-      new URL(
-        'https://translate.google.com/?sl=en&tl=ru&text=text&op=translate'
-      )
-    )
-  ).toStrictEqual(false)
+  expect(_isArticleUrl(new URL('https://translate.google.com/'))).toStrictEqual(
+    false
+  )
 })
 test('unreadable.manually-default', () => {
   ;[
@@ -34,19 +30,16 @@ test('unreadable.manually-default', () => {
 })
 test('unreadable.manually-blocked', () => {
   ;[
-    'https://keep.google.com/u/0/',
-    'https://keep.google.com/u/1/',
-    'https://keep.google.com/u/0/#home',
-    'https://keep.google.com/u/2/#home',
+    // Archaeologist can't extract text from google docs yet, autosaving doesn't
+    // work well without it.
+    'https://docs.google.com/document/d/45W',
+    'https://docs.google.com/spreadsheets/d/1P9oEq-Bl',
   ].forEach((url) => {
     expect(_isManuallyAllowed(url)).toStrictEqual(false)
   })
 })
 test('unreadable.manually-allowed', () => {
-  ;[
-    'https://keep.google.com/u/0/#NOTE/RVAk4qmHZLuUvgIYV',
-    'https://keep.google.com/u/0/#note/RVAk4qmHZLuUvgIYV',
-  ].forEach((url) => {
+  ;[].forEach((url) => {
     expect(_isManuallyAllowed(url)).toStrictEqual(true)
   })
 })

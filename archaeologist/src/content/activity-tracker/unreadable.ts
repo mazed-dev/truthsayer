@@ -21,9 +21,6 @@ export function _isArticleUrl(url: URL): boolean {
 }
 
 const kBlocklist: RegExp[] = [
-  // Because google.keep uses URL hash based routing, so individual notes are
-  // not distinguishable for archaeologist - they all have the same origin ID.
-  /keep\.google\.com\//,
   // Because archaeologist can't yet extract text && description from GDocs
   /docs\.google\.com\//,
 ]
