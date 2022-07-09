@@ -15,7 +15,7 @@ import { PreviewImageSmall } from 'smuggler-api'
 
 import { Readability as MozillaReadability } from '@mozilla/readability'
 
-import { MimeType, log, stabiliseUrlForOriginId } from 'armoury'
+import { MimeType, log, stabiliseUrlForOriginId, unicodeText } from 'armoury'
 
 async function fetchImagePreviewAsBase64(
   url: string,
@@ -134,15 +134,20 @@ export async function exctractPageContent(
       // title extractor discovered no good title.
       title = articleTitle
     }
+    text = unicodeText.trimWhitespace(textContent)
     if (description == null && excerpt) {
       // Same story for a description, we can't fully rely on MozillaReadability
       // with page description, but get back to it when our own description
       // extractor fails.
-      description = excerpt
+      if (textContent.indexOf(excerpt) < 0) {
+        // MozillaReadability takes first paragraph as a description, if it
+        // hasn't found description in the article's metadata. Such descriptions
+        // are quite bad, it's better without description at all then.
+        description = excerpt
+      }
     }
-    text = _stripWhitespaceInText(textContent)
     if (author.length === 0 && byline) {
-      author.push(_stripWhitespaceInText(byline))
+      author.push(unicodeText.trimWhitespace(byline))
     }
     if (siteName) {
       publisher.push(siteName)
@@ -160,7 +165,7 @@ export async function exctractPageContent(
   if (text != null) {
     // Cut string by length 10,000 to avoid blowing up backend with huge JSON.
     // Later on we can and perhaps should reconsider this limit.
-    text = lodash.truncate(text, { length: 10_000, separator: /./u })
+    text = unicodeText.truncate(text, 10_000)
   }
   return {
     url,
@@ -188,14 +193,6 @@ const isSameOrDescendant = function (parent: Element, child: Element) {
   }
   // Go up until the root but couldn't find the `parent`
   return false
-}
-
-// Strip whitespace characters at the beginning and the end of the text, also
-// replace any consecutive row of whitespace characters with a single space.
-export function _stripWhitespaceInText(text: string): string {
-  text = text.trim()
-  text = text.replace(/[\u00B6\u2202\s]{2,}/g, ' ')
-  return text
 }
 
 /**
@@ -227,7 +224,7 @@ export function _exctractPageText(document_: Document): string {
       if (isAdded) {
         continue
       }
-      ret.push(_stripWhitespaceInText(textContent))
+      ret.push(unicodeText.trimWhitespace(textContent))
       addedElements.push(element)
     }
   }
@@ -252,7 +249,7 @@ export function _exctractPageText(document_: Document): string {
       if (isAdded) {
         continue
       }
-      ret.push(_stripWhitespaceInText(textContent))
+      ret.push(unicodeText.trimWhitespace(textContent))
       addedElements.push(element)
     }
   }
@@ -268,16 +265,19 @@ export function _exctractPageText(document_: Document): string {
  * - <meta property="og:title" content="Page title">
  */
 export function _exctractPageTitle(document_: Document): string | null {
-  const title = _stripWhitespaceInText(document_.title)
+  const title = unicodeText.trimWhitespace(document_.title)
   if (title) {
     return title
   }
   for (const [selector, attribute] of [
+    ['meta[property="dc:title"]', 'content'],
+    ['meta[property="dcterm:title"]', 'content'],
     ['meta[property="og:title"]', 'content'],
+    ['meta[property="title"]', 'content'],
     ['meta[name="twitter:title"]', 'content'],
   ]) {
     for (const element of document_.querySelectorAll(selector)) {
-      const title = _stripWhitespaceInText(
+      const title = unicodeText.trimWhitespace(
         element.getAttribute(attribute)?.trim() || ''
       )
       if (title) {
@@ -294,7 +294,7 @@ export function _exctractPageAuthor(document_: Document): string[] {
     ['meta[property="author"]', 'content'],
   ]) {
     for (const element of document_.querySelectorAll(selector)) {
-      const author = _stripWhitespaceInText(
+      const author = unicodeText.trimWhitespace(
         element.getAttribute(attribute)?.trim() || ''
       )
       if (author) {
@@ -307,12 +307,14 @@ export function _exctractPageAuthor(document_: Document): string[] {
 
 export function _exctractPageDescription(document_: Document): string | null {
   for (const [selector, attribute] of [
+    ['meta[name="dc:description"]', 'content'],
+    ['meta[name="dcterm:description"]', 'content'],
     ['meta[name="description"]', 'content'],
     ['meta[property="og:description"]', 'content'],
     ['meta[name="twitter:description"]', 'content'],
   ]) {
     for (const element of document_.querySelectorAll(selector)) {
-      const text = _stripWhitespaceInText(
+      const text = unicodeText.trimWhitespace(
         element.getAttribute(attribute)?.trim() || ''
       )
       if (text) {
@@ -342,7 +344,7 @@ export function _exctractPagePublisher(head: HTMLHeadElement): string[] {
     for (const element of elementsGroup) {
       const p = element.getAttribute('content')?.trim()
       if (p) {
-        publisher.push(_stripWhitespaceInText(p))
+        publisher.push(unicodeText.trimWhitespace(p))
       }
     }
     if (publisher.length > 0) {

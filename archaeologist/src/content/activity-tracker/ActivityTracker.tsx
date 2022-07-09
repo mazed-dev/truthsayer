@@ -1,10 +1,9 @@
 import React from 'react'
-import { log } from 'armoury'
+import { log, unicodeText } from 'armoury'
 import lodash from 'lodash'
 import moment from 'moment'
 
 import { exctractReadableTextFromPage } from './../extractor/webPageContent'
-import { getTimeToRead } from './reading-stats'
 import { isPageReadable } from './unreadable'
 
 /**
@@ -54,7 +53,7 @@ const ReadingTimeTracker = ({
     // We simply don't have time for it today, but we will get back to fix it
     // if it becomes a problem.
     const text = exctractReadableTextFromPage(document)
-    const estimation = getTimeToRead(text)
+    const estimation = unicodeText.getTimeToRead(text)
     log.debug('Page estimated reading time, seconds', estimation.asSeconds())
     // But who are we lying to, we have an attention span of a golden fish, if
     // we spend more than 2 minutes on something, that's already a big
