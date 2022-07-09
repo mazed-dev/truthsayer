@@ -113,7 +113,7 @@ function _truncateUrl(url: string, length?: number): string {
 
 function getSuggestionsLimit(): number {
   if (process.env.CHROMIUM) {
-    // For CHROMIUM there is no documented limit for number of suggestions as for
+    // For Chromium there is no documented limit for number of suggestions as for
     // Firefox, but in practice no more than 9 are shown
     return 9
   } else if (process.env.FIREFOX) {
