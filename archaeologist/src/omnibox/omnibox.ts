@@ -60,14 +60,14 @@ const lookUpAndSuggestFor = lodash.debounce(
       if (beagle.searchNode(node) != null) {
         suggestions.push(nodeToSuggestion(node))
         // Update suggestions on every discovered node, to show it in search
-        // results as quick as possible __on Chrome like browsers only__,
+        // results as quick as possible __on CHROMIUM like browsers only__,
         // because Firefox expects `suggest` to be called once per change.
-        if (process.env.CHROME) {
+        if (process.env.CHROMIUM) {
           suggest(suggestions)
         }
       }
     }
-    if (!process.env.CHROME) {
+    if (!process.env.CHROMIUM) {
       suggest(suggestions)
     }
   },
@@ -112,8 +112,8 @@ function _truncateUrl(url: string, length?: number): string {
 }
 
 function getSuggestionsLimit(): number {
-  if (process.env.CHROME) {
-    // For Chrome there is no documented limit for number of suggestions as for
+  if (process.env.CHROMIUM) {
+    // For CHROMIUM there is no documented limit for number of suggestions as for
     // Firefox, but in practice no more than 9 are shown
     return 9
   } else if (process.env.FIREFOX) {
