@@ -8,18 +8,33 @@ export function _uint32ToInt32(u: number): number {
   return u > 0x7fffffff ? u & (0xffffffff - 0x80000000 - 0x80000000) : u
 }
 
-export type OriginId = {
-  id: number
-  stableUrl: string
+/**
+ * 🔓💩 The nature of this hash is suspected to be likely insecure.
+ *
+ * ⚠ This type is expected to match smuggler-api.OriginHash
+ */
+type OriginHash = number
+
+/**
+ * 🔐 Expected to eventually be ineligible to admins.
+ *
+ * ⚠ This type is expected to match smuggler-api.OriginId
+ * */
+type OriginId = {
+  id: OriginHash
 }
 
 /**
- * Generate origin OriginId for given URL.
+ * Generate @see OriginId for given URL.
  *
  * @param {string} url - URL string to generate OriginId for.
  * @returns {number, string} generated origin OriginId and stabilised URL
  */
-export async function genOriginId(url: string): Promise<OriginId> {
+export async function genOriginId(url: string): Promise<
+  OriginId & {
+    stableUrl: string
+  }
+> {
   const stableUrl = stabiliseUrlForOriginId(url)
   const h = xxh.h32(kOriginSeed)
   h.update(stableUrl)

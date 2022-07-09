@@ -1,5 +1,5 @@
 import { WebPageContent } from './../content/extractor/webPageContent'
-import { TNodeJson } from 'smuggler-api'
+import { OriginHash, TNodeJson } from 'smuggler-api'
 import browser from 'webextension-polyfill'
 
 /**
@@ -106,7 +106,7 @@ export namespace FromContent {
   export interface SavePageResponse {
     type: 'PAGE_TO_SAVE'
     url: string
-    originId: number
+    originId: OriginHash
     // Missing content is for a page that can not be saved
     content?: WebPageContent
     // Saving page quotes to connect as right hand side cards
@@ -117,7 +117,7 @@ export namespace FromContent {
     text: string
     path: string[]
     url: string
-    originId: number
+    originId: OriginHash
     lang?: string
     // If specified, the requested web quote is connected to the bookmark on the
     // right hand side

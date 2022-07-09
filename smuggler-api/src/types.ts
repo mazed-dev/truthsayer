@@ -331,7 +331,7 @@ export type NodeCreateRequestBody = {
   text?: NodeTextData
   index_text?: NodeIndexText
   extattrs?: NodeExtattrs
-  origin?: NodeOrigin
+  origin?: OriginId
 }
 
 export type NodePatchRequest = {
@@ -373,7 +373,7 @@ export type NodeAttrsSearchRequest = {
   limit?: number // default is 256
   offset?: number // default is 0
 
-  origin?: NodeOrigin
+  origin?: OriginId
 }
 
 export type NodeAttrsSearchResponse = {
@@ -384,11 +384,17 @@ export type NodeAttrsSearchResponse = {
   end_time: number
 }
 
-// Just for the time when interval types are landed to TS
-export type Int32 = number
+/**
+ * 🔓💩 The nature of this hash is suspected to be likely insecure.
+ */
+// The corresponding smuggler type is int32. Consider using interval types instead
+// of a plain 'number' if and when they are introduced to TS. See
+// https://github.com/microsoft/TypeScript/issues/43505 for more information
+export type OriginHash = number
 
-export type NodeOrigin = {
-  id: Int32
+/** 🔐 Expected to eventually be ineligible to admins. */
+export type OriginId = {
+  id: OriginHash
 }
 
 export type UserBadge = {
