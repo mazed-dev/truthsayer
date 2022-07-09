@@ -158,9 +158,9 @@ export async function exctractPageContent(
     text = _exctractPageText(document_)
   }
   if (text != null) {
-    // Cut string by length 10KiB to avoid blowing up backend with huge JSON.
+    // Cut string by length 10,000 to avoid blowing up backend with huge JSON.
     // Later on we can and perhaps should reconsider this limit.
-    text = text.substr(0, 10240)
+    text = lodash.truncate(text, { length: 10_000, separator: /./u })
   }
   return {
     url,
