@@ -22,7 +22,7 @@ const HighlightedText = styled('mark')`
   mazed-toolbar {
     visibility: hidden;
     opacity: 0;
-    transition: visibility 0s, opacity 0.1s easy;
+    transition: opacity 0.25s easy;
     transition-delay: 0.2s;
   }
 

@@ -89,6 +89,19 @@ export function exctractPageUrl(document_: Document): string {
   return document_.URL || document_.documentURI
 }
 
+export function exctractReadableTextFromPage(document_: Document): string {
+  const article = new MozillaReadability(
+    document_.cloneNode(true) as Document,
+    {
+      keepClasses: false,
+    }
+  ).parse()
+  return article?.textContent || _exctractPageText(document_)
+}
+
+/**
+ * Extract web page content to save as a **bookmark**
+ */
 export async function exctractPageContent(
   document_: Document,
   baseURL: string
