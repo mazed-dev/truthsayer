@@ -21,7 +21,7 @@ describe('test suite for makeUrl', () => {
   })
 
   test('_formatDescription - valid XML in output', () => {
-    process.env.CHROME = 'true'
+    process.env.CHROMIUM = 'true'
     const rooted = (xml: string) => `<root>${xml}</root>`
     const assertXml = (xml: string) => {
       // Test if any XML tags are added at all
@@ -40,7 +40,7 @@ describe('test suite for makeUrl', () => {
   })
 
   test('_formatDescription - no XML in output for Firefox', () => {
-    process.env.CHROME = undefined
+    process.env.CHROMIUM = undefined
     expect(formatDescription('a')).toStrictEqual('a')
     expect(
       formatDescription('a', 'https://abc.es').search(/<\w+>/)

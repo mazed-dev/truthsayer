@@ -144,12 +144,15 @@ const config = (env, argv) => {
       }),
       new webpack.DefinePlugin({
         'process.env.CHROME': JSON.stringify(env.chrome || false),
+        'process.env.EDGE': JSON.stringify(env.edge || false),
+        'process.env.CHROMIUM': JSON.stringify(env.chrome || env.edge || false),
         'process.env.FIREFOX': JSON.stringify(env.firefox || false),
         'process.env.SAFARI': JSON.stringify(env.safari || false),
         'process.env.BROWSER': JSON.stringify(
           (env.chrome) ? "chrome"
             : (env.firefox) ? "firefox"
-              : (env.safari) ? "safari" : ""
+              : (env.safari) ? "safari"
+                : (env.edge) ? "edge" : ""
         ),
         'process.env.REACT_APP_SMUGGLER_API_URL': JSON.stringify(
           _getSmugglerApiUrl(argv.mode)

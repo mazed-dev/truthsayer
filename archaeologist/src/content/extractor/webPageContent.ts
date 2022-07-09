@@ -25,7 +25,7 @@ async function fetchImagePreviewAsBase64(
   // Load the image
   return new Promise((resolve, reject) => {
     const image = document_.createElement('img')
-    if (process.env.CHROME) {
+    if (process.env.CHROMIUM) {
       image.setAttribute('crossorigin', 'anonymous')
     }
     image.onerror = reject
