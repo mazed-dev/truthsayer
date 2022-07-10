@@ -2,6 +2,7 @@ import * as badge from './badge/badge'
 import * as omnibox from './omnibox/omnibox'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import { ToPopUp, ToContent, FromPopUp, FromContent } from './message/types'
+
 import { mazed } from './util/mazed'
 import { DisappearingToastProps } from './content/toaster/Toaster'
 
@@ -288,6 +289,33 @@ async function checkOriginIdAndUpdatePageStatus(
   await updateContent('reset', quotes, bookmark, tabId)
 }
 
+async function registerAttentionTime(
+  tab: browser.Tabs.Tab | null,
+  message: FromContent.AttentionTimeChunk
+): Promise<void> {
+  if (tab == null) {
+    log.debug("Can't register attention time for a tab: ", tab)
+    return
+  }
+  const { totalSeconds, totalSecondsEstimation } = message
+  log.debug(
+    'Register Attention Time',
+    tab,
+    totalSeconds,
+    totalSecondsEstimation
+  )
+  // TODO: upsert attention time to smuggler here, see
+  // https://github.com/Thread-knowledge/smuggler/pull/76
+  if (totalSeconds >= totalSecondsEstimation) {
+    log.debug(
+      'Enough attention time for the tab, bookmark it',
+      totalSeconds,
+      tab
+    )
+    requestPageContentToSave(tab)
+  }
+}
+
 browser.runtime.onMessage.addListener(
   async (
     message: FromContent.Message,
@@ -310,6 +338,9 @@ browser.runtime.onMessage.addListener(
             fromNid
           )
         }
+        break
+      case 'ATTENTION_TIME_CHUNK':
+        await registerAttentionTime(tab, message)
         break
       default:
         break

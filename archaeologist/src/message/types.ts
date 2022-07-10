@@ -123,7 +123,16 @@ export namespace FromContent {
     // right hand side
     fromNid?: string
   }
-  export type Message = GetSelectedQuoteResponse | SavePageResponse
+  /** Describes for how long a user actively paid attention to a particular webpage */
+  export interface AttentionTimeChunk {
+    type: 'ATTENTION_TIME_CHUNK'
+    totalSeconds: number
+    totalSecondsEstimation: number
+  }
+  export type Message =
+    | GetSelectedQuoteResponse
+    | SavePageResponse
+    | AttentionTimeChunk
   export function sendMessage(message: Message): Promise<void> {
     return browser.runtime.sendMessage(message)
   }
