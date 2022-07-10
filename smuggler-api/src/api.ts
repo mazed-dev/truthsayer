@@ -11,7 +11,7 @@ import {
   NodeCreateRequestBody,
   NodeExtattrs,
   NodeIndexText,
-  NodeOrigin,
+  OriginId,
   NodePatchRequest,
   NodeTextData,
   NodeType,
@@ -79,7 +79,7 @@ export type CreateNodeArgs = {
   index_text?: NodeIndexText
   extattrs?: NodeExtattrs
   ntype?: NodeType
-  origin?: NodeOrigin
+  origin?: OriginId
 }
 
 async function createNode(
@@ -462,7 +462,7 @@ export const getNodesSlice: GetNodesSliceFn = async ({
   start_time: Optional<number>
   offset: Optional<number>
   limit: Optional<number>
-  origin?: NodeOrigin
+  origin?: OriginId
   signal?: AbortSignal
 }) => {
   const req: NodeAttrsSearchRequest = {
@@ -522,7 +522,7 @@ function _getNodesSliceIter({
   end_time?: number
   start_time?: number
   limit?: number
-  origin?: NodeOrigin
+  origin?: OriginId
   bucket_time_size?: number
 }) {
   return new TNodeSliceIterator(

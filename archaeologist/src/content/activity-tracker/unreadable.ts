@@ -1,13 +1,15 @@
 import { isMemorable } from '../extractor/unmemorable'
 import { log } from 'armoury'
 
+import { isProbablyReaderable } from '@mozilla/readability'
+
 const kTools: RegExp[] = [/.*\.google\.com/]
 const kHomepage: RegExp[] = [
   /^\/?$/, // empty path
   /index.html$/,
   /index.php$/,
 ]
-function _isArticleUrl(url: URL): boolean {
+export function _isArticleUrl(url: URL): boolean {
   if (
     kHomepage.find((r: RegExp) => {
       return url.pathname.match(r)
@@ -27,6 +29,10 @@ function _isArticleUrl(url: URL): boolean {
   return true
 }
 
-export function isPageReadable(url: string): boolean {
-  return isMemorable(url) && _isArticleUrl(new URL(url))
+export function isPageReadable(url: string, document_: Document): boolean {
+  return (
+    isMemorable(url) &&
+    _isArticleUrl(new URL(url)) &&
+    isProbablyReaderable(document_)
+  )
 }

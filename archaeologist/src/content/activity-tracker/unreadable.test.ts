@@ -1,29 +1,27 @@
-import { isPageReadable } from './unreadable'
+import { _isArticleUrl } from './unreadable'
 
 test('unreadable.homepage', () => {
-  expect(isPageReadable('https://stackoverflow.com/')).toStrictEqual(false)
-  expect(isPageReadable('https://youtube.com/')).toStrictEqual(false)
-  expect(isPageReadable('https://stackoverflow.com/index.html')).toStrictEqual(
+  expect(_isArticleUrl(new URL('https://stackoverflow.com/'))).toStrictEqual(
     false
   )
-  expect(isPageReadable('https://stackoverflow.com/index.php')).toStrictEqual(
-    false
-  )
+  expect(_isArticleUrl(new URL('https://youtube.com/'))).toStrictEqual(false)
   expect(
-    isPageReadable('https://akindyakov.dev/routine-and-recipes/')
+    _isArticleUrl(new URL('https://stackoverflow.com/index.html'))
+  ).toStrictEqual(false)
+  expect(
+    _isArticleUrl(new URL('https://stackoverflow.com/index.php'))
+  ).toStrictEqual(false)
+  expect(
+    _isArticleUrl(new URL('https://akindyakov.dev/routine-and-recipes/'))
   ).toStrictEqual(true)
-})
-
-test('unreadable.unmemorable', () => {
-  expect(isPageReadable('https://fb.com/')).toStrictEqual(false)
-  expect(isPageReadable('https://google.com/')).toStrictEqual(false)
-  expect(isPageReadable('https://instagram.com/')).toStrictEqual(false)
 })
 
 test('unreadable.tools', () => {
   expect(
-    isPageReadable(
-      'https://translate.google.com/?sl=en&tl=ru&text=text&op=translate'
+    _isArticleUrl(
+      new URL(
+        'https://translate.google.com/?sl=en&tl=ru&text=text&op=translate'
+      )
     )
   ).toStrictEqual(false)
 })

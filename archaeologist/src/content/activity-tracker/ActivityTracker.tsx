@@ -21,7 +21,10 @@ export const ActivityTracker = ({
   ) => void
   disabled?: boolean
 }) => {
-  if (disabled || !isPageReadable(window.location.toString())) {
+  if (
+    disabled ||
+    !isPageReadable(window.location.toString(), window.document)
+  ) {
     return null
   }
   return <ReadingTimeTracker registerAttentionTime={registerAttentionTime} />

@@ -1,11 +1,13 @@
 import * as badge from './badge/badge'
 import * as omnibox from './omnibox/omnibox'
+import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import { ToPopUp, ToContent, FromPopUp, FromContent } from './message/types'
 
 import { mazed } from './util/mazed'
 import { DisappearingToastProps } from './content/toaster/Toaster'
 
 import { WebPageContent } from './content/extractor/webPageContent'
+import { requestPageContentToSave } from './background/request-content'
 
 import browser from 'webextension-polyfill'
 import { log, isAbortError, errorise, genOriginId, MimeType } from 'armoury'
@@ -19,6 +21,7 @@ import {
   authCookie,
   makeNodeTextData,
   smuggler,
+  OriginHash,
 } from 'smuggler-api'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
@@ -37,24 +40,6 @@ async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
     }
   }
   return null
-}
-
-/**
- * Request page to be saved. content.ts is listening for this message and
- * respond with page content message that could be saved to smuggler.
- */
-async function requestPageContentToSave(tab: browser.Tabs.Tab | null) {
-  const tabId = tab?.id
-  if (tabId == null) {
-    return
-  }
-  try {
-    await ToContent.sendMessage(tabId, { type: 'REQUEST_PAGE_CONTENT' })
-  } catch (err) {
-    if (!isAbortError(err)) {
-      log.exception(err)
-    }
-  }
 }
 
 /**
@@ -130,7 +115,7 @@ async function updateContent(
 
 async function savePage(
   url: string,
-  originId: number,
+  originId: OriginHash,
   quoteNids: string[],
   content?: WebPageContent,
   tabId?: number
@@ -181,7 +166,7 @@ async function savePage(
 }
 
 async function savePageQuote(
-  originId: number,
+  originId: OriginHash,
   { url, path, text }: NodeExtattrsWebQuote,
   lang?: string,
   tabId?: number,
@@ -278,7 +263,7 @@ async function sendAuthStatus() {
 async function checkOriginIdAndUpdatePageStatus(
   tabId: number | undefined,
   url: string,
-  originId?: number
+  originId?: OriginHash
 ) {
   if (originId == null) {
     const unmemorable = true
@@ -387,7 +372,6 @@ browser.tabs.onUpdated.addListener(
     changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
     tab: browser.Tabs.Tab
   ) => {
-    log.debug('background. try to requestPageSavedStatus', tab)
     if (
       !tab.incognito &&
       tab.url &&
@@ -450,3 +434,4 @@ browser.contextMenus.onClicked.addListener(
 )
 
 omnibox.register()
+browserBookmarks.register()
