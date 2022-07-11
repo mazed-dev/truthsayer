@@ -1,10 +1,13 @@
 import * as badge from './badge/badge'
 import * as omnibox from './omnibox/omnibox'
+import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import { ToPopUp, ToContent, FromPopUp, FromContent } from './message/types'
+
 import { mazed } from './util/mazed'
 import { DisappearingToastProps } from './content/toaster/Toaster'
 
 import { WebPageContent } from './content/extractor/webPageContent'
+import { requestPageContentToSave } from './background/request-content'
 
 import browser from 'webextension-polyfill'
 import { log, isAbortError, errorise, genOriginId, MimeType } from 'armoury'
@@ -18,6 +21,7 @@ import {
   authCookie,
   makeNodeTextData,
   smuggler,
+  OriginHash,
 } from 'smuggler-api'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
@@ -36,24 +40,6 @@ async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
     }
   }
   return null
-}
-
-/**
- * Request page to be saved. content.ts is listening for this message and
- * respond with page content message that could be saved to smuggler.
- */
-async function requestPageContentToSave(tab: browser.Tabs.Tab | null) {
-  const tabId = tab?.id
-  if (tabId == null) {
-    return
-  }
-  try {
-    await ToContent.sendMessage(tabId, { type: 'REQUEST_PAGE_CONTENT' })
-  } catch (err) {
-    if (!isAbortError(err)) {
-      log.exception(err)
-    }
-  }
 }
 
 /**
@@ -129,7 +115,7 @@ async function updateContent(
 
 async function savePage(
   url: string,
-  originId: number,
+  originId: OriginHash,
   quoteNids: string[],
   content?: WebPageContent,
   tabId?: number
@@ -180,7 +166,7 @@ async function savePage(
 }
 
 async function savePageQuote(
-  originId: number,
+  originId: OriginHash,
   { url, path, text }: NodeExtattrsWebQuote,
   lang?: string,
   tabId?: number,
@@ -277,7 +263,7 @@ async function sendAuthStatus() {
 async function checkOriginIdAndUpdatePageStatus(
   tabId: number | undefined,
   url: string,
-  originId?: number
+  originId?: OriginHash
 ) {
   if (originId == null) {
     const unmemorable = true
@@ -303,6 +289,33 @@ async function checkOriginIdAndUpdatePageStatus(
   await updateContent('reset', quotes, bookmark, tabId)
 }
 
+async function registerAttentionTime(
+  tab: browser.Tabs.Tab | null,
+  message: FromContent.AttentionTimeChunk
+): Promise<void> {
+  if (tab == null) {
+    log.debug("Can't register attention time for a tab: ", tab)
+    return
+  }
+  const { totalSeconds, totalSecondsEstimation } = message
+  log.debug(
+    'Register Attention Time',
+    tab,
+    totalSeconds,
+    totalSecondsEstimation
+  )
+  // TODO: upsert attention time to smuggler here, see
+  // https://github.com/Thread-knowledge/smuggler/pull/76
+  if (totalSeconds >= totalSecondsEstimation) {
+    log.debug(
+      'Enough attention time for the tab, bookmark it',
+      totalSeconds,
+      tab
+    )
+    requestPageContentToSave(tab)
+  }
+}
+
 browser.runtime.onMessage.addListener(
   async (
     message: FromContent.Message,
@@ -325,6 +338,9 @@ browser.runtime.onMessage.addListener(
             fromNid
           )
         }
+        break
+      case 'ATTENTION_TIME_CHUNK':
+        await registerAttentionTime(tab, message)
         break
       default:
         break
@@ -356,7 +372,6 @@ browser.tabs.onUpdated.addListener(
     changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
     tab: browser.Tabs.Tab
   ) => {
-    log.debug('background. try to requestPageSavedStatus', tab)
     if (
       !tab.incognito &&
       tab.url &&
@@ -419,3 +434,4 @@ browser.contextMenus.onClicked.addListener(
 )
 
 omnibox.register()
+browserBookmarks.register()
