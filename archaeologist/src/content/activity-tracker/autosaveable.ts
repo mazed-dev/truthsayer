@@ -1,6 +1,5 @@
 import { isMemorable } from '../extractor/unmemorable'
 import { log } from 'armoury'
-
 import { isProbablyReaderable } from '@mozilla/readability'
 
 const kHomepage: RegExp[] = [
@@ -21,8 +20,11 @@ export function _isArticleUrl(url: URL): boolean {
 }
 
 const kBlocklist: RegExp[] = [
-  // Because archaeologist can't yet extract text && description from GDocs
+  // Block autosaving on google documents, because archaeologist can't yet
+  // extract text && description from them.
   /docs\.google\.com\//,
+  // Block subpages of PRs on github, only PR comments page (main)
+  /github\.com\/[\w-]+\/[\w-]+\/pull\/\d+\/(checks|files|commits)/,
 ]
 const kAllowlist: RegExp[] = []
 /**
@@ -39,23 +41,27 @@ export function _isManuallyAllowed(url: string): boolean {
     log.debug(`The URL ${url} is a is allowed for autosaving`)
     return true
   }
+  return false
+}
+
+export function _isManuallyBlocked(url: string): boolean {
   if (kBlocklist.find((r: RegExp) => url.match(r))) {
     log.debug(`The URL ${url} is a is not allowed for autosaving`)
+    return true
+  }
+  return false
+}
+
+export function isPageAutosaveable(url: string, document_: Document): boolean {
+  if (_isManuallyAllowed(url)) {
+    return true
+  }
+  if (_isManuallyBlocked(url)) {
     return false
   }
-  return true
-}
-
-/**
- * Hacky lightweight function with a pile of heuristics to determine if given
- * URL refers a readable page.
- */
-export function isUrlReadable(url: string): boolean {
   return (
-    isMemorable(url) && _isArticleUrl(new URL(url)) && _isManuallyAllowed(url)
+    isMemorable(url) &&
+    _isArticleUrl(new URL(url)) &&
+    isProbablyReaderable(document_)
   )
-}
-
-export function isPageReadable(url: string, document_: Document): boolean {
-  return isUrlReadable(url) && isProbablyReaderable(document_)
 }
