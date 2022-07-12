@@ -163,11 +163,9 @@ export async function exctractPageContent(
     // MozillaReadability library does on the first place.
     text = _exctractPageText(document_)
   }
-  if (text != null) {
-    // Cut string by length 10,000 to avoid blowing up backend with huge JSON.
-    // Later on we can and perhaps should reconsider this limit.
-    text = unicodeText.truncate(text, 10_000)
-  }
+  // Cut string by length 10KiB to avoid blowing up backend with huge JSON.
+  // Later on we can and perhaps should reconsider this limit.
+  text = unicodeText.truncate(text, 10240, unicodeText.kTruncateSeparatorSpace)
   return {
     url,
     title: title || null,
@@ -178,6 +176,16 @@ export async function exctractPageContent(
     text,
     image: await _fetchAnyPageThumbnailImage(document_, thumbnailUrls),
   }
+}
+
+export function _truncateText(text: string, length?: number): string {
+  // Cut string by length 10KiB to avoid blowing up backend with huge JSON.
+  // Later on we can and perhaps should reconsider this limit.
+  return lodash.truncate(text, {
+    length: length ?? 10240,
+    separator: /\s/,
+    omission: '',
+  })
 }
 
 const isSameOrDescendant = function (parent: Element, child: Element) {

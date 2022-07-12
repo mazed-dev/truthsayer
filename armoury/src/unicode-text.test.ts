@@ -1,6 +1,6 @@
 import { unicodeText } from './unicode-text'
 
-const { getWordCount, getTimeToRead, trimWhitespace } = unicodeText
+const { getWordCount, getTimeToRead, trimWhitespace, truncate } = unicodeText
 
 const kMultilineText = `
 Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
@@ -37,4 +37,14 @@ test('trimWhitespace', () => {
     'a b c d e @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \\ ] ^ ' +
       '_ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~'
   )
+})
+
+test('truncate', () => {
+  expect(truncate('Джо́зеф Не́льсон Ро́уз', 12)).toStrictEqual('Джо́зеф Не́льс') // Default is kTruncateSeparatorUChar
+  expect(
+    truncate('Джо́зеф Не́льсон Ро́уз', 11, unicodeText.kTruncateSeparatorUChar)
+  ).toStrictEqual('Джо́зеф Не́ль')
+  expect(
+    truncate('Джо́зеф Не́льсон Ро́уз', 12, unicodeText.kTruncateSeparatorSpace)
+  ).toStrictEqual('Джо́зеф')
 })

@@ -25,15 +25,19 @@ export namespace unicodeText {
     return text
   }
 
+  export const kTruncateSeparatorUChar = /./u
+  export const kTruncateSeparatorSpace = /\s/
+
   export function truncate(
     text: string,
     limit: number,
+    separator?: RegExp | string,
     omission?: string
   ): string {
     return lodash.truncate(text, {
       length: limit,
-      separator: /./u,
       omission: omission ?? '',
+      separator: separator ?? kTruncateSeparatorUChar,
     })
   }
 }
