@@ -1,4 +1,8 @@
-import { genOriginId, _uint32ToInt32 } from '../src/originId'
+import {
+  genOriginId,
+  stabiliseUrlForOriginId,
+  _uint32ToInt32,
+} from '../src/originId'
 
 import { urls } from './originId.test.data.json'
 
@@ -85,4 +89,46 @@ test('u32ToI32', () => {
   expect(_uint32ToInt32(0xffffffff)).toStrictEqual(-1)
 
   expect(_uint32ToInt32(-1)).toStrictEqual(-1)
+})
+
+test('stabiliseUrlForOriginId', () => {
+  expect(stabiliseUrlForOriginId('https://simonwillison.net/')).toStrictEqual(
+    'https://simonwillison.net'
+  )
+})
+test('stabiliseUrlForOriginId - utm_ query parameters are removed', () => {
+  // All utm's query parameters are removed
+  expect(
+    stabiliseUrlForOriginId(
+      'https://simonwillison.net/2022/Jul/9/gpt-3-explain-code/?utm_source=pocket_mylist'
+    )
+  ).toStrictEqual('https://simonwillison.net/2022/Jul/9/gpt-3-explain-code')
+  expect(
+    stabiliseUrlForOriginId(
+      'https://simonwillison.net/2022/Jul/9/gpt-3-explain-code/?utm_source=pocket_mylist&utm_medium=email'
+    )
+  ).toStrictEqual('https://simonwillison.net/2022/Jul/9/gpt-3-explain-code')
+  expect(
+    stabiliseUrlForOriginId(
+      'https://simonwillison.net/2022/Jul/9/gpt-3-explain-code/?utm_medium=email&utm_campaign=summer-sale&utm_term=gpt-3&utm_content=abc'
+    )
+  ).toStrictEqual('https://simonwillison.net/2022/Jul/9/gpt-3-explain-code')
+})
+
+test('stabiliseUrlForOriginId - itm_ query parameters are removed', () => {
+  // All itm's query parameters are removed
+  expect(
+    stabiliseUrlForOriginId(
+      'https://simonwillison.net/2022/Jul/9/gpt-3-explain-code/?itm_source=pocket_mylist'
+    )
+  ).toStrictEqual('https://simonwillison.net/2022/Jul/9/gpt-3-explain-code')
+})
+
+test('stabiliseUrlForOriginId - query parameters are preserved', () => {
+  // All other keys are preserved as they are
+  ;[
+    'https://google.com/search?newwindow=1&q=ts&sxsrf=ALiCzsYnB6rzki&utmost=yes',
+  ].forEach((url) => {
+    expect(stabiliseUrlForOriginId(url)).toStrictEqual(url)
+  })
 })
