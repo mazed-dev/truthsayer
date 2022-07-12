@@ -14,6 +14,7 @@
 import { PreviewImageSmall } from 'smuggler-api'
 
 import { Readability as MozillaReadability } from '@mozilla/readability'
+import lodash from 'lodash'
 
 import { MimeType, log, stabiliseUrlForOriginId, unicodeText } from 'armoury'
 
@@ -141,8 +142,8 @@ export async function exctractPageContent(
       // extractor fails.
       if (textContent.indexOf(excerpt) < 0) {
         // MozillaReadability takes first paragraph as a description, if it
-        // hasn't found description in the article's metadata. Such descriptions
-        // are quite bad, it's better without description at all then.
+        // hasn't found description in the article's metadata. Such description
+        // is quite bad, it's better without description at all then.
         description = excerpt
       }
     }
@@ -229,7 +230,7 @@ export function _exctractPageText(document_: Document): string {
     }
   }
   if (ret.length > 0) {
-    return ret.join(' ')
+    return lodash.unescape(ret.join(' '))
   }
   for (const elementsGroup of [
     body.querySelectorAll('[role="main"]'),
@@ -253,7 +254,7 @@ export function _exctractPageText(document_: Document): string {
       addedElements.push(element)
     }
   }
-  return ret.join(' ')
+  return lodash.unescape(ret.join(' '))
 }
 
 /**
@@ -281,7 +282,7 @@ export function _exctractPageTitle(document_: Document): string | null {
         element.getAttribute(attribute)?.trim() || ''
       )
       if (title) {
-        return title
+        return lodash.unescape(title)
       }
     }
   }
@@ -298,7 +299,7 @@ export function _exctractPageAuthor(document_: Document): string[] {
         element.getAttribute(attribute)?.trim() || ''
       )
       if (author) {
-        authors.push(author)
+        authors.push(lodash.unescape(author))
       }
     }
   }
@@ -318,7 +319,7 @@ export function _exctractPageDescription(document_: Document): string | null {
         element.getAttribute(attribute)?.trim() || ''
       )
       if (text) {
-        return text
+        return lodash.unescape(text)
       }
     }
   }
