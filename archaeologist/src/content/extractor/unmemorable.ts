@@ -1,5 +1,9 @@
 const kUnmemorable: RegExp[] = [
   /https?:\/\/(www\.)?google\.com/,
+  // Block bookmarking for google keep entirely.
+  // Because google.keep uses URL hash based routing, so individual notes are
+  // not distinguishable for archaeologist - they all have the same origin ID.
+  /https?:\/\/(www\.)?keep\.google\.com/,
   /https?:\/\/(www\.)?fb\.com/,
   /https?:\/\/(www\.)?facebook\.com/,
   /https?:\/\/(www\.)?instagram\.com/,
