@@ -1,6 +1,6 @@
 import { smuggler, TNode } from 'smuggler-api'
 import { Beagle, TDoc } from 'elementary'
-import { log } from 'armoury'
+import { log, unicodeText } from 'armoury'
 import { mazed } from '../util/mazed'
 
 import browser from 'webextension-polyfill'
@@ -100,7 +100,7 @@ function _truncate(text: string, length?: number): string {
   return lodash.truncate(text, {
     length: length ?? 12,
     omission: '…',
-    separator: /./u,
+    separator: unicodeText.kTruncateSeparatorUChar,
   })
 }
 

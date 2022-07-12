@@ -5,6 +5,7 @@ import { HistoryEditor } from 'slate-history'
 import type { NodeTextData } from 'smuggler-api'
 
 import lodash from 'lodash'
+import { unicodeText } from 'armoury'
 
 export type SlateText = Descendant[]
 
@@ -385,7 +386,7 @@ export class TDoc {
     return lodash.truncate(texts.join(' ').replaceAll(/\s+/g, ' ') || '…', {
       length,
       omission: '…',
-      separator: /./u,
+      separator: unicodeText.kTruncateSeparatorUChar,
     })
   }
 

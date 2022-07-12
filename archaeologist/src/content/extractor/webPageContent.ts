@@ -164,8 +164,13 @@ export async function exctractPageContent(
     text = _exctractPageText(document_)
   }
   // Cut string by length 10KiB to avoid blowing up backend with huge JSON.
+  // We cut the text here avoiding splitting words, by using kTruncateSeparatorSpace separator.
   // Later on we can and perhaps should reconsider this limit.
-  text = unicodeText.truncate(text, 10240, unicodeText.kTruncateSeparatorSpace)
+  text = lodash.truncate(text, {
+    length: 10240,
+    separator: unicodeText.kTruncateSeparatorSpace,
+    omission: '',
+  })
   return {
     url,
     title: title || null,
@@ -176,16 +181,6 @@ export async function exctractPageContent(
     text,
     image: await _fetchAnyPageThumbnailImage(document_, thumbnailUrls),
   }
-}
-
-export function _truncateText(text: string, length?: number): string {
-  // Cut string by length 10KiB to avoid blowing up backend with huge JSON.
-  // Later on we can and perhaps should reconsider this limit.
-  return lodash.truncate(text, {
-    length: length ?? 10240,
-    separator: /\s/,
-    omission: '',
-  })
 }
 
 const isSameOrDescendant = function (parent: Element, child: Element) {
