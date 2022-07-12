@@ -5,7 +5,7 @@ import moment from 'moment'
 
 import { exctractReadableTextFromPage } from './../extractor/webPageContent'
 import { getTimeToRead } from './reading-stats'
-import { isPageReadable } from './unreadable'
+import { isPageAutosaveable } from './autosaveable'
 
 /**
  * This is virtual element to wrap trackers of users activity on a page and
@@ -23,7 +23,7 @@ export const ActivityTracker = ({
 }) => {
   if (
     disabled ||
-    !isPageReadable(window.location.toString(), window.document)
+    !isPageAutosaveable(window.location.toString(), window.document)
   ) {
     return null
   }
