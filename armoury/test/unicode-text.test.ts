@@ -1,4 +1,4 @@
-import { unicodeText } from './unicode-text'
+import { unicodeText } from '../src/unicode-text'
 
 const { getWordCount, getTimeToRead, trimWhitespace, truncate } = unicodeText
 
