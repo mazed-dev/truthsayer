@@ -2,22 +2,6 @@ import lodash from 'lodash'
 import moment from 'moment'
 
 export namespace unicodeText {
-  export function truncateTextByWords(
-    text: string,
-    limit: number,
-    omission?: string
-  ): string {
-    let truncated = text
-      .split(/[\n\p{Separator}]+/gu, limit * 2)
-      .filter((s) => !!s)
-      .slice(0, limit)
-      .join(' ')
-    if (omission != null && truncated.length < text.length) {
-      truncated = truncated.concat(omission)
-    }
-    return truncated
-  }
-
   export function getWordCount(plaintext: string): number {
     return plaintext.match(/\p{L}+/gu)?.length || 0
   }
@@ -34,7 +18,10 @@ export namespace unicodeText {
    */
   export function trimWhitespace(text: string): string {
     text = text.trim()
-    text = text.replace(/[\u00B6\u2202\s]{2,}/g, ' ')
+    text = text.replace(
+      /[\u00B6\u2202\u2000-\u200B\u202F\u205F\u3000\uFEFF\s]{2,}/g,
+      ' '
+    )
     return text
   }
 

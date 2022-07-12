@@ -1,7 +1,6 @@
 import { unicodeText } from './unicode-text'
 
-const { getWordCount, getTimeToRead, truncateTextByWords, trimWhitespace } =
-  unicodeText
+const { getWordCount, getTimeToRead, trimWhitespace } = unicodeText
 
 const kMultilineText = `
 Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
@@ -26,33 +25,9 @@ test('getTimeToRead', () => {
   expect(getTimeToRead(kMultilineText).asSeconds()).toStrictEqual(23)
 })
 
-test('truncateTextByWords', () => {
-  expect(truncateTextByWords('Abc abc abc abc', 2)).toStrictEqual('Abc abc')
-  expect(truncateTextByWords('Abc abc abc abc', 2, '…')).toStrictEqual(
-    'Abc abc…'
-  )
-  expect(
-    truncateTextByWords(
-      'Пави́я (итал. Pavia [paˈviːa], ломб. Pavia, лат. Papia, Ticinum) — город на севере Италии в регионе Ломбардия.',
-      12
-    )
-  ).toStrictEqual(
-    'Пави́я (итал. Pavia [paˈviːa], ломб. Pavia, лат. Papia, Ticinum) — город на'
-  )
-  expect(
-    truncateTextByWords(
-      `
-    Пави́я (итал. Pavia [paˈviːa], ломб. Pavia, лат. Papia, Ticinum)
-    — город на севере Италии в регионе Ломбардия.
-  `,
-      12
-    )
-  ).toStrictEqual(
-    'Пави́я (итал. Pavia [paˈviːa], ломб. Pavia, лат. Papia, Ticinum) — город на'
-  )
-})
-
 test('trimWhitespace', () => {
+  expect(trimWhitespace('Abc\t\tabc')).toStrictEqual('Abc abc')
+  expect(trimWhitespace('Abc\u2002\u2003abc')).toStrictEqual('Abc abc')
   expect(
     trimWhitespace(`  a  b   c     d   \t \n  e\n\n
 @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \\ ] ^ _ \` a b
