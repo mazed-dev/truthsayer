@@ -43,42 +43,19 @@ export async function genOriginId(url: string): Promise<
   return { id, stableUrl }
 }
 
-// Remove ads campaign data from query of given URLs
-// https://support.google.com/analytics/answer/1033863
-const kRemoveQueryParameters: RegExp[] = [/^utm_\w+/i, /^itm_\w+/i]
-function _removeSomeQueryParameters(url: URL): URL {
-  const keysToRemove: string[] = []
-  url.searchParams.forEach((_value: string, key: string) => {
-    if (kRemoveQueryParameters.some((re: RegExp) => re.test(key))) {
-      keysToRemove.push(key)
-    }
-  })
-  keysToRemove.forEach((key: string) => url.searchParams.delete(key))
-  return url
-}
 export function stabiliseUrlForOriginId(url: string): string {
-  const normalizeUrlOpts = {
+  return normalizeUrl(url, {
     forceHttps: true,
     normalizeProtocol: true,
     removeTrailingSlash: true,
-    removeQueryParameters: false, // Do not turn it on, it's broken for firefox
+    // Remove ads campaign data from query of given URLs
+    // https://support.google.com/analytics/answer/1033863
+    removeQueryParameters: [/^utm_\w+/i, /^itm_\w+/i],
     sortQueryParameters: true,
     stripAuthentication: true,
     stripHash: true,
     stripProtocol: false,
     stripTextFragment: true,
     stripWWW: true,
-  }
-  // This is a hack, because on Firefox `removeQueryParameters` doesn't work.
-  // 1. We normalize first, to make it valid, to avoid `URL` constructor failing
-  //    with exception on invalid URL.
-  // 2. Then we remove nasty ads tracking query parameters.
-  // 3. Then we normalize URL again, because we expect URL to be serialized with
-  //    a specific stable formatting.
-  return normalizeUrl(
-    _removeSomeQueryParameters(
-      new URL(normalizeUrl(url, normalizeUrlOpts))
-    ).toString(),
-    normalizeUrlOpts
-  )
+  })
 }
