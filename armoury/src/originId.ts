@@ -48,7 +48,9 @@ export function stabiliseUrlForOriginId(url: string): string {
     forceHttps: true,
     normalizeProtocol: true,
     removeTrailingSlash: true,
-    removeQueryParameters: false, // Do not turn it on, it's broken for firefox
+    // Remove ads campaign data from query of given URLs
+    // https://support.google.com/analytics/answer/1033863
+    removeQueryParameters: [/^utm_\w+/i, /^itm_\w+/i],
     sortQueryParameters: true,
     stripAuthentication: true,
     stripHash: true,
