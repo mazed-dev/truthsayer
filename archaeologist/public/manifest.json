@@ -3,7 +3,7 @@
   "name": "Mazed",
   "author": "Thread knowledge",
   "version": "0.1.10",
-  "description": "Bookmark web pages to Mazed",
+  "description": "Get a quick and easy access to your online reading history",
   "homepage_url": "https://mazed.dev",
   "action": {
     "default_icon": {
