@@ -1,4 +1,4 @@
-import normalizeUrl from 'normalize-url'
+import { normalizeUrl } from './normalize-url'
 
 import xxh from 'xxhashjs'
 
