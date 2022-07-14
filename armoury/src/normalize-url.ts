@@ -9,6 +9,10 @@
  * the main part of the patch, everything else is about small neglectable fixes
  * migraion to TS and style fixes.
  */
+
+import { isAbortError, errorise } from './exception'
+import { log } from './log'
+
 export interface Options {
   /**
   @default 'http:'
@@ -310,7 +314,10 @@ export function normalizeUrl(urlString: string, options?: Options): string {
 
   // Prepend protocol
   if (!isRelativeUrl) {
-    urlString = urlString.replace(/^(?!(?:\w+:)?\/\/)|^\/\//, defaultProtocol + '//')
+    urlString = urlString.replace(
+      /^(?!(?:\w+:)?\/\/)|^\/\//,
+      `${defaultProtocol}//`
+    )
   }
 
   const urlObject = new URL(urlString)
@@ -384,7 +391,12 @@ export function normalizeUrl(urlString: string, options?: Options): string {
   if (urlObject.pathname) {
     try {
       urlObject.pathname = decodeURI(urlObject.pathname)
-    } catch {}
+    } catch (err) {
+      // This is a best effort, so we swallowing an errror here
+      if (!isAbortError(err)) {
+        log.debug(err)
+      }
+    }
   }
 
   // Remove directory index
@@ -424,13 +436,11 @@ export function normalizeUrl(urlString: string, options?: Options): string {
   // Remove query unwanted parameters
   if (Array.isArray(removeQueryParameters)) {
     const keysToDelete: string[] = []
-    urlObject.searchParams.forEach(
-      (_value: string, key: string) => {
-        if (testParameter(key, removeQueryParameters)) {
-          keysToDelete.push(key)
-        }
+    urlObject.searchParams.forEach((_value: string, key: string) => {
+      if (testParameter(key, removeQueryParameters)) {
+        keysToDelete.push(key)
       }
-    )
+    })
     keysToDelete.forEach((key: string) => urlObject.searchParams.delete(key))
   }
 
@@ -445,7 +455,12 @@ export function normalizeUrl(urlString: string, options?: Options): string {
     // Calling `.sort()` encodes the search parameters, so we need to decode them again.
     try {
       urlObject.search = decodeURIComponent(urlObject.search)
-    } catch {}
+    } catch (err) {
+      // This is a best effort, so we swallowing an errror here
+      if (!isAbortError(err)) {
+        log.debug(err)
+      }
+    }
   }
 
   if (removeTrailingSlash) {
