@@ -72,7 +72,6 @@ export const SearchGrid = ({
     beagle: Beagle
   } | null>(null)
   useEffect(() => {
-    log.debug('Set up search for', q)
     setUpSearch({
       iter: smuggler.node.slice({}),
       beagle: Beagle.fromString(q || undefined),

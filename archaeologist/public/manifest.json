@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Mazed",
   "author": "Thread knowledge",
-  "version": "0.1.10",
-  "description": "Get a quick and easy access to your online reading history",
+  "version": "0.1.9",
+  "description": "Bookmark web pages to Mazed",
   "homepage_url": "https://mazed.dev",
   "action": {
     "default_icon": {
