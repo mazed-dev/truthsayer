@@ -502,3 +502,56 @@ export function normalizeUrl(urlString: string, options?: Options): string {
 
   return urlString
 }
+const DATA_URL_DEFAULT_MIME_TYPE = 'text/plain';
+const DATA_URL_DEFAULT_CHARSET = 'us-ascii';
+
+const normalizeDataURL = (urlString: string, stripHash: boolean) => {
+  const match = /^data:(?<type>[^,]*?),(?<data>[^#]*?)(?:#(?<hash>.*))?$/.exec(urlString);
+
+  if (!match) {
+    throw new Error(`Invalid URL: ${urlString}`);
+  }
+
+  let {type, data, hash} = match.groups;
+  const mediaType = type.split(';');
+  hash = stripHash ? '' : hash;
+
+  let isBase64 = false;
+  if (mediaType[mediaType.length - 1] === 'base64') {
+    mediaType.pop();
+    isBase64 = true;
+  }
+
+  // Lowercase MIME type
+  const mimeType = (mediaType.shift() || '').toLowerCase();
+  const attributes = mediaType
+    .map(attribute => {
+      let [key, value = ''] = attribute.split('=').map((s:string) => s.trim());
+
+      // Lowercase `charset`
+      if (key === 'charset') {
+        value = value.toLowerCase();
+
+        if (value === DATA_URL_DEFAULT_CHARSET) {
+          return '';
+        }
+      }
+
+      return `${key}${value ? `=${value}` : ''}`;
+    })
+    .filter(Boolean);
+
+  const normalizedMediaType = [
+    ...attributes,
+  ];
+
+  if (isBase64) {
+    normalizedMediaType.push('base64');
+  }
+
+  if (normalizedMediaType.length > 0 || (mimeType && mimeType !== DATA_URL_DEFAULT_MIME_TYPE)) {
+    normalizedMediaType.unshift(mimeType);
+  }
+
+  return `data:${normalizedMediaType.join(';')},${isBase64 ? data.trim() : data}${hash ? `#${hash}` : ''}`;
+};

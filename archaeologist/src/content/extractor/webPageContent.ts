@@ -16,7 +16,7 @@ import { PreviewImageSmall } from 'smuggler-api'
 import { Readability as MozillaReadability } from '@mozilla/readability'
 import lodash from 'lodash'
 
-import { MimeType, log, stabiliseUrlForOriginId, unicodeText } from 'armoury'
+import { MimeType, log, stabiliseUrlForOriginId, unicodeText, normalizeUrl } from 'armoury'
 
 async function fetchImagePreviewAsBase64(
   url: string,
@@ -26,9 +26,7 @@ async function fetchImagePreviewAsBase64(
   // Load the image
   return new Promise((resolve, reject) => {
     const image = document_.createElement('img')
-    if (process.env.CHROMIUM) {
-      image.setAttribute('crossorigin', 'anonymous')
-    }
+    image.setAttribute('crossorigin', 'anonymous')
     image.onerror = reject
     image.onload = (_ev) => {
       // Crop image, getting the biggest square from the center
