@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom'
 import browser from 'webextension-polyfill'
 
 import { TNode, TNodeJson } from 'smuggler-api'
-import { genOriginId, log } from 'armoury'
+import { genOriginId } from 'armoury'
 
 import { FromContent, ToContent } from './../message/types'
 import { genElementDomPath } from './extractor/html'
@@ -83,60 +83,57 @@ const App = () => {
   const [bookmark, setBookmark] = useState<TNode | null>(null)
   const [notification, setNotification] =
     useState<DisappearingToastProps | null>(null)
-  const listener = async (message: ToContent.Message) => {
-    switch (message.type) {
-      case 'REQUEST_PAGE_CONTENT':
-        if (bookmark == null) {
-          // Bookmark if not yet bookmarked
-          console.log('REQUEST_PAGE_CONTENT', quotes)
-          await bookmarkPage(quotes)
-        }
-        break
-      case 'REQUEST_SELECTED_WEB_QUOTE':
-        console.log('REQUEST_SELECTED_WEB_QUOTE', bookmark)
-        await saveSelectedTextAsQuote(message.text, bookmark)
-        break
-      case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
-        {
-          const { quotes, bookmark, mode } = message
-          const qs = quotes.map((json: TNodeJson) => TNode.fromJson(json))
-          const bm = bookmark != null ? TNode.fromJson(bookmark) : null
-          if (mode === 'reset') {
-            setQuotes(qs)
-            setBookmark(bm)
-          } else {
-            if (bm != null) {
-              // If mode is not 'reset', null bookmark in arguments should not discard
-              // existing bookmark
-              setBookmark(bm)
-            }
-            setQuotes((current) => current.concat(...qs))
+  const listener = React.useCallback(
+    async (message: ToContent.Message) => {
+      switch (message.type) {
+        case 'REQUEST_PAGE_CONTENT':
+          if (bookmark == null) {
+            // Bookmark if not yet bookmarked
+            await bookmarkPage(quotes)
           }
-        }
-        break
-      case 'SHOW_DISAPPEARING_NOTIFICATION':
-        {
-          const { text, href, tooltip, timeoutMsec } = message
-          setNotification({
-            text,
-            tooltip,
-            href,
-            timeoutMsec,
-          })
-        }
-        break
-      default:
-        break
-    }
-  }
+          break
+        case 'REQUEST_SELECTED_WEB_QUOTE':
+          await saveSelectedTextAsQuote(message.text, bookmark)
+          break
+        case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
+          {
+            const { quotes, bookmark, mode } = message
+            const qs = quotes.map((json: TNodeJson) => TNode.fromJson(json))
+            const bm = bookmark != null ? TNode.fromJson(bookmark) : null
+            if (mode === 'reset') {
+              setQuotes(qs)
+              setBookmark(bm)
+            } else {
+              if (bm != null) {
+                // If mode is not 'reset', null bookmark in arguments should not discard
+                // existing bookmark
+                setBookmark(bm)
+              }
+              setQuotes((current) => current.concat(...qs))
+            }
+          }
+          break
+        case 'SHOW_DISAPPEARING_NOTIFICATION':
+          {
+            const { text, href, tooltip, timeoutMsec } = message
+            setNotification({
+              text,
+              tooltip,
+              href,
+              timeoutMsec,
+            })
+          }
+          break
+        default:
+          break
+      }
+    },
+    [bookmark, quotes]
+  )
   useEffect(() => {
     browser.runtime.onMessage.addListener(listener)
-    log.debug('Archaeologist content script is loaded')
-    return () => {
-      browser.runtime.onMessage.removeListener(listener)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    return () => browser.runtime.onMessage.removeListener(listener)
+  }, [listener])
   return (
     <>
       <Toaster />
