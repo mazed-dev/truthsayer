@@ -322,6 +322,7 @@ browser.runtime.onMessage.addListener(
     sender: browser.Runtime.MessageSender
   ) => {
     const tab = sender.tab ?? (await getActiveTab())
+    log.debug('Get message from content', message, tab)
     switch (message.type) {
       case 'PAGE_TO_SAVE':
         const { url, content, originId, quoteNids } = message
@@ -351,6 +352,7 @@ browser.runtime.onMessage.addListener(
 browser.runtime.onMessage.addListener(async (message: FromPopUp.Message) => {
   // process is not defined in browsers extensions - use it to set up axios
   const activeTab = await getActiveTab()
+  log.debug('Get message from popup', message, activeTab)
   switch (message.type) {
     case 'REQUEST_PAGE_TO_SAVE':
       requestPageContentToSave(activeTab)

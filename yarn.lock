@@ -5412,7 +5412,6 @@ __metadata:
     js-base64: ^3.6
     lodash: ^4.17.21
     moment: ^2.29.2
-    normalize-url: ^7.0.3
     prettier: ^2.2
     query-string: ^7.0.0
     ts-jest: ^26.4.2
@@ -14949,13 +14948,6 @@ __metadata:
   version: 6.1.0
   resolution: "normalize-url@npm:6.1.0"
   checksum: 4a4944631173e7d521d6b80e4c85ccaeceb2870f315584fa30121f505a6dfd86439c5e3fdd8cd9e0e291290c41d0c3599f0cb12ab356722ed242584c30348e50
-  languageName: node
-  linkType: hard
-
-"normalize-url@npm:^7.0.3":
-  version: 7.0.3
-  resolution: "normalize-url@npm:7.0.3"
-  checksum: b57f6466cae7c66a274c7a40c7c9b7b81a49fc30872081793f58a885189889b26cac7370f6e049347f33f7e31dbbceb526b1e1cb28083344756c3d82ba4b34eb
   languageName: node
   linkType: hard
 
