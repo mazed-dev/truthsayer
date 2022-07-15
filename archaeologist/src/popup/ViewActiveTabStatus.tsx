@@ -10,7 +10,7 @@ import { TNode, TNodeJson } from 'smuggler-api'
 import { MdiBookmarkAdd, Spinner } from 'elementary'
 import { ButtonCreate } from './Button'
 
-import { MessageType } from './../message/types'
+import { ToPopUp, FromPopUp } from './../message/types'
 import { PageRelatedCards } from './PageRelatedCards'
 
 const Container = styled.div`
@@ -35,7 +35,7 @@ export const ViewActiveTabStatus = () => {
   const [pageSavedQuotes, setPageSavedQuotes] = React.useState<TNode[]>([])
 
   useAsyncEffect(async () => {
-    browser.runtime.onMessage.addListener((message: MessageType) => {
+    browser.runtime.onMessage.addListener((message: ToPopUp.Message) => {
       switch (message.type) {
         case 'UPDATE_POPUP_CARDS':
           {
@@ -67,14 +67,14 @@ export const ViewActiveTabStatus = () => {
           break
       }
     })
-    await browser.runtime.sendMessage({
+    await FromPopUp.sendMessage({
       type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS',
     })
   }, [])
 
   const handleSave = () => {
     setPageStatus('loading')
-    browser.runtime.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
+    FromPopUp.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
   }
 
   let btn

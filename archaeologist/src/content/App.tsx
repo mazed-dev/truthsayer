@@ -4,19 +4,25 @@ import ReactDOM from 'react-dom'
 import browser from 'webextension-polyfill'
 
 import { TNode, TNodeJson } from 'smuggler-api'
-import { genOriginId } from 'armoury'
+import { genOriginId, log } from 'armoury'
 
-import { Message, MessageType } from './../message/types'
-import { genElementDomPath } from './../extractor/html'
-import { isMemorable } from './../extractor/unmemorable'
+import { FromContent, ToContent } from './../message/types'
+import { genElementDomPath } from './extractor/html'
+import { isMemorable } from './extractor/unmemorable'
 import {
   exctractPageContent,
   exctractPageUrl,
-} from './../extractor/webPageContent'
+} from './extractor/webPageContent'
 
 import { Quotes } from './quote/Quotes'
+import { ActivityTracker } from './activity-tracker/ActivityTracker'
+import {
+  Toaster,
+  DisappearingToast,
+  DisappearingToastProps,
+} from './toaster/Toaster'
 
-async function readPageContent(quotes: TNode[]) {
+async function bookmarkPage(quotes: TNode[]) {
   const { id: originId, stableUrl } = await genOriginId(
     exctractPageUrl(document)
   )
@@ -24,18 +30,16 @@ async function readPageContent(quotes: TNode[]) {
   const content = isMemorable(stableUrl)
     ? await exctractPageContent(document, baseURL)
     : undefined
-  await browser.runtime.sendMessage(
-    Message.create({
-      type: 'PAGE_TO_SAVE',
-      content,
-      originId,
-      url: stableUrl,
-      quoteNids: quotes.map((node) => node.nid),
-    })
-  )
+  await FromContent.sendMessage({
+    type: 'PAGE_TO_SAVE',
+    content,
+    originId,
+    url: stableUrl,
+    quoteNids: quotes.map((node) => node.nid),
+  })
 }
 
-async function readSelectedText(
+async function saveSelectedTextAsQuote(
   text: string,
   bookmark: TNode | null
 ): Promise<void> {
@@ -59,17 +63,15 @@ async function readSelectedText(
     const { target } = event
     if (target) {
       const path = genElementDomPath(target as Element)
-      browser.runtime.sendMessage(
-        Message.create({
-          type: 'SELECTED_WEB_QUOTE',
-          text,
-          path,
-          lang,
-          originId,
-          url: stableUrl,
-          fromNid: bookmark?.nid,
-        })
-      )
+      FromContent.sendMessage({
+        type: 'SELECTED_WEB_QUOTE',
+        text,
+        path,
+        lang,
+        originId,
+        url: stableUrl,
+        fromNid: bookmark?.nid,
+      })
     }
   }
   document.addEventListener('copy', oncopy, true)
@@ -79,13 +81,18 @@ async function readSelectedText(
 const App = () => {
   const [quotes, setQuotes] = useState<TNode[]>([])
   const [bookmark, setBookmark] = useState<TNode | null>(null)
-  const listener = async (message: MessageType) => {
+  const [notification, setNotification] =
+    useState<DisappearingToastProps | null>(null)
+  const listener = async (message: ToContent.Message) => {
     switch (message.type) {
-      case 'REQUEST_PAGE_TO_SAVE':
-        await readPageContent(quotes)
+      case 'REQUEST_PAGE_CONTENT':
+        if (bookmark == null) {
+          // Bookmark if not yet bookmarked
+          await bookmarkPage(quotes)
+        }
         break
       case 'REQUEST_SELECTED_WEB_QUOTE':
-        await readSelectedText(message.text, bookmark)
+        await saveSelectedTextAsQuote(message.text, bookmark)
         break
       case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
         {
@@ -105,18 +112,51 @@ const App = () => {
           }
         }
         break
+      case 'SHOW_DISAPPEARING_NOTIFICATION':
+        {
+          const { text, href, tooltip, timeoutMsec } = message
+          setNotification({
+            text,
+            tooltip,
+            href,
+            timeoutMsec,
+          })
+        }
+        break
       default:
         break
     }
   }
   useEffect(() => {
     browser.runtime.onMessage.addListener(listener)
+    log.debug('Archaeologist content script is loaded')
     return () => {
       browser.runtime.onMessage.removeListener(listener)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  return <Quotes quotes={quotes} />
+  return (
+    <>
+      <Toaster />
+      {notification ? (
+        <DisappearingToast {...notification}></DisappearingToast>
+      ) : null}
+      <Quotes quotes={quotes} />
+      <ActivityTracker
+        registerAttentionTime={(
+          totalSeconds: number,
+          totalSecondsEstimation: number
+        ) =>
+          FromContent.sendMessage({
+            type: 'ATTENTION_TIME_CHUNK',
+            totalSeconds,
+            totalSecondsEstimation,
+          })
+        }
+        disabled={bookmark != null}
+      />
+    </>
+  )
 }
 
 export function renderPageAugmentationApp(mount: HTMLDivElement) {

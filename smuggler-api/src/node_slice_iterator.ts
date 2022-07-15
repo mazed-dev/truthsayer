@@ -1,4 +1,4 @@
-import { TNode, NodeOrigin } from './types'
+import { TNode, OriginId } from './types'
 import type { Optional } from 'armoury'
 
 export interface INodeIterator {
@@ -19,7 +19,7 @@ export type GetNodesSliceFn = ({
   start_time: Optional<number>
   offset: Optional<number>
   limit: Optional<number>
-  origin?: NodeOrigin
+  origin?: OriginId
   signal?: AbortSignal
 }) => Promise<{
   nodes: TNode[]
@@ -83,7 +83,7 @@ export class TNodeSliceIterator implements INodeIterator {
   // Index of a next node in batch_nodes to emit
   next_index_in_batch: number
 
-  origin?: NodeOrigin
+  origin?: OriginId
 
   abortControler?: AbortController
   fetcher: GetNodesSliceFn
@@ -100,7 +100,7 @@ export class TNodeSliceIterator implements INodeIterator {
     end_time?: number,
     bucket_time_size?: number,
     limit?: number,
-    origin?: NodeOrigin
+    origin?: OriginId
   ) {
     this.slice_start_time = start_time || _kEarliestCreationTime
     this.bucket_time_size = bucket_time_size || _kBucketTimeSizeDefault

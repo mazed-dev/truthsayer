@@ -1,8 +1,8 @@
 import lodash from 'lodash'
 
 export function formatDescription(title: string, url?: string): string {
-  if (process.env.CHROME) {
-    // We must escape 5 predefined characters of XML to display them in Chrome
+  if (process.env.CHROMIUM) {
+    // We must escape 5 predefined characters of XML to display them in Chromium
     // https://developer.chrome.com/docs/extensions/reference/omnibox/#type-SuggestResult
     title = lodash.escape(title)
     if (url != null) {

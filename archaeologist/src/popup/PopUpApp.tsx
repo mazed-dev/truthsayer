@@ -7,7 +7,7 @@ import browser from 'webextension-polyfill'
 import styled from '@emotion/styled'
 import { css } from '@emotion/react'
 
-import { MessageType } from './../message/types'
+import { ToPopUp, FromPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { Button } from './Button'
 import { mazed } from '../util/mazed'
@@ -21,7 +21,7 @@ const AppContainer = styled.div`
 export const PopUpApp = () => {
   const [authenticated, setAuthenticated] = React.useState(false)
   useAsyncEffect(async () => {
-    browser.runtime.onMessage.addListener(async (message: MessageType) => {
+    browser.runtime.onMessage.addListener(async (message: ToPopUp.Message) => {
       switch (message.type) {
         case 'AUTH_STATUS':
           setAuthenticated(message.status)
@@ -30,7 +30,7 @@ export const PopUpApp = () => {
           break
       }
     })
-    await browser.runtime.sendMessage({ type: 'REQUEST_AUTH_STATUS' })
+    await FromPopUp.sendMessage({ type: 'REQUEST_AUTH_STATUS' })
   }, [])
 
   if (!authenticated) {
