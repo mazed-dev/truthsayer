@@ -88,10 +88,12 @@ const App = () => {
       case 'REQUEST_PAGE_CONTENT':
         if (bookmark == null) {
           // Bookmark if not yet bookmarked
+          console.log('REQUEST_PAGE_CONTENT', quotes)
           await bookmarkPage(quotes)
         }
         break
       case 'REQUEST_SELECTED_WEB_QUOTE':
+        console.log('REQUEST_SELECTED_WEB_QUOTE', bookmark)
         await saveSelectedTextAsQuote(message.text, bookmark)
         break
       case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
