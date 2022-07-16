@@ -1,7 +1,13 @@
 import * as badge from './badge/badge'
 import * as omnibox from './omnibox/omnibox'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
-import { ToPopUp, ToContent, FromPopUp, FromContent } from './message/types'
+import {
+  ToPopUp,
+  ToContent,
+  FromPopUp,
+  FromContent,
+  ToBackground,
+} from './message/types'
 
 import { mazed } from './util/mazed'
 import { DisappearingToastProps } from './content/toaster/Toaster'
@@ -316,42 +322,43 @@ async function registerAttentionTime(
   }
 }
 
-browser.runtime.onMessage.addListener(
-  async (
-    message: FromContent.Message,
-    sender: browser.Runtime.MessageSender
-  ) => {
-    const tab = sender.tab ?? (await getActiveTab())
-    log.debug('Get message from content', message, tab)
-    switch (message.type) {
-      case 'PAGE_TO_SAVE':
-        const { url, content, originId, quoteNids } = message
-        await savePage(url, originId, quoteNids, content, tab?.id)
-        break
-      case 'SELECTED_WEB_QUOTE':
-        {
-          const { originId, url, text, path, lang, fromNid } = message
-          await savePageQuote(
-            originId,
-            { url, path, text },
-            lang,
-            tab?.id,
-            fromNid
-          )
-        }
-        break
-      case 'ATTENTION_TIME_CHUNK':
-        await registerAttentionTime(tab, message)
-        break
-      default:
-        throw new Error(
-          `Message type not part of FromContent.Message, message ${message}`
+async function handleMessageFromContent(
+  message: FromContent.Message,
+  sender: browser.Runtime.MessageSender
+) {
+  const tab = sender.tab ?? (await getActiveTab())
+  log.debug('Get message from content', message, tab)
+  switch (message.type) {
+    case 'PAGE_TO_SAVE':
+      const { url, content, originId, quoteNids } = message
+      await savePage(url, originId, quoteNids, content, tab?.id)
+      break
+    case 'SELECTED_WEB_QUOTE':
+      {
+        const { originId, url, text, path, lang, fromNid } = message
+        await savePageQuote(
+          originId,
+          { url, path, text },
+          lang,
+          tab?.id,
+          fromNid
         )
-    }
+      }
+      break
+    case 'ATTENTION_TIME_CHUNK':
+      await registerAttentionTime(tab, message)
+      break
+    default:
+      throw new Error(
+        `background received msg from content of unknown type, message: ${JSON.stringify(
+          message
+        )}`
+      )
   }
-)
+  return 99
+}
 
-browser.runtime.onMessage.addListener(async (message: FromPopUp.Message) => {
+async function handleMessageFromPopup(message: FromPopUp.Message) {
   // process is not defined in browsers extensions - use it to set up axios
   const activeTab = await getActiveTab()
   log.debug('Get message from popup', message, activeTab)
@@ -376,10 +383,34 @@ browser.runtime.onMessage.addListener(async (message: FromPopUp.Message) => {
       }
       break
     default:
-      break
+      throw new Error(
+        `background received msg from popup of unknown type, message: ${JSON.stringify(
+          message
+        )}`
+      )
   }
   return 42
-})
+}
+
+browser.runtime.onMessage.addListener(
+  async (
+    message: ToBackground.Message,
+    sender: browser.Runtime.MessageSender
+  ) => {
+    switch (message.direction) {
+      case 'from-content':
+        return await handleMessageFromContent(message, sender)
+      case 'from-popup':
+        return await handleMessageFromPopup(message)
+      default:
+        throw new Error(
+          `background received msg of unknown direction, message: ${JSON.stringify(
+            message
+          )}`
+        )
+    }
+  }
+)
 
 browser.tabs.onUpdated.addListener(
   async (
