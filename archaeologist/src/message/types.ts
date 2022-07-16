@@ -99,7 +99,18 @@ export namespace ToContent {
     | UpdateContentAugmentationRequest
     | GetSelectedQuoteRequest
     | ShowDisappearingNotification
-  export function sendMessage(tabId: number, message: Message): Promise<void> {
+  export function sendMessage(
+    tabId: number,
+    message: RequestPageContent
+  ): Promise<FromContent.SavePageResponse>
+  export function sendMessage(
+    tabId: number,
+    message: GetSelectedQuoteRequest
+  ): Promise<FromContent.GetSelectedQuoteResponse>
+  export function sendMessage(
+    tabId: number,
+    message: Message
+  ): Promise<FromContent.Response> {
     return browser.tabs.sendMessage(tabId, message)
   }
 }
@@ -124,16 +135,22 @@ export namespace FromContent {
     // right hand side
     fromNid?: string
   }
+  export interface VoidResponse {
+    type: 'VOID_CONTENT_RESPONSE'
+  }
   /** Describes for how long a user actively paid attention to a particular webpage */
   export interface AttentionTimeChunk {
     type: 'ATTENTION_TIME_CHUNK'
     totalSeconds: number
     totalSecondsEstimation: number
   }
-  export type Message =
+  export type Message = AttentionTimeChunk
+
+  export type Response =
     | GetSelectedQuoteResponse
     | SavePageResponse
-    | AttentionTimeChunk
+    | VoidResponse
+
   export function sendMessage(message: Message): Promise<void> {
     const msg: ToBackground.Message = { direction: 'from-content', ...message }
     return browser.runtime.sendMessage(msg)
