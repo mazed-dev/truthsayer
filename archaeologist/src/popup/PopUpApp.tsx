@@ -72,7 +72,7 @@ const LoginBtnBox = styled.div`
 
 const SyncBrowserHistoryButton = () => {
   const handler = async () => {
-    const result = await browser.runtime.sendMessage({
+    const result = await FromPopUp.sendMessage({
       type: 'UPLOAD_BROWSER_HISTORY',
     })
     console.log(`result is ${JSON.stringify(result)}`)

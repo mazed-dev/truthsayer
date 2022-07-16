@@ -374,12 +374,18 @@ async function handleMessageFromPopup(message: FromPopUp.Message) {
       break
     case 'UPLOAD_BROWSER_HISTORY':
       {
-        console.log('Printing history for Mazed')
         // const history = await browser.history.search({ text: '' })
         const url =
           'https://arstechnica.com/gadgets/2022/06/apples-ar-vr-headset-will-arrive-in-january-2023-analyst-projects/'
-        console.log(`Trying to fetch ${url}`)
-        browser.tabs.create({ active: false, url })
+
+        const tab = await browser.tabs.create({ active: false, url })
+        if (tab.id == null) {
+          throw new Error(`Could not create a tab for ${url}`)
+        }
+        await tabLoaded(tab)
+        const content = await ToContent.sendMessage(tab.id, {
+          type: 'REQUEST_PAGE_CONTENT',
+        })
       }
       break
     default:
