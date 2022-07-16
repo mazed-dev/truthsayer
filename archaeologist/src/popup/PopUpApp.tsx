@@ -70,21 +70,14 @@ const LoginBtnBox = styled.div`
   justify-content: center;
 `
 
-async function printHistory() {
-  console.log('Printing history for Mazed')
-  const history = await browser.history.search({ text: '' })
-  await browser.runtime.sendMessage({
-    type: 'READ_URL_CONTENTS_SILENTLY',
-    url: 'https://arstechnica.com/gadgets/2022/06/apples-ar-vr-headset-will-arrive-in-january-2023-analyst-projects/',
-  })
-
-  // for (const item of await browser.history.search({ text: '' })) {
-  //   console.log(item)
-  // }
-}
-
 const SyncBrowserHistoryButton = () => {
-  return <Button onClick={printHistory}>Sync browser history</Button>
+  const handler = async () => {
+    const result = await browser.runtime.sendMessage({
+      type: 'UPLOAD_BROWSER_HISTORY',
+    })
+    console.log(`result is ${JSON.stringify(result)}`)
+  }
+  return <Button onClick={handler}>Upload browser history</Button>
 }
 
 const LoginPage = () => {

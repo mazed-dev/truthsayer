@@ -339,23 +339,13 @@ browser.runtime.onMessage.addListener(
           )
         }
         break
-      case 'READ_URL_CONTENTS_SILENTLY': {
-        const { url } = message
-        console.log(`Trying to fetch ${url}`)
-        const response = await fetch(url, { method: 'GET' })
-        if (response.ok) {
-          console.log('Success response received')
-          console.log(JSON.stringify(await response.json()))
-        } else {
-          console.log(`Error: ${JSON.stringify(response)}`)
-        }
-        break
-      }
       case 'ATTENTION_TIME_CHUNK':
         await registerAttentionTime(tab, message)
         break
       default:
-        break
+        throw new Error(
+          `Message type not part of FromContent.Message, message ${message}`
+        )
     }
   }
 )
@@ -373,9 +363,20 @@ browser.runtime.onMessage.addListener(async (message: FromPopUp.Message) => {
     case 'REQUEST_AUTH_STATUS':
       await sendAuthStatus()
       break
+    case 'UPLOAD_BROWSER_HISTORY':
+      {
+        console.log('Printing history for Mazed')
+        // const history = await browser.history.search({ text: '' })
+        const url =
+          'https://arstechnica.com/gadgets/2022/06/apples-ar-vr-headset-will-arrive-in-january-2023-analyst-projects/'
+        console.log(`Trying to fetch ${url}`)
+        browser.tabs.create({ active: false, url })
+      }
+      break
     default:
       break
   }
+  return 42
 })
 
 browser.tabs.onUpdated.addListener(

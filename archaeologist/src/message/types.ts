@@ -38,15 +38,14 @@ export namespace FromPopUp {
   export interface SavePageRequest {
     type: 'REQUEST_PAGE_TO_SAVE'
   }
-  export interface ReadUrlContentsSilentlyRequest {
-    type: 'READ_URL_CONTENTS_SILENTLY'
-    url: string
+  export interface UploadBrowserHistoryRequest {
+    type: 'UPLOAD_BROWSER_HISTORY'
   }
   export type Message =
     | SavePageRequest
     | PageInActiveTabStatusRequest
     | AuthStatusRequest
-    | ReadUrlContentsSilentlyRequest
+    | UploadBrowserHistoryRequest
 
   export function sendMessage(message: Message): Promise<void> {
     return browser.runtime.sendMessage(message)
