@@ -5,8 +5,8 @@ import React, { useEffect, useRef, useState } from 'react'
 import styled from '@emotion/styled'
 
 import { css } from '@emotion/react'
-import { useAsyncEffect } from 'use-async-effect'
 import { useHistory } from 'react-router-dom'
+import lodash from 'lodash'
 
 import { Spinner } from '../spinner/mod'
 import { SmallCard } from '../SmallCard'
@@ -67,13 +67,27 @@ export const SearchGrid = ({
   defaultSearch?: boolean
   className?: string
 }>) => {
+  const [search, setUpSearch] = useState<{
+    iter: TNodeSliceIterator
+    beagle: Beagle
+  } | null>(null)
+  useEffect(() => {
+    setUpSearch({
+      iter: smuggler.node.slice({}),
+      beagle: Beagle.fromString(q || undefined),
+    })
+  }, [q])
   if (q == null && !defaultSearch) {
     return null
   }
+  if (search == null) {
+    return null
+  }
+  const { iter, beagle } = search
   return (
     <SearchGridScroll
-      beagle={Beagle.fromString(q || undefined)}
-      iter={smuggler.node.slice({})}
+      beagle={beagle}
+      iter={iter}
       onCardClick={onCardClick}
       portable={portable}
       className={className}
@@ -101,26 +115,6 @@ const SearchGridScroll = ({
   const ref = useRef<HTMLDivElement>(null)
   const [nodes, setNodes] = useState<TNode[]>([])
   const [fetching, setFetching] = useState<boolean>(false)
-  const [nextBatchTrigger, setNextBatchTrigger] = useState<number>(0)
-
-  const handleScroll = () => {
-    if (!fetching && isScrolledToBottom()) {
-      setNextBatchTrigger((prev) => prev + 1)
-    }
-  }
-  useEffect(() => {
-    if (!portable) {
-      window.addEventListener('scroll', handleScroll, { passive: true })
-      return () => {
-        window.removeEventListener('scroll', handleScroll)
-      }
-    }
-    return () => {}
-  }, [])
-  useEffect(() => {
-    // To clean up grid on changed search conditions
-    setNodes([])
-  }, [beagle, iter])
 
   const isScrolledToBottom = () => {
     let height: number = 0
@@ -130,7 +124,7 @@ const SearchGridScroll = ({
       height = ref.current?.offsetHeight || 0
       scrollTop = ref.current?.scrollTop || 0
       offsetHeight = ref.current?.scrollHeight || 0
-      return height + scrollTop + 300 > offsetHeight
+      return height + scrollTop + 600 > offsetHeight
     }
     height = window.innerHeight
     scrollTop = document.documentElement.scrollTop
@@ -138,36 +132,57 @@ const SearchGridScroll = ({
     return height + scrollTop + 300 >= offsetHeight
   }
 
-  useAsyncEffect(
-    async (isMounted: () => boolean) => {
-      // Continue fetching until visual space is filled with cards to the bottom and beyond.
-      // Thus if use scrolled to the bottom this loop would start fetching again adding more cards.
-      setFetching(true)
-      try {
-        while (isScrolledToBottom()) {
-          if (!isMounted()) {
-            iter.abort()
-            return
+  const fetchNextBatch = React.useCallback(
+    lodash.throttle(
+      async () => {
+        // Continue fetching until visual space is filled with cards to the bottom and beyond.
+        // Thus if use scrolled to the bottom this loop would start fetching again adding more cards.
+        if (fetching) {
+          // Don't run more than 1 instance of fetcher
+          return
+        }
+        setFetching(true)
+        try {
+          while (isScrolledToBottom()) {
+            const node = await iter.next()
+            if (node == null) {
+              iter.abort()
+              break
+            }
+            if (beagle.searchNode(node) != null) {
+              setNodes((prev) => prev.concat(node))
+            }
           }
-          const node = await iter.next()
-          if (!isMounted() || node == null) {
-            iter.abort()
-            break
-          }
-          if (beagle.searchNode(node) != null) {
-            setNodes((prev) => prev.concat(node))
+        } catch (err) {
+          const error = errorise(err)
+          if (!isAbortError(error)) {
+            log.exception(error)
           }
         }
-      } catch (err) {
-        const error = errorise(err)
-        if (!isAbortError(error)) {
-          log.exception(error)
-        }
-      }
-      setFetching(false)
-    },
-    [nextBatchTrigger, beagle, iter]
+        setFetching(false)
+      },
+      100,
+      { leading: true, trailing: false }
+    ),
+    [beagle, iter]
   )
+  useEffect(() => {
+    if (!portable) {
+      window.addEventListener('scroll', fetchNextBatch, { passive: true })
+      return () => {
+        window.removeEventListener('scroll', fetchNextBatch)
+      }
+    }
+    return () => {}
+  }, [fetchNextBatch])
+  useEffect(() => {
+    // First fetch call to kick start the process
+    fetchNextBatch()
+    return () => {
+      // Clean up on changed search parameters
+      setNodes([])
+    }
+  }, [beagle, iter])
   const fetchingLoader = fetching ? (
     <div
       css={css`
@@ -217,13 +232,13 @@ const SearchGridScroll = ({
   )
   if (portable) {
     return (
-      <BoxPortable className={className} onScroll={handleScroll} ref={ref}>
+      <BoxPortable className={className} onScroll={fetchNextBatch} ref={ref}>
         {grid}
       </BoxPortable>
     )
   } else {
     return (
-      <div className={className} onScroll={handleScroll} ref={ref}>
+      <div className={className} onScroll={fetchNextBatch} ref={ref}>
         {grid}
       </div>
     )
