@@ -44,7 +44,8 @@ export namespace FromPopUp {
     | AuthStatusRequest
 
   export function sendMessage(message: Message): Promise<void> {
-    return browser.runtime.sendMessage(message)
+    const msg: ToBackground.Message = { direction: 'from-popup', ...message }
+    return browser.runtime.sendMessage(msg)
   }
 }
 export namespace ToPopUp {
@@ -134,6 +135,13 @@ export namespace FromContent {
     | SavePageResponse
     | AttentionTimeChunk
   export function sendMessage(message: Message): Promise<void> {
-    return browser.runtime.sendMessage(message)
+    const msg: ToBackground.Message = { direction: 'from-content', ...message }
+    return browser.runtime.sendMessage(msg)
   }
+}
+
+export namespace ToBackground {
+  export type Message =
+    | ({ direction: 'from-popup' } & FromPopUp.Message)
+    | ({ direction: 'from-content' } & FromContent.Message)
 }
