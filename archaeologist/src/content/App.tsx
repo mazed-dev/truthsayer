@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom'
 import browser from 'webextension-polyfill'
 
 import { TNode, TNodeJson } from 'smuggler-api'
-import { genOriginId } from 'armoury'
+import { genOriginId, OriginIdentity, log } from 'armoury'
 
 import { FromContent, ToContent } from './../message/types'
 import { genElementDomPath } from './extractor/html'
@@ -22,31 +22,26 @@ import {
   DisappearingToastProps,
 } from './toaster/Toaster'
 
-async function bookmarkPage(quotes: TNode[]) {
-  const { id: originId, stableUrl } = await genOriginId(
-    exctractPageUrl(document)
-  )
+async function bookmarkPage(quotes: TNode[], origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
-  const content = isMemorable(stableUrl)
+  const content = isMemorable(origin.stableUrl)
     ? await exctractPageContent(document, baseURL)
     : undefined
   await FromContent.sendMessage({
     type: 'PAGE_TO_SAVE',
     content,
-    originId,
-    url: stableUrl,
+    originId: origin.id,
+    url: origin.stableUrl,
     quoteNids: quotes.map((node) => node.nid),
   })
 }
 
 async function saveSelectedTextAsQuote(
   text: string,
-  bookmark: TNode | null
+  bookmark: TNode | null,
+  origin: OriginIdentity
 ): Promise<void> {
   const lang = document.documentElement.lang
-  const { id: originId, stableUrl } = await genOriginId(
-    exctractPageUrl(document)
-  )
   // TODO(akindyakov): Use window.getSelection() to obtain `anchorNode` instead
   // of this hacky approach with "copy" event. This way we can get a better
   // precision of selection and stabilise `target` extraction in general.
@@ -68,8 +63,8 @@ async function saveSelectedTextAsQuote(
         text,
         path,
         lang,
-        originId,
-        url: stableUrl,
+        originId: origin.id,
+        url: origin.stableUrl,
         fromNid: bookmark?.nid,
       })
     }
@@ -81,6 +76,11 @@ async function saveSelectedTextAsQuote(
 const App = () => {
   const [quotes, setQuotes] = useState<TNode[]>([])
   const [bookmark, setBookmark] = useState<TNode | null>(null)
+  const originIdentity = React.useMemo(() => {
+    const originIdentity = genOriginId(exctractPageUrl(document))
+    log.debug('Gen origin identity', originIdentity)
+    return originIdentity
+  }, [])
   const [notification, setNotification] =
     useState<DisappearingToastProps | null>(null)
   const listener = React.useCallback(
@@ -89,11 +89,11 @@ const App = () => {
         case 'REQUEST_PAGE_CONTENT':
           if (bookmark == null) {
             // Bookmark if not yet bookmarked
-            await bookmarkPage(quotes)
+            await bookmarkPage(quotes, originIdentity)
           }
           break
         case 'REQUEST_SELECTED_WEB_QUOTE':
-          await saveSelectedTextAsQuote(message.text, bookmark)
+          await saveSelectedTextAsQuote(message.text, bookmark, originIdentity)
           break
         case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
           {
@@ -128,7 +128,7 @@ const App = () => {
           break
       }
     },
-    [bookmark, quotes]
+    [bookmark, quotes, originIdentity]
   )
   useEffect(() => {
     browser.runtime.onMessage.addListener(listener)
@@ -143,13 +143,16 @@ const App = () => {
       <Quotes quotes={quotes} />
       <ActivityTracker
         registerAttentionTime={(
+          deltaSeconds: number,
           totalSeconds: number,
           totalSecondsEstimation: number
         ) =>
           FromContent.sendMessage({
             type: 'ATTENTION_TIME_CHUNK',
+            deltaSeconds,
             totalSeconds,
             totalSecondsEstimation,
+            origin: originIdentity,
           })
         }
         disabled={bookmark != null}

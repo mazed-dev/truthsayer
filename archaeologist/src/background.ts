@@ -303,7 +303,7 @@ async function registerAttentionTime(
     log.debug("Can't register attention time for a tab: ", tab)
     return
   }
-  const { totalSeconds, totalSecondsEstimation } = message
+  const { totalSeconds, totalSecondsEstimation, deltaSeconds, origin } = message
   log.debug(
     'Register Attention Time',
     tab,
@@ -312,7 +312,11 @@ async function registerAttentionTime(
   )
   // TODO: upsert attention time to smuggler here, see
   // https://github.com/Thread-knowledge/smuggler/pull/76
-  if (totalSeconds >= totalSecondsEstimation) {
+  const total = await smuggler.activity.external.upsert(
+    { id: origin.id },
+    { seconds: deltaSeconds, timestamp: new Date().getTime() / 1000 }
+  )
+  if (total.seconds_of_attention >= totalSecondsEstimation) {
     log.debug(
       'Enough attention time for the tab, bookmark it',
       totalSeconds,

@@ -15,6 +15,7 @@ export const ActivityTracker = ({
   disabled,
 }: {
   registerAttentionTime: (
+    deltaSeconds: number,
     totalSeconds: number,
     totalSecondsEstimation: number
   ) => void
@@ -26,19 +27,20 @@ export const ActivityTracker = ({
   ) {
     return null
   }
-  return <ReadingTimeTracker registerAttentionTime={registerAttentionTime} />
+  return <AttentionTimeTracker registerAttentionTime={registerAttentionTime} />
 }
 
-const kActivityTimerStep = moment.duration({ seconds: 2 })
+const kActivityTimerStep = moment.duration({ seconds: 8 })
 
 /**
  * This is virtual element to wrap trackers of users activity on a page and
  * decision making to bookmark the page or quote some text on the page.
  */
-const ReadingTimeTracker = ({
+const AttentionTimeTracker = ({
   registerAttentionTime,
 }: {
   registerAttentionTime: (
+    deltaSeconds: number,
     totalSeconds: number,
     totalSecondsEstimation: number
   ) => void
@@ -62,8 +64,8 @@ const ReadingTimeTracker = ({
     // saving pages without text at all.
     if (estimation.asMinutes() > 2) {
       return moment.duration({ minutes: 2, seconds: 4 })
-    } else if (estimation.asSeconds() < 10) {
-      return moment.duration({ seconds: 10 })
+    } else if (estimation.asSeconds() < 15) {
+      return moment.duration({ seconds: 15 })
     }
     return estimation
   }, [])
@@ -75,6 +77,7 @@ const ReadingTimeTracker = ({
       setTotalReadingTime((current: number) => {
         const totalSeconds = current + kActivityTimerStep.asSeconds()
         registerAttentionTime(
+          kActivityTimerStep.asSeconds(),
           totalSeconds,
           totalReadingTimeEstimation.asSeconds()
         )

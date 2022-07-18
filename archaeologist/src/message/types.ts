@@ -1,5 +1,5 @@
 import { WebPageContent } from './../content/extractor/webPageContent'
-import { OriginHash, TNodeJson } from 'smuggler-api'
+import { OriginHash, TNodeJson, OriginIdentity } from 'smuggler-api'
 import browser from 'webextension-polyfill'
 
 /**
@@ -127,8 +127,10 @@ export namespace FromContent {
   /** Describes for how long a user actively paid attention to a particular webpage */
   export interface AttentionTimeChunk {
     type: 'ATTENTION_TIME_CHUNK'
+    deltaSeconds: number
     totalSeconds: number
     totalSecondsEstimation: number
+    origin: OriginIdentity
   }
   export type Message =
     | GetSelectedQuoteResponse
