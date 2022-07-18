@@ -824,13 +824,10 @@ async function getUserFsIngestionProgress(
   fsid: UserFilesystemId,
   signal?: AbortSignal
 ): Promise<UserFsIngestionProgress> {
-  const resp = await fetch(
-    makeUrl(`/user/${fsid.uid}/3rdparty/fs/${fsid.fs_key}/progress`),
-    {
-      method: 'GET',
-      signal,
-    }
-  )
+  const resp = await fetch(makeUrl(`/3rdparty/fs/${fsid.fs_key}/progress`), {
+    method: 'GET',
+    signal,
+  })
   if (resp.ok) {
     return await resp.json()
   }
@@ -844,15 +841,12 @@ async function advanceUserFsIngestionProgress(
   new_progress: AdvanceUserFsIngestionProgress,
   signal?: AbortSignal
 ): Promise<Ack> {
-  const resp = await fetch(
-    makeUrl(`/user/${fsid.uid}/3rdparty/fs/${fsid.fs_key}/progress`),
-    {
-      method: 'PATCH',
-      body: JSON.stringify(new_progress),
-      headers: { 'Content-type': MimeType.JSON },
-      signal,
-    }
-  )
+  const resp = await fetch(makeUrl(`/3rdparty/fs/${fsid.fs_key}/progress`), {
+    method: 'PATCH',
+    body: JSON.stringify(new_progress),
+    headers: { 'Content-type': MimeType.JSON },
+    signal,
+  })
   if (resp.ok) {
     return await resp.json()
   }
@@ -910,6 +904,14 @@ export const smuggler = {
     delete: deleteSession,
     update: updateSession,
   },
+  thirdparty: {
+    fs: {
+      progress: {
+        get: getUserFsIngestionProgress,
+        advance: advanceUserFsIngestionProgress,
+      },
+    },
+  },
   user: {
     badge: {
       get: getUserBadge,
@@ -920,14 +922,6 @@ export const smuggler = {
       change: passwordChange,
     },
     register: registerAccount,
-    thirdparty: {
-      fs: {
-        progress: {
-          get: getUserFsIngestionProgress,
-          advance: advanceUserFsIngestionProgress,
-        },
-      },
-    },
   },
   ping,
 }

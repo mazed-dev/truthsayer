@@ -418,7 +418,6 @@ export interface AccountInterface {
 }
 
 export type UserFilesystemId = {
-  uid: string
   // A value that uniquely identifies one of filesystems of a specific uid
   fs_key: string
 }

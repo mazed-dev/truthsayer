@@ -66,7 +66,7 @@ async function uploadFilesFromFolder(
   folderPath: string,
   progressUpdateCallback: (filesToUploadLeft: number) => void
 ) {
-  const current_progress = await smuggler.user.thirdparty.fs.progress.get(fsid)
+  const current_progress = await smuggler.thirdparty.fs.progress.get(fsid)
   const files = await FsModificationQueue.make(
     fs,
     current_progress.ingested_until,
@@ -135,7 +135,6 @@ export function OneDriveIntegrationManager({
     ) // This icon is intended to show a user that sync is already in progress
 
   const oneDriveFsid: UserFilesystemId = {
-    uid: account.getUid(),
     fs_key: 'onedrive',
   }
   return (
