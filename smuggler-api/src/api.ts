@@ -1,6 +1,7 @@
 import {
   AccountInfo,
   Ack,
+  AddUserActivityRequest,
   AdvanceUserFsIngestionProgress,
   EdgeAttributes,
   EdgeStar,
@@ -11,12 +12,15 @@ import {
   NodeCreateRequestBody,
   NodeExtattrs,
   NodeIndexText,
-  OriginId,
   NodePatchRequest,
   NodeTextData,
   NodeType,
+  OriginId,
+  ResourceAttention,
+  ResourceVisit,
   TEdge,
   TNode,
+  TotalUserActivity,
   UploadMultipartResponse,
   UserBadge,
   UserFilesystemId,
@@ -719,6 +723,60 @@ async function updateSession(signal?: AbortSignal): Promise<Ack> {
   throw new Error(`(${resp.status}) ${resp.statusText}`)
 }
 
+function _makeExternalUserActivityUrl(origin: OriginId): string {
+  return makeUrl(`/activity/external/${origin.id}`)
+}
+
+async function upsertExternalUserActivity(
+  origin: OriginId,
+  activity: ResourceVisit[] | ResourceAttention,
+  signal?: AbortSignal
+): Promise<TotalUserActivity> {
+  let body: AddUserActivityRequest
+  if (activity instanceof Array) {
+    body = {
+      visits: activity,
+    }
+  } else if ('seconds' in activity) {
+    body = {
+      attention: activity,
+    }
+  } else {
+    throw new Error(
+      `Unknown type of external user activity to upsert ${activity}`
+    )
+  }
+  const resp = await fetch(_makeExternalUserActivityUrl(origin), {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+    signal,
+  })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw _makeResponseError(
+    resp,
+    `Upsertion of external user activity failed for origin ${origin}`
+  )
+}
+
+async function getExternalUserActivity(
+  origin: OriginId,
+  signal?: AbortSignal
+): Promise<TotalUserActivity> {
+  const resp = await fetch(_makeExternalUserActivityUrl(origin), {
+    method: 'GET',
+    signal,
+  })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw _makeResponseError(
+    resp,
+    `Loading of external user activity failed for origin ${origin}`
+  )
+}
+
 async function getUserBadge({
   uid,
   signal,
@@ -862,6 +920,10 @@ async function advanceUserFsIngestionProgress(
   )
 }
 
+function _makeResponseError(response: Response, message?: string): Error {
+  return new Error(`${message} (${response.status}) ${response.statusText}`)
+}
+
 export const smuggler = {
   getAuth,
   node: {
@@ -909,6 +971,12 @@ export const smuggler = {
     create: createSession,
     delete: deleteSession,
     update: updateSession,
+  },
+  activity: {
+    external: {
+      upsert: upsertExternalUserActivity,
+      get: getExternalUserActivity,
+    },
   },
   user: {
     badge: {
