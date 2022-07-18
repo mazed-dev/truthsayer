@@ -99,7 +99,7 @@ async function uploadFilesFromFolder(
       const response = await smuggler.node.createOrUpdate(node)
       log.debug(`Response to node creation/update: ${JSON.stringify(response)}`)
     }
-    await smuggler.user.thirdparty.fs.progress.advance(fsid, {
+    await smuggler.thirdparty.fs.progress.advance(fsid, {
       ingested_until: batch[0].lastModTimestamp,
     })
     filesLeft -= batch.length
