@@ -732,10 +732,6 @@ function _makeExternalUserActivityUrl(origin: OriginId): string {
   return makeUrl(`/activity/external/${origin.id}`)
 }
 
-function _makeExternalUserActivityUrl(origin: OriginId): string {
-  return makeUrl(`/activity/external/${origin.id}`)
-}
-
 async function addExternalUserActivity(
   origin: OriginId,
   activity: ResourceVisit[] | ResourceAttention,
