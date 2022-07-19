@@ -727,7 +727,7 @@ function _makeExternalUserActivityUrl(origin: OriginId): string {
   return makeUrl(`/activity/external/${origin.id}`)
 }
 
-async function upsertExternalUserActivity(
+async function addExternalUserActivity(
   origin: OriginId,
   activity: ResourceVisit[] | ResourceAttention,
   signal?: AbortSignal
@@ -756,7 +756,7 @@ async function upsertExternalUserActivity(
   }
   throw _makeResponseError(
     resp,
-    `Upsertion of external user activity failed for origin ${origin}`
+    `Addition of an external user activity failed for origin ${origin}`
   )
 }
 
@@ -974,7 +974,7 @@ export const smuggler = {
   },
   activity: {
     external: {
-      upsert: upsertExternalUserActivity,
+      add: addExternalUserActivity,
       get: getExternalUserActivity,
     },
   },
