@@ -30,7 +30,7 @@ export const ActivityTracker = ({
   return <AttentionTimeTracker registerAttentionTime={registerAttentionTime} />
 }
 
-const kActivityTimerStep = moment.duration({ seconds: 8 })
+const kActivityTimerStep = moment.duration({ seconds: 2 })
 
 /**
  * This is virtual element to wrap trackers of users activity on a page and
@@ -57,16 +57,6 @@ const AttentionTimeTracker = ({
     const text = exctractReadableTextFromPage(document)
     const estimation = unicodeText.getTimeToRead(text)
     log.debug('Page estimated reading time, seconds', estimation.asSeconds())
-    // But who are we lying to, we have an attention span of a golden fish, if
-    // we spend more than 2 minutes on something, that's already a big
-    // achievement. So limit reading time by that.
-    // Also, we are limiting minimal time by 10 seconds, to avoid immidiatelly
-    // saving pages without text at all.
-    if (estimation.asMinutes() > 2) {
-      return moment.duration({ minutes: 2, seconds: 4 })
-    } else if (estimation.asSeconds() < 15) {
-      return moment.duration({ seconds: 15 })
-    }
     return estimation
   }, [])
   // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -310,13 +310,16 @@ async function registerAttentionTime(
     totalSeconds,
     totalSecondsEstimation
   )
-  // TODO: upsert attention time to smuggler here, see
-  // https://github.com/Thread-knowledge/smuggler/pull/76
-  const total = await smuggler.activity.external.upsert(
+  const total = await smuggler.activity.external.add(
     { id: origin.id },
     { seconds: deltaSeconds, timestamp: new Date().getTime() / 1000 }
   )
-  if (total.seconds_of_attention >= totalSecondsEstimation) {
+  // But who are we lying to, we have an attention span of a golden fish, if
+  // we spend more than 2 minutes on something, that's already a big
+  // achievement. So limit reading time by that.
+  // Also, we are limiting minimal time by 30 seconds, to avoid immidiatelly
+  // saving pages without text at all.
+  if (total.seconds_of_attention >= Math.max(30, Math.min(totalSecondsEstimation, 120))) {
     log.debug(
       'Enough attention time for the tab, bookmark it',
       totalSeconds,
