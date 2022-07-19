@@ -72,7 +72,7 @@ const App = () => {
   const [notification, setNotification] =
     useState<DisappearingToastProps | null>(null)
   const listener = async (
-    message: ToContent.Message
+    message: ToContent.Request
   ): Promise<FromContent.Response> => {
     switch (message.type) {
       case 'REQUEST_PAGE_CONTENT':

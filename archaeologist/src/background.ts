@@ -12,7 +12,7 @@ import {
 import browser from 'webextension-polyfill'
 import { log, isAbortError, genOriginId } from 'armoury'
 import { Knocker, TNode, authCookie, smuggler, OriginHash } from 'smuggler-api'
-import { updateContent } from './background/updateContent'
+import { MazedPageData, updateContent } from './background/updateContent'
 import { savePage, savePageQuote } from './background/savePage'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
@@ -42,7 +42,8 @@ async function requestPageSavedStatus(tab: browser.Tabs.Tab | null) {
     return
   }
   const { id: originId, stableUrl } = await genOriginId(url)
-  await checkOriginIdAndUpdatePageStatus(id, stableUrl, originId)
+  return await getWhatMazedKnowsAboutPage(stableUrl, originId)
+  await updateContent('reset', data, id)
 }
 
 // Periodically renew auth token using Knocker
@@ -53,7 +54,7 @@ const _kRenewTokenTimePeriodInSeconds = 1062599
 const _authKnocker = new Knocker(_kRenewTokenTimePeriodInSeconds)
 _authKnocker.start()
 
-async function sendAuthStatus() {
+async function getAuthStatus() {
   const cookie = await browser.cookies
     .get({
       url: authCookie.url,
@@ -65,34 +66,22 @@ async function sendAuthStatus() {
       }
       return null
     })
-  const status = authCookie.checkRawValue(cookie?.value || null)
-  badge.setActive(status)
-
-  try {
-    await ToPopUp.sendMessage({ type: 'AUTH_STATUS', status })
-  } catch (err) {
-    if (!isAbortError(err)) {
-      log.exception(err, 'Could not send auth status')
-    }
-  }
+  return authCookie.checkRawValue(cookie?.value || null)
 }
 
-async function checkOriginIdAndUpdatePageStatus(
-  tabId: number | undefined,
+async function getWhatMazedKnowsAboutPage(
   url: string,
   originId?: OriginHash
-) {
+): Promise<MazedPageData> {
   if (originId == null) {
-    const unmemorable = true
-    await updateContent('reset', [], undefined, tabId, unmemorable)
-    return
+    return { quotes: [], unmemorable: true }
   }
   let nodes
   try {
     nodes = await smuggler.node.lookup({ url })
   } catch (err) {
     log.debug('Lookup by origin ID failed, consider page as non saved', err)
-    return
+    return { quotes: [], unmemorable: true }
   }
   let bookmark: TNode | undefined = undefined
   let quotes: TNode[] = []
@@ -103,7 +92,7 @@ async function checkOriginIdAndUpdatePageStatus(
       quotes.push(node)
     }
   }
-  await updateContent('reset', quotes, bookmark, tabId)
+  return { quotes, bookmark }
 }
 
 async function registerAttentionTime(
@@ -157,7 +146,9 @@ async function handleMessageFromContent(
   }
 }
 
-async function handleMessageFromPopup(message: FromPopUp.Message) {
+async function handleMessageFromPopup(
+  message: FromPopUp.Request
+): Promise<ToPopUp.Response> {
   // process is not defined in browsers extensions - use it to set up axios
   const activeTab = await getActiveTab()
   log.debug('Get message from popup', message, activeTab)
@@ -165,19 +156,20 @@ async function handleMessageFromPopup(message: FromPopUp.Message) {
     case 'REQUEST_PAGE_TO_SAVE':
       const tabId = activeTab?.id
       if (tabId == null) {
-        return
+        return { type: 'VOID_CONTENT_RESPONSE' }
       }
       const response: FromContent.SavePageResponse =
         await ToContent.sendMessage(tabId, { type: 'REQUEST_PAGE_CONTENT' })
       const { url, content, originId, quoteNids } = response
       await savePage(url, originId, quoteNids, content, tabId)
-      break
+      return { type: 'VOID_CONTENT_RESPONSE' }
     case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS':
       await requestPageSavedStatus(activeTab)
-      break
+      return { type: 'VOID_CONTENT_RESPONSE' }
     case 'REQUEST_AUTH_STATUS':
-      await sendAuthStatus()
-      break
+      const status = await getAuthStatus()
+      badge.setActive(status)
+      return { type: 'AUTH_STATUS', status }
     default:
       throw new Error(
         `background received msg from popup of unknown type, message: ${JSON.stringify(

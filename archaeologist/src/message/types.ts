@@ -22,6 +22,10 @@ import browser from 'webextension-polyfill'
  *                                            └───(#3)──┘
  */
 
+export interface VoidResponse {
+  type: 'VOID_CONTENT_RESPONSE'
+}
+
 export namespace FromPopUp {
   export interface AuthStatusRequest {
     type: 'REQUEST_AUTH_STATUS'
@@ -38,12 +42,16 @@ export namespace FromPopUp {
   export interface SavePageRequest {
     type: 'REQUEST_PAGE_TO_SAVE'
   }
-  export type Message =
+  export type Request =
     | SavePageRequest
     | PageInActiveTabStatusRequest
     | AuthStatusRequest
 
-  export function sendMessage(message: Message): Promise<void> {
+  export function sendMessage(
+    message: AuthStatusRequest
+  ): Promise<ToPopUp.AuthStatusResponse>
+  export function sendMessage(message: SavePageRequest): Promise<VoidResponse>
+  export function sendMessage(message: Request): Promise<ToPopUp.Response> {
     const msg: ToBackground.Message = { direction: 'from-popup', ...message }
     return browser.runtime.sendMessage(msg)
   }
@@ -67,7 +75,8 @@ export namespace ToPopUp {
     mode: 'reset' | 'append'
   }
 
-  export type Message = UpdatePopUpCards | AuthStatusResponse
+  export type Message = UpdatePopUpCards
+  export type Response = AuthStatusResponse | VoidResponse
   export function sendMessage(message: Message): Promise<void> {
     return browser.runtime.sendMessage(message)
   }
@@ -87,29 +96,37 @@ export namespace ToContent {
     type: 'REQUEST_SELECTED_WEB_QUOTE'
     text: string
   }
-  export interface ShowDisappearingNotification {
+  export interface ShowDisappearingNotificationRequest {
     type: 'SHOW_DISAPPEARING_NOTIFICATION'
     text: string
     href?: string
     tooltip?: string
     timeoutMsec?: number
   }
-  export type Message =
+  export type Request =
     | RequestPageContent
     | UpdateContentAugmentationRequest
     | GetSelectedQuoteRequest
-    | ShowDisappearingNotification
+    | ShowDisappearingNotificationRequest
   export function sendMessage(
     tabId: number,
     message: RequestPageContent
   ): Promise<FromContent.SavePageResponse>
   export function sendMessage(
     tabId: number,
+    message: UpdateContentAugmentationRequest
+  ): Promise<VoidResponse>
+  export function sendMessage(
+    tabId: number,
     message: GetSelectedQuoteRequest
   ): Promise<FromContent.GetSelectedQuoteResponse>
   export function sendMessage(
     tabId: number,
-    message: Message
+    message: ShowDisappearingNotificationRequest
+  ): Promise<FromContent.GetSelectedQuoteResponse>
+  export function sendMessage(
+    tabId: number,
+    message: Request
   ): Promise<FromContent.Response> {
     return browser.tabs.sendMessage(tabId, message)
   }
@@ -135,9 +152,6 @@ export namespace FromContent {
     // right hand side
     fromNid?: string
   }
-  export interface VoidResponse {
-    type: 'VOID_CONTENT_RESPONSE'
-  }
   /** Describes for how long a user actively paid attention to a particular webpage */
   export interface AttentionTimeChunk {
     type: 'ATTENTION_TIME_CHUNK'
@@ -159,6 +173,6 @@ export namespace FromContent {
 
 export namespace ToBackground {
   export type Message =
-    | ({ direction: 'from-popup' } & FromPopUp.Message)
+    | ({ direction: 'from-popup' } & FromPopUp.Request)
     | ({ direction: 'from-content' } & FromContent.Message)
 }

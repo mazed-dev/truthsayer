@@ -20,16 +20,10 @@ const AppContainer = styled.div`
 export const PopUpApp = () => {
   const [authenticated, setAuthenticated] = React.useState(false)
   useAsyncEffect(async () => {
-    browser.runtime.onMessage.addListener(async (message: ToPopUp.Message) => {
-      switch (message.type) {
-        case 'AUTH_STATUS':
-          setAuthenticated(message.status)
-          break
-        default:
-          break
-      }
+    const response = await FromPopUp.sendMessage({
+      type: 'REQUEST_AUTH_STATUS',
     })
-    await FromPopUp.sendMessage({ type: 'REQUEST_AUTH_STATUS' })
+    setAuthenticated(response.status)
   }, [])
   return (
     <AppContainer>

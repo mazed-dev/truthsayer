@@ -4,6 +4,15 @@ import { ToContent, ToPopUp } from '../message/types'
 import * as badge from '../badge/badge'
 
 /**
+ * Things that Mazed "knows" about a web page
+ */
+export type MazedPageData = {
+  quotes: TNode[]
+  bookmark?: TNode
+  unmemorable?: boolean
+}
+
+/**
  * Update content (saved nodes) in:
  *   - Pop up window.
  *   - Content augmentation.
@@ -11,20 +20,18 @@ import * as badge from '../badge/badge'
  */
 export async function updateContent(
   mode: 'append' | 'reset',
-  quotes: TNode[],
-  bookmark?: TNode,
-  tabId?: number,
-  unmemorable?: boolean
+  data: MazedPageData,
+  tabId?: number
 ): Promise<void> {
-  const quotesJson = quotes.map((node) => node.toJson())
-  const bookmarkJson = bookmark?.toJson()
+  const quotesJson = data.quotes.map((node) => node.toJson())
+  const bookmarkJson = data.bookmark?.toJson()
   // Inform PopUp window of saved bookmark and web quotes
   try {
     await ToPopUp.sendMessage({
       type: 'UPDATE_POPUP_CARDS',
       bookmark: bookmarkJson,
       quotes: quotesJson,
-      unmemorable,
+      unmemorable: data?.unmemorable,
       mode,
     })
   } catch (err) {
@@ -39,7 +46,7 @@ export async function updateContent(
   // Update badge counter
   let badgeText: string | undefined = '✓'
   if (mode === 'reset') {
-    const n = quotes.length + (bookmark != null ? 1 : 0)
+    const n = data.quotes.length + (data?.bookmark != null ? 1 : 0)
     if (n !== 0) {
       badgeText = n.toString()
     } else {
