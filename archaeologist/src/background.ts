@@ -230,7 +230,7 @@ async function requestPageSavedStatus(tab: browser.Tabs.Tab | null) {
   if (url == null) {
     return
   }
-  const { id: originId, stableUrl } = await genOriginId(url)
+  const { id: originId, stableUrl } = genOriginId(url)
   await checkOriginIdAndUpdatePageStatus(id, stableUrl, originId)
 }
 
