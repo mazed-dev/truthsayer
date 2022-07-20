@@ -1,6 +1,8 @@
 import { WebPageContent } from './../content/extractor/webPageContent'
-import { OriginHash, TNodeJson, OriginIdentity } from 'smuggler-api'
+
 import browser from 'webextension-polyfill'
+import { OriginHash, TNodeJson } from 'smuggler-api'
+import { OriginIdentity } from 'armoury'
 
 /**
  * There are 3 kind of message senders/receivers:

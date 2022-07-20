@@ -754,6 +754,7 @@ async function addExternalUserActivity(
   const resp = await fetch(_makeExternalUserActivityUrl(origin), {
     method: 'PATCH',
     body: JSON.stringify(body),
+    headers: { 'Content-type': MimeType.JSON },
     signal,
   })
   if (resp.ok) {

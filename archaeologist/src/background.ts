@@ -310,16 +310,24 @@ async function registerAttentionTime(
     totalSeconds,
     totalSecondsEstimation
   )
-  const total = await smuggler.activity.external.add(
-    { id: origin.id },
-    { seconds: deltaSeconds, timestamp: new Date().getTime() / 1000 }
-  )
-  // But who are we lying to, we have an attention span of a golden fish, if
-  // we spend more than 2 minutes on something, that's already a big
-  // achievement. So limit reading time by that.
-  // Also, we are limiting minimal time by 30 seconds, to avoid immidiatelly
-  // saving pages without text at all.
+  let total
+  try {
+    total = await smuggler.activity.external.add(
+      { id: origin.id },
+      { seconds: deltaSeconds, timestamp: Math.floor(new Date().getTime() / 1000) }
+    )
+  } catch (err) {
+    if (!isAbortError(err)) {
+      log.exception(err, 'Could not register external activity')
+    }
+    return
+  }
   if (total.seconds_of_attention >= Math.max(30, Math.min(totalSecondsEstimation, 120))) {
+    // But who are we lying to, we have an attention span of a golden fish, if
+    // we spend more than 2 minutes on something, that's already a big
+    // achievement. So limit reading time by that.
+    // Also, we are limiting minimal time by 30 seconds, to avoid immidiatelly
+    // saving pages without text at all.
     log.debug(
       'Enough attention time for the tab, bookmark it',
       totalSeconds,
