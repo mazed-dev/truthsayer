@@ -12,7 +12,7 @@ import {
 
 import browser from 'webextension-polyfill'
 import { log, isAbortError, genOriginId } from 'armoury'
-import { Knocker, TNode, authCookie, smuggler, OriginHash } from 'smuggler-api'
+import { Knocker, TNode, authCookie, smuggler } from 'smuggler-api'
 import { savePage, savePageQuote } from './background/savePage'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
@@ -183,7 +183,7 @@ async function handleMessageFromPopup(
 
 browser.runtime.onMessage.addListener(
   async (
-    message: ToBackground.Message,
+    message: ToBackground.Request,
     sender: browser.Runtime.MessageSender
   ) => {
     switch (message.direction) {

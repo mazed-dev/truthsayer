@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom'
 import browser from 'webextension-polyfill'
 
 import { TNode, TNodeJson } from 'smuggler-api'
-import { genOriginId, log } from 'armoury'
+import { genOriginId } from 'armoury'
 
 import { FromContent, ToContent } from './../message/types'
 import { genElementDomPath } from './extractor/html'
@@ -135,12 +135,8 @@ const App = () => {
   }
   useEffect(() => {
     browser.runtime.onMessage.addListener(listener)
-    log.debug('Archaeologist content script is loaded')
-    return () => {
-      browser.runtime.onMessage.removeListener(listener)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    return () => browser.runtime.onMessage.removeListener(listener)
+  }, [listener])
   return (
     <>
       <Toaster />

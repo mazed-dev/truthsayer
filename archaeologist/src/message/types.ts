@@ -57,7 +57,7 @@ export namespace FromPopUp {
     message: PageInActiveTabStatusRequest
   ): Promise<ToPopUp.ActiveTabStatusResponse>
   export function sendMessage(message: Request): Promise<ToPopUp.Response> {
-    const msg: ToBackground.Message = { direction: 'from-popup', ...message }
+    const msg: ToBackground.Request = { direction: 'from-popup', ...message }
     return browser.runtime.sendMessage(msg)
   }
 }
@@ -178,13 +178,13 @@ export namespace FromContent {
     | VoidResponse
 
   export function sendMessage(message: Request): Promise<VoidResponse> {
-    const msg: ToBackground.Message = { direction: 'from-content', ...message }
+    const msg: ToBackground.Request = { direction: 'from-content', ...message }
     return browser.runtime.sendMessage(msg)
   }
 }
 
 export namespace ToBackground {
-  export type Message =
+  export type Request =
     | ({ direction: 'from-popup' } & FromPopUp.Request)
     | ({ direction: 'from-content' } & FromContent.Request)
 }

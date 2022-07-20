@@ -418,7 +418,6 @@ export interface AccountInterface {
 }
 
 export type UserFilesystemId = {
-  uid: string
   // A value that uniquely identifies one of filesystems of a specific uid
   fs_key: string
 }
@@ -430,4 +429,23 @@ export type UserFsIngestionProgress = {
 
 export type AdvanceUserFsIngestionProgress = {
   ingested_until: number // See UserFsIngestionProgress
+}
+
+export type ResourceVisit = {
+  timestamp: number
+}
+
+export type ResourceAttention = {
+  timestamp: number
+  seconds: number
+}
+
+export type AddUserActivityRequest = {
+  visits?: ResourceVisit[]
+  attention?: ResourceAttention
+}
+
+export type TotalUserActivity = {
+  visits: ResourceVisit[]
+  seconds_of_attention: number
 }
