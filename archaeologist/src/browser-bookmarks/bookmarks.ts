@@ -3,7 +3,6 @@ import { log } from 'armoury'
 import { FromContent, ToContent } from '../message/types'
 import { savePage } from '../background/savePage'
 
-// TODO[snikitin@outlook.com] should be nothrow it seems
 async function onCreatedEventListener(
   id: string,
   bookmark: browser.Bookmarks.BookmarkTreeNode

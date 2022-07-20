@@ -23,7 +23,7 @@ import browser from 'webextension-polyfill'
  */
 
 export interface VoidResponse {
-  type: 'VOID_CONTENT_RESPONSE'
+  type: 'VOID_RESPONSE'
 }
 
 export namespace FromPopUp {
@@ -170,14 +170,14 @@ export namespace FromContent {
     totalSeconds: number
     totalSecondsEstimation: number
   }
-  export type Message = AttentionTimeChunk
+  export type Request = AttentionTimeChunk
 
   export type Response =
     | GetSelectedQuoteResponse
     | SavePageResponse
     | VoidResponse
 
-  export function sendMessage(message: Message): Promise<void> {
+  export function sendMessage(message: Request): Promise<VoidResponse> {
     const msg: ToBackground.Message = { direction: 'from-content', ...message }
     return browser.runtime.sendMessage(msg)
   }
@@ -186,5 +186,5 @@ export namespace FromContent {
 export namespace ToBackground {
   export type Message =
     | ({ direction: 'from-popup' } & FromPopUp.Request)
-    | ({ direction: 'from-content' } & FromContent.Message)
+    | ({ direction: 'from-content' } & FromContent.Request)
 }

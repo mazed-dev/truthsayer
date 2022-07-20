@@ -7,6 +7,7 @@ import {
   FromPopUp,
   FromContent,
   ToBackground,
+  VoidResponse,
 } from './message/types'
 
 import browser from 'webextension-polyfill'
@@ -116,15 +117,15 @@ async function registerAttentionTime(
 }
 
 async function handleMessageFromContent(
-  message: FromContent.Message,
+  message: FromContent.Request,
   sender: browser.Runtime.MessageSender
-) {
+): Promise<VoidResponse> {
   const tab = sender.tab ?? (await getActiveTab())
   log.debug('Get message from content', message, tab)
   switch (message.type) {
     case 'ATTENTION_TIME_CHUNK':
       await registerAttentionTime(tab, message)
-      break
+      return { type: 'VOID_RESPONSE' }
     default:
       throw new Error(
         `background received msg from content of unknown type, message: ${JSON.stringify(

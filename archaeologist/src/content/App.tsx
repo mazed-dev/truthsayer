@@ -116,7 +116,7 @@ const App = () => {
           }
           setQuotes((current) => current.concat(...qs))
         }
-        return { type: 'VOID_CONTENT_RESPONSE' }
+        return { type: 'VOID_RESPONSE' }
       }
       case 'SHOW_DISAPPEARING_NOTIFICATION': {
         const { text, href, tooltip, timeoutMsec } = message
@@ -126,7 +126,7 @@ const App = () => {
           href,
           timeoutMsec,
         })
-        return { type: 'VOID_CONTENT_RESPONSE' }
+        return { type: 'VOID_RESPONSE' }
       }
     }
     throw new Error(
