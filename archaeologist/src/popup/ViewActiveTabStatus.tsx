@@ -35,46 +35,43 @@ export const ViewActiveTabStatus = () => {
   const [pageSavedQuotes, setPageSavedQuotes] = React.useState<TNode[]>([])
 
   useAsyncEffect(async () => {
-    browser.runtime.onMessage.addListener((message: ToPopUp.Message) => {
-      switch (message.type) {
-        case 'UPDATE_POPUP_CARDS':
-          {
-            const { bookmark, quotes, unmemorable, mode } = message
-            if (bookmark != null) {
-              const node = TNode.fromJson(bookmark)
-              setPageSavedNode(node)
-              setPageStatus('saved')
-            } else {
-              if (mode === 'reset') {
-                setPageSavedNode(null)
-              }
-            }
-            if (unmemorable) {
-              setPageStatus('unmemorable')
-            } else {
-              setPageStatus('memorable')
-            }
-            const added = quotes.map((json: TNodeJson) => TNode.fromJson(json))
-            setPageSavedQuotes((existing: TNode[]) => {
-              if (mode === 'reset') {
-                return added
-              }
-              return existing.concat(added)
-            })
-          }
-          break
-        default:
-          break
-      }
-    })
-    await FromPopUp.sendMessage({
+    const response = await FromPopUp.sendMessage({
       type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS',
+    })
+    const { bookmark, quotes, unmemorable, mode } = response
+    if (bookmark != null) {
+      const node = TNode.fromJson(bookmark)
+      setPageSavedNode(node)
+      setPageStatus('saved')
+    } else {
+      if (mode === 'reset') {
+        setPageSavedNode(null)
+      }
+    }
+    if (unmemorable) {
+      setPageStatus('unmemorable')
+    } else {
+      setPageStatus('memorable')
+    }
+    const added = quotes.map((json: TNodeJson) => TNode.fromJson(json))
+    setPageSavedQuotes((existing: TNode[]) => {
+      if (mode === 'reset') {
+        return added
+      }
+      return existing.concat(added)
     })
   }, [])
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setPageStatus('loading')
-    FromPopUp.sendMessage({ type: 'REQUEST_PAGE_TO_SAVE' })
+    const response = await FromPopUp.sendMessage({
+      type: 'REQUEST_PAGE_TO_SAVE',
+    })
+    if (!response.success) {
+      setPageStatus('unmemorable')
+    } else {
+      setPageStatus(response.unmemorable ? 'unmemorable' : 'saved')
+    }
   }
 
   let btn

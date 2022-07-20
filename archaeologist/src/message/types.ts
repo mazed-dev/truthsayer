@@ -50,7 +50,12 @@ export namespace FromPopUp {
   export function sendMessage(
     message: AuthStatusRequest
   ): Promise<ToPopUp.AuthStatusResponse>
-  export function sendMessage(message: SavePageRequest): Promise<VoidResponse>
+  export function sendMessage(
+    message: SavePageRequest
+  ): Promise<ToPopUp.PageSavedResponse>
+  export function sendMessage(
+    message: PageInActiveTabStatusRequest
+  ): Promise<ToPopUp.ActiveTabStatusResponse>
   export function sendMessage(message: Request): Promise<ToPopUp.Response> {
     const msg: ToBackground.Message = { direction: 'from-popup', ...message }
     return browser.runtime.sendMessage(msg)
@@ -61,7 +66,7 @@ export namespace ToPopUp {
     type: 'AUTH_STATUS'
     status: boolean
   }
-  export interface UpdatePopUpCards {
+  export interface ActiveTabStatusResponse {
     type: 'UPDATE_POPUP_CARDS'
     bookmark?: TNodeJson
     quotes: TNodeJson[]
@@ -74,10 +79,17 @@ export namespace ToPopUp {
     //    - for bookmark, replace existing one in PopUp window, if specified
     mode: 'reset' | 'append'
   }
+  export interface PageSavedResponse {
+    type: 'PAGE_SAVED'
+    success: boolean
+    unmemorable?: boolean
+  }
 
-  export type Message = UpdatePopUpCards
-  export type Response = AuthStatusResponse | VoidResponse
-  export function sendMessage(message: Message): Promise<void> {
+  export type Response =
+    | AuthStatusResponse
+    | ActiveTabStatusResponse
+    | PageSavedResponse
+  export function sendMessage(message: void): Promise<void> {
     return browser.runtime.sendMessage(message)
   }
 }

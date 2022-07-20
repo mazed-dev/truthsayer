@@ -12,7 +12,6 @@ import {
 import browser from 'webextension-polyfill'
 import { log, isAbortError, genOriginId } from 'armoury'
 import { Knocker, TNode, authCookie, smuggler, OriginHash } from 'smuggler-api'
-import { MazedPageData, updateContent } from './background/updateContent'
 import { savePage, savePageQuote } from './background/savePage'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
@@ -34,16 +33,31 @@ async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
 }
 
 async function requestPageSavedStatus(tab: browser.Tabs.Tab | null) {
-  if (tab == null) {
-    return
+  let quotes: TNode[] = []
+  if (tab?.url == null) {
+    return { quotes, unmemorable: false }
   }
-  const { id, url } = tab
-  if (url == null) {
-    return
+  const { id: originId, stableUrl } = await genOriginId(tab.url)
+
+  if (originId == null) {
+    return { quotes, unmemorable: true }
   }
-  const { id: originId, stableUrl } = await genOriginId(url)
-  return await getWhatMazedKnowsAboutPage(stableUrl, originId)
-  await updateContent('reset', data, id)
+  let nodes
+  try {
+    nodes = await smuggler.node.lookup({ url: stableUrl })
+  } catch (err) {
+    log.debug('Lookup by origin ID failed, consider page as non saved', err)
+    return { quotes, unmemorable: false }
+  }
+  let bookmark: TNode | undefined = undefined
+  for (const node of nodes) {
+    if (node.isWebBookmark()) {
+      bookmark = node
+    } else if (node.isWebQuote()) {
+      quotes.push(node)
+    }
+  }
+  return { quotes, bookmark }
 }
 
 // Periodically renew auth token using Knocker
@@ -67,32 +81,6 @@ async function getAuthStatus() {
       return null
     })
   return authCookie.checkRawValue(cookie?.value || null)
-}
-
-async function getWhatMazedKnowsAboutPage(
-  url: string,
-  originId?: OriginHash
-): Promise<MazedPageData> {
-  if (originId == null) {
-    return { quotes: [], unmemorable: true }
-  }
-  let nodes
-  try {
-    nodes = await smuggler.node.lookup({ url })
-  } catch (err) {
-    log.debug('Lookup by origin ID failed, consider page as non saved', err)
-    return { quotes: [], unmemorable: true }
-  }
-  let bookmark: TNode | undefined = undefined
-  let quotes: TNode[] = []
-  for (const node of nodes) {
-    if (node.isWebBookmark()) {
-      bookmark = node
-    } else if (node.isWebQuote()) {
-      quotes.push(node)
-    }
-  }
-  return { quotes, bookmark }
 }
 
 async function registerAttentionTime(
@@ -156,16 +144,29 @@ async function handleMessageFromPopup(
     case 'REQUEST_PAGE_TO_SAVE':
       const tabId = activeTab?.id
       if (tabId == null) {
-        return { type: 'VOID_CONTENT_RESPONSE' }
+        return { type: 'PAGE_SAVED', success: false }
       }
       const response: FromContent.SavePageResponse =
         await ToContent.sendMessage(tabId, { type: 'REQUEST_PAGE_CONTENT' })
       const { url, content, originId, quoteNids } = response
-      await savePage(url, originId, quoteNids, content, tabId)
-      return { type: 'VOID_CONTENT_RESPONSE' }
+      const { unmemorable } = await savePage(
+        url,
+        originId,
+        quoteNids,
+        content,
+        tabId
+      )
+      return { type: 'PAGE_SAVED', success: true, unmemorable }
     case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS':
-      await requestPageSavedStatus(activeTab)
-      return { type: 'VOID_CONTENT_RESPONSE' }
+      const data = await requestPageSavedStatus(activeTab)
+      const quotesJson = data.quotes.map((node) => node.toJson())
+      const bookmarkJson = data.bookmark?.toJson()
+      return {
+        type: 'UPDATE_POPUP_CARDS',
+        mode: 'reset',
+        quotes: quotesJson,
+        bookmark: bookmarkJson,
+      }
     case 'REQUEST_AUTH_STATUS':
       const status = await getAuthStatus()
       badge.setActive(status)

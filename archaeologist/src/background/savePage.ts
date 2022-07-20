@@ -1,7 +1,7 @@
 import { DisappearingToastProps } from '../content/toaster/Toaster'
 import { WebPageContent } from '../content/extractor/webPageContent'
 
-import { log, isAbortError, MimeType } from 'armoury'
+import { log, isAbortError, MimeType, errorise } from 'armoury'
 import {
   NodeExtattrs,
   NodeExtattrsWebQuote,
@@ -10,10 +10,63 @@ import {
   makeNodeTextData,
   smuggler,
   OriginHash,
+  TNode,
 } from 'smuggler-api'
 import { ToContent } from '../message/types'
-import { updateContent } from './updateContent'
 import { mazed } from '../util/mazed'
+import * as badge from '../badge/badge'
+
+/**
+ * Update content (saved nodes) in:
+ *   - Pop up window.
+ *   - Content augmentation.
+ *   - Badge counter.
+ */
+async function updateContent(
+  mode: 'append' | 'reset',
+  quotes: TNode[],
+  bookmark?: TNode,
+  tabId?: number
+): Promise<void> {
+  const quotesJson = quotes.map((node) => node.toJson())
+  const bookmarkJson = bookmark?.toJson()
+  // Update badge counter
+  let badgeText: string | undefined = '✓'
+  if (mode === 'reset') {
+    const n = quotes.length + (bookmark != null ? 1 : 0)
+    if (n !== 0) {
+      badgeText = n.toString()
+    } else {
+      badgeText = undefined
+    }
+  }
+  await badge.resetText(tabId, badgeText)
+  // Update content augmentation
+  if (tabId == null) {
+    return
+  }
+  try {
+    await ToContent.sendMessage(tabId, {
+      type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
+      quotes: quotesJson,
+      bookmark: bookmarkJson,
+      mode,
+    })
+  } catch (exception) {
+    const error = errorise(exception)
+    if (isAbortError(error)) {
+      return
+    }
+    if (error.message.search(/receiving end does not exist/i) >= 0) {
+      log.debug(
+        'Can not send augmentation to the current tab, content script is not listening',
+        error
+      )
+      return
+    }
+    log.exception(error, 'Content augmentation sending failed')
+  }
+}
 
 async function showDisappearingNotification(
   tabId: number | undefined,
@@ -44,12 +97,11 @@ export async function savePage(
   quoteNids: string[],
   content?: WebPageContent,
   tabId?: number
-) {
+): Promise<{ unmemorable: boolean }> {
   if (content == null) {
     // Page is not memorable
-    const unmemorable = true
-    await updateContent('append', [], undefined, tabId, unmemorable)
-    return
+    await updateContent('append', [], undefined, tabId)
+    return { unmemorable: true }
   }
   const text = makeNodeTextData()
   const index_text: NodeIndexText = {
@@ -88,6 +140,7 @@ export async function savePage(
     tooltip: 'Page is added to your timeline',
     href: mazed.makeNodeUrl(nid).toString(),
   })
+  return { unmemorable: false }
 }
 
 export async function savePageQuote(
