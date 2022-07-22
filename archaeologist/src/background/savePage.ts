@@ -97,7 +97,7 @@ export async function savePage(
   quoteNids: string[],
   content?: WebPageContent,
   tabId?: number
-): Promise<{ unmemorable: boolean }> {
+): Promise<{ node?: TNode; unmemorable: boolean }> {
   if (content == null) {
     // Page is not memorable
     await updateContent('append', [], undefined, tabId)
@@ -140,7 +140,7 @@ export async function savePage(
     tooltip: 'Page is added to your timeline',
     href: mazed.makeNodeUrl(nid).toString(),
   })
-  return { unmemorable: false }
+  return { node, unmemorable: false }
 }
 
 export async function savePageQuote(

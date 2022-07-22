@@ -145,19 +145,19 @@ async function handleMessageFromPopup(
     case 'REQUEST_PAGE_TO_SAVE':
       const tabId = activeTab?.id
       if (tabId == null) {
-        return { type: 'PAGE_SAVED', success: false }
+        return { type: 'PAGE_SAVED' }
       }
       const response: FromContent.SavePageResponse =
         await ToContent.sendMessage(tabId, { type: 'REQUEST_PAGE_CONTENT' })
       const { url, content, originId, quoteNids } = response
-      const { unmemorable } = await savePage(
+      const { node, unmemorable } = await savePage(
         url,
         originId,
         quoteNids,
         content,
         tabId
       )
-      return { type: 'PAGE_SAVED', success: true, unmemorable }
+      return { type: 'PAGE_SAVED', bookmark: node?.toJson(), unmemorable }
     case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS':
       const data = await requestPageSavedStatus(activeTab)
       const quotesJson = data.quotes.map((node) => node.toJson())

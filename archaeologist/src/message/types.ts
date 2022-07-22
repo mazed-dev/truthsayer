@@ -81,7 +81,7 @@ export namespace ToPopUp {
   }
   export interface PageSavedResponse {
     type: 'PAGE_SAVED'
-    success: boolean
+    bookmark?: TNodeJson
     unmemorable?: boolean
   }
 

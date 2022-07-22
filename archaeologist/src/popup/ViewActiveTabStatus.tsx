@@ -27,55 +27,84 @@ const Toolbar = styled.div`
   justify-content: center;
 `
 
+type Status = 'saved' | 'loading' | 'unmemorable' | 'memorable'
+
+type State = {
+  status: Status
+  bookmark: TNode | null
+  quotes: TNode[]
+}
+
+type Action =
+  | {
+      type: 'reset' | 'append'
+      bookmark?: TNodeJson
+      quotes?: TNodeJson[]
+      unmemorable?: boolean
+    }
+  | { type: 'update-status'; status: Status }
+
+function updateState(state: State, action: Action) {
+  const newState = JSON.parse(JSON.stringify(state))
+  switch (action.type) {
+    case 'reset':
+    case 'append':
+      {
+        if (action.bookmark != null) {
+          const bookmark = TNode.fromJson(action.bookmark)
+          newState.bookmark = bookmark
+          newState.status = 'saved'
+        } else {
+          if (action.type === 'reset') {
+            newState.bookmark = null
+          }
+        }
+        if (action.unmemorable) {
+          newState.status = 'unmemorable'
+        } else {
+          newState.status = 'memorable'
+        }
+        const added =
+          action.quotes?.map((json: TNodeJson) => TNode.fromJson(json)) ?? []
+        newState.quotes =
+          action.type === 'reset' ? added : newState.quotes.concat(added)
+      }
+      break
+    case 'update-status':
+      {
+        newState.status = action.status
+      }
+      break
+  }
+  return newState
+}
+
 export const ViewActiveTabStatus = () => {
-  const [pageStatus, setPageStatus] = React.useState<
-    'saved' | 'loading' | 'unmemorable' | 'memorable'
-  >('loading')
-  const [pageSavedNode, setPageSavedNode] = React.useState<TNode | null>(null)
-  const [pageSavedQuotes, setPageSavedQuotes] = React.useState<TNode[]>([])
+  const initialState: State = {
+    status: 'loading',
+    bookmark: null,
+    quotes: [],
+  }
+  const [state, dispatch] = React.useReducer(updateState, initialState)
 
   useAsyncEffect(async () => {
     const response = await FromPopUp.sendMessage({
       type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS',
     })
-    const { bookmark, quotes, unmemorable, mode } = response
-    if (bookmark != null) {
-      const node = TNode.fromJson(bookmark)
-      setPageSavedNode(node)
-      setPageStatus('saved')
-    } else {
-      if (mode === 'reset') {
-        setPageSavedNode(null)
-      }
-    }
-    if (unmemorable) {
-      setPageStatus('unmemorable')
-    } else {
-      setPageStatus('memorable')
-    }
-    const added = quotes.map((json: TNodeJson) => TNode.fromJson(json))
-    setPageSavedQuotes((existing: TNode[]) => {
-      if (mode === 'reset') {
-        return added
-      }
-      return existing.concat(added)
-    })
+    const { bookmark, quotes, unmemorable } = response
+    dispatch({ type: 'reset', quotes, bookmark, unmemorable })
   }, [])
 
   const handleSave = async () => {
-    setPageStatus('loading')
-    const response = await FromPopUp.sendMessage({
+    dispatch({ type: 'update-status', status: 'loading' })
+    const { bookmark, unmemorable } = await FromPopUp.sendMessage({
       type: 'REQUEST_PAGE_TO_SAVE',
     })
-    if (!response.success) {
-      setPageStatus('unmemorable')
-    } else {
-      setPageStatus(response.unmemorable ? 'unmemorable' : 'saved')
-    }
+    dispatch({ type: 'append', bookmark, unmemorable })
   }
 
   let btn
-  if (pageStatus === 'memorable' && pageSavedNode == null) {
+  if (state.status === 'memorable' && state.bookmark == null) {
     btn = (
       <ButtonCreate onClick={handleSave}>
         <MdiBookmarkAdd
@@ -85,15 +114,15 @@ export const ViewActiveTabStatus = () => {
         />
       </ButtonCreate>
     )
-  } else if (pageStatus === 'loading') {
+  } else if (state.status === 'loading') {
     btn = <Spinner.Wheel />
   }
   return (
     <Container>
       <Toolbar>{btn}</Toolbar>
       <PageRelatedCards
-        bookmark={pageSavedNode || undefined}
-        quotes={pageSavedQuotes}
+        bookmark={state.bookmark || undefined}
+        quotes={state.quotes}
       />
     </Container>
   )
