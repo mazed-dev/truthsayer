@@ -16,7 +16,6 @@ export const ActivityTracker = ({
 }: {
   registerAttentionTime: (
     deltaSeconds: number,
-    totalSeconds: number,
     totalSecondsEstimation: number
   ) => void
   disabled?: boolean
@@ -30,7 +29,12 @@ export const ActivityTracker = ({
   return <AttentionTimeTracker registerAttentionTime={registerAttentionTime} />
 }
 
-const kActivityTimerStep = moment.duration({ seconds: 2 })
+const kActivityTimeIncrementStep = moment.duration({ seconds: 2 })
+const kActivityTimeReportStep = moment.duration({ seconds: 25 })
+type AttentionTime = {
+  totalSeconds: number
+  deltaSeconds: number
+}
 
 /**
  * This is virtual element to wrap trackers of users activity on a page and
@@ -41,13 +45,15 @@ const AttentionTimeTracker = ({
 }: {
   registerAttentionTime: (
     deltaSeconds: number,
-    totalSeconds: number,
     totalSecondsEstimation: number
   ) => void
 }) => {
   // Save total reading time as a number to avoid difficulties with algebraic
   // operations with it
-  const setTotalReadingTime = React.useState<number>(0)[1]
+  const setTotalReadingTime = React.useState<AttentionTime>({
+    totalSeconds: 0,
+    deltaSeconds: 0,
+  })[1]
   const totalReadingTimeEstimation = React.useMemo(() => {
     // TODO(akindyakov): This is quite expensive call to do on every open page,
     // ideally we could do it only if user spend more that 12 seconds on a page,
@@ -56,7 +62,7 @@ const AttentionTimeTracker = ({
     // if it becomes a problem.
     const text = exctractReadableTextFromPage(document)
     const estimation = unicodeText.getTimeToRead(text)
-    log.debug('Page estimated reading time, seconds', estimation.asSeconds())
+    log.info('Page estimated reading time, seconds', estimation.asSeconds())
     return estimation
   }, [])
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -64,17 +70,31 @@ const AttentionTimeTracker = ({
     lodash.throttle(() => {
       // Every X * 1000 milliseconds of activity increase total time counter by
       // X seconds, this is indirect way to measure active reading time.
-      setTotalReadingTime((current: number) => {
-        const totalSeconds = current + kActivityTimerStep.asSeconds()
-        registerAttentionTime(
-          kActivityTimerStep.asSeconds(),
+      setTotalReadingTime(({ totalSeconds, deltaSeconds }: AttentionTime) => {
+        const totalTimeEstimationSeconds = totalReadingTimeEstimation.asSeconds()
+        const reportStepSeconds = kActivityTimeReportStep.asSeconds()
+        const incrementStepSeconds = kActivityTimeIncrementStep.asSeconds()
+        totalSeconds += incrementStepSeconds
+        deltaSeconds += incrementStepSeconds
+        if (
+          deltaSeconds >= reportStepSeconds ||
+          totalSeconds >= totalTimeEstimationSeconds
+        ) {
+          registerAttentionTime(
+            deltaSeconds,
+            totalTimeEstimationSeconds
+          )
+          deltaSeconds = 0
+        }
+        log.debug(
+          'New reading time (seconds)',
+          deltaSeconds,
           totalSeconds,
-          totalReadingTimeEstimation.asSeconds()
+          totalTimeEstimationSeconds
         )
-        log.debug('New reading time, seconds:', kActivityTimerStep.asSeconds())
-        return totalSeconds
+        return { totalSeconds, deltaSeconds }
       })
-    }, kActivityTimerStep.asMilliseconds()),
+    }, kActivityTimeIncrementStep.asMilliseconds()),
     [totalReadingTimeEstimation]
   )
   React.useEffect(() => {

@@ -144,13 +144,11 @@ const App = () => {
       <ActivityTracker
         registerAttentionTime={(
           deltaSeconds: number,
-          totalSeconds: number,
           totalSecondsEstimation: number
         ) =>
           FromContent.sendMessage({
             type: 'ATTENTION_TIME_CHUNK',
             deltaSeconds,
-            totalSeconds,
             totalSecondsEstimation,
             origin: originIdentity,
           })

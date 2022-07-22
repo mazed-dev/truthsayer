@@ -23,11 +23,12 @@ import {
   NodeExtattrsWebQuote,
   NodeIndexText,
   NodeType,
+  OriginHash,
   TNode,
+  TotalUserActivity,
   authCookie,
   makeNodeTextData,
   smuggler,
-  OriginHash,
 } from 'smuggler-api'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
@@ -300,21 +301,19 @@ async function registerAttentionTime(
   message: FromContent.AttentionTimeChunk
 ): Promise<void> {
   if (tab == null) {
-    log.debug("Can't register attention time for a tab: ", tab)
+    log.error("Can't register attention time for a tab: ", tab)
     return
   }
-  const { totalSeconds, totalSecondsEstimation, deltaSeconds, origin } = message
-  log.debug(
-    'Register Attention Time',
-    tab,
-    totalSeconds,
-    totalSecondsEstimation
-  )
-  let total
+  const { totalSecondsEstimation, deltaSeconds, origin } = message
+  log.debug('Register Attention Time', tab, totalSecondsEstimation)
+  let total: TotalUserActivity
   try {
     total = await smuggler.activity.external.add(
       { id: origin.id },
-      { seconds: deltaSeconds, timestamp: Math.floor(new Date().getTime() / 1000) }
+      {
+        seconds: deltaSeconds,
+        timestamp: Math.floor(new Date().getTime() / 1000),
+      }
     )
   } catch (err) {
     if (!isAbortError(err)) {
@@ -322,18 +321,17 @@ async function registerAttentionTime(
     }
     return
   }
-  if (total.seconds_of_attention >= Math.max(30, Math.min(totalSecondsEstimation, 120))) {
+  if (
+    total.seconds_of_attention >=
+    Math.max(30, Math.min(totalSecondsEstimation, 120))
+  ) {
     // But who are we lying to, we have an attention span of a golden fish, if
     // we spend more than 2 minutes on something, that's already a big
     // achievement. So limit reading time by that.
     // Also, we are limiting minimal time by 30 seconds, to avoid immidiatelly
     // saving pages without text at all.
-    log.debug(
-      'Enough attention time for the tab, bookmark it',
-      totalSeconds,
-      tab
-    )
     requestPageContentToSave(tab)
+    log.info('Enough attention time for the tab, bookmark it', tab.url)
   }
 }
 

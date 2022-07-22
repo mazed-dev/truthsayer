@@ -130,7 +130,6 @@ export namespace FromContent {
   export interface AttentionTimeChunk {
     type: 'ATTENTION_TIME_CHUNK'
     deltaSeconds: number
-    totalSeconds: number
     totalSecondsEstimation: number
     origin: OriginIdentity
   }
