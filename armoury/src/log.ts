@@ -2,6 +2,9 @@ export const log = {
   debug(...args: any): void {
     console.log('Debug', ...args) // eslint-disable-line no-console
   },
+  error(...args: any): void {
+    console.error('Mazed/error', ...args) // eslint-disable-line no-console
+  },
 
   /**
    * Funcional style logging

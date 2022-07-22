@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom'
 import browser from 'webextension-polyfill'
 
 import { TNode, TNodeJson } from 'smuggler-api'
-import { genOriginId } from 'armoury'
+import { genOriginId, log } from 'armoury'
 
 import { FromContent, ToContent } from './../message/types'
 import { genElementDomPath } from './extractor/html'
@@ -21,6 +21,7 @@ import {
   DisappearingToast,
   DisappearingToastProps,
 } from './toaster/Toaster'
+import { AppErrorBoundary } from './AppErrorBoundary'
 
 async function bookmarkPage(quotes: TNode[]) {
   const { id: originId, stableUrl } = await genOriginId(
@@ -135,7 +136,7 @@ const App = () => {
     return () => browser.runtime.onMessage.removeListener(listener)
   }, [listener])
   return (
-    <>
+    <AppErrorBoundary>
       <Toaster />
       {notification ? (
         <DisappearingToast {...notification}></DisappearingToast>
@@ -154,7 +155,7 @@ const App = () => {
         }
         disabled={bookmark != null}
       />
-    </>
+    </AppErrorBoundary>
   )
 }
 

@@ -13,6 +13,7 @@ import { mazed } from './util/mazed'
 import { DisappearingToastProps } from './content/toaster/Toaster'
 
 import { WebPageContent } from './content/extractor/webPageContent'
+import { isMemorable } from './content/extractor/unmemorable'
 import { requestPageContentToSave } from './background/request-content'
 
 import browser from 'webextension-polyfill'
@@ -271,7 +272,7 @@ async function checkOriginIdAndUpdatePageStatus(
   url: string,
   originId?: OriginHash
 ) {
-  if (originId == null) {
+  if (originId == null || !isMemorable(url)) {
     const unmemorable = true
     await updateContent('reset', [], undefined, tabId, unmemorable)
     return
