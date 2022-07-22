@@ -29,8 +29,8 @@ export const ActivityTracker = ({
   return <AttentionTimeTracker registerAttentionTime={registerAttentionTime} />
 }
 
-const kActivityTimeIncrementStep = moment.duration({ seconds: 2 })
-const kActivityTimeReportStep = moment.duration({ seconds: 25 })
+const kActivityTimeIncrementStep = moment.duration({ seconds: 3 })
+const kActivityTimeReportStep = moment.duration({ seconds: 24 })
 type AttentionTime = {
   totalSeconds: number
   deltaSeconds: number
@@ -71,7 +71,8 @@ const AttentionTimeTracker = ({
       // Every X * 1000 milliseconds of activity increase total time counter by
       // X seconds, this is indirect way to measure active reading time.
       setTotalReadingTime(({ totalSeconds, deltaSeconds }: AttentionTime) => {
-        const totalTimeEstimationSeconds = totalReadingTimeEstimation.asSeconds()
+        const totalTimeEstimationSeconds =
+          totalReadingTimeEstimation.asSeconds()
         const reportStepSeconds = kActivityTimeReportStep.asSeconds()
         const incrementStepSeconds = kActivityTimeIncrementStep.asSeconds()
         totalSeconds += incrementStepSeconds
@@ -80,11 +81,11 @@ const AttentionTimeTracker = ({
           deltaSeconds >= reportStepSeconds ||
           totalSeconds >= totalTimeEstimationSeconds
         ) {
-          registerAttentionTime(
-            deltaSeconds,
-            totalTimeEstimationSeconds
-          )
+          registerAttentionTime(deltaSeconds, totalTimeEstimationSeconds)
           deltaSeconds = 0
+          if (totalSeconds >= totalTimeEstimationSeconds) {
+            totalSeconds = 0
+          }
         }
         log.debug(
           'New reading time (seconds)',

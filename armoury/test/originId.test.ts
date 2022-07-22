@@ -46,9 +46,7 @@ test('Authentication does not mater', () => {
 test('Fragment does not mater', () => {
   const urlWithRef = 'https://abc.abc/abc#asdf'
   const urlWithout = 'https://abc.abc/abc'
-  expect(genOriginId(urlWithout)).toStrictEqual(
-    genOriginId(urlWithRef)
-  )
+  expect(genOriginId(urlWithout)).toStrictEqual(genOriginId(urlWithRef))
 })
 
 test('Query is always normalized', () => {
@@ -59,9 +57,9 @@ test('Query is always normalized', () => {
 
 test('Collisions', () => {
   const ids = urls.map((url: string) => {
-      const { id } = genOriginId(url)
-      return id
-    })
+    const { id } = genOriginId(url)
+    return id
+  })
   expect(urls.length).toStrictEqual(ids.length)
 })
 
