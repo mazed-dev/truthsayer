@@ -6,7 +6,7 @@ import browser from 'webextension-polyfill'
 import styled from '@emotion/styled'
 import { css } from '@emotion/react'
 
-import { ToPopUp, FromPopUp } from './../message/types'
+import { FromPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { Button } from './Button'
 import { mazed } from '../util/mazed'

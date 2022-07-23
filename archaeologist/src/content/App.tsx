@@ -71,68 +71,69 @@ const App = () => {
   const [bookmark, setBookmark] = useState<TNode | null>(null)
   const [notification, setNotification] =
     useState<DisappearingToastProps | null>(null)
-  const listener = async (
-    message: ToContent.Request
-  ): Promise<FromContent.Response> => {
-    switch (message.type) {
-      case 'REQUEST_PAGE_CONTENT':
-        if (bookmark == null) {
-          // Bookmark if not yet bookmarked
-          const content = await contentOfThisDocument()
+  const listener = React.useCallback(
+    async (message: ToContent.Request): Promise<FromContent.Response> => {
+      switch (message.type) {
+        case 'REQUEST_PAGE_CONTENT':
+          if (bookmark == null) {
+            // Bookmark if not yet bookmarked
+            const content = await contentOfThisDocument()
+            return {
+              type: 'PAGE_TO_SAVE',
+              ...content,
+              quoteNids: quotes.map((node) => node.nid),
+            }
+          }
+          break
+        case 'REQUEST_SELECTED_WEB_QUOTE': {
+          const lang = document.documentElement.lang
+          const { id: originId, stableUrl } = await genOriginId(
+            exctractPageUrl(document)
+          )
           return {
-            type: 'PAGE_TO_SAVE',
-            ...content,
-            quoteNids: quotes.map((node) => node.nid),
+            type: 'SELECTED_WEB_QUOTE',
+            text: message.text,
+            path: await getCurrentlySelectedPath(),
+            lang,
+            originId,
+            url: stableUrl,
+            fromNid: bookmark?.nid,
           }
         }
-        break
-      case 'REQUEST_SELECTED_WEB_QUOTE': {
-        const lang = document.documentElement.lang
-        const { id: originId, stableUrl } = await genOriginId(
-          exctractPageUrl(document)
-        )
-        return {
-          type: 'SELECTED_WEB_QUOTE',
-          text: message.text,
-          path: await getCurrentlySelectedPath(),
-          lang,
-          originId,
-          url: stableUrl,
-          fromNid: bookmark?.nid,
-        }
-      }
-      case 'REQUEST_UPDATE_CONTENT_AUGMENTATION': {
-        const { quotes, bookmark, mode } = message
-        const qs = quotes.map((json: TNodeJson) => TNode.fromJson(json))
-        const bm = bookmark != null ? TNode.fromJson(bookmark) : null
-        if (mode === 'reset') {
-          setQuotes(qs)
-          setBookmark(bm)
-        } else {
-          if (bm != null) {
-            // If mode is not 'reset', null bookmark in arguments should not discard
-            // existing bookmark
+        case 'REQUEST_UPDATE_CONTENT_AUGMENTATION': {
+          const { quotes, bookmark, mode } = message
+          const qs = quotes.map((json: TNodeJson) => TNode.fromJson(json))
+          const bm = bookmark != null ? TNode.fromJson(bookmark) : null
+          if (mode === 'reset') {
+            setQuotes(qs)
             setBookmark(bm)
+          } else {
+            if (bm != null) {
+              // If mode is not 'reset', null bookmark in arguments should not discard
+              // existing bookmark
+              setBookmark(bm)
+            }
+            setQuotes((current) => current.concat(...qs))
           }
-          setQuotes((current) => current.concat(...qs))
+          return { type: 'VOID_RESPONSE' }
         }
-        return { type: 'VOID_RESPONSE' }
+        case 'SHOW_DISAPPEARING_NOTIFICATION': {
+          const { text, href, tooltip, timeoutMsec } = message
+          setNotification({
+            text,
+            tooltip,
+            href,
+            timeoutMsec,
+          })
+          return { type: 'VOID_RESPONSE' }
+        }
       }
-      case 'SHOW_DISAPPEARING_NOTIFICATION': {
-        const { text, href, tooltip, timeoutMsec } = message
-        setNotification({
-          text,
-          tooltip,
-          href,
-          timeoutMsec,
-        })
-        return { type: 'VOID_RESPONSE' }
-      }
-    }
-    throw new Error(
-      `Unknown ToContent.Message type, message = ${JSON.stringify(message)}`
-    )
-  }
+      throw new Error(
+        `Unknown ToContent.Message type, message = ${JSON.stringify(message)}`
+      )
+    },
+    [quotes, bookmark]
+  )
   useEffect(() => {
     browser.runtime.onMessage.addListener(listener)
     return () => browser.runtime.onMessage.removeListener(listener)

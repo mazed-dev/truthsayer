@@ -2,7 +2,6 @@
 
 import React from 'react'
 import { useAsyncEffect } from 'use-async-effect'
-import browser from 'webextension-polyfill'
 import styled from '@emotion/styled'
 
 import { TNode, TNodeJson } from 'smuggler-api'
@@ -10,7 +9,7 @@ import { TNode, TNodeJson } from 'smuggler-api'
 import { MdiBookmarkAdd, Spinner } from 'elementary'
 import { ButtonCreate } from './Button'
 
-import { ToPopUp, FromPopUp } from './../message/types'
+import { FromPopUp } from './../message/types'
 import { PageRelatedCards } from './PageRelatedCards'
 
 const Container = styled.div`
@@ -71,9 +70,7 @@ function updateState(state: State, action: Action) {
       }
       break
     case 'update-status':
-      {
-        newState.status = action.status
-      }
+      newState.status = action.status
       break
   }
   return newState
