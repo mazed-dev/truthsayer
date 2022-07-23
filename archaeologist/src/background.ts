@@ -224,6 +224,12 @@ browser.tabs.onUpdated.addListener(
         tabId,
         calculateBadgeCounter(response.quotes, response.bookmark)
       )
+      await ToContent.sendMessage(tabId, {
+        type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
+        quotes: response.quotes.map((node) => node.toJson()),
+        bookmark: response.bookmark?.toJson(),
+        mode: 'reset',
+      })
     }
   }
 )
