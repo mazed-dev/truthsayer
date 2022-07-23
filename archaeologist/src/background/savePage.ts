@@ -16,6 +16,8 @@ import { ToContent } from '../message/types'
 import { mazed } from '../util/mazed'
 import * as badge from '../badge/badge'
 
+const ACTION_DONE_BADGE_MARKER = '✓'
+
 /**
  * Update content (saved nodes) in:
  *   - Pop up window.
@@ -23,24 +25,12 @@ import * as badge from '../badge/badge'
  *   - Badge counter.
  */
 async function updateContent(
-  mode: 'append' | 'reset',
   quotes: TNode[],
   bookmark?: TNode,
   tabId?: number
 ): Promise<void> {
   const quotesJson = quotes.map((node) => node.toJson())
   const bookmarkJson = bookmark?.toJson()
-  // Update badge counter
-  let badgeText: string | undefined = '✓'
-  if (mode === 'reset') {
-    const n = quotes.length + (bookmark != null ? 1 : 0)
-    if (n !== 0) {
-      badgeText = n.toString()
-    } else {
-      badgeText = undefined
-    }
-  }
-  await badge.resetText(tabId, badgeText)
   // Update content augmentation
   if (tabId == null) {
     return
@@ -50,7 +40,7 @@ async function updateContent(
       type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
       quotes: quotesJson,
       bookmark: bookmarkJson,
-      mode,
+      mode: 'append',
     })
   } catch (exception) {
     const error = errorise(exception)
@@ -99,8 +89,10 @@ export async function savePage(
   tabId?: number
 ): Promise<{ node?: TNode; unmemorable: boolean }> {
   if (content == null) {
+    // Update badge counter
+    await badge.resetText(tabId, ACTION_DONE_BADGE_MARKER)
     // Page is not memorable
-    await updateContent('append', [], undefined, tabId)
+    await updateContent([], undefined, tabId)
     return { unmemorable: true }
   }
   const text = makeNodeTextData()
@@ -132,9 +124,13 @@ export async function savePage(
     },
     to_nid: quoteNids,
   })
+
+  // Update badge counter
+  await badge.resetText(tabId, ACTION_DONE_BADGE_MARKER)
+
   const { nid } = resp
   const node = await smuggler.node.get({ nid })
-  await updateContent('append', [], node, tabId)
+  await updateContent([], node, tabId)
   await showDisappearingNotification(tabId, {
     text: 'Added',
     tooltip: 'Page is added to your timeline',
@@ -165,8 +161,11 @@ export async function savePageQuote(
     extattrs,
   })
   if (resp) {
+    // Update badge counter
+    await badge.resetText(tabId, ACTION_DONE_BADGE_MARKER)
+
     const { nid } = resp
     const node = await smuggler.node.get({ nid })
-    await updateContent('append', [node], undefined, tabId)
+    await updateContent([node], undefined, tabId)
   }
 }

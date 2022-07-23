@@ -14,6 +14,7 @@ import browser from 'webextension-polyfill'
 import { log, isAbortError, genOriginId } from 'armoury'
 import { Knocker, TNode, authCookie, smuggler } from 'smuggler-api'
 import { savePage, savePageQuote } from './background/savePage'
+import { calculateBadgeCounter } from './badge/badgeCounter'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
@@ -160,6 +161,10 @@ async function handleMessageFromPopup(
       return { type: 'PAGE_SAVED', bookmark: node?.toJson(), unmemorable }
     case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS':
       const data = await requestPageSavedStatus(activeTab)
+      await badge.resetText(
+        activeTab?.id,
+        calculateBadgeCounter(data.quotes, data.bookmark)
+      )
       const quotesJson = data.quotes.map((node) => node.toJson())
       const bookmarkJson = data.bookmark?.toJson()
       return {
@@ -203,7 +208,7 @@ browser.runtime.onMessage.addListener(
 
 browser.tabs.onUpdated.addListener(
   async (
-    _tabId: number,
+    tabId: number,
     changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
     tab: browser.Tabs.Tab
   ) => {
@@ -214,7 +219,11 @@ browser.tabs.onUpdated.addListener(
       changeInfo.status === 'complete'
     ) {
       // Request page saved status on new non-incognito page loading
-      await requestPageSavedStatus(tab)
+      const response = await requestPageSavedStatus(tab)
+      await badge.resetText(
+        tabId,
+        calculateBadgeCounter(response.quotes, response.bookmark)
+      )
     }
   }
 )
