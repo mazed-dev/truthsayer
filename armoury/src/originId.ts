@@ -20,8 +20,12 @@ type OriginHash = number
  *
  * ⚠ This type is expected to match smuggler-api.OriginId
  * */
-type OriginId = {
+export type OriginId = {
   id: OriginHash
+}
+
+export type OriginIdentity = OriginId & {
+  stableUrl: string
 }
 
 /**
@@ -30,11 +34,7 @@ type OriginId = {
  * @param {string} url - URL string to generate OriginId for.
  * @returns {number, string} generated origin OriginId and stabilised URL
  */
-export async function genOriginId(url: string): Promise<
-  OriginId & {
-    stableUrl: string
-  }
-> {
+export function genOriginId(url: string): OriginIdentity {
   const stableUrl = stabiliseUrlForOriginId(url)
   const h = xxh.h32(kOriginSeed)
   h.update(stableUrl)

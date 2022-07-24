@@ -11,8 +11,14 @@ import {
 } from './message/types'
 
 import browser from 'webextension-polyfill'
-import { log, isAbortError, genOriginId } from 'armoury'
-import { Knocker, TNode, authCookie, smuggler } from 'smuggler-api'
+import { log, isAbortError } from 'armoury'
+import {
+  Knocker,
+  TNode,
+  TotalUserActivity,
+  authCookie,
+  smuggler,
+} from 'smuggler-api'
 import { savePage, savePageQuote } from './background/savePage'
 import { calculateBadgeCounter } from './badge/badgeCounter'
 import { isMemorable } from './content/extractor/unmemorable'
@@ -40,13 +46,12 @@ async function requestPageSavedStatus(tab: browser.Tabs.Tab | null) {
   if (tab?.url == null) {
     return { quotes, unmemorable: false }
   }
-  const { id: originId, stableUrl } = await genOriginId(tab.url)
-  if (originId == null || !isMemorable(stableUrl)) {
+  if (!isMemorable(tab.url)) {
     return { quotes, unmemorable: true }
   }
   let nodes
   try {
-    nodes = await smuggler.node.lookup({ url: stableUrl })
+    nodes = await smuggler.node.lookup({ url: tab.url })
   } catch (err) {
     log.debug('Lookup by origin ID failed, consider page as non saved', err)
     return { quotes, unmemorable: false }
@@ -93,21 +98,33 @@ async function registerAttentionTime(
     log.debug("Can't register attention time for a tab: ", tab)
     return
   }
-  const { totalSeconds, totalSecondsEstimation } = message
-  log.debug(
-    'Register Attention Time',
-    tab,
-    totalSeconds,
-    totalSecondsEstimation
-  )
-  // TODO: upsert attention time to smuggler here, see
-  // https://github.com/Thread-knowledge/smuggler/pull/76
-  if (totalSeconds >= totalSecondsEstimation) {
-    log.debug(
-      'Enough attention time for the tab, bookmark it',
-      totalSeconds,
-      tab
+  const { totalSecondsEstimation, deltaSeconds, origin } = message
+  log.debug('Register Attention Time', tab, totalSecondsEstimation)
+  let total: TotalUserActivity
+  try {
+    total = await smuggler.activity.external.add(
+      { id: origin.id },
+      {
+        seconds: deltaSeconds,
+        timestamp: Math.floor(new Date().getTime() / 1000),
+      }
     )
+  } catch (err) {
+    if (!isAbortError(err)) {
+      log.exception(err, 'Could not register external activity')
+    }
+    return
+  }
+  if (
+    total.seconds_of_attention >=
+    Math.max(24, Math.min(totalSecondsEstimation, 120))
+  ) {
+    // But who are we lying to, we have an attention span of a golden fish, if
+    // we spend more than 2 minutes on something, that's already a big
+    // achievement. So limit reading time by that.
+    // Also, we are limiting minimal time by 30 seconds, to avoid immidiatelly
+    // saving pages without text at all.
+    log.info('Enough attention time for the tab, bookmark it', tab.url)
     const response: FromContent.SavePageResponse = await ToContent.sendMessage(
       tab.id,
       { type: 'REQUEST_PAGE_CONTENT' }
