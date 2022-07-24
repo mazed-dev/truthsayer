@@ -252,7 +252,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
   if ('nid' in key) {
     return getNode({ nid: key.nid, signal })
   } else if ('webBookmark' in key) {
-    const { id, stableUrl } = await genOriginId(key.webBookmark.url)
+    const { id, stableUrl } = genOriginId(key.webBookmark.url)
     const query = { ...SLICE_ALL, origin: { id } }
     const iter = smuggler.node.slice(query)
 
@@ -264,7 +264,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
     }
     return undefined
   } else if ('webQuote' in key) {
-    const { id, stableUrl } = await genOriginId(key.webQuote.url)
+    const { id, stableUrl } = genOriginId(key.webQuote.url)
     const query = { ...SLICE_ALL, origin: { id } }
     const iter = smuggler.node.slice(query)
 
