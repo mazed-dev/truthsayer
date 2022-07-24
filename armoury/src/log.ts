@@ -3,7 +3,7 @@ export const log = {
     console.log('Debug', ...args) // eslint-disable-line no-console
   },
   error(...args: any): void {
-    console.error('Mazed/error', ...args) // eslint-disable-line no-console
+    console.error('[Mazed/error]', ...args) // eslint-disable-line no-console
   },
 
   /**
