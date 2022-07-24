@@ -22,7 +22,7 @@ import {
   DisappearingToastProps,
 } from './toaster/Toaster'
 
-async function bookmarkPage(quotes: TNode[]) {
+async function contentOfThisDocument() {
   const { id: originId, stableUrl } = await genOriginId(
     exctractPageUrl(document)
   )
@@ -30,23 +30,14 @@ async function bookmarkPage(quotes: TNode[]) {
   const content = isMemorable(stableUrl)
     ? await exctractPageContent(document, baseURL)
     : undefined
-  await FromContent.sendMessage({
-    type: 'PAGE_TO_SAVE',
+  return {
     content,
     originId,
     url: stableUrl,
-    quoteNids: quotes.map((node) => node.nid),
-  })
+  }
 }
 
-async function saveSelectedTextAsQuote(
-  text: string,
-  bookmark: TNode | null
-): Promise<void> {
-  const lang = document.documentElement.lang
-  const { id: originId, stableUrl } = await genOriginId(
-    exctractPageUrl(document)
-  )
+async function getCurrentlySelectedPath() {
   // TODO(akindyakov): Use window.getSelection() to obtain `anchorNode` instead
   // of this hacky approach with "copy" event. This way we can get a better
   // precision of selection and stabilise `target` extraction in general.
@@ -56,26 +47,23 @@ async function saveSelectedTextAsQuote(
   // https://github.com/Thread-knowledge/truthsayer/issues/216
   //
   // console.log('Selection', window.getSelection())
-  function oncopy(event: ClipboardEvent) {
-    document.removeEventListener('copy', oncopy, true)
-    event.stopImmediatePropagation()
-    event.preventDefault()
-    const { target } = event
-    if (target) {
-      const path = genElementDomPath(target as Element)
-      FromContent.sendMessage({
-        type: 'SELECTED_WEB_QUOTE',
-        text,
-        path,
-        lang,
-        originId,
-        url: stableUrl,
-        fromNid: bookmark?.nid,
-      })
+  return await new Promise<string[]>((resolve, reject) => {
+    function oncopy(event: ClipboardEvent) {
+      document.removeEventListener('copy', oncopy, true)
+      event.stopImmediatePropagation()
+      event.preventDefault()
+      const { target } = event
+      if (target) {
+        resolve(genElementDomPath(target as Element))
+      }
+      reject(
+        'Failed to determine currently selected path through a "copy" event'
+      )
     }
-  }
-  document.addEventListener('copy', oncopy, true)
-  document.execCommand('copy')
+
+    document.addEventListener('copy', oncopy, true)
+    document.execCommand('copy')
+  })
 }
 
 const App = () => {
@@ -84,51 +72,67 @@ const App = () => {
   const [notification, setNotification] =
     useState<DisappearingToastProps | null>(null)
   const listener = React.useCallback(
-    async (message: ToContent.Message) => {
+    async (message: ToContent.Request): Promise<FromContent.Response> => {
       switch (message.type) {
         case 'REQUEST_PAGE_CONTENT':
           if (bookmark == null) {
             // Bookmark if not yet bookmarked
-            await bookmarkPage(quotes)
-          }
-          break
-        case 'REQUEST_SELECTED_WEB_QUOTE':
-          await saveSelectedTextAsQuote(message.text, bookmark)
-          break
-        case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
-          {
-            const { quotes, bookmark, mode } = message
-            const qs = quotes.map((json: TNodeJson) => TNode.fromJson(json))
-            const bm = bookmark != null ? TNode.fromJson(bookmark) : null
-            if (mode === 'reset') {
-              setQuotes(qs)
-              setBookmark(bm)
-            } else {
-              if (bm != null) {
-                // If mode is not 'reset', null bookmark in arguments should not discard
-                // existing bookmark
-                setBookmark(bm)
-              }
-              setQuotes((current) => current.concat(...qs))
+            const content = await contentOfThisDocument()
+            return {
+              type: 'PAGE_TO_SAVE',
+              ...content,
+              quoteNids: quotes.map((node) => node.nid),
             }
           }
           break
-        case 'SHOW_DISAPPEARING_NOTIFICATION':
-          {
-            const { text, href, tooltip, timeoutMsec } = message
-            setNotification({
-              text,
-              tooltip,
-              href,
-              timeoutMsec,
-            })
+        case 'REQUEST_SELECTED_WEB_QUOTE': {
+          const lang = document.documentElement.lang
+          const { id: originId, stableUrl } = await genOriginId(
+            exctractPageUrl(document)
+          )
+          return {
+            type: 'SELECTED_WEB_QUOTE',
+            text: message.text,
+            path: await getCurrentlySelectedPath(),
+            lang,
+            originId,
+            url: stableUrl,
+            fromNid: bookmark?.nid,
           }
-          break
-        default:
-          break
+        }
+        case 'REQUEST_UPDATE_CONTENT_AUGMENTATION': {
+          const { quotes, bookmark, mode } = message
+          const qs = quotes.map((json: TNodeJson) => TNode.fromJson(json))
+          const bm = bookmark != null ? TNode.fromJson(bookmark) : null
+          if (mode === 'reset') {
+            setQuotes(qs)
+            setBookmark(bm)
+          } else {
+            if (bm != null) {
+              // If mode is not 'reset', null bookmark in arguments should not discard
+              // existing bookmark
+              setBookmark(bm)
+            }
+            setQuotes((current) => current.concat(...qs))
+          }
+          return { type: 'VOID_RESPONSE' }
+        }
+        case 'SHOW_DISAPPEARING_NOTIFICATION': {
+          const { text, href, tooltip, timeoutMsec } = message
+          setNotification({
+            text,
+            tooltip,
+            href,
+            timeoutMsec,
+          })
+          return { type: 'VOID_RESPONSE' }
+        }
       }
+      throw new Error(
+        `Unknown ToContent.Message type, message = ${JSON.stringify(message)}`
+      )
     },
-    [bookmark, quotes]
+    [quotes, bookmark]
   )
   useEffect(() => {
     browser.runtime.onMessage.addListener(listener)

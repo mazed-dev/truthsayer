@@ -7,28 +7,14 @@ import {
   FromPopUp,
   FromContent,
   ToBackground,
+  VoidResponse,
 } from './message/types'
 
-import { mazed } from './util/mazed'
-import { DisappearingToastProps } from './content/toaster/Toaster'
-
-import { WebPageContent } from './content/extractor/webPageContent'
-import { requestPageContentToSave } from './background/request-content'
-
 import browser from 'webextension-polyfill'
-import { log, isAbortError, errorise, genOriginId, MimeType } from 'armoury'
-import {
-  Knocker,
-  NodeExtattrs,
-  NodeExtattrsWebQuote,
-  NodeIndexText,
-  NodeType,
-  TNode,
-  authCookie,
-  makeNodeTextData,
-  smuggler,
-  OriginHash,
-} from 'smuggler-api'
+import { log, isAbortError, genOriginId } from 'armoury'
+import { Knocker, TNode, authCookie, smuggler } from 'smuggler-api'
+import { savePage, savePageQuote } from './background/savePage'
+import { calculateBadgeCounter } from './badge/badgeCounter'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
@@ -48,190 +34,32 @@ async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   return null
 }
 
-/**
- * Update content (saved nodes) in:
- *   - Pop up window.
- *   - Content augmentation.
- *   - Badge counter.
- */
-async function updateContent(
-  mode: 'append' | 'reset',
-  quotes: TNode[],
-  bookmark?: TNode,
-  tabId?: number,
-  unmemorable?: boolean
-): Promise<void> {
-  const quotesJson = quotes.map((node) => node.toJson())
-  const bookmarkJson = bookmark?.toJson()
-  // Inform PopUp window of saved bookmark and web quotes
-  try {
-    await ToPopUp.sendMessage({
-      type: 'UPDATE_POPUP_CARDS',
-      bookmark: bookmarkJson,
-      quotes: quotesJson,
-      unmemorable,
-      mode,
-    })
-  } catch (err) {
-    if (isAbortError(err)) {
-      return
-    }
-    log.debug(
-      'Sending message to pop up window failed, the window might not exist',
-      err
-    )
-  }
-  // Update badge counter
-  let badgeText: string | undefined = '✓'
-  if (mode === 'reset') {
-    const n = quotes.length + (bookmark != null ? 1 : 0)
-    if (n !== 0) {
-      badgeText = n.toString()
-    } else {
-      badgeText = undefined
-    }
-  }
-  await badge.resetText(tabId, badgeText)
-  // Update content augmentation
-  if (tabId == null) {
-    return
-  }
-  try {
-    await ToContent.sendMessage(tabId, {
-      type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
-      quotes: quotesJson,
-      bookmark: bookmarkJson,
-      mode,
-    })
-  } catch (exception) {
-    const error = errorise(exception)
-    if (isAbortError(error)) {
-      return
-    }
-    if (error.message.search(/receiving end does not exist/i) >= 0) {
-      log.debug(
-        'Can not send augmentation to the current tab, content script is not listening',
-        error
-      )
-      return
-    }
-    log.exception(error, 'Content augmentation sending failed')
-  }
-}
-
-async function savePage(
-  url: string,
-  originId: OriginHash,
-  quoteNids: string[],
-  content?: WebPageContent,
-  tabId?: number
-) {
-  if (content == null) {
-    // Page is not memorable
-    const unmemorable = true
-    await updateContent('append', [], undefined, tabId, unmemorable)
-    return
-  }
-  const text = makeNodeTextData()
-  const index_text: NodeIndexText = {
-    plaintext: content.text || undefined,
-    labels: [],
-    brands: [],
-    dominant_colors: [],
-  }
-  const extattrs: NodeExtattrs = {
-    content_type: MimeType.TEXT_URI_LIST,
-    preview_image: content.image || undefined,
-    title: content.title || undefined,
-    description: content.description || undefined,
-    lang: content.lang || undefined,
-    author: content.author.join(', '),
-    web: {
-      url: url,
-    },
-    blob: undefined,
-  }
-  const resp = await smuggler.node.create({
-    text,
-    index_text,
-    extattrs,
-    ntype: NodeType.Url,
-    origin: {
-      id: originId,
-    },
-    to_nid: quoteNids,
-  })
-  const { nid } = resp
-  const node = await smuggler.node.get({ nid })
-  await updateContent('append', [], node, tabId)
-  await showDisappearingNotification(tabId, {
-    text: 'Added',
-    tooltip: 'Page is added to your timeline',
-    href: mazed.makeNodeUrl(nid).toString(),
-  })
-}
-
-async function savePageQuote(
-  originId: OriginHash,
-  { url, path, text }: NodeExtattrsWebQuote,
-  lang?: string,
-  tabId?: number,
-  fromNid?: string
-) {
-  const extattrs: NodeExtattrs = {
-    content_type: MimeType.TEXT_PLAIN_UTF_8,
-    lang: lang || undefined,
-    web_quote: { url, path, text },
-  }
-  const resp = await smuggler.node.create({
-    text: makeNodeTextData(),
-    ntype: NodeType.WebQuote,
-    origin: {
-      id: originId,
-    },
-    from_nid: fromNid ? [fromNid] : undefined,
-    extattrs,
-  })
-  if (resp) {
-    const { nid } = resp
-    const node = await smuggler.node.get({ nid })
-    await updateContent('append', [node], undefined, tabId)
-  }
-}
-
-async function showDisappearingNotification(
-  tabId: number | undefined,
-  notification: DisappearingToastProps
-) {
-  if (tabId == null) {
-    return
-  }
-  try {
-    await ToContent.sendMessage(tabId, {
-      type: 'SHOW_DISAPPEARING_NOTIFICATION',
-      ...notification,
-    })
-  } catch (err) {
-    if (isAbortError(err)) {
-      return
-    }
-    log.debug(
-      'Request to show disappearing notification in the tab failed',
-      err
-    )
-  }
-}
-
 async function requestPageSavedStatus(tab: browser.Tabs.Tab | null) {
-  if (tab == null) {
-    return
+  let quotes: TNode[] = []
+  if (tab?.url == null) {
+    return { quotes, unmemorable: false }
   }
-  const { id, url } = tab
-  if (url == null) {
-    return
+  const { id: originId, stableUrl } = await genOriginId(tab.url)
+
+  if (originId == null) {
+    return { quotes, unmemorable: true }
   }
-  const { id: originId, stableUrl } = await genOriginId(url)
-  await checkOriginIdAndUpdatePageStatus(id, stableUrl, originId)
+  let nodes
+  try {
+    nodes = await smuggler.node.lookup({ url: stableUrl })
+  } catch (err) {
+    log.debug('Lookup by origin ID failed, consider page as non saved', err)
+    return { quotes, unmemorable: false }
+  }
+  let bookmark: TNode | undefined = undefined
+  for (const node of nodes) {
+    if (node.isWebBookmark()) {
+      bookmark = node
+    } else if (node.isWebQuote()) {
+      quotes.push(node)
+    }
+  }
+  return { quotes, bookmark }
 }
 
 // Periodically renew auth token using Knocker
@@ -242,7 +70,7 @@ const _kRenewTokenTimePeriodInSeconds = 1062599
 const _authKnocker = new Knocker(_kRenewTokenTimePeriodInSeconds)
 _authKnocker.start()
 
-async function sendAuthStatus() {
+async function getAuthStatus() {
   const cookie = await browser.cookies
     .get({
       url: authCookie.url,
@@ -254,52 +82,14 @@ async function sendAuthStatus() {
       }
       return null
     })
-  const status = authCookie.checkRawValue(cookie?.value || null)
-  badge.setActive(status)
-
-  try {
-    await ToPopUp.sendMessage({ type: 'AUTH_STATUS', status })
-  } catch (err) {
-    if (!isAbortError(err)) {
-      log.exception(err, 'Could not send auth status')
-    }
-  }
-}
-
-async function checkOriginIdAndUpdatePageStatus(
-  tabId: number | undefined,
-  url: string,
-  originId?: OriginHash
-) {
-  if (originId == null) {
-    const unmemorable = true
-    await updateContent('reset', [], undefined, tabId, unmemorable)
-    return
-  }
-  let nodes
-  try {
-    nodes = await smuggler.node.lookup({ url })
-  } catch (err) {
-    log.debug('Lookup by origin ID failed, consider page as non saved', err)
-    return
-  }
-  let bookmark: TNode | undefined = undefined
-  let quotes: TNode[] = []
-  for (const node of nodes) {
-    if (node.isWebBookmark()) {
-      bookmark = node
-    } else if (node.isWebQuote()) {
-      quotes.push(node)
-    }
-  }
-  await updateContent('reset', quotes, bookmark, tabId)
+  return authCookie.checkRawValue(cookie?.value || null)
 }
 
 async function registerAttentionTime(
   tab: browser.Tabs.Tab | null,
   message: FromContent.AttentionTimeChunk
 ): Promise<void> {
-  if (tab == null) {
+  if (tab?.id == null) {
     log.debug("Can't register attention time for a tab: ", tab)
     return
   }
@@ -318,36 +108,25 @@ async function registerAttentionTime(
       totalSeconds,
       tab
     )
-    requestPageContentToSave(tab)
+    const response: FromContent.SavePageResponse = await ToContent.sendMessage(
+      tab.id,
+      { type: 'REQUEST_PAGE_CONTENT' }
+    )
+    const { url, content, originId, quoteNids } = response
+    await savePage(url, originId, quoteNids, content, tab.id)
   }
 }
 
 async function handleMessageFromContent(
-  message: FromContent.Message,
+  message: FromContent.Request,
   sender: browser.Runtime.MessageSender
-) {
+): Promise<VoidResponse> {
   const tab = sender.tab ?? (await getActiveTab())
   log.debug('Get message from content', message, tab)
   switch (message.type) {
-    case 'PAGE_TO_SAVE':
-      const { url, content, originId, quoteNids } = message
-      await savePage(url, originId, quoteNids, content, tab?.id)
-      break
-    case 'SELECTED_WEB_QUOTE':
-      {
-        const { originId, url, text, path, lang, fromNid } = message
-        await savePageQuote(
-          originId,
-          { url, path, text },
-          lang,
-          tab?.id,
-          fromNid
-        )
-      }
-      break
     case 'ATTENTION_TIME_CHUNK':
       await registerAttentionTime(tab, message)
-      break
+      return { type: 'VOID_RESPONSE' }
     default:
       throw new Error(
         `background received msg from content of unknown type, message: ${JSON.stringify(
@@ -357,20 +136,47 @@ async function handleMessageFromContent(
   }
 }
 
-async function handleMessageFromPopup(message: FromPopUp.Message) {
+async function handleMessageFromPopup(
+  message: FromPopUp.Request
+): Promise<ToPopUp.Response> {
   // process is not defined in browsers extensions - use it to set up axios
   const activeTab = await getActiveTab()
   log.debug('Get message from popup', message, activeTab)
   switch (message.type) {
     case 'REQUEST_PAGE_TO_SAVE':
-      requestPageContentToSave(activeTab)
-      break
+      const tabId = activeTab?.id
+      if (tabId == null) {
+        return { type: 'PAGE_SAVED' }
+      }
+      const response: FromContent.SavePageResponse =
+        await ToContent.sendMessage(tabId, { type: 'REQUEST_PAGE_CONTENT' })
+      const { url, content, originId, quoteNids } = response
+      const { node, unmemorable } = await savePage(
+        url,
+        originId,
+        quoteNids,
+        content,
+        tabId
+      )
+      return { type: 'PAGE_SAVED', bookmark: node?.toJson(), unmemorable }
     case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS':
-      await requestPageSavedStatus(activeTab)
-      break
+      const data = await requestPageSavedStatus(activeTab)
+      await badge.resetText(
+        activeTab?.id,
+        calculateBadgeCounter(data.quotes, data.bookmark)
+      )
+      const quotesJson = data.quotes.map((node) => node.toJson())
+      const bookmarkJson = data.bookmark?.toJson()
+      return {
+        type: 'UPDATE_POPUP_CARDS',
+        mode: 'reset',
+        quotes: quotesJson,
+        bookmark: bookmarkJson,
+      }
     case 'REQUEST_AUTH_STATUS':
-      await sendAuthStatus()
-      break
+      const status = await getAuthStatus()
+      badge.setActive(status)
+      return { type: 'AUTH_STATUS', status }
     default:
       throw new Error(
         `background received msg from popup of unknown type, message: ${JSON.stringify(
@@ -382,7 +188,7 @@ async function handleMessageFromPopup(message: FromPopUp.Message) {
 
 browser.runtime.onMessage.addListener(
   async (
-    message: ToBackground.Message,
+    message: ToBackground.Request,
     sender: browser.Runtime.MessageSender
   ) => {
     switch (message.direction) {
@@ -402,7 +208,7 @@ browser.runtime.onMessage.addListener(
 
 browser.tabs.onUpdated.addListener(
   async (
-    _tabId: number,
+    tabId: number,
     changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
     tab: browser.Tabs.Tab
   ) => {
@@ -413,7 +219,17 @@ browser.tabs.onUpdated.addListener(
       changeInfo.status === 'complete'
     ) {
       // Request page saved status on new non-incognito page loading
-      await requestPageSavedStatus(tab)
+      const response = await requestPageSavedStatus(tab)
+      await badge.resetText(
+        tabId,
+        calculateBadgeCounter(response.quotes, response.bookmark)
+      )
+      await ToContent.sendMessage(tabId, {
+        type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
+        quotes: response.quotes.map((node) => node.toJson()),
+        bookmark: response.bookmark?.toJson(),
+        mode: 'reset',
+      })
     }
   }
 )
@@ -454,10 +270,19 @@ browser.contextMenus.onClicked.addListener(
         return
       }
       try {
-        await ToContent.sendMessage(tab.id, {
-          type: 'REQUEST_SELECTED_WEB_QUOTE',
-          text: selectionText,
-        })
+        const response: FromContent.GetSelectedQuoteResponse =
+          await ToContent.sendMessage(tab.id, {
+            type: 'REQUEST_SELECTED_WEB_QUOTE',
+            text: selectionText,
+          })
+        const { originId, url, text, path, lang, fromNid } = response
+        await savePageQuote(
+          originId,
+          { url, path, text },
+          lang,
+          tab?.id,
+          fromNid
+        )
       } catch (err) {
         if (!isAbortError(err)) {
           log.exception(err)
