@@ -12,7 +12,13 @@ import {
 
 import browser from 'webextension-polyfill'
 import { log, isAbortError } from 'armoury'
-import { Knocker, TNode, authCookie, smuggler } from 'smuggler-api'
+import {
+  Knocker,
+  TNode,
+  TotalUserActivity,
+  authCookie,
+  smuggler,
+} from 'smuggler-api'
 import { savePage, savePageQuote } from './background/savePage'
 import { calculateBadgeCounter } from './badge/badgeCounter'
 
@@ -107,7 +113,7 @@ async function registerAttentionTime(
   }
   if (
     total.seconds_of_attention >=
-    Math.max(30, Math.min(totalSecondsEstimation, 120))
+    Math.max(24, Math.min(totalSecondsEstimation, 120))
   ) {
     // But who are we lying to, we have an attention span of a golden fish, if
     // we spend more than 2 minutes on something, that's already a big

@@ -62,7 +62,7 @@ const AttentionTimeTracker = ({
     // if it becomes a problem.
     const text = exctractReadableTextFromPage(document)
     const estimation = unicodeText.getTimeToRead(text)
-    log.info('Page estimated reading time, seconds', estimation.asSeconds())
+    log.info('Page estimated reading time in seconds', estimation.asSeconds())
     return estimation
   }, [])
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -88,7 +88,7 @@ const AttentionTimeTracker = ({
           }
         }
         log.debug(
-          'New reading time (seconds)',
+          'New reading time in seconds',
           deltaSeconds,
           totalSeconds,
           totalTimeEstimationSeconds
