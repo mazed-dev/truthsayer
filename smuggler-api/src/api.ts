@@ -740,7 +740,9 @@ async function addExternalUserActivity(
   let body: AddUserActivityRequest
   if (activity instanceof Array) {
     body = {
-      visits: activity,
+      visit: {
+        visits: activity,
+      },
     }
   } else if ('seconds' in activity) {
     body = {

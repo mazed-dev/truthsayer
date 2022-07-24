@@ -441,7 +441,9 @@ export type ResourceAttention = {
 }
 
 export type AddUserActivityRequest = {
-  visits?: ResourceVisit[]
+  visit?: {
+    visits: ResourceVisit[]
+  }
   attention?: ResourceAttention
 }
 

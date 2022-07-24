@@ -30,7 +30,7 @@ export const ActivityTracker = ({
 }
 
 const kActivityTimeIncrementStep = moment.duration({ seconds: 3 })
-const kActivityTimeReportStep = moment.duration({ seconds: 24 })
+const kActivityTimeReportStep = moment.duration({ seconds: 10 })
 type AttentionTime = {
   totalSeconds: number
   deltaSeconds: number

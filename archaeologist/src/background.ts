@@ -11,7 +11,7 @@ import {
 } from './message/types'
 
 import browser from 'webextension-polyfill'
-import { log, isAbortError } from 'armoury'
+import { log, isAbortError, genOriginId, unixtime } from 'armoury'
 import {
   Knocker,
   TNode,
@@ -20,6 +20,10 @@ import {
   smuggler,
 } from 'smuggler-api'
 import { savePage, savePageQuote } from './background/savePage'
+import {
+  isReadyToBeAutoSaved,
+  isTabUrlUpdated,
+} from './background/pageAutoSaving'
 import { calculateBadgeCounter } from './badge/badgeCounter'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
@@ -102,7 +106,7 @@ async function registerAttentionTime(
       { id: origin.id },
       {
         seconds: deltaSeconds,
-        timestamp: Math.floor(new Date().getTime() / 1000),
+        timestamp: unixtime.now(),
       }
     )
   } catch (err) {
@@ -111,16 +115,7 @@ async function registerAttentionTime(
     }
     return
   }
-  if (
-    total.seconds_of_attention >=
-    Math.max(24, Math.min(totalSecondsEstimation, 120))
-  ) {
-    // But who are we lying to, we have an attention span of a golden fish, if
-    // we spend more than 2 minutes on something, that's already a big
-    // achievement. So limit reading time by that.
-    // Also, we are limiting minimal time by 30 seconds, to avoid immidiatelly
-    // saving pages without text at all.
-    log.info('Enough attention time for the tab, bookmark it', tab.url)
+  if (isReadyToBeAutoSaved(total, totalSecondsEstimation)) {
     const response: FromContent.SavePageResponse = await ToContent.sendMessage(
       tab.id,
       { type: 'REQUEST_PAGE_CONTENT' }
@@ -225,24 +220,32 @@ browser.tabs.onUpdated.addListener(
     changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
     tab: browser.Tabs.Tab
   ) => {
-    if (
-      !tab.incognito &&
-      tab.url &&
-      !tab.hidden &&
-      changeInfo.status === 'complete'
-    ) {
-      // Request page saved status on new non-incognito page loading
-      const response = await requestPageSavedStatus(tab)
-      await badge.resetText(
-        tabId,
-        calculateBadgeCounter(response.quotes, response.bookmark)
-      )
-      await ToContent.sendMessage(tabId, {
-        type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
-        quotes: response.quotes.map((node) => node.toJson()),
-        bookmark: response.bookmark?.toJson(),
-        mode: 'reset',
-      })
+    log.debug('Tab changed', tab, changeInfo)
+    if (!tab.incognito && tab.url && !tab.hidden) {
+      if (changeInfo.status === 'complete') {
+        // Request page saved status on new non-incognito page loading
+        const response = await requestPageSavedStatus(tab)
+        await badge.resetText(
+          tabId,
+          calculateBadgeCounter(response.quotes, response.bookmark)
+        )
+        await ToContent.sendMessage(tabId, {
+          type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
+          quotes: response.quotes.map((node) => node.toJson()),
+          bookmark: response.bookmark?.toJson(),
+          mode: 'reset',
+        })
+      }
+      if (
+        changeInfo.url != null &&
+        tab.id != null &&
+        isTabUrlUpdated(tab.id, changeInfo.url)
+      ) {
+        const origin = genOriginId(tab.url)
+        await smuggler.activity.external.add({ id: origin.id }, [
+          { timestamp: unixtime.now() },
+        ])
+      }
     }
   }
 )
