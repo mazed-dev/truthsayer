@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom'
 import browser from 'webextension-polyfill'
 
 import { TNode, TNodeJson } from 'smuggler-api'
-import { genOriginId } from 'armoury'
+import { genOriginId, OriginIdentity, log } from 'armoury'
 
 import { FromContent, ToContent } from './../message/types'
 import { genElementDomPath } from './extractor/html'
@@ -23,19 +23,12 @@ import {
 } from './toaster/Toaster'
 import { AppErrorBoundary } from './AppErrorBoundary'
 
-async function contentOfThisDocument() {
-  const { id: originId, stableUrl } = await genOriginId(
-    exctractPageUrl(document)
-  )
+async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
-  const content = isMemorable(stableUrl)
+  const content = isMemorable(origin.stableUrl)
     ? await exctractPageContent(document, baseURL)
     : undefined
-  return {
-    content,
-    originId,
-    url: stableUrl,
-  }
+  return content
 }
 
 async function getCurrentlySelectedPath() {
@@ -70,6 +63,11 @@ async function getCurrentlySelectedPath() {
 const App = () => {
   const [quotes, setQuotes] = useState<TNode[]>([])
   const [bookmark, setBookmark] = useState<TNode | null>(null)
+  const originIdentity = React.useMemo(() => {
+    const originIdentity = genOriginId(exctractPageUrl(document))
+    log.debug('Gen origin identity', originIdentity)
+    return originIdentity
+  }, [])
   const [notification, setNotification] =
     useState<DisappearingToastProps | null>(null)
   const listener = React.useCallback(
@@ -78,26 +76,25 @@ const App = () => {
         case 'REQUEST_PAGE_CONTENT':
           if (bookmark == null) {
             // Bookmark if not yet bookmarked
-            const content = await contentOfThisDocument()
+            const content = await contentOfThisDocument(originIdentity)
             return {
               type: 'PAGE_TO_SAVE',
-              ...content,
+              content,
+              url: originIdentity.stableUrl,
+              originId: originIdentity.id,
               quoteNids: quotes.map((node) => node.nid),
             }
           }
           break
         case 'REQUEST_SELECTED_WEB_QUOTE': {
           const lang = document.documentElement.lang
-          const { id: originId, stableUrl } = await genOriginId(
-            exctractPageUrl(document)
-          )
           return {
             type: 'SELECTED_WEB_QUOTE',
             text: message.text,
             path: await getCurrentlySelectedPath(),
             lang,
-            originId,
-            url: stableUrl,
+            originId: originIdentity.id,
+            url: originIdentity.stableUrl,
             fromNid: bookmark?.nid,
           }
         }
@@ -133,7 +130,7 @@ const App = () => {
         `Unknown ToContent.Message type, message = ${JSON.stringify(message)}`
       )
     },
-    [quotes, bookmark]
+    [bookmark, quotes, originIdentity]
   )
   useEffect(() => {
     browser.runtime.onMessage.addListener(listener)
@@ -148,13 +145,14 @@ const App = () => {
       <Quotes quotes={quotes} />
       <ActivityTracker
         registerAttentionTime={(
-          totalSeconds: number,
+          deltaSeconds: number,
           totalSecondsEstimation: number
         ) =>
           FromContent.sendMessage({
             type: 'ATTENTION_TIME_CHUNK',
-            totalSeconds,
+            deltaSeconds,
             totalSecondsEstimation,
+            origin: originIdentity,
           })
         }
         disabled={bookmark != null}

@@ -1,6 +1,8 @@
 import { WebPageContent } from './../content/extractor/webPageContent'
-import { OriginHash, TNodeJson } from 'smuggler-api'
+
 import browser from 'webextension-polyfill'
+import { OriginHash, TNodeJson } from 'smuggler-api'
+import { OriginIdentity } from 'armoury'
 
 /**
  * There are 3 kind of message senders/receivers:
@@ -167,8 +169,9 @@ export namespace FromContent {
   /** Describes for how long a user actively paid attention to a particular webpage */
   export interface AttentionTimeChunk {
     type: 'ATTENTION_TIME_CHUNK'
-    totalSeconds: number
+    deltaSeconds: number
     totalSecondsEstimation: number
+    origin: OriginIdentity
   }
   export type Request = AttentionTimeChunk
 
