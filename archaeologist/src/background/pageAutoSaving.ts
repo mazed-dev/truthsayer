@@ -46,7 +46,7 @@ export function isReadyToBeAutoSaved(
     },
     0
   )
-  if (visitMoments.length > 6 || dayVisits > 4 || weekVisits > 3) {
+  if (dayVisits >= 3 || weekVisits >= 4) {
     log.debug(
       'Page has been visited enough times to be auto saved',
       dayVisits,
