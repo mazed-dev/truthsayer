@@ -25,6 +25,7 @@ import {
   isTabUrlUpdated,
 } from './background/pageAutoSaving'
 import { calculateBadgeCounter } from './badge/badgeCounter'
+import { isMemorable } from './content/extractor/unmemorable'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
@@ -48,6 +49,9 @@ async function requestPageSavedStatus(tab: browser.Tabs.Tab | null) {
   let quotes: TNode[] = []
   if (tab?.url == null) {
     return { quotes, unmemorable: false }
+  }
+  if (!isMemorable(tab.url)) {
+    return { quotes, unmemorable: true }
   }
   let nodes
   try {
@@ -167,20 +171,22 @@ async function handleMessageFromPopup(
         tabId
       )
       return { type: 'PAGE_SAVED', bookmark: node?.toJson(), unmemorable }
-    case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS':
-      const data = await requestPageSavedStatus(activeTab)
+    case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS': {
+      const { quotes, bookmark, unmemorable } = await requestPageSavedStatus(
+        activeTab
+      )
       await badge.resetText(
         activeTab?.id,
-        calculateBadgeCounter(data.quotes, data.bookmark)
+        calculateBadgeCounter(quotes, bookmark)
       )
-      const quotesJson = data.quotes.map((node) => node.toJson())
-      const bookmarkJson = data.bookmark?.toJson()
       return {
         type: 'UPDATE_POPUP_CARDS',
         mode: 'reset',
-        quotes: quotesJson,
-        bookmark: bookmarkJson,
+        quotes: quotes.map((node) => node.toJson()),
+        bookmark: bookmark?.toJson(),
+        unmemorable,
       }
+    }
     case 'REQUEST_AUTH_STATUS':
       const status = await getAuthStatus()
       badge.setActive(status)
