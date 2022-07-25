@@ -242,6 +242,7 @@ browser.tabs.onUpdated.addListener(
         isTabUrlUpdated(tab.id, changeInfo.url)
       ) {
         const origin = genOriginId(tab.url)
+        log.debug('Register new visit', origin.stableUrl, origin.id)
         await smuggler.activity.external.add({ id: origin.id }, [
           { timestamp: unixtime.now() },
         ])

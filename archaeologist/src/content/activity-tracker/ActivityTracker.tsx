@@ -29,7 +29,7 @@ export const ActivityTracker = ({
   return <AttentionTimeTracker registerAttentionTime={registerAttentionTime} />
 }
 
-const kActivityTimeIncrementStep = moment.duration({ seconds: 3 })
+const kActivityTimeIncrementStep = moment.duration({ seconds: 2 })
 const kActivityTimeReportStep = moment.duration({ seconds: 10 })
 type AttentionTime = {
   totalSeconds: number
@@ -67,35 +67,44 @@ const AttentionTimeTracker = ({
   }, [])
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const checkReadingTotalTime = React.useCallback(
-    lodash.throttle(() => {
-      // Every X * 1000 milliseconds of activity increase total time counter by
-      // X seconds, this is indirect way to measure active reading time.
-      setTotalReadingTime(({ totalSeconds, deltaSeconds }: AttentionTime) => {
-        const totalTimeEstimationSeconds =
-          totalReadingTimeEstimation.asSeconds()
-        const reportStepSeconds = kActivityTimeReportStep.asSeconds()
-        const incrementStepSeconds = kActivityTimeIncrementStep.asSeconds()
-        totalSeconds += incrementStepSeconds
-        deltaSeconds += incrementStepSeconds
-        if (
-          deltaSeconds >= reportStepSeconds ||
-          totalSeconds >= totalTimeEstimationSeconds
-        ) {
-          registerAttentionTime(deltaSeconds, totalTimeEstimationSeconds)
-          deltaSeconds = 0
-          if (totalSeconds >= totalTimeEstimationSeconds) {
-            totalSeconds = 0
+    lodash.throttle(
+      () => {
+        // Every X * 1000 milliseconds of activity increase total time counter by
+        // X seconds, this is indirect way to measure active reading time.
+        setTotalReadingTime(({ totalSeconds, deltaSeconds }: AttentionTime) => {
+          const totalTimeEstimationSeconds =
+            totalReadingTimeEstimation.asSeconds()
+          const reportStepSeconds = kActivityTimeReportStep.asSeconds()
+          const incrementStepSeconds = kActivityTimeIncrementStep.asSeconds()
+          totalSeconds += incrementStepSeconds
+          deltaSeconds += incrementStepSeconds
+          if (
+            deltaSeconds >= reportStepSeconds ||
+            totalSeconds >= totalTimeEstimationSeconds
+          ) {
+            log.debug(
+              'Register attention time',
+              deltaSeconds,
+              totalTimeEstimationSeconds
+            )
+            registerAttentionTime(deltaSeconds, totalTimeEstimationSeconds)
+            deltaSeconds = 0
+            if (totalSeconds >= totalTimeEstimationSeconds) {
+              totalSeconds = 0
+            }
           }
-        }
-        log.debug(
-          'New reading time in seconds',
-          deltaSeconds,
-          totalSeconds,
-          totalTimeEstimationSeconds
-        )
-        return { totalSeconds, deltaSeconds }
-      })
-    }, kActivityTimeIncrementStep.asMilliseconds()),
+          log.debug(
+            'New reading time in seconds',
+            deltaSeconds,
+            totalSeconds,
+            totalTimeEstimationSeconds
+          )
+          return { totalSeconds, deltaSeconds }
+        })
+      },
+      kActivityTimeIncrementStep.asMilliseconds(),
+      { leading: false, trailing: true }
+    ),
     [totalReadingTimeEstimation]
   )
   React.useEffect(() => {

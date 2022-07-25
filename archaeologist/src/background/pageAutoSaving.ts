@@ -66,7 +66,10 @@ const _openTabUrls: Record<number, string | undefined> = {}
  * sufficient because we can't distinguish a plain page reload or instant jump
  * back and forth in history from an actual new visit.
  */
-export function isTabUrlUpdated(tabId: number, url: string): boolean {
+export function isTabUrlUpdated(
+  tabId: number,
+  url: string | undefined
+): boolean {
   const prevUrl = _openTabUrls[tabId]
   if (prevUrl !== url) {
     _openTabUrls[tabId] = url
