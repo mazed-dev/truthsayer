@@ -21,7 +21,7 @@
     "armoury": "0.0.1",
     "jest": "26.6.0",
     "lodash": "^4.17.21",
-    "moment": "^2.29.2",
+    "moment": "^2.29.4",
     "prettier": "^2.2",
     "query-string": "^7.0.0",
     "ts-jest": "^26.4.2",
