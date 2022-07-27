@@ -21,6 +21,7 @@ import {
   DisappearingToast,
   DisappearingToastProps,
 } from './toaster/Toaster'
+import { AppErrorBoundary } from './AppErrorBoundary'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
@@ -136,7 +137,7 @@ const App = () => {
     return () => browser.runtime.onMessage.removeListener(listener)
   }, [listener])
   return (
-    <>
+    <AppErrorBoundary>
       <Toaster />
       {notification ? (
         <DisappearingToast {...notification}></DisappearingToast>
@@ -156,7 +157,7 @@ const App = () => {
         }
         disabled={bookmark != null}
       />
-    </>
+    </AppErrorBoundary>
   )
 }
 
