@@ -20,10 +20,7 @@ import {
   smuggler,
 } from 'smuggler-api'
 import { savePage, savePageQuote } from './background/savePage'
-import {
-  isReadyToBeAutoSaved,
-  isTabUrlUpdated,
-} from './background/pageAutoSaving'
+import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
 import { calculateBadgeCounter } from './badge/badgeCounter'
 import { isMemorable } from './content/extractor/unmemorable'
 
@@ -226,7 +223,6 @@ browser.tabs.onUpdated.addListener(
     changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
     tab: browser.Tabs.Tab
   ) => {
-    log.debug('Tab changed', tab, changeInfo)
     if (!tab.incognito && tab.url && !tab.hidden) {
       if (changeInfo.status === 'complete') {
         // Request page saved status on new non-incognito page loading
@@ -241,12 +237,6 @@ browser.tabs.onUpdated.addListener(
           bookmark: response.bookmark?.toJson(),
           mode: 'reset',
         })
-      }
-      if (
-        changeInfo.url != null &&
-        tab.id != null &&
-        isTabUrlUpdated(tab.id, changeInfo.url)
-      ) {
         const origin = genOriginId(tab.url)
         log.debug('Register new visit', origin.stableUrl, origin.id)
         await smuggler.activity.external.add({ id: origin.id }, [

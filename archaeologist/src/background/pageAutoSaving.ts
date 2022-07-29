@@ -3,13 +3,49 @@ import { log } from 'armoury'
 
 import moment from 'moment'
 
+const kAttentionTimeSecondsMin = 20
+const kAttentionTimeSecondsMax = 120
+
+/**
+ * Filter out visits that are too close to each other (~1 min)
+ * Expects sorted input!
+ */
+export function filterAttentionSpans(
+  moments: moment.Moment[]
+): moment.Moment[] {
+  let lastAttentionSpanStart: moment.Moment = moment.unix(0)
+  return moments.filter((m: moment.Moment) => {
+    if (moment.duration(m.diff(lastAttentionSpanStart)).asSeconds() > 59) {
+      lastAttentionSpanStart = m
+      return true
+    }
+    return false
+  })
+}
+
+export function countMomentsAfterX(
+  moments: moment.Moment[],
+  x: moment.Moment
+): number {
+  return moments.reduce<number>((acc: number, visitMoment: moment.Moment) => {
+    if (visitMoment.isAfter(x)) {
+      return acc + 1
+    } else {
+      return acc
+    }
+  }, 0)
+}
+
 export function isReadyToBeAutoSaved(
   userActivity: TotalUserActivity,
   totalAttentionTimeEstimationSeconds: number
 ): boolean {
   if (
     userActivity.seconds_of_attention >=
-    Math.max(24, Math.min(totalAttentionTimeEstimationSeconds, 120))
+    Math.max(
+      kAttentionTimeSecondsMin,
+      Math.min(totalAttentionTimeEstimationSeconds, kAttentionTimeSecondsMax)
+    )
   ) {
     // But who are we lying to, we have an attention span of a golden fish, if
     // we spend more than 2 minutes on something, that's already a big
@@ -23,28 +59,19 @@ export function isReadyToBeAutoSaved(
     )
     return true
   }
-  const visitMoments = userActivity.visits.map((v) => moment.unix(v.timestamp))
-  const dayLimit = moment().subtract(24, 'hours')
-  const dayVisits = visitMoments.reduce<number>(
-    (acc: number, visitMoment: moment.Moment) => {
-      if (visitMoment.isAfter(dayLimit)) {
-        return acc + 1
-      } else {
-        return acc
-      }
-    },
-    0
+  // Sort it first and then convert to Moment objects
+  const visitMoments = filterAttentionSpans(
+    userActivity.visits
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .map((v) => moment.unix(v.timestamp))
   )
-  const weekLimit = moment().subtract(7, 'days')
-  const weekVisits = visitMoments.reduce<number>(
-    (acc: number, visitMoment: moment.Moment) => {
-      if (visitMoment.isAfter(weekLimit)) {
-        return acc + 1
-      } else {
-        return acc
-      }
-    },
-    0
+  const dayVisits = countMomentsAfterX(
+    visitMoments,
+    moment().subtract(24, 'hours')
+  )
+  const weekVisits = countMomentsAfterX(
+    visitMoments,
+    moment().subtract(7, 'days')
   )
   if (dayVisits >= 3 || weekVisits >= 4) {
     log.debug(
@@ -53,26 +80,6 @@ export function isReadyToBeAutoSaved(
       weekVisits,
       visitMoments
     )
-    return true
-  }
-  return false
-}
-
-const _openTabUrls: Record<number, string | undefined> = {}
-/**
- * Track URL's of opened tabs to detect a new visit
- *
- * [akindyakov@] Listening to `browser.tabs.onUpdated` events proved to be not
- * sufficient because we can't distinguish a plain page reload or instant jump
- * back and forth in history from an actual new visit.
- */
-export function isTabUrlUpdated(
-  tabId: number,
-  url: string | undefined
-): boolean {
-  const prevUrl = _openTabUrls[tabId]
-  if (prevUrl !== url) {
-    _openTabUrls[tabId] = url
     return true
   }
   return false
