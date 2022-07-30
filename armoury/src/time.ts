@@ -5,4 +5,7 @@ export const unixtime = {
   nowMs: (): number => {
     return Math.floor(new Date().getTime())
   },
+  from: (date: Date): number => {
+    return Math.floor(date.getTime())
+  },
 }

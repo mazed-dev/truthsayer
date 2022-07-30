@@ -62,6 +62,9 @@ export namespace FromPopUp {
   export function sendMessage(
     message: PageInActiveTabStatusRequest
   ): Promise<ToPopUp.ActiveTabStatusResponse>
+  export function sendMessage(
+    message: UploadBrowserHistoryRequest
+  ): Promise<VoidResponse>
   export function sendMessage(message: Request): Promise<ToPopUp.Response> {
     const msg: ToBackground.Request = { direction: 'from-popup', ...message }
     return browser.runtime.sendMessage(msg)
