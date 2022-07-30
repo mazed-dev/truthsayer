@@ -139,11 +139,9 @@ export const QuoteHighlight = ({
   const [highlights, setHighlights] = useState<ElementHighlight[]>([])
   useEffect(() => {
     const target = document.querySelector(path.join(' > '))
-    if (target != null) {
-      setHighlights([])
-    }
     setHighlights(discoverHighlightsInElement(target, highlightPlaintext))
-  }, [nid, path, highlightPlaintext])
+    return () => setHighlights([])
+  }, [path, highlightPlaintext])
   return (
     <>
       {highlights.map(({ target, slice }, index) => {

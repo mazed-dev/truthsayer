@@ -1,6 +1,8 @@
 import { WebPageContent } from './../content/extractor/webPageContent'
-import { OriginHash, TNodeJson } from 'smuggler-api'
+
 import browser from 'webextension-polyfill'
+import { OriginHash, TNodeJson } from 'smuggler-api'
+import { OriginIdentity } from 'armoury'
 
 /**
  * There are 3 kind of message senders/receivers:
@@ -22,6 +24,10 @@ import browser from 'webextension-polyfill'
  *                                            └───(#3)──┘
  */
 
+export interface VoidResponse {
+  type: 'VOID_RESPONSE'
+}
+
 export namespace FromPopUp {
   export interface AuthStatusRequest {
     type: 'REQUEST_AUTH_STATUS'
@@ -41,14 +47,23 @@ export namespace FromPopUp {
   export interface UploadBrowserHistoryRequest {
     type: 'UPLOAD_BROWSER_HISTORY'
   }
-  export type Message =
+  export type Request =
     | SavePageRequest
     | PageInActiveTabStatusRequest
     | AuthStatusRequest
     | UploadBrowserHistoryRequest
 
-  export function sendMessage(message: Message): Promise<void> {
-    const msg: ToBackground.Message = { direction: 'from-popup', ...message }
+  export function sendMessage(
+    message: AuthStatusRequest
+  ): Promise<ToPopUp.AuthStatusResponse>
+  export function sendMessage(
+    message: SavePageRequest
+  ): Promise<ToPopUp.PageSavedResponse>
+  export function sendMessage(
+    message: PageInActiveTabStatusRequest
+  ): Promise<ToPopUp.ActiveTabStatusResponse>
+  export function sendMessage(message: Request): Promise<ToPopUp.Response> {
+    const msg: ToBackground.Request = { direction: 'from-popup', ...message }
     return browser.runtime.sendMessage(msg)
   }
 }
@@ -57,7 +72,7 @@ export namespace ToPopUp {
     type: 'AUTH_STATUS'
     status: boolean
   }
-  export interface UpdatePopUpCards {
+  export interface ActiveTabStatusResponse {
     type: 'UPDATE_POPUP_CARDS'
     bookmark?: TNodeJson
     quotes: TNodeJson[]
@@ -70,9 +85,18 @@ export namespace ToPopUp {
     //    - for bookmark, replace existing one in PopUp window, if specified
     mode: 'reset' | 'append'
   }
+  export interface PageSavedResponse {
+    type: 'PAGE_SAVED'
+    bookmark?: TNodeJson
+    unmemorable?: boolean
+  }
 
-  export type Message = UpdatePopUpCards | AuthStatusResponse
-  export function sendMessage(message: Message): Promise<void> {
+  export type Response =
+    | AuthStatusResponse
+    | ActiveTabStatusResponse
+    | PageSavedResponse
+    | VoidResponse
+  export function sendMessage(message: void): Promise<void> {
     return browser.runtime.sendMessage(message)
   }
 }
@@ -91,19 +115,38 @@ export namespace ToContent {
     type: 'REQUEST_SELECTED_WEB_QUOTE'
     text: string
   }
-  export interface ShowDisappearingNotification {
+  export interface ShowDisappearingNotificationRequest {
     type: 'SHOW_DISAPPEARING_NOTIFICATION'
     text: string
     href?: string
     tooltip?: string
     timeoutMsec?: number
   }
-  export type Message =
+  export type Request =
     | RequestPageContent
     | UpdateContentAugmentationRequest
     | GetSelectedQuoteRequest
-    | ShowDisappearingNotification
-  export function sendMessage(tabId: number, message: Message): Promise<void> {
+    | ShowDisappearingNotificationRequest
+  export function sendMessage(
+    tabId: number,
+    message: RequestPageContent
+  ): Promise<FromContent.SavePageResponse>
+  export function sendMessage(
+    tabId: number,
+    message: UpdateContentAugmentationRequest
+  ): Promise<VoidResponse>
+  export function sendMessage(
+    tabId: number,
+    message: GetSelectedQuoteRequest
+  ): Promise<FromContent.GetSelectedQuoteResponse>
+  export function sendMessage(
+    tabId: number,
+    message: ShowDisappearingNotificationRequest
+  ): Promise<FromContent.GetSelectedQuoteResponse>
+  export function sendMessage(
+    tabId: number,
+    message: Request
+  ): Promise<FromContent.Response> {
     return browser.tabs.sendMessage(tabId, message)
   }
 }
@@ -131,21 +174,25 @@ export namespace FromContent {
   /** Describes for how long a user actively paid attention to a particular webpage */
   export interface AttentionTimeChunk {
     type: 'ATTENTION_TIME_CHUNK'
-    totalSeconds: number
+    deltaSeconds: number
     totalSecondsEstimation: number
+    origin: OriginIdentity
   }
-  export type Message =
+  export type Request = AttentionTimeChunk
+
+  export type Response =
     | GetSelectedQuoteResponse
     | SavePageResponse
-    | AttentionTimeChunk
-  export function sendMessage(message: Message): Promise<void> {
-    const msg: ToBackground.Message = { direction: 'from-content', ...message }
+    | VoidResponse
+
+  export function sendMessage(message: Request): Promise<VoidResponse> {
+    const msg: ToBackground.Request = { direction: 'from-content', ...message }
     return browser.runtime.sendMessage(msg)
   }
 }
 
 export namespace ToBackground {
-  export type Message =
-    | ({ direction: 'from-popup' } & FromPopUp.Message)
-    | ({ direction: 'from-content' } & FromContent.Message)
+  export type Request =
+    | ({ direction: 'from-popup' } & FromPopUp.Request)
+    | ({ direction: 'from-content' } & FromContent.Request)
 }

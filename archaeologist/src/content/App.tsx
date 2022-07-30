@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom'
 import browser from 'webextension-polyfill'
 
 import { TNode, TNodeJson } from 'smuggler-api'
-import { genOriginId, log } from 'armoury'
+import { genOriginId, OriginIdentity, log } from 'armoury'
 
 import { FromContent, ToContent } from './../message/types'
 import { genElementDomPath } from './extractor/html'
@@ -21,32 +21,17 @@ import {
   DisappearingToast,
   DisappearingToastProps,
 } from './toaster/Toaster'
+import { AppErrorBoundary } from './AppErrorBoundary'
 
-async function bookmarkPage(quotes: TNode[]) {
-  const { id: originId, stableUrl } = await genOriginId(
-    exctractPageUrl(document)
-  )
+async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
-  const content = isMemorable(stableUrl)
+  const content = isMemorable(origin.stableUrl)
     ? await exctractPageContent(document, baseURL)
     : undefined
-  await FromContent.sendMessage({
-    type: 'PAGE_TO_SAVE',
-    content,
-    originId,
-    url: stableUrl,
-    quoteNids: quotes.map((node) => node.nid),
-  })
+  return content
 }
 
-async function saveSelectedTextAsQuote(
-  text: string,
-  bookmark: TNode | null
-): Promise<void> {
-  const lang = document.documentElement.lang
-  const { id: originId, stableUrl } = await genOriginId(
-    exctractPageUrl(document)
-  )
+async function getCurrentlySelectedPath() {
   // TODO(akindyakov): Use window.getSelection() to obtain `anchorNode` instead
   // of this hacky approach with "copy" event. This way we can get a better
   // precision of selection and stabilise `target` extraction in general.
@@ -56,46 +41,64 @@ async function saveSelectedTextAsQuote(
   // https://github.com/Thread-knowledge/truthsayer/issues/216
   //
   // console.log('Selection', window.getSelection())
-  function oncopy(event: ClipboardEvent) {
-    document.removeEventListener('copy', oncopy, true)
-    event.stopImmediatePropagation()
-    event.preventDefault()
-    const { target } = event
-    if (target) {
-      const path = genElementDomPath(target as Element)
-      FromContent.sendMessage({
-        type: 'SELECTED_WEB_QUOTE',
-        text,
-        path,
-        lang,
-        originId,
-        url: stableUrl,
-        fromNid: bookmark?.nid,
-      })
+  return await new Promise<string[]>((resolve, reject) => {
+    function oncopy(event: ClipboardEvent) {
+      document.removeEventListener('copy', oncopy, true)
+      event.stopImmediatePropagation()
+      event.preventDefault()
+      const { target } = event
+      if (target) {
+        resolve(genElementDomPath(target as Element))
+      }
+      reject(
+        'Failed to determine currently selected path through a "copy" event'
+      )
     }
-  }
-  document.addEventListener('copy', oncopy, true)
-  document.execCommand('copy')
+
+    document.addEventListener('copy', oncopy, true)
+    document.execCommand('copy')
+  })
 }
 
 const App = () => {
   const [quotes, setQuotes] = useState<TNode[]>([])
   const [bookmark, setBookmark] = useState<TNode | null>(null)
+  const originIdentity = React.useMemo(() => {
+    const originIdentity = genOriginId(exctractPageUrl(document))
+    log.debug('Gen origin identity', originIdentity)
+    return originIdentity
+  }, [])
   const [notification, setNotification] =
     useState<DisappearingToastProps | null>(null)
-  const listener = async (message: ToContent.Message) => {
-    switch (message.type) {
-      case 'REQUEST_PAGE_CONTENT':
-        if (bookmark == null) {
-          // Bookmark if not yet bookmarked
-          await bookmarkPage(quotes)
+  const listener = React.useCallback(
+    async (message: ToContent.Request): Promise<FromContent.Response> => {
+      switch (message.type) {
+        case 'REQUEST_PAGE_CONTENT':
+          if (bookmark == null) {
+            // Bookmark if not yet bookmarked
+            const content = await contentOfThisDocument(originIdentity)
+            return {
+              type: 'PAGE_TO_SAVE',
+              content,
+              url: originIdentity.stableUrl,
+              originId: originIdentity.id,
+              quoteNids: quotes.map((node) => node.nid),
+            }
+          }
+          break
+        case 'REQUEST_SELECTED_WEB_QUOTE': {
+          const lang = document.documentElement.lang
+          return {
+            type: 'SELECTED_WEB_QUOTE',
+            text: message.text,
+            path: await getCurrentlySelectedPath(),
+            lang,
+            originId: originIdentity.id,
+            url: originIdentity.stableUrl,
+            fromNid: bookmark?.nid,
+          }
         }
-        break
-      case 'REQUEST_SELECTED_WEB_QUOTE':
-        await saveSelectedTextAsQuote(message.text, bookmark)
-        break
-      case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
-        {
+        case 'REQUEST_UPDATE_CONTENT_AUGMENTATION': {
           const { quotes, bookmark, mode } = message
           const qs = quotes.map((json: TNodeJson) => TNode.fromJson(json))
           const bm = bookmark != null ? TNode.fromJson(bookmark) : null
@@ -110,10 +113,9 @@ const App = () => {
             }
             setQuotes((current) => current.concat(...qs))
           }
+          return { type: 'VOID_RESPONSE' }
         }
-        break
-      case 'SHOW_DISAPPEARING_NOTIFICATION':
-        {
+        case 'SHOW_DISAPPEARING_NOTIFICATION': {
           const { text, href, tooltip, timeoutMsec } = message
           setNotification({
             text,
@@ -121,22 +123,21 @@ const App = () => {
             href,
             timeoutMsec,
           })
+          return { type: 'VOID_RESPONSE' }
         }
-        break
-      default:
-        break
-    }
-  }
+      }
+      throw new Error(
+        `Unknown ToContent.Message type, message = ${JSON.stringify(message)}`
+      )
+    },
+    [bookmark, quotes, originIdentity]
+  )
   useEffect(() => {
     browser.runtime.onMessage.addListener(listener)
-    log.debug('Archaeologist content script is loaded')
-    return () => {
-      browser.runtime.onMessage.removeListener(listener)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    return () => browser.runtime.onMessage.removeListener(listener)
+  }, [listener])
   return (
-    <>
+    <AppErrorBoundary>
       <Toaster />
       {notification ? (
         <DisappearingToast {...notification}></DisappearingToast>
@@ -144,18 +145,19 @@ const App = () => {
       <Quotes quotes={quotes} />
       <ActivityTracker
         registerAttentionTime={(
-          totalSeconds: number,
+          deltaSeconds: number,
           totalSecondsEstimation: number
         ) =>
           FromContent.sendMessage({
             type: 'ATTENTION_TIME_CHUNK',
-            totalSeconds,
+            deltaSeconds,
             totalSecondsEstimation,
+            origin: originIdentity,
           })
         }
         disabled={bookmark != null}
       />
-    </>
+    </AppErrorBoundary>
   )
 }
 

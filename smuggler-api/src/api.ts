@@ -1,6 +1,7 @@
 import {
   AccountInfo,
   Ack,
+  AddUserActivityRequest,
   AdvanceUserFsIngestionProgress,
   EdgeAttributes,
   EdgeStar,
@@ -11,12 +12,15 @@ import {
   NodeCreateRequestBody,
   NodeExtattrs,
   NodeIndexText,
-  OriginId,
   NodePatchRequest,
   NodeTextData,
   NodeType,
+  OriginId,
+  ResourceAttention,
+  ResourceVisit,
   TEdge,
   TNode,
+  TotalUserActivity,
   UploadMultipartResponse,
   UserBadge,
   UserFilesystemId,
@@ -115,7 +119,7 @@ async function createNode(
   if (resp.ok) {
     return await resp.json()
   }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
+  throw _makeResponseError(resp)
 }
 
 function lookupKeyOf(args: CreateNodeArgs): NodeLookupKey | undefined {
@@ -163,9 +167,7 @@ async function createOrUpdateNode(
 
   const resp = await updateNode(updateArgs, signal)
   if (!resp.ok) {
-    throw new Error(
-      `Failed to update node ${existingNode.nid} (${resp.status}) ${resp.statusText}`
-    )
+    throw _makeResponseError(resp, `Failed to update node ${existingNode.nid}`)
   }
   return {
     nid: existingNode.nid,
@@ -250,7 +252,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
   if ('nid' in key) {
     return getNode({ nid: key.nid, signal })
   } else if ('webBookmark' in key) {
-    const { id, stableUrl } = await genOriginId(key.webBookmark.url)
+    const { id, stableUrl } = genOriginId(key.webBookmark.url)
     const query = { ...SLICE_ALL, origin: { id } }
     const iter = smuggler.node.slice(query)
 
@@ -262,7 +264,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
     }
     return undefined
   } else if ('webQuote' in key) {
-    const { id, stableUrl } = await genOriginId(key.webQuote.url)
+    const { id, stableUrl } = genOriginId(key.webQuote.url)
     const query = { ...SLICE_ALL, origin: { id } }
     const iter = smuggler.node.slice(query)
 
@@ -325,7 +327,7 @@ async function uploadFiles(
     signal,
   })
   if (!resp.ok) {
-    throw new Error(`(${resp.status}) ${resp.statusText}`)
+    throw _makeResponseError(resp)
   }
   return await resp.json()
 }
@@ -344,7 +346,7 @@ async function buildFilesSearchIndex(
     signal,
   })
   if (!resp.ok) {
-    throw new Error(`(${resp.status}) ${resp.statusText}`)
+    throw _makeResponseError(resp)
   }
   return await resp.json()
 }
@@ -372,7 +374,7 @@ async function deleteNode({
   if (resp.ok) {
     return await resp.json()
   }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
+  throw _makeResponseError(resp)
 }
 
 async function getNode({
@@ -384,7 +386,7 @@ async function getNode({
 }): Promise<TNode> {
   const res = await fetch(makeUrl(`/node/${nid}`), { method: 'GET', signal })
   if (!res.ok) {
-    throw new Error(`(${res.status}) ${res.statusText}`)
+    throw _makeResponseError(res)
   }
   const {
     text,
@@ -441,7 +443,10 @@ async function getAuth({
 }): Promise<AccountInfo> {
   const resp = await fetch(makeUrl('/auth'), { method: 'GET', signal })
   if (!resp.ok) {
-    throw new Error('Retrieving account information failed with an error')
+    throw _makeResponseError(
+      resp,
+      'Retrieving account information failed with an error'
+    )
   }
   return await resp.json()
 }
@@ -479,7 +484,7 @@ export const getNodesSlice: GetNodesSliceFn = async ({
     signal,
   })
   if (!rawResp.ok) {
-    throw new Error(`(${rawResp.status}) ${rawResp.statusText}`)
+    throw _makeResponseError(rawResp)
   }
   const response: NodeAttrsSearchResponse = await rawResp.json()
   const nodes = response.nodes.map((item) => {
@@ -561,7 +566,7 @@ async function createEdge({
     signal,
   })
   if (!resp.ok) {
-    throw new Error('Empty edge creation response')
+    throw _makeResponseError(resp, 'Empty edge creation response')
   }
   const { edges } = await resp.json()
   if (!edges?.length) {
@@ -583,7 +588,7 @@ async function getNodeEdges(
     signal,
   })
   if (!resp.ok) {
-    throw new Error('Getting node edges failed with error')
+    throw _makeResponseError(resp, 'Getting node edges failed with error')
   }
   const star = await resp.json()
   star.edges = star.edges.map((edgeObj: EdgeAttributes) => {
@@ -634,7 +639,10 @@ async function switchEdgeStickiness({
     signal,
   })
   if (!resp.ok) {
-    throw new Error('Switching edge stickiness failed with error')
+    throw _makeResponseError(
+      resp,
+      'Switching edge stickiness failed with error'
+    )
   }
   return await resp.json()
 }
@@ -657,7 +665,7 @@ async function deleteEdge({
   if (resp.ok) {
     return await resp.json()
   }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
+  throw _makeResponseError(resp)
 }
 
 function verifyIsNotNull(value: Optional<any>): void {
@@ -690,7 +698,8 @@ async function createSession(
     signal,
   })
   if (!resp.ok) {
-    throw new Error(
+    throw _makeResponseError(
+      resp,
       `Session creation failed with an error (${resp.status}) ${resp.statusText}`
     )
   }
@@ -705,7 +714,7 @@ async function deleteSession({ signal }: { signal: AbortSignal }) {
   if (resp.ok) {
     return await resp.json()
   }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
+  throw _makeResponseError(resp)
 }
 
 async function updateSession(signal?: AbortSignal): Promise<Ack> {
@@ -716,7 +725,64 @@ async function updateSession(signal?: AbortSignal): Promise<Ack> {
   if (resp.ok) {
     return await resp.json()
   }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
+  throw _makeResponseError(resp)
+}
+
+function _makeExternalUserActivityUrl(origin: OriginId): string {
+  return makeUrl(`/activity/external/${origin.id}`)
+}
+
+async function addExternalUserActivity(
+  origin: OriginId,
+  activity: ResourceVisit[] | ResourceAttention,
+  signal?: AbortSignal
+): Promise<TotalUserActivity> {
+  let body: AddUserActivityRequest
+  if (activity instanceof Array) {
+    body = {
+      visit: {
+        visits: activity,
+      },
+    }
+  } else if ('seconds' in activity) {
+    body = {
+      attention: activity,
+    }
+  } else {
+    throw new Error(
+      `Unknown type of external user activity to report ${activity}`
+    )
+  }
+  const resp = await fetch(_makeExternalUserActivityUrl(origin), {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+    headers: { 'Content-type': MimeType.JSON },
+    signal,
+  })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw _makeResponseError(
+    resp,
+    `Addition of an external user activity failed for origin ${origin}`
+  )
+}
+
+async function getExternalUserActivity(
+  origin: OriginId,
+  signal?: AbortSignal
+): Promise<TotalUserActivity> {
+  const resp = await fetch(_makeExternalUserActivityUrl(origin), {
+    method: 'GET',
+    signal,
+  })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw _makeResponseError(
+    resp,
+    `Loading of external user activity failed for origin ${origin}`
+  )
 }
 
 async function getUserBadge({
@@ -735,7 +801,7 @@ async function getUserBadge({
   if (resp.ok) {
     return await resp.json()
   }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
+  throw _makeResponseError(resp)
 }
 
 async function registerAccount({
@@ -757,7 +823,7 @@ async function registerAccount({
   if (resp.ok) {
     return await resp.json()
   }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
+  throw _makeResponseError(resp)
 }
 
 async function passwordReset({
@@ -779,7 +845,7 @@ async function passwordReset({
   if (resp.ok) {
     return await resp.json()
   }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
+  throw _makeResponseError(resp)
 }
 
 async function passwordRecoverRequest({
@@ -799,7 +865,7 @@ async function passwordRecoverRequest({
   if (resp.ok) {
     return await resp.json()
   }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
+  throw _makeResponseError(resp)
 }
 
 async function passwordChange(
@@ -817,26 +883,23 @@ async function passwordChange(
   if (resp.ok) {
     return await resp.json()
   }
-  throw new Error(`(${resp.status}) ${resp.statusText}`)
+  throw _makeResponseError(resp)
 }
 
 async function getUserFsIngestionProgress(
   fsid: UserFilesystemId,
   signal?: AbortSignal
 ): Promise<UserFsIngestionProgress> {
-  const resp = await fetch(
-    makeUrl(`/user/${fsid.uid}/3rdparty/fs/${fsid.fs_key}/progress`),
-    {
-      method: 'GET',
-      signal,
-    }
-  )
+  const resp = await fetch(makeUrl(`/3rdparty/fs/${fsid.fs_key}/progress`), {
+    method: 'GET',
+    signal,
+  })
   if (resp.ok) {
     return await resp.json()
   }
-  throw new Error(
-    `Failed to get ingestion progress for ${JSON.stringify(fsid)}` +
-      ` (${resp.status}) ${resp.statusText}`
+  throw _makeResponseError(
+    resp,
+    `Failed to get ingestion progress for ${JSON.stringify(fsid)}`
   )
 }
 async function advanceUserFsIngestionProgress(
@@ -844,22 +907,23 @@ async function advanceUserFsIngestionProgress(
   new_progress: AdvanceUserFsIngestionProgress,
   signal?: AbortSignal
 ): Promise<Ack> {
-  const resp = await fetch(
-    makeUrl(`/user/${fsid.uid}/3rdparty/fs/${fsid.fs_key}/progress`),
-    {
-      method: 'PATCH',
-      body: JSON.stringify(new_progress),
-      headers: { 'Content-type': MimeType.JSON },
-      signal,
-    }
-  )
+  const resp = await fetch(makeUrl(`/3rdparty/fs/${fsid.fs_key}/progress`), {
+    method: 'PATCH',
+    body: JSON.stringify(new_progress),
+    headers: { 'Content-type': MimeType.JSON },
+    signal,
+  })
   if (resp.ok) {
     return await resp.json()
   }
-  throw new Error(
-    `Failed to advance ingestion progress for ${JSON.stringify(fsid)}` +
-      ` (${resp.status}) ${resp.statusText}`
+  throw _makeResponseError(
+    resp,
+    `Failed to advance ingestion progress for ${JSON.stringify(fsid)}`
   )
+}
+
+function _makeResponseError(response: Response, message?: string): Error {
+  return new Error(`${message} ([${response.status}] ${response.statusText})`)
 }
 
 export const smuggler = {
@@ -910,6 +974,20 @@ export const smuggler = {
     delete: deleteSession,
     update: updateSession,
   },
+  activity: {
+    external: {
+      add: addExternalUserActivity,
+      get: getExternalUserActivity,
+    },
+  },
+  thirdparty: {
+    fs: {
+      progress: {
+        get: getUserFsIngestionProgress,
+        advance: advanceUserFsIngestionProgress,
+      },
+    },
+  },
   user: {
     badge: {
       get: getUserBadge,
@@ -920,14 +998,6 @@ export const smuggler = {
       change: passwordChange,
     },
     register: registerAccount,
-    thirdparty: {
-      fs: {
-        progress: {
-          get: getUserFsIngestionProgress,
-          advance: advanceUserFsIngestionProgress,
-        },
-      },
-    },
   },
   ping,
 }

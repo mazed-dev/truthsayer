@@ -52,7 +52,7 @@
     "librarius": "0.0.1",
     "local-storage": "^2.0",
     "lodash": "^4.17.21",
-    "moment": "^2.29.2",
+    "moment": "^2.29.4",
     "node-emoji": "^1",
     "prettier": "^2.2",
     "prop-types": "^15.7.2",
