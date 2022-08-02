@@ -69,7 +69,6 @@ const SyncBrowserHistoryButton = () => {
     const result = await FromPopUp.sendMessage({
       type: 'UPLOAD_BROWSER_HISTORY',
     })
-    console.log(`result is ${JSON.stringify(result)}`)
   }
   return <Button onClick={handler}>Upload browser history</Button>
 }

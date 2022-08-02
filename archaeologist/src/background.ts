@@ -293,7 +293,7 @@ browser.runtime.onMessage.addListener(
       }
     } catch (error) {
       console.error(
-        `Failed to process '${message.direction}' message '${message.type}', error = ${error}`
+        `Failed to process '${message.direction}' message '${message.type}', ${error}`
       )
       throw error
     }
