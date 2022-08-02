@@ -67,7 +67,9 @@ export namespace FromPopUp {
   ): Promise<VoidResponse>
   export function sendMessage(message: Request): Promise<ToPopUp.Response> {
     const msg: ToBackground.Request = { direction: 'from-popup', ...message }
-    return browser.runtime.sendMessage(msg)
+    return browser.runtime.sendMessage(msg).catch((error) => {
+      throw new Error(`Failed to send ${message.type} from popup: ${error}`)
+    })
   }
 }
 export namespace ToPopUp {
@@ -150,7 +152,14 @@ export namespace ToContent {
     tabId: number,
     message: Request
   ): Promise<FromContent.Response> {
-    return browser.tabs.sendMessage(tabId, message)
+    return browser.tabs.sendMessage(tabId, message).catch((error) => {
+      console.error(
+        `Got error from ${message.type} to content, tab ${tabId}: ${error}`
+      )
+      throw new Error(
+        `Failed to send ${message.type} to content (tabId = ${tabId}): ${error}`
+      )
+    })
   }
 }
 export namespace FromContent {
@@ -190,7 +199,9 @@ export namespace FromContent {
 
   export function sendMessage(message: Request): Promise<VoidResponse> {
     const msg: ToBackground.Request = { direction: 'from-content', ...message }
-    return browser.runtime.sendMessage(msg)
+    return browser.runtime.sendMessage(msg).catch((error) => {
+      throw new Error(`Failed to send ${message.type} from content: ${error}`)
+    })
   }
 }
 

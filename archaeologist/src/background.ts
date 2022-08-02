@@ -147,7 +147,7 @@ async function getPageContentViaTemporaryTab(
     url,
   })
   if (tab.id == null) {
-    throw new Error(`Could not create a tab for ${url}`)
+    throw new Error(`Failed to create a temporary tab for ${url}`)
   }
   try {
     await TabLoadCompletion.monitor(tab.id)
@@ -244,23 +244,18 @@ async function handleMessageFromPopup(
       )
 
       for (const item of items) {
-        if (item.url == null) {
+        if (item.url == null || !isMemorable(item.url)) {
           continue
         }
         const origin = genOriginId(item.url)
-        console.log(`querying visits for ${item.url}`)
         const visits = await browser.history.getVisits({ url: item.url })
-        console.log(`mapping visits`)
         const resourceVisits: ResourceVisit[] = visits.map((visit) => {
           return { timestamp: unixtime.from(new Date(visit.visitTime ?? 0)) }
         })
-        console.log(`smuggling visits`)
         const total = await smuggler.activity.external.add(
           origin,
           resourceVisits
         )
-        console.log(`saving page`)
-
         // TODO[snikitin@outlook.com] Logic inside isReadyToBeAutoSaved()
         // may need to be rewritten to support cases when there was no attention time
         // tracked
@@ -298,9 +293,7 @@ browser.runtime.onMessage.addListener(
       }
     } catch (error) {
       console.error(
-        `Failed to process '${message.direction}' message '${
-          message.type
-        }', error = ${JSON.stringify(error)}`
+        `Failed to process '${message.direction}' message '${message.type}', error = ${error}`
       )
       throw error
     }
@@ -347,9 +340,6 @@ browser.tabs.onUpdated.addListener(
     changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
     tab: browser.Tabs.Tab
   ) => {
-    if (changeInfo.status === 'complete') {
-      TabLoadCompletion.report(tabId)
-    }
     if (!tab.incognito && tab.url && !tab.hidden) {
       if (changeInfo.status === 'complete') {
         // Request page saved status on new non-incognito page loading
@@ -358,18 +348,31 @@ browser.tabs.onUpdated.addListener(
           tabId,
           calculateBadgeCounter(response.quotes, response.bookmark)
         )
-        await ToContent.sendMessage(tabId, {
-          type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
-          quotes: response.quotes.map((node) => node.toJson()),
-          bookmark: response.bookmark?.toJson(),
-          mode: 'reset',
-        })
+        try {
+          await ToContent.sendMessage(tabId, {
+            type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
+            quotes: response.quotes.map((node) => node.toJson()),
+            bookmark: response.bookmark?.toJson(),
+            mode: 'reset',
+          })
+        } catch (error) {
+          // As 'REQUEST_UPDATE_CONTENT_AUGMENTATION' updates tab-specific data,
+          // a failure due to premature tab closure is not a concern since there
+          // is no data to update any longer
+          log.warning(
+            `Failed to update content augmentation for ${tab.url} tab: ${error}`
+          )
+        }
         const origin = genOriginId(tab.url)
         log.debug('Register new visit', origin.stableUrl, origin.id)
         await smuggler.activity.external.add({ id: origin.id }, [
           { timestamp: unixtime.now() },
         ])
       }
+    }
+
+    if (changeInfo.status === 'complete') {
+      TabLoadCompletion.report(tabId)
     }
   }
 )
