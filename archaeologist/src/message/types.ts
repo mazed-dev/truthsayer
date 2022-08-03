@@ -135,7 +135,9 @@ export namespace ToContent {
   export function sendMessage(
     tabId: number,
     message: RequestPageContent
-  ): Promise<FromContent.SavePageResponse>
+  ): Promise<
+    FromContent.SavePageResponse | FromContent.PageAlreadySavedResponse
+  >
   export function sendMessage(
     tabId: number,
     message: UpdateContentAugmentationRequest
@@ -153,9 +155,6 @@ export namespace ToContent {
     message: Request
   ): Promise<FromContent.Response> {
     return browser.tabs.sendMessage(tabId, message).catch((error) => {
-      console.error(
-        `Got error from ${message.type} to content, tab ${tabId}: ${error}`
-      )
       throw new Error(
         `Failed to send ${message.type} to content (tabId = ${tabId}): ${error}`
       )
@@ -171,6 +170,9 @@ export namespace FromContent {
     content?: WebPageContent
     // Saving page quotes to connect as right hand side cards
     quoteNids: string[]
+  }
+  export interface PageAlreadySavedResponse {
+    type: 'PAGE_ALREADY_SAVED'
   }
   export interface GetSelectedQuoteResponse {
     type: 'SELECTED_WEB_QUOTE'
@@ -195,6 +197,7 @@ export namespace FromContent {
   export type Response =
     | GetSelectedQuoteResponse
     | SavePageResponse
+    | PageAlreadySavedResponse
     | VoidResponse
 
   export function sendMessage(message: Request): Promise<VoidResponse> {

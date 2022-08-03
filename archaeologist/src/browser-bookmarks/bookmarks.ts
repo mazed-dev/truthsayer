@@ -15,10 +15,15 @@ async function onCreatedEventListener(
     if (tab?.id == null) {
       throw new Error(`Request of a page content for URL ${url} failed`)
     }
-    const response: FromContent.SavePageResponse = await ToContent.sendMessage(
+    const response:
+      | FromContent.SavePageResponse
+      | FromContent.PageAlreadySavedResponse = await ToContent.sendMessage(
       tab.id,
       { type: 'REQUEST_PAGE_CONTENT' }
     )
+    if (response.type === 'PAGE_ALREADY_SAVED') {
+      return
+    }
     const { url: stableUrl, content, originId, quoteNids } = response
     await savePage(stableUrl, originId, quoteNids, content)
   }

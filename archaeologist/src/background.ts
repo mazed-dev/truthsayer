@@ -129,10 +129,15 @@ async function registerAttentionTime(
     return
   }
   if (isReadyToBeAutoSaved(total, totalSecondsEstimation)) {
-    const response: FromContent.SavePageResponse = await ToContent.sendMessage(
+    const response:
+      | FromContent.SavePageResponse
+      | FromContent.PageAlreadySavedResponse = await ToContent.sendMessage(
       tab.id,
       { type: 'REQUEST_PAGE_CONTENT' }
     )
+    if (response.type === 'PAGE_ALREADY_SAVED') {
+      return
+    }
     const { url, content, originId, quoteNids } = response
     await savePage(url, originId, quoteNids, content, tab.id)
   }
@@ -140,7 +145,9 @@ async function registerAttentionTime(
 
 async function getPageContentViaTemporaryTab(
   url: string
-): Promise<FromContent.SavePageResponse> {
+): Promise<
+  FromContent.SavePageResponse | FromContent.PageAlreadySavedResponse
+> {
   const startTime = new Date()
   const tab = await browser.tabs.create({
     active: false,
@@ -151,10 +158,9 @@ async function getPageContentViaTemporaryTab(
   }
   try {
     await TabLoadCompletion.monitor(tab.id)
-    const response = await ToContent.sendMessage(tab.id, {
+    return await ToContent.sendMessage(tab.id, {
       type: 'REQUEST_PAGE_CONTENT',
     })
-    return response
   } finally {
     await browser.tabs.remove(tab.id)
     const endTime = new Date()
@@ -196,8 +202,15 @@ async function handleMessageFromPopup(
       if (tabId == null) {
         return { type: 'PAGE_SAVED' }
       }
-      const response: FromContent.SavePageResponse =
-        await ToContent.sendMessage(tabId, { type: 'REQUEST_PAGE_CONTENT' })
+      const response:
+        | FromContent.SavePageResponse
+        | FromContent.PageAlreadySavedResponse = await ToContent.sendMessage(
+        tabId,
+        { type: 'REQUEST_PAGE_CONTENT' }
+      )
+      if (response.type === 'PAGE_ALREADY_SAVED') {
+        return { type: 'PAGE_SAVED' }
+      }
       const { url, content, originId, quoteNids } = response
       const { node, unmemorable } = await savePage(
         url,
@@ -243,7 +256,11 @@ async function handleMessageFromPopup(
         }
       )
 
-      for (const item of items) {
+      for (let index = 0; index < items.length; index++) {
+        const item = items[index]
+
+        await badge.resetText(undefined, `${index}/${items.length}`)
+
         if (item.url == null || !isMemorable(item.url)) {
           continue
         }
@@ -260,12 +277,19 @@ async function handleMessageFromPopup(
         // may need to be rewritten to support cases when there was no attention time
         // tracked
         if (isReadyToBeAutoSaved(total, 0)) {
-          const response: FromContent.SavePageResponse =
-            await getPageContentViaTemporaryTab(item.url)
-          const { url, content, originId, quoteNids } = response
-          await savePage(url, originId, quoteNids, content)
+          const response:
+            | FromContent.SavePageResponse
+            | FromContent.PageAlreadySavedResponse = await getPageContentViaTemporaryTab(
+            item.url
+          )
+          if (response.type === 'PAGE_TO_SAVE') {
+            const { url, content, originId, quoteNids } = response
+            await savePage(url, originId, quoteNids, content)
+          }
         }
       }
+
+      await badge.resetText(undefined, '')
 
       return { type: 'VOID_RESPONSE' }
     }
@@ -315,6 +339,10 @@ namespace TabLoadCompletion {
 
   const monitors: Monitors = {}
 
+  /**
+   * Returns a Promise that will be resolved as soon as the is loaded completely
+   * (according to @see report() )
+   */
   export function monitor(tabId: number): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       if (monitors[tabId] != null) {
@@ -326,6 +354,10 @@ namespace TabLoadCompletion {
       monitors[tabId] = { onComplete: resolve }
     })
   }
+  /**
+   * Report that a tap with given ID has been completely loaded
+   * (expected to be called based on @see browser.Tabs.OnUpdatedChangeInfoType )
+   */
   export function report(tabId: number) {
     if (monitors[tabId] != null) {
       monitors[tabId].onComplete()

@@ -85,7 +85,7 @@ const App = () => {
               quoteNids: quotes.map((node) => node.nid),
             }
           }
-          break
+          return { type: 'PAGE_ALREADY_SAVED' }
         case 'REQUEST_SELECTED_WEB_QUOTE': {
           const lang = document.documentElement.lang
           return {
@@ -125,6 +125,7 @@ const App = () => {
           })
           return { type: 'VOID_RESPONSE' }
         }
+        default:
       }
       throw new Error(
         `Unknown ToContent.Message type, message = ${JSON.stringify(message)}`

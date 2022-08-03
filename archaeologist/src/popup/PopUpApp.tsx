@@ -66,7 +66,7 @@ const LoginBtnBox = styled.div`
 
 const SyncBrowserHistoryButton = () => {
   const handler = async () => {
-    const result = await FromPopUp.sendMessage({
+    FromPopUp.sendMessage({
       type: 'UPLOAD_BROWSER_HISTORY',
     })
   }
