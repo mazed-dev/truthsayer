@@ -3,7 +3,6 @@
 import React from 'react'
 
 import { useHistory, useLocation } from 'react-router-dom'
-import styled from '@emotion/styled'
 import { css } from '@emotion/react'
 
 import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
@@ -14,7 +13,6 @@ import { log } from 'armoury'
 
 import { smuggler } from 'smuggler-api'
 import { Link } from 'react-router-dom'
-import { LandingFooter } from './LandingFooter'
 
 type SignupProps = {
   history: History
@@ -27,15 +25,6 @@ type SignupState = {
   consent: boolean
   errorMsg?: string
 }
-
-const Box = styled.div`
-  height: 100vh;
-  width: 100vw;
-  overflow: auto;
-
-  font-family: 'Comfortaa';
-  position: relative;
-`
 
 class SignupImpl extends React.Component<SignupProps, SignupState> {
   consentRef: React.RefObject<HTMLInputElement>
@@ -147,101 +136,99 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
       )
     }
     return (
-      <Box>
-        <Container
-          css={css`
-            margin: 10vw auto auto auto;
-          `}
-        >
-          <Card className="border-0">
-            <Card.Body className="p-3">
-              <Card.Title
+      <Container
+        css={css`
+          margin: 10vw auto auto auto;
+        `}
+      >
+        <Card className="border-0">
+          <Card.Body className="p-3">
+            <Card.Title
+              css={css`
+                font-size: 48px;
+                font-family: 'Comfortaa';
+              `}
+            >
+              Sign up
+            </Card.Title>
+            <Form
+              onSubmit={this.onSubmit}
+              css={css`
+                margin: 4vw auto auto auto;
+              `}
+            >
+              <Row
                 css={css`
-                  font-size: 48px;
+                  margin-bottom: 24px;
                 `}
               >
-                Sign up
-              </Card.Title>
-              <Form
-                onSubmit={this.onSubmit}
+                By continuing, you agree to our
+                <Link
+                  to={routes.terms}
+                  css={css`
+                    width: auto;
+                  `}
+                >
+                  Terms Of Service
+                </Link>
+                and
+                <Link
+                  to={routes.privacy}
+                  css={css`
+                    width: auto;
+                  `}
+                >
+                  Privacy Policy
+                </Link>
+              </Row>
+              <Form.Group
+                as={Row}
+                controlId="formLoginName"
                 css={css`
-                  margin: 4vw auto auto auto;
+                  margin-bottom: 1em;
                 `}
               >
-                <Row
-                  css={css`
-                    margin-bottom: 24px;
-                  `}
-                >
-                  By continuing, you agree to our
-                  <Link
-                    to={routes.terms}
-                    css={css`
-                      width: auto;
-                    `}
-                  >
-                    Terms Of Service
-                  </Link>
-                  and
-                  <Link
-                    to={routes.privacy}
-                    css={css`
-                      width: auto;
-                    `}
-                  >
-                    Privacy Policy
-                  </Link>
-                </Row>
-                <Form.Group
-                  as={Row}
-                  controlId="formLoginName"
-                  css={css`
-                    margin-bottom: 1em;
-                  `}
-                >
-                  <Form.Label column sm="1">
-                    Name
-                  </Form.Label>
-                  <Col>
-                    <Form.Control
-                      type="name"
-                      placeholder="Gaius Julius Caesar"
-                      value={this.state.name}
-                      onChange={this.handleNameChange}
-                      ref={this.nameInputRef}
-                    />
-                  </Col>
-                </Form.Group>
-                <Form.Group as={Row} controlId="formLoginEmail">
-                  <Form.Label column sm="1">
-                    Email
-                  </Form.Label>
-                  <Col>
-                    <Form.Control
-                      type="email"
-                      value={this.state.email}
-                      onChange={this.handleEmailChange}
-                      ref={this.emailInputRef}
-                    />
-                  </Col>
-                </Form.Group>
-                {remoteErrorElement}
-                <Button
-                  variant="secondary"
-                  type="submit"
-                  disabled={!this.isReadyToSubmit()}
-                  css={css`
-                    margin: 1rem auto auto auto;
-                  `}
-                >
-                  Register
-                </Button>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Container>
-        <LandingFooter />
-      </Box>
+                <Form.Label column sm="1">
+                  Name
+                </Form.Label>
+                <Col>
+                  <Form.Control
+                    type="name"
+                    placeholder="Gaius Julius Caesar"
+                    value={this.state.name}
+                    onChange={this.handleNameChange}
+                    ref={this.nameInputRef}
+                  />
+                </Col>
+              </Form.Group>
+              <Form.Group as={Row} controlId="formLoginEmail">
+                <Form.Label column sm="1">
+                  Email
+                </Form.Label>
+                <Col>
+                  <Form.Control
+                    type="email"
+                    value={this.state.email}
+                    onChange={this.handleEmailChange}
+                    ref={this.emailInputRef}
+                  />
+                </Col>
+              </Form.Group>
+              {remoteErrorElement}
+              <Button
+                variant="secondary"
+                type="submit"
+                disabled={!this.isReadyToSubmit()}
+                css={css`
+                  margin: 1rem auto auto auto;
+                `}
+              >
+                Register
+              </Button>
+            </Form>
+          </Card.Body>
+        </Card>
+      </Container>
     )
   }
 }

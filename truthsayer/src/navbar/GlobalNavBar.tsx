@@ -55,18 +55,18 @@ const PrivateNavButtons = () => {
 
         <Dropdown.Menu>
           <Dropdown.Item as={Link} to={routes.settings}>
-            Manage your account
+            Settings
           </Dropdown.Item>
           <Dropdown.Item as={Link} to={routes.apps}>
             Apps
           </Dropdown.Item>
           <Dropdown.Item as={Link} to={routes.integrations}>
-            3rd-party integrations
+            Integrations
           </Dropdown.Item>
+          <Dropdown.Divider />
           <Dropdown.Item as={Link} to={routes.faq}>
             FAQs
           </Dropdown.Item>
-          <Dropdown.Divider />
           <Dropdown.Item as={Link} to={routes.about}>
             About
           </Dropdown.Item>
@@ -86,35 +86,13 @@ const PrivateNavButtons = () => {
   )
 }
 
-const PublicNavButtons = () => {
-  return (
-    <>
-      <Navbar.Toggle aria-controls="responsive-public-navbar" />
-      <Navbar.Collapse id="responsive-public-navbar">
-        <Nav>
-          <Nav.Link as={Link} to={routes.terms}>
-            Terms of service
-          </Nav.Link>
-          <Nav.Link as={Link} to={routes.contacts}>
-            Contact us
-          </Nav.Link>
-        </Nav>
-        <Nav className="ml-auto">
-          <Nav.Link as={Link} to={routes.login}>
-            Log in
-          </Nav.Link>
-        </Nav>
-      </Navbar.Collapse>
-    </>
-  )
-}
-
 const CustomNavbar = styled(Navbar)`
   background-color: white;
   height: 2.8rem;
   padding-left: 0.8rem;
   padding-right: 0.8rem;
   justify-content: space-between;
+  font-family: 'Comfortaa';
   ${kCardBorder};
 `
 
@@ -124,12 +102,6 @@ export function GlobalNavBar() {
   if (account == null || !account.isAuthenticated()) {
     return null
   }
-  const buttons = account.isAuthenticated() ? (
-    <PrivateNavButtons />
-  ) : (
-    // TODO(@akindyakov): Remove it
-    <PublicNavButtons />
-  )
   return (
     <>
       <CustomNavbar fixed="top" className={styles.navbar}>
@@ -141,7 +113,7 @@ export function GlobalNavBar() {
           />
           <div className="d-none d-sm-none d-md-block">Mazed</div>
         </Navbar.Brand>
-        {buttons}
+        <PrivateNavButtons />
       </CustomNavbar>
       <div className={styles.navbar_filler} />
     </>

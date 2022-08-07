@@ -31,6 +31,7 @@ import WaitingForApproval from './auth/WaitingForApproval'
 import UserPreferences from './auth/UserPreferences'
 import { LandingPage } from './landing/LandingPage'
 import { ProductMetaTags } from './landing/ProductMetaTags'
+import { PublicPage } from './landing/PublicPage'
 import UserEncryption from './UserEncryption'
 import { routes } from './lib/route'
 import { Loader } from './lib/loader'
@@ -106,24 +107,24 @@ function AppRouter() {
           <PrivateRoute path="/user-encryption">
             <UserEncryption />
           </PrivateRoute>
-          <Route path="/apps-to-install">
+          <PublicRoute path="/apps-to-install">
             <AppsList />
-          </Route>
-          <Route path="/help">
+          </PublicRoute>
+          <PublicRoute path="/help">
             <HelpInfo />
-          </Route>
-          <Route path="/about">
+          </PublicRoute>
+          <PublicRoute path="/about">
             <About />
-          </Route>
-          <Route path="/contacts">
+          </PublicRoute>
+          <PublicRoute path="/contacts">
             <ContactUs />
-          </Route>
-          <Route path="/privacy-policy">
+          </PublicRoute>
+          <PublicRoute path="/privacy-policy">
             <PrivacyPolicy />
-          </Route>
-          <Route path="/terms-of-service">
+          </PublicRoute>
+          <PublicRoute path="/terms-of-service">
             <TermsOfService />
-          </Route>
+          </PublicRoute>
           <PublicOnlyRoute path="/password-recover-request">
             <PasswordRecoverRequest />
           </PublicOnlyRoute>
@@ -133,10 +134,10 @@ function AppRouter() {
           <PrivateRoute path="/password-recover-change">
             <PasswordChange />
           </PrivateRoute>
-          <Route path="/notice/:page">
+          <PublicRoute path="/notice/:page">
             <Notice />
-          </Route>
-          <Route exact path={routes.empty} />
+          </PublicRoute>
+          <PublicRoute exact path={routes.empty} />
           <Route path="*">
             <Redirect to={{ pathname: '/' }} />
           </Route>
@@ -177,7 +178,11 @@ function PublicOnlyRoute({ children, ...rest }) {
   }
   const isAuthenticated = account.isAuthenticated()
   if (!isAuthenticated) {
-    return <Route {...rest}> {children} </Route>
+    return (
+      <Route {...rest}>
+        <PublicPage>{children}</PublicPage>
+      </Route>
+    )
   } else {
     return (
       <Redirect
@@ -187,6 +192,20 @@ function PublicOnlyRoute({ children, ...rest }) {
         }}
       />
     )
+  }
+}
+
+function PublicRoute({ children, ...rest }) {
+  const ctx = useContext(MzdGlobalContext)
+  const account = ctx.account
+  if (account == null || !account.isAuthenticated()) {
+    return (
+      <Route {...rest}>
+        <PublicPage>{children}</PublicPage>
+      </Route>
+    )
+  } else {
+    return <Route {...rest}>{children}</Route>
   }
 }
 
