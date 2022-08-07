@@ -3,16 +3,16 @@
 import React from 'react'
 
 import { useHistory, useLocation } from 'react-router-dom'
+import { css } from '@emotion/react'
 
 import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
 
-import { goto, History } from '../lib/route'
+import { goto, History, routes } from '../lib/route'
 
 import { log } from 'armoury'
 
 import { smuggler } from 'smuggler-api'
 import { Link } from 'react-router-dom'
-import HttpStatus from 'http-status-codes'
 
 type SignupProps = {
   history: History
@@ -136,36 +136,59 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
       )
     }
     return (
-      <Container>
+      <Container
+        css={css`
+          margin: 10vw auto auto auto;
+        `}
+      >
         <Card className="border-0">
           <Card.Body className="p-3">
-            <Card.Title>Sign up</Card.Title>
-            <Form className="m-4" onSubmit={this.onSubmit}>
-              <Row className="m-2">
+            <Card.Title
+              css={css`
+                font-size: 48px;
+                font-family: 'Comfortaa';
+              `}
+            >
+              Sign up
+            </Card.Title>
+            <Form
+              onSubmit={this.onSubmit}
+              css={css`
+                margin: 4vw auto auto auto;
+              `}
+            >
+              <Row
+                css={css`
+                  margin-bottom: 24px;
+                `}
+              >
                 By continuing, you agree to our
-                <Link to={'/terms-of-service'}>
-                  &nbsp; Terms Of Service &nbsp;
+                <Link
+                  to={routes.terms}
+                  css={css`
+                    width: auto;
+                  `}
+                >
+                  Terms Of Service
                 </Link>
                 and
-                <Link to={'/privacy-policy'}>&nbsp; Privacy Policy &nbsp;</Link>
+                <Link
+                  to={routes.privacy}
+                  css={css`
+                    width: auto;
+                  `}
+                >
+                  Privacy Policy
+                </Link>
               </Row>
               <Form.Group
                 as={Row}
-                className="m-2"
-                controlId="formCustomerAggreementCheckbox"
+                controlId="formLoginName"
+                css={css`
+                  margin-bottom: 1em;
+                `}
               >
-                <Form.Check
-                  type="checkbox"
-                  onChange={this.toggleConsent}
-                  ref={this.consentRef}
-                />
-                <Form.Label sm={2}>
-                  I am aware that Mazed currently is under active development,
-                  therefore there are no guarantees of any kind
-                </Form.Label>
-              </Form.Group>
-              <Form.Group as={Row} controlId="formLoginName">
-                <Form.Label column sm="2">
+                <Form.Label column sm="1">
                   Name
                 </Form.Label>
                 <Col>
@@ -179,7 +202,7 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
                 </Col>
               </Form.Group>
               <Form.Group as={Row} controlId="formLoginEmail">
-                <Form.Label column sm="2">
+                <Form.Label column sm="1">
                   Email
                 </Form.Label>
                 <Col>
@@ -196,6 +219,9 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
                 variant="secondary"
                 type="submit"
                 disabled={!this.isReadyToSubmit()}
+                css={css`
+                  margin: 1rem auto auto auto;
+                `}
               >
                 Register
               </Button>

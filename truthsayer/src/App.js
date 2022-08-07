@@ -22,18 +22,19 @@ import { SearchGridView } from './grid/SearchGridView'
 import { GlobalNavBar } from './navbar/GlobalNavBar'
 import Login from './auth/Login'
 import Logout from './auth/Logout'
-import { Signup } from './auth/Signup'
+import { Signup } from './landing/Signup'
 import PasswordChange from './auth/PasswordChange'
 import PasswordRecoverForm from './auth/PasswordRecoverForm'
 import PasswordRecoverRequest from './auth/PasswordRecoverRequest'
 import { Notice } from './notice/Notice.js'
 import WaitingForApproval from './auth/WaitingForApproval'
 import UserPreferences from './auth/UserPreferences'
-import WelcomePage from './WelcomePage'
+import { LandingPage } from './landing/LandingPage'
+import { ProductMetaTags } from './landing/ProductMetaTags'
+import { PublicPage } from './landing/PublicPage'
 import UserEncryption from './UserEncryption'
 import { routes } from './lib/route'
 import { Loader } from './lib/loader'
-import { initDevEnv } from './dev/env'
 import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegrationsOverview'
 import { AppsList } from './apps-list/AppsList'
 
@@ -41,7 +42,6 @@ import { MzdGlobal, MzdGlobalContext } from './lib/global'
 
 class App extends React.Component {
   render() {
-    initDevEnv()
     return (
       <MzdGlobal>
         <AppRouter />
@@ -53,6 +53,7 @@ class App extends React.Component {
 function AppRouter() {
   return (
     <Router>
+      <ProductMetaTags />
       <GlobalNavBar />
       <Container
         fluid
@@ -61,10 +62,7 @@ function AppRouter() {
           max-width: 100%;
           width: 100%;
           margin: 0;
-          padding-top: 0;
-          padding-bottom: 0;
-          padding-left: 10px;
-          padding-right: 10px;
+          padding: 0;
 
           @media (min-width: 480px) {
             .app_content {
@@ -79,24 +77,24 @@ function AppRouter() {
           <Route exact path="/">
             <MainView />
           </Route>
+          <Route path={routes.logout}>
+            <Logout />
+          </Route>
           <PublicOnlyRoute path={routes.login}>
             <Login />
           </PublicOnlyRoute>
           <PublicOnlyRoute path={routes.signup}>
             <Signup />
           </PublicOnlyRoute>
-          <Route path="/waiting-for-approval">
+          <PublicRoute path="/waiting-for-approval">
             <WaitingForApproval path="/waiting-for-approval" />
-          </Route>
-          <Route path={routes.logout}>
-            <Logout />
-          </Route>
+          </PublicRoute>
           <PrivateRoute path={routes.search}>
             <SearchGridView />
           </PrivateRoute>
-          <Route path={routes.node}>
+          <PublicRoute path={routes.node}>
             <TriptychView />
-          </Route>
+          </PublicRoute>
           <PrivateRoute path="/account">
             <AccountView />
           </PrivateRoute>
@@ -109,24 +107,24 @@ function AppRouter() {
           <PrivateRoute path="/user-encryption">
             <UserEncryption />
           </PrivateRoute>
-          <Route path="/apps-to-install">
+          <PublicRoute path="/apps-to-install">
             <AppsList />
-          </Route>
-          <Route path="/help">
+          </PublicRoute>
+          <PublicRoute path="/help">
             <HelpInfo />
-          </Route>
-          <Route path="/about">
+          </PublicRoute>
+          <PublicRoute path="/about">
             <About />
-          </Route>
-          <Route path="/contacts">
+          </PublicRoute>
+          <PublicRoute path="/contacts">
             <ContactUs />
-          </Route>
-          <Route path="/privacy-policy">
+          </PublicRoute>
+          <PublicRoute path="/privacy-policy">
             <PrivacyPolicy />
-          </Route>
-          <Route path="/terms-of-service">
+          </PublicRoute>
+          <PublicRoute path="/terms-of-service">
             <TermsOfService />
-          </Route>
+          </PublicRoute>
           <PublicOnlyRoute path="/password-recover-request">
             <PasswordRecoverRequest />
           </PublicOnlyRoute>
@@ -136,10 +134,10 @@ function AppRouter() {
           <PrivateRoute path="/password-recover-change">
             <PasswordChange />
           </PrivateRoute>
-          <Route path="/notice/:page">
+          <PublicRoute path="/notice/:page">
             <Notice />
-          </Route>
-          <Route exact path={routes.empty} />
+          </PublicRoute>
+          <PublicRoute exact path={routes.empty} />
           <Route path="*">
             <Redirect to={{ pathname: '/' }} />
           </Route>
@@ -149,6 +147,9 @@ function AppRouter() {
   )
 }
 
+/**
+ * Route available only for logged-in users
+ */
 function PrivateRoute({ children, ...rest }) {
   const location = useLocation()
   const ctx = useContext(MzdGlobalContext)
@@ -158,7 +159,7 @@ function PrivateRoute({ children, ...rest }) {
   }
   const isAuthenticated = account.isAuthenticated()
   if (isAuthenticated) {
-    return <Route {...rest}> {children} </Route>
+    return <Route {...rest}>{children}</Route>
   } else {
     return (
       <Redirect
@@ -171,6 +172,9 @@ function PrivateRoute({ children, ...rest }) {
   }
 }
 
+/**
+ * Route available only for anonymous users
+ */
 function PublicOnlyRoute({ children, ...rest }) {
   const location = useLocation()
   const ctx = useContext(MzdGlobalContext)
@@ -180,7 +184,11 @@ function PublicOnlyRoute({ children, ...rest }) {
   }
   const isAuthenticated = account.isAuthenticated()
   if (!isAuthenticated) {
-    return <Route {...rest}> {children} </Route>
+    return (
+      <Route {...rest}>
+        <PublicPage>{children}</PublicPage>
+      </Route>
+    )
   } else {
     return (
       <Redirect
@@ -190,6 +198,23 @@ function PublicOnlyRoute({ children, ...rest }) {
         }}
       />
     )
+  }
+}
+
+/**
+ * Route available for both anonymous and logged-in users
+ */
+function PublicRoute({ children, ...rest }) {
+  const ctx = useContext(MzdGlobalContext)
+  const account = ctx.account
+  if (account == null || !account.isAuthenticated()) {
+    return (
+      <Route {...rest}>
+        <PublicPage>{children}</PublicPage>
+      </Route>
+    )
+  } else {
+    return <Route {...rest}>{children}</Route>
   }
 }
 
@@ -203,7 +228,7 @@ function MainView() {
   if (isAuthenticated) {
     return <Redirect to={{ pathname: '/search' }} />
   } else {
-    return <WelcomePage />
+    return <LandingPage />
   }
 }
 
