@@ -120,7 +120,7 @@ export function LandingPage() {
               margin-top: 5vh;
             `}
           >
-            Mazed helps you to remember everything about everything
+            Mazed helps you to remember everything about everything 💡
           </Snippet>
         </Centered>
         <Centered>
