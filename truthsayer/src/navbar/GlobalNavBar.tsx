@@ -3,7 +3,7 @@ import styled from '@emotion/styled'
 
 import { Link, useLocation } from 'react-router-dom'
 
-import { ButtonGroup, Dropdown, Navbar, Nav } from 'react-bootstrap'
+import { ButtonGroup, Dropdown, Navbar } from 'react-bootstrap'
 
 import { compass } from './../lib/route'
 import { jcss, MdiAccountCircle, kCardBorder } from 'elementary'

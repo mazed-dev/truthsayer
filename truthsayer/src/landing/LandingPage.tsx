@@ -44,6 +44,7 @@ const Description = styled.h2`
 
 const Snippet = styled(Description)`
   width: 80vw;
+  max-width: 42em;
 `
 
 const Topbar = styled.div`
@@ -106,12 +107,12 @@ export function LandingPage() {
         <Centered>
           <Snippet
             css={css`
-              margin-top: 22vh;
+              margin-top: 18vh;
             `}
           >
             Information from the odd Twitter tread, a half-read article, some
-            newsletter and YouTube video are all carefully recorded and
-            connected, mixed into a clever cocktail of insights 🍸
+            newsletter, and a YouTube video are all carefully recorded and
+            connected, blended into a clever cocktail of insights 🍸
           </Snippet>
         </Centered>
         <Centered>
