@@ -77,24 +77,24 @@ function AppRouter() {
           <Route exact path="/">
             <MainView />
           </Route>
+          <Route path={routes.logout}>
+            <Logout />
+          </Route>
           <PublicOnlyRoute path={routes.login}>
             <Login />
           </PublicOnlyRoute>
           <PublicOnlyRoute path={routes.signup}>
             <Signup />
           </PublicOnlyRoute>
-          <Route path="/waiting-for-approval">
+          <PublicRoute path="/waiting-for-approval">
             <WaitingForApproval path="/waiting-for-approval" />
-          </Route>
-          <Route path={routes.logout}>
-            <Logout />
-          </Route>
+          </PublicRoute>
           <PrivateRoute path={routes.search}>
             <SearchGridView />
           </PrivateRoute>
-          <Route path={routes.node}>
+          <PublicRoute path={routes.node}>
             <TriptychView />
-          </Route>
+          </PublicRoute>
           <PrivateRoute path="/account">
             <AccountView />
           </PrivateRoute>
@@ -147,6 +147,9 @@ function AppRouter() {
   )
 }
 
+/**
+ * Route available only for logged-in users
+ */
 function PrivateRoute({ children, ...rest }) {
   const location = useLocation()
   const ctx = useContext(MzdGlobalContext)
@@ -156,7 +159,7 @@ function PrivateRoute({ children, ...rest }) {
   }
   const isAuthenticated = account.isAuthenticated()
   if (isAuthenticated) {
-    return <Route {...rest}> {children} </Route>
+    return <Route {...rest}>{children}</Route>
   } else {
     return (
       <Redirect
@@ -169,6 +172,9 @@ function PrivateRoute({ children, ...rest }) {
   }
 }
 
+/**
+ * Route available only for anonymous users
+ */
 function PublicOnlyRoute({ children, ...rest }) {
   const location = useLocation()
   const ctx = useContext(MzdGlobalContext)
@@ -195,6 +201,9 @@ function PublicOnlyRoute({ children, ...rest }) {
   }
 }
 
+/**
+ * Route available for both anonymous and logged-in users
+ */
 function PublicRoute({ children, ...rest }) {
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
