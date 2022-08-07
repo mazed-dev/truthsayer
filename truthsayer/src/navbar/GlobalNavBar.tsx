@@ -7,9 +7,10 @@ import { ButtonGroup, Dropdown, Navbar, Nav } from 'react-bootstrap'
 
 import { compass } from './../lib/route'
 import { jcss, MdiAccountCircle, kCardBorder } from 'elementary'
-import { getLogoImage } from './../dev/env'
+import { getLogoImage } from './../util/env'
 import { SearchForm } from './SearchForm'
 import { MzdGlobalContext } from '../lib/global'
+import { routes } from './../lib/route'
 
 import styles from './GlobalNavBar.module.css'
 
@@ -53,31 +54,31 @@ const PrivateNavButtons = () => {
         </Dropdown.Toggle>
 
         <Dropdown.Menu>
-          <Dropdown.Item as={Link} to="/user-preferences">
+          <Dropdown.Item as={Link} to={routes.settings}>
             Manage your account
           </Dropdown.Item>
-          <Dropdown.Item as={Link} to="/apps-to-install">
+          <Dropdown.Item as={Link} to={routes.apps}>
             Apps
           </Dropdown.Item>
-          <Dropdown.Item as={Link} to="/3rdparty-integrations">
+          <Dropdown.Item as={Link} to={routes.integrations}>
             3rd-party integrations
           </Dropdown.Item>
-          <Dropdown.Item as={Link} to="/help">
-            Help
+          <Dropdown.Item as={Link} to={routes.faq}>
+            FAQs
           </Dropdown.Item>
           <Dropdown.Divider />
-          <Dropdown.Item as={Link} to="/about">
-            About knotledge
+          <Dropdown.Item as={Link} to={routes.about}>
+            About
           </Dropdown.Item>
-          <Dropdown.Item as={Link} to="/privacy-policy">
+          <Dropdown.Item as={Link} to={routes.privacy}>
             Privacy Policy
           </Dropdown.Item>
-          <Dropdown.Item as={Link} to="/terms-of-service">
+          <Dropdown.Item as={Link} to={routes.terms}>
             Terms of Service
           </Dropdown.Item>
           <Dropdown.Divider />
-          <Dropdown.Item as={Link} to="/logout">
-            log out
+          <Dropdown.Item as={Link} to={routes.logout}>
+            Log out
           </Dropdown.Item>
         </Dropdown.Menu>
       </Dropdown>
@@ -91,15 +92,15 @@ const PublicNavButtons = () => {
       <Navbar.Toggle aria-controls="responsive-public-navbar" />
       <Navbar.Collapse id="responsive-public-navbar">
         <Nav>
-          <Nav.Link as={Link} to="/terms-of-service">
+          <Nav.Link as={Link} to={routes.terms}>
             Terms of service
           </Nav.Link>
-          <Nav.Link as={Link} to="/contacts">
+          <Nav.Link as={Link} to={routes.contacts}>
             Contact us
           </Nav.Link>
         </Nav>
         <Nav className="ml-auto">
-          <Nav.Link as={Link} to="/login">
+          <Nav.Link as={Link} to={routes.login}>
             Log in
           </Nav.Link>
         </Nav>
@@ -120,12 +121,13 @@ const CustomNavbar = styled(Navbar)`
 export function GlobalNavBar() {
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
-  if (account == null) {
-    return <></>
+  if (account == null || !account.isAuthenticated()) {
+    return null
   }
   const buttons = account.isAuthenticated() ? (
     <PrivateNavButtons />
   ) : (
+    // TODO(@akindyakov): Remove it
     <PublicNavButtons />
   )
   return (

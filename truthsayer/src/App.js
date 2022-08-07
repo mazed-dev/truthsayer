@@ -22,18 +22,18 @@ import { SearchGridView } from './grid/SearchGridView'
 import { GlobalNavBar } from './navbar/GlobalNavBar'
 import Login from './auth/Login'
 import Logout from './auth/Logout'
-import { Signup } from './auth/Signup'
+import { Signup } from './landing/Signup'
 import PasswordChange from './auth/PasswordChange'
 import PasswordRecoverForm from './auth/PasswordRecoverForm'
 import PasswordRecoverRequest from './auth/PasswordRecoverRequest'
 import { Notice } from './notice/Notice.js'
 import WaitingForApproval from './auth/WaitingForApproval'
 import UserPreferences from './auth/UserPreferences'
-import WelcomePage from './WelcomePage'
+import { LandingPage } from './landing/LandingPage'
+import { ProductMetaTags } from './landing/ProductMetaTags'
 import UserEncryption from './UserEncryption'
 import { routes } from './lib/route'
 import { Loader } from './lib/loader'
-import { initDevEnv } from './dev/env'
 import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegrationsOverview'
 import { AppsList } from './apps-list/AppsList'
 
@@ -41,7 +41,6 @@ import { MzdGlobal, MzdGlobalContext } from './lib/global'
 
 class App extends React.Component {
   render() {
-    initDevEnv()
     return (
       <MzdGlobal>
         <AppRouter />
@@ -53,6 +52,7 @@ class App extends React.Component {
 function AppRouter() {
   return (
     <Router>
+      <ProductMetaTags />
       <GlobalNavBar />
       <Container
         fluid
@@ -61,10 +61,7 @@ function AppRouter() {
           max-width: 100%;
           width: 100%;
           margin: 0;
-          padding-top: 0;
-          padding-bottom: 0;
-          padding-left: 10px;
-          padding-right: 10px;
+          padding: 0;
 
           @media (min-width: 480px) {
             .app_content {
@@ -203,7 +200,7 @@ function MainView() {
   if (isAuthenticated) {
     return <Redirect to={{ pathname: '/search' }} />
   } else {
-    return <WelcomePage />
+    return <LandingPage />
   }
 }
 
