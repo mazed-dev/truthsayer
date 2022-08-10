@@ -4,7 +4,7 @@ import { log } from 'armoury'
 import moment from 'moment'
 
 const kAttentionTimeSecondsMin = 20
-const kAttentionTimeSecondsMax = 120
+const kAttentionTimeSecondsMax = 90
 
 /**
  * Filter out visits that are too close to each other (~1 min)

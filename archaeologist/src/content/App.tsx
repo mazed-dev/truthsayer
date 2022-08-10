@@ -77,6 +77,7 @@ const App = () => {
           if (bookmark == null) {
             // Bookmark if not yet bookmarked
             const content = await contentOfThisDocument(originIdentity)
+            log.debug('Page content requested', content)
             return {
               type: 'PAGE_TO_SAVE',
               content,
