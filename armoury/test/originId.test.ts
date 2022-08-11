@@ -111,6 +111,14 @@ test('stabiliseUrlForOriginId - utm_ query parameters are removed', () => {
   ).toStrictEqual('https://simonwillison.net/2022/Jul/9/gpt-3-explain-code')
 })
 
+test('stabiliseUrlForOriginId - ref_src/ref_url are removed', () => {
+  expect(
+    stabiliseUrlForOriginId(
+      'https://jul.com/code/?ref_src=email&ref_url=abc.com'
+    )
+  ).toStrictEqual('https://jul.com/code')
+})
+
 test('stabiliseUrlForOriginId - itm_ query parameters are removed', () => {
   // All itm's query parameters are removed
   expect(

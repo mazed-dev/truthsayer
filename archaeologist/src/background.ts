@@ -1,5 +1,6 @@
 import * as badge from './badge/badge'
 import * as omnibox from './omnibox/omnibox'
+import * as webNavigation from './web-navigation/webNavigation'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import {
   ToPopUp,
@@ -11,7 +12,7 @@ import {
 } from './message/types'
 
 import browser from 'webextension-polyfill'
-import { log, isAbortError, genOriginId, unixtime } from 'armoury'
+import { log, isAbortError, unixtime } from 'armoury'
 import {
   Knocker,
   TNode,
@@ -237,11 +238,11 @@ browser.tabs.onUpdated.addListener(
           bookmark: response.bookmark?.toJson(),
           mode: 'reset',
         })
-        const origin = genOriginId(tab.url)
-        log.debug('Register new visit', origin.stableUrl, origin.id)
-        await smuggler.activity.external.add({ id: origin.id }, [
-          { timestamp: unixtime.now() },
-        ])
+        // const origin = genOriginId(tab.url)
+        // log.debug('Register new visit', origin.stableUrl, origin.id)
+        // await smuggler.activity.external.add({ id: origin.id }, [
+        //   { timestamp: unixtime.now() },
+        // ])
       }
     }
   }
@@ -307,3 +308,4 @@ browser.contextMenus.onClicked.addListener(
 
 omnibox.register()
 browserBookmarks.register()
+webNavigation.register()
