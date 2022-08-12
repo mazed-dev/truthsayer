@@ -451,3 +451,22 @@ export type TotalUserActivity = {
   visits: ResourceVisit[]
   seconds_of_attention: number
 }
+
+export type OriginRelationAddRequest = {
+  from: OriginId
+  to: OriginId
+}
+
+export type OriginRelationsGetRequest = {
+  origin: OriginId
+}
+
+export type OriginRelation = {
+  origin: OriginId
+  // Current relation might be to another origin that is not yet saved as a Node
+  nid?: string
+}
+export type OriginRelationsGetResponse = {
+  from: OriginRelation[]
+  to: OriginRelation[]
+}

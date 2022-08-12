@@ -81,10 +81,11 @@ async function showDisappearingNotification(
   }
 }
 
-export async function savePage(
+export async function saveWebPage(
   url: string,
   originId: OriginHash,
-  quoteNids: string[],
+  toNids: string[],
+  fromNids: string[],
   content?: WebPageContent,
   tabId?: number
 ): Promise<{ node?: TNode; unmemorable: boolean }> {
@@ -122,7 +123,8 @@ export async function savePage(
     origin: {
       id: originId,
     },
-    to_nid: quoteNids,
+    to_nid: toNids,
+    from_nid: fromNids,
   })
 
   // Update badge counter

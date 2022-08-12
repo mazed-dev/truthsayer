@@ -118,12 +118,34 @@ async function registerAttentionTime(
     return
   }
   if (isReadyToBeAutoSaved(total, totalSecondsEstimation)) {
-    const response: FromContent.SavePageResponse = await ToContent.sendMessage(
-      tab.id,
-      { type: 'REQUEST_PAGE_CONTENT' }
+    const pageContentResponse: FromContent.SavePageResponse =
+      await ToContent.sendMessage(tab.id, { type: 'REQUEST_PAGE_CONTENT' })
+    const { url, content, originId, quoteNids } = pageContentResponse
+    const originTransitionsForNode = await smuggler.activity.relation.get({
+      origin: { id: origin.id },
+    })
+    const toNids: string[] = []
+    for (const relation of originTransitionsForNode.to) {
+      const { nid } = relation
+      if (nid != null) {
+        toNids.push(nid)
+      }
+    }
+    const fromNids: string[] = []
+    for (const relation of originTransitionsForNode.from) {
+      const { nid } = relation
+      if (nid != null) {
+        fromNids.push(nid)
+      }
+    }
+    await savePage(
+      url,
+      originId,
+      toNids.concat(quoteNids),
+      fromNids,
+      content,
+      tab.id
     )
-    const { url, content, originId, quoteNids } = response
-    await savePage(url, originId, quoteNids, content, tab.id)
   }
 }
 
@@ -238,11 +260,6 @@ browser.tabs.onUpdated.addListener(
           bookmark: response.bookmark?.toJson(),
           mode: 'reset',
         })
-        // const origin = genOriginId(tab.url)
-        // log.debug('Register new visit', origin.stableUrl, origin.id)
-        // await smuggler.activity.external.add({ id: origin.id }, [
-        //   { timestamp: unixtime.now() },
-        // ])
       }
     }
   }

@@ -16,6 +16,10 @@ import {
   NodeTextData,
   NodeType,
   OriginId,
+  OriginRelationAddRequest,
+  OriginRelationsGetRequest,
+  OriginRelationsGetResponse,
+  OriginRelation,
   ResourceAttention,
   ResourceVisit,
   TEdge,
@@ -785,6 +789,31 @@ async function getExternalUserActivity(
   )
 }
 
+const kOriginRelations: OriginRelationAddRequest[] = []
+async function addOriginRelation(
+  req: OriginRelationAddRequest,
+  _signal?: AbortSignal
+): Promise<Ack> {
+  kOriginRelations.push(req)
+  return { ack: true }
+}
+
+async function getOriginRelation(
+  req: OriginRelationsGetRequest,
+  _signal?: AbortSignal
+): Promise<OriginRelationsGetResponse> {
+  const from_: OriginRelation[] = []
+  const to_: OriginRelation[] = []
+  for (const relation of kOriginRelations) {
+    if (relation.from.id === req.origin.id) {
+      from_.push({ origin: relation.from })
+    } else if (relation.to.id === req.origin.id) {
+      to_.push({ origin: relation.from })
+    }
+  }
+  return { from: from_, to: to_ }
+}
+
 async function getUserBadge({
   uid,
   signal,
@@ -978,6 +1007,10 @@ export const smuggler = {
     external: {
       add: addExternalUserActivity,
       get: getExternalUserActivity,
+    },
+    relation: {
+      add: addOriginRelation,
+      get: getOriginRelation,
     },
   },
   thirdparty: {
