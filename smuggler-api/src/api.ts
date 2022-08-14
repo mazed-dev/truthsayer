@@ -284,7 +284,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
     }
     return nodes
   } else if ('url' in key) {
-    const { id, stableUrl } = await genOriginId(key.url)
+    const { id, stableUrl } = genOriginId(key.url)
     const query = { ...SLICE_ALL, origin: { id } }
     const iter = smuggler.node.slice(query)
 
@@ -798,6 +798,22 @@ async function addOriginRelation(
   return { ack: true }
 }
 
+async function getNidForOrigin(origin: OriginId): Promise<string[]> {
+  const SLICE_ALL = {
+    start_time: 0, // since the beginning of time
+    bucket_time_size: 366 * 24 * 60 * 60,
+  }
+  const query = { ...SLICE_ALL, origin: { id: origin.id } }
+  const iter = smuggler.node.slice(query)
+  const nids: string[] = []
+  for (let node = await iter.next(); node != null; node = await iter.next()) {
+    if (node.isWebBookmark() && node.extattrs?.web) {
+      nids.push(node.nid)
+    }
+  }
+  return nids
+}
+
 async function getOriginRelation(
   req: OriginRelationsGetRequest,
   _signal?: AbortSignal
@@ -806,9 +822,13 @@ async function getOriginRelation(
   const to_: OriginRelation[] = []
   for (const relation of kOriginRelations) {
     if (relation.from.id === req.origin.id) {
-      from_.push({ origin: relation.from })
+      ;(await getNidForOrigin(relation.from)).forEach((nid: string) => {
+        from_.push({ origin: relation.from, nid })
+      })
     } else if (relation.to.id === req.origin.id) {
-      to_.push({ origin: relation.from })
+      ;(await getNidForOrigin(relation.to)).forEach((nid: string) => {
+        to_.push({ origin: relation.from, nid })
+      })
     }
   }
   return { from: from_, to: to_ }

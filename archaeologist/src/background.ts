@@ -20,7 +20,7 @@ import {
   authCookie,
   smuggler,
 } from 'smuggler-api'
-import { savePage, savePageQuote } from './background/savePage'
+import { saveWebPage, savePageQuote } from './background/savePage'
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
 import { calculateBadgeCounter } from './badge/badgeCounter'
 import { isMemorable } from './content/extractor/unmemorable'
@@ -138,7 +138,7 @@ async function registerAttentionTime(
         fromNids.push(nid)
       }
     }
-    await savePage(
+    await saveWebPage(
       url,
       originId,
       toNids.concat(quoteNids),
@@ -183,10 +183,11 @@ async function handleMessageFromPopup(
       const response: FromContent.SavePageResponse =
         await ToContent.sendMessage(tabId, { type: 'REQUEST_PAGE_CONTENT' })
       const { url, content, originId, quoteNids } = response
-      const { node, unmemorable } = await savePage(
+      const { node, unmemorable } = await saveWebPage(
         url,
         originId,
         quoteNids,
+        [],
         content,
         tabId
       )

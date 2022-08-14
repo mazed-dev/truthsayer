@@ -1,7 +1,7 @@
 import browser from 'webextension-polyfill'
 import { log } from 'armoury'
 import { FromContent, ToContent } from '../message/types'
-import { savePage } from '../background/savePage'
+import { saveWebPage } from '../background/savePage'
 
 async function onCreatedEventListener(
   id: string,
@@ -20,7 +20,7 @@ async function onCreatedEventListener(
       { type: 'REQUEST_PAGE_CONTENT' }
     )
     const { url: stableUrl, content, originId, quoteNids } = response
-    await savePage(stableUrl, originId, quoteNids, content)
+    await saveWebPage(stableUrl, originId, quoteNids, [], content)
   }
 }
 

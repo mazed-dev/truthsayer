@@ -17,8 +17,8 @@ export function register() {
   browser.webNavigation.onBeforeNavigate.addListener(
     (details: browser.WebNavigation.OnBeforeNavigateDetailsType) => {
       if (details.frameId === 0) {
-        // log.debug('onBeforeNavigate', details)
         const state = _tabNavState[details.tabId]
+        log.debug('onBeforeNavigate', details, state)
         if (state != null && state.source?.url != null) {
           // Update page url with every redirect preserving source URL, to
           // report transition correctly
@@ -30,7 +30,7 @@ export function register() {
   browser.webNavigation.onCompleted.addListener(
     async (details: browser.WebNavigation.OnCompletedDetailsType) => {
       if (details.frameId === 0) {
-        // log.debug('onCompleted', details)
+        log.debug('onCompleted', details)
         const origin = genOriginId(details.url)
         log.debug('Register new visit', origin.stableUrl, origin.id)
         await smuggler.activity.external.add({ id: origin.id }, [
@@ -38,10 +38,18 @@ export function register() {
         ])
         const state = _tabNavState[details.tabId]
         if (state?.source != null) {
-          log.debug('Register transition >>>', state.source.url, details.url)
+          log.debug('Register transition o--->', state.source.url, details.url)
+          smuggler.activity.relation.add({
+            from: genOriginId(state.source.url),
+            to: genOriginId(details.url),
+          })
         }
         if (state?.url != null && state?.url !== details.url) {
-          log.debug('Register transition >>>', state.url, details.url)
+          log.debug('Register transition o--->', state.url, details.url)
+          smuggler.activity.relation.add({
+            from: genOriginId(state.url),
+            to: genOriginId(details.url),
+          })
         }
         _tabNavState[details.tabId] = { url: details.url }
       }
@@ -50,10 +58,14 @@ export function register() {
   browser.webNavigation.onHistoryStateUpdated.addListener(
     async (details: browser.WebNavigation.OnHistoryStateUpdatedDetailsType) => {
       if (details.frameId === 0) {
-        // log.debug('onHistoryStateUpdated', details)
+        log.debug('onHistoryStateUpdated', details)
         const state = _tabNavState[details.tabId]
         if (state?.url != null) {
-          log.debug('Register transition >>>', state.url, details.url)
+          log.debug('Register transition o--->', state.url, details.url)
+          smuggler.activity.relation.add({
+            from: genOriginId(state.url),
+            to: genOriginId(details.url),
+          })
         }
         _tabNavState[details.tabId] = { url: details.url }
       }
@@ -64,11 +76,14 @@ export function register() {
       details: browser.WebNavigation.OnReferenceFragmentUpdatedDetailsType
     ) => {
       if (details.frameId === 0) {
-        // log.debug('onReferenceFragmentUpdated', details)
+        log.debug('onReferenceFragmentUpdated', details)
         const state = _tabNavState[details.tabId]
-        const prevUrl = state?.url
-        if (prevUrl != null) {
-          log.debug('Report transition >>>', prevUrl, details.url)
+        if (state?.url != null) {
+          log.debug('Report transition o--->', state.url, details.url)
+          smuggler.activity.relation.add({
+            from: genOriginId(state.url),
+            to: genOriginId(details.url),
+          })
         }
         _tabNavState[details.tabId] = { url: details.url }
       }
@@ -79,7 +94,7 @@ export function register() {
       details: browser.WebNavigation.OnCreatedNavigationTargetDetailsType
     ) => {
       const prev = await browser.tabs.get(details.sourceTabId)
-      // log.debug('onCreatedNavigationTarget', details, prev.url)
+      log.debug('onCreatedNavigationTarget', details, prev.url)
       if (prev.url != null) {
         _tabNavState[details.tabId] = {
           url: details.url,
