@@ -134,7 +134,7 @@ const App = () => {
         `Unknown ToContent.Message type, message = ${JSON.stringify(message)}`
       )
     },
-    [bookmark, quotes]
+    [bookmark, quotes, originIdentity]
   )
   useEffect(() => {
     browser.runtime.onMessage.addListener(listener)
