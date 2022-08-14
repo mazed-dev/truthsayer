@@ -231,12 +231,19 @@ browser.tabs.onUpdated.addListener(
           tabId,
           calculateBadgeCounter(response.quotes, response.bookmark)
         )
-        await ToContent.sendMessage(tabId, {
-          type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
-          quotes: response.quotes.map((node) => node.toJson()),
-          bookmark: response.bookmark?.toJson(),
-          mode: 'reset',
-        })
+        try {
+          await ToContent.sendMessage(tabId, { type: 'RESET_CONTENT_APP' })
+          await ToContent.sendMessage(tabId, {
+            type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
+            quotes: response.quotes.map((node) => node.toJson()),
+            bookmark: response.bookmark?.toJson(),
+            mode: 'reset',
+          })
+        } catch (err) {
+          if (!isAbortError(err)) {
+            log.exception(err)
+          }
+        }
         const origin = genOriginId(tab.url)
         log.debug('Register new visit', origin.stableUrl, origin.id)
         await smuggler.activity.external.add({ id: origin.id }, [
