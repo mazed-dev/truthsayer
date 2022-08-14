@@ -115,6 +115,22 @@ export async function saveWebPage(
     },
     blob: undefined,
   }
+  const originRelations = await smuggler.activity.relation.get({
+    origin: { id: originId },
+  })
+  log.debug('Gather relations', originRelations)
+  for (const relation of originRelations.to) {
+    const { nid } = relation
+    if (nid != null) {
+      toNids.push(nid)
+    }
+  }
+  for (const relation of originRelations.from) {
+    const { nid } = relation
+    if (nid != null) {
+      fromNids.push(nid)
+    }
+  }
   const resp = await smuggler.node.create({
     text,
     index_text,

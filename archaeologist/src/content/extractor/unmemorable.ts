@@ -1,3 +1,5 @@
+import { isBrowserUrl } from './../../browser/browser'
+
 const kUnmemorable: RegExp[] = [
   /https?:\/\/(www\.)?google\.com/,
   // Block bookmarking for google keep entirely.
@@ -12,6 +14,9 @@ const kUnmemorable: RegExp[] = [
 ]
 
 export function isMemorable(url: string): boolean {
+  if (isBrowserUrl(url)) {
+    return false
+  }
   return !kUnmemorable.find((r: RegExp) => {
     return url.match(r)
   })

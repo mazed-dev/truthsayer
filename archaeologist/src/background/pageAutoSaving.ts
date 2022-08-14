@@ -3,9 +3,6 @@ import { log } from 'armoury'
 
 import moment from 'moment'
 
-const kAttentionTimeSecondsMin = 20
-const kAttentionTimeSecondsMax = 120
-
 /**
  * Filter out visits that are too close to each other (~1 min)
  * Expects sorted input!
@@ -36,16 +33,14 @@ export function countMomentsAfterX(
   }, 0)
 }
 
+const kAttentionTimeSecondsMin = 15
 export function isReadyToBeAutoSaved(
   userActivity: TotalUserActivity,
   totalAttentionTimeEstimationSeconds: number
 ): boolean {
   if (
     userActivity.seconds_of_attention >=
-    Math.max(
-      kAttentionTimeSecondsMin,
-      Math.min(totalAttentionTimeEstimationSeconds, kAttentionTimeSecondsMax)
-    )
+    Math.min(kAttentionTimeSecondsMin, totalAttentionTimeEstimationSeconds)
   ) {
     // But who are we lying to, we have an attention span of a golden fish, if
     // we spend more than 2 minutes on something, that's already a big

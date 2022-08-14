@@ -121,31 +121,7 @@ async function registerAttentionTime(
     const pageContentResponse: FromContent.SavePageResponse =
       await ToContent.sendMessage(tab.id, { type: 'REQUEST_PAGE_CONTENT' })
     const { url, content, originId, quoteNids } = pageContentResponse
-    const originTransitionsForNode = await smuggler.activity.relation.get({
-      origin: { id: origin.id },
-    })
-    const toNids: string[] = []
-    for (const relation of originTransitionsForNode.to) {
-      const { nid } = relation
-      if (nid != null) {
-        toNids.push(nid)
-      }
-    }
-    const fromNids: string[] = []
-    for (const relation of originTransitionsForNode.from) {
-      const { nid } = relation
-      if (nid != null) {
-        fromNids.push(nid)
-      }
-    }
-    await saveWebPage(
-      url,
-      originId,
-      toNids.concat(quoteNids),
-      fromNids,
-      content,
-      tab.id
-    )
+    await saveWebPage(url, originId, quoteNids, [], content, tab.id)
   }
 }
 
@@ -249,18 +225,27 @@ browser.tabs.onUpdated.addListener(
   ) => {
     if (!tab.incognito && tab.url && !tab.hidden) {
       if (changeInfo.status === 'complete') {
+        if (!isMemorable(tab.url)) {
+          return
+        }
         // Request page saved status on new non-incognito page loading
         const response = await requestPageSavedStatus(tab)
         await badge.resetText(
           tabId,
           calculateBadgeCounter(response.quotes, response.bookmark)
         )
-        await ToContent.sendMessage(tabId, {
-          type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
-          quotes: response.quotes.map((node) => node.toJson()),
-          bookmark: response.bookmark?.toJson(),
-          mode: 'reset',
-        })
+        try {
+          await ToContent.sendMessage(tabId, {
+            type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
+            quotes: response.quotes.map((node) => node.toJson()),
+            bookmark: response.bookmark?.toJson(),
+            mode: 'reset',
+          })
+        } catch (err) {
+          if (!isAbortError(err)) {
+            log.exception(err)
+          }
+        }
       }
     }
   }

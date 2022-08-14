@@ -2,106 +2,205 @@ import browser from 'webextension-polyfill'
 import { log, genOriginId, unixtime } from 'armoury'
 import { smuggler } from 'smuggler-api'
 
-type TabNavState = {
-  url?: string
+// See https://developer.chrome.com/docs/extensions/reference/webNavigation/#type-TransitionType
+type TransitionType =
+  | 'link'
+  | 'typed'
+  | 'auto_bookmark'
+  | 'auto_subframe'
+  | 'manual_subframe'
+  | 'generated'
+  | 'start_page'
+  | 'form_submit'
+  | 'reload'
+  | 'keyword'
+  | 'keyword_generated'
+
+// See https://developer.chrome.com/docs/extensions/reference/webNavigation/#transition-types-and-qualifiers
+type TransitionQualifier =
+  | 'client_redirect' // One or more redirects caused by JavaScript or meta refresh tags on the page happened during the navigation.
+  | 'server_redirect' // One or more redirects caused by HTTP headers sent from the server happened during the navigation.
+  | 'forward_back' // The user used the Forward or Back button to initiate the navigation.
+  | 'from_address_bar' // The user initiated the navigation from the address bar (aka Omnibox).
+
+/**
+ * Transition state for each tab for navigation tracking
+ */
+type TabNavigationTransition = {
   /**
    * Source of the transition, if known
    */
   source?: {
     url: string
   }
+  transitionType?: TransitionType
+  transitionQualifiers?: TransitionQualifier[]
 }
-const _tabNavState: Record<number, TabNavState | undefined> = {}
+
+function isRelationTransition(transition: TabNavigationTransition): boolean {
+  return (
+    transition.source?.url != null &&
+    !transition.transitionQualifiers?.includes('from_address_bar') &&
+    !transition.transitionQualifiers?.includes('forward_back')
+  )
+}
+
+const _tabTransitionState: Record<number, TabNavigationTransition | undefined> =
+  {}
+
+const onCompletedListener = async (
+  details: browser.WebNavigation.OnCompletedDetailsType
+) => {
+  if (details.frameId === 0) {
+    // log.debug('onCompleted', details)
+    const origin = genOriginId(details.url)
+    log.debug('Register new visit', origin.stableUrl, origin.id)
+    await smuggler.activity.external.add({ id: origin.id }, [
+      { timestamp: unixtime.now() },
+    ])
+    const transition = _tabTransitionState[details.tabId]
+    if (
+      transition?.source?.url != null &&
+      isRelationTransition(transition) &&
+      transition?.source?.url !== details.url
+    ) {
+      log.debug('Register transition o-1->', transition.source.url, details.url)
+      smuggler.activity.relation.add({
+        from: genOriginId(transition.source.url),
+        to: genOriginId(details.url),
+      })
+    }
+    _tabTransitionState[details.tabId] = {
+      source: { url: details.url },
+    }
+  }
+}
+const onHistoryStateUpdatedListener = async (
+  details: browser.WebNavigation.OnHistoryStateUpdatedDetailsType
+) => {
+  if (details.frameId === 0) {
+    // log.debug('onHistoryStateUpdated', details)
+    const transition = _tabTransitionState[details.tabId]
+    if (transition?.source?.url != null && isRelationTransition(transition)) {
+      log.debug('Register transition o-2->', transition.source.url, details.url)
+      smuggler.activity.relation.add({
+        from: genOriginId(transition.source.url),
+        to: genOriginId(details.url),
+      })
+    }
+    _tabTransitionState[details.tabId] = {
+      source: { url: details.url },
+    }
+  }
+}
+const onReferenceFragmentUpdatedListener = async (
+  details: browser.WebNavigation.OnReferenceFragmentUpdatedDetailsType
+) => {
+  if (details.frameId === 0) {
+    // log.debug('onReferenceFragmentUpdated', details)
+    const transition = _tabTransitionState[details.tabId]
+    if (transition?.source?.url != null && isRelationTransition(transition)) {
+      log.debug(
+        'Register transition o-3->',
+        transition.source.url,
+        details.url && transition?.transitionType === 'link'
+      )
+      smuggler.activity.relation.add({
+        from: genOriginId(transition.source.url),
+        to: genOriginId(details.url),
+      })
+    }
+    _tabTransitionState[details.tabId] = {
+      source: { url: details.url },
+    }
+  }
+}
+const onCreatedNavigationTargetListener = async (
+  details: browser.WebNavigation.OnCreatedNavigationTargetDetailsType
+) => {
+  const prev = await browser.tabs.get(details.sourceTabId)
+  // log.debug('onCreatedNavigationTarget', details, prev.url)
+  const transition = _tabTransitionState[details.tabId]
+  if (prev.url != null) {
+    if (transition != null) {
+      transition.source = { url: prev.url }
+    } else {
+      _tabTransitionState[details.tabId] = {
+        source: { url: prev.url },
+      }
+    }
+  }
+}
+const onCommittedListener = async (
+  details_: browser.WebNavigation.OnCommittedDetailsType
+) => {
+  if (details_.frameId === 0) {
+    // log.debug('onCommitted', details_)
+    // Dirty hack to patch incosistency of browser-polyfill lib
+    const details = details_ as browser.WebNavigation.OnCommittedDetailsType & {
+      transitionType?: TransitionType
+      transitionQualifiers: TransitionQualifier[]
+    }
+    const transition = _tabTransitionState[details.tabId]
+    if (transition != null) {
+      // Add information about transition type
+      transition.transitionType = details.transitionType
+      transition.transitionQualifiers = details.transitionQualifiers
+    } else {
+      _tabTransitionState[details.tabId] = {
+        transitionType: details.transitionType,
+        transitionQualifiers: details.transitionQualifiers,
+      }
+    }
+  }
+}
 
 export function register() {
-  browser.webNavigation.onBeforeNavigate.addListener(
-    (details: browser.WebNavigation.OnBeforeNavigateDetailsType) => {
-      if (details.frameId === 0) {
-        const state = _tabNavState[details.tabId]
-        log.debug('onBeforeNavigate', details, state)
-        if (state != null && state.source?.url != null) {
-          // Update page url with every redirect preserving source URL, to
-          // report transition correctly
-          state.url = details.url
-        }
-      }
-    }
-  )
-  browser.webNavigation.onCompleted.addListener(
-    async (details: browser.WebNavigation.OnCompletedDetailsType) => {
-      if (details.frameId === 0) {
-        log.debug('onCompleted', details)
-        const origin = genOriginId(details.url)
-        log.debug('Register new visit', origin.stableUrl, origin.id)
-        await smuggler.activity.external.add({ id: origin.id }, [
-          { timestamp: unixtime.now() },
-        ])
-        const state = _tabNavState[details.tabId]
-        if (state?.source != null) {
-          log.debug('Register transition o--->', state.source.url, details.url)
-          smuggler.activity.relation.add({
-            from: genOriginId(state.source.url),
-            to: genOriginId(details.url),
-          })
-        }
-        if (state?.url != null && state?.url !== details.url) {
-          log.debug('Register transition o--->', state.url, details.url)
-          smuggler.activity.relation.add({
-            from: genOriginId(state.url),
-            to: genOriginId(details.url),
-          })
-        }
-        _tabNavState[details.tabId] = { url: details.url }
-      }
-    }
-  )
-  browser.webNavigation.onHistoryStateUpdated.addListener(
-    async (details: browser.WebNavigation.OnHistoryStateUpdatedDetailsType) => {
-      if (details.frameId === 0) {
-        log.debug('onHistoryStateUpdated', details)
-        const state = _tabNavState[details.tabId]
-        if (state?.url != null) {
-          log.debug('Register transition o--->', state.url, details.url)
-          smuggler.activity.relation.add({
-            from: genOriginId(state.url),
-            to: genOriginId(details.url),
-          })
-        }
-        _tabNavState[details.tabId] = { url: details.url }
-      }
-    }
-  )
-  browser.webNavigation.onReferenceFragmentUpdated.addListener(
-    async (
-      details: browser.WebNavigation.OnReferenceFragmentUpdatedDetailsType
-    ) => {
-      if (details.frameId === 0) {
-        log.debug('onReferenceFragmentUpdated', details)
-        const state = _tabNavState[details.tabId]
-        if (state?.url != null) {
-          log.debug('Report transition o--->', state.url, details.url)
-          smuggler.activity.relation.add({
-            from: genOriginId(state.url),
-            to: genOriginId(details.url),
-          })
-        }
-        _tabNavState[details.tabId] = { url: details.url }
-      }
-    }
-  )
-  browser.webNavigation.onCreatedNavigationTarget.addListener(
-    async (
-      details: browser.WebNavigation.OnCreatedNavigationTargetDetailsType
-    ) => {
-      const prev = await browser.tabs.get(details.sourceTabId)
-      log.debug('onCreatedNavigationTarget', details, prev.url)
-      if (prev.url != null) {
-        _tabNavState[details.tabId] = {
-          url: details.url,
-          source: { url: prev.url },
-        }
-      }
-    }
-  )
+  if (!browser.webNavigation.onCompleted.hasListener(onCompletedListener)) {
+    browser.webNavigation.onCompleted.addListener(onCompletedListener)
+  }
+  if (
+    !browser.webNavigation.onHistoryStateUpdated.hasListener(
+      onHistoryStateUpdatedListener
+    )
+  ) {
+    browser.webNavigation.onHistoryStateUpdated.addListener(
+      onHistoryStateUpdatedListener
+    )
+  }
+  if (
+    !browser.webNavigation.onReferenceFragmentUpdated.hasListener(
+      onReferenceFragmentUpdatedListener
+    )
+  ) {
+    browser.webNavigation.onReferenceFragmentUpdated.addListener(
+      onReferenceFragmentUpdatedListener
+    )
+  }
+  if (
+    !browser.webNavigation.onCreatedNavigationTarget.hasListener(
+      onCreatedNavigationTargetListener
+    )
+  ) {
+    browser.webNavigation.onCreatedNavigationTarget.addListener(
+      onCreatedNavigationTargetListener
+    )
+  }
+  if (!browser.webNavigation.onCommitted.hasListener(onCommittedListener)) {
+    browser.webNavigation.onCommitted.addListener(onCommittedListener)
+  }
   log.debug('WebNavigation listeners are registered')
+  return () => {
+    browser.webNavigation.onCreatedNavigationTarget.removeListener(
+      onCreatedNavigationTargetListener
+    )
+    browser.webNavigation.onReferenceFragmentUpdated.removeListener(
+      onReferenceFragmentUpdatedListener
+    )
+    browser.webNavigation.onHistoryStateUpdated.removeListener(
+      onHistoryStateUpdatedListener
+    )
+    browser.webNavigation.onCompleted.removeListener(onCompletedListener)
+    browser.webNavigation.onCommitted.removeListener(onCommittedListener)
+  }
 }

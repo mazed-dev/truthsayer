@@ -19,7 +19,7 @@ import {
   OriginRelationAddRequest,
   OriginRelationsGetRequest,
   OriginRelationsGetResponse,
-  OriginRelation,
+  OriginRelationEnd,
   ResourceAttention,
   ResourceVisit,
   TEdge,
@@ -37,7 +37,7 @@ import { TNodeSliceIterator, GetNodesSliceFn } from './node_slice_iterator'
 
 import { genOriginId, Mime, stabiliseUrlForOriginId } from 'armoury'
 import type { Optional } from 'armoury'
-import { MimeType } from 'armoury'
+import { MimeType, log } from 'armoury'
 
 import lodash from 'lodash'
 import moment from 'moment'
@@ -794,6 +794,9 @@ async function addOriginRelation(
   req: OriginRelationAddRequest,
   _signal?: AbortSignal
 ): Promise<Ack> {
+  // TODO(akindyakov): This is just a mock implementation without real
+  // interaction with smuggler, implement support for relations recording in
+  // smuggler and make relations preserved between sessions and devices
   kOriginRelations.push(req)
   return { ack: true }
 }
@@ -807,7 +810,7 @@ async function getNidForOrigin(origin: OriginId): Promise<string[]> {
   const iter = smuggler.node.slice(query)
   const nids: string[] = []
   for (let node = await iter.next(); node != null; node = await iter.next()) {
-    if (node.isWebBookmark() && node.extattrs?.web) {
+    if (node.isWebBookmark()) {
       nids.push(node.nid)
     }
   }
@@ -818,20 +821,33 @@ async function getOriginRelation(
   req: OriginRelationsGetRequest,
   _signal?: AbortSignal
 ): Promise<OriginRelationsGetResponse> {
-  const from_: OriginRelation[] = []
-  const to_: OriginRelation[] = []
+  // TODO(akindyakov): This is just a mock implementation without real
+  // interaction with smuggler, implement support for relations recording in
+  // smuggler and make relations preserved between sessions and devices
+  const from_: OriginRelationEnd[] = []
+  const to_: OriginRelationEnd[] = []
   for (const relation of kOriginRelations) {
     if (relation.from.id === req.origin.id) {
-      ;(await getNidForOrigin(relation.from)).forEach((nid: string) => {
-        from_.push({ origin: relation.from, nid })
-      })
+      const nids = await getNidForOrigin(relation.to)
+      if (nids.length > 0) {
+        nids.forEach((nid: string) => {
+          to_.push({ origin: relation.to, nid })
+        })
+      } else {
+        to_.push({ origin: relation.to })
+      }
     } else if (relation.to.id === req.origin.id) {
-      ;(await getNidForOrigin(relation.to)).forEach((nid: string) => {
-        to_.push({ origin: relation.from, nid })
-      })
+      const nids = await getNidForOrigin(relation.from)
+      if (nids.length > 0) {
+        nids.forEach((nid: string) => {
+          from_.push({ origin: relation.to, nid })
+        })
+      } else {
+        from_.push({ origin: relation.to })
+      }
     }
   }
-  return { from: from_, to: to_ }
+  return { origin: req.origin, from: from_, to: to_ }
 }
 
 async function getUserBadge({

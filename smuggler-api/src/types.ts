@@ -452,6 +452,11 @@ export type TotalUserActivity = {
   seconds_of_attention: number
 }
 
+/**
+ * This is request to register 2 origins relation (shadow edge)
+ *
+ *   [from]──▶[to]
+ */
 export type OriginRelationAddRequest = {
   from: OriginId
   to: OriginId
@@ -461,12 +466,35 @@ export type OriginRelationsGetRequest = {
   origin: OriginId
 }
 
-export type OriginRelation = {
+/**
+ * One end of a relation between 2 origins
+ */
+export type OriginRelationEnd = {
   origin: OriginId
-  // Current relation might be to another origin that is not yet saved as a Node
+  // Current relation might be with another origin that is not yet saved as a
+  // Node, thus it's a completely shadow edge and shadow node that later can be
+  // promoted to a real node and edge
   nid?: string
 }
+/**
+ * Expect to see the following structure in the response:
+ *
+ * [from-0]─┐           ┌─▶[to-0]
+ * [from-1]─┼─▶[origin]─┼─▶[to-1]
+ * [from-2]─┘           └─▶[to-2]
+ *
+ * which is equivalent of the following set of shadow edges:
+ * [
+ *   [from-0, origin]
+ *   [from-1, origin]
+ *   [from-2, origin]
+ *   [origin, to-0]
+ *   [origin, to-1]
+ *   [origin, to-2]
+ *  ]
+ */
 export type OriginRelationsGetResponse = {
-  from: OriginRelation[]
-  to: OriginRelation[]
+  origin: OriginId
+  from: OriginRelationEnd[]
+  to: OriginRelationEnd[]
 }
