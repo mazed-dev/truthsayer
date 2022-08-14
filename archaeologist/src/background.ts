@@ -235,6 +235,7 @@ browser.tabs.onUpdated.addListener(
           calculateBadgeCounter(response.quotes, response.bookmark)
         )
         try {
+          await ToContent.sendMessage(tabId, { type: 'RESET_CONTENT_APP' })
           await ToContent.sendMessage(tabId, {
             type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
             quotes: response.quotes.map((node) => node.toJson()),
