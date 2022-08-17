@@ -63,11 +63,11 @@ async function getCurrentlySelectedPath() {
 const App = () => {
   const [quotes, setQuotes] = useState<TNode[]>([])
   const [bookmark, setBookmark] = useState<TNode | null>(null)
-  const originIdentity = React.useMemo(() => {
+  const [originIdentity, resetOriginIdentity] = React.useReducer(() => {
     const originIdentity = genOriginId(exctractPageUrl(document))
     log.debug('Gen origin identity', originIdentity)
     return originIdentity
-  }, [])
+  }, genOriginId(exctractPageUrl(document)))
   const [notification, setNotification] =
     useState<DisappearingToastProps | null>(null)
   const listener = React.useCallback(
@@ -126,6 +126,10 @@ const App = () => {
           })
           return { type: 'VOID_RESPONSE' }
         }
+        case 'RESET_CONTENT_APP': {
+          resetOriginIdentity()
+          return { type: 'VOID_RESPONSE' }
+        }
       }
       throw new Error(
         `Unknown ToContent.Message type, message = ${JSON.stringify(message)}`
@@ -164,4 +168,5 @@ const App = () => {
 
 export function renderPageAugmentationApp(mount: HTMLDivElement) {
   ReactDOM.render(<App />, mount)
+  log.debug('Page argumentation is loaded')
 }
