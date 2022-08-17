@@ -472,6 +472,7 @@ export function _extractPageThumbnailUrls(
       }
     }
   }
+  refs.push(ensureAbsRef('/favicon.ico', baseURL))
   return refs
 }
 
