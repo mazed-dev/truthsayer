@@ -6,8 +6,6 @@ import type React from 'react' // eslint-disable-line @typescript-eslint/no-unus
  */
 import jsdom from 'jsdom'
 
-import fetchMock from 'jest-fetch-mock'
-
 import {
   _exctractPageAuthor,
   _exctractPageLanguage,
@@ -20,13 +18,7 @@ import {
   exctractPageContent,
 } from './webPageContent'
 
-global.fetch = fetchMock
-
 const { JSDOM } = jsdom
-
-beforeEach(() => {
-  fetchMock.doMock()
-})
 
 test('_exctractPageText - main', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
@@ -214,7 +206,10 @@ test('exctractPageContent - main', async () => {
     { url: originalUrl }
   )
 
-  const content = await exctractPageContent(dom.window.document, origin)
+  const content = await exctractPageContent(dom.window.document, origin, {
+    // Image fetching does not work with jsdom
+    skipCanvas: true,
+  })
   const { url, title, author, publisher, description, lang, text, image } =
     content
   expect(text).toStrictEqual('First and second Third and forth')
@@ -230,6 +225,7 @@ test('exctractPageContent - main', async () => {
   expect(image).toStrictEqual(null)
 })
 
+const kYoutubeBase = 'https://www.youtube.com'
 const kYoutubeUrl = 'https://www.youtube.com/watch?v=AsDabC'
 const kYoutubeDom = new JSDOM(
   `<!DOCTYPE html>
@@ -256,7 +252,7 @@ test('YouTube special extractor', () => {
 
 test('YouTube special extractor has a priority', () => {
   let { title, description, lang, author, publisher, thumbnailUrls } =
-    _extractPageAttributes(kYoutubeDom.window.document, kYoutubeUrl)
+    _extractPageAttributes(kYoutubeDom.window.document, kYoutubeBase)
   expect(title).toStrictEqual('Lorem Ipsum')
   expect(description).toStrictEqual(
     'Lorem Ipsum is simply dummy text of the printing and typesetting industry.'
@@ -266,6 +262,7 @@ test('YouTube special extractor has a priority', () => {
   expect(publisher).toStrictEqual(['YouTube'])
   expect(thumbnailUrls).toStrictEqual([
     'https://i.ytimg.com/vi/WAIcDx8B1_0/hqdefault.jpg',
+    `${kYoutubeBase}/favicon.ico`,
   ])
 })
 
