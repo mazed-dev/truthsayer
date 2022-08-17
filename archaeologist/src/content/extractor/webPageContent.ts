@@ -274,6 +274,7 @@ export function _exctractPageTitle(document_: Document): string | null {
     return title
   }
   for (const [selector, attribute] of [
+    ['head > title', 'innerText'],
     ['meta[property="dc:title"]', 'content'],
     ['meta[property="dcterm:title"]', 'content'],
     ['meta[property="og:title"]', 'content'],
@@ -471,6 +472,7 @@ export function _extractPageThumbnailUrls(
       }
     }
   }
+  refs.push(ensureAbsRef('/favicon.ico', baseURL))
   return refs
 }
 
