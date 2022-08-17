@@ -37,9 +37,14 @@ type TabNavigationTransition = {
   transitionQualifiers?: TransitionQualifier[]
 }
 
-function isRelationTransition(transition: TabNavigationTransition): boolean {
+function isRelationTransition(
+  transition: TabNavigationTransition,
+  destinationUrl: string
+): boolean {
   return (
     transition.source?.url != null &&
+    // To avoid loop transitions from page to itself
+    transition.source.url !== destinationUrl &&
     !transition.transitionQualifiers?.includes('from_address_bar') &&
     !transition.transitionQualifiers?.includes('forward_back')
   )
@@ -61,10 +66,13 @@ const onCompletedListener = async (
     const transition = _tabTransitionState[details.tabId]
     if (
       transition?.source?.url != null &&
-      isRelationTransition(transition) &&
-      transition?.source?.url !== details.url
+      isRelationTransition(transition, details.url)
     ) {
-      log.debug('Register transition o-1->', transition.source.url, details.url)
+      log.debug(
+        'Register transition o---1--->',
+        transition.source.url,
+        details.url
+      )
       smuggler.activity.relation.add({
         from: genOriginId(transition.source.url),
         to: genOriginId(details.url),
@@ -81,8 +89,15 @@ const onHistoryStateUpdatedListener = async (
   if (details.frameId === 0) {
     // log.debug('onHistoryStateUpdated', details)
     const transition = _tabTransitionState[details.tabId]
-    if (transition?.source?.url != null && isRelationTransition(transition)) {
-      log.debug('Register transition o-2->', transition.source.url, details.url)
+    if (
+      transition?.source?.url != null &&
+      isRelationTransition(transition, details.url)
+    ) {
+      log.debug(
+        'Register transition o---2--->',
+        transition.source.url,
+        details.url
+      )
       smuggler.activity.relation.add({
         from: genOriginId(transition.source.url),
         to: genOriginId(details.url),
@@ -99,9 +114,12 @@ const onReferenceFragmentUpdatedListener = async (
   if (details.frameId === 0) {
     // log.debug('onReferenceFragmentUpdated', details)
     const transition = _tabTransitionState[details.tabId]
-    if (transition?.source?.url != null && isRelationTransition(transition)) {
+    if (
+      transition?.source?.url != null &&
+      isRelationTransition(transition, details.url)
+    ) {
       log.debug(
-        'Register transition o-3->',
+        'Register transition o---3--->',
         transition.source.url,
         details.url && transition?.transitionType === 'link'
       )
@@ -155,6 +173,12 @@ const onCommittedListener = async (
   }
 }
 
+const onBeforeNavigateListener = (
+  _details: browser.WebNavigation.OnBeforeNavigateDetailsType
+) => {
+  // log.debug('onBeforeNavigateListener', _details)
+}
+
 export function register() {
   if (!browser.webNavigation.onCompleted.hasListener(onCompletedListener)) {
     browser.webNavigation.onCompleted.addListener(onCompletedListener)
@@ -189,6 +213,13 @@ export function register() {
   if (!browser.webNavigation.onCommitted.hasListener(onCommittedListener)) {
     browser.webNavigation.onCommitted.addListener(onCommittedListener)
   }
+  if (
+    !browser.webNavigation.onBeforeNavigate.hasListener(
+      onBeforeNavigateListener
+    )
+  ) {
+    browser.webNavigation.onBeforeNavigate.addListener(onBeforeNavigateListener)
+  }
   log.debug('WebNavigation listeners are registered')
   return () => {
     browser.webNavigation.onCreatedNavigationTarget.removeListener(
@@ -202,5 +233,8 @@ export function register() {
     )
     browser.webNavigation.onCompleted.removeListener(onCompletedListener)
     browser.webNavigation.onCommitted.removeListener(onCommittedListener)
+    browser.webNavigation.onBeforeNavigate.removeListener(
+      onBeforeNavigateListener
+    )
   }
 }
