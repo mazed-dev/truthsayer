@@ -105,7 +105,11 @@ export function exctractReadableTextFromPage(document_: Document): string {
  */
 export async function exctractPageContent(
   document_: Document,
-  baseURL: string
+  baseURL: string,
+  options?: {
+    // Skip image fetching, just pretend none is found
+    skipCanvas: boolean
+  }
 ): Promise<WebPageContent> {
   const url = stabiliseUrlForOriginId(document_.URL || document_.documentURI)
   let { title, description, lang, author, publisher, thumbnailUrls } =
@@ -171,6 +175,9 @@ export async function exctractPageContent(
     separator: unicodeText.kTruncateSeparatorSpace,
     omission: '',
   })
+  const image: WebPageContentImage | null = !!options?.skipCanvas
+    ? null
+    : await _fetchAnyPageThumbnailImage(document_, thumbnailUrls)
   return {
     url,
     title: title || null,
@@ -179,7 +186,7 @@ export async function exctractPageContent(
     description: description || null,
     lang: lang || null,
     text,
-    image: await _fetchAnyPageThumbnailImage(document_, thumbnailUrls),
+    image,
   }
 }
 
@@ -274,6 +281,7 @@ export function _exctractPageTitle(document_: Document): string | null {
     return title
   }
   for (const [selector, attribute] of [
+    ['head > title', 'innerText'],
     ['meta[property="dc:title"]', 'content'],
     ['meta[property="dcterm:title"]', 'content'],
     ['meta[property="og:title"]', 'content'],
@@ -471,7 +479,15 @@ export function _extractPageThumbnailUrls(
       }
     }
   }
-  return refs
+  refs.push(ensureAbsRef('/favicon.ico', baseURL))
+  const seen: Set<string> = new Set()
+  return refs.filter((ref: string) => {
+    if (seen.has(ref)) {
+      return false
+    }
+    seen.add(ref)
+    return true
+  })
 }
 
 /**

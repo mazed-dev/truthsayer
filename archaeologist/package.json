@@ -96,7 +96,6 @@
     "eslint": "^8.16.0",
     "express": "^4.17.2",
     "jest": "26.6.0",
-    "jest-fetch-mock": "^3.0.3",
     "safe-compare": "^1.1.4",
     "terser-webpack-plugin": "^4.2.3",
     "ts-jest": "^26.4.2"
