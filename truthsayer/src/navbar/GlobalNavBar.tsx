@@ -92,8 +92,14 @@ const CustomNavbar = styled(Navbar)`
   padding-left: 0.8rem;
   padding-right: 0.8rem;
   justify-content: space-between;
-  font-family: 'Comfortaa';
   ${kCardBorder};
+`
+
+const NavbarBrand = styled(Navbar.Brand)`
+  display: flex;
+  justify-content: space-between;
+  margin-right: 0.5rem;
+  font-family: 'Comfortaa';
 `
 
 export function GlobalNavBar() {
@@ -105,14 +111,14 @@ export function GlobalNavBar() {
   return (
     <>
       <CustomNavbar fixed="top" className={styles.navbar}>
-        <Navbar.Brand as={Link} to="/" className={styles.brand}>
+        <NavbarBrand as={Link} to="/">
           <img
             src={getLogoImage()}
             alt={'Mazed logo'}
             className={styles.logo_image}
           />
           <div className="d-none d-sm-none d-md-block">Mazed</div>
-        </Navbar.Brand>
+        </NavbarBrand>
         <PrivateNavButtons />
       </CustomNavbar>
       <div className={styles.navbar_filler} />

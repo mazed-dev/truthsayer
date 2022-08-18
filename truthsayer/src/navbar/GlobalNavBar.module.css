@@ -3,12 +3,6 @@
   width: 100%;
 }
 
-.brand {
-  display: flex;
-  justify-content: space-between;
-  margin-right: 0.5rem;
-}
-
 .logo_image {
   width: 1.6rem;
   height: 1.6rem;
