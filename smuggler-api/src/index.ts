@@ -1,4 +1,6 @@
-export * from './auth'
+export * from './auth/account'
+export * from './auth/cookie'
+export * from './auth/knocker'
 export * from './types'
 export * from './node_slice_iterator'
 export { smuggler } from './api'

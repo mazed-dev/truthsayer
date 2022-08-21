@@ -1,6 +1,7 @@
 import * as badge from './badge/badge'
 import * as omnibox from './omnibox/omnibox'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
+import * as auth from './background/auth'
 import {
   ToPopUp,
   ToContent,
@@ -12,13 +13,7 @@ import {
 
 import browser from 'webextension-polyfill'
 import { log, isAbortError, genOriginId, unixtime } from 'armoury'
-import {
-  Knocker,
-  TNode,
-  TotalUserActivity,
-  authCookie,
-  smuggler,
-} from 'smuggler-api'
+import { TNode, TotalUserActivity, smuggler } from 'smuggler-api'
 import { savePage, savePageQuote } from './background/savePage'
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
 import { calculateBadgeCounter } from './badge/badgeCounter'
@@ -66,29 +61,6 @@ async function requestPageSavedStatus(tab: browser.Tabs.Tab | null) {
     }
   }
   return { quotes, bookmark }
-}
-
-// Periodically renew auth token using Knocker
-//
-// Time period in milliseonds (~17 minutes) is a magic prime number to avoid too
-// many weird correlations with running Knocker in web app.
-const _kRenewTokenTimePeriodInSeconds = 1062599
-const _authKnocker = new Knocker(_kRenewTokenTimePeriodInSeconds)
-_authKnocker.start()
-
-async function getAuthStatus() {
-  const cookie = await browser.cookies
-    .get({
-      url: authCookie.url,
-      name: authCookie.name,
-    })
-    .catch((err) => {
-      if (!isAbortError(err)) {
-        log.exception(err)
-      }
-      return null
-    })
-  return authCookie.checkRawValue(cookie?.value || null)
 }
 
 async function registerAttentionTime(
@@ -185,7 +157,7 @@ async function handleMessageFromPopup(
       }
     }
     case 'REQUEST_AUTH_STATUS':
-      const status = await getAuthStatus()
+      const status = await auth.isAuthorised()
       badge.setActive(status)
       return { type: 'AUTH_STATUS', status }
     default:
@@ -254,19 +226,6 @@ browser.tabs.onUpdated.addListener(
   }
 )
 
-browser.cookies.onChanged.addListener(async (info) => {
-  const { value, name, domain } = info.cookie
-  if (domain === authCookie.domain && name === authCookie.name) {
-    const status = authCookie.checkRawValue(value || null)
-    await badge.setActive(status)
-    if (status) {
-      _authKnocker.start()
-    } else {
-      _authKnocker.abort()
-    }
-  }
-})
-
 const kMazedContextMenuItemId = 'selection-to-mazed-context-menu-item'
 browser.contextMenus.removeAll()
 browser.contextMenus.create({
@@ -314,3 +273,4 @@ browser.contextMenus.onClicked.addListener(
 
 omnibox.register()
 browserBookmarks.register()
+auth.register()
