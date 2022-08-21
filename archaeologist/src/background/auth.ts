@@ -49,11 +49,12 @@ export async function isAuthorised(): Promise<boolean> {
   return false
 }
 
-export function register() {
+export async function register() {
   _authKnocker.start()
   if (!browser.cookies.onChanged.hasListener(onChangedCookiesListener)) {
     browser.cookies.onChanged.addListener(onChangedCookiesListener)
   }
+  await badge.setActive(await isAuthorised())
   return () => {
     browser.cookies.onChanged.removeListener(onChangedCookiesListener)
     _authKnocker.abort()
