@@ -8,7 +8,7 @@ import { genOriginId, OriginIdentity, log } from 'armoury'
 
 import { FromContent, ToContent } from './../message/types'
 import { genElementDomPath } from './extractor/html'
-import { isMemorable } from './extractor/unmemorable'
+import { isMemorable } from './extractor/url/unmemorable'
 import {
   exctractPageContent,
   exctractPageUrl,

@@ -23,7 +23,7 @@ import {
 import { saveWebPage, savePageQuote } from './background/savePage'
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
 import { calculateBadgeCounter } from './badge/badgeCounter'
-import { isMemorable } from './content/extractor/unmemorable'
+import { isMemorable } from './content/extractor/url/unmemorable'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {

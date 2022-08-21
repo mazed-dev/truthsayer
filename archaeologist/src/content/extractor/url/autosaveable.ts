@@ -1,4 +1,4 @@
-import { isMemorable } from '../extractor/unmemorable'
+import { isMemorable } from './unmemorable'
 import { log } from 'armoury'
 import { isProbablyReaderable } from '@mozilla/readability'
 

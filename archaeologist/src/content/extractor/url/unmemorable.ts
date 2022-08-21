@@ -1,4 +1,4 @@
-import { isBrowserUrl } from './../../browser/browser'
+import { isBrowserUrl } from './browser'
 
 const kUnmemorable: RegExp[] = [
   /https?:\/\/(www\.)?google\.com/,

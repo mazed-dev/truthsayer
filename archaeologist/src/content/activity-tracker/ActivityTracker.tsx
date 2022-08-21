@@ -4,7 +4,7 @@ import lodash from 'lodash'
 import moment from 'moment'
 
 import { exctractReadableTextFromPage } from './../extractor/webPageContent'
-import { isPageAutosaveable } from './autosaveable'
+import { isPageAutosaveable } from './../extractor/url/autosaveable'
 
 /**
  * This is virtual element to wrap trackers of users activity on a page and
