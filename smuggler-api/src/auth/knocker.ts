@@ -50,10 +50,8 @@ export class Knocker {
       if (smugglerError?.status != null) {
         const code = smugglerError?.status
         if (
-          code >= StatusCode.BAD_REQUEST &&
-          // 500 is not included on purpose, most of the network errors are
-          // marked with 500
-          code < StatusCode.INTERNAL_SERVER_ERROR
+          // Client errors at tocken renewal
+          code >= StatusCode.BAD_REQUEST && code < 499
         ) {
           log.debug('Failed to renew access token, log out')
           // Log out immediately if there is a client error
