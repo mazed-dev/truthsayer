@@ -1,4 +1,5 @@
 import { isBrowserUrl } from './browser'
+import { isSearchEngineQueryUrl } from './searchEngineQuery'
 
 const kUnmemorable: RegExp[] = [
   /https?:\/\/(www\.)?google\.com/,
@@ -16,6 +17,9 @@ const kUnmemorable: RegExp[] = [
 export function isMemorable(url: string): boolean {
   if (isBrowserUrl(url)) {
     return false
+  }
+  if (isSearchEngineQueryUrl(url)) {
+    return true
   }
   return !kUnmemorable.find((r: RegExp) => {
     return url.match(r)
