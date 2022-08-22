@@ -64,6 +64,10 @@ function AppRouter() {
           margin: 0;
           padding: 0;
 
+          font-family: 'Roboto', arial, sans-serif;
+          font-style: normal;
+          font-weight: 400;
+
           @media (min-width: 480px) {
             .app_content {
               padding-left: 4px;
