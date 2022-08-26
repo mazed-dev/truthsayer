@@ -27,6 +27,8 @@ export function makeNodeTextData(plaintext?: string): NodeTextData {
   }
 }
 
+export type Nid = string
+
 // see smuggler/src/types.rs
 export type NodeTextData = {
   slate: SlateText | undefined
@@ -397,6 +399,11 @@ export type OriginId = {
   id: OriginHash
 }
 
+/** 🔐 Expected to be encrypted before sending to smuggler */
+export type OriginAddress = {
+  url?: string
+}
+
 export type UserBadge = {
   uid: string
   name: string
@@ -453,29 +460,31 @@ export type TotalUserActivity = {
 }
 
 /**
- * This is request to register 2 origins relation (shadow edge)
- *
- *   [from]──▶[to]
- */
-export type OriginRelationAddRequest = {
-  from: OriginId
-  to: OriginId
-}
-
-export type OriginRelationsGetRequest = {
-  origin: OriginId
-}
-
-/**
  * One end of a relation between 2 origins
  */
-export type OriginRelationEnd = {
+export type OriginTransitionTip = {
   origin: OriginId
+  address: OriginAddress
   // Current relation might be with another origin that is not yet saved as a
   // Node, thus it's a completely shadow edge and shadow node that later can be
   // promoted to a real node and edge
   nid?: string
 }
+
+/**
+ * This is request to register 2 origins relation (shadow edge)
+ *
+ *   [from]──▶[to]
+ */
+export type OriginTransitionAddRequest = {
+  from: OriginTransitionTip
+  to: OriginTransitionTip
+}
+
+export type OriginTransitionsGetRequest = {
+  origin: OriginId
+}
+
 /**
  * Expect to see the following structure in the response:
  *
@@ -493,8 +502,8 @@ export type OriginRelationEnd = {
  *   [origin, to-2]
  *  ]
  */
-export type OriginRelationsGetResponse = {
+export type OriginTransitionsGetResponse = {
   origin: OriginId
-  from: OriginRelationEnd[]
-  to: OriginRelationEnd[]
+  from: OriginTransitionTip[]
+  to: OriginTransitionTip[]
 }

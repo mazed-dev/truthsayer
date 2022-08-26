@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill'
 import { log, genOriginId, unixtime } from 'armoury'
-import { smuggler } from 'smuggler-api'
+import { smuggler, OriginTransitionTip } from 'smuggler-api'
 
 // See https://developer.chrome.com/docs/extensions/reference/webNavigation/#type-TransitionType
 type TransitionType =
@@ -53,6 +53,12 @@ function isRelationTransition(
 const _tabTransitionState: Record<number, TabNavigationTransition | undefined> =
   {}
 
+function genOriginTransitionTip(url: string): OriginTransitionTip {
+  return {
+    origin: genOriginId(url),
+    address: { url },
+  }
+}
 const onCompletedListener = async (
   details: browser.WebNavigation.OnCompletedDetailsType
 ) => {
@@ -73,9 +79,9 @@ const onCompletedListener = async (
         transition.source.url,
         details.url
       )
-      smuggler.activity.relation.add({
-        from: genOriginId(transition.source.url),
-        to: genOriginId(details.url),
+      smuggler.activity.transition.add({
+        from: genOriginTransitionTip(transition.source.url),
+        to: genOriginTransitionTip(details.url),
       })
     }
     _tabTransitionState[details.tabId] = {
@@ -98,9 +104,9 @@ const onHistoryStateUpdatedListener = async (
         transition.source.url,
         details.url
       )
-      smuggler.activity.relation.add({
-        from: genOriginId(transition.source.url),
-        to: genOriginId(details.url),
+      smuggler.activity.transition.add({
+        from: genOriginTransitionTip(transition.source.url),
+        to: genOriginTransitionTip(details.url),
       })
     }
     _tabTransitionState[details.tabId] = {
@@ -123,9 +129,9 @@ const onReferenceFragmentUpdatedListener = async (
         transition.source.url,
         details.url && transition?.transitionType === 'link'
       )
-      smuggler.activity.relation.add({
-        from: genOriginId(transition.source.url),
-        to: genOriginId(details.url),
+      smuggler.activity.transition.add({
+        from: genOriginTransitionTip(transition.source.url),
+        to: genOriginTransitionTip(details.url),
       })
     }
     _tabTransitionState[details.tabId] = {

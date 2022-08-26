@@ -1,7 +1,8 @@
 import { DisappearingToastProps } from '../content/toaster/Toaster'
 import { WebPageContent } from '../content/extractor/webPageContent'
+import { extractSearchEngineQuery } from 'librarius'
 
-import { log, isAbortError, MimeType, errorise } from 'armoury'
+import { log, isAbortError, MimeType, errorise, genOriginId } from 'armoury'
 import {
   NodeExtattrs,
   NodeExtattrsWebQuote,
@@ -11,6 +12,8 @@ import {
   smuggler,
   OriginHash,
   TNode,
+  OriginTransitionTip,
+  Nid,
 } from 'smuggler-api'
 import { ToContent } from '../message/types'
 import { mazed } from '../util/mazed'
@@ -81,6 +84,31 @@ async function showDisappearingNotification(
   }
 }
 
+async function _getOriginRelationNid(
+  tip: OriginTransitionTip
+): Promise<Nid | null> {
+  const { nid, address } = tip
+  if (nid != null) {
+    return nid
+  } else {
+    const { url } = address
+    if (url != null) {
+      const query = extractSearchEngineQuery(url)
+      if (query != null) {
+        const { nid } = await _saveWebSearchQuery(
+          url,
+          query.phrase,
+          [],
+          [],
+          query.logo,
+        )
+        return nid
+      }
+    }
+  }
+  return null
+}
+
 export async function saveWebPage(
   url: string,
   originId: OriginHash,
@@ -115,18 +143,18 @@ export async function saveWebPage(
     },
     blob: undefined,
   }
-  const originRelations = await smuggler.activity.relation.get({
+  const originRelations = await smuggler.activity.transition.get({
     origin: { id: originId },
   })
   log.debug('Gather relations', originRelations)
-  for (const relation of originRelations.to) {
-    const { nid } = relation
+  for (const transition of originRelations.to) {
+    const nid = await _getOriginRelationNid(transition)
     if (nid != null) {
       toNids.push(nid)
     }
   }
-  for (const relation of originRelations.from) {
-    const { nid } = relation
+  for (const transition of originRelations.from) {
+    const nid = await _getOriginRelationNid(transition)
     if (nid != null) {
       fromNids.push(nid)
     }
@@ -186,4 +214,42 @@ export async function savePageQuote(
     const node = await smuggler.node.get({ nid })
     await updateContent([node], undefined, tabId)
   }
+}
+
+async function _saveWebSearchQuery(
+  url: string,
+  phrase: string,
+  toNids: string[],
+  fromNids: string[],
+  icon?: string,
+  originId?: OriginHash
+): Promise<{ nid: string }> {
+  if (originId == null) {
+    originId = genOriginId(url).id
+  }
+  const text = makeNodeTextData()
+  const index_text: NodeIndexText = {
+    labels: [],
+    brands: [],
+    dominant_colors: [],
+  }
+  const extattrs: NodeExtattrs = {
+    content_type: MimeType.TEXT_URI_LIST,
+    title: '🔍 ' + phrase,
+    preview_image: icon ? { data: icon } : undefined,
+    web: { url },
+  }
+  const resp = await smuggler.node.create({
+    text,
+    index_text,
+    extattrs,
+    ntype: NodeType.Url,
+    origin: {
+      id: originId,
+    },
+    to_nid: toNids,
+    from_nid: fromNids,
+  })
+  const { nid } = resp
+  return { nid }
 }

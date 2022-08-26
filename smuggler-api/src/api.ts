@@ -16,10 +16,10 @@ import {
   NodeTextData,
   NodeType,
   OriginId,
-  OriginRelationAddRequest,
-  OriginRelationsGetRequest,
-  OriginRelationsGetResponse,
-  OriginRelationEnd,
+  OriginTransitionAddRequest,
+  OriginTransitionsGetRequest,
+  OriginTransitionsGetResponse,
+  OriginTransitionTip,
   ResourceAttention,
   ResourceVisit,
   TEdge,
@@ -791,15 +791,15 @@ async function getExternalUserActivity(
   )
 }
 
-const kOriginRelations: OriginRelationAddRequest[] = []
-async function addOriginRelation(
-  req: OriginRelationAddRequest,
+const kOriginTransitions: OriginTransitionAddRequest[] = []
+async function addOriginTransition(
+  req: OriginTransitionAddRequest,
   _signal?: AbortSignal
 ): Promise<Ack> {
   // TODO(akindyakov): This is just a mock implementation without real
   // interaction with smuggler, implement support for relations recording in
   // smuggler and make relations preserved between sessions and devices
-  kOriginRelations.push(req)
+  kOriginTransitions.push(req)
   return { ack: true }
 }
 
@@ -819,33 +819,35 @@ async function getNidForOrigin(origin: OriginId): Promise<string[]> {
   return nids
 }
 
-async function getOriginRelation(
-  req: OriginRelationsGetRequest,
+async function getOriginTransition(
+  req: OriginTransitionsGetRequest,
   _signal?: AbortSignal
-): Promise<OriginRelationsGetResponse> {
+): Promise<OriginTransitionsGetResponse> {
   // TODO(akindyakov): This is just a mock implementation without real
   // interaction with smuggler, implement support for relations recording in
   // smuggler and make relations preserved between sessions and devices
-  const from_: OriginRelationEnd[] = []
-  const to_: OriginRelationEnd[] = []
-  for (const relation of kOriginRelations) {
-    if (relation.from.id === req.origin.id) {
-      const nids = await getNidForOrigin(relation.to)
+  const from_: OriginTransitionTip[] = []
+  const to_: OriginTransitionTip[] = []
+  for (const transition of kOriginTransitions) {
+    if (transition.from.origin.id === req.origin.id) {
+      const { origin, address } = transition.to
+      const nids = await getNidForOrigin(origin)
       if (nids.length > 0) {
         nids.forEach((nid: string) => {
-          to_.push({ origin: relation.to, nid })
+          to_.push({ origin, address, nid })
         })
       } else {
-        to_.push({ origin: relation.to })
+        to_.push({ origin, address, })
       }
-    } else if (relation.to.id === req.origin.id) {
-      const nids = await getNidForOrigin(relation.from)
+    } else if (transition.to.origin.id === req.origin.id) {
+      const { origin, address } = transition.from
+      const nids = await getNidForOrigin(origin)
       if (nids.length > 0) {
         nids.forEach((nid: string) => {
-          from_.push({ origin: relation.to, nid })
+          from_.push({ origin, address, nid })
         })
       } else {
-        from_.push({ origin: relation.to })
+        from_.push({ origin, address, })
       }
     }
   }
@@ -1087,9 +1089,9 @@ export const smuggler = {
       add: addExternalUserActivity,
       get: getExternalUserActivity,
     },
-    relation: {
-      add: addOriginRelation,
-      get: getOriginRelation,
+    transition: {
+      add: addOriginTransition,
+      get: getOriginTransition,
     },
   },
   thirdparty: {
