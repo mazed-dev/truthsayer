@@ -63,7 +63,7 @@ const _kEngines: Engine[] = [
   },
   {
     name: SearchEngineName.OTHER,
-    queryKeys: ['p', 'q', 'text'],
+    queryKeys: ['p', 'q', 'text', 'keywords'],
     re: /\/search[/?]/,
   },
 ]
