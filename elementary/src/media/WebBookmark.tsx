@@ -48,7 +48,7 @@ const IconLaunch = styled.a`
     opacity: 100%;
   }
 `
-const IconImgEmptyBox = styled.div`
+const IconDefaultBox = styled.div`
   height: inherit;
   width: inherit;
   border-radius: inherit;
@@ -58,7 +58,7 @@ const IconImgEmptyBox = styled.div`
   justify-content: center;
   float: left;
 `
-const IconImgLetter = styled.span`
+const IconDefaultLetter = styled.span`
   color: rgba(0, 0, 0, 0.3);
   cursor: default;
   display: block;
@@ -67,15 +67,15 @@ const IconImgLetter = styled.span`
   font-style: normal;
 `
 
-const IconImgEmpty_ = ({ hostname }: { hostname: string }) => {
+const IconDefault = ({ hostname }: { hostname: string }) => {
   if (hostname.startsWith('www.')) {
     hostname = hostname.substr(4)
   }
   const letter = hostname.substr(0, 1).toUpperCase()
   return (
-    <IconImgEmptyBox>
-      <IconImgLetter>{letter}</IconImgLetter>
-    </IconImgEmptyBox>
+    <IconDefaultBox>
+      <IconDefaultLetter>{letter}</IconDefaultLetter>
+    </IconDefaultBox>
   )
 }
 /**
@@ -95,7 +95,7 @@ const PreviewImage = ({
 }) => {
   const img =
     icon == null ? (
-      <IconImgEmpty_ hostname={hostname} />
+      <IconDefault hostname={hostname} />
     ) : (
       <IconImg src={icon.data} />
     )
