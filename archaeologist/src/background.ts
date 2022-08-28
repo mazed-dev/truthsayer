@@ -11,14 +11,14 @@ import {
   ToBackground,
   VoidResponse,
 } from './message/types'
+import { calculateBadgeCounter } from './badge/badgeCounter'
+import { isMemorable } from './content/extractor/url/unmemorable'
+import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
+import { saveWebPage, savePageQuote } from './background/savePage'
 
 import browser from 'webextension-polyfill'
 import { log, isAbortError, unixtime } from 'armoury'
 import { TNode, TotalUserActivity, smuggler } from 'smuggler-api'
-import { saveWebPage, savePageQuote } from './background/savePage'
-import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
-import { calculateBadgeCounter } from './badge/badgeCounter'
-import { isMemorable } from './content/extractor/url/unmemorable'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
