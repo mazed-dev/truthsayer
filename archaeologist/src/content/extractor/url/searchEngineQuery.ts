@@ -7,8 +7,8 @@ export enum SearchEngineName {
   GITHUB = 'github',
   GOOGLE = 'google',
   WIKIPEDIA = 'wikipedia',
-  YANDEX = 'yandex',
   YOUTUBE = 'youtube',
+  OTHER = 'other',
 }
 
 type Engine = {
@@ -24,7 +24,6 @@ const _kEngines: Engine[] = [
     queryKeys: ['q'],
     // https://github.com/search?q=abc
     re: /:\/\/github.com\/search/,
-    logo: 'https://github.com/fluidicon.png',
   },
   {
     name: SearchEngineName.GOOGLE,
@@ -36,7 +35,7 @@ const _kEngines: Engine[] = [
     name: SearchEngineName.DUCKDUCKGO,
     queryKeys: ['q'],
     // https://duckduckgo.com/?q=abc&va=b&t=hc&ia=web
-    re: /duckduckgo\.com\/\?q=\w+/,
+    re: /duckduckgo\.com\//,
   },
   {
     name: SearchEngineName.BING,
@@ -57,16 +56,15 @@ const _kEngines: Engine[] = [
     re: /\.wikipedia\.org\/w\/index.php\?.*search=.+/,
   },
   {
-    name: SearchEngineName.YANDEX,
-    queryKeys: ['text'],
-    // https://yandex.ru/search/?text=abc
-    re: /yandex\.ru\/search.*text=.+/,
-  },
-  {
     name: SearchEngineName.YOUTUBE,
     queryKeys: ['search_query'],
     // https://www.youtube.com/results?search_query=abc
     re: /\.?youtube\.com\/results\?.*search_query=.+/,
+  },
+  {
+    name: SearchEngineName.OTHER,
+    queryKeys: ['p', 'q', 'text'],
+    re: /\/search[/?]/,
   },
 ]
 

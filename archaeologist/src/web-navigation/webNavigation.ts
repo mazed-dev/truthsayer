@@ -54,9 +54,10 @@ const _tabTransitionState: Record<number, TabNavigationTransition | undefined> =
   {}
 
 function genOriginTransitionTip(url: string): OriginTransitionTip {
+  const { id, stableUrl } = genOriginId(url)
   return {
-    origin: genOriginId(url),
-    address: { url },
+    origin: { id },
+    address: { url: stableUrl },
   }
 }
 const onCompletedListener = async (
@@ -75,7 +76,7 @@ const onCompletedListener = async (
       isRelationTransition(transition, details.url)
     ) {
       log.debug(
-        'Register transition o---1--->',
+        'Register transition >>>---1--->',
         transition.source.url,
         details.url
       )
@@ -100,7 +101,7 @@ const onHistoryStateUpdatedListener = async (
       isRelationTransition(transition, details.url)
     ) {
       log.debug(
-        'Register transition o---2--->',
+        'Register transition >>>---2--->',
         transition.source.url,
         details.url
       )
@@ -125,7 +126,7 @@ const onReferenceFragmentUpdatedListener = async (
       isRelationTransition(transition, details.url)
     ) {
       log.debug(
-        'Register transition o---3--->',
+        'Register transition >>>---3--->',
         transition.source.url,
         details.url && transition?.transitionType === 'link'
       )

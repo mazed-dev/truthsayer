@@ -80,6 +80,13 @@ const config = (env, argv) => {
           exclude: /node_modules/,
         },
         {
+          // https://github.com/microsoft/PowerBI-visuals-tools/issues/365#issuecomment-1099716186
+          test: /\.m?js/,
+          resolve: {
+              fullySpecified: false
+          }
+        },
+        {
           test: /\.svg$/,
           type: "asset/inline",
         },
@@ -98,7 +105,7 @@ const config = (env, argv) => {
       maxAssetSize: 512000
     },
     optimization: {
-      minimize: true,
+      minimize: false,
       minimizer: [
         new TerserPlugin({
           terserOptions: {

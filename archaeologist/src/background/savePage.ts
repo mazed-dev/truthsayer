@@ -1,6 +1,6 @@
 import { DisappearingToastProps } from '../content/toaster/Toaster'
 import { WebPageContent } from '../content/extractor/webPageContent'
-import { extractSearchEngineQuery } from 'librarius'
+import { extractSearchEngineQuery } from '../content/extractor/url/searchEngineQuery'
 
 import { log, isAbortError, MimeType, errorise, genOriginId } from 'armoury'
 import {
@@ -100,7 +100,7 @@ async function _getOriginRelationNid(
           query.phrase,
           [],
           [],
-          query.logo,
+          query.logo
         )
         return nid
       }
@@ -117,6 +117,18 @@ export async function saveWebPage(
   content?: WebPageContent,
   tabId?: number
 ): Promise<{ node?: TNode; unmemorable: boolean }> {
+  const searchEngineQuery = extractSearchEngineQuery(url)
+  if (searchEngineQuery != null) {
+    const node = await _saveWebSearchQuery(
+      url,
+      searchEngineQuery.phrase,
+      toNids,
+      fromNids,
+      searchEngineQuery.logo,
+      originId
+    )
+    return { node, unmemorable: false }
+  }
   if (content == null) {
     // Update badge counter
     await badge.resetText(tabId, ACTION_DONE_BADGE_MARKER)
@@ -143,17 +155,17 @@ export async function saveWebPage(
     },
     blob: undefined,
   }
-  const originRelations = await smuggler.activity.transition.get({
+  const originTransitions = await smuggler.activity.transition.get({
     origin: { id: originId },
   })
-  log.debug('Gather relations', originRelations)
-  for (const transition of originRelations.to) {
+  log.debug('Gather transitions', originTransitions)
+  for (const transition of originTransitions.to) {
     const nid = await _getOriginRelationNid(transition)
     if (nid != null) {
       toNids.push(nid)
     }
   }
-  for (const transition of originRelations.from) {
+  for (const transition of originTransitions.from) {
     const nid = await _getOriginRelationNid(transition)
     if (nid != null) {
       fromNids.push(nid)
@@ -223,7 +235,7 @@ async function _saveWebSearchQuery(
   fromNids: string[],
   icon?: string,
   originId?: OriginHash
-): Promise<{ nid: string }> {
+): Promise<TNode> {
   if (originId == null) {
     originId = genOriginId(url).id
   }
@@ -235,7 +247,7 @@ async function _saveWebSearchQuery(
   }
   const extattrs: NodeExtattrs = {
     content_type: MimeType.TEXT_URI_LIST,
-    title: '🔍 ' + phrase,
+    title: phrase,
     preview_image: icon ? { data: icon } : undefined,
     web: { url },
   }
@@ -251,5 +263,6 @@ async function _saveWebSearchQuery(
     from_nid: fromNids,
   })
   const { nid } = resp
-  return { nid }
+  const node = await smuggler.node.get({ nid })
+  return node
 }

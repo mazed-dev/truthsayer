@@ -837,7 +837,7 @@ async function getOriginTransition(
           to_.push({ origin, address, nid })
         })
       } else {
-        to_.push({ origin, address, })
+        to_.push({ origin, address })
       }
     } else if (transition.to.origin.id === req.origin.id) {
       const { origin, address } = transition.from
@@ -847,7 +847,7 @@ async function getOriginTransition(
           from_.push({ origin, address, nid })
         })
       } else {
-        from_.push({ origin, address, })
+        from_.push({ origin, address })
       }
     }
   }

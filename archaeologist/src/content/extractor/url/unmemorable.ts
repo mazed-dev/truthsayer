@@ -1,5 +1,5 @@
 import { isBrowserUrl } from './browser'
-import { isSearchEngineQueryUrl } from 'librarius'
+import { isSearchEngineQueryUrl } from './searchEngineQuery'
 
 const kUnmemorable: RegExp[] = [
   /https?:\/\/(www\.)?google\.com/,

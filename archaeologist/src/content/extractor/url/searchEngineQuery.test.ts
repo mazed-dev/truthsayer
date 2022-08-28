@@ -23,7 +23,7 @@ const known: KnowSearchEngineCase[] = [
   {
     name: SearchEngineName.DUCKDUCKGO,
     phrase: 'abc duckduckGO',
-    url: 'https://duckduckgo.com/?q=abc+duckduckGO&va=b&t=hc&ia=web',
+    url: 'https://duckduckgo.com/?va=b&t=hc&ia=web&q=abc+duckduckGO',
   },
   {
     name: SearchEngineName.BING,
@@ -41,14 +41,19 @@ const known: KnowSearchEngineCase[] = [
     url: 'https://en.wikipedia.org/w/index.php?search=abc+WIKIPEDIA',
   },
   {
-    name: SearchEngineName.YANDEX,
+    name: SearchEngineName.OTHER,
     phrase: 'abc yandex алгоритм',
-    url: 'https://yandex.ru/search/?text=abc+yandex+алгоритм',
+    url: 'https://yandex.ru/search/?lr=12&text=abc+yandex+алгоритм',
   },
   {
     name: SearchEngineName.YOUTUBE,
     phrase: 'abc abc',
     url: 'https://www.youtube.com/results?search_query=abc+abc',
+  },
+  {
+    name: SearchEngineName.OTHER,
+    phrase: 'Yahoo history',
+    url: 'https://fr.search.yahoo.com/search?p=Yahoo+history&fr=yfp-t&fr2=p%3Afp%2Cm%3Asb&ei=UTF-8&fp=1',
   },
 ]
 
