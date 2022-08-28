@@ -354,7 +354,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
     return (
       <Row
         css={css`
-          margin: 1px 0 0 0;
+          margin: 1px 10px 0 10px;
           padding: 0;
           width: 100%;
           display: flex;
@@ -397,9 +397,9 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
         <Col
           css={css`
             ${colBaseCss};
-            flex: 0 1 510px;
+            flex: 0 1 420px;
             margin: 0 8px 0 8px;
-            width: 480px;
+            width: 420px;
           `}
         >
           <WideCard>

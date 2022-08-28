@@ -41,6 +41,8 @@ import { MimeType, log } from 'armoury'
 
 import lodash from 'lodash'
 import moment from 'moment'
+import { StatusCode } from './status_codes'
+import { authCookie } from './auth/cookie'
 
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
@@ -722,7 +724,7 @@ async function deleteSession({ signal }: { signal: AbortSignal }) {
 }
 
 async function updateSession(signal?: AbortSignal): Promise<Ack> {
-  const resp = await fetch(makeUrl('/auth/session'), {
+  const resp: Response = await fetch(makeUrl('/auth/session'), {
     method: 'PATCH',
     signal,
   })
@@ -987,8 +989,49 @@ async function advanceUserFsIngestionProgress(
   )
 }
 
+export class SmugglerError extends Error {
+  status?: number
+  statusText?: string
+
+  constructor({
+    message,
+    status,
+    statusText,
+  }: {
+    message: string
+    status?: number
+    statusText?: string
+  }) {
+    super(message)
+    this.status = status
+    this.statusText = statusText
+    Object.setPrototypeOf(this, SmugglerError.prototype)
+  }
+
+  static fromAny(value: any): SmugglerError | null {
+    if ('message' in value) {
+      return new SmugglerError({
+        message: value.message,
+        status: value.status || undefined,
+        statusText: value.statusText || undefined,
+      })
+    }
+    return null
+  }
+}
+
 function _makeResponseError(response: Response, message?: string): Error {
-  return new Error(`${message} ([${response.status}] ${response.statusText})`)
+  if (response.status === StatusCode.LOGIN_TIME_OUT) {
+    // Log out immediately, this is a special code from smuggler to inform that
+    // current authorisation has been revoked
+    log.debug('Authorisation has been revoked by smuggler, log out')
+    authCookie.drop()
+  }
+  return new SmugglerError({
+    message: message ?? response.statusText,
+    statusText: response.statusText,
+    status: response.status,
+  })
 }
 
 export const smuggler = {
