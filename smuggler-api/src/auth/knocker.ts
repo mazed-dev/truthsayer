@@ -11,6 +11,7 @@ export class Knocker {
   readonly _abortCallback?: () => void
   readonly _abortController: AbortController
   readonly _knockingPeriodSeconds: number
+  readonly _checkingPeriodMSeconds: number
   readonly getLastUpdate: typeof authCookie.lastUpdate.get
   readonly setLastUpdate: typeof authCookie.lastUpdate.set
 
@@ -27,16 +28,17 @@ export class Knocker {
     this._abortController = new AbortController()
     this._knockingPeriodSeconds =
       knockingPeriodSeconds ?? lodash.random(2400, 3600)
+    this._checkingPeriodMSeconds = lodash.random(80_000, 120_000)
   }
 
   start = async () => {
     if (this._scheduledId) {
       clearTimeout(this._scheduledId)
     }
-    // Check if token has to be updated with [knock] every minute restart the
+    // Check if token has to be updated with [knock] every 2 minutes restart the
     // loop if everything is ok
     if (await this.knock()) {
-      this._scheduledId = lodash.delay(this.start, 1_000)
+      this._scheduledId = lodash.delay(this.start, this._checkingPeriodMSeconds)
     } else {
       // Log out immediately if there is a client error
       this.abort()
@@ -56,16 +58,11 @@ export class Knocker {
 
   knock = async (): Promise<boolean> => {
     try {
-      // Rely on 'lastUpdate' value stored to cookies for loose syncronisation
-      // across all open tabs with web app and archaeologist background script
+      // To renew auth token more effectively rely on 'lastUpdate' value stored
+      // to cookies for loose syncronisation across all open tabs of truthsayer
+      // web app and archaeologist background script.
       const lastUpdate = await this.getLastUpdate()
       const now = unixtime.now()
-      log.debug(
-        'Try to knock smuggler',
-        this._knockingPeriodSeconds,
-        now,
-        lastUpdate?.time ?? 0
-      )
       if (this._knockingPeriodSeconds < now - (lastUpdate?.time ?? 0)) {
         log.debug('Knock knock smuggler')
         await smuggler.session.update(this._abortController.signal)

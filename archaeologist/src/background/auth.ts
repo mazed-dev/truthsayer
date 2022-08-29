@@ -8,7 +8,7 @@ import { log, isAbortError } from 'armoury'
 // Time period in milliseonds (~17 minutes) is a magic prime number to avoid too
 // many weird correlations with running Knocker in web app.
 const _authKnocker = new Knocker(
-  2, // Roughly renew token every hour
+  undefined,
   async () => {
     try {
       await browser.cookies.remove({
