@@ -960,7 +960,7 @@ function _makeResponseError(response: Response, message?: string): Error {
     // Log out immediately, this is a special code from smuggler to inform that
     // current authorisation has been revoked
     log.debug('Authorisation has been revoked by smuggler, log out')
-    authCookie.drop()
+    authCookie.veil.drop()
   }
   return new SmugglerError({
     message: message ?? response.statusText,

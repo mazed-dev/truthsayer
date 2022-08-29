@@ -1,16 +1,16 @@
 import React from 'react'
 
 import { Knocker as KnockerEngine, authCookie } from 'smuggler-api'
-import { log } from 'armoury'
 
-type KnockerProps = {}
-export function KnockerElement({}: KnockerProps) {
+export function KnockerElement({}) {
   React.useEffect(() => {
-    const knocker = new KnockerEngine(374321, () => {
-      authCookie.drop()
+    const knocker = new KnockerEngine(undefined, () => {
+      authCookie.veil.drop()
     })
     knocker.start()
-    return () => knocker.abort()
+    return () => {
+      knocker.abort()
+    }
   }, [])
   return <></>
 }
