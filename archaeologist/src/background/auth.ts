@@ -5,10 +5,7 @@ import { Knocker, authCookie } from 'smuggler-api'
 import { log, isAbortError } from 'armoury'
 
 // Periodically renew auth token using Knocker
-// Time period in milliseonds (~17 minutes) is a magic prime number to avoid too
-// many weird correlations with running Knocker in web app.
 const _authKnocker = new Knocker(
-  undefined,
   async () => {
     try {
       await browser.cookies.remove({
@@ -24,13 +21,25 @@ const _authKnocker = new Knocker(
   async () => {
     const {
       url,
-      lastUpdate: { name, parse },
+      lastUpdate: { name },
     } = authCookie
     const cookie = await browser.cookies.get({ url, name })
     if (cookie == null) {
       return undefined
     }
-    return parse(cookie.value) || undefined
+    try {
+      const value = JSON.parse(decodeURIComponent(cookie.value))
+      if (value != null) {
+        return value as SmugglerTokenLastUpdateCookies
+      }
+    } catch (err) {
+      log.debug(
+        'Corrupted smuggler auth token last update info in cookies',
+        err
+      )
+      return undefined
+    }
+    return undefined
   },
   async (value: SmugglerTokenLastUpdateCookies) => {
     const {
@@ -40,7 +49,7 @@ const _authKnocker = new Knocker(
     await browser.cookies.set({
       url,
       name,
-      value: JSON.stringify(value),
+      value: encodeURIComponent(JSON.stringify(value)),
     })
   }
 )

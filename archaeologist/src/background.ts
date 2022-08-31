@@ -196,7 +196,7 @@ browser.tabs.onUpdated.addListener(
     tab: browser.Tabs.Tab
   ) => {
     if (!tab.incognito && tab.url && !tab.hidden) {
-      if (changeInfo.status === 'complete') {
+      if (changeInfo.status === 'complete' && isMemorable(tab.url)) {
         // Request page saved status on new non-incognito page loading
         const response = await requestPageSavedStatus(tab)
         await badge.resetText(

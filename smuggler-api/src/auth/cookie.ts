@@ -46,20 +46,6 @@ export const authCookie = {
   },
   lastUpdate: {
     name: COOKIES_LAST_UPDATE_KEY,
-    parse: (value: string): SmugglerTokenLastUpdateCookies | null => {
-      try {
-        return JSON.parse(value) as SmugglerTokenLastUpdateCookies
-      } catch (err) {
-        if (!isAbortError(err)) {
-          log.debug(
-            'Corrupted smuggler auth token last update info in cookies',
-            value,
-            err
-          )
-        }
-      }
-      return null
-    },
     get: async (): Promise<SmugglerTokenLastUpdateCookies | undefined> => {
       const cookies = new Cookies()
       try {
