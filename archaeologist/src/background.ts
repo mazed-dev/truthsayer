@@ -18,6 +18,7 @@ import { savePage, savePageQuote } from './background/savePage'
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
 import { calculateBadgeCounter } from './badge/badgeCounter'
 import { isMemorable } from './content/extractor/unmemorable'
+import { isPageAutosaveable } from './content/activity-tracker/autosaveable'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
@@ -232,7 +233,7 @@ async function handleMessageFromPopup(
 
         await badge.resetText(undefined, `${index}/${items.length}`)
 
-        if (item.url == null || !isMemorable(item.url)) {
+        if (item.url == null || !isPageAutosaveable(item.url)) {
           continue
         }
         const origin = genOriginId(item.url)

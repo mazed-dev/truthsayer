@@ -52,16 +52,15 @@ export function _isManuallyBlocked(url: string): boolean {
   return false
 }
 
-export function isPageAutosaveable(url: string, document_: Document): boolean {
+export function isPageAutosaveable(url: string, document_?: Document): boolean {
   if (_isManuallyAllowed(url)) {
     return true
   }
   if (_isManuallyBlocked(url)) {
     return false
   }
-  return (
-    isMemorable(url) &&
-    _isArticleUrl(new URL(url)) &&
-    isProbablyReaderable(document_)
-  )
+  if (!isMemorable(url) || !_isArticleUrl(new URL(url))) {
+    return false
+  }
+  return document != null ? isProbablyReaderable(document_!) : true
 }
