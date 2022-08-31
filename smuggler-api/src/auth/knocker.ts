@@ -25,8 +25,8 @@ export class Knocker {
     this.#scheduledId = null
     this.#abortCallback = abortCallback
     this.#abortController = new AbortController()
-    this.#knockingPeriodSeconds = lodash.random(4, 6)
-    this.#checkingPeriodMSeconds = lodash.random(2_000, 4_000)
+    this.#knockingPeriodSeconds = lodash.random(2400, 3600)
+    this.#checkingPeriodMSeconds = lodash.random(80_000, 120_000)
   }
 
   start = async () => {
