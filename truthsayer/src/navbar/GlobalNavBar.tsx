@@ -3,13 +3,14 @@ import styled from '@emotion/styled'
 
 import { Link, useLocation } from 'react-router-dom'
 
-import { ButtonGroup, Dropdown, Navbar, Nav } from 'react-bootstrap'
+import { ButtonGroup, Dropdown, Navbar } from 'react-bootstrap'
 
 import { compass } from './../lib/route'
 import { jcss, MdiAccountCircle, kCardBorder } from 'elementary'
-import { getLogoImage } from './../dev/env'
+import { getLogoImage } from './../util/env'
 import { SearchForm } from './SearchForm'
 import { MzdGlobalContext } from '../lib/global'
+import { routes } from './../lib/route'
 
 import styles from './GlobalNavBar.module.css'
 
@@ -53,57 +54,34 @@ const PrivateNavButtons = () => {
         </Dropdown.Toggle>
 
         <Dropdown.Menu>
-          <Dropdown.Item as={Link} to="/user-preferences">
-            Manage your account
+          <Dropdown.Item as={Link} to={routes.settings}>
+            Settings
           </Dropdown.Item>
-          <Dropdown.Item as={Link} to="/apps-to-install">
+          <Dropdown.Item as={Link} to={routes.apps}>
             Apps
           </Dropdown.Item>
-          <Dropdown.Item as={Link} to="/3rdparty-integrations">
-            3rd-party integrations
-          </Dropdown.Item>
-          <Dropdown.Item as={Link} to="/help">
-            Help
+          <Dropdown.Item as={Link} to={routes.integrations}>
+            Integrations
           </Dropdown.Item>
           <Dropdown.Divider />
-          <Dropdown.Item as={Link} to="/about">
-            About knotledge
+          <Dropdown.Item as={Link} to={routes.faq}>
+            FAQs
           </Dropdown.Item>
-          <Dropdown.Item as={Link} to="/privacy-policy">
+          <Dropdown.Item as={Link} to={routes.about}>
+            About
+          </Dropdown.Item>
+          <Dropdown.Item as={Link} to={routes.privacy}>
             Privacy Policy
           </Dropdown.Item>
-          <Dropdown.Item as={Link} to="/terms-of-service">
+          <Dropdown.Item as={Link} to={routes.terms}>
             Terms of Service
           </Dropdown.Item>
           <Dropdown.Divider />
-          <Dropdown.Item as={Link} to="/logout">
-            log out
+          <Dropdown.Item as={Link} to={routes.logout}>
+            Log out
           </Dropdown.Item>
         </Dropdown.Menu>
       </Dropdown>
-    </>
-  )
-}
-
-const PublicNavButtons = () => {
-  return (
-    <>
-      <Navbar.Toggle aria-controls="responsive-public-navbar" />
-      <Navbar.Collapse id="responsive-public-navbar">
-        <Nav>
-          <Nav.Link as={Link} to="/terms-of-service">
-            Terms of service
-          </Nav.Link>
-          <Nav.Link as={Link} to="/contacts">
-            Contact us
-          </Nav.Link>
-        </Nav>
-        <Nav className="ml-auto">
-          <Nav.Link as={Link} to="/login">
-            Log in
-          </Nav.Link>
-        </Nav>
-      </Navbar.Collapse>
     </>
   )
 }
@@ -117,29 +95,31 @@ const CustomNavbar = styled(Navbar)`
   ${kCardBorder};
 `
 
+const NavbarBrand = styled(Navbar.Brand)`
+  display: flex;
+  justify-content: space-between;
+  margin-right: 0.5rem;
+  font-family: 'Comfortaa';
+`
+
 export function GlobalNavBar() {
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
-  if (account == null) {
-    return <></>
+  if (account == null || !account.isAuthenticated()) {
+    return null
   }
-  const buttons = account.isAuthenticated() ? (
-    <PrivateNavButtons />
-  ) : (
-    <PublicNavButtons />
-  )
   return (
     <>
       <CustomNavbar fixed="top" className={styles.navbar}>
-        <Navbar.Brand as={Link} to="/" className={styles.brand}>
+        <NavbarBrand as={Link} to="/">
           <img
             src={getLogoImage()}
             alt={'Mazed logo'}
             className={styles.logo_image}
           />
           <div className="d-none d-sm-none d-md-block">Mazed</div>
-        </Navbar.Brand>
-        {buttons}
+        </NavbarBrand>
+        <PrivateNavButtons />
       </CustomNavbar>
       <div className={styles.navbar_filler} />
     </>

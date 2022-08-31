@@ -4,7 +4,7 @@ import { crc32 } from 'crc'
 
 import { Toast, Button } from 'react-bootstrap'
 
-import { Knocker } from '../auth/Knocker'
+import { KnockerElement } from '../auth/Knocker'
 
 import { jcss } from 'elementary'
 import { createUserAccount, AccountInterface } from 'smuggler-api'
@@ -148,7 +148,7 @@ export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
   render() {
     return (
       <MzdGlobalContext.Provider value={this.state}>
-        <Knocker />
+        <KnockerElement />
         <div
           aria-live="polite"
           aria-atomic="true"

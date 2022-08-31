@@ -16,6 +16,9 @@ import { MdiLaunch } from 'elementary'
 const AppContainer = styled.div`
   width: 280px;
   height: 280px;
+  font-family: 'Roboto', arial, sans-serif;
+  font-style: normal;
+  font-weight: 400;
 `
 
 export const PopUpApp = () => {

@@ -1,6 +1,7 @@
 import * as badge from './badge/badge'
 import * as omnibox from './omnibox/omnibox'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
+import * as auth from './background/auth'
 import {
   ToPopUp,
   ToContent,
@@ -12,14 +13,7 @@ import {
 
 import browser from 'webextension-polyfill'
 import { log, isAbortError, genOriginId, unixtime } from 'armoury'
-import {
-  Knocker,
-  TNode,
-  TotalUserActivity,
-  authCookie,
-  smuggler,
-  ResourceVisit,
-} from 'smuggler-api'
+import { TNode, TotalUserActivity, ResourceVisit, smuggler } from 'smuggler-api'
 import { savePage, savePageQuote } from './background/savePage'
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
 import { calculateBadgeCounter } from './badge/badgeCounter'
@@ -78,29 +72,6 @@ async function requestPageSavedStatus(tab: browser.Tabs.Tab | null) {
  */
 function historyDateCompat(date: Date): number {
   return date.getTime()
-}
-
-// Periodically renew auth token using Knocker
-//
-// Time period in milliseonds (~17 minutes) is a magic prime number to avoid too
-// many weird correlations with running Knocker in web app.
-const _kRenewTokenTimePeriodInSeconds = 1062599
-const _authKnocker = new Knocker(_kRenewTokenTimePeriodInSeconds)
-_authKnocker.start()
-
-async function getAuthStatus() {
-  const cookie = await browser.cookies
-    .get({
-      url: authCookie.url,
-      name: authCookie.name,
-    })
-    .catch((err) => {
-      if (!isAbortError(err)) {
-        log.exception(err)
-      }
-      return null
-    })
-  return authCookie.checkRawValue(cookie?.value || null)
 }
 
 async function registerAttentionTime(
@@ -237,7 +208,7 @@ async function handleMessageFromPopup(
       }
     }
     case 'REQUEST_AUTH_STATUS':
-      const status = await getAuthStatus()
+      const status = await auth.isAuthorised()
       badge.setActive(status)
       return { type: 'AUTH_STATUS', status }
     case 'UPLOAD_BROWSER_HISTORY': {
@@ -381,19 +352,22 @@ browser.tabs.onUpdated.addListener(
           calculateBadgeCounter(response.quotes, response.bookmark)
         )
         try {
+          await ToContent.sendMessage(tabId, { type: 'RESET_CONTENT_APP' })
           await ToContent.sendMessage(tabId, {
             type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
             quotes: response.quotes.map((node) => node.toJson()),
             bookmark: response.bookmark?.toJson(),
             mode: 'reset',
           })
-        } catch (error) {
-          // As 'REQUEST_UPDATE_CONTENT_AUGMENTATION' updates tab-specific data,
-          // a failure due to premature tab closure is not a concern since there
-          // is no data to update any longer
-          log.warning(
-            `Failed to update content augmentation for ${tab.url} tab: ${error}`
-          )
+        } catch (err) {
+          if (!isAbortError(err)) {
+            // As 'REQUEST_UPDATE_CONTENT_AUGMENTATION' updates tab-specific data,
+            // a failure due to premature tab closure is not a concern since there
+            // is no data to update any longer
+            log.warning(
+              `Failed to update content augmentation for ${tab.url} tab: ${err}`
+            )
+          }
         }
         const origin = genOriginId(tab.url)
         log.debug('Register new visit', origin.stableUrl, origin.id)
@@ -408,19 +382,6 @@ browser.tabs.onUpdated.addListener(
     }
   }
 )
-
-browser.cookies.onChanged.addListener(async (info) => {
-  const { value, name, domain } = info.cookie
-  if (domain === authCookie.domain && name === authCookie.name) {
-    const status = authCookie.checkRawValue(value || null)
-    await badge.setActive(status)
-    if (status) {
-      _authKnocker.start()
-    } else {
-      _authKnocker.abort()
-    }
-  }
-})
 
 const kMazedContextMenuItemId = 'selection-to-mazed-context-menu-item'
 browser.contextMenus.removeAll()
@@ -469,3 +430,4 @@ browser.contextMenus.onClicked.addListener(
 
 omnibox.register()
 browserBookmarks.register()
+auth.register()

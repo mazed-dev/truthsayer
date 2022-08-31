@@ -1,12 +1,11 @@
 import React from 'react'
 
+import { BlockQuote } from '../editor/components/BlockQuote'
+import { MdiLaunch } from '../MaterialIcons'
+
 import type { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
 import type { Optional } from 'armoury'
 import { log } from 'armoury'
-import { BlockQuote } from '../editor/components/BlockQuote'
-
-import { MdiLaunch } from '../MaterialIcons'
-
 import styled from '@emotion/styled'
 
 const Box = styled.div`
@@ -22,12 +21,6 @@ const IconImg = styled.img`
   height: inherit;
   width: inherit;
   border-radius: inherit;
-`
-const IconImgEmpty = styled.div`
-  height: inherit;
-  width: inherit;
-  border-radius: inherit;
-  background-color: rgb(0, 0, 0, 0.04);
 `
 const PreviewImageBox = styled.div`
   width: 72px;
@@ -55,7 +48,36 @@ const IconLaunch = styled.a`
     opacity: 100%;
   }
 `
+const IconDefaultBox = styled.div`
+  height: inherit;
+  width: inherit;
+  border-radius: inherit;
+  background-color: rgb(0, 0, 0, 0.02);
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  float: left;
+`
+const IconDefaultLetter = styled.span`
+  color: rgba(0, 0, 0, 0.3);
+  cursor: default;
+  display: block;
+  font-family: 'Comfortaa';
+  font-size: 58px;
+  font-style: normal;
+`
 
+const IconDefault = ({ hostname }: { hostname: string }) => {
+  if (hostname.startsWith('www.')) {
+    hostname = hostname.substr(4)
+  }
+  const letter = hostname.substr(0, 1).toUpperCase()
+  return (
+    <IconDefaultBox>
+      <IconDefaultLetter>{letter}</IconDefaultLetter>
+    </IconDefaultBox>
+  )
+}
 /**
  * This is a preview image element, we use it to render reference to the orginal
  * web page with "launch" incon rendered over the image as link-button. When
@@ -65,11 +87,18 @@ const IconLaunch = styled.a`
 const PreviewImage = ({
   icon,
   url,
+  hostname,
 }: {
   icon: Optional<PreviewImageSmall>
   url?: string
+  hostname: string
 }) => {
-  const img = icon == null ? <IconImgEmpty /> : <IconImg src={icon.data} />
+  const img =
+    icon == null ? (
+      <IconDefault hostname={hostname} />
+    ) : (
+      <IconImg src={icon.data} />
+    )
   return (
     <PreviewImageBox>
       {img}
@@ -158,6 +187,7 @@ export const WebBookmark = ({
         <PreviewImage
           icon={preview_image || null}
           url={strippedRefs ? undefined : url}
+          hostname={hostname}
         />
         <TitleBox>
           <Title>{title}</Title>

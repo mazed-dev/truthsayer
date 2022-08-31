@@ -4070,6 +4070,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/http-status-codes@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@types/http-status-codes@npm:1.2.0"
+  dependencies:
+    http-status-codes: "*"
+  checksum: 5923b85f2fc58f39f44c0e620b05113b3c3644039cbe8063a19575a55a3e6364a82ee1f8b08c312bdaa7bf651509b3e1a11f3a59ff8bbaa38d37f4e191c3d076
+  languageName: node
+  linkType: hard
+
 "@types/invariant@npm:^2.2.33":
   version: 2.2.35
   resolution: "@types/invariant@npm:2.2.35"
@@ -4318,6 +4327,15 @@ __metadata:
   dependencies:
     "@types/react": ^16
   checksum: ff65a2a36d493ed6a9032f8a96f06074d940ca63c82d400e21e6ba16d25762b4f5c8cd352b93eb3b7aa820e158b7a6b16e5daffec2a512fa6327b00036cde0a8
+  languageName: node
+  linkType: hard
+
+"@types/react-helmet@npm:^6.1.5":
+  version: 6.1.5
+  resolution: "@types/react-helmet@npm:6.1.5"
+  dependencies:
+    "@types/react": "*"
+  checksum: d059cc084d3b3071cce3421bb1170dd42819cf39b81afe60d4fbd66c5ef9ffeaadf1802df80efd9553258f621678f69ceb5a21d73df0d8539d40ae9a0f995485
   languageName: node
   linkType: hard
 
@@ -5311,7 +5329,6 @@ __metadata:
     eslint: ^8.16.0
     express: ^4.17.2
     jest: 26.6.0
-    jest-fetch-mock: ^3.0.3
     jsdom: ^17.0.0
     prettier: ^2.2
     process: ^0.11.10
@@ -10911,10 +10928,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"http-status-codes@npm:2.1.4":
-  version: 2.1.4
-  resolution: "http-status-codes@npm:2.1.4"
-  checksum: 44fedd7b2cfe8672e647fd03a1baf6662a62e7bf1669a866404830e98853dc0239b5cd054938e562cdd7b8228a9a7bc0e27b0eacc6a07814b1639a9c518a7220
+"http-status-codes@npm:*, http-status-codes@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "http-status-codes@npm:2.2.0"
+  checksum: 31e1d730856210445da0907d9b484629e69e4fe92ac032478a7aa4d89e5b215e2b4e75d7ebce40d0537b6850bd281b2f65c7cc36cc2677e5de056d6cea1045ce
   languageName: node
   linkType: hard
 
@@ -12194,16 +12211,6 @@ __metadata:
     jest-mock: ^27.5.1
     jest-util: ^27.5.1
   checksum: 0f988330c4f3eec092e3fb37ea753b0c6f702e83cd8f4d770af9c2bf964a70bc45fbd34ec6fdb6d71ce98a778d9f54afd673e63f222e4667fff289e8069dba39
-  languageName: node
-  linkType: hard
-
-"jest-fetch-mock@npm:^3.0.3":
-  version: 3.0.3
-  resolution: "jest-fetch-mock@npm:3.0.3"
-  dependencies:
-    cross-fetch: ^3.0.4
-    promise-polyfill: ^8.1.3
-  checksum: fb052f7e0ef1c8192a9c15efdd1b18d281ab68fc6b1648b30bff8880fe24418bdf12190ea79b1996932dc15417c3c01f5b2d77ef7104a7e7943e7cbe8d61071d
   languageName: node
   linkType: hard
 
@@ -16771,13 +16778,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"promise-polyfill@npm:^8.1.3":
-  version: 8.2.1
-  resolution: "promise-polyfill@npm:8.2.1"
-  checksum: bd2601d28c18086493d1eb0f4a5a538557600063b2a13aa9dfd89b69c28a3435ce6e0efac9049d1b13f0ed392730326b23c8c56c99be8abf708036245ece5192
-  languageName: node
-  linkType: hard
-
 "promise-retry@npm:^2.0.1":
   version: 2.0.1
   resolution: "promise-retry@npm:2.0.1"
@@ -17149,6 +17149,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-fast-compare@npm:^3.1.1":
+  version: 3.2.0
+  resolution: "react-fast-compare@npm:3.2.0"
+  checksum: 8ef272c825ae329f61633ce4ce7f15aa5b84e5214d88bc0823880236e03e985a13195befa2c7a4eda7db3b017dc7985729152d88445823f652403cf36c2b86aa
+  languageName: node
+  linkType: hard
+
+"react-helmet@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "react-helmet@npm:6.1.0"
+  dependencies:
+    object-assign: ^4.1.1
+    prop-types: ^15.7.2
+    react-fast-compare: ^3.1.1
+    react-side-effect: ^2.1.0
+  peerDependencies:
+    react: ">=16.3.0"
+  checksum: a4998479dab7fc1c2799eddefb1870a9d881b5f71cfdf97979a9882e42f4bb50402d55335f308f461e735e01a06f46b16cc7b4e6bcb22c7a4a6f85a753c5c106
+  languageName: node
+  linkType: hard
+
 "react-is@npm:^16.13.1, react-is@npm:^16.3.2, react-is@npm:^16.6.0, react-is@npm:^16.7.0":
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
@@ -17285,6 +17306,15 @@ __metadata:
   bin:
     react-scripts: bin/react-scripts.js
   checksum: 92afa2f245c7092ccc97d5609dc7a2130616262e34da7f15072d9442e2d2e1d4909a91022abd1faac1336eb17c5525a10d9bd43e1ae374c7ec941ca20addca68
+  languageName: node
+  linkType: hard
+
+"react-side-effect@npm:^2.1.0":
+  version: 2.1.2
+  resolution: "react-side-effect@npm:2.1.2"
+  peerDependencies:
+    react: ^16.3.0 || ^17.0.0 || ^18.0.0
+  checksum: c5eb1f42b464fb093bca59aaae0f1b2060373a2aaff95275b8781493628cdbbb6acdd6014e7883782c65c361f35a30f28cc515d68a1263ddb39cbbc47110be53
   languageName: node
   linkType: hard
 
@@ -18605,6 +18635,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "smuggler-api@workspace:smuggler-api"
   dependencies:
+    "@types/http-status-codes": ^1.2.0
     "@typescript-eslint/eslint-plugin": ^5.26.0
     "@typescript-eslint/parser": ^5.26.0
     armoury: 0.0.1
@@ -18613,6 +18644,7 @@ __metadata:
     eslint-plugin-import: ^2.18.2
     eslint-plugin-prettier: ^3.1.1
     eslint-plugin-react: ^7.16.0
+    http-status-codes: ^2.2.0
     jest: 26.6.0
     lodash: ^4.17.21
     moment: ^2.29.4
@@ -19977,6 +20009,7 @@ __metadata:
     "@types/mocha": ^5.2.7
     "@types/node": ^14.14
     "@types/react": ^16.14.0
+    "@types/react-helmet": ^6.1.5
     "@types/react-router-dom": ^5.3.0
     "@typescript-eslint/eslint-plugin": ^5.26.0
     "@typescript-eslint/parser": ^5.26.0
@@ -19993,7 +20026,6 @@ __metadata:
     eslint-plugin-import: ^2.18.2
     eslint-plugin-react: ^7.16.0
     fbjs: ^3.0.0
-    http-status-codes: 2.1.4
     is-url: ^1.2.4
     keycode: ^2.2
     librarius: 0.0.1
@@ -20008,6 +20040,7 @@ __metadata:
     react-bootstrap: ^2.0.0
     react-css-modules: ^4
     react-dom: ^16.14.0
+    react-helmet: ^6.1.0
     react-router: ^5.2.1
     react-router-dom: ^5.3.0
     react-scripts: ^5.0.1

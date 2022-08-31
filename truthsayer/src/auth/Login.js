@@ -5,6 +5,7 @@ import React from 'react'
 import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
 
 import PropTypes from 'prop-types'
+import { css } from '@emotion/react'
 import { withRouter, Link } from 'react-router-dom'
 
 import { smuggler } from 'smuggler-api'
@@ -104,7 +105,13 @@ class Login extends React.Component {
       <Container>
         <Card className="border-0">
           <Card.Body className="p-3">
-            <Card.Title>Log in</Card.Title>
+            <Card.Title
+              css={css`
+                font-family: 'Comfortaa';
+              `}
+            >
+              Log in
+            </Card.Title>
             <Form className="m-4" onSubmit={this.onSubmit}>
               <Form.Group as={Row} controlId="formLoginEmail">
                 <Form.Label column sm="2">

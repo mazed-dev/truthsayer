@@ -116,6 +116,14 @@ export namespace ToContent {
     bookmark?: TNodeJson
     mode: 'reset' | 'append'
   }
+  /**
+   * Request to reset state of content App if needed, when page gets updated.
+   * There are rather tricky ways to monitor it from inside the content script,
+   * but very easy from background script.
+   */
+  export interface ResetPageContentApp {
+    type: 'RESET_CONTENT_APP'
+  }
   export interface GetSelectedQuoteRequest {
     type: 'REQUEST_SELECTED_WEB_QUOTE'
     text: string
@@ -132,6 +140,7 @@ export namespace ToContent {
     | UpdateContentAugmentationRequest
     | GetSelectedQuoteRequest
     | ShowDisappearingNotificationRequest
+    | ResetPageContentApp
   export function sendMessage(
     tabId: number,
     message: RequestPageContent
@@ -150,6 +159,10 @@ export namespace ToContent {
     tabId: number,
     message: ShowDisappearingNotificationRequest
   ): Promise<FromContent.GetSelectedQuoteResponse>
+  export function sendMessage(
+    tabId: number,
+    message: ResetPageContentApp
+  ): Promise<VoidResponse>
   export function sendMessage(
     tabId: number,
     message: Request

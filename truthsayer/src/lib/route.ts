@@ -16,6 +16,16 @@ const kNoticeErrorPage = 'error'
 const kNoticeSeeYouPage = 'miss-you'
 const kNoticeLogInToContinue = 'log-in-to-continue'
 
+const kSettings = '/user-preferences'
+const kApps = '/apps-to-install'
+const kIntegrations = '/3rdparty-integrations'
+const kFaq = '/faq'
+const kApi = '/api'
+const kAbout = '/about'
+const kContacts = '/contacts'
+const kPrivacyPolicy = '/privacy-policy'
+const kTermsOfService = '/terms-of-service'
+
 export type History = RouteComponentProps['history']
 export type Location = RouteComponentProps['location']
 
@@ -96,6 +106,15 @@ export const routes = {
   node: `${kNodePathPrefix}:nid`,
   notice: `${kNoticePathPrefix}:page`,
   empty: kEmptyPath,
+  settings: kSettings,
+  apps: kApps,
+  integrations: kIntegrations,
+  faq: kFaq,
+  api: kApi,
+  about: kAbout,
+  contacts: kContacts,
+  privacy: kPrivacyPolicy,
+  terms: kTermsOfService,
 }
 
 export const goto = {
