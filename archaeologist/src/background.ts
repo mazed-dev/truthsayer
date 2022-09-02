@@ -38,17 +38,17 @@ async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   return null
 }
 
-async function requestPageSavedStatus(tab: browser.Tabs.Tab | null) {
+async function requestPageSavedStatus(url: string | undefined) {
   let quotes: TNode[] = []
-  if (tab?.url == null) {
+  if (url == null) {
     return { quotes, unmemorable: false }
   }
-  if (!isMemorable(tab.url)) {
+  if (!isMemorable(url)) {
     return { quotes, unmemorable: true }
   }
   let nodes
   try {
-    nodes = await smuggler.node.lookup({ url: tab.url })
+    nodes = await smuggler.node.lookup({ url })
   } catch (err) {
     log.debug('Lookup by origin ID failed, consider page as non saved', err)
     return { quotes, unmemorable: false }
@@ -204,7 +204,7 @@ async function handleMessageFromPopup(
       return { type: 'PAGE_SAVED', bookmark: node?.toJson(), unmemorable }
     case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS': {
       const { quotes, bookmark, unmemorable } = await requestPageSavedStatus(
-        activeTab
+        activeTab?.url
       )
       await badge.resetText(
         activeTab?.id,
@@ -365,46 +365,64 @@ browser.tabs.onUpdated.addListener(
     changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
     tab: browser.Tabs.Tab
   ) => {
-    if (!tab.incognito && tab.url && !tab.hidden) {
-      if (changeInfo.status === 'complete') {
-        // Request page saved status on new non-incognito page loading
-        const response = await requestPageSavedStatus(tab)
-        await badge.resetText(
-          tabId,
-          calculateBadgeCounter(response.quotes, response.bookmark)
-        )
+    try {
+      if (!tab.incognito && tab.url && !tab.hidden) {
+        if (changeInfo.status === 'complete') {
+          await initMazedPartsOfTab(tab)
 
-        try {
-          await ToContent.sendMessage(tabId, { type: 'RESET_CONTENT_APP' })
-          await ToContent.sendMessage(tabId, {
-            type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
-            quotes: response.quotes.map((node) => node.toJson()),
-            bookmark: response.bookmark?.toJson(),
-            mode: 'reset',
-          })
-        } catch (err) {
-          if (!isAbortError(err)) {
-            // As 'REQUEST_UPDATE_CONTENT_AUGMENTATION' updates tab-specific data,
-            // a failure due to premature tab closure is not a concern since there
-            // is no data to update any longer
-            log.warning(
-              `Failed to update content augmentation for ${tab.url} tab: ${err}`
-            )
-          }
+          const origin = genOriginId(tab.url)
+          log.debug('Register new visit', origin.stableUrl, origin.id)
+          await smuggler.activity.external.add({ id: origin.id }, [
+            { timestamp: unixtime.now() },
+          ])
         }
-        const origin = genOriginId(tab.url)
-        log.debug('Register new visit', origin.stableUrl, origin.id)
-        await smuggler.activity.external.add({ id: origin.id }, [
-          { timestamp: unixtime.now() },
-        ])
       }
-    }
-
-    if (changeInfo.status === 'complete') {
-      TabLoadCompletion.report(tabId)
+    } finally {
+      if (changeInfo.status === 'complete') {
+        // NOTE: if loading of a tab did complete, it is important to ensure
+        // report() gets called regardless of what happens in the other parts of
+        // browser.tabs.onUpdated (e.g. something throws). Otherwise any part of
+        // code that waits on a TabLoadCompletion promise will wait forever.
+        //
+        // At the same time, it is important to call report() *after* all or most
+        // of Mazed's content init has been completed so tab can be in a predictable
+        // state from the perspective of Mazed code that waits for TabLoadCompletion
+        TabLoadCompletion.report(tabId)
+      }
     }
   }
 )
+
+async function initMazedPartsOfTab(tab: browser.Tabs.Tab) {
+  if (tab.id == null || tab.url == null) {
+    return
+  }
+  // Request page saved status on new non-incognito page loading
+  const response = await requestPageSavedStatus(tab.url)
+  await badge.resetText(
+    tab.id,
+    calculateBadgeCounter(response.quotes, response.bookmark)
+  )
+
+  try {
+    await ToContent.sendMessage(tab.id, { type: 'RESET_CONTENT_APP' })
+    await ToContent.sendMessage(tab.id, {
+      type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
+      quotes: response.quotes.map((node) => node.toJson()),
+      bookmark: response.bookmark?.toJson(),
+      mode: 'reset',
+    })
+  } catch (err) {
+    if (!isAbortError(err)) {
+      // As 'REQUEST_UPDATE_CONTENT_AUGMENTATION' updates tab-specific data,
+      // a failure due to premature tab closure is not a concern since there
+      // is no data to update any longer
+      log.warning(
+        `Failed to update content augmentation for ${tab.url} tab: ${err}`
+      )
+    }
+  }
+}
 
 browser.tabs.onRemoved.addListener(
   async (tabId: number, _removeInfo: browser.Tabs.OnRemovedRemoveInfoType) => {
