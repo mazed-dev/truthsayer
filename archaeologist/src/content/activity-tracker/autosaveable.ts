@@ -62,5 +62,5 @@ export function isPageAutosaveable(url: string, document_?: Document): boolean {
   if (!isMemorable(url) || !_isArticleUrl(new URL(url))) {
     return false
   }
-  return document != null ? isProbablyReaderable(document_!) : true
+  return document_ != null ? isProbablyReaderable(document_) : true
 }

@@ -134,12 +134,22 @@ async function getPageContentViaTemporaryTab(
       type: 'REQUEST_PAGE_CONTENT',
     })
   } finally {
-    await browser.tabs.remove(tab.id)
+    try {
+      await browser.tabs.remove(tab.id)
+    } catch (err) {
+      log.debug(`Failed to remove tab ${tab.url}: ${err}`)
+    }
     const endTime = new Date()
-    await browser.history.deleteRange({
-      startTime: historyDateCompat(startTime),
-      endTime: historyDateCompat(endTime),
-    })
+    try {
+      await browser.history.deleteRange({
+        startTime: historyDateCompat(startTime),
+        endTime: historyDateCompat(endTime),
+      })
+    } catch (err) {
+      log.warning(
+        `Failed to cleanup history after temporary tab ${tab.url}: ${err}`
+      )
+    }
   }
 }
 
@@ -249,14 +259,18 @@ async function handleMessageFromPopup(
         // may need to be rewritten to support cases when there was no attention time
         // tracked
         if (isReadyToBeAutoSaved(total, 0)) {
-          const response:
-            | FromContent.SavePageResponse
-            | FromContent.PageAlreadySavedResponse = await getPageContentViaTemporaryTab(
-            item.url
-          )
-          if (response.type === 'PAGE_TO_SAVE') {
-            const { url, content, originId, quoteNids } = response
-            await savePage(url, originId, quoteNids, content)
+          try {
+            const response:
+              | FromContent.SavePageResponse
+              | FromContent.PageAlreadySavedResponse = await getPageContentViaTemporaryTab(
+              item.url
+            )
+            if (response.type === 'PAGE_TO_SAVE') {
+              const { url, content, originId, quoteNids } = response
+              await savePage(url, originId, quoteNids, content)
+            }
+          } catch (err) {
+            log.error(`Failed to process ${item.url} during bootstrap: ${err}`)
           }
         }
       }
@@ -306,6 +320,7 @@ namespace TabLoadCompletion {
   type Monitors = {
     [key: number /* browser.Tabs.Tab.id */]: {
       onComplete: () => void
+      onAbort: (reason: string) => void
     }
   }
 
@@ -323,7 +338,7 @@ namespace TabLoadCompletion {
         )
         return
       }
-      monitors[tabId] = { onComplete: resolve }
+      monitors[tabId] = { onComplete: resolve, onAbort: reject }
     })
   }
   /**
@@ -333,6 +348,12 @@ namespace TabLoadCompletion {
   export function report(tabId: number) {
     if (monitors[tabId] != null) {
       monitors[tabId].onComplete()
+      delete monitors[tabId]
+    }
+  }
+  export function abort(tabId: number, reason: string) {
+    if (monitors[tabId] != null) {
+      monitors[tabId].onAbort(reason)
       delete monitors[tabId]
     }
   }
@@ -352,6 +373,7 @@ browser.tabs.onUpdated.addListener(
           tabId,
           calculateBadgeCounter(response.quotes, response.bookmark)
         )
+
         try {
           await ToContent.sendMessage(tabId, { type: 'RESET_CONTENT_APP' })
           await ToContent.sendMessage(tabId, {
@@ -381,6 +403,12 @@ browser.tabs.onUpdated.addListener(
     if (changeInfo.status === 'complete') {
       TabLoadCompletion.report(tabId)
     }
+  }
+)
+
+browser.tabs.onRemoved.addListener(
+  async (tabId: number, _removeInfo: browser.Tabs.OnRemovedRemoveInfoType) => {
+    TabLoadCompletion.abort(tabId, 'Tab removed')
   }
 )
 
