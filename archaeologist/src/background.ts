@@ -241,41 +241,20 @@ async function handleMessageFromPopup(
       for (let index = 0; index < items.length; index++) {
         const item = items[index]
 
-        await badge.resetText(undefined, `${index}/${items.length}`)
+        try {
+          await badge.resetText(undefined, `${index}/${items.length}`)
+          await badge.resetText(activeTab?.id, `${index}/${items.length}`)
 
-        if (item.url == null || !isPageAutosaveable(item.url)) {
-          continue
-        }
-        const origin = genOriginId(item.url)
-        const visits = await browser.history.getVisits({ url: item.url })
-        const resourceVisits: ResourceVisit[] = visits.map((visit) => {
-          return { timestamp: unixtime.from(new Date(visit.visitTime ?? 0)) }
-        })
-        const total = await smuggler.activity.external.add(
-          origin,
-          resourceVisits
-        )
-        // TODO[snikitin@outlook.com] Logic inside isReadyToBeAutoSaved()
-        // may need to be rewritten to support cases when there was no attention time
-        // tracked
-        if (isReadyToBeAutoSaved(total, 0)) {
-          try {
-            const response:
-              | FromContent.SavePageResponse
-              | FromContent.PageAlreadySavedResponse = await getPageContentViaTemporaryTab(
-              item.url
-            )
-            if (response.type === 'PAGE_TO_SAVE') {
-              const { url, content, originId, quoteNids } = response
-              await savePage(url, originId, quoteNids, content)
-            }
-          } catch (err) {
-            log.error(`Failed to process ${item.url} during bootstrap: ${err}`)
-          }
+          await uploadSingleHistoryItem(item)
+        } catch (err) {
+          log.error(
+            `Failed to process ${item.url} during history upload: ${err}`
+          )
         }
       }
 
-      await badge.resetText(undefined, '')
+      await badge.resetText(undefined, 'U✓')
+      await badge.resetText(activeTab?.id, 'U✓')
 
       return { type: 'VOID_RESPONSE' }
     }
@@ -285,6 +264,32 @@ async function handleMessageFromPopup(
           message
         )}`
       )
+  }
+}
+
+async function uploadSingleHistoryItem(item: browser.History.HistoryItem) {
+  if (item.url == null || !isPageAutosaveable(item.url)) {
+    return
+  }
+  const origin = genOriginId(item.url)
+  const visits = await browser.history.getVisits({ url: item.url })
+  const resourceVisits: ResourceVisit[] = visits.map((visit) => {
+    return { timestamp: unixtime.from(new Date(visit.visitTime ?? 0)) }
+  })
+  const total = await smuggler.activity.external.add(origin, resourceVisits)
+  // TODO[snikitin@outlook.com] Logic inside isReadyToBeAutoSaved()
+  // may need to be rewritten to support cases when there was no attention time
+  // tracked
+  if (isReadyToBeAutoSaved(total, 0)) {
+    const response:
+      | FromContent.SavePageResponse
+      | FromContent.PageAlreadySavedResponse = await getPageContentViaTemporaryTab(
+      item.url
+    )
+    if (response.type === 'PAGE_TO_SAVE') {
+      const { url, content, originId, quoteNids } = response
+      await savePage(url, originId, quoteNids, content)
+    }
   }
 }
 
