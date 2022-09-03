@@ -51,6 +51,8 @@ export async function setStatus(tabId?: number, status?: string) {
     text = activities
   } else if (activities.length !== 0) {
     text = status + activities
+  } else {
+    text = status
   }
 
   await _browserAction.setBadgeText({ text, tabId })
