@@ -7,11 +7,12 @@ import browser from 'webextension-polyfill'
 import styled from '@emotion/styled'
 import { css } from '@emotion/react'
 
-import { FromPopUp } from './../message/types'
+import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { Button } from './Button'
 import { mazed } from '../util/mazed'
 import { MdiLaunch } from 'elementary'
+import { BrowserHistoryUploadProgress } from '../background/browserHistoryUploadProgress'
 
 const AppContainer = styled.div`
   width: 280px;
@@ -23,11 +24,30 @@ const AppContainer = styled.div`
 
 export const PopUpApp = () => {
   const [authenticated, setAuthenticated] = React.useState(false)
+  const [browserHistoryUploadProgress, setBrowserHistoryUploadProgress] =
+    React.useState<BrowserHistoryUploadProgress>({
+      processed: 0,
+      total: 0,
+    })
   useAsyncEffect(async () => {
     const response = await FromPopUp.sendMessage({
       type: 'REQUEST_AUTH_STATUS',
     })
     setAuthenticated(response.status)
+
+    browser.runtime.onMessage.addListener(async (request: ToPopUp.Request) => {
+      switch (request.type) {
+        case 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS':
+          setBrowserHistoryUploadProgress(request.newState)
+          break
+        default:
+          throw new Error(
+            `popup received msg from background of unknown type, message: ${JSON.stringify(
+              request
+            )}`
+          )
+      }
+    })
   }, [])
 
   if (!authenticated) {
@@ -42,7 +62,7 @@ export const PopUpApp = () => {
       <Container>
         <Row>
           <ViewActiveTabStatus />
-          <SyncBrowserHistoryButton />
+          <SyncBrowserHistoryButton progress={browserHistoryUploadProgress} />
         </Row>
       </Container>
     </AppContainer>
@@ -67,13 +87,25 @@ const LoginBtnBox = styled.div`
   justify-content: center;
 `
 
-const SyncBrowserHistoryButton = () => {
+type SyncBrowserHistoryProps = React.PropsWithChildren<{
+  progress: BrowserHistoryUploadProgress
+}>
+
+const SyncBrowserHistoryButton = ({ progress }: SyncBrowserHistoryProps) => {
   const handler = async () => {
     FromPopUp.sendMessage({
       type: 'UPLOAD_BROWSER_HISTORY',
     })
   }
-  return <Button onClick={handler}>Upload browser history</Button>
+  if (progress.processed === progress.total) {
+    return <Button onClick={handler}>Upload browser history</Button>
+  } else {
+    return (
+      <Button disabled>
+        Browser history uploading ({progress.processed}/{progress.total})
+      </Button>
+    )
+  }
 }
 
 const LoginPage = () => {

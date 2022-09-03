@@ -19,6 +19,8 @@ import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
 import { calculateBadgeCounter } from './badge/badgeCounter'
 import { isMemorable } from './content/extractor/unmemorable'
 import { isPageAutosaveable } from './content/activity-tracker/autosaveable'
+import lodash from 'lodash'
+import { BrowserHistoryUploadProgress } from './background/browserHistoryUploadProgress'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
@@ -206,7 +208,7 @@ async function handleMessageFromPopup(
       const { quotes, bookmark, unmemorable } = await requestPageSavedStatus(
         activeTab?.url
       )
-      await badge.resetText(
+      await badge.setStatus(
         activeTab?.id,
         calculateBadgeCounter(quotes, bookmark)
       )
@@ -223,6 +225,16 @@ async function handleMessageFromPopup(
       badge.setActive(status)
       return { type: 'AUTH_STATUS', status }
     case 'UPLOAD_BROWSER_HISTORY': {
+      const reportProgressToPopup = lodash.throttle(
+        (progress: BrowserHistoryUploadProgress) => {
+          ToPopUp.sendMessage({
+            type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS',
+            newState: progress,
+          })
+        },
+        1123
+      )
+
       const items: browser.History.HistoryItem[] = await browser.history.search(
         {
           // TODO[snikitin@outlook.com] Such a naive implementation which queries
@@ -238,13 +250,16 @@ async function handleMessageFromPopup(
         }
       )
 
+      const badgeActivityId = await badge.addActivity('H')
+
       for (let index = 0; index < items.length; index++) {
         const item = items[index]
 
         try {
-          await badge.resetText(undefined, `${index}/${items.length}`)
-          await badge.resetText(activeTab?.id, `${index}/${items.length}`)
-
+          reportProgressToPopup({
+            processed: index,
+            total: items.length,
+          })
           await uploadSingleHistoryItem(item)
         } catch (err) {
           log.error(
@@ -253,8 +268,11 @@ async function handleMessageFromPopup(
         }
       }
 
-      await badge.resetText(undefined, 'U✓')
-      await badge.resetText(activeTab?.id, 'U✓')
+      reportProgressToPopup({
+        processed: items.length,
+        total: items.length,
+      })
+      await badge.removeActivity(badgeActivityId)
 
       return { type: 'VOID_RESPONSE' }
     }
@@ -404,7 +422,7 @@ async function initMazedPartsOfTab(tab: browser.Tabs.Tab) {
   }
   // Request page saved status on new non-incognito page loading
   const response = await requestPageSavedStatus(tab.url)
-  await badge.resetText(
+  await badge.setStatus(
     tab.id,
     calculateBadgeCounter(response.quotes, response.bookmark)
   )

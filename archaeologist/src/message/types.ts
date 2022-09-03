@@ -1,4 +1,5 @@
 import { WebPageContent } from './../content/extractor/webPageContent'
+import { BrowserHistoryUploadProgress } from './../background/browserHistoryUploadProgress'
 
 import browser from 'webextension-polyfill'
 import { OriginHash, TNodeJson } from 'smuggler-api'
@@ -53,6 +54,8 @@ export namespace FromPopUp {
     | AuthStatusRequest
     | UploadBrowserHistoryRequest
 
+  export type Response = VoidResponse
+
   export function sendMessage(
     message: AuthStatusRequest
   ): Promise<ToPopUp.AuthStatusResponse>
@@ -73,6 +76,13 @@ export namespace FromPopUp {
   }
 }
 export namespace ToPopUp {
+  export interface ReportBrowserHistoryUploadProgress {
+    type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS'
+    newState: BrowserHistoryUploadProgress
+  }
+
+  export type Request = ReportBrowserHistoryUploadProgress
+
   export interface AuthStatusResponse {
     type: 'AUTH_STATUS'
     status: boolean
@@ -101,7 +111,7 @@ export namespace ToPopUp {
     | ActiveTabStatusResponse
     | PageSavedResponse
     | VoidResponse
-  export function sendMessage(message: void): Promise<void> {
+  export function sendMessage(message: Request): Promise<FromPopUp.Response> {
     return browser.runtime.sendMessage(message)
   }
 }

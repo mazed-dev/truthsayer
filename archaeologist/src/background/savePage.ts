@@ -90,7 +90,7 @@ export async function savePage(
 ): Promise<{ node?: TNode; unmemorable: boolean }> {
   if (content == null) {
     // Update badge counter
-    await badge.resetText(tabId, ACTION_DONE_BADGE_MARKER)
+    await badge.setStatus(tabId, ACTION_DONE_BADGE_MARKER)
     // Page is not memorable
     await updateContent([], undefined, tabId)
     return { unmemorable: true }
@@ -126,7 +126,7 @@ export async function savePage(
   })
 
   // Update badge counter
-  await badge.resetText(tabId, ACTION_DONE_BADGE_MARKER)
+  await badge.setStatus(tabId, ACTION_DONE_BADGE_MARKER)
 
   const { nid } = resp
   const node = await smuggler.node.get({ nid })
@@ -162,7 +162,7 @@ export async function savePageQuote(
   })
   if (resp) {
     // Update badge counter
-    await badge.resetText(tabId, ACTION_DONE_BADGE_MARKER)
+    await badge.setStatus(tabId, ACTION_DONE_BADGE_MARKER)
 
     const { nid } = resp
     const node = await smuggler.node.get({ nid })
