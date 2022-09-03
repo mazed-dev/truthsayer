@@ -62,7 +62,7 @@ export const PopUpApp = () => {
       <Container>
         <Row>
           <ViewActiveTabStatus />
-          <SyncBrowserHistoryButton progress={browserHistoryUploadProgress} />
+          <UploadBrowserHistoryButton progress={browserHistoryUploadProgress} />
         </Row>
       </Container>
     </AppContainer>
@@ -87,22 +87,36 @@ const LoginBtnBox = styled.div`
   justify-content: center;
 `
 
-type SyncBrowserHistoryProps = React.PropsWithChildren<{
+type UploadBrowserHistoryProps = React.PropsWithChildren<{
   progress: BrowserHistoryUploadProgress
 }>
 
-const SyncBrowserHistoryButton = ({ progress }: SyncBrowserHistoryProps) => {
-  const handler = async () => {
+const UploadBrowserHistoryButton = ({
+  progress,
+}: UploadBrowserHistoryProps) => {
+  const [isBeingCancelled, setIsBeingCancelled] = React.useState(false)
+
+  const startUpload = async () => {
     FromPopUp.sendMessage({
       type: 'UPLOAD_BROWSER_HISTORY',
+    }).finally(() => {
+      setIsBeingCancelled(false)
     })
   }
+  const cancelUpload = () => {
+    setIsBeingCancelled(true)
+    FromPopUp.sendMessage({
+      type: 'CANCEL_BROWSER_HISTORY_UPLOAD',
+    })
+  }
+
   if (progress.processed === progress.total) {
-    return <Button onClick={handler}>Upload browser history</Button>
+    return <Button onClick={startUpload}>Upload browser history</Button>
   } else {
     return (
-      <Button disabled>
-        Browser history uploading ({progress.processed}/{progress.total})
+      <Button onClick={cancelUpload} disabled={isBeingCancelled}>
+        {isBeingCancelled ? 'Cancelling' : 'Cancel'} browser history upload (
+        {progress.processed}/{progress.total})
       </Button>
     )
   }

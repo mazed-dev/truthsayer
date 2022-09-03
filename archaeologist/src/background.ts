@@ -174,6 +174,20 @@ async function handleMessageFromContent(
   }
 }
 
+// TODO[snikitin@outlook.com] This boolean is an extremely naive tool to cancel
+// an asyncronous task. In general AbortController would have been used instead
+// (see https://medium.com/@bramus/cancel-a-javascript-promise-with-abortcontroller-3540cbbda0a9)
+// but if controller is passed across the popup/background or content/background
+// boundary it stops working.
+//
+// One of the weaknesses of this boolean is it's a global, so it may work in happy
+// case when there is just one browser history upload job running, but if for any
+// reason there are more, then attempts to cancel them will lead to unexpected results.
+//
+// Another weakness is the boolean state is completely disconneted from whether or not
+// browser history upload is actually in progress.
+let shouldCancelBrowserHistoryUpload = false
+
 async function handleMessageFromPopup(
   message: FromPopUp.Request
 ): Promise<ToPopUp.Response> {
@@ -224,6 +238,10 @@ async function handleMessageFromPopup(
       const status = await auth.isAuthorised()
       badge.setActive(status)
       return { type: 'AUTH_STATUS', status }
+    case 'CANCEL_BROWSER_HISTORY_UPLOAD': {
+      shouldCancelBrowserHistoryUpload = true
+      return { type: 'VOID_RESPONSE' }
+    }
     case 'UPLOAD_BROWSER_HISTORY': {
       const reportProgressToPopup = lodash.throttle(
         (progress: BrowserHistoryUploadProgress) => {
@@ -252,7 +270,11 @@ async function handleMessageFromPopup(
 
       const badgeActivityId = await badge.addActivity('H')
 
-      for (let index = 0; index < items.length; index++) {
+      for (
+        let index = 0;
+        index < items.length && !shouldCancelBrowserHistoryUpload;
+        index++
+      ) {
         const item = items[index]
 
         try {
@@ -267,6 +289,7 @@ async function handleMessageFromPopup(
           )
         }
       }
+      shouldCancelBrowserHistoryUpload = false
 
       reportProgressToPopup({
         processed: items.length,

@@ -48,11 +48,15 @@ export namespace FromPopUp {
   export interface UploadBrowserHistoryRequest {
     type: 'UPLOAD_BROWSER_HISTORY'
   }
+  export interface CancelBrowserHistoryUploadRequest {
+    type: 'CANCEL_BROWSER_HISTORY_UPLOAD'
+  }
   export type Request =
     | SavePageRequest
     | PageInActiveTabStatusRequest
     | AuthStatusRequest
     | UploadBrowserHistoryRequest
+    | CancelBrowserHistoryUploadRequest
 
   export type Response = VoidResponse
 
@@ -67,6 +71,9 @@ export namespace FromPopUp {
   ): Promise<ToPopUp.ActiveTabStatusResponse>
   export function sendMessage(
     message: UploadBrowserHistoryRequest
+  ): Promise<VoidResponse>
+  export function sendMessage(
+    message: CancelBrowserHistoryUploadRequest
   ): Promise<VoidResponse>
   export function sendMessage(message: Request): Promise<ToPopUp.Response> {
     const msg: ToBackground.Request = { direction: 'from-popup', ...message }
