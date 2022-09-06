@@ -1,50 +1,78 @@
 import { smuggler, SmugglerError } from './../api'
 import { StatusCode } from './../status_codes'
+import { authCookie } from './cookie'
 
 import type { Optional } from 'armoury'
-import { log } from 'armoury'
+import { log, unixtime } from 'armoury'
 import lodash from 'lodash'
 
 export class Knocker {
-  _scheduledId: Optional<number>
-  _abortCallback?: () => void
-  _abortController: AbortController
-  _knockingPeriod: number
+  #scheduledId: Optional<number>
+  readonly #abortCallback?: () => void
+  readonly #abortController: AbortController
+  readonly #knockingPeriodSeconds: number
+  readonly #checkingPeriodMSeconds: number
+  readonly getLastUpdate: typeof authCookie.lastUpdate.get
+  readonly setLastUpdate: typeof authCookie.lastUpdate.set
 
-  constructor(knockingPeriod?: number, abortCallback?: () => void) {
-    this._scheduledId = null
-    this._abortCallback = abortCallback
-    this._abortController = new AbortController()
-    if (knockingPeriod) {
-      this._knockingPeriod = knockingPeriod
-    } else {
-      // Randomly select something between 20min-40min
-      this._knockingPeriod = lodash.random(1200000, 2400000)
+  constructor(
+    abortCallback?: () => void,
+    getLastUpdate?: typeof authCookie.lastUpdate.get,
+    setLastUpdate?: typeof authCookie.lastUpdate.set
+  ) {
+    this.getLastUpdate = getLastUpdate || authCookie.lastUpdate.get
+    this.setLastUpdate = setLastUpdate || authCookie.lastUpdate.set
+    this.#scheduledId = null
+    this.#abortCallback = abortCallback
+    this.#abortController = new AbortController()
+    this.#knockingPeriodSeconds = lodash.random(2400, 3600)
+    this.#checkingPeriodMSeconds = lodash.random(80_000, 120_000)
+  }
+
+  start = async () => {
+    if (this.#scheduledId) {
+      clearTimeout(this.#scheduledId)
+    }
+    // Check if token has to be updated with [knock] every 2 minutes restart the
+    // loop if everything is ok
+    await this.knock(
+      // Restart loop on check success
+      () => {
+        this.#scheduledId = lodash.delay(
+          this.start,
+          this.#checkingPeriodMSeconds
+        )
+      },
+      // Log out immediately if there is a client error
+      () => this.abort()
+    )
+  }
+
+  abort = async () => {
+    if (this.#scheduledId) {
+      clearTimeout(this.#scheduledId)
+    }
+    this.#abortController.abort()
+    if (this.#abortCallback) {
+      this.#abortCallback()
     }
   }
 
-  start() {
-    if (this._scheduledId) {
-      clearTimeout(this._scheduledId)
-    }
-    this._scheduledId = lodash.delay(this._doKnocKnock, this._knockingPeriod)
-  }
-
-  abort() {
-    const { _abortCallback, _abortController, _scheduledId } = this
-    if (_scheduledId) {
-      clearTimeout(_scheduledId)
-    }
-    _abortController.abort()
-    if (_abortCallback) {
-      _abortCallback()
-    }
-  }
-
-  _doKnocKnock = async () => {
+  knock = async (
+    onCheckSuccess: () => void,
+    onKnockFailure: () => void
+  ): Promise<void> => {
     try {
-      log.debug('Knock knock')
-      await smuggler.session.update(this._abortController.signal)
+      // To renew auth token more effectively rely on 'lastUpdate' value stored
+      // to cookies for loose syncronisation across all open tabs of truthsayer
+      // web app and archaeologist background script.
+      const lastUpdateTime = (await this.getLastUpdate())?.time ?? 0
+      const now = unixtime.now()
+      if (this.#knockingPeriodSeconds < now - lastUpdateTime) {
+        log.debug('Knock-knock smuggler', now, lastUpdateTime)
+        await smuggler.session.update(this.#abortController.signal)
+        this.setLastUpdate({ time: now })
+      }
     } catch (error) {
       const smugglerError = SmugglerError.fromAny(error)
       if (smugglerError?.status != null) {
@@ -54,14 +82,13 @@ export class Knocker {
           code >= StatusCode.BAD_REQUEST &&
           code < 499
         ) {
-          log.debug('Failed to renew access token, log out')
-          // Log out immediately if there is a client error
-          this.abort()
+          log.debug('Failed to renew smuggler access token')
+          onKnockFailure()
         }
       }
       // Just retry in all other cases, e.g. temporary offline mode should not
       // resutl in log out.
     }
-    this.start() // Restart the loop
+    onCheckSuccess()
   }
 }

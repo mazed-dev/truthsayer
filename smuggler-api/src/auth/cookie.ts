@@ -1,8 +1,17 @@
 import Cookies from 'universal-cookie'
 
-export const COOKIES_VEIL_KEY: string = 'x-magic-veil'
+import { log, isAbortError } from 'armoury'
 
-function checkRawValue(value: string | null) {
+export const COOKIES_VEIL_KEY: string = 'x-magic-veil'
+export const COOKIES_LAST_UPDATE_KEY: string =
+  'x-magic-smuggler-token-last-update'
+
+export type SmugglerTokenLastUpdateCookies = {
+  // unixtime
+  time: number
+}
+
+function parseVeilRawValue(value: string | null) {
   return value === 'y'
 }
 
@@ -20,17 +29,40 @@ function getAuthCookieDomain(): string {
 }
 
 export const authCookie = {
-  check() {
-    // Is it too slow?
-    const cookies = new Cookies()
-    return checkRawValue(cookies.get(COOKIES_VEIL_KEY))
-  },
-  drop() {
-    const cookies = new Cookies()
-    cookies.remove(COOKIES_VEIL_KEY)
-  },
   url: process.env.REACT_APP_SMUGGLER_API_URL || '',
   domain: getAuthCookieDomain(),
-  name: COOKIES_VEIL_KEY,
-  checkRawValue,
+  veil: {
+    name: COOKIES_VEIL_KEY,
+    parse: parseVeilRawValue,
+    check: () => {
+      // Is it too slow?
+      const cookies = new Cookies()
+      return parseVeilRawValue(cookies.get<string>(COOKIES_VEIL_KEY))
+    },
+    drop: () => {
+      const cookies = new Cookies()
+      cookies.remove(COOKIES_VEIL_KEY)
+    },
+  },
+  lastUpdate: {
+    name: COOKIES_LAST_UPDATE_KEY,
+    get: async (): Promise<SmugglerTokenLastUpdateCookies | undefined> => {
+      const cookies = new Cookies()
+      try {
+        return cookies.get<SmugglerTokenLastUpdateCookies>(
+          COOKIES_LAST_UPDATE_KEY
+        )
+      } catch (err) {
+        log.debug(
+          'Corrupted smuggler auth token last update info in cookies',
+          err
+        )
+      }
+      return undefined
+    },
+    set: async (value: SmugglerTokenLastUpdateCookies): Promise<void> => {
+      const cookies = new Cookies()
+      return cookies.set(COOKIES_LAST_UPDATE_KEY, value)
+    },
+  },
 }
