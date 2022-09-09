@@ -9,11 +9,12 @@ import { genOriginId, OriginIdentity, log } from 'armoury'
 import { FromContent, ToContent } from './../message/types'
 import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/url/unmemorable'
+import { extractSearchEngineQuery } from './extractor/url/searchEngineQuery'
 import {
   exctractPageContent,
   exctractPageUrl,
 } from './extractor/webPageContent'
-
+import { mazed } from '../util/mazed'
 import { Quotes } from './quote/Quotes'
 import { ActivityTracker } from './activity-tracker/ActivityTracker'
 import {
@@ -141,11 +142,26 @@ const App = () => {
     browser.runtime.onMessage.addListener(listener)
     return () => browser.runtime.onMessage.removeListener(listener)
   }, [listener])
+  // Search engine pop up card
+  const [searchNotification, setSearchNotification] =
+    useState<DisappearingToastProps | null>(null)
+  useEffect(() => {
+    const engine = extractSearchEngineQuery(originIdentity.stableUrl)
+    if (engine != null && engine.phrase.length > 2) {
+      const foundCardsN = 1
+      setSearchNotification({
+        text: `"${engine.phrase}" (${foundCardsN})`,
+        href: mazed.makeSearchUrl(engine.phrase).toString(),
+        timeoutMsec: 20000,
+      })
+    }
+  }, [originIdentity])
   return (
     <AppErrorBoundary>
       <Toaster />
-      {notification ? (
-        <DisappearingToast {...notification}></DisappearingToast>
+      {notification ? <DisappearingToast {...notification} /> : null}
+      {searchNotification ? (
+        <DisappearingToast {...searchNotification} />
       ) : null}
       <Quotes quotes={quotes} />
       <ActivityTracker

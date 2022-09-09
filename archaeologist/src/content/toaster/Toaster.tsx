@@ -100,12 +100,16 @@ export const DisappearingToast = ({
     }, timeoutMsec ?? 3099)
     return () => clearTimeout(callbackId)
   }, [text, tooltip, timeoutMsec, id])
+  const textElement =
+    tooltip != null ? (
+      <HoverTooltip tooltip={tooltip}>{text}</HoverTooltip>
+    ) : (
+      text
+    )
   return show ? (
     <Toast toastKey={'disappearing-toast'}>
       <LogoSmall />
-      <RefItem href={href}>
-        <HoverTooltip tooltip={tooltip ?? text}>{text}</HoverTooltip>
-      </RefItem>
+      <RefItem href={href}>{textElement}</RefItem>
     </Toast>
   ) : null
 }
