@@ -8,4 +8,7 @@ export const unixtime = {
   from: (date: Date): number => {
     return Math.floor(date.getTime())
   },
+  toDate: (unixtime: number): Date => {
+    return new Date(unixtime)
+  },
 }

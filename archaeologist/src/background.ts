@@ -13,7 +13,13 @@ import {
 
 import browser from 'webextension-polyfill'
 import { log, isAbortError, genOriginId, unixtime } from 'armoury'
-import { TNode, TotalUserActivity, ResourceVisit, smuggler } from 'smuggler-api'
+import {
+  TNode,
+  TotalUserActivity,
+  ResourceVisit,
+  smuggler,
+  UserFilesystemId,
+} from 'smuggler-api'
 import { savePage, savePageQuote } from './background/savePage'
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
 import { calculateBadgeCounter } from './badge/badgeCounter'
@@ -75,6 +81,25 @@ async function requestPageSavedStatus(url: string | undefined) {
  */
 function historyDateCompat(date: Date): number {
   return date.getTime()
+}
+
+function sortWithOldestLastVisitAtEnd(
+  lhs: browser.History.HistoryItem,
+  rhs: browser.History.HistoryItem
+): number {
+  if (lhs.lastVisitTime == null && rhs.lastVisitTime == null) {
+    return 0
+  } else if (lhs.lastVisitTime == null) {
+    return -1
+  } else if (rhs.lastVisitTime == null) {
+    return 1
+  }
+  if (lhs.lastVisitTime < rhs.lastVisitTime) {
+    return -1
+  } else if (lhs.lastVisitTime === rhs.lastVisitTime) {
+    return 0
+  }
+  return 1
 }
 
 async function registerAttentionTime(
@@ -188,6 +213,98 @@ async function handleMessageFromContent(
 // browser history upload is actually in progress.
 let shouldCancelBrowserHistoryUpload = false
 
+async function uploadBrowserHistory() {
+  const reportProgressToPopup = lodash.throttle(
+    (progress: BrowserHistoryUploadProgress) => {
+      ToPopUp.sendMessage({
+        type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS',
+        newState: progress,
+      })
+    },
+    1123
+  )
+
+  // TODO [snikitin@outlook.com] User can use multiple browsers and have
+  // multiple devices. Ignoring the fact that modern browsers are capable of
+  // syncing history, 'deviceId' should be populated with something that
+  // uniquely identifies both the used browser and the device.
+  const browserId = 'bid'
+  const deviceId = 'did'
+  const fsid: UserFilesystemId = { fs_key: `hist-${deviceId}-${browserId}` }
+
+  const currentProgress = await smuggler.thirdparty.fs.progress.get(fsid)
+
+  log.debug(`Progress until now: ${currentProgress.ingested_until}`)
+
+  const advanceIngestionProgress = lodash.throttle(async (date: Date) => {
+    return smuggler.thirdparty.fs.progress.advance(fsid, {
+      ingested_until: unixtime.from(date),
+    })
+  }, 1123)
+
+  const items: browser.History.HistoryItem[] = await browser.history.search({
+    // TODO[snikitin@outlook.com] Such a naive implementation which queries
+    // the entire history at once may consume too much memory for users
+    // with years of browser history.
+    // A more iterative implementation is difficult to implement due the
+    // assymetry of the API - the inputs allow to restrict how visits
+    // will be searched, but output includes web pages instead of visits.
+    endTime: historyDateCompat(new Date()),
+    startTime: historyDateCompat(
+      // NOTE: 'startTime' of 'browser.history.search' is an inclusive boundary
+      // which requires an increment by 1 to avoid getting edge items multiple
+      // times between runs of this function
+      unixtime.toDate(currentProgress.ingested_until + 1)
+    ),
+    maxResults: 1000000,
+    text: '',
+  })
+  // NOTE: With Chromium at least the output of `browser.history.search`
+  // is already in the order from "pages that hasn't been visited the longest"
+  // to "most recently visited". However `browser.history.search` doesn't seem
+  // to provide any guarantees about it. Since logic which relies on
+  // `smuggler.thirdparty.fs.progress` would break under different ordering,
+  // explicit sorting is added as a safeguard
+  items.sort(sortWithOldestLastVisitAtEnd)
+
+  const badgeActivityId = await badge.addActivity('H')
+
+  for (
+    let index = 0;
+    index < items.length && !shouldCancelBrowserHistoryUpload;
+    index++
+  ) {
+    const item = items[index]
+
+    if (item.lastVisitTime == null) {
+      log.warning(
+        `Can't process history item ${item.url} as it doesn't have lastVisitTime set`
+      )
+      continue
+    }
+
+    try {
+      reportProgressToPopup({
+        processed: index,
+        total: items.length,
+      })
+      await uploadSingleHistoryItem(item)
+      await advanceIngestionProgress(new Date(item.lastVisitTime))
+    } catch (err) {
+      log.error(`Failed to process ${item.url} during history upload: ${err}`)
+    }
+  }
+  shouldCancelBrowserHistoryUpload = false
+
+  reportProgressToPopup({
+    processed: items.length,
+    total: items.length,
+  })
+  reportProgressToPopup.flush()
+  await advanceIngestionProgress.flush()
+  await badge.removeActivity(badgeActivityId)
+}
+
 async function handleMessageFromPopup(
   message: FromPopUp.Request
 ): Promise<ToPopUp.Response> {
@@ -243,60 +360,7 @@ async function handleMessageFromPopup(
       return { type: 'VOID_RESPONSE' }
     }
     case 'UPLOAD_BROWSER_HISTORY': {
-      const reportProgressToPopup = lodash.throttle(
-        (progress: BrowserHistoryUploadProgress) => {
-          ToPopUp.sendMessage({
-            type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS',
-            newState: progress,
-          })
-        },
-        1123
-      )
-
-      const items: browser.History.HistoryItem[] = await browser.history.search(
-        {
-          // TODO[snikitin@outlook.com] Such a naive implementation which queries
-          // the entire history at once may consume too much memory for users
-          // with years of browser history.
-          // A more iterative implementation is difficult to implement due the
-          // assymetry of the API - the inputs allow to restrict how visits
-          // will be searched, but output includes web pages instead of visits.
-          endTime: historyDateCompat(new Date()),
-          startTime: historyDateCompat(new Date(0)),
-          maxResults: 1000000,
-          text: '',
-        }
-      )
-
-      const badgeActivityId = await badge.addActivity('H')
-
-      for (
-        let index = 0;
-        index < items.length && !shouldCancelBrowserHistoryUpload;
-        index++
-      ) {
-        const item = items[index]
-
-        try {
-          reportProgressToPopup({
-            processed: index,
-            total: items.length,
-          })
-          await uploadSingleHistoryItem(item)
-        } catch (err) {
-          log.error(
-            `Failed to process ${item.url} during history upload: ${err}`
-          )
-        }
-      }
-      shouldCancelBrowserHistoryUpload = false
-
-      reportProgressToPopup({
-        processed: items.length,
-        total: items.length,
-      })
-      await badge.removeActivity(badgeActivityId)
-
+      await uploadBrowserHistory()
       return { type: 'VOID_RESPONSE' }
     }
     default:
