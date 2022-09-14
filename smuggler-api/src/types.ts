@@ -417,18 +417,18 @@ export interface AccountInterface {
   getLocalCrypto: () => LocalCrypto
 }
 
-export type UserFilesystemId = {
-  // A value that uniquely identifies one of filesystems of a specific uid
-  fs_key: string
+export type UserExternalPipelineId = {
+  // A value that uniquely identifies one of the external pipelines of a specific uid
+  pipeline_key: string
 }
 
-export type UserFsIngestionProgress = {
-  fsid: UserFilesystemId
-  ingested_until: number // Absolute time - unix timestamp, seconds
+export type UserExternalPipelineIngestionProgress = {
+  epid: UserExternalPipelineId
+  ingested_until: number // Absolute time - unix timestamp, seconds; inclusive boundary
 }
 
-export type AdvanceUserFsIngestionProgress = {
-  ingested_until: number // See UserFsIngestionProgress
+export type AdvanceExternalPipelineIngestionProgress = {
+  ingested_until: number // See UserExternalPipelineIngestionProgress
 }
 
 export type ResourceVisit = {

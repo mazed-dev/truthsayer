@@ -2,7 +2,7 @@ import {
   AccountInfo,
   Ack,
   AddUserActivityRequest,
-  AdvanceUserFsIngestionProgress,
+  AdvanceExternalPipelineIngestionProgress,
   EdgeAttributes,
   EdgeStar,
   GenerateBlobIndexResponse,
@@ -23,8 +23,8 @@ import {
   TotalUserActivity,
   UploadMultipartResponse,
   UserBadge,
-  UserFilesystemId,
-  UserFsIngestionProgress,
+  UserExternalPipelineId,
+  UserExternalPipelineIngestionProgress,
 } from './types'
 
 import { makeUrl } from './api_url'
@@ -888,39 +888,45 @@ async function passwordChange(
   throw _makeResponseError(resp)
 }
 
-async function getUserFsIngestionProgress(
-  fsid: UserFilesystemId,
+async function getUserIngestionProgress(
+  epid: UserExternalPipelineId,
   signal?: AbortSignal
-): Promise<UserFsIngestionProgress> {
-  const resp = await fetch(makeUrl(`/3rdparty/fs/${fsid.fs_key}/progress`), {
-    method: 'GET',
-    signal,
-  })
+): Promise<UserExternalPipelineIngestionProgress> {
+  const resp = await fetch(
+    makeUrl(`/external/ingestion/${epid.pipeline_key}`),
+    {
+      method: 'GET',
+      signal,
+    }
+  )
   if (resp.ok) {
     return await resp.json()
   }
   throw _makeResponseError(
     resp,
-    `Failed to get ingestion progress for ${JSON.stringify(fsid)}`
+    `Failed to get ingestion progress for ${JSON.stringify(epid)}`
   )
 }
-async function advanceUserFsIngestionProgress(
-  fsid: UserFilesystemId,
-  new_progress: AdvanceUserFsIngestionProgress,
+async function advanceUserIngestionProgress(
+  epid: UserExternalPipelineId,
+  new_progress: AdvanceExternalPipelineIngestionProgress,
   signal?: AbortSignal
 ): Promise<Ack> {
-  const resp = await fetch(makeUrl(`/3rdparty/fs/${fsid.fs_key}/progress`), {
-    method: 'PATCH',
-    body: JSON.stringify(new_progress),
-    headers: { 'Content-type': MimeType.JSON },
-    signal,
-  })
+  const resp = await fetch(
+    makeUrl(`/external/ingestion/${epid.pipeline_key}`),
+    {
+      method: 'PATCH',
+      body: JSON.stringify(new_progress),
+      headers: { 'Content-type': MimeType.JSON },
+      signal,
+    }
+  )
   if (resp.ok) {
     return await resp.json()
   }
   throw _makeResponseError(
     resp,
-    `Failed to advance ingestion progress for ${JSON.stringify(fsid)}`
+    `Failed to advance ingestion progress for ${JSON.stringify(epid)}`
   )
 }
 
@@ -1023,12 +1029,10 @@ export const smuggler = {
       get: getExternalUserActivity,
     },
   },
-  thirdparty: {
-    fs: {
-      progress: {
-        get: getUserFsIngestionProgress,
-        advance: advanceUserFsIngestionProgress,
-      },
+  external: {
+    ingestion: {
+      get: getUserIngestionProgress,
+      advance: advanceUserIngestionProgress,
     },
   },
   user: {
