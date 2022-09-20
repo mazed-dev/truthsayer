@@ -13,7 +13,12 @@ import {
 
 import browser from 'webextension-polyfill'
 import { log, isAbortError, genOriginId, unixtime } from 'armoury'
-import { TNode, TotalUserActivity, smuggler } from 'smuggler-api'
+import {
+  TNode,
+  TotalUserActivity,
+  smuggler,
+  NodeCreatedVia,
+} from 'smuggler-api'
 import { savePage, savePageQuote } from './background/savePage'
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
 import { calculateBadgeCounter } from './badge/badgeCounter'
@@ -94,7 +99,8 @@ async function registerAttentionTime(
       { type: 'REQUEST_PAGE_CONTENT' }
     )
     const { url, content, originId, quoteNids } = response
-    await savePage(url, originId, quoteNids, content, tab.id)
+    const createdVia: NodeCreatedVia = { autoAttentionTracking: {} }
+    await savePage(url, originId, quoteNids, createdVia, content, tab.id)
   }
 }
 
@@ -132,10 +138,12 @@ async function handleMessageFromPopup(
       const response: FromContent.SavePageResponse =
         await ToContent.sendMessage(tabId, { type: 'REQUEST_PAGE_CONTENT' })
       const { url, content, originId, quoteNids } = response
+      const createdVia: NodeCreatedVia = { manualAction: {} }
       const { node, unmemorable } = await savePage(
         url,
         originId,
         quoteNids,
+        createdVia,
         content,
         tabId
       )
@@ -255,9 +263,11 @@ browser.contextMenus.onClicked.addListener(
             text: selectionText,
           })
         const { originId, url, text, path, lang, fromNid } = response
+        const createdVia: NodeCreatedVia = { manualAction: {} }
         await savePageQuote(
           originId,
           { url, path, text },
+          createdVia,
           lang,
           tab?.id,
           fromNid

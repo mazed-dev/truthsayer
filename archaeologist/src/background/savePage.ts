@@ -11,6 +11,7 @@ import {
   smuggler,
   OriginHash,
   TNode,
+  NodeCreatedVia,
 } from 'smuggler-api'
 import { ToContent } from '../message/types'
 import { mazed } from '../util/mazed'
@@ -85,6 +86,7 @@ export async function savePage(
   url: string,
   originId: OriginHash,
   quoteNids: string[],
+  createdVia: NodeCreatedVia,
   content?: WebPageContent,
   tabId?: number
 ): Promise<{ node?: TNode; unmemorable: boolean }> {
@@ -113,6 +115,7 @@ export async function savePage(
       url: url,
     },
     blob: undefined,
+    created_via: createdVia,
   }
   const resp = await smuggler.node.create({
     text,
@@ -142,6 +145,7 @@ export async function savePage(
 export async function savePageQuote(
   originId: OriginHash,
   { url, path, text }: NodeExtattrsWebQuote,
+  createdVia: NodeCreatedVia,
   lang?: string,
   tabId?: number,
   fromNid?: string
@@ -150,6 +154,7 @@ export async function savePageQuote(
     content_type: MimeType.TEXT_PLAIN_UTF_8,
     lang: lang || undefined,
     web_quote: { url, path, text },
+    created_via: createdVia,
   }
   const resp = await smuggler.node.create({
     text: makeNodeTextData(),

@@ -4,6 +4,7 @@
 
 import {
   GenerateBlobIndexResponse,
+  NodeCreatedVia,
   NodeIndexText,
   UploadMultipartResponse,
 } from '../types'
@@ -32,6 +33,7 @@ export async function createNodeFromLocalBinary(
   file: File,
   from_nid: Optional<string>,
   to_nid: Optional<string>,
+  createdVia: NodeCreatedVia,
   abortSignal: AbortSignal
 ): Promise<FileUploadComplete> {
   const mime = Mime.fromString(file.type)
@@ -47,7 +49,7 @@ export async function createNodeFromLocalBinary(
   // Launch both upload & index *generation* at the same time, wait until all
   // promises are settled.
   const [uploadResult, indexResult] = await Promise.allSettled([
-    smuggler.blob.upload([file], from_nid, to_nid, abortSignal),
+    smuggler.blob.upload([file], from_nid, to_nid, createdVia, abortSignal),
     smuggler.blob_index.build([file], abortSignal),
   ])
 

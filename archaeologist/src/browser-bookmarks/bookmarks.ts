@@ -2,6 +2,7 @@ import browser from 'webextension-polyfill'
 import { log } from 'armoury'
 import { FromContent, ToContent } from '../message/types'
 import { savePage } from '../background/savePage'
+import { NodeCreatedVia } from 'smuggler-api'
 
 async function onCreatedEventListener(
   id: string,
@@ -20,7 +21,8 @@ async function onCreatedEventListener(
       { type: 'REQUEST_PAGE_CONTENT' }
     )
     const { url: stableUrl, content, originId, quoteNids } = response
-    await savePage(stableUrl, originId, quoteNids, content)
+    const createdVia: NodeCreatedVia = { manualAction: {} }
+    await savePage(stableUrl, originId, quoteNids, createdVia, content)
   }
 }
 
