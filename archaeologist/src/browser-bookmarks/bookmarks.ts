@@ -21,7 +21,7 @@ async function onCreatedEventListener(
       { type: 'REQUEST_PAGE_CONTENT' }
     )
     const { url: stableUrl, content, originId, quoteNids } = response
-    const createdVia: NodeCreatedVia = { manualAction: {} }
+    const createdVia: NodeCreatedVia = { manualAction: null }
     await savePage(stableUrl, originId, quoteNids, createdVia, content)
   }
 }

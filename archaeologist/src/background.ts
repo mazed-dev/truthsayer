@@ -99,7 +99,7 @@ async function registerAttentionTime(
       { type: 'REQUEST_PAGE_CONTENT' }
     )
     const { url, content, originId, quoteNids } = response
-    const createdVia: NodeCreatedVia = { autoAttentionTracking: {} }
+    const createdVia: NodeCreatedVia = { autoAttentionTracking: null }
     await savePage(url, originId, quoteNids, createdVia, content, tab.id)
   }
 }
@@ -138,7 +138,7 @@ async function handleMessageFromPopup(
       const response: FromContent.SavePageResponse =
         await ToContent.sendMessage(tabId, { type: 'REQUEST_PAGE_CONTENT' })
       const { url, content, originId, quoteNids } = response
-      const createdVia: NodeCreatedVia = { manualAction: {} }
+      const createdVia: NodeCreatedVia = { manualAction: null }
       const { node, unmemorable } = await savePage(
         url,
         originId,
@@ -263,7 +263,7 @@ browser.contextMenus.onClicked.addListener(
             text: selectionText,
           })
         const { originId, url, text, path, lang, fromNid } = response
-        const createdVia: NodeCreatedVia = { manualAction: {} }
+        const createdVia: NodeCreatedVia = { manualAction: null }
         await savePageQuote(
           originId,
           { url, path, text },

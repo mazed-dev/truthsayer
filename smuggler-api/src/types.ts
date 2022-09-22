@@ -49,17 +49,16 @@ export enum NodeType {
 }
 
 /** Describes what action is responsible for creation of an associated node */
-export type NodeCreatedVia = {
+export type NodeCreatedVia =
   /** Node was created based on an explicit, manual request from a human user  */
-  manualAction?: {}
+  | { manualAction: null }
   /** Node was created based on automatic evaluation of human user's behaviour,
   e.g. if user payed a lot of attention to particular web page.
   See user_external_activity.rs for more information. */
-  autoAttentionTracking?: {}
+  | { autoAttentionTracking: null }
   /** Node was created through automatic ingestion from one of user's data pipelines.
   See user_external_ingestion for more information */
-  autoIngestion?: UserExternalPipelineId
-}
+  | { autoIngestion: UserExternalPipelineId }
 
 // see smuggler/src/types.rs
 export type NodeExtattrs = {

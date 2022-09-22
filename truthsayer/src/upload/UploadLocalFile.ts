@@ -21,7 +21,7 @@ export function uploadLocalFile(
       `Attempted to upload local file ${file.name} of unsupported type ${file.type}`
     )
   }
-  const createdVia: NodeCreatedVia = { manualAction: {} }
+  const createdVia: NodeCreatedVia = { manualAction: null }
   if (Mime.isText(mime)) {
     uploadLocalTextFile(
       file,

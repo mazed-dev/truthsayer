@@ -63,7 +63,7 @@ async function cloneNode({
   let doc = TDoc.fromNodeTextData(node.getText())
   doc = doc.makeACopy(node.getNid(), isBlank || false)
   const extattrs: NodeExtattrs | undefined = node.extattrs
-    ? { ...node.extattrs, created_via: { manualAction: {} } }
+    ? { ...node.extattrs, created_via: { manualAction: null } }
     : undefined
   try {
     return await smuggler.node.create(
