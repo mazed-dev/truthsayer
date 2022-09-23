@@ -9,6 +9,7 @@ import {
   NewNodeResponse,
   NodeAttrsSearchRequest,
   NodeAttrsSearchResponse,
+  NodeCreatedVia,
   NodeCreateRequestBody,
   NodeExtattrs,
   NodeIndexText,
@@ -21,6 +22,7 @@ import {
   TEdge,
   TNode,
   TotalUserActivity,
+  UploadMultipartRequestBody as UploadMultipartQuery,
   UploadMultipartResponse,
   UserBadge,
   UserExternalPipelineId,
@@ -310,12 +312,10 @@ async function uploadFiles(
   files: File[],
   from_nid: Optional<string>,
   to_nid: Optional<string>,
+  createdVia: NodeCreatedVia,
   signal?: AbortSignal
 ): Promise<UploadMultipartResponse> {
-  const query: {
-    from?: string
-    to?: string
-  } = {}
+  const query: UploadMultipartQuery = { created_via: createdVia }
   if (from_nid) {
     query.from = from_nid
   } else if (to_nid) {

@@ -9,6 +9,7 @@ import { useHistory } from 'react-router-dom'
 
 import { MdiAdd, MdiFileUpload, StyleButtonCreate, TDoc } from 'elementary'
 
+import { MimeType } from 'armoury'
 import { smuggler } from 'smuggler-api'
 import { goto } from './../lib/route'
 import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
@@ -81,6 +82,10 @@ export const CreateNewNodeMenu = () => {
     smuggler.node
       .create({
         text: doc.toNodeTextData(),
+        extattrs: {
+          content_type: MimeType.TEXT_PLAIN,
+          created_via: { manualAction: null },
+        },
       })
       .then((node) => {
         if (node) {

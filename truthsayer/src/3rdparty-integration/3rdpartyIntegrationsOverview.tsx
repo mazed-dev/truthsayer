@@ -24,6 +24,7 @@ import {
   UserExternalPipelineId,
   NodeType,
   makeNodeTextData,
+  NodeExtattrs,
 } from 'smuggler-api'
 
 import { MzdGlobalContext } from '../lib/global'
@@ -84,7 +85,10 @@ async function uploadFilesFromFolder(
       }
       const contents: File = await fs.download(file)
       const index_text = await steroid.build_index.build(contents)
-      const extattrs = await extattrsFromFile(file, contents)
+      const extattrs: NodeExtattrs = {
+        created_via: { autoIngestion: epid },
+        ...(await extattrsFromFile(file, contents)),
+      }
       const origin = await genOriginId(file.webUrl)
       const node: CreateNodeArgs = {
         text: makeNodeTextData(),
