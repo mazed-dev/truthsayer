@@ -74,7 +74,7 @@ export class UserAccount extends AnonymousAccount {
 export async function createUserAccount(
   abortSignal: AbortSignal
 ): Promise<AccountInterface> {
-  if (!authCookie.check()) {
+  if (!authCookie.veil.check()) {
     return new AnonymousAccount()
   }
   return await UserAccount.create(abortSignal)

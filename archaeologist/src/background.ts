@@ -18,7 +18,8 @@ import {
   TotalUserActivity,
   ResourceVisit,
   smuggler,
-  UserFilesystemId,
+  UserExternalPipelineId,
+  NodeCreatedVia,
 } from 'smuggler-api'
 import { savePage, savePageQuote } from './background/savePage'
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
@@ -138,7 +139,8 @@ async function registerAttentionTime(
       return
     }
     const { url, content, originId, quoteNids } = response
-    await savePage(url, originId, quoteNids, content, tab.id)
+    const createdVia: NodeCreatedVia = { autoAttentionTracking: null }
+    await savePage(url, originId, quoteNids, createdVia, content, tab.id)
   }
 }
 
@@ -230,14 +232,16 @@ async function uploadBrowserHistory() {
   // uniquely identifies both the used browser and the device.
   const browserId = 'bid'
   const deviceId = 'did'
-  const fsid: UserFilesystemId = { fs_key: `hist-${deviceId}-${browserId}` }
+  const epid: UserExternalPipelineId = {
+    pipeline_key: `hist-${deviceId}-${browserId}`,
+  }
 
-  const currentProgress = await smuggler.thirdparty.fs.progress.get(fsid)
+  const currentProgress = await smuggler.external.ingestion.get(epid)
 
   log.debug(`Progress until now: ${currentProgress.ingested_until}`)
 
   const advanceIngestionProgress = lodash.throttle(async (date: Date) => {
-    return smuggler.thirdparty.fs.progress.advance(fsid, {
+    return smuggler.external.ingestion.advance(epid, {
       ingested_until: unixtime.from(date),
     })
   }, 1123)
@@ -288,7 +292,7 @@ async function uploadBrowserHistory() {
         processed: index,
         total: items.length,
       })
-      await uploadSingleHistoryItem(item)
+      await uploadSingleHistoryItem(item, epid)
       await advanceIngestionProgress(new Date(item.lastVisitTime))
     } catch (err) {
       log.error(`Failed to process ${item.url} during history upload: ${err}`)
@@ -327,10 +331,12 @@ async function handleMessageFromPopup(
         return { type: 'PAGE_SAVED' }
       }
       const { url, content, originId, quoteNids } = response
+      const createdVia: NodeCreatedVia = { manualAction: null }
       const { node, unmemorable } = await savePage(
         url,
         originId,
         quoteNids,
+        createdVia,
         content,
         tabId
       )
@@ -372,7 +378,10 @@ async function handleMessageFromPopup(
   }
 }
 
-async function uploadSingleHistoryItem(item: browser.History.HistoryItem) {
+async function uploadSingleHistoryItem(
+  item: browser.History.HistoryItem,
+  epid: UserExternalPipelineId
+) {
   if (item.url == null || !isPageAutosaveable(item.url)) {
     return
   }
@@ -393,7 +402,8 @@ async function uploadSingleHistoryItem(item: browser.History.HistoryItem) {
     )
     if (response.type === 'PAGE_TO_SAVE') {
       const { url, content, originId, quoteNids } = response
-      await savePage(url, originId, quoteNids, content)
+      const createdVia: NodeCreatedVia = { autoIngestion: epid }
+      await savePage(url, originId, quoteNids, createdVia, content)
     }
   }
 }
@@ -476,7 +486,7 @@ browser.tabs.onUpdated.addListener(
     tab: browser.Tabs.Tab
   ) => {
     try {
-      if (!tab.incognito && tab.url && !tab.hidden) {
+      if (!tab.incognito && !tab.hidden && tab.url) {
         if (changeInfo.status === 'complete') {
           await initMazedPartsOfTab(tab)
 
@@ -504,7 +514,7 @@ browser.tabs.onUpdated.addListener(
 )
 
 async function initMazedPartsOfTab(tab: browser.Tabs.Tab) {
-  if (tab.id == null || tab.url == null) {
+  if (tab.id == null || tab.url == null || !isMemorable(tab.url)) {
     return
   }
   // Request page saved status on new non-incognito page loading
@@ -569,9 +579,11 @@ browser.contextMenus.onClicked.addListener(
             text: selectionText,
           })
         const { originId, url, text, path, lang, fromNid } = response
+        const createdVia: NodeCreatedVia = { manualAction: null }
         await savePageQuote(
           originId,
           { url, path, text },
+          createdVia,
           lang,
           tab?.id,
           fromNid

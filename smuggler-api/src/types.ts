@@ -48,6 +48,18 @@ export enum NodeType {
   // need to change (see NodeLookupKey)
 }
 
+/** Describes what action is responsible for creation of an associated node */
+export type NodeCreatedVia =
+  /** Node was created based on an explicit, manual request from a human user  */
+  | { manualAction: null }
+  /** Node was created based on automatic evaluation of human user's behaviour,
+  e.g. if user payed a lot of attention to particular web page.
+  See user_external_activity.rs for more information. */
+  | { autoAttentionTracking: null }
+  /** Node was created through automatic ingestion from one of user's data pipelines.
+  See user_external_ingestion for more information */
+  | { autoIngestion: UserExternalPipelineId }
+
 // see smuggler/src/types.rs
 export type NodeExtattrs = {
   content_type: MimeType
@@ -59,6 +71,7 @@ export type NodeExtattrs = {
   web?: NodeExtattrsWeb
   blob?: NodeExtattrsBlob
   web_quote?: NodeExtattrsWebQuote
+  created_via?: NodeCreatedVia
 }
 
 // see smuggler/src/types.rs
@@ -340,6 +353,13 @@ export type NodePatchRequest = {
   preserve_update_time?: boolean // Default is false
 }
 
+export type UploadMultipartRequestBody = {
+  from?: string
+  to?: string
+  archived?: boolean
+  created_via: NodeCreatedVia
+}
+
 export type UploadMultipartResponse = {
   nids: string[]
   from?: string
@@ -417,18 +437,18 @@ export interface AccountInterface {
   getLocalCrypto: () => LocalCrypto
 }
 
-export type UserFilesystemId = {
-  // A value that uniquely identifies one of filesystems of a specific uid
-  fs_key: string
+export type UserExternalPipelineId = {
+  // A value that uniquely identifies one of the external pipelines of a specific uid
+  pipeline_key: string
 }
 
-export type UserFsIngestionProgress = {
-  fsid: UserFilesystemId
-  ingested_until: number // Absolute time - unix timestamp, seconds
+export type UserExternalPipelineIngestionProgress = {
+  epid: UserExternalPipelineId
+  ingested_until: number // Absolute time - unix timestamp, seconds; inclusive boundary
 }
 
-export type AdvanceUserFsIngestionProgress = {
-  ingested_until: number // See UserFsIngestionProgress
+export type AdvanceExternalPipelineIngestionProgress = {
+  ingested_until: number // See UserExternalPipelineIngestionProgress
 }
 
 export type ResourceVisit = {

@@ -21,9 +21,10 @@ import {
   CreateNodeArgs,
   smuggler,
   steroid,
-  UserFilesystemId,
+  UserExternalPipelineId,
   NodeType,
   makeNodeTextData,
+  NodeExtattrs,
 } from 'smuggler-api'
 
 import { MzdGlobalContext } from '../lib/global'
@@ -62,11 +63,11 @@ function Integration({ icon, name, children }: IntegrationProps) {
 
 async function uploadFilesFromFolder(
   fs: ThirdpartyFs,
-  fsid: UserFilesystemId,
+  epid: UserExternalPipelineId,
   folderPath: string,
   progressUpdateCallback: (filesToUploadLeft: number) => void
 ) {
-  const current_progress = await smuggler.thirdparty.fs.progress.get(fsid)
+  const current_progress = await smuggler.external.ingestion.get(epid)
   const files = await FsModificationQueue.make(
     fs,
     current_progress.ingested_until,
@@ -84,7 +85,10 @@ async function uploadFilesFromFolder(
       }
       const contents: File = await fs.download(file)
       const index_text = await steroid.build_index.build(contents)
-      const extattrs = await extattrsFromFile(file, contents)
+      const extattrs: NodeExtattrs = {
+        created_via: { autoIngestion: epid },
+        ...(await extattrsFromFile(file, contents)),
+      }
       const origin = await genOriginId(file.webUrl)
       const node: CreateNodeArgs = {
         text: makeNodeTextData(),
@@ -99,7 +103,7 @@ async function uploadFilesFromFolder(
       const response = await smuggler.node.createOrUpdate(node)
       log.debug(`Response to node creation/update: ${JSON.stringify(response)}`)
     }
-    await smuggler.thirdparty.fs.progress.advance(fsid, {
+    await smuggler.external.ingestion.advance(epid, {
       ingested_until: batch[0].lastModTimestamp,
     })
     filesLeft -= batch.length
@@ -134,8 +138,8 @@ export function OneDriveIntegrationManager({
       <MdiCloudSync />
     ) // This icon is intended to show a user that sync is already in progress
 
-  const oneDriveFsid: UserFilesystemId = {
-    fs_key: 'onedrive',
+  const oneDriveFsid: UserExternalPipelineId = {
+    pipeline_key: 'onedrive',
   }
   return (
     // Having MsalProvider as parent grants all children access to
