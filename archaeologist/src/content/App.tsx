@@ -61,10 +61,23 @@ async function getCurrentlySelectedPath() {
   })
 }
 
+/**
+ * State in which @see App starts when content script gets loaded by the browser.
+ * Can be switched to @see InitializedState via an explicit request.
+ *
+ * When a web page gets loaded first, non-content parts of the browser extension
+ * may need to supply an equivalent of constructor parameters to content script.
+ * There are no native mechanisms to do so, so it is simulated by separating
+ * @see UninitializedState from every other possible state.
+ */
 type UninitializedState = {
   mode: 'uninitialised-content-app'
 }
 
+/**
+ * State on an @see App that has been explicitely initialized.
+ * @see UninitializedState for more info.
+ */
 type InitializedState = {
   mode: ContentAppOperationMode
 
@@ -139,9 +152,9 @@ function updateState(state: State, action: Action): State {
   }
 }
 
-async function handleReadRequest(
+async function handleReadOnlyRequest(
   state: InitializedState,
-  request: ToContent.ReadRequest
+  request: ToContent.ReadOnlyRequest
 ): Promise<FromContent.Response> {
   switch (request.type) {
     case 'REQUEST_PAGE_CONTENT':
@@ -205,7 +218,7 @@ const App = () => {
               "Can't perform read requests on uninitalized content app"
             )
           }
-          return handleReadRequest(state, message)
+          return handleReadOnlyRequest(state, message)
         }
         case 'INIT_CONTENT_APP_REQUEST':
         case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':

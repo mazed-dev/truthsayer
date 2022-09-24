@@ -130,13 +130,15 @@ export namespace ToContent {
     timeoutMsec?: number
   }
 
+  /** Requests that aim to modify recepient's state. */
   export type MutatingRequest =
     | InitContentAppRequest
     | UpdateContentAugmentationRequest
     | ShowDisappearingNotificationRequest
-  export type ReadRequest = RequestPageContent | GetSelectedQuoteRequest
+  /** Requests that aim to retrieve part of recepient's state without modifying it. */
+  export type ReadOnlyRequest = RequestPageContent | GetSelectedQuoteRequest
 
-  export type Request = MutatingRequest | ReadRequest
+  export type Request = MutatingRequest | ReadOnlyRequest
   export function sendMessage(
     tabId: number,
     message: RequestPageContent
