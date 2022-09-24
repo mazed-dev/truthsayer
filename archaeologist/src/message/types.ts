@@ -3,6 +3,7 @@ import { WebPageContent } from './../content/extractor/webPageContent'
 import browser from 'webextension-polyfill'
 import { OriginHash, TNodeJson } from 'smuggler-api'
 import { OriginIdentity } from 'armoury'
+import { ContentAppOperationMode } from '../content/AppOperationMode'
 
 /**
  * There are 3 kind of message senders/receivers:
@@ -107,12 +108,15 @@ export namespace ToContent {
     mode: 'reset' | 'append'
   }
   /**
-   * Request to reset state of content App if needed, when page gets updated.
+   * Request to init the state of content App when page loads completely.
    * There are rather tricky ways to monitor it from inside the content script,
    * but very easy from background script.
    */
-  export interface ResetPageContentApp {
-    type: 'RESET_CONTENT_APP'
+  export interface InitContentAppRequest {
+    type: 'INIT_CONTENT_APP_REQUEST'
+    mode: ContentAppOperationMode
+    quotes: TNodeJson[]
+    bookmark?: TNodeJson
   }
   export interface GetSelectedQuoteRequest {
     type: 'REQUEST_SELECTED_WEB_QUOTE'
@@ -125,12 +129,14 @@ export namespace ToContent {
     tooltip?: string
     timeoutMsec?: number
   }
-  export type Request =
-    | RequestPageContent
+
+  export type MutatingRequest =
+    | InitContentAppRequest
     | UpdateContentAugmentationRequest
-    | GetSelectedQuoteRequest
     | ShowDisappearingNotificationRequest
-    | ResetPageContentApp
+  export type ReadRequest = RequestPageContent | GetSelectedQuoteRequest
+
+  export type Request = MutatingRequest | ReadRequest
   export function sendMessage(
     tabId: number,
     message: RequestPageContent
@@ -146,10 +152,10 @@ export namespace ToContent {
   export function sendMessage(
     tabId: number,
     message: ShowDisappearingNotificationRequest
-  ): Promise<FromContent.GetSelectedQuoteResponse>
+  ): Promise<VoidResponse>
   export function sendMessage(
     tabId: number,
-    message: ResetPageContentApp
+    message: InitContentAppRequest
   ): Promise<VoidResponse>
   export function sendMessage(
     tabId: number,

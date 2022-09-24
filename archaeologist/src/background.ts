@@ -197,6 +197,10 @@ browser.runtime.onMessage.addListener(
   }
 )
 
+// NOTE: on more complex web-pages onUpdated may be invoked multiple times
+// with exactly the same input parameters. So the handling code has to
+// be able to handle that.
+// See https://stackoverflow.com/a/18302254/3375765 for more information.
 browser.tabs.onUpdated.addListener(
   async (
     tabId: number,
@@ -212,12 +216,11 @@ browser.tabs.onUpdated.addListener(
           calculateBadgeCounter(response.quotes, response.bookmark)
         )
         try {
-          await ToContent.sendMessage(tabId, { type: 'RESET_CONTENT_APP' })
           await ToContent.sendMessage(tabId, {
-            type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
+            type: 'INIT_CONTENT_APP_REQUEST',
             quotes: response.quotes.map((node) => node.toJson()),
             bookmark: response.bookmark?.toJson(),
-            mode: 'reset',
+            mode: 'active-mode-content-app',
           })
         } catch (err) {
           if (!isAbortError(err)) {
