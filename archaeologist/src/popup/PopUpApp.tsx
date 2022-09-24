@@ -11,7 +11,7 @@ import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { Button } from './Button'
 import { mazed } from '../util/mazed'
-import { MdiLaunch } from 'elementary'
+import { MdiDelete, MdiLaunch } from 'elementary'
 import { BrowserHistoryUploadProgress } from '../background/browserHistoryUploadProgress'
 
 const AppContainer = styled.div`
@@ -95,6 +95,7 @@ const UploadBrowserHistoryButton = ({
   progress,
 }: UploadBrowserHistoryProps) => {
   const [isBeingCancelled, setIsBeingCancelled] = React.useState(false)
+  const [deletedNodesCount, setDeletedNodesCount] = React.useState(0)
 
   const startUpload = async () => {
     FromPopUp.sendMessage({
@@ -109,9 +110,22 @@ const UploadBrowserHistoryButton = ({
       type: 'CANCEL_BROWSER_HISTORY_UPLOAD',
     })
   }
+  const deletePreviouslyUploaded = () => {
+    FromPopUp.sendMessage({
+      type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
+    }).then((response) => setDeletedNodesCount(response.numDeleted))
+  }
 
   if (progress.processed === progress.total) {
-    return <Button onClick={startUpload}>Upload browser history</Button>
+    return (
+      <Row>
+        <Button onClick={startUpload}>Upload browser history</Button>
+        <Button onClick={deletePreviouslyUploaded}>
+          <MdiDelete />
+          {deletedNodesCount > 0 ? deletedNodesCount : null}
+        </Button>
+      </Row>
+    )
   } else {
     return (
       <Button onClick={cancelUpload} disabled={isBeingCancelled}>

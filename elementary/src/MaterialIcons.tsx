@@ -39,6 +39,7 @@ export type MaterialIconType =
   | 'zoom_out'
   | 'sync'
   | 'cloud_sync'
+  | 'delete'
 
 type MaterialIconAttrs = React.HTMLProps<HTMLSpanElement>
 
@@ -92,3 +93,4 @@ export const MdiZoomIn = _makeMaterialIcon('zoom_in')
 export const MdiZoomOut = _makeMaterialIcon('zoom_out')
 export const MdiSync = _makeMaterialIcon('sync')
 export const MdiCloudSync = _makeMaterialIcon('cloud_sync')
+export const MdiDelete = _makeMaterialIcon('delete')

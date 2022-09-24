@@ -201,6 +201,23 @@ async function handleMessageFromContent(
   }
 }
 
+/**
+ * Browser history data on a particular device and from a particular browser
+ * can be treated as a pipeline of data to be consumed. This function
+ * computes @see UserExternalPipelineId for this pipeline.
+ */
+function idOfBrowserHistoryOnThisDeviceAsExternalPipeline(): UserExternalPipelineId {
+  // TODO [snikitin@outlook.com] User can use multiple browsers and have
+  // multiple devices. Ignoring the fact that modern browsers are capable of
+  // syncing history, 'pipeline_key' should be populated with something that
+  // uniquely identifies both the used browser and the device.
+  const browserId = 'bid'
+  const deviceId = 'did'
+  return {
+    pipeline_key: `hist-${deviceId}-${browserId}`,
+  }
+}
+
 // TODO[snikitin@outlook.com] This boolean is an extremely naive tool to cancel
 // an asyncronous task. In general AbortController would have been used instead
 // (see https://medium.com/@bramus/cancel-a-javascript-promise-with-abortcontroller-3540cbbda0a9)
@@ -226,16 +243,7 @@ async function uploadBrowserHistory() {
     1123
   )
 
-  // TODO [snikitin@outlook.com] User can use multiple browsers and have
-  // multiple devices. Ignoring the fact that modern browsers are capable of
-  // syncing history, 'deviceId' should be populated with something that
-  // uniquely identifies both the used browser and the device.
-  const browserId = 'bid'
-  const deviceId = 'did'
-  const epid: UserExternalPipelineId = {
-    pipeline_key: `hist-${deviceId}-${browserId}`,
-  }
-
+  const epid = idOfBrowserHistoryOnThisDeviceAsExternalPipeline()
   const currentProgress = await smuggler.external.ingestion.get(epid)
 
   log.debug(`Progress until now: ${currentProgress.ingested_until}`)
@@ -361,13 +369,24 @@ async function handleMessageFromPopup(
       const status = await auth.isAuthorised()
       badge.setActive(status)
       return { type: 'AUTH_STATUS', status }
+    case 'UPLOAD_BROWSER_HISTORY': {
+      await uploadBrowserHistory()
+      return { type: 'VOID_RESPONSE' }
+    }
     case 'CANCEL_BROWSER_HISTORY_UPLOAD': {
       shouldCancelBrowserHistoryUpload = true
       return { type: 'VOID_RESPONSE' }
     }
-    case 'UPLOAD_BROWSER_HISTORY': {
-      await uploadBrowserHistory()
-      return { type: 'VOID_RESPONSE' }
+    case 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY': {
+      const numDeleted = await smuggler.node.bulkDelete({
+        createdVia: {
+          autoIngestion: idOfBrowserHistoryOnThisDeviceAsExternalPipeline(),
+        },
+      })
+      return {
+        type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
+        numDeleted,
+      }
     }
     default:
       throw new Error(

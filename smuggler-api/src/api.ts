@@ -379,6 +379,29 @@ async function deleteNode({
   throw _makeResponseError(resp)
 }
 
+async function bulkDeleteNodes({
+  createdVia,
+  signal,
+}: {
+  createdVia: NodeCreatedVia
+  signal?: AbortSignal
+}): Promise<number /* number of nodes deleted */> {
+  const headers = {
+    'Content-type': MimeType.JSON,
+  }
+  const resp = await fetch(makeUrl(`/node`), {
+    method: 'DELETE',
+    body: JSON.stringify({ createdVia: createdVia }),
+    headers,
+    signal,
+  })
+  if (resp.ok) {
+    const content = await resp.json()
+    return content.num_deleted_nodes
+  }
+  throw _makeResponseError(resp)
+}
+
 async function getNode({
   nid,
   signal,
@@ -985,6 +1008,7 @@ export const smuggler = {
     slice: _getNodesSliceIter,
     lookup: lookupNodes,
     delete: deleteNode,
+    bulkDelete: bulkDeleteNodes,
   },
   blob: {
     upload: uploadFiles,

@@ -51,12 +51,16 @@ export namespace FromPopUp {
   export interface CancelBrowserHistoryUploadRequest {
     type: 'CANCEL_BROWSER_HISTORY_UPLOAD'
   }
+  export interface DeletePreviouslyUploadedBrowserHistoryRequest {
+    type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY'
+  }
   export type Request =
     | SavePageRequest
     | PageInActiveTabStatusRequest
     | AuthStatusRequest
     | UploadBrowserHistoryRequest
     | CancelBrowserHistoryUploadRequest
+    | DeletePreviouslyUploadedBrowserHistoryRequest
 
   export type Response = VoidResponse
 
@@ -75,6 +79,9 @@ export namespace FromPopUp {
   export function sendMessage(
     message: CancelBrowserHistoryUploadRequest
   ): Promise<VoidResponse>
+  export function sendMessage(
+    message: DeletePreviouslyUploadedBrowserHistoryRequest
+  ): Promise<ToPopUp.DeletePreviouslyUploadedBrowserHistoryResponse>
   export function sendMessage(message: Request): Promise<ToPopUp.Response> {
     const msg: ToBackground.Request = { direction: 'from-popup', ...message }
     return browser.runtime.sendMessage(msg).catch((error) => {
@@ -112,11 +119,16 @@ export namespace ToPopUp {
     bookmark?: TNodeJson
     unmemorable?: boolean
   }
+  export interface DeletePreviouslyUploadedBrowserHistoryResponse {
+    type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY'
+    numDeleted: number
+  }
 
   export type Response =
     | AuthStatusResponse
     | ActiveTabStatusResponse
     | PageSavedResponse
+    | DeletePreviouslyUploadedBrowserHistoryResponse
     | VoidResponse
   export function sendMessage(message: Request): Promise<FromPopUp.Response> {
     return browser.runtime.sendMessage(message)
