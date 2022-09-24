@@ -1,5 +1,5 @@
 import React from 'react'
-import { Container, Row } from 'react-bootstrap'
+import { Col, Container, Row } from 'react-bootstrap'
 import { useAsyncEffect } from 'use-async-effect'
 
 import browser from 'webextension-polyfill'
@@ -11,7 +11,7 @@ import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { Button } from './Button'
 import { mazed } from '../util/mazed'
-import { MdiDelete, MdiLaunch } from 'elementary'
+import { MdiCancel, MdiCloudUpload, MdiDelete, MdiLaunch } from 'elementary'
 import { BrowserHistoryUploadProgress } from '../background/browserHistoryUploadProgress'
 
 const AppContainer = styled.div`
@@ -60,10 +60,16 @@ export const PopUpApp = () => {
   return (
     <AppContainer>
       <Container>
-        <Row>
-          <ViewActiveTabStatus />
-          <UploadBrowserHistoryButton progress={browserHistoryUploadProgress} />
-        </Row>
+        <Col>
+          <Row>
+            <ViewActiveTabStatus />
+          </Row>
+          <Row>
+            <UploadBrowserHistoryButton
+              progress={browserHistoryUploadProgress}
+            />
+          </Row>
+        </Col>
       </Container>
     </AppContainer>
   )
@@ -116,24 +122,35 @@ const UploadBrowserHistoryButton = ({
     }).then((response) => setDeletedNodesCount(response.numDeleted))
   }
 
-  if (progress.processed === progress.total) {
-    return (
-      <Row>
-        <Button onClick={startUpload}>Upload browser history</Button>
-        <Button onClick={deletePreviouslyUploaded}>
-          <MdiDelete />
-          {deletedNodesCount > 0 ? deletedNodesCount : null}
-        </Button>
-      </Row>
-    )
-  } else {
-    return (
+  const primaryAction =
+    progress.processed === progress.total ? (
+      <Button onClick={startUpload}>
+        <MdiCloudUpload />
+      </Button>
+    ) : (
       <Button onClick={cancelUpload} disabled={isBeingCancelled}>
-        {isBeingCancelled ? 'Cancelling' : 'Cancel'} browser history upload (
-        {progress.processed}/{progress.total})
+        <MdiCancel />
+        {progress.processed}/{progress.total}
       </Button>
     )
-  }
+
+  return (
+    <Container>
+      <Row>
+        <Col>Browser history:</Col>
+        <Col>{primaryAction}</Col>
+        <Col>
+          <Button
+            onClick={deletePreviouslyUploaded}
+            disabled={progress.processed !== progress.total || isBeingCancelled}
+          >
+            <MdiDelete />
+            {deletedNodesCount > 0 ? deletedNodesCount : null}
+          </Button>
+        </Col>
+      </Row>
+    </Container>
+  )
 }
 
 const LoginPage = () => {
