@@ -1,8 +1,9 @@
-import * as badge from './badge/badge'
 import * as omnibox from './omnibox/omnibox'
 import * as webNavigation from './web-navigation/webNavigation'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import * as auth from './background/auth'
+import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
+import { saveWebPage, savePageQuote } from './background/savePage'
 import {
   ToPopUp,
   ToContent,
@@ -11,14 +12,19 @@ import {
   ToBackground,
   VoidResponse,
 } from './message/types'
+import * as badge from './badge/badge'
 import { calculateBadgeCounter } from './badge/badgeCounter'
 import { isMemorable } from './content/extractor/url/unmemorable'
-import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
-import { saveWebPage, savePageQuote } from './background/savePage'
+
+import { log, isAbortError, unixtime } from 'armoury'
+import {
+  TNode,
+  TotalUserActivity,
+  smuggler,
+  NodeCreatedVia,
+} from 'smuggler-api'
 
 import browser from 'webextension-polyfill'
-import { log, isAbortError, unixtime } from 'armoury'
-import { TNode, TotalUserActivity, smuggler } from 'smuggler-api'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
@@ -93,7 +99,8 @@ async function registerAttentionTime(
     const pageContentResponse: FromContent.SavePageResponse =
       await ToContent.sendMessage(tab.id, { type: 'REQUEST_PAGE_CONTENT' })
     const { url, content, originId, quoteNids } = pageContentResponse
-    await saveWebPage(url, originId, quoteNids, [], content, tab.id)
+    const createdVia: NodeCreatedVia = { autoAttentionTracking: null }
+    await saveWebPage(url, originId, quoteNids, [], createdVia, content, tab.id)
   }
 }
 
@@ -131,11 +138,13 @@ async function handleMessageFromPopup(
       const response: FromContent.SavePageResponse =
         await ToContent.sendMessage(tabId, { type: 'REQUEST_PAGE_CONTENT' })
       const { url, content, originId, quoteNids } = response
+      const createdVia: NodeCreatedVia = { manualAction: null }
       const { node, unmemorable } = await saveWebPage(
         url,
         originId,
         quoteNids,
         [],
+        createdVia,
         content,
         tabId
       )
@@ -253,9 +262,11 @@ browser.contextMenus.onClicked.addListener(
             text: selectionText,
           })
         const { originId, url, text, path, lang, fromNid } = response
+        const createdVia: NodeCreatedVia = { manualAction: null }
         await savePageQuote(
           originId,
           { url, path, text },
+          createdVia,
           lang,
           tab?.id,
           fromNid

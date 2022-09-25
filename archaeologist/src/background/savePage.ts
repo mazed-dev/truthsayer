@@ -4,16 +4,17 @@ import { extractSearchEngineQuery } from '../content/extractor/url/searchEngineQ
 
 import { log, isAbortError, MimeType, errorise, genOriginId } from 'armoury'
 import {
+  Nid,
+  NodeCreatedVia,
   NodeExtattrs,
   NodeExtattrsWebQuote,
   NodeIndexText,
   NodeType,
+  OriginHash,
+  OriginTransitionTip,
+  TNode,
   makeNodeTextData,
   smuggler,
-  OriginHash,
-  TNode,
-  OriginTransitionTip,
-  Nid,
 } from 'smuggler-api'
 import { ToContent } from '../message/types'
 import { mazed } from '../util/mazed'
@@ -114,6 +115,7 @@ export async function saveWebPage(
   originId: OriginHash,
   toNids: string[],
   fromNids: string[],
+  createdVia: NodeCreatedVia,
   content?: WebPageContent,
   tabId?: number
 ): Promise<{ node?: TNode; unmemorable: boolean }> {
@@ -154,6 +156,7 @@ export async function saveWebPage(
       url: url,
     },
     blob: undefined,
+    created_via: createdVia,
   }
   const originTransitions = await smuggler.activity.transition.get({
     origin: { id: originId },
@@ -200,6 +203,7 @@ export async function saveWebPage(
 export async function savePageQuote(
   originId: OriginHash,
   { url, path, text }: NodeExtattrsWebQuote,
+  createdVia: NodeCreatedVia,
   lang?: string,
   tabId?: number,
   fromNid?: string
@@ -208,6 +212,7 @@ export async function savePageQuote(
     content_type: MimeType.TEXT_PLAIN_UTF_8,
     lang: lang || undefined,
     web_quote: { url, path, text },
+    created_via: createdVia,
   }
   const resp = await smuggler.node.create({
     text: makeNodeTextData(),

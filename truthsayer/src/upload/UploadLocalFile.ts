@@ -1,12 +1,5 @@
-import {
-  GenerateBlobIndexResponse,
-  NodeIndexText,
-  smuggler,
-  steroid,
-  UploadMultipartResponse,
-} from 'smuggler-api'
-import { errorise, log } from 'armoury'
-import { isAbortError } from 'armoury'
+import { NodeCreatedVia, smuggler, steroid } from 'smuggler-api'
+import { MimeType, isAbortError, errorise, log } from 'armoury'
 
 import { TDoc, SlateText } from 'elementary'
 import { markdownToSlate } from 'librarius'
@@ -28,11 +21,19 @@ export function uploadLocalFile(
       `Attempted to upload local file ${file.name} of unsupported type ${file.type}`
     )
   }
+  const createdVia: NodeCreatedVia = { manualAction: null }
   if (Mime.isText(mime)) {
-    uploadLocalTextFile(file, from_nid, to_nid, updateStatus, abortSignal)
+    uploadLocalTextFile(
+      file,
+      from_nid,
+      to_nid,
+      createdVia,
+      updateStatus,
+      abortSignal
+    )
   } else {
     steroid.node
-      .createFromLocalBinary(file, from_nid, to_nid, abortSignal)
+      .createFromLocalBinary(file, from_nid, to_nid, createdVia, abortSignal)
       .then((result) => {
         updateStatus({ progress: 1, nid: result.nid, error: result.warning })
       })
@@ -54,6 +55,7 @@ function uploadLocalTextFile(
   file: File,
   from_nid: Optional<string>,
   to_nid: Optional<string>,
+  createdVia: NodeCreatedVia,
   updateStatus: (upd: FileUploadStatusState) => void,
   abortSignal: AbortSignal
 ): void {
@@ -77,6 +79,10 @@ function uploadLocalTextFile(
           text: doc.toNodeTextData(),
           from_nid: from_nid ? [from_nid] : undefined,
           to_nid: to_nid ? [to_nid] : undefined,
+          extattrs: {
+            content_type: MimeType.TEXT_PLAIN,
+            created_via: createdVia,
+          },
         },
         abortSignal
       )
