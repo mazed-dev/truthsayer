@@ -6,7 +6,11 @@ import browser from 'webextension-polyfill'
 import { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log } from 'armoury'
 
-import { FromContent, ToContent } from './../message/types'
+import {
+  FromContent,
+  ToContent,
+  ContentAppOperationMode,
+} from './../message/types'
 import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/unmemorable'
 import {
@@ -22,7 +26,6 @@ import {
   DisappearingToastProps,
 } from './toaster/Toaster'
 import { AppErrorBoundary } from './AppErrorBoundary'
-import { ContentAppOperationMode } from './AppOperationMode'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
