@@ -9,6 +9,7 @@ import {
   FromContent,
   ToBackground,
   VoidResponse,
+  ContentAppOperationMode,
 } from './message/types'
 
 import browser from 'webextension-polyfill'
@@ -158,7 +159,8 @@ async function getPageContentViaTemporaryTab(
     throw new Error(`Failed to create a temporary tab for ${url}`)
   }
   try {
-    await TabLoadCompletion.monitor(tab.id)
+    await TabLoadCompletion.takeOverInit(tab.id)
+    await initMazedPartsOfTab(tab, 'passive-mode-content-app')
     return await ToContent.sendMessage(tab.id, {
       type: 'REQUEST_PAGE_CONTENT',
     })
@@ -464,10 +466,13 @@ namespace TabLoadCompletion {
   }
 
   const monitors: Monitors = {}
+  const takeOvers: Monitors = {}
 
   /**
    * Returns a Promise that will be resolved as soon as the is loaded completely
-   * (according to @see report() )
+   * (according to @see report() ).
+   * Will not interfere with the default way web pages get loaded (as opposed to
+   * @see takeOverInit() )
    */
   export function monitor(tabId: number): Promise<void> {
     return new Promise<void>((resolve, reject) => {
@@ -477,8 +482,46 @@ namespace TabLoadCompletion {
         )
         return
       }
+      if (takeOvers[tabId] != null) {
+        reject(
+          `Tab ${tabId} init has been taken over by someone else and it's ` +
+            `load completion can't be monitored`
+        )
+        return
+      }
       monitors[tabId] = { onComplete: resolve, onAbort: reject }
     })
+  }
+
+  /**
+   * Returns a Promise that will be resolved as soon as the is loaded completely
+   * (according to @see report() ).
+   * Will "take over" how a web page gets initialised and skip the process used
+   * by default (in contrast to @see monitor() )
+   */
+  export function takeOverInit(tabId: number): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (takeOvers[tabId] != null) {
+        reject(`Tab ${tabId} init has already been taken over by someone else`)
+        return
+      }
+      if (monitors[tabId] != null) {
+        reject(
+          `Tab ${tabId} init can't be taken over because someone else is already ` +
+            `monitoring its load completion`
+        )
+        return
+      }
+
+      takeOvers[tabId] = { onComplete: resolve, onAbort: reject }
+    })
+  }
+  /**
+   * Return false if a tab is expected to be initialised through the default process.
+   * Return true if initialisation was taken over by something (@see takeOverInit() )
+   */
+  export function initTakenOver(tabId: number): boolean {
+    return takeOvers[tabId] != null
   }
   /**
    * Report that a tap with given ID has been completely loaded
@@ -486,14 +529,32 @@ namespace TabLoadCompletion {
    */
   export function report(tabId: number) {
     if (monitors[tabId] != null) {
-      monitors[tabId].onComplete()
-      delete monitors[tabId]
+      try {
+        monitors[tabId].onComplete()
+      } finally {
+        delete monitors[tabId]
+      }
+    } else if (takeOvers[tabId] != null) {
+      try {
+        takeOvers[tabId].onComplete()
+      } finally {
+        delete takeOvers[tabId]
+      }
     }
   }
   export function abort(tabId: number, reason: string) {
     if (monitors[tabId] != null) {
-      monitors[tabId].onAbort(reason)
-      delete monitors[tabId]
+      try {
+        monitors[tabId].onAbort(reason)
+      } finally {
+        delete monitors[tabId]
+      }
+    } else if (takeOvers[tabId] != null) {
+      try {
+        takeOvers[tabId].onAbort(reason)
+      } finally {
+        delete takeOvers[tabId]
+      }
     }
   }
 }
@@ -509,16 +570,20 @@ browser.tabs.onUpdated.addListener(
     tab: browser.Tabs.Tab
   ) => {
     try {
-      if (!tab.incognito && !tab.hidden && tab.url) {
-        if (changeInfo.status === 'complete') {
-          await initMazedPartsOfTab(tab)
+      if (
+        !tab.incognito &&
+        !tab.hidden &&
+        tab.url &&
+        changeInfo.status === 'complete' &&
+        !TabLoadCompletion.initTakenOver(tabId)
+      ) {
+        await initMazedPartsOfTab(tab, 'active-mode-content-app')
 
-          const origin = genOriginId(tab.url)
-          log.debug('Register new visit', origin.stableUrl, origin.id)
-          await smuggler.activity.external.add({ id: origin.id }, [
-            { timestamp: unixtime.now() },
-          ])
-        }
+        const origin = genOriginId(tab.url)
+        log.debug('Register new visit', origin.stableUrl, origin.id)
+        await smuggler.activity.external.add({ id: origin.id }, [
+          { timestamp: unixtime.now() },
+        ])
       }
     } finally {
       if (changeInfo.status === 'complete') {
@@ -536,7 +601,10 @@ browser.tabs.onUpdated.addListener(
   }
 )
 
-async function initMazedPartsOfTab(tab: browser.Tabs.Tab) {
+async function initMazedPartsOfTab(
+  tab: browser.Tabs.Tab,
+  mode: ContentAppOperationMode
+) {
   if (tab.id == null || tab.url == null || !isMemorable(tab.url)) {
     return
   }
@@ -552,7 +620,7 @@ async function initMazedPartsOfTab(tab: browser.Tabs.Tab) {
       type: 'INIT_CONTENT_AUGMENTATION_REQUEST',
       quotes: response.quotes.map((node) => node.toJson()),
       bookmark: response.bookmark?.toJson(),
-      mode: 'active-mode-content-app',
+      mode,
     })
   } catch (err) {
     if (!isAbortError(err)) {
