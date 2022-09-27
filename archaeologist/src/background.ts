@@ -412,9 +412,6 @@ async function uploadSingleHistoryItem(
     return { timestamp: unixtime.from(new Date(visit.visitTime ?? 0)) }
   })
   const total = await smuggler.activity.external.add(origin, resourceVisits)
-  // TODO[snikitin@outlook.com] Logic inside isReadyToBeAutoSaved()
-  // may need to be rewritten to support cases when there was no attention time
-  // tracked
   if (isReadyToBeAutoSaved(total, 0)) {
     const response:
       | FromContent.SavePageResponse
