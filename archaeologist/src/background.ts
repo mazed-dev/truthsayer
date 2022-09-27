@@ -498,6 +498,10 @@ namespace TabLoadCompletion {
   }
 }
 
+// NOTE: on more complex web-pages onUpdated may be invoked multiple times
+// with exactly the same input parameters. So the handling code has to
+// be able to handle that.
+// See https://stackoverflow.com/a/18302254/3375765 for more information.
 browser.tabs.onUpdated.addListener(
   async (
     tabId: number,
@@ -544,12 +548,11 @@ async function initMazedPartsOfTab(tab: browser.Tabs.Tab) {
   )
 
   try {
-    await ToContent.sendMessage(tab.id, { type: 'RESET_CONTENT_APP' })
     await ToContent.sendMessage(tab.id, {
-      type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
+      type: 'INIT_CONTENT_AUGMENTATION_REQUEST',
       quotes: response.quotes.map((node) => node.toJson()),
       bookmark: response.bookmark?.toJson(),
-      mode: 'reset',
+      mode: 'active-mode-content-app',
     })
   } catch (err) {
     if (!isAbortError(err)) {
