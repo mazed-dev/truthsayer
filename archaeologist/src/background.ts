@@ -217,7 +217,7 @@ browser.tabs.onUpdated.addListener(
         )
         try {
           await ToContent.sendMessage(tabId, {
-            type: 'INIT_CONTENT_APP_REQUEST',
+            type: 'INIT_CONTENT_AUGMENTATION_REQUEST',
             quotes: response.quotes.map((node) => node.toJson()),
             bookmark: response.bookmark?.toJson(),
             mode: 'active-mode-content-app',

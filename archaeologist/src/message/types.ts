@@ -121,12 +121,12 @@ export namespace ToContent {
     mode: 'reset' | 'append'
   }
   /**
-   * Request to init the state of content App when page loads completely.
+   * Request to init the state of content app when page loads completely.
    * There are rather tricky ways to monitor it from inside the content script,
    * but very easy from background script.
    */
-  export interface InitContentAppRequest {
-    type: 'INIT_CONTENT_APP_REQUEST'
+  export interface InitContentAugmentationRequest {
+    type: 'INIT_CONTENT_AUGMENTATION_REQUEST'
     mode: ContentAppOperationMode
     quotes: TNodeJson[]
     bookmark?: TNodeJson
@@ -145,7 +145,7 @@ export namespace ToContent {
 
   /** Requests that aim to modify recepient's state. */
   export type MutatingRequest =
-    | InitContentAppRequest
+    | InitContentAugmentationRequest
     | UpdateContentAugmentationRequest
     | ShowDisappearingNotificationRequest
   /** Requests that aim to retrieve part of recepient's state without modifying it. */
@@ -170,7 +170,7 @@ export namespace ToContent {
   ): Promise<VoidResponse>
   export function sendMessage(
     tabId: number,
-    message: InitContentAppRequest
+    message: InitContentAugmentationRequest
   ): Promise<VoidResponse>
   export function sendMessage(
     tabId: number,

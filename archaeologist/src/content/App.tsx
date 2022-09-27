@@ -93,7 +93,7 @@ type InitializedState = {
 type State = UninitializedState | InitializedState
 
 type Action =
-  | { type: 'init-app'; data: ToContent.InitContentAppRequest }
+  | { type: 'init-app'; data: ToContent.InitContentAugmentationRequest }
   | { type: 'update-nodes'; data: ToContent.UpdateContentAugmentationRequest }
   | {
       type: 'show-notification'
@@ -193,7 +193,7 @@ async function handleReadOnlyRequest(
 
 function mutatingRequestToAction(request: ToContent.MutatingRequest): Action {
   switch (request.type) {
-    case 'INIT_CONTENT_APP_REQUEST': {
+    case 'INIT_CONTENT_AUGMENTATION_REQUEST': {
       return { type: 'init-app', data: request }
     }
     case 'REQUEST_UPDATE_CONTENT_AUGMENTATION': {
@@ -223,7 +223,7 @@ const App = () => {
           }
           return handleReadOnlyRequest(state, message)
         }
-        case 'INIT_CONTENT_APP_REQUEST':
+        case 'INIT_CONTENT_AUGMENTATION_REQUEST':
         case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
         case 'SHOW_DISAPPEARING_NOTIFICATION': {
           dispatch(mutatingRequestToAction(message))
