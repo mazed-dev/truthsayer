@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom'
 
 import browser from 'webextension-polyfill'
@@ -6,7 +6,11 @@ import browser from 'webextension-polyfill'
 import { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log } from 'armoury'
 
-import { FromContent, ToContent } from './../message/types'
+import {
+  FromContent,
+  ToContent,
+  ContentAppOperationMode,
+} from './../message/types'
 import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/unmemorable'
 import {
@@ -60,94 +64,186 @@ async function getCurrentlySelectedPath() {
   })
 }
 
+/**
+ * State in which @see App starts when content script gets loaded by the browser.
+ * Can be switched to @see InitializedState via an explicit request.
+ *
+ * When a web page gets loaded first, non-content parts of the browser extension
+ * may need to supply an equivalent of constructor parameters to content script.
+ * There are no native mechanisms to do so, so it is simulated by separating
+ * @see UninitializedState from every other possible state.
+ */
+type UninitializedState = {
+  mode: 'uninitialised-content-app'
+}
+
+/**
+ * State on an @see App that has been explicitely initialized.
+ * @see UninitializedState for more info.
+ */
+type InitializedState = {
+  mode: ContentAppOperationMode
+
+  originIdentity: OriginIdentity
+  quotes: TNode[]
+  bookmark?: TNode
+  notification?: DisappearingToastProps
+}
+
+type State = UninitializedState | InitializedState
+
+type Action =
+  | { type: 'init-app'; data: ToContent.InitContentAugmentationRequest }
+  | { type: 'update-nodes'; data: ToContent.UpdateContentAugmentationRequest }
+  | {
+      type: 'show-notification'
+      data: ToContent.ShowDisappearingNotificationRequest
+    }
+
+function updateState(state: State, action: Action): State {
+  switch (action.type) {
+    case 'init-app': {
+      if (state.mode !== 'uninitialised-content-app') {
+        // NOTE: This case is not handled as an error intentionaly.
+        // At the time of this writing this action is kicked off when a browser
+        // emits browser.tabs.onUpdated event.
+        // See https://stackoverflow.com/a/18302254/3375765 for info on why
+        // duplicate calls are difficult to prevent.
+        console.warn(
+          `Attempted to init content app more than once, ignoring all calls except first`
+        )
+        return state
+      }
+      const d = action.data
+      return {
+        mode: d.mode,
+        originIdentity: genOriginId(exctractPageUrl(document)),
+        quotes: d.quotes.map((json: TNodeJson) => TNode.fromJson(json)),
+        bookmark: d.bookmark != null ? TNode.fromJson(d.bookmark) : undefined,
+      }
+    }
+    case 'update-nodes':
+      if (state.mode === 'uninitialised-content-app') {
+        throw new Error("Can't modify state of an unitialized content app")
+      }
+      const d = action.data
+      const newQuotes = d.quotes.map((json: TNodeJson) => TNode.fromJson(json))
+      const newBookmark =
+        d.bookmark != null ? TNode.fromJson(d.bookmark) : undefined
+
+      return {
+        ...state,
+        quotes: d.mode === 'reset' ? newQuotes : state.quotes.concat(newQuotes),
+        bookmark:
+          d.mode === 'reset' ? newBookmark : state.bookmark || newBookmark,
+      }
+    case 'show-notification':
+      if (state.mode === 'uninitialised-content-app') {
+        throw new Error("Can't modify state of an unitialized content app")
+      }
+
+      const { text, href, tooltip, timeoutMsec } = action.data
+      return {
+        ...state,
+        notification: {
+          text,
+          tooltip,
+          href,
+          timeoutMsec,
+        },
+      }
+  }
+}
+
+async function handleReadOnlyRequest(
+  state: InitializedState,
+  request: ToContent.ReadOnlyRequest
+): Promise<FromContent.Response> {
+  switch (request.type) {
+    case 'REQUEST_PAGE_CONTENT':
+      if (state.bookmark == null) {
+        // Bookmark if not yet bookmarked
+        const content = await contentOfThisDocument(state.originIdentity)
+        log.debug('Page content requested', content)
+        return {
+          type: 'PAGE_TO_SAVE',
+          content,
+          url: state.originIdentity.stableUrl,
+          originId: state.originIdentity.id,
+          quoteNids: state.quotes.map((node) => node.nid),
+        }
+      }
+      throw new Error(
+        `Page ${state.originIdentity.stableUrl} has been bookmarked before already`
+      )
+    case 'REQUEST_SELECTED_WEB_QUOTE': {
+      const lang = document.documentElement.lang
+      return {
+        type: 'SELECTED_WEB_QUOTE',
+        text: request.text,
+        path: await getCurrentlySelectedPath(),
+        lang,
+        originId: state.originIdentity.id,
+        url: state.originIdentity.stableUrl,
+        fromNid: state.bookmark?.nid,
+      }
+    }
+  }
+}
+
+function mutatingRequestToAction(request: ToContent.MutatingRequest): Action {
+  switch (request.type) {
+    case 'INIT_CONTENT_AUGMENTATION_REQUEST': {
+      return { type: 'init-app', data: request }
+    }
+    case 'REQUEST_UPDATE_CONTENT_AUGMENTATION': {
+      return { type: 'update-nodes', data: request }
+    }
+    case 'SHOW_DISAPPEARING_NOTIFICATION': {
+      return { type: 'show-notification', data: request }
+    }
+  }
+}
+
 const App = () => {
-  const [quotes, setQuotes] = useState<TNode[]>([])
-  const [bookmark, setBookmark] = useState<TNode | null>(null)
-  const [originIdentity, resetOriginIdentity] = React.useReducer(() => {
-    const originIdentity = genOriginId(exctractPageUrl(document))
-    log.debug('Gen origin identity', originIdentity)
-    return originIdentity
-  }, genOriginId(exctractPageUrl(document)))
-  const [notification, setNotification] =
-    useState<DisappearingToastProps | null>(null)
+  const initialState: UninitializedState = {
+    mode: 'uninitialised-content-app',
+  }
+  const [state, dispatch] = React.useReducer(updateState, initialState)
+
   const listener = React.useCallback(
     async (message: ToContent.Request): Promise<FromContent.Response> => {
       switch (message.type) {
         case 'REQUEST_PAGE_CONTENT':
-          if (bookmark == null) {
-            // Bookmark if not yet bookmarked
-            const content = await contentOfThisDocument(originIdentity)
-            log.debug('Page content requested', content)
-            return {
-              type: 'PAGE_TO_SAVE',
-              content,
-              url: originIdentity.stableUrl,
-              originId: originIdentity.id,
-              quoteNids: quotes.map((node) => node.nid),
-            }
-          }
-          break
         case 'REQUEST_SELECTED_WEB_QUOTE': {
-          const lang = document.documentElement.lang
-          return {
-            type: 'SELECTED_WEB_QUOTE',
-            text: message.text,
-            path: await getCurrentlySelectedPath(),
-            lang,
-            originId: originIdentity.id,
-            url: originIdentity.stableUrl,
-            fromNid: bookmark?.nid,
+          if (state.mode === 'uninitialised-content-app') {
+            throw new Error(
+              "Can't perform read requests on uninitalized content app"
+            )
           }
+          return handleReadOnlyRequest(state, message)
         }
-        case 'REQUEST_UPDATE_CONTENT_AUGMENTATION': {
-          const { quotes, bookmark, mode } = message
-          const qs = quotes.map((json: TNodeJson) => TNode.fromJson(json))
-          const bm = bookmark != null ? TNode.fromJson(bookmark) : null
-          if (mode === 'reset') {
-            setQuotes(qs)
-            setBookmark(bm)
-          } else {
-            if (bm != null) {
-              // If mode is not 'reset', null bookmark in arguments should not discard
-              // existing bookmark
-              setBookmark(bm)
-            }
-            setQuotes((current) => current.concat(...qs))
-          }
-          return { type: 'VOID_RESPONSE' }
-        }
+        case 'INIT_CONTENT_AUGMENTATION_REQUEST':
+        case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
         case 'SHOW_DISAPPEARING_NOTIFICATION': {
-          const { text, href, tooltip, timeoutMsec } = message
-          setNotification({
-            text,
-            tooltip,
-            href,
-            timeoutMsec,
-          })
-          return { type: 'VOID_RESPONSE' }
-        }
-        case 'RESET_CONTENT_APP': {
-          resetOriginIdentity()
+          dispatch(mutatingRequestToAction(message))
           return { type: 'VOID_RESPONSE' }
         }
       }
-      throw new Error(
-        `Unknown ToContent.Message type, message = ${JSON.stringify(message)}`
-      )
     },
-    [bookmark, quotes, originIdentity]
+    [state]
   )
   useEffect(() => {
     browser.runtime.onMessage.addListener(listener)
     return () => browser.runtime.onMessage.removeListener(listener)
   }, [listener])
-  return (
-    <AppErrorBoundary>
-      <Toaster />
-      {notification ? (
-        <DisappearingToast {...notification}></DisappearingToast>
-      ) : null}
-      <Quotes quotes={quotes} />
+
+  if (state.mode === 'uninitialised-content-app') {
+    return null
+  }
+
+  const activityTrackerOrNull =
+    state.mode === 'active-mode-content-app' ? (
       <ActivityTracker
         registerAttentionTime={(
           deltaSeconds: number,
@@ -157,11 +253,20 @@ const App = () => {
             type: 'ATTENTION_TIME_CHUNK',
             deltaSeconds,
             totalSecondsEstimation,
-            origin: originIdentity,
+            origin: state.originIdentity,
           })
         }
-        disabled={bookmark != null}
+        disabled={state.bookmark != null}
       />
+    ) : null
+  return (
+    <AppErrorBoundary>
+      <Toaster />
+      {state.notification ? (
+        <DisappearingToast {...state.notification}></DisappearingToast>
+      ) : null}
+      <Quotes quotes={state.quotes} />
+      {activityTrackerOrNull}
     </AppErrorBoundary>
   )
 }
