@@ -7,7 +7,7 @@ const kUnmemorable: RegExp[] = [
   /https?:\/\/(www\.)?fb\.com/,
   /https?:\/\/(www\.)?facebook\.com/,
   /https?:\/\/(www\.)?instagram\.com/,
-  /https:\/\/mazed.dev/,
+  /https:\/\/mazed\.\w+/,
   /localhost:3000/,
 ]
 

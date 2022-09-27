@@ -6,7 +6,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 const _getSmugglerApiUrl = (mode) => {
   return mode === 'development'
     ? "http://localhost:3000"
-    : "https://mazed.dev/smuggler"
+    : "https://mazed.se/smuggler"
 }
 
 const _getSmugglerApiUrlMask = (mode) => {
