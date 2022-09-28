@@ -759,28 +759,12 @@ function _makeExternalUserActivityUrl(origin: OriginId): string {
 
 async function addExternalUserActivity(
   origin: OriginId,
-  activity: ResourceVisit[] | ResourceAttention,
+  activity: AddUserActivityRequest,
   signal?: AbortSignal
 ): Promise<TotalUserActivity> {
-  let body: AddUserActivityRequest
-  if (activity instanceof Array) {
-    body = {
-      visit: {
-        visits: activity,
-      },
-    }
-  } else if ('seconds' in activity) {
-    body = {
-      attention: activity,
-    }
-  } else {
-    throw new Error(
-      `Unknown type of external user activity to report ${activity}`
-    )
-  }
   const resp = await fetch(_makeExternalUserActivityUrl(origin), {
     method: 'PATCH',
-    body: JSON.stringify(body),
+    body: JSON.stringify(activity),
     headers: { 'Content-type': MimeType.JSON },
     signal,
   })

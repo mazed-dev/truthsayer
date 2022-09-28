@@ -460,12 +460,16 @@ export type ResourceAttention = {
   seconds: number
 }
 
-export type AddUserActivityRequest = {
-  visit?: {
-    visits: ResourceVisit[]
-  }
-  attention?: ResourceAttention
-}
+export type AddUserActivityRequest =
+  | {
+      visit?: {
+        visits: ResourceVisit[]
+        reported_by?: UserExternalPipelineId
+      }
+    }
+  | {
+      attention?: ResourceAttention
+    }
 
 export type TotalUserActivity = {
   visits: ResourceVisit[]

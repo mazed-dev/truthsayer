@@ -119,8 +119,10 @@ async function registerAttentionTime(
     total = await smuggler.activity.external.add(
       { id: origin.id },
       {
-        seconds: deltaSeconds,
-        timestamp: unixtime.now(),
+        attention: {
+          seconds: deltaSeconds,
+          timestamp: unixtime.now(),
+        },
       }
     )
   } catch (err) {
@@ -411,7 +413,9 @@ async function uploadSingleHistoryItem(
   const resourceVisits: ResourceVisit[] = visits.map((visit) => {
     return { timestamp: unixtime.from(new Date(visit.visitTime ?? 0)) }
   })
-  const total = await smuggler.activity.external.add(origin, resourceVisits)
+  const total = await smuggler.activity.external.add(origin, {
+    visit: { visits: resourceVisits, reported_by: epid },
+  })
   if (isReadyToBeAutoSaved(total, 0)) {
     const response:
       | FromContent.SavePageResponse
@@ -578,9 +582,10 @@ browser.tabs.onUpdated.addListener(
 
         const origin = genOriginId(tab.url)
         log.debug('Register new visit', origin.stableUrl, origin.id)
-        await smuggler.activity.external.add({ id: origin.id }, [
-          { timestamp: unixtime.now() },
-        ])
+        await smuggler.activity.external.add(
+          { id: origin.id },
+          { visit: { visits: [{ timestamp: unixtime.now() }] } }
+        )
       }
     } finally {
       if (changeInfo.status === 'complete') {
