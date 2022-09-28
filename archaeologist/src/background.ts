@@ -147,6 +147,108 @@ async function registerAttentionTime(
   }
 }
 
+namespace TabLoadCompletion {
+  type Monitors = {
+    [key: number /* browser.Tabs.Tab.id */]: {
+      onComplete: () => void
+      onAbort: (reason: string) => void
+    }
+  }
+
+  const monitors: Monitors = {}
+  const takeOvers: Monitors = {}
+
+  /**
+   * Returns a Promise that will be resolved as soon as the is loaded completely
+   * (according to @see report() ).
+   * Will not interfere with the default way web pages get loaded (as opposed to
+   * @see takeOverInit() )
+   */
+  export function monitor(tabId: number): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (monitors[tabId] != null) {
+        reject(
+          `Tab ${tabId} is already monitored for completion by someone else`
+        )
+        return
+      }
+      if (takeOvers[tabId] != null) {
+        reject(
+          `Tab ${tabId} init has been taken over by someone else and it's ` +
+            `load completion can't be monitored`
+        )
+        return
+      }
+      monitors[tabId] = { onComplete: resolve, onAbort: reject }
+    })
+  }
+
+  /**
+   * Returns a Promise that will be resolved as soon as the is loaded completely
+   * (according to @see report() ).
+   * Will "take over" how a web page gets initialised and skip the process used
+   * by default (in contrast to @see monitor() )
+   */
+  export function takeOverInit(tabId: number): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (takeOvers[tabId] != null) {
+        reject(`Tab ${tabId} init has already been taken over by someone else`)
+        return
+      }
+      if (monitors[tabId] != null) {
+        reject(
+          `Tab ${tabId} init can't be taken over because someone else is already ` +
+            `monitoring its load completion`
+        )
+        return
+      }
+
+      takeOvers[tabId] = { onComplete: resolve, onAbort: reject }
+    })
+  }
+  /**
+   * Return false if a tab is expected to be initialised through the default process.
+   * Return true if initialisation was taken over by something (@see takeOverInit() )
+   */
+  export function initTakenOver(tabId: number): boolean {
+    return takeOvers[tabId] != null
+  }
+  /**
+   * Report that a tap with given ID has been completely loaded
+   * (expected to be called based on @see browser.Tabs.OnUpdatedChangeInfoType )
+   */
+  export function report(tabId: number) {
+    if (monitors[tabId] != null) {
+      try {
+        monitors[tabId].onComplete()
+      } finally {
+        delete monitors[tabId]
+      }
+    } else if (takeOvers[tabId] != null) {
+      try {
+        takeOvers[tabId].onComplete()
+      } finally {
+        delete takeOvers[tabId]
+      }
+    }
+  }
+  export function abort(tabId: number, reason: string) {
+    if (monitors[tabId] != null) {
+      try {
+        monitors[tabId].onAbort(reason)
+      } finally {
+        delete monitors[tabId]
+      }
+    } else if (takeOvers[tabId] != null) {
+      try {
+        takeOvers[tabId].onAbort(reason)
+      } finally {
+        delete takeOvers[tabId]
+      }
+    }
+  }
+}
+
 async function getPageContentViaTemporaryTab(
   url: string
 ): Promise<
@@ -457,108 +559,6 @@ browser.runtime.onMessage.addListener(
     )
   }
 )
-
-namespace TabLoadCompletion {
-  type Monitors = {
-    [key: number /* browser.Tabs.Tab.id */]: {
-      onComplete: () => void
-      onAbort: (reason: string) => void
-    }
-  }
-
-  const monitors: Monitors = {}
-  const takeOvers: Monitors = {}
-
-  /**
-   * Returns a Promise that will be resolved as soon as the is loaded completely
-   * (according to @see report() ).
-   * Will not interfere with the default way web pages get loaded (as opposed to
-   * @see takeOverInit() )
-   */
-  export function monitor(tabId: number): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      if (monitors[tabId] != null) {
-        reject(
-          `Tab ${tabId} is already monitored for completion by someone else`
-        )
-        return
-      }
-      if (takeOvers[tabId] != null) {
-        reject(
-          `Tab ${tabId} init has been taken over by someone else and it's ` +
-            `load completion can't be monitored`
-        )
-        return
-      }
-      monitors[tabId] = { onComplete: resolve, onAbort: reject }
-    })
-  }
-
-  /**
-   * Returns a Promise that will be resolved as soon as the is loaded completely
-   * (according to @see report() ).
-   * Will "take over" how a web page gets initialised and skip the process used
-   * by default (in contrast to @see monitor() )
-   */
-  export function takeOverInit(tabId: number): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      if (takeOvers[tabId] != null) {
-        reject(`Tab ${tabId} init has already been taken over by someone else`)
-        return
-      }
-      if (monitors[tabId] != null) {
-        reject(
-          `Tab ${tabId} init can't be taken over because someone else is already ` +
-            `monitoring its load completion`
-        )
-        return
-      }
-
-      takeOvers[tabId] = { onComplete: resolve, onAbort: reject }
-    })
-  }
-  /**
-   * Return false if a tab is expected to be initialised through the default process.
-   * Return true if initialisation was taken over by something (@see takeOverInit() )
-   */
-  export function initTakenOver(tabId: number): boolean {
-    return takeOvers[tabId] != null
-  }
-  /**
-   * Report that a tap with given ID has been completely loaded
-   * (expected to be called based on @see browser.Tabs.OnUpdatedChangeInfoType )
-   */
-  export function report(tabId: number) {
-    if (monitors[tabId] != null) {
-      try {
-        monitors[tabId].onComplete()
-      } finally {
-        delete monitors[tabId]
-      }
-    } else if (takeOvers[tabId] != null) {
-      try {
-        takeOvers[tabId].onComplete()
-      } finally {
-        delete takeOvers[tabId]
-      }
-    }
-  }
-  export function abort(tabId: number, reason: string) {
-    if (monitors[tabId] != null) {
-      try {
-        monitors[tabId].onAbort(reason)
-      } finally {
-        delete monitors[tabId]
-      }
-    } else if (takeOvers[tabId] != null) {
-      try {
-        takeOvers[tabId].onAbort(reason)
-      } finally {
-        delete takeOvers[tabId]
-      }
-    }
-  }
-}
 
 // NOTE: on more complex web-pages onUpdated may be invoked multiple times
 // with exactly the same input parameters. So the handling code has to

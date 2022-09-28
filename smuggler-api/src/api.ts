@@ -391,7 +391,7 @@ async function bulkDeleteNodes({
   }
   const resp = await fetch(makeUrl(`/node`), {
     method: 'DELETE',
-    body: JSON.stringify({ createdVia: createdVia }),
+    body: JSON.stringify({ createdVia }),
     headers,
     signal,
   })
