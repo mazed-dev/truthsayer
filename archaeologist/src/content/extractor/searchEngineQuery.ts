@@ -108,7 +108,7 @@ export function extractSearchEngineQuery(
   if (engine.queryRe) {
     for (const r of engine.queryRe) {
       const result = r.exec(url)
-      if (result?.length == 2) {
+      if (result?.length === 2) {
         const phrase = decodeURI(result[1])
         return { ...engine, phrase }
       }
