@@ -12,7 +12,7 @@ import {
   ContentAppOperationMode,
 } from './message/types'
 
-import browser from 'webextension-polyfill'
+import browser, { Tabs } from 'webextension-polyfill'
 import { log, isAbortError, genOriginId, unixtime } from 'armoury'
 import {
   TNode,
@@ -150,7 +150,7 @@ async function registerAttentionTime(
 namespace TabLoadCompletion {
   type Monitors = {
     [key: number /* browser.Tabs.Tab.id */]: {
-      onComplete: () => void
+      onComplete: (tab: Tabs.Tab) => void
       onAbort: (reason: string) => void
     }
   }
@@ -164,8 +164,8 @@ namespace TabLoadCompletion {
    * Will not interfere with the default way web pages get loaded (as opposed to
    * @see takeOverInit() )
    */
-  export function monitor(tabId: number): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+  export function monitor(tabId: number): Promise<Tabs.Tab> {
+    return new Promise<Tabs.Tab>((resolve, reject) => {
       if (monitors[tabId] != null) {
         reject(
           `Tab ${tabId} is already monitored for completion by someone else`
@@ -189,8 +189,8 @@ namespace TabLoadCompletion {
    * Will "take over" how a web page gets initialised and skip the process used
    * by default (in contrast to @see monitor() )
    */
-  export function takeOverInit(tabId: number): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+  export function takeOverInit(tabId: number): Promise<Tabs.Tab> {
+    return new Promise<Tabs.Tab>((resolve, reject) => {
       if (takeOvers[tabId] != null) {
         reject(`Tab ${tabId} init has already been taken over by someone else`)
         return
@@ -214,21 +214,29 @@ namespace TabLoadCompletion {
     return takeOvers[tabId] != null
   }
   /**
-   * Report that a tap with given ID has been completely loaded
+   * Report that a tab with given ID has been completely loaded
    * (expected to be called based on @see browser.Tabs.OnUpdatedChangeInfoType )
    */
-  export function report(tabId: number) {
-    if (monitors[tabId] != null) {
+  export function report(tab: Tabs.Tab) {
+    if (tab.id == null) {
+      throw new Error(
+        `Attempted to report load completion of a tab without an ID: ${JSON.stringify(
+          tab
+        )}`
+      )
+    }
+
+    if (monitors[tab.id] != null) {
       try {
-        monitors[tabId].onComplete()
+        monitors[tab.id].onComplete(tab)
       } finally {
-        delete monitors[tabId]
+        delete monitors[tab.id]
       }
-    } else if (takeOvers[tabId] != null) {
+    } else if (takeOvers[tab.id] != null) {
       try {
-        takeOvers[tabId].onComplete()
+        takeOvers[tab.id].onComplete(tab)
       } finally {
-        delete takeOvers[tabId]
+        delete takeOvers[tab.id]
       }
     }
   }
@@ -255,22 +263,23 @@ async function getPageContentViaTemporaryTab(
   FromContent.SavePageResponse | FromContent.PageAlreadySavedResponse
 > {
   const startTime = new Date()
-  const tab = await browser.tabs.create({
+  let tab = await browser.tabs.create({
     active: false,
     url,
   })
-  if (tab.id == null) {
+  const tabId = tab.id
+  if (tabId == null) {
     throw new Error(`Failed to create a temporary tab for ${url}`)
   }
   try {
-    await TabLoadCompletion.takeOverInit(tab.id)
+    tab = await TabLoadCompletion.takeOverInit(tabId)
     await initMazedPartsOfTab(tab, 'passive-mode-content-app')
-    return await ToContent.sendMessage(tab.id, {
+    return await ToContent.sendMessage(tabId, {
       type: 'REQUEST_PAGE_CONTENT',
     })
   } finally {
     try {
-      await browser.tabs.remove(tab.id)
+      await browser.tabs.remove(tabId)
     } catch (err) {
       log.debug(`Failed to remove tab ${tab.url}: ${err}`)
     }
@@ -597,7 +606,7 @@ browser.tabs.onUpdated.addListener(
         // At the same time, it is important to call report() *after* all or most
         // of Mazed's content init has been completed so tab can be in a predictable
         // state from the perspective of Mazed code that waits for TabLoadCompletion
-        TabLoadCompletion.report(tabId)
+        TabLoadCompletion.report(tab)
       }
     }
   }
