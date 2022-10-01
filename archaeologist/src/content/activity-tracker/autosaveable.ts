@@ -1,4 +1,5 @@
 import { isMemorable } from '../extractor/unmemorable'
+import { isSearchEngineQueryUrl } from '../extractor/searchEngineQuery'
 import { log } from 'armoury'
 import { isProbablyReaderable } from '@mozilla/readability'
 
@@ -58,6 +59,9 @@ export function isPageAutosaveable(url: string, document_?: Document): boolean {
     return true
   }
   if (_isManuallyBlocked(url)) {
+    return false
+  }
+  if (isSearchEngineQueryUrl(url)) {
     return false
   }
   if (!isMemorable(url) || !_isArticleUrl(new URL(url))) {
