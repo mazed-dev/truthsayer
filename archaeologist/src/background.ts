@@ -580,7 +580,14 @@ async function uploadSingleHistoryItem(
       | FromContent.PageAlreadySavedResponse = await getPageContentViaTemporaryTab(
       item.url
     )
-    if (response.type === 'PAGE_TO_SAVE') {
+    if (
+      response.type === 'PAGE_TO_SAVE' &&
+      // NOTE: the second call to isPageAutosaveable() is important as the URL from
+      // history may not be the URL of the final page, for example due to redirects
+      // to a generic, uninteresting login page in case of content protected by
+      // authentication.
+      isPageAutosaveable(response.url)
+    ) {
       const { url, content, originId, quoteNids } = response
       const createdVia: NodeCreatedVia = { autoIngestion: epid }
       await savePage(url, originId, quoteNids, createdVia, content)
