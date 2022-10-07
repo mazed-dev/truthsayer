@@ -217,7 +217,7 @@ namespace TabLoadCompletion {
    * Report that a tab with given ID has been completely loaded
    * (expected to be called based on @see browser.Tabs.OnUpdatedChangeInfoType )
    */
-  export function report(tab: Tabs.Tab) {
+  export async function report(tab: Tabs.Tab) {
     if (tab.id == null) {
       throw new Error(
         `Attempted to report load completion of a tab without an ID: ${JSON.stringify(
@@ -226,14 +226,25 @@ namespace TabLoadCompletion {
       )
     }
 
+    let parsedUrl: URL | null = null
+    try {
+      parsedUrl = new URL(tab.url ?? 'null')
+    } catch {
+      const msg = `Failed to parse ${tab.url} as a URL of tab ${tab.id}`
+      abort(tab.id, msg)
+      throw new Error(msg)
+    }
+
     if (monitors[tab.id] != null) {
       try {
+        await simulateWaitForDynamicInit(parsedUrl)
         monitors[tab.id].onComplete(tab)
       } finally {
         delete monitors[tab.id]
       }
     } else if (takeOvers[tab.id] != null) {
       try {
+        await simulateWaitForDynamicInit(parsedUrl)
         takeOvers[tab.id].onComplete(tab)
       } finally {
         delete takeOvers[tab.id]
@@ -252,6 +263,42 @@ namespace TabLoadCompletion {
         takeOvers[tabId].onAbort(reason)
       } finally {
         delete takeOvers[tabId]
+      }
+    }
+  }
+
+  function sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+  }
+
+  async function simulateWaitForDynamicInit(url: URL) {
+    // TODO[snikitin@outlook.com] Dynamic pages like GMail or Twitter
+    // have less deterministic loading process (e.g. they emit multiple
+    //    `browser.Tabs.OnUpdatedChangeInfoType.status === 'complete'`
+    // events). A sleep is used to as cheap, but unreliable solution to this
+    // observability problem.
+    // Some directions that may make this deterministic:
+    //    1. try to make 'content' script observe the state of each page via
+    //       tools like MutationObserver. Seems like that'll require us to
+    //       reverse-engineer how each "important" page behaves and then to
+    //       hand-write a set of bespoke observer conditions.
+    //       I tried this and couldn't make it work in short amount of time.
+    //    2. at the time of this writing TabLoadCompletion waits for a single
+    //       call to TabLoadCompletion.report() on `status === "complete"` event.
+    //       It can be extended to wait for a configurable amount of events.
+    //       That'll require us to again reverse-engineer the behaviour of
+    //       "important" pages, but looking into the background events a page
+    //       emits is much easier then reverse-engineering what happens in
+    //       DOM from content script.
+    //       I tried this and it is doable, but turned out too complex on the
+    //       first try due to:
+    //          - the problem of redirects (difficult to determine the correct
+    //            set of events to use until redirects settle)
+    //          - difficulties to marry this with other flows that call initMazedPartsOfTab()
+    switch (url.host) {
+      case 'mail.google.com': {
+        await sleep(2000)
+        break
       }
     }
   }
