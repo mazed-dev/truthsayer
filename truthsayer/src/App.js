@@ -123,12 +123,6 @@ function AppRouter() {
           <PublicRoute path="/contacts">
             <ContactUs />
           </PublicRoute>
-          <PublicRoute path="/privacy-policy">
-            <PrivacyPolicy />
-          </PublicRoute>
-          <PublicRoute path="/terms-of-service">
-            <TermsOfService />
-          </PublicRoute>
           <PublicOnlyRoute path="/password-recover-request">
             <PasswordRecoverRequest />
           </PublicOnlyRoute>
@@ -141,6 +135,15 @@ function AppRouter() {
           <PublicRoute path="/notice/:page">
             <Notice />
           </PublicRoute>
+          <Route path="/cookie-policy">
+            <CookiePolicyPage />
+          </Route>
+          <Route path="/privacy-policy">
+            <PrivacyPolicyPage />
+          </Route>
+          <Route path="/terms-and-conditions">
+            <TermsAndConditionsPage />
+          </Route>
           <PublicRoute exact path={routes.empty} />
           <Route path="*">
             <Redirect to={{ pathname: '/' }} />
@@ -290,7 +293,7 @@ function ContactUs() {
   )
 }
 
-function PrivacyPolicy() {
+function CookiePolicyPage() {
   return (
     <Container>
       <Card border="light">
@@ -303,7 +306,20 @@ function PrivacyPolicy() {
   )
 }
 
-function TermsOfService() {
+function PrivacyPolicyPage() {
+  return (
+    <Container>
+      <Card border="light">
+        <Card.Body>
+          <Card.Title>Privacy policy</Card.Title>
+          <Card.Text>To be done soon</Card.Text>
+        </Card.Body>
+      </Card>
+    </Container>
+  )
+}
+
+function TermsAndConditionsPage() {
   return (
     <Container>
       <Card>
