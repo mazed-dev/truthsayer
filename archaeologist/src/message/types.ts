@@ -152,6 +152,14 @@ export type ContentAppOperationMode =
 export namespace ToContent {
   export interface RequestPageContent {
     type: 'REQUEST_PAGE_CONTENT'
+    /** If true, request is initiated because of user's explicit decision.
+     * Otherwise - request is initiated per decision of Mazed automation.
+     *
+     * Verification of whether or not content of a page is worth saving are
+     * less strict for manual actions as it is assumed the user knows what they
+     * want.
+     */
+    manualAction: boolean
   }
   export interface UpdateContentAugmentationRequest {
     type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION'
@@ -195,7 +203,9 @@ export namespace ToContent {
     tabId: number,
     message: RequestPageContent
   ): Promise<
-    FromContent.SavePageResponse | FromContent.PageAlreadySavedResponse
+    | FromContent.SavePageResponse
+    | FromContent.PageAlreadySavedResponse
+    | FromContent.PageNotWorthSavingResponse
   >
   export function sendMessage(
     tabId: number,
@@ -237,6 +247,9 @@ export namespace FromContent {
   export interface PageAlreadySavedResponse {
     type: 'PAGE_ALREADY_SAVED'
   }
+  export interface PageNotWorthSavingResponse {
+    type: 'PAGE_NOT_WORTH_SAVING'
+  }
   export interface GetSelectedQuoteResponse {
     type: 'SELECTED_WEB_QUOTE'
     text: string
@@ -261,6 +274,7 @@ export namespace FromContent {
     | GetSelectedQuoteResponse
     | SavePageResponse
     | PageAlreadySavedResponse
+    | PageNotWorthSavingResponse
     | VoidResponse
 
   export function sendMessage(message: Request): Promise<VoidResponse> {

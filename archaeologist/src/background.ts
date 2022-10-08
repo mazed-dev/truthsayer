@@ -134,11 +134,12 @@ async function registerAttentionTime(
   if (isReadyToBeAutoSaved(total, totalSecondsEstimation)) {
     const response:
       | FromContent.SavePageResponse
-      | FromContent.PageAlreadySavedResponse = await ToContent.sendMessage(
+      | FromContent.PageAlreadySavedResponse
+      | FromContent.PageNotWorthSavingResponse = await ToContent.sendMessage(
       tab.id,
-      { type: 'REQUEST_PAGE_CONTENT' }
+      { type: 'REQUEST_PAGE_CONTENT', manualAction: false }
     )
-    if (response.type === 'PAGE_ALREADY_SAVED') {
+    if (response.type !== 'PAGE_TO_SAVE') {
       return
     }
     const { url, content, originId, quoteNids } = response
@@ -308,7 +309,9 @@ namespace TabLoadCompletion {
 async function getPageContentViaTemporaryTab(
   url: string
 ): Promise<
-  FromContent.SavePageResponse | FromContent.PageAlreadySavedResponse
+  | FromContent.SavePageResponse
+  | FromContent.PageAlreadySavedResponse
+  | FromContent.PageNotWorthSavingResponse
 > {
   const startTime = new Date()
   let tab = await browser.tabs.create({
@@ -324,6 +327,7 @@ async function getPageContentViaTemporaryTab(
     await initMazedPartsOfTab(tab, 'passive-mode-content-app')
     return await ToContent.sendMessage(tabId, {
       type: 'REQUEST_PAGE_CONTENT',
+      manualAction: false,
     })
   } finally {
     try {
@@ -506,11 +510,12 @@ async function handleMessageFromPopup(
       }
       const response:
         | FromContent.SavePageResponse
-        | FromContent.PageAlreadySavedResponse = await ToContent.sendMessage(
+        | FromContent.PageAlreadySavedResponse
+        | FromContent.PageNotWorthSavingResponse = await ToContent.sendMessage(
         tabId,
-        { type: 'REQUEST_PAGE_CONTENT' }
+        { type: 'REQUEST_PAGE_CONTENT', manualAction: true }
       )
-      if (response.type === 'PAGE_ALREADY_SAVED') {
+      if (response.type !== 'PAGE_TO_SAVE') {
         return { type: 'PAGE_SAVED' }
       }
       const { url, content, originId, quoteNids } = response
@@ -587,25 +592,21 @@ async function uploadSingleHistoryItem(
   const total = await smuggler.activity.external.add(origin, {
     visit: { visits: resourceVisits, reported_by: epid },
   })
-  if (isReadyToBeAutoSaved(total, 0)) {
-    const response:
-      | FromContent.SavePageResponse
-      | FromContent.PageAlreadySavedResponse = await getPageContentViaTemporaryTab(
-      item.url
-    )
-    if (
-      response.type === 'PAGE_TO_SAVE' &&
-      // NOTE: the second call to isPageAutosaveable() is important as the URL from
-      // history may not be the URL of the final page, for example due to redirects
-      // to a generic, uninteresting login page in case of content protected by
-      // authentication.
-      isPageAutosaveable(response.url)
-    ) {
-      const { url, content, originId, quoteNids } = response
-      const createdVia: NodeCreatedVia = { autoIngestion: epid }
-      await savePage(url, originId, quoteNids, createdVia, content)
-    }
+  if (!isReadyToBeAutoSaved(total, 0)) {
+    return
   }
+  const response:
+    | FromContent.SavePageResponse
+    | FromContent.PageAlreadySavedResponse
+    | FromContent.PageNotWorthSavingResponse = await getPageContentViaTemporaryTab(
+    item.url
+  )
+  if (response.type !== 'PAGE_TO_SAVE') {
+    return
+  }
+  const { url, content, originId, quoteNids } = response
+  const createdVia: NodeCreatedVia = { autoIngestion: epid }
+  await savePage(url, originId, quoteNids, createdVia, content)
 }
 
 browser.runtime.onMessage.addListener(

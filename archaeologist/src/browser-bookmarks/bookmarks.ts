@@ -18,11 +18,12 @@ async function onCreatedEventListener(
     }
     const response:
       | FromContent.SavePageResponse
-      | FromContent.PageAlreadySavedResponse = await ToContent.sendMessage(
+      | FromContent.PageAlreadySavedResponse
+      | FromContent.PageNotWorthSavingResponse = await ToContent.sendMessage(
       tab.id,
-      { type: 'REQUEST_PAGE_CONTENT' }
+      { type: 'REQUEST_PAGE_CONTENT', manualAction: true }
     )
-    if (response.type === 'PAGE_ALREADY_SAVED') {
+    if (response.type !== 'PAGE_TO_SAVE') {
       return
     }
     const { url: stableUrl, content, originId, quoteNids } = response
