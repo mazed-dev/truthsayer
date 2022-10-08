@@ -32,6 +32,7 @@ test('Autosaveable.manually-blocked', () => {
     'https://zoom.us/oauth/signin?_rnd=166',
     'https://zoom.us/oauth/signin/?_rnd=166',
     'https://residentportal.com/auth',
+    'https://github.com/Thread-knowledge/smuggler/compare/add-meta-node-idx-for-slice-search?expand=1',
   ].forEach((url) => {
     expect(_isManuallyBlocked(url)).toStrictEqual(true)
   })
