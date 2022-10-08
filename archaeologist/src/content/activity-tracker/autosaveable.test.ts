@@ -2,6 +2,7 @@ import {
   _isArticleUrl,
   _isManuallyAllowed,
   _isManuallyBlocked,
+  _isTitleOfNotFoundPage,
 } from './autosaveable'
 
 test('Autosaveable.homepage', () => {
@@ -42,5 +43,24 @@ test('Autosaveable.manually-blocked', () => {
 test('Autosaveable.manually-allowed', () => {
   ;[].forEach((url) => {
     expect(_isManuallyAllowed(url)).toStrictEqual(true)
+  })
+})
+test('Autosaveable.title-of-not-found-page', () => {
+  ;[
+    'Error 404 (Not Found)!!1',
+    'Error Page | AXA Health',
+    'Error 403 (Forbidden)!!1',
+    '404 - Page Not Found',
+    'Page cannot be found',
+  ].forEach((title) => {
+    expect(_isTitleOfNotFoundPage(title)).toStrictEqual(true)
+  })
+  ;[
+    'bootstrap for browser history',
+    'lost dog still not found',
+    'tourist climbs stairs of 404 steps',
+    'Blizzard will be taking Overwatch 2 offline again',
+  ].forEach((title) => {
+    expect(_isTitleOfNotFoundPage(title)).toStrictEqual(false)
   })
 })
