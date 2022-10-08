@@ -10,12 +10,17 @@ const kUnmemorable: RegExp[] = [
   /https:\/\/mazed\.\w+/,
   /localhost:3000/,
   // Block internal "service" pages for all browsers (used
-  // for things like extension management, settings etc)
+  // for things like extension management, settings etc):
+  //// Firefox:
   /^about:.*/,
-  /^chrome:.*/,
-  /^edge:.*/,
   /https?:\/\/about:.*/,
+  /^moz-extension:.*/,
+  //// Chrome:
+  /^extension:.*/,
+  /^chrome:.*/,
   /https?:\/\/chrome:.*/,
+  //// Edge:
+  /^edge:.*/,
   /https?:\/\/edge:.*/,
 ]
 
