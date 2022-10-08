@@ -30,6 +30,7 @@ test('Autosaveable.manually-blocked', () => {
     'https://eventbrite.co.uk/signin/signup/?referrer=abc',
     'https://zoom.us/oauth/signin?_rnd=166',
     'https://zoom.us/oauth/signin/?_rnd=166',
+    'https://residentportal.com/auth',
   ].forEach((url) => {
     expect(_isManuallyBlocked(url)).toStrictEqual(true)
   })
