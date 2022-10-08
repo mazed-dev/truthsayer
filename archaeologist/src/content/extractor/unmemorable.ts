@@ -4,6 +4,8 @@ const kUnmemorable: RegExp[] = [
   // Because google.keep uses URL hash based routing, so individual notes are
   // not distinguishable for archaeologist - they all have the same origin ID.
   /https?:\/\/(www\.)?keep\.google\.com/,
+  // Google Meet is for video-only, live content so there is nothing to index
+  /https?:\/\/(www\.)?meet\.google\.com/,
   /https?:\/\/(www\.)?fb\.com/,
   /https?:\/\/(www\.)?facebook\.com/,
   /https?:\/\/(www\.)?instagram\.com/,
