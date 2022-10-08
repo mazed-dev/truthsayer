@@ -296,7 +296,8 @@ namespace TabLoadCompletion {
     //            set of events to use until redirects settle)
     //          - difficulties to marry this with other flows that call initMazedPartsOfTab()
     switch (url.host) {
-      case 'mail.google.com': {
+      case 'mail.google.com':
+      case 'twitter.com': {
         await sleep(2000)
         break
       }
