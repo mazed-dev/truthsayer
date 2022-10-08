@@ -16,6 +16,10 @@ test('isMemorable unmemorable', () => {
     'https://mazed.dev',
     'https://mazed.se/',
     'https://mazed.app/',
+    'http://about:devtools-toolbox?id=0b1e6917bec8bc1aa8c2131e8fba56e1131aa82c%40temporary-addon&type=extension',
+    'about:preferences',
+    'chrome://about',
+    'edge://extensions',
   ].forEach((url: string) => {
     expect(isMemorable(url)).toStrictEqual(false)
   })
