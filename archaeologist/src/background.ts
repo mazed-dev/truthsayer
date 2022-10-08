@@ -13,7 +13,7 @@ import {
 } from './message/types'
 
 import browser, { Tabs } from 'webextension-polyfill'
-import { log, isAbortError, genOriginId, unixtime } from 'armoury'
+import { log, isAbortError, genOriginId, unixtime, errorise } from 'armoury'
 import {
   TNode,
   TotalUserActivity,
@@ -400,6 +400,18 @@ async function uploadBrowserHistory() {
       ToPopUp.sendMessage({
         type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS',
         newState: progress,
+      }).catch((reason: any) => {
+        const error = errorise(reason)
+        const popupIsNotOpen =
+          error.message.indexOf('Receiving end does not exist') !== -1
+        if (popupIsNotOpen) {
+          // NOTE: As browser history upload is a long-running process, it is
+          // expected that at some point the user will close archaeologist popup
+          // in which failed attempts to update are not errors.
+          // All the other errors however should not be suppressed.
+          return
+        }
+        throw reason
       })
     },
     1123
