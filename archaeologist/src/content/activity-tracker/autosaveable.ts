@@ -56,6 +56,31 @@ export function _isManuallyBlocked(url: string): boolean {
   return false
 }
 
+const kPageNotFoundTitles: RegExp[] = [
+  /.*error 404.*/,
+  /.*error 403.*/,
+  /.*error page.*/,
+  /.*page not found.*/,
+  /.*page can't be found.*/,
+  /.*page cannot be found.*/,
+]
+
+export function _isTitleOfNotFoundPage(title?: string | null): boolean {
+  if (title == null) {
+    return false
+  }
+
+  const normalizedTitle = title.toLowerCase()
+
+  if (kPageNotFoundTitles.find((r: RegExp) => normalizedTitle.match(r))) {
+    log.debug(
+      `Document title ${title} indicates it's a "page not found" page, should not be autosaved`
+    )
+    return true
+  }
+  return false
+}
+
 export function isPageAutosaveable(url: string, document_: Document): boolean {
   if (_isManuallyAllowed(url)) {
     return true
@@ -69,6 +94,7 @@ export function isPageAutosaveable(url: string, document_: Document): boolean {
   return (
     isMemorable(url) &&
     _isArticleUrl(new URL(url)) &&
+    !_isTitleOfNotFoundPage(document_.title) &&
     isProbablyReaderable(document_)
   )
 }
