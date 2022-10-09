@@ -496,13 +496,15 @@ export type OriginTransitionTip = {
  *
  *   [from]──▶[to]
  */
-export type OriginTransitionAddRequest = {
-  from: OriginTransitionTip
-  to: OriginTransitionTip
+export type AddUserExternalAssociationRequest = {
+  association: UserExternalAssociationType,
 }
 
-export type OriginTransitionsGetRequest = {
-  origin: OriginId
+export type UserExternalAssociationType = {
+  /// User transition between 2 URLs
+  web_transition: {
+    from_url: String, to_url: String
+  }
 }
 
 /**
@@ -522,8 +524,21 @@ export type OriginTransitionsGetRequest = {
  *   [origin, to-2]
  *  ]
  */
-export type OriginTransitionsGetResponse = {
-  origin: OriginId
-  from: OriginTransitionTip[]
-  to: OriginTransitionTip[]
+export type GetUserExternalAssociationsResponse = {
+  from: ExternalAssociation[],
+  to: ExternalAssociation[],
+}
+
+export type ExternalAssociation = {
+    // 🔓
+    from: ExternalAssociationEnd,
+    // 🔓
+    to: ExternalAssociationEnd,
+    // 🔐
+    association: UserExternalAssociationType,
+}
+
+export type ExternalAssociationEnd = {
+    origin_hash: OriginHash,
+    nids: Nid[],
 }

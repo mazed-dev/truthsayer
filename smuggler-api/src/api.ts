@@ -1,6 +1,8 @@
 import {
   AccountInfo,
   Ack,
+  AddUserExternalAssociationRequest,
+  GetUserExternalAssociationsResponse,
   AddUserActivityRequest,
   AdvanceExternalPipelineIngestionProgress,
   EdgeAttributes,
@@ -793,14 +795,11 @@ async function getExternalUserActivity(
 
 const kOriginTransitions: OriginTransitionAddRequest[] = []
 async function addOriginTransition(
-  req: OriginTransitionAddRequest,
+  from_origin: OriginId,
+  to_origin: OriginId,
+  association: AddUserExternalAssociationRequest,
   _signal?: AbortSignal
 ): Promise<Ack> {
-  // TODO(akindyakov): This is just a mock implementation without real
-  // interaction with smuggler, implement support for relations recording in
-  // smuggler and make relations preserved between sessions and devices
-  kOriginTransitions.push(req)
-  return { ack: true }
 }
 
 async function getNidForOrigin(origin: OriginId): Promise<string[]> {
@@ -826,6 +825,7 @@ async function getOriginTransition(
   // TODO(akindyakov): This is just a mock implementation without real
   // interaction with smuggler, implement support for relations recording in
   // smuggler and make relations preserved between sessions and devices
+  // web::resource("/external/association/{origin_hash}")
   const from_: OriginTransitionTip[] = []
   const to_: OriginTransitionTip[] = []
   for (const transition of kOriginTransitions) {
@@ -1095,15 +1095,15 @@ export const smuggler = {
       add: addExternalUserActivity,
       get: getExternalUserActivity,
     },
-    transition: {
-      add: addOriginTransition,
-      get: getOriginTransition,
-    },
   },
   external: {
     ingestion: {
       get: getUserIngestionProgress,
       advance: advanceUserIngestionProgress,
+    },
+    association: {
+      add: addOriginTransition,
+      get: getOriginTransition,
     },
   },
   user: {
