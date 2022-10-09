@@ -12,6 +12,19 @@ const kUnmemorable: RegExp[] = [
   /https?:\/\/(www\.)?instagram\.com/,
   /https:\/\/mazed\.\w+/,
   /localhost:3000/,
+  // Block internal "service" pages for all browsers (used
+  // for things like extension management, settings etc):
+  //// Firefox:
+  /^about:.*/,
+  /https?:\/\/about:.*/,
+  /^moz-extension:.*/,
+  //// Chrome:
+  /^extension:.*/,
+  /^chrome:.*/,
+  /https?:\/\/chrome:.*/,
+  //// Edge:
+  /^edge:.*/,
+  /https?:\/\/edge:.*/,
 ]
 
 export function isMemorable(url: string): boolean {
