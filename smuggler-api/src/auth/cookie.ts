@@ -62,7 +62,12 @@ export const authCookie = {
     },
     set: async (value: SmugglerTokenLastUpdateCookies): Promise<void> => {
       const cookies = new Cookies()
-      return cookies.set(COOKIES_LAST_UPDATE_KEY, value)
+      return cookies.set(COOKIES_LAST_UPDATE_KEY, value, {
+        // Max age is 1 year
+        // If changed, don't forget to update Cookie Policy document
+        // legal/cookie-policy.md
+        maxAge: 1 + 365 * 24 * 60 * 60,
+      })
     },
   },
 }
