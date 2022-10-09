@@ -8,6 +8,7 @@
     "armoury": "yarn workspace armoury",
     "fix": "yarn syncpack fix-mismatches && yarn workspaces foreach run fix",
     "fix:prettier": "yarn workspaces foreach run fix:prettier",
+    "legal": "yarn workspace legal",
     "librarius": "yarn workspace librarius",
     "lint": "yarn syncpack list-mismatches && yarn workspaces foreach run lint",
     "smuggler-api": "yarn workspace smuggler-api",
@@ -18,6 +19,7 @@
     "archaeologist",
     "armoury",
     "elementary",
+    "legal",
     "librarius",
     "smuggler-api",
     "truthsayer"
