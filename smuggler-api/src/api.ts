@@ -88,6 +88,7 @@ export type CreateNodeArgs = {
   extattrs?: NodeExtattrs
   ntype?: NodeType
   origin?: OriginId
+  created_via?: NodeCreatedVia
 }
 
 async function createNode(
@@ -99,6 +100,7 @@ async function createNode(
     extattrs,
     ntype,
     origin,
+    created_via,
   }: CreateNodeArgs,
   signal?: AbortSignal
 ): Promise<NewNodeResponse> {
@@ -113,6 +115,7 @@ async function createNode(
     index_text,
     extattrs,
     origin,
+    created_via,
   }
   const resp = await fetch(makeUrl('node/new', query), {
     method: 'POST',

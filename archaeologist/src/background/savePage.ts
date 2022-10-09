@@ -115,7 +115,6 @@ export async function savePage(
       url: url,
     },
     blob: undefined,
-    created_via: createdVia,
   }
   const resp = await smuggler.node.create({
     text,
@@ -126,6 +125,7 @@ export async function savePage(
       id: originId,
     },
     to_nid: quoteNids,
+    created_via: createdVia,
   })
 
   // Update badge counter
@@ -154,7 +154,6 @@ export async function savePageQuote(
     content_type: MimeType.TEXT_PLAIN_UTF_8,
     lang: lang || undefined,
     web_quote: { url, path, text },
-    created_via: createdVia,
   }
   const resp = await smuggler.node.create({
     text: makeNodeTextData(),
@@ -164,6 +163,7 @@ export async function savePageQuote(
     },
     from_nid: fromNid ? [fromNid] : undefined,
     extattrs,
+    created_via: createdVia,
   })
   if (resp) {
     // Update badge counter
