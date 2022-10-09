@@ -96,6 +96,20 @@ export namespace ToPopUp {
   }
 }
 
+export type ContentAppOperationMode =
+  /**
+   * Mode in which content app is only allowed to act as a passive responder
+   * to requests received from other parts of the system
+   * (@see FromContent.Request are disallowed).
+   */
+  | 'passive-mode-content-app'
+  /**
+   * Mode in which content app is allowed to perform actions on its own,
+   * without an explicit request from a different part of the system
+   * (@see FromContent.Request are allowed).
+   */
+  | 'active-mode-content-app'
+
 export namespace ToContent {
   export interface RequestPageContent {
     type: 'REQUEST_PAGE_CONTENT'
@@ -107,12 +121,15 @@ export namespace ToContent {
     mode: 'reset' | 'append'
   }
   /**
-   * Request to reset state of content App if needed, when page gets updated.
+   * Request to init the state of content app when page loads completely.
    * There are rather tricky ways to monitor it from inside the content script,
    * but very easy from background script.
    */
-  export interface ResetPageContentApp {
-    type: 'RESET_CONTENT_APP'
+  export interface InitContentAugmentationRequest {
+    type: 'INIT_CONTENT_AUGMENTATION_REQUEST'
+    mode: ContentAppOperationMode
+    quotes: TNodeJson[]
+    bookmark?: TNodeJson
   }
   export interface GetSelectedQuoteRequest {
     type: 'REQUEST_SELECTED_WEB_QUOTE'
@@ -125,12 +142,16 @@ export namespace ToContent {
     tooltip?: string
     timeoutMsec?: number
   }
-  export type Request =
-    | RequestPageContent
+
+  /** Requests that aim to modify recepient's state. */
+  export type MutatingRequest =
+    | InitContentAugmentationRequest
     | UpdateContentAugmentationRequest
-    | GetSelectedQuoteRequest
     | ShowDisappearingNotificationRequest
-    | ResetPageContentApp
+  /** Requests that aim to retrieve part of recepient's state without modifying it. */
+  export type ReadOnlyRequest = RequestPageContent | GetSelectedQuoteRequest
+
+  export type Request = MutatingRequest | ReadOnlyRequest
   export function sendMessage(
     tabId: number,
     message: RequestPageContent
@@ -146,10 +167,10 @@ export namespace ToContent {
   export function sendMessage(
     tabId: number,
     message: ShowDisappearingNotificationRequest
-  ): Promise<FromContent.GetSelectedQuoteResponse>
+  ): Promise<VoidResponse>
   export function sendMessage(
     tabId: number,
-    message: ResetPageContentApp
+    message: InitContentAugmentationRequest
   ): Promise<VoidResponse>
   export function sendMessage(
     tabId: number,

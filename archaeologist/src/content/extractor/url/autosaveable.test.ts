@@ -2,6 +2,7 @@ import {
   _isArticleUrl,
   _isManuallyAllowed,
   _isManuallyBlocked,
+  _isTitleOfNotFoundPage,
 } from './autosaveable'
 
 test('Autosaveable.homepage', () => {
@@ -30,6 +31,8 @@ test('Autosaveable.manually-blocked', () => {
     'https://eventbrite.co.uk/signin/signup/?referrer=abc',
     'https://zoom.us/oauth/signin?_rnd=166',
     'https://zoom.us/oauth/signin/?_rnd=166',
+    'https://residentportal.com/auth',
+    'https://github.com/Thread-knowledge/smuggler/compare/add-meta-node-idx-for-slice-search?expand=1',
   ].forEach((url) => {
     expect(_isManuallyBlocked(url)).toStrictEqual(true)
   })
@@ -42,5 +45,24 @@ test('Autosaveable.manually-blocked', () => {
 test('Autosaveable.manually-allowed', () => {
   ;[].forEach((url) => {
     expect(_isManuallyAllowed(url)).toStrictEqual(true)
+  })
+})
+test('Autosaveable.title-of-not-found-page', () => {
+  ;[
+    'Error 404 (Not Found)!!1',
+    'Error Page | AXA Health',
+    'Error 403 (Forbidden)!!1',
+    '404 - Page Not Found',
+    'Page cannot be found',
+  ].forEach((title) => {
+    expect(_isTitleOfNotFoundPage(title)).toStrictEqual(true)
+  })
+  ;[
+    'bootstrap for browser history',
+    'lost dog still not found',
+    'tourist climbs stairs of 404 steps',
+    'Blizzard will be taking Overwatch 2 offline again',
+  ].forEach((title) => {
+    expect(_isTitleOfNotFoundPage(title)).toStrictEqual(false)
   })
 })

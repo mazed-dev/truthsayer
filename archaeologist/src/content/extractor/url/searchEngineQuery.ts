@@ -8,6 +8,7 @@ export enum SearchEngineName {
   GOOGLE = 'google',
   WIKIPEDIA = 'wikipedia',
   YOUTUBE = 'youtube',
+  SPOTIFY = 'spotify',
   OTHER = 'other',
 }
 
@@ -17,6 +18,7 @@ type Engine = {
   re: RegExp
   // Options for search phrase key, they are tried one by one until phrase is found
   queryKeys: string[]
+  queryRe?: RegExp[]
 }
 const _kEngines: Engine[] = [
   {
@@ -62,6 +64,13 @@ const _kEngines: Engine[] = [
     re: /\.?youtube\.com\/results\?.*search_query=.+/,
   },
   {
+    name: SearchEngineName.SPOTIFY,
+    queryKeys: [],
+    queryRe: [/\/search\/([^/]+)/],
+    // 'https://open.spotify.com/search/u2'
+    re: /\.spotify\.com\/search\//,
+  },
+  {
     name: SearchEngineName.OTHER,
     queryKeys: ['p', 'q', 'text', 'keywords'],
     re: /\/search[/?]/,
@@ -73,7 +82,7 @@ export function isSearchEngineQueryUrl(url: string): boolean {
 }
 
 type SearchEngineQuery = Engine & {
-  phrase: string
+  phrase?: string
 }
 export function extractSearchEngineQuery(
   url: string
@@ -96,5 +105,14 @@ export function extractSearchEngineQuery(
       }
     }
   }
-  return null
+  if (engine.queryRe) {
+    for (const r of engine.queryRe) {
+      const result = r.exec(url)
+      if (result?.length === 2) {
+        const phrase = decodeURI(result[1])
+        return { ...engine, phrase }
+      }
+    }
+  }
+  return { ...engine }
 }

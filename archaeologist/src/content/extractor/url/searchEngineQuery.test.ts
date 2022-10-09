@@ -51,9 +51,19 @@ const known: KnowSearchEngineCase[] = [
     url: 'https://www.youtube.com/results?search_query=abc+abc',
   },
   {
+    name: SearchEngineName.SPOTIFY,
+    phrase: 'Би-2',
+    url: 'https://open.spotify.com/search/%D0%91%D0%B8-2',
+  },
+  {
     name: SearchEngineName.OTHER,
     phrase: 'Yahoo history',
     url: 'https://fr.search.yahoo.com/search?p=Yahoo+history&fr=yfp-t&fr2=p%3Afp%2Cm%3Asb&ei=UTF-8&fp=1',
+  },
+  {
+    name: SearchEngineName.OTHER,
+    phrase: undefined,
+    url: 'https://aeroflot.ru/sb/app/gb-en#/search?adults=1&cabin=economy&children=0&infants=0&routes=LON.20220930.NYC&_k=pwy',
   },
 ]
 
@@ -61,6 +71,7 @@ test('Known search engines - extractSearchEngineQuery', () => {
   expect(extractSearchEngineQuery('')).toStrictEqual(null)
   known.forEach((knownCase) => {
     const query = extractSearchEngineQuery(knownCase.url)
+    expect(query).not.toBeNull()
     expect(query?.phrase).toStrictEqual(knownCase.phrase)
     expect(query?.name).toStrictEqual(knownCase.name)
   })

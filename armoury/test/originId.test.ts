@@ -49,6 +49,11 @@ test('Fragment does not mater', () => {
   expect(genOriginId(urlWithout)).toStrictEqual(genOriginId(urlWithRef))
 })
 
+test('Fragment does matter for pages that do not use it as an anchor', () => {
+  const urlWithRef = 'https://mail.google.com/mail/u/0#inbox/some-email-id'
+  expect(genOriginId(urlWithRef).stableUrl).toEqual(urlWithRef)
+})
+
 test('Query is always normalized', () => {
   const url1 = 'https://abc.abc/abc?x=qwerty&a=1&b=w3'
   const url2 = 'https://abc.abc/abc?b=w3&x=qwerty&a=1'

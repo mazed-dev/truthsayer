@@ -30,6 +30,7 @@ import { Notice } from './notice/Notice.js'
 import WaitingForApproval from './auth/WaitingForApproval'
 import UserPreferences from './auth/UserPreferences'
 import { LandingPage } from './landing/LandingPage'
+import { LandingPage as NewLandingPage } from './landing-page/LandingPage.tsx'
 import { ProductMetaTags } from './landing/ProductMetaTags'
 import { PublicPage } from './landing/PublicPage'
 import UserEncryption from './UserEncryption'
@@ -83,6 +84,9 @@ function AppRouter() {
           </Route>
           <Route path={routes.logout}>
             <Logout />
+          </Route>
+          <Route path={'/new-landing-page'}>
+            <NewLandingPage />
           </Route>
           <PublicOnlyRoute path={routes.login}>
             <Login />

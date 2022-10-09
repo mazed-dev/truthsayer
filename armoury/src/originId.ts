@@ -44,18 +44,47 @@ export function genOriginId(url: string): OriginIdentity {
 }
 
 export function stabiliseUrlForOriginId(url: string): string {
-  return normalizeUrl(url, {
+  const urlWithProtocol = normalizeUrl(url, {
     forceHttps: true,
     normalizeProtocol: true,
+    stripProtocol: false,
+  })
+
+  const parsedUrl = new URL(urlWithProtocol)
+
+  return normalizeUrl(urlWithProtocol, {
     removeTrailingSlash: true,
     // Remove ads campaign data from query of given URLs
     // https://support.google.com/analytics/answer/1033863
     removeQueryParameters: [/^utm_\w+/i, /^itm_\w+/i, 'ref_src', 'ref_url'],
     sortQueryParameters: true,
     stripAuthentication: true,
-    stripHash: true,
-    stripProtocol: false,
+    stripHash: usesHashFragmentAsAnchor(parsedUrl),
     stripTextFragment: true,
     stripWWW: true,
   })
+}
+
+/**
+ * Return true if this URL uses hash fragments as anchors. false otherwise.
+ *
+ * The basic use of # fragments in URLs is to identify a portion of a web page,
+ * e.g. https://en.wikipedia.org/wiki/URI_fragment#Basics where the underlying
+ * web page is exactly the same with and without '#Basics', only the position
+ * on it differs. In these cases when URL is converted to an OriginId it is
+ * desirable to remove them.
+ *
+ * For some websites URLs with different # fragments will load completely
+ * different content. In this case when URL is converted to an OriginId it is
+ * important to keep the fragments intact.
+ */
+function usesHashFragmentAsAnchor(url: URL): boolean {
+  switch (url.host) {
+    case 'mail.google.com':
+      return false
+    default:
+      // By default it's assumed that the overwhelming number web pages uses
+      // hash fragments as regular anchors
+      return true
+  }
 }
