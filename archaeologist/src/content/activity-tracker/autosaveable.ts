@@ -26,7 +26,9 @@ const kBlocklist: RegExp[] = [
   /docs\.google\.com\//,
   // Block subpages of PRs on github, only PR comments page (main)
   /github\.com\/[\w-]+\/[\w-]+\/pull\/\d+\/(checks|files|commits)/,
-  /\/(login|signin|signup)\/?/i,
+  /\/(login|signin|signup|auth)\/?/i,
+  // Block pages seen during PR creation where two branches are compared
+  /github\.com\/.*\/compare\/.*/,
 ]
 const kAllowlist: RegExp[] = []
 /**
