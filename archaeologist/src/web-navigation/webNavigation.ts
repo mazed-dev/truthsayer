@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill'
 import { log, genOriginId, unixtime } from 'armoury'
-import { smuggler, OriginTransitionTip } from 'smuggler-api'
+import { smuggler } from 'smuggler-api'
 
 // See https://developer.chrome.com/docs/extensions/reference/webNavigation/#type-TransitionType
 type TransitionType =
