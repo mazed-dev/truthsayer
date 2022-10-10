@@ -29,7 +29,8 @@
     "bookmarks",
     "contextMenus",
     "cookies",
-    "tabs"
+    "tabs",
+    "history"
   ],
   "cross_origin_embedder_policy": {
     "value": "require-corp"

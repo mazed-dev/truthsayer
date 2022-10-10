@@ -1,4 +1,5 @@
 import { WebPageContent } from './../content/extractor/webPageContent'
+import { BrowserHistoryUploadProgress } from './../background/browserHistoryUploadProgress'
 
 import browser from 'webextension-polyfill'
 import { OriginHash, TNodeJson } from 'smuggler-api'
@@ -44,10 +45,24 @@ export namespace FromPopUp {
   export interface SavePageRequest {
     type: 'REQUEST_PAGE_TO_SAVE'
   }
+  export interface UploadBrowserHistoryRequest {
+    type: 'UPLOAD_BROWSER_HISTORY'
+  }
+  export interface CancelBrowserHistoryUploadRequest {
+    type: 'CANCEL_BROWSER_HISTORY_UPLOAD'
+  }
+  export interface DeletePreviouslyUploadedBrowserHistoryRequest {
+    type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY'
+  }
   export type Request =
     | SavePageRequest
     | PageInActiveTabStatusRequest
     | AuthStatusRequest
+    | UploadBrowserHistoryRequest
+    | CancelBrowserHistoryUploadRequest
+    | DeletePreviouslyUploadedBrowserHistoryRequest
+
+  export type Response = VoidResponse
 
   export function sendMessage(
     message: AuthStatusRequest
@@ -58,12 +73,30 @@ export namespace FromPopUp {
   export function sendMessage(
     message: PageInActiveTabStatusRequest
   ): Promise<ToPopUp.ActiveTabStatusResponse>
+  export function sendMessage(
+    message: UploadBrowserHistoryRequest
+  ): Promise<VoidResponse>
+  export function sendMessage(
+    message: CancelBrowserHistoryUploadRequest
+  ): Promise<VoidResponse>
+  export function sendMessage(
+    message: DeletePreviouslyUploadedBrowserHistoryRequest
+  ): Promise<ToPopUp.DeletePreviouslyUploadedBrowserHistoryResponse>
   export function sendMessage(message: Request): Promise<ToPopUp.Response> {
     const msg: ToBackground.Request = { direction: 'from-popup', ...message }
-    return browser.runtime.sendMessage(msg)
+    return browser.runtime.sendMessage(msg).catch((error) => {
+      throw new Error(`Failed to send ${message.type} from popup: ${error}`)
+    })
   }
 }
 export namespace ToPopUp {
+  export interface ReportBrowserHistoryUploadProgress {
+    type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS'
+    newState: BrowserHistoryUploadProgress
+  }
+
+  export type Request = ReportBrowserHistoryUploadProgress
+
   export interface AuthStatusResponse {
     type: 'AUTH_STATUS'
     status: boolean
@@ -86,12 +119,18 @@ export namespace ToPopUp {
     bookmark?: TNodeJson
     unmemorable?: boolean
   }
+  export interface DeletePreviouslyUploadedBrowserHistoryResponse {
+    type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY'
+    numDeleted: number
+  }
 
   export type Response =
     | AuthStatusResponse
     | ActiveTabStatusResponse
     | PageSavedResponse
-  export function sendMessage(message: void): Promise<void> {
+    | DeletePreviouslyUploadedBrowserHistoryResponse
+    | VoidResponse
+  export function sendMessage(message: Request): Promise<FromPopUp.Response> {
     return browser.runtime.sendMessage(message)
   }
 }
@@ -113,6 +152,14 @@ export type ContentAppOperationMode =
 export namespace ToContent {
   export interface RequestPageContent {
     type: 'REQUEST_PAGE_CONTENT'
+    /** If true, request is initiated because of user's explicit decision.
+     * Otherwise - request is initiated per decision of Mazed automation.
+     *
+     * Verification of whether or not content of a page is worth saving are
+     * less strict for manual actions as it is assumed the user knows what they
+     * want.
+     */
+    manualAction: boolean
   }
   export interface UpdateContentAugmentationRequest {
     type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION'
@@ -155,7 +202,11 @@ export namespace ToContent {
   export function sendMessage(
     tabId: number,
     message: RequestPageContent
-  ): Promise<FromContent.SavePageResponse>
+  ): Promise<
+    | FromContent.SavePageResponse
+    | FromContent.PageAlreadySavedResponse
+    | FromContent.PageNotWorthSavingResponse
+  >
   export function sendMessage(
     tabId: number,
     message: UpdateContentAugmentationRequest
@@ -176,7 +227,11 @@ export namespace ToContent {
     tabId: number,
     message: Request
   ): Promise<FromContent.Response> {
-    return browser.tabs.sendMessage(tabId, message)
+    return browser.tabs.sendMessage(tabId, message).catch((error) => {
+      throw new Error(
+        `Failed to send ${message.type} to content (tabId = ${tabId}): ${error}`
+      )
+    })
   }
 }
 export namespace FromContent {
@@ -188,6 +243,12 @@ export namespace FromContent {
     content?: WebPageContent
     // Saving page quotes to connect as right hand side cards
     quoteNids: string[]
+  }
+  export interface PageAlreadySavedResponse {
+    type: 'PAGE_ALREADY_SAVED'
+  }
+  export interface PageNotWorthSavingResponse {
+    type: 'PAGE_NOT_WORTH_SAVING'
   }
   export interface GetSelectedQuoteResponse {
     type: 'SELECTED_WEB_QUOTE'
@@ -212,11 +273,15 @@ export namespace FromContent {
   export type Response =
     | GetSelectedQuoteResponse
     | SavePageResponse
+    | PageAlreadySavedResponse
+    | PageNotWorthSavingResponse
     | VoidResponse
 
   export function sendMessage(message: Request): Promise<VoidResponse> {
     const msg: ToBackground.Request = { direction: 'from-content', ...message }
-    return browser.runtime.sendMessage(msg)
+    return browser.runtime.sendMessage(msg).catch((error) => {
+      throw new Error(`Failed to send ${message.type} from content: ${error}`)
+    })
   }
 }
 

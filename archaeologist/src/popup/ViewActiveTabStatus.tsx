@@ -21,7 +21,7 @@ const Container = styled.div`
 `
 
 const Toolbar = styled.div`
-  margin: 12px auto 0 auto;
+  margin: 0 auto 0 auto;
   display: flex;
   justify-content: center;
 `

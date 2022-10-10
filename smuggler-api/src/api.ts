@@ -88,6 +88,7 @@ export type CreateNodeArgs = {
   extattrs?: NodeExtattrs
   ntype?: NodeType
   origin?: OriginId
+  created_via?: NodeCreatedVia
 }
 
 async function createNode(
@@ -99,6 +100,7 @@ async function createNode(
     extattrs,
     ntype,
     origin,
+    created_via,
   }: CreateNodeArgs,
   signal?: AbortSignal
 ): Promise<NewNodeResponse> {
@@ -113,6 +115,7 @@ async function createNode(
     index_text,
     extattrs,
     origin,
+    created_via,
   }
   const resp = await fetch(makeUrl('node/new', query), {
     method: 'POST',
@@ -375,6 +378,29 @@ async function deleteNode({
   })
   if (resp.ok) {
     return await resp.json()
+  }
+  throw _makeResponseError(resp)
+}
+
+async function bulkDeleteNodes({
+  createdVia,
+  signal,
+}: {
+  createdVia: NodeCreatedVia
+  signal?: AbortSignal
+}): Promise<number /* number of nodes deleted */> {
+  const headers = {
+    'Content-type': MimeType.JSON,
+  }
+  const resp = await fetch(makeUrl(`/node`), {
+    method: 'DELETE',
+    body: JSON.stringify({ createdVia }),
+    headers,
+    signal,
+  })
+  if (resp.ok) {
+    const content = await resp.json()
+    return content.num_deleted_nodes
   }
   throw _makeResponseError(resp)
 }
@@ -736,28 +762,12 @@ function _makeExternalUserActivityUrl(origin: OriginId): string {
 
 async function addExternalUserActivity(
   origin: OriginId,
-  activity: ResourceVisit[] | ResourceAttention,
+  activity: AddUserActivityRequest,
   signal?: AbortSignal
 ): Promise<TotalUserActivity> {
-  let body: AddUserActivityRequest
-  if (activity instanceof Array) {
-    body = {
-      visit: {
-        visits: activity,
-      },
-    }
-  } else if ('seconds' in activity) {
-    body = {
-      attention: activity,
-    }
-  } else {
-    throw new Error(
-      `Unknown type of external user activity to report ${activity}`
-    )
-  }
   const resp = await fetch(_makeExternalUserActivityUrl(origin), {
     method: 'PATCH',
-    body: JSON.stringify(body),
+    body: JSON.stringify(activity),
     headers: { 'Content-type': MimeType.JSON },
     signal,
   })
@@ -985,6 +995,7 @@ export const smuggler = {
     slice: _getNodesSliceIter,
     lookup: lookupNodes,
     delete: deleteNode,
+    bulkDelete: bulkDeleteNodes,
   },
   blob: {
     upload: uploadFiles,

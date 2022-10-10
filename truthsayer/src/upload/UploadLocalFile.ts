@@ -81,8 +81,8 @@ function uploadLocalTextFile(
           to_nid: to_nid ? [to_nid] : undefined,
           extattrs: {
             content_type: MimeType.TEXT_PLAIN,
-            created_via: createdVia,
           },
+          created_via: createdVia,
         },
         abortSignal
       )
