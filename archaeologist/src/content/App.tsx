@@ -26,7 +26,7 @@ import {
   DisappearingToastProps,
 } from './toaster/Toaster'
 import { AppErrorBoundary } from './AppErrorBoundary'
-import { isPageAutosaveable } from './activity-tracker/autosaveable'
+import { isPageAutosaveable } from './extractor/url/autosaveable'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`

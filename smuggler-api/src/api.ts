@@ -19,8 +19,6 @@ import {
   NodeTextData,
   NodeType,
   OriginId,
-  ResourceAttention,
-  ResourceVisit,
   TEdge,
   TNode,
   TotalUserActivity,

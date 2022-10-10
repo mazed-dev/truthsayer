@@ -609,7 +609,7 @@ async function uploadSingleHistoryItem(
   }
   const { url, content, originId, quoteNids } = response
   const createdVia: NodeCreatedVia = { autoIngestion: epid }
-  await savePage(url, originId, quoteNids, createdVia, content)
+  await saveWebPage(url, originId, quoteNids, [], createdVia, content)
 }
 
 browser.runtime.onMessage.addListener(

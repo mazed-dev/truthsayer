@@ -81,9 +81,14 @@ const onCompletedListener = async (
     // log.debug('onCompleted', details)
     const origin = genOriginId(details.url)
     log.debug('Register new visit', origin.stableUrl, origin.id)
-    await smuggler.activity.external.add({ id: origin.id }, [
-      { timestamp: unixtime.now() },
-    ])
+    await smuggler.activity.external.add(
+      { id: origin.id },
+      {
+        visit: {
+          visits: [{ timestamp: unixtime.now() }],
+        },
+      }
+    )
     const transition = _tabTransitionState[details.tabId]
     if (
       transition?.source?.url != null &&
