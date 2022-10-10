@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Mazed",
   "author": "Thread knowledge",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Quick and easy access to your online history",
   "homepage_url": "https://mazed.se",
   "action": {
