@@ -19,10 +19,6 @@ import {
   NodeTextData,
   NodeType,
   OriginId,
-  OriginTransitionAddRequest,
-  OriginTransitionsGetRequest,
-  OriginTransitionsGetResponse,
-  OriginTransitionTip,
   ResourceAttention,
   ResourceVisit,
   TEdge,
@@ -793,65 +789,50 @@ async function getExternalUserActivity(
   )
 }
 
-const kOriginTransitions: OriginTransitionAddRequest[] = []
-async function addOriginTransition(
-  from_origin: OriginId,
-  to_origin: OriginId,
-  association: AddUserExternalAssociationRequest,
-  _signal?: AbortSignal
+async function recordExternalAssociation(
+  origin: {
+    from: OriginId
+    to: OriginId
+  },
+  body: AddUserExternalAssociationRequest,
+  signal?: AbortSignal
 ): Promise<Ack> {
+  const resp = await fetch(
+    makeUrl(`/external/association/${origin.from.id}/${origin.to.id}`),
+    {
+      method: 'POST',
+      body: JSON.stringify(body),
+      signal,
+    }
+  )
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw _makeResponseError(
+    resp,
+    `Addition of transition between origins ${origin.from.id} -> ${origin.to.id} failed`
+  )
 }
 
-async function getNidForOrigin(origin: OriginId): Promise<string[]> {
-  const SLICE_ALL = {
-    start_time: 0, // since the beginning of time
-    bucket_time_size: 366 * 24 * 60 * 60,
+async function getExternalAssociation(
+  {
+    origin,
+  }: {
+    origin: OriginId
+  },
+  signal?: AbortSignal
+): Promise<GetUserExternalAssociationsResponse> {
+  const resp = await fetch(makeUrl(`/external/association/${origin.id}`), {
+    method: 'GET',
+    signal,
+  })
+  if (resp.ok) {
+    return await resp.json()
   }
-  const query = { ...SLICE_ALL, origin: { id: origin.id } }
-  const iter = smuggler.node.slice(query)
-  const nids: string[] = []
-  for (let node = await iter.next(); node != null; node = await iter.next()) {
-    if (node.isWebBookmark()) {
-      nids.push(node.nid)
-    }
-  }
-  return nids
-}
-
-async function getOriginTransition(
-  req: OriginTransitionsGetRequest,
-  _signal?: AbortSignal
-): Promise<OriginTransitionsGetResponse> {
-  // TODO(akindyakov): This is just a mock implementation without real
-  // interaction with smuggler, implement support for relations recording in
-  // smuggler and make relations preserved between sessions and devices
-  // web::resource("/external/association/{origin_hash}")
-  const from_: OriginTransitionTip[] = []
-  const to_: OriginTransitionTip[] = []
-  for (const transition of kOriginTransitions) {
-    if (transition.from.origin.id === req.origin.id) {
-      const { origin, address } = transition.to
-      const nids = await getNidForOrigin(origin)
-      if (nids.length > 0) {
-        nids.forEach((nid: string) => {
-          to_.push({ origin, address, nid })
-        })
-      } else {
-        to_.push({ origin, address })
-      }
-    } else if (transition.to.origin.id === req.origin.id) {
-      const { origin, address } = transition.from
-      const nids = await getNidForOrigin(origin)
-      if (nids.length > 0) {
-        nids.forEach((nid: string) => {
-          from_.push({ origin, address, nid })
-        })
-      } else {
-        from_.push({ origin, address })
-      }
-    }
-  }
-  return { origin: req.origin, from: from_, to: to_ }
+  throw _makeResponseError(
+    resp,
+    `Getting of transitions for origin ${origin.id} failed`
+  )
 }
 
 async function getUserBadge({
@@ -1095,15 +1076,15 @@ export const smuggler = {
       add: addExternalUserActivity,
       get: getExternalUserActivity,
     },
+    association: {
+      record: recordExternalAssociation,
+      get: getExternalAssociation,
+    },
   },
   external: {
     ingestion: {
       get: getUserIngestionProgress,
       advance: advanceUserIngestionProgress,
-    },
-    association: {
-      add: addOriginTransition,
-      get: getOriginTransition,
     },
   },
   user: {

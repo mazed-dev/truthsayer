@@ -98,9 +98,9 @@ async function _getOriginRelationNid(
       if (query != null) {
         const { nid } = await _saveWebSearchQuery(
           url,
+          [],
+          [],
           query.phrase,
-          [],
-          [],
           query.logo
         )
         return nid
@@ -123,9 +123,9 @@ export async function saveWebPage(
   if (searchEngineQuery != null) {
     const node = await _saveWebSearchQuery(
       url,
-      searchEngineQuery.phrase,
       toNids,
       fromNids,
+      searchEngineQuery.phrase,
       searchEngineQuery.logo,
       originId
     )
@@ -235,9 +235,9 @@ export async function savePageQuote(
 
 async function _saveWebSearchQuery(
   url: string,
-  phrase: string,
   toNids: string[],
   fromNids: string[],
+  phrase?: string,
   icon?: string,
   originId?: OriginHash
 ): Promise<TNode> {

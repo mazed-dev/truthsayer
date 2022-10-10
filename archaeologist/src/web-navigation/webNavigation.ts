@@ -53,12 +53,26 @@ function isRelationTransition(
 const _tabTransitionState: Record<number, TabNavigationTransition | undefined> =
   {}
 
-function genOriginTransitionTip(url: string): OriginTransitionTip {
-  const { id, stableUrl } = genOriginId(url)
-  return {
-    origin: { id },
-    address: { url: stableUrl },
-  }
+function reportAssociation(
+  fromUrlUnstable: string,
+  toUrlUnstable: string
+): void {
+  const { id: fromId, stableUrl: fromUrl } = genOriginId(fromUrlUnstable)
+  const { id: toId, stableUrl: toUrl } = genOriginId(toUrlUnstable)
+  smuggler.activity.association.record(
+    {
+      from: { id: fromId },
+      to: { id: toId },
+    },
+    {
+      association: {
+        web_transition: {
+          from_url: fromUrl,
+          to_url: toUrl,
+        },
+      },
+    }
+  )
 }
 const onCompletedListener = async (
   details: browser.WebNavigation.OnCompletedDetailsType
@@ -80,10 +94,7 @@ const onCompletedListener = async (
         transition.source.url,
         details.url
       )
-      smuggler.activity.transition.add({
-        from: genOriginTransitionTip(transition.source.url),
-        to: genOriginTransitionTip(details.url),
-      })
+      reportAssociation(transition.source.url, details.url)
     }
     _tabTransitionState[details.tabId] = {
       source: { url: details.url },
@@ -105,10 +116,7 @@ const onHistoryStateUpdatedListener = async (
         transition.source.url,
         details.url
       )
-      smuggler.activity.transition.add({
-        from: genOriginTransitionTip(transition.source.url),
-        to: genOriginTransitionTip(details.url),
-      })
+      reportAssociation(transition.source.url, details.url)
     }
     _tabTransitionState[details.tabId] = {
       source: { url: details.url },
@@ -130,10 +138,7 @@ const onReferenceFragmentUpdatedListener = async (
         transition.source.url,
         details.url && transition?.transitionType === 'link'
       )
-      smuggler.activity.transition.add({
-        from: genOriginTransitionTip(transition.source.url),
-        to: genOriginTransitionTip(details.url),
-      })
+      reportAssociation(transition.source.url, details.url)
     }
     _tabTransitionState[details.tabId] = {
       source: { url: details.url },
