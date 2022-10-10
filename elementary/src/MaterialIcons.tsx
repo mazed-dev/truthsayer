@@ -41,6 +41,9 @@ export type MaterialIconType =
   | 'zoom_out'
   | 'sync'
   | 'cloud_sync'
+  | 'cloud_upload'
+  | 'cancel'
+  | 'delete'
 
 type MaterialIconAttrs = React.HTMLProps<HTMLSpanElement>
 
@@ -96,3 +99,6 @@ export const MdiSync = _makeMaterialIcon('sync')
 export const MdiCloudSync = _makeMaterialIcon('cloud_sync')
 export const MdiTravelExplore = _makeMaterialIcon('travel_explore')
 export const MdiYoutubeSearchedFor = _makeMaterialIcon('youtube_searched_for')
+export const MdiCloudUpload = _makeMaterialIcon('cloud_upload')
+export const MdiCancel = _makeMaterialIcon('cancel')
+export const MdiDelete = _makeMaterialIcon('delete')

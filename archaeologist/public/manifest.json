@@ -29,6 +29,7 @@
     "bookmarks",
     "contextMenus",
     "cookies",
+    "history",
     "tabs",
     "webNavigation"
   ],

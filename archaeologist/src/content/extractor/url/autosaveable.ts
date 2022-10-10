@@ -81,7 +81,7 @@ export function _isTitleOfNotFoundPage(title?: string | null): boolean {
   return false
 }
 
-export function isPageAutosaveable(url: string, document_: Document): boolean {
+export function isPageAutosaveable(url: string, document_?: Document): boolean {
   if (_isManuallyAllowed(url)) {
     return true
   }
@@ -91,10 +91,13 @@ export function isPageAutosaveable(url: string, document_: Document): boolean {
   if (isSearchEngineQueryUrl(url)) {
     return false
   }
+  if (!isMemorable(url) || !_isArticleUrl(new URL(url))) {
+    return false
+  }
+  if (document_ == null) {
+    return true
+  }
   return (
-    isMemorable(url) &&
-    _isArticleUrl(new URL(url)) &&
-    !_isTitleOfNotFoundPage(document_.title) &&
-    isProbablyReaderable(document_)
+    !_isTitleOfNotFoundPage(document_.title) && isProbablyReaderable(document_)
   )
 }

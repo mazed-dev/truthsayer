@@ -86,10 +86,9 @@ async function uploadFilesFromFolder(
       const contents: File = await fs.download(file)
       const index_text = await steroid.build_index.build(contents)
       const extattrs: NodeExtattrs = {
-        created_via: { autoIngestion: epid },
         ...(await extattrsFromFile(file, contents)),
       }
-      const origin = await genOriginId(file.webUrl)
+      const origin = genOriginId(file.webUrl)
       const node: CreateNodeArgs = {
         text: makeNodeTextData(),
         index_text,
@@ -98,6 +97,7 @@ async function uploadFilesFromFolder(
         origin: {
           id: origin.id,
         },
+        created_via: { autoIngestion: epid },
       }
 
       const response = await smuggler.node.createOrUpdate(node)
