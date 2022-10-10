@@ -1,5 +1,4 @@
 import React from 'react'
-import { Col, Container, Row } from 'react-bootstrap'
 import { useAsyncEffect } from 'use-async-effect'
 
 import browser from 'webextension-polyfill'
@@ -15,11 +14,26 @@ import { MdiCancel, MdiCloudUpload, MdiDelete, MdiLaunch } from 'elementary'
 import { BrowserHistoryUploadProgress } from '../background/browserHistoryUploadProgress'
 
 const AppContainer = styled.div`
-  width: 280px;
-  height: 280px;
+  width: 320px;
+  height: 480px;
   font-family: 'Roboto', arial, sans-serif;
   font-style: normal;
   font-weight: 400;
+`
+
+const Navbar = styled.ul`
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+`
+const NavbarItem = styled.li`
+  float: right;
+`
+const NavbarButton = styled(Button)`
+  display: block;
+  padding: 0 4px 0 4px;
+  color: #999999;
 `
 
 export const PopUpApp = () => {
@@ -59,18 +73,8 @@ export const PopUpApp = () => {
   }
   return (
     <AppContainer>
-      <Container>
-        <Col>
-          <Row>
-            <ViewActiveTabStatus />
-          </Row>
-          <Row>
-            <UploadBrowserHistoryButton
-              progress={browserHistoryUploadProgress}
-            />
-          </Row>
-        </Col>
-      </Container>
+      <UploadBrowserHistoryButton progress={browserHistoryUploadProgress} />
+      <ViewActiveTabStatus />
     </AppContainer>
   )
 }
@@ -121,35 +125,33 @@ const UploadBrowserHistoryButton = ({
       type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
     }).then((response) => setDeletedNodesCount(response.numDeleted))
   }
-
+  const buttonStyle = css`
+    font-size: 14px;
+  `
   const primaryAction =
     progress.processed === progress.total ? (
-      <Button onClick={startUpload}>
-        <MdiCloudUpload />
-      </Button>
+      <NavbarButton onClick={startUpload}>
+        <MdiCloudUpload css={buttonStyle} />
+      </NavbarButton>
     ) : (
-      <Button onClick={cancelUpload} disabled={isBeingCancelled}>
-        <MdiCancel />
+      <NavbarButton onClick={cancelUpload} disabled={isBeingCancelled}>
+        <MdiCancel css={buttonStyle} />
         {progress.processed}/{progress.total}
-      </Button>
+      </NavbarButton>
     )
-
   return (
-    <Container>
-      <Row>
-        <Col>Browser history:</Col>
-        <Col>{primaryAction}</Col>
-        <Col>
-          <Button
-            onClick={deletePreviouslyUploaded}
-            disabled={progress.processed !== progress.total || isBeingCancelled}
-          >
-            <MdiDelete />
-            {deletedNodesCount > 0 ? deletedNodesCount : null}
-          </Button>
-        </Col>
-      </Row>
-    </Container>
+    <Navbar>
+      <NavbarItem key={'delete'}>
+        <NavbarButton
+          onClick={deletePreviouslyUploaded}
+          disabled={progress.processed !== progress.total || isBeingCancelled}
+        >
+          <MdiDelete css={buttonStyle} />
+          {deletedNodesCount > 0 ? deletedNodesCount : null}
+        </NavbarButton>
+      </NavbarItem>
+      <NavbarItem key={'action'}>{primaryAction}</NavbarItem>
+    </Navbar>
   )
 }
 
