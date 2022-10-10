@@ -11,7 +11,6 @@ import {
   NodeIndexText,
   NodeType,
   OriginHash,
-  OriginTransitionTip,
   TNode,
   makeNodeTextData,
   smuggler,
@@ -85,29 +84,26 @@ async function showDisappearingNotification(
   }
 }
 
-async function _getOriginRelationNid(
-  tip: OriginTransitionTip
-): Promise<Nid | null> {
-  const { nid, address } = tip
-  if (nid != null) {
-    return nid
-  } else {
-    const { url } = address
-    if (url != null) {
-      const query = extractSearchEngineQuery(url)
-      if (query != null) {
-        const { nid } = await _saveWebSearchQuery(
-          url,
-          [],
-          [],
-          query.phrase,
-          query.logo
-        )
-        return nid
-      }
+async function _getOriginRelationNids(
+  nids: Nid[],
+  url?: string
+): Promise<Nid[]> {
+  if (nids) {
+    return nids
+  } else if (url != null) {
+    const query = extractSearchEngineQuery(url)
+    if (query != null) {
+      const { nid } = await _saveWebSearchQuery(
+        url,
+        [],
+        [],
+        query.phrase,
+        query.logo
+      )
+      return [nid]
     }
   }
-  return null
+  return []
 }
 
 export async function saveWebPage(
@@ -158,20 +154,30 @@ export async function saveWebPage(
     blob: undefined,
     created_via: createdVia,
   }
-  const originTransitions = await smuggler.activity.transition.get({
+  const originTransitions = await smuggler.activity.association.get({
     origin: { id: originId },
   })
   log.debug('Gather transitions', originTransitions)
-  for (const transition of originTransitions.to) {
-    const nid = await _getOriginRelationNid(transition)
-    if (nid != null) {
-      toNids.push(nid)
+  for (const association of originTransitions.to) {
+    if ('web_transition' in association.association) {
+      const nids = await _getOriginRelationNids(
+        association.to.nids,
+        association.association.web_transition.to_url
+      )
+      if (nids) {
+        toNids.push(...nids)
+      }
     }
   }
-  for (const transition of originTransitions.from) {
-    const nid = await _getOriginRelationNid(transition)
-    if (nid != null) {
-      fromNids.push(nid)
+  for (const association of originTransitions.from) {
+    if ('web_transition' in association.association) {
+      const nids = await _getOriginRelationNids(
+        association.from.nids,
+        association.association.web_transition.from_url
+      )
+      if (nids) {
+        fromNids.push(...nids)
+      }
     }
   }
   const resp = await smuggler.node.create({

@@ -7,7 +7,7 @@ import {
 type KnowSearchEngineCase = {
   name: SearchEngineName
   url: string
-  phrase: string
+  phrase?: string
 }
 const known: KnowSearchEngineCase[] = [
   {

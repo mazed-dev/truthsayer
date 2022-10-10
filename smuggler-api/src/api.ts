@@ -800,8 +800,9 @@ async function recordExternalAssociation(
   const resp = await fetch(
     makeUrl(`/external/association/${origin.from.id}/${origin.to.id}`),
     {
-      method: 'POST',
       body: JSON.stringify(body),
+      method: 'POST',
+      headers: { 'Content-type': MimeType.JSON },
       signal,
     }
   )

@@ -502,8 +502,8 @@ export type AddUserExternalAssociationRequest = {
 export type UserExternalAssociationType = {
   // / User transition between 2 URLs
   web_transition: {
-    from_url: String
-    to_url: String
+    from_url: string
+    to_url: string
   }
 }
 

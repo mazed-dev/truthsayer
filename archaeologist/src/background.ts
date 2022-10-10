@@ -137,6 +137,7 @@ async function handleMessageFromPopup(
       }
       const response: FromContent.SavePageResponse =
         await ToContent.sendMessage(tabId, { type: 'REQUEST_PAGE_CONTENT' })
+      log.debug('handleMessageFromPopup REQUEST_PAGE_CONTENT response', response)
       const { url, content, originId, quoteNids } = response
       const createdVia: NodeCreatedVia = { manualAction: null }
       const { node, unmemorable } = await saveWebPage(

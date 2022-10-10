@@ -13,9 +13,15 @@ test('Autosaveable.homepage', () => {
   ].forEach((url) => {
     expect(_isArticleUrl(new URL(url))).toStrictEqual(false)
   })
-  expect(
-    _isArticleUrl(new URL('https://akindyakov.dev/routine-and-recipes/'))
-  ).toStrictEqual(true)
+})
+test('Autosaveable.homepage-not', () => {
+  ;[
+    'https://akindyakov.dev/routine-and-recipes/',
+    'https://firefox-source-docs.mozilla.org/devtools-user/about_colon_debugging/index.html',
+    'https://domains.google.com/registrar/index.php',
+  ].forEach((url) => {
+    expect(_isArticleUrl(new URL(url))).toStrictEqual(true)
+  })
 })
 test('Autosaveable.manually-blocked', () => {
   ;[
