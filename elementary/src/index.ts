@@ -15,6 +15,7 @@ export * from './grid/SearchGrid'
 export * from './jcss'
 export * from './spinner/mod'
 export * from './util/xstyle'
+export * from './legal/CookiePolicy'
 
 export { Beagle } from './grid/search/search'
 export type { Woof } from './grid/search/search'

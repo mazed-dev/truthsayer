@@ -40,6 +40,7 @@ import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegration
 import { AppsList } from './apps-list/AppsList'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
+import { CookiePolicy } from 'elementary'
 
 class App extends React.Component {
   render() {
@@ -300,12 +301,7 @@ function ContactUs() {
 function CookiePolicyPage() {
   return (
     <Container>
-      <Card border="light">
-        <Card.Body>
-          <Card.Title>Privacy policy</Card.Title>
-          <Card.Text>To be done soon</Card.Text>
-        </Card.Body>
-      </Card>
+      <CookiePolicy />
     </Container>
   )
 }
