@@ -84,8 +84,8 @@ export const CreateNewNodeMenu = () => {
         text: doc.toNodeTextData(),
         extattrs: {
           content_type: MimeType.TEXT_PLAIN,
-          created_via: { manualAction: null },
         },
+        created_via: { manualAction: null },
       })
       .then((node) => {
         if (node) {

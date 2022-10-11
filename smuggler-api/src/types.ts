@@ -71,7 +71,6 @@ export type NodeExtattrs = {
   web?: NodeExtattrsWeb
   blob?: NodeExtattrsBlob
   web_quote?: NodeExtattrsWebQuote
-  created_via?: NodeCreatedVia
 }
 
 // see smuggler/src/types.rs
@@ -345,6 +344,7 @@ export type NodeCreateRequestBody = {
   index_text?: NodeIndexText
   extattrs?: NodeExtattrs
   origin?: OriginId
+  created_via?: NodeCreatedVia
 }
 
 export type NodePatchRequest = {
@@ -460,12 +460,16 @@ export type ResourceAttention = {
   seconds: number
 }
 
-export type AddUserActivityRequest = {
-  visit?: {
-    visits: ResourceVisit[]
-  }
-  attention?: ResourceAttention
-}
+export type AddUserActivityRequest =
+  | {
+      visit?: {
+        visits: ResourceVisit[]
+        reported_by?: UserExternalPipelineId
+      }
+    }
+  | {
+      attention?: ResourceAttention
+    }
 
 export type TotalUserActivity = {
   visits: ResourceVisit[]

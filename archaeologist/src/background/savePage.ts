@@ -92,7 +92,7 @@ export async function savePage(
 ): Promise<{ node?: TNode; unmemorable: boolean }> {
   if (content == null) {
     // Update badge counter
-    await badge.resetText(tabId, ACTION_DONE_BADGE_MARKER)
+    await badge.setStatus(tabId, ACTION_DONE_BADGE_MARKER)
     // Page is not memorable
     await updateContent([], undefined, tabId)
     return { unmemorable: true }
@@ -115,7 +115,6 @@ export async function savePage(
       url: url,
     },
     blob: undefined,
-    created_via: createdVia,
   }
   const resp = await smuggler.node.create({
     text,
@@ -126,10 +125,11 @@ export async function savePage(
       id: originId,
     },
     to_nid: quoteNids,
+    created_via: createdVia,
   })
 
   // Update badge counter
-  await badge.resetText(tabId, ACTION_DONE_BADGE_MARKER)
+  await badge.setStatus(tabId, ACTION_DONE_BADGE_MARKER)
 
   const { nid } = resp
   const node = await smuggler.node.get({ nid })
@@ -154,7 +154,6 @@ export async function savePageQuote(
     content_type: MimeType.TEXT_PLAIN_UTF_8,
     lang: lang || undefined,
     web_quote: { url, path, text },
-    created_via: createdVia,
   }
   const resp = await smuggler.node.create({
     text: makeNodeTextData(),
@@ -164,10 +163,11 @@ export async function savePageQuote(
     },
     from_nid: fromNid ? [fromNid] : undefined,
     extattrs,
+    created_via: createdVia,
   })
   if (resp) {
     // Update badge counter
-    await badge.resetText(tabId, ACTION_DONE_BADGE_MARKER)
+    await badge.setStatus(tabId, ACTION_DONE_BADGE_MARKER)
 
     const { nid } = resp
     const node = await smuggler.node.get({ nid })

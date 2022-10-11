@@ -26,6 +26,7 @@ import {
   DisappearingToastProps,
 } from './toaster/Toaster'
 import { AppErrorBoundary } from './AppErrorBoundary'
+import { isPageAutosaveable } from './activity-tracker/autosaveable'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
@@ -162,6 +163,12 @@ async function handleReadOnlyRequest(
   switch (request.type) {
     case 'REQUEST_PAGE_CONTENT':
       if (state.bookmark == null) {
+        if (
+          !request.manualAction &&
+          !isPageAutosaveable(document.URL, document)
+        ) {
+          return { type: 'PAGE_NOT_WORTH_SAVING' }
+        }
         // Bookmark if not yet bookmarked
         const content = await contentOfThisDocument(state.originIdentity)
         log.debug('Page content requested', content)
@@ -173,9 +180,7 @@ async function handleReadOnlyRequest(
           quoteNids: state.quotes.map((node) => node.nid),
         }
       }
-      throw new Error(
-        `Page ${state.originIdentity.stableUrl} has been bookmarked before already`
-      )
+      return { type: 'PAGE_ALREADY_SAVED' }
     case 'REQUEST_SELECTED_WEB_QUOTE': {
       const lang = document.documentElement.lang
       return {
