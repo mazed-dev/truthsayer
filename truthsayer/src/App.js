@@ -40,7 +40,7 @@ import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegration
 import { AppsList } from './apps-list/AppsList'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
-import { CookiePolicy } from 'elementary'
+import { TermsAndConditions, CookiePolicy, PrivacyPolicy } from 'elementary'
 
 class App extends React.Component {
   render() {
@@ -309,12 +309,7 @@ function CookiePolicyPage() {
 function PrivacyPolicyPage() {
   return (
     <Container>
-      <Card border="light">
-        <Card.Body>
-          <Card.Title>Privacy policy</Card.Title>
-          <Card.Text>To be done soon</Card.Text>
-        </Card.Body>
-      </Card>
+      <PrivacyPolicy />
     </Container>
   )
 }
@@ -322,12 +317,7 @@ function PrivacyPolicyPage() {
 function TermsAndConditionsPage() {
   return (
     <Container>
-      <Card>
-        <Card.Body>
-          <Card.Title>Terms of service</Card.Title>
-          <Card.Text>To be done</Card.Text>
-        </Card.Body>
-      </Card>
+      <TermsAndConditions />
     </Container>
   )
 }
