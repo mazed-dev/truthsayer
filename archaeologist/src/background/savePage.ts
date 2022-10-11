@@ -1,17 +1,19 @@
 import { DisappearingToastProps } from '../content/toaster/Toaster'
 import { WebPageContent } from '../content/extractor/webPageContent'
+import { extractSearchEngineQuery } from '../content/extractor/url/searchEngineQuery'
 
-import { log, isAbortError, MimeType, errorise } from 'armoury'
+import { log, isAbortError, MimeType, errorise, genOriginId } from 'armoury'
 import {
+  Nid,
+  NodeCreatedVia,
   NodeExtattrs,
   NodeExtattrsWebQuote,
   NodeIndexText,
   NodeType,
-  makeNodeTextData,
-  smuggler,
   OriginHash,
   TNode,
-  NodeCreatedVia,
+  makeNodeTextData,
+  smuggler,
 } from 'smuggler-api'
 import { ToContent } from '../message/types'
 import { mazed } from '../util/mazed'
@@ -82,14 +84,49 @@ async function showDisappearingNotification(
   }
 }
 
-export async function savePage(
+async function _getOriginRelationNids(
+  nids: Nid[],
+  url?: string
+): Promise<Nid[]> {
+  if (nids) {
+    return nids
+  } else if (url != null) {
+    const query = extractSearchEngineQuery(url)
+    if (query != null) {
+      const { nid } = await _saveWebSearchQuery(
+        url,
+        [],
+        [],
+        query.phrase,
+        query.logo
+      )
+      return [nid]
+    }
+  }
+  return []
+}
+
+export async function saveWebPage(
   url: string,
   originId: OriginHash,
-  quoteNids: string[],
+  toNids: string[],
+  fromNids: string[],
   createdVia: NodeCreatedVia,
   content?: WebPageContent,
   tabId?: number
 ): Promise<{ node?: TNode; unmemorable: boolean }> {
+  const searchEngineQuery = extractSearchEngineQuery(url)
+  if (searchEngineQuery != null) {
+    const node = await _saveWebSearchQuery(
+      url,
+      toNids,
+      fromNids,
+      searchEngineQuery.phrase,
+      searchEngineQuery.logo,
+      originId
+    )
+    return { node, unmemorable: false }
+  }
   if (content == null) {
     // Update badge counter
     await badge.setStatus(tabId, ACTION_DONE_BADGE_MARKER)
@@ -116,6 +153,32 @@ export async function savePage(
     },
     blob: undefined,
   }
+  const originTransitions = await smuggler.activity.association.get({
+    origin: { id: originId },
+  })
+  log.debug('Gather transitions', originTransitions)
+  for (const association of originTransitions.to) {
+    if ('web_transition' in association.association) {
+      const nids = await _getOriginRelationNids(
+        association.to.nids,
+        association.association.web_transition.to_url
+      )
+      if (nids) {
+        toNids.push(...nids)
+      }
+    }
+  }
+  for (const association of originTransitions.from) {
+    if ('web_transition' in association.association) {
+      const nids = await _getOriginRelationNids(
+        association.from.nids,
+        association.association.web_transition.from_url
+      )
+      if (nids) {
+        fromNids.push(...nids)
+      }
+    }
+  }
   const resp = await smuggler.node.create({
     text,
     index_text,
@@ -124,7 +187,8 @@ export async function savePage(
     origin: {
       id: originId,
     },
-    to_nid: quoteNids,
+    to_nid: toNids,
+    from_nid: fromNids,
     created_via: createdVia,
   })
 
@@ -173,4 +237,43 @@ export async function savePageQuote(
     const node = await smuggler.node.get({ nid })
     await updateContent([node], undefined, tabId)
   }
+}
+
+async function _saveWebSearchQuery(
+  url: string,
+  toNids: string[],
+  fromNids: string[],
+  phrase?: string,
+  icon?: string,
+  originId?: OriginHash
+): Promise<TNode> {
+  if (originId == null) {
+    originId = genOriginId(url).id
+  }
+  const text = makeNodeTextData()
+  const index_text: NodeIndexText = {
+    labels: [],
+    brands: [],
+    dominant_colors: [],
+  }
+  const extattrs: NodeExtattrs = {
+    content_type: MimeType.TEXT_URI_LIST,
+    title: phrase,
+    preview_image: icon ? { data: icon } : undefined,
+    web: { url },
+  }
+  const resp = await smuggler.node.create({
+    text,
+    index_text,
+    extattrs,
+    ntype: NodeType.Url,
+    origin: {
+      id: originId,
+    },
+    to_nid: toNids,
+    from_nid: fromNids,
+  })
+  const { nid } = resp
+  const node = await smuggler.node.get({ nid })
+  return node
 }

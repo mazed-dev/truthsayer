@@ -1,12 +1,12 @@
-import { isMemorable } from '../extractor/unmemorable'
-import { isSearchEngineQueryUrl } from '../extractor/searchEngineQuery'
+import { isMemorable } from './unmemorable'
+import { isSearchEngineQueryUrl } from './searchEngineQuery'
 import { log } from 'armoury'
 import { isProbablyReaderable } from '@mozilla/readability'
 
 const kHomepage: RegExp[] = [
   /^\/?$/, // empty path
-  /index.html$/,
-  /index.php$/,
+  /^\/index.html$/,
+  /^\/index.php$/,
 ]
 export function _isArticleUrl(url: URL): boolean {
   if (

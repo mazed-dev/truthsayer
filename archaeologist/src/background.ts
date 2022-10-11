@@ -1,7 +1,8 @@
-import * as badge from './badge/badge'
 import * as omnibox from './omnibox/omnibox'
+import * as webNavigation from './web-navigation/webNavigation'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import * as auth from './background/auth'
+import { saveWebPage, savePageQuote } from './background/savePage'
 import {
   ToPopUp,
   ToContent,
@@ -11,6 +12,7 @@ import {
   VoidResponse,
   ContentAppOperationMode,
 } from './message/types'
+import * as badge from './badge/badge'
 
 import browser, { Tabs } from 'webextension-polyfill'
 import { log, isAbortError, genOriginId, unixtime, errorise } from 'armoury'
@@ -22,11 +24,11 @@ import {
   UserExternalPipelineId,
   NodeCreatedVia,
 } from 'smuggler-api'
-import { savePage, savePageQuote } from './background/savePage'
+
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
 import { calculateBadgeCounter } from './badge/badgeCounter'
-import { isMemorable } from './content/extractor/unmemorable'
-import { isPageAutosaveable } from './content/activity-tracker/autosaveable'
+import { isMemorable } from './content/extractor/url/unmemorable'
+import { isPageAutosaveable } from './content/extractor/url/autosaveable'
 import lodash from 'lodash'
 import { BrowserHistoryUploadProgress } from './background/browserHistoryUploadProgress'
 
@@ -144,7 +146,7 @@ async function registerAttentionTime(
     }
     const { url, content, originId, quoteNids } = response
     const createdVia: NodeCreatedVia = { autoAttentionTracking: null }
-    await savePage(url, originId, quoteNids, createdVia, content, tab.id)
+    await saveWebPage(url, originId, quoteNids, [], createdVia, content, tab.id)
   }
 }
 
@@ -520,10 +522,11 @@ async function handleMessageFromPopup(
       }
       const { url, content, originId, quoteNids } = response
       const createdVia: NodeCreatedVia = { manualAction: null }
-      const { node, unmemorable } = await savePage(
+      const { node, unmemorable } = await saveWebPage(
         url,
         originId,
         quoteNids,
+        [],
         createdVia,
         content,
         tabId
@@ -606,7 +609,7 @@ async function uploadSingleHistoryItem(
   }
   const { url, content, originId, quoteNids } = response
   const createdVia: NodeCreatedVia = { autoIngestion: epid }
-  await savePage(url, originId, quoteNids, createdVia, content)
+  await saveWebPage(url, originId, quoteNids, [], createdVia, content)
 }
 
 browser.runtime.onMessage.addListener(
@@ -655,14 +658,12 @@ browser.tabs.onUpdated.addListener(
         changeInfo.status === 'complete' &&
         !TabLoadCompletion.initTakenOver(tabId)
       ) {
-        await initMazedPartsOfTab(tab, 'active-mode-content-app')
-
-        const origin = genOriginId(tab.url)
-        log.debug('Register new visit', origin.stableUrl, origin.id)
-        await smuggler.activity.external.add(
-          { id: origin.id },
-          { visit: { visits: [{ timestamp: unixtime.now() }] } }
+        const response = await requestPageSavedStatus(tab.url)
+        await badge.setStatus(
+          tabId,
+          calculateBadgeCounter(response.quotes, response.bookmark)
         )
+        await initMazedPartsOfTab(tab, 'active-mode-content-app')
       }
     } finally {
       if (changeInfo.status === 'complete') {
@@ -766,6 +767,7 @@ browser.contextMenus.onClicked.addListener(
   }
 )
 
-omnibox.register()
-browserBookmarks.register()
 auth.register()
+browserBookmarks.register()
+omnibox.register()
+webNavigation.register()
