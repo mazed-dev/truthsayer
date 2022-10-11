@@ -14,7 +14,6 @@ test('isMemorable unmemorable', () => {
     'https://google.com/search=',
     'https://meet.google.com/nwx-tzrk-nkt',
     'https://mazed.com/search=',
-    'https://mazed.dev',
     'https://mazed.se/',
     'https://mazed.app/',
     // Settings page of https://addons.mozilla.org/en-GB/firefox/addon/adblocker-ultimate/
