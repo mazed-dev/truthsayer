@@ -1,6 +1,8 @@
 import {
   AccountInfo,
   Ack,
+  AddUserExternalAssociationRequest,
+  GetUserExternalAssociationsResponse,
   AddUserActivityRequest,
   AdvanceExternalPipelineIngestionProgress,
   EdgeAttributes,
@@ -17,8 +19,6 @@ import {
   NodeTextData,
   NodeType,
   OriginId,
-  ResourceAttention,
-  ResourceVisit,
   TEdge,
   TNode,
   TotalUserActivity,
@@ -287,7 +287,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
     }
     return nodes
   } else if ('url' in key) {
-    const { id, stableUrl } = await genOriginId(key.url)
+    const { id, stableUrl } = genOriginId(key.url)
     const query = { ...SLICE_ALL, origin: { id } }
     const iter = smuggler.node.slice(query)
 
@@ -797,6 +797,53 @@ async function getExternalUserActivity(
   )
 }
 
+async function recordExternalAssociation(
+  origin: {
+    from: OriginId
+    to: OriginId
+  },
+  body: AddUserExternalAssociationRequest,
+  signal?: AbortSignal
+): Promise<Ack> {
+  const resp = await fetch(
+    makeUrl(`/external/association/${origin.from.id}/${origin.to.id}`),
+    {
+      body: JSON.stringify(body),
+      method: 'POST',
+      headers: { 'Content-type': MimeType.JSON },
+      signal,
+    }
+  )
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw _makeResponseError(
+    resp,
+    `Addition of transition between origins ${origin.from.id} -> ${origin.to.id} failed`
+  )
+}
+
+async function getExternalAssociation(
+  {
+    origin,
+  }: {
+    origin: OriginId
+  },
+  signal?: AbortSignal
+): Promise<GetUserExternalAssociationsResponse> {
+  const resp = await fetch(makeUrl(`/external/association/${origin.id}`), {
+    method: 'GET',
+    signal,
+  })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw _makeResponseError(
+    resp,
+    `Getting of transitions for origin ${origin.id} failed`
+  )
+}
+
 async function getUserBadge({
   uid,
   signal,
@@ -1038,6 +1085,10 @@ export const smuggler = {
     external: {
       add: addExternalUserActivity,
       get: getExternalUserActivity,
+    },
+    association: {
+      record: recordExternalAssociation,
+      get: getExternalAssociation,
     },
   },
   external: {
