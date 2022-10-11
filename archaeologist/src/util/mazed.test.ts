@@ -10,13 +10,13 @@ describe('test suite for makeUrl', () => {
   })
 
   test('makeSearchUrl', () => {
-    const apiUrl = 'https://abc.mazed.dev'
+    const apiUrl = 'https://abc.mazed.se'
     process.env.REACT_APP_SMUGGLER_API_URL = apiUrl
     expect(mazed.makeSearchUrl('fancy').toString()).toStrictEqual(
-      'https://abc.mazed.dev/search?q=fancy'
+      'https://abc.mazed.se/search?q=fancy'
     )
     expect(mazed.makeSearchUrl('Fancy cuppa').toString()).toStrictEqual(
-      'https://abc.mazed.dev/search?q=Fancy+cuppa'
+      'https://abc.mazed.se/search?q=Fancy+cuppa'
     )
   })
 })
