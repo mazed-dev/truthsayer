@@ -78,7 +78,6 @@ const onCompletedListener = async (
   details: browser.WebNavigation.OnCompletedDetailsType
 ) => {
   if (details.frameId === 0) {
-    // log.debug('onCompleted', details)
     const origin = genOriginId(details.url)
     log.debug('Register new visit', origin.stableUrl, origin.id)
     await smuggler.activity.external.add(
@@ -110,7 +109,6 @@ const onHistoryStateUpdatedListener = async (
   details: browser.WebNavigation.OnHistoryStateUpdatedDetailsType
 ) => {
   if (details.frameId === 0) {
-    // log.debug('onHistoryStateUpdated', details)
     const transition = _tabTransitionState[details.tabId]
     if (
       transition?.source?.url != null &&
@@ -132,7 +130,6 @@ const onReferenceFragmentUpdatedListener = async (
   details: browser.WebNavigation.OnReferenceFragmentUpdatedDetailsType
 ) => {
   if (details.frameId === 0) {
-    // log.debug('onReferenceFragmentUpdated', details)
     const transition = _tabTransitionState[details.tabId]
     if (
       transition?.source?.url != null &&
@@ -154,7 +151,6 @@ const onCreatedNavigationTargetListener = async (
   details: browser.WebNavigation.OnCreatedNavigationTargetDetailsType
 ) => {
   const prev = await browser.tabs.get(details.sourceTabId)
-  // log.debug('onCreatedNavigationTarget', details, prev.url)
   const transition = _tabTransitionState[details.tabId]
   if (prev.url != null) {
     if (transition != null) {
@@ -170,7 +166,6 @@ const onCommittedListener = async (
   details_: browser.WebNavigation.OnCommittedDetailsType
 ) => {
   if (details_.frameId === 0) {
-    // log.debug('onCommitted', details_)
     // Dirty hack to patch incosistency of browser-polyfill lib
     const details = details_ as browser.WebNavigation.OnCommittedDetailsType & {
       transitionType?: TransitionType
@@ -192,9 +187,7 @@ const onCommittedListener = async (
 
 const onBeforeNavigateListener = (
   _details: browser.WebNavigation.OnBeforeNavigateDetailsType
-) => {
-  // log.debug('onBeforeNavigateListener', _details)
-}
+) => {}
 
 export function register() {
   if (!browser.webNavigation.onCompleted.hasListener(onCompletedListener)) {
