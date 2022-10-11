@@ -1,5 +1,4 @@
-import { Mime } from 'armoury'
-import { MimeType } from 'armoury'
+import { Mime, MimeType } from 'armoury'
 import moment from 'moment'
 
 import { makeUrl } from './api_url'
@@ -26,6 +25,8 @@ export function makeNodeTextData(plaintext?: string): NodeTextData {
     chunks: undefined,
   }
 }
+
+export type Nid = string
 
 // see smuggler/src/types.rs
 export type NodeTextData = {
@@ -417,6 +418,11 @@ export type OriginId = {
   id: OriginHash
 }
 
+/** 🔐 Expected to be encrypted before sending to smuggler */
+export type OriginAddress = {
+  url?: string
+}
+
 export type UserBadge = {
   uid: string
   name: string
@@ -474,4 +480,69 @@ export type AddUserActivityRequest =
 export type TotalUserActivity = {
   visits: ResourceVisit[]
   seconds_of_attention: number
+}
+
+/**
+ * One end of a relation between 2 origins
+ */
+export type OriginTransitionTip = {
+  origin: OriginId
+  address: OriginAddress
+  // Current relation might be with another origin that is not yet saved as a
+  // Node, thus it's a completely shadow edge and shadow node that later can be
+  // promoted to a real node and edge
+  nid?: string
+}
+
+/**
+ * This is request to register 2 origins relation (shadow edge)
+ *
+ *   [from]──▶[to]
+ */
+export type AddUserExternalAssociationRequest = {
+  association: UserExternalAssociationType
+}
+
+export type UserExternalAssociationType = {
+  // / User transition between 2 URLs
+  web_transition: {
+    from_url: string
+    to_url: string
+  }
+}
+
+/**
+ * Expect to see the following structure in the response:
+ *
+ * [from-0]─┐           ┌─▶[to-0]
+ * [from-1]─┼─▶[origin]─┼─▶[to-1]
+ * [from-2]─┘           └─▶[to-2]
+ *
+ * which is equivalent of the following set of shadow edges:
+ * [
+ *   [from-0, origin]
+ *   [from-1, origin]
+ *   [from-2, origin]
+ *   [origin, to-0]
+ *   [origin, to-1]
+ *   [origin, to-2]
+ *  ]
+ */
+export type GetUserExternalAssociationsResponse = {
+  from: ExternalAssociation[]
+  to: ExternalAssociation[]
+}
+
+export type ExternalAssociation = {
+  // 🔓
+  from: ExternalAssociationEnd
+  // 🔓
+  to: ExternalAssociationEnd
+  // 🔐
+  association: UserExternalAssociationType
+}
+
+export type ExternalAssociationEnd = {
+  origin_hash: OriginHash
+  nids: Nid[]
 }

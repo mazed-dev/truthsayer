@@ -56,7 +56,7 @@ export function stabiliseUrlForOriginId(url: string): string {
     removeTrailingSlash: true,
     // Remove ads campaign data from query of given URLs
     // https://support.google.com/analytics/answer/1033863
-    removeQueryParameters: [/^utm_\w+/i, /^itm_\w+/i],
+    removeQueryParameters: [/^utm_\w+/i, /^itm_\w+/i, 'ref_src', 'ref_url'],
     sortQueryParameters: true,
     stripAuthentication: true,
     stripHash: usesHashFragmentAsAnchor(parsedUrl),

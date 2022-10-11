@@ -19,22 +19,24 @@ export type MaterialIconType =
   | 'expand_less'
   | 'expand_more'
   | 'file_upload'
+  | 'fit_screen'
   | 'format_bold'
   | 'format_italic'
   | 'format_list_bulleted'
   | 'format_list_numbered'
   | 'format_quote'
-  | 'fit_screen'
   | 'format_underlined'
   | 'fullscreen'
   | 'insert_link'
   | 'launch'
   | 'link_off'
   | 'looks_one'
+  | 'youtube_searched_for'
   | 'looks_two'
   | 'more_horiz'
   | 'open_in_full'
   | 'search'
+  | 'travel_explore'
   | 'zoom_in'
   | 'zoom_out'
   | 'sync'
@@ -95,6 +97,8 @@ export const MdiZoomIn = _makeMaterialIcon('zoom_in')
 export const MdiZoomOut = _makeMaterialIcon('zoom_out')
 export const MdiSync = _makeMaterialIcon('sync')
 export const MdiCloudSync = _makeMaterialIcon('cloud_sync')
+export const MdiTravelExplore = _makeMaterialIcon('travel_explore')
+export const MdiYoutubeSearchedFor = _makeMaterialIcon('youtube_searched_for')
 export const MdiCloudUpload = _makeMaterialIcon('cloud_upload')
 export const MdiCancel = _makeMaterialIcon('cancel')
 export const MdiDelete = _makeMaterialIcon('delete')
