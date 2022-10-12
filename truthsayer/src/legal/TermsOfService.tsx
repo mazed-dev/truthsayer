@@ -4,7 +4,7 @@ import gfm from 'remark-gfm'
 
 import { StyledPublicDoc } from './StyledPublicDoc'
 
-export function TermsAndConditions() {
+export function TermsOfService() {
   return (
     <StyledPublicDoc>
       <ReactMarkdown remarkPlugins={[gfm]}>{_md}</ReactMarkdown>
@@ -17,7 +17,7 @@ const _md = `
 
 _Effective 10 October 2022_
 
-These terms of service (**"Terms"**) apply to your access and use of [https://mazed.se](https://mazed.se) (the **"Site"**) and browser extension (the **“Browser Plugin”**). Please read the Terms, Cookies Policy and our [Privacy Policy](https://mazed.se/privacy-policy) carefully.
+These terms of service (**"Terms"**) apply to your access and use of [https://mazed.se](https://mazed.se) (the **"Site"**) and browser extension (the **“Browser Plugin”**). Please read the Terms, Cookies Policy and our [Privacy Policy](./privacy-policy) carefully.
 
 The Site and the Browser Plugin are collectively called the **"Services"**.
 
@@ -31,12 +31,12 @@ As used in these Terms, "we," "us" , "our", and Mazed refer to ASG Mazed Inc., a
 
 ## Privacy Policy
 
-Please refer to our [Privacy Policy](https://mazed.se/privacy-policy) for information on how we collect, use and disclose information from our users. You acknowledge and agree that your use of the Services is subject to our Privacy Policy.
+Please refer to our [Privacy Policy](./privacy-policy) for information on how we collect, use and disclose information from our users. You acknowledge and agree that your use of the Services is subject to our Privacy Policy.
 
 
 ## Cookies Policy
 
-Please refer to our [Cookies Policy](https://mazed.se/cookies-policy) for information on how we use Cookies.
+Please refer to our [Cookies Policy](./cookies-policy) for information on how we use Cookies.
 
 
 ## Changes to these Terms

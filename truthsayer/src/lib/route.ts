@@ -24,7 +24,7 @@ const kApi = '/api'
 const kAbout = '/about'
 const kContacts = '/contacts'
 const kPrivacyPolicy = '/privacy-policy'
-const kTermsOfService = '/terms-and-conditions'
+const kTermsOfService = '/terms-of-service'
 
 export type MazedPath =
   | '/'
@@ -37,7 +37,7 @@ export type MazedPath =
   | '/contacts'
   | '/privacy-policy'
   | '/cookie-policy'
-  | '/terms-and-conditions'
+  | '/terms-of-service'
 
 export type History = RouteComponentProps['history']
 export type Location = RouteComponentProps['location']

@@ -74,7 +74,7 @@ export function LandingFooter() {
     <div>
       <Bar>
         <Logo />
-        <Item to={'/terms-and-conditions'}>Terms And Conditions</Item>
+        <Item to={'/terms-of-service'}>Terms And Conditions</Item>
         <Item to={'/privacy-policy'}>Privacy Policy</Item>
         <Item to={'/cookie-policy'}>Cookie Policy</Item>
         <Item to={'/contacts'}>Contact Us</Item>

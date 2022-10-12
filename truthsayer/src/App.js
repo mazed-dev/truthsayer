@@ -4,7 +4,6 @@ import React, { useContext } from 'react'
 
 import {
   BrowserRouter as Router,
-  Link,
   Redirect,
   Route,
   Switch,
@@ -40,7 +39,7 @@ import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegration
 import { AppsList } from './apps-list/AppsList'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
-import { TermsAndConditions } from './legal/TermsAndConditions'
+import { TermsOfService } from './legal/TermsOfService'
 import { CookiePolicy } from './legal/CookiePolicy'
 import { PrivacyPolicy } from './legal/PrivacyPolicy'
 
@@ -148,8 +147,8 @@ function AppRouter() {
           <PublicRoute path="/privacy-policy">
             <PrivacyPolicy />
           </PublicRoute>
-          <PublicRoute path="/terms-and-conditions">
-            <TermsAndConditions />
+          <PublicRoute path="/terms-of-service">
+            <TermsOfService />
           </PublicRoute>
           <PublicRoute exact path={routes.empty} />
           <Route path="*">

@@ -18,12 +18,12 @@ const _md = `
 
 Mazed exists to give you the ability to make your memory instantly accessible to yourself. This could not be done without the trust of our users. A fundamental piece of earning that trust means being clear about how we use your information and protecting your human right to privacy.  This Privacy Policy explains the practices regarding the collection, use and disclosure of information received through the Services of ASG Mazed Inc. (“Mazed”, “we”, “us”, “our”). This Privacy Policy does not apply to any third-party websites, services or applications, even if they are accessible through our Services. 
 
-Please note that, unless we define a term in this Privacy Policy, all capitalized terms used in this Privacy Policy have the same meanings as in our [Terms and Conditions](https://mazed.se/terms-and-conditions). So, please make sure that you have read and understood our [Terms and Conditions](https://mazed.se/terms-and-conditions).
+Please note that, unless we define a term in this Privacy Policy, all capitalized terms used in this Privacy Policy have the same meanings as in our [Terms and Conditions](./terms-of-service). So, please make sure that you have read and understood our [Terms and Conditions](./terms-of-service).
 
 
 ## Introduction
 
-This Privacy Policy applies to both registered **“Members”** and unregistered **“Visitors”** for use of the Services, and any individual or entity that uses the Services (as defined below), who are all hereinafter referred to as **“User(s)”**.  By accessing or using our Services, the User is entering into a legally binding agreement (either individually or on behalf of a Company) that includes the Mazed [Terms and Conditions](https://mazed.se/terms-and-conditions) and this Privacy Policy.
+This Privacy Policy applies to both registered **“Members”** and unregistered **“Visitors”** for use of the Services, and any individual or entity that uses the Services (as defined below), who are all hereinafter referred to as **“User(s)”**.  By accessing or using our Services, the User is entering into a legally binding agreement (either individually or on behalf of a Company) that includes the Mazed [Terms and Conditions](./terms-of-service) and this Privacy Policy.
 
 This Privacy Policy applies to all Users of mazed.se and all other Mazed websites, apps, developer platforms, management and transaction services, premium services, other products and services offered by Mazed, or any content or information provided as part of these services, including our blog (collectively, the **“Services”**).
 
@@ -44,12 +44,12 @@ Mazed uses servers that may be located anywhere in the world, including but not 
 
 ### Account Registration 
 
-When User creates an account on Mazed, User may be required to provide some personal information, including, but not limited to, User’s name, email address, home, work, or mobile telephone number, facility address, mailing address, bank account information, credit card number, and a password. User will also be required to agree to the Mazed Terms and Conditions (https://mazed.se/terms-and-conditions) which includes our User Agreement, Terms of Service, and this Privacy Policy. Once User provides this information to Mazed, User is no longer anonymous to us. When User provides us with its personal and financial information, User consents to the transfer and storage of that information on our servers, which may be located anywhere in the world, including but not limited to, the United States or other countries.
+When User creates an account on Mazed, User may be required to provide some personal information, including, but not limited to, User’s name, email address, home, work, or mobile telephone number, facility address, mailing address, bank account information, credit card number, and a password. User will also be required to agree to the Mazed Terms and Conditions (./terms-of-service) which includes our User Agreement, Terms of Service, and this Privacy Policy. Once User provides this information to Mazed, User is no longer anonymous to us. When User provides us with its personal and financial information, User consents to the transfer and storage of that information on our servers, which may be located anywhere in the world, including but not limited to, the United States or other countries.
 
 
 ### Client Services
 
-When User contacts our Client Services support team, either by email or phone, Mazed may access User’s account, settings, preferences, emails, and other contributions to our Services and collect the information needed to categorize User’s question, respond to it, and, if applicable, investigate any breach of our Terms and Conditions ([https://mazed.se/terms-and-conditions](https://mazed.se/terms-and-conditions)) or this Privacy Policy. Mazed will also use this information to track potential problems and trends and customize support responses to better serve our Users.
+When User contacts our Client Services support team, either by email or phone, Mazed may access User’s account, settings, preferences, emails, and other contributions to our Services and collect the information needed to categorize User’s question, respond to it, and, if applicable, investigate any breach of our [Terms and Conditions](./terms-of-service)) or this Privacy Policy. Mazed will also use this information to track potential problems and trends and customize support responses to better serve our Users.
 
 By using our Services, User understands that Mazed may collect the following information, in addition to the information in section “Account Registration”:
 
@@ -105,7 +105,7 @@ Mazed is authorized to use the User’s personal and financial information to:
 
 1. Provide the Services and client services support requested by User;
 2. Resolve disputes, collect Fees, and troubleshoot problems;
-3. Enforce the Mazed [Terms and Conditions](https://mazed.se/terms-and-conditions) and this Privacy Policy;
+3. Enforce the Mazed [Terms and Conditions](./terms-of-service) and this Privacy Policy;
 4. Customize, measure and improve its Services and content;
 5. Inform User about Service updates, changes, and promotions; and
 6. Compare information for accuracy, and to verify it with third parties.
@@ -120,7 +120,7 @@ User consents to receive autodialed or prerecorded calls and text messages at th
 
 ### Data Analysis
 
-Mazed may share certain de-identified User data with companies with whom Mazed co-markets, partners, and collaborates for their analysis and internal use to provide Users with additional Services. Mazed may use and disclose de-identified data shared with Mazed either by the User or a third party providing data on behalf of the User, for any purpose. Any and all of this information may be aggregated with information from other Users or may be provided individually in a redacted format as an example of User experience and our Services. Mazed is also expressly authorized by User to share with third parties, aggregate and/or de-identified data, including User’s use of the Services provided to User by Mazed. However, Mazed will collect and share additional, identified and/or personal location information about User as specified under Section “Collection” and as detailed in the Mazed [Terms and Conditions](https://mazed.se/terms-and-conditions).
+Mazed may share certain de-identified User data with companies with whom Mazed co-markets, partners, and collaborates for their analysis and internal use to provide Users with additional Services. Mazed may use and disclose de-identified data shared with Mazed either by the User or a third party providing data on behalf of the User, for any purpose. Any and all of this information may be aggregated with information from other Users or may be provided individually in a redacted format as an example of User experience and our Services. Mazed is also expressly authorized by User to share with third parties, aggregate and/or de-identified data, including User’s use of the Services provided to User by Mazed. However, Mazed will collect and share additional, identified and/or personal location information about User as specified under Section “Collection” and as detailed in the Mazed [Terms and Conditions](./terms-of-service).
 
 
 ### Data Sharing with Third Parties
