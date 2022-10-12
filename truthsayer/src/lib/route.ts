@@ -40,12 +40,12 @@ export type MazedPath =
   | '/help'
   | '/login'
   | '/logout'
-  | '/n/:nid'
+  | '/n/:nid' // See TriptychUrlParams
   | '/notice/'
-  | '/notice/:page'
+  | '/notice/:page' // See NoticeUrlParams
   | '/password-recover-change'
   | '/password-recover-request'
-  | '/password-recover-reset/:token'
+  | '/password-recover-reset/:token' // See PasswordRecoverFormUrlParams
   | '/privacy-policy'
   | '/search'
   | '/signup'
@@ -53,6 +53,10 @@ export type MazedPath =
   | '/user-encryption'
   | '/user-preferences'
   | '/waiting-for-approval'
+
+export type PasswordRecoverFormUrlParams = { token: string }
+export type TriptychUrlParams = { nid: string }
+export type NoticeUrlParams = { page: string }
 
 export type History = RouteComponentProps['history']
 export type Location = RouteComponentProps['location']

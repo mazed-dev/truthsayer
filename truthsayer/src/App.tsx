@@ -34,7 +34,11 @@ import { LandingPage as NewLandingPage } from './landing-page/LandingPage'
 import { ProductMetaTags } from './landing/ProductMetaTags'
 import { PublicPage } from './landing/PublicPage'
 import UserEncryption from './UserEncryption'
-import { MazedPath } from './lib/route'
+import {
+  MazedPath,
+  PasswordRecoverFormUrlParams,
+  TriptychUrlParams,
+} from './lib/route'
 import { Loader } from './lib/loader'
 import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegrationsOverview'
 import { AppsList } from './apps-list/AppsList'
@@ -300,14 +304,13 @@ function AccountView() {
 }
 
 function PasswordRecoverFormView() {
-  const { token } = useParams<{ token: string }>()
+  const { token } = useParams<PasswordRecoverFormUrlParams>()
   return <PasswordRecoverForm token={token} />
 }
 
 function TriptychView() {
   // We can use the `useParams` hook here to access
   // the dynamic pieces of the URL.
-  const { nid } = useParams<{ nid: string }>()
+  const { nid } = useParams<TriptychUrlParams>()
   return <Triptych nid={nid} />
 }
-
