@@ -5,7 +5,7 @@ import gfm from 'remark-gfm'
 import { StyledPublicDoc } from './StyledPublicDoc'
 
 export function CookiePolicy() {
-  return(
+  return (
     <StyledPublicDoc>
       <ReactMarkdown remarkPlugins={[gfm]}>{_md}</ReactMarkdown>
     </StyledPublicDoc>

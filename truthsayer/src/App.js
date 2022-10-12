@@ -40,7 +40,9 @@ import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegration
 import { AppsList } from './apps-list/AppsList'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
-import { TermsAndConditions, CookiePolicy, PrivacyPolicy } from 'elementary'
+import { TermsAndConditions } from './legal/TermsAndConditions'
+import { CookiePolicy } from './legal/CookiePolicy'
+import { PrivacyPolicy } from './legal/PrivacyPolicy'
 
 class App extends React.Component {
   render() {

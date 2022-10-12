@@ -5,7 +5,7 @@ import gfm from 'remark-gfm'
 import { StyledPublicDoc } from './StyledPublicDoc'
 
 export function PrivacyPolicy() {
-  return(
+  return (
     <StyledPublicDoc>
       <ReactMarkdown remarkPlugins={[gfm]}>{_md}</ReactMarkdown>
     </StyledPublicDoc>
