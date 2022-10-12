@@ -8,27 +8,39 @@ import { css } from '@emotion/react'
 import { Link } from 'react-router-dom'
 
 import { getLogoImage } from './../util/env'
-import { routes } from './../lib/route'
+import { MazedPath } from './../lib/route'
 
-const FooterItem = styled(Link)`
+const ItemBox = styled(Link)`
   display: flex;
   color: black;
   text-decoration: none;
   font-size: 16px;
-  margin: auto 0.5em auto 0.5em;
+  margin: auto 8px auto 8px;
   &:hover {
     text-decoration: none;
     color: black;
     opacity: 0.9;
   }
 `
-function FooterLogo() {
+function Item({
+  to,
+  children,
+  className,
+}: React.PropsWithChildren<{ to: MazedPath; className?: string }>) {
   return (
-    <FooterItem
+    <ItemBox to={to} className={className}>
+      {children}
+    </ItemBox>
+  )
+}
+function Logo() {
+  return (
+    <Item
       to="/"
       css={css`
-        font-size: 24px;
-        margin: auto 0.2em auto 0.2em;
+        font-family: 'Comfortaa';
+        font-size: 20px;
+        margin: auto 12px auto 2px;
       `}
     >
       <img
@@ -36,30 +48,38 @@ function FooterLogo() {
         alt={'Mazed'}
         css={css`
           width: 1.2em;
+          margin-right: 8px;
         `}
       />
-    </FooterItem>
+      Mazed
+    </Item>
   )
 }
 
-const Box = styled.div`
+const Bar = styled.div`
   display: flex;
   justify-content: left;
-  padding: 12px 12px 12px 12px;
-  position: absolute;
-  bottom: 0;
-  font-family: 'Comfortaa';
+  padding: 18px 12px 18px 12px;
+
+  width: 100%;
+  background-color: white;
+`
+
+const Filler = styled.div`
+  width: 100%;
 `
 
 export function LandingFooter() {
   return (
-    <Box>
-      <FooterLogo />
-      <FooterItem to={routes.terms}>Terms</FooterItem>
-      <FooterItem to={routes.privacy}>Privacy</FooterItem>
-      <FooterItem to={routes.faq}>FAQs</FooterItem>
-      <FooterItem to={routes.api}>API</FooterItem>
-      <FooterItem to={routes.contacts}>Contact us</FooterItem>
-    </Box>
+    <div>
+      <Bar>
+        <Logo />
+        <Item to={'/terms-and-conditions'}>Terms And Conditions</Item>
+        <Item to={'/privacy-policy'}>Privacy Policy</Item>
+        <Item to={'/cookie-policy'}>Cookie Policy</Item>
+        <Item to={'/contacts'}>Contact Us</Item>
+      </Bar>
+      <Filler />
+    </div>
   )
 }

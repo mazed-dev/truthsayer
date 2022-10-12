@@ -43,6 +43,7 @@ import { MzdGlobal, MzdGlobalContext } from './lib/global'
 import { TermsAndConditions } from './legal/TermsAndConditions'
 import { CookiePolicy } from './legal/CookiePolicy'
 import { PrivacyPolicy } from './legal/PrivacyPolicy'
+import { LandingFooter } from './landing/LandingFooter'
 
 class App extends React.Component {
   render() {
@@ -302,25 +303,25 @@ function ContactUs() {
 
 function CookiePolicyPage() {
   return (
-    <Container>
+    <PublicPage>
       <CookiePolicy />
-    </Container>
+    </PublicPage>
   )
 }
 
 function PrivacyPolicyPage() {
   return (
-    <Container>
+    <PublicPage>
       <PrivacyPolicy />
-    </Container>
+    </PublicPage>
   )
 }
 
 function TermsAndConditionsPage() {
   return (
-    <Container>
+    <PublicPage>
       <TermsAndConditions />
-    </Container>
+    </PublicPage>
   )
 }
 
