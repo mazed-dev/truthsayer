@@ -43,7 +43,6 @@ import { MzdGlobal, MzdGlobalContext } from './lib/global'
 import { TermsAndConditions } from './legal/TermsAndConditions'
 import { CookiePolicy } from './legal/CookiePolicy'
 import { PrivacyPolicy } from './legal/PrivacyPolicy'
-import { LandingFooter } from './landing/LandingFooter'
 
 class App extends React.Component {
   render() {
@@ -143,15 +142,15 @@ function AppRouter() {
           <PublicRoute path="/notice/:page">
             <Notice />
           </PublicRoute>
-          <Route path="/cookie-policy">
-            <CookiePolicyPage />
-          </Route>
-          <Route path="/privacy-policy">
-            <PrivacyPolicyPage />
-          </Route>
-          <Route path="/terms-and-conditions">
-            <TermsAndConditionsPage />
-          </Route>
+          <PublicRoute path="/cookie-policy">
+            <CookiePolicy />
+          </PublicRoute>
+          <PublicRoute path="/privacy-policy">
+            <PrivacyPolicy />
+          </PublicRoute>
+          <PublicRoute path="/terms-and-conditions">
+            <TermsAndConditions />
+          </PublicRoute>
           <PublicRoute exact path={routes.empty} />
           <Route path="*">
             <Redirect to={{ pathname: '/' }} />
@@ -281,47 +280,13 @@ function ContactUs() {
       <h2>Contact us</h2>
       <Card>
         <Card.Body>
-          <Card.Title>Support</Card.Title>
           <Card.Text>
-            To get help with Pocket or to request features, please visit our{' '}
-            <Link to={'/help'}>support page</Link>.
-          </Card.Text>
-        </Card.Body>
-      </Card>
-      <Card>
-        <Card.Body>
-          <Card.Title>Author</Card.Title>
-          <Card.Text>
-            For questions related to business, please contact me at{' '}
-            <a href="mailto:akindyakov@gmail.com">akindyakov@</a>
+            For any questions, email us at{' '}
+            <a href="mailto:mazed@fastmail.com">mazed@fastmail.com</a>
           </Card.Text>
         </Card.Body>
       </Card>
     </Container>
-  )
-}
-
-function CookiePolicyPage() {
-  return (
-    <PublicPage>
-      <CookiePolicy />
-    </PublicPage>
-  )
-}
-
-function PrivacyPolicyPage() {
-  return (
-    <PublicPage>
-      <PrivacyPolicy />
-    </PublicPage>
-  )
-}
-
-function TermsAndConditionsPage() {
-  return (
-    <PublicPage>
-      <TermsAndConditions />
-    </PublicPage>
   )
 }
 
