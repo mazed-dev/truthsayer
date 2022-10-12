@@ -33,9 +33,6 @@ export const StyledPublicDoc = styled.div`
     border: 1px solid #ddd;
     padding: 8px;
   }
-  tr:nth-child(even) {
-    background-color: #f7f7f7;
-  }
   tr:hover {
     background-color: #ddd;
   }
