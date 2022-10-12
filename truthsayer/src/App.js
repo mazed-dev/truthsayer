@@ -4,7 +4,6 @@ import React, { useContext } from 'react'
 
 import {
   BrowserRouter as Router,
-  Link,
   Redirect,
   Route,
   Switch,
@@ -40,6 +39,9 @@ import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegration
 import { AppsList } from './apps-list/AppsList'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
+import { TermsOfService } from './legal/TermsOfService'
+import { CookiePolicy } from './legal/CookiePolicy'
+import { PrivacyPolicy } from './legal/PrivacyPolicy'
 
 class App extends React.Component {
   render() {
@@ -127,12 +129,6 @@ function AppRouter() {
           <PublicRoute path="/contacts">
             <ContactUs />
           </PublicRoute>
-          <PublicRoute path="/privacy-policy">
-            <PrivacyPolicy />
-          </PublicRoute>
-          <PublicRoute path="/terms-of-service">
-            <TermsOfService />
-          </PublicRoute>
           <PublicOnlyRoute path="/password-recover-request">
             <PasswordRecoverRequest />
           </PublicOnlyRoute>
@@ -144,6 +140,15 @@ function AppRouter() {
           </PrivateRoute>
           <PublicRoute path="/notice/:page">
             <Notice />
+          </PublicRoute>
+          <PublicRoute path="/cookie-policy">
+            <CookiePolicy />
+          </PublicRoute>
+          <PublicRoute path="/privacy-policy">
+            <PrivacyPolicy />
+          </PublicRoute>
+          <PublicRoute path="/terms-of-service">
+            <TermsOfService />
           </PublicRoute>
           <PublicRoute exact path={routes.empty} />
           <Route path="*">
@@ -274,46 +279,10 @@ function ContactUs() {
       <h2>Contact us</h2>
       <Card>
         <Card.Body>
-          <Card.Title>Support</Card.Title>
           <Card.Text>
-            To get help with Pocket or to request features, please visit our{' '}
-            <Link to={'/help'}>support page</Link>.
+            For any questions, email us at{' '}
+            <a href="mailto:mazed@fastmail.com">mazed@fastmail.com</a>
           </Card.Text>
-        </Card.Body>
-      </Card>
-      <Card>
-        <Card.Body>
-          <Card.Title>Author</Card.Title>
-          <Card.Text>
-            For questions related to business, please contact me at{' '}
-            <a href="mailto:akindyakov@gmail.com">akindyakov@</a>
-          </Card.Text>
-        </Card.Body>
-      </Card>
-    </Container>
-  )
-}
-
-function PrivacyPolicy() {
-  return (
-    <Container>
-      <Card border="light">
-        <Card.Body>
-          <Card.Title>Privacy policy</Card.Title>
-          <Card.Text>To be done soon</Card.Text>
-        </Card.Body>
-      </Card>
-    </Container>
-  )
-}
-
-function TermsOfService() {
-  return (
-    <Container>
-      <Card>
-        <Card.Body>
-          <Card.Title>Terms of service</Card.Title>
-          <Card.Text>To be done</Card.Text>
         </Card.Body>
       </Card>
     </Container>

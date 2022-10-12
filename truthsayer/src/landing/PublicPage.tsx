@@ -17,8 +17,8 @@ const Box = styled.div`
 export function PublicPage({ children }: React.PropsWithChildren<{}>) {
   return (
     <Box>
-      {children}
       <LandingFooter />
+      {children}
     </Box>
   )
 }
