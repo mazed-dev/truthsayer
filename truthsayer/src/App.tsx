@@ -9,6 +9,7 @@ import {
   Switch,
   useLocation,
   useParams,
+  RouteProps,
 } from 'react-router-dom'
 
 import { css } from '@emotion/react'
@@ -29,11 +30,11 @@ import { Notice } from './notice/Notice.js'
 import WaitingForApproval from './auth/WaitingForApproval'
 import UserPreferences from './auth/UserPreferences'
 import { LandingPage } from './landing/LandingPage'
-import { LandingPage as NewLandingPage } from './landing-page/LandingPage.tsx'
+import { LandingPage as NewLandingPage } from './landing-page/LandingPage'
 import { ProductMetaTags } from './landing/ProductMetaTags'
 import { PublicPage } from './landing/PublicPage'
 import UserEncryption from './UserEncryption'
-import { routes } from './lib/route'
+import { MazedPath } from './lib/route'
 import { Loader } from './lib/loader'
 import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegrationsOverview'
 import { AppsList } from './apps-list/AppsList'
@@ -43,14 +44,12 @@ import { TermsOfService } from './legal/TermsOfService'
 import { CookiePolicy } from './legal/CookiePolicy'
 import { PrivacyPolicy } from './legal/PrivacyPolicy'
 
-class App extends React.Component {
-  render() {
-    return (
-      <MzdGlobal>
-        <AppRouter />
-      </MzdGlobal>
-    )
-  }
+export function App() {
+  return (
+    <MzdGlobal>
+      <AppRouter />
+    </MzdGlobal>
+  )
 }
 
 function AppRouter() {
@@ -84,25 +83,25 @@ function AppRouter() {
           <Route exact path="/">
             <MainView />
           </Route>
-          <Route path={routes.logout}>
+          <Route path={'/logout'}>
             <Logout />
           </Route>
           <Route path={'/new-landing-page'}>
             <NewLandingPage />
           </Route>
-          <PublicOnlyRoute path={routes.login}>
+          <PublicOnlyRoute path={'/login'}>
             <Login />
           </PublicOnlyRoute>
-          <PublicOnlyRoute path={routes.signup}>
+          <PublicOnlyRoute path={'/signup'}>
             <Signup />
           </PublicOnlyRoute>
           <PublicRoute path="/waiting-for-approval">
             <WaitingForApproval path="/waiting-for-approval" />
           </PublicRoute>
-          <PrivateRoute path={routes.search}>
+          <PrivateRoute path={'/search'}>
             <SearchGridView />
           </PrivateRoute>
-          <PublicRoute path={routes.node}>
+          <PublicRoute path={'/n/:nid'}>
             <TriptychView />
           </PublicRoute>
           <PrivateRoute path="/account">
@@ -150,7 +149,7 @@ function AppRouter() {
           <PublicRoute path="/terms-of-service">
             <TermsOfService />
           </PublicRoute>
-          <PublicRoute exact path={routes.empty} />
+          <PublicRoute exact path={'/empty'} />
           <Route path="*">
             <Redirect to={{ pathname: '/' }} />
           </Route>
@@ -163,7 +162,7 @@ function AppRouter() {
 /**
  * Route available only for logged-in users
  */
-function PrivateRoute({ children, ...rest }) {
+function PrivateRoute({ children, ...rest }: RouteProps & { path: MazedPath }) {
   const location = useLocation()
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
@@ -188,7 +187,10 @@ function PrivateRoute({ children, ...rest }) {
 /**
  * Route available only for anonymous users
  */
-function PublicOnlyRoute({ children, ...rest }) {
+function PublicOnlyRoute({
+  children,
+  ...rest
+}: RouteProps & { path: MazedPath }) {
   const location = useLocation()
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
@@ -217,7 +219,7 @@ function PublicOnlyRoute({ children, ...rest }) {
 /**
  * Route available for both anonymous and logged-in users
  */
-function PublicRoute({ children, ...rest }) {
+function PublicRoute({ children, ...rest }: RouteProps & { path: MazedPath }) {
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
   if (account == null || !account.isAuthenticated()) {
@@ -298,15 +300,14 @@ function AccountView() {
 }
 
 function PasswordRecoverFormView() {
-  const { token } = useParams()
+  const { token } = useParams<{ token: string }>()
   return <PasswordRecoverForm token={token} />
 }
 
 function TriptychView() {
   // We can use the `useParams` hook here to access
   // the dynamic pieces of the URL.
-  const { nid } = useParams()
+  const { nid } = useParams<{ nid: string }>()
   return <Triptych nid={nid} />
 }
 
-export default App
