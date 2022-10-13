@@ -28,16 +28,35 @@ const kTermsOfService = '/terms-of-service'
 
 export type MazedPath =
   | '/'
-  | '/user-preferences'
-  | '/apps-to-install'
   | '/3rdparty-integrations'
-  | '/faq'
-  | '/api'
   | '/about'
+  | '/account'
+  | '/api'
+  | '/apps-to-install'
   | '/contacts'
-  | '/privacy-policy'
   | '/cookie-policy'
+  | '/empty'
+  | '/faq'
+  | '/help'
+  | '/login'
+  | '/logout'
+  | '/n/:nid' // See TriptychUrlParams
+  | '/notice/'
+  | '/notice/:page' // See NoticeUrlParams
+  | '/password-recover-change'
+  | '/password-recover-request'
+  | '/password-recover-reset/:token' // See PasswordRecoverFormUrlParams
+  | '/privacy-policy'
+  | '/search'
+  | '/signup'
   | '/terms-of-service'
+  | '/user-encryption'
+  | '/user-preferences'
+  | '/waiting-for-approval'
+
+export type PasswordRecoverFormUrlParams = { token: string }
+export type TriptychUrlParams = { nid: string }
+export type NoticeUrlParams = { page: string }
 
 export type History = RouteComponentProps['history']
 export type Location = RouteComponentProps['location']
