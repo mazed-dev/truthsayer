@@ -22,12 +22,13 @@ import { SearchGridView } from './grid/SearchGridView'
 import { GlobalNavBar } from './navbar/GlobalNavBar'
 import Login from './auth/Login'
 import Logout from './auth/Logout'
-import { Signup } from './landing/Signup'
+import { Signup } from './account/create/Signup'
 import PasswordChange from './auth/PasswordChange'
 import PasswordRecoverForm from './auth/PasswordRecoverForm'
 import PasswordRecoverRequest from './auth/PasswordRecoverRequest'
 import { Notice } from './notice/Notice.js'
-import WaitingForApproval from './auth/WaitingForApproval'
+import WaitingForApproval from './account/create/WaitingForApproval'
+import { GoToInboxToConfirmEmail } from './account/create/GoToInboxToConfirmEmail'
 import UserPreferences from './auth/UserPreferences'
 import { LandingPage } from './landing/LandingPage'
 import { LandingPage as NewLandingPage } from './landing-page/LandingPage'
@@ -99,8 +100,11 @@ function AppRouter() {
           <PublicOnlyRoute path={'/signup'}>
             <Signup />
           </PublicOnlyRoute>
-          <PublicRoute path="/waiting-for-approval">
-            <WaitingForApproval path="/waiting-for-approval" />
+          <PublicRoute path="/account/create/waiting-for-approval">
+            <WaitingForApproval path="/account/create/waiting-for-approval" />
+          </PublicRoute>
+          <PublicRoute path="/account/create/go-to-inbox-to-confirm-email">
+            <GoToInboxToConfirmEmail />
           </PublicRoute>
           <PrivateRoute path={'/search'}>
             <SearchGridView />
