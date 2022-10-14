@@ -16,7 +16,7 @@ export const LandingPage = () => {
     builder
       .get('page', {
         url: '/landing-page',
-        entry: '0aae1590707244f5890dfacea2287bc1',
+        entry: '7ee813a046c9465f917b835eaf6e8f17',
       })
       .promise()
       .then(setBuilderContentJson)

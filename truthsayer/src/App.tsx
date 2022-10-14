@@ -247,7 +247,7 @@ function MainView() {
   if (isAuthenticated) {
     return <Redirect to={{ pathname: '/search' }} />
   } else {
-    return <LandingPage />
+    return <NewLandingPage />
   }
 }
 
