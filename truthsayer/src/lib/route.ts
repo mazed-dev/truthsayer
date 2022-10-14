@@ -2,30 +2,6 @@ import { stringify, parse } from 'query-string'
 import { RouteComponentProps } from 'react-router-dom'
 import { Optional } from 'armoury'
 
-const kLogInPath = '/login'
-const kSignUpPath = '/signup'
-const kLogOutPath = '/logout'
-const kSearchPath = '/search'
-const kEmptyPath = '/empty'
-const kNodePathPrefix = '/n/'
-const kWaitingForApproval = '/waiting-for-approval'
-
-const kNoticePathPrefix = '/notice/'
-
-const kNoticeErrorPage = 'error'
-const kNoticeSeeYouPage = 'miss-you'
-const kNoticeLogInToContinue = 'log-in-to-continue'
-
-const kSettings = '/user-preferences'
-const kApps = '/apps-to-install'
-const kIntegrations = '/3rdparty-integrations'
-const kFaq = '/faq'
-const kApi = '/api'
-const kAbout = '/about'
-const kContacts = '/contacts'
-const kPrivacyPolicy = '/privacy-policy'
-const kTermsOfService = '/terms-of-service'
-
 export type MazedPath =
   | '/'
   | '/3rdparty-integrations'
@@ -52,7 +28,32 @@ export type MazedPath =
   | '/terms-of-service'
   | '/user-encryption'
   | '/user-preferences'
-  | '/waiting-for-approval'
+  | '/account/create/waiting-for-approval'
+  | '/account/create/go-to-inbox-to-confirm-email'
+
+const kLogInPath: MazedPath = '/login'
+const kSignUpPath: MazedPath = '/signup'
+const kLogOutPath: MazedPath = '/logout'
+const kSearchPath: MazedPath = '/search'
+const kEmptyPath: MazedPath = '/empty'
+const kNodePathPrefix = '/n/'
+const kWaitingForApproval: MazedPath = '/account/create/waiting-for-approval'
+
+const kNoticePathPrefix: MazedPath = '/notice/'
+
+const kNoticeErrorPage = 'error'
+const kNoticeSeeYouPage = 'miss-you'
+const kNoticeLogInToContinue = 'log-in-to-continue'
+
+const kSettings: MazedPath = '/user-preferences'
+const kApps = '/apps-to-install'
+const kIntegrations: MazedPath = '/3rdparty-integrations'
+const kFaq: MazedPath = '/faq'
+const kApi: MazedPath = '/api'
+const kAbout: MazedPath = '/about'
+const kContacts: MazedPath = '/contacts'
+const kPrivacyPolicy: MazedPath = '/privacy-policy'
+const kTermsOfService: MazedPath = '/terms-of-service'
 
 export type PasswordRecoverFormUrlParams = { token: string }
 export type TriptychUrlParams = { nid: string }
@@ -83,6 +84,34 @@ function gotoPath(history: Optional<History>, path: string, state?: any) {
     // *dbg*/ console.log('Window location href', path)
     window.location.href = path
   }
+}
+
+function goToMazedPath(
+  path: MazedPath,
+  params?: {
+    history?: History
+    state?: any
+  }
+) {
+  gotoPath(params?.history ?? null, path, params?.state ?? null)
+}
+
+export interface GoToInboxToConfirmEmailLocationState {
+  name?: string
+  email?: string
+}
+
+function goToInboxToConfirmEmail({
+  history,
+  state,
+}: {
+  history?: History
+  state: GoToInboxToConfirmEmailLocationState
+}) {
+  goToMazedPath('/account/create/go-to-inbox-to-confirm-email', {
+    state,
+    history,
+  })
 }
 
 type HistoryObj = { history: Optional<History> }
@@ -163,6 +192,7 @@ export const goto = {
   },
   waitingForApproval: gotoWaitingForApproval,
   reload: reload_,
+  goToInboxToConfirmEmail,
 }
 
 export const makeRefTo = {
