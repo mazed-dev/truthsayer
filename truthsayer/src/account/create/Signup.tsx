@@ -7,7 +7,7 @@ import { css } from '@emotion/react'
 
 import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
 
-import { goto, History, routes } from '../lib/route'
+import { goto, History, routes } from '../../lib/route'
 
 import { log } from 'armoury'
 
@@ -78,8 +78,12 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
   }
 
   onSuccessfulRegistration = () => {
-    goto.waitingForApproval(this.props.history, {
-      username: this.state.name,
+    goto.goToInboxToConfirmEmail({
+      history: this.props.history,
+      state: {
+        name: this.state.name,
+        email: this.state.email,
+      },
     })
   }
 
