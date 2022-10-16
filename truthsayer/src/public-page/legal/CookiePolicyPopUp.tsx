@@ -8,10 +8,9 @@ import { MzdGlobalContext } from '../../lib/global'
 import { Toast } from '../../lib/Toaster'
 import { MazedPath } from '../../lib/route'
 import { ImgButton } from 'elementary'
-import { log } from 'armoury'
 import { accountConfig } from '../../account/config'
 
-function CookiePolicyLink({ children }: React.PropsWithChildren<{}>) {
+function CpLink({ children }: React.PropsWithChildren<{}>) {
   const href: MazedPath = '/cookie-policy'
   return (
     <a
@@ -32,7 +31,7 @@ function CookiePolicyLink({ children }: React.PropsWithChildren<{}>) {
 
 const AcceptButton = styled(ImgButton)`
   padding: 4px;
-  margin: 2px;
+  margin: 4px;
 `
 
 function CookiePolicyToast({ onAccept }: { onAccept: () => void }) {
@@ -44,9 +43,8 @@ function CookiePolicyToast({ onAccept }: { onAccept: () => void }) {
   return (
     <Toast show={show}>
       <Toast.Body>
-        <strong>🍪</strong> Our website uses cookies to ensure you get the best
-        experience on our website.{' '}
-        <CookiePolicyLink>More info.</CookiePolicyLink>
+        🍪 Mazed website uses cookies to ensure you get the best experience on
+        our website. <CpLink>More info.</CpLink>
       </Toast.Body>
       <div
         css={css`
@@ -81,6 +79,6 @@ export function CookiePolicyPopUp() {
         />
       )
     }
-  }, [choice])
+  }, [choice, ctx])
   return <></>
 }
