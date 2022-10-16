@@ -83,6 +83,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
             <NotificationToast
               title={'Copied'}
               message={'Note copied to clipboard as markdown'}
+              key={this.props.nid}
             />
           )
         },
@@ -92,6 +93,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
             <NotificationToast
               title={'Error'}
               message={'Write to system clipboard failed'}
+              key={this.props.nid}
             />
           )
         }
@@ -111,6 +113,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
       <NotificationToast
         title={'Not yet implemented'}
         message={'Archive feature is not yet implemented'}
+        key={this.props.nid}
       />
     )
   }
@@ -129,6 +132,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
             message={
               'Notes that have been in the bin for more than 28 days will be deleted automatically'
             }
+            key={this.props.nid}
           />
         )
         goto.default({ history: this.props.history })

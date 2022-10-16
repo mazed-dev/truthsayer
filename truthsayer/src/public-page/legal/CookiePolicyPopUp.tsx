@@ -4,7 +4,6 @@ import React from 'react'
 import { css } from '@emotion/react'
 import styled from '@emotion/styled'
 
-import { MzdGlobalContext } from '../../lib/global'
 import { Toast } from '../../lib/Toaster'
 import { MazedPath } from '../../lib/route'
 import { ImgButton } from 'elementary'
@@ -41,7 +40,15 @@ function CookiePolicyToast({ onAccept }: { onAccept: () => void }) {
     setShow(false)
   }
   return (
-    <Toast show={show}>
+    <Toast
+      show={show}
+      css={css`
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        z-index: 5;
+      `}
+    >
       <Toast.Body>
         🍪 Mazed website uses cookies to ensure you get the best experience on
         our website. <CpLink>More info.</CpLink>
@@ -69,16 +76,13 @@ export function CookiePolicyPopUp() {
       setChoice(true)
     }
   }
-  const ctx = React.useContext(MzdGlobalContext)
-  React.useEffect(() => {
-    if (choice === false) {
-      ctx.toaster.push(
-        <CookiePolicyToast
-          key={'cookie-policy-notification'}
-          onAccept={onAccept}
-        />
-      )
-    }
-  }, [choice, ctx])
+  if (choice === false) {
+    return (
+      <CookiePolicyToast
+        key={'cookie-policy-notification'}
+        onAccept={onAccept}
+      />
+    )
+  }
   return <></>
 }

@@ -5,8 +5,8 @@
 }
 
 .toaster_root {
-  position: fixed;
-  top: 12px;
-  right: 12px;
+  position: absolute;
+  top: 0;
+  right: 0;
   z-index: 5;
 }

@@ -134,6 +134,7 @@ class ExampleWithStaticConsumer extends React.Component {
       <NotificationToast
         title={'Example'}
         message={'Toast message created from example class'}
+        key={'some-unique-toast-key'}
       />
     )
   }
@@ -160,6 +161,7 @@ function ExampleWithElementConsumer() {
               <NotificationToast
                 title={'Example'}
                 message={'Toast message created from example class'}
+                key={'some-unique-toast-key'}
               />
             )
           }}
