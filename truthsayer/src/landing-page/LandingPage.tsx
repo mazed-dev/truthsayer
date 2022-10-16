@@ -15,8 +15,7 @@ export const LandingPage = () => {
   React.useEffect(() => {
     builder
       .get('page', {
-        url: '/landing-page',
-        entry: '0aae1590707244f5890dfacea2287bc1',
+        entry: '3c6590b8ee4e4c05a67d391ed6c7b16d',
       })
       .promise()
       .then(setBuilderContentJson)

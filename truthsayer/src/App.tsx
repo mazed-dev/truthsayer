@@ -30,11 +30,8 @@ import { Notice } from './notice/Notice.js'
 import WaitingForApproval from './account/create/WaitingForApproval'
 import { GoToInboxToConfirmEmail } from './account/create/GoToInboxToConfirmEmail'
 import UserPreferences from './auth/UserPreferences'
-import { LandingPage } from './landing/LandingPage'
-import { LandingPage as NewLandingPage } from './landing-page/LandingPage'
-import { ProductMetaTags } from './landing/ProductMetaTags'
-import { PublicPage } from './landing/PublicPage'
-import UserEncryption from './UserEncryption'
+import { LandingPage } from './landing-page/LandingPage'
+import { PublicPage } from './public-page/PublicPage'
 import {
   MazedPath,
   PasswordRecoverFormUrlParams,
@@ -45,9 +42,11 @@ import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegration
 import { AppsList } from './apps-list/AppsList'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
-import { TermsOfService } from './legal/TermsOfService'
-import { CookiePolicy } from './legal/CookiePolicy'
-import { PrivacyPolicy } from './legal/PrivacyPolicy'
+import {
+  TermsOfService,
+  CookiePolicy,
+  PrivacyPolicy,
+} from './public-page/legal/Index'
 
 export function App() {
   return (
@@ -60,7 +59,6 @@ export function App() {
 function AppRouter() {
   return (
     <Router>
-      <ProductMetaTags />
       <GlobalNavBar />
       <Container
         fluid
@@ -91,9 +89,6 @@ function AppRouter() {
           <Route path={'/logout'}>
             <Logout />
           </Route>
-          <Route path={'/new-landing-page'}>
-            <NewLandingPage />
-          </Route>
           <PublicOnlyRoute path={'/login'}>
             <Login />
           </PublicOnlyRoute>
@@ -120,9 +115,6 @@ function AppRouter() {
           </PrivateRoute>
           <PrivateRoute path="/3rdparty-integrations">
             <IntegrationsOverview />
-          </PrivateRoute>
-          <PrivateRoute path="/user-encryption">
-            <UserEncryption />
           </PrivateRoute>
           <PublicRoute path="/apps-to-install">
             <AppsList />
