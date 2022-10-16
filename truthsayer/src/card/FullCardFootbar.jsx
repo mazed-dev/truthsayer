@@ -25,6 +25,7 @@ import PublicImg from './../img/public.png'
 import { ShareModal } from './ShareModal'
 
 import { MzdGlobalContext } from '../lib/global'
+import { NotificationToast } from '../lib/Toaster'
 import { slateToMarkdown } from 'librarius'
 import { goto } from '../lib/route'
 import { downloadAsFile } from '../util/download_as_file'
@@ -78,17 +79,23 @@ class PrivateFullCardFootbarImpl extends React.Component {
       navigator.clipboard.writeText(md).then(
         () => {
           /* clipboard successfully set */
-          toaster.push({
-            title: 'Copied',
-            message: 'Note copied to clipboard as markdown',
-          })
+          toaster.push(
+            <NotificationToast
+              title={'Copied'}
+              message={'Note copied to clipboard as markdown'}
+              key={this.props.nid}
+            />
+          )
         },
         () => {
           /* clipboard write failed */
-          toaster.push({
-            title: 'Error',
-            message: 'Write to system clipboard failed',
-          })
+          toaster.push(
+            <NotificationToast
+              title={'Error'}
+              message={'Write to system clipboard failed'}
+              key={this.props.nid}
+            />
+          )
         }
       )
     })
@@ -102,10 +109,13 @@ class PrivateFullCardFootbarImpl extends React.Component {
 
   handleArchiveDoc = () => {
     const toaster = this.props.context.toaster
-    toaster.push({
-      title: 'Not yet implemented',
-      message: 'Archive feature is not yet implemented',
-    })
+    toaster.push(
+      <NotificationToast
+        title={'Not yet implemented'}
+        message={'Archive feature is not yet implemented'}
+        key={this.props.nid}
+      />
+    )
   }
 
   handleDeleteNote = () => {
@@ -116,11 +126,15 @@ class PrivateFullCardFootbarImpl extends React.Component {
         signal: this.deleteAbortController.signal,
       })
       .then(() => {
-        toaster.push({
-          title: 'Moved to bin',
-          message:
-            'Notes that have been in the bin for more than 28 days will be deleted automatically',
-        })
+        toaster.push(
+          <NotificationToast
+            title={'Moved to bin'}
+            message={
+              'Notes that have been in the bin for more than 28 days will be deleted automatically'
+            }
+            key={this.props.nid}
+          />
+        )
         goto.default({ history: this.props.history })
       })
   }
