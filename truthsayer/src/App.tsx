@@ -30,10 +30,8 @@ import { Notice } from './notice/Notice.js'
 import WaitingForApproval from './account/create/WaitingForApproval'
 import { GoToInboxToConfirmEmail } from './account/create/GoToInboxToConfirmEmail'
 import UserPreferences from './auth/UserPreferences'
-import { LandingPage } from './landing/LandingPage'
-import { LandingPage as NewLandingPage } from './landing-page/LandingPage'
-import { ProductMetaTags } from './landing/ProductMetaTags'
-import { PublicPage } from './landing/PublicPage'
+import { LandingPage } from './landing-page/LandingPage'
+import { PublicPage } from './public-page/PublicPage'
 import UserEncryption from './UserEncryption'
 import {
   MazedPath,
@@ -45,9 +43,11 @@ import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegration
 import { AppsList } from './apps-list/AppsList'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
-import { TermsOfService } from './legal/TermsOfService'
-import { CookiePolicy } from './legal/CookiePolicy'
-import { PrivacyPolicy } from './legal/PrivacyPolicy'
+import {
+  TermsOfService,
+  CookiePolicy,
+  PrivacyPolicy,
+} from './public-page/legal/Index'
 
 export function App() {
   return (
@@ -60,7 +60,6 @@ export function App() {
 function AppRouter() {
   return (
     <Router>
-      <ProductMetaTags />
       <GlobalNavBar />
       <Container
         fluid
@@ -90,9 +89,6 @@ function AppRouter() {
           </Route>
           <Route path={'/logout'}>
             <Logout />
-          </Route>
-          <Route path={'/new-landing-page'}>
-            <NewLandingPage />
           </Route>
           <PublicOnlyRoute path={'/login'}>
             <Login />
@@ -251,7 +247,7 @@ function MainView() {
   if (isAuthenticated) {
     return <Redirect to={{ pathname: '/search' }} />
   } else {
-    return <NewLandingPage />
+    return <LandingPage />
   }
 }
 

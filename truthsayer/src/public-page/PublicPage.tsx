@@ -4,7 +4,8 @@ import React from 'react'
 
 import styled from '@emotion/styled'
 
-import { LandingFooter } from './LandingFooter'
+import { PublicPageNavbar } from './PublicPageNavbar'
+import { PublicPageMetaTags } from './PublicPageMetaTags'
 
 const Box = styled.div`
   height: 100vh;
@@ -17,7 +18,8 @@ const Box = styled.div`
 export function PublicPage({ children }: React.PropsWithChildren<{}>) {
   return (
     <Box>
-      <LandingFooter />
+      <PublicPageMetaTags />
+      <PublicPageNavbar />
       {children}
     </Box>
   )

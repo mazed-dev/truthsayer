@@ -9,7 +9,7 @@ export const kMazedDescription =
 /**
  *
  */
-export function ProductMetaTags() {
+export function PublicPageMetaTags() {
   return (
     <Helmet>
       <title>Mazed</title>
