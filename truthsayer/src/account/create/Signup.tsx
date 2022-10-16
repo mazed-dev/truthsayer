@@ -241,7 +241,7 @@ interface LocationState {
   email: string
 }
 
-export const Signup = ({}: {}) => {
+export const Signup = () => {
   const history = useHistory()
   const _location = useLocation<LocationState>()
   const email = _location.state?.email

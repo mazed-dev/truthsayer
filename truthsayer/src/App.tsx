@@ -32,7 +32,6 @@ import { GoToInboxToConfirmEmail } from './account/create/GoToInboxToConfirmEmai
 import UserPreferences from './auth/UserPreferences'
 import { LandingPage } from './landing-page/LandingPage'
 import { PublicPage } from './public-page/PublicPage'
-import UserEncryption from './UserEncryption'
 import {
   MazedPath,
   PasswordRecoverFormUrlParams,
@@ -116,9 +115,6 @@ function AppRouter() {
           </PrivateRoute>
           <PrivateRoute path="/3rdparty-integrations">
             <IntegrationsOverview />
-          </PrivateRoute>
-          <PrivateRoute path="/user-encryption">
-            <UserEncryption />
           </PrivateRoute>
           <PublicRoute path="/apps-to-install">
             <AppsList />
