@@ -69,7 +69,7 @@ const Filler = styled.div`
   width: 100%;
 `
 
-export function LandingFooter() {
+export function PublicPageNavbar() {
   return (
     <div>
       <Bar>
