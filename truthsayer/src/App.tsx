@@ -45,6 +45,7 @@ import { MzdGlobal, MzdGlobalContext } from './lib/global'
 import {
   TermsOfService,
   CookiePolicy,
+  CookiePolicyPopUp,
   PrivacyPolicy,
 } from './public-page/legal/Index'
 
@@ -59,6 +60,7 @@ export function App() {
 function AppRouter() {
   return (
     <Router>
+      <CookiePolicyPopUp />
       <GlobalNavBar />
       <Container
         fluid

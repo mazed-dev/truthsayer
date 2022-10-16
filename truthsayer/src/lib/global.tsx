@@ -11,8 +11,8 @@ import styles from './global.module.css'
 import { NotificationToast } from './Toaster'
 
 type Toaster = {
-  toasts: React.ReactNodeArray
-  push: (item: React.ReactNode) => void
+  toasts: React.ReactElement[]
+  push: (item: React.ReactElement) => void
 }
 
 type Topbar = {
@@ -31,7 +31,7 @@ export const MzdGlobalContext = React.createContext<MzdGlobalContextProps>({
   topbar: {},
   toaster: {
     toasts: [],
-    push: (_item: React.ReactNode) => {
+    push: (_item: React.ReactElement) => {
       // *dbg*/ console.log('Default push() function called: ', header, message)
     },
   },
@@ -46,16 +46,25 @@ type MzdGlobalState = {
 
 export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
   fetchAccountAbortController: AbortController
-  pushToast: (item: React.ReactNode) => void
+  pushToast: (item: React.ReactElement) => void
   resetAuxToobar: (key: string, group: string) => void
 
   constructor(props: MzdGlobalProps) {
     super(props)
-    this.pushToast = (item: React.ReactNode) => {
+    this.pushToast = (item: React.ReactElement) => {
       this.setState((state) => {
+        const index = state.toaster.toasts.findIndex(
+          (existingItem: React.ReactElement) => existingItem.key === item.key
+        )
+        let toasts = state.toaster.toasts
+        if (index !== -1) {
+          toasts[index] = item
+        } else {
+          toasts.push(item)
+        }
         return {
           toaster: {
-            toasts: state.toaster.toasts.concat(item),
+            toasts,
             push: state.toaster.push,
           },
         }
