@@ -55,7 +55,7 @@ export function SearchForm({
         onChange={handleChange}
         value={value}
         ref={searchCmdRef}
-        placeholder="Search 🔎  "
+        placeholder="Search in memory"
         className={styles.search_input}
       />
     </Form>
