@@ -50,8 +50,8 @@ function CookiePolicyToast({ onAccept }: { onAccept: () => void }) {
       `}
     >
       <Toast.Body>
-        🍪 Mazed website uses cookies to ensure you get the best experience on
-        our website. <CpLink>More info.</CpLink>
+        🍪 Mazed uses cookies to ensure you get the best experience.{' '}
+        <CpLink>More info.</CpLink>
       </Toast.Body>
       <div
         css={css`
