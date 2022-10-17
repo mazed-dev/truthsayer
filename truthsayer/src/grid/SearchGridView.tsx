@@ -1,11 +1,12 @@
 /** @jsxImportSource @emotion/react */
-
+import React from 'react'
 import styled from '@emotion/styled'
 import { useLocation } from 'react-router-dom'
 import { parse } from 'query-string'
 
 import { SearchGrid } from 'elementary'
 import { CreateNewNodeMenu } from './CreateNewNodeMenu'
+import { Onboarding } from '../account/onboard/Onboarding'
 
 import lodash from 'lodash'
 
@@ -15,8 +16,8 @@ const Box = styled.div`
 `
 
 export const SearchGridView = () => {
-  const location = useLocation()
-  const params = parse(location.search)
+  const loc = useLocation()
+  const params = parse(loc.search)
   let { q } = params
   let queryStr: null | string = null
   if (lodash.isArray(q)) {
@@ -28,6 +29,7 @@ export const SearchGridView = () => {
     <Box>
       <SearchGrid q={queryStr} defaultSearch />
       <CreateNewNodeMenu />
+      <Onboarding />
     </Box>
   )
 }

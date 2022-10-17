@@ -2,47 +2,49 @@ import React from 'react'
 import { Container } from 'react-bootstrap'
 import styled from '@emotion/styled'
 
-import { jcss, MdiInsertLink } from 'elementary'
+import { kCardBorder } from 'elementary'
+import GoogleChromeLogo from './img/GoogleChromeLogo.svg'
 
-const Line = styled.div`
-  display: flex;
-  justify-content: start;
-  margin-top: 12px;
-`
+type MazedAppLinks =
+  | 'https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc'
+
+const kGoogleChromeStoreLink: MazedAppLinks =
+  'https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc'
+
 const Name = styled.div`
   font-size: 16px;
-  margin: 0 10px 0 0;
+  margin: 10px;
 `
-const ExtLinkIcon = styled(MdiInsertLink)`
-  font-size: 18px;
-  vertical-align: middle;
-  padding: 4px;
-`
-const ExtLink = styled.a`
-  color: black;
-  cursor: pointer;
-  border-radius: 32px;
-
-  &:hover {
-    color: black;
-    text-decoration: none;
-    background-color: #d0d1d2;
-  }
-`
-
 const Box = styled(Container)`
-  padding: 18px 0 0 12px;
+  padding: 18px;
+  height: 200px;
 `
 
-export function AppsList() {
+const AppItem = styled.a`
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+
+  border-radius: 8px;
+  ${kCardBorder};
+  margin: 0 0 8px 0;
+  padding: 10px;
+`
+
+const Logo = styled.img`
+  width: 52px;
+  height: 52px;
+`
+
+export function AppsList({ className }: { className?: string }) {
   return (
-    <Box className={jcss('justify-content-center')}>
-      <Line>
+    <Box className={className}>
+      <AppItem href={kGoogleChromeStoreLink}>
+        <Logo src={GoogleChromeLogo} />
         <Name>Mazed for Chrome</Name>
-        <ExtLink href="https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc">
-          <ExtLinkIcon />
-        </ExtLink>
-      </Line>
+      </AppItem>
     </Box>
   )
 }

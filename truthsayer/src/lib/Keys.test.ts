@@ -1,7 +1,5 @@
 // @ts-nocheck
 
-import React from 'react'
-import { render } from '@testing-library/react'
 import { isSymbol, isHotkeyCopy, Keys } from './Keys'
 
 test('isSymbol - abc', () => {

@@ -1,8 +1,6 @@
 import React from 'react'
 
-import { crc32 } from 'crc'
-
-import { Toast, Button } from 'react-bootstrap'
+import { Button } from 'react-bootstrap'
 
 import { KnockerElement } from '../auth/Knocker'
 
@@ -10,54 +8,11 @@ import { jcss } from 'elementary'
 import { createUserAccount, AccountInterface } from 'smuggler-api'
 
 import styles from './global.module.css'
-
-const kMzdToastDefaultDelay = 4943 // Just a random number close to 5 seconds
-
-type MzdToastProps = {
-  title: string
-  message: string
-  delay: number
-}
-type MzdToastState = {
-  show: boolean
-}
-
-class MzdToast extends React.Component<MzdToastProps, MzdToastState> {
-  static defaultProps: MzdToastProps = {
-    title: '',
-    message: '',
-    delay: kMzdToastDefaultDelay,
-  }
-
-  constructor(props: MzdToastProps) {
-    super(props)
-    this.state = {
-      show: true,
-    }
-  }
-
-  hide = () => {
-    this.setState({
-      show: false,
-    })
-  }
-
-  render() {
-    const delay = this.props.delay || kMzdToastDefaultDelay
-    return (
-      <Toast onClose={this.hide} show={this.state.show} delay={delay} autohide>
-        <Toast.Header>
-          <strong className="mr-auto">{this.props.title}</strong>
-        </Toast.Header>
-        <Toast.Body>{this.props.message}</Toast.Body>
-      </Toast>
-    )
-  }
-}
+import { NotificationToast } from './Toaster'
 
 type Toaster = {
-  toasts: any[]
-  push: ({ title, message }: { title: string; message: string }) => void
+  toasts: React.ReactElement[]
+  push: (item: React.ReactElement) => void
 }
 
 type Topbar = {
@@ -76,7 +31,7 @@ export const MzdGlobalContext = React.createContext<MzdGlobalContextProps>({
   topbar: {},
   toaster: {
     toasts: [],
-    push: ({ title, message }) => {
+    push: (_item: React.ReactElement) => {
       // *dbg*/ console.log('Default push() function called: ', header, message)
     },
   },
@@ -91,19 +46,25 @@ type MzdGlobalState = {
 
 export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
   fetchAccountAbortController: AbortController
-  pushToast: ({ message, title }: { message: string; title: string }) => void
+  pushToast: (item: React.ReactElement) => void
   resetAuxToobar: (key: string, group: string) => void
 
   constructor(props: MzdGlobalProps) {
     super(props)
-    this.pushToast = ({ message, title }) => {
-      const uKey = `${crc32(message)}-${Math.random()}`
+    this.pushToast = (item: React.ReactElement) => {
       this.setState((state) => {
+        const index = state.toaster.toasts.findIndex(
+          (existingItem: React.ReactElement) => existingItem.key === item.key
+        )
+        let toasts = state.toaster.toasts
+        if (index !== -1) {
+          toasts[index] = item
+        } else {
+          toasts.push(item)
+        }
         return {
           toaster: {
-            toasts: state.toaster.toasts.concat([
-              <MzdToast message={message} title={title} key={uKey} />,
-            ]),
+            toasts,
             push: state.toaster.push,
           },
         }
@@ -164,14 +125,18 @@ export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
   }
 }
 
-// Example
-export class ExampleWithStaticConsumer extends React.Component {
+// Examples
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+class ExampleWithStaticConsumer extends React.Component {
   onClick = () => {
     const toaster = this.context.toaster
-    toaster.push({
-      title: 'Example',
-      message: 'Toast message created from example class',
-    })
+    toaster.push(
+      <NotificationToast
+        title={'Example'}
+        message={'Toast message created from example class'}
+        key={'some-unique-toast-key'}
+      />
+    )
   }
 
   render() {
@@ -185,16 +150,20 @@ export class ExampleWithStaticConsumer extends React.Component {
 
 ExampleWithStaticConsumer.contextType = MzdGlobalContext
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ExampleWithElementConsumer() {
   return (
     <MzdGlobalContext.Consumer>
       {(context) => (
         <Button
           onClick={() => {
-            context.toaster.push({
-              title: 'Example',
-              message: 'Toast message created from example class',
-            })
+            context.toaster.push(
+              <NotificationToast
+                title={'Example'}
+                message={'Toast message created from example class'}
+                key={'some-unique-toast-key'}
+              />
+            )
           }}
         >
           Make a toast
