@@ -40,6 +40,7 @@ import {
 import { Loader } from './lib/loader'
 import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegrationsOverview'
 import { AppsList } from './apps-list/AppsList'
+import { AppHead } from './AppHead'
 
 import { MzdGlobal, MzdGlobalContext } from './lib/global'
 import {
@@ -52,6 +53,7 @@ import {
 export function App() {
   return (
     <MzdGlobal>
+      <AppHead />
       <AppRouter />
     </MzdGlobal>
   )
