@@ -10,7 +10,7 @@ import { jcss, MdiAccountCircle, kCardBorder } from 'elementary'
 import { getLogoImage } from './../util/env'
 import { SearchForm } from './SearchForm'
 import { MzdGlobalContext } from '../lib/global'
-import { routes } from './../lib/route'
+import { MazedPath } from './../lib/route'
 
 import styles from './GlobalNavBar.module.css'
 
@@ -34,6 +34,10 @@ const UserBadge = () => {
   )
 }
 
+const DropdownItemLink = ({to, children}: React.PropsWithChildren<{to : MazedPath}>) => {
+  return <Dropdown.Item as={Link} to={to}>{children}</Dropdown.Item>
+}
+
 const PrivateNavButtons = () => {
   const location = useLocation()
   let { query } = compass.search.get({ location })
@@ -54,32 +58,32 @@ const PrivateNavButtons = () => {
         </Dropdown.Toggle>
 
         <Dropdown.Menu>
-          <Dropdown.Item as={Link} to={routes.settings}>
+          <DropdownItemLink to={'/settings'}>
             Settings
-          </Dropdown.Item>
-          <Dropdown.Item as={Link} to={routes.apps}>
+          </DropdownItemLink>
+          <DropdownItemLink to={'/apps-to-install'}>
             Apps
-          </Dropdown.Item>
-          <Dropdown.Item as={Link} to={routes.integrations}>
+          </DropdownItemLink>
+          <DropdownItemLink to={'/3rdparty-integrations'}>
             Integrations
-          </Dropdown.Item>
+          </DropdownItemLink>
           <Dropdown.Divider />
-          <Dropdown.Item as={Link} to={routes.faq}>
+          <DropdownItemLink to={'/faq'}>
             FAQs
-          </Dropdown.Item>
-          <Dropdown.Item as={Link} to={routes.about}>
+          </DropdownItemLink>
+          <DropdownItemLink to={'/about'}>
             About
-          </Dropdown.Item>
-          <Dropdown.Item as={Link} to={routes.privacy}>
+          </DropdownItemLink>
+          <DropdownItemLink to={'/privacy-policy'}>
             Privacy Policy
-          </Dropdown.Item>
-          <Dropdown.Item as={Link} to={routes.terms}>
+          </DropdownItemLink>
+          <DropdownItemLink to={'/terms-of-service'}>
             Terms of Service
-          </Dropdown.Item>
+          </DropdownItemLink>
           <Dropdown.Divider />
-          <Dropdown.Item as={Link} to={routes.logout}>
+          <DropdownItemLink to={'/logout'}>
             Log out
-          </Dropdown.Item>
+          </DropdownItemLink>
         </Dropdown.Menu>
       </Dropdown>
     </>

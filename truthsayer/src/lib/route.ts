@@ -24,6 +24,7 @@ export type MazedPath =
   | '/password-recover-reset/:token' // See PasswordRecoverFormUrlParams
   | '/privacy-policy'
   | '/search'
+  | '/settings'
   | '/signup'
   | '/terms-of-service'
   | '/user-encryption'
