@@ -34,8 +34,15 @@ const UserBadge = () => {
   )
 }
 
-const DropdownItemLink = ({to, children}: React.PropsWithChildren<{to : MazedPath}>) => {
-  return <Dropdown.Item as={Link} to={to}>{children}</Dropdown.Item>
+const DropdownItemLink = ({
+  to,
+  children,
+}: React.PropsWithChildren<{ to: MazedPath }>) => {
+  return (
+    <Dropdown.Item as={Link} to={to}>
+      {children}
+    </Dropdown.Item>
+  )
 }
 
 const PrivateNavButtons = () => {
@@ -58,22 +65,14 @@ const PrivateNavButtons = () => {
         </Dropdown.Toggle>
 
         <Dropdown.Menu>
-          <DropdownItemLink to={'/settings'}>
-            Settings
-          </DropdownItemLink>
-          <DropdownItemLink to={'/apps-to-install'}>
-            Apps
-          </DropdownItemLink>
-          <DropdownItemLink to={'/3rdparty-integrations'}>
-            Integrations
+          <DropdownItemLink to={'/settings'}>Settings</DropdownItemLink>
+          <DropdownItemLink to={'/apps-to-install'}>Apps</DropdownItemLink>
+          <DropdownItemLink to={'/external-import'}>
+            Import fragments
           </DropdownItemLink>
           <Dropdown.Divider />
-          <DropdownItemLink to={'/faq'}>
-            FAQs
-          </DropdownItemLink>
-          <DropdownItemLink to={'/about'}>
-            About
-          </DropdownItemLink>
+          <DropdownItemLink to={'/faq'}>FAQs</DropdownItemLink>
+          <DropdownItemLink to={'/about'}>About</DropdownItemLink>
           <DropdownItemLink to={'/privacy-policy'}>
             Privacy Policy
           </DropdownItemLink>
@@ -81,9 +80,7 @@ const PrivateNavButtons = () => {
             Terms of Service
           </DropdownItemLink>
           <Dropdown.Divider />
-          <DropdownItemLink to={'/logout'}>
-            Log out
-          </DropdownItemLink>
+          <DropdownItemLink to={'/logout'}>Log out</DropdownItemLink>
         </Dropdown.Menu>
       </Dropdown>
     </>

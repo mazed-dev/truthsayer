@@ -38,7 +38,7 @@ import {
   TriptychUrlParams,
 } from './lib/route'
 import { Loader } from './lib/loader'
-import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegrationsOverview'
+import { ExternalImport } from './external-import/ExternalImport'
 import { AppsList } from './apps-list/AppsList'
 import { AppHead } from './AppHead'
 
@@ -117,8 +117,8 @@ function AppRouter() {
           <PrivateRoute path="/user-preferences">
             <UserPreferences />
           </PrivateRoute>
-          <PrivateRoute path="/3rdparty-integrations">
-            <IntegrationsOverview />
+          <PrivateRoute path="/external-import">
+            <ExternalImport />
           </PrivateRoute>
           <PublicRoute path="/apps-to-install">
             <AppsList />

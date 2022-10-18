@@ -4,7 +4,7 @@ import { Optional } from 'armoury'
 
 export type MazedPath =
   | '/'
-  | '/3rdparty-integrations'
+  | '/external-import'
   | '/about'
   | '/account'
   | '/api'
@@ -48,7 +48,7 @@ const kNoticeLogInToContinue = 'log-in-to-continue'
 
 const kSettings: MazedPath = '/user-preferences'
 const kApps = '/apps-to-install'
-const kIntegrations: MazedPath = '/3rdparty-integrations'
+const kIntegrations: MazedPath = '/external-import'
 const kFaq: MazedPath = '/faq'
 const kApi: MazedPath = '/api'
 const kAbout: MazedPath = '/about'
