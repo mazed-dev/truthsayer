@@ -1,6 +1,8 @@
+/** @jsxImportSource @emotion/react */
+
 import React from 'react'
-import { Container, Row, Col } from 'react-bootstrap'
 import styled from '@emotion/styled'
+import { css } from '@emotion/react'
 
 import {
   MsalProvider,
@@ -8,14 +10,8 @@ import {
   UnauthenticatedTemplate,
 } from '@azure/msal-react'
 
-import {
-  MdiInsertLink,
-  MdiLinkOff,
-  jcss,
-  MdiSync,
-  MdiCloudSync,
-} from 'elementary'
-import { errorise, genOriginId, log, Mime } from 'armoury'
+import { MdiInsertLink, MdiLinkOff, MdiSync, MdiCloudSync } from 'elementary'
+import { errorise, genOriginId, log } from 'armoury'
 import {
   AccountInterface,
   CreateNodeArgs,
@@ -27,12 +23,19 @@ import {
   NodeExtattrs,
 } from 'smuggler-api'
 
-import { MzdGlobalContext } from '../lib/global'
+import { MzdGlobalContext } from '../../lib/global'
 import * as MsAuthentication from './MicrosoftAuthentication'
 import { OneDriveFs } from './OneDriveFilesystem'
 import { extattrsFromFile } from './3rdPartyFilesystemProxyUtil'
 import { ThirdpartyFs } from './3rdPartyFilesystem'
 import * as FsModificationQueue from './FilesystemModificationQueue'
+
+import MicrosoftOfficeOneDriveLogoImg from './img/Microsoft-Office-OneDrive-logo-2019.svg'
+export { MicrosoftOfficeOneDriveLogoImg }
+
+const Box = styled.div``
+const BoxButtons = styled.div``
+const Title = styled.div``
 
 const Button = styled.button`
   background-color: #ffffff;
@@ -45,21 +48,6 @@ const Button = styled.button`
     background-color: #d0d1d2;
   }
 `
-
-type IntegrationProps = React.PropsWithChildren<{
-  icon: string
-  name: string
-}>
-
-function Integration({ icon, name, children }: IntegrationProps) {
-  return (
-    <Row>
-      <Col>{icon}</Col>
-      <Col>{name}</Col>
-      <Col>{children}</Col>
-    </Row>
-  )
-}
 
 async function uploadFilesFromFolder(
   fs: ThirdpartyFs,
@@ -122,8 +110,10 @@ async function uploadFilesFromFolder(
  */
 export function OneDriveIntegrationManager({
   account,
+  className,
 }: {
   account: AccountInterface
+  className?: string
 }) {
   // Significant chunk of the code for integration with OneDrive was taken from
   // https://docs.microsoft.com/en-us/azure/active-directory/develop/tutorial-v2-react
@@ -144,65 +134,75 @@ export function OneDriveIntegrationManager({
   return (
     // Having MsalProvider as parent grants all children access to
     // '@azure/msal-react' context, hooks and components
-    <MsalProvider instance={msAuthentication}>
-      {/* Pair of AuthenticatedTemplate and UnauthenticatedTemplate
+    <Box className={className}>
+      <Title>
+        OneDrive (only <code>/mazed-test</code> folder)
+      </Title>
+      <BoxButtons>
+        <MsalProvider instance={msAuthentication}>
+          {/* Pair of AuthenticatedTemplate and UnauthenticatedTemplate
       render their children conditionally - first if the user has logged in
       to a Microsoft account, second one if they didn't*/}
-      <AuthenticatedTemplate>
-        <Button
-          onClick={() => {
-            oneDriveFs.signOut()
-          }}
-        >
-          <MdiLinkOff />
-        </Button>
-        <Button
-          onClick={() => {
-            uploadFilesFromFolder(
-              oneDriveFs,
-              oneDriveFsid,
-              '/mazed-test',
-              setOneDriveUploadCounter
-            )
-              .catch((exception) => {
-                log.exception(
-                  errorise(exception),
-                  `Failed to call Microsoft Graph`
+          <AuthenticatedTemplate>
+            <Button
+              onClick={() => {
+                oneDriveFs.signOut()
+              }}
+            >
+              <MdiLinkOff />
+            </Button>
+            <Button
+              onClick={() => {
+                uploadFilesFromFolder(
+                  oneDriveFs,
+                  oneDriveFsid,
+                  '/mazed-test',
+                  setOneDriveUploadCounter
                 )
-              })
-              .finally(() => setOneDriveUploadCounter(0))
-          }}
-        >
-          {oneDriveSyncButton}
-          {oneDriveUploadCounter > 0 ? oneDriveUploadCounter : null}
-        </Button>
-      </AuthenticatedTemplate>
-      <UnauthenticatedTemplate>
-        <Button
-          onClick={() => {
-            oneDriveFs.signIn()
-          }}
-        >
-          <MdiInsertLink />
-        </Button>
-      </UnauthenticatedTemplate>
-    </MsalProvider>
+                  .catch((exception) => {
+                    log.exception(
+                      errorise(exception),
+                      `Failed to call Microsoft Graph`
+                    )
+                  })
+                  .finally(() => setOneDriveUploadCounter(0))
+              }}
+            >
+              {oneDriveSyncButton}
+              {oneDriveUploadCounter > 0 ? oneDriveUploadCounter : null}
+            </Button>
+          </AuthenticatedTemplate>
+          <UnauthenticatedTemplate>
+            <Button
+              onClick={() => {
+                oneDriveFs.signIn()
+              }}
+            >
+              <MdiInsertLink
+                css={css`
+                  vertical-align: middle;
+                `}
+              />{' '}
+              Sync
+            </Button>
+          </UnauthenticatedTemplate>
+        </MsalProvider>
+      </BoxButtons>
+    </Box>
   )
 }
 
-export function IntegrationsOverview() {
+export function MicrosoftOfficeOneDriveImporter({
+  className,
+}: {
+  className?: string
+}) {
   const ctx = React.useContext(MzdGlobalContext)
   const account = ctx.account
   if (!account) {
     throw Error(
-      'Thirdparty integrations require a valid Mazed account available'
+      'Microsoft Office OneDrive integration requires a valid Mazed account available'
     )
   }
-  return (
-    <Container className={jcss('d-flex', 'justify-content-center')}>
-      <Integration icon="☁" name="OneDrive (only /mazed-test folder)">
-        <OneDriveIntegrationManager account={account} />
-      </Integration>
-    </Container>
-  )
+  return <OneDriveIntegrationManager account={account} className={className} />
 }

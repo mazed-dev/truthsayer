@@ -1,19 +1,34 @@
+/** @jsxImportSource @emotion/react */
+
 import React from 'react'
 import styled from '@emotion/styled'
+// import { css } from '@emotion/react'
 
 import { kCardBorder } from 'elementary'
-import GoogleChromeLogo from '../apps-list/img/GoogleChromeLogo.svg'
 
-const Name = styled.div`
-  font-size: 16px;
-  margin: 10px;
-`
+import {
+  MicrosoftOfficeOneDriveImporter,
+  MicrosoftOfficeOneDriveLogoImg,
+} from './third-party-filesystem/MicrosoftOfficeOneDriveImporter'
+import {
+  BrowserHistoryImporter,
+  BrowserLogo as BrowserHistoryImporterLogo,
+} from './BrowserHistoryImporter'
+
 const Box = styled.div`
   padding: 18px;
-  height: 200px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `
 
-const AppItem = styled.a`
+const ItemsBox = styled.div`
+  width: min(80vw, 840px);
+`
+
+const Item = styled.div`
+  width: 100%;
   display: flex;
   justify-content: left;
   align-items: center;
@@ -26,18 +41,25 @@ const AppItem = styled.a`
   padding: 10px;
 `
 
-const Logo = styled.img`
+const LogoImg = styled.img`
   width: 52px;
   height: 52px;
+  margin: 4px 24px 4px 4px;
 `
 
 export function ExternalImport({ className }: { className?: string }) {
   return (
     <Box className={className}>
-      <AppItem>
-        <Logo src={GoogleChromeLogo} />
-        <Name>Mazed for Chrome</Name>
-      </AppItem>
+      <ItemsBox>
+        <Item key={'browser-history'}>
+          <LogoImg src={BrowserHistoryImporterLogo} />
+          <BrowserHistoryImporter />
+        </Item>
+        <Item key={'onedrive'}>
+          <LogoImg src={MicrosoftOfficeOneDriveLogoImg} />
+          <MicrosoftOfficeOneDriveImporter />
+        </Item>
+      </ItemsBox>
     </Box>
   )
 }

@@ -4,7 +4,6 @@
 import {
   ApplicationMimeType,
   ImageMimeType,
-  MimeType,
   MultipartMimeType,
   TextMimeType,
 } from 'armoury'

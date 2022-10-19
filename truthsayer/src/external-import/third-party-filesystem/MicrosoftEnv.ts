@@ -23,7 +23,7 @@ export type MsEnvironment = {
   graph: string
 }
 
-const MsPreproductionEnv: MsEnvironment = {
+export const MsPreproductionEnv: MsEnvironment = {
   authority: 'https://login.windows-ppe.net/common',
   graph: 'https://graph.microsoft-ppe.com/v1.0',
 }
