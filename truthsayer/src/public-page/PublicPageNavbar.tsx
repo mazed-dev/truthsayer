@@ -8,7 +8,7 @@ import { css } from '@emotion/react'
 import { Link } from 'react-router-dom'
 
 import { getLogoImage } from './../util/env'
-import { MazedPath } from './../lib/route'
+import { TruthsayerPath } from './../lib/route'
 
 const ItemBox = styled(Link)`
   display: flex;
@@ -26,7 +26,7 @@ function Item({
   to,
   children,
   className,
-}: React.PropsWithChildren<{ to: MazedPath; className?: string }>) {
+}: React.PropsWithChildren<{ to: TruthsayerPath; className?: string }>) {
   return (
     <ItemBox to={to} className={className}>
       {children}

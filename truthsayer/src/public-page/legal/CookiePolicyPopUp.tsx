@@ -5,12 +5,12 @@ import { css } from '@emotion/react'
 import styled from '@emotion/styled'
 
 import { Toast } from '../../lib/Toaster'
-import { MazedPath } from '../../lib/route'
+import { TruthsayerPath } from '../../lib/route'
 import { ImgButton } from 'elementary'
 import { accountConfig } from '../../account/config'
 
 function CpLink({ children }: React.PropsWithChildren<{}>) {
-  const href: MazedPath = '/cookie-policy'
+  const href: TruthsayerPath = '/cookie-policy'
   return (
     <a
       href={href}

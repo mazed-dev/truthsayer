@@ -47,17 +47,6 @@ const _manifestTransform = (buffer, mode, env) => {
   // Add Mazed URL to host_permissions to grant access to mazed cookies
   const smugglerApiUrlMask = _getSmugglerApiUrlMask(mode)
   manifest.host_permissions.push(smugglerApiUrlMask)
-  // Exclude Mazed from list of URLs where content.js is injected to
-  manifest.content_scripts.forEach((item, index, theArray) => {
-    const { exclude_matches = [] } = item
-    exclude_matches.push(
-      smugglerApiUrlMask,
-    )
-    theArray[index] = {
-      ...item,
-      exclude_matches,
-    }
-  });
   if (firefox) {
     manifest = _manifestTransformDowngradeToV2(manifest)
   }

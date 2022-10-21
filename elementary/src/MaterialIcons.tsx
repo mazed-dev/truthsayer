@@ -32,6 +32,7 @@ export type MaterialIconType =
   | 'link_off'
   | 'looks_one'
   | 'youtube_searched_for'
+  | 'public'
   | 'looks_two'
   | 'more_horiz'
   | 'open_in_full'
@@ -102,3 +103,4 @@ export const MdiYoutubeSearchedFor = _makeMaterialIcon('youtube_searched_for')
 export const MdiCloudUpload = _makeMaterialIcon('cloud_upload')
 export const MdiCancel = _makeMaterialIcon('cancel')
 export const MdiDelete = _makeMaterialIcon('delete')
+export const MdiPublic = _makeMaterialIcon('public')

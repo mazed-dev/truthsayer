@@ -33,12 +33,12 @@ import UserPreferences from './auth/UserPreferences'
 import { LandingPage } from './landing-page/LandingPage'
 import { PublicPage } from './public-page/PublicPage'
 import {
-  MazedPath,
+  TruthsayerPath,
   PasswordRecoverFormUrlParams,
   TriptychUrlParams,
 } from './lib/route'
 import { Loader } from './lib/loader'
-import { IntegrationsOverview } from './3rdparty-integration/3rdpartyIntegrationsOverview'
+import { ExternalImport } from './external-import/ExternalImport'
 import { AppsList } from './apps-list/AppsList'
 import { AppHead } from './AppHead'
 
@@ -117,8 +117,8 @@ function AppRouter() {
           <PrivateRoute path="/user-preferences">
             <UserPreferences />
           </PrivateRoute>
-          <PrivateRoute path="/3rdparty-integrations">
-            <IntegrationsOverview />
+          <PrivateRoute path="/external-import">
+            <ExternalImport />
           </PrivateRoute>
           <PublicRoute path="/apps-to-install">
             <AppsList />
@@ -166,7 +166,10 @@ function AppRouter() {
 /**
  * Route available only for logged-in users
  */
-function PrivateRoute({ children, ...rest }: RouteProps & { path: MazedPath }) {
+function PrivateRoute({
+  children,
+  ...rest
+}: RouteProps & { path: TruthsayerPath }) {
   const location = useLocation()
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
@@ -194,7 +197,7 @@ function PrivateRoute({ children, ...rest }: RouteProps & { path: MazedPath }) {
 function PublicOnlyRoute({
   children,
   ...rest
-}: RouteProps & { path: MazedPath }) {
+}: RouteProps & { path: TruthsayerPath }) {
   const location = useLocation()
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
@@ -223,7 +226,10 @@ function PublicOnlyRoute({
 /**
  * Route available for both anonymous and logged-in users
  */
-function PublicRoute({ children, ...rest }: RouteProps & { path: MazedPath }) {
+function PublicRoute({
+  children,
+  ...rest
+}: RouteProps & { path: TruthsayerPath }) {
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
   if (account == null || !account.isAuthenticated()) {

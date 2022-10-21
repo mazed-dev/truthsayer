@@ -52,7 +52,7 @@ function isImage(mime: MimeType): mime is ImageMimeType {
  * supported types propagate through the system.
  */
 function fromString(rawMime: string): Optional<MimeType> {
-  const isTargetValue = (value: MimeType, index: number, obj: MimeType[]) => {
+  const isTargetValue = (value: MimeType) => {
     return value === rawMime
   }
   if (kKnownMimeTypes.findIndex(isTargetValue) < 0) {

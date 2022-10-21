@@ -2,9 +2,9 @@ import { stringify, parse } from 'query-string'
 import { RouteComponentProps } from 'react-router-dom'
 import { Optional } from 'armoury'
 
-export type MazedPath =
+export type TruthsayerPath =
   | '/'
-  | '/3rdparty-integrations'
+  | '/external-import'
   | '/about'
   | '/account'
   | '/api'
@@ -24,6 +24,7 @@ export type MazedPath =
   | '/password-recover-reset/:token' // See PasswordRecoverFormUrlParams
   | '/privacy-policy'
   | '/search'
+  | '/settings'
   | '/signup'
   | '/terms-of-service'
   | '/user-encryption'
@@ -31,29 +32,30 @@ export type MazedPath =
   | '/account/create/waiting-for-approval'
   | '/account/create/go-to-inbox-to-confirm-email'
 
-const kLogInPath: MazedPath = '/login'
-const kSignUpPath: MazedPath = '/signup'
-const kLogOutPath: MazedPath = '/logout'
-const kSearchPath: MazedPath = '/search'
-const kEmptyPath: MazedPath = '/empty'
+const kLogInPath: TruthsayerPath = '/login'
+const kSignUpPath: TruthsayerPath = '/signup'
+const kLogOutPath: TruthsayerPath = '/logout'
+const kSearchPath: TruthsayerPath = '/search'
+const kEmptyPath: TruthsayerPath = '/empty'
 const kNodePathPrefix = '/n/'
-const kWaitingForApproval: MazedPath = '/account/create/waiting-for-approval'
+const kWaitingForApproval: TruthsayerPath =
+  '/account/create/waiting-for-approval'
 
-const kNoticePathPrefix: MazedPath = '/notice/'
+const kNoticePathPrefix: TruthsayerPath = '/notice/'
 
 const kNoticeErrorPage = 'error'
 const kNoticeSeeYouPage = 'miss-you'
 const kNoticeLogInToContinue = 'log-in-to-continue'
 
-const kSettings: MazedPath = '/user-preferences'
+const kSettings: TruthsayerPath = '/user-preferences'
 const kApps = '/apps-to-install'
-const kIntegrations: MazedPath = '/3rdparty-integrations'
-const kFaq: MazedPath = '/faq'
-const kApi: MazedPath = '/api'
-const kAbout: MazedPath = '/about'
-const kContacts: MazedPath = '/contacts'
-const kPrivacyPolicy: MazedPath = '/privacy-policy'
-const kTermsOfService: MazedPath = '/terms-of-service'
+const kIntegrations: TruthsayerPath = '/external-import'
+const kFaq: TruthsayerPath = '/faq'
+const kApi: TruthsayerPath = '/api'
+const kAbout: TruthsayerPath = '/about'
+const kContacts: TruthsayerPath = '/contacts'
+const kPrivacyPolicy: TruthsayerPath = '/privacy-policy'
+const kTermsOfService: TruthsayerPath = '/terms-of-service'
 
 export type PasswordRecoverFormUrlParams = { token: string }
 export type TriptychUrlParams = { nid: string }
@@ -86,8 +88,8 @@ function gotoPath(history: Optional<History>, path: string, state?: any) {
   }
 }
 
-function goToMazedPath(
-  path: MazedPath,
+function goToTruthsayerPath(
+  path: TruthsayerPath,
   params?: {
     history?: History
     state?: any
@@ -108,7 +110,7 @@ function goToInboxToConfirmEmail({
   history?: History
   state: GoToInboxToConfirmEmailLocationState
 }) {
-  goToMazedPath('/account/create/go-to-inbox-to-confirm-email', {
+  goToTruthsayerPath('/account/create/go-to-inbox-to-confirm-email', {
     state,
     history,
   })
