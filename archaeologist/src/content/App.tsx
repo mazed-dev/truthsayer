@@ -5,6 +5,7 @@ import browser from 'webextension-polyfill'
 
 import { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log } from 'armoury'
+import { truthsayer_archaeologist_communication } from 'elementary'
 
 import {
   FromContent,
@@ -27,6 +28,7 @@ import {
 } from './toaster/Toaster'
 import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
+import { BrowserHistoryImportControl } from './BrowserHistoryImportControl'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
@@ -266,12 +268,18 @@ const App = () => {
     ) : null
   return (
     <AppErrorBoundary>
+      <truthsayer_archaeologist_communication.ArchaeologistVersion
+        version={{
+          version: '0.1.16',
+        }}
+      />
       <Toaster />
       {state.notification ? (
         <DisappearingToast {...state.notification}></DisappearingToast>
       ) : null}
       <Quotes quotes={state.quotes} />
       {activityTrackerOrNull}
+      <BrowserHistoryImportControl />
     </AppErrorBoundary>
   )
 }

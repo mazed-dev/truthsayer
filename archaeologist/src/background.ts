@@ -685,7 +685,7 @@ async function initMazedPartsOfTab(
   tab: browser.Tabs.Tab,
   mode: ContentAppOperationMode
 ) {
-  if (tab.id == null || tab.url == null || !isMemorable(tab.url)) {
+  if (tab.id == null || tab.url == null) {
     return
   }
   // Request page saved status on new non-incognito page loading

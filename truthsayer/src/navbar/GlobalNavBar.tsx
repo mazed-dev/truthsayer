@@ -10,7 +10,7 @@ import { jcss, MdiAccountCircle, kCardBorder } from 'elementary'
 import { getLogoImage } from './../util/env'
 import { SearchForm } from './SearchForm'
 import { MzdGlobalContext } from '../lib/global'
-import { MazedPath } from './../lib/route'
+import { TruthsayerPath } from './../lib/route'
 
 import styles from './GlobalNavBar.module.css'
 
@@ -37,7 +37,7 @@ const UserBadge = () => {
 const DropdownItemLink = ({
   to,
   children,
-}: React.PropsWithChildren<{ to: MazedPath }>) => {
+}: React.PropsWithChildren<{ to: TruthsayerPath }>) => {
   return (
     <Dropdown.Item as={Link} to={to}>
       {children}

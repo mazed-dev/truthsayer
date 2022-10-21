@@ -42,8 +42,8 @@ const Item = styled.div`
 `
 
 const LogoImg = styled.img`
-  width: 52px;
-  height: 52px;
+  width: 64px;
+  height: 64px;
   margin: 4px 24px 4px 4px;
 `
 
