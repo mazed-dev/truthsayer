@@ -270,7 +270,7 @@ const App = () => {
     <AppErrorBoundary>
       <truthsayer_archaeologist_communication.ArchaeologistVersion
         version={{
-          version: '0.1.16',
+          version: browser.runtime.getManifest().version,
         }}
       />
       <Toaster />
