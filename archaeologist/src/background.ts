@@ -415,13 +415,9 @@ async function allOpenTruthsayerTabIds(): Promise<number[]> {
       // vairable setup in webpack.config.js
       '*://localhost/*',
   })
-  const ret = truthsayerTabs
+  return truthsayerTabs
     .map((tab) => tab.id)
     .filter((id: number | undefined): id is number => id != null)
-
-  log.debug(`Truthsayer tab IDs: ${JSON.stringify(ret)}`)
-
-  return ret
 }
 
 // TODO[snikitin@outlook.com] This boolean is an extremely naive tool to cancel
