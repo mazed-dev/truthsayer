@@ -22,13 +22,19 @@ type ArchaeologistState =
   | { type: 'version-mismatch'; actual: string }
   | { type: 'loading' }
   | { type: 'good' }
+
+/**
+ * A truthsayer-side shell of an importer which by itself doesn't define any
+ * UI elements to control browser history import, but expects that archaeologist
+ * will inject @see BrowserHistoryImportControl augmentation into it at runtime.
+ */
 export function BrowserHistoryImporter({ className }: { className?: string }) {
   const [archaeologistState, setArchaeologistState] =
     React.useState<ArchaeologistState>({ type: 'loading' })
   React.useEffect(() => {
     const id: truthsayer_archaeologist_communication.VersionId =
       'mazed-archaeologist-version'
-    sleep(250).then(() => {
+    sleep(2000).then(() => {
       const el = window.document.getElementById(id)
       if (el == null) {
         setArchaeologistState({ type: 'not-found' })
@@ -92,6 +98,9 @@ function describe(state: ArchaeologistState) {
       )
     }
     case 'good': {
+      // NOTE: when this is the case, it is expected that archaeologist
+      // will inject @see BrowserHistoryImportControl augmentation in place
+      // of this 'null'
       return null
     }
   }

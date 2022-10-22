@@ -9,8 +9,8 @@ import {
   FromPopUp,
   FromContent,
   ToBackground,
-  VoidResponse,
   ContentAppOperationMode,
+  BrowserHistoryUploadProgress,
 } from './message/types'
 import * as badge from './badge/badge'
 
@@ -30,7 +30,6 @@ import { calculateBadgeCounter } from './badge/badgeCounter'
 import { isMemorable } from './content/extractor/url/unmemorable'
 import { isPageAutosaveable } from './content/extractor/url/autosaveable'
 import lodash from 'lodash'
-import { BrowserHistoryUploadProgress } from './background/browserHistoryUploadProgress'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
@@ -354,13 +353,32 @@ async function getPageContentViaTemporaryTab(
 async function handleMessageFromContent(
   message: FromContent.Request,
   sender: browser.Runtime.MessageSender
-): Promise<VoidResponse> {
+): Promise<ToContent.Response> {
   const tab = sender.tab ?? (await getActiveTab())
   log.debug('Get message from content', message, tab)
   switch (message.type) {
     case 'ATTENTION_TIME_CHUNK':
       await registerAttentionTime(tab, message)
       return { type: 'VOID_RESPONSE' }
+    case 'UPLOAD_BROWSER_HISTORY': {
+      await uploadBrowserHistory()
+      return { type: 'VOID_RESPONSE' }
+    }
+    case 'CANCEL_BROWSER_HISTORY_UPLOAD': {
+      shouldCancelBrowserHistoryUpload = true
+      return { type: 'VOID_RESPONSE' }
+    }
+    case 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY': {
+      const numDeleted = await smuggler.node.bulkDelete({
+        createdVia: {
+          autoIngestion: idOfBrowserHistoryOnThisDeviceAsExternalPipeline(),
+        },
+      })
+      return {
+        type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
+        numDeleted,
+      }
+    }
     default:
       throw new Error(
         `background received msg from content of unknown type, message: ${JSON.stringify(
@@ -387,6 +405,25 @@ function idOfBrowserHistoryOnThisDeviceAsExternalPipeline(): UserExternalPipelin
   }
 }
 
+async function allOpenTruthsayerTabIds(): Promise<number[]> {
+  const truthsayerTabs = await browser.tabs.query({
+    // See https://developer.chrome.com/docs/extensions/mv3/match_patterns/
+    // for rules based on which 'url' parameter should be populated
+    url:
+      // TODO[snikitin@outlook.com] Truthsayer URL match pattern should be
+      // different between dev and prod and should be fetched from an env
+      // vairable setup in webpack.config.js
+      '*://localhost/*',
+  })
+  const ret = truthsayerTabs
+    .map((tab) => tab.id)
+    .filter((id: number | undefined): id is number => id != null)
+
+  log.debug(`Truthsayer tab IDs: ${JSON.stringify(ret)}`)
+
+  return ret
+}
+
 // TODO[snikitin@outlook.com] This boolean is an extremely naive tool to cancel
 // an asyncronous task. In general AbortController would have been used instead
 // (see https://medium.com/@bramus/cancel-a-javascript-promise-with-abortcontroller-3540cbbda0a9)
@@ -404,22 +441,34 @@ let shouldCancelBrowserHistoryUpload = false
 async function uploadBrowserHistory() {
   const reportProgressToPopup = lodash.throttle(
     (progress: BrowserHistoryUploadProgress) => {
-      ToPopUp.sendMessage({
-        type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS',
-        newState: progress,
-      }).catch((reason: any) => {
-        const error = errorise(reason)
-        const popupIsNotOpen =
-          error.message.indexOf('Receiving end does not exist') !== -1
-        if (popupIsNotOpen) {
-          // NOTE: As browser history upload is a long-running process, it is
-          // expected that at some point the user will close archaeologist popup
-          // in which failed attempts to update are not errors.
-          // All the other errors however should not be suppressed.
-          return
-        }
-        throw reason
-      })
+      allOpenTruthsayerTabIds()
+        .then((tabIds: number[]) =>
+          ToContent.sendMessageToAll(tabIds, {
+            type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS',
+            newState: progress,
+          })
+        )
+        .then((results: PromiseSettledResult<FromContent.Response>[]) => {
+          let errors: Error[] = []
+          for (const result of results) {
+            if (result.status === 'rejected') {
+              const error = errorise(result.reason)
+              const popupIsNotOpen =
+                error.message.indexOf('Receiving end does not exist') !== -1
+              if (popupIsNotOpen) {
+                // NOTE: As browser history upload is a long-running process, it is
+                // expected that at some point the user can close truthsayer
+                // in which case failed attempts to update are not errors.
+                // All the other errors however should not be suppressed.
+                continue
+              }
+              errors.push(error)
+            }
+          }
+          if (errors.length !== 0) {
+            throw new Error(JSON.stringify(errors))
+          }
+        })
     },
     1123
   )
@@ -552,25 +601,6 @@ async function handleMessageFromPopup(
       const status = await auth.isAuthorised()
       badge.setActive(status)
       return { type: 'AUTH_STATUS', status }
-    case 'UPLOAD_BROWSER_HISTORY': {
-      await uploadBrowserHistory()
-      return { type: 'VOID_RESPONSE' }
-    }
-    case 'CANCEL_BROWSER_HISTORY_UPLOAD': {
-      shouldCancelBrowserHistoryUpload = true
-      return { type: 'VOID_RESPONSE' }
-    }
-    case 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY': {
-      const numDeleted = await smuggler.node.bulkDelete({
-        createdVia: {
-          autoIngestion: idOfBrowserHistoryOnThisDeviceAsExternalPipeline(),
-        },
-      })
-      return {
-        type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
-        numDeleted,
-      }
-    }
     default:
       throw new Error(
         `background received msg from popup of unknown type, message: ${JSON.stringify(

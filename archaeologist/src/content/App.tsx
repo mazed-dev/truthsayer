@@ -11,6 +11,7 @@ import {
   FromContent,
   ToContent,
   ContentAppOperationMode,
+  BrowserHistoryUploadProgress,
 } from './../message/types'
 import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/url/unmemorable'
@@ -91,6 +92,7 @@ type InitializedState = {
   quotes: TNode[]
   bookmark?: TNode
   notification?: DisappearingToastProps
+  browserHistoryUploadProgress: BrowserHistoryUploadProgress
 }
 
 type State = UninitializedState | InitializedState
@@ -101,6 +103,10 @@ type Action =
   | {
       type: 'show-notification'
       data: ToContent.ShowDisappearingNotificationRequest
+    }
+  | {
+      type: 'update-browser-history-upload-progress'
+      data: ToContent.ReportBrowserHistoryUploadProgress
     }
 
 function updateState(state: State, action: Action): State {
@@ -123,6 +129,7 @@ function updateState(state: State, action: Action): State {
         originIdentity: genOriginId(exctractPageUrl(document)),
         quotes: d.quotes.map((json: TNodeJson) => TNode.fromJson(json)),
         bookmark: d.bookmark != null ? TNode.fromJson(d.bookmark) : undefined,
+        browserHistoryUploadProgress: { processed: 0, total: 0 },
       }
     }
     case 'update-nodes':
@@ -154,6 +161,15 @@ function updateState(state: State, action: Action): State {
           href,
           timeoutMsec,
         },
+      }
+    case 'update-browser-history-upload-progress':
+      if (state.mode === 'uninitialised-content-app') {
+        throw new Error("Can't modify state of an unitialized content app")
+      }
+
+      return {
+        ...state,
+        browserHistoryUploadProgress: action.data.newState,
       }
   }
 }
@@ -209,6 +225,9 @@ function mutatingRequestToAction(request: ToContent.MutatingRequest): Action {
     case 'SHOW_DISAPPEARING_NOTIFICATION': {
       return { type: 'show-notification', data: request }
     }
+    case 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS': {
+      return { type: 'update-browser-history-upload-progress', data: request }
+    }
   }
 }
 
@@ -232,7 +251,8 @@ const App = () => {
         }
         case 'INIT_CONTENT_AUGMENTATION_REQUEST':
         case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
-        case 'SHOW_DISAPPEARING_NOTIFICATION': {
+        case 'SHOW_DISAPPEARING_NOTIFICATION':
+        case 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS': {
           dispatch(mutatingRequestToAction(message))
           return { type: 'VOID_RESPONSE' }
         }
@@ -279,7 +299,12 @@ const App = () => {
       ) : null}
       <Quotes quotes={state.quotes} />
       {activityTrackerOrNull}
-      <BrowserHistoryImportControl />
+      {/* TODO[snikitin@outlook.com] only instantiate for mazed.se.
+      Evaluate if that's best done via introduction of a new ContentAppOperationMode
+      specifically for mazed homepage.  */}
+      <BrowserHistoryImportControl
+        progress={state.browserHistoryUploadProgress}
+      />
     </AppErrorBoundary>
   )
 }

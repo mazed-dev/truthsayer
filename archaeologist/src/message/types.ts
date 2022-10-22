@@ -1,5 +1,4 @@
 import { WebPageContent } from './../content/extractor/webPageContent'
-import { BrowserHistoryUploadProgress } from './../background/browserHistoryUploadProgress'
 
 import browser from 'webextension-polyfill'
 import { OriginHash, TNodeJson } from 'smuggler-api'
@@ -45,24 +44,10 @@ export namespace FromPopUp {
   export interface SavePageRequest {
     type: 'REQUEST_PAGE_TO_SAVE'
   }
-  export interface UploadBrowserHistoryRequest {
-    type: 'UPLOAD_BROWSER_HISTORY'
-  }
-  export interface CancelBrowserHistoryUploadRequest {
-    type: 'CANCEL_BROWSER_HISTORY_UPLOAD'
-  }
-  export interface DeletePreviouslyUploadedBrowserHistoryRequest {
-    type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY'
-  }
   export type Request =
     | SavePageRequest
     | PageInActiveTabStatusRequest
     | AuthStatusRequest
-    | UploadBrowserHistoryRequest
-    | CancelBrowserHistoryUploadRequest
-    | DeletePreviouslyUploadedBrowserHistoryRequest
-
-  export type Response = VoidResponse
 
   export function sendMessage(
     message: AuthStatusRequest
@@ -73,15 +58,6 @@ export namespace FromPopUp {
   export function sendMessage(
     message: PageInActiveTabStatusRequest
   ): Promise<ToPopUp.ActiveTabStatusResponse>
-  export function sendMessage(
-    message: UploadBrowserHistoryRequest
-  ): Promise<VoidResponse>
-  export function sendMessage(
-    message: CancelBrowserHistoryUploadRequest
-  ): Promise<VoidResponse>
-  export function sendMessage(
-    message: DeletePreviouslyUploadedBrowserHistoryRequest
-  ): Promise<ToPopUp.DeletePreviouslyUploadedBrowserHistoryResponse>
   export function sendMessage(message: Request): Promise<ToPopUp.Response> {
     const msg: ToBackground.Request = { direction: 'from-popup', ...message }
     return browser.runtime.sendMessage(msg).catch((error) => {
@@ -90,13 +66,6 @@ export namespace FromPopUp {
   }
 }
 export namespace ToPopUp {
-  export interface ReportBrowserHistoryUploadProgress {
-    type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS'
-    newState: BrowserHistoryUploadProgress
-  }
-
-  export type Request = ReportBrowserHistoryUploadProgress
-
   export interface AuthStatusResponse {
     type: 'AUTH_STATUS'
     status: boolean
@@ -119,18 +88,13 @@ export namespace ToPopUp {
     bookmark?: TNodeJson
     unmemorable?: boolean
   }
-  export interface DeletePreviouslyUploadedBrowserHistoryResponse {
-    type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY'
-    numDeleted: number
-  }
 
   export type Response =
     | AuthStatusResponse
     | ActiveTabStatusResponse
     | PageSavedResponse
-    | DeletePreviouslyUploadedBrowserHistoryResponse
     | VoidResponse
-  export function sendMessage(message: Request): Promise<FromPopUp.Response> {
+  export function sendMessage(message: undefined): Promise<undefined> {
     return browser.runtime.sendMessage(message)
   }
 }
@@ -148,6 +112,11 @@ export type ContentAppOperationMode =
    * (@see FromContent.Request are allowed).
    */
   | 'active-mode-content-app'
+
+export type BrowserHistoryUploadProgress = {
+  processed: number
+  total: number
+}
 
 export namespace ToContent {
   export interface RequestPageContent {
@@ -189,16 +158,30 @@ export namespace ToContent {
     tooltip?: string
     timeoutMsec?: number
   }
+  export interface ReportBrowserHistoryUploadProgress {
+    type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS'
+    newState: BrowserHistoryUploadProgress
+  }
 
   /** Requests that aim to modify recepient's state. */
   export type MutatingRequest =
     | InitContentAugmentationRequest
     | UpdateContentAugmentationRequest
     | ShowDisappearingNotificationRequest
+    | ReportBrowserHistoryUploadProgress
   /** Requests that aim to retrieve part of recepient's state without modifying it. */
   export type ReadOnlyRequest = RequestPageContent | GetSelectedQuoteRequest
 
   export type Request = MutatingRequest | ReadOnlyRequest
+
+  export interface DeletePreviouslyUploadedBrowserHistoryResponse {
+    type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY'
+    numDeleted: number
+  }
+  export type Response =
+    | VoidResponse
+    | DeletePreviouslyUploadedBrowserHistoryResponse
+
   export function sendMessage(
     tabId: number,
     message: RequestPageContent
@@ -225,6 +208,14 @@ export namespace ToContent {
   ): Promise<VoidResponse>
   export function sendMessage(
     tabId: number,
+    message: ReportBrowserHistoryUploadProgress
+  ): Promise<VoidResponse>
+  export function sendMessage(
+    tabId: number,
+    message: Request
+  ): Promise<FromContent.Response>
+  export function sendMessage(
+    tabId: number,
     message: Request
   ): Promise<FromContent.Response> {
     return browser.tabs.sendMessage(tabId, message).catch((error) => {
@@ -232,6 +223,17 @@ export namespace ToContent {
         `Failed to send ${message.type} to content (tabId = ${tabId}): ${error}`
       )
     })
+  }
+
+  export function sendMessageToAll(
+    tabIds: number[],
+    message: Request
+  ): Promise<PromiseSettledResult<FromContent.Response>[]> {
+    let promises: Promise<FromContent.Response>[] = []
+    for (const tabId of tabIds) {
+      promises.push(sendMessage(tabId, message))
+    }
+    return Promise.allSettled(promises)
   }
 }
 export namespace FromContent {
@@ -268,7 +270,20 @@ export namespace FromContent {
     totalSecondsEstimation: number
     origin: OriginIdentity
   }
-  export type Request = AttentionTimeChunk
+  export interface UploadBrowserHistoryRequest {
+    type: 'UPLOAD_BROWSER_HISTORY'
+  }
+  export interface CancelBrowserHistoryUploadRequest {
+    type: 'CANCEL_BROWSER_HISTORY_UPLOAD'
+  }
+  export interface DeletePreviouslyUploadedBrowserHistoryRequest {
+    type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY'
+  }
+  export type Request =
+    | AttentionTimeChunk
+    | UploadBrowserHistoryRequest
+    | CancelBrowserHistoryUploadRequest
+    | DeletePreviouslyUploadedBrowserHistoryRequest
 
   export type Response =
     | GetSelectedQuoteResponse
@@ -277,7 +292,19 @@ export namespace FromContent {
     | PageNotWorthSavingResponse
     | VoidResponse
 
-  export function sendMessage(message: Request): Promise<VoidResponse> {
+  export function sendMessage(
+    message: AttentionTimeChunk
+  ): Promise<VoidResponse>
+  export function sendMessage(
+    message: UploadBrowserHistoryRequest
+  ): Promise<VoidResponse>
+  export function sendMessage(
+    message: CancelBrowserHistoryUploadRequest
+  ): Promise<VoidResponse>
+  export function sendMessage(
+    message: DeletePreviouslyUploadedBrowserHistoryRequest
+  ): Promise<ToContent.DeletePreviouslyUploadedBrowserHistoryResponse>
+  export function sendMessage(message: Request): Promise<ToContent.Response> {
     const msg: ToBackground.Request = { direction: 'from-content', ...message }
     return browser.runtime.sendMessage(msg).catch((error) => {
       throw new Error(`Failed to send ${message.type} from content: ${error}`)
