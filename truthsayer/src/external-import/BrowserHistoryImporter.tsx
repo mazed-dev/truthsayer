@@ -35,14 +35,38 @@ export function BrowserHistoryImporter({ className }: { className?: string }) {
     const id: truthsayer_archaeologist_communication.VersionId =
       'mazed-archaeologist-version'
     sleep(
-      // TODO[snikitin@outlook.com] The goal of this sleep is to fulfill
-      // the "archaeologist had enough time to fully load its 'content' script"
-      // precondition of the code that follows. As all sleeps, it is of course
-      // very unreliable. If for any reason the precondition remains unfulfilled
-      // then the user will see BOTH
-      //    1. one of the error messages from @see describe()
-      //    2. AND injected @see BrowserHistoryImportControl augmentation
-      // which looks very confusing.
+      // TODO[snikitin@outlook.com] This sleep is unreliable and leads to confusing
+      // results.
+      //
+      // This code has 3 "actors":
+      //   1. a @see ArchaeologistVersion augmentation that archaeologist injects
+      //      into truthsayer
+      //   2. an error or status from @see describe() that truthsayer should
+      //      display if ArchaeologistVersion hasn't been injected yet
+      //   3. a @see BrowserHistoryImportControl augmentation that archaeologist
+      //      injects into truthsayer
+      //
+      // 1st actor is used purely behind the scenes, invisible to users.
+      // 2nd and 3rd are the stars of the show, and from user's perspective they
+      // are *mutually exclusive* - you either get an error/spinner or access
+      // to functionality.
+      //
+      // Currently actor 3 gets injected *alongside* actor 2 (as opposed to
+      // an overwriting injection which *replaces* actor 2 with actor 3).
+      //
+      // 3rd actor gets *unconditionally injected* whenever archaeologist's
+      // content script gets loaded, unrelated to anything that happens in truthsayer.
+      // Since from a user perspective 2nd and 3rd shouldn't be both visible,
+      // this sleep is used to give actor 2 enough time to figure out if it should
+      // hide itself or not, and it does so by checking 1st actor -- that's the only
+      // use of 1st actor.
+      // But if sleep duration is too low then both 2nd and 3rd will be visible
+      // which is confusing.
+      //
+      // Is it possible to do an "overwrite" augmentation? That would remove
+      // situations when both 2nd and 3rd are visible and potentially remove
+      // the need for 1st.
+      // Or make init more deterministic some other way?
       2000
     ).then(() => {
       const el = window.document.getElementById(id)
