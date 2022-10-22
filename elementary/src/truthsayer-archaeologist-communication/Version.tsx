@@ -12,16 +12,6 @@ export type VersionStruct = {
   // ...
 }
 
-/**
- * Compare two version strings in semver format and return true if first input
- * argument has a greater version than the second one or the same.
- */
-export function lhsSemverIsGreaterOrEqual(lhs: string, rhs: string) {
-  // Implementation based on https://stackoverflow.com/a/55466325/3375765
-  const res = lhs.localeCompare(rhs, undefined, { numeric: true })
-  return res === 1 || res === 0
-}
-
 export function Version({
   id,
   version,

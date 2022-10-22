@@ -1,5 +1,6 @@
 import React from 'react'
 import styled from '@emotion/styled'
+import semver from 'semver'
 
 import { log, sleep } from 'armoury'
 import {
@@ -33,26 +34,26 @@ export function BrowserHistoryImporter({ className }: { className?: string }) {
         setArchaeologistState({ type: 'not-found' })
         return
       }
+      let version: truthsayer_archaeologist_communication.VersionStruct | null =
+        null
       try {
-        const version = JSON.parse(
+        version = JSON.parse(
           el.innerHTML
         ) as truthsayer_archaeologist_communication.VersionStruct
-        if (
-          truthsayer_archaeologist_communication.lhsSemverIsGreaterOrEqual(
-            version.version,
-            kMinimalArchaeologistVersion
-          )
-        ) {
-          setArchaeologistState({ type: 'good' })
-        } else {
-          setArchaeologistState({
-            type: 'version-mismatch',
-            actual: version.version,
-          })
-        }
       } catch (err) {
         log.error('Archaeologist version deserialization failed with', err)
+        return
       }
+      const state: ArchaeologistState = semver.gte(
+        version.version,
+        kMinimalArchaeologistVersion
+      )
+        ? { type: 'good' }
+        : {
+            type: 'version-mismatch',
+            actual: version.version,
+          }
+      setArchaeologistState(state)
     })
   }, [])
 
