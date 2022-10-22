@@ -34,7 +34,17 @@ export function BrowserHistoryImporter({ className }: { className?: string }) {
   React.useEffect(() => {
     const id: truthsayer_archaeologist_communication.VersionId =
       'mazed-archaeologist-version'
-    sleep(2000).then(() => {
+    sleep(
+      // TODO[snikitin@outlook.com] The goal of this sleep is to fulfill
+      // the "archaeologist had enough time to fully load its 'content' script"
+      // precondition of the code that follows. As all sleeps, it is of course
+      // very unreliable. If for any reason the precondition remains unfulfilled
+      // then the user will see BOTH
+      //    1. one of the error messages from @see describe()
+      //    2. AND injected @see BrowserHistoryImportControl augmentation
+      // which looks very confusing.
+      2000
+    ).then(() => {
       const el = window.document.getElementById(id)
       if (el == null) {
         setArchaeologistState({ type: 'not-found' })
