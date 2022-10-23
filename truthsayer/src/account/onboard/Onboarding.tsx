@@ -13,12 +13,7 @@ const InstallAppsStep = styled(AppsList)`
   padding: 0;
 `
 
-type Step = {
-  title: string
-  body: React.ReactNode,
-}
-
-const kSteps: Step[] = [
+const kSteps = [
   {
     title: 'Install Apps',
     body: <InstallAppsStep />,

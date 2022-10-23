@@ -112,21 +112,21 @@ type Action =
 function updateState(state: State, action: Action): State {
   switch (action.type) {
     case 'init-app': {
-      // NOTE (snikitin@): This case is not handled as an error intentionaly.
-      // At the time of this writing this action is kicked off when a browser
-      // emits browser.tabs.onUpdated event.
-      // See https://stackoverflow.com/a/18302254/3375765 for info on why
-      // duplicate calls are difficult to prevent.
-      //
-      // UPDATE-1 (akindyakov@): Browser emits browser.tabs.onUpdated event on
-      // any Tab props change that happens without tab full reload, for instance
-      // page location change intiated from JS by react-dom. In such cases
-      // 'init-app' has to be treated as state reset.
       const originIdentity = genOriginId(exctractPageUrl(document))
       if (
         state.mode !== 'uninitialised-content-app' &&
         state.originIdentity.stableUrl === originIdentity.stableUrl
       ) {
+        // NOTE (snikitin@): This case is not handled as an error intentionaly.
+        // At the time of this writing this action is kicked off when a browser
+        // emits browser.tabs.onUpdated event.
+        // See https://stackoverflow.com/a/18302254/3375765 for info on why
+        // duplicate calls are difficult to prevent.
+        //
+        // UPDATE-1 (akindyakov@): Browser emits browser.tabs.onUpdated event on
+        // any Tab props change that happens without tab full reload, for instance
+        // page location change intiated from JS by react-dom. In such cases
+        // 'init-app' has to be treated as state reset.
         console.warn(
           'Attempted to init content app more than once, ignoring all calls except first'
         )
