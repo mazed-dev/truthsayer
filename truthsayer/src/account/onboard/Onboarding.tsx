@@ -13,7 +13,12 @@ const InstallAppsStep = styled(AppsList)`
   padding: 0;
 `
 
-const kSteps = [
+type Step = {
+  title: string
+  body: React.ReactNode,
+}
+
+const kSteps: Step[] = [
   {
     title: 'Install Apps',
     body: <InstallAppsStep />,
@@ -45,8 +50,7 @@ function OnboardingModal({
     onClose()
     setShow(false)
   }
-  const title = kSteps[step].title
-  const body = kSteps[step].body
+  const { title, body } = kSteps[step]
   return (
     <Modal
       show={show}

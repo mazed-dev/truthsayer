@@ -7,20 +7,17 @@ import {
   MdiCancel,
   MdiCloudUpload,
   MdiDelete,
+  Spinner,
 } from 'elementary'
 import { FromContent, BrowserHistoryUploadProgress } from '../message/types'
 
-const Box = styled.div``
+import { log, toSentenceCase } from 'armoury'
 
-const Navbar = styled.ul`
-  list-style-type: none;
+const Box = styled.div`
   margin: 0;
   padding: 0;
-  overflow: hidden;
 `
-const NavbarItem = styled.li`
-  float: right;
-`
+const Title = styled.div``
 
 const Button = styled.button`
   background-color: #ffffff;
@@ -28,10 +25,18 @@ const Button = styled.button`
   border-width: 0;
   border-radius: 32px;
 
-  vertical-align: middle;
   &:hover {
     background-color: #d0d1d2;
   }
+`
+const CancelPic = styled(MdiCancel)`
+  vertical-align: middle;
+`
+const CloudUploadPic = styled(MdiCloudUpload)`
+  vertical-align: middle;
+`
+const DeletePic = styled(MdiDelete)`
+  vertical-align: middle;
 `
 
 type UploadBrowserHistoryProps = React.PropsWithChildren<{
@@ -66,6 +71,66 @@ type UploadBrowserHistoryProps = React.PropsWithChildren<{
 export function BrowserHistoryImportControl({
   progress,
 }: UploadBrowserHistoryProps) {
+  const [isBeingCancelled, setIsBeingCancelled] = React.useState(false)
+  const [deletedNodesCount, setDeletedNodesCount] = React.useState(0)
+
+  const startUpload = async () => {
+    log.debug('startUpload')
+    FromContent.sendMessage({
+      type: 'UPLOAD_BROWSER_HISTORY',
+    }).finally(() => {
+      setIsBeingCancelled(false)
+    })
+  }
+  const cancelUpload = () => {
+    log.debug('cancelUpload')
+    setIsBeingCancelled(true)
+    FromContent.sendMessage({
+      type: 'CANCEL_BROWSER_HISTORY_UPLOAD',
+    })
+  }
+  const deletePreviouslyUploaded = () => {
+    log.debug('deletePreviouslyUploaded')
+    FromContent.sendMessage({
+      type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
+    }).then((response) => setDeletedNodesCount(response.numDeleted))
+  }
+  const inProgress = progress.processed !== progress.total || isBeingCancelled
+  const browserName = toSentenceCase(process.env.BROWSER || 'browser')
+  if (inProgress) {
+    return (
+      <Box>
+        <Title>
+          <Spinner.Ring /> Importng {browserName} history [{progress.processed}/
+          {progress.total}]
+        </Title>
+        <Button onClick={cancelUpload} disabled={isBeingCancelled}>
+          <CancelPic /> Cancel
+        </Button>
+      </Box>
+    )
+  } else {
+    return (
+      <Box>
+        <Title>Import {browserName} history</Title>
+        <Button onClick={startUpload}>
+          <CloudUploadPic /> Import
+        </Button>
+        {deletedNodesCount > 0 ? (
+          <span>[{deletedNodesCount}] deleted </span>
+        ) : (
+          <Button onClick={deletePreviouslyUploaded}>
+            <DeletePic /> Delete imported
+          </Button>
+        )}
+      </Box>
+    )
+  }
+}
+
+export function BrowserHistoryImportControlPortal({
+  progress,
+}: UploadBrowserHistoryProps) {
   const container = document.createElement(
     'mazed-archaeologist-browser-history-import-control'
   )
@@ -89,55 +154,10 @@ export function BrowserHistoryImportControl({
       target?.removeChild(container)
     }
   })
-
-  const [isBeingCancelled, setIsBeingCancelled] = React.useState(false)
-  const [deletedNodesCount, setDeletedNodesCount] = React.useState(0)
-
-  const startUpload = async () => {
-    FromContent.sendMessage({
-      type: 'UPLOAD_BROWSER_HISTORY',
-    }).finally(() => {
-      setIsBeingCancelled(false)
-    })
-  }
-  const cancelUpload = () => {
-    setIsBeingCancelled(true)
-    FromContent.sendMessage({
-      type: 'CANCEL_BROWSER_HISTORY_UPLOAD',
-    })
-  }
-  const deletePreviouslyUploaded = () => {
-    FromContent.sendMessage({
-      type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
-    }).then((response) => setDeletedNodesCount(response.numDeleted))
-  }
-  const primaryAction =
-    progress.processed === progress.total ? (
-      <Button onClick={startUpload}>
-        <MdiCloudUpload />
-      </Button>
-    ) : (
-      <Button onClick={cancelUpload} disabled={isBeingCancelled}>
-        <MdiCancel />
-        {progress.processed}/{progress.total}
-      </Button>
-    )
-
   return ReactDOM.createPortal(
-    <Box>
-      <Navbar>
-        <NavbarItem key={'delete'}>
-          <Button
-            onClick={deletePreviouslyUploaded}
-            disabled={progress.processed !== progress.total || isBeingCancelled}
-          >
-            <MdiDelete />
-            {deletedNodesCount > 0 ? deletedNodesCount : null}
-          </Button>
-        </NavbarItem>
-        <NavbarItem key={'action'}>{primaryAction}</NavbarItem>
-      </Navbar>
-    </Box>,
+    <div>
+      <BrowserHistoryImportControl progress={progress} />
+    </div>,
     container
   )
 }

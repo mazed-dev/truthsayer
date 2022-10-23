@@ -15,7 +15,7 @@ import {
 import * as badge from './badge/badge'
 
 import browser, { Tabs } from 'webextension-polyfill'
-import { log, isAbortError, genOriginId, unixtime, errorise } from 'armoury'
+import { log, isAbortError, genOriginId, unixtime } from 'armoury'
 import {
   TNode,
   TotalUserActivity,
@@ -405,21 +405,6 @@ function idOfBrowserHistoryOnThisDeviceAsExternalPipeline(): UserExternalPipelin
   }
 }
 
-async function allOpenTruthsayerTabIds(): Promise<number[]> {
-  const truthsayerTabs = await browser.tabs.query({
-    // See https://developer.chrome.com/docs/extensions/mv3/match_patterns/
-    // for rules based on which 'url' parameter should be populated
-    url:
-      // TODO[snikitin@outlook.com] Truthsayer URL match pattern should be
-      // different between dev and prod and should be fetched from an env
-      // vairable setup in webpack.config.js
-      '*://localhost/*',
-  })
-  return truthsayerTabs
-    .map((tab) => tab.id)
-    .filter((id: number | undefined): id is number => id != null)
-}
-
 // TODO[snikitin@outlook.com] This boolean is an extremely naive tool to cancel
 // an asyncronous task. In general AbortController would have been used instead
 // (see https://medium.com/@bramus/cancel-a-javascript-promise-with-abortcontroller-3540cbbda0a9)
@@ -437,34 +422,16 @@ let shouldCancelBrowserHistoryUpload = false
 async function uploadBrowserHistory() {
   const reportProgressToPopup = lodash.throttle(
     (progress: BrowserHistoryUploadProgress) => {
-      allOpenTruthsayerTabIds()
-        .then((tabIds: number[]) =>
-          ToContent.sendMessageToAll(tabIds, {
+      getActiveTab().then((tab: browser.Tabs.Tab | null) => {
+        log.debug('reportProgressToPopup', progress, tab)
+        const tabId = tab?.id
+        if (tabId != null) {
+          ToContent.sendMessage(tabId, {
             type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS',
             newState: progress,
           })
-        )
-        .then((results: PromiseSettledResult<FromContent.Response>[]) => {
-          let errors: Error[] = []
-          for (const result of results) {
-            if (result.status === 'rejected') {
-              const error = errorise(result.reason)
-              const popupIsNotOpen =
-                error.message.indexOf('Receiving end does not exist') !== -1
-              if (popupIsNotOpen) {
-                // NOTE: As browser history upload is a long-running process, it is
-                // expected that at some point the user can close truthsayer
-                // in which case failed attempts to update are not errors.
-                // All the other errors however should not be suppressed.
-                continue
-              }
-              errors.push(error)
-            }
-          }
-          if (errors.length !== 0) {
-            throw new Error(JSON.stringify(errors))
-          }
-        })
+        }
+      })
     },
     1123
   )
@@ -472,7 +439,7 @@ async function uploadBrowserHistory() {
   const epid = idOfBrowserHistoryOnThisDeviceAsExternalPipeline()
   const currentProgress = await smuggler.external.ingestion.get(epid)
 
-  log.debug(`Progress until now: ${currentProgress.ingested_until}`)
+  log.debug('Progress until now:', currentProgress)
 
   const advanceIngestionProgress = lodash.throttle(async (date: Date) => {
     return smuggler.external.ingestion.advance(epid, {
@@ -505,15 +472,12 @@ async function uploadBrowserHistory() {
   // explicit sorting is added as a safeguard
   items.sort(sortWithOldestLastVisitAtEnd)
 
-  const badgeActivityId = await badge.addActivity('H')
-
   for (
     let index = 0;
     index < items.length && !shouldCancelBrowserHistoryUpload;
     index++
   ) {
     const item = items[index]
-
     if (item.lastVisitTime == null) {
       log.warning(
         `Can't process history item ${item.url} as it doesn't have lastVisitTime set`
@@ -540,7 +504,6 @@ async function uploadBrowserHistory() {
   })
   reportProgressToPopup.flush()
   await advanceIngestionProgress.flush()
-  await badge.removeActivity(badgeActivityId)
 }
 
 async function handleMessageFromPopup(

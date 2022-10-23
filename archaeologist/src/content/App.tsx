@@ -29,7 +29,7 @@ import {
 } from './toaster/Toaster'
 import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
-import { BrowserHistoryImportControl } from './BrowserHistoryImportControl'
+import { BrowserHistoryImportControlPortal } from './BrowserHistoryImportControl'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
@@ -112,23 +112,32 @@ type Action =
 function updateState(state: State, action: Action): State {
   switch (action.type) {
     case 'init-app': {
-      if (state.mode !== 'uninitialised-content-app') {
-        // NOTE: This case is not handled as an error intentionaly.
-        // At the time of this writing this action is kicked off when a browser
-        // emits browser.tabs.onUpdated event.
-        // See https://stackoverflow.com/a/18302254/3375765 for info on why
-        // duplicate calls are difficult to prevent.
+      // NOTE (snikitin@): This case is not handled as an error intentionaly.
+      // At the time of this writing this action is kicked off when a browser
+      // emits browser.tabs.onUpdated event.
+      // See https://stackoverflow.com/a/18302254/3375765 for info on why
+      // duplicate calls are difficult to prevent.
+      //
+      // UPDATE-1 (akindyakov@): Browser emits browser.tabs.onUpdated event on
+      // any Tab props change that happens without tab full reload, for instance
+      // page location change intiated from JS by react-dom. In such cases
+      // 'init-app' has to be treated as state reset.
+      const originIdentity = genOriginId(exctractPageUrl(document))
+      if (
+        state.mode !== 'uninitialised-content-app' &&
+        state.originIdentity.stableUrl === originIdentity.stableUrl
+      ) {
         console.warn(
-          `Attempted to init content app more than once, ignoring all calls except first`
+          'Attempted to init content app more than once, ignoring all calls except first'
         )
         return state
       }
-      const d = action.data
+      const { mode, quotes, bookmark } = action.data
       return {
-        mode: d.mode,
+        mode,
         originIdentity: genOriginId(exctractPageUrl(document)),
-        quotes: d.quotes.map((json: TNodeJson) => TNode.fromJson(json)),
-        bookmark: d.bookmark != null ? TNode.fromJson(d.bookmark) : undefined,
+        quotes: quotes.map((json: TNodeJson) => TNode.fromJson(json)),
+        bookmark: bookmark != null ? TNode.fromJson(bookmark) : undefined,
         browserHistoryUploadProgress: { processed: 0, total: 0 },
       }
     }
@@ -299,10 +308,7 @@ const App = () => {
       ) : null}
       <Quotes quotes={state.quotes} />
       {activityTrackerOrNull}
-      {/* TODO[snikitin@outlook.com] only instantiate for mazed.se.
-      Evaluate if that's best done via introduction of a new ContentAppOperationMode
-      specifically for mazed homepage.  */}
-      <BrowserHistoryImportControl
+      <BrowserHistoryImportControlPortal
         progress={state.browserHistoryUploadProgress}
       />
     </AppErrorBoundary>
@@ -311,5 +317,5 @@ const App = () => {
 
 export function renderPageAugmentationApp(mount: HTMLDivElement) {
   ReactDOM.render(<App />, mount)
-  log.debug('Page argumentation is loaded')
+  log.debug('Page content augmentation is loaded')
 }
