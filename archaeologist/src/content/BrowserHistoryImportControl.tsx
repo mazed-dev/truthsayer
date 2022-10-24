@@ -162,20 +162,19 @@ export function BrowserHistoryImportControlPortalForMazed({
   )
 }
 
-function isMazed(url: string): boolean {
+function isTruthsayer(host: string): boolean {
   if (process.env.REACT_APP_SMUGGLER_API_URL) {
-    const mazedUrlObj = new URL(process.env.REACT_APP_SMUGGLER_API_URL)
-    const urlObj = new URL(url)
-    return mazedUrlObj.host === urlObj.host
+    const mazedUrl = new URL(process.env.REACT_APP_SMUGGLER_API_URL)
+    return mazedUrl.host === host
   }
   return true
 }
 
 export function BrowserHistoryImportControlPortal({
   progress,
-  url,
-}: UploadBrowserHistoryProps & { url: string }) {
-  if (isMazed(url)) {
+  host,
+}: UploadBrowserHistoryProps & { host: string }) {
+  if (isTruthsayer(host)) {
     return <BrowserHistoryImportControlPortalForMazed progress={progress} />
   }
   return null
