@@ -310,6 +310,7 @@ const App = () => {
       {activityTrackerOrNull}
       <BrowserHistoryImportControlPortal
         progress={state.browserHistoryUploadProgress}
+        host={window.location.host}
         modes={['resumable', 'untracked']}
       />
     </AppErrorBoundary>
