@@ -22,26 +22,27 @@ type ArchaeologistState =
   | { type: 'version-mismatch'; actual: string }
   | { type: 'loading' }
   | { type: 'good' }
+
+/**
+ * A truthsayer-side shell of an importer which by itself doesn't define any
+ * UI elements to control browser history import, but expects that archaeologist
+ * will inject @see BrowserHistoryImportControl augmentation into it at runtime.
+ */
 export function BrowserHistoryImporter({ className }: { className?: string }) {
   const [archaeologistState, setArchaeologistState] =
     React.useState<ArchaeologistState>({ type: 'loading' })
   React.useEffect(() => {
-    const id: truthsayer_archaeologist_communication.VersionId =
-      'mazed-archaeologist-version'
-    sleep(250).then(() => {
-      const el = window.document.getElementById(id)
-      if (el == null) {
+    // To get Archaeologist version we need 2 things to happen consequentially
+    // - Truthsayer page to get fully rendered
+    // - Archaeologist augmentation to get rendered
+    // And only then we can read Archaeologist version, for this we have to wait
+    sleep(2000).then(() => {
+      const version =
+        truthsayer_archaeologist_communication.getArchaeologistVersion(
+          window.document
+        )
+      if (version == null) {
         setArchaeologistState({ type: 'not-found' })
-        return
-      }
-      let version: truthsayer_archaeologist_communication.VersionStruct | null =
-        null
-      try {
-        version = JSON.parse(
-          el.innerHTML
-        ) as truthsayer_archaeologist_communication.VersionStruct
-      } catch (err) {
-        log.error('Archaeologist version deserialization failed with', err)
         return
       }
       const state: ArchaeologistState = semver.gte(
@@ -92,6 +93,9 @@ function describe(state: ArchaeologistState) {
       )
     }
     case 'good': {
+      // NOTE: when this is the case, it is expected that archaeologist
+      // will inject @see BrowserHistoryImportControl augmentation in place
+      // of this 'null'
       return null
     }
   }

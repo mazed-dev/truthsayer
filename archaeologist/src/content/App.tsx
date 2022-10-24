@@ -11,6 +11,7 @@ import {
   FromContent,
   ToContent,
   ContentAppOperationMode,
+  BrowserHistoryUploadProgress,
 } from './../message/types'
 import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/url/unmemorable'
@@ -28,7 +29,7 @@ import {
 } from './toaster/Toaster'
 import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
-import { BrowserHistoryImportControl } from './BrowserHistoryImportControl'
+import { BrowserHistoryImportControlPortal } from './BrowserHistoryImportControl'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
@@ -91,6 +92,7 @@ type InitializedState = {
   quotes: TNode[]
   bookmark?: TNode
   notification?: DisappearingToastProps
+  browserHistoryUploadProgress: BrowserHistoryUploadProgress
 }
 
 type State = UninitializedState | InitializedState
@@ -102,27 +104,41 @@ type Action =
       type: 'show-notification'
       data: ToContent.ShowDisappearingNotificationRequest
     }
+  | {
+      type: 'update-browser-history-upload-progress'
+      data: ToContent.ReportBrowserHistoryUploadProgress
+    }
 
 function updateState(state: State, action: Action): State {
   switch (action.type) {
     case 'init-app': {
-      if (state.mode !== 'uninitialised-content-app') {
-        // NOTE: This case is not handled as an error intentionaly.
+      const originIdentity = genOriginId(exctractPageUrl(document))
+      if (
+        state.mode !== 'uninitialised-content-app' &&
+        state.originIdentity.stableUrl === originIdentity.stableUrl
+      ) {
+        // NOTE (snikitin@): This case is not handled as an error intentionaly.
         // At the time of this writing this action is kicked off when a browser
         // emits browser.tabs.onUpdated event.
         // See https://stackoverflow.com/a/18302254/3375765 for info on why
         // duplicate calls are difficult to prevent.
+        //
+        // UPDATE-1 (akindyakov@): Browser emits browser.tabs.onUpdated event on
+        // any Tab props change that happens without tab full reload, for instance
+        // page location change intiated from JS by react-dom. In such cases
+        // 'init-app' has to be treated as state reset.
         console.warn(
-          `Attempted to init content app more than once, ignoring all calls except first`
+          'Attempted to init content app more than once, ignoring all calls except first'
         )
         return state
       }
-      const d = action.data
+      const { mode, quotes, bookmark } = action.data
       return {
-        mode: d.mode,
+        mode,
         originIdentity: genOriginId(exctractPageUrl(document)),
-        quotes: d.quotes.map((json: TNodeJson) => TNode.fromJson(json)),
-        bookmark: d.bookmark != null ? TNode.fromJson(d.bookmark) : undefined,
+        quotes: quotes.map((json: TNodeJson) => TNode.fromJson(json)),
+        bookmark: bookmark != null ? TNode.fromJson(bookmark) : undefined,
+        browserHistoryUploadProgress: { processed: 0, total: 0 },
       }
     }
     case 'update-nodes':
@@ -154,6 +170,15 @@ function updateState(state: State, action: Action): State {
           href,
           timeoutMsec,
         },
+      }
+    case 'update-browser-history-upload-progress':
+      if (state.mode === 'uninitialised-content-app') {
+        throw new Error("Can't modify state of an unitialized content app")
+      }
+
+      return {
+        ...state,
+        browserHistoryUploadProgress: action.data.newState,
       }
   }
 }
@@ -209,6 +234,9 @@ function mutatingRequestToAction(request: ToContent.MutatingRequest): Action {
     case 'SHOW_DISAPPEARING_NOTIFICATION': {
       return { type: 'show-notification', data: request }
     }
+    case 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS': {
+      return { type: 'update-browser-history-upload-progress', data: request }
+    }
   }
 }
 
@@ -232,7 +260,8 @@ const App = () => {
         }
         case 'INIT_CONTENT_AUGMENTATION_REQUEST':
         case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
-        case 'SHOW_DISAPPEARING_NOTIFICATION': {
+        case 'SHOW_DISAPPEARING_NOTIFICATION':
+        case 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS': {
           dispatch(mutatingRequestToAction(message))
           return { type: 'VOID_RESPONSE' }
         }
@@ -279,12 +308,15 @@ const App = () => {
       ) : null}
       <Quotes quotes={state.quotes} />
       {activityTrackerOrNull}
-      <BrowserHistoryImportControl />
+      <BrowserHistoryImportControlPortal
+        progress={state.browserHistoryUploadProgress}
+        host={window.location.host}
+      />
     </AppErrorBoundary>
   )
 }
 
 export function renderPageAugmentationApp(mount: HTMLDivElement) {
   ReactDOM.render(<App />, mount)
-  log.debug('Page argumentation is loaded')
+  log.debug('Page content augmentation is loaded')
 }

@@ -45,8 +45,7 @@ function OnboardingModal({
     onClose()
     setShow(false)
   }
-  const title = kSteps[step].title
-  const body = kSteps[step].body
+  const { title, body } = kSteps[step]
   return (
     <Modal
       show={show}

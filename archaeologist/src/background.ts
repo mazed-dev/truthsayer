@@ -9,13 +9,13 @@ import {
   FromPopUp,
   FromContent,
   ToBackground,
-  VoidResponse,
   ContentAppOperationMode,
+  BrowserHistoryUploadProgress,
 } from './message/types'
 import * as badge from './badge/badge'
 
 import browser, { Tabs } from 'webextension-polyfill'
-import { log, isAbortError, genOriginId, unixtime, errorise } from 'armoury'
+import { log, isAbortError, genOriginId, unixtime } from 'armoury'
 import {
   TNode,
   TotalUserActivity,
@@ -30,7 +30,6 @@ import { calculateBadgeCounter } from './badge/badgeCounter'
 import { isMemorable } from './content/extractor/url/unmemorable'
 import { isPageAutosaveable } from './content/extractor/url/autosaveable'
 import lodash from 'lodash'
-import { BrowserHistoryUploadProgress } from './background/browserHistoryUploadProgress'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
@@ -354,13 +353,32 @@ async function getPageContentViaTemporaryTab(
 async function handleMessageFromContent(
   message: FromContent.Request,
   sender: browser.Runtime.MessageSender
-): Promise<VoidResponse> {
+): Promise<ToContent.Response> {
   const tab = sender.tab ?? (await getActiveTab())
   log.debug('Get message from content', message, tab)
   switch (message.type) {
     case 'ATTENTION_TIME_CHUNK':
       await registerAttentionTime(tab, message)
       return { type: 'VOID_RESPONSE' }
+    case 'UPLOAD_BROWSER_HISTORY': {
+      await uploadBrowserHistory()
+      return { type: 'VOID_RESPONSE' }
+    }
+    case 'CANCEL_BROWSER_HISTORY_UPLOAD': {
+      shouldCancelBrowserHistoryUpload = true
+      return { type: 'VOID_RESPONSE' }
+    }
+    case 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY': {
+      const numDeleted = await smuggler.node.bulkDelete({
+        createdVia: {
+          autoIngestion: idOfBrowserHistoryOnThisDeviceAsExternalPipeline(),
+        },
+      })
+      return {
+        type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
+        numDeleted,
+      }
+    }
     default:
       throw new Error(
         `background received msg from content of unknown type, message: ${JSON.stringify(
@@ -404,21 +422,15 @@ let shouldCancelBrowserHistoryUpload = false
 async function uploadBrowserHistory() {
   const reportProgressToPopup = lodash.throttle(
     (progress: BrowserHistoryUploadProgress) => {
-      ToPopUp.sendMessage({
-        type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS',
-        newState: progress,
-      }).catch((reason: any) => {
-        const error = errorise(reason)
-        const popupIsNotOpen =
-          error.message.indexOf('Receiving end does not exist') !== -1
-        if (popupIsNotOpen) {
-          // NOTE: As browser history upload is a long-running process, it is
-          // expected that at some point the user will close archaeologist popup
-          // in which failed attempts to update are not errors.
-          // All the other errors however should not be suppressed.
-          return
+      getActiveTab().then((tab: browser.Tabs.Tab | null) => {
+        log.debug('reportProgressToPopup', progress, tab)
+        const tabId = tab?.id
+        if (tabId != null) {
+          ToContent.sendMessage(tabId, {
+            type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS',
+            newState: progress,
+          })
         }
-        throw reason
       })
     },
     1123
@@ -427,7 +439,7 @@ async function uploadBrowserHistory() {
   const epid = idOfBrowserHistoryOnThisDeviceAsExternalPipeline()
   const currentProgress = await smuggler.external.ingestion.get(epid)
 
-  log.debug(`Progress until now: ${currentProgress.ingested_until}`)
+  log.debug('Progress until now:', currentProgress)
 
   const advanceIngestionProgress = lodash.throttle(async (date: Date) => {
     return smuggler.external.ingestion.advance(epid, {
@@ -435,7 +447,7 @@ async function uploadBrowserHistory() {
     })
   }, 1123)
 
-  const items: browser.History.HistoryItem[] = await browser.history.search({
+  const queryForAllUnimported: browser.History.SearchQueryType = {
     // TODO[snikitin@outlook.com] Such a naive implementation which queries
     // the entire history at once may consume too much memory for users
     // with years of browser history.
@@ -451,7 +463,22 @@ async function uploadBrowserHistory() {
     ),
     maxResults: 1000000,
     text: '',
-  })
+  }
+
+  let oneMonthAgo = new Date()
+  oneMonthAgo.setDate(oneMonthAgo.getDate() - 31)
+  const queryForLastMonth: browser.History.SearchQueryType = {
+    endTime: historyDateCompat(new Date()),
+    startTime: historyDateCompat(oneMonthAgo),
+    maxResults: 1000000,
+    text: '',
+  }
+
+  const uploadLastMonthOnly = true
+
+  const items: browser.History.HistoryItem[] = await browser.history.search(
+    uploadLastMonthOnly ? queryForLastMonth : queryForAllUnimported
+  )
   // NOTE: With Chromium at least the output of `browser.history.search`
   // is already in the order from "pages that hasn't been visited the longest"
   // to "most recently visited". However `browser.history.search` doesn't seem
@@ -460,15 +487,12 @@ async function uploadBrowserHistory() {
   // explicit sorting is added as a safeguard
   items.sort(sortWithOldestLastVisitAtEnd)
 
-  const badgeActivityId = await badge.addActivity('H')
-
   for (
     let index = 0;
     index < items.length && !shouldCancelBrowserHistoryUpload;
     index++
   ) {
     const item = items[index]
-
     if (item.lastVisitTime == null) {
       log.warning(
         `Can't process history item ${item.url} as it doesn't have lastVisitTime set`
@@ -482,7 +506,9 @@ async function uploadBrowserHistory() {
         total: items.length,
       })
       await uploadSingleHistoryItem(item, epid)
-      await advanceIngestionProgress(new Date(item.lastVisitTime))
+      if (!uploadLastMonthOnly) {
+        await advanceIngestionProgress(new Date(item.lastVisitTime))
+      }
     } catch (err) {
       log.error(`Failed to process ${item.url} during history upload: ${err}`)
     }
@@ -494,8 +520,9 @@ async function uploadBrowserHistory() {
     total: items.length,
   })
   reportProgressToPopup.flush()
-  await advanceIngestionProgress.flush()
-  await badge.removeActivity(badgeActivityId)
+  if (!uploadLastMonthOnly) {
+    await advanceIngestionProgress.flush()
+  }
 }
 
 async function handleMessageFromPopup(
@@ -552,25 +579,6 @@ async function handleMessageFromPopup(
       const status = await auth.isAuthorised()
       badge.setActive(status)
       return { type: 'AUTH_STATUS', status }
-    case 'UPLOAD_BROWSER_HISTORY': {
-      await uploadBrowserHistory()
-      return { type: 'VOID_RESPONSE' }
-    }
-    case 'CANCEL_BROWSER_HISTORY_UPLOAD': {
-      shouldCancelBrowserHistoryUpload = true
-      return { type: 'VOID_RESPONSE' }
-    }
-    case 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY': {
-      const numDeleted = await smuggler.node.bulkDelete({
-        createdVia: {
-          autoIngestion: idOfBrowserHistoryOnThisDeviceAsExternalPipeline(),
-        },
-      })
-      return {
-        type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
-        numDeleted,
-      }
-    }
     default:
       throw new Error(
         `background received msg from popup of unknown type, message: ${JSON.stringify(
