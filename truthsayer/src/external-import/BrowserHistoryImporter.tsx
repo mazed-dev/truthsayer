@@ -32,7 +32,11 @@ export function BrowserHistoryImporter({ className }: { className?: string }) {
   const [archaeologistState, setArchaeologistState] =
     React.useState<ArchaeologistState>({ type: 'loading' })
   React.useEffect(() => {
-    sleep(400).then(() => {
+    // To get Archaeologist version we need 2 things to happen consequentially
+    // - Truthsayer page to get fully rendered
+    // - Archaeologist augmentation to get rendered
+    // And only then we can read Archaeologist version, for this we have to wait
+    sleep(2000).then(() => {
       const version =
         truthsayer_archaeologist_communication.getArchaeologistVersion(
           window.document
