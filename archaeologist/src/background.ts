@@ -447,7 +447,7 @@ async function uploadBrowserHistory() {
     })
   }, 1123)
 
-  const items: browser.History.HistoryItem[] = await browser.history.search({
+  const queryForAllUnimported: browser.History.SearchQueryType = {
     // TODO[snikitin@outlook.com] Such a naive implementation which queries
     // the entire history at once may consume too much memory for users
     // with years of browser history.
@@ -463,7 +463,22 @@ async function uploadBrowserHistory() {
     ),
     maxResults: 1000000,
     text: '',
-  })
+  }
+
+  let oneMonthAgo = new Date()
+  oneMonthAgo.setDate(oneMonthAgo.getDate() - 31)
+  const queryForLastMonth: browser.History.SearchQueryType = {
+    endTime: historyDateCompat(new Date()),
+    startTime: historyDateCompat(oneMonthAgo),
+    maxResults: 1000000,
+    text: '',
+  }
+
+  const uploadLastMonthOnly = true
+
+  const items: browser.History.HistoryItem[] = await browser.history.search(
+    uploadLastMonthOnly ? queryForLastMonth : queryForAllUnimported
+  )
   // NOTE: With Chromium at least the output of `browser.history.search`
   // is already in the order from "pages that hasn't been visited the longest"
   // to "most recently visited". However `browser.history.search` doesn't seem
@@ -491,7 +506,9 @@ async function uploadBrowserHistory() {
         total: items.length,
       })
       await uploadSingleHistoryItem(item, epid)
-      await advanceIngestionProgress(new Date(item.lastVisitTime))
+      if (!uploadLastMonthOnly) {
+        await advanceIngestionProgress(new Date(item.lastVisitTime))
+      }
     } catch (err) {
       log.error(`Failed to process ${item.url} during history upload: ${err}`)
     }
@@ -503,7 +520,9 @@ async function uploadBrowserHistory() {
     total: items.length,
   })
   reportProgressToPopup.flush()
-  await advanceIngestionProgress.flush()
+  if (!uploadLastMonthOnly) {
+    await advanceIngestionProgress.flush()
+  }
 }
 
 async function handleMessageFromPopup(
