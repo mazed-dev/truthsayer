@@ -11,7 +11,7 @@ import {
 } from 'elementary'
 import { FromContent, BrowserHistoryUploadProgress } from '../message/types'
 
-import { log, toSentenceCase } from 'armoury'
+import { toSentenceCase } from 'armoury'
 
 const Box = styled.div`
   margin: 0;
@@ -24,7 +24,6 @@ const PreStartMessage = styled.div`
   margin-bottom: 10px;
   font-style: italic;
 `
-
 const Button = styled.button`
   background-color: #ffffff;
   border-style: solid;
@@ -107,21 +106,18 @@ export function BrowserHistoryImportControl({
     setState({ step: 'pre-start' })
   }
   const startUpload = async () => {
-    log.debug('startUpload')
     setState({ step: 'in-progress', isBeingCancelled: false })
     FromContent.sendMessage({
       type: 'UPLOAD_BROWSER_HISTORY',
     })
   }
   const cancelUpload = () => {
-    log.debug('cancelUpload')
     setState({ step: 'in-progress', isBeingCancelled: true })
     FromContent.sendMessage({
       type: 'CANCEL_BROWSER_HISTORY_UPLOAD',
     })
   }
   const deletePreviouslyUploaded = () => {
-    log.debug('deletePreviouslyUploaded')
     FromContent.sendMessage({
       type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
     }).then((response) =>
