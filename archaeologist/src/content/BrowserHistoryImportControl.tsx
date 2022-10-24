@@ -11,19 +11,25 @@ import {
 } from 'elementary'
 import { FromContent, BrowserHistoryUploadProgress } from '../message/types'
 
-import { log, toSentenceCase } from 'armoury'
+import { toSentenceCase } from 'armoury'
 
 const Box = styled.div`
   margin: 0;
   padding: 0;
 `
-const Title = styled.div``
-
+const Title = styled.div`
+  margin-bottom: 10px;
+`
+const PreStartMessage = styled.div`
+  margin-bottom: 10px;
+  font-style: italic;
+`
 const Button = styled.button`
   background-color: #ffffff;
   border-style: solid;
   border-width: 0;
   border-radius: 32px;
+  margin-right: 10px;
 
   &:hover {
     background-color: #d0d1d2;
@@ -42,6 +48,19 @@ const DeletePic = styled(MdiDelete)`
 type UploadBrowserHistoryProps = React.PropsWithChildren<{
   progress: BrowserHistoryUploadProgress
 }>
+
+type BrowserHistoryImportControlState =
+  | {
+      step: 'standby'
+      deletedNodesCount: number
+    }
+  | {
+      step: 'pre-start'
+    }
+  | {
+      step: 'in-progress'
+      isBeingCancelled: boolean
+    }
 
 /**
  * Widget with buttons that allow user to control import of their local browser
@@ -71,53 +90,50 @@ type UploadBrowserHistoryProps = React.PropsWithChildren<{
 export function BrowserHistoryImportControl({
   progress,
 }: UploadBrowserHistoryProps) {
-  const [isBeingCancelled, setIsBeingCancelled] = React.useState(false)
-  const [deletedNodesCount, setDeletedNodesCount] = React.useState(0)
+  const [state, setState] = React.useState<BrowserHistoryImportControlState>(
+    progress.processed !== progress.total
+      ? {
+          step: 'in-progress',
+          isBeingCancelled: false,
+        }
+      : {
+          step: 'standby',
+          deletedNodesCount: 0,
+        }
+  )
 
+  const showPreStartMessage = () => {
+    setState({ step: 'pre-start' })
+  }
   const startUpload = async () => {
-    log.debug('startUpload')
+    setState({ step: 'in-progress', isBeingCancelled: false })
     FromContent.sendMessage({
       type: 'UPLOAD_BROWSER_HISTORY',
-    }).finally(() => {
-      setIsBeingCancelled(false)
     })
   }
   const cancelUpload = () => {
-    log.debug('cancelUpload')
-    setIsBeingCancelled(true)
+    setState({ step: 'in-progress', isBeingCancelled: true })
     FromContent.sendMessage({
       type: 'CANCEL_BROWSER_HISTORY_UPLOAD',
     })
   }
   const deletePreviouslyUploaded = () => {
-    log.debug('deletePreviouslyUploaded')
     FromContent.sendMessage({
       type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
-    }).then((response) => setDeletedNodesCount(response.numDeleted))
-  }
-  const inProgress = progress.processed !== progress.total || isBeingCancelled
-  const browserName = toSentenceCase(process.env.BROWSER || 'browser')
-  if (inProgress) {
-    return (
-      <Box>
-        <Title>
-          <Spinner.Ring /> Importng {browserName} history [{progress.processed}/
-          {progress.total}]
-        </Title>
-        <Button onClick={cancelUpload} disabled={isBeingCancelled}>
-          <CancelPic /> Cancel
-        </Button>
-      </Box>
+    }).then((response) =>
+      setState({ step: 'standby', deletedNodesCount: response.numDeleted })
     )
-  } else {
+  }
+  const browserName = toSentenceCase(process.env.BROWSER || 'browser')
+  if (state.step === 'standby') {
     return (
       <Box>
         <Title>Import {browserName} history</Title>
-        <Button onClick={startUpload}>
+        <Button onClick={showPreStartMessage}>
           <CloudUploadPic /> Import
         </Button>
-        {deletedNodesCount > 0 ? (
-          <span>[{deletedNodesCount}] deleted </span>
+        {state.deletedNodesCount > 0 ? (
+          <span>[{state.deletedNodesCount}] deleted </span>
         ) : (
           <Button onClick={deletePreviouslyUploaded}>
             <DeletePic /> Delete imported
@@ -125,7 +141,38 @@ export function BrowserHistoryImportControl({
         )}
       </Box>
     )
+  } else if (state.step === 'pre-start') {
+    return (
+      <Box>
+        <PreStartMessage>
+          Mind out Mazed will be opening and closing pages from your{' '}
+          {browserName} history to save them exactly as you saw them. All tabs
+          opened by Mazed will be closed automatically.
+        </PreStartMessage>
+        <Button onClick={startUpload}>
+          <CloudUploadPic /> Continue
+        </Button>
+        <Button
+          onClick={() => setState({ step: 'standby', deletedNodesCount: 0 })}
+        >
+          <CancelPic /> Cancel
+        </Button>
+      </Box>
+    )
+  } else if (state.step === 'in-progress') {
+    return (
+      <Box>
+        <Title>
+          <Spinner.Ring /> Importng {browserName} history [{progress.processed}/
+          {progress.total}]
+        </Title>
+        <Button onClick={cancelUpload} disabled={state.isBeingCancelled}>
+          <CancelPic /> Cancel
+        </Button>
+      </Box>
+    )
   }
+  return null
 }
 
 export function BrowserHistoryImportControlPortalForMazed({

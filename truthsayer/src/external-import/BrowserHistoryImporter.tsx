@@ -2,7 +2,7 @@ import React from 'react'
 import styled from '@emotion/styled'
 import semver from 'semver'
 
-import { log, sleep } from 'armoury'
+import { sleep } from 'armoury'
 import {
   TruthsayerBrowserHistoryImportWidget,
   truthsayer_archaeologist_communication,

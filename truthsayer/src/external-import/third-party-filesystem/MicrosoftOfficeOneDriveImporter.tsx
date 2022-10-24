@@ -35,7 +35,9 @@ export { MicrosoftOfficeOneDriveLogoImg }
 
 const Box = styled.div``
 const BoxButtons = styled.div``
-const Title = styled.div``
+const Title = styled.div`
+  margin-bottom: 10px;
+`
 
 const Button = styled.button`
   background-color: #ffffff;
