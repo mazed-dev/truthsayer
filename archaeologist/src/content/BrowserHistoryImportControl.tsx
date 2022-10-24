@@ -9,7 +9,11 @@ import {
   MdiDelete,
   Spinner,
 } from 'elementary'
-import { FromContent, BrowserHistoryUploadProgress } from '../message/types'
+import {
+  FromContent,
+  BrowserHistoryUploadProgress,
+  BrowserHistoryUploadMode,
+} from '../message/types'
 
 import { log, toSentenceCase } from 'armoury'
 
@@ -41,6 +45,7 @@ const DeletePic = styled(MdiDelete)`
 
 type UploadBrowserHistoryProps = React.PropsWithChildren<{
   progress: BrowserHistoryUploadProgress
+  modes: ('resumable' | 'untracked')[]
 }>
 
 /**
@@ -70,14 +75,16 @@ type UploadBrowserHistoryProps = React.PropsWithChildren<{
  */
 export function BrowserHistoryImportControl({
   progress,
+  modes,
 }: UploadBrowserHistoryProps) {
   const [isBeingCancelled, setIsBeingCancelled] = React.useState(false)
   const [deletedNodesCount, setDeletedNodesCount] = React.useState(0)
 
-  const startUpload = async () => {
+  const startUpload = async (mode: BrowserHistoryUploadMode) => {
     log.debug('startUpload')
     FromContent.sendMessage({
       type: 'UPLOAD_BROWSER_HISTORY',
+      ...mode,
     }).finally(() => {
       setIsBeingCancelled(false)
     })
@@ -101,8 +108,8 @@ export function BrowserHistoryImportControl({
     return (
       <Box>
         <Title>
-          <Spinner.Ring /> Importng {browserName} history [{progress.processed}/
-          {progress.total}]
+          <Spinner.Ring /> Importing {browserName} history [{progress.processed}
+          /{progress.total}]
         </Title>
         <Button onClick={cancelUpload} disabled={isBeingCancelled}>
           <CancelPic /> Cancel
@@ -110,12 +117,34 @@ export function BrowserHistoryImportControl({
       </Box>
     )
   } else {
+    const resumableUploadBtn = (
+      <Button onClick={() => startUpload({ mode: 'resumable' })}>
+        <CloudUploadPic /> Extensive import
+      </Button>
+    )
+
+    const now = new Date()
+    const daysToUpload = 31
+    const daysAgo = new Date(now)
+    daysAgo.setDate(now.getDate() - daysToUpload)
+    const untrackedUploadBtn = (
+      <Button
+        onClick={() =>
+          startUpload({
+            mode: 'untracked',
+            time: { start: daysAgo, end: new Date() },
+          })
+        }
+      >
+        <CloudUploadPic /> Quick import (last {daysToUpload} days)
+      </Button>
+    )
+
     return (
       <Box>
         <Title>Import {browserName} history</Title>
-        <Button onClick={startUpload}>
-          <CloudUploadPic /> Import
-        </Button>
+        {modes.indexOf('untracked') !== -1 ? untrackedUploadBtn : null}
+        {modes.indexOf('resumable') !== -1 ? resumableUploadBtn : null}
         {deletedNodesCount > 0 ? (
           <span>[{deletedNodesCount}] deleted </span>
         ) : (
@@ -128,9 +157,9 @@ export function BrowserHistoryImportControl({
   }
 }
 
-export function BrowserHistoryImportControlPortal({
-  progress,
-}: UploadBrowserHistoryProps) {
+export function BrowserHistoryImportControlPortal(
+  props: UploadBrowserHistoryProps
+) {
   const container = document.createElement(
     'mazed-archaeologist-browser-history-import-control'
   )
@@ -156,7 +185,7 @@ export function BrowserHistoryImportControlPortal({
   })
   return ReactDOM.createPortal(
     <div>
-      <BrowserHistoryImportControl progress={progress} />
+      <BrowserHistoryImportControl {...props} />
     </div>,
     container
   )

@@ -117,6 +117,9 @@ export type BrowserHistoryUploadProgress = {
   processed: number
   total: number
 }
+export type BrowserHistoryUploadMode =
+  | { mode: 'untracked'; time: { start: Date; end: Date } }
+  | { mode: 'resumable' }
 
 export namespace ToContent {
   export interface RequestPageContent {
@@ -270,9 +273,10 @@ export namespace FromContent {
     totalSecondsEstimation: number
     origin: OriginIdentity
   }
-  export interface UploadBrowserHistoryRequest {
+
+  export type UploadBrowserHistoryRequest = {
     type: 'UPLOAD_BROWSER_HISTORY'
-  }
+  } & BrowserHistoryUploadMode
   export interface CancelBrowserHistoryUploadRequest {
     type: 'CANCEL_BROWSER_HISTORY_UPLOAD'
   }
