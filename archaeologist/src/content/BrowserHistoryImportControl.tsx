@@ -128,7 +128,7 @@ export function BrowserHistoryImportControl({
   }
 }
 
-export function BrowserHistoryImportControlPortal({
+export function BrowserHistoryImportControlPortalForMazed({
   progress,
 }: UploadBrowserHistoryProps) {
   const container = document.createElement(
@@ -160,4 +160,23 @@ export function BrowserHistoryImportControlPortal({
     </div>,
     container
   )
+}
+
+function isMazed(url: string): boolean {
+  if (process.env.REACT_APP_SMUGGLER_API_URL) {
+    const mazedUrlObj = new URL(process.env.REACT_APP_SMUGGLER_API_URL)
+    const urlObj = new URL(url)
+    return mazedUrlObj.host === urlObj.host
+  }
+  return true
+}
+
+export function BrowserHistoryImportControlPortal({
+  progress,
+  url,
+}: UploadBrowserHistoryProps & { url: string }) {
+  if (isMazed(url)) {
+    return <BrowserHistoryImportControlPortalForMazed progress={progress} />
+  }
+  return null
 }
