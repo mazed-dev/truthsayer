@@ -137,7 +137,7 @@ export function BrowserHistoryImportControl({
   if (state.step === 'standby') {
     const resumableUploadBtn = (
       <Button onClick={() => showPreStartMessage({ mode: 'resumable' })}>
-        <CloudUploadPic /> Extensive import
+        <CloudUploadPic /> Full import
       </Button>
     )
 
