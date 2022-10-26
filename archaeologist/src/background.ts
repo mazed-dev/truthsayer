@@ -11,6 +11,7 @@ import {
   ToBackground,
   ContentAppOperationMode,
   BrowserHistoryUploadProgress,
+  BrowserHistoryUploadMode,
 } from './message/types'
 import * as badge from './badge/badge'
 
@@ -23,6 +24,7 @@ import {
   smuggler,
   UserExternalPipelineId,
   NodeCreatedVia,
+  UserExternalPipelineIngestionProgress,
 } from 'smuggler-api'
 
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
@@ -361,7 +363,7 @@ async function handleMessageFromContent(
       await registerAttentionTime(tab, message)
       return { type: 'VOID_RESPONSE' }
     case 'UPLOAD_BROWSER_HISTORY': {
-      await uploadBrowserHistory()
+      await uploadBrowserHistory(message)
       return { type: 'VOID_RESPONSE' }
     }
     case 'CANCEL_BROWSER_HISTORY_UPLOAD': {
@@ -419,7 +421,7 @@ function idOfBrowserHistoryOnThisDeviceAsExternalPipeline(): UserExternalPipelin
 // browser history upload is actually in progress.
 let shouldCancelBrowserHistoryUpload = false
 
-async function uploadBrowserHistory() {
+async function uploadBrowserHistory(mode: BrowserHistoryUploadMode) {
   const reportProgressToPopup = lodash.throttle(
     (progress: BrowserHistoryUploadProgress) => {
       getActiveTab().then((tab: browser.Tabs.Tab | null) => {
@@ -441,43 +443,19 @@ async function uploadBrowserHistory() {
 
   log.debug('Progress until now:', currentProgress)
 
-  const advanceIngestionProgress = lodash.throttle(async (date: Date) => {
-    return smuggler.external.ingestion.advance(epid, {
-      ingested_until: unixtime.from(date),
-    })
-  }, 1123)
-
-  const queryForAllUnimported: browser.History.SearchQueryType = {
-    // TODO[snikitin@outlook.com] Such a naive implementation which queries
-    // the entire history at once may consume too much memory for users
-    // with years of browser history.
-    // A more iterative implementation is difficult to implement due the
-    // assymetry of the API - the inputs allow to restrict how visits
-    // will be searched, but output includes web pages instead of visits.
-    endTime: historyDateCompat(new Date()),
-    startTime: historyDateCompat(
-      // NOTE: 'startTime' of 'browser.history.search' is an inclusive boundary
-      // which requires an increment by 1 to avoid getting edge items multiple
-      // times between runs of this function
-      unixtime.toDate(currentProgress.ingested_until + 1)
-    ),
-    maxResults: 1000000,
-    text: '',
-  }
-
-  let oneMonthAgo = new Date()
-  oneMonthAgo.setDate(oneMonthAgo.getDate() - 31)
-  const queryForLastMonth: browser.History.SearchQueryType = {
-    endTime: historyDateCompat(new Date()),
-    startTime: historyDateCompat(oneMonthAgo),
-    maxResults: 1000000,
-    text: '',
-  }
-
-  const uploadLastMonthOnly = true
+  const advanceIngestionProgress = lodash.throttle(
+    mode.mode !== 'untracked'
+      ? async (date: Date) => {
+          return smuggler.external.ingestion.advance(epid, {
+            ingested_until: unixtime.from(date),
+          })
+        }
+      : async (_: Date) => {},
+    1123
+  )
 
   const items: browser.History.HistoryItem[] = await browser.history.search(
-    uploadLastMonthOnly ? queryForLastMonth : queryForAllUnimported
+    toHistorySearchQuery(mode, currentProgress)
   )
   // NOTE: With Chromium at least the output of `browser.history.search`
   // is already in the order from "pages that hasn't been visited the longest"
@@ -506,9 +484,7 @@ async function uploadBrowserHistory() {
         total: items.length,
       })
       await uploadSingleHistoryItem(item, epid)
-      if (!uploadLastMonthOnly) {
-        await advanceIngestionProgress(new Date(item.lastVisitTime))
-      }
+      await advanceIngestionProgress(new Date(item.lastVisitTime))
     } catch (err) {
       log.error(`Failed to process ${item.url} during history upload: ${err}`)
     }
@@ -520,8 +496,41 @@ async function uploadBrowserHistory() {
     total: items.length,
   })
   reportProgressToPopup.flush()
-  if (!uploadLastMonthOnly) {
-    await advanceIngestionProgress.flush()
+  await advanceIngestionProgress.flush()
+}
+
+function toHistorySearchQuery(
+  mode: BrowserHistoryUploadMode,
+  currentProgress: UserExternalPipelineIngestionProgress
+): browser.History.SearchQueryType {
+  switch (mode.mode) {
+    case 'resumable': {
+      return {
+        // TODO[snikitin@outlook.com] Such a naive implementation which queries
+        // the entire history at once may consume too much memory for users
+        // with years of browser history.
+        // A more iterative implementation is difficult to implement due the
+        // assymetry of the API - the inputs allow to restrict how visits
+        // will be searched, but output includes web pages instead of visits.
+        endTime: historyDateCompat(new Date()),
+        startTime: historyDateCompat(
+          // NOTE: 'startTime' of 'browser.history.search' is an inclusive boundary
+          // which requires an increment by 1 to avoid getting edge items multiple
+          // times between runs of this function
+          unixtime.toDate(currentProgress.ingested_until + 1)
+        ),
+        maxResults: 1000000,
+        text: '',
+      }
+    }
+    case 'untracked': {
+      return {
+        endTime: historyDateCompat(unixtime.toDate(mode.unixtime.end)),
+        startTime: historyDateCompat(unixtime.toDate(mode.unixtime.start)),
+        maxResults: 1000000,
+        text: '',
+      }
+    }
   }
 }
 
