@@ -9,9 +9,13 @@ import {
   MdiDelete,
   Spinner,
 } from 'elementary'
-import { FromContent, BrowserHistoryUploadProgress } from '../message/types'
+import {
+  FromContent,
+  BrowserHistoryUploadProgress,
+  BrowserHistoryUploadMode,
+} from '../message/types'
 
-import { toSentenceCase } from 'armoury'
+import { toSentenceCase, unixtime } from 'armoury'
 
 const Box = styled.div`
   margin: 0;
@@ -51,6 +55,7 @@ const DeletePic = styled(MdiDelete)`
 
 type UploadBrowserHistoryProps = React.PropsWithChildren<{
   progress: BrowserHistoryUploadProgress
+  modes: ('resumable' | 'untracked')[]
 }>
 
 type BrowserHistoryImportControlState =
@@ -60,6 +65,7 @@ type BrowserHistoryImportControlState =
     }
   | {
       step: 'pre-start'
+      chosenMode: BrowserHistoryUploadMode
     }
   | {
       step: 'in-progress'
@@ -93,6 +99,7 @@ type BrowserHistoryImportControlState =
  */
 export function BrowserHistoryImportControl({
   progress,
+  modes,
 }: UploadBrowserHistoryProps) {
   const [state, setState] = React.useState<BrowserHistoryImportControlState>(
     progress.processed !== progress.total
@@ -106,13 +113,14 @@ export function BrowserHistoryImportControl({
         }
   )
 
-  const showPreStartMessage = () => {
-    setState({ step: 'pre-start' })
+  const showPreStartMessage = (chosenMode: BrowserHistoryUploadMode) => {
+    setState({ step: 'pre-start', chosenMode })
   }
-  const startUpload = async () => {
+  const startUpload = (mode: BrowserHistoryUploadMode) => {
     setState({ step: 'in-progress', isBeingCancelled: false })
     FromContent.sendMessage({
       type: 'UPLOAD_BROWSER_HISTORY',
+      ...mode,
     })
   }
   const cancelUpload = () => {
@@ -129,13 +137,38 @@ export function BrowserHistoryImportControl({
     )
   }
   const browserName = toSentenceCase(process.env.BROWSER || 'browser')
+
   if (state.step === 'standby') {
+    const resumableUploadBtn = (
+      <Button onClick={() => showPreStartMessage({ mode: 'resumable' })}>
+        <CloudUploadPic /> Full import
+      </Button>
+    )
+
+    const now = new Date()
+    const daysToUpload = 31
+    const daysAgo = new Date(now)
+    daysAgo.setDate(now.getDate() - daysToUpload)
+    const untrackedUploadBtn = (
+      <Button
+        onClick={() =>
+          showPreStartMessage({
+            mode: 'untracked',
+            unixtime: {
+              start: unixtime.from(daysAgo),
+              end: unixtime.from(now),
+            },
+          })
+        }
+      >
+        <CloudUploadPic /> Quick import (last {daysToUpload} days)
+      </Button>
+    )
     return (
       <Box>
         <Title>Import {browserName} history</Title>
-        <Button onClick={showPreStartMessage}>
-          <CloudUploadPic /> Import
-        </Button>
+        {modes.indexOf('untracked') !== -1 ? untrackedUploadBtn : null}
+        {modes.indexOf('resumable') !== -1 ? resumableUploadBtn : null}
         {state.deletedNodesCount > 0 ? (
           <span>[{state.deletedNodesCount}] deleted </span>
         ) : (
@@ -153,7 +186,7 @@ export function BrowserHistoryImportControl({
           history to save them exactly as you saw them. All tabs opened by Mazed
           will be closed automatically.
         </Message>
-        <Button onClick={startUpload}>Continue</Button>
+        <Button onClick={() => startUpload(state.chosenMode)}>Continue</Button>
         <Button
           onClick={() => setState({ step: 'standby', deletedNodesCount: 0 })}
         >
@@ -165,8 +198,7 @@ export function BrowserHistoryImportControl({
     return (
       <Box>
         <Title>
-          <Spinner.Ring /> Importng {browserName} history [{progress.processed}/
-          {progress.total}]
+          <Spinner.Ring /> Importing {browserName} history [{progress.processed}/{progress.total}]
           <Comment> (background process &mdash; you can close the tab)</Comment>
         </Title>
         <Button onClick={cancelUpload} disabled={state.isBeingCancelled}>
@@ -178,9 +210,9 @@ export function BrowserHistoryImportControl({
   return null
 }
 
-export function BrowserHistoryImportControlPortalForMazed({
-  progress,
-}: UploadBrowserHistoryProps) {
+export function BrowserHistoryImportControlPortalForMazed(
+  props: UploadBrowserHistoryProps
+) {
   const container = document.createElement(
     'mazed-archaeologist-browser-history-import-control'
   )
@@ -206,7 +238,7 @@ export function BrowserHistoryImportControlPortalForMazed({
   })
   return ReactDOM.createPortal(
     <div>
-      <BrowserHistoryImportControl progress={progress} />
+      <BrowserHistoryImportControl {...props} />
     </div>,
     container
   )
@@ -220,12 +252,11 @@ function isTruthsayer(host: string): boolean {
   return true
 }
 
-export function BrowserHistoryImportControlPortal({
-  progress,
-  host,
-}: UploadBrowserHistoryProps & { host: string }) {
-  if (isTruthsayer(host)) {
-    return <BrowserHistoryImportControlPortalForMazed progress={progress} />
+export function BrowserHistoryImportControlPortal(
+  props: UploadBrowserHistoryProps & { host: string }
+) {
+  if (isTruthsayer(props.host)) {
+    return <BrowserHistoryImportControlPortalForMazed {...props} />
   }
   return null
 }
