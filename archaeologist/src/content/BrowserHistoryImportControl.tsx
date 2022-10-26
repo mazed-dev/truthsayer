@@ -15,7 +15,7 @@ import {
   BrowserHistoryUploadMode,
 } from '../message/types'
 
-import { toSentenceCase } from 'armoury'
+import { toSentenceCase, unixtime } from 'armoury'
 
 const Box = styled.div`
   margin: 0;
@@ -61,6 +61,7 @@ type BrowserHistoryImportControlState =
     }
   | {
       step: 'pre-start'
+      chosenMode: BrowserHistoryUploadMode
     }
   | {
       step: 'in-progress'
@@ -94,6 +95,7 @@ type BrowserHistoryImportControlState =
  */
 export function BrowserHistoryImportControl({
   progress,
+  modes,
 }: UploadBrowserHistoryProps) {
   const [state, setState] = React.useState<BrowserHistoryImportControlState>(
     progress.processed !== progress.total
@@ -107,10 +109,10 @@ export function BrowserHistoryImportControl({
         }
   )
 
-  const showPreStartMessage = () => {
-    setState({ step: 'pre-start' })
+  const showPreStartMessage = (chosenMode: BrowserHistoryUploadMode) => {
+    setState({ step: 'pre-start', chosenMode })
   }
-  const startUpload = async (mode: BrowserHistoryUploadMode) => {
+  const startUpload = (mode: BrowserHistoryUploadMode) => {
     setState({ step: 'in-progress', isBeingCancelled: false })
     FromContent.sendMessage({
       type: 'UPLOAD_BROWSER_HISTORY',
@@ -131,9 +133,10 @@ export function BrowserHistoryImportControl({
     )
   }
   const browserName = toSentenceCase(process.env.BROWSER || 'browser')
+
   if (state.step === 'standby') {
     const resumableUploadBtn = (
-      <Button onClick={() => startUpload({ mode: 'resumable' })}>
+      <Button onClick={() => showPreStartMessage({ mode: 'resumable' })}>
         <CloudUploadPic /> Extensive import
       </Button>
     )
@@ -145,9 +148,12 @@ export function BrowserHistoryImportControl({
     const untrackedUploadBtn = (
       <Button
         onClick={() =>
-          startUpload({
+          showPreStartMessage({
             mode: 'untracked',
-            time: { start: daysAgo, end: new Date() },
+            unixtime: {
+              start: unixtime.from(daysAgo),
+              end: unixtime.from(now),
+            },
           })
         }
       >
@@ -157,9 +163,6 @@ export function BrowserHistoryImportControl({
     return (
       <Box>
         <Title>Import {browserName} history</Title>
-        <Button onClick={showPreStartMessage}>
-          <CloudUploadPic /> Import
-        </Button>
         {modes.indexOf('untracked') !== -1 ? untrackedUploadBtn : null}
         {modes.indexOf('resumable') !== -1 ? resumableUploadBtn : null}
         {state.deletedNodesCount > 0 ? (
@@ -179,7 +182,7 @@ export function BrowserHistoryImportControl({
           {browserName} history to save them exactly as you saw them. All tabs
           opened by Mazed will be closed automatically.
         </PreStartMessage>
-        <Button onClick={startUpload}>
+        <Button onClick={() => startUpload(state.chosenMode)}>
           <CloudUploadPic /> Continue
         </Button>
         <Button
@@ -193,8 +196,8 @@ export function BrowserHistoryImportControl({
     return (
       <Box>
         <Title>
-          <Spinner.Ring /> Importng {browserName} history [{progress.processed}/
-          {progress.total}]
+          <Spinner.Ring /> Importing {browserName} history [{progress.processed}
+          /{progress.total}]
         </Title>
         <Button onClick={cancelUpload} disabled={state.isBeingCancelled}>
           <CancelPic /> Cancel

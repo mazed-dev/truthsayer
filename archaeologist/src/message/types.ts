@@ -118,7 +118,7 @@ export type BrowserHistoryUploadProgress = {
   total: number
 }
 export type BrowserHistoryUploadMode =
-  | { mode: 'untracked'; time: { start: Date; end: Date } }
+  | { mode: 'untracked'; unixtime: { start: number; end: number } }
   | { mode: 'resumable' }
 
 export namespace ToContent {

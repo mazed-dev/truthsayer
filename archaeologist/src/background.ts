@@ -525,8 +525,8 @@ function toHistorySearchQuery(
     }
     case 'untracked': {
       return {
-        endTime: historyDateCompat(mode.time.end),
-        startTime: historyDateCompat(mode.time.start),
+        endTime: historyDateCompat(unixtime.toDate(mode.unixtime.end)),
+        startTime: historyDateCompat(unixtime.toDate(mode.unixtime.start)),
         maxResults: 1000000,
         text: '',
       }
