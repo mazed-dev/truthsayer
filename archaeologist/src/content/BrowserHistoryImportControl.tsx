@@ -20,9 +20,13 @@ const Box = styled.div`
 const Title = styled.div`
   margin-bottom: 10px;
 `
-const PreStartMessage = styled.div`
+const Message = styled.div`
   margin-bottom: 10px;
   font-style: italic;
+`
+const Comment = styled.span`
+  font-style: italic;
+  color: grey;
 `
 const Button = styled.button`
   background-color: #ffffff;
@@ -144,18 +148,16 @@ export function BrowserHistoryImportControl({
   } else if (state.step === 'pre-start') {
     return (
       <Box>
-        <PreStartMessage>
-          Mind out Mazed will be opening and closing pages from your{' '}
-          {browserName} history to save them exactly as you saw them. All tabs
-          opened by Mazed will be closed automatically.
-        </PreStartMessage>
-        <Button onClick={startUpload}>
-          <CloudUploadPic /> Continue
-        </Button>
+        <Message>
+          Mazed will be opening and closing pages from your {browserName}{' '}
+          history to save them exactly as you saw them. All tabs opened by Mazed
+          will be closed automatically.
+        </Message>
+        <Button onClick={startUpload}>Continue</Button>
         <Button
           onClick={() => setState({ step: 'standby', deletedNodesCount: 0 })}
         >
-          <CancelPic /> Cancel
+          Cancel
         </Button>
       </Box>
     )
@@ -165,6 +167,7 @@ export function BrowserHistoryImportControl({
         <Title>
           <Spinner.Ring /> Importng {browserName} history [{progress.processed}/
           {progress.total}]
+          <Comment> (background process &mdash; you can close the tab)</Comment>
         </Title>
         <Button onClick={cancelUpload} disabled={state.isBeingCancelled}>
           <CancelPic /> Cancel
