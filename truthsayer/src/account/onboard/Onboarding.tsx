@@ -110,32 +110,30 @@ function OnboardingModal({
 export function Onboarding() {
   const history = useHistory()
   const loc = useLocation()
-  const step: number = parseInt(parse(loc.search)['step'] as string)
+  const onboardingStep: number = parseInt(
+    parse(loc.search)['onboarding_step'] as string
+  )
   const onboardingStatus = accountConfig.local.onboarding.get()
   const onClose = () => {
     accountConfig.local.onboarding.set({ invoked: true })
-    history.push({})
+    history.push({ ...loc, search: '' })
   }
   if (onboardingStatus.invoked === false) {
-    if (Number.isNaN(step)) {
-      return <Redirect to={{ ...loc, search: '?step=0' }} />
-    } else {
-      return (
-        <OnboardingModal
-          onClose={onClose}
-          step={step}
-          nextStep={(step: number) => {
-            log.debug('nextStep', step)
-            history.push({ search: `step=${step}` })
-          }}
-        />
-      )
+    if (Number.isNaN(onboardingStep)) {
+      return <Redirect to={{ ...loc, search: '?onboarding_step=0' }} />
     }
   }
-  if (step != null) {
-    // No reason to fuss about it - onboarding was invoked anyway. Just redirect
-    // to the previous location
-    return <Redirect to={{ ...loc, search: '' }} />
+  if (!Number.isNaN(onboardingStep)) {
+    return (
+      <OnboardingModal
+        onClose={onClose}
+        step={onboardingStep}
+        nextStep={(step: number) => {
+          log.debug('nextStep', step)
+          history.push({ search: `onboarding_step=${step}` })
+        }}
+      />
+    )
   }
   return null
 }
