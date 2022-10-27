@@ -1,11 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
 import React from 'react'
-
-import { truthsayer_archaeologist_communication } from 'elementary'
-import { log } from 'armoury'
 import { parse } from 'query-string'
-
 import { useHistory, Redirect, useLocation } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { css } from '@emotion/react'
@@ -108,12 +104,12 @@ function OnboardingModal({
 }
 
 export function Onboarding() {
-  const history = useHistory()
   const loc = useLocation()
   const onboardingStep: number = parseInt(
     parse(loc.search)['onboarding_step'] as string
   )
   const onboardingStatus = accountConfig.local.onboarding.get()
+  const history = useHistory()
   const onClose = () => {
     accountConfig.local.onboarding.set({ invoked: true })
     history.push({ ...loc, search: '' })
@@ -129,7 +125,6 @@ export function Onboarding() {
         onClose={onClose}
         step={onboardingStep}
         nextStep={(step: number) => {
-          log.debug('nextStep', step)
           history.push({ search: `onboarding_step=${step}` })
         }}
       />

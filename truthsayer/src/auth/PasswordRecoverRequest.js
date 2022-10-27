@@ -67,9 +67,6 @@ class PasswordRecoverRequest extends React.Component {
 
   onSubmit = (event) => {
     event.preventDefault()
-    const value = {
-      email: this.state.email,
-    }
     smuggler.user.password
       .recover({
         email: this.state.email,

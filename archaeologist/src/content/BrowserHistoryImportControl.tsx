@@ -198,8 +198,12 @@ export function BrowserHistoryImportControl({
     return (
       <Box>
         <Title>
-          <Spinner.Ring /> Importing {browserName} history [{progress.processed}/{progress.total}]
-          <Comment> (background process &mdash; you can close the tab)</Comment>
+          <Spinner.Ring /> Importing {browserName} history [{progress.processed}
+          /{progress.total}]
+          <Comment>
+            {' '}
+            (background process &mdash; you can close this tab)
+          </Comment>
         </Title>
         <Button onClick={cancelUpload} disabled={state.isBeingCancelled}>
           <CancelPic /> Cancel

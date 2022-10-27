@@ -36,10 +36,6 @@ class PasswordRecoverForm extends React.Component {
 
   onSubmit = (event) => {
     event.preventDefault()
-    const value = {
-      token: this.props.token,
-      new_password: this.state.password,
-    }
     smuggler.user.password
       .reset({
         token: this.props.token,
