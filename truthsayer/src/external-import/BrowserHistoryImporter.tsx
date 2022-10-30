@@ -14,6 +14,11 @@ import BrowserLogo from '../apps-list/img/GoogleChromeLogo.svg'
 export { BrowserLogo }
 
 const Box = styled.div``
+const Message = styled.div``
+const Comment = styled.div`
+  font-style: italic;
+  color: grey;
+`
 
 const kMinimalArchaeologistVersion = '0.1.16'
 
@@ -75,27 +80,31 @@ export function BrowserHistoryImporter({
 function describe(state: ArchaeologistState) {
   switch (state.type) {
     case 'loading': {
-      return <Spinner.Wheel width={32} />
+      return (
+        <Comment>
+          <Spinner.Ring /> Checking browser extension
+        </Comment>
+      )
     }
     case 'not-found': {
       return (
-        <div>
+        <Message>
           Compatible version of Mazed browser extension is not found, go to{' '}
           <TruthsayerLink to={'/apps-to-install'}>Mazed Apps</TruthsayerLink> to
           install Mazed for your browser. Minimal version of browser extension
           is &ldquo;{kMinimalArchaeologistVersion}&rdquo;.
-        </div>
+        </Message>
       )
     }
     case 'version-mismatch': {
       return (
-        <div>
+        <Message>
           Mazed browser extension is of version &ldquo;{state.actual}&rdquo;,
           minimal required version is &ldquo;
           {kMinimalArchaeologistVersion}&rdquo;. Ensure you have the latest
           version via{' '}
           <TruthsayerLink to={'/apps-to-install'}>Mazed Apps</TruthsayerLink>.
-        </div>
+        </Message>
       )
     }
     case 'good': {

@@ -22,10 +22,7 @@ import {
   MdiMoreHoriz,
   HoverTooltip,
   MdiContentCut,
-  NodeTimeBadge,
 } from 'elementary'
-
-import moment from 'moment'
 
 class PrivateMenu extends React.Component {
   constructor(props) {
