@@ -48,17 +48,17 @@ const LogoImg = styled.img`
 
 export function ExternalImport({
   className,
-  modes,
+  browserHistoryImportModes: historyImportModes,
 }: {
   className?: string
-  modes: ('untracked' | 'resumable')[]
+  browserHistoryImportModes: ('untracked' | 'resumable')[]
 }) {
   return (
     <Box className={className}>
       <ItemsBox>
         <Item key={'browser-history'}>
           <LogoImg src={BrowserHistoryImporterLogo} />
-          <BrowserHistoryImporter modes={modes} />
+          <BrowserHistoryImporter modes={historyImportModes} />
         </Item>
         <Item key={'onedrive'}>
           <LogoImg src={MicrosoftOfficeOneDriveLogoImg} />
