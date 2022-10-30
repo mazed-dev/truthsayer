@@ -28,7 +28,13 @@ type ArchaeologistState =
  * UI elements to control browser history import, but expects that archaeologist
  * will inject @see BrowserHistoryImportControl augmentation into it at runtime.
  */
-export function BrowserHistoryImporter({ className }: { className?: string }) {
+export function BrowserHistoryImporter({
+  className,
+  modes,
+}: {
+  className?: string
+  modes: ('untracked' | 'resumable')[]
+}) {
   const [archaeologistState, setArchaeologistState] =
     React.useState<ArchaeologistState>({ type: 'loading' })
   React.useEffect(() => {
@@ -60,7 +66,7 @@ export function BrowserHistoryImporter({ className }: { className?: string }) {
 
   return (
     <Box className={className}>
-      <TruthsayerBrowserHistoryImportWidget />
+      <TruthsayerBrowserHistoryImportWidget modes={modes} />
       {describe(archaeologistState)}
     </Box>
   )

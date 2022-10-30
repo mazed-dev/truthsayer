@@ -2,7 +2,6 @@
 
 import React from 'react'
 import styled from '@emotion/styled'
-// import { css } from '@emotion/react'
 
 import { kCardBorder } from 'elementary'
 
@@ -47,13 +46,19 @@ const LogoImg = styled.img`
   margin: 4px 24px 4px 4px;
 `
 
-export function ExternalImport({ className }: { className?: string }) {
+export function ExternalImport({
+  className,
+  modes,
+}: {
+  className?: string
+  modes: ('untracked' | 'resumable')[]
+}) {
   return (
     <Box className={className}>
       <ItemsBox>
         <Item key={'browser-history'}>
           <LogoImg src={BrowserHistoryImporterLogo} />
-          <BrowserHistoryImporter />
+          <BrowserHistoryImporter modes={modes} />
         </Item>
         <Item key={'onedrive'}>
           <LogoImg src={MicrosoftOfficeOneDriveLogoImg} />

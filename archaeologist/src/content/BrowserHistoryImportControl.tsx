@@ -51,7 +51,6 @@ const DeletePic = styled(MdiDelete)`
 
 type UploadBrowserHistoryProps = React.PropsWithChildren<{
   progress: BrowserHistoryUploadProgress
-  modes: ('resumable' | 'untracked')[]
 }>
 
 type BrowserHistoryImportControlState =
@@ -96,7 +95,8 @@ type BrowserHistoryImportControlState =
 export function BrowserHistoryImportControl({
   progress,
   modes,
-}: UploadBrowserHistoryProps) {
+}: UploadBrowserHistoryProps &
+  truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportConfig) {
   const [state, setState] = React.useState<BrowserHistoryImportControlState>(
     progress.processed !== progress.total
       ? {
@@ -211,6 +211,10 @@ export function BrowserHistoryImportControl({
 export function BrowserHistoryImportControlPortalForMazed(
   props: UploadBrowserHistoryProps
 ) {
+  const [config, setConfig] =
+    React.useState<truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportConfig | null>(
+      null
+    )
   const container = document.createElement(
     'mazed-archaeologist-browser-history-import-control'
   )
@@ -229,17 +233,25 @@ export function BrowserHistoryImportControlPortalForMazed(
     const target = document.getElementById(
       truthsayer_archaeologist_communication.kTruthsayerBrowserHistoryImportWidgetId
     )
+    if (target != null && config == null) {
+      const config: truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportConfig =
+        truthsayer_archaeologist_communication.decodeBrowserHistoryImportConfig(
+          target.className
+        )
+      setConfig(config)
+    }
     target?.appendChild(container)
     return () => {
       target?.removeChild(container)
     }
   })
-  return ReactDOM.createPortal(
-    <div>
-      <BrowserHistoryImportControl {...props} />
-    </div>,
-    container
-  )
+  const widget = config ? (
+    <BrowserHistoryImportControl
+      modes={config.modes}
+      progress={props.progress}
+    />
+  ) : null
+  return ReactDOM.createPortal(<div>{widget}</div>, container)
 }
 
 function isTruthsayer(host: string): boolean {
