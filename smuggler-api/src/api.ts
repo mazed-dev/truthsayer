@@ -89,6 +89,7 @@ export type CreateNodeArgs = {
   ntype?: NodeType
   origin?: OriginId
   created_via?: NodeCreatedVia
+  created_at?: Date
 }
 
 async function createNode(
@@ -101,6 +102,7 @@ async function createNode(
     ntype,
     origin,
     created_via,
+    created_at,
   }: CreateNodeArgs,
   signal?: AbortSignal
 ): Promise<NewNodeResponse> {
@@ -117,10 +119,14 @@ async function createNode(
     origin,
     created_via,
   }
+  let headers: Record<string, string> = { 'Content-type': MimeType.JSON }
+  if (created_at != null) {
+    headers['X-Created-At'] = created_at.toUTCString()
+  }
   const resp = await fetch(makeUrl('node/new', query), {
     method: 'POST',
     body: JSON.stringify(body),
-    headers: { 'Content-type': MimeType.JSON },
+    headers,
     signal,
   })
   if (resp.ok) {
