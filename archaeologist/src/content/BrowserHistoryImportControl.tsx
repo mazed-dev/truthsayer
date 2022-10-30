@@ -236,6 +236,7 @@ export function BrowserHistoryImportControlPortalForMazed(
    *   There is no dependency list here on purpose, to re-inject container into
    *   the content DOM on every update.
    */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     const [beacon, newConfig] =
       truthsayer_archaeologist_communication.BrowserHistoryImport.archaeologist.findBeacon(
