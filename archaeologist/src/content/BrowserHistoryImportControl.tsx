@@ -100,7 +100,7 @@ export function BrowserHistoryImportControl({
   progress,
   modes,
 }: UploadBrowserHistoryProps &
-  truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportWidget.Config) {
+  truthsayer_archaeologist_communication.BrowserHistoryImport.Config) {
   const [state, setState] = React.useState<BrowserHistoryImportControlState>(
     progress.processed !== progress.total
       ? {
@@ -218,7 +218,7 @@ export function BrowserHistoryImportControlPortalForMazed(
   props: UploadBrowserHistoryProps
 ) {
   const [config, setConfig] =
-    React.useState<truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportWidget.Config | null>(
+    React.useState<truthsayer_archaeologist_communication.BrowserHistoryImport.Config | null>(
       null
     )
   const container = document.createElement(
@@ -236,20 +236,16 @@ export function BrowserHistoryImportControlPortalForMazed(
    *   the content DOM on every update.
    */
   React.useEffect(() => {
-    const target = document.getElementById(
-      truthsayer_archaeologist_communication
-        .TruthsayerBrowserHistoryImportWidget.kBeaconId
-    )
-    if (target != null && config == null) {
-      const config: truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportWidget.Config =
-        truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportWidget.decodeConfig(
-          target.className
-        )
-      setConfig(config)
+    const [beacon, newConfig] =
+      truthsayer_archaeologist_communication.BrowserHistoryImport.archaeologist.findBeacon(
+        document
+      )
+    if (config == null) {
+      setConfig(newConfig)
     }
-    target?.appendChild(container)
+    beacon?.appendChild(container)
     return () => {
-      target?.removeChild(container)
+      beacon?.removeChild(container)
     }
   })
   const widget = config ? (

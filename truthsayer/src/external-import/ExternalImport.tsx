@@ -51,7 +51,7 @@ export function ExternalImport({
   browserHistoryImportConfig,
 }: {
   className?: string
-  browserHistoryImportConfig: truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportWidget.Config
+  browserHistoryImportConfig: truthsayer_archaeologist_communication.BrowserHistoryImport.Config
 }) {
   return (
     <Box className={className}>

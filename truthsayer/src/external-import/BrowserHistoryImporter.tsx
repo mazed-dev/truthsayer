@@ -28,7 +28,7 @@ type ArchaeologistState =
  * A truthsayer-side shell of an importer which by itself doesn't define any
  * UI elements to control browser history import, but expects that archaeologist
  * will inject @see BrowserHistoryImportControl augmentation into it at runtime.
- * @see truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportWidget
+ * @see truthsayer_archaeologist_communication.BrowserHistoryImport
  * for more information.
  */
 export function BrowserHistoryImporter({
@@ -36,7 +36,7 @@ export function BrowserHistoryImporter({
   ...config
 }: {
   className?: string
-} & truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportWidget.Config) {
+} & truthsayer_archaeologist_communication.BrowserHistoryImport.Config) {
   const [archaeologistState, setArchaeologistState] =
     React.useState<ArchaeologistState>({ type: 'loading' })
   React.useEffect(() => {
@@ -68,7 +68,7 @@ export function BrowserHistoryImporter({
 
   return (
     <Box className={className}>
-      <truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportWidget.Beacon
+      <truthsayer_archaeologist_communication.BrowserHistoryImport.truthsayer.Beacon
         {...config}
       />
       {describe(archaeologistState)}
