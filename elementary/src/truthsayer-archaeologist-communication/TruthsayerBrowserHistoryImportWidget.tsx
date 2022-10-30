@@ -55,6 +55,10 @@ export namespace BrowserHistoryImport {
         )
       }
 
+      // NOTE: className strings are space-separated and can include more
+      // classes, concatanated to the className specified by @see encodeConfig.
+      // This means that the encoded config string ends either with a space or with
+      // an end of line.
       const endIndex = className.indexOf(
         ' ',
         startIndex + kClassNamePrefix.length
