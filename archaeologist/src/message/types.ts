@@ -118,7 +118,13 @@ export type BrowserHistoryUploadProgress = {
   total: number
 }
 export type BrowserHistoryUploadMode =
+  /** Mode in which the progress will be tracked by Mazed and, if the process is
+   * interrupted, then on restart the upload will start from the beginning.
+   */
   | { mode: 'untracked'; unixtime: { start: number; end: number } }
+  /** Mode in which the progress will be tracked by Mazed and, if the process is
+   * interrupted, then on restart the upload will resume where it previously ended.
+   */
   | { mode: 'resumable' }
 
 export namespace ToContent {

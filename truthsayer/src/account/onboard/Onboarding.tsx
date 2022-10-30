@@ -31,12 +31,12 @@ const kSteps: Step[] = [
     title: 'Import fragments',
     body: (
       <ExternalImportStep
-        browserHistoryImportModes={
+        browserHistoryImportConfig={
           // NOTE: one of the goals of the onboarding experience is to showcase
           // the value of the product to a new user as quick as possible, before
           // the product loses their attention. For this reason the slower modes
           // of browser history import modes are not enabled.
-          ['untracked']
+          { modes: ['untracked'] }
         }
       />
     ),

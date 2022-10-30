@@ -3,7 +3,7 @@
 import React from 'react'
 import styled from '@emotion/styled'
 
-import { kCardBorder } from 'elementary'
+import { kCardBorder, truthsayer_archaeologist_communication } from 'elementary'
 
 import {
   MicrosoftOfficeOneDriveImporter,
@@ -48,17 +48,17 @@ const LogoImg = styled.img`
 
 export function ExternalImport({
   className,
-  browserHistoryImportModes: historyImportModes,
+  browserHistoryImportConfig,
 }: {
   className?: string
-  browserHistoryImportModes: ('untracked' | 'resumable')[]
+  browserHistoryImportConfig: truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportWidget.Config
 }) {
   return (
     <Box className={className}>
       <ItemsBox>
         <Item key={'browser-history'}>
           <LogoImg src={BrowserHistoryImporterLogo} />
-          <BrowserHistoryImporter modes={historyImportModes} />
+          <BrowserHistoryImporter {...browserHistoryImportConfig} />
         </Item>
         <Item key={'onedrive'}>
           <LogoImg src={MicrosoftOfficeOneDriveLogoImg} />

@@ -100,7 +100,7 @@ export function BrowserHistoryImportControl({
   progress,
   modes,
 }: UploadBrowserHistoryProps &
-  truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportConfig) {
+  truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportWidget.Config) {
   const [state, setState] = React.useState<BrowserHistoryImportControlState>(
     progress.processed !== progress.total
       ? {
@@ -218,7 +218,7 @@ export function BrowserHistoryImportControlPortalForMazed(
   props: UploadBrowserHistoryProps
 ) {
   const [config, setConfig] =
-    React.useState<truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportConfig | null>(
+    React.useState<truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportWidget.Config | null>(
       null
     )
   const container = document.createElement(
@@ -237,11 +237,12 @@ export function BrowserHistoryImportControlPortalForMazed(
    */
   React.useEffect(() => {
     const target = document.getElementById(
-      truthsayer_archaeologist_communication.kTruthsayerBrowserHistoryImportWidgetId
+      truthsayer_archaeologist_communication
+        .TruthsayerBrowserHistoryImportWidget.kBeaconId
     )
     if (target != null && config == null) {
-      const config: truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportConfig =
-        truthsayer_archaeologist_communication.decodeBrowserHistoryImportConfig(
+      const config: truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportWidget.Config =
+        truthsayer_archaeologist_communication.TruthsayerBrowserHistoryImportWidget.decodeConfig(
           target.className
         )
       setConfig(config)
