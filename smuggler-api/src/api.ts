@@ -119,7 +119,7 @@ async function createNode(
     origin,
     created_via,
   }
-  let headers: Record<string, string> = { 'Content-type': MimeType.JSON }
+  const headers: Record<string, string> = { 'Content-type': MimeType.JSON }
   if (created_at != null) {
     headers['X-Created-At'] = created_at.toUTCString()
   }
