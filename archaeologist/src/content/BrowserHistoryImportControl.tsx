@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import styled from '@emotion/styled'
+import lodash from 'lodash'
 
 import {
   truthsayer_archaeologist_communication,
@@ -240,7 +241,7 @@ export function BrowserHistoryImportControlPortalForMazed(
       truthsayer_archaeologist_communication.BrowserHistoryImport.archaeologist.findBeacon(
         document
       )
-    if (config == null) {
+    if (!lodash.isEqual(config, newConfig)) {
       setConfig(newConfig)
     }
     beacon?.appendChild(container)
