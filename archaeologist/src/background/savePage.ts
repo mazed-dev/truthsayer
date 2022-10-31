@@ -113,7 +113,8 @@ export async function saveWebPage(
   fromNids: string[],
   createdVia: NodeCreatedVia,
   content?: WebPageContent,
-  tabId?: number
+  tabId?: number,
+  visitedAt?: Date
 ): Promise<{ node?: TNode; unmemorable: boolean }> {
   const searchEngineQuery = extractSearchEngineQuery(url)
   if (searchEngineQuery != null) {
@@ -190,6 +191,7 @@ export async function saveWebPage(
     to_nid: toNids,
     from_nid: fromNids,
     created_via: createdVia,
+    created_at: visitedAt,
   })
 
   // Update badge counter

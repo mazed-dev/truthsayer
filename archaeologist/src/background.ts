@@ -626,7 +626,16 @@ async function uploadSingleHistoryItem(
   }
   const { url, content, originId, quoteNids } = response
   const createdVia: NodeCreatedVia = { autoIngestion: epid }
-  await saveWebPage(url, originId, quoteNids, [], createdVia, content)
+  await saveWebPage(
+    url,
+    originId,
+    quoteNids,
+    [],
+    createdVia,
+    content,
+    undefined,
+    item.lastVisitTime ? new Date(item.lastVisitTime) : undefined
+  )
 }
 
 browser.runtime.onMessage.addListener(
