@@ -118,7 +118,9 @@ function AppRouter() {
             <UserPreferences />
           </PrivateRoute>
           <PrivateRoute path="/external-import">
-            <ExternalImport />
+            <ExternalImport
+              browserHistoryImportConfig={{ modes: ['untracked', 'resumable'] }}
+            />
           </PrivateRoute>
           <PublicRoute path="/apps-to-install">
             <AppsList />

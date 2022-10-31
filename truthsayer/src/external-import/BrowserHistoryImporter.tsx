@@ -3,11 +3,7 @@ import styled from '@emotion/styled'
 import semver from 'semver'
 
 import { sleep } from 'armoury'
-import {
-  TruthsayerBrowserHistoryImportWidget,
-  truthsayer_archaeologist_communication,
-  Spinner,
-} from 'elementary'
+import { truthsayer_archaeologist_communication, Spinner } from 'elementary'
 import { TruthsayerLink } from '../lib/TrueLink'
 import BrowserLogo from '../apps-list/img/GoogleChromeLogo.svg'
 
@@ -32,8 +28,15 @@ type ArchaeologistState =
  * A truthsayer-side shell of an importer which by itself doesn't define any
  * UI elements to control browser history import, but expects that archaeologist
  * will inject @see BrowserHistoryImportControl augmentation into it at runtime.
+ * @see truthsayer_archaeologist_communication.BrowserHistoryImport
+ * for more information.
  */
-export function BrowserHistoryImporter({ className }: { className?: string }) {
+export function BrowserHistoryImporter({
+  className,
+  ...config
+}: {
+  className?: string
+} & truthsayer_archaeologist_communication.BrowserHistoryImport.Config) {
   const [archaeologistState, setArchaeologistState] =
     React.useState<ArchaeologistState>({ type: 'loading' })
   React.useEffect(() => {
@@ -65,7 +68,9 @@ export function BrowserHistoryImporter({ className }: { className?: string }) {
 
   return (
     <Box className={className}>
-      <TruthsayerBrowserHistoryImportWidget />
+      <truthsayer_archaeologist_communication.BrowserHistoryImport.truthsayer.Beacon
+        {...config}
+      />
       {describe(archaeologistState)}
     </Box>
   )
