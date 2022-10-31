@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import styled from '@emotion/styled'
+import lodash from 'lodash'
 
 import {
   truthsayer_archaeologist_communication,
@@ -55,7 +56,6 @@ const DeletePic = styled(MdiDelete)`
 
 type UploadBrowserHistoryProps = React.PropsWithChildren<{
   progress: BrowserHistoryUploadProgress
-  modes: ('resumable' | 'untracked')[]
 }>
 
 type BrowserHistoryImportControlState =
@@ -100,7 +100,8 @@ type BrowserHistoryImportControlState =
 export function BrowserHistoryImportControl({
   progress,
   modes,
-}: UploadBrowserHistoryProps) {
+}: UploadBrowserHistoryProps &
+  truthsayer_archaeologist_communication.BrowserHistoryImport.Config) {
   const [state, setState] = React.useState<BrowserHistoryImportControlState>(
     progress.processed !== progress.total
       ? {
@@ -217,6 +218,10 @@ export function BrowserHistoryImportControl({
 export function BrowserHistoryImportControlPortalForMazed(
   props: UploadBrowserHistoryProps
 ) {
+  const [config, setConfig] =
+    React.useState<truthsayer_archaeologist_communication.BrowserHistoryImport.Config | null>(
+      null
+    )
   const container = document.createElement(
     'mazed-archaeologist-browser-history-import-control'
   )
@@ -231,21 +236,27 @@ export function BrowserHistoryImportControlPortalForMazed(
    *   There is no dependency list here on purpose, to re-inject container into
    *   the content DOM on every update.
    */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
-    const target = document.getElementById(
-      truthsayer_archaeologist_communication.kTruthsayerBrowserHistoryImportWidgetId
-    )
-    target?.appendChild(container)
+    const [beacon, newConfig] =
+      truthsayer_archaeologist_communication.BrowserHistoryImport.archaeologist.findBeacon(
+        document
+      )
+    if (!lodash.isEqual(config, newConfig)) {
+      setConfig(newConfig)
+    }
+    beacon?.appendChild(container)
     return () => {
-      target?.removeChild(container)
+      beacon?.removeChild(container)
     }
   })
-  return ReactDOM.createPortal(
-    <div>
-      <BrowserHistoryImportControl {...props} />
-    </div>,
-    container
-  )
+  const widget = config ? (
+    <BrowserHistoryImportControl
+      modes={config.modes}
+      progress={props.progress}
+    />
+  ) : null
+  return ReactDOM.createPortal(<div>{widget}</div>, container)
 }
 
 function isTruthsayer(host: string): boolean {
