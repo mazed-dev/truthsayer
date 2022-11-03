@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import browser from 'webextension-polyfill'
@@ -30,6 +30,8 @@ import {
 import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
 import { BrowserHistoryImportControlPortal } from './BrowserHistoryImportControl'
+import { extractSearchEngineQuery } from '../content/extractor/url/searchEngineQuery'
+import { mazed } from '../util/mazed'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
@@ -245,6 +247,9 @@ const App = () => {
     mode: 'uninitialised-content-app',
   }
   const [state, dispatch] = React.useReducer(updateState, initialState)
+  // Search engine pop up card
+  const [searchNotification, setSearchNotification] =
+    useState<DisappearingToastProps | null>(null)
 
   const listener = React.useCallback(
     async (message: ToContent.Request): Promise<FromContent.Response> => {
@@ -273,6 +278,21 @@ const App = () => {
     browser.runtime.onMessage.addListener(listener)
     return () => browser.runtime.onMessage.removeListener(listener)
   }, [listener])
+
+  useEffect(() => {
+    if (state.mode === 'uninitialised-content-app') {
+      return
+    }
+    const engine = extractSearchEngineQuery(state.originIdentity.stableUrl)
+    if (engine != null && engine.phrase != null && engine.phrase.length > 2) {
+      const foundCardsN = 1
+      setSearchNotification({
+        text: `"${engine.phrase}" (${foundCardsN})`,
+        href: mazed.makeSearchUrl(engine.phrase).toString(),
+        timeoutMsec: 20000,
+      })
+    }
+  }, [state])
 
   if (state.mode === 'uninitialised-content-app') {
     return null
@@ -305,6 +325,9 @@ const App = () => {
       <Toaster />
       {state.notification ? (
         <DisappearingToast {...state.notification}></DisappearingToast>
+      ) : null}
+      {searchNotification ? (
+        <DisappearingToast {...searchNotification} />
       ) : null}
       <Quotes quotes={state.quotes} />
       {activityTrackerOrNull}
