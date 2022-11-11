@@ -10,6 +10,7 @@ import {
   useLocation,
   useParams,
   RouteProps,
+  useHistory,
 } from 'react-router-dom'
 
 import { css } from '@emotion/react'
@@ -49,6 +50,7 @@ import {
   CookiePolicyPopUp,
   PrivacyPolicy,
 } from './public-page/legal/Index'
+import { log } from 'armoury'
 
 export function App() {
   return (
@@ -62,6 +64,7 @@ export function App() {
 function AppRouter() {
   return (
     <Router>
+      <PageviewEventTracker />
       <CookiePolicyPopUp />
       <GlobalNavBar />
       <Container
@@ -321,4 +324,32 @@ function TriptychView() {
   // the dynamic pieces of the URL.
   const { nid } = useParams<TriptychUrlParams>()
   return <Triptych nid={nid} />
+}
+
+// Based on https://www.sheshbabu.com/posts/automatic-pageview-tracking-using-react-router/
+function PageviewEventTracker() {
+  const ctx = useContext(MzdGlobalContext)
+  const history = useHistory()
+
+  function track() {
+    if (!ctx.analytics) {
+      log.warning(
+        `No product analytics initialised yet, pageview event won't be reported ` +
+          `(user navigated to '${history.location.pathname}')`
+      )
+      return
+    }
+
+    // See https://posthog.com/docs/integrate/client/js#one-page-apps-and-page-views
+    // for more information about pageview events in PostHog
+    ctx.analytics.capture('$pageview')
+  }
+
+  React.useEffect(() => {
+    track() // To track the first pageview upon load
+    const unregister = history.listen(track) // To track the subsequent pageviews
+    return unregister
+  }, [history, ctx, track])
+
+  return <div />
 }

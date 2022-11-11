@@ -56,6 +56,7 @@
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "node-emoji": "^1",
+    "posthog-js": "^1.34.0",
     "prettier": "^2.2",
     "prop-types": "^15.7.2",
     "query-string": "^7.0.0",

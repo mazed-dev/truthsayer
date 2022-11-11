@@ -1,14 +1,16 @@
 import React from 'react'
 
 import { Button } from 'react-bootstrap'
+import posthog, { PostHog } from 'posthog-js'
 
 import { KnockerElement } from '../auth/Knocker'
 
 import { jcss } from 'elementary'
-import { createUserAccount, AccountInterface } from 'smuggler-api'
+import { createUserAccount, AccountInterface, UserAccount } from 'smuggler-api'
 
 import styles from './global.module.css'
 import { NotificationToast } from './Toaster'
+import { errorise, log } from 'armoury'
 
 type Toaster = {
   toasts: React.ReactElement[]
@@ -24,6 +26,7 @@ export type MzdGlobalContextProps = {
   account: null | AccountInterface
   topbar: Topbar | {}
   toaster: Toaster
+  analytics: PostHog | null
 }
 
 export const MzdGlobalContext = React.createContext<MzdGlobalContextProps>({
@@ -35,6 +38,7 @@ export const MzdGlobalContext = React.createContext<MzdGlobalContextProps>({
       // *dbg*/ console.log('Default push() function called: ', header, message)
     },
   },
+  analytics: null,
 })
 
 type MzdGlobalProps = {}
@@ -42,7 +46,11 @@ type MzdGlobalState = {
   topbar: Topbar
   toaster: Toaster
   account: AccountInterface | null
+  analytics: PostHog | null
 }
+
+const kAnonymousAnalyticsWarning =
+  'future product analytics events will be attached to an anonymous identity'
 
 export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
   fetchAccountAbortController: AbortController
@@ -85,6 +93,28 @@ export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
       })
     }
     this.fetchAccountAbortController = new AbortController()
+
+    let analytics: PostHog | null = null
+    try {
+      const hog = posthog.init(
+        'phc_p8GUvTa63ZKNpa05iuGI7qUvXYyyz3JG3UWe88KT7yj',
+        {
+          api_host: 'https://eu.posthog.com',
+          secure_cookie: true,
+        }
+      )
+      if (!(hog instanceof PostHog)) {
+        throw new Error(`Product analytics object is not of expected type`)
+      }
+      analytics = hog
+      log.debug(
+        `Product analytics initialised, events will be published ` +
+          `as anonymous until user is identified`
+      )
+    } catch (e) {
+      log.warning(`Failed to init product analytics, error = ${errorise(e)}`)
+    }
+
     this.state = {
       toaster: {
         toasts: [],
@@ -95,15 +125,40 @@ export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
         reset: this.resetAuxToobar,
       },
       account: null,
+      analytics,
     }
   }
 
   componentDidMount() {
-    createUserAccount(this.fetchAccountAbortController.signal).then(
-      (account) => {
+    createUserAccount(this.fetchAccountAbortController.signal)
+      .then((account) => {
         this.setState({ account })
-      }
-    )
+
+        if (account instanceof UserAccount) {
+          this.state.analytics?.identify(account.getUid())
+          log.debug(
+            `Valid user account, future events will be identified as ${account.getUid()}`
+          )
+        } else {
+          log.warning(`No valid user account, ${kAnonymousAnalyticsWarning}`)
+        }
+      })
+      .catch((reason) => {
+        log.warning(
+          `Faild to initialise user account (error = ${errorise(
+            reason
+          )}), ${kAnonymousAnalyticsWarning}`
+        )
+      })
+  }
+
+  componentWillUnmount() {
+    if (this.state.analytics) {
+      this.state.analytics.reset()
+      log.debug(
+        `Product analytics identity have been reset, ${kAnonymousAnalyticsWarning}`
+      )
+    }
   }
 
   render() {
