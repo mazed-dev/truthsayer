@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useContext } from 'react'
+import React, { useCallback, useContext } from 'react'
 
 import {
   BrowserRouter as Router,
@@ -334,13 +334,10 @@ function TriptychView() {
 // Based on https://www.sheshbabu.com/posts/automatic-pageview-tracking-using-react-router/
 function PageviewEventTracker() {
   const ctx = useContext(MzdGlobalContext)
-  const history = useHistory()
-
-  function track() {
+  const track = useCallback(() => {
     if (!ctx.analytics) {
       log.warning(
-        `No product analytics initialised yet, pageview event won't be reported ` +
-          `(user navigated to '${history.location.pathname}')`
+        `No product analytics initialised yet, pageview event won't be reported`
       )
       return
     }
@@ -348,13 +345,13 @@ function PageviewEventTracker() {
     // See https://posthog.com/docs/integrate/client/js#one-page-apps-and-page-views
     // for more information about pageview events in PostHog
     ctx.analytics.capture('$pageview')
-  }
+  }, [ctx])
 
+  const history = useHistory()
   React.useEffect(() => {
-    track() // To track the first pageview upon load
-    const unregister = history.listen(track) // To track the subsequent pageviews
+    const unregister = history.listen(track)
     return unregister
-  }, [history, ctx, track])
+  }, [history, track])
 
   return <div />
 }
