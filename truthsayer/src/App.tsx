@@ -51,10 +51,13 @@ import {
   CookiePolicyPopUp,
   PrivacyPolicy,
 } from './public-page/legal/Index'
-import { log, makeAnalytics } from 'armoury'
+import { log, productanalytics } from 'armoury'
 
 export function App() {
-  const analytics = React.useMemo<PostHog | null>(() => makeAnalytics(), [])
+  const analytics = React.useMemo<PostHog | null>(
+    () => productanalytics.make('truthsayer'),
+    []
+  )
   return (
     <MzdGlobal analytics={analytics}>
       <AppHead />

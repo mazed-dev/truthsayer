@@ -6,11 +6,11 @@ import { PostHog } from 'posthog-js'
 import { KnockerElement } from '../auth/Knocker'
 
 import { jcss } from 'elementary'
-import { createUserAccount, AccountInterface, UserAccount } from 'smuggler-api'
+import { createUserAccount, AccountInterface } from 'smuggler-api'
 
 import styles from './global.module.css'
 import { NotificationToast } from './Toaster'
-import { errorise, log } from 'armoury'
+import { errorise, log, productanalytics } from 'armoury'
 
 type Toaster = {
   toasts: React.ReactElement[]
@@ -115,13 +115,16 @@ export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
       .then((account) => {
         this.setState({ account })
 
-        if (account instanceof UserAccount) {
-          this.state.analytics?.identify(account.getUid())
-          log.debug(
-            `Valid user account, future events will be identified as ${account.getUid()}`
-          )
-        } else {
-          log.warning(`No valid user account, ${kAnonymousAnalyticsWarning}`)
+        if (this.state.analytics) {
+          try {
+            productanalytics.identifyUser({
+              analytics: this.state.analytics,
+              userEmail: account.getEmail(),
+              userUid: account.getUid(),
+            })
+          } catch (e) {
+            log.warning(`${errorise(e).message}, ${kAnonymousAnalyticsWarning}`)
+          }
         }
       })
       .catch((reason) => {
