@@ -9,8 +9,11 @@ import posthog, { PostHog } from 'posthog-js'
 
 import { errorise } from './exception'
 import { log } from './log'
+import { v4 as uuidv4 } from 'uuid'
 
 const kLogCategory = '[productanalytics]'
+const kIdentityEnvPrefix =
+  process.env.NODE_ENV === 'development' ? 'dev' : 'mazed.se'
 
 /**
  * Create an instance of PostHog analytics.
@@ -29,6 +32,7 @@ function makeAnalytics(analyticsContextName: string): PostHog | null {
     return previouslyCreatedInstance
   }
 
+  const anonymousUserId = `${kIdentityEnvPrefix}/anonymous/${uuidv4()}`
   try {
     // PostHog token and API host URL can be found at https://eu.posthog.com/project/settings
     const posthogToken = 'phc_p8GUvTa63ZKNpa05iuGI7qUvXYyyz3JG3UWe88KT7yj'
@@ -37,7 +41,15 @@ function makeAnalytics(analyticsContextName: string): PostHog | null {
       posthogToken,
       {
         api_host: posthogApiHost,
+        // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies
         secure_cookie: true,
+        // Exclude user's IP address from events
+        ip: false,
+        // Respect user's "Do Not Track" choice
+        respect_dnt: true,
+        bootstrap: {
+          distinctID: anonymousUserId,
+        },
       },
       analyticsContextName
     )
@@ -45,7 +57,8 @@ function makeAnalytics(analyticsContextName: string): PostHog | null {
       throw new Error(`${logPrefix} Object is not of expected type`)
     }
     log.debug(
-      `${logPrefix} initialised, events will be published as anonymous until user is identified`
+      `${logPrefix} initialised, until user is identified events will be` +
+        ` published as ${anonymousUserId}`
     )
     return ret
   } catch (e) {
@@ -64,14 +77,14 @@ function identifyUser({
   userUid: string
 }) {
   const logPrefix = `${kLogCategory} '${analytics.get_config('name')}'`
-  const analyticsId = obfuscateEmail(userEmail) + '/' + userUid
+  const analyticsId = `${kIdentityEnvPrefix}/${obfuscateEmail(
+    userEmail
+  )}/${userUid}`
   try {
-    if (analyticsId != null) {
-      analytics.identify(analyticsId)
-      log.debug(
-        `${logPrefix} Valid user account, future events will be identified as '${analyticsId}'`
-      )
-    }
+    analytics.identify(analyticsId)
+    log.debug(
+      `${logPrefix} Valid user account, future events will be identified as '${analyticsId}'`
+    )
   } catch (e) {
     log.warning(
       `${logPrefix} Failed to identify user as ${analyticsId}: ${errorise(e)}`
