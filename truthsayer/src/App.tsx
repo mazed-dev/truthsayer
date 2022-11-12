@@ -16,6 +16,7 @@ import {
 import { css } from '@emotion/react'
 
 import { Card, Button, Container } from 'react-bootstrap'
+import { PostHog } from 'posthog-js'
 
 import { Triptych } from './card/Triptych'
 import { SearchGridView } from './grid/SearchGridView'
@@ -50,11 +51,12 @@ import {
   CookiePolicyPopUp,
   PrivacyPolicy,
 } from './public-page/legal/Index'
-import { log } from 'armoury'
+import { log, makeAnalytics } from 'armoury'
 
 export function App() {
+  const analytics = React.useMemo<PostHog | null>(() => makeAnalytics(), [])
   return (
-    <MzdGlobal>
+    <MzdGlobal analytics={analytics}>
       <AppHead />
       <AppRouter />
     </MzdGlobal>

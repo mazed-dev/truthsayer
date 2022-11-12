@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { Button } from 'react-bootstrap'
-import posthog, { PostHog } from 'posthog-js'
+import { PostHog } from 'posthog-js'
 
 import { KnockerElement } from '../auth/Knocker'
 
@@ -41,7 +41,9 @@ export const MzdGlobalContext = React.createContext<MzdGlobalContextProps>({
   analytics: null,
 })
 
-type MzdGlobalProps = {}
+type MzdGlobalProps = {
+  analytics: PostHog | null
+}
 type MzdGlobalState = {
   topbar: Topbar
   toaster: Toaster
@@ -94,27 +96,6 @@ export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
     }
     this.fetchAccountAbortController = new AbortController()
 
-    let analytics: PostHog | null = null
-    try {
-      const hog = posthog.init(
-        'phc_p8GUvTa63ZKNpa05iuGI7qUvXYyyz3JG3UWe88KT7yj',
-        {
-          api_host: 'https://eu.posthog.com',
-          secure_cookie: true,
-        }
-      )
-      if (!(hog instanceof PostHog)) {
-        throw new Error(`Product analytics object is not of expected type`)
-      }
-      analytics = hog
-      log.debug(
-        `Product analytics initialised, events will be published ` +
-          `as anonymous until user is identified`
-      )
-    } catch (e) {
-      log.warning(`Failed to init product analytics, error = ${errorise(e)}`)
-    }
-
     this.state = {
       toaster: {
         toasts: [],
@@ -125,7 +106,7 @@ export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
         reset: this.resetAuxToobar,
       },
       account: null,
-      analytics,
+      analytics: props.analytics,
     }
   }
 
