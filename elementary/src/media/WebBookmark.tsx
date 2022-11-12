@@ -4,7 +4,7 @@ import { BlockQuote } from '../editor/components/BlockQuote'
 import { MdiLaunch } from '../MaterialIcons'
 
 import type { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
-import type { Optional } from 'armoury'
+import { Optional, productanalytics } from 'armoury'
 import { log } from 'armoury'
 import styled from '@emotion/styled'
 
@@ -100,7 +100,7 @@ const PreviewImage = ({
       <IconImg src={icon.data} />
     )
   return (
-    <PreviewImageBox>
+    <PreviewImageBox className={productanalytics.exclude()}>
       {img}
       {url != null ? (
         <IconLaunch href={url}>
@@ -175,10 +175,14 @@ export const WebBookmark = ({
   }
   const url = web.url
   const hostname = new URL(url).hostname
-  const authorBadge = author ? <Author>&mdash; {author}</Author> : null
+  const authorBadge = author ? (
+    <Author className={productanalytics.exclude()}>&mdash; {author}</Author>
+  ) : null
   const descriptionElement = description ? (
     <DescriptionBox>
-      <Description cite={url}>{description}</Description>
+      <Description cite={url} className={productanalytics.exclude()}>
+        {description}
+      </Description>
     </DescriptionBox>
   ) : null
   return (
@@ -190,8 +194,8 @@ export const WebBookmark = ({
           hostname={hostname}
         />
         <TitleBox>
-          <Title>{title}</Title>
-          <Domain>{hostname}</Domain>
+          <Title className={productanalytics.exclude()}>{title}</Title>
+          <Domain className={productanalytics.exclude()}>{hostname}</Domain>
           {authorBadge}
         </TitleBox>
       </BadgeBox>

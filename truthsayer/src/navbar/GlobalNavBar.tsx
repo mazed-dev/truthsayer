@@ -13,6 +13,7 @@ import { MzdGlobalContext } from '../lib/global'
 import { TruthsayerPath } from './../lib/route'
 
 import styles from './GlobalNavBar.module.css'
+import { productanalytics } from 'armoury'
 
 const UserPic = styled(MdiAccountCircle)`
   vertical-align: middle;
@@ -26,7 +27,7 @@ const UserBadge = () => {
   return (
     <div className={'d-inline-flex'}>
       <UserPic />
-      <div className="d-none d-sm-none d-md-block">
+      <div className={productanalytics.exclude('d-none d-sm-none d-md-block')}>
         &nbsp;
         {account?.getName()}
       </div>

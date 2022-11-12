@@ -41,15 +41,17 @@ function makeAnalytics(analyticsContextName: string): PostHog | null {
       posthogToken,
       {
         api_host: posthogApiHost,
-        // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies
-        secure_cookie: true,
-        // Exclude user's IP address from events
-        ip: false,
-        // Respect user's "Do Not Track" choice
-        respect_dnt: true,
         bootstrap: {
           distinctID: anonymousUserId,
+          isIdentifiedID: false,
         },
+        // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies
+        secure_cookie: true,
+        // Respect user's "Do Not Track" choice
+        respect_dnt: true,
+        // Exclude user's IP address from events (doesn't seem to work)
+        ip: false,
+        property_blacklist: ['$ip', 'ip'],
       },
       analyticsContextName
     )
@@ -126,7 +128,25 @@ function obfuscateEmail(email: string): string {
   return ret
 }
 
+/**
+ * Modify an HTML 'class' string such that the contents of anything in
+ * an HTML subtree with this class name would be excluded from PostHog's
+ * auto-capture feature.
+ *
+ * Note that this seemingly excludes *events* related to the affected HTML subtree,
+ * not just *data* in it. This means that it should be applied carefully,
+ * not to accidentally exclude large chunks of UIs.
+ */
+function markClassNameForExclusion(className?: string): string {
+  // See https://posthog.com/docs/integrate/client/js#autocapture for more information
+  if (className == null || className.length === 0) {
+    return 'ph-no-capture'
+  }
+  return `ph-no-capture ${className}`
+}
+
 export const productanalytics = {
   make: makeAnalytics,
   identifyUser: identifyUser,
+  exclude: markClassNameForExclusion,
 }

@@ -4,6 +4,7 @@ import { Link, withRouter } from 'react-router-dom'
 import { Button, Container, Image } from 'react-bootstrap'
 
 import user_default_pic from './img/user-default-pic.png'
+import { productanalytics } from 'armoury'
 
 class UserPreferences extends React.Component {
   render() {
@@ -26,11 +27,11 @@ class UserPreferences extends React.Component {
             <tbody>
               <tr>
                 <td className="px-4 py-1">{'name'}</td>
-                <td>{name}</td>
+                <td className={productanalytics.exclude()}>{name}</td>
               </tr>
               <tr>
                 <td className="px-4 py-1">{'email'}</td>
-                <td>{email}</td>
+                <td className={productanalytics.exclude()}>{email}</td>
               </tr>
               <tr className="py-1">
                 <td className="px-4">{'password'}</td>
