@@ -12,8 +12,7 @@ import { log } from './log'
 import { v4 as uuidv4 } from 'uuid'
 
 const kLogCategory = '[productanalytics]'
-const kIdentityEnvPrefix =
-  process.env.NODE_ENV === 'development' ? 'dev' : 'mazed.se'
+const kIdentityEnvPrefix = process.env.NODE_ENV === 'development' ? 'dev/' : ''
 
 /**
  * Create an instance of PostHog analytics.
@@ -32,7 +31,7 @@ function makeAnalytics(analyticsContextName: string): PostHog | null {
     return previouslyCreatedInstance
   }
 
-  const anonymousUserId = `${kIdentityEnvPrefix}/anonymous/${uuidv4()}`
+  const anonymousUserId = `${kIdentityEnvPrefix}${uuidv4()}`
   try {
     // PostHog token and API host URL can be found at https://eu.posthog.com/project/settings
     const posthogToken = 'phc_p8GUvTa63ZKNpa05iuGI7qUvXYyyz3JG3UWe88KT7yj'
@@ -79,11 +78,10 @@ function identifyUser({
   userUid: string
 }) {
   const logPrefix = `${kLogCategory} '${analytics.get_config('name')}'`
-  const analyticsId = `${kIdentityEnvPrefix}/${obfuscateEmail(
-    userEmail
-  )}/${userUid}`
+  const email = obfuscateEmail(userEmail)
+  const analyticsId = `${kIdentityEnvPrefix}${userUid}`
   try {
-    analytics.identify(analyticsId)
+    analytics.identify(analyticsId, { email, uid: userUid })
     log.debug(
       `${logPrefix} Valid user account, future events will be identified as '${analyticsId}'`
     )
