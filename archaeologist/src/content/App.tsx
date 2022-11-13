@@ -30,6 +30,7 @@ import {
 import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
 import { BrowserHistoryImportControlPortal } from './BrowserHistoryImportControl'
+import { ReadWriteAugmentation } from './augmentation/ReadWrite'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
@@ -245,7 +246,6 @@ const App = () => {
     mode: 'uninitialised-content-app',
   }
   const [state, dispatch] = React.useReducer(updateState, initialState)
-
   const listener = React.useCallback(
     async (message: ToContent.Request): Promise<FromContent.Response> => {
       switch (message.type) {
@@ -304,7 +304,7 @@ const App = () => {
       />
       <Toaster />
       {state.notification ? (
-        <DisappearingToast {...state.notification}></DisappearingToast>
+        <DisappearingToast {...state.notification} />
       ) : null}
       <Quotes quotes={state.quotes} />
       {activityTrackerOrNull}
@@ -312,6 +312,7 @@ const App = () => {
         progress={state.browserHistoryUploadProgress}
         host={window.location.host}
       />
+      <ReadWriteAugmentation />
     </AppErrorBoundary>
   )
 }
