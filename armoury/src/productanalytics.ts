@@ -5,7 +5,7 @@
  * See https://posthog.com/ for more information.
  */
 
-import posthog, { PostHog } from 'posthog-js'
+import { posthog, PostHog } from 'posthog-js'
 
 import { errorise } from './exception'
 import { log } from './log'
@@ -147,6 +147,6 @@ function markClassNameForExclusion(className?: string): string {
 
 export const productanalytics = {
   make: makeAnalytics,
-  identifyUser: identifyUser,
+  identifyUser,
   exclude: markClassNameForExclusion,
 }

@@ -4,7 +4,8 @@ import { BlockQuote } from '../editor/components/BlockQuote'
 import { MdiLaunch } from '../MaterialIcons'
 
 import type { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
-import { Optional, productanalytics } from 'armoury'
+import type { Optional } from 'armoury'
+import { productanalytics } from 'armoury'
 import { log } from 'armoury'
 import styled from '@emotion/styled'
 
