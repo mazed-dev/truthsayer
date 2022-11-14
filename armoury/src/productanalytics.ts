@@ -48,9 +48,11 @@ function makeAnalytics(analyticsContextName: string): PostHog | null {
         secure_cookie: true,
         // Respect user's "Do Not Track" choice
         respect_dnt: true,
-        // Exclude user's IP address from events (doesn't seem to work)
-        ip: false,
-        property_blacklist: ['$ip', 'ip'],
+        // Exclude user's IP address from events (below options doesn't
+        // appear to work, instead this is controlled via a toggle in
+        // project settings in https://eu.posthog.com/project/settings)
+        // ip: false,
+        // property_blacklist: ['$ip'],
       },
       analyticsContextName
     )
