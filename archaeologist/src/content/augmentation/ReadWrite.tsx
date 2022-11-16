@@ -9,6 +9,12 @@ const ClosePic = styled(MdiClose)`
   vertical-align: middle;
 `
 
+const StaticToast = styled(Toast)`
+  animation-name: none;
+  animation-duration: unset;
+  animation-iteration-count: unset;
+`
+
 const TriptychToast = ({
   text,
   onClose,
@@ -17,13 +23,13 @@ const TriptychToast = ({
   onClose: () => void
 }) => {
   return (
-    <Toast toastKey={'read-write-augmentation-toast'}>
+    <StaticToast toastKey={'read-write-augmentation-toast'}>
       <LogoSmall />
       <RefItem>Read/write augmentation 🐇 {text}</RefItem>
       <ButtonItem onClick={onClose}>
         <ClosePic />
       </ButtonItem>
-    </Toast>
+    </StaticToast>
   )
 }
 
@@ -58,6 +64,7 @@ function updateStateImpl(
 }
 
 export function ReadWriteAugmentation() {
+  const [toastIsShown, showToast] = React.useState<boolean>(false)
   const [state, updateState] = React.useReducer(updateStateImpl, {
     keyBuffer: '',
     showToast: false,

@@ -57,7 +57,10 @@ const ToastBox = styled(Box)`
 export const Toast = ({
   children,
   toastKey,
-}: React.PropsWithChildren<{ toastKey: string }>) => {
+  className,
+}: React.PropsWithChildren<{ toastKey: string
+  className?: string
+}>) => {
   const box = document.createElement('mazed-archaeologist-toast')
   React.useEffect(
     () => {
@@ -73,7 +76,7 @@ export const Toast = ({
      */
   )
   return ReactDOM.createPortal(
-    <ToastBox key={toastKey}>{children}</ToastBox>,
+    <ToastBox key={toastKey} className={className}>{children}</ToastBox>,
     box
   )
 }
