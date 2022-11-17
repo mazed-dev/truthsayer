@@ -289,11 +289,21 @@ export namespace FromContent {
   export interface DeletePreviouslyUploadedBrowserHistoryRequest {
     type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY'
   }
+  export interface SuggestedAssociationsRequest {
+    type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS'
+    phrase: string
+  }
+  export interface SuggestedAssociationsResponse {
+    type: 'SUGGESTED_CONTENT_ASSOCIATIONS'
+    suggested: TNodeJson[]
+  }
+
   export type Request =
     | AttentionTimeChunk
     | UploadBrowserHistoryRequest
     | CancelBrowserHistoryUploadRequest
     | DeletePreviouslyUploadedBrowserHistoryRequest
+    | SuggestedAssociationsRequest
 
   export type Response =
     | GetSelectedQuoteResponse
@@ -301,6 +311,7 @@ export namespace FromContent {
     | PageAlreadySavedResponse
     | PageNotWorthSavingResponse
     | VoidResponse
+    | SuggestedAssociationsResponse
 
   export function sendMessage(
     message: AttentionTimeChunk
@@ -314,7 +325,12 @@ export namespace FromContent {
   export function sendMessage(
     message: DeletePreviouslyUploadedBrowserHistoryRequest
   ): Promise<ToContent.DeletePreviouslyUploadedBrowserHistoryResponse>
-  export function sendMessage(message: Request): Promise<ToContent.Response> {
+  export function sendMessage(
+    message: SuggestedAssociationsRequest
+  ): Promise<SuggestedAssociationsResponse>
+  export function sendMessage(
+    message: Request
+  ): Promise<ToContent.Response | Response> {
     const msg: ToBackground.Request = { direction: 'from-content', ...message }
     return browser.runtime.sendMessage(msg).catch((error) => {
       throw new Error(`Failed to send ${message.type} from content: ${error}`)

@@ -40,27 +40,17 @@ export const Toaster = ({ children }: React.PropsWithChildren<{}>) => {
   )
 }
 
-const kShowUpAnimation = keyframes`
-  0% {
-    transform: scale(.025, 1);
-  }
-  100% {
-    transform: scale(1, 1);
-  }
-`
-
-const ToastBox = styled(Box)`
-  animation-name: ${kShowUpAnimation};
-  animation-duration: 0.25s;
-  animation-iteration-count: 1;
+const ToastBox = styled.div`
+  display: block;
+  visibility: visible;
+  margin: 0;
+  padding: 0;
 `
 export const Toast = ({
   children,
   toastKey,
   className,
-}: React.PropsWithChildren<{ toastKey: string
-  className?: string
-}>) => {
+}: React.PropsWithChildren<{ toastKey: string; className?: string }>) => {
   const box = document.createElement('mazed-archaeologist-toast')
   React.useEffect(
     () => {
@@ -76,7 +66,9 @@ export const Toast = ({
      */
   )
   return ReactDOM.createPortal(
-    <ToastBox key={toastKey} className={className}>{children}</ToastBox>,
+    <ToastBox key={toastKey} className={className}>
+      {children}
+    </ToastBox>,
     box
   )
 }
@@ -88,6 +80,21 @@ export type DisappearingToastProps = {
   timeoutMsec?: number
   id?: string
 }
+
+const kShowUpAnimation = keyframes`
+  0% {
+    transform: scale(.025, 1);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+`
+
+const DisappearingToastBox = styled(Box)`
+  animation-name: ${kShowUpAnimation};
+  animation-duration: 0.25s;
+  animation-iteration-count: 1;
+`
 
 export const DisappearingToast = ({
   text,
@@ -105,10 +112,12 @@ export const DisappearingToast = ({
   }, [text, tooltip, timeoutMsec, id])
   return show ? (
     <Toast toastKey={'disappearing-toast'}>
-      <LogoSmall />
-      <RefItem href={href}>
-        <HoverTooltip tooltip={tooltip ?? text}>{text}</HoverTooltip>
-      </RefItem>
+      <DisappearingToastBox>
+        <LogoSmall />
+        <RefItem href={href}>
+          <HoverTooltip tooltip={tooltip ?? text}>{text}</HoverTooltip>
+        </RefItem>
+      </DisappearingToastBox>
     </Toast>
   ) : null
 }

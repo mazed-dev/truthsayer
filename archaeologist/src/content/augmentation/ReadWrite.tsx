@@ -1,87 +1,111 @@
 import React from 'react'
-import styled from '@emotion/styled'
+import lodash from 'lodash'
+
 import { log } from 'armoury'
-import { MdiClose } from 'elementary'
-import { Toast } from './../toaster/Toaster'
-import { LogoSmall, ButtonItem, RefItem } from './../style'
+import { TNode, TNodeJson } from 'smuggler-api'
 
-const ClosePic = styled(MdiClose)`
-  vertical-align: middle;
-`
+import { FromContent } from './../../message/types'
 
-const StaticToast = styled(Toast)`
-  animation-name: none;
-  animation-duration: unset;
-  animation-iteration-count: unset;
-`
-
-const TriptychToast = ({
-  text,
-  onClose,
-}: {
-  text: string
-  onClose: () => void
-}) => {
-  return (
-    <StaticToast toastKey={'read-write-augmentation-toast'}>
-      <LogoSmall />
-      <RefItem>Read/write augmentation 🐇 {text}</RefItem>
-      <ButtonItem onClick={onClose}>
-        <ClosePic />
-      </ButtonItem>
-    </StaticToast>
-  )
-}
+import { SuggestionsToast } from './SuggestionsToast'
 
 function appendSuffixToSlidingWindow(buf: string, key: string) {
   const suffixToAppend = key.length > 1 ? ' ' : key
   return (buf + suffixToAppend).slice(-42)
 }
 
-type State = {
+type UserInput = {
   keyBuffer: string
   target?: HTMLInputElement
-  showToast: boolean
 }
-function updateStateImpl(
-  state: State,
-  update: KeyboardEvent | { showToast: boolean }
+function updateUserInputFromKeyboardEvent(
+  userInput: UserInput,
+  keyboardEvent: KeyboardEvent
 ) {
-  if ('altKey' in update) {
+  if ('altKey' in keyboardEvent) {
     // Consume KeyboardEvent
-    const event = update as unknown as React.KeyboardEvent<HTMLElement>
+    const event = keyboardEvent as unknown as React.KeyboardEvent<HTMLElement>
     if ((event.target as HTMLElement).contentEditable) {
       const target = event.target as HTMLInputElement
-      const keyBuffer = appendSuffixToSlidingWindow(state.keyBuffer, event.key)
-      const showToast = state.showToast || keyBuffer.endsWith('//')
-      log.debug('typingOnKeyDownListener editable')
-      return { ...state, keyBuffer, target, showToast }
+      const keyBuffer = appendSuffixToSlidingWindow(
+        userInput.keyBuffer,
+        event.key
+      )
+      // log.debug('typingOnKeyDownListener editable')
+      return { keyBuffer, target }
     }
-  } else if ('showToast' in update) {
-    return { ...state, showToast: update.showToast }
   }
-  return state
+  return userInput
 }
 
-export function ReadWriteAugmentation() {
+function getKeyPhraseFromUserInput({ keyBuffer }: UserInput): string {
+  const p = /([ \w]*)\/\/([ \w]*)/.exec(keyBuffer)
+  if (p && p[2]) {
+    return p[2]
+  } else if (p && p[1]) {
+    return p[1]
+  }
+  return keyBuffer
+}
+
+export function WriteAugmentation() {
+  const [suggestedNodes, setSuggestedNodes] = React.useState<TNode[]>([])
+  const requestSuggestedAssociations = React.useCallback(
+    lodash.debounce(
+      async (phrase: string) => {
+        log.debug('requestSuggestedAssociations', phrase)
+        const response = await FromContent.sendMessage({
+          type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
+          phrase,
+        })
+        setSuggestedNodes(
+          response.suggested.map((value: TNodeJson) => TNode.fromJson(value))
+        )
+        log.debug('requestSuggestedAssociations - response', response)
+      },
+      900,
+      {}
+    ),
+    []
+  )
   const [toastIsShown, showToast] = React.useState<boolean>(false)
-  const [state, updateState] = React.useReducer(updateStateImpl, {
-    keyBuffer: '',
-    showToast: false,
-  })
+  const [userInput, consumeKeyboardEvent] = React.useReducer(
+    (userInput: UserInput, keyboardEvent: KeyboardEvent) => {
+      const newInput = updateUserInputFromKeyboardEvent(
+        userInput,
+        keyboardEvent
+      )
+      showToast((isShown: boolean) => {
+        isShown = isShown || newInput.keyBuffer.endsWith('//')
+        if (isShown) {
+          const phrase = getKeyPhraseFromUserInput(newInput)
+          log.debug('ShowToast for keyphrase', newInput.keyBuffer, phrase)
+          requestSuggestedAssociations(phrase)
+        }
+        return isShown
+      })
+      return newInput
+    },
+    {
+      keyBuffer: '',
+      target: undefined,
+    }
+  )
   React.useEffect(() => {
-    document.addEventListener('keydown', updateState)
+    document.addEventListener('keydown', consumeKeyboardEvent)
     return () => {
-      document.removeEventListener('keydown', updateState)
+      document.removeEventListener('keydown', consumeKeyboardEvent)
     }
   }, [])
-  log.debug('ReadWriteAugmentation :: render state', state)
+  log.debug('ReadWriteAugmentation :: render userInput', userInput)
+  log.debug('ReadWriteAugmentation :: render toastIsShown', toastIsShown)
+  log.debug('ReadWriteAugmentation :: render suggestedNodes', suggestedNodes)
   return (
     <>
-      {state.showToast ? (
-        <TriptychToast
-          onClose={() => updateState({ showToast: false })}
-          text={state.keyBuffer}
+      {toastIsShown ? (
+        <SuggestionsToast
+          onClose={() => showToast(false)}
+          keyphrase={userInput.keyBuffer}
+          suggested={suggestedNodes}
         />
       ) : null}
     </>

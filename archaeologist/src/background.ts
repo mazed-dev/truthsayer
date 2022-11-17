@@ -28,6 +28,7 @@ import {
 } from 'smuggler-api'
 
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
+import { suggestAssociations } from './background/suggestAssociations'
 import { calculateBadgeCounter } from './badge/badgeCounter'
 import { isMemorable } from './content/extractor/url/unmemorable'
 import { isPageAutosaveable } from './content/extractor/url/autosaveable'
@@ -355,7 +356,7 @@ async function getPageContentViaTemporaryTab(
 async function handleMessageFromContent(
   message: FromContent.Request,
   sender: browser.Runtime.MessageSender
-): Promise<ToContent.Response> {
+): Promise<ToContent.Response | FromContent.Response> {
   const tab = sender.tab ?? (await getActiveTab())
   log.debug('Get message from content', message, tab)
   switch (message.type) {
@@ -379,6 +380,13 @@ async function handleMessageFromContent(
       return {
         type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
         numDeleted,
+      }
+    }
+    case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
+      const suggested = await suggestAssociations(message.phrase)
+      return {
+        type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
+        suggested: suggested.map((node: TNode) => node.toJson()),
       }
     }
     default:
