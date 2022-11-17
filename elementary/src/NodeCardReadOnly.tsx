@@ -3,6 +3,7 @@ import { useAsyncEffect } from 'use-async-effect'
 import styled from '@emotion/styled'
 
 import { TNode, smuggler } from 'smuggler-api'
+import { productanalytics } from 'armoury'
 import { NodeTextReader } from './editor/NodeTextReader'
 import { Spinner } from './spinner/mod'
 import { NodeMedia } from './media/NodeMedia'
@@ -23,8 +24,9 @@ export function NodeCardReadOnly({
   strippedActions?: boolean
 }) {
   return (
-    <Box className={className}>
+    <Box className={productanalytics.classExclude(className)}>
       <NodeMedia
+        className={''}
         node={node}
         strippedRefs={strippedRefs}
         strippedActions={strippedActions}

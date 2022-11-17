@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useContext } from 'react'
+import React, { useCallback, useContext } from 'react'
 
 import {
   BrowserRouter as Router,
@@ -10,11 +10,13 @@ import {
   useLocation,
   useParams,
   RouteProps,
+  useHistory,
 } from 'react-router-dom'
 
 import { css } from '@emotion/react'
 
 import { Card, Button, Container } from 'react-bootstrap'
+import { PostHog } from 'posthog-js'
 
 import { Triptych } from './card/Triptych'
 import { SearchGridView } from './grid/SearchGridView'
@@ -49,10 +51,15 @@ import {
   CookiePolicyPopUp,
   PrivacyPolicy,
 } from './public-page/legal/Index'
+import { log, productanalytics } from 'armoury'
 
 export function App() {
+  const analytics = React.useMemo<PostHog | null>(
+    () => productanalytics.make('truthsayer'),
+    []
+  )
   return (
-    <MzdGlobal>
+    <MzdGlobal analytics={analytics}>
       <AppHead />
       <AppRouter />
     </MzdGlobal>
@@ -62,6 +69,7 @@ export function App() {
 function AppRouter() {
   return (
     <Router>
+      <PageviewEventTracker />
       <CookiePolicyPopUp />
       <GlobalNavBar />
       <Container
@@ -321,4 +329,29 @@ function TriptychView() {
   // the dynamic pieces of the URL.
   const { nid } = useParams<TriptychUrlParams>()
   return <Triptych nid={nid} />
+}
+
+// Based on https://www.sheshbabu.com/posts/automatic-pageview-tracking-using-react-router/
+function PageviewEventTracker() {
+  const ctx = useContext(MzdGlobalContext)
+  const track = useCallback(() => {
+    if (!ctx.analytics) {
+      log.warning(
+        `No product analytics initialised yet, pageview event won't be reported`
+      )
+      return
+    }
+
+    // See https://posthog.com/docs/integrate/client/js#one-page-apps-and-page-views
+    // for more information about pageview events in PostHog
+    ctx.analytics.capture('$pageview')
+  }, [ctx])
+
+  const history = useHistory()
+  React.useEffect(() => {
+    const unregister = history.listen(track)
+    return unregister
+  }, [history, track])
+
+  return <div />
 }

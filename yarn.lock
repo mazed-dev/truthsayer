@@ -3624,6 +3624,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sentry/types@npm:^7.2.0":
+  version: 7.18.0
+  resolution: "@sentry/types@npm:7.18.0"
+  checksum: e05581cd6eb1b79208fe85ba7043f9b2606b49eab64d7207ad2490061aebd66bc1a29a6234001c74b3098221564fa68c5d1b1be2566cf6328c576ada7240b190
+  languageName: node
+  linkType: hard
+
 "@sinclair/typebox@npm:^0.23.3":
   version: 0.23.5
   resolution: "@sinclair/typebox@npm:0.23.5"
@@ -4669,6 +4676,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/uuid@npm:^8.3.0":
+  version: 8.3.4
+  resolution: "@types/uuid@npm:8.3.4"
+  checksum: 6f11f3ff70f30210edaa8071422d405e9c1d4e53abbe50fdce365150d3c698fe7bbff65c1e71ae080cbfb8fded860dbb5e174da96fdbbdfcaa3fb3daa474d20f
+  languageName: node
+  linkType: hard
+
 "@types/warning@npm:^3.0.0":
   version: 3.0.0
   resolution: "@types/warning@npm:3.0.0"
@@ -5612,16 +5626,19 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "armoury@workspace:armoury"
   dependencies:
+    "@types/uuid": ^8.3.0
     "@types/xxhashjs": ^0.2.2
     eslint: ^8.16.0
     jest: 26.6.0
     js-base64: ^3.6
     lodash: ^4.17.21
     moment: ^2.29.4
+    posthog-js: ^1.34.0
     prettier: ^2.2
     query-string: ^7.0.0
     ts-jest: ^26.4.2
     typescript: 4.1.3
+    uuid: ^8.3.0
     xxhashjs: ^0.2.2
   languageName: unknown
   linkType: soft
@@ -9867,6 +9884,13 @@ __metadata:
   dependencies:
     pend: ~1.2.0
   checksum: c8585fd5713f4476eb8261150900d2cb7f6ff2d87f8feb306ccc8a1122efd152f1783bdb2b8dc891395744583436bfd8081d8e63ece0ec8687eeefea394d4ff2
+  languageName: node
+  linkType: hard
+
+"fflate@npm:^0.4.1":
+  version: 0.4.8
+  resolution: "fflate@npm:0.4.8"
+  checksum: 29d8cbe44d5e7f53e7f5a160ac7f9cc025480c7b3bfd85c5f898cbe20dfa2dad4732daa534982664bf30b35896a90af44ea33ede5d94c5ffd1b8b0c0a0a56ca2
   languageName: node
   linkType: hard
 
@@ -16950,6 +16974,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"posthog-js@npm:^1.34.0":
+  version: 1.34.0
+  resolution: "posthog-js@npm:1.34.0"
+  dependencies:
+    "@sentry/types": ^7.2.0
+    fflate: ^0.4.1
+    rrweb-snapshot: ^1.1.14
+  checksum: a02f2772a29c2344abdd98d6495ce8b58e3589a50f746f4e6a8d2a5718f8e8d4ca6939888e36e619f8a28c85d7de1ac0eae6d0c2451b8537796000cd55768a8e
+  languageName: node
+  linkType: hard
+
 "preact@npm:^10.1.0":
   version: 10.11.0
   resolution: "preact@npm:10.11.0"
@@ -18359,6 +18394,13 @@ __metadata:
   bin:
     rollup: dist/bin/rollup
   checksum: ac33a2336df049f21dea64e4c9faee2551bddf2920944ea6214b2ed214f3861c9a4e1a8b7a32d2af6632f649a25a2bf4da8fad9f84f5093f2bf4d7e77933756b
+  languageName: node
+  linkType: hard
+
+"rrweb-snapshot@npm:^1.1.14":
+  version: 1.1.14
+  resolution: "rrweb-snapshot@npm:1.1.14"
+  checksum: 2e9a30233b542824bbca46af5588d1d7c909efafa00b38fb79d59637af17ec0f3fbe60ed37c4195448804a22aea0f47531da25a42af6ac9dc6281c3c6e5693db
   languageName: node
   linkType: hard
 
@@ -20432,7 +20474,6 @@ __metadata:
     typescript: 4.1.3
     universal-cookie: ^4.0
     use-async-effect: ^2.2.5
-    uuid: ^3.3
   languageName: unknown
   linkType: soft
 
@@ -21065,7 +21106,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^3.3, uuid@npm:^3.3.2":
+"uuid@npm:^3.3.2":
   version: 3.4.0
   resolution: "uuid@npm:3.4.0"
   bin:

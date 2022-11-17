@@ -21,6 +21,7 @@ import { TDoc, SlateText } from './types'
 import { TNode } from 'smuggler-api'
 
 import { makeElementRender } from './ElementRender'
+import { productanalytics } from 'armoury'
 
 export const NodeTextEditor = ({
   className,
@@ -82,6 +83,7 @@ export const NodeTextEditor = ({
       >
         <FormatToolbar />
         <Editable
+          className={productanalytics.classExclude()}
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           spellCheck

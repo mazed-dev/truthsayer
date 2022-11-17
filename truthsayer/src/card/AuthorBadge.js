@@ -6,6 +6,7 @@ import { smuggler } from 'smuggler-api'
 import { NodeTimeBadge } from 'elementary'
 
 import UserDefaultPic from './../auth/img/user-default-pic.png'
+import { productanalytics } from 'armoury'
 
 export class AuthorBadge extends React.Component {
   constructor(props) {
@@ -58,7 +59,9 @@ export class AuthorBadge extends React.Component {
           <img src={photo} className={styles.user_pic_image} alt={'user'} />
         </div>
         <div className={styles.column}>
-          <div className={styles.user_name}>{name}</div>
+          <div className={productanalytics.classExclude(styles.user_name)}>
+            {name}
+          </div>
           <div className={styles.created_at_date}>
             {this.props.created_at.fromNow()}
           </div>
