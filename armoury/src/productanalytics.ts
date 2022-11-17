@@ -73,7 +73,6 @@ function identifyUser({
   userUid,
 }: {
   analytics: PostHog
-  userEmail: string
   userUid: string
 }) {
   const logPrefix = `${kLogCategory} '${analytics.get_config('name')}'`
