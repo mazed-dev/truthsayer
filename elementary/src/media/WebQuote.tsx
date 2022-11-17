@@ -78,7 +78,7 @@ export const WebQuote = ({
       <WebBlockQuoteBox className={className}>
         <WebBlockQuotePad
           cite={web_quote.url}
-          className={productanalytics.exclude()}
+          className={productanalytics.classExclude()}
         >
           {text}
         </WebBlockQuotePad>
@@ -86,7 +86,7 @@ export const WebQuote = ({
           <RefBox>
             <RefLink
               href={quoteUrl.toString()}
-              className={productanalytics.exclude()}
+              className={productanalytics.classExclude()}
             >
               {authorElement}
               {hostname}

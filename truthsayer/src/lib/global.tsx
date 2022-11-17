@@ -119,7 +119,6 @@ export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
           try {
             productanalytics.identifyUser({
               analytics: this.state.analytics,
-              userEmail: account.getEmail(),
               userUid: account.getUid(),
             })
           } catch (e) {

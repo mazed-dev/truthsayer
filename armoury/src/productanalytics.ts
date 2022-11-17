@@ -46,8 +46,6 @@ function makeAnalytics(analyticsContextName: string): PostHog | null {
         },
         // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies
         secure_cookie: true,
-        // Respect user's "Do Not Track" choice
-        respect_dnt: true,
         // Exclude user's IP address from events (below options doesn't
         // appear to work, instead this is controlled via a toggle in
         // project settings in https://eu.posthog.com/project/settings)
@@ -72,7 +70,6 @@ function makeAnalytics(analyticsContextName: string): PostHog | null {
 
 function identifyUser({
   analytics,
-  userEmail,
   userUid,
 }: {
   analytics: PostHog
@@ -80,10 +77,9 @@ function identifyUser({
   userUid: string
 }) {
   const logPrefix = `${kLogCategory} '${analytics.get_config('name')}'`
-  const email = obfuscateEmail(userEmail)
   const analyticsId = `${kIdentityEnvPrefix}${userUid}`
   try {
-    analytics.identify(analyticsId, { email, uid: userUid })
+    analytics.identify(analyticsId, { uid: userUid })
     log.debug(
       `${logPrefix} Valid user account, future events will be identified as '${analyticsId}'`
     )
@@ -92,40 +88,6 @@ function identifyUser({
       `${logPrefix} Failed to identify user as ${analyticsId}: ${errorise(e)}`
     )
   }
-}
-
-/**
- * Replace most of the email address contents with dummy symbols to make it
- * safe to publish alongside analytics events.
- *
- * User's UID (@see AccountInterface.getUid() )
- */
-function obfuscateEmail(email: string): string {
-  let ret = ''
-  const atIndex = email.indexOf('@')
-  if (atIndex === -1 || atIndex === 0) {
-    return 'invalid@email.com'
-  }
-  {
-    const lengthOfName = atIndex
-    const lettersToKeep = lengthOfName > 4 ? 2 : 0
-    const lettersToObfuscate = lengthOfName - lettersToKeep
-    ret = email.replace(
-      email.substr(lettersToKeep, lengthOfName - lettersToKeep),
-      '*'.repeat(lettersToObfuscate)
-    )
-  }
-
-  {
-    const lengthOfDomain = email.length - (atIndex + 1)
-    const lettersToKeep = lengthOfDomain > 4 ? 2 : 0
-    const lettersToObfuscate = lengthOfDomain - lettersToKeep
-    ret = ret.replace(
-      email.substr(atIndex + 1 + lettersToKeep, lengthOfDomain - lettersToKeep),
-      '*'.repeat(lettersToObfuscate)
-    )
-  }
-  return ret
 }
 
 /**
@@ -148,5 +110,5 @@ function markClassNameForExclusion(className?: string): string {
 export const productanalytics = {
   make: makeAnalytics,
   identifyUser,
-  exclude: markClassNameForExclusion,
+  classExclude: markClassNameForExclusion,
 }

@@ -24,7 +24,7 @@ export function NodeCardReadOnly({
   strippedActions?: boolean
 }) {
   return (
-    <Box className={productanalytics.exclude(className)}>
+    <Box className={productanalytics.classExclude(className)}>
       <NodeMedia
         className={''}
         node={node}

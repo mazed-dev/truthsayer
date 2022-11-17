@@ -98,7 +98,7 @@ export const ImageNode = ({
     <>
       <ImageInCardZoom
         src={source}
-        className={productanalytics.exclude(className)}
+        className={productanalytics.classExclude(className)}
         onClick={() => setShow(true)}
       />
       <Modal show={show} fullscreen scrollable onHide={() => setShow(false)}>
@@ -127,7 +127,7 @@ export const ImageNode = ({
           <ImageFullHelper />
           <ImageFull
             src={source}
-            className={productanalytics.exclude()}
+            className={productanalytics.classExclude()}
             ref={imageRef}
           />
         </ImageFullModalBody>

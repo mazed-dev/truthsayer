@@ -47,7 +47,7 @@ export const NodeTextReader = ({
           css={css`
             padding: 1em 1em 0 1em;
           `}
-          className={productanalytics.exclude()}
+          className={productanalytics.classExclude()}
         />
       </Slate>
     </div>

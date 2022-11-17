@@ -83,7 +83,7 @@ export const NodeTextEditor = ({
       >
         <FormatToolbar />
         <Editable
-          className={productanalytics.exclude()}
+          className={productanalytics.classExclude()}
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           spellCheck

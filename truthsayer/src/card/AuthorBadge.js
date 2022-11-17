@@ -59,7 +59,7 @@ export class AuthorBadge extends React.Component {
           <img src={photo} className={styles.user_pic_image} alt={'user'} />
         </div>
         <div className={styles.column}>
-          <div className={productanalytics.exclude(styles.user_name)}>
+          <div className={productanalytics.classExclude(styles.user_name)}>
             {name}
           </div>
           <div className={styles.created_at_date}>

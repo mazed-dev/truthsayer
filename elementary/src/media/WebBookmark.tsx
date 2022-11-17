@@ -101,7 +101,7 @@ const PreviewImage = ({
       <IconImg src={icon.data} />
     )
   return (
-    <PreviewImageBox className={productanalytics.exclude()}>
+    <PreviewImageBox className={productanalytics.classExclude()}>
       {img}
       {url != null ? (
         <IconLaunch href={url}>
@@ -177,11 +177,13 @@ export const WebBookmark = ({
   const url = web.url
   const hostname = new URL(url).hostname
   const authorBadge = author ? (
-    <Author className={productanalytics.exclude()}>&mdash; {author}</Author>
+    <Author className={productanalytics.classExclude()}>
+      &mdash; {author}
+    </Author>
   ) : null
   const descriptionElement = description ? (
     <DescriptionBox>
-      <Description cite={url} className={productanalytics.exclude()}>
+      <Description cite={url} className={productanalytics.classExclude()}>
         {description}
       </Description>
     </DescriptionBox>
@@ -195,8 +197,10 @@ export const WebBookmark = ({
           hostname={hostname}
         />
         <TitleBox>
-          <Title className={productanalytics.exclude()}>{title}</Title>
-          <Domain className={productanalytics.exclude()}>{hostname}</Domain>
+          <Title className={productanalytics.classExclude()}>{title}</Title>
+          <Domain className={productanalytics.classExclude()}>
+            {hostname}
+          </Domain>
           {authorBadge}
         </TitleBox>
       </BadgeBox>

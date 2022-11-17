@@ -27,7 +27,9 @@ const UserBadge = () => {
   return (
     <div className={'d-inline-flex'}>
       <UserPic />
-      <div className={productanalytics.exclude('d-none d-sm-none d-md-block')}>
+      <div
+        className={productanalytics.classExclude('d-none d-sm-none d-md-block')}
+      >
         &nbsp;
         {account?.getName()}
       </div>

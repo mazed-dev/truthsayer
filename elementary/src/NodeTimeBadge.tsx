@@ -57,7 +57,7 @@ export const NodeTimeBadge = ({
     tooltip += `, updated ${formatFullDate(updated_at)}`
   }
   return (
-    <Badge className={productanalytics.exclude(className)}>
+    <Badge className={productanalytics.classExclude(className)}>
       <Column>
         <HoverTooltip tooltip={tooltip}>
           <CreatedAt>{formatDate(created_at)}</CreatedAt>
