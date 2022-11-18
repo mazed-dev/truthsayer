@@ -8,6 +8,7 @@ import { TNode } from 'smuggler-api'
 import { MdiFitScreen, MdiZoomIn, MdiZoomOut } from '../MaterialIcons'
 
 import { ImgButton } from '../ImgButton'
+import { productanalytics } from 'armoury'
 
 const ImageBase = styled(Image)`
   height: auto;
@@ -97,7 +98,7 @@ export const ImageNode = ({
     <>
       <ImageInCardZoom
         src={source}
-        className={className}
+        className={productanalytics.classExclude(className)}
         onClick={() => setShow(true)}
       />
       <Modal show={show} fullscreen scrollable onHide={() => setShow(false)}>
@@ -124,7 +125,11 @@ export const ImageNode = ({
         </Modal.Header>
         <ImageFullModalBody>
           <ImageFullHelper />
-          <ImageFull src={source} ref={imageRef} />
+          <ImageFull
+            src={source}
+            className={productanalytics.classExclude()}
+            ref={imageRef}
+          />
         </ImageFullModalBody>
       </Modal>
     </>

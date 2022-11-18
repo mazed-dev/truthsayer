@@ -1,7 +1,7 @@
 import React from 'react'
 
 import type { NodeExtattrs } from 'smuggler-api'
-import { Mime, log, MimeType } from 'armoury'
+import { Mime, log, MimeType, productanalytics } from 'armoury'
 import { BlockQuoteBox, BlockQuotePad } from '../editor/components/components'
 
 import { MdiLaunch } from '../MaterialIcons'
@@ -76,10 +76,18 @@ export const WebQuote = ({
   return (
     <Box className={className}>
       <WebBlockQuoteBox className={className}>
-        <WebBlockQuotePad cite={web_quote.url}>{text}</WebBlockQuotePad>
+        <WebBlockQuotePad
+          cite={web_quote.url}
+          className={productanalytics.classExclude()}
+        >
+          {text}
+        </WebBlockQuotePad>
         {strippedRefs ? null : (
           <RefBox>
-            <RefLink href={quoteUrl.toString()}>
+            <RefLink
+              href={quoteUrl.toString()}
+              className={productanalytics.classExclude()}
+            >
               {authorElement}
               {hostname}
               <RefLinkIcon />

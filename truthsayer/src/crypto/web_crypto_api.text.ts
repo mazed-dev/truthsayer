@@ -23,10 +23,10 @@ test('crypto web api: encrypt & decrypt', async () => {
 
 test('crypto web api: importSecretBase64Key', async () => {
   const base64Key = 'TW96aWxsYS81LjAgKFgxMQ=='
-  const key = await importSecretBase64Key(base64Key)
+  await importSecretBase64Key(base64Key)
 })
 
 test('crypto web api: importSecretBase64Signature', async () => {
   const base64Key = 'TW96aWxsYS81LjAgKFgxMWFzZGZzYWRmc2E='
-  const key = await importSecretBase64Signature(base64Key)
+  await importSecretBase64Signature(base64Key)
 })
