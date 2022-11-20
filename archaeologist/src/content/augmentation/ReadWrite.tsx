@@ -8,9 +8,16 @@ import { FromContent } from './../../message/types'
 
 import { SuggestionsToast } from './SuggestionsToast'
 
-function appendSuffixToSlidingWindow(buf: string, key: string) {
-  const suffixToAppend = key.length > 1 ? ' ' : key
-  return (buf + suffixToAppend).slice(-42)
+function appendSuffixToSlidingWindow(buf: string, key: string): string {
+  if (key === 'Backspace') {
+    return buf.slice(0, -1)
+  } else if (key === 'Escape' || key === 'Enter') {
+    return ''
+  } else if (key.length > 1) {
+    // All other utility keys
+    return buf
+  }
+  return (buf + key).slice(-42)
 }
 
 type UserInput = {
@@ -21,6 +28,7 @@ function updateUserInputFromKeyboardEvent(
   userInput: UserInput,
   keyboardEvent: KeyboardEvent
 ) {
+  // log.debug(keyboardEvent)
   if ('altKey' in keyboardEvent) {
     // Consume KeyboardEvent
     const event = keyboardEvent as unknown as React.KeyboardEvent<HTMLElement>
@@ -38,7 +46,7 @@ function updateUserInputFromKeyboardEvent(
 }
 
 function getKeyPhraseFromUserInput({ keyBuffer }: UserInput): string {
-  const p = /([ \w]*)\/\/([ \w]*)/.exec(keyBuffer)
+  const p = /([ \w]*)\/\/(.*)/.exec(keyBuffer)
   if (p && p[2]) {
     return p[2]
   } else if (p && p[1]) {
@@ -49,25 +57,30 @@ function getKeyPhraseFromUserInput({ keyBuffer }: UserInput): string {
 
 export function WriteAugmentation() {
   const [suggestedNodes, setSuggestedNodes] = React.useState<TNode[]>([])
+  const [toastIsShown, showToast] = React.useState<boolean>(false)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const requestSuggestedAssociations = React.useCallback(
     lodash.debounce(
       async (phrase: string) => {
         log.debug('requestSuggestedAssociations', phrase)
         const response = await FromContent.sendMessage({
           type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
+          limit: 8,
           phrase,
         })
+        if (response.suggested.length > 0) {
+          showToast(true)
+        }
         setSuggestedNodes(
           response.suggested.map((value: TNodeJson) => TNode.fromJson(value))
         )
         log.debug('requestSuggestedAssociations - response', response)
       },
-      900,
+      919,
       {}
     ),
     []
   )
-  const [toastIsShown, showToast] = React.useState<boolean>(false)
   const [userInput, consumeKeyboardEvent] = React.useReducer(
     (userInput: UserInput, keyboardEvent: KeyboardEvent) => {
       const newInput = updateUserInputFromKeyboardEvent(
@@ -76,9 +89,9 @@ export function WriteAugmentation() {
       )
       showToast((isShown: boolean) => {
         isShown = isShown || newInput.keyBuffer.endsWith('//')
-        if (isShown) {
+        if (isShown || newInput.keyBuffer.replace(/\s/g, '').length > 5) {
           const phrase = getKeyPhraseFromUserInput(newInput)
-          log.debug('ShowToast for keyphrase', newInput.keyBuffer, phrase)
+          log.debug(`Look for "${phrase}" in Mazed`)
           requestSuggestedAssociations(phrase)
         }
         return isShown
@@ -96,9 +109,9 @@ export function WriteAugmentation() {
       document.removeEventListener('keydown', consumeKeyboardEvent)
     }
   }, [])
-  log.debug('ReadWriteAugmentation :: render userInput', userInput)
-  log.debug('ReadWriteAugmentation :: render toastIsShown', toastIsShown)
-  log.debug('ReadWriteAugmentation :: render suggestedNodes', suggestedNodes)
+  // log.debug('ReadWriteAugmentation :: render userInput', userInput)
+  // log.debug('ReadWriteAugmentation :: render toastIsShown', toastIsShown)
+  // log.debug('ReadWriteAugmentation :: render suggestedNodes', suggestedNodes)
   return (
     <>
       {toastIsShown ? (
@@ -106,10 +119,6 @@ export function WriteAugmentation() {
           onClose={() => showToast(false)}
           keyphrase={userInput.keyBuffer}
           suggested={suggestedNodes}
-          onInsert={(text: string) => {
-            log.debug('Target', userInput.target, text)
-            userInput.target?.insertAdjacentText('afterend', text)
-          }}
         />
       ) : null}
     </>

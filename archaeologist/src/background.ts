@@ -383,7 +383,7 @@ async function handleMessageFromContent(
       }
     }
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
-      const suggested = await suggestAssociations(message.phrase)
+      const suggested = await suggestAssociations(message.phrase, message.limit)
       return {
         type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
         suggested: suggested.map((node: TNode) => node.toJson()),

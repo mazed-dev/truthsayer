@@ -292,6 +292,7 @@ export namespace FromContent {
   export interface SuggestedAssociationsRequest {
     type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS'
     phrase: string
+    limit: number
   }
   export interface SuggestedAssociationsResponse {
     type: 'SUGGESTED_CONTENT_ASSOCIATIONS'

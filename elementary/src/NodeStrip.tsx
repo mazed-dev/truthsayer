@@ -8,7 +8,9 @@ import { BlockQuoteBox, BlockQuotePad } from './editor/components/components'
 import { TDoc } from './editor/types'
 import { TNode } from 'smuggler-api'
 
-const StripIcon = styled.img``
+const StripIcon = styled.img`
+  aspect-ratio: 1 / 1;
+`
 
 function NodeStripIcon({
   node,
@@ -27,8 +29,7 @@ function NodeStripIcon({
 }
 
 const Title = styled.p`
-  font-size: 1em;
-  font-weight: 500;
+  font-size: 1.1em;
   margin: 0 0 0.4em 0;
 `
 
@@ -129,13 +130,9 @@ function NodeStripHead({
 }
 
 const Box = styled.div`
-  height: 92px;
-  width: 368px;
+  height: 86px;
   overflow-y: hidden;
-  margin: 1px 4px 1px 4px;
-
-  border: 1px solid #ececec;
-  border-radius: 6px;
+  margin: 1px;
 
   display: flex;
   flex-direction: row;
@@ -143,16 +140,14 @@ const Box = styled.div`
 export const NodeStrip = ({
   node,
   className,
-  onClick,
 }: {
   node: TNode
   className?: string
-  onClick: () => void
 }) => {
   return (
-    <Box className={className} onClick={onClick}>
+    <Box className={className}>
       <NodeStripHead node={node} />
-      <NodeStripIcon node={node} css={{ width: '92px', height: '92px' }} />
+      <NodeStripIcon node={node} />
     </Box>
   )
 }

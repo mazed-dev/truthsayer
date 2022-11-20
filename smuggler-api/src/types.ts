@@ -223,6 +223,11 @@ export class TNode {
     return makeUrl(`/blob/${nid}`)
   }
 
+  getDirectLink(): string {
+    const { nid } = this
+    return makeUrl(`/n/${nid}`)
+  }
+
   toJson(): TNodeJson {
     return {
       nid: this.nid,
