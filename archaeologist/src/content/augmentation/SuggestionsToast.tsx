@@ -1,7 +1,10 @@
+/** @jsxImportSource @emotion/react */
+
 import React from 'react'
 import styled from '@emotion/styled'
+import { css } from '@emotion/react'
 
-import { MdiClose } from 'elementary'
+import { MdiClose, NodeStrip } from 'elementary'
 import { TNode } from 'smuggler-api'
 
 import { Toast } from './../toaster/Toaster'
@@ -36,17 +39,41 @@ const SuggestionsToastSuggestionsBox = styled.div`
   flex-direction: column;
 `
 
+const SuggestedFragment = ({
+  node,
+  onInsert,
+}: {
+  node: TNode
+  onInsert: (text: string) => void
+}) => {
+  return (
+    <NodeStrip
+      css={css`
+        font-size: 12px;
+      `}
+      onClick={() => {
+        onInsert('insertText Some test to be inserted')
+      }}
+      node={node}
+    />
+  )
+}
+
 export const SuggestionsToast = ({
   keyphrase,
   suggested,
   onClose,
+  onInsert,
 }: {
   keyphrase: string
   suggested: TNode[]
   onClose: () => void
+  onInsert: (text: string) => void
 }) => {
   const suggestedEl = suggested.map((node: TNode) => {
-    return <RefItem key={node.getNid()}>{node.getNid()}</RefItem>
+    return (
+      <SuggestedFragment key={node.getNid()} node={node} onInsert={onInsert} />
+    )
   })
   return (
     <Toast toastKey={'read-write-augmentation-toast'}>

@@ -106,6 +106,10 @@ export function WriteAugmentation() {
           onClose={() => showToast(false)}
           keyphrase={userInput.keyBuffer}
           suggested={suggestedNodes}
+          onInsert={(text: string) => {
+            log.debug('Target', userInput.target, text)
+            userInput.target?.insertAdjacentText('afterend', text)
+          }}
         />
       ) : null}
     </>
