@@ -60,7 +60,7 @@ const ToolbarBox = styled(ButtonGroup)`
 
 type ReactiveButtonProps = {
   active: boolean
-  onMouseDown: (event: React.MouseEvent) => void
+  onClick: (event: React.MouseEvent) => void
 } & React.HTMLProps<HTMLButtonElement>
 
 // Button that flips between two different visual styles depending on
@@ -68,23 +68,17 @@ type ReactiveButtonProps = {
 const ReactiveButton = ({
   active,
   children,
-  onMouseDown,
+  onClick,
 }: React.PropsWithChildren<ReactiveButtonProps>) => {
   if (active) {
     return (
-      <ToolbarButtonActive
-        onMouseDown={onMouseDown}
-        className={'material-icons'}
-      >
+      <ToolbarButtonActive onClick={onClick} className={'material-icons'}>
         {children}
       </ToolbarButtonActive>
     )
   } else {
     return (
-      <ToolbarButtonInactive
-        onMouseDown={onMouseDown}
-        className={'material-icons'}
-      >
+      <ToolbarButtonInactive onClick={onClick} className={'material-icons'}>
         {children}
       </ToolbarButtonInactive>
     )
@@ -99,7 +93,7 @@ const MarkButton = ({
   return (
     <ReactiveButton
       active={isMarkActive(editor, mark)}
-      onMouseDown={(event: React.MouseEvent) => {
+      onClick={(event: React.MouseEvent) => {
         event.preventDefault()
         toggleMark(editor, mark)
       }}
@@ -134,7 +128,7 @@ const BlockButton = ({
   return (
     <ReactiveButton
       active={isBlockActive(editor, format)}
-      onMouseDown={(event: React.MouseEvent) => {
+      onClick={(event: React.MouseEvent) => {
         event.preventDefault()
         toggleBlock(editor, format)
       }}
