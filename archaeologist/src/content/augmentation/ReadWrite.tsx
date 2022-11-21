@@ -119,6 +119,9 @@ export function WriteAugmentation() {
           onClose={() => showToast(false)}
           keyphrase={userInput.keyBuffer}
           suggested={suggestedNodes}
+          onPaste={() => {
+
+          }}
         />
       ) : null}
     </>

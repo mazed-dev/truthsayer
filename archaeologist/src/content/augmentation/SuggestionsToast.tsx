@@ -36,7 +36,6 @@ const ToastBox = styled.div`
   display: flex;
   flex-direction: column;
 
-  width: max-content !important;
   margin: 4px !important;
   background: #ffffff !important;
   border: 1px solid #ececec !important;
@@ -62,14 +61,14 @@ function genSnippetToInsert(node: TNode): string {
       const { web, title, author, description } = node.extattrs
       const authorStr = author ? ` by ${author}` : ''
       const descriptionStr = description ? ` — ${description}` : ''
-      return ` ${title}${authorStr}${descriptionStr} 🔗 ${web.url} `
+      return ` 🧵 ${title}${authorStr}${descriptionStr} 🔗 ${web.url} `
     }
   } else if (node.isWebQuote()) {
     if (node.extattrs?.web_quote != null) {
       const { text, url } = node.extattrs.web_quote
       const { author } = node.extattrs
       const authorStr = author ? ` by ${author}` : ''
-      return ` ${text}${authorStr} 🔗 ${url} `
+      return ` 🧵 ${text}${authorStr} 🔗 ${url} `
     }
   }
   const doc = TDoc.fromNodeTextData(node.getText())
@@ -144,10 +143,12 @@ export const SuggestionsToast = ({
   keyphrase,
   suggested,
   onClose,
+  onPaste,
 }: {
   keyphrase: string
   suggested: TNode[]
   onClose: () => void
+  onPaste: () => void
 }) => {
   const suggestedEl = suggested.map((node: TNode) => {
     return <SuggestedFragment key={node.getNid()} node={node} />
