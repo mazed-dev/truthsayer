@@ -4,6 +4,7 @@ import styled from '@emotion/styled'
 import { keyframes } from '@emotion/react'
 import { Box, LogoSmall, RefItem } from './../style'
 import { HoverTooltip } from 'elementary'
+import ReactShadowRoot from 'react-shadow-root'
 
 const kToasterBoxElementId = 'mazed-archaeologist-toaster-id'
 const ToasterBox = styled.div`
@@ -35,7 +36,8 @@ export const Toaster = ({ children }: React.PropsWithChildren<{}>) => {
     }
   })
   return ReactDOM.createPortal(
-    <ToasterBox id={kToasterBoxElementId}>{children}</ToasterBox>,
+    <ToasterBox id={kToasterBoxElementId}>{children}</ToasterBox>
+    ,
     container
   )
 }
@@ -73,7 +75,10 @@ export const Toast = ({
      */
   )
   return ReactDOM.createPortal(
-    <ToastBox key={toastKey}>{children}</ToastBox>,
+    <ReactShadowRoot>
+      <ToastBox key={toastKey}>{children}</ToastBox>
+    </ReactShadowRoot>
+    ,
     box
   )
 }
@@ -97,7 +102,7 @@ export const DisappearingToast = ({
   React.useEffect(() => {
     const callbackId = setTimeout(() => {
       setShow(false)
-    }, timeoutMsec ?? 3099)
+    }, timeoutMsec ?? 30999999)
     return () => clearTimeout(callbackId)
   }, [text, tooltip, timeoutMsec, id])
   return show ? (

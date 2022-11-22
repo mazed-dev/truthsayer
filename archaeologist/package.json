@@ -60,6 +60,7 @@
     "react": "^16.14.0",
     "react-bootstrap": "^2.0.0",
     "react-dom": "^16.14.0",
+    "react-shadow-root": "^6.2.0",
     "smuggler-api": "0.0.1",
     "ts-loader": "^8.3.0",
     "ts-node": "^9.1.1",

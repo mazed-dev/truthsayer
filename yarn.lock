@@ -5524,6 +5524,7 @@ __metadata:
     react: ^16.14.0
     react-bootstrap: ^2.0.0
     react-dom: ^16.14.0
+    react-shadow-root: ^6.2.0
     safe-compare: ^1.1.4
     smuggler-api: 0.0.1
     terser-webpack-plugin: ^4.2.3
@@ -17648,6 +17649,17 @@ __metadata:
   bin:
     react-scripts: bin/react-scripts.js
   checksum: 92afa2f245c7092ccc97d5609dc7a2130616262e34da7f15072d9442e2d2e1d4909a91022abd1faac1336eb17c5525a10d9bd43e1ae374c7ec941ca20addca68
+  languageName: node
+  linkType: hard
+
+"react-shadow-root@npm:^6.2.0":
+  version: 6.2.0
+  resolution: "react-shadow-root@npm:6.2.0"
+  peerDependencies:
+    prop-types: ">=15.6.0"
+    react: ">=16.0.0"
+    react-dom: ">=16.0.0"
+  checksum: b8a4796cb48af32b723d55e294acfe07fd755b461e7c7b490ac200c1cc35f4b4c612255fc6f77d7e9d94e53c24c82f95e99478c0df9e974845e2aced8cef4f55
   languageName: node
   linkType: hard
 
