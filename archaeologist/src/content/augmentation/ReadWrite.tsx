@@ -7,6 +7,7 @@ import { TNode, TNodeJson } from 'smuggler-api'
 import { FromContent } from './../../message/types'
 
 import { SuggestionsToast } from './SuggestionsToast'
+import { TextAreaCornerTag } from './TextAreaCornerTag'
 
 function appendSuffixToSlidingWindow(buf: string, key: string): string {
   if (key === 'Backspace') {
@@ -114,14 +115,12 @@ export function WriteAugmentation() {
   // log.debug('ReadWriteAugmentation :: render suggestedNodes', suggestedNodes)
   return (
     <>
+      <TextAreaCornerTag target={userInput.target}/>
       {toastIsShown ? (
         <SuggestionsToast
           onClose={() => showToast(false)}
           keyphrase={userInput.keyBuffer}
           suggested={suggestedNodes}
-          onPaste={() => {
-
-          }}
         />
       ) : null}
     </>

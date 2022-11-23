@@ -143,12 +143,10 @@ export const SuggestionsToast = ({
   keyphrase,
   suggested,
   onClose,
-  onPaste,
 }: {
   keyphrase: string
   suggested: TNode[]
   onClose: () => void
-  onPaste: () => void
 }) => {
   const suggestedEl = suggested.map((node: TNode) => {
     return <SuggestedFragment key={node.getNid()} node={node} />
