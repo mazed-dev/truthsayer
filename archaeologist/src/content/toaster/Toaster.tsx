@@ -36,8 +36,7 @@ export const Toaster = ({ children }: React.PropsWithChildren<{}>) => {
     }
   })
   return ReactDOM.createPortal(
-    <ToasterBox id={kToasterBoxElementId}>{children}</ToasterBox>
-    ,
+    <ToasterBox id={kToasterBoxElementId}>{children}</ToasterBox>,
     container
   )
 }
@@ -77,8 +76,7 @@ export const Toast = ({
   return ReactDOM.createPortal(
     <ReactShadowRoot>
       <ToastBox key={toastKey}>{children}</ToastBox>
-    </ReactShadowRoot>
-    ,
+    </ReactShadowRoot>,
     box
   )
 }
@@ -102,7 +100,7 @@ export const DisappearingToast = ({
   React.useEffect(() => {
     const callbackId = setTimeout(() => {
       setShow(false)
-    }, timeoutMsec ?? 30999999)
+    }, timeoutMsec ?? 3099)
     return () => clearTimeout(callbackId)
   }, [text, tooltip, timeoutMsec, id])
   return show ? (
