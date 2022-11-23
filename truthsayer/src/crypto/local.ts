@@ -59,7 +59,9 @@ export class LocalCrypto {
 
   static getInstance(): LocalCrypto {
     if (!this._instance) {
-      throw 'Failed to get LocalCrypto instance, initInstance() has to be called first'
+      throw new Error(
+        'Failed to get LocalCrypto instance, initInstance() has to be called first'
+      )
     }
     return this._instance
   }

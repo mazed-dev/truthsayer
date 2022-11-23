@@ -23,18 +23,6 @@ function arrayBuffer2Str(ab: ArrayBuffer): string {
   return dec.decode(ab)
 }
 
-interface TEncrypted {
-  encrypted: string
-  iv: string
-  signature: string
-}
-
-interface TUserLocalKey {
-  id: string
-  key: ArrayBuffer
-  sig: ArrayBuffer
-}
-
 // / Symmetric
 const kSymmetricAlgo = 'AES-CBC'
 const kSymmetricAlgoLength = 256
@@ -111,8 +99,6 @@ const kSignatureAlgo = {
     name: kSignatureHashAlgo,
   },
 }
-const kSignatureNamedCurve = 'P-256'
-
 // Generate keys
 export async function signatureGenerateKeys() {
   return await kWebCryptoApiSubtle.generateKey(kSignatureAlgo, true, [

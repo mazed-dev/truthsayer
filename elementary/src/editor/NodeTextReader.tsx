@@ -15,6 +15,7 @@ import { TDoc } from './types'
 import { TNode } from 'smuggler-api'
 
 import { makeElementRender } from './ElementRender'
+import { productanalytics } from 'armoury'
 
 export const NodeTextReader = ({
   className,
@@ -46,6 +47,7 @@ export const NodeTextReader = ({
           css={css`
             padding: 1em 1em 0 1em;
           `}
+          className={productanalytics.classExclude()}
         />
       </Slate>
     </div>
