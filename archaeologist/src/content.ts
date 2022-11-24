@@ -10,8 +10,14 @@ import { renderPageAugmentationApp } from './content/App'
 /**
  * Single mount point in a page DOM for Mazed content state.
  */
+const host = document.createElement('div')
+host.id = 'mazed-archaeologist-content-host'
+
+const shadow = host.attachShadow({ mode: 'open' })
+
 const mount = document.createElement('div')
-mount.id = 'mazed-archaeologist-content-mount'
-document.body.appendChild(mount)
+mount.id = 'mazed-archaeologist-content-shadow-mount'
+
+shadow.appendChild(mount)
 
 renderPageAugmentationApp(mount)

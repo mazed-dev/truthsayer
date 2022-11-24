@@ -2,6 +2,8 @@ import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom'
 
 import browser from 'webextension-polyfill'
+import { CacheProvider } from '@emotion/react'
+import createCache from '@emotion/cache'
 
 import { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log } from 'armoury'
@@ -317,6 +319,15 @@ const App = () => {
 }
 
 export function renderPageAugmentationApp(mount: HTMLDivElement) {
-  ReactDOM.render(<App />, mount)
+  const emotionCache = createCache({
+    key: 'mazed-archaeologist-content',
+  })
+
+  ReactDOM.render(
+    <CacheProvider value={emotionCache}>
+      <App />
+    </CacheProvider>,
+    mount
+  )
   log.debug('Page content augmentation is loaded')
 }

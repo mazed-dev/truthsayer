@@ -39,8 +39,12 @@ export function TruthsayerVersion({ version }: { version: VersionStruct }) {
 export function getArchaeologistVersion(
   document_: Document
 ): VersionStruct | null {
+  const host = document_.getElementById('mazed-archaeologist-content-host')
+  if (host == null || host.shadowRoot == null) {
+    return null
+  }
   const id: VersionId = 'mazed-archaeologist-version'
-  const el = document_.getElementById(id)
+  const el = host.shadowRoot.getElementById(id)
   if (el != null) {
     try {
       return JSON.parse(el.innerHTML) as VersionStruct
