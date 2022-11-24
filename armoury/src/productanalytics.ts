@@ -34,37 +34,43 @@ function makeAnalytics(
     return previouslyCreatedInstance
   }
 
-  const anonymousUserId = `${kIdentityEnvPrefix}${uuidv4()}`
+  const userIdBootstrap = config?.bootstrap?.isIdentifiedID
+    ? config.bootstrap
+    : {
+        distinctID: `${kIdentityEnvPrefix}${uuidv4()}`, // anonymous ID
+        isIdentifiedID: false,
+      }
   try {
     // PostHog token and API host URL can be found at https://eu.posthog.com/project/settings
     const posthogToken = 'phc_p8GUvTa63ZKNpa05iuGI7qUvXYyyz3JG3UWe88KT7yj'
     const posthogApiHost = 'https://eu.posthog.com'
-    const ret = posthog.init(
-      posthogToken,
-      {
-        ...config,
-        api_host: posthogApiHost,
-        bootstrap: {
-          distinctID: anonymousUserId,
-          isIdentifiedID: false,
-        },
-        // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies
-        secure_cookie: true,
-        // Exclude user's IP address from events (below options doesn't
-        // appear to work, instead this is controlled via a toggle in
-        // project settings in https://eu.posthog.com/project/settings)
-        // ip: false,
-        // property_blacklist: ['$ip'],
-      },
-      analyticsContextName
-    )
+    const finalConfig: Partial<PostHogConfig> = {
+      ...config,
+      bootstrap: userIdBootstrap,
+      api_host: posthogApiHost,
+      // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies
+      secure_cookie: true,
+      // Exclude user's IP address from events (below options don't
+      // appear to work, instead this is controlled via a toggle in
+      // project settings in https://eu.posthog.com/project/settings)
+      // ip: false,
+      // property_blacklist: ['$ip'],
+    }
+    log.debug(`${logPrefix} config: ${JSON.stringify(finalConfig)}`)
+    const ret = posthog.init(posthogToken, finalConfig, analyticsContextName)
     if (!(ret instanceof PostHog)) {
       throw new Error(`${logPrefix} Object is not of expected type`)
     }
-    log.debug(
-      `${logPrefix} initialised, until user is identified events will be` +
-        ` published as ${anonymousUserId}`
-    )
+    if (userIdBootstrap.isIdentifiedID) {
+      log.debug(
+        `${logPrefix} Valid user account, future events will be identified as '${userIdBootstrap.distinctID}'`
+      )
+    } else {
+      log.debug(
+        `${logPrefix} initialised, until user is identified events will be` +
+          ` published as ${userIdBootstrap.distinctID}`
+      )
+    }
     return ret
   } catch (e) {
     log.warning(`${logPrefix} Failed to init, error = ${errorise(e)}`)

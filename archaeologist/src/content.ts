@@ -5,7 +5,14 @@
  * page that has been loaded into the browser. Content scripts read and modify
  * the DOM of web pages the browser visits.
  */
+import { productanalytics } from 'armoury'
 import { renderPageAugmentationApp } from './content/App'
+
+// Do not track any user interactions with non-Mazed elements of a
+// web page.
+for (const child of document.body.children) {
+  child.classList.add(productanalytics.classExclude())
+}
 
 /**
  * Single mount point in a page DOM for Mazed content state.
