@@ -5,7 +5,7 @@
  * See https://posthog.com/ for more information.
  */
 
-import { posthog, PostHog } from 'posthog-js'
+import { posthog, PostHog, PostHogConfig } from 'posthog-js'
 
 import { errorise } from './exception'
 import { log } from './log'
@@ -19,7 +19,10 @@ const kIdentityEnvPrefix = process.env.NODE_ENV === 'development' ? 'dev/' : ''
  * @param analyticsContextName name that PostHog will use to cache the instance
  * internally.
  */
-function makeAnalytics(analyticsContextName: string): PostHog | null {
+function makeAnalytics(
+  analyticsContextName: string,
+  config?: Partial<PostHogConfig>
+): PostHog | null {
   const logPrefix = `${kLogCategory} '${analyticsContextName}'`
   const previouslyCreatedInstance: PostHog | undefined =
     // @ts-ignore: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'PostHog'
@@ -39,6 +42,7 @@ function makeAnalytics(analyticsContextName: string): PostHog | null {
     const ret = posthog.init(
       posthogToken,
       {
+        ...config,
         api_host: posthogApiHost,
         bootstrap: {
           distinctID: anonymousUserId,

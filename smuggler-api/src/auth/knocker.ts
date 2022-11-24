@@ -2,7 +2,7 @@ import { smuggler, SmugglerError } from './../api'
 import { StatusCode } from './../status_codes'
 import { authCookie } from './cookie'
 
-import type { Optional } from 'armoury'
+import { errorise, Optional } from 'armoury'
 import { log, unixtime } from 'armoury'
 import lodash from 'lodash'
 
@@ -29,7 +29,13 @@ export class Knocker {
     this.#checkingPeriodMSeconds = lodash.random(80_000, 120_000)
   }
 
-  start = async () => {
+  start = async ({
+    onKnockSuccess,
+    onKnockFailure,
+  }: {
+    onKnockSuccess?: () => Promise<void>
+    onKnockFailure?: () => void
+  }) => {
     if (this.#scheduledId) {
       clearTimeout(this.#scheduledId)
     }
@@ -40,15 +46,30 @@ export class Knocker {
       () => {
         this.#scheduledId = lodash.delay(
           this.start,
-          this.#checkingPeriodMSeconds
+          this.#checkingPeriodMSeconds,
+          { onKnockSuccess, onKnockFailure }
         )
       },
       // Log out immediately if there is a client error
-      () => this.abort()
+      () => {
+        try {
+          if (onKnockFailure != null) {
+            onKnockFailure()
+          }
+        } catch (e) {
+          log.warning(
+            `Suppressed error during knock failure: ${errorise(e).message}`
+          )
+        } finally {
+          this.abort()
+        }
+      },
+      onKnockSuccess
     )
   }
 
   abort = async () => {
+    log.debug('Knocker aborted')
     if (this.#scheduledId) {
       clearTimeout(this.#scheduledId)
     }
@@ -60,7 +81,8 @@ export class Knocker {
 
   knock = async (
     onCheckSuccess: () => void,
-    onKnockFailure: () => void
+    onKnockFailure: () => void,
+    onKnockSuccess?: () => Promise<void>
   ): Promise<void> => {
     try {
       // To renew auth token more effectively rely on 'lastUpdate' value stored
@@ -72,6 +94,16 @@ export class Knocker {
         log.debug('Knock-knock smuggler', now, lastUpdateTime)
         await smuggler.session.update(this.#abortController.signal)
         this.setLastUpdate({ time: now })
+
+        try {
+          if (onKnockSuccess != null) {
+            await onKnockSuccess()
+          }
+        } catch (e) {
+          log.warning(
+            `Suppressed error during knock success: ${errorise(e).message}`
+          )
+        }
       }
     } catch (error) {
       const smugglerError = SmugglerError.fromAny(error)
