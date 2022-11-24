@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { Button } from 'react-bootstrap'
+import { PostHog } from 'posthog-js'
 
 import { KnockerElement } from '../auth/Knocker'
 
@@ -9,6 +10,7 @@ import { createUserAccount, AccountInterface } from 'smuggler-api'
 
 import styles from './global.module.css'
 import { NotificationToast } from './Toaster'
+import { errorise, log, productanalytics } from 'armoury'
 
 type Toaster = {
   toasts: React.ReactElement[]
@@ -24,6 +26,7 @@ export type MzdGlobalContextProps = {
   account: null | AccountInterface
   topbar: Topbar | {}
   toaster: Toaster
+  analytics: PostHog | null
 }
 
 export const MzdGlobalContext = React.createContext<MzdGlobalContextProps>({
@@ -35,14 +38,21 @@ export const MzdGlobalContext = React.createContext<MzdGlobalContextProps>({
       // *dbg*/ console.log('Default push() function called: ', header, message)
     },
   },
+  analytics: null,
 })
 
-type MzdGlobalProps = {}
+type MzdGlobalProps = {
+  analytics: PostHog | null
+}
 type MzdGlobalState = {
   topbar: Topbar
   toaster: Toaster
   account: AccountInterface | null
+  analytics: PostHog | null
 }
+
+const kAnonymousAnalyticsWarning =
+  'future product analytics events will be attached to an anonymous identity'
 
 export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
   fetchAccountAbortController: AbortController
@@ -85,6 +95,7 @@ export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
       })
     }
     this.fetchAccountAbortController = new AbortController()
+
     this.state = {
       toaster: {
         toasts: [],
@@ -95,15 +106,42 @@ export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
         reset: this.resetAuxToobar,
       },
       account: null,
+      analytics: props.analytics,
     }
   }
 
   componentDidMount() {
-    createUserAccount(this.fetchAccountAbortController.signal).then(
-      (account) => {
+    createUserAccount(this.fetchAccountAbortController.signal)
+      .then((account) => {
         this.setState({ account })
-      }
-    )
+
+        if (this.state.analytics) {
+          try {
+            productanalytics.identifyUser({
+              analytics: this.state.analytics,
+              userUid: account.getUid(),
+            })
+          } catch (e) {
+            log.warning(`${errorise(e).message}, ${kAnonymousAnalyticsWarning}`)
+          }
+        }
+      })
+      .catch((reason) => {
+        log.warning(
+          `Faild to initialise user account (error = ${errorise(
+            reason
+          )}), ${kAnonymousAnalyticsWarning}`
+        )
+      })
+  }
+
+  componentWillUnmount() {
+    if (this.state.analytics) {
+      this.state.analytics.reset()
+      log.debug(
+        `Product analytics identity have been reset, ${kAnonymousAnalyticsWarning}`
+      )
+    }
   }
 
   render() {
