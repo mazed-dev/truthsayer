@@ -26,6 +26,13 @@ function register() {
     // for more information on why it may not be a good idea to call
     // 'auth.observe()' immediately after analytics instances has been created
     loaded: startObservingAuth,
+    // All other available types of PostHog persistence seem to rely
+    // on browser APIs that are not available within background script, like
+    // 'window.localStorage', 'cookieStore' etc. Note that conceptually
+    // some of these APIs may be available to background scripts, but the way
+    // PostHog accesses them is not (e.g. cookies are accessible via
+    // 'browser.cookies', but PostHog uses 'cookieStore').
+    persistence: 'memory',
   })
 
   _analytics?.register({
