@@ -23,27 +23,33 @@ function appendSuffixToSlidingWindow(buf: string, key: string): string {
 
 type UserInput = {
   keyBuffer: string
-  target?: HTMLInputElement
+  target?: HTMLElement
 }
 function updateUserInputFromKeyboardEvent(
   userInput: UserInput,
   keyboardEvent: KeyboardEvent
 ) {
-  // log.debug(keyboardEvent)
+  log.debug('KeyboardEvent', keyboardEvent)
   if ('altKey' in keyboardEvent) {
     // Consume KeyboardEvent
     const event = keyboardEvent as unknown as React.KeyboardEvent<HTMLElement>
-    if ((event.target as HTMLElement).contentEditable) {
-      const target = event.target as HTMLInputElement
-      const keyBuffer = appendSuffixToSlidingWindow(
-        userInput.keyBuffer,
-        event.key
-      )
-      // log.debug('typingOnKeyDownListener editable')
+    const target = event.target as HTMLElement
+    if (
+      target.isContentEditable ||
+      target.nodeName === 'INPUT' ||
+      target.nodeName === 'TEXTAREA'
+    ) {
+      let { keyBuffer } = userInput
+      if (target !== userInput.target) {
+        keyBuffer = ''
+      }
+      keyBuffer = appendSuffixToSlidingWindow(keyBuffer, event.key)
+      log.debug('typingOnKeyDownListener editable')
       return { keyBuffer, target }
     }
   }
-  return userInput
+  log.debug('typingOnKeyDownListener NOT editable')
+  return { keyBuffer: '', target: undefined }
 }
 
 function getKeyPhraseFromUserInput({ keyBuffer }: UserInput): string {
@@ -63,7 +69,7 @@ export function WriteAugmentation() {
   const requestSuggestedAssociations = React.useCallback(
     lodash.debounce(
       async (phrase: string) => {
-        log.debug('requestSuggestedAssociations', phrase)
+        // log.debug('requestSuggestedAssociations', phrase)
         const response = await FromContent.sendMessage({
           type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
           limit: 8,
@@ -75,7 +81,7 @@ export function WriteAugmentation() {
         setSuggestedNodes(
           response.suggested.map((value: TNodeJson) => TNode.fromJson(value))
         )
-        log.debug('requestSuggestedAssociations - response', response)
+        // log.debug('requestSuggestedAssociations - response', response)
       },
       919,
       {}
@@ -105,9 +111,9 @@ export function WriteAugmentation() {
     }
   )
   React.useEffect(() => {
-    document.addEventListener('keydown', consumeKeyboardEvent)
+    window.addEventListener('keydown', consumeKeyboardEvent)
     return () => {
-      document.removeEventListener('keydown', consumeKeyboardEvent)
+      window.removeEventListener('keydown', consumeKeyboardEvent)
     }
   }, [])
   // log.debug('ReadWriteAugmentation :: render userInput', userInput)
@@ -115,7 +121,12 @@ export function WriteAugmentation() {
   // log.debug('ReadWriteAugmentation :: render suggestedNodes', suggestedNodes)
   return (
     <>
-      <TextAreaCornerTag target={userInput.target}/>
+      <TextAreaCornerTag
+        target={userInput.target}
+        onClick={() => showToast((isShown) => !isShown)}
+      >
+        98
+      </TextAreaCornerTag>
       {toastIsShown ? (
         <SuggestionsToast
           onClose={() => showToast(false)}

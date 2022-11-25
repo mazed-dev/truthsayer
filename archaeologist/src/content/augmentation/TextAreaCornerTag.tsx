@@ -3,43 +3,100 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import styled from '@emotion/styled'
-import { LogoSmall, ButtonItem, RefItem } from './../style'
+import { LogoSmall } from './../style'
 
-const ToastBox = styled.div`
-  width: 368px;
-  display: flex;
-  flex-direction: column;
+const OuterBox = styled.div`
+  position: absolute;
+  display: contents;
+`
+const Box = styled.div`
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
 
-  margin: 4px !important;
-  background: #ffffff !important;
+  user-select: none;
+  cursor: pointer;
+
+  z-index: 1024;
+`
+
+const Logo = styled(LogoSmall)`
+  margin: 0;
+  padding: 0;
+`
+
+const BadgeBox = styled.div`
+  position: static;
+`
+
+const BadgeBubble = styled.div`
+  position: absolute;
+  bottom: 1px;
+  right: 0;
+
+  width: 14px !important;
+  height: 14px !important;
+
+  border-radius: 28px !important;
   border: 1px solid #ececec !important;
-  border-radius: 4px !important;
-  color: black !important;
-  box-shadow: 2px 2px 4px #8c8c8ceb;
+  background-image: linear-gradient(#54a3ff, #006eed);
 `
 
-const Header = styled.div`
+const BadgeTextBox = styled.div`
+  position: relative;
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  justify-content: center;
 `
 
-const SuggestionsToastSuggestionsBox = styled.div`
-  display: flex;
-  flex-direction: column;
+const BadgeText = styled.span`
+  font-size: 12px;
+  letter-spacing: -1px;
+  color: white;
 `
 
 export const TextAreaCornerTag = ({
   target,
+  onClick,
+  children,
 }: {
-  target?: Node
+  target?: HTMLElement
+  onClick: () => void
+  children?: string
 }) => {
   const box = document.createElement('mazed-textarea-augmentation')
+  box.style.width = '0'
+  box.style.height = '0'
   React.useEffect(() => {
-    target?.appendChild(box)
-    return () => {
-      target?.removeChild(box)
+    if (target) {
+      const mount = target.parentElement
+      mount?.insertBefore(box, target)
+      return () => {
+        mount?.removeChild(box)
+      }
     }
+    return () => {}
   })
-  return ReactDOM.createPortal(<></>, box)
+  if (target == null) {
+    return null
+  }
+  return ReactDOM.createPortal(
+    <OuterBox
+      css={{
+        width: target?.clientWidth,
+        height: target?.clientHeight,
+      }}
+    >
+      <Box onClick={onClick}>
+        <Logo />
+        <BadgeBox>
+          <BadgeBubble>
+            <BadgeTextBox>
+              <BadgeText>{children}</BadgeText>
+            </BadgeTextBox>
+          </BadgeBubble>
+        </BadgeBox>
+      </Box>
+    </OuterBox>,
+    box
+  )
 }

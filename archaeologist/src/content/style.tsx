@@ -53,8 +53,8 @@ export const RefItem = styled.a`
 const LogoSmallImg = styled.img`
   width: 20px !important;
   height: 20px !important;
-  margin: auto 2px auto 10px !important;
-  padding: 0 !important;
+  margin: auto 2px auto 10px;
+  padding: 0;
 `
 
 export const LogoSmall = ({ className }: { className?: string }) => (
