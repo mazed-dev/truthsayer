@@ -3,7 +3,7 @@ import * as webNavigation from './web-navigation/webNavigation'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import * as auth from './background/auth'
 import { saveWebPage, savePageQuote } from './background/savePage'
-import * as productanalytics from './background/productanalytics'
+import { backgroundpa } from './background/productanalytics'
 import {
   ToPopUp,
   ToContent,
@@ -799,4 +799,4 @@ auth.register()
 browserBookmarks.register()
 omnibox.register()
 webNavigation.register()
-productanalytics.register()
+backgroundpa.register()

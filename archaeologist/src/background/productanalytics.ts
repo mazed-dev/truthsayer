@@ -1,6 +1,6 @@
 /**
- * Wrapper around @see armoury.productanalytics that syncs
- * Product Analytics instance with user's authentication state.
+ * Wrapper around @see armoury.productanalytics tailored to needs
+ * specific to the background script.
  */
 import { PostHog } from 'posthog-js'
 import { log, productanalytics } from 'armoury'
@@ -11,7 +11,7 @@ const kLogCategory = '[productanalytics/archaeologist/background]'
 
 let _analytics: PostHog | null = null
 
-export function register() {
+function register() {
   const account = auth.account()
   _analytics = productanalytics.make('archaeologist/background', {
     autocapture: false,
@@ -55,6 +55,7 @@ function startObservingAuth() {
   })
 }
 
-export function analytics(): PostHog | null {
-  return _analytics
+export const backgroundpa = {
+  register,
+  instance: () => _analytics,
 }
