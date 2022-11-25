@@ -174,7 +174,7 @@ function updateState(state: State, action: Action): State {
           // This means that different "instances" of product analytics
           // won't interfere with each other accidentally, which is of
           // particular importance for analytics properties like 'augmenter-url-guid'
-          // persistence: 'memory',
+          persistence: 'memory',
         })
         if (analytics != null) {
           analytics.register({

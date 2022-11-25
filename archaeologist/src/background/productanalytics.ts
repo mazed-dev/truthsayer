@@ -12,10 +12,28 @@ const kLogCategory = '[productanalytics/archaeologist/background]'
 let _analytics: PostHog | null = null
 
 export function register() {
+  const account = auth.account()
   _analytics = productanalytics.make('archaeologist/background', {
     autocapture: false,
     capture_pageview: false,
+    bootstrap: account.isAuthenticated()
+      ? {
+          distinctID: productanalytics.identity.fromUserId(account.getUid()),
+          isIdentifiedID: true,
+        }
+      : undefined,
+    // See https://posthog.com/docs/integrate/client/js#identifying-users
+    // for more information on why it may not be a good idea to call
+    // 'auth.observe()' immediately after analytics instances has been created
+    loaded: startObservingAuth,
   })
+
+  _analytics?.register({
+    source: 'archaeologist/background',
+  })
+}
+
+function startObservingAuth() {
   auth.observe({
     onLogin: (account: UserAccount) => {
       if (_analytics == null) {

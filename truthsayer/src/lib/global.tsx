@@ -117,6 +117,13 @@ export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
 
         if (this.state.analytics) {
           try {
+            // TODO[snikitin@outlook.com] In cases when truthsayer is launched
+            // the user is already logged in user identification should happen
+            // immediately at the point of product analytics instance creation
+            // (via 'PostHogConfig.bootstrap' field). Without that, opening
+            // truthsayer produces a single anonymous '$pageview' event followed
+            // immediately by an '$identify' event. This makes analytics data
+            // more difficult to navigate and consumes extra quota.
             productanalytics.identifyUser({
               analytics: this.state.analytics,
               userUid: account.getUid(),

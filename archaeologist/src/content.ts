@@ -8,10 +8,13 @@
 import { productanalytics } from 'armoury'
 import { renderPageAugmentationApp } from './content/App'
 
-// Do not track any user interactions with non-Mazed elements of a
-// web page.
-for (const child of document.body.children) {
-  child.classList.add(productanalytics.classExclude())
+if (document.URL.indexOf('mazed.se') === -1) {
+  // Except when on Mazed's own homepage, content augmentation should
+  // try to limit product analytics from auto-capturing any user interactions
+  // that do not involve the augmentation itself.
+  for (const child of document.body.children) {
+    child.classList.add(productanalytics.classExclude())
+  }
 }
 
 /**

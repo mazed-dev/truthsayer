@@ -56,7 +56,6 @@ function makeAnalytics(
       // ip: false,
       // property_blacklist: ['$ip'],
     }
-    log.debug(`${logPrefix} config: ${JSON.stringify(finalConfig)}`)
     const ret = posthog.init(posthogToken, finalConfig, analyticsContextName)
     if (!(ret instanceof PostHog)) {
       throw new Error(`${logPrefix} Object is not of expected type`)
@@ -86,17 +85,21 @@ function identifyUser({
   userUid: string
 }) {
   const logPrefix = `${kLogCategory} '${analytics.get_config('name')}'`
-  const analyticsId = `${kIdentityEnvPrefix}${userUid}`
+  const identity = makePostHogIdentityFromUserUid(userUid)
   try {
-    analytics.identify(analyticsId, { uid: userUid })
+    analytics.identify(identity, { uid: userUid })
     log.debug(
-      `${logPrefix} Valid user account, future events will be identified as '${analyticsId}'`
+      `${logPrefix} Valid user account, future events will be identified as '${identity}'`
     )
   } catch (e) {
     log.warning(
-      `${logPrefix} Failed to identify user as ${analyticsId}: ${errorise(e)}`
+      `${logPrefix} Failed to identify user as ${identity}: ${errorise(e)}`
     )
   }
+}
+
+function makePostHogIdentityFromUserUid(userUid: string) {
+  return `${kIdentityEnvPrefix}${userUid}`
 }
 
 /**
@@ -120,4 +123,7 @@ export const productanalytics = {
   make: makeAnalytics,
   identifyUser,
   classExclude: markClassNameForExclusion,
+  identity: {
+    fromUserId: makePostHogIdentityFromUserUid,
+  },
 }
