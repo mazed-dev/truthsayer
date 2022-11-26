@@ -5,7 +5,8 @@
  * See https://posthog.com/ for more information.
  */
 
-import { posthog, PostHog, PostHogConfig } from 'posthog-js'
+import { posthog, PostHog } from 'posthog-js'
+import type { PostHogConfig } from 'posthog-js'
 
 import { errorise } from './exception'
 import { log } from './log'

@@ -2,8 +2,8 @@ import { smuggler, SmugglerError } from './../api'
 import { StatusCode } from './../status_codes'
 import { authCookie } from './cookie'
 
-import { errorise, Optional } from 'armoury'
-import { log, unixtime } from 'armoury'
+import { log, unixtime, errorise } from 'armoury'
+import type { Optional } from 'armoury'
 import lodash from 'lodash'
 
 export class Knocker {
