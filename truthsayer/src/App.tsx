@@ -55,7 +55,7 @@ import { log, productanalytics } from 'armoury'
 
 export function App() {
   const analytics = React.useMemo<PostHog | null>(
-    () => productanalytics.make('truthsayer'),
+    () => productanalytics.make('truthsayer', process.env.NODE_ENV),
     []
   )
   return (

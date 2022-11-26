@@ -725,6 +725,7 @@ async function initMazedPartsOfTab(
   try {
     await ToContent.sendMessage(tab.id, {
       type: 'INIT_CONTENT_AUGMENTATION_REQUEST',
+      env: process.env.NODE_ENV,
       userUid: auth.account().getUid(),
       quotes: response.quotes.map((node) => node.toJson()),
       bookmark: response.bookmark?.toJson(),
