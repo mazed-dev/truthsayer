@@ -7,6 +7,8 @@ import { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log } from 'armoury'
 import { truthsayer_archaeologist_communication } from 'elementary'
 
+import { mazed } from '../util/mazed'
+
 import {
   FromContent,
   ToContent,
@@ -297,22 +299,26 @@ const App = () => {
     ) : null
   return (
     <AppErrorBoundary>
+      <BrowserHistoryImportControlPortal
+        progress={state.browserHistoryUploadProgress}
+        host={window.location.host}
+      />
       <truthsayer_archaeologist_communication.ArchaeologistVersion
         version={{
           version: browser.runtime.getManifest().version,
         }}
       />
-      <Toaster />
-      {state.notification ? (
-        <DisappearingToast {...state.notification} />
-      ) : null}
-      <Quotes quotes={state.quotes} />
-      {activityTrackerOrNull}
-      <BrowserHistoryImportControlPortal
-        progress={state.browserHistoryUploadProgress}
-        host={window.location.host}
-      />
-      <WriteAugmentation />
+      {mazed.isMazed(document.URL) ? null : (
+        <>
+          <Toaster />
+          {state.notification ? (
+            <DisappearingToast {...state.notification} />
+          ) : null}
+          <Quotes quotes={state.quotes} />
+          {activityTrackerOrNull}
+          <WriteAugmentation />
+        </>
+      )}
     </AppErrorBoundary>
   )
 }

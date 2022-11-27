@@ -3,11 +3,11 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import styled from '@emotion/styled'
-import { LogoSmall } from './../style'
+import LogoImage from '../../../public/logo-fade-48x48.png'
 
 const OuterBox = styled.div`
   position: absolute;
-  display: contents;
+  display: unset;
 `
 const Box = styled.div`
   position: absolute;
@@ -20,10 +20,15 @@ const Box = styled.div`
   z-index: 1024;
 `
 
-const Logo = styled(LogoSmall)`
+const LogoBox = styled.img`
+  width: 24px;
+  height: 24px;
   margin: 0;
   padding: 0;
 `
+const Logo = ({ className }: { className?: string }) => (
+  <LogoBox src={LogoImage} className={className} />
+)
 
 const BadgeBox = styled.div`
   position: static;
@@ -82,8 +87,8 @@ export const TextAreaCornerTag = ({
   return ReactDOM.createPortal(
     <OuterBox
       css={{
-        width: target?.clientWidth,
-        height: target?.clientHeight,
+        width: target?.clientWidth + 'px',
+        height: target?.clientHeight + 'px',
       }}
     >
       <Box onClick={onClick}>

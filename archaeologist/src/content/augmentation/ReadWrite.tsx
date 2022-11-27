@@ -8,6 +8,7 @@ import { FromContent } from './../../message/types'
 
 import { SuggestionsToast } from './SuggestionsToast'
 import { TextAreaCornerTag } from './TextAreaCornerTag'
+import { getKeyPhraseFromText } from './keyphrase'
 
 function appendSuffixToSlidingWindow(buf: string, key: string): string {
   if (key === 'Backspace') {
@@ -23,7 +24,8 @@ function appendSuffixToSlidingWindow(buf: string, key: string): string {
 
 type UserInput = {
   keyBuffer: string
-  target?: HTMLElement
+  target: HTMLElement | null
+  phrase: string | null
 }
 function updateUserInputFromKeyboardEvent(
   userInput: UserInput,
@@ -44,22 +46,36 @@ function updateUserInputFromKeyboardEvent(
         keyBuffer = ''
       }
       keyBuffer = appendSuffixToSlidingWindow(keyBuffer, event.key)
+      const phrase = getKeyPhraseFromUserInput(keyBuffer, target)
       log.debug('typingOnKeyDownListener editable')
-      return { keyBuffer, target }
+      return { keyBuffer, target, phrase }
     }
   }
   log.debug('typingOnKeyDownListener NOT editable')
-  return { keyBuffer: '', target: undefined }
+  return { keyBuffer: '', target: null, phrase: null }
 }
 
-function getKeyPhraseFromUserInput({ keyBuffer }: UserInput): string {
-  const p = /([ \w]*)\/\/(.*)/.exec(keyBuffer)
-  if (p && p[2]) {
-    return p[2]
-  } else if (p && p[1]) {
-    return p[1]
+export function getKeyPhraseFromUserInput(
+  keyBuffer: string,
+  target?: HTMLElement
+): string | null {
+  if (target == null) {
+    return null
   }
-  return keyBuffer
+  const targetValue =
+    (target as HTMLInputElement).value ?? target.innerText ?? target.textContent
+  log.debug(
+    'getKeyPhraseFromUserInput - element value',
+    (target as HTMLInputElement).value
+  )
+  if (targetValue != null) {
+    const phrase = getKeyPhraseFromText(targetValue)
+    log.debug('getKeyPhraseFromUserInput - from target', phrase, targetValue)
+    return phrase
+  }
+  const phrase = getKeyPhraseFromText(keyBuffer)
+  log.debug('getKeyPhraseFromUserInput - from buffer', phrase, keyBuffer)
+  return phrase
 }
 
 export function WriteAugmentation() {
@@ -75,9 +91,6 @@ export function WriteAugmentation() {
           limit: 8,
           phrase,
         })
-        if (response.suggested.length > 0) {
-          showToast(true)
-        }
         setSuggestedNodes(
           response.suggested.map((value: TNodeJson) => TNode.fromJson(value))
         )
@@ -94,20 +107,17 @@ export function WriteAugmentation() {
         userInput,
         keyboardEvent
       )
-      showToast((isShown: boolean) => {
-        isShown = isShown || newInput.keyBuffer.endsWith('//')
-        if (isShown || newInput.keyBuffer.replace(/\s/g, '').length > 5) {
-          const phrase = getKeyPhraseFromUserInput(newInput)
-          log.debug(`Look for "${phrase}" in Mazed`)
-          requestSuggestedAssociations(phrase)
-        }
-        return isShown
-      })
+      const { phrase } = newInput
+      if (phrase != null && phrase.length > 3) {
+        log.debug(`Look for "${phrase}" in Mazed`)
+        requestSuggestedAssociations(phrase)
+      }
       return newInput
     },
     {
       keyBuffer: '',
-      target: undefined,
+      target: null,
+      phrase: null,
     }
   )
   React.useEffect(() => {
@@ -122,15 +132,15 @@ export function WriteAugmentation() {
   return (
     <>
       <TextAreaCornerTag
-        target={userInput.target}
+        target={userInput.target ?? undefined}
         onClick={() => showToast((isShown) => !isShown)}
       >
-        98
+        {suggestedNodes.length > 0 ? suggestedNodes.length.toString() : ''}
       </TextAreaCornerTag>
       {toastIsShown ? (
         <SuggestionsToast
           onClose={() => showToast(false)}
-          keyphrase={userInput.keyBuffer}
+          keyphrase={userInput.phrase ?? ''}
           suggested={suggestedNodes}
         />
       ) : null}

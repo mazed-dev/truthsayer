@@ -2,7 +2,7 @@
 
 import React from 'react'
 import styled from '@emotion/styled'
-// import useIsMounted from 'ismounted'
+import { mazed } from '../../util/mazed'
 
 import {
   MdiClose,
@@ -77,7 +77,7 @@ function genSnippetToInsert(node: TNode): string {
 }
 
 const SuggestionButton = styled(ImgButton)`
-  opacity: 0.12;
+  opacity: 0.32;
 `
 
 const SuggestedFragmentBox = styled.div`
@@ -92,7 +92,7 @@ const SuggestedFragmentTools = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
-  border-top: 1px solid #ececec;
+  padding: 2px;
 `
 const CopySuggestionButton = ({
   children,
@@ -156,7 +156,9 @@ export const SuggestionsToast = ({
       <ToastBox>
         <Header>
           <LogoSmall />
-          <RefItem>In your Mazed 🐇 &ldquo;{keyphrase}&rdquo;</RefItem>
+          <RefItem href={mazed.makeSearchUrl(keyphrase).toString()}>
+            From your Mazed &ldquo;{keyphrase}&rdquo;
+          </RefItem>
           <ButtonItem onClick={onClose}>
             <ClosePic />
           </ButtonItem>
