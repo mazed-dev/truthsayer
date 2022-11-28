@@ -83,7 +83,6 @@ export async function createUserAccount(
 }
 
 async function onKnockSuccess() {
-  log.debug('Knock success')
   if (isAuthenticated(_account)) {
     return
   }
@@ -101,7 +100,6 @@ async function onKnockSuccess() {
 }
 
 function onKnockFailure() {
-  log.debug('Knock failure')
   _account = new AnonymousAccount()
   if (_onLogout) {
     _onLogout()

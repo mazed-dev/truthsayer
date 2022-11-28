@@ -69,7 +69,6 @@ export class Knocker {
   }
 
   abort = async () => {
-    log.debug('Knocker aborted')
     if (this.#scheduledId) {
       clearTimeout(this.#scheduledId)
     }
