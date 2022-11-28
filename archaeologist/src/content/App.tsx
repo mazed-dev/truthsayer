@@ -136,14 +136,14 @@ function updateState(state: State, action: Action): State {
         return state
       }
 
-      const { mode, userUid, quotes, bookmark } = action.data
+      const { mode, /* userUid, */ quotes, bookmark } = action.data
 
       let analytics: PostHog | null = null
       if (mode !== 'passive-mode-content-app') {
-        analytics = productanalytics.make('archaeologist/content')
-        if (analytics != null) {
-          productanalytics.identifyUser({ analytics, userUid })
-        }
+        // analytics = productanalytics.make('archaeologist/content')
+        // if (analytics != null) {
+        //   productanalytics.identifyUser({ analytics, userUid })
+        // }
       }
 
       return {
