@@ -2,9 +2,14 @@ import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom'
 
 import browser from 'webextension-polyfill'
+import { PostHog } from 'posthog-js'
 
 import { TNode, TNodeJson } from 'smuggler-api'
-import { genOriginId, OriginIdentity, log } from 'armoury'
+import {
+  genOriginId,
+  OriginIdentity,
+  log /* productanalytics */,
+} from 'armoury'
 import { truthsayer_archaeologist_communication } from 'elementary'
 
 import {
@@ -93,6 +98,8 @@ type InitializedState = {
   bookmark?: TNode
   notification?: DisappearingToastProps
   browserHistoryUploadProgress: BrowserHistoryUploadProgress
+
+  analytics: PostHog | null
 }
 
 type State = UninitializedState | InitializedState
@@ -132,13 +139,24 @@ function updateState(state: State, action: Action): State {
         )
         return state
       }
-      const { mode, quotes, bookmark } = action.data
+
+      const { mode, /* userUid, */ quotes, bookmark } = action.data
+
+      let analytics: PostHog | null = null
+      if (mode !== 'passive-mode-content-app') {
+        // analytics = productanalytics.make('archaeologist/content')
+        // if (analytics != null) {
+        //   productanalytics.identifyUser({ analytics, userUid })
+        // }
+      }
+
       return {
         mode,
         originIdentity: genOriginId(exctractPageUrl(document)),
         quotes: quotes.map((json: TNodeJson) => TNode.fromJson(json)),
         bookmark: bookmark != null ? TNode.fromJson(bookmark) : undefined,
         browserHistoryUploadProgress: { processed: 0, total: 0 },
+        analytics,
       }
     }
     case 'update-nodes':

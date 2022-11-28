@@ -1,3 +1,4 @@
+import { errorise, log } from 'armoury'
 import { smuggler } from './../api'
 import { AccountInterface, LocalCrypto } from './../types'
 import { authCookie } from './cookie'
@@ -38,7 +39,7 @@ export class UserAccount extends AnonymousAccount {
     this._lc = lc
   }
 
-  static async create(signal: AbortSignal): Promise<AccountInterface> {
+  static async create(signal?: AbortSignal): Promise<AccountInterface> {
     const user = await smuggler.getAuth({ signal }).catch(() => {
       return null
     })
@@ -72,10 +73,10 @@ export class UserAccount extends AnonymousAccount {
 }
 
 export async function createUserAccount(
-  abortSignal: AbortSignal
+  abortSignal?: AbortSignal
 ): Promise<AccountInterface> {
   if (!authCookie.veil.check()) {
     return new AnonymousAccount()
   }
-  return await UserAccount.create(abortSignal)
+  return UserAccount.create(abortSignal)
 }

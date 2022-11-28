@@ -7,7 +7,7 @@ export function KnockerElement() {
     const knocker = new KnockerEngine(() => {
       authCookie.veil.drop()
     })
-    knocker.start()
+    knocker.start({})
     return () => {
       knocker.abort()
     }

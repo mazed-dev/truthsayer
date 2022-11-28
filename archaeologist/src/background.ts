@@ -3,6 +3,7 @@ import * as webNavigation from './web-navigation/webNavigation'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import * as auth from './background/auth'
 import { saveWebPage, savePageQuote } from './background/savePage'
+import * as productanalytics from './background/productanalytics'
 import {
   ToPopUp,
   ToContent,
@@ -585,7 +586,7 @@ async function handleMessageFromPopup(
       }
     }
     case 'REQUEST_AUTH_STATUS':
-      const status = await auth.isAuthorised()
+      const status = auth.account().isAuthenticated()
       badge.setActive(status)
       return { type: 'AUTH_STATUS', status }
     default:
@@ -724,6 +725,7 @@ async function initMazedPartsOfTab(
   try {
     await ToContent.sendMessage(tab.id, {
       type: 'INIT_CONTENT_AUGMENTATION_REQUEST',
+      userUid: auth.account().getUid(),
       quotes: response.quotes.map((node) => node.toJson()),
       bookmark: response.bookmark?.toJson(),
       mode,
@@ -797,3 +799,4 @@ auth.register()
 browserBookmarks.register()
 omnibox.register()
 webNavigation.register()
+productanalytics.register()
