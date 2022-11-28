@@ -54,6 +54,7 @@ export const ShrinkCard = ({
   onClick,
   height,
 }: ShrinkCardProps) => {
+  height = height ?? '156px'
   const shrinkStyle = showMore
     ? css`
         min-height: ${height};

@@ -113,7 +113,7 @@ function CardInsertButton({
     copySubj = 'Image'
   } else {
     const doc = TDoc.fromNodeTextData(node.getText())
-    toInsert = ` 🧵 ${doc.genTitle(280)}\n🔗 ${node.getDirectLink()} `
+    toInsert = ` 🧵 ${doc.genPlainText()}\n🔗 ${node.getDirectLink()} `
     copySubj = 'Note'
   }
   return (
@@ -138,7 +138,7 @@ const SuggestedFragment = ({
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
   return (
     <SuggestedFragmentBox>
-      <ShrinkCard showMore={seeMore} height={'110px'}>
+      <ShrinkCard showMore={seeMore} height={'104px'}>
         <NodeCardReadOnly node={node} strippedRefs strippedActions />
       </ShrinkCard>
       <SuggestedFragmentTools>
@@ -180,9 +180,9 @@ export const SuggestionsToast = ({
       <ToastBox>
         <Header>
           <LogoSmall />
-          <RefItem href={mazed.makeSearchUrl(keyphrase).toString()}>
+          <SearchPhrase href={mazed.makeSearchUrl(keyphrase).toString()}>
             &ldquo;{keyphrase}&rdquo;
-          </RefItem>
+          </SearchPhrase>
           <ButtonItem onClick={onClose}>
             <ClosePic />
           </ButtonItem>
