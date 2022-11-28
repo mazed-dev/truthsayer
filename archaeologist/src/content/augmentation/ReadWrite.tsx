@@ -139,7 +139,10 @@ export function WriteAugmentation() {
       </TextAreaCornerTag>
       {toastIsShown ? (
         <SuggestionsToast
-          onClose={() => showToast(false)}
+          onClose={() => {
+            showToast(false)
+            userInput.target?.focus()
+          }}
           keyphrase={userInput.phrase ?? ''}
           suggested={suggestedNodes}
         />

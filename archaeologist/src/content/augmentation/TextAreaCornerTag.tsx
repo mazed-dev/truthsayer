@@ -7,15 +7,17 @@ import LogoImage from '../../../public/logo-fade-48x48.png'
 
 const OuterBox = styled.div`
   position: absolute;
-  display: unset;
+  display: block;
+  pointer-events: none;
 `
 const Box = styled.div`
   position: absolute;
   bottom: 2px;
-  right: 2px;
+  right: -8px;
 
   user-select: none;
   cursor: pointer;
+  pointer-events: all;
 
   z-index: 1024;
 `

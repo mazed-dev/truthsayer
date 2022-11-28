@@ -2,8 +2,10 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import styled from '@emotion/styled'
 import { keyframes } from '@emotion/react'
-import { Box, LogoSmall, RefItem } from './../style'
+
 import { HoverTooltip } from 'elementary'
+
+import { Box, LogoSmall, RefItem } from './../style'
 
 const kToasterBoxElementId = 'mazed-archaeologist-toaster-id'
 const ToasterBox = styled.div`
