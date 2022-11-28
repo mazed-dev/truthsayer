@@ -41,8 +41,8 @@ const BadgeBubble = styled.div`
   bottom: 1px;
   right: 0;
 
-  width: 14px !important;
-  height: 14px !important;
+  width: 18px !important;
+  height: 18px !important;
 
   border-radius: 28px !important;
   border: 1px solid #ececec !important;
@@ -57,7 +57,7 @@ const BadgeTextBox = styled.div`
 
 const BadgeText = styled.span`
   font-size: 12px;
-  letter-spacing: -1px;
+  letter-spacing: 0;
   color: white;
 `
 
