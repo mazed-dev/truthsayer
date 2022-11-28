@@ -473,7 +473,7 @@ async function updateNode(args: UpdateNodeArgs, signal?: AbortSignal) {
 async function getAuth({
   signal,
 }: {
-  signal: AbortSignal
+  signal?: AbortSignal
 }): Promise<AccountInfo> {
   const resp = await fetch(makeUrl('/auth'), { method: 'GET', signal })
   if (!resp.ok) {
