@@ -68,7 +68,8 @@ export namespace FromPopUp {
 export namespace ToPopUp {
   export interface AuthStatusResponse {
     type: 'AUTH_STATUS'
-    status: boolean
+    /** If undefined - user not logged in, otherwise - user's UID (@see AccountInterface.getUid() ) */
+    userUid?: string
   }
   export interface ActiveTabStatusResponse {
     type: 'UPDATE_POPUP_CARDS'

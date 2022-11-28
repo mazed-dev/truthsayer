@@ -111,8 +111,19 @@ function markClassNameForExclusion(className?: string): string {
   return `ph-no-capture ${className}`
 }
 
+function makePostHogIdentityFromUserUid(userUid: string, env: string) {
+  // Note that this helper can't rely on process.env.NODE_ENV directly because
+  // it's not available in all environments when product analytics are needed
+  // (e.g. it is not available in content script)
+  const envPrefix = env !== 'production' ? 'dev/' : ''
+  return `${envPrefix}${userUid}`
+}
+
 export const productanalytics = {
   make: makeAnalytics,
   identifyUser,
   classExclude: markClassNameForExclusion,
+  identity: {
+    fromUserId: makePostHogIdentityFromUserUid,
+  },
 }

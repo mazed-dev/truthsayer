@@ -5,12 +5,15 @@ import browser from 'webextension-polyfill'
 
 import styled from '@emotion/styled'
 import { css } from '@emotion/react'
+import { PostHog } from 'posthog-js'
+import type { PostHogConfig } from 'posthog-js'
 
-import { FromPopUp } from './../message/types'
+import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { Button } from './Button'
 import { mazed } from '../util/mazed'
 import { MdiLaunch } from 'elementary'
+import { log, productanalytics } from 'armoury'
 
 const AppContainer = styled.div`
   width: 320px;
@@ -20,17 +23,52 @@ const AppContainer = styled.div`
   font-weight: 400;
 `
 
+type State = {
+  userUid?: string
+  analytics?: PostHog
+}
+
+type Action = ToPopUp.AuthStatusResponse
+
+function updateState(_: State, action: Action): State {
+  switch (action.type) {
+    case 'AUTH_STATUS': {
+      if (action.userUid == null) {
+        return {}
+      }
+      const analyticsConfig: Partial<PostHogConfig> = {
+        bootstrap: {
+          distinctID: productanalytics.identity.fromUserId(
+            action.userUid,
+            process.env.NODE_ENV
+          ),
+          isIdentifiedID: true,
+        },
+      }
+      const analytics: PostHog | undefined =
+        productanalytics.make('archaeologist/popup', analyticsConfig) ??
+        undefined
+      analytics?.register({ source: 'archaeologist/popup' })
+      return {
+        userUid: action.userUid,
+        analytics,
+      }
+    }
+  }
+}
+
 export const PopUpApp = () => {
-  const [authenticated, setAuthenticated] = React.useState(false)
+  const initialState: State = {}
+  const [state, dispatch] = React.useReducer(updateState, initialState)
 
   useAsyncEffect(async () => {
     const response = await FromPopUp.sendMessage({
       type: 'REQUEST_AUTH_STATUS',
     })
-    setAuthenticated(response.status)
+    dispatch(response)
   }, [])
 
-  if (!authenticated) {
+  if (state.userUid == null) {
     return (
       <AppContainer>
         <LoginPage />

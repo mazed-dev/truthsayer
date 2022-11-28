@@ -586,9 +586,13 @@ async function handleMessageFromPopup(
       }
     }
     case 'REQUEST_AUTH_STATUS':
-      const status = auth.account().isAuthenticated()
-      badge.setActive(status)
-      return { type: 'AUTH_STATUS', status }
+      const account = auth.account()
+      const authenticated = account.isAuthenticated()
+      badge.setActive(account.isAuthenticated())
+      return {
+        type: 'AUTH_STATUS',
+        userUid: authenticated ? account.getUid() : undefined,
+      }
     default:
       throw new Error(
         `background received msg from popup of unknown type, message: ${JSON.stringify(
