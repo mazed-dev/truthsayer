@@ -13,7 +13,7 @@ import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { Button } from './Button'
 import { mazed } from '../util/mazed'
 import { MdiLaunch } from 'elementary'
-import { log, productanalytics } from 'armoury'
+import { productanalytics } from 'armoury'
 
 const AppContainer = styled.div`
   width: 320px;
