@@ -41,10 +41,6 @@ function register() {
       persistence: 'memory',
     }
   )
-
-  _analytics?.register({
-    source: 'archaeologist/background',
-  })
 }
 
 function startObservingAuth() {

@@ -46,9 +46,11 @@ function updateState(_: State, action: Action): State {
         },
       }
       const analytics: PostHog | undefined =
-        productanalytics.make('archaeologist/popup', analyticsConfig) ??
-        undefined
-      analytics?.register({ source: 'archaeologist/popup' })
+        productanalytics.make(
+          'archaeologist/popup',
+          process.env.NODE_ENV,
+          analyticsConfig
+        ) ?? undefined
       return {
         userUid: action.userUid,
         analytics,

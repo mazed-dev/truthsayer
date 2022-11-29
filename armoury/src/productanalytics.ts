@@ -18,18 +18,18 @@ export type NodeEnv = 'development' | 'production' | 'test'
 
 /**
  * Create an instance of PostHog analytics.
- * @param analyticsContextName name that PostHog will use to cache the instance
+ * @param analyticsSourceName name that PostHog will use to cache the instance
  * internally.
  */
 function makeAnalytics(
-  analyticsContextName: string,
+  analyticsSourceName: string,
   env: NodeEnv,
   config?: Partial<PostHogConfig>
 ): PostHog | null {
-  const logPrefix = `${kLogCategory} '${analyticsContextName}'`
+  const logPrefix = `${kLogCategory} '${analyticsSourceName}'`
   const previouslyCreatedInstance: PostHog | undefined =
     // @ts-ignore: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'PostHog'
-    posthog[analyticsContextName]
+    posthog[analyticsSourceName]
   if (previouslyCreatedInstance != null) {
     log.debug(
       `${logPrefix} Attempted to init more than once, returning previously cached instance`
@@ -59,7 +59,7 @@ function makeAnalytics(
       // ip: false,
       // property_blacklist: ['$ip'],
     }
-    const ret = posthog.init(posthogToken, finalConfig, analyticsContextName)
+    const ret = posthog.init(posthogToken, finalConfig, analyticsSourceName)
     if (!(ret instanceof PostHog)) {
       throw new Error(`${logPrefix} Object is not of expected type`)
     }
@@ -73,6 +73,7 @@ function makeAnalytics(
           ` published as ${userIdBootstrap.distinctID}`
       )
     }
+    ret.register({ source: analyticsSourceName })
     return ret
   } catch (e) {
     log.warning(`${logPrefix} Failed to init, error = ${errorise(e)}`)

@@ -178,7 +178,6 @@ function updateState(state: State, action: Action): State {
         })
         if (analytics != null) {
           analytics.register({
-            source: 'archaeologist/content',
             // At the time of this writing the URL of a web-page where
             // content script has been loaded is intentionally not reported
             // for privacy reasons. However it is anticipated that it'll be
