@@ -128,6 +128,9 @@ export type BrowserHistoryUploadMode =
    */
   | { mode: 'resumable' }
 
+/* Value of process.env.NODE_ENV (options come from react-scripts.NodeJS.ProcessEnv.NodeEnv) */
+export type NodeEnv = 'development' | 'production' | 'test'
+
 export namespace ToContent {
   export interface RequestPageContent {
     type: 'REQUEST_PAGE_CONTENT'
@@ -154,6 +157,7 @@ export namespace ToContent {
   export interface InitContentAugmentationRequest {
     type: 'INIT_CONTENT_AUGMENTATION_REQUEST'
     mode: ContentAppOperationMode
+    env: NodeEnv
     userUid: string
     quotes: TNodeJson[]
     bookmark?: TNodeJson

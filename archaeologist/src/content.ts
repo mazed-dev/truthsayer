@@ -5,7 +5,17 @@
  * page that has been loaded into the browser. Content scripts read and modify
  * the DOM of web pages the browser visits.
  */
+import { productanalytics } from 'armoury'
 import { renderPageAugmentationApp } from './content/App'
+
+if (document.URL.indexOf('mazed.se') === -1) {
+  // Except when on Mazed's own homepage, content augmentation should
+  // try to limit product analytics from auto-capturing any user interactions
+  // that do not involve the augmentation itself.
+  for (const child of document.body.children) {
+    child.classList.add(productanalytics.classExclude())
+  }
+}
 
 /**
  * Single mount point in a page DOM for Mazed content state.
