@@ -3,7 +3,7 @@ import * as webNavigation from './web-navigation/webNavigation'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import * as auth from './background/auth'
 import { saveWebPage, savePageQuote } from './background/savePage'
-import * as productanalytics from './background/productanalytics'
+import { backgroundpa } from './background/productanalytics'
 import {
   ToPopUp,
   ToContent,
@@ -725,6 +725,7 @@ async function initMazedPartsOfTab(
   try {
     await ToContent.sendMessage(tab.id, {
       type: 'INIT_CONTENT_AUGMENTATION_REQUEST',
+      nodeEnv: process.env.NODE_ENV,
       userUid: auth.account().getUid(),
       quotes: response.quotes.map((node) => node.toJson()),
       bookmark: response.bookmark?.toJson(),
@@ -799,4 +800,4 @@ auth.register()
 browserBookmarks.register()
 omnibox.register()
 webNavigation.register()
-productanalytics.register()
+backgroundpa.register()
