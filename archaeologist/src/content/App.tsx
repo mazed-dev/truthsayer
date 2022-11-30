@@ -32,6 +32,7 @@ import {
 import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
 import { BrowserHistoryImportControlPortal } from './BrowserHistoryImportControl'
+import { ContentContext, ContentContextProps } from './context'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
@@ -147,6 +148,7 @@ function updateState(state: State, action: Action): State {
           // interacted with the augmentation or not. This produces noisy data,
           // so pageviews are explicitely disabled.
           capture_pageview: false,
+          autocapture: false,
           // Block as many properties as possible that could leak user's
           // browsing history to PostHog
           property_blacklist: [
@@ -355,21 +357,23 @@ const App = () => {
     ) : null
   return (
     <AppErrorBoundary>
-      <truthsayer_archaeologist_communication.ArchaeologistVersion
-        version={{
-          version: browser.runtime.getManifest().version,
-        }}
-      />
-      <Toaster />
-      {state.notification ? (
-        <DisappearingToast {...state.notification}></DisappearingToast>
-      ) : null}
-      <Quotes quotes={state.quotes} />
-      {activityTrackerOrNull}
-      <BrowserHistoryImportControlPortal
-        progress={state.browserHistoryUploadProgress}
-        host={window.location.host}
-      />
+      <ContentContext.Provider value={{ analytics: state.analytics }}>
+        <truthsayer_archaeologist_communication.ArchaeologistVersion
+          version={{
+            version: browser.runtime.getManifest().version,
+          }}
+        />
+        <Toaster />
+        {state.notification ? (
+          <DisappearingToast {...state.notification}></DisappearingToast>
+        ) : null}
+        <Quotes quotes={state.quotes} />
+        {activityTrackerOrNull}
+        <BrowserHistoryImportControlPortal
+          progress={state.browserHistoryUploadProgress}
+          host={window.location.host}
+        />
+      </ContentContext.Provider>{' '}
     </AppErrorBoundary>
   )
 }
