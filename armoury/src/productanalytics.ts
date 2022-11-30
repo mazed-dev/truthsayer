@@ -23,7 +23,7 @@ export type NodeEnv = 'development' | 'production' | 'test'
  */
 function makeAnalytics(
   analyticsContextName: string,
-  env: NodeEnv,
+  nodeEnv: NodeEnv,
   config?: Partial<PostHogConfig>
 ): PostHog | null {
   const logPrefix = `${kLogCategory} '${analyticsContextName}'`
@@ -40,7 +40,7 @@ function makeAnalytics(
   const userIdBootstrap = config?.bootstrap?.isIdentifiedID
     ? config.bootstrap
     : {
-        distinctID: makePostHogIdentityFromUserUid(uuidv4(), env), // anonymous ID
+        distinctID: makePostHogIdentityFromUserUid(uuidv4(), nodeEnv), // anonymous ID
         isIdentifiedID: false,
       }
   try {
@@ -82,15 +82,15 @@ function makeAnalytics(
 
 function identifyUser({
   analytics,
-  env,
+  nodeEnv,
   userUid,
 }: {
   analytics: PostHog
-  env: NodeEnv
+  nodeEnv: NodeEnv
   userUid: string
 }) {
   const logPrefix = `${kLogCategory} '${analytics.get_config('name')}'`
-  const identity = makePostHogIdentityFromUserUid(userUid, env)
+  const identity = makePostHogIdentityFromUserUid(userUid, nodeEnv)
   try {
     analytics.identify(identity, { uid: userUid })
     log.debug(
@@ -103,11 +103,11 @@ function identifyUser({
   }
 }
 
-function makePostHogIdentityFromUserUid(userUid: string, env: NodeEnv) {
+function makePostHogIdentityFromUserUid(userUid: string, nodeEnv: NodeEnv) {
   // Note that this helper can't rely on process.env.NODE_ENV directly because
   // it's not available in all environments when product analytics are needed
   // (e.g. it is not available in content script)
-  const envPrefix = env !== 'production' ? 'dev/' : ''
+  const envPrefix = nodeEnv !== 'production' ? 'dev/' : ''
   return `${envPrefix}${userUid}`
 }
 

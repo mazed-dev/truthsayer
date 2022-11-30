@@ -56,7 +56,7 @@ function startObservingAuth() {
       log.debug(`${kLogCategory} Identified user as ${account.getUid()}`)
       productanalytics.identifyUser({
         analytics: _analytics,
-        env: process.env.NODE_ENV,
+        nodeEnv: process.env.NODE_ENV,
         userUid: account.getUid(),
       })
     },

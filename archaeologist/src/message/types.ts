@@ -156,7 +156,7 @@ export namespace ToContent {
   export interface InitContentAugmentationRequest {
     type: 'INIT_CONTENT_AUGMENTATION_REQUEST'
     mode: ContentAppOperationMode
-    env: NodeEnv
+    nodeEnv: NodeEnv
     userUid: string
     quotes: TNodeJson[]
     bookmark?: TNodeJson

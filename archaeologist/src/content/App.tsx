@@ -138,11 +138,11 @@ function updateState(state: State, action: Action): State {
         return state
       }
 
-      const { mode, env, userUid, quotes, bookmark } = action.data
+      const { mode, nodeEnv, userUid, quotes, bookmark } = action.data
 
       let analytics: PostHog | null = null
       if (mode !== 'passive-mode-content-app') {
-        analytics = productanalytics.make('archaeologist/content', env, {
+        analytics = productanalytics.make('archaeologist/content', nodeEnv, {
           // Opening every web page that gets augmented with a content scripts
           // gets counted as a '$pageview' event, doesn't matter if a user actually
           // interacted with the augmentation or not. This produces noisy data,
@@ -168,7 +168,7 @@ function updateState(state: State, action: Action): State {
             // event to PostHog. Every web page user opens then produces such
             // an event which (as believed at the time of this writing) produces
             // no value and just makes the data in PostHog difficult to navigate.
-            distinctID: productanalytics.identity.fromUserId(userUid, env),
+            distinctID: productanalytics.identity.fromUserId(userUid, nodeEnv),
             isIdentifiedID: true,
           },
           // Unlike product analytics tracked for truthsayer, persist data
