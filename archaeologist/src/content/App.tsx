@@ -9,6 +9,8 @@ import { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log, productanalytics } from 'armoury'
 import { truthsayer_archaeologist_communication } from 'elementary'
 
+import { mazed } from '../util/mazed'
+
 import {
   FromContent,
   ToContent,
@@ -32,6 +34,7 @@ import {
 import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
 import { BrowserHistoryImportControlPortal } from './BrowserHistoryImportControl'
+import { WriteAugmentation } from './augmentation/ReadWrite'
 import { ContentContext } from './context'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
@@ -305,7 +308,6 @@ const App = () => {
     mode: 'uninitialised-content-app',
   }
   const [state, dispatch] = React.useReducer(updateState, initialState)
-
   const listener = React.useCallback(
     async (message: ToContent.Request): Promise<FromContent.Response> => {
       switch (message.type) {
@@ -358,21 +360,26 @@ const App = () => {
   return (
     <AppErrorBoundary>
       <ContentContext.Provider value={{ analytics: state.analytics }}>
+        <BrowserHistoryImportControlPortal
+          progress={state.browserHistoryUploadProgress}
+          host={window.location.host}
+        />
         <truthsayer_archaeologist_communication.ArchaeologistVersion
           version={{
             version: browser.runtime.getManifest().version,
           }}
         />
-        <Toaster />
-        {state.notification ? (
-          <DisappearingToast {...state.notification}></DisappearingToast>
-        ) : null}
-        <Quotes quotes={state.quotes} />
-        {activityTrackerOrNull}
-        <BrowserHistoryImportControlPortal
-          progress={state.browserHistoryUploadProgress}
-          host={window.location.host}
-        />
+        {mazed.isMazed(document.URL) ? null : (
+          <>
+            <Toaster />
+            {state.notification ? (
+              <DisappearingToast {...state.notification} />
+            ) : null}
+            <Quotes quotes={state.quotes} />
+            {activityTrackerOrNull}
+            <WriteAugmentation />
+          </>
+        )}
       </ContentContext.Provider>{' '}
     </AppErrorBoundary>
   )

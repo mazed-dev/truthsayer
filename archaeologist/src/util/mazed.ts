@@ -25,8 +25,15 @@ const makeSearchUrl = (text: string): URL => {
   return makeUrl({ pathname: '/search', query: { q: text } })
 }
 
+const isMazed = (url: string): boolean => {
+  const mazedUrl = new URL(process.env.REACT_APP_SMUGGLER_API_URL || '')
+  const urlObj = new URL(url)
+  return mazedUrl.host === urlObj.host
+}
+
 export const mazed = {
   makeUrl,
   makeNodeUrl,
   makeSearchUrl,
+  isMazed,
 }
