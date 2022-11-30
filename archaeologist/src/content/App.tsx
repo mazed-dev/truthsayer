@@ -3,13 +3,10 @@ import ReactDOM from 'react-dom'
 
 import browser from 'webextension-polyfill'
 import { PostHog } from 'posthog-js'
+import { v4 as uuidv4 } from 'uuid'
 
 import { TNode, TNodeJson } from 'smuggler-api'
-import {
-  genOriginId,
-  OriginIdentity,
-  log /* productanalytics */,
-} from 'armoury'
+import { genOriginId, OriginIdentity, log, productanalytics } from 'armoury'
 import { truthsayer_archaeologist_communication } from 'elementary'
 
 import { mazed } from '../util/mazed'
@@ -38,6 +35,7 @@ import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
 import { BrowserHistoryImportControlPortal } from './BrowserHistoryImportControl'
 import { WriteAugmentation } from './augmentation/ReadWrite'
+import { ContentContext } from './context'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
@@ -143,14 +141,58 @@ function updateState(state: State, action: Action): State {
         return state
       }
 
-      const { mode, /* userUid, */ quotes, bookmark } = action.data
+      const { mode, nodeEnv, userUid, quotes, bookmark } = action.data
 
       let analytics: PostHog | null = null
       if (mode !== 'passive-mode-content-app') {
-        // analytics = productanalytics.make('archaeologist/content')
-        // if (analytics != null) {
-        //   productanalytics.identifyUser({ analytics, userUid })
-        // }
+        analytics = productanalytics.make('archaeologist/content', nodeEnv, {
+          // Opening every web page that gets augmented with a content scripts
+          // gets counted as a '$pageview' event, doesn't matter if a user actually
+          // interacted with the augmentation or not. This produces noisy data,
+          // so pageviews are explicitely disabled.
+          capture_pageview: false,
+          autocapture: false,
+          // Block as many properties as possible that could leak user's
+          // browsing history to PostHog
+          property_blacklist: [
+            '$current_url',
+            '$host',
+            '$referrer',
+            '$pathname',
+            '$referring_domain',
+            '$initial_pathname',
+            '$initial_referring_domain',
+          ],
+          save_referrer: false,
+          bootstrap: {
+            // NOTE: in content script analytics it is important to identify
+            // a user at the moment of analytics instance creation, not via deferred
+            // call to identify() because identify() generates a separate "$identify"
+            // event to PostHog. Every web page user opens then produces such
+            // an event which (as believed at the time of this writing) produces
+            // no value and just makes the data in PostHog difficult to navigate.
+            distinctID: productanalytics.identity.fromUserId(userUid, nodeEnv),
+            isIdentifiedID: true,
+          },
+          // Unlike product analytics tracked for truthsayer, persist data
+          // about a single augmented web page in memory of the page itself.
+          // This means that different "instances" of product analytics
+          // won't interfere with each other accidentally, which is of
+          // particular importance for analytics properties like 'augmenter-url-guid'
+          persistence: 'memory',
+        })
+        if (analytics != null) {
+          analytics.register({
+            source: 'archaeologist/content',
+            // At the time of this writing the URL of a web-page where
+            // content script has been loaded is intentionally not reported
+            // for privacy reasons. However it is anticipated that it'll be
+            // useful to be able to link together user's interactions with
+            // Mazed within that single specific web-page, so an anonymous
+            // GUID is published instead.
+            augmented_url_guid: uuidv4(),
+          })
+        }
       }
 
       return {
@@ -317,26 +359,28 @@ const App = () => {
     ) : null
   return (
     <AppErrorBoundary>
-      <BrowserHistoryImportControlPortal
-        progress={state.browserHistoryUploadProgress}
-        host={window.location.host}
-      />
-      <truthsayer_archaeologist_communication.ArchaeologistVersion
-        version={{
-          version: browser.runtime.getManifest().version,
-        }}
-      />
-      {mazed.isMazed(document.URL) ? null : (
-        <>
-          <Toaster />
-          {state.notification ? (
-            <DisappearingToast {...state.notification} />
-          ) : null}
-          <Quotes quotes={state.quotes} />
-          {activityTrackerOrNull}
-          <WriteAugmentation />
-        </>
-      )}
+      <ContentContext.Provider value={{ analytics: state.analytics }}>
+        <BrowserHistoryImportControlPortal
+          progress={state.browserHistoryUploadProgress}
+          host={window.location.host}
+        />
+        <truthsayer_archaeologist_communication.ArchaeologistVersion
+          version={{
+            version: browser.runtime.getManifest().version,
+          }}
+        />
+        {mazed.isMazed(document.URL) ? null : (
+          <>
+            <Toaster />
+            {state.notification ? (
+              <DisappearingToast {...state.notification} />
+            ) : null}
+            <Quotes quotes={state.quotes} />
+            {activityTrackerOrNull}
+            <WriteAugmentation />
+          </>
+        )}
+      </ContentContext.Provider>{' '}
     </AppErrorBoundary>
   )
 }

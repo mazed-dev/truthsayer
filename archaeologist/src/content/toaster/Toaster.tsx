@@ -4,6 +4,7 @@ import styled from '@emotion/styled'
 import { keyframes } from '@emotion/react'
 
 import { HoverTooltip } from 'elementary'
+import { ContentContext } from '../context'
 
 import { Box, LogoSmall, RefItem } from './../style'
 
@@ -112,11 +113,15 @@ export const DisappearingToast = ({
     }, timeoutMsec ?? 3099)
     return () => clearTimeout(callbackId)
   }, [text, tooltip, timeoutMsec, id])
+  const ctx = React.useContext(ContentContext)
   return show ? (
     <Toast toastKey={'disappearing-toast'}>
       <DisappearingToastBox>
         <LogoSmall />
-        <RefItem href={href}>
+        <RefItem
+          href={href}
+          onClick={() => ctx.analytics?.capture('Clicked toast', { text })}
+        >
           <HoverTooltip tooltip={tooltip ?? text}>{text}</HoverTooltip>
         </RefItem>
       </DisappearingToastBox>
