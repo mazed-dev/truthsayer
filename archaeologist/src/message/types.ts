@@ -172,6 +172,10 @@ export namespace ToContent {
     type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS'
     newState: BrowserHistoryUploadProgress
   }
+  export interface SuggestedAssociationsResponse {
+    type: 'SUGGESTED_CONTENT_ASSOCIATIONS'
+    suggested: TNodeJson[]
+  }
 
   /** Requests that aim to modify recepient's state. */
   export type MutatingRequest =
@@ -191,6 +195,7 @@ export namespace ToContent {
   export type Response =
     | VoidResponse
     | DeletePreviouslyUploadedBrowserHistoryResponse
+    | SuggestedAssociationsResponse
 
   export function sendMessage(
     tabId: number,
@@ -295,10 +300,6 @@ export namespace FromContent {
     phrase: string
     limit: number
   }
-  export interface SuggestedAssociationsResponse {
-    type: 'SUGGESTED_CONTENT_ASSOCIATIONS'
-    suggested: TNodeJson[]
-  }
 
   export type Request =
     | AttentionTimeChunk
@@ -313,7 +314,6 @@ export namespace FromContent {
     | PageAlreadySavedResponse
     | PageNotWorthSavingResponse
     | VoidResponse
-    | SuggestedAssociationsResponse
 
   export function sendMessage(
     message: AttentionTimeChunk
@@ -329,10 +329,8 @@ export namespace FromContent {
   ): Promise<ToContent.DeletePreviouslyUploadedBrowserHistoryResponse>
   export function sendMessage(
     message: SuggestedAssociationsRequest
-  ): Promise<SuggestedAssociationsResponse>
-  export function sendMessage(
-    message: Request
-  ): Promise<ToContent.Response | Response> {
+  ): Promise<ToContent.SuggestedAssociationsResponse>
+  export function sendMessage(message: Request): Promise<ToContent.Response> {
     const msg: ToBackground.Request = { direction: 'from-content', ...message }
     return browser.runtime.sendMessage(msg).catch((error) => {
       throw new Error(`Failed to send ${message.type} from content: ${error}`)

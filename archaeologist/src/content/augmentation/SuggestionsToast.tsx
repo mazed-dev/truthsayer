@@ -50,7 +50,7 @@ const SuggestionButton = styled(ImgButton)`
   font-size: 12px;
 `
 
-const SuggestedFragmentBox = styled.div`
+const SuggestedCardBox = styled.div`
   font-size: 12px;
 
   margin: 1px 4px 1px 4px;
@@ -58,7 +58,7 @@ const SuggestedFragmentBox = styled.div`
   border: 1px solid #ececec;
   border-radius: 6px;
 `
-const SuggestedFragmentTools = styled.div`
+const SuggestedCardTools = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
@@ -113,7 +113,7 @@ function CardInsertButton({
     copySubj = 'Image'
   } else {
     const doc = TDoc.fromNodeTextData(node.getText())
-    toInsert = ` 🧵 ${doc.genPlainText()}\n🔗 ${node.getDirectLink()} `
+    toInsert = ` 🧵 ${doc.genPlainText()}\n🔗 ${node.getDirectUrl()} `
     copySubj = 'Note'
   }
   return (
@@ -128,7 +128,7 @@ function CardInsertButton({
   )
 }
 
-const SuggestedFragment = ({
+const SuggestedCard = ({
   node,
   onClose,
 }: {
@@ -137,20 +137,20 @@ const SuggestedFragment = ({
 }) => {
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
   return (
-    <SuggestedFragmentBox>
+    <SuggestedCardBox>
       <ShrinkCard showMore={seeMore} height={'104px'}>
         <NodeCardReadOnly node={node} strippedRefs strippedActions />
       </ShrinkCard>
-      <SuggestedFragmentTools>
+      <SuggestedCardTools>
         <CardInsertButton node={node} onClose={onClose} />
-        <SuggestionButton href={node.getDirectLink()}>
+        <SuggestionButton href={node.getDirectUrl()}>
           Open Mazed
         </SuggestionButton>
         <SuggestionButton onClick={() => setSeeMore((more) => !more)}>
           See {seeMore ? 'less' : 'more'}
         </SuggestionButton>
-      </SuggestedFragmentTools>
-    </SuggestedFragmentBox>
+      </SuggestedCardTools>
+    </SuggestedCardBox>
   )
 }
 
@@ -171,9 +171,7 @@ export const SuggestionsToast = ({
   onClose: () => void
 }) => {
   const suggestedEl = suggested.map((node: TNode) => {
-    return (
-      <SuggestedFragment key={node.getNid()} node={node} onClose={onClose} />
-    )
+    return <SuggestedCard key={node.getNid()} node={node} onClose={onClose} />
   })
   return (
     <Toast toastKey={'read-write-augmentation-toast'}>

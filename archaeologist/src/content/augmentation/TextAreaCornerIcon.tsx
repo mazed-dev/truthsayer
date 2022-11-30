@@ -61,7 +61,7 @@ const BadgeText = styled.span`
   color: white;
 `
 
-export const TextAreaCornerTag = ({
+export const TextAreaCornerIcon = ({
   target,
   onClick,
   children,

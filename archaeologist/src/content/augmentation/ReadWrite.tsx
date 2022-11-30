@@ -7,7 +7,7 @@ import { TNode, TNodeJson } from 'smuggler-api'
 import { FromContent } from './../../message/types'
 
 import { SuggestionsToast } from './SuggestionsToast'
-import { TextAreaCornerTag } from './TextAreaCornerTag'
+import { TextAreaCornerIcon } from './TextAreaCornerIcon'
 import { getKeyPhraseFromText } from './keyphrase'
 
 function appendSuffixToSlidingWindow(buf: string, key: string): string {
@@ -31,7 +31,7 @@ function updateUserInputFromKeyboardEvent(
   userInput: UserInput,
   keyboardEvent: KeyboardEvent
 ) {
-  log.debug('KeyboardEvent', keyboardEvent)
+  // log.debug('KeyboardEvent', keyboardEvent)
   if ('altKey' in keyboardEvent) {
     // Consume KeyboardEvent
     const event = keyboardEvent as unknown as React.KeyboardEvent<HTMLElement>
@@ -47,11 +47,9 @@ function updateUserInputFromKeyboardEvent(
       }
       keyBuffer = appendSuffixToSlidingWindow(keyBuffer, event.key)
       const phrase = getKeyPhraseFromUserInput(keyBuffer, target)
-      log.debug('typingOnKeyDownListener editable')
       return { keyBuffer, target, phrase }
     }
   }
-  log.debug('typingOnKeyDownListener NOT editable')
   return { keyBuffer: '', target: null, phrase: null }
 }
 
@@ -64,41 +62,35 @@ export function getKeyPhraseFromUserInput(
   }
   const targetValue =
     (target as HTMLInputElement).value ?? target.innerText ?? target.textContent
-  log.debug(
-    'getKeyPhraseFromUserInput - element value',
-    (target as HTMLInputElement).value
-  )
   if (targetValue != null) {
     const phrase = getKeyPhraseFromText(targetValue)
-    log.debug('getKeyPhraseFromUserInput - from target', phrase, targetValue)
     return phrase
   }
   const phrase = getKeyPhraseFromText(keyBuffer)
-  log.debug('getKeyPhraseFromUserInput - from buffer', phrase, keyBuffer)
   return phrase
 }
 
 export function WriteAugmentation() {
   const [suggestedNodes, setSuggestedNodes] = React.useState<TNode[]>([])
   const [toastIsShown, showToast] = React.useState<boolean>(false)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const requestSuggestedAssociations = React.useCallback(
-    lodash.debounce(
-      async (phrase: string) => {
-        // log.debug('requestSuggestedAssociations', phrase)
-        const response = await FromContent.sendMessage({
-          type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
-          limit: 8,
-          phrase,
-        })
-        setSuggestedNodes(
-          response.suggested.map((value: TNodeJson) => TNode.fromJson(value))
-        )
-        // log.debug('requestSuggestedAssociations - response', response)
-      },
-      919,
-      {}
-    ),
+  const requestSuggestedAssociations = React.useMemo(
+    // Using `useMemo` instead of `useCallback` to avoid eslint complains
+    // https://kyleshevlin.com/debounce-and-throttle-callbacks-with-react-hooks
+    () =>
+      lodash.debounce(
+        async (phrase: string) => {
+          const response = await FromContent.sendMessage({
+            type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
+            limit: 8,
+            phrase,
+          })
+          setSuggestedNodes(
+            response.suggested.map((value: TNodeJson) => TNode.fromJson(value))
+          )
+        },
+        919,
+        {}
+      ),
     []
   )
   const [userInput, consumeKeyboardEvent] = React.useReducer(
@@ -126,17 +118,14 @@ export function WriteAugmentation() {
       window.removeEventListener('keydown', consumeKeyboardEvent)
     }
   }, [])
-  // log.debug('ReadWriteAugmentation :: render userInput', userInput)
-  // log.debug('ReadWriteAugmentation :: render toastIsShown', toastIsShown)
-  // log.debug('ReadWriteAugmentation :: render suggestedNodes', suggestedNodes)
   return (
     <>
-      <TextAreaCornerTag
+      <TextAreaCornerIcon
         target={userInput.target ?? undefined}
         onClick={() => showToast((isShown) => !isShown)}
       >
         {suggestedNodes.length > 0 ? suggestedNodes.length.toString() : ''}
-      </TextAreaCornerTag>
+      </TextAreaCornerIcon>
       {toastIsShown ? (
         <SuggestionsToast
           onClose={() => {

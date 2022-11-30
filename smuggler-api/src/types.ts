@@ -223,7 +223,7 @@ export class TNode {
     return makeUrl(`/blob/${nid}`)
   }
 
-  getDirectLink(): string {
+  getDirectUrl(): string {
     const { nid } = this
     return makeUrl(`/n/${nid}`)
   }

@@ -1,3 +1,15 @@
+/**
+ * Extract phrase from text of a textarea to search for relevant nodes in Mazed
+ * for write augmentation. I named it "keyphrase" for short.
+ *
+ * It extracts the last sentense from the text OR whatever text follows magic
+ * code "//". The trick with "//" is needed to adjust keyphrase manually to
+ * achieve the desired result when search by last sentence fails to find
+ * relevant content.
+ *
+ * @akindyakov: This is crude temporary solution based on reg exps. I'll
+ * replace it with [wink-nlp](https://winkjs.org/wink-nlp/) very soon.
+ */
 export function getKeyPhraseFromText(text: string): string | null {
   if (text.endsWith('//')) {
     return null
