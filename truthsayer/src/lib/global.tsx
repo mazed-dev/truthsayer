@@ -126,7 +126,7 @@ export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
             // more difficult to navigate and consumes extra quota.
             productanalytics.identifyUser({
               analytics: this.state.analytics,
-              env: process.env.NODE_ENV,
+              nodeEnv: process.env.NODE_ENV,
               userUid: account.getUid(),
             })
           } catch (e) {

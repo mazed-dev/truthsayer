@@ -5520,6 +5520,7 @@ __metadata:
     "@types/jsdom": ^16.2.13
     "@types/mozilla-readability": ^0.2.1
     "@types/react-dom": ^16.9.16
+    "@types/react-helmet": ^6.1.5
     "@types/webextension-polyfill": ^0.8.2
     armoury: 0.0.1
     body-parser: ^1.19.1
@@ -5538,6 +5539,7 @@ __metadata:
     react: ^16.14.0
     react-bootstrap: ^2.0.0
     react-dom: ^16.14.0
+    react-helmet: ^6.1.0
     safe-compare: ^1.1.4
     smuggler-api: 0.0.1
     terser-webpack-plugin: ^4.2.3

@@ -9,6 +9,8 @@ import { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log, productanalytics } from 'armoury'
 import { truthsayer_archaeologist_communication } from 'elementary'
 
+import { mazed } from '../util/mazed'
+
 import {
   FromContent,
   ToContent,
@@ -32,6 +34,8 @@ import {
 import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
 import { BrowserHistoryImportControlPortal } from './BrowserHistoryImportControl'
+import { WriteAugmentation } from './augmentation/ReadWrite'
+import { ContentContext } from './context'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
@@ -137,16 +141,17 @@ function updateState(state: State, action: Action): State {
         return state
       }
 
-      const { mode, env, userUid, quotes, bookmark } = action.data
+      const { mode, nodeEnv, userUid, quotes, bookmark } = action.data
 
       let analytics: PostHog | null = null
       if (mode !== 'passive-mode-content-app') {
-        analytics = productanalytics.make('archaeologist/content', env, {
+        analytics = productanalytics.make('archaeologist/content', nodeEnv, {
           // Opening every web page that gets augmented with a content scripts
           // gets counted as a '$pageview' event, doesn't matter if a user actually
           // interacted with the augmentation or not. This produces noisy data,
           // so pageviews are explicitely disabled.
           capture_pageview: false,
+          autocapture: false,
           // Block as many properties as possible that could leak user's
           // browsing history to PostHog
           property_blacklist: [
@@ -166,7 +171,7 @@ function updateState(state: State, action: Action): State {
             // event to PostHog. Every web page user opens then produces such
             // an event which (as believed at the time of this writing) produces
             // no value and just makes the data in PostHog difficult to navigate.
-            distinctID: productanalytics.identity.fromUserId(userUid, env),
+            distinctID: productanalytics.identity.fromUserId(userUid, nodeEnv),
             isIdentifiedID: true,
           },
           // Unlike product analytics tracked for truthsayer, persist data
@@ -302,7 +307,6 @@ const App = () => {
     mode: 'uninitialised-content-app',
   }
   const [state, dispatch] = React.useReducer(updateState, initialState)
-
   const listener = React.useCallback(
     async (message: ToContent.Request): Promise<FromContent.Response> => {
       switch (message.type) {
@@ -354,21 +358,28 @@ const App = () => {
     ) : null
   return (
     <AppErrorBoundary>
-      <truthsayer_archaeologist_communication.ArchaeologistVersion
-        version={{
-          version: browser.runtime.getManifest().version,
-        }}
-      />
-      <Toaster />
-      {state.notification ? (
-        <DisappearingToast {...state.notification}></DisappearingToast>
-      ) : null}
-      <Quotes quotes={state.quotes} />
-      {activityTrackerOrNull}
-      <BrowserHistoryImportControlPortal
-        progress={state.browserHistoryUploadProgress}
-        host={window.location.host}
-      />
+      <ContentContext.Provider value={{ analytics: state.analytics }}>
+        <BrowserHistoryImportControlPortal
+          progress={state.browserHistoryUploadProgress}
+          host={window.location.host}
+        />
+        <truthsayer_archaeologist_communication.ArchaeologistVersion
+          version={{
+            version: browser.runtime.getManifest().version,
+          }}
+        />
+        {mazed.isMazed(document.URL) ? null : (
+          <>
+            <Toaster />
+            {state.notification ? (
+              <DisappearingToast {...state.notification} />
+            ) : null}
+            <Quotes quotes={state.quotes} />
+            {activityTrackerOrNull}
+            <WriteAugmentation />
+          </>
+        )}
+      </ContentContext.Provider>{' '}
     </AppErrorBoundary>
   )
 }

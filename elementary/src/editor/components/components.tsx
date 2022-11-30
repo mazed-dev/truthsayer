@@ -53,7 +53,8 @@ export const BlockQuoteBox = styled.div`
 export const BlockQuotePad = styled.blockquote`
   padding: 0 8px 0 8px;
   margin: 0 0 0 8px;
-  border-left: 1px solid rgb(204, 204, 204);
+  border-left: 1px solid rgb(182, 182, 182);
+  color: #5e5e5e;
 `
 
 export const CodeBlockBox = styled.code`

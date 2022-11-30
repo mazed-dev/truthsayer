@@ -8,9 +8,9 @@ import lodash from 'lodash'
 export type Woof = {}
 
 export class Beagle {
-  allOf: RegExp[]
+  allOf: string[]
 
-  constructor(allOf: RegExp[]) {
+  constructor(allOf: string[]) {
     this.allOf = allOf
   }
 
@@ -18,8 +18,7 @@ export class Beagle {
     if (q == null) {
       return new Beagle([])
     }
-    const allOf: RegExp[] = _exactPatternsFromString(q)
-    return new Beagle(allOf)
+    return new Beagle(_exactPatternsFromString(q))
   }
 
   isEmpty(): boolean {
@@ -65,33 +64,34 @@ export class Beagle {
 
 export function _searchFieldsFor(
   fields: string[],
-  allOfPatterns: RegExp[]
+  allOfPatterns: string[]
 ): boolean {
   const allOf = lodash.clone(allOfPatterns)
   fields.forEach((text: string) => {
     // To see a pattern once in node fields is enough, it could be excluded
     // from patterns set after that
-    lodash.remove(allOf, (re) => {
-      return text.search(re) >= 0
+    const lower = text.toLowerCase()
+    lodash.remove(allOf, (pattern) => {
+      return lower.indexOf(pattern) >= 0
     })
   })
   return allOf.length === 0
 }
 
-export function _exactPatternsFromString(q: string): RegExp[] {
+export function _exactPatternsFromString(q: string): string[] {
   q = lodash.clone(q)
-  const allOf: RegExp[] = []
+  const allOf: string[] = []
   const exactRe = /"(.*?)"/g
   let exactMatch
   while ((exactMatch = exactRe.exec(q)) !== null) {
     const phrase = exactMatch[1]
-    allOf.push(new RegExp(phrase))
+    allOf.push(phrase.toLowerCase())
   }
   q = q.replace(exactRe, ' ')
   for (const word of q.split(/[.,:;!?\s]/)) {
     const lower = word.toLowerCase().trim()
     if (lower) {
-      allOf.push(new RegExp(lower, 'i'))
+      allOf.push(lower)
     }
   }
   return allOf
