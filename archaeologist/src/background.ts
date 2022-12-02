@@ -3,7 +3,7 @@ import * as webNavigation from './web-navigation/webNavigation'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import * as auth from './background/auth'
 import { saveWebPage, savePageQuote } from './background/savePage'
-import * as productanalytics from './background/productanalytics'
+import { backgroundpa } from './background/productanalytics'
 import {
   ToPopUp,
   ToContent,
@@ -29,6 +29,7 @@ import {
 } from 'smuggler-api'
 
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
+import { suggestAssociations } from './background/suggestAssociations'
 import { calculateBadgeCounter } from './badge/badgeCounter'
 import { isMemorable } from './content/extractor/url/unmemorable'
 import { isPageAutosaveable } from './content/extractor/url/autosaveable'
@@ -356,7 +357,7 @@ async function getPageContentViaTemporaryTab(
 async function handleMessageFromContent(
   message: FromContent.Request,
   sender: browser.Runtime.MessageSender
-): Promise<ToContent.Response> {
+): Promise<ToContent.Response | FromContent.Response> {
   const tab = sender.tab ?? (await getActiveTab())
   log.debug('Get message from content', message, tab)
   switch (message.type) {
@@ -380,6 +381,13 @@ async function handleMessageFromContent(
       return {
         type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
         numDeleted,
+      }
+    }
+    case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
+      const suggested = await suggestAssociations(message.phrase, message.limit)
+      return {
+        type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
+        suggested: suggested.map((node: TNode) => node.toJson()),
       }
     }
     default:
@@ -586,9 +594,13 @@ async function handleMessageFromPopup(
       }
     }
     case 'REQUEST_AUTH_STATUS':
-      const status = auth.account().isAuthenticated()
-      badge.setActive(status)
-      return { type: 'AUTH_STATUS', status }
+      const account = auth.account()
+      const authenticated = account.isAuthenticated()
+      badge.setActive(account.isAuthenticated())
+      return {
+        type: 'AUTH_STATUS',
+        userUid: authenticated ? account.getUid() : undefined,
+      }
     default:
       throw new Error(
         `background received msg from popup of unknown type, message: ${JSON.stringify(
@@ -725,6 +737,7 @@ async function initMazedPartsOfTab(
   try {
     await ToContent.sendMessage(tab.id, {
       type: 'INIT_CONTENT_AUGMENTATION_REQUEST',
+      nodeEnv: process.env.NODE_ENV,
       userUid: auth.account().getUid(),
       quotes: response.quotes.map((node) => node.toJson()),
       bookmark: response.bookmark?.toJson(),
@@ -799,4 +812,4 @@ auth.register()
 browserBookmarks.register()
 omnibox.register()
 webNavigation.register()
-productanalytics.register()
+backgroundpa.register()

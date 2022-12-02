@@ -1,4 +1,7 @@
+/** @jsxImportSource @emotion/react */
+
 import React from 'react'
+import { css } from '@emotion/react'
 
 import { BlockQuote } from '../editor/components/BlockQuote'
 import { MdiLaunch } from '../MaterialIcons'
@@ -39,7 +42,7 @@ const IconLaunch = styled.a`
   position: absolute;
   bottom: 0;
 
-  font-size: 14px;
+  font-size: 1em;
   left: 26px;
 
   opacity: 50%;
@@ -133,26 +136,46 @@ const Title = styled.p`
   margin: 0 0 0.36em 0;
 `
 
-const Domain = styled.p`
-  font-size: 11px;
-  letter-spacing: 0.025em;
-  color: #80868b;
-  font-weight: 400;
-  line-height: 1em;
+const BookmarkUrlStripped = ({
+  url,
+  className,
+}: {
+  url: string
+  className?: string
+}) => {
+  url = url.replace(/^https?:\/\//, '')
+  return (
+    <p
+      className={className}
+      css={css`
+        font-size: 0.84em;
+        letter-spacing: 0.025em;
+        color: #478ac0;
+        font-weight: 400;
+        line-height: 1em;
+        margin: 0 0 0.4em 0;
 
-  margin: 0 0 0.42em 0;
-`
+        width: 12em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      `}
+    >
+      {url}
+    </p>
+  )
+}
 
 const Author = styled.p`
-  margin: 0 0 0.42em 0;
-  font-size: 11px;
+  margin: 0;
+  font-size: 0.84em;
   font-style: italic;
 `
 
 const DescriptionBox = styled.div`
   font-size: 1em;
   padding: 0;
-  margin: 8px 8px 0 8px;
+  margin: 0 8px 0 8px;
 `
 const Description = styled(BlockQuote)`
   margin: 4px 0 6px 0;
@@ -198,9 +221,10 @@ export const WebBookmark = ({
         />
         <TitleBox>
           <Title className={productanalytics.classExclude()}>{title}</Title>
-          <Domain className={productanalytics.classExclude()}>
-            {hostname}
-          </Domain>
+          <BookmarkUrlStripped
+            className={productanalytics.classExclude()}
+            url={url}
+          />
           {authorBadge}
         </TitleBox>
       </BadgeBox>

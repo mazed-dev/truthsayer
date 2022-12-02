@@ -13,9 +13,14 @@ export type MaterialIconType =
   | 'account_circle'
   | 'add'
   | 'bookmark_add'
+  | 'cancel'
+  | 'close'
+  | 'cloud_sync'
+  | 'cloud_upload'
   | 'code'
   | 'content_copy'
   | 'content_cut'
+  | 'delete'
   | 'expand_less'
   | 'expand_more'
   | 'file_upload'
@@ -31,20 +36,16 @@ export type MaterialIconType =
   | 'launch'
   | 'link_off'
   | 'looks_one'
-  | 'youtube_searched_for'
-  | 'public'
   | 'looks_two'
   | 'more_horiz'
   | 'open_in_full'
+  | 'public'
   | 'search'
+  | 'sync'
   | 'travel_explore'
+  | 'youtube_searched_for'
   | 'zoom_in'
   | 'zoom_out'
-  | 'sync'
-  | 'cloud_sync'
-  | 'cloud_upload'
-  | 'cancel'
-  | 'delete'
 
 type MaterialIconAttrs = React.HTMLProps<HTMLSpanElement>
 
@@ -104,3 +105,4 @@ export const MdiCloudUpload = _makeMaterialIcon('cloud_upload')
 export const MdiCancel = _makeMaterialIcon('cancel')
 export const MdiDelete = _makeMaterialIcon('delete')
 export const MdiPublic = _makeMaterialIcon('public')
+export const MdiClose = _makeMaterialIcon('close')
