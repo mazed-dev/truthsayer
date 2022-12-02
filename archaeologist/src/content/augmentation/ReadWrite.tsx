@@ -7,7 +7,7 @@ import { TNode, TNodeJson } from 'smuggler-api'
 import { FromContent } from './../../message/types'
 
 import { SuggestionsToast } from './SuggestionsToast'
-import { TextAreaCornerIcon } from './TextAreaCornerIcon'
+import { TextAreaCorner } from './TextAreaCorner'
 import { getKeyPhraseFromText } from './keyphrase'
 
 function appendSuffixToSlidingWindow(buf: string, key: string): string {
@@ -24,22 +24,21 @@ function appendSuffixToSlidingWindow(buf: string, key: string): string {
 
 type UserInput = {
   keyBuffer: string
-  target: HTMLElement | null
+  target: HTMLTextAreaElement | null
   phrase: string | null
 }
 function updateUserInputFromKeyboardEvent(
   userInput: UserInput,
   keyboardEvent: KeyboardEvent
 ) {
-  // log.debug('KeyboardEvent', keyboardEvent)
   if ('altKey' in keyboardEvent) {
-    // Consume KeyboardEvent
-    const event = keyboardEvent as unknown as React.KeyboardEvent<HTMLElement>
-    const target = event.target as HTMLElement
+    const event =
+      keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
+    const target = event.target as HTMLTextAreaElement
     if (
       target.isContentEditable ||
-      target.nodeName === 'INPUT' ||
-      target.nodeName === 'TEXTAREA'
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA'
     ) {
       let { keyBuffer } = userInput
       if (target !== userInput.target) {
@@ -55,13 +54,15 @@ function updateUserInputFromKeyboardEvent(
 
 export function getKeyPhraseFromUserInput(
   keyBuffer: string,
-  target?: HTMLElement
+  target?: HTMLTextAreaElement
 ): string | null {
   if (target == null) {
     return null
   }
   const targetValue =
-    (target as HTMLInputElement).value ?? target.innerText ?? target.textContent
+    (target as HTMLTextAreaElement).value ??
+    target.innerText ??
+    target.textContent
   if (targetValue != null) {
     const phrase = getKeyPhraseFromText(targetValue)
     return phrase
@@ -120,12 +121,11 @@ export function WriteAugmentation() {
   }, [])
   return (
     <>
-      <TextAreaCornerIcon
+      <TextAreaCorner
         target={userInput.target ?? undefined}
         onClick={() => showToast((isShown) => !isShown)}
-      >
-        {suggestedNodes.length > 0 ? suggestedNodes.length.toString() : ''}
-      </TextAreaCornerIcon>
+        suggestionsNumber={suggestedNodes.length}
+      />
       {toastIsShown ? (
         <SuggestionsToast
           onClose={() => {
