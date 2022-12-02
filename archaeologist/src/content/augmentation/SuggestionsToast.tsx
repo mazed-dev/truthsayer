@@ -9,7 +9,7 @@ import { TNode } from 'smuggler-api'
 
 import { Toast } from './../toaster/Toaster'
 import { LogoSmall, RefItem } from './../style'
-import { WatchedButton } from '../elements/WatchedButton'
+import { MeteredButton } from '../elements/MeteredButton'
 
 const ToastBox = styled.div`
   width: 368px;
@@ -37,7 +37,7 @@ const SuggestionsToastSuggestionsBox = styled.div`
   overflow: scroll;
 `
 
-const SuggestionButton = styled(WatchedButton)`
+const SuggestionButton = styled(MeteredButton)`
   opacity: 0.32;
   font-size: 12px;
 `
@@ -73,7 +73,7 @@ const CopySuggestionButton = ({
           setNotification('Copied!')
         }
       }}
-      watchedLabel={'Suggested Fragment'}
+      metricLabel={'Suggested Fragment'}
     >
       {notification ?? children}
     </SuggestionButton>
@@ -138,13 +138,13 @@ const SuggestedCard = ({
         <CardInsertButton node={node} onClose={onClose} />
         <SuggestionButton
           href={node.getDirectUrl()}
-          watchedLabel={'Suggested Fragment'}
+          metricLabel={'Suggested Fragment'}
         >
           Open Mazed
         </SuggestionButton>
         <SuggestionButton
           onClick={() => setSeeMore((more) => !more)}
-          watchedLabel={'Suggested Fragment'}
+          metricLabel={'Suggested Fragment'}
         >
           See {seeMore ? 'less' : 'more'}
         </SuggestionButton>
@@ -180,9 +180,9 @@ export const SuggestionsToast = ({
           <SearchPhrase href={mazed.makeSearchUrl(keyphrase).toString()}>
             &ldquo;{keyphrase}&rdquo;
           </SearchPhrase>
-          <WatchedButton onClick={onClose} watchedLabel={'Suggestions Toast'}>
+          <MeteredButton onClick={onClose} metricLabel={'Suggestions Toast'}>
             Close
-          </WatchedButton>
+          </MeteredButton>
         </Header>
         <SuggestionsToastSuggestionsBox>
           {suggestedEl}

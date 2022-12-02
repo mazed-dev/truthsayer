@@ -16,21 +16,21 @@ const getTextFromChildren = (children: React.ReactNode) => {
   return label
 }
 
-export function WatchedButton({
+export function MeteredButton({
   onClick,
   children,
   className,
   href,
-  watchedLabel,
+  metricLabel,
 }: React.PropsWithChildren<{
   onClick?: React.MouseEventHandler
   className?: string
   href?: string
-  watchedLabel?: string
+  metricLabel?: string
 }>) {
   const ctx = React.useContext(ContentContext)
-  const onWatchedClick = (event: React.MouseEvent) => {
-    ctx.analytics?.capture(`Button:Click ${watchedLabel}`, {
+  const onMeteredClick = (event: React.MouseEvent) => {
+    ctx.analytics?.capture(`Button:Click ${metricLabel}`, {
       text: getTextFromChildren(children),
       event_type: 'click',
       className,
@@ -40,7 +40,7 @@ export function WatchedButton({
     }
   }
   return (
-    <ImgButton href={href} onClick={onWatchedClick} className={className}>
+    <ImgButton href={href} onClick={onMeteredClick} className={className}>
       {children}
     </ImgButton>
   )

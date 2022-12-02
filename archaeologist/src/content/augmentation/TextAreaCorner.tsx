@@ -85,7 +85,7 @@ export const TextAreaCorner = ({
     return () => {}
   })
   const ctx = React.useContext(ContentContext)
-  const onWatchedClick = (event: React.MouseEvent) => {
+  const onMeteredClick = (event: React.MouseEvent) => {
     ctx.analytics?.capture('TextAreaCorner:Click', {
       text: suggestionsNumber.toString(),
       targetTagName: target?.tagName.toLowerCase(),
@@ -105,7 +105,7 @@ export const TextAreaCorner = ({
         height: target?.clientHeight + 'px',
       }}
     >
-      <Box onClick={onWatchedClick}>
+      <Box onClick={onMeteredClick}>
         <Logo />
         <BadgeBox>
           <BadgeBubble>
