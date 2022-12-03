@@ -1,5 +1,6 @@
 import React from 'react'
 import styled from '@emotion/styled'
+import { useReadOnly } from 'slate-react'
 import { ParagraphBox } from './components'
 
 import lodash from 'lodash'
@@ -24,17 +25,19 @@ const TipBox = styled.span`
 
 type ParagraphProps = React.PropsWithChildren<{
   className?: string
+  element: any
 }>
 
 export const Paragraph = React.forwardRef<HTMLParagraphElement, ParagraphProps>(
-  ({ className, children, ...attributes }, ref) => {
+  ({ className, children, element, ...attributes }, ref) => {
+    const readOnly = useReadOnly()
     let tip
     if (React.Children.count(children) === 1) {
       const text = lodash.get(
         React.Children.toArray(children)[0],
         'props.text.text'
       )
-      if (text === '') {
+      if (!readOnly && text === '') {
         tip = <TipBox contentEditable={false} />
       }
     }

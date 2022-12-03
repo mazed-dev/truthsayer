@@ -1,6 +1,11 @@
 import * as badge from './../badge/badge'
 import browser from 'webextension-polyfill'
-import type { SmugglerTokenLastUpdateCookies } from 'smuggler-api'
+import {
+  AccountInterface,
+  AnonymousAccount,
+  SmugglerTokenLastUpdateCookies,
+  UserAccount,
+} from 'smuggler-api'
 import { Knocker, authCookie } from 'smuggler-api'
 import { log, isAbortError } from 'armoury'
 
@@ -54,6 +59,53 @@ const _authKnocker = new Knocker(
   }
 )
 
+let _account: AccountInterface = new AnonymousAccount()
+let _onLogin: ((account: UserAccount) => void) | null = null
+let _onLogout: (() => void) | null = null
+
+function isAuthenticated(account: AccountInterface): account is UserAccount {
+  return account.isAuthenticated()
+}
+
+// TODO[snikitin@outlook.com] this is a background-compatible
+// version of smuggler-api.createUserAccount. Can/should they be merged?
+export async function createUserAccount(
+  abortSignal?: AbortSignal
+): Promise<AccountInterface> {
+  const veil = await browser.cookies.get({
+    url: process.env.REACT_APP_SMUGGLER_API_URL || '',
+    name: authCookie.veil.name,
+  })
+  if (veil != null && !authCookie.veil.parse(veil.value)) {
+    return new AnonymousAccount()
+  }
+  return UserAccount.create(abortSignal)
+}
+
+async function onKnockSuccess() {
+  if (isAuthenticated(_account)) {
+    return
+  }
+  _account = await createUserAccount()
+  if (!isAuthenticated(_account)) {
+    throw new Error(
+      'Tried to create a UserAccount on auth knock success, but failed. ' +
+        'Authorisation-related issues are likely. ' +
+        `Result = ${JSON.stringify(_account)}`
+    )
+  }
+  if (_onLogin) {
+    _onLogin(_account)
+  }
+}
+
+function onKnockFailure() {
+  _account = new AnonymousAccount()
+  if (_onLogout) {
+    _onLogout()
+  }
+}
+
 const onChangedCookiesListener = async (
   info: browser.Cookies.OnChangedChangeInfoType
 ) => {
@@ -62,36 +114,84 @@ const onChangedCookiesListener = async (
     const status = authCookie.veil.parse(value || null)
     await badge.setActive(status)
     if (status) {
-      _authKnocker.start()
+      await _authKnocker.start({
+        onKnockSuccess,
+        onKnockFailure,
+      })
     } else {
-      _authKnocker.abort()
+      await _authKnocker.abort()
     }
   }
 }
 
-export async function isAuthorised(): Promise<boolean> {
-  try {
-    const cookie = await browser.cookies.get({
-      url: authCookie.url,
-      name: authCookie.veil.name,
-    })
-    return authCookie.veil.parse(cookie?.value || null)
-  } catch (err) {
-    if (!isAbortError(err)) {
-      log.exception(err)
-    }
+export function account(): AccountInterface {
+  return _account
+}
+
+/**
+ * Observe authentication status via a callback that will be invoked when
+ * a user logs in and a callback invoked when a user logs out.
+ *
+ * If a user logged in already at the time the call of 'observe',
+ * 'onLogin' will be invoked immediately.
+ *
+ * Returns a functor that once invoked unregisters callbacks supplied to
+ * 'observe'.
+ */
+export function observe({
+  onLogin,
+  onLogout,
+}: {
+  onLogin: (account: UserAccount) => void
+  onLogout: () => void
+}): () => void {
+  if (_onLogin != null || _onLogout != null) {
+    throw new Error(
+      'Background authentication is already being observed, ' +
+        'to observe from multiple places the functionality has to be extended'
+    )
   }
-  return false
+  _onLogin = onLogin
+  _onLogout = onLogout
+
+  const unregister = () => {
+    _onLogin = null
+    _onLogout = null
+  }
+
+  try {
+    if (isAuthenticated(_account)) {
+      _onLogin(_account)
+    }
+  } catch (e) {
+    unregister()
+    throw e
+  }
+
+  return unregister
 }
 
 export async function register() {
-  _authKnocker.start()
+  _account = await createUserAccount()
+  _authKnocker.start({
+    onKnockSuccess,
+    onKnockFailure,
+  })
   if (!browser.cookies.onChanged.hasListener(onChangedCookiesListener)) {
     browser.cookies.onChanged.addListener(onChangedCookiesListener)
   }
-  await badge.setActive(await isAuthorised())
-  return () => {
+  await badge.setActive(_account.isAuthenticated())
+  return async () => {
     browser.cookies.onChanged.removeListener(onChangedCookiesListener)
-    _authKnocker.abort()
+    await _authKnocker.abort()
+    _account = new AnonymousAccount()
+    try {
+      if (_onLogout) {
+        _onLogout()
+      }
+    } finally {
+      _onLogin = null
+      _onLogout = null
+    }
   }
 }
