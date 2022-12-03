@@ -44,8 +44,8 @@ jobs:
         run: yarn archaeologist build:chrome:public
 
       - name: Build truthsayer
-        # This is a little absurd, but CI=true force react build script treat
-        # all warning as errors. Let's turn it off to unblock the change. Once
+        # This is a little absurd, but CI=true forces React build script to treat
+        # all warnings as errors. Let's turn it off to unblock the change. Once
         # we get rid of all the warnings we can enable CI back.
         # https://github.com/facebook/create-react-app/issues/3657
         env:
