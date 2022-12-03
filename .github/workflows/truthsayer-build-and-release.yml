@@ -1,0 +1,41 @@
+name: Build truthsayer & release it
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build truthsayer
+        run: yarn truthsayer build
+
+      - name: Push build output to mazed-dev/truthsayer-release
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+        with:
+          source-directory: 'truthsayer/build'
+          destination-github-username: 'mazed-dev'
+          destination-repository-name: 'truthsayer-release'
+          target-branch: main
+          user-email: ${{github.event.pusher.email}}
+          user-name: ${{github.event.pusher.name}}
