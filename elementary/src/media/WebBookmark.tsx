@@ -24,6 +24,7 @@ const Box = styled.div`
 const IconImg = styled.img`
   height: inherit;
   width: inherit;
+  max-width: unset;
   border-radius: inherit;
 `
 const PreviewImageBox = styled.div`

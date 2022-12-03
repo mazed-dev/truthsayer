@@ -379,7 +379,7 @@ const App = () => {
             <WriteAugmentation />
           </>
         )}
-      </ContentContext.Provider>{' '}
+      </ContentContext.Provider>
     </AppErrorBoundary>
   )
 }

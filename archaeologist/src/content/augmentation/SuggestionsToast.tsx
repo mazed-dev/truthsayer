@@ -4,21 +4,13 @@ import React from 'react'
 import styled from '@emotion/styled'
 import { mazed } from '../../util/mazed'
 
-import {
-  MdiClose,
-  TDoc,
-  ImgButton,
-  ShrinkCard,
-  NodeCardReadOnly,
-} from 'elementary'
+import { TDoc, ShrinkCard, NodeCardReadOnly } from 'elementary'
 import { TNode } from 'smuggler-api'
 
 import { Toast } from './../toaster/Toaster'
-import { LogoSmall, ButtonItem, RefItem } from './../style'
+import { LogoSmall, RefItem } from './../style'
+import { MeteredButton } from '../elements/MeteredButton'
 
-const ClosePic = styled(MdiClose)`
-  vertical-align: middle;
-`
 const ToastBox = styled.div`
   width: 368px;
   display: flex;
@@ -45,7 +37,7 @@ const SuggestionsToastSuggestionsBox = styled.div`
   overflow: scroll;
 `
 
-const SuggestionButton = styled(ImgButton)`
+const SuggestionButton = styled(MeteredButton)`
   opacity: 0.32;
   font-size: 12px;
 `
@@ -81,6 +73,7 @@ const CopySuggestionButton = ({
           setNotification('Copied!')
         }
       }}
+      metricLabel={'Suggested Fragment'}
     >
       {notification ?? children}
     </SuggestionButton>
@@ -143,10 +136,16 @@ const SuggestedCard = ({
       </ShrinkCard>
       <SuggestedCardTools>
         <CardInsertButton node={node} onClose={onClose} />
-        <SuggestionButton href={node.getDirectUrl()}>
+        <SuggestionButton
+          href={node.getDirectUrl()}
+          metricLabel={'Suggested Fragment'}
+        >
           Open Mazed
         </SuggestionButton>
-        <SuggestionButton onClick={() => setSeeMore((more) => !more)}>
+        <SuggestionButton
+          onClick={() => setSeeMore((more) => !more)}
+          metricLabel={'Suggested Fragment'}
+        >
           See {seeMore ? 'less' : 'more'}
         </SuggestionButton>
       </SuggestedCardTools>
@@ -181,9 +180,9 @@ export const SuggestionsToast = ({
           <SearchPhrase href={mazed.makeSearchUrl(keyphrase).toString()}>
             &ldquo;{keyphrase}&rdquo;
           </SearchPhrase>
-          <ButtonItem onClick={onClose}>
-            <ClosePic />
-          </ButtonItem>
+          <MeteredButton onClick={onClose} metricLabel={'Suggestions Toast'}>
+            Close
+          </MeteredButton>
         </Header>
         <SuggestionsToastSuggestionsBox>
           {suggestedEl}
