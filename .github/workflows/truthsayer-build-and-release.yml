@@ -1,16 +1,13 @@
-# This workflow will do a clean install of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
-name: Yarn lint, build, test
+name: Build truthsayer & release it
 
 on:
-  pull_request:
-    branches: [main]
+  push:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [16.x]
@@ -28,21 +25,6 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Run linters
-        run: yarn lint
-
-      - name: Build armoury
-        run: yarn armoury build
-
-      - name: Build smuggler-api
-        run: yarn smuggler-api build
-
-      - name: Build elementary
-        run: yarn elementary build
-
-      - name: Build archaeologist
-        run: yarn archaeologist build:chrome:public
-
       - name: Build truthsayer
         # This is a little absurd, but CI=true forces React build script to treat
         # all warnings as errors. Let's turn it off to unblock the change. Once
@@ -52,4 +34,14 @@ jobs:
           CI: false
         run: yarn truthsayer build
 
-      - run: yarn test --all --watchAll=false --no-watchman
+      - name: Push build output to mazed-dev/truthsayer-release
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+        with:
+          source-directory: 'truthsayer/build'
+          destination-github-username: 'mazed-dev'
+          destination-repository-name: 'truthsayer-release'
+          target-branch: main
+          user-email: ${{github.event.pusher.email}}
+          user-name: ${{github.event.pusher.name}}
