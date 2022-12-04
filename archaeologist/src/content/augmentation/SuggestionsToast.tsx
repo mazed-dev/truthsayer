@@ -16,11 +16,11 @@ const ToastBox = styled.div`
   display: flex;
   flex-direction: column;
 
-  margin: 4px !important;
-  background: #ffffff !important;
-  border: 1px solid #ececec !important;
-  border-radius: 4px !important;
-  color: black !important;
+  margin: 4px;
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 4px;
+  color: black;
   box-shadow: 2px 2px 4px #8c8c8ceb;
 `
 
