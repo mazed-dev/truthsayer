@@ -37,6 +37,8 @@ export function MeteredButton({
     })
     if (onClick != null) {
       onClick(event)
+    } else if (href != null) {
+      window.location.href = href
     }
   }
   return (

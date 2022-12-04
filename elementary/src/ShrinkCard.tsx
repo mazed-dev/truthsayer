@@ -69,3 +69,26 @@ export const ShrinkCard = ({
     </Shrinkable>
   )
 }
+
+export const ShrinkMinimalCard = ({
+  children,
+  showMore,
+  className,
+  onClick,
+  height,
+}: ShrinkCardProps) => {
+  height = height ?? '156px'
+  const shrinkStyle = showMore
+    ? css`
+        min-height: ${height};
+      `
+    : css`
+        max-height: ${height};
+      `
+  return (
+    <Shrinkable onClick={onClick} css={shrinkStyle} className={className}>
+      {children}
+      <Fade />
+    </Shrinkable>
+  )
+}

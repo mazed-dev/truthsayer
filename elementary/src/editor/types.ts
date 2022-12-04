@@ -268,6 +268,19 @@ function getSlateAsPlainText(children: SlateText): string {
   return [...texts, ...entities].join(' ')
 }
 
+function getSlateDescendantLength(node: Descendant): number {
+  let len = 0
+  if ('text' in node) {
+    len += node.text.length
+  }
+  if ('children' in node) {
+    node.children.forEach((item: Descendant) => {
+      len += getSlateDescendantLength(item)
+    })
+  }
+  return len
+}
+
 function makeThematicBreak(): ThematicBreakElement {
   return {
     type: kSlateBlockTypeBreak,
@@ -406,5 +419,13 @@ export class TDoc {
 
   genPlainText(): string {
     return getSlateAsPlainText(this.slate)
+  }
+
+  getTextLength(): number {
+    let len = 0
+    this.slate.forEach((item: Descendant) => {
+      len += getSlateDescendantLength(item)
+    })
+    return len
   }
 }
