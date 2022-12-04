@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import styled from '@emotion/styled'
 import { keyframes } from '@emotion/react'
+import root from 'react-shadow/emotion'
 
 import { HoverTooltip } from 'elementary'
 import { ContentContext } from '../context'
@@ -69,9 +70,11 @@ export const Toast = ({
      */
   )
   return ReactDOM.createPortal(
-    <ToastBox key={toastKey} className={className}>
-      {children}
-    </ToastBox>,
+    <root.div id="mazed-archaeologist-toast-root">
+      <ToastBox key={toastKey} className={className}>
+        {children}
+      </ToastBox>
+    </root.div>,
     box
   )
 }
