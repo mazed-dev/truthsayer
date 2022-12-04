@@ -3,6 +3,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import styled from '@emotion/styled'
+import root from 'react-shadow/emotion'
+
 import LogoImage from '../../../public/logo-fade-48x48.png'
 import { ContentContext } from '../context'
 
@@ -24,8 +26,8 @@ const Box = styled.div`
 `
 
 const LogoBox = styled.img`
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   margin: 0;
   padding: 0;
 `
@@ -42,11 +44,11 @@ const BadgeBubble = styled.div`
   bottom: 1px;
   right: 0;
 
-  width: 18px !important;
-  height: 18px !important;
+  width: 16px;
+  height: 16px;
 
-  border-radius: 28px !important;
-  border: 1px solid #ececec !important;
+  border-radius: 16px;
+  border: 1px solid #ececec;
   background-image: linear-gradient(#54a3ff, #006eed);
 `
 
@@ -105,18 +107,23 @@ export const TextAreaCorner = ({
         height: target?.clientHeight + 'px',
       }}
     >
-      <Box onClick={onMeteredClick}>
-        <Logo />
-        <BadgeBox>
-          <BadgeBubble>
-            <BadgeTextBox>
-              <BadgeText>
-                {suggestionsNumber > 0 ? suggestionsNumber.toString() : ''}
-              </BadgeText>
-            </BadgeTextBox>
-          </BadgeBubble>
-        </BadgeBox>
-      </Box>
+      <root.div id="mazed-archaeologist-toast-root">
+        <Box onClick={onMeteredClick}>
+          <Logo />
+          <BadgeBox>
+            {
+              /* don't show bubble if there is no suggestions */
+              suggestionsNumber === 0 ? null : (
+                <BadgeBubble>
+                  <BadgeTextBox>
+                    <BadgeText>{suggestionsNumber.toString()}</BadgeText>
+                  </BadgeTextBox>
+                </BadgeBubble>
+              )
+            }
+          </BadgeBox>
+        </Box>
+      </root.div>
     </OuterBox>,
     box
   )
