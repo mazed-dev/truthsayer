@@ -26,7 +26,7 @@ export const NodeTextReader = ({
 }) => {
   const initialValue = useMemo(() => {
     const doc = TDoc.fromNodeTextData(node.getText())
-    return doc.slate
+    return doc
   }, [node])
   const renderElement = useCallback(
     (props) => <ReadOnlyElement nid={node.nid} {...props} />,
@@ -39,17 +39,19 @@ export const NodeTextReader = ({
   )
   return (
     <div className={className}>
-      <Slate editor={editor} value={initialValue}>
-        <Editable
-          renderElement={renderElement}
-          renderLeaf={renderLeaf}
-          readOnly
-          css={css`
-            padding: 1em 1em 0 1em;
-          `}
-          className={productanalytics.classExclude()}
-        />
-      </Slate>
+      {initialValue.getTextLength() === 0 ? null : (
+        <Slate editor={editor} value={initialValue.slate}>
+          <Editable
+            renderElement={renderElement}
+            renderLeaf={renderLeaf}
+            readOnly
+            css={css`
+              padding: 1em 1em 0 1em;
+            `}
+            className={productanalytics.classExclude()}
+          />
+        </Slate>
+      )}
     </div>
   )
 }

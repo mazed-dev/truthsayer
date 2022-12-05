@@ -4,7 +4,7 @@ import React from 'react'
 import styled from '@emotion/styled'
 import { mazed } from '../../util/mazed'
 
-import { TDoc, ShrinkCard, NodeCardReadOnly } from 'elementary'
+import { TDoc, ShrinkMinimalCard, NodeCardReadOnly } from 'elementary'
 import { TNode } from 'smuggler-api'
 
 import { Toast } from './../toaster/Toaster'
@@ -92,13 +92,13 @@ function CardInsertButton({
   if (node.isWebBookmark() && node.extattrs?.web != null) {
     const { web, title, author } = node.extattrs
     const authorStr = author ? `\nby ${author}` : ''
-    toInsert = ` 🧵 ${title}${authorStr}\n🔗 ${web.url} `
+    toInsert = `${title}${authorStr}\n🧵 ${web.url} `
     copySubj = 'Link'
   } else if (node.isWebQuote() && node.extattrs?.web_quote != null) {
     const { text, url } = node.extattrs.web_quote
     const { author } = node.extattrs
     const authorStr = author ? `\nby ${author}` : ''
-    toInsert = ` 🧵 ${text}${authorStr}\n🔗 ${url} `
+    toInsert = `“${text}”${authorStr}\n🧵 ${url} `
     copySubj = 'Quote'
   } else if (node.isImage()) {
     const url = node.getBlobSource()
@@ -106,7 +106,7 @@ function CardInsertButton({
     copySubj = 'Image'
   } else {
     const doc = TDoc.fromNodeTextData(node.getText())
-    toInsert = ` 🧵 ${doc.genPlainText()}\n🔗 ${node.getDirectUrl()} `
+    toInsert = `${doc.genPlainText()}\n🧵 ${node.getDirectUrl()} `
     copySubj = 'Note'
   }
   return (
@@ -131,9 +131,9 @@ const SuggestedCard = ({
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
   return (
     <SuggestedCardBox>
-      <ShrinkCard showMore={seeMore} height={'104px'}>
+      <ShrinkMinimalCard showMore={seeMore} height={'104px'}>
         <NodeCardReadOnly node={node} strippedRefs strippedActions />
-      </ShrinkCard>
+      </ShrinkMinimalCard>
       <SuggestedCardTools>
         <CardInsertButton node={node} onClose={onClose} />
         <SuggestionButton
