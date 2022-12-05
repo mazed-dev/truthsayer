@@ -16,7 +16,7 @@ const OuterBox = styled.div`
 const Box = styled.div`
   position: absolute;
   bottom: 2px;
-  right: -8px;
+  right: 4px;
 
   user-select: none;
   cursor: pointer;
