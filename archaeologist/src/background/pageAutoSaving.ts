@@ -33,7 +33,7 @@ export function countMomentsAfterX(
   }, 0)
 }
 
-const kAttentionTimeSecondsMin = 15
+const kAttentionTimeSecondsMin = 12
 export function isReadyToBeAutoSaved(
   userActivity: TotalUserActivity,
   totalAttentionTimeEstimationSeconds: number
