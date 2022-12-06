@@ -60,14 +60,9 @@ const _authKnocker = new Knocker(
 )
 
 let _account: AccountInterface = new AnonymousAccount()
-
-/**
- * External listener for login events
- */
+// External listener for login events
 let _onLoginListener: ((account: UserAccount) => void) | null = null
-/**
- * External listener for logout events
- */
+// External listener for logout events
 let _onLogoutListener: (() => void) | null = null
 
 function isAuthenticated(account: AccountInterface): account is UserAccount {
@@ -90,7 +85,7 @@ export async function createUserAccount(
 }
 
 // Internal actions to do on login event
-async function _onLogin() {
+async function _loginHandler() {
   _account = await createUserAccount()
   await badge.setActive(_account.isAuthenticated())
   if (isAuthenticated(_account)) {
@@ -101,7 +96,7 @@ async function _onLogin() {
 }
 
 // Internal actions to do on logout event
-async function _onLogout() {
+async function _logoutHandler() {
   _account = new AnonymousAccount()
   await badge.setActive(false)
   if (_onLogoutListener) {
@@ -112,13 +107,12 @@ async function _onLogout() {
 // Actions to do on __every__ successful authorisation token renewal (knock of
 // Knocker)
 async function onKnockSuccess() {
-  log.debug('onKnockSuccess')
   if (isAuthenticated(_account)) {
-    log.debug('onKnockSuccess account is created')
+    // We don't have to re-create user account on every token renewal, so skip
+    // the actions if an account is already created.
     return
   }
-  log.debug('onKnockSuccess account is not yet created')
-  await _onLogin()
+  await _loginHandler()
   if (!isAuthenticated(_account)) {
     throw new Error(
       'Tried to create a UserAccount on auth knock success, but failed. ' +
@@ -130,7 +124,7 @@ async function onKnockSuccess() {
 
 // Actions to do on authorisation token renewal failure (knock of Knocker)
 async function onKnockFailure() {
-  await _onLogout()
+  await _logoutHandler()
   if (isAuthenticated(_account)) {
     throw new Error(
       'Failed to logout. Authorisation-related issues are likely. ' +
@@ -139,15 +133,15 @@ async function onKnockFailure() {
   }
 }
 
+// Listen to a change in Mazed authorisation cookie and login/logout accordingly
 const onChangedCookiesListener = async (
   info: browser.Cookies.OnChangedChangeInfoType
 ) => {
   const { value, name, domain } = info.cookie
   if (domain === authCookie.domain && name === authCookie.veil.name) {
-    const status = !info.removed && authCookie.veil.parse(value || null)
-    log.debug('onChangedCookiesListener - Mazed cookie', status, info)
-    // await badge.setActive(status)
+    const status = authCookie.veil.parse(value || null)
     if (status) {
+      await _loginHandler()
       if (!_authKnocker.isActive()) {
         await _authKnocker.start({ onKnockSuccess, onKnockFailure })
       }
@@ -208,13 +202,14 @@ export function observe({
 
 export async function register() {
   log.debug('Authorisation module is registered')
-  _onLogin()
+  await _loginHandler()
+  await _authKnocker.start({ onKnockSuccess, onKnockFailure })
   if (!browser.cookies.onChanged.hasListener(onChangedCookiesListener)) {
     browser.cookies.onChanged.addListener(onChangedCookiesListener)
   }
   return async () => {
     browser.cookies.onChanged.removeListener(onChangedCookiesListener)
-    await _onLogout()
+    await _logoutHandler()
     try {
       if (_onLogoutListener) {
         _onLogoutListener()
