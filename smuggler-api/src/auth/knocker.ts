@@ -29,6 +29,10 @@ export class Knocker {
     this.#checkingPeriodMSeconds = lodash.random(80_000, 120_000)
   }
 
+  isActive(): boolean {
+    return this.#scheduledId !== null
+  }
+
   start = async ({
     onKnockSuccess,
     onKnockFailure,
@@ -38,6 +42,7 @@ export class Knocker {
   }) => {
     if (this.#scheduledId) {
       clearTimeout(this.#scheduledId)
+      this.#scheduledId = null
     }
     // Check if token has to be updated with [knock] every 2 minutes restart the
     // loop if everything is ok
@@ -71,6 +76,7 @@ export class Knocker {
   abort = async () => {
     if (this.#scheduledId) {
       clearTimeout(this.#scheduledId)
+      this.#scheduledId = null
     }
     this.#abortController.abort()
     if (this.#abortCallback) {
