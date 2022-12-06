@@ -7,8 +7,8 @@ export namespace unicodeText {
   }
 
   export function getTimeToRead(plaintext: string): moment.Duration {
-    // 240 words per minute is an average reading spead in English, so we take it
-    // as a solution to-go. We shall adjeust it based on language and each
+    // 240 words per minute is an average reading spead in English, so we take
+    // it as a solution to-go. We shall adjeust it based on language and each
     // individual user.
     return moment.duration(getWordCount(plaintext) / 240, 'minutes')
   }
