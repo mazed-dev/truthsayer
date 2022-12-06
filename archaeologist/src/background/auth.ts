@@ -60,8 +60,10 @@ const _authKnocker = new Knocker(
 )
 
 let _account: AccountInterface = new AnonymousAccount()
-let _onLogin: ((account: UserAccount) => void) | null = null
-let _onLogout: (() => void) | null = null
+// External listener for login events
+let _onLoginListener: ((account: UserAccount) => void) | null = null
+// External listener for logout events
+let _onLogoutListener: (() => void) | null = null
 
 function isAuthenticated(account: AccountInterface): account is UserAccount {
   return account.isAuthenticated()
@@ -82,44 +84,52 @@ export async function createUserAccount(
   return UserAccount.create(abortSignal)
 }
 
-async function onKnockSuccess() {
-  if (isAuthenticated(_account)) {
-    return
-  }
+// Internal actions to do on login event
+async function _loginHandler() {
   _account = await createUserAccount()
-  if (!isAuthenticated(_account)) {
+  if (isAuthenticated(_account)) {
+    if (!_authKnocker.isActive()) {
+      await _authKnocker.start({ onKnockFailure })
+    }
+    if (_onLoginListener) {
+      _onLoginListener(_account)
+    }
+  }
+  await badge.setActive(_account.isAuthenticated())
+}
+
+// Internal actions to do on logout event
+async function _logoutHandler() {
+  _account = new AnonymousAccount()
+  await _authKnocker.abort()
+  await badge.setActive(false)
+  if (_onLogoutListener) {
+    _onLogoutListener()
+  }
+}
+
+// Actions to do on authorisation token renewal failure (knock of Knocker)
+async function onKnockFailure() {
+  await _logoutHandler()
+  if (isAuthenticated(_account)) {
     throw new Error(
-      'Tried to create a UserAccount on auth knock success, but failed. ' +
-        'Authorisation-related issues are likely. ' +
+      'Failed to logout. Authorisation-related issues are likely. ' +
         `Result = ${JSON.stringify(_account)}`
     )
   }
-  if (_onLogin) {
-    _onLogin(_account)
-  }
 }
 
-function onKnockFailure() {
-  _account = new AnonymousAccount()
-  if (_onLogout) {
-    _onLogout()
-  }
-}
-
+// Listen to a change in Mazed authorisation cookie and login/logout accordingly
 const onChangedCookiesListener = async (
   info: browser.Cookies.OnChangedChangeInfoType
 ) => {
   const { value, name, domain } = info.cookie
   if (domain === authCookie.domain && name === authCookie.veil.name) {
     const status = authCookie.veil.parse(value || null)
-    await badge.setActive(status)
     if (status) {
-      await _authKnocker.start({
-        onKnockSuccess,
-        onKnockFailure,
-      })
+      await _loginHandler()
     } else {
-      await _authKnocker.abort()
+      await _logoutHandler()
     }
   }
 }
@@ -145,23 +155,23 @@ export function observe({
   onLogin: (account: UserAccount) => void
   onLogout: () => void
 }): () => void {
-  if (_onLogin != null || _onLogout != null) {
+  if (_onLoginListener != null || _onLogoutListener != null) {
     throw new Error(
       'Background authentication is already being observed, ' +
         'to observe from multiple places the functionality has to be extended'
     )
   }
-  _onLogin = onLogin
-  _onLogout = onLogout
+  _onLoginListener = onLogin
+  _onLogoutListener = onLogout
 
   const unregister = () => {
-    _onLogin = null
-    _onLogout = null
+    _onLoginListener = null
+    _onLogoutListener = null
   }
 
   try {
     if (isAuthenticated(_account)) {
-      _onLogin(_account)
+      _onLoginListener(_account)
     }
   } catch (e) {
     unregister()
@@ -171,27 +181,33 @@ export function observe({
   return unregister
 }
 
+/**
+ * This is a module to maintain Archaeologist authorisation with Smuggler
+ *
+ *- Knocker must be created on each successful login.
+ *- Knocker role is to renew auth token after successful login periodically.
+ *- It stops after a first renewal failure.
+ *- Archaeologist listens to a change in authorisation via cookie listener, it
+ *  performs for auth status:
+ *  - Initialisation with `_loginHandler` when cookie `x-magic-veil:y` is added;
+ *  - De-initialisation when this cookie is deleted with `_logoutHander`.
+ */
 export async function register() {
-  _account = await createUserAccount()
-  _authKnocker.start({
-    onKnockSuccess,
-    onKnockFailure,
-  })
+  log.debug('Authorisation module is registered')
+  await _loginHandler()
   if (!browser.cookies.onChanged.hasListener(onChangedCookiesListener)) {
     browser.cookies.onChanged.addListener(onChangedCookiesListener)
   }
-  await badge.setActive(_account.isAuthenticated())
   return async () => {
     browser.cookies.onChanged.removeListener(onChangedCookiesListener)
-    await _authKnocker.abort()
-    _account = new AnonymousAccount()
+    await _logoutHandler()
     try {
-      if (_onLogout) {
-        _onLogout()
+      if (_onLogoutListener) {
+        _onLogoutListener()
       }
     } finally {
-      _onLogin = null
-      _onLogout = null
+      _onLoginListener = null
+      _onLogoutListener = null
     }
   }
 }

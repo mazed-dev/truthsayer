@@ -5,7 +5,16 @@ import { authCookie } from './cookie'
 import { log, unixtime, errorise } from 'armoury'
 import type { Optional } from 'armoury'
 import lodash from 'lodash'
-
+/*
+ * A Knocker object role is to renew auth token after successful login
+ * periodically.
+ *
+ * - Knocker must be created on each successful login.
+ * - Knocker is mindful of other Knocker objects working in all active
+ *   Truthsayer tabs and in Archaeologist background script.
+ * - Knocker role is to renew auth token after successful login periodically.
+ * - Knocker stops after a first renewal failure.
+ */
 export class Knocker {
   #scheduledId: Optional<number>
   readonly #abortCallback?: () => void
@@ -29,6 +38,10 @@ export class Knocker {
     this.#checkingPeriodMSeconds = lodash.random(80_000, 120_000)
   }
 
+  isActive(): boolean {
+    return this.#scheduledId !== null
+  }
+
   start = async ({
     onKnockSuccess,
     onKnockFailure,
@@ -38,6 +51,7 @@ export class Knocker {
   }) => {
     if (this.#scheduledId) {
       clearTimeout(this.#scheduledId)
+      this.#scheduledId = null
     }
     // Check if token has to be updated with [knock] every 2 minutes restart the
     // loop if everything is ok
@@ -71,6 +85,7 @@ export class Knocker {
   abort = async () => {
     if (this.#scheduledId) {
       clearTimeout(this.#scheduledId)
+      this.#scheduledId = null
     }
     this.#abortController.abort()
     if (this.#abortCallback) {

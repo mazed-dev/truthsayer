@@ -1,5 +1,5 @@
 import browser from 'webextension-polyfill'
-import { log, genOriginId, unixtime } from 'armoury'
+import { log, genOriginId, unixtime, OriginIdentity } from 'armoury'
 import { smuggler } from 'smuggler-api'
 
 // See https://developer.chrome.com/docs/extensions/reference/webNavigation/#type-TransitionType
@@ -53,13 +53,13 @@ function isRelationTransition(
 const _tabTransitionState: Record<number, TabNavigationTransition | undefined> =
   {}
 
-function reportAssociation(
+async function reportAssociation(
   fromUrlUnstable: string,
   toUrlUnstable: string
-): void {
+): Promise<void> {
   const { id: fromId, stableUrl: fromUrl } = genOriginId(fromUrlUnstable)
   const { id: toId, stableUrl: toUrl } = genOriginId(toUrlUnstable)
-  smuggler.activity.association.record(
+  await smuggler.activity.association.record(
     {
       from: { id: fromId },
       to: { id: toId },
@@ -74,30 +74,31 @@ function reportAssociation(
     }
   )
 }
+
+async function reportVisit(origin: OriginIdentity): Promise<void> {
+  await smuggler.activity.external.add(
+    { id: origin.id },
+    {
+      visit: {
+        visits: [{ timestamp: unixtime.now() }],
+      },
+    }
+  )
+}
+
 const onCompletedListener = async (
   details: browser.WebNavigation.OnCompletedDetailsType
 ) => {
   if (details.frameId === 0) {
     const origin = genOriginId(details.url)
     log.debug('Register new visit', origin.stableUrl, origin.id)
-    await smuggler.activity.external.add(
-      { id: origin.id },
-      {
-        visit: {
-          visits: [{ timestamp: unixtime.now() }],
-        },
-      }
-    )
+    await reportVisit(origin)
     const transition = _tabTransitionState[details.tabId]
     if (
       transition?.source?.url != null &&
       isRelationTransition(transition, details.url)
     ) {
-      log.debug(
-        'Register transition >>>---1--->',
-        transition.source.url,
-        details.url
-      )
+      log.debug('Register transition (1)', transition.source.url, details.url)
       reportAssociation(transition.source.url, details.url)
     }
     _tabTransitionState[details.tabId] = {
@@ -114,11 +115,7 @@ const onHistoryStateUpdatedListener = async (
       transition?.source?.url != null &&
       isRelationTransition(transition, details.url)
     ) {
-      log.debug(
-        'Register transition >>>---2--->',
-        transition.source.url,
-        details.url
-      )
+      log.debug('Register transition (2)', transition.source.url, details.url)
       reportAssociation(transition.source.url, details.url)
     }
     _tabTransitionState[details.tabId] = {
@@ -136,7 +133,7 @@ const onReferenceFragmentUpdatedListener = async (
       isRelationTransition(transition, details.url)
     ) {
       log.debug(
-        'Register transition >>>---3--->',
+        'Register transition (3)',
         transition.source.url,
         details.url && transition?.transitionType === 'link'
       )

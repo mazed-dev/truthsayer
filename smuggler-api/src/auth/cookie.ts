@@ -1,6 +1,6 @@
 import Cookies from 'universal-cookie'
 
-import { log, isAbortError } from 'armoury'
+import { log } from 'armoury'
 
 export const COOKIES_VEIL_KEY: string = 'x-magic-veil'
 export const COOKIES_LAST_UPDATE_KEY: string =
