@@ -97,7 +97,10 @@ export function isPageAutosaveable(url: string, document_?: Document): boolean {
   if (document_ == null) {
     return true
   }
-  return (
-    !_isTitleOfNotFoundPage(document_.title) && isProbablyReaderable(document_)
-  )
+  const isPageProbablyReaderable = isProbablyReaderable(document_, {
+    // Experimental value, selected based on results for very small pages
+    minContentLength: 300,
+  })
+  log.debug('Is page readable', isPageProbablyReaderable)
+  return !_isTitleOfNotFoundPage(document_.title) && isPageProbablyReaderable
 }
