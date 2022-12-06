@@ -87,6 +87,9 @@ export async function createUserAccount(
 // Internal actions to do on login event
 async function _loginHandler() {
   _account = await createUserAccount()
+  if (!_authKnocker.isActive()) {
+    await _authKnocker.start({ onKnockFailure })
+  }
   await badge.setActive(_account.isAuthenticated())
   if (isAuthenticated(_account)) {
     if (_onLoginListener) {
@@ -98,27 +101,10 @@ async function _loginHandler() {
 // Internal actions to do on logout event
 async function _logoutHandler() {
   _account = new AnonymousAccount()
+  await _authKnocker.abort()
   await badge.setActive(false)
   if (_onLogoutListener) {
     _onLogoutListener()
-  }
-}
-
-// Actions to do on __every__ successful authorisation token renewal (knock of
-// Knocker)
-async function onKnockSuccess() {
-  if (isAuthenticated(_account)) {
-    // We don't have to re-create user account on every token renewal, so skip
-    // the actions if an account is already created.
-    return
-  }
-  await _loginHandler()
-  if (!isAuthenticated(_account)) {
-    throw new Error(
-      'Tried to create a UserAccount on auth knock success, but failed. ' +
-        'Authorisation-related issues are likely. ' +
-        `Result = ${JSON.stringify(_account)}`
-    )
   }
 }
 
@@ -142,13 +128,8 @@ const onChangedCookiesListener = async (
     const status = authCookie.veil.parse(value || null)
     if (status) {
       await _loginHandler()
-      if (!_authKnocker.isActive()) {
-        await _authKnocker.start({ onKnockSuccess, onKnockFailure })
-      }
     } else {
-      if (_authKnocker.isActive()) {
-        await _authKnocker.abort()
-      }
+      await _logoutHandler()
     }
   }
 }
@@ -203,7 +184,6 @@ export function observe({
 export async function register() {
   log.debug('Authorisation module is registered')
   await _loginHandler()
-  await _authKnocker.start({ onKnockSuccess, onKnockFailure })
   if (!browser.cookies.onChanged.hasListener(onChangedCookiesListener)) {
     browser.cookies.onChanged.addListener(onChangedCookiesListener)
   }
