@@ -87,15 +87,15 @@ export async function createUserAccount(
 // Internal actions to do on login event
 async function _loginHandler() {
   _account = await createUserAccount()
-  if (!_authKnocker.isActive()) {
-    await _authKnocker.start({ onKnockFailure })
-  }
-  await badge.setActive(_account.isAuthenticated())
   if (isAuthenticated(_account)) {
+    if (!_authKnocker.isActive()) {
+      await _authKnocker.start({ onKnockFailure })
+    }
     if (_onLoginListener) {
       _onLoginListener(_account)
     }
   }
+  await badge.setActive(_account.isAuthenticated())
 }
 
 // Internal actions to do on logout event
@@ -181,6 +181,17 @@ export function observe({
   return unregister
 }
 
+/**
+ * This is a module to maintain Archaeologist authorisation with Smuggler
+ *
+ *- Knocker must be created on each successful login.
+ *- Knocker role is to renew auth token after successful login periodically.
+ *- It stops after a first renewal failure.
+ *- Archaeologist listens to a change in authorisation via cookie listener, it
+ *  performs for auth status:
+ *  - Initialisation with `_loginHandler` when cookie `x-magic-veil:y` is added;
+ *  - De-initialisation when this cookie is deleted with `_logoutHander`.
+ */
 export async function register() {
   log.debug('Authorisation module is registered')
   await _loginHandler()
