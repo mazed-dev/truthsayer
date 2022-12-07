@@ -35,11 +35,7 @@ function updateUserInputFromKeyboardEvent(
     const event =
       keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
     const target = event.target as HTMLTextAreaElement
-    if (
-      target.isContentEditable ||
-      target.tagName === 'INPUT' ||
-      target.tagName === 'TEXTAREA'
-    ) {
+    if (target.isContentEditable || target.tagName === 'TEXTAREA') {
       let { keyBuffer } = userInput
       if (target !== userInput.target) {
         keyBuffer = ''
@@ -114,9 +110,10 @@ export function WriteAugmentation() {
     }
   )
   React.useEffect(() => {
-    window.addEventListener('keydown', consumeKeyboardEvent)
+    const opts: AddEventListenerOptions = { passive: true, capture: true }
+    window.addEventListener('keydown', consumeKeyboardEvent, opts)
     return () => {
-      window.removeEventListener('keydown', consumeKeyboardEvent)
+      window.removeEventListener('keydown', consumeKeyboardEvent, opts)
     }
   }, [])
   return (
