@@ -36,7 +36,6 @@ function updateUserInputFromKeyboardEvent(
       keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
     const target = event.target as HTMLTextAreaElement
     if (target.isContentEditable || target.tagName === 'TEXTAREA') {
-      log.debug('Got keyboardEvent', keyboardEvent)
       let { keyBuffer } = userInput
       if (target !== userInput.target) {
         keyBuffer = ''
