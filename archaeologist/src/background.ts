@@ -697,11 +697,6 @@ browser.tabs.onUpdated.addListener(
         changeInfo.status === 'complete' &&
         !TabLoadCompletion.initTakenOver(tabId)
       ) {
-        const response = await requestPageSavedStatus(tab.url)
-        await badge.setStatus(
-          tabId,
-          calculateBadgeCounter(response.quotes, response.bookmark)
-        )
         await initMazedPartsOfTab(tab, 'active-mode-content-app')
       }
     } finally {
@@ -733,7 +728,6 @@ async function initMazedPartsOfTab(
     tab.id,
     calculateBadgeCounter(response.quotes, response.bookmark)
   )
-
   try {
     await ToContent.sendMessage(tab.id, {
       type: 'INIT_CONTENT_AUGMENTATION_REQUEST',
