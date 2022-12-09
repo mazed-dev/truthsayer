@@ -34,7 +34,7 @@ import {
 import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
 import { BrowserHistoryImportControlPortal } from './BrowserHistoryImportControl'
-import { WriteAugmentation } from './augmentation/ReadWrite'
+import { WriteAugmentation } from './augmentation/WriteAugmentation'
 import { ContentContext } from './context'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
