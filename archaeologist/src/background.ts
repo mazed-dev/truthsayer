@@ -19,6 +19,7 @@ import * as badge from './badge/badge'
 import browser, { Tabs } from 'webextension-polyfill'
 import { log, isAbortError, genOriginId, unixtime } from 'armoury'
 import {
+  TEdge,
   TNode,
   TotalUserActivity,
   ResourceVisit,
@@ -82,10 +83,29 @@ async function requestPageSavedStatus(url: string | undefined) {
 async function requestPageConnections(bookmark: TNode, quotes: TNode[]) {
   let fromNodes: TNode[] = []
   let toNodes: TNode[] = []
+  const allQuotesNids = new Set<string>(quotes.map((quote) => quote.nid))
+  const filterOutQuotes = (edge: TEdge) =>
+    !allQuotesNids.has(edge.from_nid) && !allQuotesNids.has(edge.to_nid)
   try {
+    // Fetch all edges for a given node
     const nodeEdges = await smuggler.edge.get(bookmark.nid)
+    // Filter out quotes, we already have them
+    const fromEdges = nodeEdges.from_edges.filter(filterOutQuotes)
+    const toEdges = nodeEdges.to_edges.filter(filterOutQuotes)
+    // Get all node IDs to reqeust neighbour nodes
+    const nids = fromEdges
+      .map((edge) => edge.from_nid)
+      .concat(toEdges.map((edge) => edge.to_nid))
+    const { nodes } = await smuggler.node.batch.get({ nids })
+    // Distribute nodes
+    fromNodes = nodes.filter(
+      (node) => fromEdges.findIndex((edge) => edge.from_nid === node.nid) !== -1
+    )
+    toNodes = nodes.filter(
+      (node) => toEdges.findIndex((edge) => edge.to_nid === node.nid) !== -1
+    )
   } catch (err) {
-    log.debug('Lookup by origin ID failed, consider page as non saved', err)
+    log.debug(`Loading of node ${bookmark.nid} connections failed with`, err)
   }
   return { fromNodes, toNodes }
 }
@@ -596,20 +616,15 @@ async function handleMessageFromPopup(
         activeTab?.id,
         calculateBadgeCounter(quotes, bookmark)
       )
-      let fromNodes: TNode[] = []
-      let toNodes: TNode[] = []
-      if (bookmark != null) {
-        const neighbours = await requestPageConnections(bookmark, quotes)
-        fromNodes = neighbours.fromNodes
-        fromNodes = neighbours.toNodes
-      }
+      const neighbours =
+        bookmark != null ? await requestPageConnections(bookmark, quotes) : null
       return {
         type: 'UPDATE_POPUP_CARDS',
         mode: 'reset',
         quotes: quotes.map((node) => node.toJson()),
         bookmark: bookmark?.toJson(),
-        fromNodes: fromNodes.map((node) => node.toJson()),
-        toNodes: toNodes.map((node) => node.toJson()),
+        fromNodes: neighbours?.fromNodes.map((node) => node.toJson()) ?? [],
+        toNodes: neighbours?.toNodes.map((node) => node.toJson()) ?? [],
         unmemorable,
       }
     }
