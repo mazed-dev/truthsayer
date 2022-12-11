@@ -184,77 +184,45 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
     }
   }
 
-  fetchEdges = () => {
+  fetchEdges = async () => {
     this.setState({
       edges_left: [],
       edges_right: [],
       edges_sticky: [],
     })
-    smuggler.edge
-      .getTo({
-        nid: this.props.nid,
-        signal: this.fetchToEdgesAbortController.signal,
+    try {
+      const { from_edges, to_edges } = await smuggler.edge.get(
+        this.props.nid,
+        this.fetchToEdgesAbortController.signal
+      )
+      this.setState({
+        edges_left: from_edges,
+        edges_right: to_edges,
+        edges_sticky: from_edges
+          .concat(to_edges)
+          .filter((edge) => !edge.is_sticky),
       })
-      .then((star) => {
-        if (star) {
-          const edges_sticky = star.edges.filter((edge) => {
-            return edge.is_sticky
-          })
-          this.setState({
-            edges_left: star.edges,
-            edges_sticky: this.state.edges_sticky.concat(edges_sticky),
-          })
-        }
-      })
-      .catch((err) => {
-        if (isAbortError(err)) {
-          return
-        }
+    } catch (err) {
+      if (!isAbortError(err)) {
         log.exception(err)
-      })
-    smuggler.edge
-      .getFrom({
-        nid: this.props.nid,
-        signal: this.fetchToEdgesAbortController.signal,
-      })
-      .then((star) => {
-        if (star) {
-          const edges_sticky = star.edges.filter((edge) => {
-            return edge.is_sticky
-          })
-          this.setState((state) => {
-            return {
-              edges_right: star.edges,
-              edges_sticky: state.edges_sticky.concat(edges_sticky),
-            }
-          })
-        }
-      })
-      .catch((err) => {
-        if (isAbortError(err)) {
-          return
-        }
-        log.exception(err)
-      })
+      }
+    }
   }
 
   fetchNode = async () => {
     this.setState({ node: null })
     const nid = this.props.nid
-    return smuggler.node
-      .get({
+    try {
+      const node = await smuggler.node.get({
         nid,
         signal: this.fetchNodeAbortController.signal,
       })
-      .then((node) => {
-        this.setState({ node })
-      })
-      .catch((err) => {
-        if (isAbortError(err)) {
-          return
-        }
+      this.setState({ node })
+    } catch (err) {
+      if (!isAbortError(err)) {
         log.exception(err)
-      })
+      }
+    }
   }
 
   saveNode = lodash.debounce(
