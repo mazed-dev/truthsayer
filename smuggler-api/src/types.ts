@@ -563,3 +563,7 @@ export type ExternalAssociationEnd = {
   origin_hash: OriginHash
   nids: Nid[]
 }
+
+export type NodeBatch = {
+  nodes: TNode[]
+}
