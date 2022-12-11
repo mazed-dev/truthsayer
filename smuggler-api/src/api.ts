@@ -1,18 +1,20 @@
 import {
   AccountInfo,
   Ack,
-  AddUserExternalAssociationRequest,
-  GetUserExternalAssociationsResponse,
   AddUserActivityRequest,
+  AddUserExternalAssociationRequest,
   AdvanceExternalPipelineIngestionProgress,
   EdgeAttributes,
   EdgeStar,
   GenerateBlobIndexResponse,
+  GetUserExternalAssociationsResponse,
   NewNodeResponse,
+  Nid,
   NodeAttrsSearchRequest,
   NodeAttrsSearchResponse,
-  NodeCreatedVia,
+  NodeBatch,
   NodeCreateRequestBody,
+  NodeCreatedVia,
   NodeExtattrs,
   NodeIndexText,
   NodePatchRequest,
@@ -21,6 +23,7 @@ import {
   OriginId,
   TEdge,
   TNode,
+  TNodeJson,
   TotalUserActivity,
   UploadMultipartRequestBody as UploadMultipartQuery,
   UploadMultipartResponse,
@@ -443,6 +446,50 @@ async function getNode({
     { secret_id, success }
   )
   return node
+}
+
+type NodePatchRequestBody = {
+  nids: Nid[]
+}
+
+async function getNodeBatch(
+  req: NodePatchRequestBody,
+  signal?: AbortSignal
+): Promise<NodeBatch> {
+  const res = await fetch(makeUrl(`/node-batch-get`), {
+    method: 'POST',
+    signal,
+    body: JSON.stringify(req),
+    headers: { 'Content-type': MimeType.JSON },
+  })
+  if (!res.ok) {
+    throw _makeResponseError(res)
+  }
+  const { nodes } = await res.json()
+  return {
+    nodes: nodes.map(
+      ({
+        nid,
+        ntype,
+        text,
+        extattrs,
+        index_text,
+        created_at,
+        updated_at,
+        meta,
+      }: TNodeJson) =>
+        TNode.fromJson({
+          nid,
+          ntype,
+          text,
+          extattrs,
+          index_text,
+          created_at,
+          updated_at,
+          meta,
+        })
+    ),
+  }
 }
 
 type UpdateNodeArgs = {
@@ -1049,6 +1096,12 @@ export const smuggler = {
     lookup: lookupNodes,
     delete: deleteNode,
     bulkDelete: bulkDeleteNodes,
+    batch: {
+      /**
+       * Caution: these methods are not cached
+       */
+      get: getNodeBatch,
+    },
   },
   blob: {
     upload: uploadFiles,
