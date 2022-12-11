@@ -5,7 +5,6 @@ import {
   AddUserExternalAssociationRequest,
   AdvanceExternalPipelineIngestionProgress,
   EdgeAttributes,
-  EdgeStar,
   GenerateBlobIndexResponse,
   GetUserExternalAssociationsResponse,
   NewNodeResponse,
@@ -305,12 +304,6 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
     for (let node = await iter.next(); node != null; node = await iter.next()) {
       if (node.isWebBookmark() && node.extattrs?.web) {
         if (stabiliseUrlForOriginId(node.extattrs.web.url) === stableUrl) {
-          nodes.push(node)
-        }
-      } else if (node.isWebQuote() && node.extattrs?.web_quote) {
-        if (
-          stabiliseUrlForOriginId(node.extattrs.web_quote.url) === stableUrl
-        ) {
           nodes.push(node)
         }
       }

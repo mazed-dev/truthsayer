@@ -31,15 +31,17 @@ type Status = 'saved' | 'loading' | 'unmemorable' | 'memorable'
 type State = {
   status: Status
   bookmark: TNode | null
-  quotes: TNode[]
+  fromNodes: TNodeJson[]
+  toNodes: TNodeJson[]
 }
 
 type Action =
   | {
       type: 'reset' | 'append'
       bookmark?: TNodeJson
-      quotes?: TNodeJson[]
       unmemorable?: boolean
+      fromNodes: TNodeJson[]
+      toNodes: TNodeJson[]
     }
   | { type: 'update-status'; status: Status }
 
@@ -63,10 +65,18 @@ function updateState(state: State, action: Action) {
         } else {
           newState.status = 'memorable'
         }
-        const added =
-          action.quotes?.map((json: TNodeJson) => TNode.fromJson(json)) ?? []
-        newState.quotes =
-          action.type === 'reset' ? added : newState.quotes.concat(added)
+        const fromNodes = action.fromNodes.map((json: TNodeJson) =>
+          TNode.fromJson(json)
+        )
+        newState.fromNodes =
+          action.type === 'reset'
+            ? fromNodes
+            : newState.fromNodes.concat(fromNodes)
+        const toNodes = action.toNodes.map((json: TNodeJson) =>
+          TNode.fromJson(json)
+        )
+        newState.toNodes =
+          action.type === 'reset' ? toNodes : newState.toNodes.concat(toNodes)
       }
       break
     case 'update-status':
@@ -80,16 +90,23 @@ export const ViewActiveTabStatus = () => {
   const initialState: State = {
     status: 'loading',
     bookmark: null,
-    quotes: [],
+    fromNodes: [],
+    toNodes: [],
   }
   const [state, dispatch] = React.useReducer(updateState, initialState)
 
   useAsyncEffect(async () => {
-    const response = await FromPopUp.sendMessage({
-      type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS',
+    const { bookmark, unmemorable, fromNodes, toNodes } =
+      await FromPopUp.sendMessage({
+        type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS',
+      })
+    dispatch({
+      type: 'reset',
+      bookmark,
+      unmemorable,
+      fromNodes,
+      toNodes,
     })
-    const { bookmark, quotes, unmemorable } = response
-    dispatch({ type: 'reset', quotes, bookmark, unmemorable })
   }, [])
 
   const handleSave = async () => {
@@ -97,7 +114,13 @@ export const ViewActiveTabStatus = () => {
     const { bookmark, unmemorable } = await FromPopUp.sendMessage({
       type: 'REQUEST_PAGE_TO_SAVE',
     })
-    dispatch({ type: 'append', bookmark, unmemorable })
+    dispatch({
+      type: 'append',
+      bookmark,
+      unmemorable,
+      fromNodes: [],
+      toNodes: [],
+    })
   }
 
   let btn
@@ -119,7 +142,8 @@ export const ViewActiveTabStatus = () => {
       <Toolbar>{btn}</Toolbar>
       <PageRelatedCards
         bookmark={state.bookmark || undefined}
-        quotes={state.quotes}
+        fromNodes={state.fromNodes}
+        toNodes={state.toNodes}
       />
     </Container>
   )

@@ -74,7 +74,6 @@ export namespace ToPopUp {
   export interface ActiveTabStatusResponse {
     type: 'UPDATE_POPUP_CARDS'
     bookmark?: TNodeJson
-    quotes: TNodeJson[]
     unmemorable?: boolean
     fromNodes: TNodeJson[]
     toNodes: TNodeJson[]
@@ -146,7 +145,8 @@ export namespace ToContent {
   }
   export interface UpdateContentAugmentationRequest {
     type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION'
-    quotes: TNodeJson[]
+    fromNodes: TNodeJson[]
+    toNodes: TNodeJson[]
     bookmark?: TNodeJson
     mode: 'reset' | 'append'
   }
@@ -160,7 +160,8 @@ export namespace ToContent {
     mode: ContentAppOperationMode
     nodeEnv: NodeEnv
     userUid: string
-    quotes: TNodeJson[]
+    fromNodes: TNodeJson[]
+    toNodes: TNodeJson[]
     bookmark?: TNodeJson
   }
   export interface GetSelectedQuoteRequest {
@@ -278,7 +279,6 @@ export namespace FromContent {
     text: string
     path: string[]
     url: string
-    originId: OriginHash
     lang?: string
     // If specified, the requested web quote is connected to the bookmark on the
     // right hand side

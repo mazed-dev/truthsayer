@@ -5,7 +5,7 @@ import browser from 'webextension-polyfill'
 import { PostHog } from 'posthog-js'
 import { v4 as uuidv4 } from 'uuid'
 
-import { TNode, TNodeJson } from 'smuggler-api'
+import { TNode, TNodeJson, NodeType } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log, productanalytics } from 'armoury'
 import { truthsayer_archaeologist_communication } from 'elementary'
 
@@ -95,8 +95,10 @@ type InitializedState = {
   mode: ContentAppOperationMode
 
   originIdentity: OriginIdentity
-  quotes: TNode[]
   bookmark?: TNode
+
+  toNodes: TNode[]
+  fromNodes: TNode[]
   notification?: DisappearingToastProps
   browserHistoryUploadProgress: BrowserHistoryUploadProgress
 
@@ -141,7 +143,20 @@ function updateState(state: State, action: Action): State {
         return state
       }
 
-      const { mode, nodeEnv, userUid, quotes, bookmark } = action.data
+      const {
+        mode,
+        nodeEnv,
+        userUid,
+        bookmark: bookmarkJson,
+        toNodes: toNodesJson,
+        fromNodes: fromNodesJson,
+      } = action.data
+      const bookmark =
+        bookmarkJson != null ? TNode.fromJson(bookmarkJson) : undefined
+      const toNodes = toNodesJson.map((json: TNodeJson) => TNode.fromJson(json))
+      const fromNodes = fromNodesJson.map((json: TNodeJson) =>
+        TNode.fromJson(json)
+      )
 
       let analytics: PostHog | null = null
       if (mode !== 'passive-mode-content-app') {
@@ -197,8 +212,9 @@ function updateState(state: State, action: Action): State {
       return {
         mode,
         originIdentity: genOriginId(exctractPageUrl(document)),
-        quotes: quotes.map((json: TNodeJson) => TNode.fromJson(json)),
-        bookmark: bookmark != null ? TNode.fromJson(bookmark) : undefined,
+        bookmark,
+        toNodes,
+        fromNodes,
         browserHistoryUploadProgress: { processed: 0, total: 0 },
         analytics,
       }
@@ -208,13 +224,23 @@ function updateState(state: State, action: Action): State {
         throw new Error("Can't modify state of an unitialized content app")
       }
       const d = action.data
-      const newQuotes = d.quotes.map((json: TNodeJson) => TNode.fromJson(json))
+      const newToNodes = d.toNodes.map((json: TNodeJson) =>
+        TNode.fromJson(json)
+      )
+      const newFromNodes = d.fromNodes.map((json: TNodeJson) =>
+        TNode.fromJson(json)
+      )
       const newBookmark =
         d.bookmark != null ? TNode.fromJson(d.bookmark) : undefined
 
       return {
         ...state,
-        quotes: d.mode === 'reset' ? newQuotes : state.quotes.concat(newQuotes),
+        fromNodes:
+          d.mode === 'reset'
+            ? newFromNodes
+            : state.fromNodes.concat(newFromNodes),
+        toNodes:
+          d.mode === 'reset' ? newToNodes : state.toNodes.concat(newToNodes),
         bookmark:
           d.mode === 'reset' ? newBookmark : state.bookmark || newBookmark,
       }
@@ -261,12 +287,15 @@ async function handleReadOnlyRequest(
         // Bookmark if not yet bookmarked
         const content = await contentOfThisDocument(state.originIdentity)
         log.debug('Page content requested', content)
+        const quotes = state.toNodes.filter(
+          (node) => node.ntype === NodeType.WebQuote
+        )
         return {
           type: 'PAGE_TO_SAVE',
           content,
           url: state.originIdentity.stableUrl,
           originId: state.originIdentity.id,
-          quoteNids: state.quotes.map((node) => node.nid),
+          quoteNids: quotes.map((node) => node.nid),
         }
       }
       return { type: 'PAGE_ALREADY_SAVED' }
@@ -277,7 +306,6 @@ async function handleReadOnlyRequest(
         text: request.text,
         path: await getCurrentlySelectedPath(),
         lang,
-        originId: state.originIdentity.id,
         url: state.originIdentity.stableUrl,
         fromNid: state.bookmark?.nid,
       }
@@ -374,7 +402,11 @@ const App = () => {
             {state.notification ? (
               <DisappearingToast {...state.notification} />
             ) : null}
-            <Quotes quotes={state.quotes} />
+            <Quotes
+              quotes={state.toNodes.filter(
+                (node) => node.ntype === NodeType.WebQuote
+              )}
+            />
             {activityTrackerOrNull}
             <WriteAugmentation />
           </>
