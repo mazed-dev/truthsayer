@@ -79,6 +79,17 @@ async function requestPageSavedStatus(url: string | undefined) {
   return { quotes, bookmark }
 }
 
+async function requestPageConnections(bookmark: TNode, quotes: TNode[]) {
+  let fromNodes: TNode[] = []
+  let toNodes: TNode[] = []
+  try {
+    const nodeEdges = await smuggler.edge.get(bookmark.nid)
+  } catch (err) {
+    log.debug('Lookup by origin ID failed, consider page as non saved', err)
+  }
+  return { fromNodes, toNodes }
+}
+
 /**
  * Convert a Date object to a format compatible with browser.history APIs
  *
@@ -585,11 +596,20 @@ async function handleMessageFromPopup(
         activeTab?.id,
         calculateBadgeCounter(quotes, bookmark)
       )
+      let fromNodes: TNode[] = []
+      let toNodes: TNode[] = []
+      if (bookmark != null) {
+        const neighbours = await requestPageConnections(bookmark, quotes)
+        fromNodes = neighbours.fromNodes
+        fromNodes = neighbours.toNodes
+      }
       return {
         type: 'UPDATE_POPUP_CARDS',
         mode: 'reset',
         quotes: quotes.map((node) => node.toJson()),
         bookmark: bookmark?.toJson(),
+        fromNodes: fromNodes.map((node) => node.toJson()),
+        toNodes: toNodes.map((node) => node.toJson()),
         unmemorable,
       }
     }

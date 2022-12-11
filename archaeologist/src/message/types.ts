@@ -76,7 +76,8 @@ export namespace ToPopUp {
     bookmark?: TNodeJson
     quotes: TNodeJson[]
     unmemorable?: boolean
-
+    fromNodes: TNodeJson[]
+    toNodes: TNodeJson[]
     // 'reset':
     //    - for quotes and bookmark, reset (replace) existing ones in PopUp window
     // 'append':
