@@ -320,6 +320,18 @@ export type EdgeStar = {
   to?: string
 }
 
+/**
+ * Edges of a given node
+ *
+ * [from-0]─┐           ┌─▶[to-0]
+ * [from-1]─┼─▶[ node ]─┼─▶[to-1]
+ * [from-2]─┘           └─▶[to-2]
+ */
+export type NodeEdges = {
+  from_edges: TEdge[]
+  to_edges: TEdge[]
+}
+
 export type TNodeCrypto = {
   // Ideally encryption/decryption happens in a layer below TNode, so if code
   // uses TNode object it should not use encryption at all. But layers above
