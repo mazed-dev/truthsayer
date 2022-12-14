@@ -11,8 +11,9 @@ import {
   NewNodeResponse,
   NodeAttrsSearchRequest,
   NodeAttrsSearchResponse,
-  NodeCreatedVia,
   NodeCreateRequestBody,
+  NodeCreatedVia,
+  NodeEdges,
   NodeExtattrs,
   NodeIndexText,
   NodePatchRequest,
@@ -610,45 +611,25 @@ async function createEdge({
   return new TEdge(edgeOjb)
 }
 
-async function getNodeEdges(
+async function getNodeAllEdges(
   nid: string,
-  dir: '/to' | '/from',
   signal?: AbortSignal
-): Promise<EdgeStar> {
-  verifyIsNotNull(nid)
-  verifyIsNotNull(dir)
-  const resp = await fetch(makeUrl(`/node/${nid}${dir}`), {
+): Promise<NodeEdges> {
+  const resp = await fetch(makeUrl(`/node/${nid}/edge`), {
     method: 'GET',
     signal,
   })
   if (!resp.ok) {
     throw _makeResponseError(resp, 'Getting node edges failed with error')
   }
-  const star = await resp.json()
-  star.edges = star.edges.map((edgeObj: EdgeAttributes) => {
+  const edges = await resp.json()
+  edges.from_edges = edges.from_edges.map((edgeObj: EdgeAttributes) => {
     return new TEdge(edgeObj)
   })
-  return star
-}
-
-async function getEdgesToNode({
-  nid,
-  signal,
-}: {
-  nid: string
-  signal: AbortSignal
-}): Promise<EdgeStar> {
-  return await getNodeEdges(nid, '/to', signal)
-}
-
-async function getEdgesFromNode({
-  nid,
-  signal,
-}: {
-  nid: string
-  signal: AbortSignal
-}): Promise<EdgeStar> {
-  return await getNodeEdges(nid, '/from', signal)
+  edges.to_edges = edges.to_edges.map((edgeObj: EdgeAttributes) => {
+    return new TEdge(edgeObj)
+  })
+  return edges as NodeEdges
 }
 
 async function switchEdgeStickiness({
@@ -1072,8 +1053,7 @@ export const smuggler = {
   },
   edge: {
     create: createEdge,
-    getTo: getEdgesToNode,
-    getFrom: getEdgesFromNode,
+    get: getNodeAllEdges,
     sticky: switchEdgeStickiness,
     delete: deleteEdge,
   },
