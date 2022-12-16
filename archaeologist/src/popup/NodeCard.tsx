@@ -14,11 +14,11 @@ import { TNode } from 'smuggler-api'
 
 const Box = styled(SmallCard)`
   width: 100%;
+  cursor: pointer;
 `
 const FixedShrinkCard = styled(ShrinkCard)`
   height: min-content;
   max-height: 142px;
-  cursor: pointer;
 `
 export const NodeCard = ({
   node,

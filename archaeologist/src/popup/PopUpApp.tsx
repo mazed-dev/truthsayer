@@ -16,7 +16,7 @@ import { MdiLaunch } from 'elementary'
 import { productanalytics } from 'armoury'
 
 const AppContainer = styled.div`
-  width: 380px;
+  width: 340px;
   height: 480px;
   font-family: 'Roboto', arial, sans-serif;
   font-style: normal;

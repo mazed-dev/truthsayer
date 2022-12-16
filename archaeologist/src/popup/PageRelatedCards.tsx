@@ -11,11 +11,11 @@ const Box = styled.div`
   background-color: white;
 `
 const PopUpBookmarkCard = styled(NodeCard)`
-  width: 312px;
+  width: 300px;
 `
 
 const PopUpNodeCard = styled(NodeCard)`
-  width: 260px;
+  width: 300px;
 `
 
 const CardRow = styled.div`
@@ -29,7 +29,7 @@ const BookmarkRow = styled(CardRow)`
 `
 
 const RefCardRow = styled(CardRow)`
-  margin: 4px;
+  margin: 5px 2px 5px 2px;
 `
 
 const RightCardRow = styled(RefCardRow)`
