@@ -9,7 +9,7 @@ import { ButtonToolbar } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 
 import { smuggler } from 'smuggler-api'
-import { HoverTooltip, ImgButton, jcss, TDoc } from 'elementary'
+import { jcss, TDoc } from 'elementary'
 
 import styles from './FullCardFootbar.module.css'
 
@@ -17,10 +17,6 @@ import DownloadImg from './../img/download.png'
 import CopyImg from './../img/copy.png'
 import ArchiveImg from './../img/archive.png'
 import DeleteImg from './../img/delete.png'
-
-import EncryptedImg from './../img/encrypted.png'
-import PrivateImg from './../img/private.png'
-import PublicImg from './../img/public.png'
 
 import { ShareModal } from './ShareModal'
 
@@ -139,30 +135,6 @@ class PrivateFullCardFootbarImpl extends React.Component {
       })
   }
 
-  getShareBtn = () => {
-    let img_ = PrivateImg
-    const txt_ = 'Share'
-    if (this.props.meta && this.props.meta) {
-      const share = this.props.meta.share
-      if (share && share.by_link) {
-        img_ = PublicImg
-      }
-      const local_secret_id = this.props.meta.local_secret_id
-      if (local_secret_id) {
-        img_ = EncryptedImg
-      }
-    }
-    return (
-      <HoverTooltip tooltip={txt_}>
-        <img
-          src={img_}
-          className={styles.tool_button_img}
-          alt={'Publicity and encryption'}
-        />
-      </HoverTooltip>
-    )
-  }
-
   render() {
     return (
       <>
@@ -173,13 +145,6 @@ class PrivateFullCardFootbarImpl extends React.Component {
             justify-content: space-between;
           `}
         >
-          <ImgButton
-            onClick={this.showShareDialog}
-            className={jcss(styles.tool_button, styles.toolbar_layout_item)}
-          >
-            {this.getShareBtn()}
-          </ImgButton>
-
           <FootbarDropdown className={jcss(styles.toolbar_layout_item)}>
             <FootbarDropdownToggleMeatballs
               id={'more-options-for-fullsize-card'}
