@@ -1,7 +1,7 @@
 import React from 'react'
 
 import type { NodeExtattrs } from 'smuggler-api'
-import { Mime, log, MimeType, productanalytics } from 'armoury'
+import { log, MimeType, productanalytics } from 'armoury'
 import { BlockQuoteBox, BlockQuotePad } from '../editor/components/components'
 
 import { MdiLaunch } from '../MaterialIcons'
@@ -39,7 +39,7 @@ const Author = styled.span`
 `
 const RefLinkIcon = styled(MdiLaunch)`
   margin-left: 4px;
-  font-size: 14px;
+  font-size: 14px !important;
   vertical-align: middle;
 `
 
