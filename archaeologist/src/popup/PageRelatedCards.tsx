@@ -1,3 +1,29 @@
+/**
+ * This is a narrow representation of a card with neighbours:
+ * ┌───────────┐                    ┌─────────┐
+ * │ From node │─┐  ┌──────────┐ ┌─▶│ To node │
+ * └───────────┘ ├─▶│ Bookmark │─┤  └─────────┘
+ * ┌───────────┐ │  └──────────┘ │  ┌─────────┐
+ * │ From node │─┘               └─▶│ To node │
+ * └───────────┘                    └─────────┘
+ *
+ * It's shown as following:
+ *  ┌──────────┐
+ *  │ Bookmark │
+ *  └──────────┘
+ *     ▶┌─────────┐
+ *      │ To node │
+ *      └─────────┘
+ *     ▶┌─────────┐
+ *      │ To node │
+ *      └─────────┘
+ * ┌───────────┐
+ * │ From node │
+ * └───────────┘▶
+ * ┌───────────┐
+ * │ From node │
+ * └───────────┘▶
+ */
 import React from 'react'
 import styled from '@emotion/styled'
 
@@ -14,8 +40,38 @@ const PopUpBookmarkCard = styled(NodeCard)`
   width: 300px;
 `
 
-const PopUpNodeCard = styled(NodeCard)`
+const PopUpToNodeCard = styled(NodeCard)`
   width: 300px;
+  position: relative;
+  &:before {
+    content: ' ';
+    position: absolute;
+    width: 0;
+    height: 0;
+    left: -10px;
+    right: auto;
+    top: 7px;
+    bottom: auto;
+    border: 7px solid;
+    border-color: transparent transparent transparent #e3e3e3;
+  }
+`
+
+const PopUpFromNodeCard = styled(NodeCard)`
+  width: 300px;
+  position: relative;
+  &:before {
+    content: ' ';
+    position: absolute;
+    width: 0;
+    height: 0;
+    right: -17px;
+    left: auto;
+    bottom: 7px;
+    top: auto;
+    border: 7px solid;
+    border-color: transparent transparent transparent #e3e3e3;
+  }
 `
 
 const CardRow = styled.div`
@@ -68,14 +124,14 @@ export const PageRelatedCards = ({
     .sort(sortNodesByCreationTimeLatestFirst)
     .map((node: TNode) => (
       <RightCardRow key={node.nid}>
-        <PopUpNodeCard node={node} />
+        <PopUpToNodeCard node={node} />
       </RightCardRow>
     ))
   const fromNodesCards = fromNodes
     .sort(sortNodesByCreationTimeLatestFirst)
     .map((node: TNode) => (
       <LeftCardRow key={node.nid}>
-        <PopUpNodeCard node={node} />
+        <PopUpFromNodeCard node={node} />
       </LeftCardRow>
     ))
   return (
