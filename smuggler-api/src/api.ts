@@ -306,12 +306,6 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
         if (stabiliseUrlForOriginId(node.extattrs.web.url) === stableUrl) {
           nodes.push(node)
         }
-      } else if (node.isWebQuote() && node.extattrs?.web_quote) {
-        if (
-          stabiliseUrlForOriginId(node.extattrs.web_quote.url) === stableUrl
-        ) {
-          nodes.push(node)
-        }
       }
     }
     return nodes

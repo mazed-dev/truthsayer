@@ -28,11 +28,11 @@ const ACTION_DONE_BADGE_MARKER = '✓'
  *   - Badge counter.
  */
 async function updateContent(
-  quotes: TNode[],
+  fromNodes: TNode[],
+  toNodes: TNode[],
   bookmark?: TNode,
   tabId?: number
 ): Promise<void> {
-  const quotesJson = quotes.map((node) => node.toJson())
   const bookmarkJson = bookmark?.toJson()
   // Update content augmentation
   if (tabId == null) {
@@ -41,7 +41,8 @@ async function updateContent(
   try {
     await ToContent.sendMessage(tabId, {
       type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
-      quotes: quotesJson,
+      fromNodes: fromNodes.map((node) => node.toJson()),
+      toNodes: toNodes.map((node) => node.toJson()),
       bookmark: bookmarkJson,
       mode: 'append',
     })
@@ -132,7 +133,7 @@ export async function saveWebPage(
     // Update badge counter
     await badge.setStatus(tabId, ACTION_DONE_BADGE_MARKER)
     // Page is not memorable
-    await updateContent([], undefined, tabId)
+    await updateContent([], [], undefined, tabId)
     return { unmemorable: true }
   }
   const text = makeNodeTextData()
@@ -199,7 +200,7 @@ export async function saveWebPage(
 
   const { nid } = resp
   const node = await smuggler.node.get({ nid })
-  await updateContent([], node, tabId)
+  await updateContent([], [], node, tabId)
   await showDisappearingNotification(tabId, {
     text: 'Added',
     tooltip: 'Page is added to your timeline',
@@ -209,7 +210,6 @@ export async function saveWebPage(
 }
 
 export async function savePageQuote(
-  originId: OriginHash,
   { url, path, text }: NodeExtattrsWebQuote,
   createdVia: NodeCreatedVia,
   lang?: string,
@@ -224,9 +224,6 @@ export async function savePageQuote(
   const resp = await smuggler.node.create({
     text: makeNodeTextData(),
     ntype: NodeType.WebQuote,
-    origin: {
-      id: originId,
-    },
     from_nid: fromNid ? [fromNid] : undefined,
     extattrs,
     created_via: createdVia,
@@ -234,10 +231,9 @@ export async function savePageQuote(
   if (resp) {
     // Update badge counter
     await badge.setStatus(tabId, ACTION_DONE_BADGE_MARKER)
-
     const { nid } = resp
     const node = await smuggler.node.get({ nid })
-    await updateContent([node], undefined, tabId)
+    await updateContent([], [node], undefined, tabId)
   }
 }
 

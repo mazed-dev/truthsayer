@@ -1,48 +1,144 @@
+/**
+ * This is a narrow representation of a card with neighbours:
+ * ┌───────────┐                    ┌─────────┐
+ * │ From node │─┐  ┌──────────┐ ┌─▶│ To node │
+ * └───────────┘ ├─▶│ Bookmark │─┤  └─────────┘
+ * ┌───────────┐ │  └──────────┘ │  ┌─────────┐
+ * │ From node │─┘               └─▶│ To node │
+ * └───────────┘                    └─────────┘
+ *
+ * It's shown as following:
+ *  ┌──────────┐
+ *  │ Bookmark │
+ *  └──────────┘
+ *     ▶┌─────────┐
+ *      │ To node │
+ *      └─────────┘
+ *     ▶┌─────────┐
+ *      │ To node │
+ *      └─────────┘
+ * ┌───────────┐
+ * │ From node │
+ * └───────────┘▶
+ * ┌───────────┐
+ * │ From node │
+ * └───────────┘▶
+ */
 import React from 'react'
 import styled from '@emotion/styled'
 
 import { TNode } from 'smuggler-api'
-
-import { kSmallCardWidth } from 'elementary'
 import { NodeCard } from './NodeCard'
 
 const Box = styled.div`
-  margin: 12px auto 0 auto;
-  width: ${kSmallCardWidth}px;
-  background-color: white;
   display: block;
+  width: 100%;
+  margin: 0;
+  background-color: white;
 `
-const sortNodesByCreationTimeEarliestFirst = (a: TNode, b: TNode) => {
+const PopUpBookmarkCard = styled(NodeCard)`
+  width: 300px;
+`
+
+const PopUpToNodeCard = styled(NodeCard)`
+  width: 300px;
+  position: relative;
+  &:before {
+    content: ' ';
+    position: absolute;
+    width: 0;
+    height: 0;
+    left: -10px;
+    right: auto;
+    top: 7px;
+    bottom: auto;
+    border: 7px solid;
+    border-color: transparent transparent transparent #e3e3e3;
+  }
+`
+
+const PopUpFromNodeCard = styled(NodeCard)`
+  width: 300px;
+  position: relative;
+  &:before {
+    content: ' ';
+    position: absolute;
+    width: 0;
+    height: 0;
+    right: -17px;
+    left: auto;
+    bottom: 7px;
+    top: auto;
+    border: 7px solid;
+    border-color: transparent transparent transparent #e3e3e3;
+  }
+`
+
+const CardRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+`
+const BookmarkRow = styled(CardRow)`
+  margin: 4px 0 12px 0;
+  justify-content: center;
+`
+
+const RefCardRow = styled(CardRow)`
+  margin: 5px 2px 5px 2px;
+`
+
+const RightCardRow = styled(RefCardRow)`
+  justify-content: flex-end;
+`
+
+const LeftCardRow = styled(RefCardRow)`
+  justify-content: flex-start;
+`
+
+const sortNodesByCreationTimeLatestFirst = (a: TNode, b: TNode) => {
   if (a.created_at === b.created_at) {
     return 0
   } else if (a.created_at < b.created_at) {
-    return -1
+    return 1
   }
-  return 1
+  return -1
 }
-
-const RefNodeCard = styled(NodeCard)`
-  margin-top: 4px;
-`
 
 export const PageRelatedCards = ({
   bookmark,
-  quotes,
+  fromNodes,
+  toNodes,
 }: {
   bookmark: TNode | undefined
-  quotes: TNode[]
+  fromNodes: TNode[]
+  toNodes: TNode[]
 }) => {
-  const refs = quotes
-    .sort(sortNodesByCreationTimeEarliestFirst)
-    .map((node: TNode) => {
-      return <RefNodeCard node={node} key={node.nid} />
-    })
-  const bookmarkElement =
-    bookmark == null ? null : <NodeCard node={bookmark} key={bookmark.nid} />
+  const bookmarkCard =
+    bookmark == null ? null : (
+      <BookmarkRow key={bookmark?.nid}>
+        <PopUpBookmarkCard node={bookmark} key={bookmark.nid} />
+      </BookmarkRow>
+    )
+  const toNodesCards = toNodes
+    .sort(sortNodesByCreationTimeLatestFirst)
+    .map((node: TNode) => (
+      <RightCardRow key={node.nid}>
+        <PopUpToNodeCard node={node} />
+      </RightCardRow>
+    ))
+  const fromNodesCards = fromNodes
+    .sort(sortNodesByCreationTimeLatestFirst)
+    .map((node: TNode) => (
+      <LeftCardRow key={node.nid}>
+        <PopUpFromNodeCard node={node} />
+      </LeftCardRow>
+    ))
   return (
     <Box>
-      {bookmarkElement}
-      {refs}
+      {bookmarkCard}
+      {toNodesCards}
+      {fromNodesCards}
     </Box>
   )
 }

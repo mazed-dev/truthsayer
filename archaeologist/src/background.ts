@@ -30,10 +30,11 @@ import {
 
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
 import { suggestAssociations } from './background/suggestAssociations'
-import { calculateBadgeCounter } from './badge/badgeCounter'
 import { isMemorable } from './content/extractor/url/unmemorable'
 import { isPageAutosaveable } from './content/extractor/url/autosaveable'
 import lodash from 'lodash'
+
+const BADGE_MARKER_PAGE_SAVED = '✓'
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
@@ -53,30 +54,57 @@ async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   return null
 }
 
+async function requestPageConnections(bookmark?: TNode) {
+  let fromNodes: TNode[] = []
+  let toNodes: TNode[] = []
+  if (bookmark == null) {
+    return { fromNodes, toNodes }
+  }
+  try {
+    // Fetch all edges for a given node
+    const { from_edges: fromEdges, to_edges: toEdges } =
+      await smuggler.edge.get(bookmark.nid)
+    // Gather node IDs of neighbour nodes to reqeust them
+    const nids = fromEdges
+      .map((edge) => edge.from_nid)
+      .concat(toEdges.map((edge) => edge.to_nid))
+    const { nodes } = await smuggler.node.batch.get({ nids })
+    // Sort neighbour nodes out
+    fromNodes = nodes.filter(
+      (node) => fromEdges.findIndex((edge) => edge.from_nid === node.nid) !== -1
+    )
+    toNodes = nodes.filter(
+      (node) => toEdges.findIndex((edge) => edge.to_nid === node.nid) !== -1
+    )
+  } catch (err) {
+    log.debug(`Loading of node ${bookmark.nid} connections failed with`, err)
+  }
+  return { fromNodes, toNodes }
+}
+
 async function requestPageSavedStatus(url: string | undefined) {
-  let quotes: TNode[] = []
   if (url == null) {
-    return { quotes, unmemorable: false }
+    return { unmemorable: false }
   }
   if (!isMemorable(url)) {
-    return { quotes, unmemorable: true }
+    return { unmemorable: true }
   }
   let nodes
   try {
     nodes = await smuggler.node.lookup({ url })
   } catch (err) {
     log.debug('Lookup by origin ID failed, consider page as non saved', err)
-    return { quotes, unmemorable: false }
+    return { unmemorable: false }
   }
   let bookmark: TNode | undefined = undefined
   for (const node of nodes) {
     if (node.isWebBookmark()) {
       bookmark = node
-    } else if (node.isWebQuote()) {
-      quotes.push(node)
+      break
     }
   }
-  return { quotes, bookmark }
+  const { fromNodes, toNodes } = await requestPageConnections(bookmark)
+  return { bookmark, fromNodes, toNodes }
 }
 
 /**
@@ -578,18 +606,18 @@ async function handleMessageFromPopup(
       )
       return { type: 'PAGE_SAVED', bookmark: node?.toJson(), unmemorable }
     case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS': {
-      const { quotes, bookmark, unmemorable } = await requestPageSavedStatus(
-        activeTab?.url
-      )
+      const { bookmark, unmemorable, fromNodes, toNodes } =
+        await requestPageSavedStatus(activeTab?.url)
       await badge.setStatus(
         activeTab?.id,
-        calculateBadgeCounter(quotes, bookmark)
+        bookmark != null ? BADGE_MARKER_PAGE_SAVED : undefined
       )
       return {
         type: 'UPDATE_POPUP_CARDS',
         mode: 'reset',
-        quotes: quotes.map((node) => node.toJson()),
         bookmark: bookmark?.toJson(),
+        fromNodes: fromNodes?.map((node) => node.toJson()) ?? [],
+        toNodes: toNodes?.map((node) => node.toJson()) ?? [],
         unmemorable,
       }
     }
@@ -697,11 +725,6 @@ browser.tabs.onUpdated.addListener(
         changeInfo.status === 'complete' &&
         !TabLoadCompletion.initTakenOver(tabId)
       ) {
-        const response = await requestPageSavedStatus(tab.url)
-        await badge.setStatus(
-          tabId,
-          calculateBadgeCounter(response.quotes, response.bookmark)
-        )
         await initMazedPartsOfTab(tab, 'active-mode-content-app')
       }
     } finally {
@@ -728,19 +751,19 @@ async function initMazedPartsOfTab(
     return
   }
   // Request page saved status on new non-incognito page loading
-  const response = await requestPageSavedStatus(tab.url)
+  const { bookmark, fromNodes, toNodes } = await requestPageSavedStatus(tab.url)
   await badge.setStatus(
     tab.id,
-    calculateBadgeCounter(response.quotes, response.bookmark)
+    bookmark != null ? BADGE_MARKER_PAGE_SAVED : undefined
   )
-
   try {
     await ToContent.sendMessage(tab.id, {
       type: 'INIT_CONTENT_AUGMENTATION_REQUEST',
       nodeEnv: process.env.NODE_ENV,
       userUid: auth.account().getUid(),
-      quotes: response.quotes.map((node) => node.toJson()),
-      bookmark: response.bookmark?.toJson(),
+      bookmark: bookmark?.toJson(),
+      fromNodes: fromNodes?.map((node) => node.toJson()) ?? [],
+      toNodes: toNodes?.map((node) => node.toJson()) ?? [],
       mode,
     })
   } catch (err) {
@@ -789,10 +812,9 @@ browser.contextMenus.onClicked.addListener(
             type: 'REQUEST_SELECTED_WEB_QUOTE',
             text: selectionText,
           })
-        const { originId, url, text, path, lang, fromNid } = response
+        const { url, text, path, lang, fromNid } = response
         const createdVia: NodeCreatedVia = { manualAction: null }
         await savePageQuote(
-          originId,
           { url, path, text },
           createdVia,
           lang,
