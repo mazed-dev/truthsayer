@@ -389,7 +389,6 @@ const App = () => {
       <ContentContext.Provider value={{ analytics: state.analytics }}>
         <BrowserHistoryImportControlPortal
           progress={state.browserHistoryUploadProgress}
-          host={window.location.host}
         />
         <truthsayer_archaeologist_communication.ArchaeologistVersion
           version={{
