@@ -177,7 +177,11 @@ export const SuggestionsToast = ({
       <ToastBox>
         <Header>
           <LogoSmall />
-          <SearchPhrase href={mazed.makeSearchUrl(keyphrase).toString()}>
+          <SearchPhrase
+            href={mazed.makeSearchUrl(keyphrase).toString()}
+            target="_blank"
+            rel="noreferrer noopener"
+          >
             &ldquo;{keyphrase}&rdquo;
           </SearchPhrase>
           <MeteredButton onClick={onClose} metricLabel={'Suggestions Toast'}>
