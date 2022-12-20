@@ -3,13 +3,8 @@ import ReactDOM from 'react-dom'
 import styled from '@emotion/styled'
 import lodash from 'lodash'
 
-import {
-  truthsayer_archaeologist_communication,
-  MdiCancel,
-  MdiCloudUpload,
-  MdiDelete,
-  Spinner,
-} from 'elementary'
+import { MdiCancel, MdiCloudUpload, MdiDelete, Spinner } from 'elementary'
+import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 import {
   FromContent,
   BrowserHistoryUploadProgress,

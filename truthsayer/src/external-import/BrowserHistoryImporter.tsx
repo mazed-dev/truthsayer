@@ -3,7 +3,9 @@ import styled from '@emotion/styled'
 import semver from 'semver'
 
 import { sleep } from 'armoury'
-import { truthsayer_archaeologist_communication, Spinner } from 'elementary'
+import { Spinner } from 'elementary'
+import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
+import { FromTruthsayer } from 'truthsayer-archaeologist-communication'
 import { TruthsayerLink } from '../lib/TrueLink'
 import BrowserLogo from '../apps-list/img/GoogleChromeLogo.svg'
 
@@ -46,7 +48,7 @@ export function BrowserHistoryImporter({
     // And only then we can read Archaeologist version, for this we have to wait
     sleep(2000).then(() => {
       const version =
-        truthsayer_archaeologist_communication.getArchaeologistVersion(
+        truthsayer_archaeologist_communication.truthsayer.getArchaeologistVersion(
           window.document
         )
       if (version == null) {

@@ -17,6 +17,10 @@ import {
 import * as badge from './badge/badge'
 
 import browser, { Tabs } from 'webextension-polyfill'
+import {
+  FromTruthsayer,
+  ToTruthsayer,
+} from 'truthsayer-archaeologist-communication'
 import { log, isAbortError, genOriginId, unixtime } from 'armoury'
 import {
   TNode,
@@ -704,6 +708,26 @@ browser.runtime.onMessage.addListener(
         message
       )}`
     )
+  }
+)
+
+browser.runtime.onMessageExternal.addListener(
+  async (
+    message: FromTruthsayer.Request,
+    _: browser.Runtime.MessageSender
+  ): Promise<ToTruthsayer.Response> => {
+    switch (message.type) {
+      case 'DUMMY_REQUEST': {
+        return { type: 'VOID_RESPONSE' }
+      }
+      default: {
+        throw new Error(
+          `background received msg from truthsayer of unknown type, message: ${JSON.stringify(
+            message
+          )}`
+        )
+      }
+    }
   }
 )
 
