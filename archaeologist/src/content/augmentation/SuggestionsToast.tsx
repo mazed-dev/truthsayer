@@ -3,6 +3,7 @@
 import React from 'react'
 import styled from '@emotion/styled'
 import { mazed } from '../../util/mazed'
+import OutsideClickHandler from 'react-outside-click-handler'
 
 import { TDoc, ShrinkMinimalCard, NodeCardReadOnly } from 'elementary'
 import { TNode } from 'smuggler-api'
@@ -176,6 +177,7 @@ export const SuggestionsToast = ({
   })
   return (
     <Toast toastKey={'read-write-augmentation-toast'}>
+      <OutsideClickHandler onOutsideClick={onClose}>
       <ToastBox>
         <Header>
           <LogoSmall />
@@ -194,6 +196,7 @@ export const SuggestionsToast = ({
           {suggestedEl}
         </SuggestionsToastSuggestionsBox>
       </ToastBox>
+      </OutsideClickHandler>
     </Toast>
   )
 }
