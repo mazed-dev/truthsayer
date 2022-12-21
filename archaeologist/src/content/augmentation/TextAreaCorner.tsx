@@ -5,6 +5,8 @@ import ReactDOM from 'react-dom'
 import styled from '@emotion/styled'
 import root from 'react-shadow/emotion'
 
+import { reactNodeToString } from 'elementary'
+
 import LogoImage from '../../../public/logo-fade-48x48.png'
 import { ContentContext } from '../context'
 
@@ -67,12 +69,11 @@ const BadgeText = styled.span`
 export const TextAreaCorner = ({
   target,
   onClick,
-  suggestionsNumber,
-}: {
+  children,
+}: React.PropsWithChildren<{
   target?: HTMLTextAreaElement
   onClick: React.MouseEventHandler
-  suggestionsNumber: number
-}) => {
+}>) => {
   const box = document.createElement('mazed-textarea-augmentation')
   box.style.width = '0'
   box.style.height = '0'
@@ -89,7 +90,7 @@ export const TextAreaCorner = ({
   const ctx = React.useContext(ContentContext)
   const onMeteredClick = (event: React.MouseEvent) => {
     ctx.analytics?.capture('TextAreaCorner:Click', {
-      text: suggestionsNumber.toString(),
+      text: reactNodeToString(children),
       targetTagName: target?.tagName.toLowerCase(),
       targetElementType: target?.type,
       targetSelectionStart: target?.selectionStart,
@@ -111,16 +112,11 @@ export const TextAreaCorner = ({
         <Box onClick={onMeteredClick}>
           <Logo />
           <BadgeBox>
-            {
-              /* don't show bubble if there is no suggestions */
-              suggestionsNumber === 0 ? null : (
-                <BadgeBubble>
-                  <BadgeTextBox>
-                    <BadgeText>{suggestionsNumber.toString()}</BadgeText>
-                  </BadgeTextBox>
-                </BadgeBubble>
-              )
-            }
+            <BadgeBubble>
+              <BadgeTextBox>
+                <BadgeText>{children}</BadgeText>
+              </BadgeTextBox>
+            </BadgeBubble>
           </BadgeBox>
         </Box>
       </root.div>
