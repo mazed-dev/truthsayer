@@ -1,8 +1,4 @@
-// @ts-nocheck
-
 import React from 'react'
-
-import { NavLink } from 'react-router-dom'
 import styled from '@emotion/styled'
 
 import {
@@ -14,25 +10,56 @@ import {
   Header6Box,
 } from './components'
 
-const StdHeader = React.forwardRef(({ depth, ...attributes }, ref) => {
+const StdHeader = React.forwardRef<
+  HTMLHeadingElement,
+  React.PropsWithChildren<{ depth: number; className?: string }>
+>(({ depth, children, className, ...attributes }, ref) => {
   switch (depth) {
     case 1:
-      return <Header1Box ref={ref} {...attributes} />
+      return (
+        <Header1Box ref={ref} className={className} >
+          {children}
+        </Header1Box>
+      )
     case 2:
-      return <Header2Box ref={ref} {...attributes} />
+      return (
+        <Header2Box ref={ref} className={className} >
+          {children}
+        </Header2Box>
+      )
     case 3:
-      return <Header3Box ref={ref} {...attributes} />
+      return (
+        <Header3Box ref={ref} className={className} >
+          {children}
+        </Header3Box>
+      )
     case 4:
-      return <Header4Box ref={ref} {...attributes} />
+      return (
+        <Header4Box ref={ref} className={className} >
+          {children}
+        </Header4Box>
+      )
     case 5:
-      return <Header5Box ref={ref} {...attributes} />
+      return (
+        <Header5Box ref={ref} className={className} >
+          {children}
+        </Header5Box>
+      )
     case 6:
-      return <Header6Box ref={ref} {...attributes} />
+      return (
+        <Header6Box ref={ref} className={className} >
+          {children}
+        </Header6Box>
+      )
   }
-  return <Header6Box ref={ref} {...attributes} />
+  return (
+    <Header6Box ref={ref} className={className} {...attributes}>
+      {children}
+    </Header6Box>
+  )
 })
 
-const AnchoredLink = styled(NavLink)`
+const AnchoredLink = styled.a`
   color: inherit;
   text-decoration: none;
   &:hover {
@@ -45,28 +72,27 @@ const AnchoredLink = styled(NavLink)`
   }
 `
 
-function Anchored({ nid, children }) {
+function Anchored({ nid, children }: React.PropsWithChildren<{ nid: string }>) {
   if (nid) {
-    return <AnchoredLink to={`/n/${nid}`}>{children}</AnchoredLink>
+    return <AnchoredLink href={`/n/${nid}`}>{children}</AnchoredLink>
   }
   return <>{children}</>
 }
 
-function makeStyledHeader(depth) {
-  const StyledHeader = React.forwardRef(
-    ({ className, children, nid, ...attributes }, ref) => {
-      return (
-        <StdHeader
-          ref={ref}
-          className={className}
-          depth={depth}
-          {...attributes}
-        >
-          <Anchored nid={nid}>{children}</Anchored>
-        </StdHeader>
-      )
+function makeStyledHeader(depth: number) {
+  const StyledHeader = React.forwardRef<
+    HTMLHeadingElement,
+    {
+      className?: string
+      nid: string
     }
-  )
+  >(({ className, children, nid, ...attributes }, ref) => {
+    return (
+      <StdHeader ref={ref} className={className} depth={depth} {...attributes}>
+        <Anchored nid={nid}>{children}</Anchored>
+      </StdHeader>
+    )
+  })
   return StyledHeader
 }
 
