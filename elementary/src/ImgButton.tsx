@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { Button } from 'react-bootstrap'
+import { log } from 'armoury'
 
 import styled from '@emotion/styled'
 
@@ -40,6 +41,7 @@ export const ImgButton = React.forwardRef<HTMLButtonElement, ImgButtonProps>(
       ref={ref}
       disabled={is_disabled || false}
       onClick={(e) => {
+        log.debug('ImgButton.click')
         if (onClick) {
           e.preventDefault()
           onClick(e)
