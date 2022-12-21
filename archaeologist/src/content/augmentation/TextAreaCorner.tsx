@@ -108,7 +108,7 @@ export const TextAreaCorner = ({
         height: target?.clientHeight + 'px',
       }}
     >
-      <root.div id="mazed-archaeologist-toast-root">
+      <root.div id="mazed-archaeologist-textarea-corner">
         <Box onClick={onMeteredClick}>
           <Logo />
           <BadgeBox>

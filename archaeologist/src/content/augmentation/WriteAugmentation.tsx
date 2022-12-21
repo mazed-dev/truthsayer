@@ -79,6 +79,7 @@ export function WriteAugmentation() {
     () =>
       lodash.debounce(
         async (phrase: string) => {
+          log.debug(`Look for "${phrase}" in Mazed`)
           setSuggestionsSearchIsActive(true)
           const response = await FromContent.sendMessage({
             type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
@@ -103,7 +104,6 @@ export function WriteAugmentation() {
       )
       const { phrase } = newInput
       if (phrase != null && phrase.length > 3) {
-        log.debug(`Look for "${phrase}" in Mazed`)
         requestSuggestedAssociations(phrase)
       }
       return newInput
