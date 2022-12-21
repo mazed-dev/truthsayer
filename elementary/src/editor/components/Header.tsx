@@ -17,37 +17,37 @@ const StdHeader = React.forwardRef<
   switch (depth) {
     case 1:
       return (
-        <Header1Box ref={ref} className={className} >
+        <Header1Box ref={ref} className={className}>
           {children}
         </Header1Box>
       )
     case 2:
       return (
-        <Header2Box ref={ref} className={className} >
+        <Header2Box ref={ref} className={className}>
           {children}
         </Header2Box>
       )
     case 3:
       return (
-        <Header3Box ref={ref} className={className} >
+        <Header3Box ref={ref} className={className}>
           {children}
         </Header3Box>
       )
     case 4:
       return (
-        <Header4Box ref={ref} className={className} >
+        <Header4Box ref={ref} className={className}>
           {children}
         </Header4Box>
       )
     case 5:
       return (
-        <Header5Box ref={ref} className={className} >
+        <Header5Box ref={ref} className={className}>
           {children}
         </Header5Box>
       )
     case 6:
       return (
-        <Header6Box ref={ref} className={className} >
+        <Header6Box ref={ref} className={className}>
           {children}
         </Header6Box>
       )
