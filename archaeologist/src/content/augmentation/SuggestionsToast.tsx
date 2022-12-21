@@ -3,12 +3,11 @@
 import React from 'react'
 import styled from '@emotion/styled'
 import { mazed } from '../../util/mazed'
-import OutsideClickHandler from 'react-outside-click-handler'
 
 import { TDoc, ShrinkMinimalCard, NodeCardReadOnly } from 'elementary'
 import { TNode } from 'smuggler-api'
 
-import { Toast } from './../toaster/Toaster'
+import { Toast, useOutsideToastClickHandler } from './../toaster/Toaster'
 import { LogoSmall, RefItem } from './../style'
 import { MeteredButton } from '../elements/MeteredButton'
 
@@ -90,6 +89,27 @@ const CopySuggestionButton = ({
   )
 }
 
+function getTextToInsert(node: TNode): string {
+  let toInsert: string
+  if (node.isWebBookmark() && node.extattrs?.web != null) {
+    const { web, title, author } = node.extattrs
+    const authorStr = author ? `\nby ${author}` : ''
+    toInsert = `${title}${authorStr}\n🧵 ${web.url} `
+  } else if (node.isWebQuote() && node.extattrs?.web_quote != null) {
+    const { text, url } = node.extattrs.web_quote
+    const { author } = node.extattrs
+    const authorStr = author ? `\nby ${author}` : ''
+    toInsert = `“${text}”${authorStr}\n🧵 ${url} `
+  } else if (node.isImage()) {
+    const url = node.getBlobSource()
+    toInsert = ` 🧵 ${url} `
+  } else {
+    const doc = TDoc.fromNodeTextData(node.getText())
+    toInsert = `${doc.genPlainText()}\n🧵 ${node.getDirectUrl()} `
+  }
+  return toInsert
+}
+
 function CardInsertButton({
   node,
   onClose,
@@ -97,31 +117,20 @@ function CardInsertButton({
   node: TNode
   onClose: () => void
 }) {
-  let toInsert: string
   let copySubj: string
   if (node.isWebBookmark() && node.extattrs?.web != null) {
-    const { web, title, author } = node.extattrs
-    const authorStr = author ? `\nby ${author}` : ''
-    toInsert = `${title}${authorStr}\n🧵 ${web.url} `
     copySubj = 'Link'
   } else if (node.isWebQuote() && node.extattrs?.web_quote != null) {
-    const { text, url } = node.extattrs.web_quote
-    const { author } = node.extattrs
-    const authorStr = author ? `\nby ${author}` : ''
-    toInsert = `“${text}”${authorStr}\n🧵 ${url} `
     copySubj = 'Quote'
   } else if (node.isImage()) {
-    const url = node.getBlobSource()
-    toInsert = ` 🧵 ${url} `
     copySubj = 'Image'
   } else {
-    const doc = TDoc.fromNodeTextData(node.getText())
-    toInsert = `${doc.genPlainText()}\n🧵 ${node.getDirectUrl()} `
     copySubj = 'Note'
   }
   return (
     <CopySuggestionButton
       onClick={() => {
+        const toInsert = getTextToInsert(node)
         navigator.clipboard.writeText(toInsert)
         onClose()
       }}
@@ -175,28 +184,27 @@ export const SuggestionsToast = ({
   const suggestedEl = suggested.map((node: TNode) => {
     return <SuggestedCard key={node.getNid()} node={node} onClose={onClose} />
   })
+  useOutsideToastClickHandler(onClose)
   return (
     <Toast toastKey={'read-write-augmentation-toast'}>
-      <OutsideClickHandler onOutsideClick={onClose}>
-        <ToastBox>
-          <Header>
-            <LogoSmall />
-            <SearchPhrase
-              href={mazed.makeSearchUrl(keyphrase).toString()}
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              &ldquo;{keyphrase}&rdquo;
-            </SearchPhrase>
-            <MeteredButton onClick={onClose} metricLabel={'Suggestions Toast'}>
-              Close
-            </MeteredButton>
-          </Header>
-          <SuggestionsToastSuggestionsBox>
-            {suggestedEl}
-          </SuggestionsToastSuggestionsBox>
-        </ToastBox>
-      </OutsideClickHandler>
+      <ToastBox>
+        <Header>
+          <LogoSmall />
+          <SearchPhrase
+            href={mazed.makeSearchUrl(keyphrase).toString()}
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            &ldquo;{keyphrase}&rdquo;
+          </SearchPhrase>
+          <MeteredButton onClick={onClose} metricLabel={'Suggestions Toast'}>
+            Close
+          </MeteredButton>
+        </Header>
+        <SuggestionsToastSuggestionsBox>
+          {suggestedEl}
+        </SuggestionsToastSuggestionsBox>
+      </ToastBox>
     </Toast>
   )
 }
