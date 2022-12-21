@@ -44,6 +44,31 @@ export const Toaster = ({ children }: React.PropsWithChildren<{}>) => {
   )
 }
 
+const kToastRootElementId = 'mazed-archaeologist-toast-root'
+/**
+ * Hook that detect clicks outside of the toast
+ */
+export function useOutsideToastClickHandler(onOutsideClick: () => void) {
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (event.target) {
+        const el = event.target as Element
+        if (el.id !== kToastRootElementId) {
+          onOutsideClick()
+        }
+      }
+    }
+    // Bind the event listener
+    document.addEventListener('mousedown', handleClickOutside, {
+      passive: true,
+    })
+    return () => {
+      // Unbind the event listener on clean up
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [onOutsideClick])
+}
+
 const ToastBox = styled.div`
   display: block;
   visibility: visible;
@@ -70,7 +95,7 @@ export const Toast = ({
      */
   )
   return ReactDOM.createPortal(
-    <root.div id="mazed-archaeologist-toast-root">
+    <root.div id={kToastRootElementId}>
       <ToastBox key={toastKey} className={className}>
         {children}
       </ToastBox>
