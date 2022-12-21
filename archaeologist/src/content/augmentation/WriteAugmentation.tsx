@@ -3,6 +3,7 @@ import lodash from 'lodash'
 
 import { log } from 'armoury'
 import { TNode, TNodeJson } from 'smuggler-api'
+import { Spinner } from 'elementary'
 
 import { FromContent } from './../../message/types'
 
@@ -70,12 +71,15 @@ export function getKeyPhraseFromUserInput(
 export function WriteAugmentation() {
   const [suggestedNodes, setSuggestedNodes] = React.useState<TNode[]>([])
   const [toastIsShown, showToast] = React.useState<boolean>(false)
+  const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
+    React.useState<boolean>(false)
   const requestSuggestedAssociations = React.useMemo(
     // Using `useMemo` instead of `useCallback` to avoid eslint complains
     // https://kyleshevlin.com/debounce-and-throttle-callbacks-with-react-hooks
     () =>
       lodash.debounce(
         async (phrase: string) => {
+          setSuggestionsSearchIsActive(true)
           const response = await FromContent.sendMessage({
             type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
             limit: 8,
@@ -84,8 +88,9 @@ export function WriteAugmentation() {
           setSuggestedNodes(
             response.suggested.map((value: TNodeJson) => TNode.fromJson(value))
           )
+          setSuggestionsSearchIsActive(false)
         },
-        919,
+        661,
         {}
       ),
     []
@@ -121,8 +126,16 @@ export function WriteAugmentation() {
       <TextAreaCorner
         target={userInput.target ?? undefined}
         onClick={() => showToast((isShown) => !isShown)}
-        suggestionsNumber={suggestedNodes.length}
-      />
+      >
+        {
+          /* don't show bubble if there is no suggestions */
+          suggestionsSearchIsActive ? (
+            <Spinner.Ring />
+          ) : suggestedNodes.length === 0 ? null : (
+            suggestedNodes.length.toString()
+          )
+        }
+      </TextAreaCorner>
       {toastIsShown ? (
         <SuggestionsToast
           onClose={() => {

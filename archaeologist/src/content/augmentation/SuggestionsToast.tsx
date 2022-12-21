@@ -3,6 +3,7 @@
 import React from 'react'
 import styled from '@emotion/styled'
 import { mazed } from '../../util/mazed'
+import OutsideClickHandler from 'react-outside-click-handler'
 
 import { TDoc, ShrinkMinimalCard, NodeCardReadOnly } from 'elementary'
 import { TNode } from 'smuggler-api'
@@ -176,24 +177,26 @@ export const SuggestionsToast = ({
   })
   return (
     <Toast toastKey={'read-write-augmentation-toast'}>
-      <ToastBox>
-        <Header>
-          <LogoSmall />
-          <SearchPhrase
-            href={mazed.makeSearchUrl(keyphrase).toString()}
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            &ldquo;{keyphrase}&rdquo;
-          </SearchPhrase>
-          <MeteredButton onClick={onClose} metricLabel={'Suggestions Toast'}>
-            Close
-          </MeteredButton>
-        </Header>
-        <SuggestionsToastSuggestionsBox>
-          {suggestedEl}
-        </SuggestionsToastSuggestionsBox>
-      </ToastBox>
+      <OutsideClickHandler onOutsideClick={onClose}>
+        <ToastBox>
+          <Header>
+            <LogoSmall />
+            <SearchPhrase
+              href={mazed.makeSearchUrl(keyphrase).toString()}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              &ldquo;{keyphrase}&rdquo;
+            </SearchPhrase>
+            <MeteredButton onClick={onClose} metricLabel={'Suggestions Toast'}>
+              Close
+            </MeteredButton>
+          </Header>
+          <SuggestionsToastSuggestionsBox>
+            {suggestedEl}
+          </SuggestionsToastSuggestionsBox>
+        </ToastBox>
+      </OutsideClickHandler>
     </Toast>
   )
 }
