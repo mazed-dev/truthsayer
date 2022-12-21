@@ -15,6 +15,7 @@ import {
   BrowserHistoryUploadProgress,
   BrowserHistoryUploadMode,
 } from '../message/types'
+import { mazed } from '../util/mazed'
 
 import { toSentenceCase, unixtime } from 'armoury'
 
@@ -259,19 +260,11 @@ export function BrowserHistoryImportControlPortalForMazed(
   return ReactDOM.createPortal(<div>{widget}</div>, container)
 }
 
-function isTruthsayer(host: string): boolean {
-  if (process.env.REACT_APP_SMUGGLER_API_URL) {
-    const mazedUrl = new URL(process.env.REACT_APP_SMUGGLER_API_URL)
-    return mazedUrl.host === host
-  }
-  return true
-}
-
 export function BrowserHistoryImportControlPortal(
-  props: UploadBrowserHistoryProps & { host: string }
+  props: UploadBrowserHistoryProps
 ) {
-  if (isTruthsayer(props.host)) {
-    return <BrowserHistoryImportControlPortalForMazed {...props} />
+  if (!mazed.isMazed(document.URL)) {
+    return null
   }
-  return null
+  return <BrowserHistoryImportControlPortalForMazed {...props} />
 }

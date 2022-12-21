@@ -50,12 +50,21 @@ const SuggestedCardBox = styled.div`
   border: 1px solid #ececec;
   border-radius: 6px;
 `
+
 const SuggestedCardTools = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
   padding: 0;
 `
+
+const SearchPhrase = styled(RefItem)`
+  overflow-x: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 300px;
+`
+
 const CopySuggestionButton = ({
   children,
   onClick,
@@ -153,13 +162,6 @@ const SuggestedCard = ({
   )
 }
 
-const SearchPhrase = styled(RefItem)`
-  overflow-x: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  width: 300px;
-`
-
 export const SuggestionsToast = ({
   keyphrase,
   suggested,
@@ -177,7 +179,11 @@ export const SuggestionsToast = ({
       <ToastBox>
         <Header>
           <LogoSmall />
-          <SearchPhrase href={mazed.makeSearchUrl(keyphrase).toString()}>
+          <SearchPhrase
+            href={mazed.makeSearchUrl(keyphrase).toString()}
+            target="_blank"
+            rel="noreferrer noopener"
+          >
             &ldquo;{keyphrase}&rdquo;
           </SearchPhrase>
           <MeteredButton onClick={onClose} metricLabel={'Suggestions Toast'}>
