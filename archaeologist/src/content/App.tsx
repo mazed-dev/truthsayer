@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { TNode, TNodeJson, NodeType } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log, productanalytics } from 'armoury'
-import { truthsayer_archaeologist_communication } from 'elementary'
+import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 
 import { mazed } from '../util/mazed'
 
@@ -390,7 +390,7 @@ const App = () => {
         <BrowserHistoryImportControlPortal
           progress={state.browserHistoryUploadProgress}
         />
-        <truthsayer_archaeologist_communication.ArchaeologistVersion
+        <truthsayer_archaeologist_communication.archaeologist.ArchaeologistVersion
           version={{
             version: browser.runtime.getManifest().version,
           }}

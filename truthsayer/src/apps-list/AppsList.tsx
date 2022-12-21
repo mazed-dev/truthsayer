@@ -3,11 +3,8 @@ import { useAsyncEffect } from 'use-async-effect'
 import { Container } from 'react-bootstrap'
 import styled from '@emotion/styled'
 
-import {
-  kCardBorder,
-  truthsayer_archaeologist_communication,
-  Spinner,
-} from 'elementary'
+import { kCardBorder, Spinner } from 'elementary'
+import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 import { sleep } from 'armoury'
 import GoogleChromeLogo from './img/GoogleChromeLogo.svg'
 
@@ -54,9 +51,10 @@ async function getArchaeologistVersionWait() {
     null
   for (let step = 0; step < 5 && version == null; step++) {
     await sleep(500)
-    version = truthsayer_archaeologist_communication.getArchaeologistVersion(
-      window.document
-    )
+    version =
+      truthsayer_archaeologist_communication.truthsayer.getArchaeologistVersion(
+        window.document
+      )
   }
   return version
 }

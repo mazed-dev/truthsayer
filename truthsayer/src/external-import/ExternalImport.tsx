@@ -3,7 +3,8 @@
 import React from 'react'
 import styled from '@emotion/styled'
 
-import { kCardBorder, truthsayer_archaeologist_communication } from 'elementary'
+import { kCardBorder } from 'elementary'
+import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 
 import {
   MicrosoftOfficeOneDriveImporter,

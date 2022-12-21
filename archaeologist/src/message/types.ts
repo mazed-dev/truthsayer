@@ -5,7 +5,7 @@ import { OriginHash, TNodeJson } from 'smuggler-api'
 import { OriginIdentity } from 'armoury'
 
 /**
- * There are 3 kind of message senders/receivers:
+ * There are 3 kinds of message senders/receivers:
  *   - popup
  *   - content (all browser tabs)
  *   - background
@@ -17,11 +17,20 @@ import { OriginIdentity } from 'armoury'
  *   - `ToContent` - from background to content (any of the tabs)
  *   - `FromContent` - from content (any tab) to background
  *
+ * Additionally, truthsayer can communicate with background.
+ * @see FromTruthsayer outside of this module for that.
+ *
  *   ┌───────┐       ┌────────────┐       ┌─────────┐
  *   │ popup │  ──▷  │ background │  ──▷  │ content │─┐
  *   └───────┘  ◁──  └────────────┘  ◁──  └───(#1)──┘ │─┐
- *                                          └───(#2)──┘ │
- *                                            └───(#3)──┘
+ *                         ^                 └───(#2)──┘ │
+ *                         :                   └───(#3)──┘
+ *                         :
+ *                 ◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦
+ *                 ◦    truthsayer   ◦
+ *                 ◦  (outside this  ◦
+ *                 ◦     module)     ◦
+ *                 ◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦
  */
 
 export interface VoidResponse {

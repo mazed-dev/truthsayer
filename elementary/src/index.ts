@@ -58,6 +58,3 @@ export {
   kSlateBlockTypeQuote,
   kSlateBlockTypeUnorderedList,
 } from './editor/types'
-
-// The name is ugly on purpose - use with extra care
-export * as truthsayer_archaeologist_communication from './truthsayer-archaeologist-communication/index'

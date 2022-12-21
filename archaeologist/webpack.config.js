@@ -3,6 +3,16 @@ const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
 const TerserPlugin = require('terser-webpack-plugin');
 
+const _getTruthsayerUrl = (mode) => {
+  return mode === 'development' ? 'http://localhost:3000' : 'https://mazed.se/'
+}
+
+const _getTruthsayerUrlMask = (mode) => {
+  const url = new URL(_getTruthsayerUrl(mode))
+  url.pathname = '*'
+  return url.toString()
+}
+
 const _getSmugglerApiUrl = (mode) => {
   return mode === 'development'
     ? "http://localhost:3000"
@@ -47,6 +57,11 @@ const _manifestTransform = (buffer, mode, env) => {
   // Add Mazed URL to host_permissions to grant access to mazed cookies
   const smugglerApiUrlMask = _getSmugglerApiUrlMask(mode)
   manifest.host_permissions.push(smugglerApiUrlMask)
+  // Add Mazed URL to externally_connectable to allow to send messages
+  // from truthsayer to archaeologist.
+  // See https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/externally_connectable
+  // for more details.
+  manifest.externally_connectable.matches.push(_getTruthsayerUrlMask(mode))
   if (firefox) {
     manifest = _manifestTransformDowngradeToV2(manifest)
   }

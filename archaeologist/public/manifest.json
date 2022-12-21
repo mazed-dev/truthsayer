@@ -57,5 +57,9 @@
   ],
   "omnibox": {
     "keyword": "//"
+  },
+  "externally_connectable": {
+    "ids": [],
+    "matches": []
   }
 }
