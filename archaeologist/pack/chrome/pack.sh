@@ -26,6 +26,14 @@ if [[ ! -f "archaeologist/public/manifest.json" ]]; then
   exit 1
 fi
 
+yarn
+yarn lint
+yarn test
+yarn armoury build
+yarn elementary build
+yarn smuggler-api build
+yarn librarius build
+
 cd archaeologist
 
 yarn build:chrome:public

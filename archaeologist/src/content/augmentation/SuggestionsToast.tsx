@@ -82,7 +82,7 @@ const CopySuggestionButton = ({
           setNotification('Copied!')
         }
       }}
-      metricLabel={'Suggested Fragment'}
+      metricLabel={'Suggested Fragment Copy'}
     >
       {notification ?? children}
     </SuggestionButton>
@@ -157,13 +157,13 @@ const SuggestedCard = ({
         <CardInsertButton node={node} onClose={onClose} />
         <SuggestionButton
           href={node.getDirectUrl()}
-          metricLabel={'Suggested Fragment'}
+          metricLabel={'Suggested Fragment Open in Mazed'}
         >
           Open Mazed
         </SuggestionButton>
         <SuggestionButton
           onClick={() => setSeeMore((more) => !more)}
-          metricLabel={'Suggested Fragment'}
+          metricLabel={'Suggested Fragment See ' + (seeMore ? 'less' : 'more')}
         >
           See {seeMore ? 'less' : 'more'}
         </SuggestionButton>
@@ -197,7 +197,10 @@ export const SuggestionsToast = ({
           >
             &ldquo;{keyphrase}&rdquo;
           </SearchPhrase>
-          <MeteredButton onClick={onClose} metricLabel={'Suggestions Toast'}>
+          <MeteredButton
+            onClick={onClose}
+            metricLabel={'Suggestions Toast Close'}
+          >
             Close
           </MeteredButton>
         </Header>
