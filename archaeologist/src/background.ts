@@ -21,7 +21,7 @@ import {
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
-import { log, isAbortError, genOriginId, unixtime } from 'armoury'
+import { log, isAbortError, genOriginId, unixtime, errorise } from 'armoury'
 import {
   TNode,
   TotalUserActivity,
@@ -36,7 +36,10 @@ import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
 import { suggestAssociations } from './background/suggestAssociations'
 import { isMemorable } from './content/extractor/url/unmemorable'
 import { isPageAutosaveable } from './content/extractor/url/autosaveable'
+
 import lodash from 'lodash'
+import sqlite3InitModule from 'sqlite-wasm-esm'
+import type { Sqlite3, DB as SqliteDb } from 'sqlite-wasm-esm'
 
 const BADGE_MARKER_PAGE_SAVED = '✓'
 
@@ -711,6 +714,58 @@ browser.runtime.onMessage.addListener(
   }
 )
 
+let db: SqliteDb | null /* not created yet */ | Error /* creation failed */ =
+  null
+
+async function createDb(): Promise<SqliteDb> {
+  const sqlite3: Sqlite3 = await sqlite3InitModule()
+  // const ret: SqliteDb = new sqlite3.opfs!.OpfsDb('test-mazed-db', 'c')
+  const ret: SqliteDb = new sqlite3.oo1.DB({
+    filename: 'memory' /* or 'local' or 'session' */,
+    flags: 'c',
+  })
+
+  try {
+    await ret.exec(
+      'CREATE TABLE IF NOT EXISTS test_mazed_table(' +
+        'name STRING PRIMARY KEY, ' +
+        'counter INT NOT NULL)'
+    )
+  } catch (e) {
+    ret.close()
+    throw e
+  }
+  return ret
+}
+
+async function incrementCounterInDb() {
+  if (db instanceof Error) {
+    throw db
+  } else if (db === null) {
+    try {
+      db = await createDb()
+    } catch (e) {
+      db = errorise(e)
+      throw e
+    }
+  }
+
+  const pirate = 'Bootstrap Bill'
+  await db.exec({
+    sql:
+      'INSERT INTO test_mazed_table(name, counter) VALUES ($name, $value) ' +
+      'ON CONFLICT (name) DO UPDATE SET counter = counter + 1 WHERE name = $name',
+    bind: { $name: pirate, $value: 5 },
+  })
+  const res = await db.exec({
+    sql: 'SELECT name, counter from test_mazed_table WHERE name = $name',
+    bind: { $name: pirate },
+    rowMode: 'object',
+    returnValue: 'resultRows',
+  })
+  log.info(`Result from SELECT: ${JSON.stringify(res)}`)
+}
+
 browser.runtime.onMessageExternal.addListener(
   async (
     message: FromTruthsayer.Request,
@@ -718,6 +773,7 @@ browser.runtime.onMessageExternal.addListener(
   ): Promise<ToTruthsayer.Response> => {
     switch (message.type) {
       case 'DUMMY_REQUEST': {
+        await incrementCounterInDb()
         return { type: 'VOID_RESPONSE' }
       }
       default: {
