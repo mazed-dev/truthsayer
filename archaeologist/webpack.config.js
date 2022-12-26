@@ -43,6 +43,17 @@ const _manifestTransformDowngradeToV2 = (manifest) => {
   // Rename action to browser_action
   manifest.browser_action = manifest.action
   delete manifest.action
+  // content_security_policy has a different structure between v2 and v3:
+  // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/content_security_policy#manifest_v3_syntax
+  const csp_keys = Object.keys(manifest.content_security_policy)
+  if (csp_keys.length !== 1 || csp_keys[0] !== 'extension_pages') {
+    throw new Error(
+      'Added keys to v3 CSP config which would be ignored in v2. ' +
+        'Change manifest downgrade logic to either ignore them explicitely or ' +
+        'handle in other way.'
+    )
+  }
+  manifest.content_security_policy = manifest.content_security_policy.extension_pages
   // Manifest V3 new features
   delete manifest.cross_origin_embedder_policy
   delete manifest.cross_origin_opener_policy
