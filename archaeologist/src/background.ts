@@ -719,6 +719,11 @@ let db: SqliteDb | null /* not created yet */ | Error /* creation failed */ =
 
 async function createDb(): Promise<SqliteDb> {
   const sqlite3: Sqlite3 = await sqlite3InitModule()
+  /*
+    See https://github.com/mazed-dev/truthsayer/issues/351#issuecomment-1365275716
+    for more information about what blocks OPFS usage in the context of
+    background scripts
+  */
   // const ret: SqliteDb = new sqlite3.opfs!.OpfsDb('test-mazed-db', 'c')
   const ret: SqliteDb = new sqlite3.oo1.DB({
     filename: 'memory' /* or 'local' or 'session' */,
