@@ -5,7 +5,12 @@ import { makeUrl } from './api_url'
 
 export type SlateText = object[]
 
-function makeSlateFromPlainText(plaintext?: string): SlateText {
+/**
+ * This hacky type unsafe method for in-file use only. For anything else please
+ * consider using similar methods from elementary/src/editor/types.ts , those
+ * are type safe
+ */
+export function makeSlateFromPlainText(plaintext?: string): SlateText {
   return [
     {
       type: 'paragraph',
@@ -28,13 +33,34 @@ export function makeNodeTextData(plaintext?: string): NodeTextData {
 
 export type Nid = string
 
+// Types related to old document types
+
+export type DocChunkDeprecated = {
+  type: number
+  source: string
+}
+export type ChunkedDocDeprecated = DocChunkDeprecated[]
+export type DraftBlockDeprecated = {
+  data?: object
+  depth?: number
+  entityRanges?: any[]
+  inlineStyleRanges?: any[]
+  key: string
+  text: string
+  type?: string
+}
+export type DraftDocDeprecated = {
+  blocks: DraftBlockDeprecated[]
+  entityMap?: object
+}
+
 // see smuggler/src/types.rs
 export type NodeTextData = {
-  slate: SlateText | undefined
+  slate: SlateText
   // Deprecated
-  draft: any | undefined
+  draft?: DraftDocDeprecated
   // Deprecated
-  chunks: any | undefined
+  chunks?: ChunkedDocDeprecated
 }
 
 export enum NodeType {
