@@ -8,7 +8,6 @@ import type {
   DraftDocDeprecated,
   SlateText as RawSlateText,
 } from 'smuggler-api'
-import { log } from 'armoury'
 
 import lodash from 'lodash'
 
@@ -368,7 +367,7 @@ function ensureCorrectNodeTextData(
   } else if (text.slate != null) {
     slate = text.slate as SlateText
   } else {
-    log.warning('There is an old style text node', text)
+    // There is an old style text node
     if (text.chunks) {
       slate = makeSlateTextFromPlainText(
         text.chunks.map((chunk) => chunk.source).join(' ')
