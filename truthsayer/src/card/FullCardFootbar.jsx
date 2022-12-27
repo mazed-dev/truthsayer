@@ -37,7 +37,7 @@ import {
 function nodeToMarkdown(node) {
   let md = ''
   if (node.isImage()) {
-    const source = node.getBlobSource()
+    const source = smuggler.blob.sourceUrl(node.getNid())
     md = md.concat(`![](${source})`)
   }
   const text = node.getText()

@@ -1,8 +1,6 @@
 import { Mime, MimeType } from 'armoury'
 import moment from 'moment'
 
-import { makeUrl } from './api_url'
-
 export type SlateText = object[]
 
 function makeSlateFromPlainText(plaintext?: string): SlateText {
@@ -216,16 +214,6 @@ export class TNode {
   isWebQuote() {
     const { ntype } = this
     return ntype === NodeType.WebQuote
-  }
-
-  getBlobSource(): string | null {
-    const { nid } = this
-    return makeUrl(`/blob/${nid}`)
-  }
-
-  getDirectUrl(): string {
-    const { nid } = this
-    return makeUrl(`/n/${nid}`)
   }
 
   toJson(): TNodeJson {

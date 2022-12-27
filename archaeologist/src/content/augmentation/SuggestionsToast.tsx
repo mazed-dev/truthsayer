@@ -5,7 +5,7 @@ import styled from '@emotion/styled'
 import { mazed } from '../../util/mazed'
 
 import { TDoc, ShrinkMinimalCard, NodeCardReadOnly } from 'elementary'
-import { TNode } from 'smuggler-api'
+import { TNode, smuggler } from 'smuggler-api'
 
 import { Toast, useOutsideToastClickHandler } from './../toaster/Toaster'
 import { LogoSmall, RefItem } from './../style'
@@ -101,11 +101,11 @@ function getTextToInsert(node: TNode): string {
     const authorStr = author ? `\nby ${author}` : ''
     toInsert = `“${text}”${authorStr}\n🧵 ${url} `
   } else if (node.isImage()) {
-    const url = node.getBlobSource()
+    const url = smuggler.blob.sourceUrl(node.getNid())
     toInsert = ` 🧵 ${url} `
   } else {
     const doc = TDoc.fromNodeTextData(node.getText())
-    toInsert = `${doc.genPlainText()}\n🧵 ${node.getDirectUrl()} `
+    toInsert = `${doc.genPlainText()}\n🧵 ${smuggler.node.url(node.getNid())} `
   }
   return toInsert
 }
@@ -156,7 +156,7 @@ const SuggestedCard = ({
       <SuggestedCardTools>
         <CardInsertButton node={node} onClose={onClose} />
         <SuggestionButton
-          href={node.getDirectUrl()}
+          href={smuggler.node.url(node.getNid())}
           metricLabel={'Suggested Fragment Open in Mazed'}
         >
           Open Mazed

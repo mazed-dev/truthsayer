@@ -27,7 +27,6 @@ import {
   TotalUserActivity,
   UploadMultipartRequestBody as UploadMultipartQuery,
   UploadMultipartResponse,
-  UserBadge,
   UserExternalPipelineId,
   UserExternalPipelineIngestionProgress,
 } from './types'
@@ -365,6 +364,10 @@ function mimeTypeIsSupportedByBuildIndex(mimeType: MimeType) {
 
 function makeBlobSourceUrl(nid: string): string {
   return makeUrl(`/blob/${nid}`)
+}
+
+function makeDirectUrl(nid: string): string {
+  return makeUrl(`/n/${nid}`)
 }
 
 async function deleteNode({
@@ -1053,10 +1056,11 @@ export const smuggler = {
        */
       get: getNodeBatch,
     },
+    url: makeDirectUrl,
   },
   blob: {
     upload: uploadFiles,
-    getSource: makeBlobSourceUrl,
+    sourceUrl: makeBlobSourceUrl,
   },
   blob_index: {
     build: buildFilesSearchIndex,
