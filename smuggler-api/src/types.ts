@@ -5,13 +5,34 @@ export type SlateText = object[]
 
 export type Nid = string
 
+// Types related to old document types
+
+export type DocChunkDeprecated = {
+  type: number
+  source: string
+}
+export type ChunkedDocDeprecated = DocChunkDeprecated[]
+export type DraftBlockDeprecated = {
+  data?: object
+  depth?: number
+  entityRanges?: any[]
+  inlineStyleRanges?: any[]
+  key: string
+  text: string
+  type?: string
+}
+export type DraftDocDeprecated = {
+  blocks: DraftBlockDeprecated[]
+  entityMap?: object
+}
+
 // see smuggler/src/types.rs
 export type NodeTextData = {
-  slate: SlateText | undefined
+  slate: SlateText
   // Deprecated
-  draft: any | undefined
+  draft?: DraftDocDeprecated
   // Deprecated
-  chunks: any | undefined
+  chunks?: ChunkedDocDeprecated
 }
 
 export enum NodeType {

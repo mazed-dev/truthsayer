@@ -2,7 +2,12 @@ import type { Descendant, BaseEditor } from 'slate'
 import { Element } from 'slate'
 import { ReactEditor } from 'slate-react'
 import { HistoryEditor } from 'slate-history'
-import type { NodeTextData } from 'smuggler-api'
+import type {
+  NodeTextData,
+  ChunkedDocDeprecated,
+  DraftDocDeprecated,
+  SlateText as RawSlateText,
+} from 'smuggler-api'
 
 import lodash from 'lodash'
 
@@ -333,39 +338,74 @@ export function makeDateTime(
   }
 }
 
+export function makeSlateTextFromPlainText(plaintext?: string): SlateText {
+  return [
+    {
+      type: 'paragraph',
+      children: [
+        {
+          text: plaintext ?? '',
+        },
+      ],
+    },
+  ]
+}
+
+/**
+ * Migrates all previous version document structre to the latest one
+ */
+function ensureCorrectNodeTextData(
+  text: {
+    slate?: SlateText | RawSlateText | null
+    draft?: DraftDocDeprecated | null
+    chunks?: ChunkedDocDeprecated | null
+  } | null
+): { slate: SlateText } {
+  let slate: SlateText
+  if (text == null) {
+    slate = makeSlateTextFromPlainText()
+  } else if (text.slate != null) {
+    slate = text.slate as SlateText
+  } else {
+    // There is an old style text node
+    if (text.chunks) {
+      slate = makeSlateTextFromPlainText(
+        text.chunks.map((chunk) => chunk.source).join(' ')
+      )
+    } else if (text.draft) {
+      slate = makeSlateTextFromPlainText(
+        text.draft.blocks.map((block) => block.text).join('\n')
+      )
+    } else {
+      slate = makeSlateTextFromPlainText(JSON.stringify(text))
+    }
+  }
+  return { slate }
+}
+
 export class TDoc {
   slate: SlateText
+  chunks?: ChunkedDocDeprecated
+  draft?: DraftDocDeprecated
 
-  constructor(slate: SlateText) {
-    this.slate = slate
+  constructor(slate: SlateText | undefined | null) {
+    this.slate = ensureCorrectNodeTextData({ slate }).slate
   }
 
   toNodeTextData(): NodeTextData {
-    const { slate } = this
-    return { slate, draft: null, chunks: null }
+    return { ...this }
   }
 
   static fromNodeTextData(text: NodeTextData): TDoc {
-    const { slate } = text
-    if (slate) {
-      return new TDoc(slate as SlateText)
-    }
-    return this.makeEmpty()
+    return new TDoc(ensureCorrectNodeTextData(text).slate)
   }
 
   static makeEmpty(): TDoc {
-    const text = ''
-    const slate = [
-      {
-        type: kSlateBlockTypeParagraph,
-        children: [{ text }],
-      },
-    ]
-    return new TDoc(slate as SlateText)
+    return new TDoc(makeSlateTextFromPlainText())
   }
 
   makeACopy(nid: string, isBlankCopy: boolean): TDoc {
-    let { slate } = this
+    let slate = this.slate
     const title = this.genTitle()
     let label
     if (isBlankCopy) {

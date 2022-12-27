@@ -5,7 +5,6 @@ import semver from 'semver'
 import { sleep } from 'armoury'
 import { Spinner } from 'elementary'
 import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
-import { FromTruthsayer } from 'truthsayer-archaeologist-communication'
 import { TruthsayerLink } from '../lib/TrueLink'
 import BrowserLogo from '../apps-list/img/GoogleChromeLogo.svg'
 
