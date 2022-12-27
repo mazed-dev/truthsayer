@@ -1,10 +1,15 @@
-import { Mime, MimeType, log } from 'armoury'
+import { Mime, MimeType } from 'armoury'
 import moment from 'moment'
 
 import { makeUrl } from './api_url'
 
 export type SlateText = object[]
 
+/**
+ * This hacky type unsafe method for in-file use only. For anything else please
+ * consider using similar methods from elementary/src/editor/types.ts , those
+ * are type safe
+ */
 export function makeSlateFromPlainText(plaintext?: string): SlateText {
   return [
     {
@@ -47,39 +52,6 @@ export type DraftBlockDeprecated = {
 export type DraftDocDeprecated = {
   blocks: DraftBlockDeprecated[]
   entityMap?: object
-}
-
-export function ensureCorrectNodeTextData(
-  text: {
-    slate?: SlateText | null
-    draft?: DraftDocDeprecated | null
-    chunks?: ChunkedDocDeprecated | null
-  } | null
-): NodeTextData {
-  if (text == null) {
-    return { slate: makeSlateFromPlainText() }
-  }
-  if (text.slate != null) {
-    return { slate: text.slate }
-  } else {
-    log.warning('There is an old style text node', text)
-    if (text.chunks) {
-      return {
-        slate: makeSlateFromPlainText(
-          text.chunks.map((chunk) => chunk.source).join(' ')
-        ),
-      }
-    } else if (text.draft) {
-      return {
-        slate: makeSlateFromPlainText(
-          text.draft.blocks.map((block) => block.text).join('\n')
-        ),
-      }
-    }
-  }
-  return {
-    slate: makeSlateFromPlainText(JSON.stringify(text)),
-  }
 }
 
 // see smuggler/src/types.rs
@@ -223,7 +195,7 @@ export class TNode {
   ) {
     this.nid = nid
     this.ntype = ntype
-    this.text = ensureCorrectNodeTextData(text)
+    this.text = text
     this.created_at = created_at
     this.updated_at = updated_at
     this.meta = meta
