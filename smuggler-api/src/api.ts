@@ -363,6 +363,10 @@ function mimeTypeIsSupportedByBuildIndex(mimeType: MimeType) {
   return Mime.isImage(mimeType)
 }
 
+function makeBlobSourceUrl(nid: string): string {
+  return makeUrl(`/blob/${nid}`)
+}
+
 async function deleteNode({
   nid,
   signal,
@@ -1052,6 +1056,7 @@ export const smuggler = {
   },
   blob: {
     upload: uploadFiles,
+    getSource: makeBlobSourceUrl,
   },
   blob_index: {
     build: buildFilesSearchIndex,
