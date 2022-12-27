@@ -526,10 +526,6 @@ async function getAuth({
   return await resp.json()
 }
 
-export async function ping(): Promise<void> {
-  await fetch(makeUrl(), { method: 'GET' })
-}
-
 export const getNodesSlice: GetNodesSliceFn = async ({
   end_time,
   start_time,
@@ -871,25 +867,6 @@ async function getExternalAssociation(
   )
 }
 
-async function getUserBadge({
-  uid,
-  signal,
-}: {
-  uid: string
-  signal: AbortSignal
-}): Promise<UserBadge> {
-  verifyIsNotNull(uid)
-  verifyIsNotNull(signal)
-  const resp = await fetch(makeUrl(`/user/${uid}/badge`), {
-    method: 'GET',
-    signal,
-  })
-  if (resp.ok) {
-    return await resp.json()
-  }
-  throw _makeResponseError(resp)
-}
-
 async function registerAccount({
   name,
   email,
@@ -1103,11 +1080,6 @@ export const smuggler = {
     sticky: switchEdgeStickiness,
     delete: deleteEdge,
   },
-  snitch: {
-    // Todo(akindyakov): monitoring counters and logs
-    report: null,
-    record: null,
-  },
   session: {
     create: createSession,
     delete: deleteSession,
@@ -1130,9 +1102,6 @@ export const smuggler = {
     },
   },
   user: {
-    badge: {
-      get: getUserBadge,
-    },
     password: {
       recover: passwordRecoverRequest,
       reset: passwordReset,
@@ -1140,5 +1109,4 @@ export const smuggler = {
     },
     register: registerAccount,
   },
-  ping,
 }
