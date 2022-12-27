@@ -4,7 +4,6 @@ import {
   AddUserActivityRequest,
   AddUserExternalAssociationRequest,
   AdvanceExternalPipelineIngestionProgress,
-  EdgeAttributes,
   GenerateBlobIndexResponse,
   GetUserExternalAssociationsResponse,
   NewNodeResponse,
@@ -43,6 +42,7 @@ import lodash from 'lodash'
 import moment from 'moment'
 import { StatusCode } from './status_codes'
 import { authCookie } from './auth/cookie'
+import { makeEmptyNodeTextData, TNodeUtil } from './typesutil'
 
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
@@ -138,8 +138,8 @@ async function createNode(
 }
 
 function lookupKeyOf(args: CreateNodeArgs): NodeLookupKey | undefined {
-  // TODO[snikitin@outlook.com]: This ideally should match with TNode.isWebBookmark(),
-  // TNode.isWebQuote() etc but unclear how to reliably do so.
+  // TODO[snikitin@outlook.com]: This ideally should match with TNodeUtil.isWebBookmark(),
+  // TNodeUtil.isWebQuote() etc but unclear how to reliably do so.
   if (args.extattrs?.web?.url) {
     return { webBookmark: { url: args.extattrs.web.url } }
   } else if (args.extattrs?.web_quote?.url) {
@@ -285,7 +285,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
 
     const nodes: TNode[] = []
     for (let node = await iter.next(); node != null; node = await iter.next()) {
-      if (node.isWebQuote() && node.extattrs?.web_quote) {
+      if (TNodeUtil.isWebQuote(node) && node.extattrs?.web_quote) {
         if (
           stabiliseUrlForOriginId(node.extattrs.web_quote.url) === stableUrl
         ) {
@@ -301,7 +301,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
 
     const nodes: TNode[] = []
     for (let node = await iter.next(); node != null; node = await iter.next()) {
-      if (node.isWebBookmark() && node.extattrs?.web) {
+      if (TNodeUtil.isWebBookmark(node) && node.extattrs?.web) {
         if (stabiliseUrlForOriginId(node.extattrs.web.url) === stableUrl) {
           nodes.push(node)
         }
@@ -423,7 +423,7 @@ async function getNode({
     throw _makeResponseError(res)
   }
   const {
-    text,
+    text = makeEmptyNodeTextData(),
     ntype,
     extattrs = null,
     index_text = null,
@@ -431,17 +431,17 @@ async function getNode({
   } = await res.json()
   const secret_id = null
   const success = true
-  const node = new TNode(
+  const node: TNode = {
     nid,
     ntype,
-    text as NodeTextData,
-    moment(res.headers.get(kHeaderCreatedAt)),
-    moment(res.headers.get(kHeaderLastModified)),
+    text: text as NodeTextData,
+    created_at: moment(res.headers.get(kHeaderCreatedAt)),
+    updated_at: moment(res.headers.get(kHeaderLastModified)),
     meta,
-    extattrs ? extattrs : null,
+    extattrs,
     index_text,
-    { secret_id, success }
-  )
+    crypto: { secret_id, success },
+  }
   return node
 }
 
@@ -464,28 +464,7 @@ async function getNodeBatch(
   }
   const { nodes } = await res.json()
   return {
-    nodes: nodes.map(
-      ({
-        nid,
-        ntype,
-        text,
-        extattrs,
-        index_text,
-        created_at,
-        updated_at,
-        meta,
-      }: TNodeJson) =>
-        TNode.fromJson({
-          nid,
-          ntype,
-          text,
-          extattrs,
-          index_text,
-          created_at,
-          updated_at,
-          meta,
-        })
-    ),
+    nodes: nodes.map((jsonNode: TNodeJson) => TNodeUtil.fromJson(jsonNode)),
   }
 }
 
@@ -566,24 +545,23 @@ export const getNodesSlice: GetNodesSliceFn = async ({
       nid,
       crtd,
       upd,
-      text,
+      text = makeEmptyNodeTextData(),
       ntype,
       extattrs = undefined,
       index_text = undefined,
       meta = undefined,
     } = item
-    const textObj = text as NodeTextData
-    return new TNode(
+    return {
       nid,
       ntype,
-      textObj,
-      moment.unix(crtd),
-      moment.unix(upd),
+      text,
+      created_at: moment.unix(crtd),
+      updated_at: moment.unix(upd),
       meta,
       extattrs,
       index_text,
-      { secret_id: null, success: true }
-    )
+      crypto: { secret_id: null, success: true },
+    }
   })
   return {
     ...response,
@@ -646,8 +624,7 @@ async function createEdge({
   if (!edges?.length) {
     throw new Error('Empty edge creation response')
   }
-  const edgeOjb = edges[0]
-  return new TEdge(edgeOjb)
+  return edges[0] as TEdge
 }
 
 async function getNodeAllEdges(
@@ -662,12 +639,6 @@ async function getNodeAllEdges(
     throw _makeResponseError(resp, 'Getting node edges failed with error')
   }
   const edges = await resp.json()
-  edges.from_edges = edges.from_edges.map((edgeObj: EdgeAttributes) => {
-    return new TEdge(edgeObj)
-  })
-  edges.to_edges = edges.to_edges.map((edgeObj: EdgeAttributes) => {
-    return new TEdge(edgeObj)
-  })
   return edges as NodeEdges
 }
 

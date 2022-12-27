@@ -25,7 +25,7 @@ export const NodeTextReader = ({
   className?: string
 }) => {
   const initialValue = useMemo(() => {
-    const doc = TDoc.fromNodeTextData(node.getText())
+    const doc = TDoc.fromNodeTextData(node.text)
     return doc
   }, [node])
   const renderElement = useCallback(

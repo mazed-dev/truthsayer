@@ -19,7 +19,7 @@ import {
   steroid,
   UserExternalPipelineId,
   NodeType,
-  makeNodeTextData,
+  makeEmptyNodeTextData,
   NodeExtattrs,
 } from 'smuggler-api'
 
@@ -80,7 +80,7 @@ async function uploadFilesFromFolder(
       }
       const origin = genOriginId(file.webUrl)
       const node: CreateNodeArgs = {
-        text: makeNodeTextData(),
+        text: makeEmptyNodeTextData(),
         index_text,
         extattrs,
         ntype: NodeType.Url,

@@ -60,8 +60,8 @@ async function cloneNode({
   if (!node) {
     return null
   }
-  let doc = TDoc.fromNodeTextData(node.getText())
-  doc = doc.makeACopy(node.getNid(), isBlank || false)
+  let doc = TDoc.fromNodeTextData(node.text)
+  doc = doc.makeACopy(node.nid, isBlank || false)
   const extattrs: NodeExtattrs | undefined = node.extattrs
     ? { ...node.extattrs }
     : undefined

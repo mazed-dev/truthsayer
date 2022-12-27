@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { TNode } from 'smuggler-api'
+import { TNode, TNodeUtil } from 'smuggler-api'
 import { ImageNode } from './ImageNode'
 import { WebBookmark } from './WebBookmark'
 import { WebQuote } from './WebQuote'
@@ -17,7 +17,7 @@ export function NodeMedia({
   strippedActions?: boolean
 }) {
   const { extattrs } = node
-  if (node.isImage()) {
+  if (TNodeUtil.isImage(node)) {
     return (
       <ImageNode
         node={node}
@@ -25,7 +25,7 @@ export function NodeMedia({
         strippedActions={strippedActions}
       />
     )
-  } else if (node.isWebBookmark()) {
+  } else if (TNodeUtil.isWebBookmark(node)) {
     if (extattrs != null) {
       return (
         <WebBookmark
@@ -35,7 +35,7 @@ export function NodeMedia({
         />
       )
     }
-  } else if (node.isWebQuote()) {
+  } else if (TNodeUtil.isWebQuote(node)) {
     if (extattrs != null) {
       return (
         <WebQuote

@@ -70,8 +70,8 @@ function JinnModal({
   const handleSumbit = () => {}
 
   const onNodeCardClick = (node: TNode) => {
-    const nid = node.getNid()
-    const doc = TDoc.fromNodeTextData(node.getText())
+    const nid = node.nid
+    const doc = TDoc.fromNodeTextData(node.text)
     const title = doc.genTitle()
     const element = makeNodeLink(title, nid)
     insertElement(element)

@@ -7,12 +7,13 @@ import browser from 'webextension-polyfill'
 import lodash from 'lodash'
 
 import { formatDescription } from './suggestion-item-description'
+import { TNodeUtil } from 'smuggler-api'
 
 function nodeToSuggestion(node: TNode): browser.Omnibox.SuggestResult {
   const { nid } = node
   const url = node.extattrs?.web?.url || node.extattrs?.web_quote?.url
   if (url != null) {
-    if (node.isWebQuote()) {
+    if (TNodeUtil.isWebQuote(node)) {
       const title = _truncate(
         node.extattrs?.web_quote?.text || '',
         kTitleLengthMax
@@ -23,7 +24,7 @@ function nodeToSuggestion(node: TNode): browser.Omnibox.SuggestResult {
         description: formatDescription(title, shortUrl),
       }
     }
-    if (node.isWebBookmark()) {
+    if (TNodeUtil.isWebBookmark(node)) {
       const title = _truncate(
         node.extattrs?.title ?? node.extattrs?.description ?? '',
         kTitleLengthMax
@@ -35,7 +36,7 @@ function nodeToSuggestion(node: TNode): browser.Omnibox.SuggestResult {
       }
     }
   }
-  const doc = TDoc.fromNodeTextData(node.getText())
+  const doc = TDoc.fromNodeTextData(node.text)
   const title = doc.genTitle(kTitleLengthMax)
   return {
     content: mazed.makeNodeUrl(nid).toString(),

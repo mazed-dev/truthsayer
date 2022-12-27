@@ -65,7 +65,7 @@ export const ImageNode = ({
   className?: string
   strippedActions?: boolean
 }) => {
-  const source = smuggler.blob.sourceUrl(node.getNid())
+  const source = smuggler.blob.sourceUrl(node.nid)
   if (source == null) {
     return null
   }

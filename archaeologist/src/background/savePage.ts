@@ -12,7 +12,8 @@ import {
   NodeType,
   OriginHash,
   TNode,
-  makeNodeTextData,
+  TNodeUtil,
+  makeEmptyNodeTextData,
   smuggler,
 } from 'smuggler-api'
 import { ToContent } from '../message/types'
@@ -33,7 +34,7 @@ async function updateContent(
   bookmark?: TNode,
   tabId?: number
 ): Promise<void> {
-  const bookmarkJson = bookmark?.toJson()
+  const bookmarkJson = bookmark ? TNodeUtil.toJson(bookmark) : undefined
   // Update content augmentation
   if (tabId == null) {
     return
@@ -41,8 +42,8 @@ async function updateContent(
   try {
     await ToContent.sendMessage(tabId, {
       type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
-      fromNodes: fromNodes.map((node) => node.toJson()),
-      toNodes: toNodes.map((node) => node.toJson()),
+      fromNodes: fromNodes.map((node) => TNodeUtil.toJson(node)),
+      toNodes: toNodes.map((node) => TNodeUtil.toJson(node)),
       bookmark: bookmarkJson,
       mode: 'append',
     })
@@ -136,7 +137,7 @@ export async function saveWebPage(
     await updateContent([], [], undefined, tabId)
     return { unmemorable: true }
   }
-  const text = makeNodeTextData()
+  const text = makeEmptyNodeTextData()
   const index_text: NodeIndexText = {
     plaintext: content.text || undefined,
     labels: [],
@@ -222,7 +223,7 @@ export async function savePageQuote(
     web_quote: { url, path, text },
   }
   const resp = await smuggler.node.create({
-    text: makeNodeTextData(),
+    text: makeEmptyNodeTextData(),
     ntype: NodeType.WebQuote,
     from_nid: fromNid ? [fromNid] : undefined,
     extattrs,
@@ -248,7 +249,7 @@ async function _saveWebSearchQuery(
   if (originId == null) {
     originId = genOriginId(url).id
   }
-  const text = makeNodeTextData()
+  const text = makeEmptyNodeTextData()
   const index_text: NodeIndexText = {
     labels: [],
     brands: [],

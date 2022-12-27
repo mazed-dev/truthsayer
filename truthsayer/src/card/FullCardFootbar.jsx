@@ -8,7 +8,7 @@ import { ButtonToolbar } from 'react-bootstrap'
 
 import PropTypes from 'prop-types'
 
-import { smuggler } from 'smuggler-api'
+import { smuggler, TNodeUtil } from 'smuggler-api'
 import { jcss, TDoc } from 'elementary'
 
 import styles from './FullCardFootbar.module.css'
@@ -36,11 +36,11 @@ import {
 
 function nodeToMarkdown(node) {
   let md = ''
-  if (node.isImage()) {
-    const source = smuggler.blob.sourceUrl(node.getNid())
+  if (TNodeUtil.isImage(node)) {
+    const source = smuggler.blob.sourceUrl(node.nid)
     md = md.concat(`![](${source})`)
   }
-  const text = node.getText()
+  const text = node.text
   if (text) {
     const doc = TDoc.fromNodeTextData(text)
     md = md.concat(slateToMarkdown(doc.slate))
@@ -239,7 +239,7 @@ export function FullCardFootbar({ /* children,  */ node, ...rest }) {
   const { account } = ctx
   if (node && node.meta) {
     const { nid, meta } = node
-    if (node.isOwnedBy(account)) {
+    if (TNodeUtil.isOwnedBy(node, account)) {
       const getMarkdown = async () => {
         return nodeToMarkdown(node)
       }

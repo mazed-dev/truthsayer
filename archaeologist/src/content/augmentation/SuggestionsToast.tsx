@@ -5,7 +5,7 @@ import styled from '@emotion/styled'
 import { mazed } from '../../util/mazed'
 
 import { TDoc, ShrinkMinimalCard, NodeCardReadOnly } from 'elementary'
-import { TNode, smuggler } from 'smuggler-api'
+import { TNode, TNodeUtil, smuggler } from 'smuggler-api'
 
 import { Toast, useOutsideToastClickHandler } from './../toaster/Toaster'
 import { LogoSmall, RefItem } from './../style'
@@ -91,21 +91,21 @@ const CopySuggestionButton = ({
 
 function getTextToInsert(node: TNode): string {
   let toInsert: string
-  if (node.isWebBookmark() && node.extattrs?.web != null) {
+  if (TNodeUtil.isWebBookmark(node) && node.extattrs?.web != null) {
     const { web, title, author } = node.extattrs
     const authorStr = author ? `\nby ${author}` : ''
     toInsert = `${title}${authorStr}\n🧵 ${web.url} `
-  } else if (node.isWebQuote() && node.extattrs?.web_quote != null) {
+  } else if (TNodeUtil.isWebQuote(node) && node.extattrs?.web_quote != null) {
     const { text, url } = node.extattrs.web_quote
     const { author } = node.extattrs
     const authorStr = author ? `\nby ${author}` : ''
     toInsert = `“${text}”${authorStr}\n🧵 ${url} `
-  } else if (node.isImage()) {
-    const url = smuggler.blob.sourceUrl(node.getNid())
+  } else if (TNodeUtil.isImage(node)) {
+    const url = smuggler.blob.sourceUrl(node.nid)
     toInsert = ` 🧵 ${url} `
   } else {
-    const doc = TDoc.fromNodeTextData(node.getText())
-    toInsert = `${doc.genPlainText()}\n🧵 ${smuggler.node.url(node.getNid())} `
+    const doc = TDoc.fromNodeTextData(node.text)
+    toInsert = `${doc.genPlainText()}\n🧵 ${smuggler.node.url(node.nid)} `
   }
   return toInsert
 }
@@ -118,11 +118,11 @@ function CardInsertButton({
   onClose: () => void
 }) {
   let copySubj: string
-  if (node.isWebBookmark() && node.extattrs?.web != null) {
+  if (TNodeUtil.isWebBookmark(node) && node.extattrs?.web != null) {
     copySubj = 'Link'
-  } else if (node.isWebQuote() && node.extattrs?.web_quote != null) {
+  } else if (TNodeUtil.isWebQuote(node) && node.extattrs?.web_quote != null) {
     copySubj = 'Quote'
-  } else if (node.isImage()) {
+  } else if (TNodeUtil.isImage(node)) {
     copySubj = 'Image'
   } else {
     copySubj = 'Note'
@@ -156,7 +156,7 @@ const SuggestedCard = ({
       <SuggestedCardTools>
         <CardInsertButton node={node} onClose={onClose} />
         <SuggestionButton
-          href={smuggler.node.url(node.getNid())}
+          href={smuggler.node.url(node.nid)}
           metricLabel={'Suggested Fragment Open in Mazed'}
         >
           Open Mazed
@@ -182,7 +182,7 @@ export const SuggestionsToast = ({
   onClose: () => void
 }) => {
   const suggestedEl = suggested.map((node: TNode) => {
-    return <SuggestedCard key={node.getNid()} node={node} onClose={onClose} />
+    return <SuggestedCard key={node.nid} node={node} onClose={onClose} />
   })
   useOutsideToastClickHandler(onClose)
   return (
