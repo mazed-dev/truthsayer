@@ -2,7 +2,12 @@ import type { Descendant, BaseEditor } from 'slate'
 import { Element } from 'slate'
 import { ReactEditor } from 'slate-react'
 import { HistoryEditor } from 'slate-history'
-import type { NodeTextData } from 'smuggler-api'
+import { ensureCorrectNodeTextData, makeSlateFromPlainText } from 'smuggler-api'
+import type {
+  NodeTextData,
+  ChunkedDocDeprecated,
+  DraftDocDeprecated,
+} from 'smuggler-api'
 
 import lodash from 'lodash'
 
@@ -335,37 +340,27 @@ export function makeDateTime(
 
 export class TDoc {
   slate: SlateText
+  chunks?: ChunkedDocDeprecated
+  draft?: DraftDocDeprecated
 
   constructor(slate: SlateText) {
     this.slate = slate
   }
 
   toNodeTextData(): NodeTextData {
-    const { slate } = this
-    return { slate, draft: null, chunks: null }
+    return ensureCorrectNodeTextData(this)
   }
 
   static fromNodeTextData(text: NodeTextData): TDoc {
-    const { slate } = text
-    if (slate) {
-      return new TDoc(slate as SlateText)
-    }
-    return this.makeEmpty()
+    return new TDoc(ensureCorrectNodeTextData(text).slate as SlateText)
   }
 
   static makeEmpty(): TDoc {
-    const text = ''
-    const slate = [
-      {
-        type: kSlateBlockTypeParagraph,
-        children: [{ text }],
-      },
-    ]
-    return new TDoc(slate as SlateText)
+    return new TDoc(makeSlateFromPlainText() as SlateText)
   }
 
   makeACopy(nid: string, isBlankCopy: boolean): TDoc {
-    let { slate } = this
+    let slate = ensureCorrectNodeTextData(this).slate as SlateText
     const title = this.genTitle()
     let label
     if (isBlankCopy) {

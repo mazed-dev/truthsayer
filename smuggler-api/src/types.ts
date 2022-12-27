@@ -1,11 +1,11 @@
-import { Mime, MimeType } from 'armoury'
+import { Mime, MimeType, log } from 'armoury'
 import moment from 'moment'
 
 import { makeUrl } from './api_url'
 
 export type SlateText = object[]
 
-function makeSlateFromPlainText(plaintext?: string): SlateText {
+export function makeSlateFromPlainText(plaintext?: string): SlateText {
   return [
     {
       type: 'paragraph',
@@ -28,13 +28,67 @@ export function makeNodeTextData(plaintext?: string): NodeTextData {
 
 export type Nid = string
 
+// Types related to old document types
+
+export type DocChunkDeprecated = {
+  type: number
+  source: string
+}
+export type ChunkedDocDeprecated = DocChunkDeprecated[]
+export type DraftBlockDeprecated = {
+  data?: object
+  depth?: number
+  entityRanges?: any[]
+  inlineStyleRanges?: any[]
+  key: string
+  text: string
+  type?: string
+}
+export type DraftDocDeprecated = {
+  blocks: DraftBlockDeprecated[]
+  entityMap?: object
+}
+
+export function ensureCorrectNodeTextData(
+  text: {
+    slate?: SlateText | null
+    draft?: DraftDocDeprecated | null
+    chunks?: ChunkedDocDeprecated | null
+  } | null
+): NodeTextData {
+  if (text == null) {
+    return { slate: makeSlateFromPlainText() }
+  }
+  if (text.slate != null) {
+    return { slate: text.slate }
+  } else {
+    log.warning('There is an old style text node', text)
+    if (text.chunks) {
+      return {
+        slate: makeSlateFromPlainText(
+          text.chunks.map((chunk) => chunk.source).join(' ')
+        ),
+      }
+    } else if (text.draft) {
+      return {
+        slate: makeSlateFromPlainText(
+          text.draft.blocks.map((block) => block.text).join('\n')
+        ),
+      }
+    }
+  }
+  return {
+    slate: makeSlateFromPlainText(JSON.stringify(text)),
+  }
+}
+
 // see smuggler/src/types.rs
 export type NodeTextData = {
-  slate: SlateText | undefined
+  slate: SlateText
   // Deprecated
-  draft: any | undefined
+  draft?: DraftDocDeprecated
   // Deprecated
-  chunks: any | undefined
+  chunks?: ChunkedDocDeprecated
 }
 
 export enum NodeType {
@@ -169,7 +223,7 @@ export class TNode {
   ) {
     this.nid = nid
     this.ntype = ntype
-    this.text = text
+    this.text = ensureCorrectNodeTextData(text)
     this.created_at = created_at
     this.updated_at = updated_at
     this.meta = meta
