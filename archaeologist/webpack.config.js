@@ -46,6 +46,7 @@ const _manifestTransformDowngradeToV2 = (manifest) => {
   // Manifest V3 new features
   delete manifest.cross_origin_embedder_policy
   delete manifest.cross_origin_opener_policy
+  delete manifest.externally_connectable
   return manifest
 }
 
