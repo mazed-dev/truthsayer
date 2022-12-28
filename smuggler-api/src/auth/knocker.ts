@@ -1,4 +1,4 @@
-import { smuggler, SmugglerError } from './../api'
+import { smuggler, SmugglerError } from '../api_cloud'
 import { StatusCode } from './../status_codes'
 import { authCookie } from './cookie'
 

@@ -8,7 +8,7 @@ import {
   NodeIndexText,
   UploadMultipartResponse,
 } from '../types'
-import { smuggler } from '../api'
+import { smuggler } from '../api_cloud'
 import { log, Mime, isAbortError, errorise } from 'armoury'
 import type { Optional } from 'armoury'
 
