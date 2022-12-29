@@ -1,3 +1,8 @@
+/**
+ * Implementation of smuggler APIs like @see StorageApi which interact with a
+ * cloud-hosted infrastructure to perform their job.
+ */
+
 import {
   AccountInfo,
   Ack,
@@ -7,18 +12,14 @@ import {
   GenerateBlobIndexResponse,
   GetUserExternalAssociationsResponse,
   NewNodeResponse,
-  Nid,
   NodeAttrsSearchRequest,
   NodeAttrsSearchResponse,
   NodeBatch,
   NodeCreateRequestBody,
   NodeCreatedVia,
   NodeEdges,
-  NodeExtattrs,
-  NodeIndexText,
   NodePatchRequest,
   NodeTextData,
-  NodeType,
   OriginId,
   TEdge,
   TNode,
@@ -29,7 +30,17 @@ import {
   UserExternalPipelineId,
   UserExternalPipelineIngestionProgress,
 } from './types'
-
+import type {
+  UniqueNodeLookupKey,
+  NonUniqueNodeLookupKey,
+  NodeLookupKey,
+  CreateNodeArgs,
+  GetNodeSliceArgs,
+  NodeBatchRequestBody,
+  CreateEdgeArgs,
+  StorageApi,
+  BlobUploadRequestArgs,
+} from './storage_api'
 import { makeUrl } from './api_url'
 
 import { TNodeSliceIterator, GetNodesSliceFn } from './node_slice_iterator'
@@ -43,35 +54,10 @@ import moment from 'moment'
 import { StatusCode } from './status_codes'
 import { authCookie } from './auth/cookie'
 import { makeEmptyNodeTextData, NodeUtil } from './typesutil'
+import { AuthenticationApi } from './authentication_api'
 
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
-
-/**
- * Unique lookup keys that can match at most 1 node
- */
-export type UniqueNodeLookupKey =
-  /** Due to nid's nature there can be at most 1 node with a particular nid */
-  | { nid: string }
-  /** Unique because many nodes can refer to the same URL, but only one of them
-   * can be a bookmark */
-  | { webBookmark: { url: string } }
-
-export type NonUniqueNodeLookupKey =
-  /** Can match more than 1 node because multiple parts of a single web page
-   * can be quoted */
-  | { webQuote: { url: string } }
-  /** Can match more than 1 node because many nodes can refer to
-   * the same URL:
-   *    - 0 or 1 can be @see NoteType.Url
-   *    - AND at the same time more than 1 can be @see NodeType.WebQuote */
-  | { url: string }
-
-/**
- * All the different types of keys that can be used to identify (during lookup,
- * for example) one or more nodes.
- */
-export type NodeLookupKey = UniqueNodeLookupKey | NonUniqueNodeLookupKey
 
 export function isUniqueLookupKey(
   key: NodeLookupKey
@@ -80,18 +66,6 @@ export function isUniqueLookupKey(
     return true
   }
   return false
-}
-
-export type CreateNodeArgs = {
-  text: NodeTextData
-  from_nid?: string[]
-  to_nid?: string[]
-  index_text?: NodeIndexText
-  extattrs?: NodeExtattrs
-  ntype?: NodeType
-  origin?: OriginId
-  created_via?: NodeCreatedVia
-  created_at?: Date
 }
 
 async function createNode(
@@ -174,19 +148,13 @@ async function createOrUpdateNode(
     )
   }
 
-  const updateArgs: UpdateNodeArgs = {
-    nid: existingNode.nid,
+  const patch: NodePatchRequest = {
     text: args.text,
     index_text: args.index_text,
   }
 
-  const resp = await updateNode(updateArgs, signal)
-  if (!resp.ok) {
-    throw _makeResponseError(resp, `Failed to update node ${existingNode.nid}`)
-  }
-  return {
-    nid: existingNode.nid,
-  }
+  await updateNode({ nid: existingNode.nid, ...patch }, signal)
+  return { nid: existingNode.nid }
 }
 
 /**
@@ -247,10 +215,6 @@ function describeWhatWouldPreventNodeUpdate(args: CreateNodeArgs, node: TNode) {
   return `[what] - [attempted update arg] vs [existing node value]: ${diff}`
 }
 
-/**
- * Lookup all the nodes that match a given key. For unique lookup keys either
- * 0 or 1 nodes will be returned. For non-unique more than 1 node can be returned.
- */
 async function lookupNodes(
   key: UniqueNodeLookupKey,
   signal?: AbortSignal
@@ -314,10 +278,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
 }
 
 async function uploadFiles(
-  files: File[],
-  from_nid: Optional<string>,
-  to_nid: Optional<string>,
-  createdVia: NodeCreatedVia,
+  { files, from_nid, to_nid, createdVia }: BlobUploadRequestArgs,
   signal?: AbortSignal
 ): Promise<UploadMultipartResponse> {
   const query: UploadMultipartQuery = { created_via: createdVia }
@@ -358,7 +319,7 @@ async function buildFilesSearchIndex(
   return await resp.json()
 }
 
-function mimeTypeIsSupportedByBuildIndex(mimeType: MimeType) {
+function mimeTypeIsSupportedByBuildIndex(mimeType: MimeType): boolean {
   return Mime.isImage(mimeType)
 }
 
@@ -445,12 +406,8 @@ async function getNode({
   return node
 }
 
-type NodePatchRequestBody = {
-  nids: Nid[]
-}
-
 async function getNodeBatch(
-  req: NodePatchRequestBody,
+  req: NodeBatchRequestBody,
   signal?: AbortSignal
 ): Promise<NodeBatch> {
   const res = await fetch(makeUrl(`/node-batch-get`), {
@@ -468,14 +425,10 @@ async function getNodeBatch(
   }
 }
 
-type UpdateNodeArgs = {
-  nid: string
-  text?: NodeTextData
-  index_text?: NodeIndexText
-  preserve_update_time?: boolean
-}
-
-async function updateNode(args: UpdateNodeArgs, signal?: AbortSignal) {
+async function updateNode(
+  args: { nid: string } & NodePatchRequest,
+  signal?: AbortSignal
+): Promise<Ack> {
   const { nid, text, index_text, preserve_update_time } = args
   const headers = {
     'Content-type': MimeType.JSON,
@@ -485,12 +438,16 @@ async function updateNode(args: UpdateNodeArgs, signal?: AbortSignal) {
     index_text,
     preserve_update_time,
   }
-  return fetch(makeUrl(`/node/${nid}`), {
+  const resp = await fetch(makeUrl(`/node/${nid}`), {
     method: 'PATCH',
     body: JSON.stringify(request),
     headers,
     signal,
   })
+  if (resp.ok) {
+    return await resp.json()
+  }
+  throw _makeResponseError(resp)
 }
 
 async function getAuth({
@@ -508,7 +465,7 @@ async function getAuth({
   return await resp.json()
 }
 
-export const getNodesSlice: GetNodesSliceFn = async ({
+const getNodesSlice: GetNodesSliceFn = async ({
   end_time,
   start_time,
   offset,
@@ -575,13 +532,7 @@ function _getNodesSliceIter({
   limit,
   origin,
   bucket_time_size,
-}: {
-  end_time?: number
-  start_time?: number
-  limit?: number
-  origin?: OriginId
-  bucket_time_size?: number
-}) {
+}: GetNodeSliceArgs) {
   return new TNodeSliceIterator(
     getNodesSlice,
     start_time,
@@ -596,11 +547,7 @@ async function createEdge({
   from,
   to,
   signal,
-}: {
-  from?: string
-  to?: string
-  signal: AbortSignal
-}): Promise<TEdge> {
+}: CreateEdgeArgs): Promise<TEdge> {
   verifyIsNotNull(from)
   verifyIsNotNull(to)
   const req = {
@@ -644,14 +591,14 @@ async function getNodeAllEdges(
 
 async function switchEdgeStickiness({
   eid,
-  signal,
   on,
   off,
+  signal,
 }: {
   eid: string
-  signal: AbortSignal
   on: Optional<boolean>
   off: Optional<boolean>
+  signal: AbortSignal
 }): Promise<Ack> {
   verifyIsNotNull(eid)
   const req = {
@@ -704,7 +651,7 @@ async function createSession(
   password: string,
   permissions: number | null,
   signal?: AbortSignal
-) {
+): Promise<{}> {
   verifyIsNotNull(email)
   verifyIsNotNull(password)
   verifyIsNotNull(signal)
@@ -909,7 +856,7 @@ async function passwordChange(
   old_password: string,
   new_password: string,
   signal?: AbortSignal
-) {
+): Promise<Ack> {
   const value = { old_password, new_password }
   const resp = await fetch(makeUrl('/auth/password-recover/change'), {
     method: 'POST',
@@ -1010,7 +957,7 @@ function _makeResponseError(response: Response, message?: string): Error {
   })
 }
 
-export const smuggler = {
+export const smuggler: StorageApi & AuthenticationApi = {
   getAuth,
   node: {
     get: getNode,
@@ -1035,16 +982,6 @@ export const smuggler = {
   },
   blob_index: {
     build: buildFilesSearchIndex,
-    /** 'cfg' section is intended to expose properties of one of smuggler's
-     * endpoints *without using network*. This information is unlikely to change
-     * during application runtime which makes repeated network usage wasteful.
-     *
-     * It may be tempting to bake them into respective endpoint methods directly
-     * (e.g. into 'blob_index.build'), but that is intentionally avoided to
-     * keep a clearer boundary between raw REST endpoints and helper functionality.
-     *
-     * Similar sections may become useful for other endpoints
-     */
     cfg: {
       supportsMime: mimeTypeIsSupportedByBuildIndex,
     },

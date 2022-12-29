@@ -127,7 +127,7 @@ export type NodeIndexText = {
 }
 
 export type TNodeJson = {
-  nid: string
+  nid: Nid
   ntype: NodeType
   text: NodeTextData
   extattrs?: NodeExtattrs
@@ -139,7 +139,7 @@ export type TNodeJson = {
 }
 
 export type TNode = {
-  nid: string
+  nid: Nid
   ntype: NodeType
 
   text: NodeTextData
@@ -158,8 +158,8 @@ export type TNode = {
 export type TEdge = {
   eid: string
   txt?: string
-  from_nid: string
-  to_nid: string
+  from_nid: Nid
+  to_nid: Nid
   crtd: moment.Moment
   upd: moment.Moment
   weight?: number
@@ -189,9 +189,9 @@ export type TNodeCrypto = {
 }
 
 export type NewNodeResponse = {
-  nid: string
-  from?: string
-  to?: string
+  nid: Nid
+  from?: Nid
+  to?: Nid
 }
 
 export type Ack = {
@@ -219,16 +219,16 @@ export type NodePatchRequest = {
 }
 
 export type UploadMultipartRequestBody = {
-  from?: string
-  to?: string
+  from?: Nid
+  to?: Nid
   archived?: boolean
   created_via: NodeCreatedVia
 }
 
 export type UploadMultipartResponse = {
-  nids: string[]
-  from?: string
-  to?: string
+  nids: Nid[]
+  from?: Nid
+  to?: Nid
 }
 
 export type BlobIndex = {
@@ -241,7 +241,7 @@ export type GenerateBlobIndexResponse = {
 }
 
 export type NodeSearchItem = {
-  nid: string
+  nid: Nid
   ntype: NodeType
   crtd: number
   upd: number
@@ -341,7 +341,7 @@ export type OriginTransitionTip = {
   // Current relation might be with another origin that is not yet saved as a
   // Node, thus it's a completely shadow edge and shadow node that later can be
   // promoted to a real node and edge
-  nid?: string
+  nid?: Nid
 }
 
 /**

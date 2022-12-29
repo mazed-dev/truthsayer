@@ -1,4 +1,4 @@
-import { smuggler } from './../api'
+import { smuggler } from './../api_cloud'
 import { authCookie } from './cookie'
 import { AccountInterface } from './account_interface'
 import type { LocalCrypto } from './account_interface'

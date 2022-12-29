@@ -2,7 +2,7 @@
  * APIs that build node indexes "on steroids" (see @alias steroid.ts for more information)
  */
 
-import { smuggler } from '../api'
+import { smuggler } from '../api_cloud'
 import { NodeIndexText } from '../types'
 import { Mime } from 'armoury'
 import type { MimeType } from 'armoury'
