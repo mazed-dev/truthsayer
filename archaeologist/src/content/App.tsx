@@ -5,7 +5,8 @@ import browser from 'webextension-polyfill'
 import { PostHog } from 'posthog-js'
 import { v4 as uuidv4 } from 'uuid'
 
-import { TNode, TNodeJson, TNodeUtil, NodeType } from 'smuggler-api'
+import { NodeUtil, NodeType } from 'smuggler-api'
+import type { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log, productanalytics } from 'armoury'
 import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 
@@ -152,12 +153,12 @@ function updateState(state: State, action: Action): State {
         fromNodes: fromNodesJson,
       } = action.data
       const bookmark =
-        bookmarkJson != null ? TNodeUtil.fromJson(bookmarkJson) : undefined
+        bookmarkJson != null ? NodeUtil.fromJson(bookmarkJson) : undefined
       const toNodes = toNodesJson.map((json: TNodeJson) =>
-        TNodeUtil.fromJson(json)
+        NodeUtil.fromJson(json)
       )
       const fromNodes = fromNodesJson.map((json: TNodeJson) =>
-        TNodeUtil.fromJson(json)
+        NodeUtil.fromJson(json)
       )
 
       let analytics: PostHog | null = null
@@ -227,13 +228,13 @@ function updateState(state: State, action: Action): State {
       }
       const d = action.data
       const newToNodes = d.toNodes.map((json: TNodeJson) =>
-        TNodeUtil.fromJson(json)
+        NodeUtil.fromJson(json)
       )
       const newFromNodes = d.fromNodes.map((json: TNodeJson) =>
-        TNodeUtil.fromJson(json)
+        NodeUtil.fromJson(json)
       )
       const newBookmark =
-        d.bookmark != null ? TNodeUtil.fromJson(d.bookmark) : undefined
+        d.bookmark != null ? NodeUtil.fromJson(d.bookmark) : undefined
 
       return {
         ...state,

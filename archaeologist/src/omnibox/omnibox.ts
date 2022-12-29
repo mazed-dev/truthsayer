@@ -1,4 +1,5 @@
-import { smuggler, TNode } from 'smuggler-api'
+import { smuggler, NodeUtil } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 import { Beagle, TDoc } from 'elementary'
 import { log, unicodeText } from 'armoury'
 import { mazed } from '../util/mazed'
@@ -7,13 +8,12 @@ import browser from 'webextension-polyfill'
 import lodash from 'lodash'
 
 import { formatDescription } from './suggestion-item-description'
-import { TNodeUtil } from 'smuggler-api'
 
 function nodeToSuggestion(node: TNode): browser.Omnibox.SuggestResult {
   const { nid } = node
   const url = node.extattrs?.web?.url || node.extattrs?.web_quote?.url
   if (url != null) {
-    if (TNodeUtil.isWebQuote(node)) {
+    if (NodeUtil.isWebQuote(node)) {
       const title = _truncate(
         node.extattrs?.web_quote?.text || '',
         kTitleLengthMax
@@ -24,7 +24,7 @@ function nodeToSuggestion(node: TNode): browser.Omnibox.SuggestResult {
         description: formatDescription(title, shortUrl),
       }
     }
-    if (TNodeUtil.isWebBookmark(node)) {
+    if (NodeUtil.isWebBookmark(node)) {
       const title = _truncate(
         node.extattrs?.title ?? node.extattrs?.description ?? '',
         kTitleLengthMax

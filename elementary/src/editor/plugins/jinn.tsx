@@ -11,7 +11,7 @@ import {
 import lodash from 'lodash'
 
 import type { Optional } from 'armoury'
-import { TNode } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 
 import { SearchGrid } from '../../grid/SearchGrid'
 import { makeNodeLink, TDoc, CustomEditor } from '../types'

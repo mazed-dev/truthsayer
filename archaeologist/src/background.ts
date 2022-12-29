@@ -24,7 +24,7 @@ import {
 import { log, isAbortError, genOriginId, unixtime } from 'armoury'
 import {
   TNode,
-  TNodeUtil,
+  NodeUtil,
   TotalUserActivity,
   ResourceVisit,
   smuggler,
@@ -103,7 +103,7 @@ async function requestPageSavedStatus(url: string | undefined) {
   }
   let bookmark: TNode | undefined = undefined
   for (const node of nodes) {
-    if (TNodeUtil.isWebBookmark(node)) {
+    if (NodeUtil.isWebBookmark(node)) {
       bookmark = node
       break
     }
@@ -420,7 +420,7 @@ async function handleMessageFromContent(
       const suggested = await suggestAssociations(message.phrase, message.limit)
       return {
         type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
-        suggested: suggested.map((node: TNode) => TNodeUtil.toJson(node)),
+        suggested: suggested.map((node: TNode) => NodeUtil.toJson(node)),
       }
     }
     default:
@@ -611,7 +611,7 @@ async function handleMessageFromPopup(
       )
       return {
         type: 'PAGE_SAVED',
-        bookmark: node ? TNodeUtil.toJson(node) : undefined,
+        bookmark: node ? NodeUtil.toJson(node) : undefined,
         unmemorable,
       }
     case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS': {
@@ -624,9 +624,9 @@ async function handleMessageFromPopup(
       return {
         type: 'UPDATE_POPUP_CARDS',
         mode: 'reset',
-        bookmark: bookmark ? TNodeUtil.toJson(bookmark) : undefined,
-        fromNodes: fromNodes?.map((node) => TNodeUtil.toJson(node)) ?? [],
-        toNodes: toNodes?.map((node) => TNodeUtil.toJson(node)) ?? [],
+        bookmark: bookmark ? NodeUtil.toJson(bookmark) : undefined,
+        fromNodes: fromNodes?.map((node) => NodeUtil.toJson(node)) ?? [],
+        toNodes: toNodes?.map((node) => NodeUtil.toJson(node)) ?? [],
         unmemorable,
       }
     }
@@ -790,9 +790,9 @@ async function initMazedPartsOfTab(
       type: 'INIT_CONTENT_AUGMENTATION_REQUEST',
       nodeEnv: process.env.NODE_ENV,
       userUid: auth.account().getUid(),
-      bookmark: bookmark ? TNodeUtil.toJson(bookmark) : undefined,
-      fromNodes: fromNodes?.map((node) => TNodeUtil.toJson(node)) ?? [],
-      toNodes: toNodes?.map((node) => TNodeUtil.toJson(node)) ?? [],
+      bookmark: bookmark ? NodeUtil.toJson(bookmark) : undefined,
+      fromNodes: fromNodes?.map((node) => NodeUtil.toJson(node)) ?? [],
+      toNodes: toNodes?.map((node) => NodeUtil.toJson(node)) ?? [],
       mode,
     })
   } catch (err) {

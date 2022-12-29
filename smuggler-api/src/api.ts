@@ -42,7 +42,7 @@ import lodash from 'lodash'
 import moment from 'moment'
 import { StatusCode } from './status_codes'
 import { authCookie } from './auth/cookie'
-import { makeEmptyNodeTextData, TNodeUtil } from './typesutil'
+import { makeEmptyNodeTextData, NodeUtil } from './typesutil'
 
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
@@ -138,8 +138,8 @@ async function createNode(
 }
 
 function lookupKeyOf(args: CreateNodeArgs): NodeLookupKey | undefined {
-  // TODO[snikitin@outlook.com]: This ideally should match with TNodeUtil.isWebBookmark(),
-  // TNodeUtil.isWebQuote() etc but unclear how to reliably do so.
+  // TODO[snikitin@outlook.com]: This ideally should match with NodeUtil.isWebBookmark(),
+  // NodeUtil.isWebQuote() etc but unclear how to reliably do so.
   if (args.extattrs?.web?.url) {
     return { webBookmark: { url: args.extattrs.web.url } }
   } else if (args.extattrs?.web_quote?.url) {
@@ -285,7 +285,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
 
     const nodes: TNode[] = []
     for (let node = await iter.next(); node != null; node = await iter.next()) {
-      if (TNodeUtil.isWebQuote(node) && node.extattrs?.web_quote) {
+      if (NodeUtil.isWebQuote(node) && node.extattrs?.web_quote) {
         if (
           stabiliseUrlForOriginId(node.extattrs.web_quote.url) === stableUrl
         ) {
@@ -301,7 +301,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
 
     const nodes: TNode[] = []
     for (let node = await iter.next(); node != null; node = await iter.next()) {
-      if (TNodeUtil.isWebBookmark(node) && node.extattrs?.web) {
+      if (NodeUtil.isWebBookmark(node) && node.extattrs?.web) {
         if (stabiliseUrlForOriginId(node.extattrs.web.url) === stableUrl) {
           nodes.push(node)
         }
@@ -464,7 +464,7 @@ async function getNodeBatch(
   }
   const { nodes } = await res.json()
   return {
-    nodes: nodes.map((jsonNode: TNodeJson) => TNodeUtil.fromJson(jsonNode)),
+    nodes: nodes.map((jsonNode: TNodeJson) => NodeUtil.fromJson(jsonNode)),
   }
 }
 

@@ -1,7 +1,7 @@
 import { WebPageContent } from './../content/extractor/webPageContent'
 
 import browser from 'webextension-polyfill'
-import { OriginHash, TNodeJson } from 'smuggler-api'
+import type { OriginHash, TNodeJson } from 'smuggler-api'
 import { OriginIdentity } from 'armoury'
 
 /**

@@ -18,7 +18,7 @@ import { MzdGlobalContext } from '../lib/global'
 import { Optional, isAbortError, log } from 'armoury'
 import { styleMobileTouchOnly } from 'elementary'
 
-import { smuggler, TNode, NodeTextData, TEdge, TNodeUtil } from 'smuggler-api'
+import { smuggler, TNode, NodeTextData, TEdge, NodeUtil } from 'smuggler-api'
 
 import { css } from '@emotion/react'
 import {
@@ -306,7 +306,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
       )
     const nodeIsPrivate =
       this.state.node && this.context.account
-        ? TNodeUtil.isOwnedBy(this.state.node, this.context.account)
+        ? NodeUtil.isOwnedBy(this.state.node, this.context.account)
         : true
     const colBaseCss = css`
       margin: 0;
