@@ -11,9 +11,9 @@ import { useHistory } from 'react-router-dom'
 import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
 import { goto, History } from '../lib/route'
 
-import { smuggler, NewNodeResponse, NodeExtattrs } from 'smuggler-api'
+import { smuggler } from 'smuggler-api'
+import type { TNode, NewNodeResponse, NodeExtattrs } from 'smuggler-api'
 import { TDoc, kCardBorderColour } from 'elementary'
-import { TNode } from 'smuggler-api'
 
 import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
 import {
@@ -60,8 +60,8 @@ async function cloneNode({
   if (!node) {
     return null
   }
-  let doc = TDoc.fromNodeTextData(node.getText())
-  doc = doc.makeACopy(node.getNid(), isBlank || false)
+  let doc = TDoc.fromNodeTextData(node.text)
+  doc = doc.makeACopy(node.nid, isBlank || false)
   const extattrs: NodeExtattrs | undefined = node.extattrs
     ? { ...node.extattrs }
     : undefined

@@ -12,7 +12,7 @@ import { withImages } from './plugins/image'
 import { Leaf } from './components/Leaf'
 
 import { TDoc } from './types'
-import { TNode } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 
 import { makeElementRender } from './ElementRender'
 import { productanalytics } from 'armoury'
@@ -25,7 +25,7 @@ export const NodeTextReader = ({
   className?: string
 }) => {
   const initialValue = useMemo(() => {
-    const doc = TDoc.fromNodeTextData(node.getText())
+    const doc = TDoc.fromNodeTextData(node.text)
     return doc
   }, [node])
   const renderElement = useCallback(

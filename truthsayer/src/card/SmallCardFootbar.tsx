@@ -4,7 +4,8 @@
 import React, { useContext } from 'react'
 import { css } from '@emotion/react'
 
-import { smuggler, TEdge } from 'smuggler-api'
+import { smuggler, EdgeUtil } from 'smuggler-api'
+import type { TEdge } from 'smuggler-api'
 
 import styles from './Footbar.module.css'
 
@@ -161,7 +162,7 @@ export function SmallCardFootbar({
 }) {
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
-  const isOwned = edge.isOwnedBy(account)
+  const isOwned = EdgeUtil.isOwnedBy(edge, account)
   return (
     <div
       css={css`

@@ -11,7 +11,7 @@ import {
 import lodash from 'lodash'
 
 import type { Optional } from 'armoury'
-import { TNode } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 
 import { SearchGrid } from '../../grid/SearchGrid'
 import { makeNodeLink, TDoc, CustomEditor } from '../types'
@@ -70,8 +70,8 @@ function JinnModal({
   const handleSumbit = () => {}
 
   const onNodeCardClick = (node: TNode) => {
-    const nid = node.getNid()
-    const doc = TDoc.fromNodeTextData(node.getText())
+    const nid = node.nid
+    const doc = TDoc.fromNodeTextData(node.text)
     const title = doc.genTitle()
     const element = makeNodeLink(title, nid)
     insertElement(element)

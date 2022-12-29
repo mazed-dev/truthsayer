@@ -1,7 +1,7 @@
-import { errorise, log } from 'armoury'
 import { smuggler } from './../api'
-import { AccountInterface, LocalCrypto } from './../types'
 import { authCookie } from './cookie'
+import { AccountInterface } from './account_interface'
+import type { LocalCrypto } from './account_interface'
 
 export class AnonymousAccount implements AccountInterface {
   isAuthenticated(): boolean {
@@ -47,7 +47,7 @@ export class UserAccount extends AnonymousAccount {
       return new AnonymousAccount()
     }
     // const lc = await LocalCrypto.initInstance(user.uid)
-    const lc = new LocalCrypto()
+    const lc: LocalCrypto = {}
     return new UserAccount(user.uid, user.name, user.email, lc)
   }
 

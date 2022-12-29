@@ -18,7 +18,7 @@ import { MzdGlobalContext } from '../lib/global'
 import { Optional, isAbortError, log } from 'armoury'
 import { styleMobileTouchOnly } from 'elementary'
 
-import { smuggler, TNode, NodeTextData, TEdge } from 'smuggler-api'
+import { smuggler, TNode, NodeTextData, TEdge, NodeUtil } from 'smuggler-api'
 
 import { css } from '@emotion/react'
 import {
@@ -305,7 +305,9 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
         <Spinner.Wheel />
       )
     const nodeIsPrivate =
-      this.state.node?.isOwnedBy(this.context.account) || true
+      this.state.node && this.context.account
+        ? NodeUtil.isOwnedBy(this.state.node, this.context.account)
+        : true
     const colBaseCss = css`
       margin: 0;
       padding: 0;
