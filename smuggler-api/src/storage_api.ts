@@ -29,8 +29,8 @@ import {
 
 export type CreateNodeArgs = {
   text: NodeTextData
-  from_nid?: string[]
-  to_nid?: string[]
+  from_nid?: Nid[]
+  to_nid?: Nid[]
   index_text?: NodeIndexText
   extattrs?: NodeExtattrs
   ntype?: NodeType
@@ -53,14 +53,14 @@ export type NodeBatchRequestBody = {
 
 export type BlobUploadRequestArgs = {
   files: File[]
-  from_nid: Optional<string>
-  to_nid: Optional<string>
+  from_nid: Optional<Nid>
+  to_nid: Optional<Nid>
   createdVia: NodeCreatedVia
 }
 
 export type CreateEdgeArgs = {
-  from?: string
-  to?: string
+  from?: Nid
+  to?: Nid
   signal: AbortSignal
 }
 
@@ -76,7 +76,7 @@ export type SwitchEdgeStickinessArgs = {
  */
 export type UniqueNodeLookupKey =
   /** Due to nid's nature there can be at most 1 node with a particular nid */
-  | { nid: string }
+  | { nid: Nid }
   /** Unique because many nodes can refer to the same URL, but only one of them
    * can be a bookmark */
   | { webBookmark: { url: string } }

@@ -12,18 +12,14 @@ import {
   GenerateBlobIndexResponse,
   GetUserExternalAssociationsResponse,
   NewNodeResponse,
-  Nid,
   NodeAttrsSearchRequest,
   NodeAttrsSearchResponse,
   NodeBatch,
   NodeCreateRequestBody,
   NodeCreatedVia,
   NodeEdges,
-  NodeExtattrs,
-  NodeIndexText,
   NodePatchRequest,
   NodeTextData,
-  NodeType,
   OriginId,
   TEdge,
   TNode,
@@ -34,7 +30,7 @@ import {
   UserExternalPipelineId,
   UserExternalPipelineIngestionProgress,
 } from './types'
-import {
+import type {
   UniqueNodeLookupKey,
   NonUniqueNodeLookupKey,
   NodeLookupKey,
