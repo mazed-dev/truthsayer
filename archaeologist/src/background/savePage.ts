@@ -12,7 +12,7 @@ import {
   NodeType,
   OriginHash,
   TNode,
-  TNodeUtil,
+  NodeUtil,
   makeEmptyNodeTextData,
   smuggler,
 } from 'smuggler-api'
@@ -34,7 +34,7 @@ async function updateContent(
   bookmark?: TNode,
   tabId?: number
 ): Promise<void> {
-  const bookmarkJson = bookmark ? TNodeUtil.toJson(bookmark) : undefined
+  const bookmarkJson = bookmark ? NodeUtil.toJson(bookmark) : undefined
   // Update content augmentation
   if (tabId == null) {
     return
@@ -42,8 +42,8 @@ async function updateContent(
   try {
     await ToContent.sendMessage(tabId, {
       type: 'REQUEST_UPDATE_CONTENT_AUGMENTATION',
-      fromNodes: fromNodes.map((node) => TNodeUtil.toJson(node)),
-      toNodes: toNodes.map((node) => TNodeUtil.toJson(node)),
+      fromNodes: fromNodes.map((node) => NodeUtil.toJson(node)),
+      toNodes: toNodes.map((node) => NodeUtil.toJson(node)),
       bookmark: bookmarkJson,
       mode: 'append',
     })

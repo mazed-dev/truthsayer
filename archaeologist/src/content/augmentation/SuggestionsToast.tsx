@@ -5,7 +5,8 @@ import styled from '@emotion/styled'
 import { mazed } from '../../util/mazed'
 
 import { TDoc, ShrinkMinimalCard, NodeCardReadOnly } from 'elementary'
-import { TNode, TNodeUtil, smuggler } from 'smuggler-api'
+import { NodeUtil, smuggler } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 
 import { Toast, useOutsideToastClickHandler } from './../toaster/Toaster'
 import { LogoSmall, RefItem } from './../style'
@@ -91,16 +92,16 @@ const CopySuggestionButton = ({
 
 function getTextToInsert(node: TNode): string {
   let toInsert: string
-  if (TNodeUtil.isWebBookmark(node) && node.extattrs?.web != null) {
+  if (NodeUtil.isWebBookmark(node) && node.extattrs?.web != null) {
     const { web, title, author } = node.extattrs
     const authorStr = author ? `\nby ${author}` : ''
     toInsert = `${title}${authorStr}\n🧵 ${web.url} `
-  } else if (TNodeUtil.isWebQuote(node) && node.extattrs?.web_quote != null) {
+  } else if (NodeUtil.isWebQuote(node) && node.extattrs?.web_quote != null) {
     const { text, url } = node.extattrs.web_quote
     const { author } = node.extattrs
     const authorStr = author ? `\nby ${author}` : ''
     toInsert = `“${text}”${authorStr}\n🧵 ${url} `
-  } else if (TNodeUtil.isImage(node)) {
+  } else if (NodeUtil.isImage(node)) {
     const url = smuggler.blob.sourceUrl(node.nid)
     toInsert = ` 🧵 ${url} `
   } else {
@@ -118,11 +119,11 @@ function CardInsertButton({
   onClose: () => void
 }) {
   let copySubj: string
-  if (TNodeUtil.isWebBookmark(node) && node.extattrs?.web != null) {
+  if (NodeUtil.isWebBookmark(node) && node.extattrs?.web != null) {
     copySubj = 'Link'
-  } else if (TNodeUtil.isWebQuote(node) && node.extattrs?.web_quote != null) {
+  } else if (NodeUtil.isWebQuote(node) && node.extattrs?.web_quote != null) {
     copySubj = 'Quote'
-  } else if (TNodeUtil.isImage(node)) {
+  } else if (NodeUtil.isImage(node)) {
     copySubj = 'Image'
   } else {
     copySubj = 'Note'

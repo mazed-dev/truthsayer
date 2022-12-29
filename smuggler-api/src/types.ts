@@ -293,12 +293,6 @@ export type UserBadge = {
   photo?: String
 }
 
-/**
- * Local encryption is not ready to use yet, in fact it is not
- * part of our MVP, mock it for now.
- */
-export type LocalCrypto = {}
-
 export type UserExternalPipelineId = {
   // A value that uniquely identifies one of the external pipelines of a specific uid
   pipeline_key: string

@@ -10,7 +10,7 @@ import {
   NodeCardReadOnly,
 } from 'elementary'
 
-import { TNode } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 
 const Box = styled(SmallCard)`
   width: 100%;

@@ -2,7 +2,8 @@ import React from 'react'
 import lodash from 'lodash'
 
 import { log } from 'armoury'
-import { TNode, TNodeJson, TNodeUtil } from 'smuggler-api'
+import { NodeUtil } from 'smuggler-api'
+import type { TNode, TNodeJson } from 'smuggler-api'
 import { Spinner } from 'elementary'
 
 import { FromContent } from './../../message/types'
@@ -88,7 +89,7 @@ export function WriteAugmentation() {
           })
           setSuggestedNodes(
             response.suggested.map((value: TNodeJson) =>
-              TNodeUtil.fromJson(value)
+              NodeUtil.fromJson(value)
             )
           )
           setSuggestionsSearchIsActive(false)

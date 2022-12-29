@@ -12,7 +12,7 @@ import { withImages } from './plugins/image'
 import { Leaf } from './components/Leaf'
 
 import { TDoc } from './types'
-import { TNode } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 
 import { makeElementRender } from './ElementRender'
 import { productanalytics } from 'armoury'

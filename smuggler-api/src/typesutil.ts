@@ -6,7 +6,7 @@ import {
   TNodeJson,
   TEdge,
 } from './types'
-import { AccountInterface } from './auth/account'
+import { AccountInterface } from './auth/account_interface'
 
 import { Mime, MimeType } from 'armoury'
 import moment from 'moment'
@@ -16,7 +16,8 @@ export function makeEmptyNodeTextData(): NodeTextData {
   return { slate, draft: undefined, chunks: undefined }
 }
 
-export namespace TNodeUtil {
+/** Utilities for @see TNode type */
+export namespace NodeUtil {
   export function isOwnedBy(node: TNode, account?: AccountInterface): boolean {
     return (
       (account?.isAuthenticated() && account?.getUid() === node.meta?.uid) ||
@@ -84,7 +85,8 @@ export namespace TNodeUtil {
   }
 }
 
-export namespace TEdgeUtil {
+/** Utilities for @see TEdge type */
+export namespace EdgeUtil {
   export function isOwnedBy(edge: TEdge, account?: AccountInterface): boolean {
     const res =
       account?.isAuthenticated() && account?.getUid() === edge.owned_by

@@ -1,5 +1,6 @@
 import React from 'react'
-import { TNode, TNodeUtil } from 'smuggler-api'
+import { NodeUtil } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 
 import { QuoteHighlight } from './QuoteHighlight'
 
@@ -11,7 +12,7 @@ export const Quotes = ({ quotes }: { quotes: TNode[] }) => {
       return null
     }
     const { path, text } = web_quote
-    if (!TNodeUtil.isWebQuote(node) || path == null) {
+    if (!NodeUtil.isWebQuote(node) || path == null) {
       return null
     }
     return (

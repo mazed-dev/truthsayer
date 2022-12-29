@@ -56,7 +56,7 @@ import lodash from 'lodash'
 import moment from 'moment'
 import { StatusCode } from './status_codes'
 import { authCookie } from './auth/cookie'
-import { makeEmptyNodeTextData, TNodeUtil } from './typesutil'
+import { makeEmptyNodeTextData, NodeUtil } from './typesutil'
 import { AuthenticationApi } from './authentication_api'
 
 const kHeaderCreatedAt = 'x-created-at'
@@ -256,7 +256,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
 
     const nodes: TNode[] = []
     for (let node = await iter.next(); node != null; node = await iter.next()) {
-      if (TNodeUtil.isWebQuote(node) && node.extattrs?.web_quote) {
+      if (NodeUtil.isWebQuote(node) && node.extattrs?.web_quote) {
         if (
           stabiliseUrlForOriginId(node.extattrs.web_quote.url) === stableUrl
         ) {
@@ -272,7 +272,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
 
     const nodes: TNode[] = []
     for (let node = await iter.next(); node != null; node = await iter.next()) {
-      if (TNodeUtil.isWebBookmark(node) && node.extattrs?.web) {
+      if (NodeUtil.isWebBookmark(node) && node.extattrs?.web) {
         if (stabiliseUrlForOriginId(node.extattrs.web.url) === stableUrl) {
           nodes.push(node)
         }
@@ -431,7 +431,7 @@ async function getNodeBatch(
   }
   const { nodes } = await res.json()
   return {
-    nodes: nodes.map((jsonNode: TNodeJson) => TNodeUtil.fromJson(jsonNode)),
+    nodes: nodes.map((jsonNode: TNodeJson) => NodeUtil.fromJson(jsonNode)),
   }
 }
 

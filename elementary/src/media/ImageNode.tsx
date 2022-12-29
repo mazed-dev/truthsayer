@@ -4,7 +4,8 @@ import React, { useState, useRef } from 'react'
 import { Image, ButtonGroup, Modal } from 'react-bootstrap'
 import styled from '@emotion/styled'
 
-import { TNode, smuggler } from 'smuggler-api'
+import { smuggler } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 import { MdiFitScreen, MdiZoomIn, MdiZoomOut } from '../MaterialIcons'
 
 import { ImgButton } from '../ImgButton'

@@ -1,15 +1,7 @@
-import { errorise, log } from 'armoury'
-import { smuggler } from '../api_cloud'
-import { LocalCrypto } from './../types'
+import { smuggler } from './../api_cloud'
 import { authCookie } from './cookie'
-
-export interface AccountInterface {
-  isAuthenticated: () => boolean
-  getUid: () => string
-  getName: () => string
-  getEmail: () => string
-  getLocalCrypto: () => LocalCrypto
-}
+import { AccountInterface } from './account_interface'
+import type { LocalCrypto } from './account_interface'
 
 export class AnonymousAccount implements AccountInterface {
   isAuthenticated(): boolean {

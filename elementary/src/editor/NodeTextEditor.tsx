@@ -18,7 +18,7 @@ import { Leaf } from './components/Leaf'
 
 import { FormatToolbar } from './FormatToolbar'
 import { TDoc, SlateText } from './types'
-import { TNode } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 
 import { makeElementRender } from './ElementRender'
 import { productanalytics } from 'armoury'

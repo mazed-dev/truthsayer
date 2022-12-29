@@ -11,9 +11,9 @@ import { useHistory } from 'react-router-dom'
 import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
 import { goto, History } from '../lib/route'
 
-import { smuggler, NewNodeResponse, NodeExtattrs } from 'smuggler-api'
+import { smuggler } from 'smuggler-api'
+import type { TNode, NewNodeResponse, NodeExtattrs } from 'smuggler-api'
 import { TDoc, kCardBorderColour } from 'elementary'
-import { TNode } from 'smuggler-api'
 
 import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
 import {
