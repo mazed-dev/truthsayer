@@ -1,4 +1,5 @@
-import { Optional, MimeType } from 'armoury'
+import { MimeType } from 'armoury'
+import type { Optional } from 'armoury'
 import { TNodeSliceIterator } from './node_slice_iterator'
 import {
   TNode,
