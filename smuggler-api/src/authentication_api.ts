@@ -1,7 +1,7 @@
-import { Ack } from './types'
+import { Ack, AccountInfo } from './types'
 
 export type AuthenticationApi = {
-  //   getAuth,
+  getAuth: ({ signal }: { signal?: AbortSignal }) => Promise<AccountInfo>
   session: {
     create: (
       email: string,

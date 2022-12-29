@@ -1,4 +1,4 @@
-import { Optional } from 'armoury'
+import { Optional, MimeType } from 'armoury'
 import { TNodeSliceIterator } from './node_slice_iterator'
 import {
   TNode,
@@ -112,7 +112,18 @@ export type StorageApi = {
       signal?: AbortSignal
     ) => Promise<NewNodeResponse>
     slice: (args: GetNodeSliceArgs) => TNodeSliceIterator
-    lookup: (key: NodeLookupKey, signal?: AbortSignal) => Promise<TNode[]>
+    /**
+     * Lookup all the nodes that match a given key. For unique lookup keys either
+     * 0 or 1 nodes will be returned. For non-unique more than 1 node can be returned.
+     */
+    lookup: {
+      // See https://stackoverflow.com/a/24222144/3375765 if you are unsure what
+      // this type signature is
+      (key: UniqueNodeLookupKey, signal?: AbortSignal): Promise<
+        TNode | undefined
+      >
+      (key: NonUniqueNodeLookupKey, signal?: AbortSignal): Promise<TNode[]>
+    }
     delete: ({
       nid,
       signal,

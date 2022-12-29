@@ -43,6 +43,7 @@ import {
   NodeBatchRequestBody,
   CreateEdgeArgs,
   StorageApi,
+  BlobUploadRequestArgs,
 } from './storage_api'
 import { makeUrl } from './api_url'
 
@@ -218,10 +219,6 @@ function describeWhatWouldPreventNodeUpdate(args: CreateNodeArgs, node: TNode) {
   return `[what] - [attempted update arg] vs [existing node value]: ${diff}`
 }
 
-/**
- * Lookup all the nodes that match a given key. For unique lookup keys either
- * 0 or 1 nodes will be returned. For non-unique more than 1 node can be returned.
- */
 async function lookupNodes(
   key: UniqueNodeLookupKey,
   signal?: AbortSignal
@@ -285,10 +282,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
 }
 
 async function uploadFiles(
-  files: File[],
-  from_nid: Optional<string>,
-  to_nid: Optional<string>,
-  createdVia: NodeCreatedVia,
+  { files, from_nid, to_nid, createdVia }: BlobUploadRequestArgs,
   signal?: AbortSignal
 ): Promise<UploadMultipartResponse> {
   const query: UploadMultipartQuery = { created_via: createdVia }

@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 import styled from '@emotion/styled'
 
-import type { NodeTextData, TNode } from 'smuggler-api'
+import type { Ack, NodeTextData, TNode } from 'smuggler-api'
 import { smuggler } from 'smuggler-api'
 import { NodeTextEditor } from './editor/NodeTextEditor'
 import { SlateText, TDoc } from './editor/types'
@@ -21,7 +21,7 @@ export function NodeCard({
   className,
 }: {
   node: TNode
-  saveNode: (text: NodeTextData) => Promise<Response> | undefined
+  saveNode: (text: NodeTextData) => Promise<Ack> | undefined
   className?: string
 }) {
   const saveText = (text: SlateText) => {
@@ -42,7 +42,7 @@ export function NodeCardFetching({
   className,
 }: {
   nid: string
-  saveNode: (text: NodeTextData) => Promise<Response> | undefined
+  saveNode: (text: NodeTextData) => Promise<Ack> | undefined
   className?: string
 }) {
   const [node, setNode] = useState<TNode | null>(null)

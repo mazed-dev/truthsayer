@@ -49,7 +49,10 @@ export async function createNodeFromLocalBinary(
   // Launch both upload & index *generation* at the same time, wait until all
   // promises are settled.
   const [uploadResult, indexResult] = await Promise.allSettled([
-    smuggler.blob.upload([file], from_nid, to_nid, createdVia, abortSignal),
+    smuggler.blob.upload(
+      { files: [file], from_nid, to_nid, createdVia },
+      abortSignal
+    ),
     smuggler.blob_index.build([file], abortSignal),
   ])
 
@@ -107,21 +110,14 @@ export async function createNodeFromLocalBinary(
 
   const index_text: NodeIndexText = index.indexes[0].index
   try {
-    const resp = await smuggler.node.update(
+    await smuggler.node.update(
       {
         nid: upload.nids[0],
         index_text,
       },
       abortSignal
     )
-    if (resp.ok) {
-      return { nid }
-    } else {
-      return toIndexRelatedWarning({
-        name: 'http-error',
-        message: `(${resp.status}) ${resp.statusText}`,
-      })
-    }
+    return { nid }
   } catch (error) {
     return toIndexRelatedWarning(errorise(error))
   }
