@@ -11,6 +11,7 @@
     "fix:prettier": "yarn workspaces foreach run fix:prettier",
     "librarius": "yarn workspace librarius",
     "lint": "yarn syncpack list-mismatches && yarn workspaces foreach run lint",
+    "nlp-search": "yarn workspace nlp-search",
     "smuggler-api": "yarn workspace smuggler-api",
     "test": "yarn workspaces foreach run test --all --watchAll=false --no-watchman",
     "truthsayer": "yarn workspace truthsayer"
@@ -20,8 +21,9 @@
     "armoury",
     "elementary",
     "librarius",
-    "truthsayer-archaeologist-communication",
+    "nlp-search",
     "smuggler-api",
+    "truthsayer-archaeologist-communication",
     "truthsayer"
   ],
   "dependencies": {
