@@ -27,7 +27,7 @@
 import React from 'react'
 import styled from '@emotion/styled'
 
-import { TNode } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 import { NodeCard } from './NodeCard'
 
 const Box = styled.div`

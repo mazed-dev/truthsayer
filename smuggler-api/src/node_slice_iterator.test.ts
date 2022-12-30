@@ -11,17 +11,14 @@ const kUpdatedAt = moment()
 const kCrypto = { success: true, secret_id: null }
 
 function makeNode(nid: string): TNode {
-  return new TNode(
+  return {
     nid,
-    kNtype,
-    kText,
-    kCreatedAt,
-    kUpdatedAt,
-    undefined,
-    undefined,
-    undefined,
-    kCrypto
-  )
+    ntype: kNtype,
+    text: kText,
+    created_at: kCreatedAt,
+    updated_at: kUpdatedAt,
+    crypto: kCrypto,
+  }
 }
 
 function ensureEndTime(end_time: Optional<number>): number {

@@ -1,4 +1,5 @@
-import { smuggler, TNode } from 'smuggler-api'
+import { smuggler } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 import { Beagle } from 'elementary'
 
 export async function suggestAssociations(

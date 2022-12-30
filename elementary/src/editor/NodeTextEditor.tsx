@@ -18,7 +18,7 @@ import { Leaf } from './components/Leaf'
 
 import { FormatToolbar } from './FormatToolbar'
 import { TDoc, SlateText } from './types'
-import { TNode } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 
 import { makeElementRender } from './ElementRender'
 import { productanalytics } from 'armoury'
@@ -56,7 +56,7 @@ export const NodeTextEditor = ({
     )
   }, [])
   const initialValue = useMemo(() => {
-    const doc = TDoc.fromNodeTextData(node.getText())
+    const doc = TDoc.fromNodeTextData(node.text)
     // TODO(akindyakov): Verify that result slate tree is valid, otherwise the
     // whole app would crash. Slate doesn't really like invalid docs.
     return doc.slate

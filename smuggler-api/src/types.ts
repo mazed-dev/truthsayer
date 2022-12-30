@@ -1,35 +1,7 @@
-import { Mime, MimeType } from 'armoury'
+import { MimeType } from 'armoury'
 import moment from 'moment'
 
-import { makeUrl } from './api_url'
-
 export type SlateText = object[]
-
-/**
- * This hacky type unsafe method for in-file use only. For anything else please
- * consider using similar methods from elementary/src/editor/types.ts , those
- * are type safe
- */
-export function makeSlateFromPlainText(plaintext?: string): SlateText {
-  return [
-    {
-      type: 'paragraph',
-      children: [
-        {
-          text: plaintext || '',
-        },
-      ],
-    },
-  ]
-}
-
-export function makeNodeTextData(plaintext?: string): NodeTextData {
-  return {
-    slate: makeSlateFromPlainText(plaintext),
-    draft: undefined,
-    chunks: undefined,
-  }
-}
 
 export type Nid = string
 
@@ -155,7 +127,7 @@ export type NodeIndexText = {
 }
 
 export type TNodeJson = {
-  nid: string
+  nid: Nid
   ntype: NodeType
   text: NodeTextData
   extattrs?: NodeExtattrs
@@ -166,8 +138,8 @@ export type TNodeJson = {
   crypto?: TNodeCrypto
 }
 
-export class TNode {
-  nid: string
+export type TNode = {
+  nid: Nid
   ntype: NodeType
 
   text: NodeTextData
@@ -181,169 +153,18 @@ export class TNode {
 
   // Information about node security
   crypto?: TNodeCrypto
-
-  constructor(
-    nid: string,
-    ntype: number,
-    text: NodeTextData,
-    created_at: moment.Moment,
-    updated_at: moment.Moment,
-    meta?: NodeMeta,
-    extattrs?: NodeExtattrs,
-    index_text?: NodeIndexText,
-    _crypto?: TNodeCrypto
-  ) {
-    this.nid = nid
-    this.ntype = ntype
-    this.text = text
-    this.created_at = created_at
-    this.updated_at = updated_at
-    this.meta = meta
-    this.extattrs = extattrs
-    this.index_text = index_text
-    this.crypto = _crypto
-  }
-
-  isOwnedBy(account?: AccountInterface): boolean {
-    return (
-      (account?.isAuthenticated() && account?.getUid() === this.getOwner()) ||
-      false
-    )
-  }
-
-  getOwner(): string | null {
-    return this.meta?.uid || null
-  }
-
-  getText(): NodeTextData {
-    return this.text
-  }
-
-  getNid(): string {
-    return this.nid
-  }
-
-  isImage() {
-    const { ntype, extattrs } = this
-    return (
-      ntype === NodeType.Blob && extattrs && Mime.isImage(extattrs.content_type)
-    )
-  }
-
-  isWebBookmark() {
-    const { ntype, extattrs } = this
-    return (
-      ntype === NodeType.Url &&
-      extattrs &&
-      extattrs.content_type === MimeType.TEXT_URI_LIST
-    )
-  }
-
-  isWebQuote() {
-    const { ntype } = this
-    return ntype === NodeType.WebQuote
-  }
-
-  getBlobSource(): string | null {
-    const { nid } = this
-    return makeUrl(`/blob/${nid}`)
-  }
-
-  getDirectUrl(): string {
-    const { nid } = this
-    return makeUrl(`/n/${nid}`)
-  }
-
-  toJson(): TNodeJson {
-    return {
-      nid: this.nid,
-      ntype: this.ntype,
-      text: this.text,
-      created_at: this.created_at.unix(),
-      updated_at: this.updated_at.unix(),
-      meta: this.meta,
-      extattrs: this.extattrs,
-      index_text: this.index_text,
-      crypto: this.crypto,
-    }
-  }
-
-  static fromJson({
-    nid,
-    ntype,
-    text,
-    created_at,
-    updated_at,
-    meta,
-    extattrs,
-    index_text,
-    crypto,
-  }: TNodeJson): TNode {
-    return new TNode(
-      nid,
-      ntype,
-      text,
-      moment.unix(created_at),
-      moment.unix(updated_at),
-      meta,
-      extattrs,
-      index_text,
-      crypto
-    )
-  }
 }
 
-export type EdgeAttributes = {
+export type TEdge = {
   eid: string
   txt?: string
-  from_nid: string
-  to_nid: string
+  from_nid: Nid
+  to_nid: Nid
   crtd: moment.Moment
   upd: moment.Moment
   weight?: number
   is_sticky: boolean
   owned_by: string
-}
-
-export class TEdge {
-  eid: string
-  txt?: string
-  from_nid: string
-  to_nid: string
-  crtd: moment.Moment
-  upd: moment.Moment
-  weight?: number
-  is_sticky: boolean
-  owned_by: string
-
-  constructor(edge: EdgeAttributes) {
-    this.eid = edge.eid
-    this.txt = edge.txt
-    this.from_nid = edge.from_nid
-    this.to_nid = edge.to_nid
-    this.crtd = edge.crtd
-    this.upd = edge.upd
-    this.weight = edge.weight
-    this.is_sticky = edge.is_sticky
-    this.owned_by = edge.owned_by
-  }
-
-  getOwner(): string {
-    return this.owned_by
-  }
-
-  isOwnedBy(account?: AccountInterface): boolean {
-    return (
-      (account?.isAuthenticated() && account?.getUid() === this.getOwner()) ||
-      false
-    )
-  }
-}
-
-export type EdgeStar = {
-  edges: TEdge[]
-  from?: string
-  to?: string
 }
 
 /**
@@ -368,9 +189,9 @@ export type TNodeCrypto = {
 }
 
 export type NewNodeResponse = {
-  nid: string
-  from?: string
-  to?: string
+  nid: Nid
+  from?: Nid
+  to?: Nid
 }
 
 export type Ack = {
@@ -398,16 +219,16 @@ export type NodePatchRequest = {
 }
 
 export type UploadMultipartRequestBody = {
-  from?: string
-  to?: string
+  from?: Nid
+  to?: Nid
   archived?: boolean
   created_via: NodeCreatedVia
 }
 
 export type UploadMultipartResponse = {
-  nids: string[]
-  from?: string
-  to?: string
+  nids: Nid[]
+  from?: Nid
+  to?: Nid
 }
 
 export type BlobIndex = {
@@ -420,7 +241,7 @@ export type GenerateBlobIndexResponse = {
 }
 
 export type NodeSearchItem = {
-  nid: string
+  nid: Nid
   ntype: NodeType
   crtd: number
   upd: number
@@ -472,20 +293,6 @@ export type UserBadge = {
   photo?: String
 }
 
-/**
- * Local encryption is not ready to use yet, in fact it is not
- * part of our MVP, mock it for now.
- */
-export class LocalCrypto {}
-
-export interface AccountInterface {
-  isAuthenticated: () => boolean
-  getUid: () => string
-  getName: () => string
-  getEmail: () => string
-  getLocalCrypto: () => LocalCrypto
-}
-
 export type UserExternalPipelineId = {
   // A value that uniquely identifies one of the external pipelines of a specific uid
   pipeline_key: string
@@ -534,7 +341,7 @@ export type OriginTransitionTip = {
   // Current relation might be with another origin that is not yet saved as a
   // Node, thus it's a completely shadow edge and shadow node that later can be
   // promoted to a real node and edge
-  nid?: string
+  nid?: Nid
 }
 
 /**

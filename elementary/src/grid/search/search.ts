@@ -30,7 +30,7 @@ export class Beagle {
       // Empty search fall back to show everything
       return {}
     }
-    const doc = TDoc.fromNodeTextData(node.getText())
+    const doc = TDoc.fromNodeTextData(node.text)
     const plaintext = doc.genPlainText()
     const { extattrs, index_text } = node
     const fields: (string | undefined)[] = [plaintext]

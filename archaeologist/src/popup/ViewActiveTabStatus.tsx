@@ -4,7 +4,8 @@ import React from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 import styled from '@emotion/styled'
 
-import { TNode, TNodeJson } from 'smuggler-api'
+import { NodeUtil } from 'smuggler-api'
+import type { TNode, TNodeJson } from 'smuggler-api'
 
 import { MdiBookmarkAdd, Spinner } from 'elementary'
 import { ButtonCreate } from './Button'
@@ -52,7 +53,7 @@ function updateState(state: State, action: Action) {
     case 'append':
       {
         if (action.bookmark != null) {
-          const bookmark = TNode.fromJson(action.bookmark)
+          const bookmark = NodeUtil.fromJson(action.bookmark)
           newState.bookmark = bookmark
           newState.status = 'saved'
         } else {
@@ -66,14 +67,14 @@ function updateState(state: State, action: Action) {
           newState.status = 'memorable'
         }
         const fromNodes = action.fromNodes.map((json: TNodeJson) =>
-          TNode.fromJson(json)
+          NodeUtil.fromJson(json)
         )
         newState.fromNodes =
           action.type === 'reset'
             ? fromNodes
             : newState.fromNodes.concat(fromNodes)
         const toNodes = action.toNodes.map((json: TNodeJson) =>
-          TNode.fromJson(json)
+          NodeUtil.fromJson(json)
         )
         newState.toNodes =
           action.type === 'reset' ? toNodes : newState.toNodes.concat(toNodes)
