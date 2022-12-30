@@ -8698,6 +8698,8 @@ __metadata:
     ts-jest: ^26.4.2
     typescript: 4.1.3
     use-async-effect: ^2.2.5
+    wink-eng-lite-web-model: ^1.4.3
+    wink-nlp: ^1.13.0
   languageName: unknown
   linkType: soft
 
@@ -22180,6 +22182,22 @@ __metadata:
   version: 2.0.0
   resolution: "wildcard@npm:2.0.0"
   checksum: 1f4fe4c03dfc492777c60f795bbba597ac78794f1b650d68f398fbee9adb765367c516ebd4220889b6a81e9626e7228bbe0d66237abb311573c2ee1f4902a5ad
+  languageName: node
+  linkType: hard
+
+"wink-eng-lite-web-model@npm:^1.4.3":
+  version: 1.4.3
+  resolution: "wink-eng-lite-web-model@npm:1.4.3"
+  peerDependencies:
+    wink-nlp: ">1.8.1"
+  checksum: a9166e65893c5446b5783f5b2f43e2ce0ae8cc1815a30966b2e96f1cce86d1cbad41cb54baab790f8a7160aa30e80a594944b7fe1c92661a892c82022de1cee4
+  languageName: node
+  linkType: hard
+
+"wink-nlp@npm:^1.13.0":
+  version: 1.13.0
+  resolution: "wink-nlp@npm:1.13.0"
+  checksum: 85b920cbbabfb5ef3bb6bd24a0fa92067a9382c4fbba8272da4c77ef187c5a4778b0faa9e16f60493bae6f65cc72347b256255c2434e411bf3fa49937fcdd83c
   languageName: node
   linkType: hard
 
