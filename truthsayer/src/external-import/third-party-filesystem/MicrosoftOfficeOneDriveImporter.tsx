@@ -15,12 +15,12 @@ import { errorise, genOriginId, log } from 'armoury'
 import {
   AccountInterface,
   CreateNodeArgs,
-  smuggler,
   steroid,
   UserExternalPipelineId,
   NodeType,
   makeEmptyNodeTextData,
   NodeExtattrs,
+  StorageApi,
 } from 'smuggler-api'
 
 import { MzdGlobalContext } from '../../lib/global'
@@ -55,9 +55,10 @@ async function uploadFilesFromFolder(
   fs: ThirdpartyFs,
   epid: UserExternalPipelineId,
   folderPath: string,
+  storage: StorageApi,
   progressUpdateCallback: (filesToUploadLeft: number) => void
 ) {
-  const current_progress = await smuggler.external.ingestion.get(epid)
+  const current_progress = await storage.external.ingestion.get(epid)
   const files = await FsModificationQueue.make(
     fs,
     current_progress.ingested_until,
@@ -90,10 +91,10 @@ async function uploadFilesFromFolder(
         created_via: { autoIngestion: epid },
       }
 
-      const response = await smuggler.node.createOrUpdate(node)
+      const response = await storage.node.createOrUpdate(node)
       log.debug(`Response to node creation/update: ${JSON.stringify(response)}`)
     }
-    await smuggler.external.ingestion.advance(epid, {
+    await storage.external.ingestion.advance(epid, {
       ingested_until: batch[0].lastModTimestamp,
     })
     filesLeft -= batch.length
@@ -122,6 +123,7 @@ export function OneDriveIntegrationManager({
   const [msAuthentication] = React.useState(MsAuthentication.makeInstance())
   const [oneDriveFs] = React.useState(new OneDriveFs(msAuthentication))
   const [oneDriveUploadCounter, setOneDriveUploadCounter] = React.useState(0)
+  const ctx = React.useContext(MzdGlobalContext)
 
   const oneDriveSyncButton =
     oneDriveUploadCounter === 0 ? (
@@ -159,6 +161,7 @@ export function OneDriveIntegrationManager({
                   oneDriveFs,
                   oneDriveFsid,
                   '/mazed-test',
+                  ctx.storage,
                   setOneDriveUploadCounter
                 )
                   .catch((exception) => {

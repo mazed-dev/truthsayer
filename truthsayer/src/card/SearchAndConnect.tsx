@@ -36,6 +36,7 @@ class SearchAndConnectJinnModal extends React.Component<
 > {
   static contextType = MzdGlobalContext
   context!: React.ContextType<typeof MzdGlobalContext>
+
   inputRef: React.RefObject<HTMLInputElement>
 
   constructor(props: SearchAndConnectJinnModalProps) {

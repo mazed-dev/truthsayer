@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useRef } from 'react'
+import React, { useContext, useRef } from 'react'
 
 import styled from '@emotion/styled'
 
@@ -10,9 +10,9 @@ import { useHistory } from 'react-router-dom'
 import { MdiAdd, MdiFileUpload, StyleButtonCreate, TDoc } from 'elementary'
 
 import { MimeType } from 'armoury'
-import { smuggler } from 'smuggler-api'
 import { goto } from './../lib/route'
 import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
+import MzdGlobalContext from '../lib/global'
 
 const CreateNodeBigIcon = styled(MdiAdd)`
   font-size: 46px;
@@ -77,9 +77,10 @@ const CustomDropdownItem = styled(Dropdown.Item)({
 
 export const CreateNewNodeMenu = () => {
   const history = useHistory()
+  const ctx = useContext(MzdGlobalContext)
   const newNodeClick = () => {
     const doc = TDoc.makeEmpty()
-    smuggler.node
+    ctx.storage.node
       .create({
         text: doc.toNodeTextData(),
         extattrs: {

@@ -21,7 +21,7 @@ import { ShareModal } from './ShareModal'
 import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
 import { NotificationToast } from '../lib/Toaster'
 import { slateToMarkdown } from 'librarius'
-import { goto, History } from '../lib/route'
+import { goto } from '../lib/route'
 import { downloadAsFile } from '../util/download_as_file'
 
 import {
