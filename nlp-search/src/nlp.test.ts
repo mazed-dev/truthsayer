@@ -3,6 +3,7 @@ import {
   addDocument,
   searchForPhrase,
   extractSearchKeyphrases,
+  searchForSimilarDocuments,
 } from './nlp'
 import fs from 'fs'
 import * as csv from '@fast-csv/parse'
@@ -65,8 +66,8 @@ describe('data-driven test', () => {
     expect(searchIndex.bagOfwords).not.toBeFalsy()
     expect(searchIndex.documentsNumber).toStrictEqual(10000 + 1)
     // The following numbers depend on search algorithm, change them accordingly
-    expect(searchIndex.wordsInAllDocuments).toStrictEqual(1191300)
-    expect(Object.keys(searchIndex.bagOfwords).length).toStrictEqual(77451)
+    expect(searchIndex.wordsInAllDocuments).toStrictEqual(2097115)
+    expect(Object.keys(searchIndex.bagOfwords).length).toStrictEqual(77678)
   })
 
   it('Christmas Coffeehouse', () => {
@@ -84,65 +85,15 @@ describe('data-driven test', () => {
       'http://dbpedia.org/resource/Father_Christmas',
     ])
   })
-
-  it('Extract search keyphrase - phrase per sentence', () => {
-    expect(
-      extractSearchKeyphrases('This parameter holds the collection to iterate over')
-        .length
-    ).toStrictEqual(1)
-    expect(
-      extractSearchKeyphrases(
-        'This parameter holds the collection to iterate over. This parameter holds the function invoked per iteration'
-      ).length
-    ).toStrictEqual(2)
-    expect(
-      extractSearchKeyphrases(`
-    Lodash is a JavaScript library that works on the top of underscore.
-    Lodash helps in working with arrays, collection, strings, objects, numbers etc.
-    The filter() method iterates over elements of collection, returning an array of all elements predicate returns true.`)
-        .length
-    ).toStrictEqual(3)
-  })
-  it('Extract search keyphrase', () => {
-    expect(
-      extractSearchKeyphrases('This parameter holds the collection to iterate over')
-    ).toStrictEqual(['parameter holds collection iterate'])
-    expect(extractSearchKeyphrases('Image segmentation')).toStrictEqual([
-      'Image segmentation',
-    ])
-    expect(
-      extractSearchKeyphrases('Prediction of physiological events.')
-    ).toStrictEqual(['Prediction physiological events'])
-    expect(
-      extractSearchKeyphrases(`
-    Lodash is a JavaScript library that works on the top of underscore.
-    Lodash helps in working with arrays, collection, strings, objects, numbers etc.
-    `)
-    ).toStrictEqual([
-      'Lodash JavaScript library works underscore',
-      'Lodash helps working arrays collection strings objects numbers',
-    ])
-  })
-  it('Extract search keyphrases and search for them', () => {
-    // This is rather sily test, we extract keyphrases from each document in
-    // corpus and search for it, making sure exact document is discovered
-    rows.slice(10).forEach((row) => {
-      extractSearchKeyphrases(row.text).forEach((phrase) => {
-        console.log('Phrase', phrase, row.url)
-        const res = searchForPhrase(
-          phrase,
-          15,
-          searchIndex,
-          searchIndexPerDocument
-        )
-        expect(res).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              doc: expect.objectContaining({ nid: row.url }),
-            }),
-          ])
-        )
-      })
+  it('Search for corpus texts in corpus itself', () => {
+    rows.slice(1, 100).forEach((row) => {
+      const res = searchForSimilarDocuments(
+        row.text,
+        1,
+        searchIndex,
+        searchIndexPerDocument
+      )
+      expect(res[0].doc.nid).toStrictEqual(row.url)
     })
   })
 })

@@ -2,9 +2,6 @@
 import winkNLP, { PartOfSpeech, Bow } from 'wink-nlp'
 // Load english language model.
 import model from 'wink-eng-lite-web-model'
-import lodash from 'lodash'
-
-const stopWords = new Set([])
 
 const kOkapiBM25PlusB = 0.75
 const kOkapiBM25PlusK1 = 2.0
@@ -93,67 +90,92 @@ function addRecordValue<K extends keyof any>(
   return rec
 }
 
-export function addDocument(
-  sIndex: SearchIndex,
+function createSearchDocumentIndexFromText(
   text: string,
   nid: string
-): [SearchIndex, SearchDocumentIndex] {
+): SearchDocumentIndex {
   const doc = nlp.readDoc(text)
   const tokenTypes = doc.tokens().out(its.type)
-  const tokenStopWordFlags = doc.tokens().out(its.stopWordFlag)
   const lemmas = doc
     .tokens()
     .out(its.lemma)
     .filter((_lemma: string, index: number) => {
-      // Filter out stop words and punctuation
-      return !tokenStopWordFlags[index] && tokenTypes[index] !== 'punctuation'
+      // Filter out punctuation
+      return tokenTypes[index] !== 'punctuation'
     })
   const bagOfwords = lemmas.reduce((bagOfwords: Bow, lemma: string) => {
     return addRecordValue(bagOfwords, lemma, 1)
   }, {})
   const wordsNumber = lemmas.length
-  sIndex.wordsInAllDocuments += wordsNumber
-  sIndex.documentsNumber += 1
-  for (const word in bagOfwords) {
-    sIndex.bagOfwords = addRecordValue(sIndex.bagOfwords, word, 1)
-  }
-  return [
-    sIndex,
-    createSearchDocumentIndex({
-      bagOfwords,
-      wordsNumber,
-      nid,
-    }),
-  ]
+  return createSearchDocumentIndex({
+    bagOfwords,
+    wordsNumber,
+    nid,
+  })
 }
 
-export function getScore(
+export function addDocument(
+  searchIndex: SearchIndex,
+  text: string,
+  nid: string
+): [SearchIndex, SearchDocumentIndex] {
+  const doc = createSearchDocumentIndexFromText(text, nid)
+  searchIndex.wordsInAllDocuments += doc.wordsNumber
+  searchIndex.documentsNumber += 1
+  for (const word in doc.bagOfwords) {
+    searchIndex.bagOfwords = addRecordValue(searchIndex.bagOfwords, word, 1)
+  }
+  return [searchIndex, doc]
+}
+
+function getTermInDocumentImportance(
+  occurenceInDoc: number,
+  documentSizeInWords: number,
+  averageDocumentSizeInWords: number
+): number {
+  return (
+    kOkapiBM25PlusDelta +
+    (occurenceInDoc * (kOkapiBM25PlusK1 + 1)) /
+      (occurenceInDoc +
+        kOkapiBM25PlusK1 *
+          (1 -
+            kOkapiBM25PlusB +
+            (kOkapiBM25PlusB * documentSizeInWords) /
+              averageDocumentSizeInWords))
+  )
+}
+
+function getTermInDocumentScore(
+  term: string,
+  searchIndex: SearchIndex,
+  doc: SearchDocumentIndex,
+  averageDocumentSizeInWords: number
+) {
+  const occurenceInDoc = doc.bagOfwords[term]
+  if (occurenceInDoc == null) {
+    return 0
+  }
+  // prettier-ignore
+  return (
+      getTermInverseDocumentFrequency(term, searchIndex) * getTermInDocumentImportance(
+        occurenceInDoc,
+        doc.wordsNumber,
+        averageDocumentSizeInWords,
+      )
+    )
+}
+
+function getKeyphraseInDocumentScore(
   keywords: string[],
-  sIndex: SearchIndex,
+  searchIndex: SearchIndex,
   doc: SearchDocumentIndex
 ) {
+  const averageDocumentSizeInWords =
+    searchIndex.wordsInAllDocuments / searchIndex.documentsNumber
   return keywords
-    .map((keyword: string, _index: number) => {
-      const occurenceInDoc = doc.bagOfwords[keyword]
-      if (occurenceInDoc == null) {
-        return 0
-      }
-      const averageDocumentSizeInWords =
-        sIndex.wordsInAllDocuments / sIndex.documentsNumber
-      // prettier-ignore
-      return (
-        getTermInverseDocumentFrequency(keyword, sIndex) * (
-          kOkapiBM25PlusDelta +
-          (
-            occurenceInDoc * (kOkapiBM25PlusK1 + 1)
-          ) / (
-            occurenceInDoc + kOkapiBM25PlusK1 * (
-              1 - kOkapiBM25PlusB + kOkapiBM25PlusB * doc.wordsNumber / averageDocumentSizeInWords
-            )
-          )
-        )
-      )
-    })
+    .map((term: string, _index: number) =>
+      getTermInDocumentScore(term, searchIndex, doc, averageDocumentSizeInWords)
+    )
     .reduce((prev: number, current: number) => current + prev)
 }
 
@@ -165,22 +187,28 @@ type SearchResultDocument = {
 export function searchForPhrase(
   keyphrase: string,
   limit: number,
-  sIndex: SearchIndex,
+  searchIndex: SearchIndex,
   docs: SearchDocumentIndex[]
 ): SearchResultDocument[] {
   const doc = nlp.readDoc(keyphrase)
   const tokenTypes = doc.tokens().out(its.type)
-  const tokenStopWordFlags = doc.tokens().out(its.stopWordFlag)
-  const keywords = doc
+  const keywords = new Set<string>()
+  doc
     .tokens()
     .out(its.lemma)
-    .filter((_lemma: string, index: number) => {
-      // Filter out stop words and punctuation
-      return !tokenStopWordFlags[index] && tokenTypes[index] !== 'punctuation'
+    .forEach((lemma: string, index: number) => {
+      // Filter out punctuation
+      if (tokenTypes[index] !== 'punctuation') {
+        keywords.add(lemma)
+      }
     })
   const results: SearchResultDocument[] = []
   docs.forEach((doc: SearchDocumentIndex) => {
-    const score = getScore(keywords, sIndex, doc)
+    const score = getKeyphraseInDocumentScore(
+      Array.from(keywords),
+      searchIndex,
+      doc
+    )
     if (score > 1) {
       results.push({ doc, score })
     }
@@ -189,16 +217,68 @@ export function searchForPhrase(
   return results.slice(-limit)
 }
 
+/**
+ * Importance of the term in the entire corpus (all documents) calculated as
+ * term inverse document frequency.
+ */
 export function getTermInverseDocumentFrequency(
   term: string,
-  sIndex: SearchIndex
+  searchIndex: SearchIndex
 ) {
-  const numberOfDocumentsContainingTerm = sIndex.bagOfwords[term]
-  return Math.log2(
+  const numberOfDocumentsContainingTerm = searchIndex.bagOfwords[term] ?? 0
+  return Math.log(
     1 +
-      (sIndex.documentsNumber - numberOfDocumentsContainingTerm + 0.5) /
+      (searchIndex.documentsNumber - numberOfDocumentsContainingTerm + 0.5) /
         (numberOfDocumentsContainingTerm + 0.5)
   )
+}
+
+function getTextSimilarityScore(
+  queryDoc: SearchDocumentIndex,
+  searchIndex: SearchIndex,
+  corpusDoc: SearchDocumentIndex
+): number {
+  const averageDocumentSizeInWords =
+    searchIndex.wordsInAllDocuments / searchIndex.documentsNumber
+  const score = Object.entries(queryDoc.bagOfwords)
+    .map(([term, occurenceInQueryDoc]) => {
+      const occurenceInCorpusDoc = corpusDoc.bagOfwords[term]
+      if (occurenceInCorpusDoc == null) {
+        return 0
+      }
+      // prettier-ignore
+      return (
+      getTermInverseDocumentFrequency(term, searchIndex) * getTermInDocumentImportance(
+        occurenceInCorpusDoc,
+        corpusDoc.wordsNumber,
+        averageDocumentSizeInWords,
+      ) * getTermInDocumentImportance(
+        occurenceInQueryDoc,
+        queryDoc.wordsNumber,
+        averageDocumentSizeInWords,
+      )
+    )
+    })
+    .reduce((prev: number, current: number) => current + prev)
+  return score
+}
+
+export function searchForSimilarDocuments(
+  text: string,
+  limit: number,
+  searchIndex: SearchIndex,
+  docs: SearchDocumentIndex[]
+): SearchResultDocument[] {
+  const queryDoc = createSearchDocumentIndexFromText(text, '')
+  const results: SearchResultDocument[] = []
+  docs.forEach((corpusDoc: SearchDocumentIndex) => {
+    const score = getTextSimilarityScore(queryDoc, searchIndex, corpusDoc)
+    if (score > 1) {
+      results.push({ doc: corpusDoc, score })
+    }
+  })
+  results.sort((ar, br) => br.score - ar.score)
+  return results.slice(0, limit)
 }
 
 const kHotPartsOfSpeach: Set<PartOfSpeech> = new Set([
@@ -212,26 +292,51 @@ type Keyphrase = {
   phrase: string
   score: number
 }
-export function extractSearchKeyphrases(text: string): Keyphrase[] {
+export function extractSearchKeyphrases(
+  text: string,
+  searchIndex: SearchIndex
+): Keyphrase[] {
+  console.log('extractSearchKeyphrases', text)
   const doc = nlp.readDoc(text)
-  const phrases: string[] = []
+  const phrases: Keyphrase[] = []
   doc.sentences().each((s) => {
     const partsOfSpeach = s.tokens().out(its.pos) as PartOfSpeech[]
-    const stopWordFlag = s.tokens().out(its.stopWordFlag)
-    const keyprhrase = s
+    const lemmas = s.tokens().out(its.lemma)
+    // Calculate keyphrases score as a multiplication of IDFs of all words
+    let score = 0
+    const phrase = s
       .tokens()
       .out()
       .map((token: string, index: number) => {
         const partOfSpeach = partsOfSpeach[index]
-        if (kHotPartsOfSpeach.has(partOfSpeach) && !stopWordFlag[index]) {
-          return token
+        if (kHotPartsOfSpeach.has(partOfSpeach)) {
+          const lemma = lemmas[index]
+          const idf = getTermInverseDocumentFrequency(lemma, searchIndex)
+          console.log(
+            token,
+            partOfSpeach,
+            lemma,
+            idf,
+            index,
+            searchIndex.bagOfwords[lemma] ?? 0,
+            searchIndex.documentsNumber
+          )
+          // Ignore fequent words
+          if (idf > 1.0) {
+            score += idf
+            return token
+          }
         }
         return ''
       })
       .filter((s) => !!s)
       .join(' ')
-    phrases.push(keyprhrase)
+    phrases.push({
+      phrase,
+      score,
+    })
   })
+  console.log('Phrase', phrases)
   return phrases
 }
 
@@ -306,17 +411,13 @@ export function first() {
   // console.log('its.readabilityStats', doc.tokens().out(its.readabilityStats) )
   // console.log('its.idf', doc.tokens().out(its.idf) )
   const allTypes = doc.tokens().out(its.type)
-  const allstopWordsFlags = doc.tokens().out(its.stopWordFlag)
   const lemmas = new Set(
     doc
       .tokens()
       .out(its.lemma)
       .filter((_w: string, index: number) => {
         const tp = allTypes[index]
-        return (
-          !(tp === 'punctuation' || tp === 'tabCRLF') &&
-          !allstopWordsFlags[index]
-        )
+        return !(tp === 'punctuation' || tp === 'tabCRLF')
       })
   )
   console.log('Lemmas', lemmas)
