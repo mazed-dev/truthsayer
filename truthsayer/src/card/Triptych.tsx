@@ -380,12 +380,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
         >
           <WideCard>
             {nodeCard}
-            <FullCardFootbar
-              node={node}
-              addRef={this.addRef}
-              stickyEdges={edges_sticky}
-              saveNode={this.saveNode}
-            />
+            <FullCardFootbar node={node} />
           </WideCard>
         </Col>
         <Col
