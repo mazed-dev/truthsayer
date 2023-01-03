@@ -34,6 +34,8 @@ class SearchAndConnectJinnModal extends React.Component<
   SearchAndConnectJinnModalProps,
   SearchAndConnectJinnModalState
 > {
+  static contextType = MzdGlobalContext
+  context!: React.ContextType<typeof MzdGlobalContext>
   inputRef: React.RefObject<HTMLInputElement>
 
   constructor(props: SearchAndConnectJinnModalProps) {
@@ -114,8 +116,6 @@ class SearchAndConnectJinnModal extends React.Component<
     )
   }
 }
-
-SearchAndConnectJinnModal.contextType = MzdGlobalContext
 
 export const SearchAndConnectJinn = ({
   show,
