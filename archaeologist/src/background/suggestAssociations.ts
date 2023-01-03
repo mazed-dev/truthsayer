@@ -1,13 +1,13 @@
-import { smuggler } from 'smuggler-api'
-import type { TNode } from 'smuggler-api'
+import type { TNode, StorageApi } from 'smuggler-api'
 import { Beagle } from 'elementary'
 
 export async function suggestAssociations(
+  storage: StorageApi,
   phrase: string,
   limit?: number
 ): Promise<TNode[]> {
   const beagle = Beagle.fromString(phrase)
-  const iter = smuggler.node.slice({})
+  const iter = storage.node.slice({})
   const suggested: TNode[] = []
   limit = limit ?? 8
   // FIXME(akindyakov): This is a dirty hack to limit time of search by limiting

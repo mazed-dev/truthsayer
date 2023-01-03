@@ -14,7 +14,7 @@ import {
   TNode,
   NodeUtil,
   makeEmptyNodeTextData,
-  smuggler,
+  StorageApi,
 } from 'smuggler-api'
 import { ToContent } from '../message/types'
 import { mazed } from '../util/mazed'
@@ -87,6 +87,7 @@ async function showDisappearingNotification(
 }
 
 async function _getOriginRelationNids(
+  storage: StorageApi,
   nids: Nid[],
   url?: string
 ): Promise<Nid[]> {
@@ -96,6 +97,7 @@ async function _getOriginRelationNids(
     const query = extractSearchEngineQuery(url)
     if (query != null) {
       const { nid } = await _saveWebSearchQuery(
+        storage,
         url,
         [],
         [],
@@ -109,6 +111,7 @@ async function _getOriginRelationNids(
 }
 
 export async function saveWebPage(
+  storage: StorageApi,
   url: string,
   originId: OriginHash,
   toNids: string[],
@@ -121,6 +124,7 @@ export async function saveWebPage(
   const searchEngineQuery = extractSearchEngineQuery(url)
   if (searchEngineQuery != null) {
     const node = await _saveWebSearchQuery(
+      storage,
       url,
       toNids,
       fromNids,
@@ -156,13 +160,14 @@ export async function saveWebPage(
     },
     blob: undefined,
   }
-  const originTransitions = await smuggler.activity.association.get({
+  const originTransitions = await storage.activity.association.get({
     origin: { id: originId },
   })
   log.debug('Gather transitions', originTransitions)
   for (const association of originTransitions.to) {
     if ('web_transition' in association.association) {
       const nids = await _getOriginRelationNids(
+        storage,
         association.to.nids,
         association.association.web_transition.to_url
       )
@@ -174,6 +179,7 @@ export async function saveWebPage(
   for (const association of originTransitions.from) {
     if ('web_transition' in association.association) {
       const nids = await _getOriginRelationNids(
+        storage,
         association.from.nids,
         association.association.web_transition.from_url
       )
@@ -182,7 +188,7 @@ export async function saveWebPage(
       }
     }
   }
-  const resp = await smuggler.node.create({
+  const resp = await storage.node.create({
     text,
     index_text,
     extattrs,
@@ -200,7 +206,7 @@ export async function saveWebPage(
   await badge.setStatus(tabId, ACTION_DONE_BADGE_MARKER)
 
   const { nid } = resp
-  const node = await smuggler.node.get({ nid })
+  const node = await storage.node.get({ nid })
   await updateContent([], [], node, tabId)
   await showDisappearingNotification(tabId, {
     text: 'Added',
@@ -211,6 +217,7 @@ export async function saveWebPage(
 }
 
 export async function savePageQuote(
+  storage: StorageApi,
   { url, path, text }: NodeExtattrsWebQuote,
   createdVia: NodeCreatedVia,
   lang?: string,
@@ -222,7 +229,7 @@ export async function savePageQuote(
     lang: lang || undefined,
     web_quote: { url, path, text },
   }
-  const resp = await smuggler.node.create({
+  const resp = await storage.node.create({
     text: makeEmptyNodeTextData(),
     ntype: NodeType.WebQuote,
     from_nid: fromNid ? [fromNid] : undefined,
@@ -233,12 +240,13 @@ export async function savePageQuote(
     // Update badge counter
     await badge.setStatus(tabId, ACTION_DONE_BADGE_MARKER)
     const { nid } = resp
-    const node = await smuggler.node.get({ nid })
+    const node = await storage.node.get({ nid })
     await updateContent([], [node], undefined, tabId)
   }
 }
 
 async function _saveWebSearchQuery(
+  storage: StorageApi,
   url: string,
   toNids: string[],
   fromNids: string[],
@@ -261,7 +269,7 @@ async function _saveWebSearchQuery(
     preview_image: icon ? { data: icon } : undefined,
     web: { url },
   }
-  const resp = await smuggler.node.create({
+  const resp = await storage.node.create({
     text,
     index_text,
     extattrs,
@@ -273,6 +281,6 @@ async function _saveWebSearchQuery(
     from_nid: fromNids,
   })
   const { nid } = resp
-  const node = await smuggler.node.get({ nid })
+  const node = await storage.node.get({ nid })
   return node
 }

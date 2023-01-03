@@ -2,9 +2,10 @@ import browser from 'webextension-polyfill'
 import { log } from 'armoury'
 import { FromContent, ToContent } from '../message/types'
 import { saveWebPage } from '../background/savePage'
-import { NodeCreatedVia } from 'smuggler-api'
+import { NodeCreatedVia, StorageApi } from 'smuggler-api'
 
 async function onCreatedEventListener(
+  storage: StorageApi,
   id: string,
   bookmark: browser.Bookmarks.BookmarkTreeNode
 ): Promise<void> {
@@ -28,7 +29,15 @@ async function onCreatedEventListener(
     }
     const { url: stableUrl, content, originId, quoteNids } = response
     const createdVia: NodeCreatedVia = { manualAction: null }
-    await saveWebPage(stableUrl, originId, quoteNids, [], createdVia, content)
+    await saveWebPage(
+      storage,
+      stableUrl,
+      originId,
+      quoteNids,
+      [],
+      createdVia,
+      content
+    )
   }
 }
 
@@ -38,9 +47,11 @@ async function onCreatedEventListener(
  * Add listeners for:
  *  - created naitive bookmark
  */
-export function register() {
-  browser.bookmarks.onCreated.addListener(onCreatedEventListener)
+export function register(storage: StorageApi) {
+  const callback = (id: string, bookmark: browser.Bookmarks.BookmarkTreeNode) =>
+    onCreatedEventListener(storage, id, bookmark)
+  browser.bookmarks.onCreated.addListener(callback)
   return () => {
-    browser.bookmarks.onCreated.removeListener(onCreatedEventListener)
+    browser.bookmarks.onCreated.removeListener(callback)
   }
 }

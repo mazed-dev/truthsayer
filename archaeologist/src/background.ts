@@ -31,6 +31,7 @@ import {
   UserExternalPipelineId,
   NodeCreatedVia,
   UserExternalPipelineIngestionProgress,
+  StorageApi,
 } from 'smuggler-api'
 
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
@@ -67,13 +68,14 @@ async function requestPageConnections(bookmark?: TNode) {
   }
   try {
     // Fetch all edges for a given node
-    const { from_edges: fromEdges, to_edges: toEdges } =
-      await smuggler.edge.get(bookmark.nid)
+    const { from_edges: fromEdges, to_edges: toEdges } = await storage.edge.get(
+      bookmark.nid
+    )
     // Gather node IDs of neighbour nodes to reqeust them
     const nids = fromEdges
       .map((edge) => edge.from_nid)
       .concat(toEdges.map((edge) => edge.to_nid))
-    const { nodes } = await smuggler.node.batch.get({ nids })
+    const { nodes } = await storage.node.batch.get({ nids })
     // Sort neighbour nodes out
     fromNodes = nodes.filter(
       (node) => fromEdges.findIndex((edge) => edge.from_nid === node.nid) !== -1
@@ -96,7 +98,7 @@ async function requestPageSavedStatus(url: string | undefined) {
   }
   let nodes
   try {
-    nodes = await smuggler.node.lookup({ url })
+    nodes = await storage.node.lookup({ url })
   } catch (err) {
     log.debug('Lookup by origin ID failed, consider page as non saved', err)
     return { unmemorable: false }
@@ -154,7 +156,7 @@ async function registerAttentionTime(
   log.debug('Register Attention Time', tab, totalSecondsEstimation)
   let total: TotalUserActivity
   try {
-    total = await smuggler.activity.external.add(
+    total = await storage.activity.external.add(
       { id: origin.id },
       {
         attention: {
@@ -182,7 +184,16 @@ async function registerAttentionTime(
     }
     const { url, content, originId, quoteNids } = response
     const createdVia: NodeCreatedVia = { autoAttentionTracking: null }
-    await saveWebPage(url, originId, quoteNids, [], createdVia, content, tab.id)
+    await saveWebPage(
+      storage,
+      url,
+      originId,
+      quoteNids,
+      [],
+      createdVia,
+      content,
+      tab.id
+    )
   }
 }
 
@@ -406,7 +417,7 @@ async function handleMessageFromContent(
       return { type: 'VOID_RESPONSE' }
     }
     case 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY': {
-      const numDeleted = await smuggler.node.bulkDelete({
+      const numDeleted = await storage.node.bulkDelete({
         createdVia: {
           autoIngestion: idOfBrowserHistoryOnThisDeviceAsExternalPipeline(),
         },
@@ -417,7 +428,11 @@ async function handleMessageFromContent(
       }
     }
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
-      const suggested = await suggestAssociations(message.phrase, message.limit)
+      const suggested = await suggestAssociations(
+        storage,
+        message.phrase,
+        message.limit
+      )
       return {
         type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
         suggested: suggested.map((node: TNode) => NodeUtil.toJson(node)),
@@ -481,14 +496,14 @@ async function uploadBrowserHistory(mode: BrowserHistoryUploadMode) {
   )
 
   const epid = idOfBrowserHistoryOnThisDeviceAsExternalPipeline()
-  const currentProgress = await smuggler.external.ingestion.get(epid)
+  const currentProgress = await storage.external.ingestion.get(epid)
 
   log.debug('Progress until now:', currentProgress)
 
   const advanceIngestionProgress = lodash.throttle(
     mode.mode !== 'untracked'
       ? async (date: Date) => {
-          return smuggler.external.ingestion.advance(epid, {
+          return storage.external.ingestion.advance(epid, {
             ingested_until: unixtime.from(date),
           })
         }
@@ -503,7 +518,7 @@ async function uploadBrowserHistory(mode: BrowserHistoryUploadMode) {
   // is already in the order from "pages that hasn't been visited the longest"
   // to "most recently visited". However `browser.history.search` doesn't seem
   // to provide any guarantees about it. Since logic which relies on
-  // `smuggler.thirdparty.fs.progress` would break under different ordering,
+  // `storage.thirdparty.fs.progress` would break under different ordering,
   // explicit sorting is added as a safeguard
   items.sort(sortWithOldestLastVisitAtEnd)
 
@@ -601,6 +616,7 @@ async function handleMessageFromPopup(
       const { url, content, originId, quoteNids } = response
       const createdVia: NodeCreatedVia = { manualAction: null }
       const { node, unmemorable } = await saveWebPage(
+        storage,
         url,
         originId,
         quoteNids,
@@ -659,7 +675,7 @@ async function uploadSingleHistoryItem(
   const resourceVisits: ResourceVisit[] = visits.map((visit) => {
     return { timestamp: unixtime.from(new Date(visit.visitTime ?? 0)) }
   })
-  const total = await smuggler.activity.external.add(origin, {
+  const total = await storage.activity.external.add(origin, {
     visit: { visits: resourceVisits, reported_by: epid },
   })
   if (!isReadyToBeAutoSaved(total, 0)) {
@@ -677,6 +693,7 @@ async function uploadSingleHistoryItem(
   const { url, content, originId, quoteNids } = response
   const createdVia: NodeCreatedVia = { autoIngestion: epid }
   await saveWebPage(
+    storage,
     url,
     originId,
     quoteNids,
@@ -844,6 +861,7 @@ browser.contextMenus.onClicked.addListener(
         const { url, text, path, lang, fromNid } = response
         const createdVia: NodeCreatedVia = { manualAction: null }
         await savePageQuote(
+          storage,
           { url, path, text },
           createdVia,
           lang,
@@ -859,8 +877,10 @@ browser.contextMenus.onClicked.addListener(
   }
 )
 
+const storage: StorageApi = smuggler
+
 auth.register()
-browserBookmarks.register()
-omnibox.register()
-webNavigation.register()
+browserBookmarks.register(storage)
+omnibox.register(storage)
+webNavigation.register(storage)
 backgroundpa.register()
