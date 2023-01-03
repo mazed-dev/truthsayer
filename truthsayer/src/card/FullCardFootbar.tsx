@@ -16,8 +16,6 @@ import CopyImg from './../img/copy.png'
 import ArchiveImg from './../img/archive.png'
 import DeleteImg from './../img/delete.png'
 
-import { ShareModal } from './ShareModal'
-
 import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
 import { NotificationToast } from '../lib/Toaster'
 import { slateToMarkdown } from 'librarius'
@@ -54,30 +52,15 @@ type PrivateFullCardFootbarProps = PropsWithChildren<{
   context: MzdGlobalContextProps
 }>
 
-type PrivateFullCardFootbarState = {
-  modalShareShow: boolean
-}
-
 class PrivateFullCardFootbarImpl extends React.Component<
-  PrivateFullCardFootbarProps & RouteComponentProps,
-  PrivateFullCardFootbarState
+  PrivateFullCardFootbarProps & RouteComponentProps
 > {
   deleteAbortController: AbortController
 
   constructor(props: PrivateFullCardFootbarProps & RouteComponentProps) {
     super(props)
-    this.state = {
-      modalShareShow: false,
-    }
+    this.state = {}
     this.deleteAbortController = new AbortController()
-  }
-
-  hideShareDialog = () => {
-    this.setState({ modalShareShow: false })
-  }
-
-  showShareDialog = () => {
-    this.setState({ modalShareShow: true })
   }
 
   handleCopyMarkdown = () => {
@@ -212,11 +195,6 @@ class PrivateFullCardFootbarImpl extends React.Component<
             </FootbarDropdownMenu>
           </FootbarDropdown>
         </div>
-        <ShareModal
-          show={this.state.modalShareShow}
-          nid={this.props.nid}
-          onHide={this.hideShareDialog}
-        />
       </>
     )
   }
