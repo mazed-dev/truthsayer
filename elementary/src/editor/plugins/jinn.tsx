@@ -11,7 +11,7 @@ import {
 import lodash from 'lodash'
 
 import type { Optional } from 'armoury'
-import type { TNode } from 'smuggler-api'
+import type { StorageApi, TNode } from 'smuggler-api'
 
 import { SearchGrid } from '../../grid/SearchGrid'
 import { makeNodeLink, TDoc, CustomEditor } from '../types'
@@ -25,10 +25,12 @@ function JinnModal({
   editor,
   selection,
   onHide,
+  storage,
 }: {
   editor: Editor
   selection: Range | null
   onHide: () => void
+  storage: StorageApi
 }) {
   if (selection == null) {
     return null
@@ -93,6 +95,7 @@ function JinnModal({
         defaultSearch
         onCardClick={onNodeCardClick}
         portable
+        storage={storage}
       >
         {extraCards}
       </SearchGrid>
@@ -104,10 +107,12 @@ export const Jinn = ({
   isShown,
   onHide,
   editor,
+  storage,
 }: {
   isShown: boolean
   onHide: () => void
   editor: CustomEditor
+  storage: StorageApi
 }) => {
   // Preserve editor selection to pass it to modal
   const { selection } = editor
@@ -125,7 +130,12 @@ export const Jinn = ({
       scrollable
       enforceFocus
     >
-      <JinnModal onHide={onHide} editor={editor} selection={selection} />
+      <JinnModal
+        onHide={onHide}
+        editor={editor}
+        selection={selection}
+        storage={storage}
+      />
     </Modal>
   )
 }

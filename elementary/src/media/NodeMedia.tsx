@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { NodeUtil } from 'smuggler-api'
-import type { TNode } from 'smuggler-api'
+import type { TNode, StorageApi } from 'smuggler-api'
 import { ImageNode } from './ImageNode'
 import { WebBookmark } from './WebBookmark'
 import { WebQuote } from './WebQuote'
@@ -11,11 +11,13 @@ export function NodeMedia({
   className,
   strippedRefs,
   strippedActions,
+  storage,
 }: {
   node: TNode
   className?: string
   strippedRefs?: boolean
   strippedActions?: boolean
+  storage: StorageApi
 }) {
   const { extattrs } = node
   if (NodeUtil.isImage(node)) {
@@ -24,6 +26,7 @@ export function NodeMedia({
         node={node}
         className={className}
         strippedActions={strippedActions}
+        storage={storage}
       />
     )
   } else if (NodeUtil.isWebBookmark(node)) {

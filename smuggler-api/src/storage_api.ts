@@ -150,7 +150,6 @@ export type StorageApi = {
     url: (nid: Nid) => string
   }
   blob: {
-    signal?: AbortSignal
     upload: (
       args: BlobUploadRequestArgs,
       signal?: AbortSignal

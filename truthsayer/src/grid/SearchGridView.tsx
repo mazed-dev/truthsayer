@@ -1,5 +1,5 @@
 /** @jsxImportSource @emotion/react */
-import React from 'react'
+import React, { useContext } from 'react'
 import styled from '@emotion/styled'
 import { useLocation } from 'react-router-dom'
 import { parse } from 'query-string'
@@ -9,6 +9,7 @@ import { CreateNewNodeMenu } from './CreateNewNodeMenu'
 import { Onboarding } from '../account/onboard/Onboarding'
 
 import lodash from 'lodash'
+import MzdGlobalContext from '../lib/global'
 
 const Box = styled.div`
   width: 100%;
@@ -17,6 +18,7 @@ const Box = styled.div`
 
 export const SearchGridView = () => {
   const loc = useLocation()
+  const ctx = useContext(MzdGlobalContext)
   const params = parse(loc.search)
   let { q } = params
   let queryStr: null | string = null
@@ -27,7 +29,7 @@ export const SearchGridView = () => {
   }
   return (
     <Box>
-      <SearchGrid q={queryStr} defaultSearch />
+      <SearchGrid q={queryStr} defaultSearch storage={ctx.storage} />
       <CreateNewNodeMenu />
       <Onboarding />
     </Box>

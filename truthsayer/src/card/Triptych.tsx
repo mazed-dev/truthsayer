@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import React from 'react'
+import React, { useContext } from 'react'
 import { useHistory } from 'react-router-dom'
 
 import { Row, Col } from 'react-bootstrap'
@@ -45,6 +45,7 @@ function RefNodeCard({
   className?: string
 }) {
   const history = useHistory()
+  const ctx = useContext(MzdGlobalContext)
   return (
     <SmallCard
       className={className}
@@ -63,6 +64,7 @@ function RefNodeCard({
           nid={nid}
           strippedRefs={true}
           strippedActions={true}
+          storage={ctx.storage}
         />
       </ShrinkCard>
       <div
@@ -300,7 +302,11 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
     const { node, edges_sticky, edges_right, edges_left } = this.state
     const nodeCard =
       node !== null ? (
-        <NodeCard node={node} saveNode={this.saveNode} />
+        <NodeCard
+          node={node}
+          saveNode={this.saveNode}
+          storage={this.context.storage}
+        />
       ) : (
         <Spinner.Wheel />
       )

@@ -34,10 +34,10 @@ import {
   FootbarDropdownToggleMeatballs,
 } from './Footbar'
 
-function nodeToMarkdown(node) {
+function nodeToMarkdown(node, storage) {
   let md = ''
   if (NodeUtil.isImage(node)) {
-    const source = smuggler.blob.sourceUrl(node.nid)
+    const source = storage.blob.sourceUrl(node.nid)
     md = md.concat(`![](${source})`)
   }
   const text = node.text
@@ -116,7 +116,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
 
   handleDeleteNote = () => {
     const toaster = this.props.context.toaster
-    smuggler.node
+    this.props.context.storage.node
       .delete({
         nid: this.props.nid,
         signal: this.deleteAbortController.signal,
@@ -241,7 +241,7 @@ export function FullCardFootbar({ /* children,  */ node, ...rest }) {
     const { nid, meta } = node
     if (NodeUtil.isOwnedBy(node, account)) {
       const getMarkdown = async () => {
-        return nodeToMarkdown(node)
+        return nodeToMarkdown(node, ctx.storage)
       }
       return (
         <PrivateFullCardFootbar
