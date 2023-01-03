@@ -34,8 +34,14 @@ export function uploadLocalFile(
       abortSignal
     )
   } else {
-    steroid.node
-      .createFromLocalBinary(file, from_nid, to_nid, createdVia, abortSignal)
+    steroid(storage)
+      .node.createFromLocalBinary({
+        file,
+        from_nid,
+        to_nid,
+        createdVia,
+        abortSignal,
+      })
       .then((result) => {
         updateStatus({ progress: 1, nid: result.nid, error: result.warning })
       })

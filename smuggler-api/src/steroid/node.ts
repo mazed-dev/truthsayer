@@ -8,9 +8,9 @@ import {
   NodeIndexText,
   UploadMultipartResponse,
 } from '../types'
-import { smuggler } from '../api_cloud'
 import { log, Mime, isAbortError, errorise } from 'armoury'
 import type { Optional } from 'armoury'
+import { StorageApi } from '../storage_api'
 
 // TODO[snikitin@outlook.com] As functions in this module perform
 // generation of a file search index, they share a lot of similarities
@@ -23,19 +23,29 @@ export type FileUploadComplete = {
   warning?: string
 }
 
+export type CreateNodeFromLocalBinaryArgs = {
+  storage: StorageApi
+  file: File
+  from_nid: Optional<string>
+  to_nid: Optional<string>
+  createdVia: NodeCreatedVia
+  abortSignal?: AbortSignal
+}
+
 /**
  * Upload a local binary file as a *fully featured* Mazed node
  * (as opposed to, for example, @see smuggler.blob.upload that
  * at the time of this writing creates a node that *doesn't support some
  * Mazed features* like search index).
  */
-export async function createNodeFromLocalBinary(
-  file: File,
-  from_nid: Optional<string>,
-  to_nid: Optional<string>,
-  createdVia: NodeCreatedVia,
-  abortSignal: AbortSignal
-): Promise<FileUploadComplete> {
+export async function createNodeFromLocalBinary({
+  storage,
+  file,
+  from_nid,
+  to_nid,
+  createdVia,
+  abortSignal,
+}: CreateNodeFromLocalBinaryArgs): Promise<FileUploadComplete> {
   const mime = Mime.fromString(file.type)
   if (!mime || !Mime.isImage(mime)) {
     throw new Error(
@@ -49,11 +59,11 @@ export async function createNodeFromLocalBinary(
   // Launch both upload & index *generation* at the same time, wait until all
   // promises are settled.
   const [uploadResult, indexResult] = await Promise.allSettled([
-    smuggler.blob.upload(
+    storage.blob.upload(
       { files: [file], from_nid, to_nid, createdVia },
       abortSignal
     ),
-    smuggler.blob_index.build([file], abortSignal),
+    storage.blob_index.build([file], abortSignal),
   ])
 
   // If upload fails then what happens with index is not important as there is no
@@ -110,7 +120,7 @@ export async function createNodeFromLocalBinary(
 
   const index_text: NodeIndexText = index.indexes[0].index
   try {
-    await smuggler.node.update(
+    await storage.node.update(
       {
         nid: upload.nids[0],
         index_text,

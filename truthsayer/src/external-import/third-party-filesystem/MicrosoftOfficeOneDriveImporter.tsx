@@ -68,14 +68,16 @@ async function uploadFilesFromFolder(
   let filesLeft = files.length
   for (const batch of FsModificationQueue.modTimestampBatchIterator(files)) {
     for (const file of batch) {
-      if (!steroid.build_index.cfg.supportsMime(file.details.mimeType)) {
+      if (
+        !steroid(storage).build_index.cfg.supportsMime(file.details.mimeType)
+      ) {
         log.debug(
           `Skipping ${file.path} due to unsupported Mime type ${file.details.mimeType}`
         )
         return
       }
       const contents: File = await fs.download(file)
-      const index_text = await steroid.build_index.build(contents)
+      const index_text = await steroid(storage).build_index.build(contents)
       const extattrs: NodeExtattrs = {
         ...(await extattrsFromFile(file, contents)),
       }
