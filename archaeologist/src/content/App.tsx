@@ -5,7 +5,7 @@ import browser from 'webextension-polyfill'
 import { PostHog } from 'posthog-js'
 import { v4 as uuidv4 } from 'uuid'
 
-import { NodeUtil, NodeType, smuggler } from 'smuggler-api'
+import { NodeUtil, NodeType, makeDatacenterStorageApi } from 'smuggler-api'
 import type { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log, productanalytics } from 'armoury'
 import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
@@ -390,7 +390,10 @@ const App = () => {
   return (
     <AppErrorBoundary>
       <ContentContext.Provider
-        value={{ analytics: state.analytics, storage: smuggler }}
+        value={{
+          analytics: state.analytics,
+          storage: makeDatacenterStorageApi(),
+        }}
       >
         <BrowserHistoryImportControlPortal
           progress={state.browserHistoryUploadProgress}

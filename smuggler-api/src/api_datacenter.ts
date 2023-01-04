@@ -1,6 +1,6 @@
 /**
- * Implementation of smuggler APIs like @see StorageApi which interact with a
- * cloud-hosted infrastructure to perform their job.
+ * Implementation of smuggler APIs like @see StorageApi which,  to perform their job,
+ * interact with an infrastructure hosted in Mazed's datacenter.
  */
 
 import {
@@ -233,7 +233,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
   } else if ('webBookmark' in key) {
     const { id, stableUrl } = genOriginId(key.webBookmark.url)
     const query = { ...SLICE_ALL, origin: { id } }
-    const iter = smuggler.node.slice(query)
+    const iter = _getNodesSliceIter(query)
 
     for (let node = await iter.next(); node != null; node = await iter.next()) {
       const nodeUrl = node.extattrs?.web?.url
@@ -245,7 +245,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
   } else if ('webQuote' in key) {
     const { id, stableUrl } = genOriginId(key.webQuote.url)
     const query = { ...SLICE_ALL, origin: { id } }
-    const iter = smuggler.node.slice(query)
+    const iter = _getNodesSliceIter(query)
 
     const nodes: TNode[] = []
     for (let node = await iter.next(); node != null; node = await iter.next()) {
@@ -261,7 +261,7 @@ async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
   } else if ('url' in key) {
     const { id, stableUrl } = genOriginId(key.url)
     const query = { ...SLICE_ALL, origin: { id } }
-    const iter = smuggler.node.slice(query)
+    const iter = _getNodesSliceIter(query)
 
     const nodes: TNode[] = []
     for (let node = await iter.next(); node != null; node = await iter.next()) {
@@ -957,61 +957,66 @@ function _makeResponseError(response: Response, message?: string): Error {
   })
 }
 
-export const smuggler: StorageApi & AuthenticationApi = {
+export function makeDatacenterStorageApi(): StorageApi {
+  return {
+    node: {
+      get: getNode,
+      update: updateNode,
+      create: createNode,
+      createOrUpdate: createOrUpdateNode,
+      slice: _getNodesSliceIter,
+      lookup: lookupNodes,
+      delete: deleteNode,
+      bulkDelete: bulkDeleteNodes,
+      batch: {
+        /**
+         * Caution: these methods are not cached
+         */
+        get: getNodeBatch,
+      },
+      url: makeDirectUrl,
+    },
+    blob: {
+      upload: uploadFiles,
+      sourceUrl: makeBlobSourceUrl,
+    },
+    blob_index: {
+      build: buildFilesSearchIndex,
+      cfg: {
+        supportsMime: mimeTypeIsSupportedByBuildIndex,
+      },
+    },
+    edge: {
+      create: createEdge,
+      get: getNodeAllEdges,
+      sticky: switchEdgeStickiness,
+      delete: deleteEdge,
+    },
+    activity: {
+      external: {
+        add: addExternalUserActivity,
+        get: getExternalUserActivity,
+      },
+      association: {
+        record: recordExternalAssociation,
+        get: getExternalAssociation,
+      },
+    },
+    external: {
+      ingestion: {
+        get: getUserIngestionProgress,
+        advance: advanceUserIngestionProgress,
+      },
+    },
+  }
+}
+
+export const authentication: AuthenticationApi = {
   getAuth,
-  node: {
-    get: getNode,
-    update: updateNode,
-    create: createNode,
-    createOrUpdate: createOrUpdateNode,
-    slice: _getNodesSliceIter,
-    lookup: lookupNodes,
-    delete: deleteNode,
-    bulkDelete: bulkDeleteNodes,
-    batch: {
-      /**
-       * Caution: these methods are not cached
-       */
-      get: getNodeBatch,
-    },
-    url: makeDirectUrl,
-  },
-  blob: {
-    upload: uploadFiles,
-    sourceUrl: makeBlobSourceUrl,
-  },
-  blob_index: {
-    build: buildFilesSearchIndex,
-    cfg: {
-      supportsMime: mimeTypeIsSupportedByBuildIndex,
-    },
-  },
-  edge: {
-    create: createEdge,
-    get: getNodeAllEdges,
-    sticky: switchEdgeStickiness,
-    delete: deleteEdge,
-  },
   session: {
     create: createSession,
     delete: deleteSession,
     update: updateSession,
-  },
-  activity: {
-    external: {
-      add: addExternalUserActivity,
-      get: getExternalUserActivity,
-    },
-    association: {
-      record: recordExternalAssociation,
-      get: getExternalAssociation,
-    },
-  },
-  external: {
-    ingestion: {
-      get: getUserIngestionProgress,
-      advance: advanceUserIngestionProgress,
-    },
   },
   user: {
     password: {

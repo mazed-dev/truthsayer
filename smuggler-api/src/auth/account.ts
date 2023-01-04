@@ -1,4 +1,4 @@
-import { smuggler } from './../api_cloud'
+import { authentication } from '../api_datacenter'
 import { authCookie } from './cookie'
 import { AccountInterface } from './account_interface'
 import type { LocalCrypto } from './account_interface'
@@ -40,7 +40,7 @@ export class UserAccount extends AnonymousAccount {
   }
 
   static async create(signal?: AbortSignal): Promise<AccountInterface> {
-    const user = await smuggler.getAuth({ signal }).catch(() => {
+    const user = await authentication.getAuth({ signal }).catch(() => {
       return null
     })
     if (!user) {

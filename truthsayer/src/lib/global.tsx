@@ -9,7 +9,7 @@ import { jcss } from 'elementary'
 import {
   createUserAccount,
   AccountInterface,
-  smuggler,
+  makeDatacenterStorageApi,
   makeAlwaysThrowingStorageApi,
 } from 'smuggler-api'
 import type { StorageApi } from 'smuggler-api'
@@ -116,7 +116,7 @@ export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
       },
       account: null,
       analytics: props.analytics,
-      storage: smuggler,
+      storage: makeDatacenterStorageApi(),
     }
   }
 

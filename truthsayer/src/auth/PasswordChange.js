@@ -3,7 +3,7 @@ import React from 'react'
 import { Badge, Button, Card, Col, Container, Form, Row } from 'react-bootstrap'
 
 import PropTypes from 'prop-types'
-import { smuggler } from 'smuggler-api'
+import { authentication } from 'smuggler-api'
 import { withRouter } from 'react-router-dom'
 
 class PasswordChange extends React.Component {
@@ -54,7 +54,7 @@ class PasswordChange extends React.Component {
 
   onSubmit = (event) => {
     event.preventDefault()
-    smuggler.user.password
+    authentication.user.password
       .change({
         old_password: this.state.password,
         new_password: this.state.new_password,

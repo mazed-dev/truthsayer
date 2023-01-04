@@ -8,7 +8,7 @@ import PropTypes from 'prop-types'
 import { css } from '@emotion/react'
 import { withRouter, Link } from 'react-router-dom'
 
-import { smuggler } from 'smuggler-api'
+import { authentication } from 'smuggler-api'
 import { goto } from '../lib/route'
 
 class Login extends React.Component {
@@ -54,7 +54,7 @@ class Login extends React.Component {
     })
     const { email, password } = this.state
     const permissions = null
-    smuggler.session
+    authentication.session
       .create(
         email,
         password,

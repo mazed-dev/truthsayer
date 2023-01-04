@@ -12,7 +12,7 @@ import {
 
 import { Emoji } from './../lib/Emoji'
 import PropTypes from 'prop-types'
-import { smuggler } from 'smuggler-api'
+import { authentication } from 'smuggler-api'
 import { withRouter } from 'react-router-dom'
 
 class PasswordRecoverRequest extends React.Component {
@@ -67,7 +67,7 @@ class PasswordRecoverRequest extends React.Component {
 
   onSubmit = (event) => {
     event.preventDefault()
-    smuggler.user.password
+    authentication.user.password
       .recover({
         email: this.state.email,
         signal: this.abortControler.signal,

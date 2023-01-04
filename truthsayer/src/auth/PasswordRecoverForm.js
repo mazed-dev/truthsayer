@@ -5,7 +5,7 @@ import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import { withRouter } from 'react-router-dom'
 
-import { smuggler } from 'smuggler-api'
+import { authentication } from 'smuggler-api'
 
 class PasswordRecoverForm extends React.Component {
   constructor(props) {
@@ -36,7 +36,7 @@ class PasswordRecoverForm extends React.Component {
 
   onSubmit = (event) => {
     event.preventDefault()
-    smuggler.user.password
+    authentication.user.password
       .reset({
         token: this.props.token,
         new_password: this.state.password,

@@ -11,7 +11,7 @@ import { goto, History, routes } from '../../lib/route'
 
 import { log } from 'armoury'
 
-import { smuggler } from 'smuggler-api'
+import { authentication } from 'smuggler-api'
 import { Link } from 'react-router-dom'
 
 type SignupProps = {
@@ -92,7 +92,7 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
     this.setState({
       errorMsg: undefined,
     })
-    smuggler.user
+    authentication.user
       .register({
         name: this.state.name,
         email: this.state.email,
