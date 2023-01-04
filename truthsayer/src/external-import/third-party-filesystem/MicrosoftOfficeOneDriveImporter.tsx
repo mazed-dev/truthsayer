@@ -93,7 +93,7 @@ async function uploadFilesFromFolder(
         created_via: { autoIngestion: epid },
       }
 
-      const response = await storage.node.createOrUpdate(node)
+      const response = await steroid(storage).node.createOrUpdate(node)
       log.debug(`Response to node creation/update: ${JSON.stringify(response)}`)
     }
     await storage.external.ingestion.advance(epid, {

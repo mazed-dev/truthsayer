@@ -32,6 +32,7 @@ import {
   NodeCreatedVia,
   UserExternalPipelineIngestionProgress,
   StorageApi,
+  steroid,
 } from 'smuggler-api'
 
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
@@ -98,7 +99,7 @@ async function requestPageSavedStatus(url: string | undefined) {
   }
   let nodes
   try {
-    nodes = await storage.node.lookup({ url })
+    nodes = await steroid(storage).node.lookup({ url })
   } catch (err) {
     log.debug('Lookup by origin ID failed, consider page as non saved', err)
     return { unmemorable: false }

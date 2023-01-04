@@ -12,7 +12,8 @@
  * wrapper around individual smuggler's REST API)
  */
 
-import { StorageApi } from '../storage_api'
+import { CreateNodeArgs, StorageApi } from '../storage_api'
+import { TNode } from '../types'
 import {
   nodeIndexFromFile,
   mimeTypeIsSupportedByBuildIndex,
@@ -20,9 +21,26 @@ import {
 import {
   createNodeFromLocalBinary,
   CreateNodeFromLocalBinaryArgs,
+  lookupNodes,
+  createOrUpdateNode,
+  UniqueNodeLookupKey,
+  NonUniqueNodeLookupKey,
+  NodeLookupKey,
 } from './node'
 
 export const steroid = (storage: StorageApi) => {
+  const lookup = ((key: NodeLookupKey, signal?: AbortSignal) =>
+    lookupNodes(storage, key, signal)) as {
+    // See https://stackoverflow.com/a/24222144/3375765
+    // and https://stackoverflow.com/a/61366790/3375765 if you are unsure what
+    // this type signature is
+    (key: UniqueNodeLookupKey, signal?: AbortSignal): Promise<TNode | undefined>
+    (key: NonUniqueNodeLookupKey, signal?: AbortSignal): Promise<TNode[]>
+    (key: NodeLookupKey, signal?: AbortSignal): Promise<
+      TNode[] | TNode | undefined
+    >
+  }
+
   return {
     build_index: {
       build: (file: File, signal?: AbortSignal) => {
@@ -33,6 +51,13 @@ export const steroid = (storage: StorageApi) => {
       },
     },
     node: {
+      createOrUpdate: (args: CreateNodeArgs, signal?: AbortSignal) =>
+        createOrUpdateNode(storage, args, signal),
+      /**
+       * Lookup all the nodes that match a given key. For unique lookup keys either
+       * 0 or 1 nodes will be returned. For non-unique more than 1 node can be returned.
+       */
+      lookup,
       // TODO[snikitin@outlook.com] See if this can be merged with
       // uploadLocalTextFile() to form a more general steroid.node.createFromLocal
       createFromLocalBinary: (

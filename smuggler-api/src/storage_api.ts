@@ -71,32 +71,6 @@ export type SwitchEdgeStickinessArgs = {
   signal: AbortSignal
 }
 
-/**
- * Unique lookup keys that can match at most 1 node
- */
-export type UniqueNodeLookupKey =
-  /** Due to nid's nature there can be at most 1 node with a particular nid */
-  | { nid: Nid }
-  /** Unique because many nodes can refer to the same URL, but only one of them
-   * can be a bookmark */
-  | { webBookmark: { url: string } }
-
-export type NonUniqueNodeLookupKey =
-  /** Can match more than 1 node because multiple parts of a single web page
-   * can be quoted */
-  | { webQuote: { url: string } }
-  /** Can match more than 1 node because many nodes can refer to
-   * the same URL:
-   *    - 0 or 1 can be @see NoteType.Url
-   *    - AND at the same time more than 1 can be @see NodeType.WebQuote */
-  | { url: string }
-
-/**
- * All the different types of keys that can be used to identify (during lookup,
- * for example) one or more nodes.
- */
-export type NodeLookupKey = UniqueNodeLookupKey | NonUniqueNodeLookupKey
-
 export type StorageApi = {
   node: {
     get: ({ nid, signal }: { nid: Nid; signal?: AbortSignal }) => Promise<TNode>
@@ -108,23 +82,7 @@ export type StorageApi = {
       args: CreateNodeArgs,
       signal?: AbortSignal
     ) => Promise<NewNodeResponse>
-    createOrUpdate: (
-      args: CreateNodeArgs,
-      signal?: AbortSignal
-    ) => Promise<NewNodeResponse>
     slice: (args: GetNodeSliceArgs) => TNodeSliceIterator
-    /**
-     * Lookup all the nodes that match a given key. For unique lookup keys either
-     * 0 or 1 nodes will be returned. For non-unique more than 1 node can be returned.
-     */
-    lookup: {
-      // See https://stackoverflow.com/a/24222144/3375765 if you are unsure what
-      // this type signature is
-      (key: UniqueNodeLookupKey, signal?: AbortSignal): Promise<
-        TNode | undefined
-      >
-      (key: NonUniqueNodeLookupKey, signal?: AbortSignal): Promise<TNode[]>
-    }
     delete: ({
       nid,
       signal,
