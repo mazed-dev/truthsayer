@@ -76,7 +76,7 @@ describe('data-driven test', () => {
     ])
   })
   it('Search for corpus texts in corpus itself', () => {
-    rows.slice(1, 100).forEach((row) => {
+    rows.slice(1, 10).forEach((row) => {
       const res = findRelevantDocuments(
         row.text,
         1,

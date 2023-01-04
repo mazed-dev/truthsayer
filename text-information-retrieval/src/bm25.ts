@@ -1,12 +1,17 @@
 // Load wink-nlp package.
-import winkNLP, { PartOfSpeech, Bow, WinkMethods } from 'wink-nlp'
+import winkNLP, { WinkMethods } from 'wink-nlp'
 // Load english language model.
 import model from 'wink-eng-lite-web-model'
 
-const kOkapiBM25PlusB = 0.75
+// According to an original papaper, b ∈ [0, 1]. Default value for an unknown
+// corpus is 0.75. I deliberately chose greater value, to slightly increase the
+// priority of smaller documents. Greater values favour smaller documents.
+// Please feel free to reconsider all these values when you get more insights.
+const kOkapiBM25PlusB = 0.92
 const kOkapiBM25PlusK1 = 2.0
 const kOkapiBM25PlusDelta = 1.0
 
+type BagOfwords = Record<string, number>
 /**
  * Index implementation for Okapi BM25+
  * https://en.wikipedia.org/wiki/Okapi_BM25
@@ -20,7 +25,7 @@ export type OkapiBM25PlusIndex = {
   // NOTE (akindyakov): It might be tempting to use "bow" acronym for "bag of
   // words" here, please don't. Because it's just too confusing in a large
   // enough codebase.
-  bagOfwords: Record<string, number>
+  bagOfwords: BagOfwords
   documentsNumber: number
   wordsInAllDocuments: number
 
@@ -36,7 +41,7 @@ export type OkapiBM25PlusPerDocumentIndex = {
   // NOTE (akindyakov): It might be tempting to use "bow" acronym for "bag of
   // words" here, please don't. Because it's just too confusing in a large
   // enough codebase.
-  bagOfwords: Record<string, number>
+  bagOfwords: BagOfwords
   wordsNumber: number
 }
 
@@ -139,7 +144,7 @@ function createPerDocumentIndexFromText(
       // Filter out punctuation
       return tokenTypes[index] !== 'punctuation'
     })
-  const bagOfwords = lemmas.reduce((bagOfwords: Bow, lemma: string) => {
+  const bagOfwords = lemmas.reduce((bagOfwords: BagOfwords, lemma: string) => {
     return addRecordValue(bagOfwords, lemma, 1)
   }, {})
   const wordsNumber = lemmas.length
@@ -169,15 +174,15 @@ function getTermInDocumentImportance(
   documentSizeInWords: number,
   averageDocumentSizeInWords: number
 ): number {
+  // prettier-ignore
   return (
     kOkapiBM25PlusDelta +
-    (occurenceInDoc * (kOkapiBM25PlusK1 + 1)) /
-      (occurenceInDoc +
-        kOkapiBM25PlusK1 *
-          (1 -
-            kOkapiBM25PlusB +
-            (kOkapiBM25PlusB * documentSizeInWords) /
-              averageDocumentSizeInWords))
+      (occurenceInDoc * (kOkapiBM25PlusK1 + 1)) /
+        (occurenceInDoc + kOkapiBM25PlusK1 *
+          (1 - kOkapiBM25PlusB + (kOkapiBM25PlusB * documentSizeInWords) /
+                                    averageDocumentSizeInWords
+          )
+        )
   )
 }
 
@@ -191,14 +196,14 @@ function getTermInDocumentScore(
   if (occurenceInDoc == null) {
     return 0
   }
-  // prettier-ignore
   return (
-      getTermInverseDocumentFrequency(term, relIndex) * getTermInDocumentImportance(
-        occurenceInDoc,
-        doc.wordsNumber,
-        averageDocumentSizeInWords,
-      )
+    getTermInverseDocumentFrequency(term, relIndex) *
+    getTermInDocumentImportance(
+      occurenceInDoc,
+      doc.wordsNumber,
+      averageDocumentSizeInWords
     )
+  )
 }
 
 function getKeyphraseInDocumentScore(
@@ -260,11 +265,15 @@ export function getTermInverseDocumentFrequency(
   relIndex: OkapiBM25PlusIndex
 ) {
   const numberOfDocumentsContainingTerm = relIndex.bagOfwords[term] ?? 0
-  return Math.log(
+  const x =
     1 +
-      (relIndex.documentsNumber - numberOfDocumentsContainingTerm + 0.5) /
-        (numberOfDocumentsContainingTerm + 0.5)
-  )
+    (relIndex.documentsNumber - numberOfDocumentsContainingTerm + 0.5) /
+      (numberOfDocumentsContainingTerm + 0.5)
+  if (x < Math.E) {
+    // To avoid negative results for a frequent word, e.g. "the"
+    return 0
+  }
+  return Math.log(x)
 }
 
 function getTextRelevanceScore(
@@ -280,18 +289,19 @@ function getTextRelevanceScore(
       if (occurenceInCorpusDoc == null) {
         return 0
       }
-      // prettier-ignore
       return (
-      getTermInverseDocumentFrequency(term, relIndex) * getTermInDocumentImportance(
-        occurenceInCorpusDoc,
-        corpusDoc.wordsNumber,
-        averageDocumentSizeInWords,
-      ) * getTermInDocumentImportance(
-        occurenceInQueryDoc,
-        queryDoc.wordsNumber,
-        averageDocumentSizeInWords,
+        getTermInverseDocumentFrequency(term, relIndex) *
+        getTermInDocumentImportance(
+          occurenceInCorpusDoc,
+          corpusDoc.wordsNumber,
+          averageDocumentSizeInWords
+        ) *
+        getTermInDocumentImportance(
+          occurenceInQueryDoc,
+          queryDoc.wordsNumber,
+          averageDocumentSizeInWords
+        )
       )
-    )
     })
     .reduce((prev: number, current: number) => current + prev)
   return score
