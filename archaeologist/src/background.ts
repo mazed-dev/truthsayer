@@ -27,7 +27,7 @@ import {
   NodeUtil,
   TotalUserActivity,
   ResourceVisit,
-  smuggler,
+  makeDatacenterStorageApi,
   UserExternalPipelineId,
   NodeCreatedVia,
   UserExternalPipelineIngestionProgress,
@@ -877,7 +877,7 @@ browser.contextMenus.onClicked.addListener(
   }
 )
 
-const storage: StorageApi = smuggler
+const storage: StorageApi = makeDatacenterStorageApi()
 
 auth.register()
 browserBookmarks.register(storage)
