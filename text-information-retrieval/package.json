@@ -1,6 +1,6 @@
 {
-  "name": "nlp-search",
-  "description": "Search algorithms",
+  "name": "text-information-retrieval",
+  "description": "Text information retrieval",
   "author": "Mazed",
   "version": "0.0.1",
   "license": "no",

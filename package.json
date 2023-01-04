@@ -4,16 +4,16 @@
   "private": true,
   "scripts": {
     "archaeologist": "yarn workspace archaeologist",
-    "elementary": "yarn workspace elementary",
-    "truthsayer-archaeologist-communication": "yarn workspace truthsayer-archaeologist-communication",
     "armoury": "yarn workspace armoury",
+    "elementary": "yarn workspace elementary",
     "fix": "yarn syncpack fix-mismatches && yarn workspaces foreach run fix",
     "fix:prettier": "yarn workspaces foreach run fix:prettier",
     "librarius": "yarn workspace librarius",
     "lint": "yarn syncpack list-mismatches && yarn workspaces foreach run lint",
-    "nlp-search": "yarn workspace nlp-search",
+    "truthsayer-archaeologist-communication": "yarn workspace truthsayer-archaeologist-communication",
     "smuggler-api": "yarn workspace smuggler-api",
     "test": "yarn workspaces foreach run test --all --watchAll=false --no-watchman",
+    "text-information-retrieval": "yarn workspace text-information-retrieval",
     "truthsayer": "yarn workspace truthsayer"
   },
   "workspaces": [
@@ -21,10 +21,10 @@
     "armoury",
     "elementary",
     "librarius",
-    "nlp-search",
     "smuggler-api",
-    "truthsayer-archaeologist-communication",
-    "truthsayer"
+    "text-information-retrieval",
+    "truthsayer",
+    "truthsayer-archaeologist-communication"
   ],
   "dependencies": {
     "eslint": "^8.16.0",
