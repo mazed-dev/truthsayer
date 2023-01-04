@@ -13,6 +13,7 @@ import { Optional } from 'armoury'
 import UploadImg from '../img/upload-strip.svg'
 
 import styles from './UploadNodeButton.module.css'
+import MzdGlobalContext from '../lib/global'
 
 type UploadNodeButtonProps = React.PropsWithChildren<{
   className: string
@@ -144,6 +145,9 @@ class FileUploadStatus extends React.Component<
   FileUploadStatusProps,
   FileUploadStatusState
 > {
+  static contextType = MzdGlobalContext
+  context!: React.ContextType<typeof MzdGlobalContext>
+
   abortControler: AbortController
 
   constructor(props: FileUploadStatusProps) {
@@ -159,6 +163,7 @@ class FileUploadStatus extends React.Component<
   componentDidMount() {
     const { file, from_nid, to_nid } = this.props
     uploadLocalFile(
+      this.context.storage,
       file,
       from_nid || null,
       to_nid || null,

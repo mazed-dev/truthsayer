@@ -1,4 +1,4 @@
-import { NodeCreatedVia, smuggler, steroid } from 'smuggler-api'
+import { NodeCreatedVia, steroid, StorageApi } from 'smuggler-api'
 import { MimeType, isAbortError, errorise, log } from 'armoury'
 
 import { TDoc, SlateText } from 'elementary'
@@ -9,6 +9,7 @@ import { Optional } from 'armoury'
 import { FileUploadStatusState } from './UploadNodeButton'
 
 export function uploadLocalFile(
+  storage: StorageApi,
   file: File,
   from_nid: Optional<string>,
   to_nid: Optional<string>,
@@ -24,6 +25,7 @@ export function uploadLocalFile(
   const createdVia: NodeCreatedVia = { manualAction: null }
   if (Mime.isText(mime)) {
     uploadLocalTextFile(
+      storage,
       file,
       from_nid,
       to_nid,
@@ -32,8 +34,14 @@ export function uploadLocalFile(
       abortSignal
     )
   } else {
-    steroid.node
-      .createFromLocalBinary(file, from_nid, to_nid, createdVia, abortSignal)
+    steroid(storage)
+      .node.createFromLocalBinary({
+        file,
+        from_nid,
+        to_nid,
+        createdVia,
+        abortSignal,
+      })
       .then((result) => {
         updateStatus({ progress: 1, nid: result.nid, error: result.warning })
       })
@@ -52,6 +60,7 @@ export function uploadLocalFile(
 // At the time of this writing it is mostly prevented by the usage of markdownToSlate()
 // which is not available at 'steroid' level
 function uploadLocalTextFile(
+  storage: StorageApi,
   file: File,
   from_nid: Optional<string>,
   to_nid: Optional<string>,
@@ -73,7 +82,7 @@ function uploadLocalTextFile(
     const text = (event.target?.result || '') + appendix
     const slate = markdownToSlate(text)
     const doc = new TDoc(slate as SlateText)
-    smuggler.node
+    storage.node
       .create(
         {
           text: doc.toNodeTextData(),

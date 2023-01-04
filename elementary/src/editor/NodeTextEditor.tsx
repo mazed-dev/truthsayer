@@ -18,7 +18,7 @@ import { Leaf } from './components/Leaf'
 
 import { FormatToolbar } from './FormatToolbar'
 import { TDoc, SlateText } from './types'
-import type { TNode } from 'smuggler-api'
+import type { StorageApi, TNode } from 'smuggler-api'
 
 import { makeElementRender } from './ElementRender'
 import { productanalytics } from 'armoury'
@@ -27,10 +27,12 @@ export const NodeTextEditor = ({
   className,
   node,
   saveText,
+  storage,
 }: {
   node: TNode
   saveText: (text: SlateText) => void
   className?: string
+  storage: StorageApi
 }) => {
   const [isJinnShown, setShowJinn] = useState<boolean>(false)
   const nid = node.nid
@@ -67,6 +69,7 @@ export const NodeTextEditor = ({
         isShown={isJinnShown}
         onHide={() => setShowJinn(false)}
         editor={editor}
+        storage={storage}
       />
       <Slate
         editor={editor}

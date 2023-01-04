@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import React from 'react'
+import React, { useContext } from 'react'
 import { useHistory } from 'react-router-dom'
 
 import { Row, Col } from 'react-bootstrap'
@@ -18,7 +18,7 @@ import { MzdGlobalContext } from '../lib/global'
 import { Optional, isAbortError, log } from 'armoury'
 import { styleMobileTouchOnly } from 'elementary'
 
-import { smuggler, TNode, NodeTextData, TEdge, NodeUtil } from 'smuggler-api'
+import { TNode, NodeTextData, TEdge, NodeUtil } from 'smuggler-api'
 
 import { css } from '@emotion/react'
 import {
@@ -45,6 +45,7 @@ function RefNodeCard({
   className?: string
 }) {
   const history = useHistory()
+  const ctx = useContext(MzdGlobalContext)
   return (
     <SmallCard
       className={className}
@@ -63,6 +64,7 @@ function RefNodeCard({
           nid={nid}
           strippedRefs={true}
           strippedActions={true}
+          storage={ctx.storage}
         />
       </ShrinkCard>
       <div
@@ -144,6 +146,9 @@ type TriptychState = {
 }
 
 export class Triptych extends React.Component<TriptychProps, TriptychState> {
+  static contextType = MzdGlobalContext
+  context!: React.ContextType<typeof MzdGlobalContext>
+
   fetchToEdgesAbortController: AbortController
   fetchFromEdgesAbortController: AbortController
   fetchNodeAbortController: AbortController
@@ -191,7 +196,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
       edges_sticky: [],
     })
     try {
-      const { from_edges, to_edges } = await smuggler.edge.get(
+      const { from_edges, to_edges } = await this.context.storage.edge.get(
         this.props.nid,
         this.fetchToEdgesAbortController.signal
       )
@@ -213,7 +218,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
     this.setState({ node: null })
     const nid = this.props.nid
     try {
-      const node = await smuggler.node.get({
+      const node = await this.context.storage.node.get({
         nid,
         signal: this.fetchNodeAbortController.signal,
       })
@@ -230,7 +235,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
       // TODO(akindyakov): move conversion from raw slate to doc to here
       // TODO(akindyakov): collect stats here
       const nid = this.props.nid
-      return await smuggler.node.update(
+      return await this.context.storage.node.update(
         {
           nid,
           text,
@@ -260,7 +265,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
   addRef = async ({ from, to }: { from: string; to: string }) => {
     const { edges_right, edges_left } = this.state
     const { nid } = this.props
-    const edge = await smuggler.edge.create({
+    const edge = await this.context.storage.edge.create({
       from,
       to,
       signal: this.createEdgeAbortController.signal,
@@ -300,7 +305,11 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
     const { node, edges_sticky, edges_right, edges_left } = this.state
     const nodeCard =
       node !== null ? (
-        <NodeCard node={node} saveNode={this.saveNode} />
+        <NodeCard
+          node={node}
+          saveNode={this.saveNode}
+          storage={this.context.storage}
+        />
       ) : (
         <Spinner.Wheel />
       )
@@ -374,12 +383,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
         >
           <WideCard>
             {nodeCard}
-            <FullCardFootbar
-              node={node}
-              addRef={this.addRef}
-              stickyEdges={edges_sticky}
-              saveNode={this.saveNode}
-            />
+            <FullCardFootbar node={node} />
           </WideCard>
         </Col>
         <Col

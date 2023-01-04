@@ -5,12 +5,13 @@ import styled from '@emotion/styled'
 import { mazed } from '../../util/mazed'
 
 import { TDoc, ShrinkMinimalCard, NodeCardReadOnly } from 'elementary'
-import { NodeUtil, smuggler } from 'smuggler-api'
+import { NodeUtil, StorageApi } from 'smuggler-api'
 import type { TNode } from 'smuggler-api'
 
 import { Toast, useOutsideToastClickHandler } from './../toaster/Toaster'
 import { LogoSmall, RefItem } from './../style'
 import { MeteredButton } from '../elements/MeteredButton'
+import { ContentContext } from '../context'
 
 const ToastBox = styled.div`
   width: 368px;
@@ -90,7 +91,7 @@ const CopySuggestionButton = ({
   )
 }
 
-function getTextToInsert(node: TNode): string {
+function getTextToInsert(storage: StorageApi, node: TNode): string {
   let toInsert: string
   if (NodeUtil.isWebBookmark(node) && node.extattrs?.web != null) {
     const { web, title, author } = node.extattrs
@@ -102,11 +103,11 @@ function getTextToInsert(node: TNode): string {
     const authorStr = author ? `\nby ${author}` : ''
     toInsert = `“${text}”${authorStr}\n🧵 ${url} `
   } else if (NodeUtil.isImage(node)) {
-    const url = smuggler.blob.sourceUrl(node.nid)
+    const url = storage.blob.sourceUrl(node.nid)
     toInsert = ` 🧵 ${url} `
   } else {
     const doc = TDoc.fromNodeTextData(node.text)
-    toInsert = `${doc.genPlainText()}\n🧵 ${smuggler.node.url(node.nid)} `
+    toInsert = `${doc.genPlainText()}\n🧵 ${storage.node.url(node.nid)} `
   }
   return toInsert
 }
@@ -118,6 +119,7 @@ function CardInsertButton({
   node: TNode
   onClose: () => void
 }) {
+  const ctx = React.useContext(ContentContext)
   let copySubj: string
   if (NodeUtil.isWebBookmark(node) && node.extattrs?.web != null) {
     copySubj = 'Link'
@@ -131,7 +133,7 @@ function CardInsertButton({
   return (
     <CopySuggestionButton
       onClick={() => {
-        const toInsert = getTextToInsert(node)
+        const toInsert = getTextToInsert(ctx.storage, node)
         navigator.clipboard.writeText(toInsert)
         onClose()
       }}
@@ -149,15 +151,21 @@ const SuggestedCard = ({
   onClose: () => void
 }) => {
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
+  const ctx = React.useContext(ContentContext)
   return (
     <SuggestedCardBox>
       <ShrinkMinimalCard showMore={seeMore} height={'104px'}>
-        <NodeCardReadOnly node={node} strippedRefs strippedActions />
+        <NodeCardReadOnly
+          node={node}
+          strippedRefs
+          strippedActions
+          storage={ctx.storage}
+        />
       </ShrinkMinimalCard>
       <SuggestedCardTools>
         <CardInsertButton node={node} onClose={onClose} />
         <SuggestionButton
-          href={smuggler.node.url(node.nid)}
+          href={ctx.storage.node.url(node.nid)}
           metricLabel={'Suggested Fragment Open in Mazed'}
         >
           Open Mazed

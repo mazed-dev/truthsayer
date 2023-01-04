@@ -1,9 +1,11 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { Modal, Form } from 'react-bootstrap'
 
 import { SearchGrid } from 'elementary'
 
 import lodash from 'lodash'
+import { MzdGlobalContext } from '../lib/global'
+import { StorageApi } from 'smuggler-api'
 
 type SearchAndConnectJinnModalProps = {
   nid: string
@@ -32,6 +34,9 @@ class SearchAndConnectJinnModal extends React.Component<
   SearchAndConnectJinnModalProps,
   SearchAndConnectJinnModalState
 > {
+  static contextType = MzdGlobalContext
+  context!: React.ContextType<typeof MzdGlobalContext>
+
   inputRef: React.RefObject<HTMLInputElement>
 
   constructor(props: SearchAndConnectJinnModalProps) {
@@ -104,6 +109,7 @@ class SearchAndConnectJinnModal extends React.Component<
           defaultSearch
           onCardClick={this.onNodeCardClick}
           portable
+          storage={this.context.storage}
         >
           {cards}
         </SearchGrid>

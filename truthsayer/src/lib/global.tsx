@@ -6,7 +6,13 @@ import { PostHog } from 'posthog-js'
 import { KnockerElement } from '../auth/Knocker'
 
 import { jcss } from 'elementary'
-import { createUserAccount, AccountInterface } from 'smuggler-api'
+import {
+  createUserAccount,
+  AccountInterface,
+  smuggler,
+  makeAlwaysThrowingStorageApi,
+} from 'smuggler-api'
+import type { StorageApi } from 'smuggler-api'
 
 import styles from './global.module.css'
 import { NotificationToast } from './Toaster'
@@ -26,6 +32,7 @@ export type MzdGlobalContextProps = {
   account: null | AccountInterface
   topbar: Topbar | {}
   toaster: Toaster
+  storage: StorageApi
   analytics: PostHog | null
 }
 
@@ -38,6 +45,7 @@ export const MzdGlobalContext = React.createContext<MzdGlobalContextProps>({
       // *dbg*/ console.log('Default push() function called: ', header, message)
     },
   },
+  storage: makeAlwaysThrowingStorageApi(),
   analytics: null,
 })
 
@@ -48,6 +56,7 @@ type MzdGlobalState = {
   topbar: Topbar
   toaster: Toaster
   account: AccountInterface | null
+  storage: StorageApi
   analytics: PostHog | null
 }
 
@@ -107,6 +116,7 @@ export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
       },
       account: null,
       analytics: props.analytics,
+      storage: smuggler,
     }
   }
 

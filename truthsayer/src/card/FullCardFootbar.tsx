@@ -1,14 +1,12 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useContext } from 'react'
+import React, { PropsWithChildren, useContext } from 'react'
 import { css } from '@emotion/react'
 
-import { withRouter } from 'react-router-dom'
+import { RouteComponentProps, withRouter } from 'react-router-dom'
 import { ButtonToolbar } from 'react-bootstrap'
 
-import PropTypes from 'prop-types'
-
-import { smuggler, NodeUtil } from 'smuggler-api'
+import { NodeMeta, NodeUtil, StorageApi, TNode } from 'smuggler-api'
 import { jcss, TDoc } from 'elementary'
 
 import styles from './FullCardFootbar.module.css'
@@ -18,7 +16,7 @@ import CopyImg from './../img/copy.png'
 import ArchiveImg from './../img/archive.png'
 import DeleteImg from './../img/delete.png'
 
-import { MzdGlobalContext } from '../lib/global'
+import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
 import { NotificationToast } from '../lib/Toaster'
 import { slateToMarkdown } from 'librarius'
 import { goto } from '../lib/route'
@@ -31,11 +29,12 @@ import {
   FootbarDropdownMenu,
   FootbarDropdownToggleMeatballs,
 } from './Footbar'
+import { Optional } from 'armoury'
 
-function nodeToMarkdown(node) {
+function nodeToMarkdown(node: TNode, storage: StorageApi) {
   let md = ''
   if (NodeUtil.isImage(node)) {
-    const source = smuggler.blob.sourceUrl(node.nid)
+    const source = storage.blob.sourceUrl(node.nid)
     md = md.concat(`![](${source})`)
   }
   const text = node.text
@@ -46,15 +45,22 @@ function nodeToMarkdown(node) {
   return md
 }
 
-class PrivateFullCardFootbarImpl extends React.Component {
-  constructor(props) {
+type PrivateFullCardFootbarProps = PropsWithChildren<{
+  nid: string
+  meta: NodeMeta
+  getMarkdown: () => Promise<string>
+  context: MzdGlobalContextProps
+}>
+
+class PrivateFullCardFootbarImpl extends React.Component<
+  PrivateFullCardFootbarProps & RouteComponentProps
+> {
+  deleteAbortController: AbortController
+
+  constructor(props: PrivateFullCardFootbarProps & RouteComponentProps) {
     super(props)
     this.state = {}
     this.deleteAbortController = new AbortController()
-  }
-
-  static propTypes = {
-    history: PropTypes.object.isRequired,
   }
 
   handleCopyMarkdown = () => {
@@ -104,7 +110,7 @@ class PrivateFullCardFootbarImpl extends React.Component {
 
   handleDeleteNote = () => {
     const toaster = this.props.context.toaster
-    smuggler.node
+    this.props.context.storage.node
       .delete({
         nid: this.props.nid,
         signal: this.deleteAbortController.signal,
@@ -196,14 +202,17 @@ class PrivateFullCardFootbarImpl extends React.Component {
 
 const PrivateFullCardFootbar = withRouter(PrivateFullCardFootbarImpl)
 
-class PublicFullCardFootbarImpl extends React.Component {
-  constructor(props) {
+type PublicFullCardFootbarProps = PropsWithChildren<{
+  nid: string
+  context: MzdGlobalContextProps
+}>
+
+class PublicFullCardFootbarImpl extends React.Component<
+  PublicFullCardFootbarProps & RouteComponentProps
+> {
+  constructor(props: PublicFullCardFootbarProps & RouteComponentProps) {
     super(props)
     this.state = {}
-  }
-
-  static propTypes = {
-    history: PropTypes.object.isRequired,
   }
 
   render() {
@@ -217,14 +226,18 @@ class PublicFullCardFootbarImpl extends React.Component {
 
 const PublicFullCardFootbar = withRouter(PublicFullCardFootbarImpl)
 
-export function FullCardFootbar({ /* children,  */ node, ...rest }) {
+export function FullCardFootbar({
+  /* children,  */ node,
+}: {
+  node: Optional<TNode>
+}) {
   const ctx = useContext(MzdGlobalContext)
   const { account } = ctx
   if (node && node.meta) {
     const { nid, meta } = node
-    if (NodeUtil.isOwnedBy(node, account)) {
+    if (NodeUtil.isOwnedBy(node, account ?? undefined)) {
       const getMarkdown = async () => {
-        return nodeToMarkdown(node)
+        return nodeToMarkdown(node, ctx.storage)
       }
       return (
         <PrivateFullCardFootbar
@@ -232,11 +245,10 @@ export function FullCardFootbar({ /* children,  */ node, ...rest }) {
           meta={meta}
           getMarkdown={getMarkdown}
           context={ctx}
-          {...rest}
         />
       )
     } else {
-      return <PublicFullCardFootbar nid={nid} context={ctx} {...rest} />
+      return <PublicFullCardFootbar nid={nid} context={ctx} />
     }
   }
   // TODO(akindyakov): empty footbard to allocate space?
