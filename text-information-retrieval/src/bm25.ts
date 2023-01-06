@@ -3,15 +3,22 @@ import winkNLP, { WinkMethods } from 'wink-nlp'
 // Load english language model.
 import model from 'wink-eng-lite-web-model'
 
+// Feel free to reconsider all these values when you get more insights in type
+// of texts saved to Mazed.
 // According to an original papaper, b ∈ [0, 1]. Default value for an unknown
 // corpus is 0.75. I deliberately chose greater value, to slightly increase the
-// priority of smaller documents. Greater values favour smaller documents.
-// Please feel free to reconsider all these values when you get more insights.
-const kOkapiBM25PlusB = 0.92
+// priority of small documents. Greater values favour smaller documents.
+const kOkapiBM25PlusB = 0.91
 const kOkapiBM25PlusK1 = 2.0
 const kOkapiBM25PlusDelta = 1.0
 
-type BagOfwords = Record<string, number>
+/**
+ * Use a proper Map and not an Object or Record<string, number> because keys
+ * that are JS keywords mess up everything. Besides giving incorrect results it
+ * impose a security vulnerability.
+ */
+type BagOfWords = Map<string, number>
+
 /**
  * Index implementation for Okapi BM25+
  * https://en.wikipedia.org/wiki/Okapi_BM25
@@ -25,23 +32,23 @@ export type OkapiBM25PlusIndex = {
   // NOTE (akindyakov): It might be tempting to use "bow" acronym for "bag of
   // words" here, please don't. Because it's just too confusing in a large
   // enough codebase.
-  bagOfwords: BagOfwords
+  bagOfWords: BagOfWords
   documentsNumber: number
   wordsInAllDocuments: number
 
   model: NlpModel
 }
 
-export type OkapiBM25PlusPerDocumentIndex = {
+export type OkapiBM25PlusPerDocumentIndex<DocIdType> = {
   algorithm: 'Okapi BM25+'
   version: 1
   // Unique docId for a document
-  docId: string
+  docId: DocIdType
   // Number of times a term (lemma) occurs in the document
   // NOTE (akindyakov): It might be tempting to use "bow" acronym for "bag of
   // words" here, please don't. Because it's just too confusing in a large
   // enough codebase.
-  bagOfwords: BagOfwords
+  bagOfWords: BagOfWords
   wordsNumber: number
 }
 
@@ -55,15 +62,15 @@ function createModel(): NlpModel {
   return { wink }
 }
 
-export function createIndex(): [
+export function createIndex<DocIdType>(): [
   OkapiBM25PlusIndex,
-  OkapiBM25PlusPerDocumentIndex[]
+  OkapiBM25PlusPerDocumentIndex<DocIdType>[]
 ] {
   return [
     {
       algorithm: 'Okapi BM25+',
       version: 1,
-      bagOfwords: {},
+      bagOfWords: new Map(),
       documentsNumber: 0,
       wordsInAllDocuments: 0,
       model: createModel(),
@@ -72,19 +79,19 @@ export function createIndex(): [
   ]
 }
 
-function createPerDocumentIndex({
-  bagOfwords,
+function createPerDocumentIndex<DocIdType>({
+  bagOfWords,
   wordsNumber,
   docId,
 }: {
-  bagOfwords: Record<string, number>
+  bagOfWords: BagOfWords,
   wordsNumber: number
-  docId: string
-}): OkapiBM25PlusPerDocumentIndex {
+  docId: DocIdType
+}): OkapiBM25PlusPerDocumentIndex<DocIdType> {
   return {
     algorithm: 'Okapi BM25+',
     version: 1,
-    bagOfwords,
+    bagOfWords,
     wordsNumber,
     docId,
   }
@@ -92,9 +99,11 @@ function createPerDocumentIndex({
 
 export namespace json {
   export function stringifyIndex(relIndex: OkapiBM25PlusIndex): string {
+    const bagOfWords = Array.from(relIndex.bagOfWords.entries())
     const obj = {
       ...relIndex,
       model: undefined,
+      bagOfWords,
     }
     return JSON.stringify(obj)
   }
@@ -102,38 +111,31 @@ export namespace json {
   export function parseIndex(buf: string): OkapiBM25PlusIndex {
     const obj = JSON.parse(buf)
     obj.model = createModel()
+    obj.bagOfWords = new Map(obj.bagOfWords) as BagOfWords
     return obj
   }
 
-  export function stringifyPerDocumentIndex(
-    perDocRelIndex: OkapiBM25PlusPerDocumentIndex
+  export function stringifyPerDocumentIndex<DocIdType>(
+    perDocRelIndex: OkapiBM25PlusPerDocumentIndex<DocIdType>
   ): string {
-    return JSON.stringify(perDocRelIndex)
+    const bagOfWords = Array.from(perDocRelIndex.bagOfWords.entries())
+    return JSON.stringify({...perDocRelIndex, bagOfWords})
   }
 
-  export function parsePerDocumentIndex(
+  export function parsePerDocumentIndex<DocIdType>(
     buf: string
-  ): OkapiBM25PlusPerDocumentIndex {
-    return JSON.parse(buf)
+  ): OkapiBM25PlusPerDocumentIndex<DocIdType> {
+    const obj = JSON.parse(buf)
+    obj.bagOfWords = new Map(obj.bagOfWords) as BagOfWords
+    return obj
   }
 }
 
-function addRecordValue<K extends keyof any>(
-  rec: Record<K, number>,
-  key: K,
-  by: number,
-  defaultValue?: number
-): Record<K, number> {
-  const value = rec[key] ?? defaultValue ?? 0
-  rec[key] = value + by
-  return rec
-}
-
-function createPerDocumentIndexFromText(
+function createPerDocumentIndexFromText<DocIdType>(
   text: string,
-  docId: string,
-  model: NlpModel
-): OkapiBM25PlusPerDocumentIndex {
+  model: NlpModel,
+  docId: DocIdType
+): OkapiBM25PlusPerDocumentIndex<DocIdType> {
   const { wink } = model
   const doc = wink.readDoc(text)
   const tokenTypes = doc.tokens().out(wink.its.type)
@@ -144,27 +146,29 @@ function createPerDocumentIndexFromText(
       // Filter out punctuation
       return tokenTypes[index] !== 'punctuation'
     })
-  const bagOfwords = lemmas.reduce((bagOfwords: BagOfwords, lemma: string) => {
-    return addRecordValue(bagOfwords, lemma, 1)
-  }, {})
+  const bagOfWords: BagOfWords = new Map()
+  lemmas.forEach((lemma: string) => bagOfWords.set(lemma, bagOfWords.get(lemma) ?? 0 + 1))
   const wordsNumber = lemmas.length
   return createPerDocumentIndex({
-    bagOfwords,
+    bagOfWords,
     wordsNumber,
     docId,
   })
 }
 
-export function addDocument(
+export function addDocument<DocIdType>(
   relIndex: OkapiBM25PlusIndex,
   text: string,
-  docId: string
-): [OkapiBM25PlusIndex, OkapiBM25PlusPerDocumentIndex] {
-  const doc = createPerDocumentIndexFromText(text, docId, relIndex.model)
+  docId: DocIdType
+): [OkapiBM25PlusIndex, OkapiBM25PlusPerDocumentIndex<DocIdType>] {
+  const doc = createPerDocumentIndexFromText(text, relIndex.model, docId)
   relIndex.wordsInAllDocuments += doc.wordsNumber
   relIndex.documentsNumber += 1
-  for (const word in doc.bagOfwords) {
-    relIndex.bagOfwords = addRecordValue(relIndex.bagOfwords, word, 1)
+  for (const word of doc.bagOfWords.keys()) {
+    relIndex.bagOfWords.set(
+      word,
+      (relIndex.bagOfWords.get(word) ?? 0) + 1,
+    )
   }
   return [relIndex, doc]
 }
@@ -186,13 +190,13 @@ function getTermInDocumentImportance(
   )
 }
 
-function getTermInDocumentScore(
+function getTermInDocumentScore<DocIdType>(
   term: string,
   relIndex: OkapiBM25PlusIndex,
-  doc: OkapiBM25PlusPerDocumentIndex,
+  doc: OkapiBM25PlusPerDocumentIndex<DocIdType>,
   averageDocumentSizeInWords: number
 ) {
-  const occurenceInDoc = doc.bagOfwords[term]
+  const occurenceInDoc = doc.bagOfWords.get(term)
   if (occurenceInDoc == null) {
     return 0
   }
@@ -206,10 +210,10 @@ function getTermInDocumentScore(
   )
 }
 
-function getKeyphraseInDocumentScore(
+function getKeyphraseInDocumentScore<DocIdType>(
   keywords: string[],
   relIndex: OkapiBM25PlusIndex,
-  doc: OkapiBM25PlusPerDocumentIndex
+  doc: OkapiBM25PlusPerDocumentIndex<DocIdType>
 ) {
   const averageDocumentSizeInWords =
     relIndex.wordsInAllDocuments / relIndex.documentsNumber
@@ -220,9 +224,9 @@ function getKeyphraseInDocumentScore(
     .reduce((prev: number, current: number) => current + prev)
 }
 
-export type RelevanceResult = {
+export type RelevanceResult<DocIdType> = {
   // doc: OkapiBM25PlusPerDocumentIndex
-  docId: string
+  docId: DocIdType
   score: number
 }
 
@@ -234,16 +238,16 @@ export type RelevanceResult = {
  * into account importance score of each term in `keyphrase`, assuming that
  * human know what they do when they type keyphrase.
  */
-export function findRelevantDocumentsForPhrase(
+export function findRelevantDocumentsForPhrase<DocIdType>(
   keyphrase: string,
   limit: number,
   relIndex: OkapiBM25PlusIndex,
-  docs: OkapiBM25PlusPerDocumentIndex[]
-): RelevanceResult[] {
-  const doc = createPerDocumentIndexFromText(keyphrase, '', relIndex.model)
-  const lemmas = Object.keys(doc.bagOfwords)
-  const results: RelevanceResult[] = []
-  docs.forEach((doc: OkapiBM25PlusPerDocumentIndex) => {
+  docs: OkapiBM25PlusPerDocumentIndex<DocIdType>[]
+): RelevanceResult<DocIdType>[] {
+  const doc = createPerDocumentIndexFromText(keyphrase, relIndex.model, {})
+  const lemmas = Array.from(doc.bagOfWords.keys())
+  const results: RelevanceResult<DocIdType>[] = []
+  docs.forEach((doc: OkapiBM25PlusPerDocumentIndex<DocIdType>) => {
     const score = getKeyphraseInDocumentScore(lemmas, relIndex, doc)
     if (score > 1) {
       results.push({ docId: doc.docId, score })
@@ -264,7 +268,7 @@ export function getTermInverseDocumentFrequency(
   term: string,
   relIndex: OkapiBM25PlusIndex
 ) {
-  const numberOfDocumentsContainingTerm = relIndex.bagOfwords[term] ?? 0
+  const numberOfDocumentsContainingTerm = relIndex.bagOfWords.get(term) ?? 0
   const x =
     1 +
     (relIndex.documentsNumber - numberOfDocumentsContainingTerm + 0.5) /
@@ -276,46 +280,45 @@ export function getTermInverseDocumentFrequency(
   return Math.log(x)
 }
 
-function getTextRelevanceScore(
-  queryDoc: OkapiBM25PlusPerDocumentIndex,
+function getTextRelevanceScore<DocIdType>(
+  queryDoc: OkapiBM25PlusPerDocumentIndex<DocIdType>,
   relIndex: OkapiBM25PlusIndex,
-  corpusDoc: OkapiBM25PlusPerDocumentIndex
+  corpusDoc: OkapiBM25PlusPerDocumentIndex<DocIdType>
 ): number {
   const averageDocumentSizeInWords =
     relIndex.wordsInAllDocuments / relIndex.documentsNumber
-  const score = Object.entries(queryDoc.bagOfwords)
-    .map(([term, occurenceInQueryDoc]) => {
-      const occurenceInCorpusDoc = corpusDoc.bagOfwords[term]
-      if (occurenceInCorpusDoc == null) {
-        return 0
-      }
-      return (
-        getTermInverseDocumentFrequency(term, relIndex) *
-        getTermInDocumentImportance(
-          occurenceInCorpusDoc,
-          corpusDoc.wordsNumber,
-          averageDocumentSizeInWords
-        ) *
-        getTermInDocumentImportance(
-          occurenceInQueryDoc,
-          queryDoc.wordsNumber,
-          averageDocumentSizeInWords
-        )
+  let score = 0
+  for (const [term, occurenceInQueryDoc] of queryDoc.bagOfWords) {
+    const occurenceInCorpusDoc = corpusDoc.bagOfWords.get(term)
+    if (occurenceInCorpusDoc === undefined) {
+      continue
+    }
+    score += (
+      getTermInverseDocumentFrequency(term, relIndex) *
+      getTermInDocumentImportance(
+        occurenceInCorpusDoc,
+        corpusDoc.wordsNumber,
+        averageDocumentSizeInWords
+      ) *
+      getTermInDocumentImportance(
+        occurenceInQueryDoc,
+        queryDoc.wordsNumber,
+        averageDocumentSizeInWords
       )
-    })
-    .reduce((prev: number, current: number) => current + prev)
+    )
+  }
   return score
 }
 
-export function findRelevantDocuments(
+export function findRelevantDocuments<DocIdType>(
   text: string,
   limit: number,
   relIndex: OkapiBM25PlusIndex,
-  docs: OkapiBM25PlusPerDocumentIndex[]
-): RelevanceResult[] {
-  const queryDoc = createPerDocumentIndexFromText(text, '', relIndex.model)
-  const results: RelevanceResult[] = []
-  docs.forEach((corpusDoc: OkapiBM25PlusPerDocumentIndex) => {
+  docs: OkapiBM25PlusPerDocumentIndex<DocIdType>[]
+): RelevanceResult<DocIdType>[] {
+  const queryDoc = createPerDocumentIndexFromText(text, relIndex.model, {})
+  const results: RelevanceResult<DocIdType>[] = []
+  docs.forEach((corpusDoc: OkapiBM25PlusPerDocumentIndex<DocIdType>) => {
     const score = getTextRelevanceScore(queryDoc, relIndex, corpusDoc)
     if (score > 1) {
       results.push({ docId: corpusDoc.docId, score })
