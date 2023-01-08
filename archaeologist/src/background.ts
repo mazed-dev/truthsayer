@@ -4,6 +4,7 @@ import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import * as auth from './background/auth'
 import { saveWebPage, savePageQuote } from './background/savePage'
 import { backgroundpa } from './background/productanalytics'
+import * as search from './background/search/search'
 import {
   ToPopUp,
   ToContent,
@@ -417,10 +418,16 @@ async function handleMessageFromContent(
       }
     }
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
-      const suggested = await suggestAssociations(message.phrase, message.limit)
+      //const suggested = await suggestAssociations(message.phrase, message.limit)
+      const suggested = await search.findRelevantNodes(
+        message.phrase,
+        message.limit
+      )
+      const nids = Array.from(new Set(suggested.map((s) => s.nid)))
+      const resp = await smuggler.node.batch.get({ nids })
       return {
         type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
-        suggested: suggested.map((node: TNode) => NodeUtil.toJson(node)),
+        suggested: resp.nodes.map((node: TNode) => NodeUtil.toJson(node)),
       }
     }
     default:
@@ -864,3 +871,4 @@ browserBookmarks.register()
 omnibox.register()
 webNavigation.register()
 backgroundpa.register()
+search.register()

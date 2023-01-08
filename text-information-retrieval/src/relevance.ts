@@ -22,6 +22,13 @@ export namespace relevance {
     return bm25.findRelevantDocuments(text, limit, relIndex, docs)
   }
 
+  export function addDocument<DocIdType>(
+    overallIndex: RelevanceIndex,
+    text: string,
+    docId: DocIdType
+  ): RelevancePerDocumentIndex<DocIdType> {
+    return bm25.addDocument(overallIndex, text, docId)
+  }
   export namespace json {
     export function stringifyIndex(relIndex: RelevanceIndex): string {
       return bm25.json.stringifyIndex(relIndex)

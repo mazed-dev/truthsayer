@@ -62,7 +62,7 @@ export function getKeyPhraseFromUserInput(
     target.innerText ??
     target.textContent
   if (targetValue != null) {
-    const phrase = getKeyPhraseFromText(targetValue)
+    const phrase = targetValue // getKeyPhraseFromText(targetValue)
     return phrase
   }
   const phrase = getKeyPhraseFromText(keyBuffer)
@@ -145,7 +145,7 @@ export function WriteAugmentation() {
             showToast(false)
             userInput.target?.focus()
           }}
-          keyphrase={userInput.phrase ?? ''}
+          keyphrase={''}
           suggested={suggestedNodes}
         />
       ) : null}
