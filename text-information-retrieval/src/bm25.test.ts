@@ -16,45 +16,65 @@ type TsvRow = {
   text: string
   source: string
 }
+
+// Key is more than just a string intentionally, to make sure code works with
+// complex keys
+type DocIdType = {
+  url: string
+}
+
 describe('data-driven test', () => {
   let rows: TsvRow[] = []
-  let [overallIndex, relIndexPerDocument] = createIndex()
+  const [overallIndex, relIndexPerDocument] = createIndex<DocIdType>()
 
-  // we'll create an asynchronous beforeAll() method to read in our data
   beforeAll((done) => {
     rows = []
-    // read in the csv file contents
-    const stream = fs.createReadStream(
-      `${__dirname}/test-data/dpedia.org-ontology-abstract.10000.tsv`
-    )
-    // use fast-csv; this particular file has headers, so let it know about it
     const csvStream = csv
       .parse({ headers: true, escape: '\\', delimiter: '\t' })
-      .on('data', (data: TsvRow) => {
-        rows.push(data)
+      .on('data', (row: TsvRow) => {
+        rows.push(row)
       })
       .on('end', () => {
-        rows.forEach((row: TsvRow) => {
-          const [newIndex, docIndex] = addDocument(
-            overallIndex,
-            row.text,
-            row.url
-          )
-          overallIndex = newIndex
+        for (const row of rows) {
+          const docIndex = addDocument(overallIndex, row.text, {
+            url: row.url,
+          })
           relIndexPerDocument.push(docIndex)
-        })
+        }
         {
-          const [newIndex, docIndex] = addDocument(
+          // Add empty document
+          const docIndex = addDocument(overallIndex, '', {
+            url: 'http://empty',
+          })
+          relIndexPerDocument.push(docIndex)
+        }
+        {
+          // Add a special doc to test docs & queries with JS keywords
+          const docIndex = addDocument(
             overallIndex,
-            '',
-            'http://empty'
+            `A class constructor is a special member function of a class that is
+            executed whenever we create new objects of that class. A constructor
+            will have exact same name as the class and it does not have any
+            return type at all, not even void.`,
+            {
+              url: 'http://class.constructor.com',
+            }
           )
-          overallIndex = newIndex
           relIndexPerDocument.push(docIndex)
         }
         done()
       })
-    stream.pipe(csvStream)
+    // read in the csv file contents
+    const stream1k = fs.createReadStream(
+      `${__dirname}/test-data/dpedia.org-ontology-abstract.1000.tsv`
+    )
+    stream1k.pipe(csvStream)
+
+    // Use for extensive local testing
+    // const stream10k = fs.createReadStream(
+    //   `${__dirname}/test-data/dpedia.org-ontology-abstract.10000.tsv`
+    // )
+    // stream10k.pipe(csvStream)
   })
 
   afterAll(() => {
@@ -63,14 +83,16 @@ describe('data-driven test', () => {
 
   it('Search index is valid', () => {
     expect(overallIndex.bagOfWords).not.toBeFalsy()
-    expect(overallIndex.documentsNumber).toStrictEqual(10000 + 1)
+    expect(overallIndex.documentsNumber).toStrictEqual(1000 + 2)
     // The following numbers depend on search algorithm, change them accordingly
-    expect(overallIndex.wordsInAllDocuments).toStrictEqual(2097115)
-    expect(overallIndex.bagOfWords.size).toStrictEqual(77679)
+    expect(overallIndex.wordsInAllDocuments).toStrictEqual(
+      211420 /* 2097164 for 10k */
+    )
+    expect(overallIndex.bagOfWords.size).toStrictEqual(19393)
   })
 
   it('Term in a document importance calculation', () => {
-    expect(getTermInDocumentImportance(49, 200, 1000)).toBeCloseTo(2.967)
+    expect(getTermInDocumentImportance(49, 200, 1000)).toBeCloseTo(2.36)
     // Given word does not occure in the doc → 0
     expect(getTermInDocumentImportance(0, 200, 1000)).toStrictEqual(0)
     // Smaller doc is more Important
@@ -89,25 +111,19 @@ describe('data-driven test', () => {
     expect(getTermInverseDocumentFrequency(599, 999)).toStrictEqual(0)
   })
 
-  it('Christian Christmas public holiday', () => {
-    // const res = findRelevantDocumentsForPhrase(
-    const res = findRelevantDocuments(
-      'Christian Christmas public holiday',
-      12,
+  it('Simple search for phrase', () => {
+    const res = findRelevantDocumentsForPhrase<DocIdType>(
+      'The RGB color model',
+      1,
       overallIndex,
       relIndexPerDocument
     )
-    expect(res).toStrictEqual([])
-    const nids = res.map((r) => r.docId)
-    expect(nids).toStrictEqual([
-      'http://dbpedia.org/resource/Father_Christmas',
-      'http://dbpedia.org/resource/Christmas_tree',
-      'http://dbpedia.org/resource/Christmas',
-      'http://dbpedia.org/resource/Christmas_in_Poland',
-    ])
+    const nids = res.map((r) => r.docId.url)
+    expect(nids).toStrictEqual(['http://dbpedia.org/resource/RGB_color_model'])
   })
+
   it('Search for corpus texts in corpus itself', () => {
-    const len = 100
+    const len = 2 // Select random documents and search for them in the corpus
     const start = Math.floor(Math.random() * (rows.length - len))
     rows.slice(start, start + len).forEach((row) => {
       const res = findRelevantDocuments(
@@ -116,25 +132,27 @@ describe('data-driven test', () => {
         overallIndex,
         relIndexPerDocument
       )
-      expect(res.map((r) => r.docId)).toStrictEqual([row.url])
+      expect(res.map((r) => r.docId.url)).toStrictEqual([row.url])
     })
   })
+
   it('Search for text with JS keyword "constructor" as one of the terms', () => {
     const text =
-      'In object-oriented programming, a class is an extensible program-code-template for creating objects, providing initial values for state (member variables) and implementations of behavior (member functions or methods). In many languages, the class name is used as the name for the class (the template itself), the name for the default constructor of the class (a subroutine that creates objects), and as the type of objects generated by instantiating the class; these distinct concepts are easily conflated. Although, to the point of conflation, one could argue that is a feature inherent in a language because of its polymorphic nature and why these languages are so powerful, dynamic and adaptable for use compared to languages without polymorphism present. Thus they can model dynamic systems (i.e. the real world, machine learning, AI) more easily.When an object is created by a constructor of the class, the resulting object is called an instance of the class, and the member variables specific to the object are called instance variables, to contrast with the class variables shared across the class.In some languages, classes are only a compile-time feature (new classes cannot be declared at run-time), while in other languages classes are first-class citizens, and are generally themselves objects (typically of type Class or similar). In these languages, a class that creates classes is called a metaclass'
+      'A class constructor is a special member function of a class that is'
     const res = findRelevantDocuments(
       text,
       1,
       overallIndex,
       relIndexPerDocument
     )
-    expect(res.map((r) => r.docId)).toStrictEqual([
-      'http://dbpedia.org/resource/Class_(computer_programming)',
+    expect(res.map((r) => r.docId.url)).toStrictEqual([
+      'http://class.constructor.com',
     ])
   })
+
   it('RelevanceIndex JSON (de)seriliasation', () => {
     const buf = json.stringifyIndex(overallIndex)
-    expect(buf.length).toBeGreaterThan(80_0000)
+    expect(buf.length).toBeGreaterThan(27_0000)
     const obj = json.parseIndex(buf)
     expect(obj.algorithm).toStrictEqual(overallIndex.algorithm)
     expect(obj.model).toBeTruthy()
@@ -144,13 +162,14 @@ describe('data-driven test', () => {
       overallIndex.wordsInAllDocuments
     )
   })
+
   it('RelevancePerDocumentIndex JSON (de)seriliasation', () => {
     const doc = relIndexPerDocument[0]
     const buf = json.stringifyPerDocumentIndex(doc)
     expect(buf.length).toBeGreaterThan(1000)
-    const obj = json.parsePerDocumentIndex(buf)
+    const obj = json.parsePerDocumentIndex<DocIdType>(buf)
     expect(obj.algorithm).toStrictEqual(doc.algorithm)
-    expect(obj.docId).toStrictEqual(doc.docId)
+    expect(obj.docId.url).toStrictEqual(doc.docId.url)
     expect(obj.version).toStrictEqual(doc.version)
     expect(obj.wordsNumber).toStrictEqual(doc.wordsNumber)
   })

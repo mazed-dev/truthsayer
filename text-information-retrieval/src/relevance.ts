@@ -1,9 +1,9 @@
 import * as bm25 from './bm25'
 
 export namespace relevance {
-  export type RelevanceIndex = bm25.OkapiBM25PlusIndex
+  export type RelevanceIndex = bm25.OkapiBm25PlusIndex
   export type RelevancePerDocumentIndex<DocIdType> =
-    bm25.OkapiBM25PlusPerDocumentIndex<DocIdType>
+    bm25.OkapiBm25PlusPerDocumentIndex<DocIdType>
   export type RelevanceResult<DocIdType> = bm25.RelevanceResult<DocIdType>
 
   export function createIndex<DocIdType>(): [
