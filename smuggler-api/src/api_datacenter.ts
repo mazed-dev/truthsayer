@@ -31,9 +31,6 @@ import {
   UserExternalPipelineIngestionProgress,
 } from './types'
 import type {
-  UniqueNodeLookupKey,
-  NonUniqueNodeLookupKey,
-  NodeLookupKey,
   CreateNodeArgs,
   GetNodeSliceArgs,
   NodeBatchRequestBody,
@@ -45,11 +42,10 @@ import { makeUrl } from './api_url'
 
 import { TNodeSliceIterator, GetNodesSliceFn } from './node_slice_iterator'
 
-import { genOriginId, Mime, stabiliseUrlForOriginId } from 'armoury'
+import { Mime } from 'armoury'
 import type { Optional } from 'armoury'
 import { MimeType, log } from 'armoury'
 
-import lodash from 'lodash'
 import moment from 'moment'
 import { StatusCode } from './status_codes'
 import { authCookie } from './auth/cookie'
@@ -58,15 +54,6 @@ import { AuthenticationApi } from './authentication_api'
 
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
-
-export function isUniqueLookupKey(
-  key: NodeLookupKey
-): key is UniqueNodeLookupKey {
-  if ('nid' in key || 'webBookmark' in key) {
-    return true
-  }
-  return false
-}
 
 async function createNode(
   {
@@ -109,172 +96,6 @@ async function createNode(
     return await resp.json()
   }
   throw _makeResponseError(resp)
-}
-
-function lookupKeyOf(args: CreateNodeArgs): NodeLookupKey | undefined {
-  // TODO[snikitin@outlook.com]: This ideally should match with NodeUtil.isWebBookmark(),
-  // NodeUtil.isWebQuote() etc but unclear how to reliably do so.
-  if (args.extattrs?.web?.url) {
-    return { webBookmark: { url: args.extattrs.web.url } }
-  } else if (args.extattrs?.web_quote?.url) {
-    return { webQuote: { url: args.extattrs.web_quote.url } }
-  }
-  return undefined
-}
-
-async function createOrUpdateNode(
-  args: CreateNodeArgs,
-  signal?: AbortSignal
-): Promise<NewNodeResponse> {
-  const lookupKey = lookupKeyOf(args)
-  if (!lookupKey || !isUniqueLookupKey(lookupKey)) {
-    throw new Error(
-      `Attempt was made to create a node or, if it exists, update it, ` +
-        `but the input node used look up key ${JSON.stringify(lookupKey)} ` +
-        `that is not unique, which makes it impossible to correctly handle the 'update' case`
-    )
-  }
-  const existingNode: TNode | undefined = await lookupNodes(lookupKey)
-
-  if (!existingNode) {
-    return createNode(args, signal)
-  }
-
-  const diff = describeWhatWouldPreventNodeUpdate(args, existingNode)
-  if (diff) {
-    throw new Error(
-      `Failed to update node ${existingNode.nid} because some specified fields ` +
-        `do not support update:\n${diff}`
-    )
-  }
-
-  const patch: NodePatchRequest = {
-    text: args.text,
-    index_text: args.index_text,
-  }
-
-  await updateNode({ nid: existingNode.nid, ...patch }, signal)
-  return { nid: existingNode.nid }
-}
-
-/**
- * At the time of this writing some datapoints that can be specified at
- * node creation can't be modified at node update due to API differences
- * (@see CreateNodeArgs and @see UpdateNodeArgs).
- * This presents a problem for @see createOrUpdate because some of the datapoints
- * caller passed in will be ignored in 'update' case, which is not obvious
- * and would be unexpected by the caller.
- * As a hack this helper tries to check if these datapoints are actually
- * different from node's current state. If they are the same then update will
- * not result in anything unexpected.
- */
-function describeWhatWouldPreventNodeUpdate(args: CreateNodeArgs, node: TNode) {
-  let diff = ''
-  const extattrsFieldsOfLittleConsequence = ['description']
-  const updatableExtattrsFields = ['text', 'index_text']
-  for (const field in args.extattrs) {
-    const isTargetField = (v: string) => v === field
-    const isNonUpdatable =
-      updatableExtattrsFields.findIndex(isTargetField) === -1
-    const isOfLittleConsequence =
-      extattrsFieldsOfLittleConsequence.findIndex(isTargetField) !== -1
-    if (!isNonUpdatable || isOfLittleConsequence) {
-      continue
-    }
-    // @ts-ignore: No index signature with a parameter of type 'string' was found on type 'NodeExtattrs'
-    const lhs = args.extattrs[field]
-    // @ts-ignore: No index signature with a parameter of type 'string' was found on type 'NodeExtattrs'
-    const rhs = node.extattrs[field]
-    if (!lodash.isEqual(lhs, rhs)) {
-      diff +=
-        `\n\textattrs.${field} - ` +
-        `${JSON.stringify(lhs)} vs ${JSON.stringify(rhs)}`
-    }
-  }
-  if (args.ntype !== node.ntype) {
-    diff += `\n\tntype - ${JSON.stringify(args.ntype)} vs ${JSON.stringify(
-      node.ntype
-    )}`
-  }
-  // At the time of this writing some datapoints that can be set on
-  // creation of a node do not get sent back when nodes are later retrieved
-  // from smuggler. That makes it difficult to verify if values in 'args' differ
-  // from what's stored on smuggler side or not. A conservative validation
-  // strategy is used ("if a value is set, treat is as an error") to cut corners.
-  if (args.from_nid) {
-    diff += `\n\tfrom_nid - ${args.from_nid} vs (data not exposed via smuggler)`
-  }
-  if (args.to_nid) {
-    diff += `\n\tto_nid - ${args.to_nid} vs (data not exposed via smuggler)`
-  }
-
-  if (!diff) {
-    return null
-  }
-
-  return `[what] - [attempted update arg] vs [existing node value]: ${diff}`
-}
-
-async function lookupNodes(
-  key: UniqueNodeLookupKey,
-  signal?: AbortSignal
-): Promise<TNode | undefined>
-async function lookupNodes(
-  key: NonUniqueNodeLookupKey,
-  signal?: AbortSignal
-): Promise<TNode[]>
-async function lookupNodes(key: NodeLookupKey, signal?: AbortSignal) {
-  const SLICE_ALL = {
-    start_time: 0, // since the beginning of time
-    bucket_time_size: 366 * 24 * 60 * 60,
-  }
-  if ('nid' in key) {
-    return getNode({ nid: key.nid, signal })
-  } else if ('webBookmark' in key) {
-    const { id, stableUrl } = genOriginId(key.webBookmark.url)
-    const query = { ...SLICE_ALL, origin: { id } }
-    const iter = _getNodesSliceIter(query)
-
-    for (let node = await iter.next(); node != null; node = await iter.next()) {
-      const nodeUrl = node.extattrs?.web?.url
-      if (nodeUrl && stabiliseUrlForOriginId(nodeUrl) === stableUrl) {
-        return node
-      }
-    }
-    return undefined
-  } else if ('webQuote' in key) {
-    const { id, stableUrl } = genOriginId(key.webQuote.url)
-    const query = { ...SLICE_ALL, origin: { id } }
-    const iter = _getNodesSliceIter(query)
-
-    const nodes: TNode[] = []
-    for (let node = await iter.next(); node != null; node = await iter.next()) {
-      if (NodeUtil.isWebQuote(node) && node.extattrs?.web_quote) {
-        if (
-          stabiliseUrlForOriginId(node.extattrs.web_quote.url) === stableUrl
-        ) {
-          nodes.push(node)
-        }
-      }
-    }
-    return nodes
-  } else if ('url' in key) {
-    const { id, stableUrl } = genOriginId(key.url)
-    const query = { ...SLICE_ALL, origin: { id } }
-    const iter = _getNodesSliceIter(query)
-
-    const nodes: TNode[] = []
-    for (let node = await iter.next(); node != null; node = await iter.next()) {
-      if (NodeUtil.isWebBookmark(node) && node.extattrs?.web) {
-        if (stabiliseUrlForOriginId(node.extattrs.web.url) === stableUrl) {
-          nodes.push(node)
-        }
-      }
-    }
-    return nodes
-  }
-
-  throw new Error(`Failed to lookup nodes, unsupported key ${key}`)
 }
 
 async function uploadFiles(
@@ -963,9 +784,7 @@ export function makeDatacenterStorageApi(): StorageApi {
       get: getNode,
       update: updateNode,
       create: createNode,
-      createOrUpdate: createOrUpdateNode,
       slice: _getNodesSliceIter,
-      lookup: lookupNodes,
       delete: deleteNode,
       bulkDelete: bulkDeleteNodes,
       batch: {
