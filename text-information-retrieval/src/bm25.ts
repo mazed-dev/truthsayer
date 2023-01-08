@@ -5,12 +5,9 @@ import model from 'wink-eng-lite-web-model'
 
 // Feel free to reconsider all these values when you get more insights in type
 // of texts saved to Mazed.
-// According to an original papaper, b ∈ [0, 1]. Default value for an unknown
-// corpus is 0.75. I deliberately chose greater value, to slightly increase the
-// priority of small documents. Greater values favour smaller documents.
-const kOkapiBM25PlusB = 0.91
+// From original papaper, b ∈ [0, 1]. Default for an unknown corpus is 0.75
+const kOkapiBM25PlusB = 0.75
 const kOkapiBM25PlusK1 = 2.0
-const kOkapiBM25PlusDelta = 1.0
 
 /**
  * Use a proper Map and not an Object or Record<string, number> because keys
@@ -84,7 +81,7 @@ function createPerDocumentIndex<DocIdType>({
   wordsNumber,
   docId,
 }: {
-  bagOfWords: BagOfWords,
+  bagOfWords: BagOfWords
   wordsNumber: number
   docId: DocIdType
 }): OkapiBM25PlusPerDocumentIndex<DocIdType> {
@@ -98,10 +95,10 @@ function createPerDocumentIndex<DocIdType>({
 }
 
 export namespace json {
-  export function stringifyIndex(relIndex: OkapiBM25PlusIndex): string {
-    const bagOfWords = Array.from(relIndex.bagOfWords.entries())
+  export function stringifyIndex(overallIndex: OkapiBM25PlusIndex): string {
+    const bagOfWords = Array.from(overallIndex.bagOfWords.entries())
     const obj = {
-      ...relIndex,
+      ...overallIndex,
       model: undefined,
       bagOfWords,
     }
@@ -119,7 +116,7 @@ export namespace json {
     perDocRelIndex: OkapiBM25PlusPerDocumentIndex<DocIdType>
   ): string {
     const bagOfWords = Array.from(perDocRelIndex.bagOfWords.entries())
-    return JSON.stringify({...perDocRelIndex, bagOfWords})
+    return JSON.stringify({ ...perDocRelIndex, bagOfWords })
   }
 
   export function parsePerDocumentIndex<DocIdType>(
@@ -147,7 +144,9 @@ function createPerDocumentIndexFromText<DocIdType>(
       return tokenTypes[index] !== 'punctuation'
     })
   const bagOfWords: BagOfWords = new Map()
-  lemmas.forEach((lemma: string) => bagOfWords.set(lemma, bagOfWords.get(lemma) ?? 0 + 1))
+  lemmas.forEach((lemma: string) =>
+    bagOfWords.set(lemma, bagOfWords.get(lemma) ?? 0 + 1)
+  )
   const wordsNumber = lemmas.length
   return createPerDocumentIndex({
     bagOfWords,
@@ -157,30 +156,37 @@ function createPerDocumentIndexFromText<DocIdType>(
 }
 
 export function addDocument<DocIdType>(
-  relIndex: OkapiBM25PlusIndex,
+  overallIndex: OkapiBM25PlusIndex,
   text: string,
   docId: DocIdType
 ): [OkapiBM25PlusIndex, OkapiBM25PlusPerDocumentIndex<DocIdType>] {
-  const doc = createPerDocumentIndexFromText(text, relIndex.model, docId)
-  relIndex.wordsInAllDocuments += doc.wordsNumber
-  relIndex.documentsNumber += 1
+  const doc = createPerDocumentIndexFromText(text, overallIndex.model, docId)
+  overallIndex.wordsInAllDocuments += doc.wordsNumber
+  overallIndex.documentsNumber += 1
   for (const word of doc.bagOfWords.keys()) {
-    relIndex.bagOfWords.set(
+    overallIndex.bagOfWords.set(
       word,
-      (relIndex.bagOfWords.get(word) ?? 0) + 1,
+      (overallIndex.bagOfWords.get(word) ?? 0) + 1
     )
   }
-  return [relIndex, doc]
+  return [overallIndex, doc]
 }
 
-function getTermInDocumentImportance(
+/**
+ *           occurence × (k1 + 1)
+ * ───────────────────────────────────────────
+ *                                   |D|
+ *  occurence + k1 × (1 - b + b × ──────────)
+ *                                 avg(|D|)
+ *
+ */
+export function getTermInDocumentImportance(
   occurenceInDoc: number,
   documentSizeInWords: number,
   averageDocumentSizeInWords: number
 ): number {
   // prettier-ignore
   return (
-    kOkapiBM25PlusDelta +
       (occurenceInDoc * (kOkapiBM25PlusK1 + 1)) /
         (occurenceInDoc + kOkapiBM25PlusK1 *
           (1 - kOkapiBM25PlusB + (kOkapiBM25PlusB * documentSizeInWords) /
@@ -192,16 +198,18 @@ function getTermInDocumentImportance(
 
 function getTermInDocumentScore<DocIdType>(
   term: string,
-  relIndex: OkapiBM25PlusIndex,
+  termIDF: number,
   doc: OkapiBM25PlusPerDocumentIndex<DocIdType>,
   averageDocumentSizeInWords: number
 ) {
   const occurenceInDoc = doc.bagOfWords.get(term)
   if (occurenceInDoc == null) {
+    // Just a shortcut
     return 0
   }
+  console.log('occurenceInDoc', term, occurenceInDoc, doc.wordsNumber)
   return (
-    getTermInverseDocumentFrequency(term, relIndex) *
+    termIDF *
     getTermInDocumentImportance(
       occurenceInDoc,
       doc.wordsNumber,
@@ -211,17 +219,25 @@ function getTermInDocumentScore<DocIdType>(
 }
 
 function getKeyphraseInDocumentScore<DocIdType>(
-  keywords: string[],
-  relIndex: OkapiBM25PlusIndex,
-  doc: OkapiBM25PlusPerDocumentIndex<DocIdType>
+  terms: string[],
+  termsIDFs: number[],
+  doc: OkapiBM25PlusPerDocumentIndex<DocIdType>,
+  averageDocumentSizeInWords: number
 ) {
-  const averageDocumentSizeInWords =
-    relIndex.wordsInAllDocuments / relIndex.documentsNumber
-  return keywords
-    .map((term: string, _index: number) =>
-      getTermInDocumentScore(term, relIndex, doc, averageDocumentSizeInWords)
+  let score = 0
+  for (const index in terms) {
+    const term = terms[index]
+    const termIDF = termsIDFs[index]
+    const termScore = getTermInDocumentScore(
+      term,
+      termIDF,
+      doc,
+      averageDocumentSizeInWords
     )
-    .reduce((prev: number, current: number) => current + prev)
+    console.log(doc.docId, term, termIDF, termScore)
+    score = score + termScore
+  }
+  return score
 }
 
 export type RelevanceResult<DocIdType> = {
@@ -241,18 +257,32 @@ export type RelevanceResult<DocIdType> = {
 export function findRelevantDocumentsForPhrase<DocIdType>(
   keyphrase: string,
   limit: number,
-  relIndex: OkapiBM25PlusIndex,
+  overallIndex: OkapiBM25PlusIndex,
   docs: OkapiBM25PlusPerDocumentIndex<DocIdType>[]
 ): RelevanceResult<DocIdType>[] {
-  const doc = createPerDocumentIndexFromText(keyphrase, relIndex.model, {})
+  const averageDocumentSizeInWords =
+    overallIndex.wordsInAllDocuments / overallIndex.documentsNumber
+  const doc = createPerDocumentIndexFromText(keyphrase, overallIndex.model, {})
   const lemmas = Array.from(doc.bagOfWords.keys())
+  const termsIDFs: number[] = lemmas.map((lemma: string) =>
+    getTermInverseDocumentFrequency(
+      overallIndex.bagOfWords.get(lemma) ?? 0,
+      overallIndex.documentsNumber
+    )
+  )
   const results: RelevanceResult<DocIdType>[] = []
-  docs.forEach((doc: OkapiBM25PlusPerDocumentIndex<DocIdType>) => {
-    const score = getKeyphraseInDocumentScore(lemmas, relIndex, doc)
+  for (const doc of docs) {
+    const score = getKeyphraseInDocumentScore(
+      lemmas,
+      termsIDFs,
+      doc,
+      averageDocumentSizeInWords
+    )
     if (score > 1) {
       results.push({ docId: doc.docId, score })
     }
-  })
+  }
+  console.log('Docs', docs.length)
   // TODO(akindyakov): Use quick partition here instead of full scale sort to
   // find K max first and sort them after to stringificantly reduce complecity
   // from O(n * log(n)) to O(n + k * log(k))
@@ -263,49 +293,47 @@ export function findRelevantDocumentsForPhrase<DocIdType>(
 /**
  * Importance of the term in the entire corpus (all documents) calculated as
  * term inverse document frequency.
+ *
+ *      N - n_i + 0.5
+ * ln (─────────────── + 1)
+ *        n_i + 0.5
+ *
+ * N - Overall number of documents
+ * n_i - number of documents conflation the term
  */
 export function getTermInverseDocumentFrequency(
-  term: string,
-  relIndex: OkapiBM25PlusIndex
+  numberOfDocumentsContainingTerm: number,
+  documentsNumber: number
 ) {
-  const numberOfDocumentsContainingTerm = relIndex.bagOfWords.get(term) ?? 0
-  const x =
+  const logArg =
     1 +
-    (relIndex.documentsNumber - numberOfDocumentsContainingTerm + 0.5) /
+    (documentsNumber - numberOfDocumentsContainingTerm + 0.5) /
       (numberOfDocumentsContainingTerm + 0.5)
-  if (x < Math.E) {
+  if (logArg < Math.E) {
     // To avoid negative results for a frequent word, e.g. "the"
     return 0
   }
-  return Math.log(x)
+  return Math.log(logArg)
 }
 
 function getTextRelevanceScore<DocIdType>(
-  queryDoc: OkapiBM25PlusPerDocumentIndex<DocIdType>,
-  relIndex: OkapiBM25PlusIndex,
+  queryTermsScores: [string, number][],
+  averageDocumentSizeInWords: number,
   corpusDoc: OkapiBM25PlusPerDocumentIndex<DocIdType>
 ): number {
-  const averageDocumentSizeInWords =
-    relIndex.wordsInAllDocuments / relIndex.documentsNumber
   let score = 0
-  for (const [term, occurenceInQueryDoc] of queryDoc.bagOfWords) {
+  for (const [term, termScore] of queryTermsScores) {
     const occurenceInCorpusDoc = corpusDoc.bagOfWords.get(term)
-    if (occurenceInCorpusDoc === undefined) {
-      continue
+    if (occurenceInCorpusDoc != null) {
+      score =
+        score +
+        termScore *
+          getTermInDocumentImportance(
+            occurenceInCorpusDoc,
+            corpusDoc.wordsNumber,
+            averageDocumentSizeInWords
+          )
     }
-    score += (
-      getTermInverseDocumentFrequency(term, relIndex) *
-      getTermInDocumentImportance(
-        occurenceInCorpusDoc,
-        corpusDoc.wordsNumber,
-        averageDocumentSizeInWords
-      ) *
-      getTermInDocumentImportance(
-        occurenceInQueryDoc,
-        queryDoc.wordsNumber,
-        averageDocumentSizeInWords
-      )
-    )
   }
   return score
 }
@@ -313,17 +341,42 @@ function getTextRelevanceScore<DocIdType>(
 export function findRelevantDocuments<DocIdType>(
   text: string,
   limit: number,
-  relIndex: OkapiBM25PlusIndex,
-  docs: OkapiBM25PlusPerDocumentIndex<DocIdType>[]
+  overallIndex: OkapiBM25PlusIndex,
+  corpusDocs: OkapiBM25PlusPerDocumentIndex<DocIdType>[]
 ): RelevanceResult<DocIdType>[] {
-  const queryDoc = createPerDocumentIndexFromText(text, relIndex.model, {})
+  const queryDoc = createPerDocumentIndexFromText(text, overallIndex.model, {})
+  const queryDocWordsNumber = queryDoc.wordsNumber
+  const queryTermsOccurences = Array.from(queryDoc.bagOfWords.entries())
+  const averageDocumentSizeInWords =
+    overallIndex.wordsInAllDocuments / overallIndex.documentsNumber
+  const queryTermsScores = queryTermsOccurences.map(
+    ([term, occurence]: [string, number]): [string, number] => {
+      return [
+        term,
+        getTermInverseDocumentFrequency(
+          overallIndex.bagOfWords.get(term) ?? 0,
+          overallIndex.documentsNumber
+        ) *
+          getTermInDocumentImportance(
+            occurence,
+            queryDocWordsNumber,
+            averageDocumentSizeInWords
+          ),
+      ]
+    }
+  )
+  console.log('queryTermsScores', queryTermsScores)
   const results: RelevanceResult<DocIdType>[] = []
-  docs.forEach((corpusDoc: OkapiBM25PlusPerDocumentIndex<DocIdType>) => {
-    const score = getTextRelevanceScore(queryDoc, relIndex, corpusDoc)
+  for (const corpusDoc of corpusDocs) {
+    const score = getTextRelevanceScore(
+      queryTermsScores,
+      averageDocumentSizeInWords,
+      corpusDoc
+    )
     if (score > 1) {
       results.push({ docId: corpusDoc.docId, score })
     }
-  })
+  }
   // TODO(akindyakov): Use quick partition here instead of full scale sort to
   // find K max first and sort them after to stringificantly reduce complecity
   // from O(n * log(n)) to O(n + k * log(k))
