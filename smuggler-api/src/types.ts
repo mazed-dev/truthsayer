@@ -4,6 +4,7 @@ import moment from 'moment'
 export type SlateText = object[]
 
 export type Nid = string
+export type Eid = string
 
 // Types related to old document types
 
@@ -156,12 +157,24 @@ export type TNode = {
 }
 
 export type TEdge = {
-  eid: string
+  eid: Eid
   txt?: string
   from_nid: Nid
   to_nid: Nid
   crtd: moment.Moment
   upd: moment.Moment
+  weight?: number
+  is_sticky: boolean
+  owned_by: string
+}
+
+export type TEdgeJson = {
+  eid: Eid
+  txt?: string
+  from_nid: Nid
+  to_nid: Nid
+  crtd: number
+  upd: number
   weight?: number
   is_sticky: boolean
   owned_by: string
