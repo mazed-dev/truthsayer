@@ -7,23 +7,31 @@
  * for more information.
  */
 
-import type {
+import {
+  Ack,
   CreateNodeArgs,
   Eid,
+  GetNodeSliceArgs,
   NewNodeResponse,
   Nid,
+  NodeBatch,
+  NodeBatchRequestBody,
   NodeCreatedVia,
+  NodePatchRequest,
+  NodeUtil,
   OriginId,
   StorageApi,
   TEdgeJson,
+  TNode,
   TNodeJson,
+  TNodeSliceIterator,
 } from 'smuggler-api'
 import { NodeType } from 'smuggler-api'
 import { v4 as uuidv4 } from 'uuid'
 import base32Encode from 'base32-encode'
 
 import browser from 'webextension-polyfill'
-import { unixtime } from 'armoury'
+import { MimeType, unixtime } from 'armoury'
 import lodash from 'lodash'
 
 // TODO[snikitin@outlook.com] Describe that "yek" is "key" in reverse,
@@ -90,7 +98,19 @@ class YekLavStore {
   get(yek: NidYek): Promise<NidLav | undefined>
   get(yek: OriginToNidYek): Promise<OriginToNidLav | undefined>
   get(yek: NidToEdgeYek): Promise<NidToEdgeLav | undefined>
-  get(yek: Yek): Promise<Lav | undefined> {
+  get(yek: NidYek[]): Promise<NidLav[]>
+  get(yek: Yek | Yek[]): Promise<Lav | Lav[] | undefined> {
+    if (Array.isArray(yek)) {
+      const keys: string[] = yek.map((value: Yek) => this.stringify(value))
+      const records: Promise<Record<string, any>> = this.store.get(keys)
+      return records.then((records: Record<string, any>): Promise<Lav[]> => {
+        const lavs: Lav[] = Object.keys(records).map(
+          (key: string) => records[key] as Lav
+        )
+        return Promise.resolve(lavs)
+      })
+    }
+
     const key = this.stringify(yek)
     const records: Promise<Record<string, any>> = this.store.get(key)
     return records.then(
@@ -138,16 +158,9 @@ function generateEid(): Eid {
 
 async function createNode(
   store: YekLavStore,
-  args: CreateNodeArgs,
-  _signal?: AbortSignal
+  args: CreateNodeArgs
 ): Promise<NewNodeResponse> {
   // TODO[snikitin@outlook.com] Below keys must become functional somehow.
-  // Since they only need to function for search-like actions I can store
-  // create addition kv-pairs just for them where their value is the key
-  // (potentially prefixed) and a list of Nid is the value. When a node is added,
-  // an element gets added into the list and when a node is deleted then an
-  // element is removed from a list
-  const origin: OriginId | undefined = args.origin
   const created_via: NodeCreatedVia | undefined = args.created_via
 
   // TODO[snikitin@outlook.com] This graph structure has to work somehow
@@ -174,8 +187,10 @@ async function createNode(
     },
   ]
 
-  if (origin) {
-    const yek: OriginToNidYek = { yek: { kind: 'origin->nid', key: origin } }
+  if (args.origin) {
+    const yek: OriginToNidYek = {
+      yek: { kind: 'origin->nid', key: args.origin },
+    }
     let lav: OriginToNidLav | undefined = await store.get(yek)
     lav = lav ?? { lav: { kind: 'origin->nid', value: [] } }
     const nidsWithThisOrigin: Nid[] = lav.lav.value
@@ -224,30 +239,103 @@ async function createNode(
   return { nid: node.nid }
 }
 
+async function getNode({
+  store,
+  nid,
+}: {
+  store: YekLavStore
+  nid: Nid
+}): Promise<TNode> {
+  const yek: NidYek = { yek: { kind: 'nid', key: nid } }
+  const lav: NidLav | undefined = await store.get(yek)
+  if (lav == null) {
+    throw new Error(`Failed to get node ${nid} because it wasn't found`)
+  }
+  const value: TNodeJson = lav.lav.value
+  return NodeUtil.fromJson(value)
+}
+
+async function getNodeBatch(
+  store: YekLavStore,
+  req: NodeBatchRequestBody
+): Promise<NodeBatch> {
+  const yeks: NidYek[] = req.nids.map((nid: Nid): NidYek => {
+    return { yek: { kind: 'nid', key: nid } }
+  })
+  const lavs: NidLav[] = await store.get(yeks)
+  return { nodes: lavs.map((lav: NidLav) => NodeUtil.fromJson(lav.lav.value)) }
+}
+
+async function updateNode(
+  store: YekLavStore,
+  args: { nid: Nid } & NodePatchRequest
+): Promise<Ack> {
+  const yek: NidYek = { yek: { kind: 'nid', key: args.nid } }
+  const lav: NidLav | undefined = await store.get(yek)
+  if (lav == null) {
+    throw new Error(`Failed to update node ${args.nid} because it wasn't found`)
+  }
+  const value: TNodeJson = lav.lav.value
+  value.text = args.text != null ? args.text : value.text
+  value.index_text =
+    args.index_text != null ? args.index_text : value.index_text
+  if (!args.preserve_update_time) {
+    value.updated_at = unixtime.now()
+  }
+  await store.set([{ yek, lav }])
+  return { ack: true }
+}
+
 export function makeLocalStorageApi(
-  store: browser.Storage.StorageArea
+  browserStore: browser.Storage.StorageArea
 ): StorageApi {
+  const store = new YekLavStore(browserStore)
+
+  const throwUnimplementedError = (endpoint: string) => {
+    return (..._: any[]): never => {
+      throw new Error(
+        `Attempted to call an ${endpoint} endpoint of local StorageApi which hasn't been implemented yet`
+      )
+    }
+  }
+
   return {
     node: {
-      get: createNode,
-      // update: updateNode,
-      // create: createNode,
-      // slice: _getNodesSliceIter,
-      // delete: deleteNode,
-      // bulkDelete: bulkDeleteNodes,
-      // batch: {
-      //   get: getNodeBatch,
-      // },
-      // url: makeDirectUrl,
+      get: ({ nid }: { nid: string; signal?: AbortSignal }) =>
+        getNode({ store, nid }),
+      update: (
+        args: { nid: string } & NodePatchRequest,
+        _signal?: AbortSignal
+      ) => updateNode(store, args),
+      create: (args: CreateNodeArgs, _signal?: AbortSignal) =>
+        createNode(store, args),
+      // TODO[snikitin@outlook.com] Local-hosted slicing implementation is a
+      // problem because the datacenter-hosted version depends entirely on
+      // time range search which is easy with in SQL, but with a KV-store
+      // requires to load all nodes from memory on every "iteration"
+      slice: throwUnimplementedError('node.slice'),
+      delete: throwUnimplementedError('node.delete'),
+      bulkDelete: throwUnimplementedError('node.bulkdDelete'),
+      batch: {
+        get: (req: NodeBatchRequestBody, _signal?: AbortSignal) =>
+          getNodeBatch(store, req),
+      },
+      url: throwUnimplementedError('node.url'),
     },
+    // TODO[snikitin@outlook.com] At the time of this writing blob.upload and
+    // blob_index.build are used together to create a single searchable blob node.
+    // blob.upload is easy to implement for local storage while blob_index.build
+    // is more difficult. Given how important search is for Mazed goals at the
+    // time of writing, it makes little sense to implement any of them until
+    // blob_index.build is usable.
     blob: {
-      // upload: uploadFiles,
-      // sourceUrl: makeBlobSourceUrl,
+      upload: throwUnimplementedError('blob.upload'),
+      sourceUrl: throwUnimplementedError('blob.sourceUrl'),
     },
     blob_index: {
-      // build: buildFilesSearchIndex,
+      build: throwUnimplementedError('blob_index.build'),
       cfg: {
-        // supportsMime: mimeTypeIsSupportedByBuildIndex,
+        supportsMime: (_mimeType: MimeType) => false,
       },
     },
     edge: {

@@ -29,6 +29,7 @@ import {
   UploadMultipartResponse,
   UserExternalPipelineId,
   UserExternalPipelineIngestionProgress,
+  Nid,
 } from './types'
 import type {
   CreateNodeArgs,
@@ -247,7 +248,7 @@ async function getNodeBatch(
 }
 
 async function updateNode(
-  args: { nid: string } & NodePatchRequest,
+  args: { nid: Nid } & NodePatchRequest,
   signal?: AbortSignal
 ): Promise<Ack> {
   const { nid, text, index_text, preserve_update_time } = args
