@@ -10,6 +10,7 @@
 import {
   Ack,
   AddUserActivityRequest,
+  AdvanceExternalPipelineIngestionProgress,
   CreateNodeArgs,
   Eid,
   GetNodeSliceArgs,
@@ -27,6 +28,8 @@ import {
   TNodeJson,
   TNodeSliceIterator,
   TotalUserActivity,
+  UserExternalPipelineId,
+  UserExternalPipelineIngestionProgress,
 } from 'smuggler-api'
 import { NodeType } from 'smuggler-api'
 import { v4 as uuidv4 } from 'uuid'
@@ -67,8 +70,24 @@ type NidToEdgeLav = GenericLav<'nid->edge', TEdgeJson[]>
 type OriginToActivityYek = GenericYek<'origin->activity', OriginId>
 type OriginToActivityLav = GenericLav<'origin->activity', TotalUserActivity>
 
-type Yek = NidYek | OriginToNidYek | NidToEdgeYek | OriginToActivityYek
-type Lav = NidLav | OriginToNidLav | NidToEdgeLav | OriginToActivityLav
+type ExtPipelineYek = GenericYek<'ext-pipe', UserExternalPipelineId>
+type ExtPipelineLav = GenericLav<
+  'ext-pipe',
+  Omit<UserExternalPipelineIngestionProgress, 'epid'>
+>
+
+type Yek =
+  | NidYek
+  | OriginToNidYek
+  | NidToEdgeYek
+  | OriginToActivityYek
+  | ExtPipelineYek
+type Lav =
+  | NidLav
+  | OriginToNidLav
+  | NidToEdgeLav
+  | OriginToActivityLav
+  | ExtPipelineLav
 
 // TODO[snikitin@outlook.com] Describe that the purpose of this wrapper is to
 // add a bit of ORM-like typesafety to browser.Storage.StorageArea.
@@ -105,6 +124,7 @@ class YekLavStore {
   get(yek: NidToEdgeYek): Promise<NidToEdgeLav | undefined>
   get(yek: NidYek[]): Promise<NidLav[]>
   get(yek: OriginToActivityYek): Promise<OriginToActivityLav | undefined>
+  get(yek: ExtPipelineYek): Promise<ExtPipelineLav | undefined>
   get(yek: Yek | Yek[]): Promise<Lav | Lav[] | undefined> {
     if (Array.isArray(yek)) {
       const keys: string[] = yek.map((value: Yek) => this.stringify(value))
@@ -135,11 +155,13 @@ class YekLavStore {
       case 'nid':
         return 'nid:' + yek.yek.key
       case 'origin->nid':
-        return 'origin->nid:' + yek.yek.key
+        return 'origin->nid:' + yek.yek.key.id
       case 'nid->edge':
         return 'nid->edge:' + yek.yek.key
       case 'origin->activity':
-        return 'origin->activity:' + yek.yek.key
+        return 'origin->activity:' + yek.yek.key.id
+      case 'ext-pipe':
+        return 'ext-pipe:' + yek.yek.key.pipeline_key
     }
   }
 }
@@ -346,6 +368,46 @@ async function getExternalUserActivity(
   return value
 }
 
+async function getUserIngestionProgress(
+  store: YekLavStore,
+  epid: UserExternalPipelineId
+): Promise<UserExternalPipelineIngestionProgress> {
+  const yek: ExtPipelineYek = {
+    yek: { kind: 'ext-pipe', key: epid },
+  }
+  const lav: ExtPipelineLav | undefined = await store.get(yek)
+  if (lav == null) {
+    return {
+      epid,
+      ingested_until: 0,
+    }
+  }
+  const value: UserExternalPipelineIngestionProgress = {
+    epid,
+    ...lav.lav.value,
+  }
+  return value
+}
+
+async function advanceUserIngestionProgress(
+  store: YekLavStore,
+  epid: UserExternalPipelineId,
+  new_progress: AdvanceExternalPipelineIngestionProgress
+): Promise<Ack> {
+  const progress: UserExternalPipelineIngestionProgress =
+    await getUserIngestionProgress(store, epid)
+  progress.ingested_until = new_progress.ingested_until
+
+  const yek: ExtPipelineYek = {
+    yek: { kind: 'ext-pipe', key: epid },
+  }
+  const lav: ExtPipelineLav = {
+    lav: { kind: 'ext-pipe', value: progress },
+  }
+  await store.set([{ yek, lav }])
+  return { ack: true }
+}
+
 export function makeLocalStorageApi(
   browserStore: browser.Storage.StorageArea
 ): StorageApi {
@@ -406,7 +468,11 @@ export function makeLocalStorageApi(
     },
     activity: {
       external: {
-        add: () => addExternalUserActivity,
+        add: (
+          origin: OriginId,
+          activity: AddUserActivityRequest,
+          _signal?: AbortSignal
+        ) => addExternalUserActivity(store, origin, activity),
         get: (origin: OriginId, _signal?: AbortSignal) =>
           getExternalUserActivity(store, origin),
       },
@@ -417,8 +483,13 @@ export function makeLocalStorageApi(
     },
     external: {
       ingestion: {
-        // get: getUserIngestionProgress,
-        // advance: advanceUserIngestionProgress,
+        get: (epid: UserExternalPipelineId, _signal?: AbortSignal) =>
+          getUserIngestionProgress(store, epid),
+        advance: (
+          epid: UserExternalPipelineId,
+          new_progress: AdvanceExternalPipelineIngestionProgress,
+          _signal?: AbortSignal
+        ) => advanceUserIngestionProgress(store, epid, new_progress),
       },
     },
   }
