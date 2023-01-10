@@ -9,6 +9,7 @@
 
 import {
   Ack,
+  AddUserActivityRequest,
   CreateNodeArgs,
   Eid,
   GetNodeSliceArgs,
@@ -25,6 +26,7 @@ import {
   TNode,
   TNodeJson,
   TNodeSliceIterator,
+  TotalUserActivity,
 } from 'smuggler-api'
 import { NodeType } from 'smuggler-api'
 import { v4 as uuidv4 } from 'uuid'
@@ -62,8 +64,11 @@ type OriginToNidLav = GenericLav<'origin->nid', Nid[]>
 type NidToEdgeYek = GenericYek<'nid->edge', Nid>
 type NidToEdgeLav = GenericLav<'nid->edge', TEdgeJson[]>
 
-type Yek = NidYek | OriginToNidYek | NidToEdgeYek
-type Lav = NidLav | OriginToNidLav | NidToEdgeLav
+type OriginToActivityYek = GenericYek<'origin->activity', OriginId>
+type OriginToActivityLav = GenericLav<'origin->activity', TotalUserActivity>
+
+type Yek = NidYek | OriginToNidYek | NidToEdgeYek | OriginToActivityYek
+type Lav = NidLav | OriginToNidLav | NidToEdgeLav | OriginToActivityLav
 
 // TODO[snikitin@outlook.com] Describe that the purpose of this wrapper is to
 // add a bit of ORM-like typesafety to browser.Storage.StorageArea.
@@ -99,6 +104,7 @@ class YekLavStore {
   get(yek: OriginToNidYek): Promise<OriginToNidLav | undefined>
   get(yek: NidToEdgeYek): Promise<NidToEdgeLav | undefined>
   get(yek: NidYek[]): Promise<NidLav[]>
+  get(yek: OriginToActivityYek): Promise<OriginToActivityLav | undefined>
   get(yek: Yek | Yek[]): Promise<Lav | Lav[] | undefined> {
     if (Array.isArray(yek)) {
       const keys: string[] = yek.map((value: Yek) => this.stringify(value))
@@ -132,6 +138,8 @@ class YekLavStore {
         return 'origin->nid:' + yek.yek.key
       case 'nid->edge':
         return 'nid->edge:' + yek.yek.key
+      case 'origin->activity':
+        return 'origin->activity:' + yek.yek.key
     }
   }
 }
@@ -286,6 +294,58 @@ async function updateNode(
   return { ack: true }
 }
 
+async function addExternalUserActivity(
+  store: YekLavStore,
+  origin: OriginId,
+  activity: AddUserActivityRequest
+): Promise<TotalUserActivity> {
+  const total: TotalUserActivity = await getExternalUserActivity(store, origin)
+  if ('visit' in activity) {
+    if (activity.visit == null) {
+      return total
+    }
+    total.visits = total.visits.concat(activity.visit.visits)
+    if (activity.visit.reported_by != null) {
+      throw new Error(
+        `activity.external.add does not implement support for visit.reported_by yet`
+      )
+    }
+  } else if ('attention' in activity) {
+    if (activity.attention == null) {
+      return total
+    }
+    // TODO[snikitin@outlook.com] What to do with activity.attention.timestamp here?
+    total.seconds_of_attention += activity.attention.seconds
+  }
+
+  const yek: OriginToActivityYek = {
+    yek: { kind: 'origin->activity', key: origin },
+  }
+  const lav: OriginToActivityLav = {
+    lav: { kind: 'origin->activity', value: total },
+  }
+  await store.set([{ yek, lav }])
+  return total
+}
+
+async function getExternalUserActivity(
+  store: YekLavStore,
+  origin: OriginId
+): Promise<TotalUserActivity> {
+  const yek: OriginToActivityYek = {
+    yek: { kind: 'origin->activity', key: origin },
+  }
+  const lav: OriginToActivityLav | undefined = await store.get(yek)
+  if (lav == null) {
+    return {
+      visits: [],
+      seconds_of_attention: 0,
+    }
+  }
+  const value: TotalUserActivity = lav.lav.value
+  return value
+}
+
 export function makeLocalStorageApi(
   browserStore: browser.Storage.StorageArea
 ): StorageApi {
@@ -346,8 +406,9 @@ export function makeLocalStorageApi(
     },
     activity: {
       external: {
-        // add: addExternalUserActivity,
-        // get: getExternalUserActivity,
+        add: () => addExternalUserActivity,
+        get: (origin: OriginId, _signal?: AbortSignal) =>
+          getExternalUserActivity(store, origin),
       },
       association: {
         // record: recordExternalAssociation,
