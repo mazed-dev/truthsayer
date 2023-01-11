@@ -14,6 +14,7 @@ export function makeAlwaysThrowingStorageApi(): StorageApi {
   return {
     node: {
       get: throwError,
+      getByOrigin: throwError,
       update: throwError,
       create: throwError,
       slice: throwError,

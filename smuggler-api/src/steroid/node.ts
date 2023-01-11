@@ -21,7 +21,7 @@ import {
   genOriginId,
 } from 'armoury'
 import type { Optional } from 'armoury'
-import { CreateNodeArgs, GetNodeSliceArgs, StorageApi } from '../storage_api'
+import { CreateNodeArgs, StorageApi } from '../storage_api'
 import { NodeUtil } from '../typesutil'
 import lodash from 'lodash'
 
@@ -314,10 +314,9 @@ export async function lookupNodes(
     return storage.node.get({ nid: key.nid, signal })
   } else if ('webBookmark' in key) {
     const { id, stableUrl } = genOriginId(key.webBookmark.url)
-    const query: GetNodeSliceArgs = { ...SLICE_ALL, origin: { id } }
-    const iter = storage.node.slice(query)
+    const nodes: TNode[] = await storage.node.getByOrigin({ origin: { id } })
 
-    for (let node = await iter.next(); node != null; node = await iter.next()) {
+    for (const node of nodes) {
       const nodeUrl = node.extattrs?.web?.url
       if (nodeUrl && stabiliseUrlForOriginId(nodeUrl) === stableUrl) {
         return node
@@ -326,34 +325,32 @@ export async function lookupNodes(
     return undefined
   } else if ('webQuote' in key) {
     const { id, stableUrl } = genOriginId(key.webQuote.url)
-    const query: GetNodeSliceArgs = { ...SLICE_ALL, origin: { id } }
-    const iter = storage.node.slice(query)
+    const nodes: TNode[] = await storage.node.getByOrigin({ origin: { id } })
 
-    const nodes: TNode[] = []
-    for (let node = await iter.next(); node != null; node = await iter.next()) {
+    const ret: TNode[] = []
+    for (const node of nodes) {
       if (NodeUtil.isWebQuote(node) && node.extattrs?.web_quote) {
         if (
           stabiliseUrlForOriginId(node.extattrs.web_quote.url) === stableUrl
         ) {
-          nodes.push(node)
+          ret.push(node)
         }
       }
     }
     return nodes
   } else if ('url' in key) {
     const { id, stableUrl } = genOriginId(key.url)
-    const query: GetNodeSliceArgs = { ...SLICE_ALL, origin: { id } }
-    const iter = storage.node.slice(query)
+    const nodes: TNode[] = await storage.node.getByOrigin({ origin: { id } })
 
-    const nodes: TNode[] = []
-    for (let node = await iter.next(); node != null; node = await iter.next()) {
+    const ret: TNode[] = []
+    for (const node of nodes) {
       if (NodeUtil.isWebBookmark(node) && node.extattrs?.web) {
         if (stabiliseUrlForOriginId(node.extattrs.web.url) === stableUrl) {
-          nodes.push(node)
+          ret.push(node)
         }
       }
     }
-    return nodes
+    return ret
   }
 
   throw new Error(`Failed to lookup nodes, unsupported key ${key}`)
