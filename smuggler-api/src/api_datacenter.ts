@@ -348,18 +348,16 @@ const getNodesSlice: GetNodesSliceFn = async ({
 }
 
 function _getNodesSliceIter({
-  end_time,
   start_time,
-  limit,
   origin,
   bucket_time_size,
 }: GetNodeSliceArgs) {
   return new TNodeSliceIterator(
     getNodesSlice,
     start_time,
-    end_time,
+    undefined,
     bucket_time_size,
-    limit,
+    undefined,
     origin
   )
 }

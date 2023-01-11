@@ -40,9 +40,7 @@ export type CreateNodeArgs = {
 }
 
 export type GetNodeSliceArgs = {
-  end_time?: number
   start_time?: number
-  limit?: number
   origin?: OriginId
   bucket_time_size?: number
 }
