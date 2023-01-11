@@ -40,7 +40,7 @@ import { v4 as uuidv4 } from 'uuid'
 import base32Encode from 'base32-encode'
 
 import browser from 'webextension-polyfill'
-import { MimeType, unixtime } from 'armoury'
+import { genOriginId, MimeType, unixtime } from 'armoury'
 import lodash from 'lodash'
 
 // TODO[snikitin@outlook.com] Describe that "yek" is "key" in reverse,
@@ -338,6 +338,26 @@ async function getNode({
   return NodeUtil.fromJson(value)
 }
 
+async function getNodesByOrigin({
+  store,
+  origin,
+}: {
+  store: YekLavStore
+  origin: OriginId
+}): Promise<TNode[]> {
+  const yek: OriginToNidYek = { yek: { kind: 'origin->nid', key: origin } }
+  const lav: OriginToNidLav | undefined = await store.get(yek)
+  if (lav == null) {
+    return []
+  }
+  const value: Nid[] = lav.lav.value
+  const nidYeks: NidYek[] = value.map((nid: Nid): NidYek => {
+    return { yek: { kind: 'nid', key: nid } }
+  })
+  const nidLavs: NidLav[] = await store.get(nidYeks)
+  return nidLavs.map((lav: NidLav) => NodeUtil.fromJson(lav.lav.value))
+}
+
 async function getNodeBatch(
   store: YekLavStore,
   req: NodeBatchRequestBody
@@ -539,7 +559,8 @@ export function makeLocalStorageApi(
     node: {
       get: ({ nid }: { nid: string; signal?: AbortSignal }) =>
         getNode({ store, nid }),
-      getByOrigin: throwUnimplementedError('node.getByOrigin'),
+      getByOrigin: ({ origin }: { origin: OriginId; signal?: AbortSignal }) =>
+        getNodesByOrigin({ store, origin }),
       update: (
         args: { nid: string } & NodePatchRequest,
         _signal?: AbortSignal
