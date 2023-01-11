@@ -17,7 +17,7 @@ export function makeAlwaysThrowingStorageApi(): StorageApi {
       getByOrigin: throwError,
       update: throwError,
       create: throwError,
-      slice: throwError,
+      iterate: throwError,
       delete: throwError,
       bulkDelete: throwError,
       batch: {

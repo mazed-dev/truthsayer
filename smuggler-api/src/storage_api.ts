@@ -81,7 +81,7 @@ export type StorageApi = {
       args: CreateNodeArgs,
       signal?: AbortSignal
     ) => Promise<NewNodeResponse>
-    slice: () => INodeIterator
+    iterate: () => INodeIterator
     delete: ({
       nid,
       signal,

@@ -807,7 +807,7 @@ export function makeDatacenterStorageApi(): StorageApi {
       getByOrigin: getNodesByOrigin,
       update: updateNode,
       create: createNode,
-      slice: () => _getNodesSliceIter({}),
+      iterate: () => _getNodesSliceIter({}),
       delete: deleteNode,
       bulkDelete: bulkDeleteNodes,
       batch: {
