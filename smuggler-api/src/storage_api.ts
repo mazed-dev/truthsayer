@@ -39,14 +39,6 @@ export type CreateNodeArgs = {
   created_at?: Date
 }
 
-export type GetNodeSliceArgs = {
-  end_time?: number
-  start_time?: number
-  limit?: number
-  origin?: OriginId
-  bucket_time_size?: number
-}
-
 export type NodeBatchRequestBody = {
   nids: Nid[]
 }
@@ -74,6 +66,13 @@ export type SwitchEdgeStickinessArgs = {
 export type StorageApi = {
   node: {
     get: ({ nid, signal }: { nid: Nid; signal?: AbortSignal }) => Promise<TNode>
+    getByOrigin: ({
+      origin,
+      signal,
+    }: {
+      origin: OriginId
+      signal?: AbortSignal
+    }) => Promise<TNode[]>
     update: (
       args: { nid: Nid } & NodePatchRequest,
       signal?: AbortSignal
@@ -82,7 +81,7 @@ export type StorageApi = {
       args: CreateNodeArgs,
       signal?: AbortSignal
     ) => Promise<NewNodeResponse>
-    slice: (args: GetNodeSliceArgs) => INodeIterator
+    iterate: () => INodeIterator
     delete: ({
       nid,
       signal,

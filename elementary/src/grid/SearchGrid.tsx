@@ -76,7 +76,7 @@ export const SearchGrid = ({
   } | null>(null)
   useEffect(() => {
     setUpSearch({
-      iter: storage.node.slice({}),
+      iter: storage.node.iterate(),
       beagle: Beagle.fromString(q || undefined),
     })
   }, [q])

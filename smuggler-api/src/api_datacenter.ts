@@ -33,7 +33,6 @@ import {
 } from './types'
 import type {
   CreateNodeArgs,
-  GetNodeSliceArgs,
   NodeBatchRequestBody,
   CreateEdgeArgs,
   StorageApi,
@@ -228,6 +227,25 @@ async function getNode({
   return node
 }
 
+async function getNodesByOrigin({
+  origin,
+}: {
+  origin: OriginId
+  signal?: AbortSignal
+}): Promise<TNode[]> {
+  const sliceAll: GetNodeSliceArgs = {
+    start_time: 0, // since the beginning of time
+    bucket_time_size: 366 * 24 * 60 * 60,
+    origin,
+  }
+  const ret: TNode[] = []
+  const iter = _getNodesSliceIter(sliceAll)
+  for (let node = await iter.next(); node != null; node = await iter.next()) {
+    ret.push(node)
+  }
+  return ret
+}
+
 async function getNodeBatch(
   req: NodeBatchRequestBody,
   signal?: AbortSignal
@@ -348,19 +366,23 @@ const getNodesSlice: GetNodesSliceFn = async ({
   }
 }
 
+type GetNodeSliceArgs = {
+  start_time?: number
+  origin?: OriginId
+  bucket_time_size?: number
+}
+
 function _getNodesSliceIter({
-  end_time,
   start_time,
-  limit,
   origin,
   bucket_time_size,
 }: GetNodeSliceArgs) {
   return new TNodeSliceIterator(
     getNodesSlice,
     start_time,
-    end_time,
+    undefined,
     bucket_time_size,
-    limit,
+    undefined,
     origin
   )
 }
@@ -783,9 +805,10 @@ export function makeDatacenterStorageApi(): StorageApi {
   return {
     node: {
       get: getNode,
+      getByOrigin: getNodesByOrigin,
       update: updateNode,
       create: createNode,
-      slice: _getNodesSliceIter,
+      iterate: () => _getNodesSliceIter({}),
       delete: deleteNode,
       bulkDelete: bulkDeleteNodes,
       batch: {

@@ -5,7 +5,7 @@ export interface INodeIterator {
   next: () => Promise<Optional<TNode>>
   total: () => number
   exhausted: () => boolean
-  abort(): void
+  abort: () => void
 }
 
 export type GetNodesSliceFn = ({
