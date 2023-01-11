@@ -10,8 +10,11 @@
 import {
   Ack,
   AddUserActivityRequest,
+  AddUserExternalAssociationRequest,
   AdvanceExternalPipelineIngestionProgress,
+  CreateEdgeArgs,
   CreateNodeArgs,
+  EdgeUtil,
   Eid,
   GetNodeSliceArgs,
   NewNodeResponse,
@@ -19,10 +22,12 @@ import {
   NodeBatch,
   NodeBatchRequestBody,
   NodeCreatedVia,
+  NodeEdges,
   NodePatchRequest,
   NodeUtil,
   OriginId,
   StorageApi,
+  TEdge,
   TEdgeJson,
   TNode,
   TNodeJson,
@@ -89,6 +94,12 @@ type Lav =
   | OriginToActivityLav
   | ExtPipelineLav
 
+type YekLav = { yek: Yek; lav: Lav }
+
+function isOfArrayKind(lav: Lav): lav is OriginToNidLav | NidToEdgeLav {
+  return Array.isArray(lav.lav.value)
+}
+
 // TODO[snikitin@outlook.com] Describe that the purpose of this wrapper is to
 // add a bit of ORM-like typesafety to browser.Storage.StorageArea.
 // Without this it's very difficult to keep track of what the code is doing
@@ -100,7 +111,7 @@ class YekLavStore {
     this.store = store
   }
 
-  set(items: { yek: Yek; lav: Lav }[]): Promise<void> {
+  set(items: YekLav[]): Promise<void> {
     for (const item of items) {
       if (item.yek.yek.kind !== item.lav.lav.kind) {
         throw new Error(
@@ -125,6 +136,7 @@ class YekLavStore {
   get(yek: NidYek[]): Promise<NidLav[]>
   get(yek: OriginToActivityYek): Promise<OriginToActivityLav | undefined>
   get(yek: ExtPipelineYek): Promise<ExtPipelineLav | undefined>
+  get(yek: Yek): Promise<Lav | undefined>
   get(yek: Yek | Yek[]): Promise<Lav | Lav[] | undefined> {
     if (Array.isArray(yek)) {
       const keys: string[] = yek.map((value: Yek) => this.stringify(value))
@@ -148,6 +160,49 @@ class YekLavStore {
         return Promise.resolve(record as Lav)
       }
     )
+  }
+
+  // TODO[snikitin@outlook.com] Explain that this method is a poor man's attempt
+  // to increase atomicity of data insertion
+  async prepareAppend(
+    yek: OriginToNidYek,
+    lav: OriginToNidLav
+  ): Promise<{
+    yek: OriginToNidYek
+    lav: OriginToNidLav
+  }>
+  async prepareAppend(
+    yek: NidToEdgeYek,
+    lav: NidToEdgeLav
+  ): Promise<{
+    yek: NidToEdgeYek
+    lav: NidToEdgeLav
+  }>
+  async prepareAppend(yek: Yek, appended_lav: Lav): Promise<YekLav> {
+    if (yek.yek.kind !== appended_lav.lav.kind) {
+      throw new Error(
+        `Attempted to append a key/value pair of mismatching kinds: '${yek.yek.kind}' !== '${appended_lav.lav.kind}'`
+      )
+    }
+    const lav = await this.get(yek)
+    if (lav != null && !isOfArrayKind(lav)) {
+      throw new Error(`prepareAppend only works/makes sense for arrays`)
+    }
+    const value = lav?.lav.value ?? []
+    // TODO[snikitin@outlook.com] I'm sure it's possible to convince Typescript
+    // that below is safe, but don't know how
+    return {
+      yek,
+      // @ts-ignore Type '{...}' is not assignable to type 'Lav'
+      lav: {
+        lav: {
+          kind: yek.yek.kind,
+          // @ts-ignore Each member of the union type has signatures, but none of those
+          // signatures are compatible with each other
+          value: value.concat(appended_lav.lav.value),
+        },
+      },
+    }
   }
 
   private stringify(yek: Yek): string {
@@ -221,11 +276,10 @@ async function createNode(
     const yek: OriginToNidYek = {
       yek: { kind: 'origin->nid', key: args.origin },
     }
-    let lav: OriginToNidLav | undefined = await store.get(yek)
-    lav = lav ?? { lav: { kind: 'origin->nid', value: [] } }
-    const nidsWithThisOrigin: Nid[] = lav.lav.value
-    nidsWithThisOrigin.push(node.nid)
-    records.push({ yek, lav })
+    const lav: OriginToNidLav = {
+      lav: { kind: 'origin->nid', value: [node.nid] },
+    }
+    records.push(await store.prepareAppend(yek, lav))
   }
 
   if (from_nid.length > 0 || to_nid.length > 0) {
@@ -314,6 +368,67 @@ async function updateNode(
   }
   await store.set([{ yek, lav }])
   return { ack: true }
+}
+
+async function createEdge(
+  store: YekLavStore,
+  args: CreateEdgeArgs
+): Promise<TEdge> {
+  // TODO[snikitin@outlook.com] Evaluate if ownership support is needed
+  // and implement if yes
+  const owned_by = 'todo'
+
+  const createdAt: number = unixtime.now()
+  const edge: TEdgeJson = {
+    eid: generateEid(),
+    from_nid: args.from,
+    to_nid: args.to,
+    crtd: createdAt,
+    upd: createdAt,
+    is_sticky: false,
+    owned_by,
+  }
+
+  const items: YekLav[] = []
+  {
+    const yek: NidToEdgeYek = { yek: { kind: 'nid->edge', key: args.from } }
+    const lav: NidToEdgeLav = { lav: { kind: 'nid->edge', value: [edge] } }
+    items.push(await store.prepareAppend(yek, lav))
+  }
+  {
+    const reverseEdge: TEdgeJson = {
+      ...edge,
+      from_nid: args.to,
+      to_nid: args.from,
+    }
+    const yek: NidToEdgeYek = { yek: { kind: 'nid->edge', key: args.to } }
+    const lav: NidToEdgeLav = {
+      lav: { kind: 'nid->edge', value: [reverseEdge] },
+    }
+    items.push(await store.prepareAppend(yek, lav))
+  }
+  await store.set(items)
+  return EdgeUtil.fromJson(edge)
+}
+
+async function getNodeAllEdges(
+  store: YekLavStore,
+  nid: string
+): Promise<NodeEdges> {
+  const yek: NidToEdgeYek = { yek: { kind: 'nid->edge', key: nid } }
+  const lav: NidToEdgeLav | undefined = await store.get(yek)
+  const ret: NodeEdges = { from_edges: [], to_edges: [] }
+  if (lav == null) {
+    return ret
+  }
+  for (const edge of lav.lav.value) {
+    if (edge.to_nid === nid) {
+      ret.from_edges.push(EdgeUtil.fromJson(edge))
+    } else {
+      ret.to_edges.push(EdgeUtil.fromJson(edge))
+    }
+  }
+  return ret
 }
 
 async function addExternalUserActivity(
@@ -461,10 +576,10 @@ export function makeLocalStorageApi(
       },
     },
     edge: {
-      // create: createEdge,
-      // get: getNodeAllEdges,
-      // sticky: switchEdgeStickiness,
-      // delete: deleteEdge,
+      create: (args: CreateEdgeArgs) => createEdge(store, args),
+      get: (nid: string, _signal?: AbortSignal) => getNodeAllEdges(store, nid),
+      sticky: throwUnimplementedError('edge.sticky'),
+      delete: throwUnimplementedError('edge.delete'),
     },
     activity: {
       external: {
@@ -477,8 +592,21 @@ export function makeLocalStorageApi(
           getExternalUserActivity(store, origin),
       },
       association: {
-        // record: recordExternalAssociation,
-        // get: getExternalAssociation,
+        // TODO[snikitin@outlook.com] Replace stubs with real implementation
+        record: (
+          _origin: {
+            from: OriginId
+            to: OriginId
+          },
+          _body: AddUserExternalAssociationRequest,
+          _signal?: AbortSignal
+        ) => Promise.resolve({ ack: true }),
+        get: (
+          {}: {
+            origin: OriginId
+          },
+          _signal?: AbortSignal
+        ) => Promise.resolve({ from: [], to: [] }),
       },
     },
     external: {

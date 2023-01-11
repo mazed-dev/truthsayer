@@ -59,8 +59,8 @@ export type BlobUploadRequestArgs = {
 }
 
 export type CreateEdgeArgs = {
-  from?: Nid
-  to?: Nid
+  from: Nid
+  to: Nid
   signal: AbortSignal
 }
 
