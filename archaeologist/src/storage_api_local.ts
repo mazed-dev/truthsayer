@@ -16,7 +16,6 @@ import {
   CreateNodeArgs,
   EdgeUtil,
   Eid,
-  GetNodeSliceArgs,
   NewNodeResponse,
   Nid,
   NodeBatch,
@@ -31,7 +30,7 @@ import {
   TEdgeJson,
   TNode,
   TNodeJson,
-  TNodeSliceIterator,
+  INodeIterator,
   TotalUserActivity,
   UserExternalPipelineId,
   UserExternalPipelineIngestionProgress,
@@ -540,17 +539,14 @@ export function makeLocalStorageApi(
     node: {
       get: ({ nid }: { nid: string; signal?: AbortSignal }) =>
         getNode({ store, nid }),
+      getByOrigin: throwUnimplementedError('node.getByOrigin'),
       update: (
         args: { nid: string } & NodePatchRequest,
         _signal?: AbortSignal
       ) => updateNode(store, args),
       create: (args: CreateNodeArgs, _signal?: AbortSignal) =>
         createNode(store, args),
-      // TODO[snikitin@outlook.com] Local-hosted slicing implementation is a
-      // problem because the datacenter-hosted version depends entirely on
-      // time range search which is easy with in SQL, but with a KV-store
-      // requires to load all nodes from memory on every "iteration"
-      slice: throwUnimplementedError('node.slice'),
+      iterate: throwUnimplementedError('node.iterate'),
       delete: throwUnimplementedError('node.delete'),
       bulkDelete: throwUnimplementedError('node.bulkdDelete'),
       batch: {
