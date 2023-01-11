@@ -13,7 +13,7 @@ import { SmallCard } from '../SmallCard'
 import { ShrinkCard } from '../ShrinkCard'
 import { NodeTimeBadge } from '../NodeTimeBadge'
 
-import { TNodeSliceIterator } from 'smuggler-api'
+import { INodeIterator } from 'smuggler-api'
 import type { TNode, StorageApi } from 'smuggler-api'
 
 import { log, isAbortError, errorise } from 'armoury'
@@ -71,7 +71,7 @@ export const SearchGrid = ({
   storage: StorageApi
 }>) => {
   const [search, setUpSearch] = useState<{
-    iter: TNodeSliceIterator
+    iter: INodeIterator
     beagle: Beagle
   } | null>(null)
   useEffect(() => {
@@ -111,7 +111,7 @@ const SearchGridScroll = ({
   storage,
 }: React.PropsWithChildren<{
   beagle: Beagle
-  iter: TNodeSliceIterator
+  iter: INodeIterator
   onCardClick?: (arg0: TNode) => void
   portable?: boolean
   className?: string

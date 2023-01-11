@@ -1,6 +1,6 @@
 import { MimeType } from 'armoury'
 import type { Optional } from 'armoury'
-import { TNodeSliceIterator } from './node_slice_iterator'
+import { INodeIterator } from './node_slice_iterator'
 import {
   TNode,
   NodePatchRequest,
@@ -82,7 +82,7 @@ export type StorageApi = {
       args: CreateNodeArgs,
       signal?: AbortSignal
     ) => Promise<NewNodeResponse>
-    slice: (args: GetNodeSliceArgs) => TNodeSliceIterator
+    slice: (args: GetNodeSliceArgs) => INodeIterator
     delete: ({
       nid,
       signal,
