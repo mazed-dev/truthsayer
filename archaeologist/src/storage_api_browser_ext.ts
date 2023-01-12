@@ -1,10 +1,16 @@
 /**
  * An implementation of @see smuggler-api.StorageApi that persists the data
- * on user device and is based on browser extension APIs.
+ * in a storage only available to browser extensions (most likely - locally on device).
  *
  * It is intended to work in all browser extension contexts (such as background,
- * content etc). See https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage
+ * content etc).
+ * See https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage
  * for more information.
+ *
+ * NOTE: At the time of this writing dev tools of some browsers (including the
+ * Chromium-based ones) do not including anything to inspect the contents
+ * of the underlying storage. See https://stackoverflow.com/a/27432365/3375765
+ * for workarounds.
  */
 
 import {
@@ -117,6 +123,10 @@ class YekLavStore {
     this.store = store
   }
 
+  // TODO[snikitin@outlook.com] Add a note that the code that uses this
+  // method should try to combine everything it needs to do into ONE
+  // call to set() in hopes to retain at least some data consistency
+  // guarantees.
   set(items: YekLav[]): Promise<void> {
     for (const item of items) {
       if (item.yek.yek.kind !== item.lav.lav.kind) {
@@ -128,7 +138,7 @@ class YekLavStore {
     let records: Record<string, any> = {}
     for (const item of items) {
       const key = this.stringify(item.yek)
-      if (records.keys().indexOf(key) !== -1) {
+      if (Object.keys(records).indexOf(key) !== -1) {
         throw new Error(`Attempted to set more than 1 value for key '${key}'`)
       }
       records[key] = item.lav
@@ -605,7 +615,7 @@ async function advanceUserIngestionProgress(
   return { ack: true }
 }
 
-export function makeLocalStorageApi(
+export function makeBrowserExtStorageApi(
   browserStore: browser.Storage.StorageArea
 ): StorageApi {
   const store = new YekLavStore(browserStore)
@@ -613,7 +623,8 @@ export function makeLocalStorageApi(
   const throwUnimplementedError = (endpoint: string) => {
     return (..._: any[]): never => {
       throw new Error(
-        `Attempted to call an ${endpoint} endpoint of local StorageApi which hasn't been implemented yet`
+        `Attempted to call an ${endpoint} endpoint of browser ` +
+          "extension's local StorageApi which hasn't been implemented yet"
       )
     }
   }
