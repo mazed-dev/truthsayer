@@ -33,7 +33,7 @@ async function readAtMost(file: File, maxChars: number) {
 
 /**
  * Build @see NodeIndexText from a file of any type supported in *Mazed*
- * (as opposed to @see smuggler.blob_index.build which is limited to file types
+ * (as opposed to @see StorageApi.blob_index.build which is limited to file types
  * supported by *smuggler*)
  */
 export async function nodeIndexFromFile(
