@@ -8,7 +8,7 @@
  * for more information.
  *
  * NOTE: At the time of this writing dev tools of some browsers (including the
- * Chromium-based ones) do not including anything to inspect the contents
+ * Chromium-based ones) do not include anything that would allow to inspect the contents
  * of the underlying storage. See https://stackoverflow.com/a/27432365/3375765
  * for workarounds.
  */
