@@ -255,7 +255,7 @@ function generateNid(): Nid {
    */
   const uuid = uuidv4()
   const array: Uint8Array = new TextEncoder().encode(uuid)
-  return base32Encode(array, 'Crockford')
+  return base32Encode(array, 'Crockford').toLowerCase()
 }
 
 function generateEid(): Eid {
