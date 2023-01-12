@@ -6,7 +6,7 @@ import styled from '@emotion/styled'
 import { Button, Form } from 'react-bootstrap'
 import { goto, routes } from './../lib/route'
 import DemoQuoteImg from './img/copy-quote-demo.png'
-import DemoWritingAugmentationGif from './img/mazed-demo-writing-augmentation-safes.gif'
+import DemoWritingAugmentationGif from './img/mazed-demo-calendar-writing-augmentation-safes.gif'
 
 import { authentication } from 'smuggler-api'
 import { log } from 'armoury'
@@ -70,7 +70,8 @@ const SecondSlideBody = styled.div`
 const SecondSlideRightHalf = styled.div`
   width: 50%;
   @media (max-width: 900px) {
-    width: 100%;
+    width: 0%;
+    display: none;
   }
 
   display: flex;
@@ -81,8 +82,7 @@ const SecondSlideRightHalf = styled.div`
 const SecondSlideLeftHalf = styled.div`
   width: 50%;
   @media (max-width: 900px) {
-    width: 0%;
-    display: none;
+    width: 100%;
   }
 
   display: flex;
@@ -134,10 +134,14 @@ function Login() {
     </LoginBox>
   )
 }
+const GifDemo = styled.img`
+  width: 94%;
+  border-color: #cecece;
+  border-style: solid;
+  box-shadow: 2px 2px 4px #8c8c8ceb;
+`
 const ImageDemo = styled.img`
-  width: 60vmin;
-  height: 60vmin;
-
+  height: 86vh;
   border-color: #cecece;
   border-style: solid;
   box-shadow: 2px 2px 4px #8c8c8ceb;
@@ -274,7 +278,7 @@ export function LandingPage() {
           </FirstSlideLeftHalf>
           <FirstSlideRightHalf>
             <Centered>
-              <ImageDemo src={DemoWritingAugmentationGif} />
+              <GifDemo src={DemoWritingAugmentationGif} />
             </Centered>
           </FirstSlideRightHalf>
         </FirstSlideBody>
