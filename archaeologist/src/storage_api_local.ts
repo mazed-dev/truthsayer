@@ -62,8 +62,11 @@ type GenericLav<Kind extends string, Value> = {
   }
 }
 
-type NidYek = GenericYek<'nid', Nid>
-type NidLav = GenericLav<'nid', TNodeJson>
+type AllNidsYek = GenericYek<'all-nids', undefined>
+type AllNidsLav = GenericLav<'all-nids', Nid[]>
+
+type NidToNodeYek = GenericYek<'nid->node', Nid>
+type NidToNodeLav = GenericLav<'nid->node', TNodeJson>
 
 type OriginToNidYek = GenericYek<'origin->nid', OriginId>
 type OriginToNidLav = GenericLav<'origin->nid', Nid[]>
@@ -74,20 +77,22 @@ type NidToEdgeLav = GenericLav<'nid->edge', TEdgeJson[]>
 type OriginToActivityYek = GenericYek<'origin->activity', OriginId>
 type OriginToActivityLav = GenericLav<'origin->activity', TotalUserActivity>
 
-type ExtPipelineYek = GenericYek<'ext-pipe', UserExternalPipelineId>
+type ExtPipelineYek = GenericYek<'ext-pipe->progress', UserExternalPipelineId>
 type ExtPipelineLav = GenericLav<
-  'ext-pipe',
+  'ext-pipe->progress',
   Omit<UserExternalPipelineIngestionProgress, 'epid'>
 >
 
 type Yek =
-  | NidYek
+  | AllNidsYek
+  | NidToNodeYek
   | OriginToNidYek
   | NidToEdgeYek
   | OriginToActivityYek
   | ExtPipelineYek
 type Lav =
-  | NidLav
+  | AllNidsLav
+  | NidToNodeLav
   | OriginToNidLav
   | NidToEdgeLav
   | OriginToActivityLav
@@ -95,7 +100,9 @@ type Lav =
 
 type YekLav = { yek: Yek; lav: Lav }
 
-function isOfArrayKind(lav: Lav): lav is OriginToNidLav | NidToEdgeLav {
+function isOfArrayKind(
+  lav: Lav
+): lav is OriginToNidLav | NidToEdgeLav | AllNidsLav {
   return Array.isArray(lav.lav.value)
 }
 
@@ -129,10 +136,11 @@ class YekLavStore {
     return this.store.set(records)
   }
 
-  get(yek: NidYek): Promise<NidLav | undefined>
+  get(yek: AllNidsYek): Promise<AllNidsLav | undefined>
+  get(yek: NidToNodeYek): Promise<NidToNodeLav | undefined>
   get(yek: OriginToNidYek): Promise<OriginToNidLav | undefined>
   get(yek: NidToEdgeYek): Promise<NidToEdgeLav | undefined>
-  get(yek: NidYek[]): Promise<NidLav[]>
+  get(yek: NidToNodeYek[]): Promise<NidToNodeLav[]>
   get(yek: OriginToActivityYek): Promise<OriginToActivityLav | undefined>
   get(yek: ExtPipelineYek): Promise<ExtPipelineLav | undefined>
   get(yek: Yek): Promise<Lav | undefined>
@@ -163,6 +171,13 @@ class YekLavStore {
 
   // TODO[snikitin@outlook.com] Explain that this method is a poor man's attempt
   // to increase atomicity of data insertion
+  async prepareAppend(
+    yek: AllNidsYek,
+    lav: AllNidsLav
+  ): Promise<{
+    yek: AllNidsYek
+    lav: AllNidsLav
+  }>
   async prepareAppend(
     yek: OriginToNidYek,
     lav: OriginToNidLav
@@ -206,15 +221,17 @@ class YekLavStore {
 
   private stringify(yek: Yek): string {
     switch (yek.yek.kind) {
-      case 'nid':
-        return 'nid:' + yek.yek.key
+      case 'all-nids':
+        return 'all-nids'
+      case 'nid->node':
+        return 'nid->node:' + yek.yek.key
       case 'origin->nid':
         return 'origin->nid:' + yek.yek.key.id
       case 'nid->edge':
         return 'nid->edge:' + yek.yek.key
       case 'origin->activity':
         return 'origin->activity:' + yek.yek.key.id
-      case 'ext-pipe':
+      case 'ext-pipe->progress':
         return 'ext-pipe:' + yek.yek.key.pipeline_key
     }
   }
@@ -264,10 +281,14 @@ async function createNode(
     updated_at: createdAt,
   }
 
-  let records: { yek: Yek; lav: Lav }[] = [
+  let records: YekLav[] = [
+    await store.prepareAppend(
+      { yek: { kind: 'all-nids', key: undefined } },
+      { lav: { kind: 'all-nids', value: [node.nid] } }
+    ),
     {
-      yek: { yek: { kind: 'nid', key: node.nid } },
-      lav: { lav: { kind: 'nid', value: node } },
+      yek: { yek: { kind: 'nid->node', key: node.nid } },
+      lav: { lav: { kind: 'nid->node', value: node } },
     },
   ]
 
@@ -329,8 +350,8 @@ async function getNode({
   store: YekLavStore
   nid: Nid
 }): Promise<TNode> {
-  const yek: NidYek = { yek: { kind: 'nid', key: nid } }
-  const lav: NidLav | undefined = await store.get(yek)
+  const yek: NidToNodeYek = { yek: { kind: 'nid->node', key: nid } }
+  const lav: NidToNodeLav | undefined = await store.get(yek)
   if (lav == null) {
     throw new Error(`Failed to get node ${nid} because it wasn't found`)
   }
@@ -351,30 +372,32 @@ async function getNodesByOrigin({
     return []
   }
   const value: Nid[] = lav.lav.value
-  const nidYeks: NidYek[] = value.map((nid: Nid): NidYek => {
-    return { yek: { kind: 'nid', key: nid } }
+  const nidYeks: NidToNodeYek[] = value.map((nid: Nid): NidToNodeYek => {
+    return { yek: { kind: 'nid->node', key: nid } }
   })
-  const nidLavs: NidLav[] = await store.get(nidYeks)
-  return nidLavs.map((lav: NidLav) => NodeUtil.fromJson(lav.lav.value))
+  const nidLavs: NidToNodeLav[] = await store.get(nidYeks)
+  return nidLavs.map((lav: NidToNodeLav) => NodeUtil.fromJson(lav.lav.value))
 }
 
 async function getNodeBatch(
   store: YekLavStore,
   req: NodeBatchRequestBody
 ): Promise<NodeBatch> {
-  const yeks: NidYek[] = req.nids.map((nid: Nid): NidYek => {
-    return { yek: { kind: 'nid', key: nid } }
+  const yeks: NidToNodeYek[] = req.nids.map((nid: Nid): NidToNodeYek => {
+    return { yek: { kind: 'nid->node', key: nid } }
   })
-  const lavs: NidLav[] = await store.get(yeks)
-  return { nodes: lavs.map((lav: NidLav) => NodeUtil.fromJson(lav.lav.value)) }
+  const lavs: NidToNodeLav[] = await store.get(yeks)
+  return {
+    nodes: lavs.map((lav: NidToNodeLav) => NodeUtil.fromJson(lav.lav.value)),
+  }
 }
 
 async function updateNode(
   store: YekLavStore,
   args: { nid: Nid } & NodePatchRequest
 ): Promise<Ack> {
-  const yek: NidYek = { yek: { kind: 'nid', key: args.nid } }
-  const lav: NidLav | undefined = await store.get(yek)
+  const yek: NidToNodeYek = { yek: { kind: 'nid->node', key: args.nid } }
+  const lav: NidToNodeLav | undefined = await store.get(yek)
   if (lav == null) {
     throw new Error(`Failed to update node ${args.nid} because it wasn't found`)
   }
@@ -387,6 +410,46 @@ async function updateNode(
   }
   await store.set([{ yek, lav }])
   return { ack: true }
+}
+
+class Iterator implements INodeIterator {
+  private store: YekLavStore
+  private nids: Promise<Nid[]>
+  private index: number
+
+  constructor(store: YekLavStore) {
+    this.store = store
+    this.index = 0
+
+    const yek: AllNidsYek = {
+      yek: { kind: 'all-nids', key: undefined },
+    }
+    this.nids = store
+      .get(yek)
+      .then((lav: AllNidsLav | undefined) => lav?.lav.value ?? [])
+  }
+
+  async next(): Promise<TNode | null> {
+    const nids = await this.nids
+    if (this.index >= nids.length) {
+      return null
+    }
+    const nid: Nid = nids[this.index]
+    const yek: NidToNodeYek = { yek: { kind: 'nid->node', key: nid } }
+    const lav: NidToNodeLav | undefined = await this.store.get(yek)
+    if (lav == null) {
+      throw new Error(`Failed to find node for nid ${nid}`)
+    }
+    ++this.index
+    return NodeUtil.fromJson(lav.lav.value)
+  }
+  total(): number {
+    return this.index
+  }
+  abort(): void {
+    this.index = 0
+    this.nids = Promise.resolve([])
+  }
 }
 
 async function createEdge(
@@ -507,7 +570,7 @@ async function getUserIngestionProgress(
   epid: UserExternalPipelineId
 ): Promise<UserExternalPipelineIngestionProgress> {
   const yek: ExtPipelineYek = {
-    yek: { kind: 'ext-pipe', key: epid },
+    yek: { kind: 'ext-pipe->progress', key: epid },
   }
   const lav: ExtPipelineLav | undefined = await store.get(yek)
   if (lav == null) {
@@ -533,10 +596,10 @@ async function advanceUserIngestionProgress(
   progress.ingested_until = new_progress.ingested_until
 
   const yek: ExtPipelineYek = {
-    yek: { kind: 'ext-pipe', key: epid },
+    yek: { kind: 'ext-pipe->progress', key: epid },
   }
   const lav: ExtPipelineLav = {
-    lav: { kind: 'ext-pipe', value: progress },
+    lav: { kind: 'ext-pipe->progress', value: progress },
   }
   await store.set([{ yek, lav }])
   return { ack: true }
@@ -567,7 +630,7 @@ export function makeLocalStorageApi(
       ) => updateNode(store, args),
       create: (args: CreateNodeArgs, _signal?: AbortSignal) =>
         createNode(store, args),
-      iterate: throwUnimplementedError('node.iterate'),
+      iterate: () => new Iterator(store),
       delete: throwUnimplementedError('node.delete'),
       bulkDelete: throwUnimplementedError('node.bulkdDelete'),
       batch: {
