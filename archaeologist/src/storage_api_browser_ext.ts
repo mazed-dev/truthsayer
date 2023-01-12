@@ -46,7 +46,7 @@ import { v4 as uuidv4 } from 'uuid'
 import base32Encode from 'base32-encode'
 
 import browser from 'webextension-polyfill'
-import { genOriginId, MimeType, unixtime } from 'armoury'
+import { MimeType, unixtime } from 'armoury'
 import lodash from 'lodash'
 
 // TODO[snikitin@outlook.com] Describe that "yek" is "key" in reverse,
@@ -272,7 +272,7 @@ async function createNode(
   args: CreateNodeArgs
 ): Promise<NewNodeResponse> {
   // TODO[snikitin@outlook.com] Below keys must become functional somehow.
-  const created_via: NodeCreatedVia | undefined = args.created_via
+  const _created_via: NodeCreatedVia | undefined = args.created_via
 
   // TODO[snikitin@outlook.com] This graph structure has to work somehow
   const from_nid: Nid[] = args.from_nid ?? []
@@ -693,7 +693,7 @@ export function makeBrowserExtStorageApi(
           _signal?: AbortSignal
         ) => Promise.resolve({ ack: true }),
         get: (
-          {}: {
+          _args: {
             origin: OriginId
           },
           _signal?: AbortSignal
