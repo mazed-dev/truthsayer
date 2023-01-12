@@ -1,11 +1,10 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import { Modal, Form } from 'react-bootstrap'
 
 import { SearchGrid } from 'elementary'
 
 import lodash from 'lodash'
 import { MzdGlobalContext } from '../lib/global'
-import { StorageApi } from 'smuggler-api'
 
 type SearchAndConnectJinnModalProps = {
   nid: string
