@@ -13,8 +13,7 @@ import { SmallCard } from '../SmallCard'
 import { ShrinkCard } from '../ShrinkCard'
 import { NodeTimeBadge } from '../NodeTimeBadge'
 
-import { INodeIterator } from 'smuggler-api'
-import type { TNode, StorageApi } from 'smuggler-api'
+import type { TNode, INodeIterator, StorageApi } from 'smuggler-api'
 
 import { log, isAbortError, errorise } from 'armoury'
 
