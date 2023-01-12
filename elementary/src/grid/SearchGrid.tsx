@@ -149,9 +149,9 @@ const SearchGridScroll = ({
         setFetching(true)
         try {
           while (isScrolledToBottom()) {
-            const node = await (await iter).next()
+            const node = await iter.next()
             if (node == null) {
-              ;(await iter).abort()
+              iter.abort()
               break
             }
             if (beagle.searchNode(node) != null) {
