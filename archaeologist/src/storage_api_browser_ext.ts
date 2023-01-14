@@ -272,7 +272,7 @@ async function createNode(
   args: CreateNodeArgs
 ): Promise<NewNodeResponse> {
   // TODO[snikitin@outlook.com] Below keys must become functional somehow.
-  const _created_via: NodeCreatedVia | undefined = args.created_via
+  // const _created_via: NodeCreatedVia | undefined = args.created_via
 
   // TODO[snikitin@outlook.com] This graph structure has to work somehow
   const from_nid: Nid[] = args.from_nid ?? []
