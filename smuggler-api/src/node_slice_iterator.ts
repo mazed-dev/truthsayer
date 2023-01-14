@@ -4,7 +4,6 @@ import type { Optional } from 'armoury'
 export interface INodeIterator {
   next: () => Promise<Optional<TNode>>
   total: () => number
-  exhausted: () => boolean
   abort: () => void
 }
 
