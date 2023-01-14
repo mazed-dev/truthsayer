@@ -70,7 +70,7 @@ async function requestPageConnections(bookmark?: TNode) {
   try {
     // Fetch all edges for a given node
     const { from_edges: fromEdges, to_edges: toEdges } = await storage.edge.get(
-      bookmark.nid
+      { nid: bookmark.nid }
     )
     // Gather node IDs of neighbour nodes to reqeust them
     const nids = fromEdges
@@ -157,15 +157,15 @@ async function registerAttentionTime(
   log.debug('Register Attention Time', tab, totalSecondsEstimation)
   let total: TotalUserActivity
   try {
-    total = await storage.activity.external.add(
-      { id: origin.id },
-      {
+    total = await storage.activity.external.add({
+      origin: { id: origin.id },
+      activity: {
         attention: {
           seconds: deltaSeconds,
           timestamp: unixtime.now(),
         },
-      }
-    )
+      },
+    })
   } catch (err) {
     if (!isAbortError(err)) {
       log.exception(err, 'Could not register external activity')
@@ -497,15 +497,18 @@ async function uploadBrowserHistory(mode: BrowserHistoryUploadMode) {
   )
 
   const epid = idOfBrowserHistoryOnThisDeviceAsExternalPipeline()
-  const currentProgress = await storage.external.ingestion.get(epid)
+  const currentProgress = await storage.external.ingestion.get({ epid })
 
   log.debug('Progress until now:', currentProgress)
 
   const advanceIngestionProgress = lodash.throttle(
     mode.mode !== 'untracked'
       ? async (date: Date) => {
-          return storage.external.ingestion.advance(epid, {
-            ingested_until: unixtime.from(date),
+          return storage.external.ingestion.advance({
+            epid,
+            new_progress: {
+              ingested_until: unixtime.from(date),
+            },
           })
         }
       : async (_: Date) => {},
@@ -676,8 +679,11 @@ async function uploadSingleHistoryItem(
   const resourceVisits: ResourceVisit[] = visits.map((visit) => {
     return { timestamp: unixtime.from(new Date(visit.visitTime ?? 0)) }
   })
-  const total = await storage.activity.external.add(origin, {
-    visit: { visits: resourceVisits, reported_by: epid },
+  const total = await storage.activity.external.add({
+    origin,
+    activity: {
+      visit: { visits: resourceVisits, reported_by: epid },
+    },
   })
   if (!isReadyToBeAutoSaved(total, 0)) {
     return

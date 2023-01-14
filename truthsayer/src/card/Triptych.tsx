@@ -196,7 +196,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
     })
     try {
       const { from_edges, to_edges } = await this.context.storage.edge.get(
-        this.props.nid,
+        { nid: this.props.nid },
         this.fetchToEdgesAbortController.signal
       )
       this.setState({
@@ -217,10 +217,12 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
     this.setState({ node: null })
     const nid = this.props.nid
     try {
-      const node = await this.context.storage.node.get({
-        nid,
-        signal: this.fetchNodeAbortController.signal,
-      })
+      const node = await this.context.storage.node.get(
+        {
+          nid,
+        },
+        this.fetchNodeAbortController.signal
+      )
       this.setState({ node })
     } catch (err) {
       if (!isAbortError(err)) {
@@ -264,11 +266,13 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
   addRef = async ({ from, to }: { from: string; to: string }) => {
     const { edges_right, edges_left } = this.state
     const { nid } = this.props
-    const edge = await this.context.storage.edge.create({
-      from,
-      to,
-      signal: this.createEdgeAbortController.signal,
-    })
+    const edge = await this.context.storage.edge.create(
+      {
+        from,
+        to,
+      },
+      this.createEdgeAbortController.signal
+    )
     if (to === nid) {
       this.setState({
         edges_left: edges_left.concat([edge]),

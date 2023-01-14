@@ -48,10 +48,12 @@ async function cloneNode({
     return null
   }
   const node: Optional<TNode> = await storage.node
-    .get({
-      nid,
-      signal: abortSignal,
-    })
+    .get(
+      {
+        nid,
+      },
+      abortSignal
+    )
     .catch((err) => {
       if (isAbortError(err)) {
         return null

@@ -60,34 +60,34 @@ async function reportAssociation(
 ): Promise<void> {
   const { id: fromId, stableUrl: fromUrl } = genOriginId(fromUrlUnstable)
   const { id: toId, stableUrl: toUrl } = genOriginId(toUrlUnstable)
-  await storage.activity.association.record(
-    {
+  await storage.activity.association.record({
+    origin: {
       from: { id: fromId },
       to: { id: toId },
     },
-    {
+    body: {
       association: {
         web_transition: {
           from_url: fromUrl,
           to_url: toUrl,
         },
       },
-    }
-  )
+    },
+  })
 }
 
 async function reportVisit(
   storage: StorageApi,
   origin: OriginIdentity
 ): Promise<void> {
-  await storage.activity.external.add(
-    { id: origin.id },
-    {
+  await storage.activity.external.add({
+    origin: { id: origin.id },
+    activity: {
       visit: {
         visits: [{ timestamp: unixtime.now() }],
       },
-    }
-  )
+    },
+  })
 }
 
 const onCompletedListener = async (

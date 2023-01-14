@@ -12,7 +12,7 @@
  * wrapper around individual smuggler's REST API)
  */
 
-import { CreateNodeArgs, StorageApi } from '../storage_api'
+import { NodeCreateArgs, StorageApi } from '../storage_api'
 import { TNode } from '../types'
 import {
   nodeIndexFromFile,
@@ -51,7 +51,7 @@ export const steroid = (storage: StorageApi) => {
       },
     },
     node: {
-      createOrUpdate: (args: CreateNodeArgs, signal?: AbortSignal) =>
+      createOrUpdate: (args: NodeCreateArgs, signal?: AbortSignal) =>
         createOrUpdateNode(storage, args, signal),
       /**
        * Lookup all the nodes that match a given key. For unique lookup keys either

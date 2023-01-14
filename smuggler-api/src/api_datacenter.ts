@@ -32,11 +32,25 @@ import {
   Nid,
 } from './types'
 import type {
-  CreateNodeArgs,
+  NodeCreateArgs,
   NodeBatchRequestBody,
-  CreateEdgeArgs,
+  EdgeCreateArgs,
   StorageApi,
   BlobUploadRequestArgs,
+  NodeDeleteArgs,
+  NodeBulkDeleteArgs,
+  NodeGetArgs,
+  NodeGetByOriginArgs,
+  NodeUpdateArgs,
+  EdgeGetArgs,
+  EdgeStickyArgs,
+  EdgeDeleteArgs,
+  ActivityExternalAddArgs,
+  ActivityExternalGetArgs,
+  ActivityAssociationRecordArgs,
+  ActivityAssociationGetArgs,
+  ExternalIngestionGetArgs,
+  ExternalIngestionAdvanceArgs,
 } from './storage_api'
 import { makeUrl } from './api_url'
 
@@ -66,7 +80,7 @@ async function createNode(
     origin,
     created_via,
     created_at,
-  }: CreateNodeArgs,
+  }: NodeCreateArgs,
   signal?: AbortSignal
 ): Promise<NewNodeResponse> {
   signal = signal || undefined
@@ -152,13 +166,10 @@ function makeDirectUrl(nid: string): string {
   return makeUrl(`/n/${nid}`)
 }
 
-async function deleteNode({
-  nid,
-  signal,
-}: {
-  nid: string
+async function deleteNode(
+  { nid }: NodeDeleteArgs,
   signal?: AbortSignal
-}): Promise<Ack> {
+): Promise<Ack> {
   verifyIsNotNull(nid)
   const resp = await fetch(makeUrl(`/node/${nid}`), {
     method: 'DELETE',
@@ -170,13 +181,10 @@ async function deleteNode({
   throw _makeResponseError(resp)
 }
 
-async function bulkDeleteNodes({
-  createdVia,
-  signal,
-}: {
-  createdVia: NodeCreatedVia
+async function bulkDeleteNodes(
+  { createdVia }: NodeBulkDeleteArgs,
   signal?: AbortSignal
-}): Promise<number /* number of nodes deleted */> {
+): Promise<number /* number of nodes deleted */> {
   const headers = {
     'Content-type': MimeType.JSON,
   }
@@ -193,13 +201,10 @@ async function bulkDeleteNodes({
   throw _makeResponseError(resp)
 }
 
-async function getNode({
-  nid,
-  signal,
-}: {
-  nid: string
+async function getNode(
+  { nid }: NodeGetArgs,
   signal?: AbortSignal
-}): Promise<TNode> {
+): Promise<TNode> {
   const res = await fetch(makeUrl(`/node/${nid}`), { method: 'GET', signal })
   if (!res.ok) {
     throw _makeResponseError(res)
@@ -227,12 +232,10 @@ async function getNode({
   return node
 }
 
-async function getNodesByOrigin({
-  origin,
-}: {
-  origin: OriginId
-  signal?: AbortSignal
-}): Promise<TNode[]> {
+async function getNodesByOrigin(
+  { origin }: NodeGetByOriginArgs,
+  _signal?: AbortSignal
+): Promise<TNode[]> {
   const sliceAll: GetNodeSliceArgs = {
     start_time: 0, // since the beginning of time
     bucket_time_size: 366 * 24 * 60 * 60,
@@ -266,7 +269,7 @@ async function getNodeBatch(
 }
 
 async function updateNode(
-  args: { nid: Nid } & NodePatchRequest,
+  args: NodeUpdateArgs,
   signal?: AbortSignal
 ): Promise<Ack> {
   const { nid, text, index_text, preserve_update_time } = args
@@ -387,11 +390,10 @@ function _getNodesSliceIter({
   )
 }
 
-async function createEdge({
-  from,
-  to,
-  signal,
-}: CreateEdgeArgs): Promise<TEdge> {
+async function createEdge(
+  { from, to }: EdgeCreateArgs,
+  signal?: AbortSignal
+): Promise<TEdge> {
   verifyIsNotNull(from)
   verifyIsNotNull(to)
   const req = {
@@ -419,7 +421,7 @@ async function createEdge({
 }
 
 async function getNodeAllEdges(
-  nid: string,
+  { nid }: EdgeGetArgs,
   signal?: AbortSignal
 ): Promise<NodeEdges> {
   const resp = await fetch(makeUrl(`/node/${nid}/edge`), {
@@ -433,17 +435,10 @@ async function getNodeAllEdges(
   return edges as NodeEdges
 }
 
-async function switchEdgeStickiness({
-  eid,
-  on,
-  off,
-  signal,
-}: {
-  eid: string
-  on: Optional<boolean>
-  off: Optional<boolean>
-  signal: AbortSignal
-}): Promise<Ack> {
+async function switchEdgeStickiness(
+  { eid, on, off }: EdgeStickyArgs,
+  signal?: AbortSignal
+): Promise<Ack> {
   verifyIsNotNull(eid)
   const req = {
     is_sticky: on != null ? on : !off,
@@ -463,13 +458,10 @@ async function switchEdgeStickiness({
   return await resp.json()
 }
 
-async function deleteEdge({
-  eid,
-  signal,
-}: {
-  eid: string
-  signal: AbortSignal
-}): Promise<Ack> {
+async function deleteEdge(
+  { eid }: EdgeDeleteArgs,
+  signal?: AbortSignal
+): Promise<Ack> {
   verifyIsNotNull(eid)
   const req = { eid }
   const resp = await fetch(makeUrl(`/node/x/edge`), {
@@ -549,8 +541,7 @@ function _makeExternalUserActivityUrl(origin: OriginId): string {
 }
 
 async function addExternalUserActivity(
-  origin: OriginId,
-  activity: AddUserActivityRequest,
+  { origin, activity }: ActivityExternalAddArgs,
   signal?: AbortSignal
 ): Promise<TotalUserActivity> {
   const resp = await fetch(_makeExternalUserActivityUrl(origin), {
@@ -569,7 +560,7 @@ async function addExternalUserActivity(
 }
 
 async function getExternalUserActivity(
-  origin: OriginId,
+  { origin }: ActivityExternalGetArgs,
   signal?: AbortSignal
 ): Promise<TotalUserActivity> {
   const resp = await fetch(_makeExternalUserActivityUrl(origin), {
@@ -586,11 +577,7 @@ async function getExternalUserActivity(
 }
 
 async function recordExternalAssociation(
-  origin: {
-    from: OriginId
-    to: OriginId
-  },
-  body: AddUserExternalAssociationRequest,
+  { origin, body }: ActivityAssociationRecordArgs,
   signal?: AbortSignal
 ): Promise<Ack> {
   const resp = await fetch(
@@ -612,11 +599,7 @@ async function recordExternalAssociation(
 }
 
 async function getExternalAssociation(
-  {
-    origin,
-  }: {
-    origin: OriginId
-  },
+  { origin }: ActivityAssociationGetArgs,
   signal?: AbortSignal
 ): Promise<GetUserExternalAssociationsResponse> {
   const resp = await fetch(makeUrl(`/external/association/${origin.id}`), {
@@ -715,7 +698,7 @@ async function passwordChange(
 }
 
 async function getUserIngestionProgress(
-  epid: UserExternalPipelineId,
+  { epid }: ExternalIngestionGetArgs,
   signal?: AbortSignal
 ): Promise<UserExternalPipelineIngestionProgress> {
   const resp = await fetch(
@@ -734,8 +717,7 @@ async function getUserIngestionProgress(
   )
 }
 async function advanceUserIngestionProgress(
-  epid: UserExternalPipelineId,
-  new_progress: AdvanceExternalPipelineIngestionProgress,
+  { epid, new_progress }: ExternalIngestionAdvanceArgs,
   signal?: AbortSignal
 ): Promise<Ack> {
   const resp = await fetch(

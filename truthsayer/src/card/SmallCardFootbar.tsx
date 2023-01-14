@@ -67,10 +67,12 @@ class PrivateMenu extends React.Component {
   handleRefCutOff = () => {
     const eid = this.props.edge.eid
     this.context.storage.edge
-      .delete({
-        eid,
-        signal: this.deleteEdgeAbortController.signal,
-      })
+      .delete(
+        {
+          eid,
+        },
+        this.deleteEdgeAbortController.signal
+      )
       .then((res) => {
         if (res) {
           this.props.cutOffRef(eid)
