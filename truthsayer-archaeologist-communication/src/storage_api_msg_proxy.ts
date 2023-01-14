@@ -365,6 +365,12 @@ export async function processMsgFromMsgProxyStorageApi(
           NodeUtil.toJson(value)
         ),
       }
+    case 'node.getAllNids':
+      return {
+        apiName: payload.apiName,
+        ret: await storage.node.getAllNids(payload.args),
+      }
+
     case 'node.update':
       return {
         apiName: payload.apiName,
@@ -459,7 +465,4 @@ export async function processMsgFromMsgProxyStorageApi(
         ret: await storage.external.ingestion.advance(payload.args),
       }
   }
-  throw new Error(
-    `Received message from StorageApi message proxy to invoke unknown API ${payload.apiName}`
-  )
 }
