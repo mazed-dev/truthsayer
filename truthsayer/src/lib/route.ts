@@ -46,6 +46,7 @@ const kNoticePathPrefix: TruthsayerPath = '/notice/'
 const kNoticeErrorPage = 'error'
 const kNoticeSeeYouPage = 'miss-you'
 const kNoticeLogInToContinue = 'log-in-to-continue'
+const kNoticeYouAreInWaitingList = 'waiting-list'
 
 const kSettings: TruthsayerPath = '/user-preferences'
 const kApps = '/apps-to-install'
@@ -56,6 +57,7 @@ const kAbout: TruthsayerPath = '/about'
 const kContacts: TruthsayerPath = '/contacts'
 const kPrivacyPolicy: TruthsayerPath = '/privacy-policy'
 const kTermsOfService: TruthsayerPath = '/terms-of-service'
+const kCookiePolicy: TruthsayerPath = '/cookie-policy'
 
 export type PasswordRecoverFormUrlParams = { token: string }
 export type TriptychUrlParams = { nid: string }
@@ -152,6 +154,10 @@ function gotoLogInToContinue({ history }: HistoryObj) {
   gotoPath(history, kNoticePathPrefix + kNoticeLogInToContinue)
 }
 
+function gotoWaitingListNotice(history: History, state?: any) {
+  gotoPath(history, kNoticePathPrefix + kNoticeYouAreInWaitingList, state)
+}
+
 function gotoWaitingForApproval(history?: History, state?: any) {
   gotoPath(history || null, kWaitingForApproval, state)
 }
@@ -178,6 +184,7 @@ export const routes = {
   contacts: kContacts,
   privacy: kPrivacyPolicy,
   terms: kTermsOfService,
+  cookiePolicy: kCookiePolicy,
 }
 
 export const goto = {
@@ -191,6 +198,7 @@ export const goto = {
     error: gotoError,
     seeYou: gotoSeeYou,
     logInToContinue: gotoLogInToContinue,
+    youAreInWaitingList: gotoWaitingListNotice,
   },
   waitingForApproval: gotoWaitingForApproval,
   reload: reload_,
@@ -211,4 +219,5 @@ export const notice = {
   error: kNoticeErrorPage,
   seeYou: kNoticeSeeYouPage,
   logInToContinue: kNoticeLogInToContinue,
+  youAreInWaitingList: kNoticeYouAreInWaitingList,
 }
