@@ -46,6 +46,7 @@ import type {
   ActivityAssociationGetArgs,
   ExternalIngestionAdvanceArgs,
   ExternalIngestionGetArgs,
+  NodeGetAllNidsArgs,
 } from 'smuggler-api'
 import { INodeIterator, NodeUtil, EdgeUtil, NodeType } from 'smuggler-api'
 import { v4 as uuidv4 } from 'uuid'
@@ -615,6 +616,19 @@ async function advanceUserIngestionProgress(
   return { ack: true }
 }
 
+export async function getAllNids(
+  store: YekLavStore,
+  _args: NodeGetAllNidsArgs
+): Promise<Nid[]> {
+  const yek: AllNidsYek = { yek: { kind: 'all-nids', key: undefined } }
+  const lav: AllNidsLav | undefined = await store.get(yek)
+  if (lav == null) {
+    return []
+  }
+  const value: Nid[] = lav.lav.value
+  return value
+}
+
 export function makeBrowserExtStorageApi(
   browserStore: browser.Storage.StorageArea
 ): StorageApi {
@@ -633,6 +647,7 @@ export function makeBrowserExtStorageApi(
     node: {
       get: (args: NodeGetArgs) => getNode(store, args),
       getByOrigin: (args: NodeGetByOriginArgs) => getNodesByOrigin(store, args),
+      getAllNids: (args: NodeGetAllNidsArgs) => getAllNids(store, args),
       update: (args: NodeUpdateArgs) => updateNode(store, args),
       create: (args: NodeCreateArgs) => createNode(store, args),
       iterate: () => new Iterator(store),
