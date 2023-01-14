@@ -13,35 +13,31 @@
  * for workarounds.
  */
 
-import {
+import type {
   Ack,
   AddUserActivityRequest,
   AddUserExternalAssociationRequest,
   AdvanceExternalPipelineIngestionProgress,
   CreateEdgeArgs,
   CreateNodeArgs,
-  EdgeUtil,
   Eid,
   NewNodeResponse,
   Nid,
   NodeBatch,
   NodeBatchRequestBody,
-  NodeCreatedVia,
   NodeEdges,
   NodePatchRequest,
-  NodeUtil,
   OriginId,
   StorageApi,
   TEdge,
   TEdgeJson,
   TNode,
   TNodeJson,
-  INodeIterator,
   TotalUserActivity,
   UserExternalPipelineId,
   UserExternalPipelineIngestionProgress,
 } from 'smuggler-api'
-import { NodeType } from 'smuggler-api'
+import { INodeIterator, NodeUtil, EdgeUtil, NodeType } from 'smuggler-api'
 import { v4 as uuidv4 } from 'uuid'
 import base32Encode from 'base32-encode'
 
