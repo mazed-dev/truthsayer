@@ -14,7 +14,7 @@ import { MdiInsertLink, MdiLinkOff, MdiSync, MdiCloudSync } from 'elementary'
 import { errorise, genOriginId, log } from 'armoury'
 import {
   AccountInterface,
-  CreateNodeArgs,
+  NodeCreateArgs,
   steroid,
   UserExternalPipelineId,
   NodeType,
@@ -58,7 +58,7 @@ async function uploadFilesFromFolder(
   storage: StorageApi,
   progressUpdateCallback: (filesToUploadLeft: number) => void
 ) {
-  const current_progress = await storage.external.ingestion.get(epid)
+  const current_progress = await storage.external.ingestion.get({ epid })
   const files = await FsModificationQueue.make(
     fs,
     current_progress.ingested_until,
@@ -82,7 +82,7 @@ async function uploadFilesFromFolder(
         ...(await extattrsFromFile(file, contents)),
       }
       const origin = genOriginId(file.webUrl)
-      const node: CreateNodeArgs = {
+      const node: NodeCreateArgs = {
         text: makeEmptyNodeTextData(),
         index_text,
         extattrs,
@@ -96,8 +96,11 @@ async function uploadFilesFromFolder(
       const response = await steroid(storage).node.createOrUpdate(node)
       log.debug(`Response to node creation/update: ${JSON.stringify(response)}`)
     }
-    await storage.external.ingestion.advance(epid, {
-      ingested_until: batch[0].lastModTimestamp,
+    await storage.external.ingestion.advance({
+      epid,
+      new_progress: {
+        ingested_until: batch[0].lastModTimestamp,
+      },
     })
     filesLeft -= batch.length
     progressUpdateCallback(filesLeft)

@@ -111,10 +111,12 @@ class PrivateFullCardFootbarImpl extends React.Component<
   handleDeleteNote = () => {
     const toaster = this.props.context.toaster
     this.props.context.storage.node
-      .delete({
-        nid: this.props.nid,
-        signal: this.deleteAbortController.signal,
-      })
+      .delete(
+        {
+          nid: this.props.nid,
+        },
+        this.deleteAbortController.signal
+      )
       .then(() => {
         toaster.push(
           <NotificationToast
