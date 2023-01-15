@@ -1,5 +1,5 @@
 import { relevance } from 'text-information-retrieval'
-import { smuggler } from 'smuggler-api'
+import { StorageApi } from 'smuggler-api'
 import { TDoc } from 'elementary'
 import { log } from 'armoury'
 
@@ -107,8 +107,10 @@ export function addNode(node: TNode): void {
   }
 }
 
-export async function register() {
-  const iter = smuggler.node.slice({})
+export async function register(
+  storage: StorageApi,
+) {
+  const iter = storage.node.iterate()
   while (true) {
     const node = await iter.next()
     if (node) {

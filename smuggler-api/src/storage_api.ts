@@ -1,6 +1,6 @@
 import { MimeType } from 'armoury'
 import type { Optional } from 'armoury'
-import { TNodeSliceIterator } from './node_slice_iterator'
+import { INodeIterator } from './node_slice_iterator'
 import {
   TNode,
   NodePatchRequest,
@@ -25,9 +25,15 @@ import {
   UserExternalPipelineId,
   UserExternalPipelineIngestionProgress,
   AdvanceExternalPipelineIngestionProgress,
+  Eid,
 } from './types'
 
-export type CreateNodeArgs = {
+export type NodeGetArgs = { nid: Nid }
+export type NodeGetByOriginArgs = { origin: OriginId }
+export type NodeUpdateArgs = { nid: Nid } & NodePatchRequest
+export type NodeDeleteArgs = { nid: Nid }
+export type NodeBulkDeleteArgs = { createdVia: NodeCreatedVia }
+export type NodeCreateArgs = {
   text: NodeTextData
   from_nid?: Nid[]
   to_nid?: Nid[]
@@ -37,14 +43,6 @@ export type CreateNodeArgs = {
   origin?: OriginId
   created_via?: NodeCreatedVia
   created_at?: Date
-}
-
-export type GetNodeSliceArgs = {
-  end_time?: number
-  start_time?: number
-  limit?: number
-  origin?: OriginId
-  bucket_time_size?: number
 }
 
 export type NodeBatchRequestBody = {
@@ -58,99 +56,69 @@ export type BlobUploadRequestArgs = {
   createdVia: NodeCreatedVia
 }
 
-export type CreateEdgeArgs = {
-  from?: Nid
-  to?: Nid
-  signal: AbortSignal
-}
-
-export type SwitchEdgeStickinessArgs = {
+export type EdgeGetArgs = { nid: Nid }
+export type EdgeCreateArgs = { from: Nid; to: Nid }
+export type EdgeStickyArgs = {
   eid: string
   on: Optional<boolean>
   off: Optional<boolean>
-  signal: AbortSignal
+}
+export type EdgeDeleteArgs = { eid: Eid }
+
+export type ActivityExternalAddArgs = {
+  origin: OriginId
+  activity: AddUserActivityRequest
+}
+export type ActivityExternalGetArgs = { origin: OriginId }
+
+export type ActivityAssociationRecordArgs = {
+  origin: {
+    from: OriginId
+    to: OriginId
+  }
+  body: AddUserExternalAssociationRequest
+}
+export type ActivityAssociationGetArgs = {
+  origin: OriginId
 }
 
-/**
- * Unique lookup keys that can match at most 1 node
- */
-export type UniqueNodeLookupKey =
-  /** Due to nid's nature there can be at most 1 node with a particular nid */
-  | { nid: Nid }
-  /** Unique because many nodes can refer to the same URL, but only one of them
-   * can be a bookmark */
-  | { webBookmark: { url: string } }
-
-export type NonUniqueNodeLookupKey =
-  /** Can match more than 1 node because multiple parts of a single web page
-   * can be quoted */
-  | { webQuote: { url: string } }
-  /** Can match more than 1 node because many nodes can refer to
-   * the same URL:
-   *    - 0 or 1 can be @see NoteType.Url
-   *    - AND at the same time more than 1 can be @see NodeType.WebQuote */
-  | { url: string }
-
-/**
- * All the different types of keys that can be used to identify (during lookup,
- * for example) one or more nodes.
- */
-export type NodeLookupKey = UniqueNodeLookupKey | NonUniqueNodeLookupKey
+export type ExternalIngestionGetArgs = {
+  epid: UserExternalPipelineId
+}
+export type ExternalIngestionAdvanceArgs = {
+  epid: UserExternalPipelineId
+  new_progress: AdvanceExternalPipelineIngestionProgress
+}
 
 export type StorageApi = {
   node: {
-    get: ({ nid, signal }: { nid: Nid; signal?: AbortSignal }) => Promise<TNode>
-    update: (
-      args: { nid: Nid } & NodePatchRequest,
+    get: (args: NodeGetArgs, signal?: AbortSignal) => Promise<TNode>
+    getByOrigin: (
+      args: NodeGetByOriginArgs,
       signal?: AbortSignal
-    ) => Promise<Ack>
+    ) => Promise<TNode[]>
+    update: (args: NodeUpdateArgs, signal?: AbortSignal) => Promise<Ack>
     create: (
-      args: CreateNodeArgs,
+      args: NodeCreateArgs,
       signal?: AbortSignal
     ) => Promise<NewNodeResponse>
-    createOrUpdate: (
-      args: CreateNodeArgs,
+    iterate: () => INodeIterator
+    delete: (args: NodeDeleteArgs, signal?: AbortSignal) => Promise<Ack>
+    bulkDelete: (
+      args: NodeBulkDeleteArgs,
       signal?: AbortSignal
-    ) => Promise<NewNodeResponse>
-    slice: (args: GetNodeSliceArgs) => TNodeSliceIterator
-    /**
-     * Lookup all the nodes that match a given key. For unique lookup keys either
-     * 0 or 1 nodes will be returned. For non-unique more than 1 node can be returned.
-     */
-    lookup: {
-      // See https://stackoverflow.com/a/24222144/3375765 if you are unsure what
-      // this type signature is
-      (key: UniqueNodeLookupKey, signal?: AbortSignal): Promise<
-        TNode | undefined
-      >
-      (key: NonUniqueNodeLookupKey, signal?: AbortSignal): Promise<TNode[]>
-    }
-    delete: ({
-      nid,
-      signal,
-    }: {
-      nid: Nid
-      signal?: AbortSignal
-    }) => Promise<Ack>
-    bulkDelete: ({
-      createdVia,
-      signal,
-    }: {
-      createdVia: NodeCreatedVia
-      signal?: AbortSignal
-    }) => Promise<number /* number of nodes deleted */>
+    ) => Promise<number /* number of nodes deleted */>
     batch: {
       // TODO[snikitin@outlook.com] consider merging this into lookup() as another
       // @see NodeLookupKey option
       get: (
-        req: NodeBatchRequestBody,
+        args: NodeBatchRequestBody,
         signal?: AbortSignal
       ) => Promise<NodeBatch>
     }
     url: (nid: Nid) => string
   }
   blob: {
-    signal?: AbortSignal
     upload: (
       args: BlobUploadRequestArgs,
       signal?: AbortSignal
@@ -177,44 +145,29 @@ export type StorageApi = {
     }
   }
   edge: {
-    create: (args: CreateEdgeArgs) => Promise<TEdge>
-    get: (nid: Nid, signal?: AbortSignal) => Promise<NodeEdges>
-    sticky: (args: SwitchEdgeStickinessArgs) => Promise<Ack>
-    delete: ({
-      eid,
-      signal,
-    }: {
-      eid: string
-      signal: AbortSignal
-    }) => Promise<Ack>
+    create: (args: EdgeCreateArgs, signal?: AbortSignal) => Promise<TEdge>
+    get: (args: EdgeGetArgs, signal?: AbortSignal) => Promise<NodeEdges>
+    sticky: (args: EdgeStickyArgs, signal?: AbortSignal) => Promise<Ack>
+    delete: (args: EdgeDeleteArgs, signal?: AbortSignal) => Promise<Ack>
   }
   activity: {
     external: {
       add: (
-        origin: OriginId,
-        activity: AddUserActivityRequest,
+        args: ActivityExternalAddArgs,
         signal?: AbortSignal
       ) => Promise<TotalUserActivity>
       get: (
-        origin: OriginId,
+        args: ActivityExternalGetArgs,
         signal?: AbortSignal
       ) => Promise<TotalUserActivity>
     }
     association: {
       record: (
-        origin: {
-          from: OriginId
-          to: OriginId
-        },
-        body: AddUserExternalAssociationRequest,
+        args: ActivityAssociationRecordArgs,
         signal?: AbortSignal
       ) => Promise<Ack>
       get: (
-        {
-          origin,
-        }: {
-          origin: OriginId
-        },
+        args: ActivityAssociationGetArgs,
         signal?: AbortSignal
       ) => Promise<GetUserExternalAssociationsResponse>
     }
@@ -222,12 +175,11 @@ export type StorageApi = {
   external: {
     ingestion: {
       get: (
-        epid: UserExternalPipelineId,
+        args: ExternalIngestionGetArgs,
         signal?: AbortSignal
       ) => Promise<UserExternalPipelineIngestionProgress>
       advance: (
-        epid: UserExternalPipelineId,
-        new_progress: AdvanceExternalPipelineIngestionProgress,
+        args: ExternalIngestionAdvanceArgs,
         signal?: AbortSignal
       ) => Promise<Ack>
     }

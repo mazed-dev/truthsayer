@@ -50,6 +50,7 @@
     "@mozilla/readability": "^0.4.1",
     "@popperjs/core": "^2.10.2",
     "armoury": "0.0.1",
+    "base32-encode": "^2.0.0",
     "bootstrap": "^5.1.3",
     "css-loader": "^4.3.0",
     "elementary": "0.0.1",

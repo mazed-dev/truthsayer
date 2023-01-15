@@ -135,6 +135,27 @@ export namespace json {
   }
 }
 
+const kTokenTypesToIgnore = new Set([
+  'punctuation', 
+  'symbol',
+  'tabCRLF',
+  // Emoticon is a text style emoji, differ from emoji.
+  // Quite often some punctuation constructions are taken as emoticon, so we
+  // ignore it for now.
+  'emoticon'
+])
+
+function isImportantTokenType(tokenType: string, token: string): boolean {
+  if (tokenType === 'unk' && token.length < 4) {
+    // Ignore all unknown token shorter than 4 bytes, it's a hack to ignore
+    // short tokens from unknown languages. For instance:
+    // Ignore: "β", "γ"
+    // Take: "παρά", "オデッセイ"
+    return false
+  }
+  return !kTokenTypesToIgnore.has(tokenType)
+}
+
 function createPerDocumentIndexFromText<DocIdType>(
   text: string,
   model: NlpModel,
@@ -143,12 +164,19 @@ function createPerDocumentIndexFromText<DocIdType>(
   const { wink } = model
   const doc = wink.readDoc(text)
   const tokenTypes = doc.tokens().out(wink.its.type)
+  const stopWordFlags = doc.tokens().out(wink.its.stopWordFlag)
   const bagOfWords: BagOfWords = new Map()
   let wordsNumber = 0
   const tokens = doc.tokens().out(wink.its.lemma)
   for (const index in tokens) {
-    if (tokenTypes[index] !== 'punctuation') {
-      const token = tokens[index]
+    const tokenType = tokenTypes[index]
+    const token = tokens[index]
+    const isStopWord = stopWordFlags[index]
+    if (!isStopWord && isImportantTokenType(tokenType, token)) {
+      // TODO(Alexander): take care of the "time" token, converting it into
+      // common format perhaps
+      // TODO(Alexander): take care of the "url" token, as an option split it
+      // into parts, split path by /[\/_]/ and domain name by '.'
       bagOfWords.set(token, (bagOfWords.get(token) ?? 0) + 1)
       ++wordsNumber
     }

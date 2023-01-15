@@ -4,8 +4,7 @@ import React, { useState, useRef } from 'react'
 import { Image, ButtonGroup, Modal } from 'react-bootstrap'
 import styled from '@emotion/styled'
 
-import { smuggler } from 'smuggler-api'
-import type { TNode } from 'smuggler-api'
+import type { TNode, StorageApi } from 'smuggler-api'
 import { MdiFitScreen, MdiZoomIn, MdiZoomOut } from '../MaterialIcons'
 
 import { ImgButton } from '../ImgButton'
@@ -61,12 +60,14 @@ export const ImageNode = ({
   node,
   className,
   strippedActions,
+  storage,
 }: {
   node: TNode
   className?: string
   strippedActions?: boolean
+  storage: StorageApi
 }) => {
-  const source = smuggler.blob.sourceUrl(node.nid)
+  const source = storage.blob.sourceUrl(node.nid)
   if (source == null) {
     return null
   }

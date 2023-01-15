@@ -1,5 +1,5 @@
-import { smuggler, NodeUtil } from 'smuggler-api'
-import type { TNode } from 'smuggler-api'
+import { NodeUtil } from 'smuggler-api'
+import type { StorageApi, TNode } from 'smuggler-api'
 import { Beagle, TDoc } from 'elementary'
 import { log, unicodeText } from 'armoury'
 import { mazed } from '../util/mazed'
@@ -46,12 +46,13 @@ function nodeToSuggestion(node: TNode): browser.Omnibox.SuggestResult {
 
 const lookUpAndSuggestFor = lodash.debounce(
   async (
+    storage: StorageApi,
     text: string,
     limit: number,
     suggest: (suggestResults: browser.Omnibox.SuggestResult[]) => void
   ): Promise<void> => {
     const beagle = Beagle.fromString(text)
-    const iter = smuggler.node.slice({})
+    const iter = storage.node.iterate()
     const suggestions: browser.Omnibox.SuggestResult[] = []
     for (
       let node = await iter.next();
@@ -130,6 +131,7 @@ function getSuggestionsLimit(): number {
 }
 
 const inputChangedListener = (
+  storage: StorageApi,
   text: string,
   suggest: (suggestResults: browser.Omnibox.SuggestResult[]) => void
 ) => {
@@ -140,7 +142,7 @@ const inputChangedListener = (
   })
   // Omnibox suggestions fit in only 10 elements, no need to look for more.
   // 1 + 9: 1 default suggestion and 9 search results
-  lookUpAndSuggestFor(text, getSuggestionsLimit(), suggest)
+  lookUpAndSuggestFor(storage, text, getSuggestionsLimit(), suggest)
 }
 
 const inputStartedListener = () => {
@@ -151,12 +153,18 @@ const inputCancelledListener = () => {
   lookUpAndSuggestFor.cancel()
 }
 
-export function register() {
+export function register(storage: StorageApi) {
   if (!browser.omnibox.onInputEntered.hasListener(inputEnteredListener)) {
     browser.omnibox.onInputEntered.addListener(inputEnteredListener)
   }
-  if (!browser.omnibox.onInputChanged.hasListener(inputChangedListener)) {
-    browser.omnibox.onInputChanged.addListener(inputChangedListener)
+  const inputChangedCb = (
+    text: string,
+    suggest: (suggestResults: browser.Omnibox.SuggestResult[]) => void
+  ) => {
+    inputChangedListener(storage, text, suggest)
+  }
+  if (!browser.omnibox.onInputChanged.hasListener(inputChangedCb)) {
+    browser.omnibox.onInputChanged.addListener(inputChangedCb)
   }
   if (!browser.omnibox.onInputStarted.hasListener(inputStartedListener)) {
     browser.omnibox.onInputStarted.addListener(inputStartedListener)
@@ -167,7 +175,7 @@ export function register() {
   log.debug('Omnibox listeners are registered')
   return () => {
     browser.omnibox.onInputEntered.removeListener(inputEnteredListener)
-    browser.omnibox.onInputChanged.removeListener(inputChangedListener)
+    browser.omnibox.onInputChanged.removeListener(inputChangedCb)
     browser.omnibox.onInputStarted.removeListener(inputStartedListener)
     browser.omnibox.onInputCancelled.removeListener(inputCancelledListener)
   }

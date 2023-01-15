@@ -2,10 +2,10 @@
  * APIs that build node indexes "on steroids" (see @alias steroid.ts for more information)
  */
 
-import { smuggler } from '../api_cloud'
 import { NodeIndexText } from '../types'
 import { Mime } from 'armoury'
 import type { MimeType } from 'armoury'
+import { StorageApi } from '../storage_api'
 
 async function readAtMost(file: File, maxChars: number) {
   const reader = file.stream().pipeThrough(new TextDecoderStream()).getReader()
@@ -33,10 +33,11 @@ async function readAtMost(file: File, maxChars: number) {
 
 /**
  * Build @see NodeIndexText from a file of any type supported in *Mazed*
- * (as opposed to @see smuggler.blob_index.build which is limited to file types
+ * (as opposed to @see StorageApi.blob_index.build which is limited to file types
  * supported by *smuggler*)
  */
 export async function nodeIndexFromFile(
+  storage: StorageApi,
   file: File,
   signal?: AbortSignal
 ): Promise<NodeIndexText> {
@@ -56,8 +57,8 @@ export async function nodeIndexFromFile(
       brands: [],
       dominant_colors: [],
     }
-  } else if (smuggler.blob_index.cfg.supportsMime(mime)) {
-    const index = await smuggler.blob_index.build([file], signal)
+  } else if (storage.blob_index.cfg.supportsMime(mime)) {
+    const index = await storage.blob_index.build([file], signal)
     if (index.indexes.length !== 1) {
       throw new Error(`No index generated for image ${file.name}`)
     }

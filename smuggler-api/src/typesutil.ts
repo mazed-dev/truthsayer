@@ -5,6 +5,7 @@ import {
   TNode,
   TNodeJson,
   TEdge,
+  TEdgeJson,
 } from './types'
 import { AccountInterface } from './auth/account_interface'
 
@@ -91,5 +92,12 @@ export namespace EdgeUtil {
     const res =
       account?.isAuthenticated() && account?.getUid() === edge.owned_by
     return res || false
+  }
+  export function fromJson(edge: TEdgeJson): TEdge {
+    return {
+      ...edge,
+      crtd: moment.unix(edge.crtd),
+      upd: moment.unix(edge.upd),
+    }
   }
 }

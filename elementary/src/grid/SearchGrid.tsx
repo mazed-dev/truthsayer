@@ -13,8 +13,7 @@ import { SmallCard } from '../SmallCard'
 import { ShrinkCard } from '../ShrinkCard'
 import { NodeTimeBadge } from '../NodeTimeBadge'
 
-import { smuggler, TNodeSliceIterator } from 'smuggler-api'
-import type { TNode } from 'smuggler-api'
+import type { TNode, INodeIterator, StorageApi } from 'smuggler-api'
 
 import { log, isAbortError, errorise } from 'armoury'
 
@@ -61,20 +60,22 @@ export const SearchGrid = ({
   portable,
   defaultSearch,
   className,
+  storage,
 }: React.PropsWithChildren<{
   q: string | null
   onCardClick?: (arg0: TNode) => void
   portable?: boolean
   defaultSearch?: boolean
   className?: string
+  storage: StorageApi
 }>) => {
   const [search, setUpSearch] = useState<{
-    iter: TNodeSliceIterator
+    iter: INodeIterator
     beagle: Beagle
   } | null>(null)
   useEffect(() => {
     setUpSearch({
-      iter: smuggler.node.slice({}),
+      iter: storage.node.iterate(),
       beagle: Beagle.fromString(q || undefined),
     })
   }, [q])
@@ -92,6 +93,7 @@ export const SearchGrid = ({
       onCardClick={onCardClick}
       portable={portable}
       className={className}
+      storage={storage}
     >
       {children}
     </SearchGridScroll>
@@ -105,12 +107,14 @@ const SearchGridScroll = ({
   onCardClick,
   portable,
   className,
+  storage,
 }: React.PropsWithChildren<{
   beagle: Beagle
-  iter: TNodeSliceIterator
+  iter: INodeIterator
   onCardClick?: (arg0: TNode) => void
   portable?: boolean
   className?: string
+  storage: StorageApi
 }>) => {
   const history = useHistory()
   const ref = useRef<HTMLDivElement>(null)
@@ -206,7 +210,12 @@ const SearchGridScroll = ({
     return (
       <GridCard onClick={onClick} key={node.nid}>
         <ShrinkCard>
-          <NodeCardReadOnly node={node} strippedRefs strippedActions />
+          <NodeCardReadOnly
+            node={node}
+            strippedRefs
+            strippedActions
+            storage={storage}
+          />
         </ShrinkCard>
         <NodeTimeBadge
           created_at={node.created_at}

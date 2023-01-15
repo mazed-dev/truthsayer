@@ -9,7 +9,7 @@ import {
   sha1,
 } from './wrapper'
 
-import { smuggler } from 'smuggler-api'
+import { authentication } from 'smuggler-api'
 
 import { base64 } from 'armoury'
 
@@ -32,7 +32,7 @@ export class LocalCrypto {
   _uid: string = ''
   _storage: TStorage
   _lastSecret: TSecret | null = null
-  _smuggler: any
+  _authentication: any
 
   constructor(
     uid: string,
@@ -42,7 +42,7 @@ export class LocalCrypto {
   ) {
     this._uid = uid
     this._storage = storage || ls
-    this._smuggler = remote || smuggler
+    this._authentication = remote || authentication
     this._lastSecret = lastSecret || null
   }
 
@@ -164,7 +164,7 @@ export class LocalCrypto {
       return null
     }
     const secretEnc: TEncrypted = base64.toObject(secretBase64)
-    const secondKeyData = await this._smuggler.getSecondKey({
+    const secondKeyData = await this._authentication.getSecondKey({
       id: secretEnc.secret_id,
     })
     const secondKey: TSecret = {
@@ -177,7 +177,7 @@ export class LocalCrypto {
   }
 
   async _storeSecretToLocalStorage(secretPhrase: string): Promise<TSecret> {
-    const secondKeyData = await this._smuggler.getAnySecondKey()
+    const secondKeyData = await this._authentication.getAnySecondKey()
     // {
     //   key: String,
     //   length: u32,

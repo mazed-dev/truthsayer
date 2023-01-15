@@ -65,16 +65,11 @@ describe('data-driven test', () => {
         done()
       })
     // read in the csv file contents
-    const stream1k = fs.createReadStream(
+    const stream = fs.createReadStream(
+      // `${__dirname}/test-data/dpedia.org-ontology-abstract.10000.tsv`
       `${__dirname}/test-data/dpedia.org-ontology-abstract.1000.tsv`
     )
-    stream1k.pipe(csvStream)
-
-    // Use for extensive local testing
-    // const stream10k = fs.createReadStream(
-    //   `${__dirname}/test-data/dpedia.org-ontology-abstract.10000.tsv`
-    // )
-    // stream10k.pipe(csvStream)
+    stream.pipe(csvStream)
   })
 
   afterAll(() => {
@@ -86,7 +81,7 @@ describe('data-driven test', () => {
     expect(overallIndex.documentsNumber).toStrictEqual(1000 + 2)
     // The following numbers depend on search algorithm, change them accordingly
     expect(overallIndex.wordsInAllDocuments).toStrictEqual(
-      211420 /* 2097164 for 10k */
+      119313
     )
     expect(overallIndex.bagOfWords.size).toStrictEqual(19393)
   })

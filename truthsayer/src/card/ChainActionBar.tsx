@@ -11,7 +11,7 @@ import { useHistory } from 'react-router-dom'
 import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
 import { goto, History } from '../lib/route'
 
-import { smuggler } from 'smuggler-api'
+import { StorageApi } from 'smuggler-api'
 import type { TNode, NewNodeResponse, NodeExtattrs } from 'smuggler-api'
 import { TDoc, kCardBorderColour } from 'elementary'
 
@@ -31,11 +31,13 @@ import { SearchAndConnectJinn } from './SearchAndConnect'
 export type ChainActionBarSide = 'left' | 'right'
 
 async function cloneNode({
+  storage,
   from,
   to,
   abortSignal,
   isBlank = false,
 }: {
+  storage: StorageApi
   from?: string
   to?: string
   abortSignal?: AbortSignal
@@ -45,11 +47,13 @@ async function cloneNode({
   if (!nid) {
     return null
   }
-  const node: Optional<TNode> = await smuggler.node
-    .get({
-      nid,
-      signal: abortSignal,
-    })
+  const node: Optional<TNode> = await storage.node
+    .get(
+      {
+        nid,
+      },
+      abortSignal
+    )
     .catch((err) => {
       if (isAbortError(err)) {
         return null
@@ -66,7 +70,7 @@ async function cloneNode({
     ? { ...node.extattrs }
     : undefined
   try {
-    return await smuggler.node.create(
+    return await storage.node.create(
       {
         text: doc.toNodeTextData(),
         from_nid: from ? [from] : undefined,
@@ -118,7 +122,7 @@ class ChainActionHandler {
       goto.notice.logInToContinue({ history: this.history })
       return
     }
-    smuggler.node
+    context.storage.node
       .create(
         {
           text: TDoc.makeEmpty().toNodeTextData(),
@@ -144,6 +148,7 @@ class ChainActionHandler {
       return
     }
     cloneNode({
+      storage: context.storage,
       from: side === 'right' ? this.nid : undefined,
       to: side === 'left' ? this.nid : undefined,
       abortSignal: this.abortSignal,

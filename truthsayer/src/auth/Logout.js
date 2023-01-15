@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 
 import { withRouter } from 'react-router-dom'
 import { goto } from '../lib/route'
-import { smuggler } from 'smuggler-api'
+import { authentication } from 'smuggler-api'
 
 import { MzdGlobalContext } from './../lib/global'
 
@@ -26,7 +26,7 @@ class Logout extends React.Component {
     const account = this.context.account
     const isAuthenticated = account != null && account.isAuthenticated()
     if (isAuthenticated) {
-      smuggler.session
+      authentication.session
         .delete({
           signal: this.fetchAbortController.signal,
         })

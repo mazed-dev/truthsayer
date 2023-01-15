@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import browser from 'webextension-polyfill'
 import { mazed } from '../util/mazed'
 
@@ -11,6 +11,7 @@ import {
 } from 'elementary'
 
 import type { TNode } from 'smuggler-api'
+import { PopUpContext } from './context'
 
 const Box = styled(SmallCard)`
   width: 100%;
@@ -27,6 +28,7 @@ export const NodeCard = ({
   node: TNode
   className?: string
 }) => {
+  const ctx = useContext(PopUpContext)
   const { nid } = node
   return (
     <Box className={className}>
@@ -37,7 +39,12 @@ export const NodeCard = ({
           })
         }
       >
-        <NodeCardReadOnly node={node} strippedRefs strippedActions />
+        <NodeCardReadOnly
+          node={node}
+          strippedRefs
+          strippedActions
+          storage={ctx.storage}
+        />
       </FixedShrinkCard>
       <NodeTimeBadge
         created_at={node.created_at}

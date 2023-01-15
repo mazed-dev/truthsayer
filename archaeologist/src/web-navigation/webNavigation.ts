@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill'
 import { log, genOriginId, unixtime, OriginIdentity } from 'armoury'
-import { smuggler } from 'smuggler-api'
+import { StorageApi } from 'smuggler-api'
 
 // See https://developer.chrome.com/docs/extensions/reference/webNavigation/#type-TransitionType
 type TransitionType =
@@ -54,52 +54,57 @@ const _tabTransitionState: Record<number, TabNavigationTransition | undefined> =
   {}
 
 async function reportAssociation(
+  storage: StorageApi,
   fromUrlUnstable: string,
   toUrlUnstable: string
 ): Promise<void> {
   const { id: fromId, stableUrl: fromUrl } = genOriginId(fromUrlUnstable)
   const { id: toId, stableUrl: toUrl } = genOriginId(toUrlUnstable)
-  await smuggler.activity.association.record(
-    {
+  await storage.activity.association.record({
+    origin: {
       from: { id: fromId },
       to: { id: toId },
     },
-    {
+    body: {
       association: {
         web_transition: {
           from_url: fromUrl,
           to_url: toUrl,
         },
       },
-    }
-  )
+    },
+  })
 }
 
-async function reportVisit(origin: OriginIdentity): Promise<void> {
-  await smuggler.activity.external.add(
-    { id: origin.id },
-    {
+async function reportVisit(
+  storage: StorageApi,
+  origin: OriginIdentity
+): Promise<void> {
+  await storage.activity.external.add({
+    origin: { id: origin.id },
+    activity: {
       visit: {
         visits: [{ timestamp: unixtime.now() }],
       },
-    }
-  )
+    },
+  })
 }
 
 const onCompletedListener = async (
+  storage: StorageApi,
   details: browser.WebNavigation.OnCompletedDetailsType
 ) => {
   if (details.frameId === 0) {
     const origin = genOriginId(details.url)
     log.debug('Register new visit', origin.stableUrl, origin.id)
-    await reportVisit(origin)
+    await reportVisit(storage, origin)
     const transition = _tabTransitionState[details.tabId]
     if (
       transition?.source?.url != null &&
       isRelationTransition(transition, details.url)
     ) {
       log.debug('Register transition (1)', transition.source.url, details.url)
-      reportAssociation(transition.source.url, details.url)
+      reportAssociation(storage, transition.source.url, details.url)
     }
     _tabTransitionState[details.tabId] = {
       source: { url: details.url },
@@ -107,6 +112,7 @@ const onCompletedListener = async (
   }
 }
 const onHistoryStateUpdatedListener = async (
+  storage: StorageApi,
   details: browser.WebNavigation.OnHistoryStateUpdatedDetailsType
 ) => {
   if (details.frameId === 0) {
@@ -116,7 +122,7 @@ const onHistoryStateUpdatedListener = async (
       isRelationTransition(transition, details.url)
     ) {
       log.debug('Register transition (2)', transition.source.url, details.url)
-      reportAssociation(transition.source.url, details.url)
+      reportAssociation(storage, transition.source.url, details.url)
     }
     _tabTransitionState[details.tabId] = {
       source: { url: details.url },
@@ -124,6 +130,7 @@ const onHistoryStateUpdatedListener = async (
   }
 }
 const onReferenceFragmentUpdatedListener = async (
+  storage: StorageApi,
   details: browser.WebNavigation.OnReferenceFragmentUpdatedDetailsType
 ) => {
   if (details.frameId === 0) {
@@ -137,7 +144,7 @@ const onReferenceFragmentUpdatedListener = async (
         transition.source.url,
         details.url && transition?.transitionType === 'link'
       )
-      reportAssociation(transition.source.url, details.url)
+      reportAssociation(storage, transition.source.url, details.url)
     }
     _tabTransitionState[details.tabId] = {
       source: { url: details.url },
@@ -186,26 +193,35 @@ const onBeforeNavigateListener = (
   _details: browser.WebNavigation.OnBeforeNavigateDetailsType
 ) => {}
 
-export function register() {
-  if (!browser.webNavigation.onCompleted.hasListener(onCompletedListener)) {
-    browser.webNavigation.onCompleted.addListener(onCompletedListener)
+export function register(storage: StorageApi) {
+  const onCompletedCb = (
+    details: browser.WebNavigation.OnCompletedDetailsType
+  ) => onCompletedListener(storage, details)
+  if (!browser.webNavigation.onCompleted.hasListener(onCompletedCb)) {
+    browser.webNavigation.onCompleted.addListener(onCompletedCb)
   }
+  const onHistoryStateUpdatedCb = (
+    details: browser.WebNavigation.OnHistoryStateUpdatedDetailsType
+  ) => onHistoryStateUpdatedListener(storage, details)
   if (
     !browser.webNavigation.onHistoryStateUpdated.hasListener(
-      onHistoryStateUpdatedListener
+      onHistoryStateUpdatedCb
     )
   ) {
     browser.webNavigation.onHistoryStateUpdated.addListener(
-      onHistoryStateUpdatedListener
+      onHistoryStateUpdatedCb
     )
   }
+  const onReferenceFragmentUpdatedCb = (
+    details: browser.WebNavigation.OnReferenceFragmentUpdatedDetailsType
+  ) => onReferenceFragmentUpdatedListener(storage, details)
   if (
     !browser.webNavigation.onReferenceFragmentUpdated.hasListener(
-      onReferenceFragmentUpdatedListener
+      onReferenceFragmentUpdatedCb
     )
   ) {
     browser.webNavigation.onReferenceFragmentUpdated.addListener(
-      onReferenceFragmentUpdatedListener
+      onReferenceFragmentUpdatedCb
     )
   }
   if (
@@ -233,12 +249,12 @@ export function register() {
       onCreatedNavigationTargetListener
     )
     browser.webNavigation.onReferenceFragmentUpdated.removeListener(
-      onReferenceFragmentUpdatedListener
+      onReferenceFragmentUpdatedCb
     )
     browser.webNavigation.onHistoryStateUpdated.removeListener(
-      onHistoryStateUpdatedListener
+      onHistoryStateUpdatedCb
     )
-    browser.webNavigation.onCompleted.removeListener(onCompletedListener)
+    browser.webNavigation.onCompleted.removeListener(onCompletedCb)
     browser.webNavigation.onCommitted.removeListener(onCommittedListener)
     browser.webNavigation.onBeforeNavigate.removeListener(
       onBeforeNavigateListener

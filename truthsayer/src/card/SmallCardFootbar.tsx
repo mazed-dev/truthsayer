@@ -4,7 +4,7 @@
 import React, { useContext } from 'react'
 import { css } from '@emotion/react'
 
-import { smuggler, EdgeUtil } from 'smuggler-api'
+import { EdgeUtil } from 'smuggler-api'
 import type { TEdge } from 'smuggler-api'
 
 import styles from './Footbar.module.css'
@@ -26,6 +26,9 @@ import {
 } from 'elementary'
 
 class PrivateMenu extends React.Component {
+  static contextType = MzdGlobalContext
+  context!: React.ContextType<typeof MzdGlobalContext>
+
   constructor(props) {
     super(props)
     this.state = {
@@ -46,7 +49,7 @@ class PrivateMenu extends React.Component {
   switchStickiness = () => {
     let { isSticky } = this.state
     isSticky = !isSticky
-    smuggler.edge
+    this.context.storage.edge
       .sticky({
         on: isSticky,
         eid: this.props.edge.eid,
@@ -63,11 +66,13 @@ class PrivateMenu extends React.Component {
 
   handleRefCutOff = () => {
     const eid = this.props.edge.eid
-    smuggler.edge
-      .delete({
-        eid,
-        signal: this.deleteEdgeAbortController.signal,
-      })
+    this.context.storage.edge
+      .delete(
+        {
+          eid,
+        },
+        this.deleteEdgeAbortController.signal
+      )
       .then((res) => {
         if (res) {
           this.props.cutOffRef(eid)
@@ -154,7 +159,6 @@ export function SmallCardFootbar({
   cutOffRef,
   className,
 }: {
-  nid: string
   edge: TEdge
   switchStickiness: (edge: TEdge, on: boolean) => void
   cutOffRef: (eid: string) => void

@@ -2,8 +2,7 @@ import React, { useState } from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 import styled from '@emotion/styled'
 
-import { smuggler } from 'smuggler-api'
-import type { TNode } from 'smuggler-api'
+import type { TNode, StorageApi } from 'smuggler-api'
 import { productanalytics } from 'armoury'
 import { NodeTextReader } from './editor/NodeTextReader'
 import { Spinner } from './spinner/mod'
@@ -18,15 +17,18 @@ export function NodeCardReadOnly({
   className,
   strippedRefs,
   strippedActions,
+  storage,
 }: {
   node: TNode
   className?: string
   strippedRefs?: boolean
   strippedActions?: boolean
+  storage: StorageApi
 }) {
   return (
     <Box className={productanalytics.classExclude(className)}>
       <NodeMedia
+        storage={storage}
         className={''}
         node={node}
         strippedRefs={strippedRefs}
@@ -42,20 +44,24 @@ export function NodeCardReadOnlyFetching({
   className,
   strippedRefs,
   strippedActions,
+  storage,
 }: {
   nid: string
   className?: string
   strippedRefs?: boolean
   strippedActions?: boolean
+  storage: StorageApi
 }) {
   const [node, setNode] = useState<TNode | null>(null)
   const fetchNodeAbortController = new AbortController()
   useAsyncEffect(
     async (isMounted) => {
-      const n = await smuggler.node.get({
-        nid,
-        signal: fetchNodeAbortController.signal,
-      })
+      const n = await storage.node.get(
+        {
+          nid,
+        },
+        fetchNodeAbortController.signal
+      )
       if (isMounted()) {
         setNode(n)
       }
@@ -71,6 +77,7 @@ export function NodeCardReadOnlyFetching({
       strippedRefs={strippedRefs}
       strippedActions={strippedActions}
       className={className}
+      storage={storage}
     />
   )
 }

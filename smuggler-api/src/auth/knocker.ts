@@ -1,4 +1,4 @@
-import { smuggler, SmugglerError } from '../api_cloud'
+import { authentication, SmugglerError } from '../api_datacenter'
 import { StatusCode } from './../status_codes'
 import { authCookie } from './cookie'
 
@@ -106,7 +106,7 @@ export class Knocker {
       const now = unixtime.now()
       if (this.#knockingPeriodSeconds < now - lastUpdateTime) {
         log.debug('Knock-knock smuggler', now, lastUpdateTime)
-        await smuggler.session.update(this.#abortController.signal)
+        await authentication.session.update(this.#abortController.signal)
         this.setLastUpdate({ time: now })
 
         try {
