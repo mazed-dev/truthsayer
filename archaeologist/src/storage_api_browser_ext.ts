@@ -15,9 +15,6 @@
 
 import type {
   Ack,
-  AddUserActivityRequest,
-  AddUserExternalAssociationRequest,
-  AdvanceExternalPipelineIngestionProgress,
   EdgeCreateArgs,
   NodeCreateArgs,
   Eid,
@@ -26,7 +23,6 @@ import type {
   NodeBatch,
   NodeBatchRequestBody,
   NodeEdges,
-  NodePatchRequest,
   OriginId,
   StorageApi,
   TEdge,
