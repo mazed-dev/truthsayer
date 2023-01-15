@@ -40,6 +40,7 @@ import { suggestAssociations } from './background/suggestAssociations'
 import { isMemorable } from './content/extractor/url/unmemorable'
 import { isPageAutosaveable } from './content/extractor/url/autosaveable'
 import lodash from 'lodash'
+import { processMsgFromMsgProxyStorageApi } from 'truthsayer-archaeologist-communication'
 
 const BADGE_MARKER_PAGE_SAVED = '✓'
 
@@ -746,8 +747,14 @@ browser.runtime.onMessageExternal.addListener(
     _: browser.Runtime.MessageSender
   ): Promise<ToTruthsayer.Response> => {
     switch (message.type) {
-      case 'DUMMY_REQUEST': {
-        return { type: 'VOID_RESPONSE' }
+      case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
+        return {
+          type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE',
+          value: await processMsgFromMsgProxyStorageApi(
+            storage,
+            message.payload
+          ),
+        }
       }
       default: {
         throw new Error(

@@ -100,4 +100,11 @@ export namespace EdgeUtil {
       upd: moment.unix(edge.upd),
     }
   }
+  export function toJson(edge: TEdge): TEdgeJson {
+    return {
+      ...edge,
+      crtd: edge.crtd.unix(),
+      upd: edge.upd.unix(),
+    }
+  }
 }

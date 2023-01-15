@@ -30,6 +30,7 @@ import {
 
 export type NodeGetArgs = { nid: Nid }
 export type NodeGetByOriginArgs = { origin: OriginId }
+export type NodeGetAllNidsArgs = {}
 export type NodeUpdateArgs = { nid: Nid } & NodePatchRequest
 export type NodeDeleteArgs = { nid: Nid }
 export type NodeBulkDeleteArgs = { createdVia: NodeCreatedVia }
@@ -97,6 +98,7 @@ export type StorageApi = {
       args: NodeGetByOriginArgs,
       signal?: AbortSignal
     ) => Promise<TNode[]>
+    getAllNids(args: NodeGetAllNidsArgs, signal?: AbortSignal): Promise<Nid[]>
     update: (args: NodeUpdateArgs, signal?: AbortSignal) => Promise<Ack>
     create: (
       args: NodeCreateArgs,

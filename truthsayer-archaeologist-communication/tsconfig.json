@@ -42,6 +42,9 @@
   "references": [
     {
       "path": "../armoury"
+    },
+    {
+      "path": "../smuggler-api"
     }
   ],
   "include": ["src"],

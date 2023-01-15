@@ -9,15 +9,21 @@
  * @see ToContent can be a substitute for the latter).
  */
 
+import type {
+  StorageApiMsgPayload,
+  StorageApiMsgReturnValue,
+} from '../storage_api_msg_proxy'
+
 export namespace FromTruthsayer {
-  export type DummyRequest = {
-    type: 'DUMMY_REQUEST'
+  export type StorageAccessRequest = {
+    type: 'MSG_PROXY_STORAGE_ACCESS_REQUEST'
+    payload: StorageApiMsgPayload
   }
-  export type Request = DummyRequest
+  export type Request = StorageAccessRequest
 
   export function sendMessage(
-    message: DummyRequest
-  ): Promise<ToTruthsayer.VoidResponse>
+    message: StorageAccessRequest
+  ): Promise<ToTruthsayer.StorageAccessResponse>
   export function sendMessage(
     message: Request
   ): Promise<ToTruthsayer.Response> {
@@ -63,8 +69,9 @@ export namespace FromTruthsayer {
 }
 
 export namespace ToTruthsayer {
-  export interface VoidResponse {
-    type: 'VOID_RESPONSE'
+  export type StorageAccessResponse = {
+    type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE'
+    value: StorageApiMsgReturnValue
   }
-  export type Response = VoidResponse
+  export type Response = StorageAccessResponse
 }
