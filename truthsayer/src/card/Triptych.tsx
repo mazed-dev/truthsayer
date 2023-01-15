@@ -302,7 +302,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
   }
 
   render() {
-    const { node, edges_sticky, edges_right, edges_left } = this.state
+    const { node, edges_right, edges_left } = this.state
     const nodeCard =
       node !== null ? (
         <NodeCard
