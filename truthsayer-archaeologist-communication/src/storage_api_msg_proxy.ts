@@ -1,5 +1,5 @@
 import { MimeType } from 'armoury'
-import {
+import type {
   Ack,
   ActivityAssociationGetArgs,
   ActivityAssociationRecordArgs,
@@ -10,7 +10,6 @@ import {
   EdgeDeleteArgs,
   EdgeGetArgs,
   EdgeStickyArgs,
-  EdgeUtil,
   ExternalIngestionAdvanceArgs,
   ExternalIngestionGetArgs,
   GenerateBlobIndexResponse,
@@ -26,7 +25,6 @@ import {
   NodeGetArgs,
   NodeGetByOriginArgs,
   NodeUpdateArgs,
-  NodeUtil,
   StorageApi,
   TEdgeJson,
   TNode,
@@ -35,6 +33,7 @@ import {
   UploadMultipartResponse,
   UserExternalPipelineIngestionProgress,
 } from 'smuggler-api'
+import { NodeUtil, EdgeUtil } from 'smuggler-api'
 
 import { FromTruthsayer, ToTruthsayer } from './message/types'
 
