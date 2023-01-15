@@ -157,7 +157,6 @@ export function SmallCardFootbar({
   cutOffRef,
   className,
 }: {
-  nid: string
   edge: TEdge
   switchStickiness: (edge: TEdge, on: boolean) => void
   cutOffRef: (eid: string) => void

@@ -31,7 +31,9 @@
     "cookies",
     "history",
     "tabs",
-    "webNavigation"
+    "webNavigation",
+    "storage",
+    "unlimitedStorage"
   ],
   "cross_origin_embedder_policy": {
     "value": "require-corp"

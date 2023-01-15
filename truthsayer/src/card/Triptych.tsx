@@ -77,7 +77,6 @@ function RefNodeCard({
         `}
       >
         <SmallCardFootbar
-          nid={nid}
           edge={edge}
           switchStickiness={switchStickiness}
           cutOffRef={cutOffRef}
