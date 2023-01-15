@@ -15,18 +15,14 @@
 
 import type {
   Ack,
-  AddUserActivityRequest,
-  AddUserExternalAssociationRequest,
-  AdvanceExternalPipelineIngestionProgress,
-  CreateEdgeArgs,
-  CreateNodeArgs,
+  EdgeCreateArgs,
+  NodeCreateArgs,
   Eid,
   NewNodeResponse,
   Nid,
   NodeBatch,
   NodeBatchRequestBody,
   NodeEdges,
-  NodePatchRequest,
   OriginId,
   StorageApi,
   TEdge,
@@ -36,6 +32,16 @@ import type {
   TotalUserActivity,
   UserExternalPipelineId,
   UserExternalPipelineIngestionProgress,
+  NodeGetArgs,
+  NodeGetByOriginArgs,
+  NodeUpdateArgs,
+  EdgeGetArgs,
+  ActivityExternalAddArgs,
+  ActivityExternalGetArgs,
+  ActivityAssociationRecordArgs,
+  ActivityAssociationGetArgs,
+  ExternalIngestionAdvanceArgs,
+  ExternalIngestionGetArgs,
 } from 'smuggler-api'
 import { INodeIterator, NodeUtil, EdgeUtil, NodeType } from 'smuggler-api'
 import { v4 as uuidv4 } from 'uuid'
@@ -265,7 +271,7 @@ function generateEid(): Eid {
 
 async function createNode(
   store: YekLavStore,
-  args: CreateNodeArgs
+  args: NodeCreateArgs
 ): Promise<NewNodeResponse> {
   // TODO[snikitin@outlook.com] Below keys must become functional somehow.
   // const _created_via: NodeCreatedVia | undefined = args.created_via
@@ -349,13 +355,10 @@ async function createNode(
   return { nid: node.nid }
 }
 
-async function getNode({
-  store,
-  nid,
-}: {
-  store: YekLavStore
-  nid: Nid
-}): Promise<TNode> {
+async function getNode(
+  store: YekLavStore,
+  { nid }: NodeGetArgs
+): Promise<TNode> {
   const yek: NidToNodeYek = { yek: { kind: 'nid->node', key: nid } }
   const lav: NidToNodeLav | undefined = await store.get(yek)
   if (lav == null) {
@@ -365,13 +368,10 @@ async function getNode({
   return NodeUtil.fromJson(value)
 }
 
-async function getNodesByOrigin({
-  store,
-  origin,
-}: {
-  store: YekLavStore
-  origin: OriginId
-}): Promise<TNode[]> {
+async function getNodesByOrigin(
+  store: YekLavStore,
+  { origin }: NodeGetByOriginArgs
+): Promise<TNode[]> {
   const yek: OriginToNidYek = { yek: { kind: 'origin->nid', key: origin } }
   const lav: OriginToNidLav | undefined = await store.get(yek)
   if (lav == null) {
@@ -387,9 +387,9 @@ async function getNodesByOrigin({
 
 async function getNodeBatch(
   store: YekLavStore,
-  req: NodeBatchRequestBody
+  args: NodeBatchRequestBody
 ): Promise<NodeBatch> {
-  const yeks: NidToNodeYek[] = req.nids.map((nid: Nid): NidToNodeYek => {
+  const yeks: NidToNodeYek[] = args.nids.map((nid: Nid): NidToNodeYek => {
     return { yek: { kind: 'nid->node', key: nid } }
   })
   const lavs: NidToNodeLav[] = await store.get(yeks)
@@ -400,7 +400,7 @@ async function getNodeBatch(
 
 async function updateNode(
   store: YekLavStore,
-  args: { nid: Nid } & NodePatchRequest
+  args: NodeUpdateArgs
 ): Promise<Ack> {
   const yek: NidToNodeYek = { yek: { kind: 'nid->node', key: args.nid } }
   const lav: NidToNodeLav | undefined = await store.get(yek)
@@ -460,7 +460,7 @@ class Iterator implements INodeIterator {
 
 async function createEdge(
   store: YekLavStore,
-  args: CreateEdgeArgs
+  args: EdgeCreateArgs
 ): Promise<TEdge> {
   // TODO[snikitin@outlook.com] Evaluate if ownership support is needed
   // and implement if yes
@@ -501,7 +501,7 @@ async function createEdge(
 
 async function getNodeAllEdges(
   store: YekLavStore,
-  nid: string
+  { nid }: EdgeGetArgs
 ): Promise<NodeEdges> {
   const yek: NidToEdgeYek = { yek: { kind: 'nid->edge', key: nid } }
   const lav: NidToEdgeLav | undefined = await store.get(yek)
@@ -521,10 +521,11 @@ async function getNodeAllEdges(
 
 async function addExternalUserActivity(
   store: YekLavStore,
-  origin: OriginId,
-  activity: AddUserActivityRequest
+  { origin, activity }: ActivityExternalAddArgs
 ): Promise<TotalUserActivity> {
-  const total: TotalUserActivity = await getExternalUserActivity(store, origin)
+  const total: TotalUserActivity = await getExternalUserActivity(store, {
+    origin,
+  })
   if ('visit' in activity) {
     if (activity.visit == null) {
       return total
@@ -555,7 +556,7 @@ async function addExternalUserActivity(
 
 async function getExternalUserActivity(
   store: YekLavStore,
-  origin: OriginId
+  { origin }: ActivityExternalGetArgs
 ): Promise<TotalUserActivity> {
   const yek: OriginToActivityYek = {
     yek: { kind: 'origin->activity', key: origin },
@@ -573,7 +574,7 @@ async function getExternalUserActivity(
 
 async function getUserIngestionProgress(
   store: YekLavStore,
-  epid: UserExternalPipelineId
+  { epid }: ExternalIngestionGetArgs
 ): Promise<UserExternalPipelineIngestionProgress> {
   const yek: ExtPipelineYek = {
     yek: { kind: 'ext-pipe->progress', key: epid },
@@ -594,11 +595,10 @@ async function getUserIngestionProgress(
 
 async function advanceUserIngestionProgress(
   store: YekLavStore,
-  epid: UserExternalPipelineId,
-  new_progress: AdvanceExternalPipelineIngestionProgress
+  { epid, new_progress }: ExternalIngestionAdvanceArgs
 ): Promise<Ack> {
   const progress: UserExternalPipelineIngestionProgress =
-    await getUserIngestionProgress(store, epid)
+    await getUserIngestionProgress(store, { epid })
   progress.ingested_until = new_progress.ingested_until
 
   const yek: ExtPipelineYek = {
@@ -627,22 +627,15 @@ export function makeBrowserExtStorageApi(
 
   return {
     node: {
-      get: ({ nid }: { nid: string; signal?: AbortSignal }) =>
-        getNode({ store, nid }),
-      getByOrigin: ({ origin }: { origin: OriginId; signal?: AbortSignal }) =>
-        getNodesByOrigin({ store, origin }),
-      update: (
-        args: { nid: string } & NodePatchRequest,
-        _signal?: AbortSignal
-      ) => updateNode(store, args),
-      create: (args: CreateNodeArgs, _signal?: AbortSignal) =>
-        createNode(store, args),
+      get: (args: NodeGetArgs) => getNode(store, args),
+      getByOrigin: (args: NodeGetByOriginArgs) => getNodesByOrigin(store, args),
+      update: (args: NodeUpdateArgs) => updateNode(store, args),
+      create: (args: NodeCreateArgs) => createNode(store, args),
       iterate: () => new Iterator(store),
       delete: throwUnimplementedError('node.delete'),
       bulkDelete: throwUnimplementedError('node.bulkdDelete'),
       batch: {
-        get: (req: NodeBatchRequestBody, _signal?: AbortSignal) =>
-          getNodeBatch(store, req),
+        get: (args: NodeBatchRequestBody) => getNodeBatch(store, args),
       },
       url: throwUnimplementedError('node.url'),
     },
@@ -663,48 +656,32 @@ export function makeBrowserExtStorageApi(
       },
     },
     edge: {
-      create: (args: CreateEdgeArgs) => createEdge(store, args),
-      get: (nid: string, _signal?: AbortSignal) => getNodeAllEdges(store, nid),
+      create: (args: EdgeCreateArgs) => createEdge(store, args),
+      get: (args: EdgeGetArgs) => getNodeAllEdges(store, args),
       sticky: throwUnimplementedError('edge.sticky'),
       delete: throwUnimplementedError('edge.delete'),
     },
     activity: {
       external: {
-        add: (
-          origin: OriginId,
-          activity: AddUserActivityRequest,
-          _signal?: AbortSignal
-        ) => addExternalUserActivity(store, origin, activity),
-        get: (origin: OriginId, _signal?: AbortSignal) =>
-          getExternalUserActivity(store, origin),
+        add: (args: ActivityExternalAddArgs) =>
+          addExternalUserActivity(store, args),
+        get: (args: ActivityExternalGetArgs) =>
+          getExternalUserActivity(store, args),
       },
       association: {
         // TODO[snikitin@outlook.com] Replace stubs with real implementation
-        record: (
-          _origin: {
-            from: OriginId
-            to: OriginId
-          },
-          _body: AddUserExternalAssociationRequest,
-          _signal?: AbortSignal
-        ) => Promise.resolve({ ack: true }),
-        get: (
-          _args: {
-            origin: OriginId
-          },
-          _signal?: AbortSignal
-        ) => Promise.resolve({ from: [], to: [] }),
+        record: (_args: ActivityAssociationRecordArgs) =>
+          Promise.resolve({ ack: true }),
+        get: (_args: ActivityAssociationGetArgs) =>
+          Promise.resolve({ from: [], to: [] }),
       },
     },
     external: {
       ingestion: {
-        get: (epid: UserExternalPipelineId, _signal?: AbortSignal) =>
-          getUserIngestionProgress(store, epid),
-        advance: (
-          epid: UserExternalPipelineId,
-          new_progress: AdvanceExternalPipelineIngestionProgress,
-          _signal?: AbortSignal
-        ) => advanceUserIngestionProgress(store, epid, new_progress),
+        get: (args: ExternalIngestionGetArgs) =>
+          getUserIngestionProgress(store, args),
+        advance: (args: ExternalIngestionAdvanceArgs) =>
+          advanceUserIngestionProgress(store, args),
       },
     },
   }

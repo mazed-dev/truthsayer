@@ -52,10 +52,12 @@ export function NodeCardFetching({
   const fetchNodeAbortController = new AbortController()
   useAsyncEffect(
     async (isMounted) => {
-      const n = await storage.node.get({
-        nid,
-        signal: fetchNodeAbortController.signal,
-      })
+      const n = await storage.node.get(
+        {
+          nid,
+        },
+        fetchNodeAbortController.signal
+      )
       if (isMounted()) {
         setNode(n)
       }

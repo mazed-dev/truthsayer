@@ -21,7 +21,7 @@ import {
   genOriginId,
 } from 'armoury'
 import type { Optional } from 'armoury'
-import { CreateNodeArgs, StorageApi } from '../storage_api'
+import { NodeCreateArgs, StorageApi } from '../storage_api'
 import { NodeUtil } from '../typesutil'
 import lodash from 'lodash'
 
@@ -155,7 +155,7 @@ export function isUniqueLookupKey(
   return false
 }
 
-function lookupKeyOf(args: CreateNodeArgs): NodeLookupKey | undefined {
+function lookupKeyOf(args: NodeCreateArgs): NodeLookupKey | undefined {
   // TODO[snikitin@outlook.com]: This ideally should match with NodeUtil.isWebBookmark(),
   // NodeUtil.isWebQuote() etc but unclear how to reliably do so.
   if (args.extattrs?.web?.url) {
@@ -168,7 +168,7 @@ function lookupKeyOf(args: CreateNodeArgs): NodeLookupKey | undefined {
 
 export async function createOrUpdateNode(
   storage: StorageApi,
-  args: CreateNodeArgs,
+  args: NodeCreateArgs,
   signal?: AbortSignal
 ): Promise<NewNodeResponse> {
   const lookupKey = lookupKeyOf(args)
@@ -205,7 +205,7 @@ export async function createOrUpdateNode(
 /**
  * At the time of this writing some datapoints that can be specified at
  * node creation can't be modified at node update due to API differences
- * (@see CreateNodeArgs and @see UpdateNodeArgs).
+ * (@see NodeCreateArgs and @see UpdateNodeArgs).
  * This presents a problem for @see createOrUpdate because some of the datapoints
  * caller passed in will be ignored in 'update' case, which is not obvious
  * and would be unexpected by the caller.
@@ -213,7 +213,7 @@ export async function createOrUpdateNode(
  * different from node's current state. If they are the same then update will
  * not result in anything unexpected.
  */
-function describeWhatWouldPreventNodeUpdate(args: CreateNodeArgs, node: TNode) {
+function describeWhatWouldPreventNodeUpdate(args: NodeCreateArgs, node: TNode) {
   let diff = ''
   const extattrsFieldsOfLittleConsequence = ['description']
   const updatableExtattrsFields = ['text', 'index_text']
@@ -311,7 +311,7 @@ export async function lookupNodes(
     bucket_time_size: 366 * 24 * 60 * 60,
   }
   if ('nid' in key) {
-    return storage.node.get({ nid: key.nid, signal })
+    return storage.node.get({ nid: key.nid }, signal)
   } else if ('webBookmark' in key) {
     const { id, stableUrl } = genOriginId(key.webBookmark.url)
     const nodes: TNode[] = await storage.node.getByOrigin({ origin: { id } })
