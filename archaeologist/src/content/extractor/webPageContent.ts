@@ -125,6 +125,7 @@ export async function exctractPageContent(
     }
   ).parse()
   if (article) {
+    log.debug('article', article)
     // Do a best effort with what @mozilla/readability gives us here
     const {
       title: articleTitle,
@@ -166,6 +167,7 @@ export async function exctractPageContent(
     // to extract, we try to do it ourself. Because this is what
     // MozillaReadability library does on the first place.
     text = _exctractPageText(document_)
+    log.debug('_exctractPageText', text)
   }
   // Cut string by length 10KiB to avoid blowing up backend with huge JSON.
   // We cut the text here avoiding splitting words, by using kTruncateSeparatorSpace separator.

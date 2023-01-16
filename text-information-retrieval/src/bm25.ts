@@ -164,15 +164,15 @@ function createPerDocumentIndexFromText<DocIdType>(
   const { wink } = model
   const doc = wink.readDoc(text)
   const tokenTypes = doc.tokens().out(wink.its.type)
-  const stopWordFlags = doc.tokens().out(wink.its.stopWordFlag)
+  // const stopWordFlags = doc.tokens().out(wink.its.stopWordFlag)
   const bagOfWords: BagOfWords = new Map()
   let wordsNumber = 0
   const tokens = doc.tokens().out(wink.its.lemma)
   for (const index in tokens) {
     const tokenType = tokenTypes[index]
     const token = tokens[index]
-    const isStopWord = stopWordFlags[index]
-    if (!isStopWord && isImportantTokenType(tokenType, token)) {
+    // const isStopWord = stopWordFlags[index]
+    if (isImportantTokenType(tokenType, token)) {
       // TODO(Alexander): take care of the "time" token, converting it into
       // common format perhaps
       // TODO(Alexander): take care of the "url" token, as an option split it

@@ -10,8 +10,8 @@ import { FromContent } from './../../message/types'
 
 import { SuggestionsToast } from './SuggestionsToast'
 import { TextAreaCorner } from './TextAreaCorner'
-import { getKeyPhraseFromText } from './keyphrase'
 
+/*
 function appendSuffixToSlidingWindow(buf: string, key: string): string {
   if (key === 'Backspace') {
     return buf.slice(0, -1)
@@ -23,14 +23,26 @@ function appendSuffixToSlidingWindow(buf: string, key: string): string {
   }
   return (buf + key).slice(-42)
 }
+*/
+
+export function getKeyPhraseFromUserInput(
+  target?: HTMLTextAreaElement
+): string | null {
+  if (target == null) {
+    return null
+  }
+  const value =
+    (target as HTMLTextAreaElement).value ??
+    target.innerText ??
+    target.textContent
+  return value ?? null
+}
 
 type UserInput = {
-  keyBuffer: string
   target: HTMLTextAreaElement | null
   phrase: string | null
 }
 function updateUserInputFromKeyboardEvent(
-  userInput: UserInput,
   keyboardEvent: KeyboardEvent
 ) {
   if ('altKey' in keyboardEvent) {
@@ -38,35 +50,11 @@ function updateUserInputFromKeyboardEvent(
       keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
     const target = event.target as HTMLTextAreaElement
     if (target.isContentEditable || target.tagName === 'TEXTAREA') {
-      let { keyBuffer } = userInput
-      if (target !== userInput.target) {
-        keyBuffer = ''
-      }
-      keyBuffer = appendSuffixToSlidingWindow(keyBuffer, event.key)
-      const phrase = getKeyPhraseFromUserInput(keyBuffer, target)
-      return { keyBuffer, target, phrase }
+      const phrase = getKeyPhraseFromUserInput(target)
+      return { target, phrase }
     }
   }
-  return { keyBuffer: '', target: null, phrase: null }
-}
-
-export function getKeyPhraseFromUserInput(
-  keyBuffer: string,
-  target?: HTMLTextAreaElement
-): string | null {
-  if (target == null) {
-    return null
-  }
-  const targetValue =
-    (target as HTMLTextAreaElement).value ??
-    target.innerText ??
-    target.textContent
-  if (targetValue != null) {
-    const phrase = targetValue // getKeyPhraseFromText(targetValue)
-    return phrase
-  }
-  const phrase = getKeyPhraseFromText(keyBuffer)
-  return phrase
+  return { target: null, phrase: null }
 }
 
 export function WriteAugmentation() {
@@ -100,9 +88,8 @@ export function WriteAugmentation() {
     []
   )
   const [userInput, consumeKeyboardEvent] = React.useReducer(
-    (userInput: UserInput, keyboardEvent: KeyboardEvent) => {
+    (_userInput: UserInput, keyboardEvent: KeyboardEvent) => {
       const newInput = updateUserInputFromKeyboardEvent(
-        userInput,
         keyboardEvent
       )
       const { phrase } = newInput
@@ -112,16 +99,15 @@ export function WriteAugmentation() {
       return newInput
     },
     {
-      keyBuffer: '',
       target: null,
       phrase: null,
     }
   )
   React.useEffect(() => {
     const opts: AddEventListenerOptions = { passive: true, capture: true }
-    window.addEventListener('keydown', consumeKeyboardEvent, opts)
+    window.addEventListener('keyup', consumeKeyboardEvent, opts)
     return () => {
-      window.removeEventListener('keydown', consumeKeyboardEvent, opts)
+      window.removeEventListener('keyup', consumeKeyboardEvent, opts)
     }
   }, [])
   return (

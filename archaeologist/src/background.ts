@@ -430,11 +430,18 @@ async function handleMessageFromContent(
     }
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
       const suggested = await search.findRelevantNodes(
-        storage,
         message.phrase,
         message.limit
       )
-      const nids = Array.from(new Set(suggested.map((s) => s.nid)))
+      log.debug('Suggested', suggested)
+      const addedNids = new Set<string>()
+      const nids = Array.from(
+        suggested.filter(({ nid }) => {
+          const added = addedNids.has(nid)
+          addedNids.add(nid)
+          return !added
+        }).map((s) => s.nid)
+      )
       const resp = await storage.node.batch.get({ nids })
       return {
         type: 'SUGGESTED_CONTENT_ASSOCIATIONS',

@@ -5,7 +5,7 @@ import { log } from 'armoury'
 
 import type { Nid, TNode } from 'smuggler-api'
 
-export type DocIdType = {
+export type DocId = {
   nid: Nid
   section:
     | 'title'
@@ -17,12 +17,12 @@ export type DocIdType = {
     | 'coment'
 }
 
-const [overallIndex, perDocumentIndex] = relevance.createIndex<DocIdType>()
+const [overallIndex, perDocumentIndex] = relevance.createIndex<DocId>()
 
 export async function findRelevantNodes(
   text: string,
   limit?: number
-): Promise<DocIdType[]> {
+): Promise<DocId[]> {
   limit = limit ?? 8
   const results = relevance.findRelevantDocuments(
     text,
