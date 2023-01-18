@@ -41,6 +41,7 @@ import { isMemorable } from './content/extractor/url/unmemorable'
 import { isPageAutosaveable } from './content/extractor/url/autosaveable'
 import lodash from 'lodash'
 import { processMsgFromMsgProxyStorageApi } from 'truthsayer-archaeologist-communication'
+import { getAppSettings, setAppSettings } from './appSettings'
 
 const BADGE_MARKER_PAGE_SAVED = '✓'
 
@@ -747,6 +748,18 @@ browser.runtime.onMessageExternal.addListener(
     _: browser.Runtime.MessageSender
   ): Promise<ToTruthsayer.Response> => {
     switch (message.type) {
+      case 'GET_APP_SETTINGS_REQUEST': {
+        return {
+          type: 'GET_APP_SETTINGS_RESPONSE',
+          settings: await getAppSettings(browser.storage.local),
+        }
+      }
+      case 'SET_APP_SETTINGS_REQUEST': {
+        await setAppSettings(browser.storage.local, message.newValue)
+        return {
+          type: 'VOID_RESPONSE',
+        }
+      }
       case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
         return {
           type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE',
@@ -756,14 +769,12 @@ browser.runtime.onMessageExternal.addListener(
           ),
         }
       }
-      default: {
-        throw new Error(
-          `background received msg from truthsayer of unknown type, message: ${JSON.stringify(
-            message
-          )}`
-        )
-      }
     }
+    throw new Error(
+      `background received msg from truthsayer of unknown type, message: ${JSON.stringify(
+        message
+      )}`
+    )
   }
 )
 
