@@ -19,11 +19,11 @@ import { NotificationToast } from './Toaster'
 import { errorise, log, productanalytics } from 'armoury'
 import { useAsyncEffect } from 'use-async-effect'
 import {
-  AppSettings,
+  defaultSettings,
   FromTruthsayer,
   makeMsgProxyStorageApi,
 } from 'truthsayer-archaeologist-communication'
-import { defaultSettings } from 'truthsayer-archaeologist-communication'
+import type { AppSettings } from 'truthsayer-archaeologist-communication'
 
 type Toaster = {
   push: (item: React.ReactElement) => void
@@ -78,26 +78,27 @@ export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
   const defaultAppSettings = defaultSettings()
 
   const [toasts, setToasts] = React.useState<React.ReactElement[]>([])
-  const [account, setAccount] = React.useState<AccountInterface | null>(null)
-  const [storage, setStorage] = React.useState<StorageApi>(
-    makeStorageApi(defaultAppSettings)
+  const pushToast = React.useCallback(
+    (item: React.ReactElement) => {
+      let copy: React.ReactElement[] = toasts.slice()
+      const index = copy.findIndex(
+        (existingItem: React.ReactElement) => existingItem.key === item.key
+      )
+      if (index !== -1) {
+        copy[index] = item
+      } else {
+        copy.push(item)
+      }
+      setToasts(copy)
+    },
+    [toasts]
   )
 
-  const [state] = React.useState<Omit<MzdGlobalState, 'account' | 'storage'>>({
-    toaster: {
-      push: (item: React.ReactElement) => {
-        const index = toasts.findIndex(
-          (existingItem: React.ReactElement) => existingItem.key === item.key
-        )
-        if (index !== -1) {
-          toasts[index] = item
-        } else {
-          toasts.push(item)
-        }
-        setToasts(toasts)
-      },
-    },
+  const [account, setAccount] = React.useState<AccountInterface | null>(null)
+  const [state] = React.useState<Omit<MzdGlobalState, 'account'>>({
+    toaster: { push: pushToast },
     analytics: props.analytics,
+    storage: makeDatacenterStorageApi(),
     appSettings: defaultAppSettings,
   })
 
