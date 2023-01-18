@@ -17,33 +17,27 @@ import type { StorageApi } from 'smuggler-api'
 import styles from './global.module.css'
 import { NotificationToast } from './Toaster'
 import { errorise, log, productanalytics } from 'armoury'
+import { useAsyncEffect } from 'use-async-effect'
 
 type Toaster = {
-  toasts: React.ReactElement[]
   push: (item: React.ReactElement) => void
-}
-
-type Topbar = {
-  aux: Map<string, string>
-  reset: (key: string, group: string) => void
 }
 
 export type MzdGlobalContextProps = {
   account: null | AccountInterface
-  topbar: Topbar | {}
   toaster: Toaster
   storage: StorageApi
   analytics: PostHog | null
 }
 
+const NOOP_TOASTER_PUSH = (_item: React.ReactElement) => {
+  // *dbg*/ console.log('Default push() function called: ', header, message)
+}
+
 export const MzdGlobalContext = React.createContext<MzdGlobalContextProps>({
   account: null,
-  topbar: {},
   toaster: {
-    toasts: [],
-    push: (_item: React.ReactElement) => {
-      // *dbg*/ console.log('Default push() function called: ', header, message)
-    },
+    push: NOOP_TOASTER_PUSH,
   },
   storage: makeAlwaysThrowingStorageApi(),
   analytics: null,
@@ -53,7 +47,6 @@ type MzdGlobalProps = {
   analytics: PostHog | null
 }
 type MzdGlobalState = {
-  topbar: Topbar
   toaster: Toaster
   account: AccountInterface | null
   storage: StorageApi
@@ -63,122 +56,86 @@ type MzdGlobalState = {
 const kAnonymousAnalyticsWarning =
   'future product analytics events will be attached to an anonymous identity'
 
-export class MzdGlobal extends React.Component<MzdGlobalProps, MzdGlobalState> {
-  fetchAccountAbortController: AbortController
-  pushToast: (item: React.ReactElement) => void
-  resetAuxToobar: (key: string, group: string) => void
+export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
+  const [fetchAccountAbortController] = React.useState(new AbortController())
 
-  constructor(props: MzdGlobalProps) {
-    super(props)
-    this.pushToast = (item: React.ReactElement) => {
-      this.setState((state) => {
-        const index = state.toaster.toasts.findIndex(
+  const [toasts, setToasts] = React.useState<React.ReactElement[]>([])
+  const [account, setAccount] = React.useState<AccountInterface | null>(null)
+  const [state] = React.useState<Omit<MzdGlobalState, 'account'>>({
+    toaster: {
+      push: (item: React.ReactElement) => {
+        const index = toasts.findIndex(
           (existingItem: React.ReactElement) => existingItem.key === item.key
         )
-        let toasts = state.toaster.toasts
         if (index !== -1) {
           toasts[index] = item
         } else {
           toasts.push(item)
         }
-        return {
-          toaster: {
-            toasts,
-            push: state.toaster.push,
-          },
-        }
-      })
-    }
-    this.resetAuxToobar = (key, group) => {
-      this.setState((state) => {
-        const topbar = state.topbar
-        // Reset certain section by key and preserve everything else
-        if (group) {
-          topbar.aux.set(key, group)
-        } else {
-          topbar.aux.delete(key)
-        }
-        return {
-          topbar,
-        }
-      })
-    }
-    this.fetchAccountAbortController = new AbortController()
-
-    this.state = {
-      toaster: {
-        toasts: [],
-        push: this.pushToast,
+        setToasts(toasts)
       },
-      topbar: {
-        aux: new Map(),
-        reset: this.resetAuxToobar,
-      },
-      account: null,
-      analytics: props.analytics,
-      storage: makeDatacenterStorageApi(),
-    }
-  }
+    },
+    analytics: props.analytics,
+    storage: makeDatacenterStorageApi(),
+  })
 
-  componentDidMount() {
-    createUserAccount(this.fetchAccountAbortController.signal)
-      .then((account) => {
-        this.setState({ account })
-
-        if (this.state.analytics) {
-          try {
-            // TODO[snikitin@outlook.com] In cases when truthsayer is launched
-            // the user is already logged in user identification should happen
-            // immediately at the point of product analytics instance creation
-            // (via 'PostHogConfig.bootstrap' field). Without that, opening
-            // truthsayer produces a single anonymous '$pageview' event followed
-            // immediately by an '$identify' event. This makes analytics data
-            // more difficult to navigate and consumes extra quota.
-            productanalytics.identifyUser({
-              analytics: this.state.analytics,
-              nodeEnv: process.env.NODE_ENV,
-              userUid: account.getUid(),
-            })
-          } catch (e) {
-            log.warning(`${errorise(e).message}, ${kAnonymousAnalyticsWarning}`)
-          }
-        }
-      })
-      .catch((reason) => {
-        log.warning(
-          `Faild to initialise user account (error = ${errorise(
-            reason
-          )}), ${kAnonymousAnalyticsWarning}`
-        )
-      })
-  }
-
-  componentWillUnmount() {
-    if (this.state.analytics) {
-      this.state.analytics.reset()
-      log.debug(
-        `Product analytics identity have been reset, ${kAnonymousAnalyticsWarning}`
+  useAsyncEffect(async () => {
+    let acc: AccountInterface | null = null
+    try {
+      acc = await createUserAccount(fetchAccountAbortController.signal)
+    } catch (err) {
+      log.warning(
+        `Faild to initialise user acc (error = ${errorise(
+          err
+        )}), ${kAnonymousAnalyticsWarning}`
       )
+      return
     }
-  }
 
-  render() {
-    return (
-      <MzdGlobalContext.Provider value={this.state}>
-        <KnockerElement />
-        <div
-          aria-live="polite"
-          aria-atomic="true"
-          className={jcss(styles.toaster_container)}
-        >
-          <div className={jcss(styles.toaster_root)}>
-            {this.state.toaster.toasts}
-          </div>
-        </div>
-        {this.props.children}
-      </MzdGlobalContext.Provider>
-    )
-  }
+    setAccount(acc)
+
+    if (state.analytics) {
+      try {
+        // TODO[snikitin@outlook.com] In cases when truthsayer is launched
+        // the user is already logged in user identification should happen
+        // immediately at the point of product analytics instance creation
+        // (via 'PostHogConfig.bootstrap' field). Without that, opening
+        // truthsayer produces a single anonymous '$pageview' event followed
+        // immediately by an '$identify' event. This makes analytics data
+        // more difficult to navigate and consumes extra quota.
+        productanalytics.identifyUser({
+          analytics: state.analytics,
+          nodeEnv: process.env.NODE_ENV,
+          userUid: acc.getUid(),
+        })
+      } catch (e) {
+        log.warning(`${errorise(e).message}, ${kAnonymousAnalyticsWarning}`)
+      }
+    }
+
+    return () => {
+      if (state.analytics) {
+        state.analytics.reset()
+        log.debug(
+          `Product analytics identity have been reset, ${kAnonymousAnalyticsWarning}`
+        )
+      }
+    }
+  }, [])
+
+  return (
+    <MzdGlobalContext.Provider value={{ ...state, account }}>
+      <KnockerElement />
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        className={jcss(styles.toaster_container)}
+      >
+        <div className={jcss(styles.toaster_root)}>{toasts}</div>
+      </div>
+      {props.children}
+    </MzdGlobalContext.Provider>
+  )
 }
 
 // Examples
