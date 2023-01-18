@@ -18,9 +18,24 @@ import styles from './global.module.css'
 import { NotificationToast } from './Toaster'
 import { errorise, log, productanalytics } from 'armoury'
 import { useAsyncEffect } from 'use-async-effect'
+import {
+  AppSettings,
+  FromTruthsayer,
+  makeMsgProxyStorageApi,
+} from 'truthsayer-archaeologist-communication'
+import { defaultSettings } from 'truthsayer-archaeologist-communication'
 
 type Toaster = {
   push: (item: React.ReactElement) => void
+}
+
+function makeStorageApi(appSettings: AppSettings): StorageApi {
+  switch (appSettings.storageType) {
+    case 'datacenter':
+      return makeDatacenterStorageApi()
+    case 'browser_ext':
+      return makeMsgProxyStorageApi()
+  }
 }
 
 export type MzdGlobalContextProps = {
@@ -51,6 +66,7 @@ type MzdGlobalState = {
   account: AccountInterface | null
   storage: StorageApi
   analytics: PostHog | null
+  appSettings: AppSettings
 }
 
 const kAnonymousAnalyticsWarning =
@@ -59,9 +75,15 @@ const kAnonymousAnalyticsWarning =
 export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
   const [fetchAccountAbortController] = React.useState(new AbortController())
 
+  const defaultAppSettings = defaultSettings()
+
   const [toasts, setToasts] = React.useState<React.ReactElement[]>([])
   const [account, setAccount] = React.useState<AccountInterface | null>(null)
-  const [state] = React.useState<Omit<MzdGlobalState, 'account'>>({
+  const [storage, setStorage] = React.useState<StorageApi>(
+    makeStorageApi(defaultAppSettings)
+  )
+
+  const [state] = React.useState<Omit<MzdGlobalState, 'account' | 'storage'>>({
     toaster: {
       push: (item: React.ReactElement) => {
         const index = toasts.findIndex(
@@ -76,7 +98,7 @@ export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
       },
     },
     analytics: props.analytics,
-    storage: makeDatacenterStorageApi(),
+    appSettings: defaultAppSettings,
   })
 
   useAsyncEffect(async () => {
@@ -123,8 +145,15 @@ export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
     }
   }, [])
 
+  useAsyncEffect(async () => {
+    const response = await FromTruthsayer.sendMessage({
+      type: 'GET_APP_SETTINGS_REQUEST',
+    })
+    setStorage(makeStorageApi(response.settings))
+  }, [])
+
   return (
-    <MzdGlobalContext.Provider value={{ ...state, account }}>
+    <MzdGlobalContext.Provider value={{ ...state, account, storage }}>
       <KnockerElement />
       <div
         aria-live="polite"

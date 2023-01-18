@@ -5,8 +5,13 @@ import styled from '@emotion/styled'
 
 import { kCardBorder, Spinner } from 'elementary'
 import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
-import { sleep } from 'armoury'
+import { errorise, log, sleep } from 'armoury'
 import GoogleChromeLogo from './img/GoogleChromeLogo.svg'
+import Switch from 'react-switch'
+import {
+  AppSettings,
+  FromTruthsayer,
+} from 'truthsayer-archaeologist-communication'
 
 type MazedAppLinks =
   | 'https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc'
@@ -67,6 +72,48 @@ export function AppsList({ className }: { className?: string }) {
     const version = await getArchaeologistVersionWait()
     setChromeStatus(version == null ? 'Not installed' : 'Installed')
   })
+
+  const [appSettings, setAppSettings] = React.useState<AppSettings | null>(null)
+  useAsyncEffect(async () => {
+    const response = await FromTruthsayer.sendMessage({
+      type: 'GET_APP_SETTINGS_REQUEST',
+    })
+    setAppSettings(response.settings)
+  }, [])
+
+  const toggleStorageType = (checked: boolean) => {
+    const newAppSettings: AppSettings = {
+      storageType: checked ? 'browser_ext' : 'datacenter',
+    }
+    FromTruthsayer.sendMessage({
+      type: 'SET_APP_SETTINGS_REQUEST',
+      newValue: newAppSettings,
+    })
+      .catch((reason) => {
+        log.error(
+          `Failed to set app settings, error '${errorise(reason).message}'; ` +
+            'current settings vs attempted new:' +
+            `${JSON.stringify(appSettings)} vs ${JSON.stringify(
+              newAppSettings
+            )}`
+        )
+      })
+      .then(() => {
+        setAppSettings(newAppSettings)
+      })
+  }
+  const storageTypeToggle =
+    appSettings !== null ? (
+      <div>
+        Store data locally:
+        <Switch
+          onChange={toggleStorageType}
+          checked={appSettings.storageType === 'browser_ext'}
+        />
+      </div>
+    ) : (
+      <div />
+    )
   return (
     <Box className={className}>
       <AppItem href={kGoogleChromeStoreLink}>
@@ -76,6 +123,7 @@ export function AppsList({ className }: { className?: string }) {
           <Comment>
             &mdash;{' '}
             {chromeStatus === 'loading' ? <Spinner.Ring /> : chromeStatus}
+            {storageTypeToggle}
           </Comment>
         </Name>
       </AppItem>
