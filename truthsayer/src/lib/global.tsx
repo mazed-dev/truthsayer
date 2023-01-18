@@ -60,21 +60,25 @@ export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
   const [fetchAccountAbortController] = React.useState(new AbortController())
 
   const [toasts, setToasts] = React.useState<React.ReactElement[]>([])
+  const pushToast = React.useCallback(
+    (item: React.ReactElement) => {
+      let copy: React.ReactElement[] = toasts.slice()
+      const index = copy.findIndex(
+        (existingItem: React.ReactElement) => existingItem.key === item.key
+      )
+      if (index !== -1) {
+        copy[index] = item
+      } else {
+        copy.push(item)
+      }
+      setToasts(copy)
+    },
+    [toasts]
+  )
+
   const [account, setAccount] = React.useState<AccountInterface | null>(null)
   const [state] = React.useState<Omit<MzdGlobalState, 'account'>>({
-    toaster: {
-      push: (item: React.ReactElement) => {
-        const index = toasts.findIndex(
-          (existingItem: React.ReactElement) => existingItem.key === item.key
-        )
-        if (index !== -1) {
-          toasts[index] = item
-        } else {
-          toasts.push(item)
-        }
-        setToasts(toasts)
-      },
-    },
+    toaster: { push: pushToast },
     analytics: props.analytics,
     storage: makeDatacenterStorageApi(),
   })
