@@ -9,9 +9,9 @@ import { jcss } from 'elementary'
 import {
   createUserAccount,
   AccountInterface,
-  makeDatacenterStorageApi,
   makeAlwaysThrowingStorageApi,
 } from 'smuggler-api'
+import { makeMsgProxyStorageApi } from 'truthsayer-archaeologist-communication'
 import type { StorageApi } from 'smuggler-api'
 
 import styles from './global.module.css'
@@ -95,10 +95,12 @@ export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
   )
 
   const [account, setAccount] = React.useState<AccountInterface | null>(null)
-  const [state] = React.useState<Omit<MzdGlobalState, 'account'>>({
+  const [storage, setStorage] = React.useState<StorageApi>(
+    makeStorageApi(defaultAppSettings)
+  )
+  const [state] = React.useState<Omit<MzdGlobalState, 'account' | 'storage'>>({
     toaster: { push: pushToast },
     analytics: props.analytics,
-    storage: makeDatacenterStorageApi(),
     appSettings: defaultAppSettings,
   })
 

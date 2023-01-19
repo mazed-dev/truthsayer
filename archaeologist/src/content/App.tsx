@@ -5,13 +5,14 @@ import browser from 'webextension-polyfill'
 import { PostHog } from 'posthog-js'
 import { v4 as uuidv4 } from 'uuid'
 
-import { NodeUtil, NodeType, makeDatacenterStorageApi } from 'smuggler-api'
+import { NodeUtil, NodeType } from 'smuggler-api'
 import type { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log, productanalytics } from 'armoury'
 import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 
 import { mazed } from '../util/mazed'
 
+import { makeBrowserExtStorageApi } from './../storage_api_browser_ext'
 import {
   FromContent,
   ToContent,
@@ -392,7 +393,7 @@ const App = () => {
       <ContentContext.Provider
         value={{
           analytics: state.analytics,
-          storage: makeDatacenterStorageApi(),
+          storage: makeBrowserExtStorageApi(browser.storage.local),
         }}
       >
         <BrowserHistoryImportControlPortal

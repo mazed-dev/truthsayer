@@ -27,7 +27,6 @@ import {
   NodeUtil,
   TotalUserActivity,
   ResourceVisit,
-  makeDatacenterStorageApi,
   UserExternalPipelineId,
   NodeCreatedVia,
   UserExternalPipelineIngestionProgress,
@@ -35,6 +34,7 @@ import {
   steroid,
 } from 'smuggler-api'
 
+import { makeBrowserExtStorageApi } from './storage_api_browser_ext'
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
 import { suggestAssociations } from './background/suggestAssociations'
 import { isMemorable } from './content/extractor/url/unmemorable'
@@ -902,7 +902,7 @@ browser.contextMenus.onClicked.addListener(
   }
 )
 
-const storage: StorageApi = makeDatacenterStorageApi()
+const storage: StorageApi = makeBrowserExtStorageApi(browser.storage.local)
 
 auth.register()
 browserBookmarks.register(storage)

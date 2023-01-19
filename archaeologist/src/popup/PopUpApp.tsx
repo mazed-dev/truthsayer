@@ -15,7 +15,7 @@ import { mazed } from '../util/mazed'
 import { MdiLaunch } from 'elementary'
 import { productanalytics } from 'armoury'
 import { PopUpContext } from './context'
-import { makeDatacenterStorageApi } from 'smuggler-api'
+import { makeBrowserExtStorageApi } from './../storage_api_browser_ext'
 
 const AppContainer = styled.div`
   width: 340px;
@@ -74,7 +74,9 @@ export const PopUpApp = () => {
 
   return (
     <AppContainer>
-      <PopUpContext.Provider value={{ storage: makeDatacenterStorageApi() }}>
+      <PopUpContext.Provider
+        value={{ storage: makeBrowserExtStorageApi(browser.storage.local) }}
+      >
         {state.userUid == null ? <LoginPage /> : <ViewActiveTabStatus />}
       </PopUpContext.Provider>
     </AppContainer>
