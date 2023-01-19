@@ -15,7 +15,12 @@ import { mazed } from '../util/mazed'
 import { MdiLaunch } from 'elementary'
 import { productanalytics } from 'armoury'
 import { PopUpContext } from './context'
-import { makeBrowserExtStorageApi } from './../storage_api_browser_ext'
+import type {
+  ForwardToRealImpl,
+  StorageApiMsgPayload,
+  StorageApiMsgReturnValue,
+} from 'smuggler-api'
+import { makeMsgProxyStorageApi } from 'smuggler-api'
 
 const AppContainer = styled.div`
   width: 340px;
@@ -72,10 +77,19 @@ export const PopUpApp = () => {
     dispatch(response)
   }, [])
 
+  const forwardToBackground: ForwardToRealImpl = async (
+    payload: StorageApiMsgPayload
+  ): Promise<StorageApiMsgReturnValue> => {
+    const response = await FromPopUp.sendMessage({
+      type: 'MSG_PROXY_STORAGE_ACCESS_REQUEST',
+      payload,
+    })
+    return response.value
+  }
   return (
     <AppContainer>
       <PopUpContext.Provider
-        value={{ storage: makeBrowserExtStorageApi(browser.storage.local) }}
+        value={{ storage: makeMsgProxyStorageApi(forwardToBackground) }}
       >
         {state.userUid == null ? <LoginPage /> : <ViewActiveTabStatus />}
       </PopUpContext.Provider>

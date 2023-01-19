@@ -12,7 +12,7 @@
 import type {
   StorageApiMsgPayload,
   StorageApiMsgReturnValue,
-} from '../storage_api_msg_proxy'
+} from 'smuggler-api'
 
 export type AppSettings = {
   storageType:

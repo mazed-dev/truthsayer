@@ -1,6 +1,18 @@
 import { MimeType } from 'armoury'
 import type {
   Ack,
+  GenerateBlobIndexResponse,
+  GetUserExternalAssociationsResponse,
+  NewNodeResponse,
+  Nid,
+  TEdgeJson,
+  TNode,
+  TNodeJson,
+  TotalUserActivity,
+  UploadMultipartResponse,
+  UserExternalPipelineIngestionProgress,
+} from './types'
+import type {
   ActivityAssociationGetArgs,
   ActivityAssociationRecordArgs,
   ActivityExternalAddArgs,
@@ -12,11 +24,6 @@ import type {
   EdgeStickyArgs,
   ExternalIngestionAdvanceArgs,
   ExternalIngestionGetArgs,
-  GenerateBlobIndexResponse,
-  GetUserExternalAssociationsResponse,
-  INodeIterator,
-  NewNodeResponse,
-  Nid,
   NodeBatchRequestBody,
   NodeBulkDeleteArgs,
   NodeCreateArgs,
@@ -26,16 +33,9 @@ import type {
   NodeGetByOriginArgs,
   NodeUpdateArgs,
   StorageApi,
-  TEdgeJson,
-  TNode,
-  TNodeJson,
-  TotalUserActivity,
-  UploadMultipartResponse,
-  UserExternalPipelineIngestionProgress,
-} from 'smuggler-api'
-import { NodeUtil, EdgeUtil } from 'smuggler-api'
-
-import { FromTruthsayer, ToTruthsayer } from './message/types'
+} from './storage_api'
+import type { INodeIterator } from './node_slice_iterator'
+import { NodeUtil, EdgeUtil } from './typesutil'
 
 export type StorageApiMsgPayload =
   | { apiName: 'node.get'; args: NodeGetArgs }
@@ -104,22 +104,34 @@ function mismatchError(sent: string, got: string): Error {
   return new Error(`Sent ${sent} StorageApi message, received ${got}`)
 }
 
+/**
+ * A functor that a message proxy implementation of @see StorageApi (which
+ * doesn't have direct access to any storages) uses to forward a storage access
+ * request to a "real" @see StorageApi (which does have direct access)
+ */
+export type ForwardToRealImpl = (
+  payload: StorageApiMsgPayload
+) => Promise<StorageApiMsgReturnValue>
+
 class MsgProxyNodeIterator implements INodeIterator {
   private nids: Promise<Nid[]>
   private index: number
+  private forward: (
+    payload: StorageApiMsgPayload
+  ) => Promise<StorageApiMsgReturnValue>
 
-  constructor() {
+  constructor(forward: ForwardToRealImpl) {
+    this.forward = forward
     const apiName = 'node.getAllNids'
-    this.nids = FromTruthsayer.sendMessage({
-      type: 'MSG_PROXY_STORAGE_ACCESS_REQUEST',
-      payload: { apiName, args: {} },
-    }).then((response: ToTruthsayer.StorageAccessResponse) => {
-      if (apiName !== response.value.apiName) {
-        throw mismatchError(apiName, response.value.apiName)
+    this.nids = this.forward({ apiName, args: {} }).then(
+      (value: StorageApiMsgReturnValue) => {
+        if (apiName !== value.apiName) {
+          throw mismatchError(apiName, value.apiName)
+        }
+        const ret: Nid[] = value.ret
+        return ret
       }
-      const ret: Nid[] = response.value.ret
-      return ret
-    })
+    )
     this.index = 0
   }
 
@@ -130,15 +142,11 @@ class MsgProxyNodeIterator implements INodeIterator {
     }
     const nid: Nid = nids[this.index]
     const apiName = 'node.get'
-    const response = await FromTruthsayer.sendMessage({
-      type: 'MSG_PROXY_STORAGE_ACCESS_REQUEST',
-      payload: { apiName, args: { nid } },
-    })
-    if (apiName !== response.value.apiName)
-      throw mismatchError(apiName, response.value.apiName)
+    const value = await this.forward({ apiName, args: { nid } })
+    if (apiName !== value.apiName) throw mismatchError(apiName, value.apiName)
 
     ++this.index
-    const ret: TNodeJson = response.value.ret
+    const ret: TNodeJson = value.ret
     return NodeUtil.fromJson(ret)
   }
   total(): number {
@@ -150,65 +158,55 @@ class MsgProxyNodeIterator implements INodeIterator {
   }
 }
 
-export function makeMsgProxyStorageApi(): StorageApi {
-  const send = async (
-    payload: StorageApiMsgPayload
-  ): Promise<StorageApiMsgReturnValue> => {
-    const response = await FromTruthsayer.sendMessage({
-      type: 'MSG_PROXY_STORAGE_ACCESS_REQUEST',
-      payload,
-    })
-    return response.value
-  }
-
+export function makeMsgProxyStorageApi(forward: ForwardToRealImpl): StorageApi {
   return {
     node: {
       get: async (args: NodeGetArgs) => {
         const apiName = 'node.get'
-        const resp = await send({ apiName, args })
+        const resp = await forward({ apiName, args })
         if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
         const ret: TNodeJson = resp.ret
         return NodeUtil.fromJson(ret)
       },
       getByOrigin: async (args: NodeGetByOriginArgs) => {
         const apiName = 'node.getByOrigin'
-        const resp = await send({ apiName, args })
+        const resp = await forward({ apiName, args })
         if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
         const ret: TNodeJson[] = resp.ret
         return ret.map((value) => NodeUtil.fromJson(value))
       },
       getAllNids: async (args: NodeGetAllNidsArgs) => {
         const apiName = 'node.getAllNids'
-        const resp = await send({ apiName, args })
+        const resp = await forward({ apiName, args })
         if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
         const ret: Nid[] = resp.ret
         return ret
       },
       update: async (args: NodeUpdateArgs) => {
         const apiName = 'node.update'
-        const resp = await send({ apiName, args })
+        const resp = await forward({ apiName, args })
         if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
         const ret: Ack = resp.ret
         return ret
       },
       create: async (args: NodeCreateArgs) => {
         const apiName = 'node.create'
-        const resp = await send({ apiName, args })
+        const resp = await forward({ apiName, args })
         if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
         const ret: NewNodeResponse = resp.ret
         return ret
       },
-      iterate: () => new MsgProxyNodeIterator(),
+      iterate: () => new MsgProxyNodeIterator(forward),
       delete: async (args: NodeDeleteArgs) => {
         const apiName = 'node.delete'
-        const resp = await send({ apiName, args })
+        const resp = await forward({ apiName, args })
         if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
         const ret: Ack = resp.ret
         return ret
       },
       bulkDelete: async (args: NodeBulkDeleteArgs) => {
         const apiName = 'node.bulkDelete'
-        const resp = await send({ apiName, args })
+        const resp = await forward({ apiName, args })
         if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
         const ret: number = resp.ret
         return ret
@@ -216,7 +214,7 @@ export function makeMsgProxyStorageApi(): StorageApi {
       batch: {
         get: async (args: NodeBatchRequestBody) => {
           const apiName = 'node.batch.get'
-          const resp = await send({ apiName, args })
+          const resp = await forward({ apiName, args })
           if (apiName !== resp.apiName)
             throw mismatchError(apiName, resp.apiName)
           const ret: { nodes: TNodeJson[] } = resp.ret
@@ -228,7 +226,7 @@ export function makeMsgProxyStorageApi(): StorageApi {
     blob: {
       upload: async (args: BlobUploadRequestArgs) => {
         const apiName = 'blob.upload'
-        const resp = await send({ apiName, args })
+        const resp = await forward({ apiName, args })
         if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
         const ret: UploadMultipartResponse = resp.ret
         return ret
@@ -238,7 +236,7 @@ export function makeMsgProxyStorageApi(): StorageApi {
     blob_index: {
       build: async (files: File[]) => {
         const apiName = 'blob_index.build'
-        const resp = await send({ apiName, args: files })
+        const resp = await forward({ apiName, args: files })
         if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
         const ret: GenerateBlobIndexResponse = resp.ret
         return ret
@@ -250,14 +248,14 @@ export function makeMsgProxyStorageApi(): StorageApi {
     edge: {
       create: async (args: EdgeCreateArgs) => {
         const apiName = 'edge.create'
-        const resp = await send({ apiName, args })
+        const resp = await forward({ apiName, args })
         if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
         const ret: TEdgeJson = resp.ret
         return EdgeUtil.fromJson(ret)
       },
       get: async (args: EdgeGetArgs) => {
         const apiName = 'edge.get'
-        const resp = await send({ apiName, args })
+        const resp = await forward({ apiName, args })
         if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
         const ret: {
           from_edges: TEdgeJson[]
@@ -270,14 +268,14 @@ export function makeMsgProxyStorageApi(): StorageApi {
       },
       sticky: async (args: EdgeStickyArgs) => {
         const apiName = 'edge.sticky'
-        const resp = await send({ apiName, args })
+        const resp = await forward({ apiName, args })
         if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
         const ret: Ack = resp.ret
         return ret
       },
       delete: async (args: EdgeDeleteArgs) => {
         const apiName = 'edge.delete'
-        const resp = await send({ apiName, args })
+        const resp = await forward({ apiName, args })
         if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
         const ret: Ack = resp.ret
         return ret
@@ -287,7 +285,7 @@ export function makeMsgProxyStorageApi(): StorageApi {
       external: {
         add: async (args: ActivityExternalAddArgs) => {
           const apiName = 'activity.external.add'
-          const resp = await send({ apiName, args })
+          const resp = await forward({ apiName, args })
           if (apiName !== resp.apiName)
             throw mismatchError(apiName, resp.apiName)
           const ret: TotalUserActivity = resp.ret
@@ -295,7 +293,7 @@ export function makeMsgProxyStorageApi(): StorageApi {
         },
         get: async (args: ActivityExternalGetArgs) => {
           const apiName = 'activity.external.get'
-          const resp = await send({ apiName, args })
+          const resp = await forward({ apiName, args })
           if (apiName !== resp.apiName)
             throw mismatchError(apiName, resp.apiName)
           const ret: TotalUserActivity = resp.ret
@@ -305,7 +303,7 @@ export function makeMsgProxyStorageApi(): StorageApi {
       association: {
         record: async (args: ActivityAssociationRecordArgs) => {
           const apiName = 'activity.association.record'
-          const resp = await send({ apiName, args })
+          const resp = await forward({ apiName, args })
           if (apiName !== resp.apiName)
             throw mismatchError(apiName, resp.apiName)
           const ret: Ack = resp.ret
@@ -313,7 +311,7 @@ export function makeMsgProxyStorageApi(): StorageApi {
         },
         get: async (args: ActivityAssociationGetArgs) => {
           const apiName = 'activity.association.get'
-          const resp = await send({ apiName, args })
+          const resp = await forward({ apiName, args })
           if (apiName !== resp.apiName)
             throw mismatchError(apiName, resp.apiName)
           const ret: GetUserExternalAssociationsResponse = resp.ret
@@ -325,7 +323,7 @@ export function makeMsgProxyStorageApi(): StorageApi {
       ingestion: {
         get: async (args: ExternalIngestionGetArgs) => {
           const apiName = 'external.ingestion.get'
-          const resp = await send({ apiName, args })
+          const resp = await forward({ apiName, args })
           if (apiName !== resp.apiName)
             throw mismatchError(apiName, resp.apiName)
           const ret: UserExternalPipelineIngestionProgress = resp.ret
@@ -333,7 +331,7 @@ export function makeMsgProxyStorageApi(): StorageApi {
         },
         advance: async (args: ExternalIngestionAdvanceArgs) => {
           const apiName = 'external.ingestion.advance'
-          const resp = await send({ apiName, args })
+          const resp = await forward({ apiName, args })
           if (apiName !== resp.apiName)
             throw mismatchError(apiName, resp.apiName)
           const ret: Ack = resp.ret

@@ -10,9 +10,15 @@ import {
   createUserAccount,
   AccountInterface,
   makeAlwaysThrowingStorageApi,
+  makeDatacenterStorageApi,
+  makeMsgProxyStorageApi,
 } from 'smuggler-api'
-import { makeMsgProxyStorageApi } from 'truthsayer-archaeologist-communication'
-import type { StorageApi } from 'smuggler-api'
+import type {
+  StorageApi,
+  StorageApiMsgPayload,
+  StorageApiMsgReturnValue,
+  ForwardToRealImpl,
+} from 'smuggler-api'
 
 import styles from './global.module.css'
 import { NotificationToast } from './Toaster'
@@ -21,7 +27,6 @@ import { useAsyncEffect } from 'use-async-effect'
 import {
   defaultSettings,
   FromTruthsayer,
-  makeMsgProxyStorageApi,
 } from 'truthsayer-archaeologist-communication'
 import type { AppSettings } from 'truthsayer-archaeologist-communication'
 
@@ -33,8 +38,18 @@ function makeStorageApi(appSettings: AppSettings): StorageApi {
   switch (appSettings.storageType) {
     case 'datacenter':
       return makeDatacenterStorageApi()
-    case 'browser_ext':
-      return makeMsgProxyStorageApi()
+    case 'browser_ext': {
+      const forwardToArchaeologist: ForwardToRealImpl = async (
+        payload: StorageApiMsgPayload
+      ): Promise<StorageApiMsgReturnValue> => {
+        const response = await FromTruthsayer.sendMessage({
+          type: 'MSG_PROXY_STORAGE_ACCESS_REQUEST',
+          payload,
+        })
+        return response.value
+      }
+      return makeMsgProxyStorageApi(forwardToArchaeologist)
+    }
   }
 }
 

@@ -18,6 +18,7 @@ import * as badge from './badge/badge'
 
 import browser, { Tabs } from 'webextension-polyfill'
 import {
+  AppSettings,
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
@@ -32,6 +33,9 @@ import {
   UserExternalPipelineIngestionProgress,
   StorageApi,
   steroid,
+  makeAlwaysThrowingStorageApi,
+  makeDatacenterStorageApi,
+  processMsgFromMsgProxyStorageApi,
 } from 'smuggler-api'
 
 import { makeBrowserExtStorageApi } from './storage_api_browser_ext'
@@ -40,7 +44,6 @@ import { suggestAssociations } from './background/suggestAssociations'
 import { isMemorable } from './content/extractor/url/unmemorable'
 import { isPageAutosaveable } from './content/extractor/url/autosaveable'
 import lodash from 'lodash'
-import { processMsgFromMsgProxyStorageApi } from 'truthsayer-archaeologist-communication'
 import { getAppSettings, setAppSettings } from './appSettings'
 
 const BADGE_MARKER_PAGE_SAVED = '✓'
@@ -441,13 +444,18 @@ async function handleMessageFromContent(
         suggested: suggested.map((node: TNode) => NodeUtil.toJson(node)),
       }
     }
-    default:
-      throw new Error(
-        `background received msg from content of unknown type, message: ${JSON.stringify(
-          message
-        )}`
-      )
+    case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
+      return {
+        type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE',
+        value: await processMsgFromMsgProxyStorageApi(storage, message.payload),
+      }
+    }
   }
+  throw new Error(
+    `background received msg from content of unknown type, message: ${JSON.stringify(
+      message
+    )}`
+  )
 }
 
 /**
@@ -652,7 +660,7 @@ async function handleMessageFromPopup(
         unmemorable,
       }
     }
-    case 'REQUEST_AUTH_STATUS':
+    case 'REQUEST_AUTH_STATUS': {
       const account = auth.account()
       const authenticated = account.isAuthenticated()
       badge.setActive(account.isAuthenticated())
@@ -660,13 +668,19 @@ async function handleMessageFromPopup(
         type: 'AUTH_STATUS',
         userUid: authenticated ? account.getUid() : undefined,
       }
-    default:
-      throw new Error(
-        `background received msg from popup of unknown type, message: ${JSON.stringify(
-          message
-        )}`
-      )
+    }
+    case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
+      return {
+        type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE',
+        value: await processMsgFromMsgProxyStorageApi(storage, message.payload),
+      }
+    }
   }
+  throw new Error(
+    `background received msg from popup of unknown type, message: ${JSON.stringify(
+      message
+    )}`
+  )
 }
 
 async function uploadSingleHistoryItem(
@@ -714,106 +728,6 @@ async function uploadSingleHistoryItem(
   )
 }
 
-browser.runtime.onMessage.addListener(
-  async (
-    message: ToBackground.Request,
-    sender: browser.Runtime.MessageSender
-  ) => {
-    try {
-      switch (message.direction) {
-        case 'from-content':
-          return await handleMessageFromContent(message, sender)
-        case 'from-popup':
-          return await handleMessageFromPopup(message)
-        default:
-      }
-    } catch (error) {
-      console.error(
-        `Failed to process '${message.direction}' message '${message.type}', ${error}`
-      )
-      throw error
-    }
-
-    throw new Error(
-      `background received msg of unknown direction, message: ${JSON.stringify(
-        message
-      )}`
-    )
-  }
-)
-
-browser.runtime.onMessageExternal.addListener(
-  async (
-    message: FromTruthsayer.Request,
-    _: browser.Runtime.MessageSender
-  ): Promise<ToTruthsayer.Response> => {
-    switch (message.type) {
-      case 'GET_APP_SETTINGS_REQUEST': {
-        return {
-          type: 'GET_APP_SETTINGS_RESPONSE',
-          settings: await getAppSettings(browser.storage.local),
-        }
-      }
-      case 'SET_APP_SETTINGS_REQUEST': {
-        await setAppSettings(browser.storage.local, message.newValue)
-        return {
-          type: 'VOID_RESPONSE',
-        }
-      }
-      case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
-        return {
-          type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE',
-          value: await processMsgFromMsgProxyStorageApi(
-            storage,
-            message.payload
-          ),
-        }
-      }
-    }
-    throw new Error(
-      `background received msg from truthsayer of unknown type, message: ${JSON.stringify(
-        message
-      )}`
-    )
-  }
-)
-
-// NOTE: on more complex web-pages onUpdated may be invoked multiple times
-// with exactly the same input parameters. So the handling code has to
-// be able to handle that.
-// See https://stackoverflow.com/a/18302254/3375765 for more information.
-browser.tabs.onUpdated.addListener(
-  async (
-    tabId: number,
-    changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
-    tab: browser.Tabs.Tab
-  ) => {
-    try {
-      if (
-        !tab.incognito &&
-        !tab.hidden &&
-        tab.url &&
-        changeInfo.status === 'complete' &&
-        !TabLoadCompletion.initTakenOver(tabId)
-      ) {
-        await initMazedPartsOfTab(tab, 'active-mode-content-app')
-      }
-    } finally {
-      if (changeInfo.status === 'complete') {
-        // NOTE: if loading of a tab did complete, it is important to ensure
-        // report() gets called regardless of what happens in the other parts of
-        // browser.tabs.onUpdated (e.g. something throws). Otherwise any part of
-        // code that waits on a TabLoadCompletion promise will wait forever.
-        //
-        // At the same time, it is important to call report() *after* all or most
-        // of Mazed's content init has been completed so tab can be in a predictable
-        // state from the perspective of Mazed code that waits for TabLoadCompletion
-        TabLoadCompletion.report(tab)
-      }
-    }
-  }
-)
-
 async function initMazedPartsOfTab(
   tab: browser.Tabs.Tab,
   mode: ContentAppOperationMode
@@ -849,63 +763,181 @@ async function initMazedPartsOfTab(
   }
 }
 
-browser.tabs.onRemoved.addListener(
-  async (tabId: number, _removeInfo: browser.Tabs.OnRemovedRemoveInfoType) => {
-    TabLoadCompletion.abort(tabId, 'Tab removed')
+function makeStorageApi(appSettings: AppSettings): StorageApi {
+  switch (appSettings.storageType) {
+    case 'datacenter':
+      return makeDatacenterStorageApi()
+    case 'browser_ext':
+      return makeBrowserExtStorageApi(browser.storage.local)
   }
-)
+}
 
-const kMazedContextMenuItemId = 'selection-to-mazed-context-menu-item'
-browser.contextMenus.removeAll()
-browser.contextMenus.create({
-  title: 'Save to Mazed',
-  type: 'normal',
-  id: kMazedContextMenuItemId,
-  contexts: ['selection', 'editable'],
-})
+async function initBackground() {
+  storage = makeStorageApi(await getAppSettings(browser.storage.local))
 
-browser.contextMenus.onClicked.addListener(
-  async (
-    info: browser.Menus.OnClickData,
-    tab: browser.Tabs.Tab | undefined
-  ) => {
-    if (info.menuItemId === kMazedContextMenuItemId) {
-      if (tab?.id == null) {
-        return
-      }
-      const { selectionText } = info
-      if (selectionText == null) {
-        return
-      }
+  browser.runtime.onMessage.addListener(
+    async (
+      message: ToBackground.Request,
+      sender: browser.Runtime.MessageSender
+    ) => {
       try {
-        const response: FromContent.GetSelectedQuoteResponse =
-          await ToContent.sendMessage(tab.id, {
-            type: 'REQUEST_SELECTED_WEB_QUOTE',
-            text: selectionText,
-          })
-        const { url, text, path, lang, fromNid } = response
-        const createdVia: NodeCreatedVia = { manualAction: null }
-        await savePageQuote(
-          storage,
-          { url, path, text },
-          createdVia,
-          lang,
-          tab?.id,
-          fromNid
+        switch (message.direction) {
+          case 'from-content':
+            return await handleMessageFromContent(message, sender)
+          case 'from-popup':
+            return await handleMessageFromPopup(message)
+          default:
+        }
+      } catch (error) {
+        console.error(
+          `Failed to process '${message.direction}' message '${message.type}', ${error}`
         )
-      } catch (err) {
-        if (!isAbortError(err)) {
-          log.exception(err)
+        throw error
+      }
+
+      throw new Error(
+        `background received msg of unknown direction, message: ${JSON.stringify(
+          message
+        )}`
+      )
+    }
+  )
+
+  browser.runtime.onMessageExternal.addListener(
+    async (
+      message: FromTruthsayer.Request,
+      _: browser.Runtime.MessageSender
+    ): Promise<ToTruthsayer.Response> => {
+      switch (message.type) {
+        case 'GET_APP_SETTINGS_REQUEST': {
+          return {
+            type: 'GET_APP_SETTINGS_RESPONSE',
+            settings: await getAppSettings(browser.storage.local),
+          }
+        }
+        case 'SET_APP_SETTINGS_REQUEST': {
+          await setAppSettings(browser.storage.local, message.newValue)
+          return {
+            type: 'VOID_RESPONSE',
+          }
+        }
+        case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
+          return {
+            type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE',
+            value: await processMsgFromMsgProxyStorageApi(
+              storage,
+              message.payload
+            ),
+          }
+        }
+      }
+      throw new Error(
+        `background received msg from truthsayer of unknown type, message: ${JSON.stringify(
+          message
+        )}`
+      )
+    }
+  )
+
+  // NOTE: on more complex web-pages onUpdated may be invoked multiple times
+  // with exactly the same input parameters. So the handling code has to
+  // be able to handle that.
+  // See https://stackoverflow.com/a/18302254/3375765 for more information.
+  browser.tabs.onUpdated.addListener(
+    async (
+      tabId: number,
+      changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
+      tab: browser.Tabs.Tab
+    ) => {
+      try {
+        if (
+          !tab.incognito &&
+          !tab.hidden &&
+          tab.url &&
+          changeInfo.status === 'complete' &&
+          !TabLoadCompletion.initTakenOver(tabId)
+        ) {
+          await initMazedPartsOfTab(tab, 'active-mode-content-app')
+        }
+      } finally {
+        if (changeInfo.status === 'complete') {
+          // NOTE: if loading of a tab did complete, it is important to ensure
+          // report() gets called regardless of what happens in the other parts of
+          // browser.tabs.onUpdated (e.g. something throws). Otherwise any part of
+          // code that waits on a TabLoadCompletion promise will wait forever.
+          //
+          // At the same time, it is important to call report() *after* all or most
+          // of Mazed's content init has been completed so tab can be in a predictable
+          // state from the perspective of Mazed code that waits for TabLoadCompletion
+          TabLoadCompletion.report(tab)
         }
       }
     }
-  }
-)
+  )
 
-const storage: StorageApi = makeBrowserExtStorageApi(browser.storage.local)
+  browser.tabs.onRemoved.addListener(
+    async (
+      tabId: number,
+      _removeInfo: browser.Tabs.OnRemovedRemoveInfoType
+    ) => {
+      TabLoadCompletion.abort(tabId, 'Tab removed')
+    }
+  )
 
-auth.register()
-browserBookmarks.register(storage)
-omnibox.register(storage)
-webNavigation.register(storage)
-backgroundpa.register()
+  const kMazedContextMenuItemId = 'selection-to-mazed-context-menu-item'
+  browser.contextMenus.removeAll()
+  browser.contextMenus.create({
+    title: 'Save to Mazed',
+    type: 'normal',
+    id: kMazedContextMenuItemId,
+    contexts: ['selection', 'editable'],
+  })
+
+  browser.contextMenus.onClicked.addListener(
+    async (
+      info: browser.Menus.OnClickData,
+      tab: browser.Tabs.Tab | undefined
+    ) => {
+      if (info.menuItemId === kMazedContextMenuItemId) {
+        if (tab?.id == null) {
+          return
+        }
+        const { selectionText } = info
+        if (selectionText == null) {
+          return
+        }
+        try {
+          const response: FromContent.GetSelectedQuoteResponse =
+            await ToContent.sendMessage(tab.id, {
+              type: 'REQUEST_SELECTED_WEB_QUOTE',
+              text: selectionText,
+            })
+          const { url, text, path, lang, fromNid } = response
+          const createdVia: NodeCreatedVia = { manualAction: null }
+          await savePageQuote(
+            storage,
+            { url, path, text },
+            createdVia,
+            lang,
+            tab?.id,
+            fromNid
+          )
+        } catch (err) {
+          if (!isAbortError(err)) {
+            log.exception(err)
+          }
+        }
+      }
+    }
+  )
+
+  auth.register()
+  browserBookmarks.register(storage)
+  omnibox.register(storage)
+  webNavigation.register(storage)
+  backgroundpa.register()
+}
+
+let storage: StorageApi = makeAlwaysThrowingStorageApi()
+
+initBackground()

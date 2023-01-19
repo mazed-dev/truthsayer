@@ -1,7 +1,12 @@
 import { WebPageContent } from './../content/extractor/webPageContent'
 
 import browser from 'webextension-polyfill'
-import type { OriginHash, TNodeJson } from 'smuggler-api'
+import type {
+  OriginHash,
+  StorageApiMsgPayload,
+  StorageApiMsgReturnValue,
+  TNodeJson,
+} from 'smuggler-api'
 import { OriginIdentity } from 'armoury'
 
 /**
@@ -37,6 +42,19 @@ export interface VoidResponse {
   type: 'VOID_RESPONSE'
 }
 
+/**
+ * Request that makes @file storage_api_msg_proxy.ts work
+ */
+export type StorageAccessRequest = {
+  type: 'MSG_PROXY_STORAGE_ACCESS_REQUEST'
+  payload: StorageApiMsgPayload
+}
+
+export type StorageAccessResponse = {
+  type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE'
+  value: StorageApiMsgReturnValue
+}
+
 export namespace FromPopUp {
   export interface AuthStatusRequest {
     type: 'REQUEST_AUTH_STATUS'
@@ -57,6 +75,7 @@ export namespace FromPopUp {
     | SavePageRequest
     | PageInActiveTabStatusRequest
     | AuthStatusRequest
+    | StorageAccessRequest
 
   export function sendMessage(
     message: AuthStatusRequest
@@ -67,6 +86,9 @@ export namespace FromPopUp {
   export function sendMessage(
     message: PageInActiveTabStatusRequest
   ): Promise<ToPopUp.ActiveTabStatusResponse>
+  export function sendMessage(
+    message: StorageAccessRequest
+  ): Promise<StorageAccessResponse>
   export function sendMessage(message: Request): Promise<ToPopUp.Response> {
     const msg: ToBackground.Request = { direction: 'from-popup', ...message }
     return browser.runtime.sendMessage(msg).catch((error) => {
@@ -103,6 +125,7 @@ export namespace ToPopUp {
     | AuthStatusResponse
     | ActiveTabStatusResponse
     | PageSavedResponse
+    | StorageAccessResponse
     | VoidResponse
   export function sendMessage(message: undefined): Promise<undefined> {
     return browser.runtime.sendMessage(message)
@@ -212,6 +235,7 @@ export namespace ToContent {
     | VoidResponse
     | DeletePreviouslyUploadedBrowserHistoryResponse
     | SuggestedAssociationsResponse
+    | StorageAccessResponse
 
   export function sendMessage(
     tabId: number,
@@ -322,6 +346,7 @@ export namespace FromContent {
     | CancelBrowserHistoryUploadRequest
     | DeletePreviouslyUploadedBrowserHistoryRequest
     | SuggestedAssociationsRequest
+    | StorageAccessRequest
 
   export type Response =
     | GetSelectedQuoteResponse
@@ -345,6 +370,9 @@ export namespace FromContent {
   export function sendMessage(
     message: SuggestedAssociationsRequest
   ): Promise<ToContent.SuggestedAssociationsResponse>
+  export function sendMessage(
+    message: StorageAccessRequest
+  ): Promise<StorageAccessResponse>
   export function sendMessage(message: Request): Promise<ToContent.Response> {
     const msg: ToBackground.Request = { direction: 'from-content', ...message }
     return browser.runtime.sendMessage(msg).catch((error) => {
