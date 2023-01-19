@@ -42,9 +42,7 @@ type UserInput = {
   target: HTMLTextAreaElement | null
   phrase: string | null
 }
-function updateUserInputFromKeyboardEvent(
-  keyboardEvent: KeyboardEvent
-) {
+function updateUserInputFromKeyboardEvent(keyboardEvent: KeyboardEvent) {
   if ('altKey' in keyboardEvent) {
     const event =
       keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
@@ -89,9 +87,7 @@ export function WriteAugmentation() {
   )
   const [userInput, consumeKeyboardEvent] = React.useReducer(
     (_userInput: UserInput, keyboardEvent: KeyboardEvent) => {
-      const newInput = updateUserInputFromKeyboardEvent(
-        keyboardEvent
-      )
+      const newInput = updateUserInputFromKeyboardEvent(keyboardEvent)
       const { phrase } = newInput
       if (phrase != null && phrase.length > 3) {
         requestSuggestedAssociations(phrase)

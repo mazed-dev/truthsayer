@@ -34,6 +34,7 @@ import {
   UserExternalPipelineIngestionProgress,
   StorageApi,
   steroid,
+  Nid,
 } from 'smuggler-api'
 
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
@@ -436,16 +437,23 @@ async function handleMessageFromContent(
       log.debug('Suggested', suggested)
       const addedNids = new Set<string>()
       const nids = Array.from(
-        suggested.filter(({ nid }) => {
-          const added = addedNids.has(nid)
-          addedNids.add(nid)
-          return !added
-        }).map((s) => s.nid)
+        suggested
+          .filter(({ nid }) => {
+            const added = addedNids.has(nid)
+            addedNids.add(nid)
+            return !added
+          })
+          .map((s) => s.nid)
       )
       const resp = await storage.node.batch.get({ nids })
+      const nodeMap: Record<Nid, TNode> = {}
+      resp.nodes.forEach((node: TNode) => {
+        nodeMap[node.nid] = node
+      })
+      const nodes = nids.map((nid: Nid) => nodeMap[nid])
       return {
         type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
-        suggested: resp.nodes.map((node: TNode) => NodeUtil.toJson(node)),
+        suggested: nodes.map((node: TNode) => NodeUtil.toJson(node)),
       }
     }
     default:

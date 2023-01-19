@@ -3,10 +3,12 @@ import winkNLP, { WinkMethods } from 'wink-nlp'
 // Load english language model.
 import model from 'wink-eng-lite-web-model'
 
+import { isStopWord } from './stopWord'
+
 // Feel free to reconsider all these values when you get more insights in type
 // of texts saved to Mazed.
 // From original papaper, b ∈ [0, 1]. Default for an unknown corpus is 0.75
-const kOkapiBm25PlusB = 0.51
+const kOkapiBm25PlusB = 0.75
 const kOkapiBm25PlusK1 = 1.4
 
 /**
@@ -136,13 +138,13 @@ export namespace json {
 }
 
 const kTokenTypesToIgnore = new Set([
-  'punctuation', 
+  'punctuation',
   'symbol',
   'tabCRLF',
-  // Emoticon is a text style emoji, differ from emoji.
-  // Quite often some punctuation constructions are taken as emoticon, so we
-  // ignore it for now.
-  'emoticon'
+  // Emoticon is a text style emoji such as :'D , differ from emoji.
+  // Quite often some valid punctuation constructions are taken as emoticon, so
+  // we ignore it for now.
+  'emoticon',
 ])
 
 function isImportantTokenType(tokenType: string, token: string): boolean {
@@ -164,15 +166,16 @@ function createPerDocumentIndexFromText<DocIdType>(
   const { wink } = model
   const doc = wink.readDoc(text)
   const tokenTypes = doc.tokens().out(wink.its.type)
-  // const stopWordFlags = doc.tokens().out(wink.its.stopWordFlag)
   const bagOfWords: BagOfWords = new Map()
   let wordsNumber = 0
   const tokens = doc.tokens().out(wink.its.lemma)
   for (const index in tokens) {
     const tokenType = tokenTypes[index]
     const token = tokens[index]
-    // const isStopWord = stopWordFlags[index]
-    if (isImportantTokenType(tokenType, token)) {
+    // We use our own very small list of stop wors here and do not use the
+    // 'stopWord' flag from wink NLP because it filters out too many potentially
+    // important words such number names.
+    if (isImportantTokenType(tokenType, token) && !isStopWord(token)) {
       // TODO(Alexander): take care of the "time" token, converting it into
       // common format perhaps
       // TODO(Alexander): take care of the "url" token, as an option split it

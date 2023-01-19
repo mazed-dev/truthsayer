@@ -48,7 +48,7 @@ export function addNode(node: TNode): void {
     perDocumentIndex.push(
       relevance.addDocument(overallIndex, title, {
         nid: node.nid,
-        section: 'coment',
+        section: 'title',
       })
     )
   }
@@ -57,7 +57,7 @@ export function addNode(node: TNode): void {
     perDocumentIndex.push(
       relevance.addDocument(overallIndex, author, {
         nid: node.nid,
-        section: 'coment',
+        section: 'author',
       })
     )
   }
@@ -66,7 +66,7 @@ export function addNode(node: TNode): void {
     perDocumentIndex.push(
       relevance.addDocument(overallIndex, description, {
         nid: node.nid,
-        section: 'coment',
+        section: 'description',
       })
     )
   }
@@ -75,7 +75,7 @@ export function addNode(node: TNode): void {
     perDocumentIndex.push(
       relevance.addDocument(overallIndex, quote, {
         nid: node.nid,
-        section: 'coment',
+        section: 'web-quote',
       })
     )
   }
@@ -97,7 +97,7 @@ export function addNode(node: TNode): void {
     )
   }
   if (coment.getTextLength() > 4) {
-    log.debug('node.coment', node.nid, coment)
+    log.debug('node.coment', node.nid, coment.genPlainText())
     perDocumentIndex.push(
       relevance.addDocument(overallIndex, coment.genPlainText(), {
         nid: node.nid,
@@ -107,9 +107,7 @@ export function addNode(node: TNode): void {
   }
 }
 
-export async function register(
-  storage: StorageApi,
-) {
+export async function register(storage: StorageApi) {
   const iter = storage.node.iterate()
   while (true) {
     const node = await iter.next()
