@@ -7,6 +7,7 @@
   "private": true,
   "scripts": {
     "build": "yarn tsc --build --pretty",
+    "clean": "rm -r dist tsconfig.tsbuildinfo",
     "fix": "yarn fix:prettier && yarn fix:eslint",
     "fix:eslint": "yarn lint:eslint --fix",
     "fix:prettier": "yarn lint:prettier --write",
