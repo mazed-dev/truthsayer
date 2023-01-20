@@ -809,6 +809,14 @@ async function initBackground() {
       _: browser.Runtime.MessageSender
     ): Promise<ToTruthsayer.Response> => {
       switch (message.type) {
+        case 'GET_ARCHAEOLOGIST_STATE_REQUEST': {
+          return {
+            type: 'GET_ARCHAEOLOGIST_STATE_RESPONSE',
+            version: {
+              version: browser.runtime.getManifest().version,
+            },
+          }
+        }
         case 'GET_APP_SETTINGS_REQUEST': {
           return {
             type: 'GET_APP_SETTINGS_RESPONSE',

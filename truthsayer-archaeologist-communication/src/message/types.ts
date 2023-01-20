@@ -13,6 +13,7 @@ import type {
   StorageApiMsgPayload,
   StorageApiMsgReturnValue,
 } from 'smuggler-api'
+import { VersionStruct } from '../Version'
 
 export type AppSettings = {
   storageType:
@@ -24,6 +25,9 @@ export function defaultSettings(): AppSettings {
 }
 
 export namespace FromTruthsayer {
+  export type GetArchaeologistStateRequest = {
+    type: 'GET_ARCHAEOLOGIST_STATE_REQUEST'
+  }
   /**
    * Get/set settings that the user set up for Mazed
    */
@@ -42,10 +46,14 @@ export namespace FromTruthsayer {
     payload: StorageApiMsgPayload
   }
   export type Request =
+    | GetArchaeologistStateRequest
     | GetAppSettingsRequest
     | SetAppSettingsRequest
     | StorageAccessRequest
 
+  export function sendMessage(
+    message: GetArchaeologistStateRequest
+  ): Promise<ToTruthsayer.GetArchaeologistStateResponse>
   export function sendMessage(
     message: GetAppSettingsRequest
   ): Promise<ToTruthsayer.GetAppSettingsResponse>
@@ -101,6 +109,10 @@ export namespace FromTruthsayer {
 
 export namespace ToTruthsayer {
   export type VoidResponse = { type: 'VOID_RESPONSE' }
+  export type GetArchaeologistStateResponse = {
+    type: 'GET_ARCHAEOLOGIST_STATE_RESPONSE'
+    version: VersionStruct
+  }
   export type GetAppSettingsResponse = {
     type: 'GET_APP_SETTINGS_RESPONSE'
     settings: AppSettings
@@ -111,6 +123,7 @@ export namespace ToTruthsayer {
   }
   export type Response =
     | VoidResponse
+    | GetArchaeologistStateResponse
     | GetAppSettingsResponse
     | StorageAccessResponse
 }
