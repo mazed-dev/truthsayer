@@ -52,6 +52,22 @@ function addNodeSection(
   )
 }
 
+/**
+ * What we do here is a hack, we just remove document from per-document index,
+ * leaving words that the document contribued to overallIndex be. In hope, that
+ * those words won't mess up stats too much, so search would keep working up
+ * unil next re-indexing
+ */
+function deleteNodeSection(
+  nid: Nid,
+  section: NodeSectionType,
+  text: string
+): void {
+  perDocumentIndex.fin
+    relevance.addDocument(overallIndex, text, { nid, section })
+  )
+}
+
 export function addNode(node: TNode): void {
   const title = node.extattrs?.title
   const author = node.extattrs?.author
@@ -92,7 +108,36 @@ const nodeEventListener: NodeEventListener = (
   nid: Nid,
   patch: NodeEventPatch
 ) => {
-  if (type === 'created' || type === 'updated') {
+  if (type === 'updated') {
+    const author = patch.extattrs?.author
+    if (author) {
+      addNodeSection(nid, 'author', author)
+    }
+    const title = patch.extattrs?.title
+    if (title) {
+      addNodeSection(nid, 'title', title)
+    }
+    const description = patch.extattrs?.description
+    if (description) {
+      addNodeSection(nid, 'description', description)
+    }
+    const web_quote = patch.extattrs?.web_quote?.text
+    if (web_quote) {
+      addNodeSection(nid, 'web-quote', web_quote)
+    }
+    const text = patch.text
+    if (text != null) {
+      const coment = TDoc.fromNodeTextData(text)
+      if (coment.getTextLength() > 4) {
+        addNodeSection(nid, 'text', coment.genPlainText())
+      }
+    }
+    const index_text = patch.index_text
+    if (index_text != null) {
+
+    }
+  }
+  if (type === 'created') {
     const author = patch.extattrs?.author
     if (author) {
       addNodeSection(nid, 'author', author)
