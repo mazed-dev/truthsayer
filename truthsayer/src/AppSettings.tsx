@@ -11,6 +11,7 @@ import {
   FromTruthsayer,
   VersionStruct,
 } from 'truthsayer-archaeologist-communication'
+import MzdGlobalContext from './lib/global'
 
 const Box = styled(Container)`
   padding: 18px;
@@ -81,11 +82,18 @@ export function ApplicationSettings({ className }: { className?: string }) {
       )
     }
   }
+  const ctx = React.useContext(MzdGlobalContext)
+  const [storageToggleIsEnabled] = React.useState<boolean>(
+    (process.env.NODE_ENV === 'development' ||
+      ctx.analytics?.isFeatureEnabled('local-storage-toggle')) ??
+      false
+  )
   const storageTypeToggle =
     appSettings !== null ? (
       <div>
         Store data locally:
         <Switch
+          disabled={!storageToggleIsEnabled}
           onChange={toggleStorageType}
           checked={appSettings.storageType === 'browser_ext'}
         />
