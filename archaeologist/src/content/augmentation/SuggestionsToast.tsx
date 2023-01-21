@@ -2,9 +2,13 @@
 
 import React from 'react'
 import styled from '@emotion/styled'
-import { mazed } from '../../util/mazed'
 
-import { TDoc, ShrinkMinimalCard, NodeCardReadOnly } from 'elementary'
+import {
+  TDoc,
+  ShrinkMinimalCard,
+  NodeCardReadOnly,
+  truthsayer,
+} from 'elementary'
 import { NodeUtil, StorageApi } from 'smuggler-api'
 import type { TNode } from 'smuggler-api'
 
@@ -165,7 +169,7 @@ const SuggestedCard = ({
       <SuggestedCardTools>
         <CardInsertButton node={node} onClose={onClose} />
         <SuggestionButton
-          href={ctx.storage.node.url(node.nid)}
+          href={truthsayer.url.makeNode(node.nid).toString()}
           metricLabel={'Suggested Fragment Open in Mazed'}
         >
           Open Mazed
@@ -200,7 +204,7 @@ export const SuggestionsToast = ({
         <Header>
           <LogoSmall />
           <SearchPhrase
-            href={mazed.makeSearchUrl(keyphrase).toString()}
+            href={truthsayer.url.makeSearch(keyphrase).toString()}
             target="_blank"
             rel="noreferrer noopener"
           >

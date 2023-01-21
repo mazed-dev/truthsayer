@@ -3,14 +3,19 @@ import ReactDOM from 'react-dom'
 import styled from '@emotion/styled'
 import lodash from 'lodash'
 
-import { MdiCancel, MdiCloudUpload, MdiDelete, Spinner } from 'elementary'
+import {
+  MdiCancel,
+  MdiCloudUpload,
+  MdiDelete,
+  Spinner,
+  truthsayer,
+} from 'elementary'
 import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 import {
   FromContent,
   BrowserHistoryUploadProgress,
   BrowserHistoryUploadMode,
 } from '../message/types'
-import { mazed } from '../util/mazed'
 
 import { toSentenceCase, unixtime } from 'armoury'
 
@@ -258,7 +263,7 @@ export function BrowserHistoryImportControlPortalForMazed(
 export function BrowserHistoryImportControlPortal(
   props: UploadBrowserHistoryProps
 ) {
-  if (!mazed.isMazed(document.URL)) {
+  if (!truthsayer.url.isMazed(document.URL)) {
     return null
   }
   return <BrowserHistoryImportControlPortalForMazed {...props} />
