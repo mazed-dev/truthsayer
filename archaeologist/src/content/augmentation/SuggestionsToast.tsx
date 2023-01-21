@@ -169,7 +169,7 @@ const SuggestedCard = ({
       <SuggestedCardTools>
         <CardInsertButton node={node} onClose={onClose} />
         <SuggestionButton
-          href={ctx.storage.node.url(node.nid)}
+          href={truthsayer.url.makeNode(node.nid).toString()}
           metricLabel={'Suggested Fragment Open in Mazed'}
         >
           Open Mazed
