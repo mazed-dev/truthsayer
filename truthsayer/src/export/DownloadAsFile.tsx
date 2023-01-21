@@ -53,7 +53,7 @@ export function DownloadAsFile({ className }: { className?: string }) {
       if (node == null) {
         break
       }
-      chunks.push(truthsayer.makeNodeUrl(node.nid).toString(), '\n\n')
+      chunks.push(truthsayer.url.makeNode(node.nid).toString(), '\n\n')
       chunks.push('Created ', node.created_at.toString(), '\n')
       chunks.push('Last modified ', node.updated_at.toString(), '\n')
       if (NodeUtil.isImage(node)) {
