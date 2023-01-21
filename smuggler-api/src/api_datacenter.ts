@@ -34,9 +34,6 @@ import {
 import type {
   NodeBatchRequestBody,
   NodeCreateArgs,
-  NodeEventListener,
-  NodeEventPatch,
-  NodeEventType,
   EdgeCreateArgs,
   StorageApi,
   BlobUploadRequestArgs,
@@ -68,6 +65,7 @@ import { StatusCode } from './status_codes'
 import { authCookie } from './auth/cookie'
 import { makeEmptyNodeTextData, NodeUtil } from './typesutil'
 import { AuthenticationApi } from './authentication_api'
+import { NodeEvent } from './api_node_even_listener'
 
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
@@ -111,7 +109,7 @@ async function createNode(
   })
   if (resp.ok) {
     const created = (await resp.json()) as NewNodeResponse
-    applyNodeEvent('created', created.nid, {
+    NodeEvent.registerEvent('created', created.nid, {
       text,
       index_text,
       extattrs,
@@ -186,7 +184,7 @@ async function deleteNode(
     signal,
   })
   if (resp.ok) {
-    applyNodeEvent('deleted', nid, {})
+    NodeEvent.registerEvent('deleted', nid, {})
     return await resp.json()
   }
   throw _makeResponseError(resp)
@@ -299,33 +297,10 @@ async function updateNode(
     signal,
   })
   if (resp.ok) {
-    applyNodeEvent('updated', nid, { text, index_text })
+    NodeEvent.registerEvent('updated', nid, { text, index_text })
     return await resp.json()
   }
   throw _makeResponseError(resp)
-}
-
-const _nodeEventListeners: NodeEventListener[] = []
-function addNodeEventListener(listener: NodeEventListener): void {
-  _nodeEventListeners.push(listener)
-}
-function removeNodeEventListener(listener: NodeEventListener): void {
-  const index = _nodeEventListeners.findIndex((l) => l === listener)
-  if (index < 0) {
-    throw new Error(
-      'Attempt to remove non existin node even listener from storage API'
-    )
-  }
-  _nodeEventListeners.splice(index, 1)
-}
-const applyNodeEvent: NodeEventListener = async (
-  type: NodeEventType,
-  nid: Nid,
-  patch: NodeEventPatch
-) => {
-  for (const listener of _nodeEventListeners) {
-    listener(type, nid, patch)
-  }
 }
 
 async function getAuth({
@@ -840,8 +815,8 @@ export function makeDatacenterStorageApi(): StorageApi {
         get: getNodeBatch,
       },
       url: makeDirectUrl,
-      addListener: addNodeEventListener,
-      removeListener: removeNodeEventListener,
+      addListener: NodeEvent.addListener,
+      removeListener: NodeEvent.removeListener,
     },
     blob: {
       upload: uploadFiles,

@@ -104,6 +104,14 @@ function mismatchError(sent: string, got: string): Error {
   return new Error(`Sent ${sent} StorageApi message, received ${got}`)
 }
 
+function throwUnimplementedError(endpoint: string) {
+  return (..._: any[]): never => {
+    throw new Error(
+      `Attempted to call an ${endpoint} endpoint of archaeologist StorageApi which hasn't been implemented yet`
+    )
+  }
+}
+
 class MsgProxyNodeIterator implements INodeIterator {
   private nids: Promise<Nid[]>
   private index: number
@@ -224,6 +232,8 @@ export function makeMsgProxyStorageApi(): StorageApi {
         },
       },
       url: () => 'https://mazed.se/unimplemented-yet',
+      addListener: throwUnimplementedError('node.addListener'),
+      removeListener: throwUnimplementedError('node.removeListener'),
     },
     blob: {
       upload: async (args: BlobUploadRequestArgs) => {
