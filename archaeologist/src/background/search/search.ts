@@ -23,7 +23,7 @@ export async function findRelevantNodes(
   text: string,
   limit?: number
 ): Promise<DocId[]> {
-  limit = limit ?? 8
+  limit = limit ?? 12
   const results = relevance.findRelevantDocuments(
     text,
     limit,

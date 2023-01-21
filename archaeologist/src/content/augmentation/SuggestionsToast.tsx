@@ -2,16 +2,16 @@
 
 import React from 'react'
 import styled from '@emotion/styled'
-import { mazed } from '../../util/mazed'
 
 import { TDoc, ShrinkMinimalCard, NodeCardReadOnly } from 'elementary'
 import { NodeUtil, StorageApi } from 'smuggler-api'
 import type { TNode } from 'smuggler-api'
 
 import { Toast, useOutsideToastClickHandler } from './../toaster/Toaster'
-import { LogoSmall, RefItem } from './../style'
+import { LogoSmall } from './../style'
 import { MeteredButton } from '../elements/MeteredButton'
 import { ContentContext } from '../context'
+import { mazed } from '../../util/mazed'
 
 const ToastBox = styled.div`
   width: 368px;
@@ -58,13 +58,6 @@ const SuggestedCardTools = styled.div`
   flex-direction: row;
   justify-content: space-evenly;
   padding: 0;
-`
-
-const SearchPhrase = styled(RefItem)`
-  overflow-x: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  width: 300px;
 `
 
 const CopySuggestionButton = ({
@@ -165,7 +158,7 @@ const SuggestedCard = ({
       <SuggestedCardTools>
         <CardInsertButton node={node} onClose={onClose} />
         <SuggestionButton
-          href={ctx.storage.node.url(node.nid)}
+          href={mazed.makeNodeUrl(node.nid).toString()}
           metricLabel={'Suggested Fragment Open in Mazed'}
         >
           Open Mazed
@@ -182,11 +175,9 @@ const SuggestedCard = ({
 }
 
 export const SuggestionsToast = ({
-  keyphrase,
   suggested,
   onClose,
 }: {
-  keyphrase: string
   suggested: TNode[]
   onClose: () => void
 }) => {
@@ -199,13 +190,6 @@ export const SuggestionsToast = ({
       <ToastBox>
         <Header>
           <LogoSmall />
-          <SearchPhrase
-            href={mazed.makeSearchUrl(keyphrase).toString()}
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            &ldquo;{keyphrase}&rdquo;
-          </SearchPhrase>
           <MeteredButton
             onClick={onClose}
             metricLabel={'Suggestions Toast Close'}

@@ -127,7 +127,6 @@ export function WriteAugmentation() {
             showToast(false)
             userInput.target?.focus()
           }}
-          keyphrase={''}
           suggested={suggestedNodes}
         />
       ) : null}

@@ -121,6 +121,8 @@ const kStopWords: Set<string> = new Set([
   'his',
   'how',
   'however',
+  "i'm",
+  'i',
   'ie',
   'if',
   'in',

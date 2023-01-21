@@ -4,6 +4,7 @@ import winkNLP, { WinkMethods } from 'wink-nlp'
 import model from 'wink-eng-lite-web-model'
 
 import { isStopWord } from './stopWord'
+import { log } from 'armoury'
 
 // Feel free to reconsider all these values when you get more insights in type
 // of texts saved to Mazed.
@@ -400,6 +401,7 @@ export function findRelevantDocuments<DocIdType>(
       ]
     }
   )
+  log.debug('queryTermsScores', queryTermsScores)
   const results: RelevanceResult<DocIdType>[] = []
   for (const corpusDoc of corpusDocs) {
     const score = getTextRelevanceScore(
