@@ -32,8 +32,8 @@ import {
   Nid,
 } from './types'
 import type {
-  NodeCreateArgs,
   NodeBatchRequestBody,
+  NodeCreateArgs,
   EdgeCreateArgs,
   StorageApi,
   BlobUploadRequestArgs,
@@ -65,6 +65,7 @@ import { StatusCode } from './status_codes'
 import { authCookie } from './auth/cookie'
 import { makeEmptyNodeTextData, NodeUtil } from './typesutil'
 import { AuthenticationApi } from './authentication_api'
+import { NodeEvent } from './api_node_even_listener'
 
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
@@ -107,7 +108,14 @@ async function createNode(
     signal,
   })
   if (resp.ok) {
-    return await resp.json()
+    const created = (await resp.json()) as NewNodeResponse
+    NodeEvent.registerEvent('created', created.nid, {
+      text,
+      index_text,
+      extattrs,
+      ntype,
+    })
+    return created
   }
   throw _makeResponseError(resp)
 }
@@ -176,6 +184,7 @@ async function deleteNode(
     signal,
   })
   if (resp.ok) {
+    NodeEvent.registerEvent('deleted', nid, {})
     return await resp.json()
   }
   throw _makeResponseError(resp)
@@ -288,6 +297,7 @@ async function updateNode(
     signal,
   })
   if (resp.ok) {
+    NodeEvent.registerEvent('updated', nid, { text, index_text })
     return await resp.json()
   }
   throw _makeResponseError(resp)
@@ -805,6 +815,8 @@ export function makeDatacenterStorageApi(): StorageApi {
         get: getNodeBatch,
       },
       url: makeDirectUrl,
+      addListener: NodeEvent.addListener,
+      removeListener: NodeEvent.removeListener,
     },
     blob: {
       upload: uploadFiles,
