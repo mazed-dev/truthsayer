@@ -41,6 +41,7 @@ import {
 } from './lib/route'
 import { Loader } from './lib/loader'
 import { ExternalImport } from './external-import/ExternalImport'
+import { Export } from './export/Export'
 import { AppsList } from './apps-list/AppsList'
 import { AppHead } from './AppHead'
 
@@ -129,6 +130,9 @@ function AppRouter() {
             <ExternalImport
               browserHistoryImportConfig={{ modes: ['untracked', 'resumable'] }}
             />
+          </PrivateRoute>
+          <PrivateRoute path="/export">
+            <Export />
           </PrivateRoute>
           <PublicRoute path="/apps-to-install">
             <AppsList />
