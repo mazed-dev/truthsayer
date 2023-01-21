@@ -70,7 +70,7 @@ const _manifestTransform = (buffer, mode, env) => {
   if (firefox) {
     manifest = _manifestTransformDowngradeToV2(manifest)
   }
-  if (argv.mode === "development" && _isChromium(env)) {
+  if (mode === "development" && _isChromium(env)) {
     // Below "pins" the ID that gets assigned to the extension.
     // The ID value which gets assigned to the extension as a result is
     // 'dnjclfepefgpljnecekakpimfjaikgfd'.
