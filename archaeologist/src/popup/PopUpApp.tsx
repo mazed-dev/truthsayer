@@ -11,8 +11,7 @@ import type { PostHogConfig } from 'posthog-js'
 import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { Button } from './Button'
-import { mazed } from '../util/mazed'
-import { MdiLaunch } from 'elementary'
+import { MdiLaunch, truthsayer } from 'elementary'
 import { productanalytics } from 'armoury'
 import { PopUpContext } from './context'
 import { makeDatacenterStorageApi } from 'smuggler-api'
@@ -102,7 +101,7 @@ const LoginBtnBox = styled.div`
 const LoginPage = () => {
   const onClick = () => {
     browser.tabs.create({
-      url: mazed.makeUrl({ pathname: '/login' }).toString(),
+      url: truthsayer.url.make({ pathname: '/login' }).toString(),
     })
   }
   return (
