@@ -98,6 +98,9 @@ export type StorageApi = {
       args: NodeGetByOriginArgs,
       signal?: AbortSignal
     ) => Promise<TNode[]>
+    /**
+     * @return Nids in the order from most recently created to the oldest
+     */
     getAllNids(args: NodeGetAllNidsArgs, signal?: AbortSignal): Promise<Nid[]>
     update: (args: NodeUpdateArgs, signal?: AbortSignal) => Promise<Ack>
     create: (
