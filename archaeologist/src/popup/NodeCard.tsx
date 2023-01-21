@@ -1,6 +1,5 @@
 import React, { useContext } from 'react'
 import browser from 'webextension-polyfill'
-import { mazed } from '../util/mazed'
 
 import styled from '@emotion/styled'
 import {
@@ -8,6 +7,7 @@ import {
   ShrinkCard,
   NodeTimeBadge,
   NodeCardReadOnly,
+  truthsayer,
 } from 'elementary'
 
 import type { TNode } from 'smuggler-api'
@@ -35,7 +35,7 @@ export const NodeCard = ({
       <FixedShrinkCard
         onClick={() =>
           browser.tabs.create({
-            url: mazed.makeNodeUrl(nid).toString(),
+            url: truthsayer.url.makeNode(nid).toString(),
           })
         }
       >

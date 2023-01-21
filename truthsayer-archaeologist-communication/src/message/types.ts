@@ -12,15 +12,54 @@
 import type {
   StorageApiMsgPayload,
   StorageApiMsgReturnValue,
-} from '../storage_api_msg_proxy'
+} from 'smuggler-api'
+import { VersionStruct } from '../Version'
+
+export type AppSettings = {
+  storageType:
+    | 'datacenter' /** Stores user data in @file storage_api_datacenter.ts */
+    | 'browser_ext' /** Stores user data in @file storage_api_browser_ext.ts */
+}
+export function defaultSettings(): AppSettings {
+  return { storageType: 'datacenter' }
+}
 
 export namespace FromTruthsayer {
+  export type GetArchaeologistStateRequest = {
+    type: 'GET_ARCHAEOLOGIST_STATE_REQUEST'
+  }
+  /**
+   * Get/set settings that the user set up for Mazed
+   */
+  export type GetAppSettingsRequest = {
+    type: 'GET_APP_SETTINGS_REQUEST'
+  }
+  export type SetAppSettingsRequest = {
+    type: 'SET_APP_SETTINGS_REQUEST'
+    newValue: AppSettings
+  }
+  /**
+   * Request that makes @file storage_api_msg_proxy.ts work
+   */
   export type StorageAccessRequest = {
     type: 'MSG_PROXY_STORAGE_ACCESS_REQUEST'
     payload: StorageApiMsgPayload
   }
-  export type Request = StorageAccessRequest
+  export type Request =
+    | GetArchaeologistStateRequest
+    | GetAppSettingsRequest
+    | SetAppSettingsRequest
+    | StorageAccessRequest
 
+  export function sendMessage(
+    message: GetArchaeologistStateRequest
+  ): Promise<ToTruthsayer.GetArchaeologistStateResponse>
+  export function sendMessage(
+    message: GetAppSettingsRequest
+  ): Promise<ToTruthsayer.GetAppSettingsResponse>
+  export function sendMessage(
+    message: SetAppSettingsRequest
+  ): Promise<ToTruthsayer.VoidResponse>
   export function sendMessage(
     message: StorageAccessRequest
   ): Promise<ToTruthsayer.StorageAccessResponse>
@@ -69,9 +108,22 @@ export namespace FromTruthsayer {
 }
 
 export namespace ToTruthsayer {
+  export type VoidResponse = { type: 'VOID_RESPONSE' }
+  export type GetArchaeologistStateResponse = {
+    type: 'GET_ARCHAEOLOGIST_STATE_RESPONSE'
+    version: VersionStruct
+  }
+  export type GetAppSettingsResponse = {
+    type: 'GET_APP_SETTINGS_RESPONSE'
+    settings: AppSettings
+  }
   export type StorageAccessResponse = {
     type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE'
     value: StorageApiMsgReturnValue
   }
-  export type Response = StorageAccessResponse
+  export type Response =
+    | VoidResponse
+    | GetArchaeologistStateResponse
+    | GetAppSettingsResponse
+    | StorageAccessResponse
 }

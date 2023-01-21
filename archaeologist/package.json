@@ -15,6 +15,7 @@
     "run:firefox:local": "yarn build:firefox:local && yarn __run --target firefox-desktop",
     "run:firefox:public": "yarn build:firefox:public && yarn __run --target firefox-desktop",
     "__run": "yarn web-ext run --source-dir target/unpacked --artifacts-dir target/packed --start-url localhost:3000",
+    "clean": "rm -r target",
     "lint:for-store:firefox:local": "yarn build:firefox:local && yarn web-ext lint --source-dir target/unpacked --artifacts-dir target/packed",
     "lint:for-store:firefox:public": "yarn build:firefox:public && yarn web-ext lint --source-dir target/unpacked --artifacts-dir target/packed",
     "test": "yarn jest",

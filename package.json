@@ -11,6 +11,8 @@
     "librarius": "yarn workspace librarius",
     "lint": "yarn syncpack list-mismatches && yarn workspaces foreach run lint",
     "truthsayer-archaeologist-communication": "yarn workspace truthsayer-archaeologist-communication",
+    "clean": "yarn cache clean && yarn workspaces foreach run clean",
+    "build-libs": "yarn armoury build && yarn elementary build && yarn smuggler-api build && yarn librarius build && yarn truthsayer-archaeologist-communication build && yarn text-information-retrieval build",
     "smuggler-api": "yarn workspace smuggler-api",
     "test": "yarn workspaces foreach run test --all --watchAll=false --no-watchman",
     "text-information-retrieval": "yarn workspace text-information-retrieval",

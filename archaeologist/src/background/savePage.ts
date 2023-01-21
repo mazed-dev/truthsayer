@@ -17,7 +17,7 @@ import {
   StorageApi,
 } from 'smuggler-api'
 import { ToContent } from '../message/types'
-import { mazed } from '../util/mazed'
+import { truthsayer } from 'elementary'
 import * as badge from '../badge/badge'
 
 const ACTION_DONE_BADGE_MARKER = '✓'
@@ -211,7 +211,7 @@ export async function saveWebPage(
   await showDisappearingNotification(tabId, {
     text: 'Added',
     tooltip: 'Page is added to your timeline',
-    href: mazed.makeNodeUrl(nid).toString(),
+    href: truthsayer.url.makeNode(nid).toString(),
   })
   return { node, unmemorable: false }
 }
