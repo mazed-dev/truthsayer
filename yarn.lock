@@ -20446,6 +20446,7 @@ __metadata:
   resolution: "text-information-retrieval@workspace:text-information-retrieval"
   dependencies:
     "@fast-csv/parse": ^4.3.6
+    armoury: 0.0.1
     eslint: ^8.16.0
     jest: 26.6.0
     lodash: ^4.17.21

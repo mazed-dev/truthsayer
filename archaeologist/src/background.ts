@@ -4,7 +4,7 @@ import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import * as auth from './background/auth'
 import { saveWebPage, savePageQuote } from './background/savePage'
 import { backgroundpa } from './background/productanalytics'
-import * as search from './background/search/search'
+import * as similarity from './background/search/similarity'
 import {
   ToPopUp,
   ToContent,
@@ -431,7 +431,7 @@ async function handleMessageFromContent(
       }
     }
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
-      const suggested = await search.findRelevantNodes(
+      const suggested = await similarity.findRelevantNodes(
         message.phrase,
         message.limit
       )
@@ -915,4 +915,4 @@ browserBookmarks.register(storage)
 omnibox.register(storage)
 webNavigation.register(storage)
 backgroundpa.register()
-search.register(storage)
+similarity.register(storage)
