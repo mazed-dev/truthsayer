@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "yarn react-scripts build",
+    "clean": "rm -r build",
     "eject": "yarn react-scripts eject",
     "fix": "yarn fix:prettier && yarn fix:eslint",
     "fix:eslint": "yarn lint:eslint --fix",

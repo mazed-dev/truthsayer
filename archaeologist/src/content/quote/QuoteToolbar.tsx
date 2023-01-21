@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { mazed } from '../../util/mazed'
+import { truthsayer } from 'elementary'
 import { LogoSmall, Box, RefItem } from '../style'
 
 export const QuoteToolbar = ({
@@ -28,7 +28,7 @@ export const QuoteToolbar = ({
       })
     }
   })
-  const truthsayerNodeUrl = mazed.makeNodeUrl(nid).toString()
+  const truthsayerNodeUrl = truthsayer.url.makeNode(nid).toString()
   return (
     <Box ref={ref}>
       <LogoSmall />
