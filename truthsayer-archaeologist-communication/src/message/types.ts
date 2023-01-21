@@ -75,10 +75,13 @@ export namespace FromTruthsayer {
       process.env.NODE_ENV === 'production'
         ? // For Chrome an extension ID can be extracted from extension store URL, such as
           // https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc
+          // Extension store ensures that it doesn't change between archaeologist
+          // versions
           'hkfjmbjendcoblcoackpapfphijagddc'
-        : // TODO[snikitin@outlook.com] Check if the same ID get assigned for
-          // local builds on different developer machines
-          'aigmnioiceepjndkcojcalpoljcpdppm'
+        : // Archaeologist's manifest.json is expected to have modifications
+          // that ensure the same ID gets assigned to the dev extension version
+          // on every build
+          'dnjclfepefgpljnecekakpimfjaikgfd'
     const options: chrome.runtime.MessageOptions = {}
 
     return new Promise<any>((resolve, reject) => {
