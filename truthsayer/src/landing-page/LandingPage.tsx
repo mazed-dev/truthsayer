@@ -3,7 +3,9 @@
 import React, { useState, useRef } from 'react'
 import { useHistory } from 'react-router-dom'
 import styled from '@emotion/styled'
-import { Button, Form } from 'react-bootstrap'
+import { ThemeProvider } from '@emotion/react'
+import { Form } from 'react-bootstrap'
+
 import { goto, routes } from './../lib/route'
 import DemoQuoteImg from './img/copy-quote-demo.png'
 import DemoWritingAugmentationGif from './img/mazed-demo-calendar-writing-augmentation-safes.gif'
@@ -19,6 +21,9 @@ const SlidesBox = styled.div`
 
   font-family: 'Roboto', arial, sans-serif;
   font-size: 22px;
+
+  color: ${(props) => props.theme.color.primary};
+  background-color: ${(props) => props.theme.backgroundColor.primary};
 `
 
 const Slide = styled.div`
@@ -105,32 +110,55 @@ const Description = styled.h2`
 const Logo = styled.div`
   font-family: 'Comfortaa';
   font-size: 32px;
+  cursor: pointer;
+  font-weight: 900;
+
+  &:hover {
+    border: none;
+    background-color: ${(props) => props.theme.backgroundColor.primary};
+    color: ${(props) => props.theme.color.positive};
+  }
 `
 const Topbar = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 12px;
 `
-const LoginBox = styled.div``
-const BtnBox = styled(Button)`
+const LoginBox = styled.div`
+  margin-right: 16px;
+`
+const RefBtnBox = styled.a`
   background-color: white;
   border-color: white;
+
+  font-size: 16px;
+  text-decoration: none;
+
+  background-color: ${(props) => props.theme.backgroundColor.primary};
+  color: ${(props) => props.theme.color.primary};
+  border: none;
+
+  &:hover {
+    border: none;
+    background-color: ${(props) => props.theme.backgroundColor.primary};
+    color: ${(props) => props.theme.color.positive};
+  }
 `
-function Btn({
+function RefBtn({
   href,
   children,
   className,
 }: React.PropsWithChildren<{ href: string; className?: string }>) {
   return (
-    <BtnBox variant="light" href={href} className={className}>
+    <RefBtnBox href={href} className={className}>
       {children}
-    </BtnBox>
+    </RefBtnBox>
   )
 }
 function Login() {
   return (
     <LoginBox>
-      <Btn href={routes.login}>Log In</Btn>
+      <RefBtn href={routes.login}>Log In</RefBtn>
     </LoginBox>
   )
 }
@@ -138,19 +166,21 @@ const GifDemo = styled.img`
   width: 94%;
   border-color: #cecece;
   border-style: solid;
-  box-shadow: 2px 2px 4px #8c8c8ceb;
+  box-shadow: 1px 1px 4px ${(props) => props.theme.backgroundColor.negative};
+  filter: ${(props) => props.theme.image.filter};
 `
 const ImageDemo = styled.img`
   height: 86vh;
   border-color: #cecece;
   border-style: solid;
-  box-shadow: 2px 2px 4px #8c8c8ceb;
+  box-shadow: 1px 1px 4px ${(props) => props.theme.backgroundColor.negative};
+  filter: ${(props) => props.theme.image.filter};
 `
 const SignUpFormBox = styled.form`
   margin-top: 14vh;
   border-radius: 10px;
   width: 100%;
-  font-size: 18px;
+  font-size: 17px;
 
   display: flex;
   justify-content: center;
@@ -160,18 +190,45 @@ const SignUpFormBox = styled.form`
     flex-wrap: wrap;
   }
 `
-const SignUpBtn = styled(Button)`
+const SignUpBtn = styled.button`
   white-space: nowrap;
-  border-radius: inherit;
+  cursor: pointer;
   font-size: inherit;
   margin: 1em 2px 1px 1px;
+  padding: 0.32em 1em 0.32em 1em;
+
+  background-color: ${(props) => props.theme.backgroundColor.primary};
+  color: ${(props) => props.theme.color.primary};
+  border-width: 1px;
+  border-color: ${(props) => props.theme.color.primary};
+  border-style: solid;
+  border-radius: inherit;
+
+  &:hover {
+    background-color: ${(props) => props.theme.backgroundColor.primary};
+    color: ${(props) => props.theme.color.positive};
+    border-color: ${(props) => props.theme.color.positive};
+  }
 `
 const SignUpEmail = styled(Form.Control)`
   width: 60%;
   max-width: 18em;
-  border-radius: inherit;
   font-size: inherit;
   margin: 1em 2px 1px 1px;
+
+  background-color: ${(props) => props.theme.backgroundColor.primary};
+  color: ${(props) => props.theme.color.primary};
+  border-color: ${(props) => props.theme.color.primary};
+  border-style: solid;
+  border-width: 1px;
+  border-radius: inherit;
+
+  &:focus {
+    background-color: ${(props) => props.theme.backgroundColor.primary};
+    color: ${(props) => props.theme.color.primary};
+    border-color: ${(props) => props.theme.color.positive};
+    box-shadow: none;
+  }
 `
 
 const SignUpForm = () => {
@@ -210,8 +267,6 @@ const SignUpForm = () => {
         ref={emailElementRef}
       />
       <SignUpBtn
-        variant="outline-primary"
-        size="lg"
         type="submit"
         disabled={!emailElementRef.current?.validity.valid}
       >
@@ -246,104 +301,124 @@ const FooterItem = styled.div`
 
 const TextStrikeThrough = styled.span`
   text-decoration: line-through;
-  text-decoration-color: blue;
+  text-decoration-color: ${(props) => props.theme.color.positive};
 `
 const TextHighlight = styled.span`
   font-weight: 900;
-  color: blue;
+  color: ${(props) => props.theme.color.positive};
 `
+
+const themeDark = {
+  backgroundColor: {
+    primary: '#0c141f',
+    positive: '#6EE2ff',
+    negative: '#E6FFFF',
+  },
+  color: {
+    primary: '#d9f6fa',
+    positive: '#36cdff',
+    negative: '',
+  },
+  image: {
+    filter: 'brightness(.8) contrast(1.28)',
+  },
+}
 
 export function LandingPage() {
   return (
-    <SlidesBox>
-      <Slide>
-        <Topbar>
-          <Logo>🧵 Mazed</Logo>
-          <Login />
-        </Topbar>
-        <FirstSlideBody>
-          <FirstSlideLeftHalf>
-            <Header>
-              <div>Share any page you've read.</div>
-              <div>
-                <b>Without searching for it.</b>
-              </div>
-            </Header>
-            <Description>
-              Mazed is a browser extension that saves the pages you view
-              automatically, and resurfaces them to you when you need it. Your
-              memory, at your fingertips.
-            </Description>
+    <ThemeProvider theme={themeDark}>
+      <SlidesBox>
+        <Slide>
+          <Topbar>
+            <Logo>🧵 Mazed</Logo>
+            <Login />
+          </Topbar>
+          <FirstSlideBody>
+            <FirstSlideLeftHalf>
+              <Header>
+                <div>Share any page you've read.</div>
+                <div>
+                  <b>Without searching for it.</b>
+                </div>
+              </Header>
+              <Description>
+                Mazed is a browser extension that saves the pages you view
+                automatically, and resurfaces them to you when you need it. Your
+                memory, at your fingertips.
+              </Description>
+              <SignUpForm />
+            </FirstSlideLeftHalf>
+            <FirstSlideRightHalf>
+              <Centered>
+                <GifDemo src={DemoWritingAugmentationGif} />
+              </Centered>
+            </FirstSlideRightHalf>
+          </FirstSlideBody>
+        </Slide>
+        <Slide>
+          <SecondSlideBody>
+            <SecondSlideRightHalf>
+              <Centered>
+                <ImageDemo src={DemoQuoteImg} />
+              </Centered>
+            </SecondSlideRightHalf>
+            <SecondSlideLeftHalf>
+              <Header>
+                <TextStrikeThrough>Find </TextStrikeThrough>
+                <TextHighlight>Have</TextHighlight> what you need.
+              </Header>
+              <Description>
+                The article, page, or google doc you need is just a click away.
+                Mazed will suggest the relevant pages from your history to you,
+                as you type.
+              </Description>
+            </SecondSlideLeftHalf>
+          </SecondSlideBody>
+        </Slide>
+        <LastSlide>
+          <Centered>
             <SignUpForm />
-          </FirstSlideLeftHalf>
-          <FirstSlideRightHalf>
-            <Centered>
-              <GifDemo src={DemoWritingAugmentationGif} />
-            </Centered>
-          </FirstSlideRightHalf>
-        </FirstSlideBody>
-      </Slide>
-      <Slide>
-        <SecondSlideBody>
-          <SecondSlideRightHalf>
-            <Centered>
-              <ImageDemo src={DemoQuoteImg} />
-            </Centered>
-          </SecondSlideRightHalf>
-          <SecondSlideLeftHalf>
-            <Header>
-              <TextStrikeThrough>Find </TextStrikeThrough>
-              <TextHighlight>Have</TextHighlight> what you need.
-            </Header>
-            <Description>
-              The article, page, or google doc you need is just a click away.
-              Mazed will suggest the relevant pages from your history to you, as
-              you type.
-            </Description>
-          </SecondSlideLeftHalf>
-        </SecondSlideBody>
-      </Slide>
-      <LastSlide>
-        <Centered>
-          <SignUpForm />
-        </Centered>
-        <Footer>
-          <FooterCol>
-            <Logo>Mazed</Logo>
-          </FooterCol>
-          <FooterCol>
-            <FooterItem>
-              <Btn href={routes.login}>Log In</Btn>
-            </FooterItem>
-            <FooterItem>
-              <Btn
-                href={
-                  'https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc'
-                }
-              >
-                Download
-              </Btn>
-            </FooterItem>
-            <FooterItem>
-              <Btn href={routes.terms}>Terms and Conditions</Btn>
-            </FooterItem>
-            <FooterItem>
-              <Btn href={routes.privacy}>Privacy Policy</Btn>
-            </FooterItem>
-            <FooterItem>
-              <Btn href={routes.cookiePolicy}>Cookie Policy</Btn>
-            </FooterItem>
-          </FooterCol>
-          <FooterCol>
-            <FooterItem>
-              <Btn href={'https://mazed.se'}>mazed.se</Btn>
-            </FooterItem>
-            <FooterItem>
-              <Btn href={'mailto: mazed@fastmail.com'}>mazed@fastmail.com</Btn>
-            </FooterItem>
-          </FooterCol>
-        </Footer>
-      </LastSlide>
-    </SlidesBox>
+          </Centered>
+          <Footer>
+            <FooterCol>
+              <Logo>Mazed</Logo>
+            </FooterCol>
+            <FooterCol>
+              <FooterItem>
+                <RefBtn href={routes.login}>Log In</RefBtn>
+              </FooterItem>
+              <FooterItem>
+                <RefBtn
+                  href={
+                    'https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc'
+                  }
+                >
+                  Download
+                </RefBtn>
+              </FooterItem>
+              <FooterItem>
+                <RefBtn href={routes.terms}>Terms and Conditions</RefBtn>
+              </FooterItem>
+              <FooterItem>
+                <RefBtn href={routes.privacy}>Privacy Policy</RefBtn>
+              </FooterItem>
+              <FooterItem>
+                <RefBtn href={routes.cookiePolicy}>Cookie Policy</RefBtn>
+              </FooterItem>
+            </FooterCol>
+            <FooterCol>
+              <FooterItem>
+                <RefBtn href={'https://mazed.se'}>mazed.se</RefBtn>
+              </FooterItem>
+              <FooterItem>
+                <RefBtn href={'mailto: mazed@fastmail.com'}>
+                  mazed@fastmail.com
+                </RefBtn>
+              </FooterItem>
+            </FooterCol>
+          </Footer>
+        </LastSlide>
+      </SlidesBox>
+    </ThemeProvider>
   )
 }

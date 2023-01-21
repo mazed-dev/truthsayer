@@ -788,6 +788,11 @@ export function makeDatacenterStorageApi(): StorageApi {
     node: {
       get: getNode,
       getByOrigin: getNodesByOrigin,
+      getAllNids: () => {
+        throw new Error(
+          `node.getAllNids hasn't been implemented yet for datacenter StorageApi`
+        )
+      },
       update: updateNode,
       create: createNode,
       iterate: () => _getNodesSliceIter({}),
