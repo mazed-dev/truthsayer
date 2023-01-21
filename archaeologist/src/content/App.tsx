@@ -10,7 +10,7 @@ import type { TNode, TNodeJson } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log, productanalytics } from 'armoury'
 import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 
-import { mazed } from '../util/mazed'
+import { truthsayer } from 'elementary'
 
 import {
   FromContent,
@@ -403,7 +403,7 @@ const App = () => {
             version: browser.runtime.getManifest().version,
           }}
         />
-        {mazed.isMazed(document.URL) ? null : (
+        {truthsayer.url.isMazed(document.URL) ? null : (
           <>
             <Toaster />
             {state.notification ? (
