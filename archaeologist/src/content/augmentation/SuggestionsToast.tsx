@@ -16,7 +16,6 @@ import { Toast, useOutsideToastClickHandler } from './../toaster/Toaster'
 import { LogoSmall } from './../style'
 import { MeteredButton } from '../elements/MeteredButton'
 import { ContentContext } from '../context'
-import { mazed } from '../../util/mazed'
 
 const ToastBox = styled.div`
   width: 368px;

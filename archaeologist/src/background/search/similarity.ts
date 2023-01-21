@@ -1,20 +1,27 @@
 import { relevance } from 'text-information-retrieval'
+import type {
+  NodeEventType,
+  NodeEventPatch,
+  NodeEventListener,
+  Nid,
+  TNode,
+} from 'smuggler-api'
 import { StorageApi } from 'smuggler-api'
 import { TDoc } from 'elementary'
 import { log } from 'armoury'
 
-import type { Nid, TNode } from 'smuggler-api'
+type NodeSectionType =
+  | 'title'
+  | 'author'
+  | 'description'
+  | 'url'
+  | 'index-text'
+  | 'web-quote'
+  | 'text'
 
 export type DocId = {
   nid: Nid
-  section:
-    | 'title'
-    | 'author'
-    | 'description'
-    | 'url'
-    | 'content'
-    | 'web-quote'
-    | 'coment'
+  section: NodeSectionType
 }
 
 const [overallIndex, perDocumentIndex] = relevance.createIndex<DocId>()
@@ -34,76 +41,90 @@ export async function findRelevantNodes(
   return results.map((r) => r.docId)
 }
 
+function addNodeSection(
+  nid: Nid,
+  section: NodeSectionType,
+  text: string
+): void {
+  log.debug('Add doc to index', nid, section, text)
+  perDocumentIndex.push(
+    relevance.addDocument(overallIndex, text, { nid, section })
+  )
+}
+
 export function addNode(node: TNode): void {
   const title = node.extattrs?.title
   const author = node.extattrs?.author
   const description = node.extattrs?.description
   const quote = node.extattrs?.web_quote?.text
   // const url = node.extattrs?.web_quote?.url ?? node.extattrs?.web?.url
-  const content = node.index_text?.plaintext
-  // const labels = (node.index_text?.brands ?? []).concat(node.index_text?.labels ?? []).join(' ')
+  const index_text = node.index_text
   const coment = TDoc.fromNodeTextData(node.text)
   if (title != null) {
-    log.debug('node.title', node.nid, title)
-    perDocumentIndex.push(
-      relevance.addDocument(overallIndex, title, {
-        nid: node.nid,
-        section: 'title',
-      })
-    )
+    addNodeSection(node.nid, 'title', title)
   }
   if (author != null) {
-    log.debug('node.author', node.nid, author)
-    perDocumentIndex.push(
-      relevance.addDocument(overallIndex, author, {
-        nid: node.nid,
-        section: 'author',
-      })
-    )
+    addNodeSection(node.nid, 'author', author)
   }
   if (description != null) {
-    log.debug('node.description', node.nid, description)
-    perDocumentIndex.push(
-      relevance.addDocument(overallIndex, description, {
-        nid: node.nid,
-        section: 'description',
-      })
-    )
+    addNodeSection(node.nid, 'description', description)
   }
   if (quote != null) {
-    log.debug('node.quote', node.nid, quote)
-    perDocumentIndex.push(
-      relevance.addDocument(overallIndex, quote, {
-        nid: node.nid,
-        section: 'web-quote',
-      })
-    )
+    addNodeSection(node.nid, 'web-quote', quote)
   }
   // TODO(Alexander): Split urls into a separate words here
   // if (url != null) {
   //   log.debug("node.url", node.nid, url)
-  //   perDocumentIndex.push(relevance.addDocument(overallIndex, url, {
-  //     nid: node.nid,
-  //     section: 'coment'
-  //   }))
   // }
-  if (content != null) {
-    log.debug('node.content', node.nid, content)
-    perDocumentIndex.push(
-      relevance.addDocument(overallIndex, content, {
-        nid: node.nid,
-        section: 'content',
-      })
-    )
+  if (index_text != null) {
+    const text =
+      (index_text.plaintext ?? '') +
+      (index_text?.brands ?? []).concat(index_text?.labels ?? []).join(' ')
+    addNodeSection(node.nid, 'index-text', text)
   }
   if (coment.getTextLength() > 4) {
-    log.debug('node.coment', node.nid, coment.genPlainText())
-    perDocumentIndex.push(
-      relevance.addDocument(overallIndex, coment.genPlainText(), {
-        nid: node.nid,
-        section: 'coment',
-      })
-    )
+    addNodeSection(node.nid, 'text', coment.genPlainText())
+  }
+}
+
+const nodeEventListener: NodeEventListener = (
+  type: NodeEventType,
+  nid: Nid,
+  patch: NodeEventPatch
+) => {
+  if (type === 'created' || type === 'updated') {
+    const author = patch.extattrs?.author
+    if (author) {
+      addNodeSection(nid, 'author', author)
+    }
+    const title = patch.extattrs?.title
+    if (title) {
+      addNodeSection(nid, 'title', title)
+    }
+    const description = patch.extattrs?.description
+    if (description) {
+      addNodeSection(nid, 'description', description)
+    }
+    const web_quote = patch.extattrs?.web_quote?.text
+    if (web_quote) {
+      addNodeSection(nid, 'web-quote', web_quote)
+    }
+    const text = patch.text
+    if (text) {
+      const coment = TDoc.fromNodeTextData(text)
+      if (coment.getTextLength() > 4) {
+        addNodeSection(nid, 'text', coment.genPlainText())
+      }
+    }
+    const index_text = patch.index_text
+    if (index_text) {
+      const text =
+        (index_text?.plaintext ?? '') +
+        (index_text?.brands ?? []).concat(index_text?.labels ?? []).join(' ')
+      addNodeSection(nid, 'index-text', text)
+    }
+  } else if (type === 'deleted') {
+    // TODO(akindyakov): Implement it!
   }
 }
 
@@ -120,4 +141,8 @@ export async function register(storage: StorageApi) {
   log.debug('documentsNumber', overallIndex.documentsNumber)
   log.debug('wordsInAllDocuments', overallIndex.wordsInAllDocuments)
   log.debug('bagOfWords', overallIndex.bagOfWords)
+  storage.node.addListener(nodeEventListener)
+  return () => {
+    storage.node.removeListener(nodeEventListener)
+  }
 }
