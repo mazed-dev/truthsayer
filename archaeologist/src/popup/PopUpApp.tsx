@@ -14,7 +14,12 @@ import { Button } from './Button'
 import { MdiLaunch, truthsayer } from 'elementary'
 import { productanalytics } from 'armoury'
 import { PopUpContext } from './context'
-import { makeDatacenterStorageApi } from 'smuggler-api'
+import type {
+  ForwardToRealImpl,
+  StorageApiMsgPayload,
+  StorageApiMsgReturnValue,
+} from 'smuggler-api'
+import { makeMsgProxyStorageApi } from 'smuggler-api'
 
 const AppContainer = styled.div`
   width: 340px;
@@ -71,9 +76,20 @@ export const PopUpApp = () => {
     dispatch(response)
   }, [])
 
+  const forwardToBackground: ForwardToRealImpl = async (
+    payload: StorageApiMsgPayload
+  ): Promise<StorageApiMsgReturnValue> => {
+    const response = await FromPopUp.sendMessage({
+      type: 'MSG_PROXY_STORAGE_ACCESS_REQUEST',
+      payload,
+    })
+    return response.value
+  }
   return (
     <AppContainer>
-      <PopUpContext.Provider value={{ storage: makeDatacenterStorageApi() }}>
+      <PopUpContext.Provider
+        value={{ storage: makeMsgProxyStorageApi(forwardToBackground) }}
+      >
         {state.userUid == null ? <LoginPage /> : <ViewActiveTabStatus />}
       </PopUpContext.Provider>
     </AppContainer>
