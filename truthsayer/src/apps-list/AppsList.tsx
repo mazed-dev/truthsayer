@@ -67,6 +67,7 @@ export function AppsList({ className }: { className?: string }) {
     const version = await getArchaeologistVersionWait()
     setChromeStatus(version == null ? 'Not installed' : 'Installed')
   })
+
   return (
     <Box className={className}>
       <AppItem href={kGoogleChromeStoreLink}>

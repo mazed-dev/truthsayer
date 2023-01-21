@@ -5,8 +5,14 @@ import browser from 'webextension-polyfill'
 import { PostHog } from 'posthog-js'
 import { v4 as uuidv4 } from 'uuid'
 
-import { NodeUtil, NodeType, makeDatacenterStorageApi } from 'smuggler-api'
-import type { TNode, TNodeJson } from 'smuggler-api'
+import { NodeUtil, NodeType, makeMsgProxyStorageApi } from 'smuggler-api'
+import type {
+  TNode,
+  TNodeJson,
+  ForwardToRealImpl,
+  StorageApiMsgPayload,
+  StorageApiMsgReturnValue,
+} from 'smuggler-api'
 import { genOriginId, OriginIdentity, log, productanalytics } from 'armoury'
 import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 
@@ -387,12 +393,21 @@ const App = () => {
         disabled={state.bookmark != null}
       />
     ) : null
+  const forwardToBackground: ForwardToRealImpl = async (
+    payload: StorageApiMsgPayload
+  ): Promise<StorageApiMsgReturnValue> => {
+    const response = await FromContent.sendMessage({
+      type: 'MSG_PROXY_STORAGE_ACCESS_REQUEST',
+      payload,
+    })
+    return response.value
+  }
   return (
     <AppErrorBoundary>
       <ContentContext.Provider
         value={{
           analytics: state.analytics,
-          storage: makeDatacenterStorageApi(),
+          storage: makeMsgProxyStorageApi(forwardToBackground),
         }}
       >
         <BrowserHistoryImportControlPortal
