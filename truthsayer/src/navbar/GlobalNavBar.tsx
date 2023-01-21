@@ -71,6 +71,7 @@ const PrivateNavButtons = () => {
           <DropdownItemLink to={'/settings'}>Settings</DropdownItemLink>
           <DropdownItemLink to={'/apps-to-install'}>Apps</DropdownItemLink>
           <DropdownItemLink to={'/external-import'}>Import</DropdownItemLink>
+          <DropdownItemLink to={'/export'}>Export</DropdownItemLink>
           <Dropdown.Divider />
           <DropdownItemLink to={'/faq'}>FAQs</DropdownItemLink>
           <DropdownItemLink to={'/about'}>About</DropdownItemLink>
