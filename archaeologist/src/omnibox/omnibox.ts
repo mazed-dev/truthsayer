@@ -1,8 +1,7 @@
 import { NodeUtil } from 'smuggler-api'
 import type { StorageApi, TNode } from 'smuggler-api'
-import { Beagle, TDoc } from 'elementary'
+import { Beagle, TDoc, truthsayer } from 'elementary'
 import { log, unicodeText } from 'armoury'
-import { mazed } from '../util/mazed'
 
 import browser from 'webextension-polyfill'
 import lodash from 'lodash'
@@ -39,7 +38,7 @@ function nodeToSuggestion(node: TNode): browser.Omnibox.SuggestResult {
   const doc = TDoc.fromNodeTextData(node.text)
   const title = doc.genTitle(kTitleLengthMax)
   return {
-    content: mazed.makeNodeUrl(nid).toString(),
+    content: truthsayer.url.makeNode(nid).toString(),
     description: formatDescription(title),
   }
 }
@@ -80,7 +79,7 @@ function getUrlToOpen(text: string): URL {
   try {
     return new URL(text)
   } catch (_) {}
-  return mazed.makeSearchUrl(text)
+  return truthsayer.url.makeSearch(text)
 }
 
 const inputEnteredListener = (
