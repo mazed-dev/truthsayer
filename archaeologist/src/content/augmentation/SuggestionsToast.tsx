@@ -35,6 +35,13 @@ const Header = styled.div`
   flex-direction: row;
   justify-content: space-between;
 `
+const HeaderText = styled.div`
+  vertical-align: middle;
+  font-size: 14px;
+  font-style: italic;
+  padding: 4px;
+  color: #7a7a7a;
+`
 
 const SuggestionsToastSuggestionsBox = styled.div`
   display: flex;
@@ -194,6 +201,7 @@ export const SuggestionsToast = ({
       <ToastBox>
         <Header>
           <LogoSmall />
+          <HeaderText>Related fragments ({suggested.length})</HeaderText>
           <MeteredButton
             onClick={onClose}
             metricLabel={'Suggestions Toast Close'}

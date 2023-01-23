@@ -297,6 +297,7 @@ async function updateNode(
     signal,
   })
   if (resp.ok) {
+    log.debug('updateNode.registerEvent')
     NodeEvent.registerEvent('updated', nid, { text, index_text })
     return await resp.json()
   }

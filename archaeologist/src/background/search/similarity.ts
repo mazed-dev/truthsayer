@@ -41,15 +41,9 @@ export async function findRelevantNodes(
   return results.map((r) => r.docId)
 }
 
-function addNodeSection(
-  nid: Nid,
-  section: NodeSectionType,
-  text: string
-): void {
-  log.debug('Add doc to index', nid, section, text)
-  perDocumentIndex.push(
-    relevance.addDocument(overallIndex, text, { nid, section })
-  )
+function addNodeSection(docId: DocId, text: string): void {
+  log.debug('Add doc to index', docId, text)
+  perDocumentIndex.push(relevance.addDocument(overallIndex, text, docId))
 }
 
 /**
@@ -58,48 +52,24 @@ function addNodeSection(
  * those words won't mess up stats too much, so search would keep working up
  * unil next re-indexing
  */
-function deleteNodeSection(
-  nid: Nid,
-  section: NodeSectionType,
-  text: string
-): void {
-  perDocumentIndex.fin
-    relevance.addDocument(overallIndex, text, { nid, section })
-  )
+function removeNodeSection(docId: DocId): void {
+  log.debug('Remove node section from index', docId)
+  for (let ind = 0; ind < perDocumentIndex.length; ++ind) {
+    const item = perDocumentIndex[ind]
+    const itemDocId = item.docId
+    if (itemDocId.nid === docId.nid && itemDocId.section === docId.section) {
+      perDocumentIndex.splice(ind, 1)
+    }
+  }
 }
-
-export function addNode(node: TNode): void {
-  const title = node.extattrs?.title
-  const author = node.extattrs?.author
-  const description = node.extattrs?.description
-  const quote = node.extattrs?.web_quote?.text
-  // const url = node.extattrs?.web_quote?.url ?? node.extattrs?.web?.url
-  const index_text = node.index_text
-  const coment = TDoc.fromNodeTextData(node.text)
-  if (title != null) {
-    addNodeSection(node.nid, 'title', title)
-  }
-  if (author != null) {
-    addNodeSection(node.nid, 'author', author)
-  }
-  if (description != null) {
-    addNodeSection(node.nid, 'description', description)
-  }
-  if (quote != null) {
-    addNodeSection(node.nid, 'web-quote', quote)
-  }
-  // TODO(Alexander): Split urls into a separate words here
-  // if (url != null) {
-  //   log.debug("node.url", node.nid, url)
-  // }
-  if (index_text != null) {
-    const text =
-      (index_text.plaintext ?? '') +
-      (index_text?.brands ?? []).concat(index_text?.labels ?? []).join(' ')
-    addNodeSection(node.nid, 'index-text', text)
-  }
-  if (coment.getTextLength() > 4) {
-    addNodeSection(node.nid, 'text', coment.genPlainText())
+function removeEntireNode(nid: Nid): void {
+  log.debug('Remove node from index', nid)
+  for (let ind = 0; ind < perDocumentIndex.length; ++ind) {
+    const item = perDocumentIndex[ind]
+    const itemDocId = item.docId
+    if (itemDocId.nid === nid) {
+      perDocumentIndex.splice(ind, 1)
+    }
   }
 }
 
@@ -108,57 +78,51 @@ const nodeEventListener: NodeEventListener = (
   nid: Nid,
   patch: NodeEventPatch
 ) => {
-  if (type === 'updated') {
+  log.debug('nodeEventListener', type, nid, patch)
+  if (type === 'deleted') {
+    removeEntireNode(nid)
+  } else if (type === 'created' || type === 'updated') {
     const author = patch.extattrs?.author
     if (author) {
-      addNodeSection(nid, 'author', author)
-    }
-    const title = patch.extattrs?.title
-    if (title) {
-      addNodeSection(nid, 'title', title)
-    }
-    const description = patch.extattrs?.description
-    if (description) {
-      addNodeSection(nid, 'description', description)
-    }
-    const web_quote = patch.extattrs?.web_quote?.text
-    if (web_quote) {
-      addNodeSection(nid, 'web-quote', web_quote)
-    }
-    const text = patch.text
-    if (text != null) {
-      const coment = TDoc.fromNodeTextData(text)
-      if (coment.getTextLength() > 4) {
-        addNodeSection(nid, 'text', coment.genPlainText())
+      const docId: DocId = { nid, section: 'author' }
+      if (type === 'updated') {
+        removeNodeSection(docId)
       }
-    }
-    const index_text = patch.index_text
-    if (index_text != null) {
-
-    }
-  }
-  if (type === 'created') {
-    const author = patch.extattrs?.author
-    if (author) {
-      addNodeSection(nid, 'author', author)
+      addNodeSection(docId, author)
     }
     const title = patch.extattrs?.title
     if (title) {
-      addNodeSection(nid, 'title', title)
+      const docId: DocId = { nid, section: 'title' }
+      if (type === 'updated') {
+        removeNodeSection(docId)
+      }
+      addNodeSection(docId, title)
     }
     const description = patch.extattrs?.description
     if (description) {
-      addNodeSection(nid, 'description', description)
+      const docId: DocId = { nid, section: 'description' }
+      if (type === 'updated') {
+        removeNodeSection(docId)
+      }
+      addNodeSection(docId, description)
     }
     const web_quote = patch.extattrs?.web_quote?.text
     if (web_quote) {
-      addNodeSection(nid, 'web-quote', web_quote)
+      const docId: DocId = { nid, section: 'web-quote' }
+      if (type === 'updated') {
+        removeNodeSection(docId)
+      }
+      addNodeSection(docId, web_quote)
     }
     const text = patch.text
     if (text) {
       const coment = TDoc.fromNodeTextData(text)
       if (coment.getTextLength() > 4) {
-        addNodeSection(nid, 'text', coment.genPlainText())
+        const docId: DocId = { nid, section: 'text' }
+        if (type === 'updated') {
+          removeNodeSection(docId)
+        }
+        addNodeSection(docId, coment.genPlainText())
       }
     }
     const index_text = patch.index_text
@@ -166,11 +130,21 @@ const nodeEventListener: NodeEventListener = (
       const text =
         (index_text?.plaintext ?? '') +
         (index_text?.brands ?? []).concat(index_text?.labels ?? []).join(' ')
-      addNodeSection(nid, 'index-text', text)
+      const docId: DocId = { nid, section: 'index-text' }
+      if (type === 'updated') {
+        removeNodeSection(docId)
+      }
+      addNodeSection(docId, text)
     }
-  } else if (type === 'deleted') {
-    // TODO(akindyakov): Implement it!
+    // TODO(Alexander): Split urls into a separate words here
+    // if (url != null) {
+    //   log.debug("node.url", node.nid, url)
+    // }
   }
+}
+
+export function addNode(node: TNode): void {
+  nodeEventListener('created', node.nid, { ...node })
 }
 
 export async function register(storage: StorageApi) {
