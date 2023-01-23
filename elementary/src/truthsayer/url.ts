@@ -1,7 +1,11 @@
 /**
  * Set of helper functions to generate direct URLs in truthsayer web app
  */
+
 export namespace truthsayer.url {
+  function getTruthsayerUrl(): URL {
+    return new URL(process.env.REACT_APP_TRUTHSAYER_URL || window.location.href)
+  }
   export const make = ({
     pathname,
     query,
@@ -9,9 +13,7 @@ export namespace truthsayer.url {
     pathname?: string
     query?: Record<string, string>
   }): URL => {
-    const url = new URL(
-      process.env.REACT_APP_SMUGGLER_API_URL || window.location.href
-    )
+    const url = getTruthsayerUrl()
     if (pathname != null) {
       url.pathname = pathname
     }
@@ -31,8 +33,8 @@ export namespace truthsayer.url {
     return make({ pathname: '/search', query: { q: text } })
   }
 
-  export const isMazed = (url: string): boolean => {
-    const mazedUrl = new URL(process.env.REACT_APP_SMUGGLER_API_URL || '')
+  export const belongs = (url: string): boolean => {
+    const mazedUrl = getTruthsayerUrl()
     const urlObj = new URL(url)
     return mazedUrl.host === urlObj.host
   }

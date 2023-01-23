@@ -189,6 +189,9 @@ const config = (env, argv) => {
         'process.env.REACT_APP_SMUGGLER_API_URL': JSON.stringify(
           _getSmugglerApiUrl(argv.mode)
         ),
+        'process.env.REACT_APP_TRUTHSAYER_URL': JSON.stringify(
+          _getTruthsayerUrl(argv.mode)
+        ),
       }),
     ],
   }
