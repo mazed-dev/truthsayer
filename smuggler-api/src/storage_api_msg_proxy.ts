@@ -121,7 +121,6 @@ export type ForwardToRealImpl = (
   payload: StorageApiMsgPayload
 ) => Promise<StorageApiMsgReturnValue>
 
-
 class MsgProxyNodeIterator implements INodeIterator {
   private nids: Promise<Nid[]>
   private index: number
