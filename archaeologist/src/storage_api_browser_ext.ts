@@ -322,40 +322,50 @@ async function createNode(
   }
 
   if (from_nid.length > 0 || to_nid.length > 0) {
-    // TODO[snikitin@outlook.com] Evaluate if ownership support is needed
-    // and implement if yes
-    const owned_by = 'todo'
-
+    const common: Pick<TEdgeJson, 'crtd' | 'upd' | 'is_sticky' | 'owned_by'> = {
+      crtd: createdAt,
+      upd: createdAt,
+      is_sticky: false,
+      // TODO[snikitin@outlook.com] Evaluate if ownership support is needed
+      // and implement if yes
+      owned_by: 'todo',
+    }
+    // Step 1: create records that allow to discover connected nodes from the
+    // newly created node
     const from_edges: TEdgeJson[] = from_nid.map((from_nid: Nid): TEdgeJson => {
-      return {
-        eid: generateEid(),
-        from_nid,
-        to_nid: node.nid,
-        crtd: createdAt,
-        upd: createdAt,
-        is_sticky: false,
-        owned_by,
-      }
+      return { eid: generateEid(), from_nid, to_nid: node.nid, ...common }
     })
     const to_edges: TEdgeJson[] = to_nid.map((to_nid: Nid): TEdgeJson => {
-      return {
-        eid: generateEid(),
-        from_nid: node.nid,
-        to_nid,
-        crtd: createdAt,
-        upd: createdAt,
-        is_sticky: false,
-        owned_by,
-      }
+      return { eid: generateEid(), from_nid: node.nid, to_nid, ...common }
     })
-
-    const yek: NidToEdgeYek = { yek: { kind: 'nid->edge', key: node.nid } }
-    let lav: NidToEdgeLav = {
-      lav: { kind: 'nid->edge', value: lodash.concat(from_edges, to_edges) },
+    {
+      const yek: NidToEdgeYek = { yek: { kind: 'nid->edge', key: node.nid } }
+      let lav: NidToEdgeLav = {
+        lav: { kind: 'nid->edge', value: lodash.concat(from_edges, to_edges) },
+      }
+      records.push({ yek, lav })
     }
-    // TODO[snikitin@outlook.com] This creates edges for node.nid, but similar
-    // has to be done for yeks of all the other nids involved
-    records.push({ yek, lav })
+
+    // Step 2: create records that allow to discover the newly created node
+    // from the other connected nodes
+    for (const edge of from_edges) {
+      const yek: NidToEdgeYek = {
+        yek: { kind: 'nid->edge', key: edge.from_nid },
+      }
+      let lav: NidToEdgeLav = {
+        lav: { kind: 'nid->edge', value: [edge] },
+      }
+      records.push(await store.prepareAppend(yek, lav))
+    }
+    for (const edge of to_edges) {
+      const yek: NidToEdgeYek = {
+        yek: { kind: 'nid->edge', key: edge.to_nid },
+      }
+      let lav: NidToEdgeLav = {
+        lav: { kind: 'nid->edge', value: [edge] },
+      }
+      records.push(await store.prepareAppend(yek, lav))
+    }
   }
 
   await store.set(records)
@@ -457,7 +467,7 @@ class Iterator implements INodeIterator {
     if (this.index >= nids.length) {
       return null
     }
-    const nid: Nid = nids[this.index]
+    const nid: Nid = nids[nids.length - this.index - 1]
     const yek: NidToNodeYek = { yek: { kind: 'nid->node', key: nid } }
     const lav: NidToNodeLav | undefined = await this.store.get(yek)
     if (lav == null) {
@@ -501,15 +511,8 @@ async function createEdge(
     items.push(await store.prepareAppend(yek, lav))
   }
   {
-    const reverseEdge: TEdgeJson = {
-      ...edge,
-      from_nid: args.to,
-      to_nid: args.from,
-    }
     const yek: NidToEdgeYek = { yek: { kind: 'nid->edge', key: args.to } }
-    const lav: NidToEdgeLav = {
-      lav: { kind: 'nid->edge', value: [reverseEdge] },
-    }
+    const lav: NidToEdgeLav = { lav: { kind: 'nid->edge', value: [edge] } }
     items.push(await store.prepareAppend(yek, lav))
   }
   await store.set(items)
@@ -638,7 +641,7 @@ export async function getAllNids(
     return []
   }
   const value: Nid[] = lav.lav.value
-  return value
+  return value.reverse()
 }
 
 export function makeBrowserExtStorageApi(

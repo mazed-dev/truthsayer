@@ -5,6 +5,7 @@ import { Optional } from 'armoury'
 export type TruthsayerPath =
   | '/'
   | '/external-import'
+  | '/export'
   | '/about'
   | '/account'
   | '/api'

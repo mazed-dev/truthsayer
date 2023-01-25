@@ -4164,6 +4164,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/file-saver@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "@types/file-saver@npm:2.0.5"
+  checksum: a31d6ee2abf99598647139f8f35b37b6e1bacf6c7ddf05c66651b9b0e6e53381aa0e8ed13f37faa6e496e0eb1da87c97e6c70fd589d5b83b0c95c57cb64ce92a
+  languageName: node
+  linkType: hard
+
 "@types/filesystem@npm:*":
   version: 0.0.32
   resolution: "@types/filesystem@npm:0.0.32"
@@ -9996,6 +10003,13 @@ __metadata:
   peerDependencies:
     webpack: ^4.0.0 || ^5.0.0
   checksum: faf43eecf233f4897b0150aaa874eeeac214e4f9de49738a9e0ef734a30b5260059e85b7edadf852b98e415f875bd5f12587768a93fd52aaf2e479ecf95fab20
+  languageName: node
+  linkType: hard
+
+"file-saver@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "file-saver@npm:2.0.5"
+  checksum: c62d96e5cebc58b4bdf3ae8a60d5cf9607ad82f75f798c33a4ee63435ac2203002584d5256a2a780eda7feb5e19dc3b6351c2212e58b3f529e63d265a7cc79f7
   languageName: node
   linkType: hard
 
@@ -17832,6 +17846,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-switch@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "react-switch@npm:7.0.0"
+  dependencies:
+    prop-types: ^15.7.2
+  peerDependencies:
+    react: ^15.3.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^15.3.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+  checksum: 1a3caa9a0271dad3acad9fb4c613583e738a8abf8ef67372fc829dfe3e837a23a7a1c1cd29c327ace526039c068a97538ea5659c25bd5bd6d94cc5f804ea843d
+  languageName: node
+  linkType: hard
+
 "react-transition-group@npm:^4.4.1":
   version: 4.4.2
   resolution: "react-transition-group@npm:4.4.2"
@@ -20717,6 +20743,7 @@ __metadata:
     "@testing-library/react": ^12.1.0
     "@testing-library/user-event": ^12.6
     "@types/crc": ^3.4.0
+    "@types/file-saver": ^2.0.5
     "@types/is-url": ^1.2.30
     "@types/jest": ^26.0.0
     "@types/microsoft-graph": ^2.13.0
@@ -20742,6 +20769,7 @@ __metadata:
     eslint-plugin-import: ^2.18.2
     eslint-plugin-react: ^7.16.0
     fbjs: ^3.0.0
+    file-saver: ^2.0.5
     is-url: ^1.2.4
     keycode: ^2.2
     librarius: 0.0.1
@@ -20761,6 +20789,7 @@ __metadata:
     react-router: ^5.2.1
     react-router-dom: ^5.3.0
     react-scripts: ^5.0.1
+    react-switch: ^7.0.0
     regenerator-runtime: ^0.13.7
     remark-gfm: ^3.0.1
     semver: ^7.3.8

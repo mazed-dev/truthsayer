@@ -50,6 +50,10 @@ const _manifestTransformDowngradeToV2 = (manifest) => {
   return manifest
 }
 
+const _isChromium = (env) => {
+  return env.chrome || env.edge || false
+}
+
 const _manifestTransform = (buffer, mode, env) => {
   let manifest = JSON.parse(buffer.toString())
 
@@ -65,6 +69,22 @@ const _manifestTransform = (buffer, mode, env) => {
   manifest.externally_connectable.matches.push(_getTruthsayerUrlMask(mode))
   if (firefox) {
     manifest = _manifestTransformDowngradeToV2(manifest)
+  }
+  if (mode === "development" && _isChromium(env)) {
+    // Below "pins" the ID that gets assigned to the extension.
+    // The ID value which gets assigned to the extension as a result is
+    // 'dnjclfepefgpljnecekakpimfjaikgfd'.
+    // Knowing the precise extension ID is necessary for certain interactions
+    // between truthsayer and archaeologist. For builds that get released to
+    // production (as in - get published to the actual extension store) the store
+    // ensures they use the same ID on its side. But during development builds
+    // on different dev machines are random unless the 'key' manifest property
+    // is pinned.
+    //
+    // The key value has been obtained via the steps explain at
+    // https://developer.chrome.com/docs/extensions/mv3/manifest/key/
+    manifest.key =
+      'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlcUBTiNA5dfNL88e5juZzzi0lmQNBox3tHo14gAnd6RaOT/XC8q6wh9ju8VhzTmUtNiApLnVDTzlU1QPw6wALrxaly8rTsmt7wdqZmOGmKTr+Qebp3uEzxNVdK6jzHQxrjSqaOk5huGXHqaOA7/LfFAhMPO7uimpUSv2uRLIOYSrewRnaQPw7JGdl4Py29+mmEmkcyjQUDK2+UHDRyskaT923VUA6XBxdTZEhv4aLFJZX1vxQrRYPTHDpFsP67Y7+Ta7qaP/GMj/bPDFPlBY4n0r+A/D2n7pS61hl7AVqSFKe/Jv/RjNG2TFEja6FY57zuwreL9zVXi2+u2KzXl6SwIDAQAB'
   }
   return JSON.stringify(manifest, null, 2);
 }
@@ -157,7 +177,7 @@ const config = (env, argv) => {
       new webpack.DefinePlugin({
         'process.env.CHROME': JSON.stringify(env.chrome || false),
         'process.env.EDGE': JSON.stringify(env.edge || false),
-        'process.env.CHROMIUM': JSON.stringify(env.chrome || env.edge || false),
+        'process.env.CHROMIUM': JSON.stringify(_isChromium(env)),
         'process.env.FIREFOX': JSON.stringify(env.firefox || false),
         'process.env.SAFARI': JSON.stringify(env.safari || false),
         'process.env.BROWSER': JSON.stringify(
@@ -168,6 +188,9 @@ const config = (env, argv) => {
         ),
         'process.env.REACT_APP_SMUGGLER_API_URL': JSON.stringify(
           _getSmugglerApiUrl(argv.mode)
+        ),
+        'process.env.REACT_APP_TRUTHSAYER_URL': JSON.stringify(
+          _getTruthsayerUrl(argv.mode)
         ),
       }),
     ],
