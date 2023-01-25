@@ -4,13 +4,11 @@ import type {
   NodeEventPatch,
   NodeEventType,
 } from './storage_api'
-import { log } from 'armoury'
 
 export namespace NodeEvent {
   const _listeners: NodeEventListener[] = []
 
   export function addListener(listener: NodeEventListener): void {
-    log.debug('NodeEvent.addListener', listener, _listeners)
     _listeners.push(listener)
   }
   export function removeListener(listener: NodeEventListener): void {

@@ -77,7 +77,6 @@ export async function findRelevantNodes(
 }
 
 function addNodeSection(docId: DocId, text: string): void {
-  log.debug('Add doc to index', docId, text)
   perDocumentIndex.push(relevance.addDocument(overallIndex, text, docId))
 }
 
@@ -88,7 +87,6 @@ function addNodeSection(docId: DocId, text: string): void {
  * unil next re-indexing
  */
 function removeNodeSection(docId: DocId): void {
-  log.debug('Remove node section from index', docId)
   for (let ind = 0; ind < perDocumentIndex.length; ++ind) {
     const item = perDocumentIndex[ind]
     const itemDocId = item.docId
@@ -98,7 +96,6 @@ function removeNodeSection(docId: DocId): void {
   }
 }
 function removeEntireNode(nid: Nid): void {
-  log.debug('Remove node from index', nid)
   for (let ind = 0; ind < perDocumentIndex.length; ++ind) {
     const item = perDocumentIndex[ind]
     const itemDocId = item.docId
@@ -113,7 +110,6 @@ const nodeEventListener: NodeEventListener = (
   nid: Nid,
   patch: NodeEventPatch
 ) => {
-  log.debug('nodeEventListener', type, nid, patch)
   if (type === 'deleted') {
     removeEntireNode(nid)
   } else if (type === 'created' || type === 'updated') {
