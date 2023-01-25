@@ -2,8 +2,7 @@ import React from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 import { Container } from 'react-bootstrap'
 import styled from '@emotion/styled'
-import { errorise, log, sleep } from 'armoury'
-import browser from 'webextension-polyfill'
+import { errorise, log } from 'armoury'
 
 import Switch from 'react-switch'
 import {

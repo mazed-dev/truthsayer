@@ -418,7 +418,7 @@ const App = () => {
             version: browser.runtime.getManifest().version,
           }}
         />
-        {truthsayer.url.isMazed(document.URL) ? null : (
+        {truthsayer.url.belongs(document.URL) ? null : (
           <>
             <Toaster />
             {state.notification ? (

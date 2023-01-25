@@ -2,6 +2,9 @@ import { TNode, OriginId } from './types'
 import type { Optional } from 'armoury'
 
 export interface INodeIterator {
+  /**
+   * @summary Iterate from most recently created nodes to the oldest
+   */
   next: () => Promise<Optional<TNode>>
   total: () => number
   abort: () => void

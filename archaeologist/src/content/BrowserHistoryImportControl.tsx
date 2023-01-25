@@ -263,7 +263,7 @@ export function BrowserHistoryImportControlPortalForMazed(
 export function BrowserHistoryImportControlPortal(
   props: UploadBrowserHistoryProps
 ) {
-  if (!truthsayer.url.isMazed(document.URL)) {
+  if (!truthsayer.url.belongs(document.URL)) {
     return null
   }
   return <BrowserHistoryImportControlPortalForMazed {...props} />
