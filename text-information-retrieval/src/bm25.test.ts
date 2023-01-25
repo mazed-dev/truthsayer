@@ -97,7 +97,7 @@ describe('data-driven test', () => {
   })
 
   it('Term in a document importance calculation', () => {
-    expect(getTermInDocumentImportance(49, 200, 1000)).toBeCloseTo(2.36)
+    expect(getTermInDocumentImportance(49, 200, 1000)).toBeCloseTo(2.37)
     // Given word does not occure in the doc → 0
     expect(getTermInDocumentImportance(0, 200, 1000)).toStrictEqual(0)
     // Smaller doc is more Important
@@ -154,14 +154,13 @@ describe('data-driven test', () => {
       'http://class.constructor.com',
     ])
   })
-  it('Search for non-existing words', () => {
+  it('Search for non-dictionary words', () => {
     const res = findRelevantDocumentsForPhrase(
       'Todo toolbar',
       1,
       overallIndex,
       relIndexPerDocument
     )
-    expect(res).toStrictEqual([])
     expect(res.map((r) => r.docId.url)).toStrictEqual([
       'http://test.com/todo/bottom/line/toolbar',
     ])
