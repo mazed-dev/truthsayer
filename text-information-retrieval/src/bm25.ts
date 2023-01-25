@@ -21,7 +21,7 @@ type BagOfWords = Map<string, number>
 
 type ScorePerWord = Map<string, number>
 
-type TextScore = {
+export type TextScore = {
   total: number
   perWord: ScorePerWord
 }

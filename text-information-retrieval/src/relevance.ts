@@ -5,6 +5,7 @@ export namespace relevance {
   export type RelevancePerDocumentIndex<DocIdType> =
     bm25.OkapiBm25PlusPerDocumentIndex<DocIdType>
   export type RelevanceResult<DocIdType> = bm25.RelevanceResult<DocIdType>
+  export type TextScore = bm25.TextScore
 
   export function createIndex<DocIdType>(): [
     RelevanceIndex,

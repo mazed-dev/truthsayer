@@ -26,11 +26,16 @@ export type DocId = {
 
 const [overallIndex, perDocumentIndex] = relevance.createIndex<DocId>()
 
+export type RelevantNode = {
+  node: TNode
+  score: relevance.TextScore
+}
 export async function findRelevantNodes(
   text: string,
+  storage: StorageApi,
   limit?: number
-): Promise<DocId[]> {
-  limit = limit ?? 12
+): Promise<RelevantNode[]> {
+  limit = limit ?? 16
   const results = relevance.findRelevantDocuments(
     text,
     limit,
@@ -38,7 +43,37 @@ export async function findRelevantNodes(
     perDocumentIndex
   )
   log.debug('Results', results)
-  return results.map((r) => r.docId)
+  // FIXME(Alexander): Reconsider the solution to find and surface most relevant
+  // results only with max-25-pct. This is another Hack to show only most
+  // relevant results, we cut off the long tail of results with a relevance
+  // score less than 25% of a top result.
+  const maxScore: number = results[0]?.score.total
+  const scoreMap: Map<Nid, relevance.TextScore> = new Map()
+  const nids = results
+    .filter(({ docId, score }) => {
+      if (score.total * 4 > maxScore) {
+        const { nid } = docId
+        const added = scoreMap.has(nid)
+        scoreMap.set(nid, score)
+        return !added
+      }
+      return false
+    })
+    .map((s) => s.docId.nid)
+  const resp = await storage.node.batch.get({ nids })
+  const nodeMap: Map<Nid, TNode> = new Map()
+  resp.nodes.forEach((node: TNode) => {
+    nodeMap.set(node.nid, node)
+  })
+  const relevantNodes: RelevantNode[] = []
+  for (const nid of nids) {
+    const node = nodeMap.get(nid)
+    const score = scoreMap.get(nid)
+    if (node != null && score != null) {
+      relevantNodes.push({ node, score })
+    }
+  }
+  return relevantNodes
 }
 
 function addNodeSection(docId: DocId, text: string): void {
