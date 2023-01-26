@@ -201,7 +201,7 @@ export const SuggestionsToast = ({
       <ToastBox>
         <Header>
           <LogoSmall />
-          <HeaderText>Related fragments ({suggested.length}):</HeaderText>
+          <HeaderText>Related ({suggested.length}):</HeaderText>
           <MeteredButton
             onClick={onClose}
             metricLabel={'Suggestions Toast Close'}
