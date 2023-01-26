@@ -16,6 +16,13 @@ import { Toast, useOutsideToastClickHandler } from './../toaster/Toaster'
 import { LogoSmall } from './../style'
 import { MeteredButton } from '../elements/MeteredButton'
 import { ContentContext } from '../context'
+import {
+  Close,
+  ContentCopy,
+  ExpandMore,
+  ExpandLess,
+  OpenInNew,
+} from '@emotion-icons/material'
 
 const ToastBox = styled.div`
   width: 368px;
@@ -34,6 +41,7 @@ const Header = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  border: 1px solid #ececec;
 `
 const HeaderText = styled.div`
   vertical-align: middle;
@@ -47,12 +55,13 @@ const SuggestionsToastSuggestionsBox = styled.div`
   display: flex;
   flex-direction: column;
   height: 80vh;
-  overflow: scroll;
+  overflow-y: scroll;
 `
 
 const SuggestionButton = styled(MeteredButton)`
   opacity: 0.32;
   font-size: 12px;
+  padding: 0.4em 0.5em 0.4em 0.5em;
 `
 
 const SuggestedCardBox = styled.div`
@@ -116,7 +125,7 @@ function getTextToInsert(storage: StorageApi, node: TNode): string {
   return toInsert
 }
 
-function CardInsertButton({
+function CardCopyButton({
   node,
   onClose,
 }: {
@@ -124,16 +133,6 @@ function CardInsertButton({
   onClose: () => void
 }) {
   const ctx = React.useContext(ContentContext)
-  let copySubj: string
-  if (NodeUtil.isWebBookmark(node) && node.extattrs?.web != null) {
-    copySubj = 'Link'
-  } else if (NodeUtil.isWebQuote(node) && node.extattrs?.web_quote != null) {
-    copySubj = 'Quote'
-  } else if (NodeUtil.isImage(node)) {
-    copySubj = 'Image'
-  } else {
-    copySubj = 'Note'
-  }
   return (
     <CopySuggestionButton
       onClick={() => {
@@ -142,7 +141,7 @@ function CardInsertButton({
         onClose()
       }}
     >
-      Copy {copySubj}
+      <ContentCopy size="14px" />
     </CopySuggestionButton>
   )
 }
@@ -167,18 +166,18 @@ const SuggestedCard = ({
         />
       </ShrinkMinimalCard>
       <SuggestedCardTools>
-        <CardInsertButton node={node} onClose={onClose} />
+        <CardCopyButton node={node} onClose={onClose} />
         <SuggestionButton
           href={truthsayer.url.makeNode(node.nid).toString()}
           metricLabel={'Suggested Fragment Open in Mazed'}
         >
-          Open Mazed
+          <OpenInNew size="14px" />
         </SuggestionButton>
         <SuggestionButton
           onClick={() => setSeeMore((more) => !more)}
           metricLabel={'Suggested Fragment See ' + (seeMore ? 'less' : 'more')}
         >
-          See {seeMore ? 'less' : 'more'}
+          {seeMore ? <ExpandLess size="14px" /> : <ExpandMore size="14px" />}
         </SuggestionButton>
       </SuggestedCardTools>
     </SuggestedCardBox>
@@ -205,8 +204,9 @@ export const SuggestionsToast = ({
           <MeteredButton
             onClick={onClose}
             metricLabel={'Suggestions Toast Close'}
+            css={{ marginRight: '2px', marginTop: '2px' }}
           >
-            Close
+            <Close size="16px" />
           </MeteredButton>
         </Header>
         <SuggestionsToastSuggestionsBox>

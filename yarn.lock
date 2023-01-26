@@ -2553,6 +2553,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@emotion-icons/emotion-icon@npm:4.1.0":
+  version: 4.1.0
+  resolution: "@emotion-icons/emotion-icon@npm:4.1.0"
+  dependencies:
+    "@babel/runtime": ^7.14.0
+  peerDependencies:
+    "@emotion/react": ">=11.0.0 <12"
+    "@emotion/styled": ">=11.0.0 <12"
+    react: "*"
+  checksum: fce2a2c1cdae0f2a0b0a355de028dcad5570011e6c9bace4bff66d24bcdcc31fcffefce9fad6475e10a5ec5c275969d58d29be80ddb85647c2821a197659f8ee
+  languageName: node
+  linkType: hard
+
+"@emotion-icons/material@npm:^3.14.0":
+  version: 3.14.0
+  resolution: "@emotion-icons/material@npm:3.14.0"
+  dependencies:
+    "@babel/runtime": ^7.14.0
+    "@emotion-icons/emotion-icon": 4.1.0
+  peerDependencies:
+    "@emotion/react": ">=11.0.0 <12"
+    "@emotion/styled": ">=11.0.0 <12"
+    react: "*"
+  checksum: 3c2b15235579db5c4f33cec96459eef1a73dec2c06dadd6f7a2ba759fbdbc008f1f8015b81fa5f9e43747b3f25758d3fb5722aad361e1999c976de0d99964d88
+  languageName: node
+  linkType: hard
+
 "@emotion/babel-plugin@npm:^11.7.1, @emotion/babel-plugin@npm:^11.9.2":
   version: 11.9.2
   resolution: "@emotion/babel-plugin@npm:11.9.2"
@@ -5558,6 +5585,7 @@ __metadata:
     "@babel/preset-env": ^7.15.6
     "@babel/preset-react": ^7.14.5
     "@babel/preset-typescript": ^7.17.12
+    "@emotion-icons/material": ^3.14.0
     "@emotion/react": ^11.9.0
     "@emotion/styled": ^11.8.1
     "@mozilla/readability": ^0.4.1
