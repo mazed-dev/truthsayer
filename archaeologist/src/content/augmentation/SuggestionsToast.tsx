@@ -8,6 +8,7 @@ import {
   ShrinkMinimalCard,
   NodeCardReadOnly,
   truthsayer,
+  HoverTooltip,
 } from 'elementary'
 import { NodeUtil, StorageApi } from 'smuggler-api'
 import type { TNode } from 'smuggler-api'
@@ -83,8 +84,10 @@ const SuggestedCardTools = styled.div`
 const CopySuggestionButton = ({
   children,
   onClick,
+  tooltip,
 }: React.PropsWithChildren<{
   onClick: () => void
+  tooltip: string
 }>) => {
   const [notification, setNotification] = React.useState<string | null>(null)
   return (
@@ -99,7 +102,7 @@ const CopySuggestionButton = ({
       }}
       metricLabel={'Suggested Fragment Copy'}
     >
-      {notification ?? children}
+      <HoverTooltip tooltip={tooltip}>{notification ?? children}</HoverTooltip>
     </SuggestionButton>
   )
 }
@@ -133,6 +136,16 @@ function CardCopyButton({
   onClose: () => void
 }) {
   const ctx = React.useContext(ContentContext)
+  let copySubj: string
+  if (NodeUtil.isWebBookmark(node) && node.extattrs?.web != null) {
+    copySubj = 'Link'
+  } else if (NodeUtil.isWebQuote(node) && node.extattrs?.web_quote != null) {
+    copySubj = 'Quote'
+  } else if (NodeUtil.isImage(node)) {
+    copySubj = 'Image'
+  } else {
+    copySubj = 'Note'
+  }
   return (
     <CopySuggestionButton
       onClick={() => {
@@ -140,6 +153,7 @@ function CardCopyButton({
         navigator.clipboard.writeText(toInsert)
         onClose()
       }}
+      tooltip={`Copy ${copySubj}`}
     >
       <ContentCopy size="14px" />
     </CopySuggestionButton>
@@ -171,13 +185,17 @@ const SuggestedCard = ({
           href={truthsayer.url.makeNode(node.nid).toString()}
           metricLabel={'Suggested Fragment Open in Mazed'}
         >
-          <OpenInNew size="14px" />
+          <HoverTooltip tooltip={'Open in Mazed'}>
+            <OpenInNew size="14px" />
+          </HoverTooltip>
         </SuggestionButton>
         <SuggestionButton
           onClick={() => setSeeMore((more) => !more)}
           metricLabel={'Suggested Fragment See ' + (seeMore ? 'less' : 'more')}
         >
-          {seeMore ? <ExpandLess size="14px" /> : <ExpandMore size="14px" />}
+          <HoverTooltip tooltip={seeMore ? 'See less' : 'See more'}>
+            {seeMore ? <ExpandLess size="14px" /> : <ExpandMore size="14px" />}
+          </HoverTooltip>
         </SuggestionButton>
       </SuggestedCardTools>
     </SuggestedCardBox>
