@@ -10,8 +10,8 @@ import { FromContent } from './../../message/types'
 
 import { SuggestionsToast } from './SuggestionsToast'
 import { TextAreaCorner } from './TextAreaCorner'
-import { getKeyPhraseFromText } from './keyphrase'
 
+/*
 function appendSuffixToSlidingWindow(buf: string, key: string): string {
   if (key === 'Backspace') {
     return buf.slice(0, -1)
@@ -23,50 +23,36 @@ function appendSuffixToSlidingWindow(buf: string, key: string): string {
   }
   return (buf + key).slice(-42)
 }
-
-type UserInput = {
-  keyBuffer: string
-  target: HTMLTextAreaElement | null
-  phrase: string | null
-}
-function updateUserInputFromKeyboardEvent(
-  userInput: UserInput,
-  keyboardEvent: KeyboardEvent
-) {
-  if ('altKey' in keyboardEvent) {
-    const event =
-      keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
-    const target = event.target as HTMLTextAreaElement
-    if (target.isContentEditable || target.tagName === 'TEXTAREA') {
-      let { keyBuffer } = userInput
-      if (target !== userInput.target) {
-        keyBuffer = ''
-      }
-      keyBuffer = appendSuffixToSlidingWindow(keyBuffer, event.key)
-      const phrase = getKeyPhraseFromUserInput(keyBuffer, target)
-      return { keyBuffer, target, phrase }
-    }
-  }
-  return { keyBuffer: '', target: null, phrase: null }
-}
+*/
 
 export function getKeyPhraseFromUserInput(
-  keyBuffer: string,
   target?: HTMLTextAreaElement
 ): string | null {
   if (target == null) {
     return null
   }
-  const targetValue =
+  const value =
     (target as HTMLTextAreaElement).value ??
     target.innerText ??
     target.textContent
-  if (targetValue != null) {
-    const phrase = getKeyPhraseFromText(targetValue)
-    return phrase
+  return value ?? null
+}
+
+type UserInput = {
+  target: HTMLTextAreaElement | null
+  phrase: string | null
+}
+function updateUserInputFromKeyboardEvent(keyboardEvent: KeyboardEvent) {
+  if ('altKey' in keyboardEvent) {
+    const event =
+      keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
+    const target = event.target as HTMLTextAreaElement
+    if (target.isContentEditable || target.tagName === 'TEXTAREA') {
+      const phrase = getKeyPhraseFromUserInput(target)
+      return { target, phrase }
+    }
   }
-  const phrase = getKeyPhraseFromText(keyBuffer)
-  return phrase
+  return { target: null, phrase: null }
 }
 
 export function WriteAugmentation() {
@@ -100,11 +86,8 @@ export function WriteAugmentation() {
     []
   )
   const [userInput, consumeKeyboardEvent] = React.useReducer(
-    (userInput: UserInput, keyboardEvent: KeyboardEvent) => {
-      const newInput = updateUserInputFromKeyboardEvent(
-        userInput,
-        keyboardEvent
-      )
+    (_userInput: UserInput, keyboardEvent: KeyboardEvent) => {
+      const newInput = updateUserInputFromKeyboardEvent(keyboardEvent)
       const { phrase } = newInput
       if (phrase != null && phrase.length > 3) {
         requestSuggestedAssociations(phrase)
@@ -112,16 +95,15 @@ export function WriteAugmentation() {
       return newInput
     },
     {
-      keyBuffer: '',
       target: null,
       phrase: null,
     }
   )
   React.useEffect(() => {
     const opts: AddEventListenerOptions = { passive: true, capture: true }
-    window.addEventListener('keydown', consumeKeyboardEvent, opts)
+    window.addEventListener('keyup', consumeKeyboardEvent, opts)
     return () => {
-      window.removeEventListener('keydown', consumeKeyboardEvent, opts)
+      window.removeEventListener('keyup', consumeKeyboardEvent, opts)
     }
   }, [])
   return (
@@ -145,7 +127,6 @@ export function WriteAugmentation() {
             showToast(false)
             userInput.target?.focus()
           }}
-          keyphrase={userInput.phrase ?? ''}
           suggested={suggestedNodes}
         />
       ) : null}

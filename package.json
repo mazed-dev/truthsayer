@@ -4,17 +4,18 @@
   "private": true,
   "scripts": {
     "archaeologist": "yarn workspace archaeologist",
-    "elementary": "yarn workspace elementary",
-    "truthsayer-archaeologist-communication": "yarn workspace truthsayer-archaeologist-communication",
     "armoury": "yarn workspace armoury",
+    "elementary": "yarn workspace elementary",
     "fix": "yarn syncpack fix-mismatches && yarn workspaces foreach run fix",
     "fix:prettier": "yarn workspaces foreach run fix:prettier",
     "librarius": "yarn workspace librarius",
     "lint": "yarn syncpack list-mismatches && yarn workspaces foreach run lint",
+    "truthsayer-archaeologist-communication": "yarn workspace truthsayer-archaeologist-communication",
     "clean": "yarn cache clean && yarn workspaces foreach run clean",
-    "build-libs": "yarn armoury build && yarn elementary build && yarn smuggler-api build && yarn librarius build && yarn truthsayer-archaeologist-communication build",
+    "build-libs": "yarn armoury build && yarn elementary build && yarn smuggler-api build && yarn librarius build && yarn truthsayer-archaeologist-communication build && yarn text-information-retrieval build",
     "smuggler-api": "yarn workspace smuggler-api",
     "test": "yarn workspaces foreach run test --all --watchAll=false --no-watchman",
+    "text-information-retrieval": "yarn workspace text-information-retrieval",
     "truthsayer": "yarn workspace truthsayer"
   },
   "workspaces": [
@@ -22,9 +23,10 @@
     "armoury",
     "elementary",
     "librarius",
-    "truthsayer-archaeologist-communication",
     "smuggler-api",
-    "truthsayer"
+    "text-information-retrieval",
+    "truthsayer",
+    "truthsayer-archaeologist-communication"
   ],
   "dependencies": {
     "eslint": "^8.16.0",

@@ -4,6 +4,7 @@ import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import * as auth from './background/auth'
 import { saveWebPage, savePageQuote } from './background/savePage'
 import { backgroundpa } from './background/productanalytics'
+import * as similarity from './background/search/similarity'
 import {
   ToPopUp,
   ToContent,
@@ -40,7 +41,6 @@ import {
 
 import { makeBrowserExtStorageApi } from './storage_api_browser_ext'
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
-import { suggestAssociations } from './background/suggestAssociations'
 import { isMemorable } from './content/extractor/url/unmemorable'
 import { isPageAutosaveable } from './content/extractor/url/autosaveable'
 import lodash from 'lodash'
@@ -434,14 +434,14 @@ async function handleMessageFromContent(
       }
     }
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
-      const suggested = await suggestAssociations(
-        storage,
+      const relevantNodes = await similarity.findRelevantNodes(
         message.phrase,
+        storage,
         message.limit
       )
       return {
         type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
-        suggested: suggested.map((node: TNode) => NodeUtil.toJson(node)),
+        suggested: relevantNodes.map(({ node }) => NodeUtil.toJson(node)),
       }
     }
     case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
@@ -944,6 +944,7 @@ async function initBackground() {
   omnibox.register(storage)
   webNavigation.register(storage)
   backgroundpa.register()
+  similarity.register(storage)
 }
 
 let storage: StorageApi = makeAlwaysThrowingStorageApi()
