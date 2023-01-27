@@ -44,18 +44,11 @@ const Header = styled.div`
   border: 1px solid #ececec;
 `
 const HeaderText = styled.div`
-  vertical-align: middle;
+  color: #7a7a7a;
   font-size: 14px;
   font-style: italic;
   padding: 4px;
-  color: #7a7a7a;
-`
-const HeaderText = styled.div`
   vertical-align: middle;
-  font-size: 14px;
-  font-style: italic;
-  padding: 4px;
-  color: #7a7a7a;
 `
 
 const SuggestionsToastSuggestionsBox = styled.div`
