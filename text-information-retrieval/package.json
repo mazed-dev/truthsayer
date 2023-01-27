@@ -7,6 +7,7 @@
   "private": true,
   "scripts": {
     "build": "yarn tsc --build --pretty",
+    "clean": "rm -r dist tsconfig.tsbuildinfo",
     "fix": "yarn fix:prettier && yarn fix:eslint",
     "fix:eslint": "yarn lint:eslint --fix",
     "fix:prettier": "yarn lint:prettier --write",
@@ -25,7 +26,12 @@
   },
   "devDependencies": {
     "@fast-csv/parse": "^4.3.6",
+    "@typescript-eslint/eslint-plugin": "^5.26.0",
+    "@typescript-eslint/parser": "^5.26.0",
     "eslint": "^8.16.0",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-prettier": "^3.1.1",
     "jest": "26.6.0",
     "prettier": "^2.2",
     "ts-jest": "^26.4.2",

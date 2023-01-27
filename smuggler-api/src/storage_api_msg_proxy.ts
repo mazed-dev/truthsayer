@@ -107,7 +107,7 @@ function mismatchError(sent: string, got: string): Error {
 function throwUnimplementedError(endpoint: string) {
   return (..._: any[]): never => {
     throw new Error(
-      `Attempted to call an ${endpoint} endpoint of archaeologist StorageApi which hasn't been implemented yet`
+      `Attempted to call an ${endpoint} endpoint of message proxy StorageApi which hasn't been implemented yet`
     )
   }
 }

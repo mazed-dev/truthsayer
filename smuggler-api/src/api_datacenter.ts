@@ -65,7 +65,7 @@ import { StatusCode } from './status_codes'
 import { authCookie } from './auth/cookie'
 import { makeEmptyNodeTextData, NodeUtil } from './typesutil'
 import { AuthenticationApi } from './authentication_api'
-import { NodeEvent } from './api_node_even_listener'
+import { NodeEvent } from './api_node_event_listener'
 
 const kHeaderCreatedAt = 'x-created-at'
 const kHeaderLastModified = 'last-modified'
