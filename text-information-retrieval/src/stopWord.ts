@@ -2,6 +2,12 @@ export function isStopWord(word: string): boolean {
   return kStopWords.has(word)
 }
 
+/**
+ * Used custom stop words set - very frequent english words that are excluded
+ * from similarity search. Because stop words list from `wink-eng-lite-web-model`
+ * is too big and includes some important words such as numbers.
+ * Decision to reconsider later on.
+ */
 const kStopWords: Set<string> = new Set([
   'a',
   'about',

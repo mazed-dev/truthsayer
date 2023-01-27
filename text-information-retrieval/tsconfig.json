@@ -10,25 +10,32 @@
     "sourceMap": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "ES2020"
-    ],
+    "lib": [ "ES2020" ],
     "module": "ES2020",
+    "alwaysStrict": true,
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedParameters": true,
     "outDir": "dist",
     "removeComments": true,
     "resolveJsonModule": true,
     "rootDir": "src",
     "skipLibCheck": true,
     "strict": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
     "target": "es6"
   },
+  "references": [
+    {
+      "path": "../armoury"
+    }
+  ],
   "include": [
     "src/**/*"
   ],

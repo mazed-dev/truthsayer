@@ -20472,8 +20472,13 @@ __metadata:
   resolution: "text-information-retrieval@workspace:text-information-retrieval"
   dependencies:
     "@fast-csv/parse": ^4.3.6
+    "@typescript-eslint/eslint-plugin": ^5.26.0
+    "@typescript-eslint/parser": ^5.26.0
     armoury: 0.0.1
     eslint: ^8.16.0
+    eslint-config-prettier: ^6.7.0
+    eslint-plugin-import: ^2.18.2
+    eslint-plugin-prettier: ^3.1.1
     jest: 26.6.0
     lodash: ^4.17.21
     prettier: ^2.2
