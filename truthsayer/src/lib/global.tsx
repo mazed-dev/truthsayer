@@ -110,6 +110,18 @@ export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
   )
 
   const [account, setAccount] = React.useState<AccountInterface | null>(null)
+  useAsyncEffect(async () => {
+    try {
+      setAccount(await createUserAccount(fetchAccountAbortController.signal))
+    } catch (err) {
+      log.warning(
+        `Faild to initialise user acc (error = ${errorise(
+          err
+        )}), ${kAnonymousAnalyticsWarning}`
+      )
+    }
+  }, [])
+
   const [storage, setStorage] = React.useState<StorageApi>(
     makeStorageApi(defaultAppSettings)
   )
@@ -120,37 +132,29 @@ export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
   })
 
   useAsyncEffect(async () => {
-    let acc: AccountInterface | null = null
-    try {
-      acc = await createUserAccount(fetchAccountAbortController.signal)
-    } catch (err) {
-      log.warning(
-        `Faild to initialise user acc (error = ${errorise(
-          err
-        )}), ${kAnonymousAnalyticsWarning}`
-      )
+    if (account == null || !account.isAuthenticated()) {
+      return
+    }
+    if (state.analytics == null) {
       return
     }
 
-    setAccount(acc)
-
-    if (state.analytics) {
-      try {
-        // TODO[snikitin@outlook.com] In cases when truthsayer is launched
-        // the user is already logged in user identification should happen
-        // immediately at the point of product analytics instance creation
-        // (via 'PostHogConfig.bootstrap' field). Without that, opening
-        // truthsayer produces a single anonymous '$pageview' event followed
-        // immediately by an '$identify' event. This makes analytics data
-        // more difficult to navigate and consumes extra quota.
-        productanalytics.identifyUser({
-          analytics: state.analytics,
-          nodeEnv: process.env.NODE_ENV,
-          userUid: acc.getUid(),
-        })
-      } catch (e) {
-        log.warning(`${errorise(e).message}, ${kAnonymousAnalyticsWarning}`)
-      }
+    try {
+      // TODO[snikitin@outlook.com] In cases when truthsayer is launched
+      // the user is already logged in user identification should happen
+      // immediately at the point of product analytics instance creation
+      // (via 'PostHogConfig.bootstrap' field). Without that, opening
+      // truthsayer produces a single anonymous '$pageview' event followed
+      // immediately by an '$identify' event. This makes analytics data
+      // more difficult to navigate and consumes extra quota.
+      productanalytics.identifyUser({
+        analytics: state.analytics,
+        nodeEnv: process.env.NODE_ENV,
+        userUid: account.getUid(),
+      })
+    } catch (e) {
+      log.warning(`${errorise(e).message}, ${kAnonymousAnalyticsWarning}`)
+      throw e
     }
 
     return () => {
@@ -161,7 +165,7 @@ export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
         )
       }
     }
-  }, [])
+  }, [account])
 
   useAsyncEffect(async () => {
     const response = await FromTruthsayer.sendMessage({
