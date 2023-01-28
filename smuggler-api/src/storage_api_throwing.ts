@@ -25,6 +25,8 @@ export function makeAlwaysThrowingStorageApi(): StorageApi {
         get: throwError,
       },
       url: throwError,
+      addListener: throwError,
+      removeListener: throwError,
     },
     blob: {
       upload: throwError,

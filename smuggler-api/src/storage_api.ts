@@ -91,6 +91,25 @@ export type ExternalIngestionAdvanceArgs = {
   new_progress: AdvanceExternalPipelineIngestionProgress
 }
 
+export type NodeEventType = 'created' | 'deleted' | 'updated'
+/**
+ * Only fields of TNode that has been updated
+ *
+ * Note (Alexander): Feel free to extend this list in the future, I implemented
+ * only fields I need at the moment
+ */
+export type NodeEventPatch = {
+  text?: NodeTextData
+  index_text?: NodeIndexText
+  extattrs?: NodeExtattrs
+  ntype?: NodeType
+}
+export type NodeEventListener = (
+  type: NodeEventType,
+  nid: Nid,
+  patch: NodeEventPatch
+) => void
+
 export type StorageApi = {
   node: {
     get: (args: NodeGetArgs, signal?: AbortSignal) => Promise<TNode>
@@ -122,6 +141,8 @@ export type StorageApi = {
       ) => Promise<NodeBatch>
     }
     url: (nid: Nid) => string
+    addListener: (listener: NodeEventListener) => void
+    removeListener: (listener: NodeEventListener) => void
   }
   blob: {
     upload: (

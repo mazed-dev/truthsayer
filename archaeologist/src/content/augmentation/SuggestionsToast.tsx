@@ -13,7 +13,7 @@ import { NodeUtil, StorageApi } from 'smuggler-api'
 import type { TNode } from 'smuggler-api'
 
 import { Toast, useOutsideToastClickHandler } from './../toaster/Toaster'
-import { LogoSmall, RefItem } from './../style'
+import { LogoSmall } from './../style'
 import { MeteredButton } from '../elements/MeteredButton'
 import { ContentContext } from '../context'
 
@@ -34,6 +34,13 @@ const Header = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+`
+const HeaderText = styled.div`
+  vertical-align: middle;
+  font-size: 14px;
+  font-style: italic;
+  padding: 4px;
+  color: #7a7a7a;
 `
 
 const SuggestionsToastSuggestionsBox = styled.div`
@@ -62,13 +69,6 @@ const SuggestedCardTools = styled.div`
   flex-direction: row;
   justify-content: space-evenly;
   padding: 0;
-`
-
-const SearchPhrase = styled(RefItem)`
-  overflow-x: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  width: 300px;
 `
 
 const CopySuggestionButton = ({
@@ -186,11 +186,9 @@ const SuggestedCard = ({
 }
 
 export const SuggestionsToast = ({
-  keyphrase,
   suggested,
   onClose,
 }: {
-  keyphrase: string
   suggested: TNode[]
   onClose: () => void
 }) => {
@@ -203,13 +201,7 @@ export const SuggestionsToast = ({
       <ToastBox>
         <Header>
           <LogoSmall />
-          <SearchPhrase
-            href={truthsayer.url.makeSearch(keyphrase).toString()}
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            &ldquo;{keyphrase}&rdquo;
-          </SearchPhrase>
+          <HeaderText>Related ({suggested.length}):</HeaderText>
           <MeteredButton
             onClick={onClose}
             metricLabel={'Suggestions Toast Close'}

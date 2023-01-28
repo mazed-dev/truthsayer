@@ -44,7 +44,13 @@ import type {
   ExternalIngestionGetArgs,
   NodeGetAllNidsArgs,
 } from 'smuggler-api'
-import { INodeIterator, NodeUtil, EdgeUtil, NodeType } from 'smuggler-api'
+import {
+  INodeIterator,
+  NodeUtil,
+  EdgeUtil,
+  NodeType,
+  NodeEvent,
+} from 'smuggler-api'
 import { v4 as uuidv4 } from 'uuid'
 import base32Encode from 'base32-encode'
 
@@ -363,6 +369,12 @@ async function createNode(
   }
 
   await store.set(records)
+  NodeEvent.registerEvent('created', node.nid, {
+    text: node.text,
+    index_text: node.index_text,
+    extattrs: node.extattrs,
+    ntype: node.ntype,
+  })
   return { nid: node.nid }
 }
 
@@ -426,6 +438,10 @@ async function updateNode(
     value.updated_at = unixtime.now()
   }
   await store.set([{ yek, lav }])
+  NodeEvent.registerEvent('updated', args.nid, {
+    text: args.text,
+    index_text: args.index_text,
+  })
   return { ack: true }
 }
 
@@ -656,6 +672,8 @@ export function makeBrowserExtStorageApi(
         get: (args: NodeBatchRequestBody) => getNodeBatch(store, args),
       },
       url: throwUnimplementedError('node.url'),
+      addListener: NodeEvent.addListener,
+      removeListener: NodeEvent.removeListener,
     },
     // TODO[snikitin@outlook.com] At the time of this writing blob.upload and
     // blob_index.build are used together to create a single searchable blob node.
