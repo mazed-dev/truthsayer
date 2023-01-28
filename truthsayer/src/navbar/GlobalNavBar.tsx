@@ -106,11 +106,6 @@ const NavbarBrand = styled(Navbar.Brand)`
 `
 
 export function GlobalNavBar() {
-  const ctx = useContext(MzdGlobalContext)
-  const account = ctx.account
-  if (account == null || !account.isAuthenticated()) {
-    return null
-  }
   return (
     <>
       <CustomNavbar fixed="top" className={styles.navbar}>

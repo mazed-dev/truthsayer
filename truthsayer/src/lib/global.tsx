@@ -7,11 +7,11 @@ import { KnockerElement } from '../auth/Knocker'
 
 import { jcss } from 'elementary'
 import {
-  createUserAccount,
   AccountInterface,
   makeAlwaysThrowingStorageApi,
   makeDatacenterStorageApi,
   makeMsgProxyStorageApi,
+  UserAccount,
 } from 'smuggler-api'
 import type {
   StorageApi,
@@ -27,8 +27,10 @@ import { useAsyncEffect } from 'use-async-effect'
 import {
   defaultSettings,
   FromTruthsayer,
+  ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
 import type { AppSettings } from 'truthsayer-archaeologist-communication'
+import { Loader } from './loader'
 
 type Toaster = {
   push: (item: React.ReactElement) => void
@@ -75,23 +77,19 @@ export const MzdGlobalContext = React.createContext<MzdGlobalContextProps>({
 
 type MzdGlobalProps = {
   analytics: PostHog | null
+  account: UserAccount
 }
 type MzdGlobalState = {
   toaster: Toaster
-  account: AccountInterface | null
+  account: UserAccount | null
   storage: StorageApi
   analytics: PostHog | null
-  appSettings: AppSettings
 }
 
 const kAnonymousAnalyticsWarning =
   'future product analytics events will be attached to an anonymous identity'
 
 export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
-  const [fetchAccountAbortController] = React.useState(new AbortController())
-
-  const defaultAppSettings = defaultSettings()
-
   const [toasts, setToasts] = React.useState<React.ReactElement[]>([])
   const pushToast = React.useCallback(
     (item: React.ReactElement) => {
@@ -109,32 +107,28 @@ export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
     [toasts]
   )
 
-  const [account, setAccount] = React.useState<AccountInterface | null>(null)
+  const [storage, setStorage] = React.useState<StorageApi | null>(null)
   useAsyncEffect(async () => {
-    try {
-      setAccount(await createUserAccount(fetchAccountAbortController.signal))
-    } catch (err) {
+    const response = await FromTruthsayer.sendMessage({
+      type: 'GET_APP_SETTINGS_REQUEST',
+    }).catch((reason): ToTruthsayer.GetAppSettingsResponse => {
+      const defaults = defaultSettings()
       log.warning(
-        `Faild to initialise user acc (error = ${errorise(
-          err
-        )}), ${kAnonymousAnalyticsWarning}`
+        `Failed to get user's app settings,` +
+          ` falling back to ${JSON.stringify(defaults)}; ` +
+          `error - ${errorise(reason).message}`
       )
-    }
+      return { type: 'GET_APP_SETTINGS_RESPONSE', settings: defaults }
+    })
+    setStorage(makeStorageApi(response.settings))
   }, [])
 
-  const [storage, setStorage] = React.useState<StorageApi>(
-    makeStorageApi(defaultAppSettings)
-  )
   const [state] = React.useState<Omit<MzdGlobalState, 'account' | 'storage'>>({
     toaster: { push: pushToast },
     analytics: props.analytics,
-    appSettings: defaultAppSettings,
   })
 
   useAsyncEffect(async () => {
-    if (account == null || !account.isAuthenticated()) {
-      return
-    }
     if (state.analytics == null) {
       return
     }
@@ -150,7 +144,7 @@ export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
       productanalytics.identifyUser({
         analytics: state.analytics,
         nodeEnv: process.env.NODE_ENV,
-        userUid: account.getUid(),
+        userUid: props.account.getUid(),
       })
     } catch (e) {
       log.warning(`${errorise(e).message}, ${kAnonymousAnalyticsWarning}`)
@@ -165,18 +159,16 @@ export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
         )
       }
     }
-  }, [account])
-
-  useAsyncEffect(async () => {
-    const response = await FromTruthsayer.sendMessage({
-      type: 'GET_APP_SETTINGS_REQUEST',
-    })
-    setStorage(makeStorageApi(response.settings))
   }, [])
 
+  if (storage == null) {
+    return <Loader size={'large'} />
+  }
+
   return (
-    <MzdGlobalContext.Provider value={{ ...state, account, storage }}>
-      <KnockerElement />
+    <MzdGlobalContext.Provider
+      value={{ ...state, account: props.account, storage }}
+    >
       <div
         aria-live="polite"
         aria-atomic="true"
