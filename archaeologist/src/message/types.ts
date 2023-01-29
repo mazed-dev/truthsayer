@@ -63,6 +63,9 @@ export namespace FromPopUp {
   export interface PageInActiveTabStatusRequest {
     type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS'
   }
+  export interface GetSuggestionsToPageInActiveTabRequest {
+    type: 'REQUEST_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB'
+  }
   /**
    * Save page command chain
    * [ User -> popup -> REQUEST_PAGE_TO_SAVE -> background
@@ -76,6 +79,7 @@ export namespace FromPopUp {
     | PageInActiveTabStatusRequest
     | AuthStatusRequest
     | StorageAccessRequest
+    | GetSuggestionsToPageInActiveTabRequest
 
   export function sendMessage(
     message: AuthStatusRequest
@@ -86,6 +90,9 @@ export namespace FromPopUp {
   export function sendMessage(
     message: PageInActiveTabStatusRequest
   ): Promise<ToPopUp.ActiveTabStatusResponse>
+  export function sendMessage(
+    message: GetSuggestionsToPageInActiveTabRequest
+  ): Promise<ToPopUp.GetSuggestionsToPageInActiveTabResponse>
   export function sendMessage(
     message: StorageAccessRequest
   ): Promise<StorageAccessResponse>
@@ -120,6 +127,10 @@ export namespace ToPopUp {
     bookmark?: TNodeJson
     unmemorable?: boolean
   }
+  export interface GetSuggestionsToPageInActiveTabResponse {
+    type: 'RESPONSE_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB'
+    suggestedAkinNodes: TNodeJson[]
+  }
 
   export type Response =
     | AuthStatusResponse
@@ -127,6 +138,7 @@ export namespace ToPopUp {
     | PageSavedResponse
     | StorageAccessResponse
     | VoidResponse
+    | GetSuggestionsToPageInActiveTabResponse
   export function sendMessage(message: undefined): Promise<undefined> {
     return browser.runtime.sendMessage(message)
   }
@@ -303,6 +315,9 @@ export namespace FromContent {
   }
   export interface PageAlreadySavedResponse {
     type: 'PAGE_ALREADY_SAVED'
+    bookmark: TNodeJson
+    fromNodes: TNodeJson[]
+    toNodes: TNodeJson[]
   }
   export interface PageNotWorthSavingResponse {
     type: 'PAGE_NOT_WORTH_SAVING'

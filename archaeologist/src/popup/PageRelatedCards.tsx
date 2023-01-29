@@ -23,12 +23,17 @@
  * ┌───────────┐
  * │ From node │
  * └───────────┘▶
+ * Likely related (1)
+ *     ▶┌──────────────┐
+ *      │ Related node │
+ *      └──────────────┘
  */
 import React from 'react'
 import styled from '@emotion/styled'
 
 import type { TNode } from 'smuggler-api'
 import { NodeCard } from './NodeCard'
+import { Spinner } from 'elementary'
 
 const Box = styled.div`
   display: block;
@@ -137,8 +142,38 @@ const FromNodesCards = ({ fromNodes }: { fromNodes: TNode[] }) => {
   )
 }
 
-const SuggestedAkinNodes = ({}: { suggestedAkinNodes?: TNode[] }) => {
-  return <></>
+const SuggestedHeader = styled.div`
+  position: relative;
+  margin-top: 16px;
+  margin-bottom: 10px;
+  width: 100%;
+`
+const SuggestedTitle = styled.span`
+  font-style: italic;
+  color: #9f9f9f;
+`
+const SuggestedAkinNodes = ({
+  suggestedAkinNodes,
+}: {
+  suggestedAkinNodes?: TNode[]
+}) => {
+  if (suggestedAkinNodes == null) {
+    return <Spinner.Wheel />
+  }
+  return (
+    <>
+      <SuggestedHeader>
+        <SuggestedTitle>
+          🪄 Likely related ({suggestedAkinNodes.length})
+        </SuggestedTitle>
+      </SuggestedHeader>
+      {suggestedAkinNodes.map((node: TNode) => (
+        <RightCardRow key={node.nid}>
+          <PopUpToNodeCard node={node} />
+        </RightCardRow>
+      ))}
+    </>
+  )
 }
 
 export const PageRelatedCards = ({

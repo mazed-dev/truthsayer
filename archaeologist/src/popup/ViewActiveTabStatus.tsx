@@ -9,7 +9,6 @@ import type { TNode, TNodeJson } from 'smuggler-api'
 
 import { MdiBookmarkAdd, Spinner } from 'elementary'
 import { ButtonCreate } from './Button'
-import { log } from 'armoury'
 
 import { FromPopUp } from './../message/types'
 import { PageRelatedCards } from './PageRelatedCards'
@@ -112,6 +111,13 @@ export const ViewActiveTabStatus = () => {
       fromNodes,
       toNodes,
     })
+  }, [])
+
+  useAsyncEffect(async () => {
+    const { suggestedAkinNodes } = await FromPopUp.sendMessage({
+      type: 'REQUEST_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB',
+    })
+    dispatch({ type: 'reset-suggested-akin-nodes', suggestedAkinNodes })
   }, [])
 
   const handleSave = async () => {
