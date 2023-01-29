@@ -9,6 +9,7 @@ import type { TNode, TNodeJson } from 'smuggler-api'
 
 import { MdiBookmarkAdd, Spinner } from 'elementary'
 import { ButtonCreate } from './Button'
+import { log } from 'armoury'
 
 import { FromPopUp } from './../message/types'
 import { PageRelatedCards } from './PageRelatedCards'
@@ -32,9 +33,9 @@ type Status = 'saved' | 'loading' | 'unmemorable' | 'memorable'
 type State = {
   status: Status
   bookmark: TNode | null
-  fromNodes: TNodeJson[]
-  toNodes: TNodeJson[]
-  relatedNodes?: TNodeJson[]
+  fromNodes: TNode[]
+  toNodes: TNode[]
+  suggestedAkinNodes?: TNode[]
 }
 
 type Action =
@@ -44,12 +45,16 @@ type Action =
       unmemorable?: boolean
       fromNodes: TNodeJson[]
       toNodes: TNodeJson[]
-      relatedNodes?: TNodeJson[]
+    }
+  | {
+      type: 'reset-suggested-akin-nodes'
+      suggestedAkinNodes: TNodeJson[]
     }
   | { type: 'update-status'; status: Status }
 
-function updateState(state: State, action: Action) {
-  const newState = JSON.parse(JSON.stringify(state))
+function updateState(state: State, action: Action): State {
+  log.debug('Got to update state', state, action)
+  const newState = state
   switch (action.type) {
     case 'reset':
     case 'append':
@@ -80,18 +85,21 @@ function updateState(state: State, action: Action) {
         )
         newState.toNodes =
           action.type === 'reset' ? toNodes : newState.toNodes.concat(toNodes)
-        const relatedNodes = action.relatedNodes?.map((json: TNodeJson) =>
-          NodeUtil.fromJson(json)
+      }
+      break
+    case 'reset-suggested-akin-nodes':
+      {
+        newState.suggestedAkinNodes = action.suggestedAkinNodes.map(
+          (json: TNodeJson) => NodeUtil.fromJson(json)
         )
-        if (relatedNodes != null) {
-        }
       }
       break
     case 'update-status':
       newState.status = action.status
       break
   }
-  return newState
+  log.debug('New state', newState)
+  return { ...newState }
 }
 
 export const ViewActiveTabStatus = () => {
@@ -130,9 +138,10 @@ export const ViewActiveTabStatus = () => {
       toNodes: [],
     })
   }
-
+  log.debug('Render state', state, state.status, state.bookmark)
   let btn
   if (state.status === 'memorable' && state.bookmark == null) {
+    log.debug('Render memorable and no bookmark')
     btn = (
       <ButtonCreate onClick={handleSave}>
         <MdiBookmarkAdd
@@ -152,6 +161,7 @@ export const ViewActiveTabStatus = () => {
         bookmark={state.bookmark || undefined}
         fromNodes={state.fromNodes}
         toNodes={state.toNodes}
+        suggestedAkinNodes={state.suggestedAkinNodes}
       />
     </Container>
   )
