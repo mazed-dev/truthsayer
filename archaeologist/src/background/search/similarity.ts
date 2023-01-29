@@ -43,10 +43,6 @@ export async function findRelevantNodes(
       excludedNids != null ? !excludedNids.has(r.docId.nid) : true
     )
   log.debug('Results', results)
-  log.debug(
-    'Results - nids',
-    results.map((d) => d.docId.nid)
-  )
   // FIXME(Alexander): Reconsider the solution to find and surface most relevant
   // results only with max-25-pct. This is another Hack to show only most
   // relevant results, we cut off the long tail of results with a relevance
