@@ -34,6 +34,7 @@ type State = {
   bookmark: TNode | null
   fromNodes: TNodeJson[]
   toNodes: TNodeJson[]
+  relatedNodes?: TNodeJson[]
 }
 
 type Action =
@@ -43,6 +44,7 @@ type Action =
       unmemorable?: boolean
       fromNodes: TNodeJson[]
       toNodes: TNodeJson[]
+      relatedNodes?: TNodeJson[]
     }
   | { type: 'update-status'; status: Status }
 
@@ -78,6 +80,11 @@ function updateState(state: State, action: Action) {
         )
         newState.toNodes =
           action.type === 'reset' ? toNodes : newState.toNodes.concat(toNodes)
+        const relatedNodes = action.relatedNodes?.map((json: TNodeJson) =>
+          NodeUtil.fromJson(json)
+        )
+        if (relatedNodes != null) {
+        }
       }
       break
     case 'update-status':
