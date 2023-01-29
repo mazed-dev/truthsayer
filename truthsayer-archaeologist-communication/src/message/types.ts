@@ -85,11 +85,15 @@ export namespace FromTruthsayer {
     const options: chrome.runtime.MessageOptions = {}
 
     return new Promise<any>((resolve, reject) => {
-      if (chrome.runtime.sendMessage === undefined) {
+      if (
+        chrome.runtime === undefined ||
+        chrome.runtime.sendMessage === undefined
+      ) {
         // See https://groups.google.com/a/chromium.org/g/chromium-extensions/c/tCWVZRq77cg/m/KB6-tvCdAgAJ
         // for more details on why 'sendMessage' may be undefined in Chromium
         reject(
-          `Failed to send a ${message.type} message to archaeologist: no extension is listening, possibly extension not installed`
+          `Failed to send a ${message.type} message to archaeologist: ` +
+            `no extension with ID ${extensionId} is listening, possibly extension not installed`
         )
         return
       }

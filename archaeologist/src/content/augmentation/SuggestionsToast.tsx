@@ -8,6 +8,7 @@ import {
   ShrinkMinimalCard,
   NodeCardReadOnly,
   truthsayer,
+  HoverTooltip,
 } from 'elementary'
 import { NodeUtil, StorageApi } from 'smuggler-api'
 import type { TNode } from 'smuggler-api'
@@ -16,6 +17,13 @@ import { Toast, useOutsideToastClickHandler } from './../toaster/Toaster'
 import { LogoSmall } from './../style'
 import { MeteredButton } from '../elements/MeteredButton'
 import { ContentContext } from '../context'
+import {
+  Close,
+  ContentCopy,
+  ExpandMore,
+  ExpandLess,
+  OpenInNew,
+} from '@emotion-icons/material'
 
 const ToastBox = styled.div`
   width: 368px;
@@ -34,25 +42,27 @@ const Header = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  border: 1px solid #ececec;
 `
 const HeaderText = styled.div`
-  vertical-align: middle;
+  color: #7a7a7a;
   font-size: 14px;
   font-style: italic;
   padding: 4px;
-  color: #7a7a7a;
+  vertical-align: middle;
 `
 
 const SuggestionsToastSuggestionsBox = styled.div`
   display: flex;
   flex-direction: column;
   height: 80vh;
-  overflow: scroll;
+  overflow-y: scroll;
 `
 
 const SuggestionButton = styled(MeteredButton)`
   opacity: 0.32;
   font-size: 12px;
+  padding: 0.4em 0.5em 0.4em 0.5em;
 `
 
 const SuggestedCardBox = styled.div`
@@ -74,8 +84,10 @@ const SuggestedCardTools = styled.div`
 const CopySuggestionButton = ({
   children,
   onClick,
+  tooltip,
 }: React.PropsWithChildren<{
   onClick: () => void
+  tooltip: string
 }>) => {
   const [notification, setNotification] = React.useState<string | null>(null)
   return (
@@ -90,7 +102,9 @@ const CopySuggestionButton = ({
       }}
       metricLabel={'Suggested Fragment Copy'}
     >
-      {notification ?? children}
+      <HoverTooltip tooltip={tooltip} placement="bottom">
+        {notification ?? children}
+      </HoverTooltip>
     </SuggestionButton>
   )
 }
@@ -116,7 +130,7 @@ function getTextToInsert(storage: StorageApi, node: TNode): string {
   return toInsert
 }
 
-function CardInsertButton({
+function CardCopyButton({
   node,
   onClose,
 }: {
@@ -141,8 +155,9 @@ function CardInsertButton({
         navigator.clipboard.writeText(toInsert)
         onClose()
       }}
+      tooltip={`Copy ${copySubj}`}
     >
-      Copy {copySubj}
+      <ContentCopy size="14px" />
     </CopySuggestionButton>
   )
 }
@@ -167,18 +182,25 @@ const SuggestedCard = ({
         />
       </ShrinkMinimalCard>
       <SuggestedCardTools>
-        <CardInsertButton node={node} onClose={onClose} />
+        <CardCopyButton node={node} onClose={onClose} />
         <SuggestionButton
           href={truthsayer.url.makeNode(node.nid).toString()}
           metricLabel={'Suggested Fragment Open in Mazed'}
         >
-          Open Mazed
+          <HoverTooltip tooltip={'Open in Mazed'} placement="bottom">
+            <OpenInNew size="14px" />
+          </HoverTooltip>
         </SuggestionButton>
         <SuggestionButton
           onClick={() => setSeeMore((more) => !more)}
           metricLabel={'Suggested Fragment See ' + (seeMore ? 'less' : 'more')}
         >
-          See {seeMore ? 'less' : 'more'}
+          <HoverTooltip
+            tooltip={seeMore ? 'See less' : 'See more'}
+            placement="bottom"
+          >
+            {seeMore ? <ExpandLess size="14px" /> : <ExpandMore size="14px" />}
+          </HoverTooltip>
         </SuggestionButton>
       </SuggestedCardTools>
     </SuggestedCardBox>
@@ -205,8 +227,11 @@ export const SuggestionsToast = ({
           <MeteredButton
             onClick={onClose}
             metricLabel={'Suggestions Toast Close'}
+            css={{ marginRight: '2px', marginTop: '2px' }}
           >
-            Close
+            <HoverTooltip tooltip={'Open in Mazed'} placement="bottom">
+              <Close size="16px" />
+            </HoverTooltip>
           </MeteredButton>
         </Header>
         <SuggestionsToastSuggestionsBox>
