@@ -102,7 +102,9 @@ const CopySuggestionButton = ({
       }}
       metricLabel={'Suggested Fragment Copy'}
     >
-      <HoverTooltip tooltip={tooltip}>{notification ?? children}</HoverTooltip>
+      <HoverTooltip tooltip={tooltip} placement="bottom">
+        {notification ?? children}
+      </HoverTooltip>
     </SuggestionButton>
   )
 }
@@ -185,7 +187,7 @@ const SuggestedCard = ({
           href={truthsayer.url.makeNode(node.nid).toString()}
           metricLabel={'Suggested Fragment Open in Mazed'}
         >
-          <HoverTooltip tooltip={'Open in Mazed'}>
+          <HoverTooltip tooltip={'Open in Mazed'} placement="bottom">
             <OpenInNew size="14px" />
           </HoverTooltip>
         </SuggestionButton>
@@ -193,7 +195,10 @@ const SuggestedCard = ({
           onClick={() => setSeeMore((more) => !more)}
           metricLabel={'Suggested Fragment See ' + (seeMore ? 'less' : 'more')}
         >
-          <HoverTooltip tooltip={seeMore ? 'See less' : 'See more'}>
+          <HoverTooltip
+            tooltip={seeMore ? 'See less' : 'See more'}
+            placement="bottom"
+          >
             {seeMore ? <ExpandLess size="14px" /> : <ExpandMore size="14px" />}
           </HoverTooltip>
         </SuggestionButton>
@@ -224,7 +229,9 @@ export const SuggestionsToast = ({
             metricLabel={'Suggestions Toast Close'}
             css={{ marginRight: '2px', marginTop: '2px' }}
           >
-            <Close size="16px" />
+            <HoverTooltip tooltip={'Open in Mazed'} placement="bottom">
+              <Close size="16px" />
+            </HoverTooltip>
           </MeteredButton>
         </Header>
         <SuggestionsToastSuggestionsBox>
