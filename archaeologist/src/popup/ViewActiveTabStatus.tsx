@@ -53,53 +53,42 @@ type Action =
   | { type: 'update-status'; status: Status }
 
 function updateState(state: State, action: Action): State {
-  log.debug('Got to update state', state, action)
-  const newState = state
   switch (action.type) {
     case 'reset':
-    case 'append':
-      {
-        if (action.bookmark != null) {
-          const bookmark = NodeUtil.fromJson(action.bookmark)
-          newState.bookmark = bookmark
-          newState.status = 'saved'
-        } else {
-          if (action.type === 'reset') {
-            newState.bookmark = null
-          }
+    case 'append': {
+      let { bookmark, status, fromNodes, toNodes } = state
+      if (action.bookmark != null) {
+        bookmark = NodeUtil.fromJson(action.bookmark)
+        status = 'saved'
+      } else {
+        if (action.type === 'reset') {
+          bookmark = null
         }
-        if (action.unmemorable) {
-          newState.status = 'unmemorable'
-        } else {
-          newState.status = 'memorable'
-        }
-        const fromNodes = action.fromNodes.map((json: TNodeJson) =>
-          NodeUtil.fromJson(json)
-        )
-        newState.fromNodes =
-          action.type === 'reset'
-            ? fromNodes
-            : newState.fromNodes.concat(fromNodes)
-        const toNodes = action.toNodes.map((json: TNodeJson) =>
-          NodeUtil.fromJson(json)
-        )
-        newState.toNodes =
-          action.type === 'reset' ? toNodes : newState.toNodes.concat(toNodes)
       }
-      break
-    case 'reset-suggested-akin-nodes':
-      {
-        newState.suggestedAkinNodes = action.suggestedAkinNodes.map(
-          (json: TNodeJson) => NodeUtil.fromJson(json)
-        )
+      if (action.unmemorable) {
+        status = 'unmemorable'
+      } else {
+        status = 'memorable'
       }
-      break
-    case 'update-status':
-      newState.status = action.status
-      break
+      fromNodes = action.fromNodes
+        .map((json: TNodeJson) => NodeUtil.fromJson(json))
+        .concat(action.type === 'reset' ? [] : fromNodes)
+      toNodes = action.toNodes
+        .map((json: TNodeJson) => NodeUtil.fromJson(json))
+        .concat(action.type === 'reset' ? [] : toNodes)
+      return { ...state, bookmark, status, fromNodes, toNodes }
+    }
+    case 'reset-suggested-akin-nodes': {
+      const suggestedAkinNodes = action.suggestedAkinNodes.map(
+        (json: TNodeJson) => NodeUtil.fromJson(json)
+      )
+      return { ...state, suggestedAkinNodes }
+    }
+    case 'update-status': {
+      const status = action.status
+      return { ...state, status }
+    }
   }
-  log.debug('New state', newState)
-  return { ...newState }
 }
 
 export const ViewActiveTabStatus = () => {
@@ -138,10 +127,8 @@ export const ViewActiveTabStatus = () => {
       toNodes: [],
     })
   }
-  log.debug('Render state', state, state.status, state.bookmark)
   let btn
   if (state.status === 'memorable' && state.bookmark == null) {
-    log.debug('Render memorable and no bookmark')
     btn = (
       <ButtonCreate onClick={handleSave}>
         <MdiBookmarkAdd
