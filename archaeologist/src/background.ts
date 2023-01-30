@@ -40,6 +40,7 @@ import {
   makeAlwaysThrowingStorageApi,
   makeDatacenterStorageApi,
   processMsgFromMsgProxyStorageApi,
+  UserAccount,
 } from 'smuggler-api'
 
 import { makeBrowserExtStorageApi } from './storage_api_browser_ext'
@@ -824,17 +825,30 @@ async function initMazedPartsOfTab(
   }
 }
 
-function makeStorageApi(appSettings: AppSettings): StorageApi {
+function makeStorageApi(
+  appSettings: AppSettings,
+  account: UserAccount
+): StorageApi {
   switch (appSettings.storageType) {
     case 'datacenter':
       return makeDatacenterStorageApi()
     case 'browser_ext':
-      return makeBrowserExtStorageApi(browser.storage.local)
+      return makeBrowserExtStorageApi(browser.storage.local, account)
   }
 }
 
 async function initBackground() {
-  storage = makeStorageApi(await getAppSettings(browser.storage.local))
+  auth.observe({
+    onLogin: async (account: UserAccount) => {
+      storage = makeStorageApi(
+        await getAppSettings(browser.storage.local),
+        account
+      )
+    },
+    onLogout: () => {
+      storage = makeAlwaysThrowingStorageApi()
+    },
+  })
 
   browser.runtime.onMessage.addListener(
     async (

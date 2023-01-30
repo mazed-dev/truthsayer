@@ -7,7 +7,8 @@ import {
   UserAccount,
 } from 'smuggler-api'
 import { Knocker, authCookie } from 'smuggler-api'
-import { log, isAbortError } from 'armoury'
+import { log, isAbortError, errorise } from 'armoury'
+import { v4 as uuidv4 } from 'uuid'
 
 // Periodically renew auth token using Knocker
 const _authKnocker = new Knocker(
@@ -60,10 +61,35 @@ const _authKnocker = new Knocker(
 )
 
 let _account: AccountInterface = new AnonymousAccount()
-// External listener for login events
-let _onLoginListener: ((account: UserAccount) => void) | null = null
-// External listener for logout events
-let _onLogoutListener: (() => void) | null = null
+const _listeners: Map<
+  string /*listener ID*/,
+  {
+    // External listener for login events
+    onLogin: (account: UserAccount) => void
+    // External listener for logout events
+    onLogout: () => void
+  }
+> = new Map()
+
+function _onLogin(account: UserAccount) {
+  for (const [_, { onLogin }] of _listeners) {
+    try {
+      onLogin(account)
+    } catch (reason) {
+      log.error(`onLogin listener failed: ${errorise(reason).message}`)
+    }
+  }
+}
+
+function _onLogout() {
+  for (const [_, { onLogout }] of _listeners) {
+    try {
+      onLogout()
+    } catch (reason) {
+      log.error(`onLogin listener failed: ${errorise(reason).message}`)
+    }
+  }
+}
 
 function isAuthenticated(account: AccountInterface): account is UserAccount {
   return account.isAuthenticated()
@@ -91,9 +117,7 @@ async function _loginHandler() {
     if (!_authKnocker.isActive()) {
       await _authKnocker.start({ onKnockFailure })
     }
-    if (_onLoginListener) {
-      _onLoginListener(_account)
-    }
+    _onLogin(_account)
   }
   await badge.setActive(_account.isAuthenticated())
 }
@@ -103,9 +127,7 @@ async function _logoutHandler() {
   _account = new AnonymousAccount()
   await _authKnocker.abort()
   await badge.setActive(false)
-  if (_onLogoutListener) {
-    _onLogoutListener()
-  }
+  _onLogout()
 }
 
 // Actions to do on authorisation token renewal failure (knock of Knocker)
@@ -155,23 +177,16 @@ export function observe({
   onLogin: (account: UserAccount) => void
   onLogout: () => void
 }): () => void {
-  if (_onLoginListener != null || _onLogoutListener != null) {
-    throw new Error(
-      'Background authentication is already being observed, ' +
-        'to observe from multiple places the functionality has to be extended'
-    )
-  }
-  _onLoginListener = onLogin
-  _onLogoutListener = onLogout
+  const listenerId = uuidv4()
+  _listeners.set(uuidv4(), { onLogin, onLogout })
 
   const unregister = () => {
-    _onLoginListener = null
-    _onLogoutListener = null
+    _listeners.delete(listenerId)
   }
 
   try {
     if (isAuthenticated(_account)) {
-      _onLoginListener(_account)
+      onLogin(_account)
     }
   } catch (e) {
     unregister()
@@ -202,12 +217,9 @@ export async function register() {
     browser.cookies.onChanged.removeListener(onChangedCookiesListener)
     await _logoutHandler()
     try {
-      if (_onLogoutListener) {
-        _onLogoutListener()
-      }
+      _onLogout()
     } finally {
-      _onLoginListener = null
-      _onLogoutListener = null
+      _listeners.clear()
     }
   }
 }
