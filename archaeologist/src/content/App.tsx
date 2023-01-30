@@ -307,7 +307,12 @@ async function handleReadOnlyRequest(
           quoteNids: quotes.map((node) => node.nid),
         }
       }
-      return { type: 'PAGE_ALREADY_SAVED' }
+      return {
+        type: 'PAGE_ALREADY_SAVED',
+        bookmark: NodeUtil.toJson(state.bookmark),
+        toNodes: state.toNodes.map((n) => NodeUtil.toJson(n)),
+        fromNodes: state.fromNodes.map((n) => NodeUtil.toJson(n)),
+      }
     case 'REQUEST_SELECTED_WEB_QUOTE': {
       const lang = document.documentElement.lang
       return {

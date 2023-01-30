@@ -23,12 +23,17 @@
  * ┌───────────┐
  * │ From node │
  * └───────────┘▶
+ * Likely related (1)
+ *     ▶┌──────────────┐
+ *      │ Related node │
+ *      └──────────────┘
  */
 import React from 'react'
 import styled from '@emotion/styled'
 
 import type { TNode } from 'smuggler-api'
 import { NodeCard } from './NodeCard'
+import { Spinner } from 'elementary'
 
 const Box = styled.div`
   display: block;
@@ -105,40 +110,89 @@ const sortNodesByCreationTimeLatestFirst = (a: TNode, b: TNode) => {
   return -1
 }
 
+const BookmarkCard = ({ bookmark }: { bookmark?: TNode }) => {
+  return bookmark == null ? null : (
+    <BookmarkRow key={bookmark?.nid}>
+      <PopUpBookmarkCard node={bookmark} key={bookmark.nid} />
+    </BookmarkRow>
+  )
+}
+
+const ToNodesCards = ({ toNodes }: { toNodes: TNode[] }) => {
+  return (
+    <>
+      {toNodes.sort(sortNodesByCreationTimeLatestFirst).map((node: TNode) => (
+        <RightCardRow key={node.nid}>
+          <PopUpToNodeCard node={node} />
+        </RightCardRow>
+      ))}
+    </>
+  )
+}
+
+const FromNodesCards = ({ fromNodes }: { fromNodes: TNode[] }) => {
+  return (
+    <>
+      {fromNodes.sort(sortNodesByCreationTimeLatestFirst).map((node: TNode) => (
+        <LeftCardRow key={node.nid}>
+          <PopUpFromNodeCard node={node} />
+        </LeftCardRow>
+      ))}
+    </>
+  )
+}
+
+const SuggestedHeader = styled.div`
+  position: relative;
+  margin-top: 16px;
+  margin-bottom: 10px;
+  width: 100%;
+`
+const SuggestedTitle = styled.span`
+  font-style: italic;
+  color: #9f9f9f;
+`
+const SuggestedAkinNodes = ({
+  suggestedAkinNodes,
+}: {
+  suggestedAkinNodes?: TNode[]
+}) => {
+  if (suggestedAkinNodes == null) {
+    return <Spinner.Wheel />
+  }
+  return (
+    <>
+      <SuggestedHeader>
+        <SuggestedTitle>
+          🪄 Likely related ({suggestedAkinNodes.length})
+        </SuggestedTitle>
+      </SuggestedHeader>
+      {suggestedAkinNodes.map((node: TNode) => (
+        <RightCardRow key={node.nid}>
+          <PopUpToNodeCard node={node} />
+        </RightCardRow>
+      ))}
+    </>
+  )
+}
+
 export const PageRelatedCards = ({
   bookmark,
   fromNodes,
   toNodes,
+  suggestedAkinNodes,
 }: {
   bookmark: TNode | undefined
   fromNodes: TNode[]
   toNodes: TNode[]
+  suggestedAkinNodes?: TNode[]
 }) => {
-  const bookmarkCard =
-    bookmark == null ? null : (
-      <BookmarkRow key={bookmark?.nid}>
-        <PopUpBookmarkCard node={bookmark} key={bookmark.nid} />
-      </BookmarkRow>
-    )
-  const toNodesCards = toNodes
-    .sort(sortNodesByCreationTimeLatestFirst)
-    .map((node: TNode) => (
-      <RightCardRow key={node.nid}>
-        <PopUpToNodeCard node={node} />
-      </RightCardRow>
-    ))
-  const fromNodesCards = fromNodes
-    .sort(sortNodesByCreationTimeLatestFirst)
-    .map((node: TNode) => (
-      <LeftCardRow key={node.nid}>
-        <PopUpFromNodeCard node={node} />
-      </LeftCardRow>
-    ))
   return (
     <Box>
-      {bookmarkCard}
-      {toNodesCards}
-      {fromNodesCards}
+      <BookmarkCard bookmark={bookmark} />
+      <ToNodesCards toNodes={toNodes} />
+      <FromNodesCards fromNodes={fromNodes} />
+      <SuggestedAkinNodes suggestedAkinNodes={suggestedAkinNodes} />
     </Box>
   )
 }
