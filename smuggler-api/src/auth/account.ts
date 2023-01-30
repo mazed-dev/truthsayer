@@ -67,7 +67,7 @@ export class UserAccount extends AnonymousAccount {
     return this._lc
   }
 
-  isAuthenticated(): boolean {
+  isAuthenticated(): true {
     return true
   }
 }
