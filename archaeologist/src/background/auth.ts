@@ -178,7 +178,7 @@ export function observe({
   onLogout: () => void
 }): () => void {
   const listenerId = uuidv4()
-  _listeners.set(uuidv4(), { onLogin, onLogout })
+  _listeners.set(listenerId, { onLogin, onLogout })
 
   const unregister = () => {
     _listeners.delete(listenerId)
