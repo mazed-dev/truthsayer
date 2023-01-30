@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 
 import { withRouter } from 'react-router-dom'
 import { goto } from '../lib/route'
-import { authentication } from 'smuggler-api'
+import { authCookie, authentication } from 'smuggler-api'
 
 import { MzdGlobalContext } from './../lib/global'
 
@@ -23,9 +23,7 @@ class Logout extends React.Component {
   }
 
   componentDidMount() {
-    const account = this.context.account
-    const isAuthenticated = account != null && account.isAuthenticated()
-    if (isAuthenticated) {
+    if (this.context.account != null) {
       authentication.session
         .delete({
           signal: this.fetchAbortController.signal,
@@ -33,6 +31,7 @@ class Logout extends React.Component {
         .catch(this.handleError)
         .then((res) => {
           if (res != null) {
+            authCookie.veil.drop()
             // for some reason proper redirect with history doesn't work here
             goto.notice.seeYou({})
           } else {

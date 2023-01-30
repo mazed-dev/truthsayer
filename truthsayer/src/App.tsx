@@ -7,7 +7,6 @@ import {
   Redirect,
   Route,
   Switch,
-  useLocation,
   useParams,
   RouteProps,
   useHistory,
@@ -45,7 +44,7 @@ import { Export } from './export/Export'
 import { AppsList } from './apps-list/AppsList'
 import { AppHead } from './AppHead'
 
-import { MzdGlobal, MzdGlobalContext } from './lib/global'
+import { MzdGlobal } from './lib/global'
 import {
   TermsOfService,
   CookiePolicy,
@@ -68,11 +67,11 @@ function isAuthenticated(account: AccountInterface): account is UserAccount {
 
 export function App() {
   return (
-    <div>
+    <>
       <KnockerElement />
       <AppHead />
       <AppRouter />
-    </div>
+    </>
   )
 }
 

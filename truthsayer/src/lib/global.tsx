@@ -3,8 +3,6 @@ import React from 'react'
 import { Button } from 'react-bootstrap'
 import { PostHog } from 'posthog-js'
 
-import { KnockerElement } from '../auth/Knocker'
-
 import { jcss } from 'elementary'
 import {
   AccountInterface,
@@ -56,7 +54,7 @@ function makeStorageApi(appSettings: AppSettings): StorageApi {
 }
 
 export type MzdGlobalContextProps = {
-  account: null | AccountInterface
+  account: null | UserAccount
   toaster: Toaster
   storage: StorageApi
   analytics: PostHog | null
