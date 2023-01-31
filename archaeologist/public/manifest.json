@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Mazed",
-  "author": "Thread knowledge",
-  "version": "0.2.3",
-  "description": "Quick and easy access to your online history",
+  "author": "ASG Mazed Inc",
+  "version": "0.2.4",
+  "description": "Mazed is your personal communications expert",
   "homepage_url": "https://mazed.se",
   "action": {
     "default_icon": {
