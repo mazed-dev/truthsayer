@@ -72,7 +72,7 @@ const _listeners: Map<
 > = new Map()
 
 function _onLogin(account: UserAccount) {
-  for (const [_, { onLogin }] of _listeners) {
+  for (const { onLogin } of _listeners.values()) {
     try {
       onLogin(account)
     } catch (reason) {
@@ -82,7 +82,7 @@ function _onLogin(account: UserAccount) {
 }
 
 function _onLogout() {
-  for (const [_, { onLogout }] of _listeners) {
+  for (const { onLogout } of _listeners.values()) {
     try {
       onLogout()
     } catch (reason) {
