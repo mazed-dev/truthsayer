@@ -7,7 +7,6 @@ import {
   Redirect,
   Route,
   Switch,
-  useLocation,
   useParams,
   RouteProps,
   useHistory,
@@ -17,6 +16,7 @@ import { css } from '@emotion/react'
 
 import { Card, Button, Container } from 'react-bootstrap'
 import { PostHog } from 'posthog-js'
+import { useAsyncEffect } from 'use-async-effect'
 
 import { Triptych } from './card/Triptych'
 import { SearchGridView } from './grid/SearchGridView'
@@ -33,7 +33,6 @@ import WaitingForApproval from './account/create/WaitingForApproval'
 import { GoToInboxToConfirmEmail } from './account/create/GoToInboxToConfirmEmail'
 import UserPreferences from './auth/UserPreferences'
 import { LandingPage } from './landing-page/LandingPage'
-import { PublicPage } from './public-page/PublicPage'
 import {
   TruthsayerPath,
   PasswordRecoverFormUrlParams,
@@ -45,7 +44,7 @@ import { Export } from './export/Export'
 import { AppsList } from './apps-list/AppsList'
 import { AppHead } from './AppHead'
 
-import { MzdGlobal, MzdGlobalContext } from './lib/global'
+import { MzdGlobal } from './lib/global'
 import {
   TermsOfService,
   CookiePolicy,
@@ -54,26 +53,164 @@ import {
 } from './public-page/legal/Index'
 import { log, productanalytics } from 'armoury'
 import { ApplicationSettings } from './AppSettings'
+import {
+  AccountInterface,
+  authCookie,
+  createUserAccount,
+  UserAccount,
+} from 'smuggler-api'
+import { KnockerElement } from './auth/Knocker'
+
+function isAuthenticated(account: AccountInterface): account is UserAccount {
+  return account.isAuthenticated()
+}
 
 export function App() {
-  const analytics = React.useMemo<PostHog | null>(
-    () => productanalytics.make('truthsayer', process.env.NODE_ENV),
-    []
-  )
   return (
-    <MzdGlobal analytics={analytics}>
+    <>
+      <KnockerElement />
       <AppHead />
       <AppRouter />
-    </MzdGlobal>
+    </>
   )
 }
 
 function AppRouter() {
+  const analytics = React.useMemo<PostHog | null>(
+    () => productanalytics.make('truthsayer', process.env.NODE_ENV),
+    []
+  )
+
+  const [account, setAccount] = React.useState<UserAccount | null>(null)
+  useAsyncEffect(async () => {
+    if (account != null) {
+      return
+    }
+    const acc = await createUserAccount()
+    if (!isAuthenticated(acc)) {
+      log.warning(
+        "Failed to initialise user account, most functionality won't work until the page reloads"
+      )
+      return
+    }
+    log.info('Initialised an authenticated user account')
+    setAccount(acc)
+  }, [])
+
+  const publicOnlyRoutes = [
+    <TruthsayerRoute key={'mzd-pubonly-route-0'} exact path="/">
+      <LandingPage />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-pubonly-route-1'} path={'/login'}>
+      <Login />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-pubonly-route-2'} path={'/signup'}>
+      <Signup />
+    </TruthsayerRoute>,
+    <TruthsayerRoute
+      key={'mzd-pubonly-route-3'}
+      path="/password-recover-request"
+    >
+      <PasswordRecoverRequest />
+    </TruthsayerRoute>,
+    <TruthsayerRoute
+      key={'mzd-pubonly-route-4'}
+      path="/password-recover-reset/:token"
+    >
+      <PasswordRecoverFormView />
+    </TruthsayerRoute>,
+    <Route key={'mzd-pubonly-route-5'} path="*">
+      <Redirect to={{ pathname: '/' }} />
+    </Route>,
+  ]
+
+  const publicRoutes = [
+    <TruthsayerRoute
+      key={'mzd-pub-route-0'}
+      path="/account/create/waiting-for-approval"
+    >
+      <WaitingForApproval path="/account/create/waiting-for-approval" />
+    </TruthsayerRoute>,
+    <TruthsayerRoute
+      key={'mzd-pub-route-1'}
+      path="/account/create/go-to-inbox-to-confirm-email"
+    >
+      <GoToInboxToConfirmEmail />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-pub-route-2'} path="/apps-to-install">
+      <AppsList />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-pub-route-3'} path="/help">
+      <HelpInfo />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-pub-route-4'} path="/about">
+      <About />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-pub-route-5'} path="/contacts">
+      <ContactUs />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-pub-route-6'} path="/notice/:page">
+      <Notice />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-pub-route-7'} path="/cookie-policy">
+      <CookiePolicy />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-pub-route-8'} path="/privacy-policy">
+      <PrivacyPolicy />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-pub-route-9'} path="/terms-of-service">
+      <TermsOfService />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-pub-route-10'} exact path={'/empty'} />,
+  ]
+
+  const privateRoutes = [
+    <TruthsayerRoute key={'mzd-private-route-0'} exact path="/">
+      <Redirect to={{ pathname: '/search' }} />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-private-route-1'} path={'/search'}>
+      <SearchGridView />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-private-route-2'} path="/account">
+      <AccountView />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-private-route-3'} path="/user-preferences">
+      <UserPreferences />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-private-route-4'} path="/external-import">
+      <ExternalImport
+        browserHistoryImportConfig={{ modes: ['untracked', 'resumable'] }}
+      />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-private-route-5'} path="/export">
+      <Export />
+    </TruthsayerRoute>,
+    <TruthsayerRoute
+      key={'mzd-private-route-6'}
+      path="/password-recover-change"
+    >
+      <PasswordChange />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-private-route-7'} path={'/n/:nid'}>
+      <TriptychView />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-private-route-8'} path="/settings">
+      <ApplicationSettings />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-pub-route-9'} path={'/logout'}>
+      <Logout />
+    </TruthsayerRoute>,
+  ]
+
+  const authorisationLikelyComplete = authCookie.veil.check()
+
   return (
     <Router>
-      <PageviewEventTracker />
+      {analytics != null ? (
+        <PageviewEventTracker analytics={analytics} />
+      ) : null}
       <CookiePolicyPopUp />
-      <GlobalNavBar />
+      {account != null ? <GlobalNavBar /> : null}
       <Container
         fluid
         className="app_content"
@@ -97,182 +234,26 @@ function AppRouter() {
         `}
       >
         <Switch>
-          <Route exact path="/">
-            <MainView />
-          </Route>
-          <Route path={'/logout'}>
-            <Logout />
-          </Route>
-          <PublicOnlyRoute path={'/login'}>
-            <Login />
-          </PublicOnlyRoute>
-          <PublicOnlyRoute path={'/signup'}>
-            <Signup />
-          </PublicOnlyRoute>
-          <PublicRoute path="/account/create/waiting-for-approval">
-            <WaitingForApproval path="/account/create/waiting-for-approval" />
-          </PublicRoute>
-          <PublicRoute path="/account/create/go-to-inbox-to-confirm-email">
-            <GoToInboxToConfirmEmail />
-          </PublicRoute>
-          <PrivateRoute path={'/search'}>
-            <SearchGridView />
-          </PrivateRoute>
-          <PublicRoute path={'/n/:nid'}>
-            <TriptychView />
-          </PublicRoute>
-          <PrivateRoute path="/account">
-            <AccountView />
-          </PrivateRoute>
-          <PrivateRoute path="/user-preferences">
-            <UserPreferences />
-          </PrivateRoute>
-          <PrivateRoute path="/external-import">
-            <ExternalImport
-              browserHistoryImportConfig={{ modes: ['untracked', 'resumable'] }}
-            />
-          </PrivateRoute>
-          <PrivateRoute path="/export">
-            <Export />
-          </PrivateRoute>
-          <PublicRoute path="/settings">
-            <ApplicationSettings />
-          </PublicRoute>
-          <PublicRoute path="/apps-to-install">
-            <AppsList />
-          </PublicRoute>
-          <PublicRoute path="/help">
-            <HelpInfo />
-          </PublicRoute>
-          <PublicRoute path="/about">
-            <About />
-          </PublicRoute>
-          <PublicRoute path="/contacts">
-            <ContactUs />
-          </PublicRoute>
-          <PublicOnlyRoute path="/password-recover-request">
-            <PasswordRecoverRequest />
-          </PublicOnlyRoute>
-          <PublicOnlyRoute path="/password-recover-reset/:token">
-            <PasswordRecoverFormView />
-          </PublicOnlyRoute>
-          <PrivateRoute path="/password-recover-change">
-            <PasswordChange />
-          </PrivateRoute>
-          <PublicRoute path="/notice/:page">
-            <Notice />
-          </PublicRoute>
-          <PublicRoute path="/cookie-policy">
-            <CookiePolicy />
-          </PublicRoute>
-          <PublicRoute path="/privacy-policy">
-            <PrivacyPolicy />
-          </PublicRoute>
-          <PublicRoute path="/terms-of-service">
-            <TermsOfService />
-          </PublicRoute>
-          <PublicRoute exact path={'/empty'} />
-          <Route path="*">
-            <Redirect to={{ pathname: '/' }} />
-          </Route>
+          {publicRoutes}
+          {authorisationLikelyComplete ? (
+            account != null ? (
+              <MzdGlobal analytics={analytics} account={account}>
+                {privateRoutes}
+              </MzdGlobal>
+            ) : (
+              <Loader size={'large'} />
+            )
+          ) : (
+            publicOnlyRoutes
+          )}
         </Switch>
       </Container>
     </Router>
   )
 }
 
-/**
- * Route available only for logged-in users
- */
-function PrivateRoute({
-  children,
-  ...rest
-}: RouteProps & { path: TruthsayerPath }) {
-  const location = useLocation()
-  const ctx = useContext(MzdGlobalContext)
-  const account = ctx.account
-  if (account == null) {
-    return <Loader size={'large'} />
-  }
-  const isAuthenticated = account.isAuthenticated()
-  if (isAuthenticated) {
-    return <Route {...rest}>{children}</Route>
-  } else {
-    return (
-      <Redirect
-        to={{
-          pathname: '/',
-          state: { from: location },
-        }}
-      />
-    )
-  }
-}
-
-/**
- * Route available only for anonymous users
- */
-function PublicOnlyRoute({
-  children,
-  ...rest
-}: RouteProps & { path: TruthsayerPath }) {
-  const location = useLocation()
-  const ctx = useContext(MzdGlobalContext)
-  const account = ctx.account
-  if (account == null) {
-    return <Loader size={'large'} />
-  }
-  const isAuthenticated = account.isAuthenticated()
-  if (!isAuthenticated) {
-    return (
-      <Route {...rest}>
-        <PublicPage>{children}</PublicPage>
-      </Route>
-    )
-  } else {
-    return (
-      <Redirect
-        to={{
-          pathname: '/',
-          state: { from: location },
-        }}
-      />
-    )
-  }
-}
-
-/**
- * Route available for both anonymous and logged-in users
- */
-function PublicRoute({
-  children,
-  ...rest
-}: RouteProps & { path: TruthsayerPath }) {
-  const ctx = useContext(MzdGlobalContext)
-  const account = ctx.account
-  if (account == null || !account.isAuthenticated()) {
-    return (
-      <Route {...rest}>
-        <PublicPage>{children}</PublicPage>
-      </Route>
-    )
-  } else {
-    return <Route {...rest}>{children}</Route>
-  }
-}
-
-function MainView() {
-  const ctx = useContext(MzdGlobalContext)
-  const account = ctx.account
-  if (account == null) {
-    return <Loader size={'large'} />
-  }
-  const isAuthenticated = account.isAuthenticated()
-  if (isAuthenticated) {
-    return <Redirect to={{ pathname: '/search' }} />
-  } else {
-    return <LandingPage />
-  }
+function TruthsayerRoute(props: RouteProps & { path: TruthsayerPath }) {
+  return <Route {...props} />
 }
 
 function HelpInfo() {
@@ -340,20 +321,12 @@ function TriptychView() {
 }
 
 // Based on https://www.sheshbabu.com/posts/automatic-pageview-tracking-using-react-router/
-function PageviewEventTracker() {
-  const ctx = useContext(MzdGlobalContext)
+function PageviewEventTracker({ analytics }: { analytics: PostHog }) {
   const track = useCallback(() => {
-    if (!ctx.analytics) {
-      log.warning(
-        `No product analytics initialised yet, pageview event won't be reported`
-      )
-      return
-    }
-
     // See https://posthog.com/docs/integrate/client/js#one-page-apps-and-page-views
     // for more information about pageview events in PostHog
-    ctx.analytics.capture('$pageview')
-  }, [ctx])
+    analytics.capture('$pageview')
+  }, [])
 
   const history = useHistory()
   React.useEffect(() => {
