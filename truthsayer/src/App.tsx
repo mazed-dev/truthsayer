@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useCallback, useContext } from 'react'
+import React, { useCallback } from 'react'
 
 import {
   BrowserRouter as Router,
@@ -326,7 +326,7 @@ function PageviewEventTracker({ analytics }: { analytics: PostHog }) {
     // See https://posthog.com/docs/integrate/client/js#one-page-apps-and-page-views
     // for more information about pageview events in PostHog
     analytics.capture('$pageview')
-  }, [])
+  }, [analytics])
 
   const history = useHistory()
   React.useEffect(() => {
