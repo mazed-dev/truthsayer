@@ -43,6 +43,7 @@ import type {
   ExternalIngestionAdvanceArgs,
   ExternalIngestionGetArgs,
   NodeGetAllNidsArgs,
+  NodeBulkDeleteArgs,
 } from 'smuggler-api'
 import {
   INodeIterator,
@@ -70,10 +71,20 @@ type GenericYek<Kind extends string, Key> = {
 // TODO[snikitin@outlook.com] Describe that "lav" is "val" (short for "value")
 // in reverse, used to distinguish typesafe keys from just "any" JSON value used
 // in browser.Storage.StorageArea
-type GenericLav<Kind extends string, Value> = {
+type GenericLav<Kind extends string, Value, Auxiliary = undefined> = {
   lav: {
     kind: Kind
     value: Value
+    /**
+     * Additional data which due to various reasons (such as historical)
+     * are not part of the core @see Value structure, but storing it alongside
+     * is helpful for implementation of @see StorageApi.
+     * As an alternative to a separate 'auxiliary' field, @see Value could
+     * be augmented with extra fields itself, but that is avoided deliberately
+     * to reduce chances of this "service" data leaking outside the StorageApi
+     * implementation.
+     */
+    auxiliary?: Auxiliary
   }
 }
 
@@ -81,7 +92,7 @@ type AllNidsYek = GenericYek<'all-nids', undefined>
 type AllNidsLav = GenericLav<'all-nids', Nid[]>
 
 type NidToNodeYek = GenericYek<'nid->node', Nid>
-type NidToNodeLav = GenericLav<'nid->node', TNodeJson>
+type NidToNodeLav = GenericLav<'nid->node', TNodeJson, { origin: OriginId }>
 
 type OriginToNidYek = GenericYek<'origin->nid', OriginId>
 type OriginToNidLav = GenericLav<'origin->nid', Nid[]>
@@ -92,11 +103,20 @@ type NidToEdgeLav = GenericLav<'nid->edge', TEdgeJson[]>
 type OriginToActivityYek = GenericYek<'origin->activity', OriginId>
 type OriginToActivityLav = GenericLav<'origin->activity', TotalUserActivity>
 
-type ExtPipelineYek = GenericYek<'ext-pipe->progress', UserExternalPipelineId>
+type ExtPipelineYek = GenericYek<
+  'ext-pipe-id->progress',
+  UserExternalPipelineId
+>
 type ExtPipelineLav = GenericLav<
-  'ext-pipe->progress',
+  'ext-pipe-id->progress',
   Omit<UserExternalPipelineIngestionProgress, 'epid'>
 >
+
+type ExtPipelineToNidYek = GenericYek<
+  'ext-pipe-id->nid',
+  UserExternalPipelineId
+>
+type ExtPipelineToNidLav = GenericLav<'ext-pipe-id->nid', Nid[]>
 
 type Yek =
   | AllNidsYek
@@ -105,6 +125,7 @@ type Yek =
   | NidToEdgeYek
   | OriginToActivityYek
   | ExtPipelineYek
+  | ExtPipelineToNidYek
 type Lav =
   | AllNidsLav
   | NidToNodeLav
@@ -112,12 +133,13 @@ type Lav =
   | NidToEdgeLav
   | OriginToActivityLav
   | ExtPipelineLav
+  | ExtPipelineToNidLav
 
 type YekLav = { yek: Yek; lav: Lav }
 
 function isOfArrayKind(
   lav: Lav
-): lav is OriginToNidLav | NidToEdgeLav | AllNidsLav {
+): lav is OriginToNidLav | NidToEdgeLav | AllNidsLav | ExtPipelineToNidLav {
   return Array.isArray(lav.lav.value)
 }
 
@@ -162,6 +184,7 @@ class YekLavStore {
   get(yek: NidToNodeYek[]): Promise<NidToNodeLav[]>
   get(yek: OriginToActivityYek): Promise<OriginToActivityLav | undefined>
   get(yek: ExtPipelineYek): Promise<ExtPipelineLav | undefined>
+  get(yek: ExtPipelineToNidYek): Promise<ExtPipelineToNidLav | undefined>
   get(yek: Yek): Promise<Lav | undefined>
   get(yek: Yek | Yek[]): Promise<Lav | Lav[] | undefined> {
     if (Array.isArray(yek)) {
@@ -211,6 +234,13 @@ class YekLavStore {
     yek: NidToEdgeYek
     lav: NidToEdgeLav
   }>
+  async prepareAppend(
+    yek: ExtPipelineToNidYek,
+    lav: ExtPipelineToNidLav
+  ): Promise<{
+    yek: ExtPipelineToNidYek
+    lav: ExtPipelineToNidLav
+  }>
   async prepareAppend(yek: Yek, appended_lav: Lav): Promise<YekLav> {
     if (yek.yek.kind !== appended_lav.lav.kind) {
       throw new Error(
@@ -238,6 +268,96 @@ class YekLavStore {
     }
   }
 
+  async remove(yeks: Yek[]): Promise<void> {
+    return this.store.remove(yeks.map(this.stringify))
+  }
+
+  async prepareRemoval(
+    yek: AllNidsYek,
+    criteria: Nid[]
+  ): Promise<{
+    yek: AllNidsYek
+    lav: AllNidsLav
+  }>
+  async prepareRemoval(
+    yek: OriginToNidYek,
+    criteria: Nid[]
+  ): Promise<{
+    yek: OriginToNidYek
+    lav: OriginToNidLav
+  }>
+  async prepareRemoval(
+    yek: NidToEdgeYek,
+    criteria: Nid[]
+  ): Promise<{
+    yek: OriginToNidYek
+    lav: OriginToNidLav
+  }>
+  /**
+   *
+   * @param yek A yek that points to a lav from which the data should be removed
+   * @param criteria Criteria (similar to a predicate) of which values should
+   * be removed from a lav assosiated with the input yek
+   */
+  async prepareRemoval(yek: Yek, criteria: Nid[]): Promise<YekLav> {
+    const lav = await this.get(yek)
+    if (lav != null && !isOfArrayKind(lav)) {
+      throw new Error(`prepareRemoval only works/makes sense for arrays`)
+    }
+    const isNidArray = (
+      kind: typeof yek.yek.kind,
+      _criteria: any[]
+    ): _criteria is Nid[] => {
+      return kind === 'all-nids' || kind === 'origin->nid'
+    }
+    const isTEdgeJsonArray = (
+      kind: typeof yek.yek.kind,
+      _criteria: any[]
+    ): _criteria is TEdgeJson[] => {
+      return kind === 'nid->edge'
+    }
+
+    const value = lav?.lav.value ?? []
+    switch (yek.yek.kind) {
+      case 'all-nids':
+      case 'origin->nid': {
+        if (!isNidArray(yek.yek.kind, value)) {
+          throw new Error(
+            'Fallen into prepareRemoval case which works only for arrays of ' +
+              `Nids while processing a non-Nid '${yek.yek.kind}' kind`
+          )
+        }
+        lodash.remove(value, (nid: Nid) => criteria.indexOf(nid) !== -1)
+        break
+      }
+      case 'nid->edge': {
+        if (!isTEdgeJsonArray(yek.yek.kind, value)) {
+          throw new Error(
+            'Fallen into prepareRemoval case which works only for arrays of ' +
+              `TEdgeJson while processing a non-edge '${yek.yek.kind}' kind`
+          )
+        }
+        lodash.remove(
+          value,
+          (edge: TEdgeJson) =>
+            criteria.indexOf(edge.from_nid) !== -1 ||
+            criteria.indexOf(edge.to_nid) !== -1
+        )
+        break
+      }
+    }
+    return {
+      yek,
+      lav: {
+        // @ts-ignore Types of property 'kind' are incompatible
+        lav: {
+          kind: yek.yek.kind,
+          value,
+        },
+      },
+    }
+  }
+
   private stringify(yek: Yek): string {
     switch (yek.yek.kind) {
       case 'all-nids':
@@ -250,8 +370,10 @@ class YekLavStore {
         return 'nid->edge:' + yek.yek.key
       case 'origin->activity':
         return 'origin->activity:' + yek.yek.key.id
-      case 'ext-pipe->progress':
+      case 'ext-pipe-id->progress':
         return 'ext-pipe:' + yek.yek.key.pipeline_key
+      case 'ext-pipe-id->nid':
+        return 'ext-pipe-id->nid:' + yek.yek.key.pipeline_key
     }
   }
 }
@@ -280,9 +402,6 @@ async function createNode(
   store: YekLavStore,
   args: NodeCreateArgs
 ): Promise<NewNodeResponse> {
-  // TODO[snikitin@outlook.com] Below keys must become functional somehow.
-  // const _created_via: NodeCreatedVia | undefined = args.created_via
-
   // TODO[snikitin@outlook.com] This graph structure has to work somehow
   const from_nid: Nid[] = args.from_nid ?? []
   const to_nid: Nid[] = args.to_nid ?? []
@@ -299,6 +418,7 @@ async function createNode(
     created_at: createdAt,
     updated_at: createdAt,
   }
+  const origin = args.origin
 
   let records: YekLav[] = [
     await store.prepareAppend(
@@ -307,11 +427,17 @@ async function createNode(
     ),
     {
       yek: { yek: { kind: 'nid->node', key: node.nid } },
-      lav: { lav: { kind: 'nid->node', value: node } },
+      lav: {
+        lav: {
+          kind: 'nid->node',
+          value: node,
+          auxiliary: origin != null ? { origin } : undefined,
+        },
+      },
     },
   ]
 
-  if (args.origin) {
+  if (args.origin != null) {
     const yek: OriginToNidYek = {
       yek: { kind: 'origin->nid', key: args.origin },
     }
@@ -319,6 +445,19 @@ async function createNode(
       lav: { kind: 'origin->nid', value: [node.nid] },
     }
     records.push(await store.prepareAppend(yek, lav))
+  }
+
+  if (args.created_via != null) {
+    if ('autoIngestion' in args.created_via) {
+      const epid = args.created_via.autoIngestion
+      const yek: ExtPipelineToNidYek = {
+        yek: { kind: 'ext-pipe-id->nid', key: epid },
+      }
+      const lav: ExtPipelineToNidLav = {
+        lav: { kind: 'ext-pipe-id->nid', value: [node.nid] },
+      }
+      records.push(await store.prepareAppend(yek, lav))
+    }
   }
 
   if (from_nid.length > 0 || to_nid.length > 0) {
@@ -443,6 +582,102 @@ async function updateNode(
     index_text: args.index_text,
   })
   return { ack: true }
+}
+
+async function bulkdDeleteNodes(
+  store: YekLavStore,
+  args: NodeBulkDeleteArgs
+): Promise<number /* number of nodes deleted */> {
+  if (!('autoIngestion' in args.createdVia)) {
+    throw new Error(
+      `Tried to bulk-delete nodes via an unimplemented criteria: ${JSON.stringify(
+        args.createdVia
+      )}`
+    )
+  }
+  const epid: UserExternalPipelineId = args.createdVia.autoIngestion
+
+  const yeksToRemove: Yek[] = []
+  const recordsToSet: YekLav[] = []
+  {
+    // Remove traces of impacted external pipeline ID
+    const yek: ExtPipelineYek = {
+      yek: { kind: 'ext-pipe-id->progress', key: epid },
+    }
+    yeksToRemove.push(yek)
+  }
+  let nids: Nid[] = []
+  {
+    // Remove traces of impacted external pipeline ID
+    const yek: ExtPipelineToNidYek = {
+      yek: { kind: 'ext-pipe-id->nid', key: epid },
+    }
+    yeksToRemove.push(yek)
+
+    nids = (await store.get(yek))?.lav.value ?? []
+  }
+  // Remove nodes themselves
+  yeksToRemove.push(
+    ...nids.map((nid): NidToNodeYek => {
+      return { yek: { kind: 'nid->node', key: nid } }
+    })
+  )
+  {
+    // Remove edges of impacted nodes
+    yeksToRemove.push(
+      ...nids.map((nid): NidToEdgeYek => {
+        return { yek: { kind: 'nid->edge', key: nid } }
+      })
+    )
+
+    // Remove the bi-directional copies of the removed edges
+    for (const removedNid of nids) {
+      const yek: NidToEdgeYek = { yek: { kind: 'nid->edge', key: removedNid } }
+      const edges: TEdgeJson[] = (await store.get(yek))?.lav.value ?? []
+      const linkedNids: Nid[] = edges.map((edge) =>
+        edge.from_nid === removedNid ? edge.to_nid : edge.from_nid
+      )
+      for (const linkedNid of linkedNids) {
+        const linkedYek: NidToEdgeYek = {
+          yek: { kind: 'nid->edge', key: linkedNid },
+        }
+        recordsToSet.push(await store.prepareRemoval(linkedYek, [removedNid]))
+      }
+    }
+  }
+
+  {
+    // Remove nids from 'all-nids' array
+    recordsToSet.push(
+      await store.prepareRemoval(
+        { yek: { kind: 'all-nids', key: undefined } },
+        nids
+      )
+    )
+  }
+  {
+    // Remove nids from their respective 'origin->nid' arrays
+    const isNotUndefined = (value: YekLav | undefined): value is YekLav =>
+      value != null
+    const yeklavs: YekLav[] = await Promise.all(
+      nids.map(async (nid): Promise<YekLav | undefined> => {
+        const origin: OriginId | undefined = (
+          await store.get({ yek: { kind: 'nid->node', key: nid } })
+        )?.lav.auxiliary?.origin
+        return origin != null
+          ? store.prepareRemoval(
+              { yek: { kind: 'origin->nid', key: origin } },
+              [nid]
+            )
+          : undefined
+      })
+    ).then((yeklavs) => yeklavs.filter(isNotUndefined))
+    recordsToSet.push(...yeklavs)
+  }
+  await store.remove(yeksToRemove)
+  await store.set(recordsToSet)
+
+  return nids.length
 }
 
 class Iterator implements INodeIterator {
@@ -597,7 +832,7 @@ async function getUserIngestionProgress(
   { epid }: ExternalIngestionGetArgs
 ): Promise<UserExternalPipelineIngestionProgress> {
   const yek: ExtPipelineYek = {
-    yek: { kind: 'ext-pipe->progress', key: epid },
+    yek: { kind: 'ext-pipe-id->progress', key: epid },
   }
   const lav: ExtPipelineLav | undefined = await store.get(yek)
   if (lav == null) {
@@ -622,10 +857,10 @@ async function advanceUserIngestionProgress(
   progress.ingested_until = new_progress.ingested_until
 
   const yek: ExtPipelineYek = {
-    yek: { kind: 'ext-pipe->progress', key: epid },
+    yek: { kind: 'ext-pipe-id->progress', key: epid },
   }
   const lav: ExtPipelineLav = {
-    lav: { kind: 'ext-pipe->progress', value: progress },
+    lav: { kind: 'ext-pipe-id->progress', value: progress },
   }
   await store.set([{ yek, lav }])
   return { ack: true }
@@ -667,7 +902,7 @@ export function makeBrowserExtStorageApi(
       create: (args: NodeCreateArgs) => createNode(store, args),
       iterate: () => new Iterator(store),
       delete: throwUnimplementedError('node.delete'),
-      bulkDelete: throwUnimplementedError('node.bulkdDelete'),
+      bulkDelete: (args: NodeBulkDeleteArgs) => bulkdDeleteNodes(store, args),
       batch: {
         get: (args: NodeBatchRequestBody) => getNodeBatch(store, args),
       },
