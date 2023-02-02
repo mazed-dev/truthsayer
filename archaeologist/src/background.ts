@@ -838,16 +838,28 @@ function makeStorageApi(
 }
 
 async function initBackground() {
-  auth.observe({
-    onLogin: async (account: UserAccount) => {
-      storage = makeStorageApi(
-        await getAppSettings(browser.storage.local),
-        account
-      )
-    },
-    onLogout: () => {
-      storage = makeAlwaysThrowingStorageApi()
-    },
+  // TODO[snikitin@outlook.com] Below initialisation of StorageApi
+  // is not resilient. When a user logs out it should overwrite
+  // 'storage' to something unusable but instead it does nothing.
+  // Achieving this goal is difficult because it requires to make
+  // the initBackground() procedure fully reversable which involves
+  // tweaks to most parts of the background script.
+  storage = await new Promise((resolve, reject) => {
+    auth.register()
+    const unregister = auth.observe({
+      onLogin: async (account: UserAccount) => {
+        try {
+          resolve(
+            makeStorageApi(await getAppSettings(browser.storage.local), account)
+          )
+        } catch (reason) {
+          reject(reason)
+        } finally {
+          unregister()
+        }
+      },
+      onLogout: () => {},
+    })
   })
 
   browser.runtime.onMessage.addListener(
@@ -1014,7 +1026,6 @@ async function initBackground() {
     }
   )
 
-  auth.register()
   browserBookmarks.register(storage)
   omnibox.register(storage)
   webNavigation.register(storage)
