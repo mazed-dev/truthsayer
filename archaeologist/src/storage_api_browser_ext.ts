@@ -44,6 +44,7 @@ import type {
   ExternalIngestionGetArgs,
   NodeGetAllNidsArgs,
   NodeBulkDeleteArgs,
+  UserAccount,
 } from 'smuggler-api'
 import {
   INodeIterator,
@@ -400,9 +401,9 @@ function generateEid(): Eid {
 
 async function createNode(
   store: YekLavStore,
-  args: NodeCreateArgs
+  args: NodeCreateArgs,
+  account: UserAccount
 ): Promise<NewNodeResponse> {
-  // TODO[snikitin@outlook.com] This graph structure has to work somehow
   const from_nid: Nid[] = args.from_nid ?? []
   const to_nid: Nid[] = args.to_nid ?? []
 
@@ -417,6 +418,9 @@ async function createNode(
     index_text: args.index_text,
     created_at: createdAt,
     updated_at: createdAt,
+    meta: {
+      uid: account.getUid(),
+    },
   }
   const origin = args.origin
 
@@ -465,9 +469,7 @@ async function createNode(
       crtd: createdAt,
       upd: createdAt,
       is_sticky: false,
-      // TODO[snikitin@outlook.com] Evaluate if ownership support is needed
-      // and implement if yes
-      owned_by: 'todo',
+      owned_by: account.getUid(),
     }
     // Step 1: create records that allow to discover connected nodes from the
     // newly created node
@@ -722,12 +724,9 @@ class Iterator implements INodeIterator {
 
 async function createEdge(
   store: YekLavStore,
-  args: EdgeCreateArgs
+  args: EdgeCreateArgs,
+  account: UserAccount
 ): Promise<TEdge> {
-  // TODO[snikitin@outlook.com] Evaluate if ownership support is needed
-  // and implement if yes
-  const owned_by = 'todo'
-
   const createdAt: number = unixtime.now()
   const edge: TEdgeJson = {
     eid: generateEid(),
@@ -736,7 +735,7 @@ async function createEdge(
     crtd: createdAt,
     upd: createdAt,
     is_sticky: false,
-    owned_by,
+    owned_by: account.getUid(),
   }
 
   const items: YekLav[] = []
@@ -880,7 +879,8 @@ export async function getAllNids(
 }
 
 export function makeBrowserExtStorageApi(
-  browserStore: browser.Storage.StorageArea
+  browserStore: browser.Storage.StorageArea,
+  account: UserAccount
 ): StorageApi {
   const store = new YekLavStore(browserStore)
 
@@ -899,7 +899,7 @@ export function makeBrowserExtStorageApi(
       getByOrigin: (args: NodeGetByOriginArgs) => getNodesByOrigin(store, args),
       getAllNids: (args: NodeGetAllNidsArgs) => getAllNids(store, args),
       update: (args: NodeUpdateArgs) => updateNode(store, args),
-      create: (args: NodeCreateArgs) => createNode(store, args),
+      create: (args: NodeCreateArgs) => createNode(store, args, account),
       iterate: () => new Iterator(store),
       delete: throwUnimplementedError('node.delete'),
       bulkDelete: (args: NodeBulkDeleteArgs) => bulkdDeleteNodes(store, args),
@@ -927,7 +927,7 @@ export function makeBrowserExtStorageApi(
       },
     },
     edge: {
-      create: (args: EdgeCreateArgs) => createEdge(store, args),
+      create: (args: EdgeCreateArgs) => createEdge(store, args, account),
       get: (args: EdgeGetArgs) => getNodeAllEdges(store, args),
       sticky: throwUnimplementedError('edge.sticky'),
       delete: throwUnimplementedError('edge.delete'),

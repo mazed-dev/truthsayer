@@ -5,7 +5,6 @@ import { PostHog } from 'posthog-js'
 
 import { jcss } from 'elementary'
 import {
-  AccountInterface,
   makeAlwaysThrowingStorageApi,
   makeDatacenterStorageApi,
   makeMsgProxyStorageApi,
