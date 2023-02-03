@@ -45,6 +45,8 @@ import type {
   NodeGetAllNidsArgs,
   NodeBulkDeleteArgs,
   UserAccount,
+  ResourceVisit,
+  ResourceAttention,
 } from 'smuggler-api'
 import {
   INodeIterator,
@@ -102,7 +104,14 @@ type NidToEdgeYek = GenericYek<'nid->edge', Nid>
 type NidToEdgeLav = GenericLav<'nid->edge', TEdgeJson[]>
 
 type OriginToActivityYek = GenericYek<'origin->activity', OriginId>
-type OriginToActivityLav = GenericLav<'origin->activity', TotalUserActivity>
+type OriginToActivityLav = GenericLav<
+  'origin->activity',
+  {
+    visits: (ResourceVisit & { reported_by?: UserExternalPipelineId })[]
+    attentions: ResourceAttention[]
+    total_seconds_of_attention: number
+  }
+>
 
 type ExtPipelineYek = GenericYek<
   'ext-pipe-id->progress',
@@ -777,35 +786,37 @@ async function addExternalUserActivity(
   store: YekLavStore,
   { origin, activity }: ActivityExternalAddArgs
 ): Promise<TotalUserActivity> {
-  const total: TotalUserActivity = await getExternalUserActivity(store, {
-    origin,
-  })
-  if ('visit' in activity) {
-    if (activity.visit == null) {
-      return total
-    }
-    total.visits = total.visits.concat(activity.visit.visits)
-    if (activity.visit.reported_by != null) {
-      throw new Error(
-        `activity.external.add does not implement support for visit.reported_by yet`
-      )
-    }
-  } else if ('attention' in activity) {
-    if (activity.attention == null) {
-      return total
-    }
-    // TODO[snikitin@outlook.com] What to do with activity.attention.timestamp here?
-    total.seconds_of_attention += activity.attention.seconds
-  }
-
   const yek: OriginToActivityYek = {
     yek: { kind: 'origin->activity', key: origin },
   }
-  const lav: OriginToActivityLav = {
-    lav: { kind: 'origin->activity', value: total },
+  const oldLav: OriginToActivityLav | undefined = await store.get(yek)
+  if (oldLav == null) {
+    return { visits: [], seconds_of_attention: 0 }
   }
-  await store.set([{ yek, lav }])
-  return total
+  const value = oldLav.lav.value
+  if ('visit' in activity && activity.visit != null) {
+    const newVisits: (ResourceVisit & {
+      reported_by?: UserExternalPipelineId
+    })[] = activity.visit.visits.map((visit: ResourceVisit) => {
+      return { ...visit, reported_by: activity.visit?.reported_by }
+    })
+    value.visits = value.visits.concat(newVisits)
+  } else if ('attention' in activity && activity.attention != null) {
+    value.attentions.push(activity.attention)
+    value.total_seconds_of_attention += activity.attention.seconds
+  }
+  else {
+    throw new Error(`Can't add external user activity, invalid request ${JSON.stringify(activity)}`)
+  }
+
+  const newLav: OriginToActivityLav = {
+    lav: { kind: 'origin->activity', value },
+  }
+  await store.set([{ yek, lav: newLav }])
+  return {
+    visits: value.visits,
+    seconds_of_attention: value.total_seconds_of_attention,
+  }
 }
 
 async function getExternalUserActivity(
@@ -822,8 +833,11 @@ async function getExternalUserActivity(
       seconds_of_attention: 0,
     }
   }
-  const value: TotalUserActivity = lav.lav.value
-  return value
+  const value = lav.lav.value
+  return {
+    visits: value.visits,
+    seconds_of_attention: value.total_seconds_of_attention,
+  }
 }
 
 async function getUserIngestionProgress(
