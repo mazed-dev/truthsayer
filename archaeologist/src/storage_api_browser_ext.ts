@@ -633,6 +633,7 @@ async function bulkdDeleteNodes(
       return { yek: { kind: 'nid->node', key: nid } }
     })
   )
+  // eslint-disable-next-line no-lone-blocks
   {
     // Remove edges of impacted nodes
     yeksToRemove.push(
@@ -657,6 +658,7 @@ async function bulkdDeleteNodes(
     }
   }
 
+  // eslint-disable-next-line no-lone-blocks
   {
     // Remove nids from 'all-nids' array
     recordsToSet.push(
@@ -804,9 +806,12 @@ async function addExternalUserActivity(
   } else if ('attention' in activity && activity.attention != null) {
     value.attentions.push(activity.attention)
     value.total_seconds_of_attention += activity.attention.seconds
-  }
-  else {
-    throw new Error(`Can't add external user activity, invalid request ${JSON.stringify(activity)}`)
+  } else {
+    throw new Error(
+      `Can't add external user activity, invalid request ${JSON.stringify(
+        activity
+      )}`
+    )
   }
 
   const newLav: OriginToActivityLav = {
