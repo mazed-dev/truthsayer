@@ -14,14 +14,35 @@ import type {
   StorageApiMsgReturnValue,
 } from 'smuggler-api'
 import { VersionStruct } from '../Version'
+import { log, errorise } from 'armoury'
+
+export type StorageType =
+  | 'datacenter' /** Stores user data in @file storage_api_datacenter.ts */
+  | 'browser_ext' /** Stores user data in @file storage_api_browser_ext.ts */
 
 export type AppSettings = {
-  storageType:
-    | 'datacenter' /** Stores user data in @file storage_api_datacenter.ts */
-    | 'browser_ext' /** Stores user data in @file storage_api_browser_ext.ts */
+  storageType: StorageType
 }
+
 export function defaultSettings(): AppSettings {
   return { storageType: 'datacenter' }
+}
+
+export async function getAppSettings(): Promise<AppSettings> {
+  try {
+    const response = await FromTruthsayer.sendMessage({
+      type: 'GET_APP_SETTINGS_REQUEST',
+    })
+    return response.settings
+  } catch (err) {
+    const defaults = defaultSettings()
+    log.warning(
+      `Failed to get user's app settings,` +
+        ` falling back to ${JSON.stringify(defaults)}; ` +
+        `error - ${errorise(err).message}`
+    )
+    return defaults
+  }
 }
 
 export namespace FromTruthsayer {
