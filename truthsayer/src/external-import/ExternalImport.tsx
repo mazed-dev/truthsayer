@@ -68,7 +68,8 @@ export function ExternalImport({
         </Item>
         <Item key={'data-centre-importer'}>
           <LogoImg src={BrowserHistoryImporterLogo} />
-          <DataCentreImporter/></Item>
+          <DataCentreImporter />
+        </Item>
       </ItemsBox>
     </Box>
   )

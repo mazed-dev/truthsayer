@@ -29,7 +29,9 @@ async function downloadUserDataFromMazedBackend(
   datacenterStorageApi: StorageApi
 ): Promise<void> {
   const oldToNewNids: Map<Nid, Nid> = new Map()
+  log.debug('Creating an iterator...')
   const iter = datacenterStorageApi.node.iterate()
+  log.debug('Done, iterator crated', iter)
   while (true) {
     const node = await iter.next()
     if (node == null) {
@@ -37,6 +39,8 @@ async function downloadUserDataFromMazedBackend(
     }
     const url = node.extattrs?.web?.url ?? node.extattrs?.web_quote?.url
     const origin = url != null ? genOriginId(url) : undefined
+    log.debug('Got node', node, url)
+    log.debug('Saving node to local storage...')
     const r = await localStorageApi.node.create({
       text: node.text,
       index_text: node.index_text,
@@ -45,6 +49,7 @@ async function downloadUserDataFromMazedBackend(
       origin: origin ? { ...origin } : undefined,
       created_at: node.created_at.toDate(),
     })
+    log.debug('Node is saved', r.nid)
     oldToNewNids.set(node.nid, r.nid)
     log.debug('Saved node', node.nid, r.nid)
   }
@@ -83,14 +88,15 @@ export function DownloadUserDataFromMazedBackendControl() {
   })
   const ctx = React.useContext(MzdGlobalContext)
   const sync = React.useCallback(() => {
+    log.debug('Creating datacenter storage interface...')
     const datacenterStorageApi = makeDatacenterStorageApi()
+    log.debug('Done datacenter storage:', datacenterStorageApi)
+    log.debug('Starting the process...')
     downloadUserDataFromMazedBackend(ctx.storage, datacenterStorageApi)
   }, [ctx.storage])
   return (
     <ControlBox>
-      <Title>
-        Download fragments stored in Mazed backend
-      </Title>
+      <Title>Download fragments stored in Mazed backend</Title>
       <BoxButtons>
         <Button
           onClick={() => {
@@ -99,7 +105,13 @@ export function DownloadUserDataFromMazedBackendControl() {
           }}
           disabled={loadingState.type === 'loading'}
         >
-          {loadingState.type === 'loading' ? <>Loading <Spinner.Ring /></> : "Start"}
+          {loadingState.type === 'loading' ? (
+            <>
+              Loading <Spinner.Ring />
+            </>
+          ) : (
+            'Start'
+          )}
         </Button>
       </BoxButtons>
     </ControlBox>
