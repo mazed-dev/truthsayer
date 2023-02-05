@@ -40,7 +40,7 @@ async function downloadUserDataFromMazedBackend(
     const url = node.extattrs?.web?.url ?? node.extattrs?.web_quote?.url
     const origin = url != null ? genOriginId(url) : undefined
     log.debug('Got node', node, url)
-    log.debug('Saving node to local storage...')
+    log.debug('Saving node to local storage...', node.created_at.toDate())
     const r = await localStorageApi.node.create({
       text: node.text,
       index_text: node.index_text,
