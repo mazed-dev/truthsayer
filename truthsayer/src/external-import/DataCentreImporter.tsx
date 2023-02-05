@@ -4,7 +4,7 @@ import { useAsyncEffect } from 'use-async-effect'
 
 import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 import { Spinner } from 'elementary'
-import { genOriginId } from 'armoury'
+import { genOriginId, log } from 'armoury'
 import { makeDatacenterStorageApi, StorageApi, Nid } from 'smuggler-api'
 
 import { getLogoImage } from '../util/env'
@@ -22,16 +22,22 @@ export function NotImplementedMessage() {
 
 async function downloadUserDataFromMazedBackend(
   localStorageApi: StorageApi,
-  datacenterStorageApi: StorageApi
+  datacenterStorageApi: StorageApi,
+  setLoadingState: (value: LoadingState) => void
 ): Promise<void> {
   const oldToNewNids: Map<Nid, Nid> = new Map()
   const iter = datacenterStorageApi.node.iterate()
+  let progressCounter = 0
   // Clone all nodes, saving mapping between { old-nid → new-nid }
   while (true) {
     const node = await iter.next()
     if (node == null) {
       break
     }
+    setLoadingState({
+      type: 'loading',
+      progress: `Downloading fragments (${++progressCounter})...`,
+    })
     const url = node.extattrs?.web?.url ?? node.extattrs?.web_quote?.url
     const origin = url != null ? genOriginId(url) : undefined
     const r = await localStorageApi.node.create({
@@ -45,9 +51,14 @@ async function downloadUserDataFromMazedBackend(
     oldToNewNids.set(node.nid, r.nid)
   }
   // Clone all edges
+  progressCounter = 0
   for (const oldNid of oldToNewNids.keys()) {
     const edges = await datacenterStorageApi.edge.get({ nid: oldNid })
     for (const oldEdge of edges.from_edges.concat(edges.to_edges)) {
+      setLoadingState({
+        type: 'loading',
+        progress: `Creating associations (${++progressCounter})...`,
+      })
       const fromNid = oldToNewNids.get(oldEdge.from_nid)
       const toNid = oldToNewNids.get(oldEdge.to_nid)
       if (fromNid && toNid) {
@@ -55,6 +66,7 @@ async function downloadUserDataFromMazedBackend(
       }
     }
   }
+  setLoadingState({ type: 'done' })
 }
 
 const ControlBox = styled.div``
@@ -71,32 +83,46 @@ const Button = styled.button`
   }
 `
 
-type LoadingState = { type: 'standby' } | { type: 'loading' }
-
+type LoadingState =
+  | { type: 'standby' }
+  | { type: 'loading'; progress: string }
+  | { type: 'done' }
 export function DownloadUserDataFromMazedBackendControl() {
   const [loadingState, setLoadingState] = React.useState<LoadingState>({
     type: 'standby',
   })
   const ctx = React.useContext(MzdGlobalContext)
   const sync = React.useCallback(() => {
-    setLoadingState({ type: 'loading' })
+    setLoadingState({ type: 'loading', progress: '...' })
     const datacenterStorageApi = makeDatacenterStorageApi()
-    downloadUserDataFromMazedBackend(ctx.storage, datacenterStorageApi).then(
-      () => setLoadingState({ type: 'loading' })
+    downloadUserDataFromMazedBackend(
+      ctx.storage,
+      datacenterStorageApi,
+      setLoadingState
     )
   }, [ctx.storage])
+  let buttonText
+  switch (loadingState.type) {
+    case 'loading':
+      buttonText = (
+        <>
+          Loading <Spinner.Ring /> {loadingState.progress}
+        </>
+      )
+      break
+    case 'standby':
+      buttonText = <>Start</>
+      break
+    case 'done':
+      buttonText = <>Done 🏁 </>
+      break
+  }
   return (
     <ControlBox>
       <Title>Download fragments from Mazed backend</Title>
       <BoxButtons>
-        <Button onClick={sync} disabled={loadingState.type === 'loading'}>
-          {loadingState.type === 'loading' ? (
-            <>
-              Loading <Spinner.Ring />
-            </>
-          ) : (
-            'Start'
-          )}
+        <Button onClick={sync} disabled={loadingState.type !== 'standby'}>
+          {buttonText}
         </Button>
       </BoxButtons>
     </ControlBox>
