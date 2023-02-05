@@ -200,7 +200,6 @@ export function makeMsgProxyStorageApi(forward: ForwardToRealImpl): StorageApi {
       create: async (args: NodeCreateArgs) => {
         const apiName = 'node.create'
         const resp = await forward({ apiName, args })
-        console.log('Resp', resp)
         if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
         const ret: NewNodeResponse = resp.ret
         return ret
