@@ -1,4 +1,4 @@
-import { MimeType } from 'armoury'
+import { MimeType, unixtime } from 'armoury'
 import moment from 'moment'
 
 export type SlateText = object[]
@@ -133,8 +133,8 @@ export type TNodeJson = {
   text: NodeTextData
   extattrs?: NodeExtattrs
   index_text?: NodeIndexText
-  created_at: number
-  updated_at: number
+  created_at: unixtime.Type
+  updated_at: unixtime.Type
   meta?: NodeMeta
   crypto?: TNodeCrypto
 }

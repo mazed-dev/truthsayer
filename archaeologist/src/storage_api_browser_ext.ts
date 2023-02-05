@@ -421,10 +421,7 @@ async function createNode(
 ): Promise<NewNodeResponse> {
   const from_nid: Nid[] = args.from_nid ?? []
   const to_nid: Nid[] = args.to_nid ?? []
-
-  const createdAt: number =
-    args.created_at != null ? unixtime.from(args.created_at) : unixtime.now()
-
+  const createdAt = args.created_at ?? unixtime.now()
   const node: TNodeJson = {
     nid: generateNid(),
     ntype: args.ntype ?? NodeType.Text,
