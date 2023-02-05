@@ -4,7 +4,7 @@ import { useAsyncEffect } from 'use-async-effect'
 
 import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 import { Spinner } from 'elementary'
-import { genOriginId, log } from 'armoury'
+import { genOriginId } from 'armoury'
 import { makeDatacenterStorageApi, StorageApi, Nid } from 'smuggler-api'
 
 import { getLogoImage } from '../util/env'
@@ -17,7 +17,7 @@ const Title = styled.div`
   margin-bottom: 10px;
 `
 export function NotImplementedMessage() {
-  return <div />
+  return <Title>Please enable local mode in Settings</Title>
 }
 
 async function downloadUserDataFromMazedBackend(
