@@ -47,6 +47,8 @@ import type {
   UserAccount,
   ResourceVisit,
   ResourceAttention,
+  NodeDeleteArgs,
+  NodeCreatedVia,
 } from 'smuggler-api'
 import {
   INodeIterator,
@@ -95,7 +97,11 @@ type AllNidsYek = GenericYek<'all-nids', undefined>
 type AllNidsLav = GenericLav<'all-nids', Nid[]>
 
 type NidToNodeYek = GenericYek<'nid->node', Nid>
-type NidToNodeLav = GenericLav<'nid->node', TNodeJson, { origin: OriginId }>
+type NidToNodeLav = GenericLav<
+  'nid->node',
+  TNodeJson,
+  { origin?: OriginId; created_via?: NodeCreatedVia }
+>
 
 type OriginToNidYek = GenericYek<'origin->nid', OriginId>
 type OriginToNidLav = GenericLav<'origin->nid', Nid[]>
@@ -431,7 +437,6 @@ async function createNode(
       uid: account.getUid(),
     },
   }
-  const origin = args.origin
 
   let records: YekLav[] = [
     await store.prepareAppend(
@@ -444,7 +449,7 @@ async function createNode(
         lav: {
           kind: 'nid->node',
           value: node,
-          auxiliary: origin != null ? { origin } : undefined,
+          auxiliary: { origin: args.origin, created_via: args.created_via },
         },
       },
     },
@@ -595,40 +600,17 @@ async function updateNode(
   return { ack: true }
 }
 
-async function bulkdDeleteNodes(
+async function prepareNodeRemoval(
   store: YekLavStore,
-  args: NodeBulkDeleteArgs
-): Promise<number /* number of nodes deleted */> {
-  if (!('autoIngestion' in args.createdVia)) {
-    throw new Error(
-      `Tried to bulk-delete nodes via an unimplemented criteria: ${JSON.stringify(
-        args.createdVia
-      )}`
-    )
-  }
-  const epid: UserExternalPipelineId = args.createdVia.autoIngestion
-
-  const yeksToRemove: Yek[] = []
-  const recordsToSet: YekLav[] = []
-  {
-    // Remove traces of impacted external pipeline ID
-    const yek: ExtPipelineYek = {
-      yek: { kind: 'ext-pipe-id->progress', key: epid },
-    }
-    yeksToRemove.push(yek)
-  }
-  let nids: Nid[] = []
-  {
-    // Remove traces of impacted external pipeline ID
-    const yek: ExtPipelineToNidYek = {
-      yek: { kind: 'ext-pipe-id->nid', key: epid },
-    }
-    yeksToRemove.push(yek)
-
-    nids = (await store.get(yek))?.lav.value ?? []
-  }
+  nids: Nid[]
+): Promise<{
+  toRemove: Yek[]
+  toSet: YekLav[]
+}> {
+  const toRemove: Yek[] = []
+  const toSet: YekLav[] = []
   // Remove nodes themselves
-  yeksToRemove.push(
+  toRemove.push(
     ...nids.map((nid): NidToNodeYek => {
       return { yek: { kind: 'nid->node', key: nid } }
     })
@@ -636,7 +618,7 @@ async function bulkdDeleteNodes(
   // eslint-disable-next-line no-lone-blocks
   {
     // Remove edges of impacted nodes
-    yeksToRemove.push(
+    toRemove.push(
       ...nids.map((nid): NidToEdgeYek => {
         return { yek: { kind: 'nid->edge', key: nid } }
       })
@@ -653,7 +635,7 @@ async function bulkdDeleteNodes(
         const linkedYek: NidToEdgeYek = {
           yek: { kind: 'nid->edge', key: linkedNid },
         }
-        recordsToSet.push(await store.prepareRemoval(linkedYek, [removedNid]))
+        toSet.push(await store.prepareRemoval(linkedYek, [removedNid]))
       }
     }
   }
@@ -661,7 +643,7 @@ async function bulkdDeleteNodes(
   // eslint-disable-next-line no-lone-blocks
   {
     // Remove nids from 'all-nids' array
-    recordsToSet.push(
+    toSet.push(
       await store.prepareRemoval(
         { yek: { kind: 'all-nids', key: undefined } },
         nids
@@ -685,10 +667,50 @@ async function bulkdDeleteNodes(
           : undefined
       })
     ).then((yeklavs) => yeklavs.filter(isNotUndefined))
-    recordsToSet.push(...yeklavs)
+    toSet.push(...yeklavs)
   }
-  await store.remove(yeksToRemove)
-  await store.set(recordsToSet)
+  // TODO[snikitin@outlook.com] If a node was uploaded via UserExternalPipelineId,
+  // its nid should be cleaned up from the corresponding ExtPipelineToNidYek.
+  return { toRemove, toSet }
+}
+
+async function deleteNode(
+  store: YekLavStore,
+  args: NodeDeleteArgs
+): Promise<Ack> {
+  const { toRemove, toSet } = await prepareNodeRemoval(store, [args.nid])
+  await store.remove(toRemove)
+  await store.set(toSet)
+  return { ack: true }
+}
+
+async function bulkDeleteNodes(
+  store: YekLavStore,
+  args: NodeBulkDeleteArgs
+): Promise<number /* number of nodes deleted */> {
+  if (!('autoIngestion' in args.createdVia)) {
+    throw new Error(
+      `Tried to bulk-delete nodes via an unimplemented criteria: ${JSON.stringify(
+        args.createdVia
+      )}`
+    )
+  }
+  const epid: UserExternalPipelineId = args.createdVia.autoIngestion
+
+  // Remove traces of impacted external pipeline ID
+  const extPipelineYek: ExtPipelineYek = {
+    yek: { kind: 'ext-pipe-id->progress', key: epid },
+  }
+  const extPipelineToNidYek: ExtPipelineToNidYek = {
+    yek: { kind: 'ext-pipe-id->nid', key: epid },
+  }
+  const nids: Nid[] = (await store.get(extPipelineToNidYek))?.lav.value ?? []
+
+  // Remove everything else associated with the nodes
+  const { toRemove, toSet } = await prepareNodeRemoval(store, nids)
+
+  await store.remove(toRemove.concat([extPipelineYek, extPipelineToNidYek]))
+  await store.set(toSet)
 
   return nids.length
 }
@@ -920,8 +942,8 @@ export function makeBrowserExtStorageApi(
       update: (args: NodeUpdateArgs) => updateNode(store, args),
       create: (args: NodeCreateArgs) => createNode(store, args, account),
       iterate: () => new Iterator(store),
-      delete: throwUnimplementedError('node.delete'),
-      bulkDelete: (args: NodeBulkDeleteArgs) => bulkdDeleteNodes(store, args),
+      delete: (args: NodeDeleteArgs) => deleteNode(store, args),
+      bulkDelete: (args: NodeBulkDeleteArgs) => bulkDeleteNodes(store, args),
       batch: {
         get: (args: NodeBatchRequestBody) => getNodeBatch(store, args),
       },
