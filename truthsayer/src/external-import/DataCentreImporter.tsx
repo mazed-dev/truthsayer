@@ -17,7 +17,7 @@ const Title = styled.div`
   margin-bottom: 10px;
 `
 export function NotImplementedMessage() {
-  return <Title>Please enable local mode in Settings</Title>
+  return <Title>To store data locally please enable local mode in Settings</Title>
 }
 
 async function downloadUserDataFromMazedBackend(
