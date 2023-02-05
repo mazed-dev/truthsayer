@@ -2,7 +2,14 @@ import { DisappearingToastProps } from '../content/toaster/Toaster'
 import { WebPageContent } from '../content/extractor/webPageContent'
 import { extractSearchEngineQuery } from '../content/extractor/url/searchEngineQuery'
 
-import { log, isAbortError, MimeType, errorise, genOriginId } from 'armoury'
+import {
+  log,
+  isAbortError,
+  MimeType,
+  errorise,
+  genOriginId,
+  unixtime,
+} from 'armoury'
 import {
   Nid,
   NodeCreatedVia,
@@ -119,7 +126,7 @@ export async function saveWebPage(
   createdVia: NodeCreatedVia,
   content?: WebPageContent,
   tabId?: number,
-  visitedAt?: Date
+  visitedAt?: unixtime.Type
 ): Promise<{ node?: TNode; unmemorable: boolean }> {
   const searchEngineQuery = extractSearchEngineQuery(url)
   if (searchEngineQuery != null) {
