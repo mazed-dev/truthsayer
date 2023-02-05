@@ -1,4 +1,4 @@
-import { MimeType } from 'armoury'
+import { MimeType, unixtime } from 'armoury'
 import type { Optional } from 'armoury'
 import { INodeIterator } from './node_slice_iterator'
 import {
@@ -43,7 +43,7 @@ export type NodeCreateArgs = {
   ntype?: NodeType
   origin?: OriginId
   created_via?: NodeCreatedVia
-  created_at?: Date
+  created_at?: unixtime.Type
 }
 
 export type NodeBatchRequestBody = {
