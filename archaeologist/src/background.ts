@@ -786,7 +786,7 @@ async function uploadSingleHistoryItem(
     createdVia,
     content,
     undefined,
-    item.lastVisitTime ? new Date(item.lastVisitTime) : undefined
+    item.lastVisitTime
   )
 }
 
