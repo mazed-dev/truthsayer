@@ -40,12 +40,10 @@ function makeStorageApi(appSettings: AppSettings): StorageApi {
       const forwardToArchaeologist: ForwardToRealImpl = async (
         payload: StorageApiMsgPayload
       ): Promise<StorageApiMsgReturnValue> => {
-        log.debug('Sending message to Archaeologist', payload)
         const response = await FromTruthsayer.sendMessage({
           type: 'MSG_PROXY_STORAGE_ACCESS_REQUEST',
           payload,
         })
-        log.debug('Got response from Archaeologist', response)
         return response.value
       }
       return makeMsgProxyStorageApi(forwardToArchaeologist)
