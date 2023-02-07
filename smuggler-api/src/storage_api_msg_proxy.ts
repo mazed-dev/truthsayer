@@ -122,16 +122,23 @@ export type ForwardToRealImpl = (
 ) => Promise<StorageApiMsgReturnValue>
 
 class MsgProxyNodeIterator implements INodeIterator {
-  private nids: Promise<Nid[]>
+  private nids: Nid[]
   private index: number
   private forward: (
     payload: StorageApiMsgPayload
   ) => Promise<StorageApiMsgReturnValue>
 
-  constructor(forward: ForwardToRealImpl) {
+  constructor(forward: ForwardToRealImpl, nids: Nid[]) {
     this.forward = forward
+    this.nids = nids
+    this.index = 0
+  }
+
+  static async create(
+    forward: ForwardToRealImpl
+  ): Promise<MsgProxyNodeIterator> {
     const apiName = 'node.getAllNids'
-    this.nids = this.forward({ apiName, args: {} }).then(
+    const nids = await forward({ apiName, args: {} }).then(
       (value: StorageApiMsgReturnValue) => {
         if (apiName !== value.apiName) {
           throw mismatchError(apiName, value.apiName)
@@ -140,11 +147,11 @@ class MsgProxyNodeIterator implements INodeIterator {
         return ret
       }
     )
-    this.index = 0
+    return new MsgProxyNodeIterator(forward, nids)
   }
 
   async next(): Promise<TNode | null> {
-    const nids = await this.nids
+    const nids = this.nids
     if (this.index >= nids.length) {
       return null
     }
@@ -162,7 +169,7 @@ class MsgProxyNodeIterator implements INodeIterator {
   }
   abort(): void {
     this.index = 0
-    this.nids = Promise.resolve([])
+    this.nids = []
   }
 }
 
@@ -204,7 +211,7 @@ export function makeMsgProxyStorageApi(forward: ForwardToRealImpl): StorageApi {
         const ret: NewNodeResponse = resp.ret
         return ret
       },
-      iterate: () => new MsgProxyNodeIterator(forward),
+      iterate: () => MsgProxyNodeIterator.create(forward),
       delete: async (args: NodeDeleteArgs) => {
         const apiName = 'node.delete'
         const resp = await forward({ apiName, args })

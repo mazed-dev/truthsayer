@@ -93,8 +93,23 @@ type GenericLav<Kind extends string, Value, Auxiliary = undefined> = {
   }
 }
 
+/**
+ * Structure describes a node in minimalistic maner to build a full list of all
+ * nodes out of it. All node fields mentioned here are immutable throughout of
+ * a node life.
+ */
+type NodeTag = {
+  // A unique node identifier, there is no more than one item in the list with
+  // the same nid.
+  nid: Nid
+
+  // The rest of the fields are added here for quick sorting purposes.
+
+  // Node creation date, exact copy of the `created_at` fild of the `TNode`.
+  created_at: unixtime.Type
+}
 type AllNidsYek = GenericYek<'all-nids', undefined>
-type AllNidsLav = GenericLav<'all-nids', Nid[]>
+type AllNidsLav = GenericLav<'all-nids', NodeTag[]>
 
 type NidToNodeYek = GenericYek<'nid->node', Nid>
 type NidToNodeLav = GenericLav<
@@ -438,7 +453,12 @@ async function createNode(
   let records: YekLav[] = [
     await store.prepareAppend(
       { yek: { kind: 'all-nids', key: undefined } },
-      { lav: { kind: 'all-nids', value: [node.nid] } }
+      {
+        lav: {
+          kind: 'all-nids',
+          value: [{ nid: node.nid, created_at: node.created_at }],
+        },
+      }
     ),
     {
       yek: { yek: { kind: 'nid->node', key: node.nid } },
@@ -714,27 +734,26 @@ async function bulkDeleteNodes(
 
 class Iterator implements INodeIterator {
   private store: YekLavStore
-  private nids: Promise<Nid[]>
+  private nids: Nid[]
   private index: number
 
-  constructor(store: YekLavStore) {
+  constructor(store: YekLavStore, nids: Nid[]) {
     this.store = store
     this.index = 0
+    this.nids = nids
+  }
 
-    const yek: AllNidsYek = {
-      yek: { kind: 'all-nids', key: undefined },
-    }
-    this.nids = store
-      .get(yek)
-      .then((lav: AllNidsLav | undefined) => lav?.lav.value ?? [])
+  static async create(store: YekLavStore): Promise<Iterator> {
+    const nids = await getAllNids(store, {})
+    return new Iterator(store, nids)
   }
 
   async next(): Promise<TNode | null> {
-    const nids = await this.nids
+    const nids = this.nids
     if (this.index >= nids.length) {
       return null
     }
-    const nid: Nid = nids[nids.length - this.index - 1]
+    const nid: Nid = nids[0]
     const yek: NidToNodeYek = { yek: { kind: 'nid->node', key: nid } }
     const lav: NidToNodeLav | undefined = await this.store.get(yek)
     if (lav == null) {
@@ -748,7 +767,7 @@ class Iterator implements INodeIterator {
   }
   abort(): void {
     this.index = 0
-    this.nids = Promise.resolve([])
+    this.nids = []
   }
 }
 
@@ -912,8 +931,11 @@ export async function getAllNids(
   if (lav == null) {
     return []
   }
-  const value: Nid[] = lav.lav.value
-  return value.reverse()
+  const tags = lav?.lav.value ?? []
+  // Sort tags by creation date, latest first
+  tags.sort((a, b) => b.created_at - a.created_at)
+  const nids = tags.map((t) => t.nid)
+  return nids
 }
 
 export function makeBrowserExtStorageApi(
@@ -938,7 +960,7 @@ export function makeBrowserExtStorageApi(
       getAllNids: (args: NodeGetAllNidsArgs) => getAllNids(store, args),
       update: (args: NodeUpdateArgs) => updateNode(store, args),
       create: (args: NodeCreateArgs) => createNode(store, args, account),
-      iterate: () => new Iterator(store),
+      iterate: () => Iterator.create(store),
       delete: (args: NodeDeleteArgs) => deleteNode(store, args),
       bulkDelete: (args: NodeBulkDeleteArgs) => bulkDeleteNodes(store, args),
       batch: {
