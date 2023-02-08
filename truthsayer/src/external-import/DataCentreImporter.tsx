@@ -23,12 +23,16 @@ export function NotImplementedMessage() {
 }
 
 async function downloadUserDataFromMazedBackend(
-  localStorageApi: StorageApi,
-  datacenterStorageApi: StorageApi,
+  dstStorage: StorageApi,
+  srcStorage: StorageApi,
   setLoadingState: (value: LoadingState) => void
 ): Promise<void> {
   const oldToNewNids: Map<Nid, Nid> = new Map()
-  const iter = await datacenterStorageApi.node.iterate()
+  // Data centre implementation of iterator is buggy and sometimes returs same
+  // node twice, check for duplicates to prevent creating duplicates in local
+  // storage
+  const oldNids: Set<Nid> = new Set()
+  const iter = await srcStorage.node.iterate()
   let progressCounter = 0
   // Clone all nodes, saving mapping between { old-nid → new-nid }
   while (true) {
@@ -40,9 +44,13 @@ async function downloadUserDataFromMazedBackend(
       type: 'loading',
       progress: `Downloading fragments (${++progressCounter})...`,
     })
+    if (oldNids.has(node.nid)) {
+      continue
+    }
+    oldNids.add(node.nid)
     const url = node.extattrs?.web?.url ?? node.extattrs?.web_quote?.url
     const origin = url != null ? genOriginId(url) : undefined
-    const r = await localStorageApi.node.create({
+    const r = await dstStorage.node.create({
       text: node.text,
       index_text: node.index_text,
       extattrs: node.extattrs,
@@ -55,7 +63,7 @@ async function downloadUserDataFromMazedBackend(
   // Clone all edges
   progressCounter = 0
   for (const oldNid of oldToNewNids.keys()) {
-    const edges = await datacenterStorageApi.edge.get({ nid: oldNid })
+    const edges = await srcStorage.edge.get({ nid: oldNid })
     for (const oldEdge of edges.from_edges.concat(edges.to_edges)) {
       setLoadingState({
         type: 'loading',
@@ -64,7 +72,7 @@ async function downloadUserDataFromMazedBackend(
       const fromNid = oldToNewNids.get(oldEdge.from_nid)
       const toNid = oldToNewNids.get(oldEdge.to_nid)
       if (fromNid && toNid) {
-        await localStorageApi.edge.create({ from: fromNid, to: toNid })
+        await dstStorage.edge.create({ from: fromNid, to: toNid })
       }
     }
   }
@@ -93,27 +101,27 @@ export function DownloadUserDataFromMazedBackendControl() {
   const [loadingState, setLoadingState] = React.useState<LoadingState>({
     type: 'standby',
   })
-  const ctx = React.useContext(MzdGlobalContext)
+  const currentStorage = React.useContext(MzdGlobalContext).storage
   const sync = React.useCallback(() => {
     setLoadingState({ type: 'loading', progress: '...' })
-    const datacenterStorageApi = makeDatacenterStorageApi()
+    const sourceStorage = makeDatacenterStorageApi()
     downloadUserDataFromMazedBackend(
-      ctx.storage,
-      datacenterStorageApi,
+      currentStorage,
+      sourceStorage,
       setLoadingState
     )
-  }, [ctx.storage])
+  }, [currentStorage])
   let buttonText
   switch (loadingState.type) {
     case 'loading':
       buttonText = (
         <>
-          Loading <Spinner.Ring /> {loadingState.progress}
+          Downloading <Spinner.Ring /> {loadingState.progress}
         </>
       )
       break
     case 'standby':
-      buttonText = <>Start</>
+      buttonText = <>Download</>
       break
     case 'done':
       buttonText = <>Done 🏁 </>
@@ -121,7 +129,9 @@ export function DownloadUserDataFromMazedBackendControl() {
   }
   return (
     <ControlBox>
-      <Title>Download fragments from Mazed backend</Title>
+      <Title>
+        Download fragments from <b>Mazed datacenter</b> to <b>local storage</b>
+      </Title>
       <BoxButtons>
         <Button onClick={sync} disabled={loadingState.type !== 'standby'}>
           {buttonText}
@@ -152,5 +162,6 @@ export function DataCentreImporter({ className }: { className?: string }) {
       element = <NotImplementedMessage />
       break
   }
+
   return <Box className={className}>{element}</Box>
 }
