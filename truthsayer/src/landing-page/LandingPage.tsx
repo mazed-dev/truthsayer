@@ -7,8 +7,6 @@ import { ThemeProvider } from '@emotion/react'
 import { Form } from 'react-bootstrap'
 
 import { goto, routes } from './../lib/route'
-import DemoQuoteImg from './img/copy-quote-demo.png'
-import DemoWritingAugmentationGif from './img/mazed-demo-calendar-writing-augmentation-safes.gif'
 
 import { authentication } from 'smuggler-api'
 import { log } from 'armoury'
@@ -44,51 +42,7 @@ const FirstSlideBody = styled.div`
   height: 88vh;
 `
 const FirstSlideLeftHalf = styled.div`
-  width: 50%;
-  @media (max-width: 900px) {
-    width: 100%;
-  }
-
-  display: flex;
-  justify-content: center;
-  flex-wrap: nowrap;
-  flex-direction: column;
-
-  padding: 42px;
-`
-const FirstSlideRightHalf = styled.div`
-  width: 50%;
-  @media (max-width: 900px) {
-    width: 0%;
-    display: none;
-  }
-  display: flex;
-  justify-content: center;
-  flex-wrap: nowrap;
-  flex-direction: column;
-`
-const SecondSlideBody = styled.div`
-  display: flex;
-  justify-content: flex-start;
-  padding-top: 8vh;
-`
-const SecondSlideRightHalf = styled.div`
-  width: 50%;
-  @media (max-width: 900px) {
-    width: 0%;
-    display: none;
-  }
-
-  display: flex;
-  justify-content: center;
-  flex-wrap: nowrap;
-  flex-direction: column;
-`
-const SecondSlideLeftHalf = styled.div`
-  width: 50%;
-  @media (max-width: 900px) {
-    width: 100%;
-  }
+  width: 100%;
 
   display: flex;
   justify-content: center;
@@ -98,13 +52,25 @@ const SecondSlideLeftHalf = styled.div`
   padding: 42px;
 `
 const Header = styled.h1`
-  font-size: 32px;
+  font-size: 48px;
+  @media (max-width: 800px) {
+    font-size: 36px;
+  }
+  @media (max-width: 600px) {
+    font-size: 32px;
+  }
   text-align: center;
 `
 const Description = styled.h2`
-  font-size: 18px;
+  font-size: 28px;
+  @media (max-width: 800px) {
+    font-size: 20px;
+  }
+  @media (max-width: 600px) {
+    font-size: 16px;
+  }
   text-align: center;
-  margin: 3vh 12px 0 12px;
+  margin-top: 40px;
 `
 
 const Logo = styled.div`
@@ -162,20 +128,15 @@ function Login() {
     </LoginBox>
   )
 }
-const GifDemo = styled.img`
-  width: 94%;
-  border-color: #cecece;
-  border-style: solid;
-  box-shadow: 1px 1px 4px ${(props) => props.theme.backgroundColor.negative};
-  filter: ${(props) => props.theme.image.filter};
-`
-const ImageDemo = styled.img`
-  height: 86vh;
-  border-color: #cecece;
-  border-style: solid;
-  box-shadow: 1px 1px 4px ${(props) => props.theme.backgroundColor.negative};
-  filter: ${(props) => props.theme.image.filter};
-`
+
+// const ImageDemo = styled.img`
+//   height: 86vh;
+//   border-color: #cecece;
+//   border-style: solid;
+//   box-shadow: 1px 1px 4px ${(props) => props.theme.backgroundColor.negative};
+//   filter: ${(props) => props.theme.image.filter};
+// `
+
 const SignUpFormBox = styled.form`
   margin-top: 14vh;
   border-radius: 10px;
@@ -299,14 +260,14 @@ const FooterItem = styled.div`
   font-sixe: 16px;
 `
 
-const TextStrikeThrough = styled.span`
-  text-decoration: line-through;
-  text-decoration-color: ${(props) => props.theme.color.positive};
-`
-const TextHighlight = styled.span`
-  font-weight: 900;
-  color: ${(props) => props.theme.color.positive};
-`
+// const TextStrikeThrough = styled.span`
+//   text-decoration: line-through;
+//   text-decoration-color: ${(props) => props.theme.color.positive};
+// `
+// const TextHighlight = styled.span`
+//   font-weight: 900;
+//   color: ${(props) => props.theme.color.positive};
+// `
 
 const themeDark = {
   backgroundColor: {
@@ -336,44 +297,18 @@ export function LandingPage() {
           <FirstSlideBody>
             <FirstSlideLeftHalf>
               <Header>
-                <div>Share any page you've read.</div>
                 <div>
-                  <b>Without searching for it.</b>
+                  Reference anything you've read. <wbr />
+                  <b>Without&nbsp;looking&nbsp;for&nbsp;it.</b>
                 </div>
               </Header>
               <Description>
-                Mazed is a browser extension that saves the pages you view
-                automatically, and resurfaces them to you when you need it. Your
-                memory, at your fingertips.
+                Mazed &nbsp;is&nbsp;your&nbsp;second&nbsp;brain, serving you
+                information you've read before, when&nbsp;you&nbsp;need&nbsp;it.
               </Description>
               <SignUpForm />
             </FirstSlideLeftHalf>
-            <FirstSlideRightHalf>
-              <Centered>
-                <GifDemo src={DemoWritingAugmentationGif} />
-              </Centered>
-            </FirstSlideRightHalf>
           </FirstSlideBody>
-        </Slide>
-        <Slide>
-          <SecondSlideBody>
-            <SecondSlideRightHalf>
-              <Centered>
-                <ImageDemo src={DemoQuoteImg} />
-              </Centered>
-            </SecondSlideRightHalf>
-            <SecondSlideLeftHalf>
-              <Header>
-                <TextStrikeThrough>Find </TextStrikeThrough>
-                <TextHighlight>Have</TextHighlight> what you need.
-              </Header>
-              <Description>
-                The article, page, or google doc you need is just a click away.
-                Mazed will suggest the relevant pages from your history to you,
-                as you type.
-              </Description>
-            </SecondSlideLeftHalf>
-          </SecondSlideBody>
         </Slide>
         <LastSlide>
           <Centered>
