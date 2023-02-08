@@ -119,7 +119,7 @@ type NidToNodeLav = GenericLav<
 >
 
 type OriginToNidYek = GenericYek<'origin->nid', OriginId>
-type OriginToNidLav = GenericLav<'origin->nid', Nid[]>
+type OriginToNidLav = GenericLav<'origin->nid', { nid: Nid }[]>
 
 type NidToEdgeYek = GenericYek<'nid->edge', Nid>
 type NidToEdgeLav = GenericLav<'nid->edge', TEdgeJson[]>
@@ -147,7 +147,7 @@ type ExtPipelineToNidYek = GenericYek<
   'ext-pipe-id->nid',
   UserExternalPipelineId
 >
-type ExtPipelineToNidLav = GenericLav<'ext-pipe-id->nid', Nid[]>
+type ExtPipelineToNidLav = GenericLav<'ext-pipe-id->nid', { nid: Nid }[]>
 
 type Yek =
   | AllNidsYek
@@ -335,10 +335,10 @@ class YekLavStore {
     if (lav != null && !isOfArrayKind(lav)) {
       throw new Error(`prepareRemoval only works/makes sense for arrays`)
     }
-    const isNidArray = (
+    const isArrayOfObjectsWithNidField = (
       kind: typeof yek.yek.kind,
-      _criteria: any[]
-    ): _criteria is Nid[] => {
+      _criteria: object[]
+    ): _criteria is { nid: Nid }[] => {
       return kind === 'all-nids' || kind === 'origin->nid'
     }
     const isTEdgeJsonArray = (
@@ -352,13 +352,16 @@ class YekLavStore {
     switch (yek.yek.kind) {
       case 'all-nids':
       case 'origin->nid': {
-        if (!isNidArray(yek.yek.kind, value)) {
+        if (!isArrayOfObjectsWithNidField(yek.yek.kind, value)) {
           throw new Error(
             'Fallen into prepareRemoval case which works only for arrays of ' +
               `Nids while processing a non-Nid '${yek.yek.kind}' kind`
           )
         }
-        lodash.remove(value, (nid: Nid) => criteria.indexOf(nid) !== -1)
+        lodash.remove(
+          value,
+          ({ nid }: { nid: Nid }) => criteria.indexOf(nid) !== -1
+        )
         break
       }
       case 'nid->edge': {
@@ -477,7 +480,7 @@ async function createNode(
       yek: { kind: 'origin->nid', key: args.origin },
     }
     const lav: OriginToNidLav = {
-      lav: { kind: 'origin->nid', value: [node.nid] },
+      lav: { kind: 'origin->nid', value: [{ nid: node.nid }] },
     }
     records.push(await store.prepareAppend(yek, lav))
   }
@@ -489,7 +492,7 @@ async function createNode(
         yek: { kind: 'ext-pipe-id->nid', key: epid },
       }
       const lav: ExtPipelineToNidLav = {
-        lav: { kind: 'ext-pipe-id->nid', value: [node.nid] },
+        lav: { kind: 'ext-pipe-id->nid', value: [{ nid: node.nid }] },
       }
       records.push(await store.prepareAppend(yek, lav))
     }
@@ -572,10 +575,12 @@ async function getNodesByOrigin(
   if (lav == null) {
     return []
   }
-  const value: Nid[] = lav.lav.value
-  const nidYeks: NidToNodeYek[] = value.map((nid: Nid): NidToNodeYek => {
-    return { yek: { kind: 'nid->node', key: nid } }
-  })
+  const value = lav.lav.value
+  const nidYeks: NidToNodeYek[] = value.map(
+    ({ nid }: { nid: Nid }): NidToNodeYek => {
+      return { yek: { kind: 'nid->node', key: nid } }
+    }
+  )
   const nidLavs: NidToNodeLav[] = await store.get(nidYeks)
   return nidLavs.map((lav: NidToNodeLav) => NodeUtil.fromJson(lav.lav.value))
 }
@@ -721,7 +726,10 @@ async function bulkDeleteNodes(
   const extPipelineToNidYek: ExtPipelineToNidYek = {
     yek: { kind: 'ext-pipe-id->nid', key: epid },
   }
-  const nids: Nid[] = (await store.get(extPipelineToNidYek))?.lav.value ?? []
+  const nids: Nid[] =
+    (await store.get(extPipelineToNidYek))?.lav.value.map(
+      (element) => element.nid
+    ) ?? []
 
   // Remove everything else associated with the nodes
   const { toRemove, toSet } = await prepareNodeRemoval(store, nids)
