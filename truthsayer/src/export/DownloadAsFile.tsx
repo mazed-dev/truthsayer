@@ -46,7 +46,7 @@ export function DownloadAsFile({ className }: { className?: string }) {
   const [processingStatus, setProcessingStatus] = useState<boolean>(false)
   const saveAsPlainText = useCallback(async () => {
     setProcessingStatus(true)
-    const iter = ctx.storage.node.iterate()
+    const iter = await ctx.storage.node.iterate()
     const chunks: string[] = []
     while (true) {
       const node = await iter.next()
@@ -105,7 +105,7 @@ export function DownloadAsFile({ className }: { className?: string }) {
   }, [ctx.account, ctx.storage.node])
   const saveAsJson = useCallback(async () => {
     setProcessingStatus(true)
-    const iter = ctx.storage.node.iterate()
+    const iter = await ctx.storage.node.iterate()
     const chunks: Record<Nid, TNodeJson> = {}
     while (true) {
       const node = await iter.next()
