@@ -28,7 +28,7 @@ async function downloadUserDataFromMazedBackend(
   setLoadingState: (value: LoadingState) => void
 ): Promise<void> {
   const oldToNewNids: Map<Nid, Nid> = new Map()
-  const iter = datacenterStorageApi.node.iterate()
+  const iter = await datacenterStorageApi.node.iterate()
   let progressCounter = 0
   // Clone all nodes, saving mapping between { old-nid → new-nid }
   while (true) {
