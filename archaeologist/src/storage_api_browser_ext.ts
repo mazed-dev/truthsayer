@@ -104,7 +104,7 @@ type NidToNodeLav = GenericLav<
 >
 
 type OriginToNidYek = GenericYek<'origin->nid', OriginId>
-type OriginToNidLav = GenericLav<'origin->nid', Nid[]>
+type OriginToNidLav = GenericLav<'origin->nid', { nid: Nid }[]>
 
 type NidToEdgeYek = GenericYek<'nid->edge', Nid>
 type NidToEdgeLav = GenericLav<'nid->edge', TEdgeJson[]>
@@ -132,7 +132,7 @@ type ExtPipelineToNidYek = GenericYek<
   'ext-pipe-id->nid',
   UserExternalPipelineId
 >
-type ExtPipelineToNidLav = GenericLav<'ext-pipe-id->nid', Nid[]>
+type ExtPipelineToNidLav = GenericLav<'ext-pipe-id->nid', { nid: Nid }[]>
 
 type Yek =
   | AllNidsYek
@@ -457,7 +457,7 @@ async function createNode(
       yek: { kind: 'origin->nid', key: args.origin },
     }
     const lav: OriginToNidLav = {
-      lav: { kind: 'origin->nid', value: [node.nid] },
+      lav: { kind: 'origin->nid', value: [{ nid: node.nid }] },
     }
     records.push(await store.prepareAppend(yek, lav))
   }
@@ -469,7 +469,7 @@ async function createNode(
         yek: { kind: 'ext-pipe-id->nid', key: epid },
       }
       const lav: ExtPipelineToNidLav = {
-        lav: { kind: 'ext-pipe-id->nid', value: [node.nid] },
+        lav: { kind: 'ext-pipe-id->nid', value: [{ nid: node.nid }] },
       }
       records.push(await store.prepareAppend(yek, lav))
     }
@@ -552,10 +552,12 @@ async function getNodesByOrigin(
   if (lav == null) {
     return []
   }
-  const value: Nid[] = lav.lav.value
-  const nidYeks: NidToNodeYek[] = value.map((nid: Nid): NidToNodeYek => {
-    return { yek: { kind: 'nid->node', key: nid } }
-  })
+  const value = lav.lav.value
+  const nidYeks: NidToNodeYek[] = value.map(
+    ({ nid }: { nid: Nid }): NidToNodeYek => {
+      return { yek: { kind: 'nid->node', key: nid } }
+    }
+  )
   const nidLavs: NidToNodeLav[] = await store.get(nidYeks)
   return nidLavs.map((lav: NidToNodeLav) => NodeUtil.fromJson(lav.lav.value))
 }
@@ -701,7 +703,10 @@ async function bulkDeleteNodes(
   const extPipelineToNidYek: ExtPipelineToNidYek = {
     yek: { kind: 'ext-pipe-id->nid', key: epid },
   }
-  const nids: Nid[] = (await store.get(extPipelineToNidYek))?.lav.value ?? []
+  const nids: Nid[] =
+    (await store.get(extPipelineToNidYek))?.lav.value.map(
+      (element) => element.nid
+    ) ?? []
 
   // Remove everything else associated with the nodes
   const { toRemove, toSet } = await prepareNodeRemoval(store, nids)
