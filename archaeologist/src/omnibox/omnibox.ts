@@ -51,7 +51,7 @@ const lookUpAndSuggestFor = lodash.debounce(
     suggest: (suggestResults: browser.Omnibox.SuggestResult[]) => void
   ): Promise<void> => {
     const beagle = Beagle.fromString(text)
-    const iter = storage.node.iterate()
+    const iter = await storage.node.iterate()
     const suggestions: browser.Omnibox.SuggestResult[] = []
     for (
       let node = await iter.next();

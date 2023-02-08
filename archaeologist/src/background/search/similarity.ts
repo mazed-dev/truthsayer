@@ -179,7 +179,7 @@ export function addNode(node: TNode): void {
 }
 
 export async function register(storage: StorageApi) {
-  const iter = storage.node.iterate()
+  const iter = await storage.node.iterate()
   while (true) {
     const node = await iter.next()
     if (node) {

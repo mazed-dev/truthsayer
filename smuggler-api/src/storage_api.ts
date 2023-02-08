@@ -126,7 +126,7 @@ export type StorageApi = {
       args: NodeCreateArgs,
       signal?: AbortSignal
     ) => Promise<NewNodeResponse>
-    iterate: () => INodeIterator
+    iterate: () => Promise<INodeIterator>
     delete: (args: NodeDeleteArgs, signal?: AbortSignal) => Promise<Ack>
     bulkDelete: (
       args: NodeBulkDeleteArgs,
