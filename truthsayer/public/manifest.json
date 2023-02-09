@@ -15,8 +15,8 @@
       "type": "image/png"
     },
     {
-      "src": "logo-48x48.png",
-      "sizes": "16x16 32x32 48x48",
+      "src": "logo-16x16.png",
+      "sizes": "16x16",
       "type": "image/png"
     },
     {

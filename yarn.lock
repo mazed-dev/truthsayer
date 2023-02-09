@@ -2241,6 +2241,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.15.3":
+  version: 7.20.13
+  resolution: "@babel/runtime@npm:7.20.13"
+  dependencies:
+    regenerator-runtime: ^0.13.11
+  checksum: 09b7a97a05c80540db6c9e4ddf8c5d2ebb06cae5caf3a87e33c33f27f8c4d49d9c67a2d72f1570e796045288fad569f98a26ceba0c4f5fad2af84b6ad855c4fb
+  languageName: node
+  linkType: hard
+
 "@babel/template@npm:^7.16.7, @babel/template@npm:^7.3.3":
   version: 7.16.7
   resolution: "@babel/template@npm:7.16.7"
@@ -2563,6 +2572,20 @@ __metadata:
     "@emotion/styled": ">=11.0.0 <12"
     react: "*"
   checksum: fce2a2c1cdae0f2a0b0a355de028dcad5570011e6c9bace4bff66d24bcdcc31fcffefce9fad6475e10a5ec5c275969d58d29be80ddb85647c2821a197659f8ee
+  languageName: node
+  linkType: hard
+
+"@emotion-icons/fa-brands@npm:^3.19.0":
+  version: 3.19.0
+  resolution: "@emotion-icons/fa-brands@npm:3.19.0"
+  dependencies:
+    "@babel/runtime": ^7.15.3
+    "@emotion-icons/emotion-icon": 4.1.0
+  peerDependencies:
+    "@emotion/react": ">=11.0.0 <12"
+    "@emotion/styled": ">=11.0.0 <12"
+    react: "*"
+  checksum: 6d3b69a72918e52102363339aafe5c2a750326f0ca1f96d94ca7dd476c4d5bb5456a7c9c750ca51f35d17f9e703ce4397f7c2d58b9f15a4d0a6b751ad4a891e2
   languageName: node
   linkType: hard
 
@@ -18133,6 +18156,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"regenerator-runtime@npm:^0.13.11":
+  version: 0.13.11
+  resolution: "regenerator-runtime@npm:0.13.11"
+  checksum: 27481628d22a1c4e3ff551096a683b424242a216fee44685467307f14d58020af1e19660bf2e26064de946bad7eff28950eae9f8209d55723e2d9351e632bbb4
+  languageName: node
+  linkType: hard
+
 "regenerator-runtime@npm:^0.13.4, regenerator-runtime@npm:^0.13.7, regenerator-runtime@npm:^0.13.9":
   version: 0.13.9
   resolution: "regenerator-runtime@npm:0.13.9"
@@ -20834,6 +20864,7 @@ __metadata:
     "@babel/plugin-proposal-class-properties": ^7.13.0
     "@babel/preset-typescript": ^7.17.12
     "@builder.io/react": ^2.0.7
+    "@emotion-icons/fa-brands": ^3.19.0
     "@emotion/babel-plugin": ^11.9.2
     "@emotion/react": ^11.9.0
     "@emotion/styled": ^11.8.1
