@@ -14,6 +14,7 @@ import {
   BrowserHistoryImporter,
   BrowserLogo as BrowserHistoryImporterLogo,
 } from './BrowserHistoryImporter'
+import { DataCentreImporter, getLogoImage } from './DataCentreImporter'
 
 const Box = styled.div`
   padding: 18px;
@@ -64,6 +65,10 @@ export function ExternalImport({
         <Item key={'onedrive'}>
           <LogoImg src={MicrosoftOfficeOneDriveLogoImg} />
           <MicrosoftOfficeOneDriveImporter />
+        </Item>
+        <Item key={'data-centre-importer'}>
+          <LogoImg src={getLogoImage()} />
+          <DataCentreImporter />
         </Item>
       </ItemsBox>
     </Box>
