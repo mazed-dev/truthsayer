@@ -1,17 +1,9 @@
 <svg version="1.1" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
- <polyline transform="matrix(4.8795 0 0 4.8781 -63.086 -55.122)" points="49.224 17 53.891 12.36 17.207 12.36 21.875 17" fill="#d0cfce"/>
- <polyline transform="matrix(4.8795 0 0 4.8781 -63.086 -55.122)" points="49.224 54.5 53.891 59.353 17.207 59.353 21.875 54.5" fill="#d0cfce"/>
- <rect x="44.263" y="27.805" width="133.7" height="182.93" fill="#079f09" stroke-width="4.8788"/>
- <rect x="146.73" y="27.805" width="31.717" height="182.93" fill="#198501" stroke-width="4.8788"/>
- <polyline transform="matrix(4.8795 0 0 4.8781 -63.086 -55.122)" points="49.2 17 54 12.3 17.2 12.4 21.9 17" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.0497"/>
- <line x1="44.262" x2="176.26" y1="27.804" y2="27.804" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="9.9999"/>
- <line x1="44.262" x2="174.78" y1="210.73" y2="210.73" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="9.9999"/>
- <polyline transform="matrix(4.8795 0 0 4.8781 -63.086 -55.122)" points="49.224 54.707 53.891 59.5 17.207 59.5 21.875 54.707" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.0497"/>
- <line x1="44.756" x2="175.57" y1="54.078" y2="54.078" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="9.9999"/>
- <line x1="44.756" x2="175.57" y1="80.352" y2="80.352" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="9.9999"/>
- <line x1="44.559" x2="175.67" y1="106.43" y2="106.43" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="9.9999"/>
- <line x1="44.559" x2="175.77" y1="132.5" y2="132.5" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="9.9999"/>
- <line x1="44.262" x2="175.77" y1="158.57" y2="158.57" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="9.9999"/>
- <line x1="44.262" x2="176.06" y1="184.85" y2="184.85" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="9.9999"/>
- <path d="m158.82 158.57h17c7.0002 0.99871 14 5.4929 19.001 12.816 11 15.979 20.001 29.362 38.501 26.466" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+ <g fill="none" stroke="#000" stroke-linejoin="round" stroke-width="12">
+  <path d="m29.571 18.454h186.08v13.767l-29.671 31.5-127.13 0.75024-29.276-31.759z"/>
+  <path d="m214.24 223.36h-186.08v-13.767l29.671-31.5 127.13-0.75024 29.276 31.759z"/>
+  <path d="m57.601 92.078h129.12" stroke-linecap="round"/>
+  <path d="m57.408 120.38h129.12" stroke-linecap="round"/>
+  <path d="m57.023 149.52h129.12" stroke-linecap="round"/>
+ </g>
 </svg>

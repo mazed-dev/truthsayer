@@ -7,9 +7,10 @@ import { ThemeProvider } from '@emotion/react'
 import { Form } from 'react-bootstrap'
 
 import { goto, routes } from './../lib/route'
+import { getLogoImage } from './../util/env'
 
 import { authentication } from 'smuggler-api'
-import { log } from 'armoury'
+import { log, MimeType } from 'armoury'
 
 import {
   Linkedin as LinkedinLogo,
@@ -55,7 +56,7 @@ const FirstSlideLeftHalf = styled.div`
   flex-wrap: nowrap;
   flex-direction: column;
 
-  padding: 42px;
+  padding: 20px;
 `
 const Header = styled.h1`
   font-size: 48px;
@@ -107,15 +108,24 @@ const TrustedByLogosBox = styled.div`
 
 const Logo = styled.div`
   font-family: 'Comfortaa';
-  font-size: 32px;
-  cursor: pointer;
   font-weight: 900;
-
+  font-size: 32px;
+  @media (max-width: 800px) {
+    font-size: 28px;
+  }
+  cursor: pointer;
+  color: white;
   &:hover {
     border: none;
     background-color: ${(props) => props.theme.backgroundColor.primary};
-    color: ${(props) => props.theme.color.positive};
   }
+`
+
+const LogoImg = styled.img`
+  filter: invert(1);
+  width: 38px;
+  height: 38px;
+  margin-bottom: 8px;
 `
 const Topbar = styled.div`
   display: flex;
@@ -172,7 +182,7 @@ function Login() {
 const SignUpFormBox = styled.form`
   border-radius: 10px;
   width: 100%;
-  font-size: 17px;
+  font-size: 16px;
 
   display: flex;
   justify-content: center;
@@ -187,8 +197,11 @@ const SignUpBtn = styled.button`
   white-space: nowrap;
   cursor: pointer;
   font-size: inherit;
-  margin: 0 2px 1px 1px;
-  padding: 0.32em 1em 0.32em 1em;
+  margin: 0 2px 1px 0;
+  padding: 0.32em 0.8em 0.32em 0.8em;
+  @media (max-width: 360px) {
+    padding: 0.32em 0.4em 0.32em 0.4em;
+  }
 
   background-color: ${(props) => props.theme.backgroundColor.primary};
   color: ${(props) => props.theme.color.primary};
@@ -196,6 +209,9 @@ const SignUpBtn = styled.button`
   border-color: ${(props) => props.theme.color.primary};
   border-style: solid;
   border-radius: inherit;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left-width: 0;
 
   &:hover {
     background-color: ${(props) => props.theme.backgroundColor.primary};
@@ -204,10 +220,13 @@ const SignUpBtn = styled.button`
   }
 `
 const SignUpEmail = styled(Form.Control)`
-  width: 60%;
+  width: 54%;
+  @media (max-width: 360px) {
+    width: 42%;
+  }
   max-width: 18em;
   font-size: inherit;
-  margin: 0 2px 1px 1px;
+  margin: 0 0 1px 1px;
 
   background-color: ${(props) => props.theme.backgroundColor.primary};
   color: ${(props) => props.theme.color.primary};
@@ -215,6 +234,8 @@ const SignUpEmail = styled(Form.Control)`
   border-style: solid;
   border-width: 1px;
   border-radius: inherit;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 
   &:focus {
     background-color: ${(props) => props.theme.backgroundColor.primary};
@@ -323,7 +344,9 @@ export function LandingPage() {
       <SlidesBox>
         <Slide>
           <Topbar>
-            <Logo>🧵&nbsp;Mazed</Logo>
+            <Logo>
+              <LogoImg src={getLogoImage(MimeType.IMAGE_SVG_XML)} /> Mazed
+            </Logo>
             <Login />
           </Topbar>
           <FirstSlideBody>
@@ -339,11 +362,9 @@ export function LandingPage() {
                 information you've read before, when&nbsp;you&nbsp;need&nbsp;it.
               </Description>
               <Comment>
-                <div>We are currently in a private beta.</div>
-                <div>
-                  Register your email and we'll ping you when you're off the
-                  waitlist.
-                </div>
+                We&nbsp;are&nbsp;currently&nbsp;in&nbsp;a&nbsp;private&nbsp;beta.
+                Register&nbsp;your&nbsp;email and&nbsp;we'll&nbsp;ping&nbsp;you
+                when&nbsp;you're&nbsp;off&nbsp;the waitlist.
               </Comment>
               <SignUpForm />
               <TrustedByBox>
