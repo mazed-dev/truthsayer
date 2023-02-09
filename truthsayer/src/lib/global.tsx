@@ -22,9 +22,8 @@ import { NotificationToast } from './Toaster'
 import { errorise, log, productanalytics } from 'armoury'
 import { useAsyncEffect } from 'use-async-effect'
 import {
-  defaultSettings,
   FromTruthsayer,
-  ToTruthsayer,
+  getAppSettings,
 } from 'truthsayer-archaeologist-communication'
 import type { AppSettings } from 'truthsayer-archaeologist-communication'
 import { Loader } from './loader'
@@ -106,18 +105,8 @@ export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
 
   const [storage, setStorage] = React.useState<StorageApi | null>(null)
   useAsyncEffect(async () => {
-    const response = await FromTruthsayer.sendMessage({
-      type: 'GET_APP_SETTINGS_REQUEST',
-    }).catch((reason): ToTruthsayer.GetAppSettingsResponse => {
-      const defaults = defaultSettings()
-      log.warning(
-        `Failed to get user's app settings,` +
-          ` falling back to ${JSON.stringify(defaults)}; ` +
-          `error - ${errorise(reason).message}`
-      )
-      return { type: 'GET_APP_SETTINGS_RESPONSE', settings: defaults }
-    })
-    setStorage(makeStorageApi(response.settings))
+    const settings = await getAppSettings()
+    setStorage(makeStorageApi(settings))
   }, [])
 
   const [state] = React.useState<Omit<MzdGlobalState, 'account' | 'storage'>>({
