@@ -11,6 +11,12 @@ import { goto, routes } from './../lib/route'
 import { authentication } from 'smuggler-api'
 import { log } from 'armoury'
 
+import {
+  Linkedin as LinkedinLogo,
+  Google as GoogleLogo,
+  Salesforce as SalesforceLogo,
+} from '@emotion-icons/fa-brands'
+
 const SlidesBox = styled.div`
   height: 100vh;
   width: 100vw;
@@ -71,6 +77,32 @@ const Description = styled.h2`
   }
   text-align: center;
   margin-top: 40px;
+`
+const Comment = styled.h2`
+  font-size: 14px;
+  @media (max-width: 800px) {
+    font-size: 13px;
+  }
+  @media (max-width: 600px) {
+    font-size: 12px;
+  }
+  text-align: center;
+  margin-top: 8vh;
+`
+const TrustedByBox = styled.div``
+const TrustedByTitle = styled(Comment)``
+const TrustedByLogosBox = styled.div`
+  font-size: 48px;
+  @media (max-width: 800px) {
+    font-size: 36px;
+  }
+  @media (max-width: 600px) {
+    font-size: 32px;
+  }
+  display: flex;
+  justify-content: center;
+  gap: 0.8em;
+  margin-top: 12px;
 `
 
 const Logo = styled.div`
@@ -138,7 +170,6 @@ function Login() {
 // `
 
 const SignUpFormBox = styled.form`
-  margin-top: 14vh;
   border-radius: 10px;
   width: 100%;
   font-size: 17px;
@@ -150,12 +181,13 @@ const SignUpFormBox = styled.form`
   @media (max-width: 480px) {
     flex-wrap: wrap;
   }
+  margin: 12px 0 0 0;
 `
 const SignUpBtn = styled.button`
   white-space: nowrap;
   cursor: pointer;
   font-size: inherit;
-  margin: 1em 2px 1px 1px;
+  margin: 0 2px 1px 1px;
   padding: 0.32em 1em 0.32em 1em;
 
   background-color: ${(props) => props.theme.backgroundColor.primary};
@@ -175,7 +207,7 @@ const SignUpEmail = styled(Form.Control)`
   width: 60%;
   max-width: 18em;
   font-size: inherit;
-  margin: 1em 2px 1px 1px;
+  margin: 0 2px 1px 1px;
 
   background-color: ${(props) => props.theme.backgroundColor.primary};
   color: ${(props) => props.theme.color.primary};
@@ -291,7 +323,7 @@ export function LandingPage() {
       <SlidesBox>
         <Slide>
           <Topbar>
-            <Logo>🧵 Mazed</Logo>
+            <Logo>🧵&nbsp;Mazed</Logo>
             <Login />
           </Topbar>
           <FirstSlideBody>
@@ -303,10 +335,26 @@ export function LandingPage() {
                 </div>
               </Header>
               <Description>
-                Mazed &nbsp;is&nbsp;your&nbsp;second&nbsp;brain, serving you
+                Mazed&nbsp;is&nbsp;your&nbsp;second&nbsp;brain, serving you
                 information you've read before, when&nbsp;you&nbsp;need&nbsp;it.
               </Description>
+              <Comment>
+                <div>We are currently in a private beta.</div>
+                <div>
+                  Register your email and we'll ping you when you're off the
+                  waitlist.
+                </div>
+              </Comment>
               <SignUpForm />
+              <TrustedByBox>
+                <TrustedByTitle>
+                  Trusted by engineers and their teams at these companies:
+                </TrustedByTitle>
+                <TrustedByLogosBox>
+                  <LinkedinLogo size="1em" /> <GoogleLogo size="1em" />{' '}
+                  <SalesforceLogo size="1em" />
+                </TrustedByLogosBox>
+              </TrustedByBox>
             </FirstSlideLeftHalf>
           </FirstSlideBody>
         </Slide>
