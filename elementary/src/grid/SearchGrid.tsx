@@ -1,6 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
 import React, { useEffect, useRef, useState } from 'react'
+import { useAsyncEffect } from 'use-async-effect'
 
 import styled from '@emotion/styled'
 
@@ -73,9 +74,9 @@ export const SearchGrid = ({
     iter: INodeIterator
     beagle: Beagle
   } | null>(null)
-  useEffect(() => {
+  useAsyncEffect(async () => {
     setUpSearch({
-      iter: storage.node.iterate(),
+      iter: await storage.node.iterate(),
       beagle: Beagle.fromString(q || undefined),
     })
   }, [q])
