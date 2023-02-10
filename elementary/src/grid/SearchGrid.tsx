@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useMemo, useEffect, useRef, useState } from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 
 import styled from '@emotion/styled'
@@ -54,6 +54,11 @@ export const GridCard = ({
   )
 }
 
+
+type SearchGridState = {
+  nodes: TNode[]
+  iter: INodeIterator
+}
 export const SearchGrid = ({
   q,
   children,
@@ -70,58 +75,18 @@ export const SearchGrid = ({
   className?: string
   storage: StorageApi
 }>) => {
-  const [search, setUpSearch] = useState<{
-    iter: INodeIterator
-    beagle: Beagle
-  } | null>(null)
+  const history = useHistory()
+  const ref = useRef<HTMLDivElement>(null)
+  const beagle = useMemo(() => Beagle.fromString(q || undefined), [q])
+  const [state, setState] = useState<SearchGridState | null>(null)
   useAsyncEffect(async () => {
-    setUpSearch({
-      iter: await storage.node.iterate(),
-      beagle: Beagle.fromString(q || undefined),
-    })
-  }, [q])
+    const iter = await storage.node.iterate()
+    setState({nodes: [], iter})
+  }, [beagle])
+  const [fetching, setFetching] = useState<boolean>(false)
   if (q == null && !defaultSearch) {
     return null
   }
-  if (search == null) {
-    return null
-  }
-  const { iter, beagle } = search
-  return (
-    <SearchGridScroll
-      beagle={beagle}
-      iter={iter}
-      onCardClick={onCardClick}
-      portable={portable}
-      className={className}
-      storage={storage}
-    >
-      {children}
-    </SearchGridScroll>
-  )
-}
-
-const SearchGridScroll = ({
-  beagle,
-  iter,
-  children,
-  onCardClick,
-  portable,
-  className,
-  storage,
-}: React.PropsWithChildren<{
-  beagle: Beagle
-  iter: INodeIterator
-  onCardClick?: (arg0: TNode) => void
-  portable?: boolean
-  className?: string
-  storage: StorageApi
-}>) => {
-  const history = useHistory()
-  const ref = useRef<HTMLDivElement>(null)
-  const [nodes, setNodes] = useState<TNode[]>([])
-  const [fetching, setFetching] = useState<boolean>(false)
-
   const isScrolledToBottom = () => {
     let height: number = 0
     let scrollTop: number = 0
@@ -143,22 +108,25 @@ const SearchGridScroll = ({
       async () => {
         // Continue fetching until visual space is filled with cards to the bottom and beyond.
         // Thus if use scrolled to the bottom this loop would start fetching again adding more cards.
-        if (fetching) {
+        if (fetching || state == null || !isScrolledToBottom()) {
           // Don't run more than 1 instance of fetcher
           return
         }
+        const { iter, nodes } = state
         setFetching(true)
         try {
-          while (isScrolledToBottom()) {
+          const addNodes: TNode[] = []
+          while (addNodes.length < 20) {
             const node = await iter.next()
             if (node == null) {
               iter.abort()
               break
             }
             if (beagle.searchNode(node) != null) {
-              setNodes((prev) => prev.concat(node))
+              addNodes.push(node)
             }
           }
+          setState({ iter, nodes: nodes.concat(addNodes) })
         } catch (err) {
           const error = errorise(err)
           if (!isAbortError(error)) {
@@ -170,7 +138,7 @@ const SearchGridScroll = ({
       100,
       { leading: true, trailing: false }
     ),
-    [beagle, iter]
+    [beagle, state]
   )
   useEffect(() => {
     if (!portable) {
@@ -186,9 +154,9 @@ const SearchGridScroll = ({
     fetchNextBatch()
     return () => {
       // Clean up on changed search parameters
-      setNodes([])
+      setState(null)
     }
-  }, [beagle, iter])
+  }, [beagle])
   const fetchingLoader = fetching ? (
     <div
       css={css`
@@ -198,7 +166,7 @@ const SearchGridScroll = ({
       <Spinner.Wheel />
     </div>
   ) : null
-  const cards: JSX.Element[] = nodes.map((node) => {
+  const cards = state?.nodes.map((node) => {
     const onClick = () => {
       if (onCardClick) {
         onCardClick(node)

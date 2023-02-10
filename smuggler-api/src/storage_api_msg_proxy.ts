@@ -1,4 +1,4 @@
-import { MimeType } from 'armoury'
+import { MimeType, log } from 'armoury'
 import type {
   Ack,
   GenerateBlobIndexResponse,
@@ -132,6 +132,7 @@ class MsgProxyNodeIterator implements INodeIterator {
     this.forward = forward
     this.nids = nids
     this.index = 0
+    log.debug('MsgProxyNodeIterator.constructor', nids)
   }
 
   static async create(
@@ -151,11 +152,11 @@ class MsgProxyNodeIterator implements INodeIterator {
   }
 
   async next(): Promise<TNode | null> {
-    const nids = this.nids
-    if (this.index >= nids.length) {
+    if (this.index >= this.nids.length) {
       return null
     }
-    const nid: Nid = nids[this.index]
+    const nid: Nid = this.nids[this.index]
+    log.debug('Get node', nid, this.index)
     const apiName = 'node.get'
     const value = await this.forward({ apiName, args: { nid } })
     if (apiName !== value.apiName) throw mismatchError(apiName, value.apiName)
