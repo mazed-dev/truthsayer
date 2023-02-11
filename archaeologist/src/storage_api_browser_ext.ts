@@ -153,12 +153,23 @@ type ExtPipelineToNidYek = GenericYek<
 >
 type ExtPipelineToNidLav = GenericLav<'ext-pipe-id->nid', { nid: Nid }[]>
 
+type OriginToExtAssociationYek = GenericYek<'origin->ext-assoc', OriginId>
 type OriginToExtAssociationValue = {
+  /**
+   * Writing/reading code that works with 'direction' may be unintuitive,
+   * depending on how you interpret the meaning of the field.
+   * Instead, at the time of this writing the intent was to optimise for
+   * a different purpose - debugging of 'browser.storage.local' data when it
+   * gets dumped to log/console.
+   * 'origin->ext-assoc' yek/lav pair looks somewhat like
+   *    {yek:*origin-id-1*}/{lav:          *direction*, *origin-id-2*}
+   * which is expected to be read by a developer as:
+   *    "    *origin-id-1* has association *from / to*  *origin-id-2*"
+   */
   direction: 'from' | 'to'
   other: OriginId
   association: UserExternalAssociationType
 }
-type OriginToExtAssociationYek = GenericYek<'origin->ext-assoc', OriginId>
 type OriginToExtAssociationLav = GenericLav<
   'origin->ext-assoc',
   OriginToExtAssociationValue[]
@@ -248,19 +259,20 @@ class YekLavStore {
   get(yek: Yek | Yek[]): Promise<Lav | YekLav[] | undefined> {
     if (Array.isArray(yek)) {
       const keyToYek = new Map<string, Yek>()
-      yek.forEach((value: Yek) => keyToYek.set(this.stringify(value), value))
+      yek.forEach((singleYek: Yek) =>
+        keyToYek.set(this.stringify(singleYek), singleYek)
+      )
       const keys: string[] = Array.from(keyToYek.keys())
       const records: Promise<Record<string, any>> = this.store.get(keys)
       return records.then((records: Record<string, any>): Promise<YekLav[]> => {
         const yeklavs: YekLav[] = []
-        Object.keys(keys).forEach((key: string) => {
-          const yek = keyToYek.get(key)
-          const lav = records[key] as Lav | undefined
-          if (yek == null || lav == null) {
-            return
+        for (const [key, yek] of keyToYek) {
+          const lav = key in records ? (records[key] as Lav) : undefined
+          if (lav == null) {
+            continue
           }
           yeklavs.push({ yek, lav })
-        })
+        }
         return Promise.resolve(yeklavs)
       })
     }
@@ -1077,21 +1089,19 @@ async function getAssociations(
 
   // Step 3: enrich association records with nids connected to their origins
   value.forEach((association) => {
-    // TODO[snikitin@outlook.com] Verify that usage of from/to honors the same
-    // ordering as in recordAssociation()
     switch (association.direction) {
       case 'from': {
         ret.from.push({
-          from: makeAssociationEnd(args.origin.id),
-          to: makeAssociationEnd(association.other.id),
+          from: makeAssociationEnd(association.other.id),
+          to: makeAssociationEnd(args.origin.id),
           association: association.association,
         })
         return
       }
       case 'to': {
         ret.to.push({
-          from: makeAssociationEnd(association.other.id),
-          to: makeAssociationEnd(args.origin.id),
+          from: makeAssociationEnd(args.origin.id),
+          to: makeAssociationEnd(association.other.id),
           association: association.association,
         })
         return
