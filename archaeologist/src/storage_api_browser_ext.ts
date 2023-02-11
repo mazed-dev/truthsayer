@@ -1011,10 +1011,17 @@ async function recordAssociation(
   const reverseYek: OriginToExtAssociationYek = {
     yek: { kind: 'origin->ext-assoc', key: to },
   }
-  let [lav, rlav]: (OriginToExtAssociationLav | undefined)[] =
-    await Promise.all([store.get(yek), store.get(reverseYek)])
-  lav = lav != null ? lav : { lav: { kind: 'origin->ext-assoc', value: [] } }
-  rlav = rlav != null ? rlav : { lav: { kind: 'origin->ext-assoc', value: [] } }
+  const orEmpty = (
+    input: OriginToExtAssociationLav | undefined
+  ): OriginToExtAssociationLav => {
+    return input != null
+      ? input
+      : { lav: { kind: 'origin->ext-assoc', value: [] } }
+  }
+  const [lav, rlav]: OriginToExtAssociationLav[] = await Promise.all([
+    store.get(yek).then(orEmpty),
+    store.get(reverseYek).then(orEmpty),
+  ])
 
   if (!lav.lav.value.every((assoc) => assoc.other.id !== to.id)) {
     throw new Error(`${from} -> ${to} association already exists`)
