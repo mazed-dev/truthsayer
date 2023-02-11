@@ -36,11 +36,7 @@ const Slide = styled.div`
   height: 100vh;
 
   scroll-snap-align: start;
-`
-
-const Centered = styled.div`
-  display: flex;
-  justify-content: center;
+  position: relative;
 `
 
 const FirstSlideBody = styled.div`
@@ -84,9 +80,6 @@ const Comment = styled.h2`
   @media (max-width: 800px) {
     font-size: 13px;
   }
-  @media (max-width: 600px) {
-    font-size: 12px;
-  }
   text-align: center;
   margin-top: 8vh;
 `
@@ -114,18 +107,29 @@ const Logo = styled.div`
     font-size: 28px;
   }
   cursor: pointer;
-  color: white;
+  color: ${(props) => props.theme.color.primary};
   &:hover {
     border: none;
     background-color: ${(props) => props.theme.backgroundColor.primary};
   }
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
 `
 
-const LogoImg = styled.img`
-  filter: invert(1);
-  width: 38px;
-  height: 38px;
-  margin-bottom: 8px;
+//const LogoImg = styled.img`
+//  filter: invert(1);
+//  width: 38px;
+//  height: 38px;
+//  margin-bottom: 8px;
+//`
+
+const LogoImg = styled.div`
+  width: 36px;
+  height: 36px;
+  margin-right: 10px;
+  mask: url(${getLogoImage(MimeType.IMAGE_SVG_XML)}) no-repeat center;
+  background-color: ${(props) => props.theme.color.primary};
 `
 const Topbar = styled.div`
   display: flex;
@@ -134,16 +138,17 @@ const Topbar = styled.div`
 `
 const LoginBox = styled.div`
   margin-right: 16px;
+  font-size: 16px;
 `
 const RefBtnBox = styled.a`
   background-color: white;
   border-color: white;
 
-  font-size: 16px;
+  font-size: inherit;
   text-decoration: none;
 
   background-color: ${(props) => props.theme.backgroundColor.primary};
-  color: ${(props) => props.theme.color.primary};
+  color: ${(props) => props.theme.color.primary}99;
   border: none;
 
   &:hover {
@@ -220,9 +225,9 @@ const SignUpBtn = styled.button`
   }
 `
 const SignUpEmail = styled(Form.Control)`
-  width: 54%;
+  width: 50%;
   @media (max-width: 360px) {
-    width: 42%;
+    width: 40%;
   }
   max-width: 18em;
   font-size: inherit;
@@ -290,27 +295,28 @@ const SignUpForm = () => {
   )
 }
 
-const LastSlide = styled(Slide)`
-  position: relative;
-`
-
-const Footer = styled.div`
+const FooterBox = styled.div`
   width: 100%;
   position: absolute;
   bottom: 0;
   display: flex;
+  justify-content: center;
+`
+const Footer = styled.div`
+  display: flex;
   flex-wrap: wrap;
   align-content: space-around;
   justify-content: center;
-  padding: 16px;
+  padding: 6px;
+  max-width: 850px;
 `
 
 const FooterCol = styled.div`
-  text-align: left;
-  width: 250px;
+  text-align: center;
+  width: 200px;
 `
 const FooterItem = styled.div`
-  font-sixe: 16px;
+  font-size: 14px;
 `
 
 // const TextStrikeThrough = styled.span`
@@ -345,7 +351,7 @@ export function LandingPage() {
         <Slide>
           <Topbar>
             <Logo>
-              <LogoImg src={getLogoImage(MimeType.IMAGE_SVG_XML)} /> Mazed
+              <LogoImg/> Mazed
             </Logo>
             <Login />
           </Topbar>
@@ -378,50 +384,32 @@ export function LandingPage() {
               </TrustedByBox>
             </FirstSlideLeftHalf>
           </FirstSlideBody>
-        </Slide>
-        <LastSlide>
-          <Centered>
-            <SignUpForm />
-          </Centered>
+          <FooterBox>
           <Footer>
             <FooterCol>
-              <Logo>Mazed</Logo>
+              <FooterItem>
+                <RefBtn href={routes.terms}>Terms of Service</RefBtn>
+              </FooterItem>
             </FooterCol>
             <FooterCol>
-              <FooterItem>
-                <RefBtn href={routes.login}>Log In</RefBtn>
-              </FooterItem>
-              <FooterItem>
-                <RefBtn
-                  href={
-                    'https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc'
-                  }
-                >
-                  Download
-                </RefBtn>
-              </FooterItem>
-              <FooterItem>
-                <RefBtn href={routes.terms}>Terms and Conditions</RefBtn>
-              </FooterItem>
               <FooterItem>
                 <RefBtn href={routes.privacy}>Privacy Policy</RefBtn>
               </FooterItem>
+            </FooterCol>
+            <FooterCol>
               <FooterItem>
-                <RefBtn href={routes.cookiePolicy}>Cookie Policy</RefBtn>
+                <RefBtn href={routes.cookiePolicy}>Cookies Policy</RefBtn>
               </FooterItem>
             </FooterCol>
             <FooterCol>
               <FooterItem>
-                <RefBtn href={'https://mazed.se'}>mazed.se</RefBtn>
-              </FooterItem>
-              <FooterItem>
-                <RefBtn href={'mailto: mazed@fastmail.com'}>
-                  mazed@fastmail.com
+                <RefBtn href={'mailto: inquiries@mazed.dev'}>
+                  inquiries@mazed.dev
                 </RefBtn>
               </FooterItem>
             </FooterCol>
-          </Footer>
-        </LastSlide>
+          </Footer></FooterBox>
+        </Slide>
       </SlidesBox>
     </ThemeProvider>
   )
