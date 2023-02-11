@@ -69,6 +69,12 @@ export async function createNodeFromLocalBinary({
     throw new Error(`reading failed: file is too big ( ${file.size} > 8MiB)`)
   }
 
+  if (!storage.blob_index.cfg.supportsMime(mime)) {
+    throw new Error(
+      `Can't extract search index from '${mime}' files yet, support hasn't been implemented`
+    )
+  }
+
   // Launch both upload & index *generation* at the same time, wait until all
   // promises are settled.
   const [uploadResult, indexResult] = await Promise.allSettled([
