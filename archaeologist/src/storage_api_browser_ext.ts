@@ -156,11 +156,11 @@ type ExtPipelineToNidLav = GenericLav<'ext-pipe-id->nid', { nid: Nid }[]>
 type OriginToExtAssociationYek = GenericYek<'origin->ext-assoc', OriginId>
 type OriginToExtAssociationValue = {
   /**
-   * Writing/reading code that works with 'direction' may be unintuitive,
-   * depending on how you interpret the meaning of the field.
+   * `direction`'s meaning may be unintuitive when it comes to writing/reading code.
    * Instead, at the time of this writing the intent was to optimise for
    * a different purpose - debugging of 'browser.storage.local' data when it
    * gets dumped to log/console.
+   *
    * 'origin->ext-assoc' yek/lav pair looks somewhat like
    *    {yek:*origin-id-1*}/{lav:          *direction*, *origin-id-2*}
    * which is expected to be read by a developer as:
