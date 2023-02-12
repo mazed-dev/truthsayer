@@ -49,6 +49,10 @@ import type {
   ResourceAttention,
   NodeDeleteArgs,
   NodeCreatedVia,
+  UserExternalAssociationType,
+  GetUserExternalAssociationsResponse,
+  OriginHash,
+  ExternalAssociationEnd,
 } from 'smuggler-api'
 import {
   INodeIterator,
@@ -149,6 +153,28 @@ type ExtPipelineToNidYek = GenericYek<
 >
 type ExtPipelineToNidLav = GenericLav<'ext-pipe-id->nid', { nid: Nid }[]>
 
+type OriginToExtAssociationYek = GenericYek<'origin->ext-assoc', OriginId>
+type OriginToExtAssociationValue = {
+  /**
+   * `direction`'s meaning may be unintuitive when it comes to writing/reading code.
+   * Instead, at the time of this writing the intent was to optimise for
+   * a different purpose - debugging of 'browser.storage.local' data when it
+   * gets dumped to log/console.
+   *
+   * 'origin->ext-assoc' yek/lav pair looks somewhat like
+   *    {yek:*origin-id-1*}/{lav:          *direction*, *origin-id-2*}
+   * which is expected to be read by a developer as:
+   *    "    *origin-id-1* has association *from / to*  *origin-id-2*"
+   */
+  direction: 'from' | 'to'
+  other: OriginId
+  association: UserExternalAssociationType
+}
+type OriginToExtAssociationLav = GenericLav<
+  'origin->ext-assoc',
+  OriginToExtAssociationValue[]
+>
+
 type Yek =
   | AllNidsYek
   | NidToNodeYek
@@ -157,6 +183,7 @@ type Yek =
   | OriginToActivityYek
   | ExtPipelineYek
   | ExtPipelineToNidYek
+  | OriginToExtAssociationYek
 type Lav =
   | AllNidsLav
   | NidToNodeLav
@@ -165,12 +192,18 @@ type Lav =
   | OriginToActivityLav
   | ExtPipelineLav
   | ExtPipelineToNidLav
+  | OriginToExtAssociationLav
 
 type YekLav = { yek: Yek; lav: Lav }
 
 function isOfArrayKind(
   lav: Lav
-): lav is OriginToNidLav | NidToEdgeLav | AllNidsLav | ExtPipelineToNidLav {
+): lav is
+  | OriginToNidLav
+  | NidToEdgeLav
+  | AllNidsLav
+  | ExtPipelineToNidLav
+  | OriginToExtAssociationLav {
   return Array.isArray(lav.lav.value)
 }
 
@@ -211,21 +244,36 @@ class YekLavStore {
   get(yek: AllNidsYek): Promise<AllNidsLav | undefined>
   get(yek: NidToNodeYek): Promise<NidToNodeLav | undefined>
   get(yek: OriginToNidYek): Promise<OriginToNidLav | undefined>
+  get(
+    yek: OriginToNidYek[]
+  ): Promise<{ yek: OriginToNidYek; lav: OriginToNidLav }[]>
   get(yek: NidToEdgeYek): Promise<NidToEdgeLav | undefined>
-  get(yek: NidToNodeYek[]): Promise<NidToNodeLav[]>
+  get(yek: NidToNodeYek[]): Promise<{ yek: NidToNodeYek; lav: NidToNodeLav }[]>
   get(yek: OriginToActivityYek): Promise<OriginToActivityLav | undefined>
   get(yek: ExtPipelineYek): Promise<ExtPipelineLav | undefined>
   get(yek: ExtPipelineToNidYek): Promise<ExtPipelineToNidLav | undefined>
+  get(
+    yek: OriginToExtAssociationYek
+  ): Promise<OriginToExtAssociationLav | undefined>
   get(yek: Yek): Promise<Lav | undefined>
-  get(yek: Yek | Yek[]): Promise<Lav | Lav[] | undefined> {
+  get(yek: Yek | Yek[]): Promise<Lav | YekLav[] | undefined> {
     if (Array.isArray(yek)) {
-      const keys: string[] = yek.map((value: Yek) => this.stringify(value))
+      const keyToYek = new Map<string, Yek>()
+      yek.forEach((singleYek: Yek) =>
+        keyToYek.set(this.stringify(singleYek), singleYek)
+      )
+      const keys: string[] = Array.from(keyToYek.keys())
       const records: Promise<Record<string, any>> = this.store.get(keys)
-      return records.then((records: Record<string, any>): Promise<Lav[]> => {
-        const lavs: Lav[] = Object.keys(records).map(
-          (key: string) => records[key] as Lav
-        )
-        return Promise.resolve(lavs)
+      return records.then((records: Record<string, any>): Promise<YekLav[]> => {
+        const yeklavs: YekLav[] = []
+        for (const [key, yek] of keyToYek) {
+          const lav = key in records ? (records[key] as Lav) : undefined
+          if (lav == null) {
+            continue
+          }
+          yeklavs.push({ yek, lav })
+        }
+        return Promise.resolve(yeklavs)
       })
     }
 
@@ -408,6 +456,8 @@ class YekLavStore {
         return 'ext-pipe:' + yek.yek.key.pipeline_key
       case 'ext-pipe-id->nid':
         return 'ext-pipe-id->nid:' + yek.yek.key.pipeline_key
+      case 'origin->ext-assoc':
+        return 'origin->ext-assoc:' + yek.yek.key.id
     }
   }
 }
@@ -581,7 +631,9 @@ async function getNodesByOrigin(
       return { yek: { kind: 'nid->node', key: nid } }
     }
   )
-  const nidLavs: NidToNodeLav[] = await store.get(nidYeks)
+  const nidLavs: NidToNodeLav[] = (await store.get(nidYeks)).map(
+    (yeklav) => yeklav.lav
+  )
   return nidLavs.map((lav: NidToNodeLav) => NodeUtil.fromJson(lav.lav.value))
 }
 
@@ -592,7 +644,9 @@ async function getNodeBatch(
   const yeks: NidToNodeYek[] = args.nids.map((nid: Nid): NidToNodeYek => {
     return { yek: { kind: 'nid->node', key: nid } }
   })
-  const lavs: NidToNodeLav[] = await store.get(yeks)
+  const lavs: NidToNodeLav[] = (await store.get(yeks)).map(
+    (yeklav) => yeklav.lav
+  )
   return {
     nodes: lavs.map((lav: NidToNodeLav) => NodeUtil.fromJson(lav.lav.value)),
   }
@@ -930,7 +984,7 @@ async function advanceUserIngestionProgress(
   return { ack: true }
 }
 
-export async function getAllNids(
+async function getAllNids(
   store: YekLavStore,
   _args: NodeGetAllNidsArgs
 ): Promise<Nid[]> {
@@ -944,6 +998,124 @@ export async function getAllNids(
   tags.sort((a, b) => b.created_at - a.created_at)
   const nids = tags.map((t) => t.nid)
   return nids
+}
+
+async function recordAssociation(
+  store: YekLavStore,
+  args: ActivityAssociationRecordArgs
+): Promise<Ack> {
+  const { from, to } = args.origin
+  const yek: OriginToExtAssociationYek = {
+    yek: { kind: 'origin->ext-assoc', key: from },
+  }
+  const reverseYek: OriginToExtAssociationYek = {
+    yek: { kind: 'origin->ext-assoc', key: to },
+  }
+  const orEmpty = (
+    input: OriginToExtAssociationLav | undefined
+  ): OriginToExtAssociationLav => {
+    return input != null
+      ? input
+      : { lav: { kind: 'origin->ext-assoc', value: [] } }
+  }
+  const [lav, rlav]: OriginToExtAssociationLav[] = await Promise.all([
+    store.get(yek).then(orEmpty),
+    store.get(reverseYek).then(orEmpty),
+  ])
+
+  if (!lav.lav.value.every((assoc) => assoc.other.id !== to.id)) {
+    throw new Error(`${from} -> ${to} association already exists`)
+  }
+  if (!rlav.lav.value.every((assoc) => assoc.other.id !== from.id)) {
+    throw new Error(
+      `${from} -> ${to} association does not exist, but its reverse version does. Data is unexpectedly inconsistent.`
+    )
+  }
+
+  lav.lav.value.push({
+    direction: 'to',
+    other: to,
+    association: args.body.association,
+  })
+  rlav.lav.value.push({
+    direction: 'from',
+    other: from,
+    association: args.body.association,
+  })
+  await store.set([
+    { yek, lav },
+    { yek: reverseYek, lav: rlav },
+  ])
+  return { ack: true }
+}
+
+async function getAssociations(
+  store: YekLavStore,
+  args: ActivityAssociationGetArgs
+): Promise<GetUserExternalAssociationsResponse> {
+  let value: OriginToExtAssociationValue[] = []
+  // Step 1: get all association records
+  {
+    const yek: OriginToExtAssociationYek = {
+      yek: { kind: 'origin->ext-assoc', key: args.origin },
+    }
+    const lav: OriginToExtAssociationLav | undefined = await store.get(yek)
+    value = lav?.lav.value ?? []
+  }
+  if (value.length === 0) {
+    return { from: [], to: [] }
+  }
+  const originToNids = new Map<OriginHash, Nid[]>()
+  // Step 2: get nids of all origins found in association records
+  {
+    const yeks: OriginToNidYek[] = value.map(
+      (v: OriginToExtAssociationValue) => {
+        return {
+          yek: { kind: 'origin->nid', key: v.other },
+        }
+      }
+    )
+    yeks.push({ yek: { kind: 'origin->nid', key: args.origin } })
+    const yeklavs: {
+      yek: OriginToNidYek
+      lav: OriginToNidLav
+    }[] = await store.get(yeks)
+    for (const { yek, lav } of yeklavs) {
+      originToNids.set(
+        yek.yek.key.id,
+        lav.lav.value.map(({ nid }) => nid)
+      )
+    }
+  }
+  const ret: GetUserExternalAssociationsResponse = { from: [], to: [] }
+  const makeAssociationEnd = (
+    origin_hash: OriginHash
+  ): ExternalAssociationEnd => {
+    return { origin_hash, nids: originToNids.get(origin_hash) ?? [] }
+  }
+
+  // Step 3: enrich association records with nids connected to their origins
+  value.forEach((association) => {
+    switch (association.direction) {
+      case 'from': {
+        ret.from.push({
+          from: makeAssociationEnd(association.other.id),
+          to: makeAssociationEnd(args.origin.id),
+          association: association.association,
+        })
+        return
+      }
+      case 'to': {
+        ret.to.push({
+          from: makeAssociationEnd(args.origin.id),
+          to: makeAssociationEnd(association.other.id),
+          association: association.association,
+        })
+        return
+      }
+    }
+  })
+  return ret
 }
 
 export function makeBrowserExtStorageApi(
@@ -1008,11 +1180,9 @@ export function makeBrowserExtStorageApi(
           getExternalUserActivity(store, args),
       },
       association: {
-        // TODO[snikitin@outlook.com] Replace stubs with real implementation
-        record: (_args: ActivityAssociationRecordArgs) =>
-          Promise.resolve({ ack: true }),
-        get: (_args: ActivityAssociationGetArgs) =>
-          Promise.resolve({ from: [], to: [] }),
+        record: (args: ActivityAssociationRecordArgs) =>
+          recordAssociation(store, args),
+        get: (args: ActivityAssociationGetArgs) => getAssociations(store, args),
       },
     },
     external: {
