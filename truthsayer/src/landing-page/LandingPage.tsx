@@ -37,51 +37,49 @@ const Slide = styled.div`
 
   scroll-snap-align: start;
   position: relative;
+  margin: 0;
+  padding: 0;
 `
 
 const FirstSlideBody = styled.div`
-  display: flex;
-  justify-content: flex-start;
-  height: 88vh;
-`
-const FirstSlideLeftHalf = styled.div`
+  height: 92%;
+  @media (max-width: 400px) {
+    height: 80%;
+  }
+  padding: 0;
+  margin: 0;
   width: 100%;
 
   display: flex;
-  justify-content: center;
-  flex-wrap: nowrap;
+  align-items: center;
   flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: space-evenly;
 
   padding: 20px;
 `
 const Header = styled.h1`
   font-size: 48px;
-  @media (max-width: 800px) {
-    font-size: 36px;
-  }
   @media (max-width: 600px) {
-    font-size: 32px;
+    font-size: 36px;
   }
   text-align: center;
 `
 const Description = styled.h2`
   font-size: 28px;
-  @media (max-width: 800px) {
+  @media (max-width: 600px) {
     font-size: 20px;
   }
-  @media (max-width: 600px) {
-    font-size: 16px;
-  }
   text-align: center;
-  margin-top: 40px;
+  margin: 10px 0 10px 0;
 `
 const Comment = styled.h2`
-  font-size: 14px;
+  font-size: 16px;
   @media (max-width: 800px) {
-    font-size: 13px;
+    font-size: 14px;
   }
   text-align: center;
-  margin-top: 8vh;
+  margin: 6px 0 12px 0;
 `
 const TrustedByBox = styled.div``
 const TrustedByTitle = styled(Comment)``
@@ -114,7 +112,6 @@ const Logo = styled.div`
   }
   display: flex;
   justify-content: center;
-  margin-bottom: 8px;
 `
 
 //const LogoImg = styled.img`
@@ -135,6 +132,7 @@ const Topbar = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 12px;
+  height: 6%;
 `
 const LoginBox = styled.div`
   margin-right: 16px;
@@ -176,26 +174,19 @@ function Login() {
   )
 }
 
-// const ImageDemo = styled.img`
-//   height: 86vh;
-//   border-color: #cecece;
-//   border-style: solid;
-//   box-shadow: 1px 1px 4px ${(props) => props.theme.backgroundColor.negative};
-//   filter: ${(props) => props.theme.image.filter};
-// `
-
 const SignUpFormBox = styled.form`
   border-radius: 10px;
   width: 100%;
-  font-size: 16px;
+
+  font-size: 28px;
+  @media (max-width: 600px) {
+    font-size: 20px;
+  }
 
   display: flex;
   justify-content: center;
   flex-wrap: nowrap;
 
-  @media (max-width: 480px) {
-    flex-wrap: wrap;
-  }
   margin: 12px 0 0 0;
 `
 const SignUpBtn = styled.button`
@@ -205,7 +196,7 @@ const SignUpBtn = styled.button`
   margin: 0 2px 1px 0;
   padding: 0.32em 0.8em 0.32em 0.8em;
   @media (max-width: 360px) {
-    padding: 0.32em 0.4em 0.32em 0.4em;
+    padding: 0.2em 0.4em 0.2em 0.4em;
   }
 
   background-color: ${(props) => props.theme.backgroundColor.primary};
@@ -250,7 +241,8 @@ const SignUpEmail = styled(Form.Control)`
   }
 `
 
-const SignUpForm = () => {
+const SignUpBox = styled.div``
+const SignUp = () => {
   const [email, setEmail] = useState<string>('')
   const emailElementRef = useRef<HTMLInputElement>(null)
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -277,21 +269,28 @@ const SignUpForm = () => {
       })
   }
   return (
-    <SignUpFormBox onSubmit={handleSubmit}>
-      <SignUpEmail
-        type="email"
-        placeholder="email"
-        onChange={onChange}
-        value={email}
-        ref={emailElementRef}
-      />
-      <SignUpBtn
-        type="submit"
-        disabled={!emailElementRef.current?.validity.valid}
-      >
-        Get early access
-      </SignUpBtn>
-    </SignUpFormBox>
+    <SignUpBox>
+      <Comment>
+        We&nbsp;are&nbsp;currently&nbsp;in&nbsp;a&nbsp;private&nbsp;beta.
+        Register&nbsp;your&nbsp;email and&nbsp;we'll&nbsp;ping&nbsp;you
+        when&nbsp;you're&nbsp;off&nbsp;the waitlist.
+      </Comment>
+      <SignUpFormBox onSubmit={handleSubmit}>
+        <SignUpEmail
+          type="email"
+          placeholder="email"
+          onChange={onChange}
+          value={email}
+          ref={emailElementRef}
+        />
+        <SignUpBtn
+          type="submit"
+          disabled={!emailElementRef.current?.validity.valid}
+        >
+          Get early access
+        </SignUpBtn>
+      </SignUpFormBox>
+    </SignUpBox>
   )
 }
 
@@ -313,10 +312,10 @@ const Footer = styled.div`
 
 const FooterCol = styled.div`
   text-align: center;
-  width: 200px;
 `
 const FooterItem = styled.div`
   font-size: 14px;
+  margin: 0 16px 4px 16px;
 `
 
 // const TextStrikeThrough = styled.span`
@@ -351,64 +350,57 @@ export function LandingPage() {
         <Slide>
           <Topbar>
             <Logo>
-              <LogoImg/> Mazed
+              <LogoImg /> Mazed
             </Logo>
             <Login />
           </Topbar>
           <FirstSlideBody>
-            <FirstSlideLeftHalf>
-              <Header>
-                <div>
-                  Reference anything you've read. <wbr />
-                  <b>Without&nbsp;looking&nbsp;for&nbsp;it.</b>
-                </div>
-              </Header>
-              <Description>
-                Mazed&nbsp;is&nbsp;your&nbsp;second&nbsp;brain, serving you
-                information you've read before, when&nbsp;you&nbsp;need&nbsp;it.
-              </Description>
-              <Comment>
-                We&nbsp;are&nbsp;currently&nbsp;in&nbsp;a&nbsp;private&nbsp;beta.
-                Register&nbsp;your&nbsp;email and&nbsp;we'll&nbsp;ping&nbsp;you
-                when&nbsp;you're&nbsp;off&nbsp;the waitlist.
-              </Comment>
-              <SignUpForm />
-              <TrustedByBox>
-                <TrustedByTitle>
-                  Trusted by engineers and their teams at these companies:
-                </TrustedByTitle>
-                <TrustedByLogosBox>
-                  <LinkedinLogo size="1em" /> <GoogleLogo size="1em" />{' '}
-                  <SalesforceLogo size="1em" />
-                </TrustedByLogosBox>
-              </TrustedByBox>
-            </FirstSlideLeftHalf>
+            <Header>
+              Reference anything you've read. <wbr />
+              <b>Without&nbsp;looking&nbsp;for&nbsp;it.</b>
+            </Header>
+            <Description>
+              Mazed&nbsp;is&nbsp;your&nbsp;second&nbsp;brain, serving you
+              information you've read before, when&nbsp;you&nbsp;need&nbsp;it.
+            </Description>
+            <SignUp />
+            <TrustedByBox>
+              <TrustedByTitle>
+                Trusted by engineers and their teams at these companies:
+              </TrustedByTitle>
+              <TrustedByLogosBox>
+                <LinkedinLogo size="1em" />
+                <GoogleLogo size="1em" />
+                <SalesforceLogo size="1em" />
+              </TrustedByLogosBox>
+            </TrustedByBox>
           </FirstSlideBody>
           <FooterBox>
-          <Footer>
-            <FooterCol>
-              <FooterItem>
-                <RefBtn href={routes.terms}>Terms of Service</RefBtn>
-              </FooterItem>
-            </FooterCol>
-            <FooterCol>
-              <FooterItem>
-                <RefBtn href={routes.privacy}>Privacy Policy</RefBtn>
-              </FooterItem>
-            </FooterCol>
-            <FooterCol>
-              <FooterItem>
-                <RefBtn href={routes.cookiePolicy}>Cookies Policy</RefBtn>
-              </FooterItem>
-            </FooterCol>
-            <FooterCol>
-              <FooterItem>
-                <RefBtn href={'mailto: inquiries@mazed.dev'}>
-                  inquiries@mazed.dev
-                </RefBtn>
-              </FooterItem>
-            </FooterCol>
-          </Footer></FooterBox>
+            <Footer>
+              <FooterCol>
+                <FooterItem>
+                  <RefBtn href={routes.terms}>Terms of Service</RefBtn>
+                </FooterItem>
+              </FooterCol>
+              <FooterCol>
+                <FooterItem>
+                  <RefBtn href={routes.privacy}>Privacy Policy</RefBtn>
+                </FooterItem>
+              </FooterCol>
+              <FooterCol>
+                <FooterItem>
+                  <RefBtn href={routes.cookiePolicy}>Cookies Policy</RefBtn>
+                </FooterItem>
+              </FooterCol>
+              <FooterCol>
+                <FooterItem>
+                  <RefBtn href={'mailto: inquiries@mazed.dev'}>
+                    inquiries@mazed.dev
+                  </RefBtn>
+                </FooterItem>
+              </FooterCol>
+            </Footer>
+          </FooterBox>
         </Slide>
       </SlidesBox>
     </ThemeProvider>
