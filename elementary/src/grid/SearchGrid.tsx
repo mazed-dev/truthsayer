@@ -1,7 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
 import React, { useMemo, useEffect, useRef, useState } from 'react'
-import { useAsyncEffect } from 'use-async-effect'
 
 import styled from '@emotion/styled'
 
@@ -54,6 +53,7 @@ export const GridCard = ({
   )
 }
 
+const Mutex = require('async-mutex').Mutex
 
 type SearchGridState = {
   nodes: TNode[]
@@ -79,14 +79,7 @@ export const SearchGrid = ({
   const ref = useRef<HTMLDivElement>(null)
   const beagle = useMemo(() => Beagle.fromString(q || undefined), [q])
   const [state, setState] = useState<SearchGridState | null>(null)
-  useAsyncEffect(async () => {
-    const iter = await storage.node.iterate()
-    setState({nodes: [], iter})
-  }, [beagle])
   const [fetching, setFetching] = useState<boolean>(false)
-  if (q == null && !defaultSearch) {
-    return null
-  }
   const isScrolledToBottom = () => {
     let height: number = 0
     let scrollTop: number = 0
@@ -102,61 +95,79 @@ export const SearchGrid = ({
     offsetHeight = document.documentElement.offsetHeight
     return height + scrollTop + 300 >= offsetHeight
   }
-
-  const fetchNextBatch = React.useCallback(
-    lodash.throttle(
-      async () => {
-        // Continue fetching until visual space is filled with cards to the bottom and beyond.
-        // Thus if use scrolled to the bottom this loop would start fetching again adding more cards.
-        if (fetching || state == null || !isScrolledToBottom()) {
-          // Don't run more than 1 instance of fetcher
-          return
-        }
-        const { iter, nodes } = state
-        setFetching(true)
-        try {
-          const addNodes: TNode[] = []
-          while (addNodes.length < 20) {
-            const node = await iter.next()
-            if (node == null) {
-              iter.abort()
-              break
-            }
-            if (beagle.searchNode(node) != null) {
-              addNodes.push(node)
-            }
+  const mutex = useRef(new Mutex())
+  const fetchNextBatch = React.useCallback(async () => {
+    mutex.current.runExclusive(async () => {
+      // Continue fetching until visual space is filled with cards to the bottom and beyond.
+      // Thus if use scrolled to the bottom this loop would start fetching again adding more cards.
+      if (!isScrolledToBottom()) {
+        // Don't run more than 1 instance of fetcher
+        return
+      }
+      setFetching(true)
+      let iter: INodeIterator
+      let nodes: TNode[]
+      if (state == null) {
+        iter = await storage.node.iterate()
+        nodes = []
+      } else {
+        iter = state.iter
+        nodes = state.nodes
+      }
+      try {
+        // FIXME(Alexnader): With this batch size we predict N of cards to fill
+        // the entire screen. As you can see this is a dirty hack, feel free to
+        // replace it when you get there next time.
+        const batchSize =
+          (window.innerWidth * window.innerHeight * 1.4) / (240 * 240)
+        let counter = 0
+        while (counter < batchSize) {
+          const node = await iter.next()
+          if (node == null) {
+            iter.abort()
+            break
           }
-          setState({ iter, nodes: nodes.concat(addNodes) })
-        } catch (err) {
-          const error = errorise(err)
-          if (!isAbortError(error)) {
-            log.exception(error)
+          if (beagle.searchNode(node) != null) {
+            ++counter
+            nodes.push(node)
           }
         }
+        setState({ iter, nodes })
         setFetching(false)
-      },
-      100,
-      { leading: true, trailing: false }
-    ),
-    [beagle, state]
+      } catch (err) {
+        setFetching(false)
+        const error = errorise(err)
+        if (!isAbortError(error)) {
+          log.exception(error)
+        }
+      }
+    })
+  }, [beagle, state])
+  const fetchNextBatchThrottled = React.useCallback(
+    lodash.throttle(fetchNextBatch, 100, { leading: true, trailing: false }),
+    [fetchNextBatch]
   )
   useEffect(() => {
     if (!portable) {
-      window.addEventListener('scroll', fetchNextBatch, { passive: true })
+      window.addEventListener('scroll', fetchNextBatchThrottled, {
+        passive: true,
+      })
       return () => {
-        window.removeEventListener('scroll', fetchNextBatch)
+        window.removeEventListener('scroll', fetchNextBatchThrottled)
       }
     }
     return () => {}
-  }, [fetchNextBatch])
+  }, [fetchNextBatchThrottled])
   useEffect(() => {
-    // First fetch call to kick start the process
-    fetchNextBatch()
+    fetchNextBatchThrottled()
     return () => {
       // Clean up on changed search parameters
       setState(null)
     }
   }, [beagle])
+  if (q == null && !defaultSearch) {
+    return null
+  }
   const fetchingLoader = fetching ? (
     <div
       css={css`
@@ -211,13 +222,17 @@ export const SearchGrid = ({
   )
   if (portable) {
     return (
-      <BoxPortable className={className} onScroll={fetchNextBatch} ref={ref}>
+      <BoxPortable
+        className={className}
+        onScroll={fetchNextBatchThrottled}
+        ref={ref}
+      >
         {grid}
       </BoxPortable>
     )
   } else {
     return (
-      <div className={className} onScroll={fetchNextBatch} ref={ref}>
+      <div className={className} onScroll={fetchNextBatchThrottled} ref={ref}>
         {grid}
       </div>
     )
