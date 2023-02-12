@@ -105,7 +105,7 @@ export namespace FromTruthsayer {
           'dnjclfepefgpljnecekakpimfjaikgfd'
     const options: chrome.runtime.MessageOptions = {}
 
-    return new Promise<any>((resolve, reject) => {
+    return new Promise<ToTruthsayer.Response>((resolve, reject) => {
       if (
         chrome.runtime === undefined ||
         chrome.runtime.sendMessage === undefined
@@ -120,7 +120,7 @@ export namespace FromTruthsayer {
       }
       // See https://developer.chrome.com/docs/extensions/reference/runtime/#method-sendMessage
       // for complete set of rules on how this callback gets invoked
-      const sendResponse = (response?: ToTruthsayer.Response) => {
+      const sendResponse = (response: any) => {
         if (response === undefined) {
           reject(
             chrome.runtime.lastError?.message ??
@@ -128,7 +128,17 @@ export namespace FromTruthsayer {
           )
           return
         }
-        resolve(response)
+        // See https://github.com/mozilla/webextension-polyfill/blob/9398f8cc20ed7e1cc2b475180ed1bc4dee2ebae5/src/browser-polyfill.js#L451-L454
+        // This doesn't seem to be publicly document, but if a web page sends
+        // a message to an extension which uses mozilla/webextension-polyfill and
+        // extension throws during processing of the message then the response
+        // will be an object with a special '__mozWebExtensionPolyfillReject__'
+        // set to true
+        else if (response.__mozWebExtensionPolyfillReject__ === true) {
+          reject(response.message)
+          return
+        }
+        resolve(response as ToTruthsayer.Response)
       }
       chrome.runtime.sendMessage(extensionId, message, options, sendResponse)
     })
