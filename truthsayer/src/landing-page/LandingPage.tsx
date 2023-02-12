@@ -43,9 +43,6 @@ const Slide = styled.div`
 
 const FirstSlideBody = styled.div`
   height: 92%;
-  @media (max-width: 400px) {
-    height: 80%;
-  }
   padding: 0;
   margin: 0;
   width: 100%;
@@ -54,7 +51,8 @@ const FirstSlideBody = styled.div`
   align-items: center;
   flex-direction: column;
   flex-wrap: nowrap;
-  justify-content: space-evenly;
+  justify-content: center;
+  gap: 6%;
 
   padding: 20px;
 `
