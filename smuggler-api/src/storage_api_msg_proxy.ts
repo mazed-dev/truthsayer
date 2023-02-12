@@ -151,11 +151,10 @@ class MsgProxyNodeIterator implements INodeIterator {
   }
 
   async next(): Promise<TNode | null> {
-    const nids = this.nids
-    if (this.index >= nids.length) {
+    if (this.index >= this.nids.length) {
       return null
     }
-    const nid: Nid = nids[this.index]
+    const nid: Nid = this.nids[this.index]
     const apiName = 'node.get'
     const value = await this.forward({ apiName, args: { nid } })
     if (apiName !== value.apiName) throw mismatchError(apiName, value.apiName)

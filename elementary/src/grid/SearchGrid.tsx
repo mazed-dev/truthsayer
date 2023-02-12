@@ -1,13 +1,11 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useEffect, useRef, useState } from 'react'
-import { useAsyncEffect } from 'use-async-effect'
+import React, { useMemo, useEffect, useRef, useState } from 'react'
 
 import styled from '@emotion/styled'
 
 import { css } from '@emotion/react'
 import { useHistory } from 'react-router-dom'
-import lodash from 'lodash'
 
 import { Spinner } from '../spinner/mod'
 import { SmallCard } from '../SmallCard'
@@ -54,6 +52,12 @@ export const GridCard = ({
   )
 }
 
+const Mutex = require('async-mutex').Mutex
+
+type SearchGridState = {
+  nodes: TNode[]
+  iter: INodeIterator
+}
 export const SearchGrid = ({
   q,
   children,
@@ -70,58 +74,11 @@ export const SearchGrid = ({
   className?: string
   storage: StorageApi
 }>) => {
-  const [search, setUpSearch] = useState<{
-    iter: INodeIterator
-    beagle: Beagle
-  } | null>(null)
-  useAsyncEffect(async () => {
-    setUpSearch({
-      iter: await storage.node.iterate(),
-      beagle: Beagle.fromString(q || undefined),
-    })
-  }, [q])
-  if (q == null && !defaultSearch) {
-    return null
-  }
-  if (search == null) {
-    return null
-  }
-  const { iter, beagle } = search
-  return (
-    <SearchGridScroll
-      beagle={beagle}
-      iter={iter}
-      onCardClick={onCardClick}
-      portable={portable}
-      className={className}
-      storage={storage}
-    >
-      {children}
-    </SearchGridScroll>
-  )
-}
-
-const SearchGridScroll = ({
-  beagle,
-  iter,
-  children,
-  onCardClick,
-  portable,
-  className,
-  storage,
-}: React.PropsWithChildren<{
-  beagle: Beagle
-  iter: INodeIterator
-  onCardClick?: (arg0: TNode) => void
-  portable?: boolean
-  className?: string
-  storage: StorageApi
-}>) => {
   const history = useHistory()
   const ref = useRef<HTMLDivElement>(null)
-  const [nodes, setNodes] = useState<TNode[]>([])
+  const beagle = useMemo(() => Beagle.fromString(q || undefined), [q])
+  const [state, setState] = useState<SearchGridState | null>(null)
   const [fetching, setFetching] = useState<boolean>(false)
-
   const isScrolledToBottom = () => {
     let height: number = 0
     let scrollTop: number = 0
@@ -137,44 +94,59 @@ const SearchGridScroll = ({
     offsetHeight = document.documentElement.offsetHeight
     return height + scrollTop + 300 >= offsetHeight
   }
-
-  const fetchNextBatch = React.useCallback(
-    lodash.throttle(
-      async () => {
-        // Continue fetching until visual space is filled with cards to the bottom and beyond.
-        // Thus if use scrolled to the bottom this loop would start fetching again adding more cards.
-        if (fetching) {
-          // Don't run more than 1 instance of fetcher
-          return
-        }
-        setFetching(true)
-        try {
-          while (isScrolledToBottom()) {
-            const node = await iter.next()
-            if (node == null) {
-              iter.abort()
-              break
-            }
-            if (beagle.searchNode(node) != null) {
-              setNodes((prev) => prev.concat(node))
-            }
+  const mutex = useRef(new Mutex())
+  const fetchNextBatch = React.useCallback(async () => {
+    mutex.current.runExclusive(async () => {
+      // Continue fetching until visual space is filled with cards to the bottom and beyond.
+      // Thus if use scrolled to the bottom this loop would start fetching again adding more cards.
+      if (!isScrolledToBottom()) {
+        // Don't run more than 1 instance of fetcher
+        return
+      }
+      setFetching(true)
+      let iter: INodeIterator
+      let nodes: TNode[]
+      if (state == null) {
+        iter = await storage.node.iterate()
+        nodes = []
+      } else {
+        iter = state.iter
+        nodes = state.nodes
+      }
+      try {
+        // FIXME(Alexnader): With this batch size we predict N of cards to fill
+        // the entire screen. As you can see this is a dirty hack, feel free to
+        // replace it when you get there next time.
+        const batchSize =
+          (window.innerWidth * window.innerHeight * 2) / (240 * 240)
+        let counter = 0
+        while (counter < batchSize) {
+          const node = await iter.next()
+          if (node == null) {
+            iter.abort()
+            break
           }
-        } catch (err) {
-          const error = errorise(err)
-          if (!isAbortError(error)) {
-            log.exception(error)
+          if (beagle.searchNode(node) != null) {
+            ++counter
+            nodes.push(node)
           }
         }
+        setState({ iter, nodes })
         setFetching(false)
-      },
-      100,
-      { leading: true, trailing: false }
-    ),
-    [beagle, iter]
-  )
+      } catch (err) {
+        setFetching(false)
+        const error = errorise(err)
+        if (!isAbortError(error)) {
+          log.exception(error)
+        }
+      }
+    })
+  }, [beagle, state])
   useEffect(() => {
     if (!portable) {
-      window.addEventListener('scroll', fetchNextBatch, { passive: true })
+      window.addEventListener('scroll', fetchNextBatch, {
+        passive: true,
+      })
       return () => {
         window.removeEventListener('scroll', fetchNextBatch)
       }
@@ -182,13 +154,15 @@ const SearchGridScroll = ({
     return () => {}
   }, [fetchNextBatch])
   useEffect(() => {
-    // First fetch call to kick start the process
     fetchNextBatch()
     return () => {
       // Clean up on changed search parameters
-      setNodes([])
+      setState(null)
     }
-  }, [beagle, iter])
+  }, [beagle])
+  if (q == null && !defaultSearch) {
+    return null
+  }
   const fetchingLoader = fetching ? (
     <div
       css={css`
@@ -198,7 +172,7 @@ const SearchGridScroll = ({
       <Spinner.Wheel />
     </div>
   ) : null
-  const cards: JSX.Element[] = nodes.map((node) => {
+  const cards = state?.nodes.map((node) => {
     const onClick = () => {
       if (onCardClick) {
         onCardClick(node)
