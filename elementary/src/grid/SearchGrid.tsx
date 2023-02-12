@@ -119,7 +119,7 @@ export const SearchGrid = ({
         // the entire screen. As you can see this is a dirty hack, feel free to
         // replace it when you get there next time.
         const batchSize =
-          (window.innerWidth * window.innerHeight * 1.4) / (240 * 240)
+          (window.innerWidth * window.innerHeight * 2) / (240 * 240)
         let counter = 0
         while (counter < batchSize) {
           const node = await iter.next()
@@ -144,7 +144,7 @@ export const SearchGrid = ({
     })
   }, [beagle, state])
   const fetchNextBatchThrottled = React.useCallback(
-    lodash.throttle(fetchNextBatch, 100, { leading: true, trailing: false }),
+    lodash.throttle(fetchNextBatch, 100, { leading: false, trailing: true }),
     [fetchNextBatch]
   )
   useEffect(() => {
