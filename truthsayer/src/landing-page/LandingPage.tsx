@@ -112,18 +112,17 @@ const Logo = styled.div`
   }
   display: flex;
   justify-content: center;
+  align-content: center;
+  flex-direction: row;
+  align-items: baseline;
+  flex-wrap: nowrap;
 `
 
-//const LogoImg = styled.img`
-//  filter: invert(1);
-//  width: 38px;
-//  height: 38px;
-//  margin-bottom: 8px;
-//`
+const LogoText = styled.span``
 
-const LogoImg = styled.div`
-  width: 36px;
-  height: 36px;
+const LogoImg = styled.span`
+  width: 0.86em;
+  height: 0.86em;
   margin-right: 10px;
   mask: url(${getLogoImage(MimeType.IMAGE_SVG_XML)}) no-repeat center;
   background-color: ${(props) => props.theme.color.primary};
@@ -350,7 +349,8 @@ export function LandingPage() {
         <Slide>
           <Topbar>
             <Logo>
-              <LogoImg /> Mazed
+              <LogoImg />
+              <LogoText>Mazed</LogoText>
             </Logo>
             <Login />
           </Topbar>
@@ -366,7 +366,7 @@ export function LandingPage() {
             <SignUp />
             <TrustedByBox>
               <TrustedByTitle>
-                Trusted by engineers and their teams at these companies:
+                Trusted by engineers at&nbsp;these&nbsp;companies:
               </TrustedByTitle>
               <TrustedByLogosBox>
                 <LinkedinLogo size="1em" />
