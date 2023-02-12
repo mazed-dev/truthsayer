@@ -761,7 +761,7 @@ class Iterator implements INodeIterator {
     if (this.index >= nids.length) {
       return null
     }
-    const nid: Nid = nids[0]
+    const nid: Nid = nids[this.index]
     const yek: NidToNodeYek = { yek: { kind: 'nid->node', key: nid } }
     const lav: NidToNodeLav | undefined = await this.store.get(yek)
     if (lav == null) {
