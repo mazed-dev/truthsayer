@@ -52,7 +52,6 @@ const FirstSlideBody = styled.div`
   flex-direction: column;
   flex-wrap: nowrap;
   justify-content: center;
-  gap: 6%;
 
   padding: 20px;
 `
@@ -79,7 +78,9 @@ const Comment = styled.h2`
   text-align: center;
   margin: 6px 0 12px 0;
 `
-const TrustedByBox = styled.div``
+const TrustedByBox = styled.div`
+  margin-top: 2vh;
+`
 const TrustedByTitle = styled(Comment)``
 const TrustedByLogosBox = styled.div`
   font-size: 48px;
@@ -175,9 +176,9 @@ const SignUpFormBox = styled.form`
   border-radius: 10px;
   width: 100%;
 
-  font-size: 28px;
+  font-size: 18px;
   @media (max-width: 600px) {
-    font-size: 20px;
+    font-size: 16px;
   }
 
   display: flex;
@@ -238,7 +239,9 @@ const SignUpEmail = styled(Form.Control)`
   }
 `
 
-const SignUpBox = styled.div``
+const SignUpBox = styled.div`
+  margin-top: 8vh;
+`
 const SignUp = () => {
   const [email, setEmail] = useState<string>('')
   const emailElementRef = useRef<HTMLInputElement>(null)
