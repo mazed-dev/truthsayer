@@ -6,7 +6,6 @@ import styled from '@emotion/styled'
 
 import { css } from '@emotion/react'
 import { useHistory } from 'react-router-dom'
-import lodash from 'lodash'
 
 import { Spinner } from '../spinner/mod'
 import { SmallCard } from '../SmallCard'
@@ -143,23 +142,19 @@ export const SearchGrid = ({
       }
     })
   }, [beagle, state])
-  const fetchNextBatchThrottled = React.useCallback(
-    lodash.throttle(fetchNextBatch, 100, { leading: false, trailing: true }),
-    [fetchNextBatch]
-  )
   useEffect(() => {
     if (!portable) {
-      window.addEventListener('scroll', fetchNextBatchThrottled, {
+      window.addEventListener('scroll', fetchNextBatch, {
         passive: true,
       })
       return () => {
-        window.removeEventListener('scroll', fetchNextBatchThrottled)
+        window.removeEventListener('scroll', fetchNextBatch)
       }
     }
     return () => {}
-  }, [fetchNextBatchThrottled])
+  }, [fetchNextBatch])
   useEffect(() => {
-    fetchNextBatchThrottled()
+    fetchNextBatch()
     return () => {
       // Clean up on changed search parameters
       setState(null)
@@ -222,17 +217,13 @@ export const SearchGrid = ({
   )
   if (portable) {
     return (
-      <BoxPortable
-        className={className}
-        onScroll={fetchNextBatchThrottled}
-        ref={ref}
-      >
+      <BoxPortable className={className} onScroll={fetchNextBatch} ref={ref}>
         {grid}
       </BoxPortable>
     )
   } else {
     return (
-      <div className={className} onScroll={fetchNextBatchThrottled} ref={ref}>
+      <div className={className} onScroll={fetchNextBatch} ref={ref}>
         {grid}
       </div>
     )
