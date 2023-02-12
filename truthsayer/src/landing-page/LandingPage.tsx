@@ -366,7 +366,7 @@ export function LandingPage() {
             <SignUp />
             <TrustedByBox>
               <TrustedByTitle>
-                Trusted by engineers and their teams at these companies:
+                Trusted by engineers at&nbsp;these&nbsp;companies:
               </TrustedByTitle>
               <TrustedByLogosBox>
                 <LinkedinLogo size="1em" />
