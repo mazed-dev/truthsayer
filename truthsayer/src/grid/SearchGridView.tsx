@@ -10,6 +10,7 @@ import { Onboarding } from '../account/onboard/Onboarding'
 
 import lodash from 'lodash'
 import MzdGlobalContext from '../lib/global'
+import { ArchaeologistNotInstalledNotice } from '../account/onboard/ArchaeologistNotInstalledNotice'
 
 const Box = styled.div`
   width: 100%;
@@ -29,6 +30,7 @@ export const SearchGridView = () => {
   }
   return (
     <Box>
+      <ArchaeologistNotInstalledNotice />
       <SearchGrid q={queryStr} defaultSearch storage={ctx.storage} />
       <CreateNewNodeMenu />
       <Onboarding />
