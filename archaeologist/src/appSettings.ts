@@ -14,7 +14,9 @@ export async function getAppSettings(
 ): Promise<AppSettings> {
   const records: Record<string, any> = await browserStore.get(SETTINGS_KEY)
   if (SETTINGS_KEY in records) {
-    return records[SETTINGS_KEY]
+    const value: AppSettings = records[SETTINGS_KEY]
+    value.storageType = 'browser_ext'
+    return value
   }
   return defaultSettings()
 }
