@@ -25,7 +25,7 @@ export type AppSettings = {
 }
 
 export function defaultSettings(): AppSettings {
-  return { storageType: 'browser_ext' }
+  return { storageType: 'datacenter' }
 }
 
 export async function getAppSettings(): Promise<AppSettings> {
