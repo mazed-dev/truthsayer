@@ -15,6 +15,7 @@ export async function getAppSettings(
   const records: Record<string, any> = await browserStore.get(SETTINGS_KEY)
   if (SETTINGS_KEY in records) {
     const value: AppSettings = records[SETTINGS_KEY]
+    // Enforce offline mode for everyone with a new version of archaeologist
     value.storageType = 'browser_ext'
     return value
   }

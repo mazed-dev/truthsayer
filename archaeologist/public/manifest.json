@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Mazed",
   "author": "ASG Mazed Inc",
-  "version": "0.2.4",
-  "description": "Mazed is your personal communications expert",
+  "version": "0.3.0",
+  "description": "Reference anything you've read. Without looking for it. Mazed is your second brain, serving you information you've read before, when you need it.",
   "homepage_url": "https://mazed.se",
   "action": {
     "default_icon": {
