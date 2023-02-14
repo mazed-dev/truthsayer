@@ -55,68 +55,44 @@ export const GridCard = ({
 
 const Mutex = require('async-mutex').Mutex
 
-type SearchGridSearchState = {
-  iter: INodeIterator
-  beagle: Beagle
-}
-export const SearchGrid = ({
-  q,
-  children,
-  onCardClick,
-  portable,
-  defaultSearch,
-  className,
-  storage,
-}: React.PropsWithChildren<{
+type SearchGridProps = React.PropsWithChildren<{
   q: string | null
   onCardClick?: (arg0: TNode) => void
   portable?: boolean
   defaultSearch?: boolean
   className?: string
   storage: StorageApi
-}>) => {
-  const mutex = useRef(new Mutex())
-  const history = useHistory()
-  const ref = useRef<HTMLDivElement>(null)
-  const [nodes, setNodes] = useState<TNode[]>([])
-  const [iterator, setIter] = useState<INodeIterator|null>(null)
-  const [beagle, setBeagle] = useState<Beagle|null>(null)
-  const [fetching, setFetching] = useState<boolean>(false)
-  const isScrolledToBottom = React.useCallback(() => {
-    let height: number = 0
-    let scrollTop: number = 0
-    let offsetHeight: number = 0
-    if (portable) {
-      height = ref.current?.offsetHeight || 0
-      scrollTop = ref.current?.scrollTop || 0
-      offsetHeight = ref.current?.scrollHeight || 0
-      return height + scrollTop + 600 > offsetHeight
+}>
+type SearchGridState = {
+  iter?: INodeIterator
+  beagle?: Beagle
+  nodes: TNode[]
+  fetching: boolean
+}
+
+export class SearchGrid extends React.Component<SearchGridProps, SearchGridState> {
+  private mutex = new Mutex()
+  private boxRef: React.RefObject<HTMLDivElement>;
+  constructor(props: SearchGridProps) {
+    super(props)
+    this.state = {
+      nodes: [],
+      fetching: false,
     }
-    height = window.innerHeight
-    scrollTop = document.documentElement.scrollTop
-    offsetHeight = document.documentElement.offsetHeight
-    return height + scrollTop + 300 >= offsetHeight
-  }, [])
-  useAsyncEffect(async () => {
-    const iterator = await storage.node.iterate()
-    const beagle = Beagle.fromString(q || undefined)
-    setBeagle(beagle)
-    setIter(iterator)
-    fetchNextBatch()
-  }, [q])
-  const fetchNextBatch = React.useCallback(async () => {
-    mutex.current.runExclusive(async () => {
+    this.boxRef = React.createRef<HTMLDivElement>()
+  }
+  fetchNextBatch = async () => {
+    this.mutex.current.runExclusive(async () => {
       log.debug('fetchNextBatch.mutex.current.runExclusive')
-      const iter = iterator
-      const newNodes = nodes
+      const { iter, nodes, beagle} = this.state
       // Continue fetching until visual space is filled with cards to the bottom and beyond.
       // Thus if use scrolled to the bottom this loop would start fetching again adding more cards.
-      if (!isScrolledToBottom() || iter == null || beagle == null) {
+      if (!this.isScrolledToBottom() || iter == null || beagle == null) {
         // Don't run more than 1 instance of fetcher
         return
       }
       log.debug('fetchNextBatch.mutex.current.runExclusive 2')
-      setFetching(true)
+      //setFetching(true)
       try {
         // FIXME(Alexnader): With this batch size we predict N of cards to fill
         // the entire screen. As you can see this is a dirty hack, feel free to
@@ -132,38 +108,67 @@ export const SearchGrid = ({
           }
           if (beagle.searchNode(node) != null) {
             ++counter
-            newNodes.push(node)
+            nodes.push(node)
           }
         }
         log.debug('fetchNextBatch.mutex.current.runExclusive set state')
-        setNodes(newNodes)
-        setIter(iter)
-        setFetching(false)
+        this.setState({
+          nodes, iter})
+        // setFetching(false)
       } catch (err) {
-        setFetching(false)
+        // setFetching(false)
         const error = errorise(err)
         if (!isAbortError(error)) {
           log.exception(error)
         }
       }
     })
-  }, [beagle])
-  useEffect(() => {
-    if (!portable) {
-      window.addEventListener('scroll', fetchNextBatch, {
+  }
+  componentDidMount() {
+    this.props.storage.node.iterate().then((iter: INodeIterator) => this.setState({
+      beagle: Beagle.fromString(this.props.q || undefined),
+      iter,
+    }))
+    if (!this.props.portable) {
+      window.addEventListener('scroll', this.fetchNextBatch, {
         passive: true,
       })
-      return () => {
-        window.removeEventListener('scroll', fetchNextBatch)
-        // Clean up on changed search parameters
-        setNodes([])
-      }
     }
-    return () => {
-      // Clean up on changed search parameters
-      setNodes([])
+  }
+  componentWillUnmount() {
+    if (!this.props.portable) {
+      window.removeEventListener('scroll', this.fetchNextBatch)
     }
-  }, [q])
+  }
+  componentDidUpdate(prevProps: SearchGridProps) {
+    if (this.props.q !== prevProps.q) {
+      this.setState({
+        beagle: undefined,
+        iter: undefined,
+      })
+      this.props.storage.node.iterate().then((iter: INodeIterator) => this.setState({
+        beagle: Beagle.fromString(this.props.q || undefined),
+        iter,
+      }))
+    }
+  }
+  isScrolledToBottom = React.useCallback(() => {
+    let height: number = 0
+    let scrollTop: number = 0
+    let offsetHeight: number = 0
+    if (this.props.portable) {
+      height = this.boxRef.current?.offsetHeight || 0
+      scrollTop = this.boxRef.current?.scrollTop || 0
+      offsetHeight = this.boxRef.current?.scrollHeight || 0
+      return height + scrollTop + 600 > offsetHeight
+    }
+    height = window.innerHeight
+    scrollTop = document.documentElement.scrollTop
+    offsetHeight = document.documentElement.offsetHeight
+    return height + scrollTop + 300 >= offsetHeight
+  }, [])
+  render() {
+    const { q, defaultSearch } = this.props
   if (q == null && !defaultSearch) {
     return null
   }
