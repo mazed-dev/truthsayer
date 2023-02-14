@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import styled from '@emotion/styled'
 
 import { Link, useLocation } from 'react-router-dom'
@@ -9,7 +9,6 @@ import { compass } from './../lib/route'
 import { jcss, MdiAccountCircle, kCardBorder } from 'elementary'
 import { getLogoImage } from './../util/env'
 import { SearchForm } from './SearchForm'
-import { MzdGlobalContext } from '../lib/global'
 import { TruthsayerPath } from './../lib/route'
 
 import styles from './GlobalNavBar.module.css'
@@ -21,18 +20,13 @@ const UserPic = styled(MdiAccountCircle)`
 `
 
 const UserBadge = () => {
-  const ctx = useContext(MzdGlobalContext)
-  const account = ctx.account
   // TODO: use custom user uploaded picture for userpic here
   return (
     <div className={'d-inline-flex'}>
       <UserPic />
       <div
         className={productanalytics.classExclude('d-none d-sm-none d-md-block')}
-      >
-        &nbsp;
-        {account?.getName()}
-      </div>
+      ></div>
     </div>
   )
 }

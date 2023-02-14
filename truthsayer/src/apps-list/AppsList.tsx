@@ -46,11 +46,11 @@ const Logo = styled.img`
   height: 52px;
 `
 
-async function getArchaeologistVersionWait() {
+export async function getArchaeologistVersionWait() {
   let version: truthsayer_archaeologist_communication.VersionStruct | null =
     null
-  for (let step = 0; step < 5 && version == null; step++) {
-    await sleep(500)
+  for (let step = 0; step < 12 && version == null; step++) {
+    await sleep(200)
     version =
       truthsayer_archaeologist_communication.truthsayer.getArchaeologistVersion(
         window.document
