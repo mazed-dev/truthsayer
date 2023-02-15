@@ -1,12 +1,11 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useMemo, useEffect, useRef, useState } from 'react'
-import { useAsyncEffect } from 'use-async-effect'
+import React from 'react'
 
 import styled from '@emotion/styled'
 
 import { css } from '@emotion/react'
-import { RouteComponentProps } from 'react-router-dom'
+import type { RouteComponentProps } from 'react-router-dom'
 
 import { Spinner } from '../spinner/mod'
 import { SmallCard } from '../SmallCard'
@@ -55,7 +54,6 @@ export const GridCard = ({
 
 const Mutex = require('async-mutex').Mutex
 
-type History = RouteComponentProps['history']
 type SearchGridProps = React.PropsWithChildren<{
   q: string | null
   onCardClick?: (arg0: TNode) => void
@@ -63,7 +61,6 @@ type SearchGridProps = React.PropsWithChildren<{
   defaultSearch?: boolean
   className?: string
   storage: StorageApi
-  history: History
 }>
 type SearchGridState = {
   iter?: INodeIterator
@@ -87,7 +84,7 @@ export class SearchGrid extends React.Component<
     this.boxRef = React.createRef<HTMLDivElement>()
   }
   fetchNextBatch = async () => {
-    this.mutex.current.runExclusive(async () => {
+    this.mutex.runExclusive(async () => {
       log.debug('fetchNextBatch.mutex.current.runExclusive')
       const { iter, nodes, beagle } = this.state
       // Continue fetching until visual space is filled with cards to the bottom and beyond.
@@ -132,12 +129,13 @@ export class SearchGrid extends React.Component<
     })
   }
   componentDidMount() {
-    this.props.storage.node.iterate().then((iter: INodeIterator) =>
+    this.props.storage.node.iterate().then((iter: INodeIterator) => {
       this.setState({
         beagle: Beagle.fromString(this.props.q || undefined),
         iter,
       })
-    )
+      this.fetchNextBatch()
+    })
     if (!this.props.portable) {
       window.addEventListener('scroll', this.fetchNextBatch, {
         passive: true,
@@ -151,10 +149,10 @@ export class SearchGrid extends React.Component<
   }
   componentDidUpdate(prevProps: SearchGridProps) {
     if (this.props.q !== prevProps.q) {
-      this.setState({
-        beagle: undefined,
-        iter: undefined,
-      })
+      // this.setState({
+      //   beagle: undefined,
+      //   iter: undefined,
+      // })
       this.props.storage.node.iterate().then((iter: INodeIterator) =>
         this.setState({
           beagle: Beagle.fromString(this.props.q || undefined),
@@ -163,7 +161,7 @@ export class SearchGrid extends React.Component<
       )
     }
   }
-  isScrolledToBottom = React.useCallback(() => {
+  isScrolledToBottom = () => {
     let height: number = 0
     let scrollTop: number = 0
     let offsetHeight: number = 0
@@ -177,14 +175,13 @@ export class SearchGrid extends React.Component<
     scrollTop = document.documentElement.scrollTop
     offsetHeight = document.documentElement.offsetHeight
     return height + scrollTop + 300 >= offsetHeight
-  }, [])
+  }
   render() {
     const {
       q,
       defaultSearch,
       storage,
       onCardClick,
-      history,
       portable,
       className,
       children,
@@ -204,17 +201,17 @@ export class SearchGrid extends React.Component<
       </div>
     ) : null
     const cards = nodes.map((node) => {
-      const onClick = () => {
-        if (onCardClick) {
-          onCardClick(node)
-        } else {
-          history.push({
-            pathname: `/n/${node.nid}`,
-          })
-        }
-      }
+      // const onClick = () => {
+      //   if (onCardClick) {
+      //     onCardClick(node)
+      //   } else {
+      //     history.push({
+      //       pathname: `/n/${node.nid}`,
+      //     })
+      //   }
+      // }
       return (
-        <GridCard onClick={onClick} key={node.nid}>
+        <GridCard onClick={() => {}} key={node.nid}>
           <ShrinkCard>
             <NodeCardReadOnly
               node={node}
