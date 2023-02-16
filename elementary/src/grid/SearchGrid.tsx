@@ -1,13 +1,13 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useMemo, useEffect, useRef, useState } from 'react'
+import React from 'react'
 
 import styled from '@emotion/styled'
 
 import { css } from '@emotion/react'
+import type { RouteComponentProps } from 'react-router-dom'
 import { useHistory } from 'react-router-dom'
 
-import { Spinner } from '../spinner/mod'
 import { SmallCard } from '../SmallCard'
 import { ShrinkCard } from '../ShrinkCard'
 import { NodeTimeBadge } from '../NodeTimeBadge'
@@ -30,12 +30,13 @@ const BoxPortable = styled.div`
 `
 
 export const GridCard = ({
-  onClick,
   className,
   children,
+  onClick,
 }: React.PropsWithChildren<{
-  onClick: () => void
+  to?: string
   className?: string
+  onClick?: React.MouseEventHandler
 }>) => {
   return (
     <SmallCard
@@ -54,64 +55,44 @@ export const GridCard = ({
 
 const Mutex = require('async-mutex').Mutex
 
-type SearchGridState = {
-  nodes: TNode[]
-  iter: INodeIterator
-}
-export const SearchGrid = ({
-  q,
-  children,
-  onCardClick,
-  portable,
-  defaultSearch,
-  className,
-  storage,
-}: React.PropsWithChildren<{
+type SearchGridProps = React.PropsWithChildren<{
   q: string | null
   onCardClick?: (arg0: TNode) => void
   portable?: boolean
   defaultSearch?: boolean
   className?: string
   storage: StorageApi
-}>) => {
-  const history = useHistory()
-  const ref = useRef<HTMLDivElement>(null)
-  const beagle = useMemo(() => Beagle.fromString(q || undefined), [q])
-  const [state, setState] = useState<SearchGridState | null>(null)
-  const [fetching, setFetching] = useState<boolean>(false)
-  const isScrolledToBottom = () => {
-    let height: number = 0
-    let scrollTop: number = 0
-    let offsetHeight: number = 0
-    if (portable) {
-      height = ref.current?.offsetHeight || 0
-      scrollTop = ref.current?.scrollTop || 0
-      offsetHeight = ref.current?.scrollHeight || 0
-      return height + scrollTop + 600 > offsetHeight
+}>
+type SearchGridWithHistProps = SearchGridProps & {
+  history: RouteComponentProps['history']
+}
+type SearchGridState = {
+  iter?: INodeIterator
+  beagle?: Beagle
+  nodes: TNode[]
+}
+
+class SearchGridWithHist extends React.Component<
+  SearchGridWithHistProps,
+  SearchGridState
+> {
+  private mutex = new Mutex()
+  private boxRef: React.RefObject<HTMLDivElement>
+  constructor(props: SearchGridWithHistProps) {
+    super(props)
+    this.state = {
+      nodes: [],
     }
-    height = window.innerHeight
-    scrollTop = document.documentElement.scrollTop
-    offsetHeight = document.documentElement.offsetHeight
-    return height + scrollTop + 300 >= offsetHeight
+    this.boxRef = React.createRef<HTMLDivElement>()
   }
-  const mutex = useRef(new Mutex())
-  const fetchNextBatch = React.useCallback(async () => {
-    mutex.current.runExclusive(async () => {
+  fetchNextBatch = async () => {
+    this.mutex.runExclusive(async () => {
+      const { iter, nodes, beagle } = this.state
       // Continue fetching until visual space is filled with cards to the bottom and beyond.
       // Thus if use scrolled to the bottom this loop would start fetching again adding more cards.
-      if (!isScrolledToBottom()) {
+      if (!this.isScrolledToBottom() || iter == null || beagle == null) {
         // Don't run more than 1 instance of fetcher
         return
-      }
-      setFetching(true)
-      let iter: INodeIterator
-      let nodes: TNode[]
-      if (state == null) {
-        iter = await storage.node.iterate()
-        nodes = []
-      } else {
-        iter = state.iter
-        nodes = state.nodes
       }
       try {
         // FIXME(Alexnader): With this batch size we predict N of cards to fill
@@ -131,101 +112,145 @@ export const SearchGrid = ({
             nodes.push(node)
           }
         }
-        setState({ iter, nodes })
-        setFetching(false)
+        this.setState({
+          nodes,
+          iter,
+        })
       } catch (err) {
-        setFetching(false)
         const error = errorise(err)
         if (!isAbortError(error)) {
           log.exception(error)
         }
       }
     })
-  }, [beagle, state])
-  useEffect(() => {
-    if (!portable) {
-      window.addEventListener('scroll', fetchNextBatch, {
+  }
+  componentDidMount() {
+    this.resetSearchState()
+    if (!this.props.portable) {
+      window.addEventListener('scroll', this.fetchNextBatch, {
         passive: true,
       })
-      return () => {
-        window.removeEventListener('scroll', fetchNextBatch)
-      }
     }
-    return () => {}
-  }, [fetchNextBatch])
-  useEffect(() => {
-    fetchNextBatch()
-    return () => {
-      // Clean up on changed search parameters
-      setState(null)
-    }
-  }, [beagle])
-  if (q == null && !defaultSearch) {
-    return null
   }
-  const fetchingLoader = fetching ? (
-    <div
-      css={css`
-        margin: 2rem;
-      `}
-    >
-      <Spinner.Wheel />
-    </div>
-  ) : null
-  const cards = state?.nodes.map((node) => {
-    const onClick = () => {
-      if (onCardClick) {
-        onCardClick(node)
-      } else {
-        history.push({
-          pathname: `/n/${node.nid}`,
-        })
-      }
+  componentWillUnmount() {
+    if (!this.props.portable) {
+      window.removeEventListener('scroll', this.fetchNextBatch)
     }
-    return (
-      <GridCard onClick={onClick} key={node.nid}>
-        <ShrinkCard>
-          <NodeCardReadOnly
-            node={node}
-            strippedRefs
-            strippedActions
-            storage={storage}
+  }
+  componentDidUpdate(prevProps: SearchGridWithHistProps) {
+    if (this.props.q !== prevProps.q) {
+      this.resetSearchState()
+    }
+  }
+  async resetSearchState(): Promise<void> {
+    const iter = await this.props.storage.node.iterate()
+    // Reset state and restart fetching process when state is updated
+    this.setState(
+      {
+        nodes: [],
+        beagle: Beagle.fromString(this.props.q || undefined),
+        iter,
+      },
+      () => this.fetchNextBatch()
+    )
+  }
+  isScrolledToBottom = () => {
+    let height: number = 0
+    let scrollTop: number = 0
+    let offsetHeight: number = 0
+    if (this.props.portable) {
+      height = this.boxRef.current?.offsetHeight || 0
+      scrollTop = this.boxRef.current?.scrollTop || 0
+      offsetHeight = this.boxRef.current?.scrollHeight || 0
+      return height + scrollTop + 600 > offsetHeight
+    }
+    height = window.innerHeight
+    scrollTop = document.documentElement.scrollTop
+    offsetHeight = document.documentElement.offsetHeight
+    return height + scrollTop + 300 >= offsetHeight
+  }
+  render() {
+    const {
+      q,
+      defaultSearch,
+      storage,
+      onCardClick,
+      portable,
+      className,
+      children,
+      history,
+    } = this.props
+    const { nodes } = this.state
+    if (q == null && !defaultSearch) {
+      return null
+    }
+    const cards = nodes.map((node) => {
+      const onClick = () => {
+        if (onCardClick) {
+          onCardClick(node)
+        } else {
+          history.push({
+            pathname: `/n/${node.nid}`,
+          })
+        }
+      }
+      return (
+        <GridCard onClick={onClick} key={node.nid}>
+          <ShrinkCard>
+            <NodeCardReadOnly
+              node={node}
+              strippedRefs
+              strippedActions
+              storage={storage}
+            />
+          </ShrinkCard>
+          <NodeTimeBadge
+            created_at={node.created_at}
+            updated_at={node.updated_at}
           />
-        </ShrinkCard>
-        <NodeTimeBadge
-          created_at={node.created_at}
-          updated_at={node.updated_at}
-        />
-      </GridCard>
+        </GridCard>
+      )
+    })
+    const grid = (
+      <>
+        <DynamicGrid
+          css={css`
+            justify-content: center;
+            ${styleMobileTouchOnly(css`
+              grid-template-columns: 50% 50%;
+            `)}
+          `}
+        >
+          <>{children}</>
+          <>{cards}</>
+        </DynamicGrid>
+      </>
     )
-  })
-  const grid = (
-    <>
-      <DynamicGrid
-        css={css`
-          justify-content: center;
-          ${styleMobileTouchOnly(css`
-            grid-template-columns: 50% 50%;
-          `)}
-        `}
-      >
-        <>{children}</>
-        <>{cards}</>
-      </DynamicGrid>
-      {fetchingLoader}
-    </>
-  )
-  if (portable) {
-    return (
-      <BoxPortable className={className} onScroll={fetchNextBatch} ref={ref}>
-        {grid}
-      </BoxPortable>
-    )
-  } else {
-    return (
-      <div className={className} onScroll={fetchNextBatch} ref={ref}>
-        {grid}
-      </div>
-    )
+    if (portable) {
+      return (
+        <BoxPortable
+          className={className}
+          onScroll={this.fetchNextBatch}
+          ref={this.boxRef}
+        >
+          {grid}
+        </BoxPortable>
+      )
+    } else {
+      return (
+        <div
+          className={className}
+          onScroll={this.fetchNextBatch}
+          ref={this.boxRef}
+        >
+          {grid}
+        </div>
+      )
+    }
   }
+}
+
+export const SearchGrid = (props: SearchGridProps) => {
+  const history = useHistory()
+  return <SearchGridWithHist history={history} {...props} />
 }
