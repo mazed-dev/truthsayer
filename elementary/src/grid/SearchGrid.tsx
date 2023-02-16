@@ -8,7 +8,6 @@ import { css } from '@emotion/react'
 import type { RouteComponentProps } from 'react-router-dom'
 import { Link, useHistory } from 'react-router-dom'
 
-import { Spinner } from '../spinner/mod'
 import { SmallCard } from '../SmallCard'
 import { ShrinkCard } from '../ShrinkCard'
 import { NodeTimeBadge } from '../NodeTimeBadge'
@@ -28,14 +27,6 @@ const BoxPortable = styled.div`
 
   /* height: calc(50vh - 156px); */
   height: 80vh;
-`
-
-const SmallCardLinkWrap = styled(Link)`
-  text-decoration: inherit;
-  color: inherit;
-  &:hover {
-    color: inherit;
-  }
 `
 
 export const GridCard = ({
