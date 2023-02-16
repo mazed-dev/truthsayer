@@ -6,6 +6,7 @@ import styled from '@emotion/styled'
 
 import { css } from '@emotion/react'
 import type { RouteComponentProps } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom'
 
 import { Spinner } from '../spinner/mod'
 import { SmallCard } from '../SmallCard'
@@ -29,13 +30,22 @@ const BoxPortable = styled.div`
   height: 80vh;
 `
 
+const SmallCardLinkWrap = styled(Link)`
+  text-decoration: inherit;
+  color: inherit;
+  &:hover {
+    color: inherit;
+  }
+`
+
 export const GridCard = ({
-  onClick,
   className,
   children,
+  onClick,
 }: React.PropsWithChildren<{
-  onClick: () => void
+  to?: string
   className?: string
+  onClick?: React.MouseEventHandler
 }>) => {
   return (
     <SmallCard
@@ -62,6 +72,9 @@ type SearchGridProps = React.PropsWithChildren<{
   className?: string
   storage: StorageApi
 }>
+type SearchGridWithHistProps = SearchGridProps & {
+  history: RouteComponentProps['history']
+}
 type SearchGridState = {
   iter?: INodeIterator
   beagle?: Beagle
@@ -69,13 +82,13 @@ type SearchGridState = {
   fetching: boolean
 }
 
-export class SearchGrid extends React.Component<
-  SearchGridProps,
+class SearchGridWithHist extends React.Component<
+  SearchGridWithHistProps,
   SearchGridState
 > {
   private mutex = new Mutex()
   private boxRef: React.RefObject<HTMLDivElement>
-  constructor(props: SearchGridProps) {
+  constructor(props: SearchGridWithHistProps) {
     super(props)
     this.state = {
       nodes: [],
@@ -85,7 +98,6 @@ export class SearchGrid extends React.Component<
   }
   fetchNextBatch = async () => {
     this.mutex.runExclusive(async () => {
-      log.debug('fetchNextBatch.mutex.current.runExclusive')
       const { iter, nodes, beagle } = this.state
       // Continue fetching until visual space is filled with cards to the bottom and beyond.
       // Thus if use scrolled to the bottom this loop would start fetching again adding more cards.
@@ -93,8 +105,6 @@ export class SearchGrid extends React.Component<
         // Don't run more than 1 instance of fetcher
         return
       }
-      log.debug('fetchNextBatch.mutex.current.runExclusive 2')
-      // setFetching(true)
       try {
         // FIXME(Alexnader): With this batch size we predict N of cards to fill
         // the entire screen. As you can see this is a dirty hack, feel free to
@@ -113,7 +123,6 @@ export class SearchGrid extends React.Component<
             nodes.push(node)
           }
         }
-        log.debug('fetchNextBatch.mutex.current.runExclusive set state')
         this.setState({
           nodes,
           iter,
@@ -129,13 +138,7 @@ export class SearchGrid extends React.Component<
     })
   }
   componentDidMount() {
-    this.props.storage.node.iterate().then((iter: INodeIterator) => {
-      this.setState({
-        beagle: Beagle.fromString(this.props.q || undefined),
-        iter,
-      })
-      this.fetchNextBatch()
-    })
+    this.resetSearchState()
     if (!this.props.portable) {
       window.addEventListener('scroll', this.fetchNextBatch, {
         passive: true,
@@ -147,19 +150,22 @@ export class SearchGrid extends React.Component<
       window.removeEventListener('scroll', this.fetchNextBatch)
     }
   }
-  componentDidUpdate(prevProps: SearchGridProps) {
+  componentDidUpdate(prevProps: SearchGridWithHistProps) {
     if (this.props.q !== prevProps.q) {
-      // this.setState({
-      //   beagle: undefined,
-      //   iter: undefined,
-      // })
-      this.props.storage.node.iterate().then((iter: INodeIterator) =>
-        this.setState({
-          beagle: Beagle.fromString(this.props.q || undefined),
-          iter,
-        })
-      )
+      this.resetSearchState()
     }
+  }
+  async resetSearchState(): Promise<void> {
+    const iter = await this.props.storage.node.iterate()
+    // Reset state and restart fetching process when state is updated
+    this.setState(
+      {
+        nodes: [],
+        beagle: Beagle.fromString(this.props.q || undefined),
+        iter,
+      },
+      () => this.fetchNextBatch()
+    )
   }
   isScrolledToBottom = () => {
     let height: number = 0
@@ -185,33 +191,24 @@ export class SearchGrid extends React.Component<
       portable,
       className,
       children,
+      history,
     } = this.props
     const { nodes } = this.state
-    const fetching = false
     if (q == null && !defaultSearch) {
       return null
     }
-    const fetchingLoader = fetching ? (
-      <div
-        css={css`
-          margin: 2rem;
-        `}
-      >
-        <Spinner.Wheel />
-      </div>
-    ) : null
     const cards = nodes.map((node) => {
-      // const onClick = () => {
-      //   if (onCardClick) {
-      //     onCardClick(node)
-      //   } else {
-      //     history.push({
-      //       pathname: `/n/${node.nid}`,
-      //     })
-      //   }
-      // }
+      const onClick = () => {
+        if (onCardClick) {
+          onCardClick(node)
+        } else {
+          history.push({
+            pathname: `/n/${node.nid}`,
+          })
+        }
+      }
       return (
-        <GridCard onClick={() => {}} key={node.nid}>
+        <GridCard onClick={onClick} key={node.nid}>
           <ShrinkCard>
             <NodeCardReadOnly
               node={node}
@@ -240,7 +237,6 @@ export class SearchGrid extends React.Component<
           <>{children}</>
           <>{cards}</>
         </DynamicGrid>
-        {fetchingLoader}
       </>
     )
     if (portable) {
@@ -265,4 +261,9 @@ export class SearchGrid extends React.Component<
       )
     }
   }
+}
+
+export const SearchGrid = (props: SearchGridProps) => {
+  const history = useHistory()
+  return <SearchGridWithHist history={history} {...props} />
 }
