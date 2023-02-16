@@ -6,7 +6,7 @@ import styled from '@emotion/styled'
 
 import { css } from '@emotion/react'
 import type { RouteComponentProps } from 'react-router-dom'
-import { Link, useHistory } from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 
 import { SmallCard } from '../SmallCard'
 import { ShrinkCard } from '../ShrinkCard'
@@ -70,7 +70,6 @@ type SearchGridState = {
   iter?: INodeIterator
   beagle?: Beagle
   nodes: TNode[]
-  fetching: boolean
 }
 
 class SearchGridWithHist extends React.Component<
@@ -83,7 +82,6 @@ class SearchGridWithHist extends React.Component<
     super(props)
     this.state = {
       nodes: [],
-      fetching: false,
     }
     this.boxRef = React.createRef<HTMLDivElement>()
   }
@@ -118,9 +116,7 @@ class SearchGridWithHist extends React.Component<
           nodes,
           iter,
         })
-        // setFetching(false)
       } catch (err) {
-        // setFetching(false)
         const error = errorise(err)
         if (!isAbortError(error)) {
           log.exception(error)
