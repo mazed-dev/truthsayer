@@ -34,6 +34,9 @@ function makeAnalytics(
     log.debug(
       `${logPrefix} Attempted to init more than once, returning previously cached instance`
     )
+    if (config?.loaded != null) {
+      config.loaded(previouslyCreatedInstance)
+    }
     return previouslyCreatedInstance
   }
 
