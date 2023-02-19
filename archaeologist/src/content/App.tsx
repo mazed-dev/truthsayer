@@ -41,7 +41,7 @@ import {
 import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
 import { BrowserHistoryImportControlPortal } from './BrowserHistoryImportControl'
-import { WriteAugmentation } from './augmentation/WriteAugmentation'
+import { Augmentation } from './augmentation/Augmentation'
 import { ContentContext } from './context'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
@@ -435,7 +435,7 @@ const App = () => {
               )}
             />
             {activityTrackerOrNull}
-            <WriteAugmentation />
+            <Augmentation />
           </>
         )}
       </ContentContext.Provider>
