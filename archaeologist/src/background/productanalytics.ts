@@ -3,35 +3,31 @@
  * specific to the background script.
  */
 import { PostHog } from 'posthog-js'
-import { log, productanalytics } from 'armoury'
-import * as auth from './auth'
-import { UserAccount } from 'smuggler-api'
+import { log, errorise, productanalytics } from 'armoury'
 
 const kLogCategory = '[productanalytics/archaeologist/background]'
 
-let _analytics: PostHog | null = null
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
 
-function register() {
-  const account = auth.account()
-  _analytics = productanalytics.make(
-    'archaeologist/background',
-    process.env.NODE_ENV,
-    {
+async function make(): Promise<PostHog | null> {
+  // If product analytics can't be initialised for a considerable amount of time
+  // then it most likely means that something went wrong in PostHog and it failed
+  // to asyncronously invoke its `loaded` parameter. Without a timeout this
+  // can result in a never-ending wait.
+  const timeout = new Promise<null>((resolve) => {
+    sleep(2000).then(() => resolve(null))
+  })
+  const result = new Promise<PostHog | null>((resolve) =>
+    productanalytics.make('archaeologist/background', process.env.NODE_ENV, {
       autocapture: false,
       capture_pageview: false,
-      bootstrap: account.isAuthenticated()
-        ? {
-            distinctID: productanalytics.identity.fromUserId(
-              account.getUid(),
-              process.env.NODE_ENV
-            ),
-            isIdentifiedID: true,
-          }
-        : undefined,
       // See https://posthog.com/docs/integrate/client/js#identifying-users
-      // for more information on why it may not be a good idea to call
-      // 'auth.observe()' immediately after analytics instances has been created
-      loaded: startObservingAuth,
+      // for more information on why it may not be a good idea to return
+      // and use a PostHog instance immediately, even though its creation is
+      // synchronous
+      loaded: (analytics: PostHog) => resolve(analytics),
       // All other available types of PostHog persistence seem to rely
       // on browser APIs that are not available within background script, like
       // 'window.localStorage', 'cookieStore' etc. Note that conceptually
@@ -39,34 +35,18 @@ function register() {
       // PostHog accesses them is not (e.g. cookies are accessible via
       // 'browser.cookies', but PostHog uses 'cookieStore').
       persistence: 'memory',
-    }
-  )
-}
-
-function startObservingAuth() {
-  auth.observe({
-    onLogin: (account: UserAccount) => {
-      if (_analytics == null) {
-        return
-      }
-      log.debug(`${kLogCategory} Identified user as ${account.getUid()}`)
-      productanalytics.identifyUser({
-        analytics: _analytics,
-        nodeEnv: process.env.NODE_ENV,
-        userUid: account.getUid(),
-      })
-    },
-    onLogout: () => {
-      if (_analytics == null) {
-        return
-      }
-      log.debug(`${kLogCategory} Reset user identity to anonymous on logout`)
-      _analytics.reset()
-    },
+    })
+  ).catch((reason) => {
+    log.debug(
+      `${kLogCategory} Failed to create an instance: ${
+        errorise(reason).message
+      }`
+    )
+    return null
   })
+  return Promise.race([result, timeout])
 }
 
 export const backgroundpa = {
-  register,
-  instance: () => _analytics,
+  make,
 }
