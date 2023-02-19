@@ -6,7 +6,7 @@ import { NodeUtil } from 'smuggler-api'
 import type { TNode, TNodeJson } from 'smuggler-api'
 
 import { FromContent } from './../../message/types'
-import { SuggestionsToast } from './SuggestionsToast'
+import { SuggestionsFloater } from './SuggestionsFloater'
 import { exctractPageContent } from '../extractor/webPageContent'
 
 export function getKeyPhraseFromUserInput(
@@ -39,15 +39,14 @@ function updateUserInputFromKeyboardEvent(keyboardEvent: KeyboardEvent) {
   return { target: null, phrase: null }
 }
 
-export function SuggestedRelatives({ stableUrl }: { stableUrl?: string }) {
+export function SuggestedRelatives(_props: { stableUrl?: string }) {
   const [suggestedNodes, setSuggestedNodes] = React.useState<TNode[]>([])
-  const [toastIsShown, showToast] = React.useState<boolean>(false)
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(false)
   const pageContent = React.useMemo(() => {
     const baseURL = `${document.location.protocol}//${document.location.host}`
     return exctractPageContent(document, baseURL)
-  }, [stableUrl])
+  }, [])
   const requestSuggestedAssociations = React.useMemo(
     // Using `useMemo` instead of `useCallback` to avoid eslint complains
     // https://kyleshevlin.com/debounce-and-throttle-callbacks-with-react-hooks
@@ -67,9 +66,6 @@ export function SuggestedRelatives({ stableUrl }: { stableUrl?: string }) {
               NodeUtil.fromJson(value)
             )
           )
-          if (response.suggested.length > 0) {
-            showToast(true)
-          }
           setSuggestionsSearchIsActive(false)
         },
         661,
@@ -77,7 +73,7 @@ export function SuggestedRelatives({ stableUrl }: { stableUrl?: string }) {
       ),
     []
   )
-  const [userInput, consumeKeyboardEvent] = React.useReducer(
+  const consumeKeyboardEvent = React.useReducer(
     (_userInput: UserInput, keyboardEvent: KeyboardEvent) => {
       const newInput = updateUserInputFromKeyboardEvent(keyboardEvent)
       const { phrase } = newInput
@@ -90,7 +86,7 @@ export function SuggestedRelatives({ stableUrl }: { stableUrl?: string }) {
       target: null,
       phrase: null,
     }
-  )
+  )[1]
   React.useEffect(() => {
     const phrase = [
       pageContent.title,
@@ -110,19 +106,11 @@ export function SuggestedRelatives({ stableUrl }: { stableUrl?: string }) {
     return () => {
       window.removeEventListener('keyup', consumeKeyboardEvent, opts)
     }
-  }, [])
+  }, [consumeKeyboardEvent])
   return (
-    <>
-      {toastIsShown ? (
-        <SuggestionsToast
-          onClose={() => {
-            showToast(false)
-            userInput.target?.focus()
-          }}
-          suggested={suggestedNodes}
-          isLoading={suggestionsSearchIsActive}
-        />
-      ) : null}
-    </>
+    <SuggestionsFloater
+      nodes={suggestedNodes}
+      isLoading={suggestionsSearchIsActive}
+    />
   )
 }

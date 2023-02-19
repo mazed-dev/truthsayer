@@ -43,6 +43,7 @@ import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
 import { BrowserHistoryImportControlPortal } from './BrowserHistoryImportControl'
 import { SuggestedRelatives } from './augmentation/SuggestedRelatives'
+import { AugmentationMountPoint } from './augmentation/Mount'
 import { ContentContext } from './context'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
@@ -434,6 +435,7 @@ const App = () => {
         {truthsayer.url.belongs(document.URL) ? null : (
           <>
             <Toaster />
+            <AugmentationMountPoint />
             {state.notification ? (
               <DisappearingToast {...state.notification} />
             ) : null}
