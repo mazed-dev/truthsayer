@@ -45,7 +45,6 @@ import {
   UserExternalPipelineIngestionProgress,
   StorageApi,
   steroid,
-  makeAlwaysThrowingStorageApi,
   makeDatacenterStorageApi,
   processMsgFromMsgProxyStorageApi,
   UserAccount,
@@ -873,6 +872,13 @@ type BackgroundContext = {
   analytics: PostHog | null
 }
 
+/**
+ * Intended to be responsible for actions similar to what a main()
+ * function might do in other environments, like
+ *  - execution and sequencing of initialisation
+ *  - wiring different business logic components together
+ *  - etc
+ */
 class Background {
   state:
     | { phase: 'not-init' }
@@ -1183,4 +1189,4 @@ class Background {
   }
 }
 
-const bg = new Background()
+const bg = new Background() // eslint-disable-line @typescript-eslint/no-unused-vars
