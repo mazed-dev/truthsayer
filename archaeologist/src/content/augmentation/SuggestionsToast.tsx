@@ -9,6 +9,7 @@ import {
   NodeCardReadOnly,
   truthsayer,
   HoverTooltip,
+  Spinner,
 } from 'elementary'
 import { NodeUtil, StorageApi } from 'smuggler-api'
 import type { TNode } from 'smuggler-api'
@@ -26,13 +27,12 @@ import {
 } from '@emotion-icons/material'
 
 const ToastBox = styled.div`
-  width: 368px;
+  width: 320px;
   display: flex;
   flex-direction: column;
 
   margin: 4px;
   background: #ffffff;
-  border: 1px solid #ececec;
   border-radius: 4px;
   color: black;
   box-shadow: 2px 2px 4px #8c8c8ceb;
@@ -42,7 +42,7 @@ const Header = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  border: 1px solid #ececec;
+  border-bottom: 1px solid #ececec;
 `
 const HeaderText = styled.div`
   color: #7a7a7a;
@@ -170,7 +170,7 @@ const SuggestedCard = ({
   const ctx = React.useContext(ContentContext)
   return (
     <SuggestedCardBox>
-      <ShrinkMinimalCard showMore={seeMore} height={'104px'}>
+      <ShrinkMinimalCard showMore={seeMore} height={'128px'}>
         <NodeCardReadOnly
           node={node}
           strippedRefs
@@ -207,11 +207,13 @@ const SuggestedCard = ({
 export const SuggestionsToast = ({
   suggested,
   onClose,
+  isLoading,
 }: {
   suggested: TNode[]
   onClose: () => void
+  isLoading: boolean
 }) => {
-  const suggestedEl = suggested.map((node: TNode) => {
+  const suggestedCards = suggested.map((node: TNode) => {
     return <SuggestedCard key={node.nid} node={node} onClose={onClose} />
   })
   useOutsideToastClickHandler(onClose)
@@ -220,7 +222,8 @@ export const SuggestionsToast = ({
       <ToastBox>
         <Header>
           <LogoSmall />
-          <HeaderText>Related ({suggested.length}):</HeaderText>
+          {isLoading ? <Spinner.Ring /> : null}
+          <HeaderText>({suggested.length})</HeaderText>
           <MeteredButton
             onClick={onClose}
             metricLabel={'Suggestions Toast Close'}
@@ -232,7 +235,7 @@ export const SuggestionsToast = ({
           </MeteredButton>
         </Header>
         <SuggestionsToastSuggestionsBox>
-          {suggestedEl}
+          {suggestedCards}
         </SuggestionsToastSuggestionsBox>
       </ToastBox>
     </Toast>

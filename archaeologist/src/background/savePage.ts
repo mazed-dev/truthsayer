@@ -1,5 +1,4 @@
 import { DisappearingToastProps } from '../content/toaster/Toaster'
-import { WebPageContent } from '../content/extractor/webPageContent'
 import { extractSearchEngineQuery } from '../content/extractor/url/searchEngineQuery'
 
 import {
@@ -23,7 +22,7 @@ import {
   makeEmptyNodeTextData,
   StorageApi,
 } from 'smuggler-api'
-import { ToContent } from '../message/types'
+import { ToContent, WebPageContent } from '../message/types'
 import { truthsayer } from 'elementary'
 import * as badge from '../badge/badge'
 

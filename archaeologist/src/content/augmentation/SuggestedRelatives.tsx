@@ -4,26 +4,10 @@ import lodash from 'lodash'
 import { log } from 'armoury'
 import { NodeUtil } from 'smuggler-api'
 import type { TNode, TNodeJson } from 'smuggler-api'
-import { Spinner } from 'elementary'
 
 import { FromContent } from './../../message/types'
-
 import { SuggestionsToast } from './SuggestionsToast'
-import { TextAreaCorner } from './TextAreaCorner'
-
-/*
-function appendSuffixToSlidingWindow(buf: string, key: string): string {
-  if (key === 'Backspace') {
-    return buf.slice(0, -1)
-  } else if (key === 'Escape' || key === 'Enter') {
-    return ''
-  } else if (key.length > 1) {
-    // All other utility keys
-    return buf
-  }
-  return (buf + key).slice(-42)
-}
-*/
+import { exctractPageContent } from '../extractor/webPageContent'
 
 export function getKeyPhraseFromUserInput(
   target?: HTMLTextAreaElement
@@ -55,11 +39,15 @@ function updateUserInputFromKeyboardEvent(keyboardEvent: KeyboardEvent) {
   return { target: null, phrase: null }
 }
 
-export function WriteAugmentation() {
+export function SuggestedRelatives({ stableUrl }: { stableUrl?: string }) {
   const [suggestedNodes, setSuggestedNodes] = React.useState<TNode[]>([])
   const [toastIsShown, showToast] = React.useState<boolean>(false)
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(false)
+  const pageContent = React.useMemo(() => {
+    const baseURL = `${document.location.protocol}//${document.location.host}`
+    return exctractPageContent(document, baseURL)
+  }, [stableUrl])
   const requestSuggestedAssociations = React.useMemo(
     // Using `useMemo` instead of `useCallback` to avoid eslint complains
     // https://kyleshevlin.com/debounce-and-throttle-callbacks-with-react-hooks
@@ -73,11 +61,15 @@ export function WriteAugmentation() {
             limit: 8,
             phrase,
           })
+          log.debug('Discovered', response)
           setSuggestedNodes(
             response.suggested.map((value: TNodeJson) =>
               NodeUtil.fromJson(value)
             )
           )
+          if (response.suggested.length > 0) {
+            showToast(true)
+          }
           setSuggestionsSearchIsActive(false)
         },
         661,
@@ -100,6 +92,19 @@ export function WriteAugmentation() {
     }
   )
   React.useEffect(() => {
+    const phrase = [
+      pageContent.title,
+      pageContent.description,
+      ...pageContent.author,
+      pageContent.text,
+    ]
+      .filter((v) => !!v)
+      .join('.\n')
+    if (phrase.length > 8) {
+      requestSuggestedAssociations(phrase)
+    }
+  }, [pageContent, requestSuggestedAssociations])
+  React.useEffect(() => {
     const opts: AddEventListenerOptions = { passive: true, capture: true }
     window.addEventListener('keyup', consumeKeyboardEvent, opts)
     return () => {
@@ -108,19 +113,6 @@ export function WriteAugmentation() {
   }, [])
   return (
     <>
-      <TextAreaCorner
-        target={userInput.target ?? undefined}
-        onClick={() => showToast((isShown) => !isShown)}
-      >
-        {
-          /* don't show bubble if there is no suggestions */
-          suggestionsSearchIsActive ? (
-            <Spinner.Ring />
-          ) : suggestedNodes.length === 0 ? null : (
-            suggestedNodes.length.toString()
-          )
-        }
-      </TextAreaCorner>
       {toastIsShown ? (
         <SuggestionsToast
           onClose={() => {
@@ -128,6 +120,7 @@ export function WriteAugmentation() {
             userInput.target?.focus()
           }}
           suggested={suggestedNodes}
+          isLoading={suggestionsSearchIsActive}
         />
       ) : null}
     </>

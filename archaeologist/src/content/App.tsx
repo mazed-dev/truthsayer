@@ -29,6 +29,7 @@ import { isMemorable } from './extractor/url/unmemorable'
 import {
   exctractPageContent,
   exctractPageUrl,
+  fetchAnyPagePreviewImage,
 } from './extractor/webPageContent'
 
 import { Quotes } from './quote/Quotes'
@@ -41,15 +42,22 @@ import {
 import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
 import { BrowserHistoryImportControlPortal } from './BrowserHistoryImportControl'
-import { Augmentation } from './augmentation/Augmentation'
+import { SuggestedRelatives } from './augmentation/SuggestedRelatives'
 import { ContentContext } from './context'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
   const content = isMemorable(origin.stableUrl)
-    ? await exctractPageContent(document, baseURL)
+    ? exctractPageContent(document, baseURL)
     : undefined
-  return content
+  if (content) {
+    const image = await fetchAnyPagePreviewImage(
+      document,
+      content.previewImageUrls
+    )
+    return { ...content, image }
+  }
+  return undefined
 }
 
 async function getCurrentlySelectedPath() {
@@ -435,7 +443,7 @@ const App = () => {
               )}
             />
             {activityTrackerOrNull}
-            <Augmentation />
+            <SuggestedRelatives stableUrl={state.originIdentity.stableUrl} />
           </>
         )}
       </ContentContext.Provider>

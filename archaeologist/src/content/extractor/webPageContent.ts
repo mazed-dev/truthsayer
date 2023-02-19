@@ -83,7 +83,7 @@ export interface WebPageContent {
   author: string[]
   publisher: string[]
   text: string | null
-  image: PreviewImageSmall | null
+  previewImageUrls: string[]
 }
 
 export function exctractPageUrl(document_: Document): string {
@@ -103,14 +103,10 @@ export function exctractReadableTextFromPage(document_: Document): string {
 /**
  * Extract web page content to save as a **bookmark**
  */
-export async function exctractPageContent(
+export function exctractPageContent(
   document_: Document,
-  baseURL: string,
-  options?: {
-    // Skip image fetching, just pretend none is found
-    skipCanvas: boolean
-  }
-): Promise<WebPageContent> {
+  baseURL: string
+): WebPageContent {
   const url = stabiliseUrlForOriginId(document_.URL || document_.documentURI)
   let { title, description, lang, author, publisher, thumbnailUrls } =
     _extractPageAttributes(document_, baseURL)
@@ -175,9 +171,6 @@ export async function exctractPageContent(
     separator: unicodeText.kTruncateSeparatorSpace,
     omission: '',
   })
-  const image: WebPageContentImage | null = !!options?.skipCanvas
-    ? null
-    : await _fetchAnyPageThumbnailImage(document_, thumbnailUrls)
   return {
     url,
     title: title || null,
@@ -186,7 +179,7 @@ export async function exctractPageContent(
     description: description || null,
     lang: lang || null,
     text,
-    image,
+    previewImageUrls: thumbnailUrls,
   }
 }
 
@@ -495,7 +488,7 @@ export function _extractPageThumbnailUrls(
  * returned, so sort urls by priority beforehands placing best options for a
  * preview image at the front of the `thumbnailUrls` array.
  */
-export async function _fetchAnyPageThumbnailImage(
+export async function fetchAnyPagePreviewImage(
   document_: Document,
   thumbnailUrls: string[]
 ): Promise<WebPageContentImage | null> {
