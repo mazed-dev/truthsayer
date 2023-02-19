@@ -112,20 +112,17 @@ const CopySuggestionButton = ({
 function getTextToInsert(storage: StorageApi, node: TNode): string {
   let toInsert: string
   if (NodeUtil.isWebBookmark(node) && node.extattrs?.web != null) {
-    const { web, title, author } = node.extattrs
-    const authorStr = author ? `, by ${author}` : ''
-    toInsert = `${title}${authorStr}: 🧵 ${web.url} `
+    toInsert = node.extattrs.web.url
   } else if (NodeUtil.isWebQuote(node) && node.extattrs?.web_quote != null) {
     const { text, url } = node.extattrs.web_quote
     const { author } = node.extattrs
     const authorStr = author ? `, by ${author}` : ''
-    toInsert = `“${text}”${authorStr}: 🧵 ${url} `
+    toInsert = `“${text}”${authorStr} ${url} `
   } else if (NodeUtil.isImage(node)) {
-    const url = storage.blob.sourceUrl(node.nid)
-    toInsert = ` 🧵 ${url} `
+    toInsert = storage.blob.sourceUrl(node.nid)
   } else {
     const doc = TDoc.fromNodeTextData(node.text)
-    toInsert = `${doc.genPlainText()}: 🧵 ${storage.node.url(node.nid)} `
+    toInsert = doc.genPlainText()
   }
   return toInsert
 }
