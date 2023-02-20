@@ -1,6 +1,8 @@
 {
+  "name": "Mazed.se",
   "short_name": "Mazed",
-  "name": "Mazed - knit your ideas",
+  "author": "ASG Mazed Inc",
+  "description": "Reference anything you've read. Without looking for it. Mazed is your second brain, serving you information you've read before.",
   "version": "0.0.1",
   "manifest_version": 2,
   "icons": [
