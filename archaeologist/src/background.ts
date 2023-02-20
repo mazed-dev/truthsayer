@@ -48,6 +48,7 @@ import {
   makeDatacenterStorageApi,
   processMsgFromMsgProxyStorageApi,
   UserAccount,
+  Ack,
 } from 'smuggler-api'
 
 import { makeBrowserExtStorageApi } from './storage_api_browser_ext'
@@ -203,18 +204,8 @@ async function registerAttentionTime(
     if (response.type !== 'PAGE_TO_SAVE') {
       return
     }
-    const { url, content, originId, quoteNids } = response
     const createdVia: NodeCreatedVia = { autoAttentionTracking: null }
-    await saveWebPage(
-      storage,
-      url,
-      originId,
-      quoteNids,
-      [],
-      createdVia,
-      content,
-      tab.id
-    )
+    await saveWebPage(storage, response, createdVia, tab.id)
   }
 }
 
@@ -524,6 +515,13 @@ async function handleMessageFromContent(
   )
 }
 
+async function historyVisitsOf(url: string): Promise<ResourceVisit[]> {
+  const visits = await browser.history.getVisits({ url })
+  return visits.map((visit): ResourceVisit => {
+    return { timestamp: unixtime.from(new Date(visit.visitTime ?? 0)) }
+  })
+}
+
 /**
  * Browser history data on a particular device and from a particular browser
  * can be treated as a pipeline of data to be consumed. This function
@@ -555,23 +553,51 @@ function idOfBrowserHistoryOnThisDeviceAsExternalPipeline(): UserExternalPipelin
 // browser history upload is actually in progress.
 let shouldCancelBrowserHistoryUpload = false
 
+/**
+ * Same as browser.History.HistoryItem, but with certain fields important
+ * to archaeologist validated
+ */
+type ValidHistoryItem = Omit<
+  browser.History.HistoryItem,
+  'url' | 'lastVisitTime'
+> &
+  Required<Pick<browser.History.HistoryItem, 'url' | 'lastVisitTime'>>
+function isValidHistoryItem(
+  item: browser.History.HistoryItem
+): item is ValidHistoryItem {
+  return item.url != null && item.lastVisitTime != null
+}
+
+async function reportBrowserHistoryUploadProgress(
+  progress: BrowserHistoryUploadProgress
+) {
+  // The implementation of this function mustn't throw
+  // due to the expectations with which it gets used later
+  try {
+    const tab: browser.Tabs.Tab | null = await getActiveTab()
+    const tabId = tab?.id
+    if (tabId == null) {
+      return
+    }
+    await ToContent.sendMessage(tabId, {
+      type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS',
+      newState: progress,
+    })
+  } catch (err) {
+    log.debug(
+      `Failed to report browser history upload progress, ${
+        errorise(err).message
+      }`
+    )
+  }
+}
+
 async function uploadBrowserHistory(
   storage: StorageApi,
   mode: BrowserHistoryUploadMode
 ) {
-  const reportProgressToPopup = lodash.throttle(
-    (progress: BrowserHistoryUploadProgress) => {
-      getActiveTab().then((tab: browser.Tabs.Tab | null) => {
-        log.debug('reportProgressToPopup', progress, tab)
-        const tabId = tab?.id
-        if (tabId != null) {
-          ToContent.sendMessage(tabId, {
-            type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS',
-            newState: progress,
-          })
-        }
-      })
-    },
+  const reportProgress = lodash.throttle(
+    reportBrowserHistoryUploadProgress,
     1123
   )
 
@@ -581,61 +607,67 @@ async function uploadBrowserHistory(
   log.debug('Progress until now:', currentProgress)
 
   const advanceIngestionProgress = lodash.throttle(
+    // The implementation of this function mustn't throw
+    // due to the expectations with which it gets used later
     mode.mode !== 'untracked'
       ? async (date: Date) => {
-          return storage.external.ingestion.advance({
-            epid,
-            new_progress: {
-              ingested_until: unixtime.from(date),
-            },
-          })
+          const ingested_until: number = unixtime.from(date)
+          const nack: Ack = { ack: false }
+          return storage.external.ingestion
+            .advance({ epid, new_progress: { ingested_until } })
+            .catch(() => nack)
         }
       : async (_: Date) => {},
     1123
   )
 
-  const items: browser.History.HistoryItem[] = await browser.history.search(
-    toHistorySearchQuery(mode, currentProgress)
+  const items: ValidHistoryItem[] = (
+    await browser.history.search(toHistorySearchQuery(mode, currentProgress))
   )
-  // NOTE: With Chromium at least the output of `browser.history.search`
-  // is already in the order from "pages that hasn't been visited the longest"
-  // to "most recently visited". However `browser.history.search` doesn't seem
-  // to provide any guarantees about it. Since logic which relies on
-  // `storage.thirdparty.fs.progress` would break under different ordering,
-  // explicit sorting is added as a safeguard
-  items.sort(sortWithOldestLastVisitAtEnd)
+    .filter(isValidHistoryItem)
+    .filter((item) => isPageAutosaveable(item.url))
+    // NOTE: With Chromium at least the output of `browser.history.search`
+    // is already in the order from "pages that hasn't been visited the longest"
+    // to "most recently visited". However `browser.history.search` doesn't seem
+    // to provide any guarantees about it. Since logic which relies on
+    // `storage.thirdparty.fs.progress` would break under different ordering,
+    // explicit sorting is added as a safeguard
+    .sort(sortWithOldestLastVisitAtEnd)
 
   for (
     let index = 0;
     index < items.length && !shouldCancelBrowserHistoryUpload;
-    index++
+    await advanceIngestionProgress(new Date(items[index].lastVisitTime)),
+      reportProgress({ processed: index + 1, total: items.length }),
+      index++
   ) {
-    const item = items[index]
-    if (item.lastVisitTime == null) {
-      log.warning(
-        `Can't process history item ${item.url} as it doesn't have lastVisitTime set`
-      )
-      continue
-    }
-
+    const item: ValidHistoryItem = items[index]
     try {
-      reportProgressToPopup({
-        processed: index,
-        total: items.length,
+      const total: TotalUserActivity = await storage.activity.external.add({
+        origin: genOriginId(item.url),
+        activity: {
+          visit: { visits: await historyVisitsOf(item.url), reported_by: epid },
+        },
       })
-      await uploadSingleHistoryItem(storage, item, epid)
-      await advanceIngestionProgress(new Date(item.lastVisitTime))
+      if (!isReadyToBeAutoSaved(total, 0)) {
+        continue
+      }
+
+      const resp = await getPageContentViaTemporaryTab(storage, item.url)
+      if (resp.type !== 'PAGE_TO_SAVE') {
+        continue
+      }
+      const createdVia: NodeCreatedVia = { autoIngestion: epid }
+      const visitedAt: unixtime.Type = item.lastVisitTime
+      await saveWebPage(storage, resp, createdVia, undefined, visitedAt)
     } catch (err) {
       log.error(`Failed to process ${item.url} during history upload: ${err}`)
     }
   }
   shouldCancelBrowserHistoryUpload = false
 
-  reportProgressToPopup({
-    processed: items.length,
-    total: items.length,
-  })
-  reportProgressToPopup.flush()
+  reportProgress({ processed: items.length, total: items.length })
+  reportProgress.flush()
   await advanceIngestionProgress.flush()
 }
 
@@ -697,16 +729,11 @@ async function handleMessageFromPopup(
       if (response.type !== 'PAGE_TO_SAVE') {
         return { type: 'PAGE_SAVED' }
       }
-      const { url, content, originId, quoteNids } = response
       const createdVia: NodeCreatedVia = { manualAction: null }
       const { node, unmemorable } = await saveWebPage(
         ctx.storage,
-        url,
-        originId,
-        quoteNids,
-        [],
+        response,
         createdVia,
-        content,
         tabId
       )
       return {
@@ -766,53 +793,6 @@ async function handleMessageFromPopup(
     `background received msg from popup of unknown type, message: ${JSON.stringify(
       message
     )}`
-  )
-}
-
-async function uploadSingleHistoryItem(
-  storage: StorageApi,
-  item: browser.History.HistoryItem,
-  epid: UserExternalPipelineId
-) {
-  if (item.url == null || !isPageAutosaveable(item.url)) {
-    return
-  }
-  const origin = genOriginId(item.url)
-  const visits = await browser.history.getVisits({ url: item.url })
-  const resourceVisits: ResourceVisit[] = visits.map((visit) => {
-    return { timestamp: unixtime.from(new Date(visit.visitTime ?? 0)) }
-  })
-  const total = await storage.activity.external.add({
-    origin,
-    activity: {
-      visit: { visits: resourceVisits, reported_by: epid },
-    },
-  })
-  if (!isReadyToBeAutoSaved(total, 0)) {
-    return
-  }
-  const response:
-    | FromContent.SavePageResponse
-    | FromContent.PageAlreadySavedResponse
-    | FromContent.PageNotWorthSavingResponse = await getPageContentViaTemporaryTab(
-    storage,
-    item.url
-  )
-  if (response.type !== 'PAGE_TO_SAVE') {
-    return
-  }
-  const { url, content, originId, quoteNids } = response
-  const createdVia: NodeCreatedVia = { autoIngestion: epid }
-  await saveWebPage(
-    storage,
-    url,
-    originId,
-    quoteNids,
-    [],
-    createdVia,
-    content,
-    undefined,
-    item.lastVisitTime
   )
 }
 

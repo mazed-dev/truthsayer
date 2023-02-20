@@ -23,7 +23,7 @@ import {
   makeEmptyNodeTextData,
   StorageApi,
 } from 'smuggler-api'
-import { ToContent } from '../message/types'
+import { FromContent, ToContent } from '../message/types'
 import { truthsayer } from 'elementary'
 import * as badge from '../badge/badge'
 
@@ -119,12 +119,8 @@ async function _getOriginRelationNids(
 
 export async function saveWebPage(
   storage: StorageApi,
-  url: string,
-  originId: OriginHash,
-  toNids: string[],
-  fromNids: string[],
+  { url, originId, content, quoteNids }: FromContent.SaveablePage,
   createdVia: NodeCreatedVia,
-  content?: WebPageContent,
   tabId?: number,
   visitedAt?: unixtime.Type
 ): Promise<{ node?: TNode; unmemorable: boolean }> {
@@ -133,8 +129,8 @@ export async function saveWebPage(
     const node = await _saveWebSearchQuery(
       storage,
       url,
-      toNids,
-      fromNids,
+      quoteNids,
+      [],
       searchEngineQuery.phrase,
       searchEngineQuery.logo,
       originId
@@ -171,6 +167,8 @@ export async function saveWebPage(
     origin: { id: originId },
   })
   log.debug('Gather transitions', originTransitions)
+  const toNids: Nid[] = [...quoteNids]
+  const fromNids: Nid[] = []
   for (const association of originTransitions.to) {
     if ('web_transition' in association.association) {
       const nids = await _getOriginRelationNids(
