@@ -35,6 +35,10 @@ async function make(): Promise<PostHog | null> {
       // PostHog accesses them is not (e.g. cookies are accessible via
       // 'browser.cookies', but PostHog uses 'cookieStore').
       persistence: 'memory',
+      // Attempting to capture referrer data within background script breaks PostHog,
+      // but that's not really an issue because the whole "URL which referred user
+      // to current URL" does not make sense within background.
+      save_referrer: false,
     })
   ).catch((reason) => {
     log.debug(
