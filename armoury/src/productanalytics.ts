@@ -34,6 +34,9 @@ function makeAnalytics(
     log.debug(
       `${logPrefix} Attempted to init more than once, returning previously cached instance`
     )
+    if (config?.loaded != null) {
+      config.loaded(previouslyCreatedInstance)
+    }
     return previouslyCreatedInstance
   }
 
@@ -53,6 +56,11 @@ function makeAnalytics(
       api_host: posthogApiHost,
       // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies
       secure_cookie: true,
+      // Not much documentation about this PostHog feature, but seemingly it referrs
+      // to ad campaigns. See https://support.google.com/analytics/answer/1033863?hl=en#zippy=%2Cin-this-article
+      // and https://github.com/PostHog/posthog-js/blob/ac546fd4ed674e8771f4c28329ac6c91b3e14483/src/posthog-core.ts#L770-L772
+      // for more information
+      store_google: false,
       // Exclude user's IP address from events (below options don't
       // appear to work, instead this is controlled via a toggle in
       // project settings in https://eu.posthog.com/project/settings)

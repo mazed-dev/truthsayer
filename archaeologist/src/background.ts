@@ -4,6 +4,7 @@ import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import * as auth from './background/auth'
 import { saveWebPage, savePageQuote } from './background/savePage'
 import { backgroundpa } from './background/productanalytics'
+import { PostHog } from 'posthog-js'
 import * as similarity from './background/search/similarity'
 import {
   ToPopUp,
@@ -24,7 +25,14 @@ import {
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
-import { log, isAbortError, genOriginId, unixtime } from 'armoury'
+import {
+  log,
+  isAbortError,
+  genOriginId,
+  unixtime,
+  errorise,
+  productanalytics,
+} from 'armoury'
 import {
   Nid,
   TNode,
@@ -37,7 +45,6 @@ import {
   UserExternalPipelineIngestionProgress,
   StorageApi,
   steroid,
-  makeAlwaysThrowingStorageApi,
   makeDatacenterStorageApi,
   processMsgFromMsgProxyStorageApi,
   UserAccount,
@@ -70,7 +77,7 @@ async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   return null
 }
 
-async function requestPageConnections(bookmark?: TNode) {
+async function requestPageConnections(storage: StorageApi, bookmark?: TNode) {
   let fromNodes: TNode[] = []
   let toNodes: TNode[] = []
   if (bookmark == null) {
@@ -99,7 +106,10 @@ async function requestPageConnections(bookmark?: TNode) {
   return { fromNodes, toNodes }
 }
 
-async function requestPageSavedStatus(url: string | undefined) {
+async function requestPageSavedStatus(
+  storage: StorageApi,
+  url: string | undefined
+) {
   if (url == null) {
     return { unmemorable: false }
   }
@@ -120,7 +130,7 @@ async function requestPageSavedStatus(url: string | undefined) {
       break
     }
   }
-  const { fromNodes, toNodes } = await requestPageConnections(bookmark)
+  const { fromNodes, toNodes } = await requestPageConnections(storage, bookmark)
   return { bookmark, fromNodes, toNodes }
 }
 
@@ -155,6 +165,7 @@ function sortWithOldestLastVisitAtEnd(
 }
 
 async function registerAttentionTime(
+  storage: StorageApi,
   tab: browser.Tabs.Tab | null,
   message: FromContent.AttentionTimeChunk
 ): Promise<void> {
@@ -208,6 +219,7 @@ async function registerAttentionTime(
 }
 
 async function lookupForSuggestionsToPageInActiveTab(
+  storage: StorageApi,
   tabId: number
 ): Promise<TNodeJson[]> {
   // Request page content first
@@ -411,6 +423,7 @@ namespace TabLoadCompletion {
 }
 
 async function getPageContentViaTemporaryTab(
+  storage: StorageApi,
   url: string
 ): Promise<
   | FromContent.SavePageResponse
@@ -428,7 +441,7 @@ async function getPageContentViaTemporaryTab(
   }
   try {
     tab = await TabLoadCompletion.takeOverInit(tabId)
-    await initMazedPartsOfTab(tab, 'passive-mode-content-app')
+    await initMazedPartsOfTab(storage, tab, 'passive-mode-content-app')
     return await ToContent.sendMessage(tabId, {
       type: 'REQUEST_PAGE_CONTENT',
       manualAction: false,
@@ -454,6 +467,7 @@ async function getPageContentViaTemporaryTab(
 }
 
 async function handleMessageFromContent(
+  ctx: BackgroundContext,
   message: FromContent.Request,
   sender: browser.Runtime.MessageSender
 ): Promise<ToContent.Response | FromContent.Response> {
@@ -461,10 +475,10 @@ async function handleMessageFromContent(
   log.debug('Get message from content', message, tab)
   switch (message.type) {
     case 'ATTENTION_TIME_CHUNK':
-      await registerAttentionTime(tab, message)
+      await registerAttentionTime(ctx.storage, tab, message)
       return { type: 'VOID_RESPONSE' }
     case 'UPLOAD_BROWSER_HISTORY': {
-      await uploadBrowserHistory(message)
+      await uploadBrowserHistory(ctx.storage, message)
       return { type: 'VOID_RESPONSE' }
     }
     case 'CANCEL_BROWSER_HISTORY_UPLOAD': {
@@ -472,7 +486,7 @@ async function handleMessageFromContent(
       return { type: 'VOID_RESPONSE' }
     }
     case 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY': {
-      const numDeleted = await storage.node.bulkDelete({
+      const numDeleted = await ctx.storage.node.bulkDelete({
         createdVia: {
           autoIngestion: idOfBrowserHistoryOnThisDeviceAsExternalPipeline(),
         },
@@ -485,7 +499,7 @@ async function handleMessageFromContent(
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
       const relevantNodes = await similarity.findRelevantNodes(
         message.phrase,
-        storage,
+        ctx.storage,
         message.limit
       )
       return {
@@ -496,7 +510,10 @@ async function handleMessageFromContent(
     case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
       return {
         type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE',
-        value: await processMsgFromMsgProxyStorageApi(storage, message.payload),
+        value: await processMsgFromMsgProxyStorageApi(
+          ctx.storage,
+          message.payload
+        ),
       }
     }
   }
@@ -538,7 +555,10 @@ function idOfBrowserHistoryOnThisDeviceAsExternalPipeline(): UserExternalPipelin
 // browser history upload is actually in progress.
 let shouldCancelBrowserHistoryUpload = false
 
-async function uploadBrowserHistory(mode: BrowserHistoryUploadMode) {
+async function uploadBrowserHistory(
+  storage: StorageApi,
+  mode: BrowserHistoryUploadMode
+) {
   const reportProgressToPopup = lodash.throttle(
     (progress: BrowserHistoryUploadProgress) => {
       getActiveTab().then((tab: browser.Tabs.Tab | null) => {
@@ -603,7 +623,7 @@ async function uploadBrowserHistory(mode: BrowserHistoryUploadMode) {
         processed: index,
         total: items.length,
       })
-      await uploadSingleHistoryItem(item, epid)
+      await uploadSingleHistoryItem(storage, item, epid)
       await advanceIngestionProgress(new Date(item.lastVisitTime))
     } catch (err) {
       log.error(`Failed to process ${item.url} during history upload: ${err}`)
@@ -655,6 +675,7 @@ function toHistorySearchQuery(
 }
 
 async function handleMessageFromPopup(
+  ctx: BackgroundContext,
   message: FromPopUp.Request
 ): Promise<ToPopUp.Response> {
   // process is not defined in browsers extensions - use it to set up axios
@@ -679,7 +700,7 @@ async function handleMessageFromPopup(
       const { url, content, originId, quoteNids } = response
       const createdVia: NodeCreatedVia = { manualAction: null }
       const { node, unmemorable } = await saveWebPage(
-        storage,
+        ctx.storage,
         url,
         originId,
         quoteNids,
@@ -695,7 +716,7 @@ async function handleMessageFromPopup(
       }
     case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS': {
       const { bookmark, unmemorable, fromNodes, toNodes } =
-        await requestPageSavedStatus(activeTab?.url)
+        await requestPageSavedStatus(ctx.storage, activeTab?.url)
       await badge.setStatus(
         activeTab?.id,
         bookmark != null ? BADGE_MARKER_PAGE_SAVED : undefined
@@ -723,7 +744,7 @@ async function handleMessageFromPopup(
       const tabId = activeTab?.id
       if (tabId != null) {
         suggestedAkinNodes.push(
-          ...(await lookupForSuggestionsToPageInActiveTab(tabId))
+          ...(await lookupForSuggestionsToPageInActiveTab(ctx.storage, tabId))
         )
       }
       return {
@@ -734,7 +755,10 @@ async function handleMessageFromPopup(
     case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
       return {
         type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE',
-        value: await processMsgFromMsgProxyStorageApi(storage, message.payload),
+        value: await processMsgFromMsgProxyStorageApi(
+          ctx.storage,
+          message.payload
+        ),
       }
     }
   }
@@ -746,6 +770,7 @@ async function handleMessageFromPopup(
 }
 
 async function uploadSingleHistoryItem(
+  storage: StorageApi,
   item: browser.History.HistoryItem,
   epid: UserExternalPipelineId
 ) {
@@ -770,6 +795,7 @@ async function uploadSingleHistoryItem(
     | FromContent.SavePageResponse
     | FromContent.PageAlreadySavedResponse
     | FromContent.PageNotWorthSavingResponse = await getPageContentViaTemporaryTab(
+    storage,
     item.url
   )
   if (response.type !== 'PAGE_TO_SAVE') {
@@ -791,6 +817,7 @@ async function uploadSingleHistoryItem(
 }
 
 async function initMazedPartsOfTab(
+  storage: StorageApi,
   tab: browser.Tabs.Tab,
   mode: ContentAppOperationMode
 ) {
@@ -798,7 +825,10 @@ async function initMazedPartsOfTab(
     return
   }
   // Request page saved status on new non-incognito page loading
-  const { bookmark, fromNodes, toNodes } = await requestPageSavedStatus(tab.url)
+  const { bookmark, fromNodes, toNodes } = await requestPageSavedStatus(
+    storage,
+    tab.url
+  )
   await badge.setStatus(
     tab.id,
     bookmark != null ? BADGE_MARKER_PAGE_SAVED : undefined
@@ -837,202 +867,326 @@ function makeStorageApi(
   }
 }
 
-async function initBackground() {
-  // TODO[snikitin@outlook.com] Below initialisation of StorageApi
-  // is not resilient. When a user logs out it should overwrite
-  // 'storage' to something unusable but instead it does nothing.
-  // Achieving this goal is difficult because it requires to make
-  // the initBackground() procedure fully reversable which involves
-  // tweaks to most parts of the background script.
-  storage = await new Promise((resolve, reject) => {
-    auth.register()
-    const unregister = auth.observe({
-      onLogin: async (account: UserAccount) => {
-        try {
-          resolve(
-            makeStorageApi(await getAppSettings(browser.storage.local), account)
-          )
-        } catch (reason) {
-          reject(reason)
-        } finally {
-          unregister()
-        }
-      },
-      onLogout: () => {},
-    })
-  })
-
-  browser.runtime.onMessage.addListener(
-    async (
-      message: ToBackground.Request,
-      sender: browser.Runtime.MessageSender
-    ) => {
-      try {
-        switch (message.direction) {
-          case 'from-content':
-            return await handleMessageFromContent(message, sender)
-          case 'from-popup':
-            return await handleMessageFromPopup(message)
-          default:
-        }
-      } catch (error) {
-        console.error(
-          `Failed to process '${message.direction}' message '${message.type}', ${error}`
-        )
-        throw error
-      }
-
-      throw new Error(
-        `background received msg of unknown direction, message: ${JSON.stringify(
-          message
-        )}`
-      )
-    }
-  )
-
-  browser.runtime.onMessageExternal.addListener(
-    async (
-      message: FromTruthsayer.Request,
-      _: browser.Runtime.MessageSender
-    ): Promise<ToTruthsayer.Response> => {
-      switch (message.type) {
-        case 'GET_ARCHAEOLOGIST_STATE_REQUEST': {
-          return {
-            type: 'GET_ARCHAEOLOGIST_STATE_RESPONSE',
-            version: {
-              version: browser.runtime.getManifest().version,
-            },
-          }
-        }
-        case 'GET_APP_SETTINGS_REQUEST': {
-          return {
-            type: 'GET_APP_SETTINGS_RESPONSE',
-            settings: await getAppSettings(browser.storage.local),
-          }
-        }
-        case 'SET_APP_SETTINGS_REQUEST': {
-          await setAppSettings(browser.storage.local, message.newValue)
-          return {
-            type: 'VOID_RESPONSE',
-          }
-        }
-        case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
-          return {
-            type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE',
-            value: await processMsgFromMsgProxyStorageApi(
-              storage,
-              message.payload
-            ),
-          }
-        }
-      }
-      throw new Error(
-        `background received msg from truthsayer of unknown type, message: ${JSON.stringify(
-          message
-        )}`
-      )
-    }
-  )
-
-  // NOTE: on more complex web-pages onUpdated may be invoked multiple times
-  // with exactly the same input parameters. So the handling code has to
-  // be able to handle that.
-  // See https://stackoverflow.com/a/18302254/3375765 for more information.
-  browser.tabs.onUpdated.addListener(
-    async (
-      tabId: number,
-      changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
-      tab: browser.Tabs.Tab
-    ) => {
-      try {
-        if (
-          !tab.incognito &&
-          !tab.hidden &&
-          tab.url &&
-          changeInfo.status === 'complete' &&
-          !TabLoadCompletion.initTakenOver(tabId)
-        ) {
-          await initMazedPartsOfTab(tab, 'active-mode-content-app')
-        }
-      } finally {
-        if (changeInfo.status === 'complete') {
-          // NOTE: if loading of a tab did complete, it is important to ensure
-          // report() gets called regardless of what happens in the other parts of
-          // browser.tabs.onUpdated (e.g. something throws). Otherwise any part of
-          // code that waits on a TabLoadCompletion promise will wait forever.
-          //
-          // At the same time, it is important to call report() *after* all or most
-          // of Mazed's content init has been completed so tab can be in a predictable
-          // state from the perspective of Mazed code that waits for TabLoadCompletion
-          TabLoadCompletion.report(tab)
-        }
-      }
-    }
-  )
-
-  browser.tabs.onRemoved.addListener(
-    async (
-      tabId: number,
-      _removeInfo: browser.Tabs.OnRemovedRemoveInfoType
-    ) => {
-      TabLoadCompletion.abort(tabId, 'Tab removed')
-    }
-  )
-
-  const kMazedContextMenuItemId = 'selection-to-mazed-context-menu-item'
-  browser.contextMenus.removeAll()
-  browser.contextMenus.create({
-    title: 'Save to Mazed',
-    type: 'normal',
-    id: kMazedContextMenuItemId,
-    contexts: ['selection', 'editable'],
-  })
-
-  browser.contextMenus.onClicked.addListener(
-    async (
-      info: browser.Menus.OnClickData,
-      tab: browser.Tabs.Tab | undefined
-    ) => {
-      if (info.menuItemId === kMazedContextMenuItemId) {
-        if (tab?.id == null) {
-          return
-        }
-        const { selectionText } = info
-        if (selectionText == null) {
-          return
-        }
-        try {
-          const response: FromContent.GetSelectedQuoteResponse =
-            await ToContent.sendMessage(tab.id, {
-              type: 'REQUEST_SELECTED_WEB_QUOTE',
-              text: selectionText,
-            })
-          const { url, text, path, lang, fromNid } = response
-          const createdVia: NodeCreatedVia = { manualAction: null }
-          await savePageQuote(
-            storage,
-            { url, path, text },
-            createdVia,
-            lang,
-            tab?.id,
-            fromNid
-          )
-        } catch (err) {
-          if (!isAbortError(err)) {
-            log.exception(err)
-          }
-        }
-      }
-    }
-  )
-
-  browserBookmarks.register(storage)
-  omnibox.register(storage)
-  webNavigation.register(storage)
-  backgroundpa.register()
-  similarity.register(storage)
+type BackgroundContext = {
+  storage: StorageApi
+  analytics: PostHog | null
 }
 
-let storage: StorageApi = makeAlwaysThrowingStorageApi()
+/**
+ * Intended to be responsible for actions similar to what a main()
+ * function might do in other environments, like
+ *  - execution and sequencing of initialisation
+ *  - wiring different business logic components together
+ *  - etc
+ */
+class Background {
+  state:
+    | { phase: 'not-init' }
+    | { phase: 'loading'; loading: Promise<void> }
+    | { phase: 'unloading'; unloading: Promise<void> }
+    | { phase: 'init-done'; context: BackgroundContext } = { phase: 'not-init' }
 
-initBackground()
+  private deinitialisers: (() => void | Promise<void>)[] = []
+
+  constructor() {
+    auth.register()
+    auth.observe({
+      onLogin: (account: UserAccount) => {
+        if (this.state.phase !== 'not-init') {
+          throw new Error(
+            `Attempted to init background, but it has unexpected state '${this.state.phase}'`
+          )
+        }
+        const loading = new Promise<void>(async (resolve, reject) => {
+          try {
+            log.debug(`Background init started`)
+            const context = await this.init(account)
+            this.state = { phase: 'init-done', context }
+            log.debug(`Background init done`)
+            resolve()
+          } catch (reason) {
+            reject(reason)
+          }
+        })
+        this.state = { phase: 'loading', loading }
+      },
+      onLogout: () => {
+        if (
+          this.state.phase === 'not-init' ||
+          this.state.phase === 'unloading'
+        ) {
+          log.debug(
+            `Attempted to deinit background, but its state is already '${this.state.phase}'`
+          )
+          return
+        }
+
+        const deinitAndChangePhase = async () => {
+          log.debug(`Background deinit started`)
+          await this.deinit()
+          this.state = { phase: 'not-init' }
+          log.debug(`Background deinit ended`)
+        }
+        switch (this.state.phase) {
+          case 'loading': {
+            this.state = {
+              phase: 'unloading',
+              unloading: this.state.loading.then(deinitAndChangePhase),
+            }
+            return
+          }
+          case 'init-done': {
+            this.state = {
+              phase: 'unloading',
+              unloading: deinitAndChangePhase(),
+            }
+            return
+          }
+        }
+      },
+    })
+  }
+
+  private async init(account: UserAccount): Promise<BackgroundContext> {
+    // Product analytics should be initialised ASAP because
+    // other initialisation stages may require access to feature flags
+    const analytics = await backgroundpa.make()
+    if (analytics != null) {
+      productanalytics.identifyUser({
+        analytics,
+        nodeEnv: process.env.NODE_ENV,
+        userUid: account.getUid(),
+      })
+      this.deinitialisers.push(() => analytics.reset())
+    }
+
+    const storage = makeStorageApi(
+      await getAppSettings(browser.storage.local),
+      account
+    )
+
+    const ctx: BackgroundContext = { storage, analytics }
+
+    // Listen to messages from other parts of archaeologist
+    {
+      const onMessage = async (
+        message: ToBackground.Request,
+        sender: browser.Runtime.MessageSender
+      ) => {
+        try {
+          switch (message.direction) {
+            case 'from-content':
+              return await handleMessageFromContent(ctx, message, sender)
+            case 'from-popup':
+              return await handleMessageFromPopup(ctx, message)
+            default:
+          }
+        } catch (error) {
+          console.error(
+            `Failed to process '${message.direction}' message '${message.type}', ${error}`
+          )
+          throw error
+        }
+
+        throw new Error(
+          `background received msg of unknown direction, message: ${JSON.stringify(
+            message
+          )}`
+        )
+      }
+      browser.runtime.onMessage.addListener(onMessage)
+      this.deinitialisers.push(() =>
+        browser.runtime.onMessage.removeListener(onMessage)
+      )
+    }
+
+    // Listen to messages from truthsayer
+    {
+      const onExternalMessage = async (
+        message: FromTruthsayer.Request,
+        _: browser.Runtime.MessageSender
+      ): Promise<ToTruthsayer.Response> => {
+        switch (message.type) {
+          case 'GET_ARCHAEOLOGIST_STATE_REQUEST': {
+            return {
+              type: 'GET_ARCHAEOLOGIST_STATE_RESPONSE',
+              version: {
+                version: browser.runtime.getManifest().version,
+              },
+            }
+          }
+          case 'GET_APP_SETTINGS_REQUEST': {
+            return {
+              type: 'GET_APP_SETTINGS_RESPONSE',
+              settings: await getAppSettings(browser.storage.local),
+            }
+          }
+          case 'SET_APP_SETTINGS_REQUEST': {
+            await setAppSettings(browser.storage.local, message.newValue)
+            return {
+              type: 'VOID_RESPONSE',
+            }
+          }
+          case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
+            return {
+              type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE',
+              value: await processMsgFromMsgProxyStorageApi(
+                ctx.storage,
+                message.payload
+              ),
+            }
+          }
+        }
+        throw new Error(
+          `background received msg from truthsayer of unknown type, message: ${JSON.stringify(
+            message
+          )}`
+        )
+      }
+      browser.runtime.onMessageExternal.addListener(onExternalMessage)
+      this.deinitialisers.push(() =>
+        browser.runtime.onMessageExternal.removeListener(onExternalMessage)
+      )
+    }
+
+    // Listen for tab updates
+    {
+      // NOTE: on more complex web-pages onUpdated may be invoked multiple times
+      // with exactly the same input parameters. So the handling code has to
+      // be able to handle that.
+      // See https://stackoverflow.com/a/18302254/3375765 for more information.
+      const onTabUpdate = async (
+        tabId: number,
+        changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
+        tab: browser.Tabs.Tab
+      ) => {
+        try {
+          if (
+            !tab.incognito &&
+            !tab.hidden &&
+            tab.url &&
+            changeInfo.status === 'complete' &&
+            !TabLoadCompletion.initTakenOver(tabId)
+          ) {
+            await initMazedPartsOfTab(
+              ctx.storage,
+              tab,
+              'active-mode-content-app'
+            )
+          }
+        } finally {
+          if (changeInfo.status === 'complete') {
+            // NOTE: if loading of a tab did complete, it is important to ensure
+            // report() gets called regardless of what happens in the other parts of
+            // browser.tabs.onUpdated (e.g. something throws). Otherwise any part of
+            // code that waits on a TabLoadCompletion promise will wait forever.
+            //
+            // At the same time, it is important to call report() *after* all or most
+            // of Mazed's content init has been completed so tab can be in a predictable
+            // state from the perspective of Mazed code that waits for TabLoadCompletion
+            TabLoadCompletion.report(tab)
+          }
+        }
+      }
+
+      browser.tabs.onUpdated.addListener(onTabUpdate)
+      this.deinitialisers.push(() =>
+        browser.tabs.onUpdated.removeListener(onTabUpdate)
+      )
+    }
+
+    // Listen to removal of tabs
+    {
+      const onTabRemoval = async (
+        tabId: number,
+        _removeInfo: browser.Tabs.OnRemovedRemoveInfoType
+      ) => {
+        TabLoadCompletion.abort(tabId, 'Tab removed')
+      }
+      browser.tabs.onRemoved.addListener(onTabRemoval)
+      this.deinitialisers.push(() =>
+        browser.tabs.onRemoved.removeListener(onTabRemoval)
+      )
+    }
+
+    // Add custom context menus
+    {
+      const kMazedContextMenuItemId = 'selection-to-mazed-context-menu-item'
+      browser.contextMenus.removeAll()
+      browser.contextMenus.create({
+        title: 'Save to Mazed',
+        type: 'normal',
+        id: kMazedContextMenuItemId,
+        contexts: ['selection', 'editable'],
+      })
+      this.deinitialisers.push(() => browser.contextMenus.removeAll())
+
+      const onContextMenuClick = async (
+        info: browser.Menus.OnClickData,
+        tab: browser.Tabs.Tab | undefined
+      ) => {
+        if (info.menuItemId === kMazedContextMenuItemId) {
+          if (tab?.id == null) {
+            return
+          }
+          const { selectionText } = info
+          if (selectionText == null) {
+            return
+          }
+          try {
+            const response: FromContent.GetSelectedQuoteResponse =
+              await ToContent.sendMessage(tab.id, {
+                type: 'REQUEST_SELECTED_WEB_QUOTE',
+                text: selectionText,
+              })
+            const { url, text, path, lang, fromNid } = response
+            const createdVia: NodeCreatedVia = { manualAction: null }
+            await savePageQuote(
+              ctx.storage,
+              { url, path, text },
+              createdVia,
+              lang,
+              tab?.id,
+              fromNid
+            )
+          } catch (err) {
+            if (!isAbortError(err)) {
+              log.exception(err)
+            }
+          }
+        }
+      }
+
+      browser.contextMenus.onClicked.addListener(onContextMenuClick)
+      this.deinitialisers.push(() =>
+        browser.contextMenus.onClicked.removeListener(onContextMenuClick)
+      )
+    }
+
+    this.deinitialisers.push(browserBookmarks.register(ctx.storage))
+    this.deinitialisers.push(omnibox.register(ctx.storage))
+    this.deinitialisers.push(webNavigation.register(ctx.storage))
+    this.deinitialisers.push(await similarity.register(ctx.storage))
+
+    return ctx
+  }
+
+  private async deinit(): Promise<void> {
+    for (let index = this.deinitialisers.length - 1; index >= 0; index--) {
+      const deinitialiser = this.deinitialisers[index]
+      try {
+        await deinitialiser()
+      } catch (reason) {
+        log.warning(
+          `During background init: deinitialiser #${index} threw an error. ` +
+            `Deinit will proceed regardless. Error: ${
+              errorise(reason).message
+            }; `
+        )
+      }
+    }
+    this.deinitialisers = []
+  }
+}
+
+const bg = new Background() // eslint-disable-line @typescript-eslint/no-unused-vars
