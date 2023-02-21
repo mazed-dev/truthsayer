@@ -1,4 +1,4 @@
-import { WebPageContent } from './../content/extractor/webPageContent'
+import { PreviewImageSmall } from 'smuggler-api'
 
 import browser from 'webextension-polyfill'
 import type {
@@ -53,6 +53,17 @@ export type StorageAccessRequest = {
 export type StorageAccessResponse = {
   type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE'
   value: StorageApiMsgReturnValue
+}
+
+export interface WebPageContent {
+  url: string
+  title: string | null
+  description: string | null
+  lang: string | null
+  author: string[]
+  publisher: string[]
+  text: string | null
+  image: PreviewImageSmall | null
 }
 
 export namespace FromPopUp {

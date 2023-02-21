@@ -9,60 +9,75 @@ import {
   NodeCardReadOnly,
   truthsayer,
   HoverTooltip,
+  Spinner,
 } from 'elementary'
+import { log } from 'armoury'
 import { NodeUtil, StorageApi } from 'smuggler-api'
 import type { TNode } from 'smuggler-api'
 
-import { Toast, useOutsideToastClickHandler } from './../toaster/Toaster'
-import { LogoSmall } from './../style'
+import { AugmentationElement } from './Mount'
 import { MeteredButton } from '../elements/MeteredButton'
 import { ContentContext } from '../context'
+import { MazedMiniFloater } from './MazedMiniFloater'
 import {
   Close,
   ContentCopy,
-  ExpandMore,
+  DragIndicator,
   ExpandLess,
+  ExpandMore,
   OpenInNew,
 } from '@emotion-icons/material'
+import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
+import {} from '@emotion-icons/material'
 
-const ToastBox = styled.div`
-  width: 368px;
+const SuggestedCardsBox = styled.div`
+  width: 320px;
   display: flex;
   flex-direction: column;
 
   margin: 4px;
   background: #ffffff;
-  border: 1px solid #ececec;
   border-radius: 4px;
   color: black;
   box-shadow: 2px 2px 4px #8c8c8ceb;
+`
+const DraggableElement = styled.div`
+  position: absolute;
+  user-select: none;
 `
 
 const Header = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  border: 1px solid #ececec;
+  border-bottom: 1px solid #ececec;
 `
 const HeaderText = styled.div`
   color: #7a7a7a;
   font-size: 14px;
-  font-style: italic;
   padding: 4px;
   vertical-align: middle;
 `
 
-const SuggestionsToastSuggestionsBox = styled.div`
+const SuggestionsFloaterSuggestionsBox = styled.div`
   display: flex;
   flex-direction: column;
-  height: 80vh;
+  max-height: 80vh;
+  padding: 4px 0 4px 0;
   overflow-y: scroll;
 `
 
+const SuggestedCardsHeaderIcon = styled.div`
+  opacity: 0.32;
+  font-size: 12px;
+  padding: 0.4em 0.5em 0.4em 0.5em;
+  vertical-align: middle;
+`
 const SuggestionButton = styled(MeteredButton)`
   opacity: 0.32;
   font-size: 12px;
   padding: 0.4em 0.5em 0.4em 0.5em;
+  vertical-align: middle;
 `
 
 const SuggestedCardBox = styled.div`
@@ -170,7 +185,7 @@ const SuggestedCard = ({
   const ctx = React.useContext(ContentContext)
   return (
     <SuggestedCardBox>
-      <ShrinkMinimalCard showMore={seeMore} height={'104px'}>
+      <ShrinkMinimalCard showMore={seeMore} height={'116px'}>
         <NodeCardReadOnly
           node={node}
           strippedRefs
@@ -204,37 +219,103 @@ const SuggestedCard = ({
   )
 }
 
-export const SuggestionsToast = ({
-  suggested,
+const SuggestedCards = ({
+  nodes,
   onClose,
+  isLoading,
 }: {
-  suggested: TNode[]
+  nodes: TNode[]
   onClose: () => void
+  isLoading: boolean
 }) => {
-  const suggestedEl = suggested.map((node: TNode) => {
+  const suggestedCards = nodes.map((node: TNode) => {
     return <SuggestedCard key={node.nid} node={node} onClose={onClose} />
   })
-  useOutsideToastClickHandler(onClose)
   return (
-    <Toast toastKey={'read-write-augmentation-toast'}>
-      <ToastBox>
-        <Header>
-          <LogoSmall />
-          <HeaderText>Related ({suggested.length}):</HeaderText>
-          <MeteredButton
-            onClick={onClose}
-            metricLabel={'Suggestions Toast Close'}
-            css={{ marginRight: '2px', marginTop: '2px' }}
-          >
-            <HoverTooltip tooltip={'Open in Mazed'} placement="bottom">
-              <Close size="16px" />
-            </HoverTooltip>
-          </MeteredButton>
-        </Header>
-        <SuggestionsToastSuggestionsBox>
-          {suggestedEl}
-        </SuggestionsToastSuggestionsBox>
-      </ToastBox>
-    </Toast>
+    <SuggestedCardsBox>
+      <Header id="mazed-archaeologist-suggestions-floater-drag-handle">
+        <SuggestedCardsHeaderIcon>
+          <DragIndicator size="16px" />
+        </SuggestedCardsHeaderIcon>
+        <HeaderText>({isLoading ? <Spinner.Ring /> : nodes.length})</HeaderText>
+        <MeteredButton
+          onClick={onClose}
+          metricLabel={'Suggestions Floater Close'}
+          css={{ marginRight: '2px', marginTop: '2px' }}
+        >
+          <HoverTooltip tooltip={'Open in Mazed'} placement="bottom">
+            <Close size="16px" />
+          </HoverTooltip>
+        </MeteredButton>
+      </Header>
+      <SuggestionsFloaterSuggestionsBox>
+        {suggestedCards}
+      </SuggestionsFloaterSuggestionsBox>
+    </SuggestedCardsBox>
+  )
+}
+
+const MiniFloaterBox = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  #mazed-archaeologist-suggestions-floater-drag-handle {
+    opacity: 0.05;
+  }
+  &:hover {
+    #mazed-archaeologist-suggestions-floater-drag-handle {
+      opacity: 1;
+    }
+  }
+`
+
+const getStartDragPosition = (isMaximised: boolean) =>
+  isMaximised ? { x: -320, y: 0 } : { x: -64, y: 0 }
+
+export const SuggestionsFloater = ({
+  nodes,
+  isLoading,
+}: {
+  nodes: TNode[]
+  isLoading: boolean
+}) => {
+  const [isMaximised, setMaximised] = React.useState<boolean>(false)
+  const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
+    // TODO(Alexander): Persist these values in local storage to preserve user's
+    // choice for floater state when new pages is opened. Don't forget to
+    // throttle the call
+    log.debug('Last position', data.x, data.y)
+  }
+  const nodeRef = React.useRef(null)
+  return (
+    <AugmentationElement>
+      <Draggable
+        defaultPosition={getStartDragPosition(isMaximised)}
+        nodeRef={nodeRef}
+        onStop={onDragStop}
+        handle="#mazed-archaeologist-suggestions-floater-drag-handle"
+      >
+        <DraggableElement ref={nodeRef}>
+          {isMaximised ? (
+            <SuggestedCards
+              onClose={() => setMaximised(false)}
+              nodes={nodes}
+              isLoading={isLoading}
+            />
+          ) : (
+            <MiniFloaterBox>
+              <DragIndicator
+                id="mazed-archaeologist-suggestions-floater-drag-handle"
+                size={24}
+              />
+              <MazedMiniFloater onClick={() => setMaximised(true)}>
+                {isLoading ? <Spinner.Ring /> : nodes.length}
+              </MazedMiniFloater>
+            </MiniFloaterBox>
+          )}
+        </DraggableElement>
+      </Draggable>
+    </AugmentationElement>
   )
 }

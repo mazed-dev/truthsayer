@@ -190,6 +190,7 @@ test('exctractPageContent - main', async () => {
   <meta property="author" content="Correct Second Author">
   <meta property="og:site_name" content="The Publisher">
   <meta name="twitter:description" content="A JavaScript implementation">
+  <link rel="icon" class="js-site-favicon" type="image/svg+xml" href="https://example.com/favicons/favicon-dark.svg">
 </head>
 <body >
   <div>
@@ -206,23 +207,21 @@ test('exctractPageContent - main', async () => {
     { url: originalUrl }
   )
 
-  const content = await exctractPageContent(dom.window.document, origin, {
-    // Image fetching does not work with jsdom
-    skipCanvas: true,
-  })
-  const { url, title, author, publisher, description, lang, text, image } =
-    content
-  expect(text).toStrictEqual('First and second Third and forth')
-  expect(url).toStrictEqual(originalUrl)
-  expect(title).toStrictEqual('Some title')
-  expect(author).toStrictEqual([
+  const content = exctractPageContent(dom.window.document, origin)
+  expect(content.text).toStrictEqual('First and second Third and forth')
+  expect(content.url).toStrictEqual(originalUrl)
+  expect(content.title).toStrictEqual('Some title')
+  expect(content.author).toStrictEqual([
     'Correct First Author',
     'Correct Second Author',
   ])
-  expect(publisher).toStrictEqual(['The Publisher'])
-  expect(description).toStrictEqual('A JavaScript implementation')
-  expect(lang).toStrictEqual('en')
-  expect(image).toStrictEqual(null)
+  expect(content.publisher).toStrictEqual(['The Publisher'])
+  expect(content.description).toStrictEqual('A JavaScript implementation')
+  expect(content.lang).toStrictEqual('en')
+  expect(content.previewImageUrls).toStrictEqual([
+    'https://example.com/favicons/favicon-dark.svg',
+    'https://example.org/favicon.ico',
+  ])
 })
 
 const kYoutubeBase = 'https://www.youtube.com'
