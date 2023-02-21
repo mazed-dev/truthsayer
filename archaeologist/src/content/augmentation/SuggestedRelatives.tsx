@@ -60,7 +60,6 @@ export function SuggestedRelatives(_props: { stableUrl?: string }) {
             limit: 8,
             phrase,
           })
-          log.debug('Discovered', response)
           setSuggestedNodes(
             response.suggested.map((value: TNodeJson) =>
               NodeUtil.fromJson(value)
