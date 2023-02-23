@@ -63,6 +63,7 @@
     "react": "^16.14.0",
     "react-bootstrap": "^2.0.0",
     "react-dom": "^16.14.0",
+    "react-draggable": "^4.4.5",
     "react-helmet": "^6.1.0",
     "react-shadow": "^19.0.3",
     "smuggler-api": "0.0.1",

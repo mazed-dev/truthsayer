@@ -1,5 +1,4 @@
 import { DisappearingToastProps } from '../content/toaster/Toaster'
-import { WebPageContent } from '../content/extractor/webPageContent'
 import { extractSearchEngineQuery } from '../content/extractor/url/searchEngineQuery'
 
 import {
