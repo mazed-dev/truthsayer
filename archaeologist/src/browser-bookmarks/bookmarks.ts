@@ -27,17 +27,8 @@ async function onCreatedEventListener(
     if (response.type !== 'PAGE_TO_SAVE') {
       return
     }
-    const { url: stableUrl, content, originId, quoteNids } = response
     const createdVia: NodeCreatedVia = { manualAction: null }
-    await saveWebPage(
-      storage,
-      stableUrl,
-      originId,
-      quoteNids,
-      [],
-      createdVia,
-      content
-    )
+    await saveWebPage(storage, response, createdVia)
   }
 }
 

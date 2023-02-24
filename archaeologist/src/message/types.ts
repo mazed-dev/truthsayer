@@ -315,8 +315,7 @@ export namespace ToContent {
   }
 }
 export namespace FromContent {
-  export interface SavePageResponse {
-    type: 'PAGE_TO_SAVE'
+  export type SaveablePage = {
     url: string
     originId: OriginHash
     // Missing content is for a page that can not be saved
@@ -324,6 +323,10 @@ export namespace FromContent {
     // Saving page quotes to connect as right hand side cards
     quoteNids: string[]
   }
+
+  export type SavePageResponse = {
+    type: 'PAGE_TO_SAVE'
+  } & SaveablePage
   export interface PageAlreadySavedResponse {
     type: 'PAGE_ALREADY_SAVED'
     bookmark: TNodeJson
