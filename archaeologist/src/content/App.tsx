@@ -14,7 +14,6 @@ import type {
   StorageApiMsgReturnValue,
 } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log, productanalytics } from 'armoury'
-import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 
 import { truthsayer } from 'elementary'
 
@@ -426,11 +425,6 @@ const App = () => {
       >
         <BrowserHistoryImportControlPortal
           progress={state.browserHistoryUploadProgress}
-        />
-        <truthsayer_archaeologist_communication.archaeologist.ArchaeologistVersion
-          version={{
-            version: browser.runtime.getManifest().version,
-          }}
         />
         {truthsayer.url.belongs(document.URL) ? null : (
           <>

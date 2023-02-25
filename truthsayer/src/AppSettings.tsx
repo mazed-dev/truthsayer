@@ -8,60 +8,32 @@ import Switch from 'react-switch'
 import {
   AppSettings,
   FromTruthsayer,
-  VersionStruct,
 } from 'truthsayer-archaeologist-communication'
 import MzdGlobalContext from './lib/global'
+import { ArchaeologistState } from './apps-list/archaeologistState'
 
 const Box = styled(Container)`
   padding: 18px;
   height: 200px;
 `
 
-async function waitForArchaeologistToLoad(): Promise<VersionStruct> {
-  const maxAttempts = 5
-  let error = ''
-  for (let attempt = 0; attempt < maxAttempts; ++attempt) {
-    try {
-      const response = await FromTruthsayer.sendMessage({
-        type: 'GET_ARCHAEOLOGIST_STATE_REQUEST',
-      })
-      return response.version
-    } catch (reason) {
-      if (attempt === maxAttempts - 1) {
-        error = errorise(reason).message
-      }
-    }
-  }
-  throw new Error(
-    `Failed to get archaeologist state after ${maxAttempts} attempts. ` +
-      `Last error: ${error}`
-  )
-}
-
-export function ApplicationSettings({ className }: { className?: string }) {
-  const [archaeologistStatus, setArchaeologistStatus] = React.useState<
-    'loading' | 'Installed' | 'Not installed'
-  >('loading')
-
-  React.useEffect(() => {
-    waitForArchaeologistToLoad()
-      .then((_version: VersionStruct) => setArchaeologistStatus('Installed'))
-      .catch((reason) => {
-        setArchaeologistStatus('Not installed')
-        log.error(errorise(reason).message)
-      })
-  }, [])
-
+export function ApplicationSettings({
+  className,
+  archaeologistState,
+}: {
+  className?: string
+  archaeologistState: ArchaeologistState
+}) {
   const [appSettings, setAppSettings] = React.useState<AppSettings | null>(null)
   useAsyncEffect(async () => {
-    if (archaeologistStatus !== 'Installed') {
+    if (archaeologistState.state !== 'installed') {
       return
     }
     const response = await FromTruthsayer.sendMessage({
       type: 'GET_APP_SETTINGS_REQUEST',
     })
     setAppSettings(response.settings)
-  }, [archaeologistStatus])
+  }, [archaeologistState])
 
   const toggleStorageType = async (checked: boolean) => {
     const newAppSettings: AppSettings = {

@@ -13,7 +13,6 @@ import type {
   StorageApiMsgPayload,
   StorageApiMsgReturnValue,
 } from 'smuggler-api'
-import { VersionStruct } from '../Version'
 import { log, errorise } from 'armoury'
 
 export type StorageType =
@@ -146,10 +145,16 @@ export namespace FromTruthsayer {
 }
 
 export namespace ToTruthsayer {
+  export type ArchaeologistVersion = {
+    version: string
+    // uid: string
+    // ...
+  }
+
   export type VoidResponse = { type: 'VOID_RESPONSE' }
   export type GetArchaeologistStateResponse = {
     type: 'GET_ARCHAEOLOGIST_STATE_RESPONSE'
-    version: VersionStruct
+    version: ArchaeologistVersion
   }
   export type GetAppSettingsResponse = {
     type: 'GET_APP_SETTINGS_RESPONSE'
