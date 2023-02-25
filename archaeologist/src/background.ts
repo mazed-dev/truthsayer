@@ -25,14 +25,7 @@ import {
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
-import {
-  log,
-  isAbortError,
-  genOriginId,
-  unixtime,
-  errorise,
-  productanalytics,
-} from 'armoury'
+import { log, isAbortError, genOriginId, unixtime, errorise } from 'armoury'
 import {
   Nid,
   TNode,
