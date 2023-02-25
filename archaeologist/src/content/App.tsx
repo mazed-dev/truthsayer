@@ -162,7 +162,6 @@ function updateState(state: State, action: Action): State {
       const {
         mode,
         nodeEnv,
-        userUid,
         bookmark: bookmarkJson,
         toNodes: toNodesJson,
         fromNodes: fromNodesJson,
@@ -197,16 +196,6 @@ function updateState(state: State, action: Action): State {
             '$initial_referring_domain',
           ],
           save_referrer: false,
-          bootstrap: {
-            // NOTE: in content script analytics it is important to identify
-            // a user at the moment of analytics instance creation, not via deferred
-            // call to identify() because identify() generates a separate "$identify"
-            // event to PostHog. Every web page user opens then produces such
-            // an event which (as believed at the time of this writing) produces
-            // no value and just makes the data in PostHog difficult to navigate.
-            distinctID: productanalytics.identity.fromUserId(userUid, nodeEnv),
-            isIdentifiedID: true,
-          },
           // Unlike product analytics tracked for truthsayer, persist data
           // about a single augmented web page in memory of the page itself.
           // This means that different "instances" of product analytics
