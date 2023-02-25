@@ -1,12 +1,10 @@
 import React from 'react'
-import { useAsyncEffect } from 'use-async-effect'
 import { Container } from 'react-bootstrap'
 import styled from '@emotion/styled'
 
 import { kCardBorder, Spinner } from 'elementary'
-import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
-import { sleep } from 'armoury'
 import GoogleChromeLogo from './img/GoogleChromeLogo.svg'
+import { ArchaeologistState } from './archaeologistState'
 
 type MazedAppLinks =
   | 'https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc'
@@ -46,38 +44,33 @@ const Logo = styled.img`
   height: 52px;
 `
 
-export async function getArchaeologistVersionWait() {
-  let version: truthsayer_archaeologist_communication.VersionStruct | null =
-    null
-  for (let step = 0; step < 12 && version == null; step++) {
-    await sleep(200)
-    version =
-      truthsayer_archaeologist_communication.truthsayer.getArchaeologistVersion(
-        window.document
-      )
+function describe(state: ArchaeologistState) {
+  switch (state.state) {
+    case 'loading': {
+      return <Spinner.Ring />
+    }
+    case 'installed': {
+      return 'Installed'
+    }
+    case 'not-installed': {
+      return 'Not installed'
+    }
   }
-  return version
 }
 
-export function AppsList({ className }: { className?: string }) {
-  const [chromeStatus, setChromeStatus] = React.useState<
-    'loading' | 'Installed' | 'Not installed'
-  >('loading')
-  useAsyncEffect(async () => {
-    const version = await getArchaeologistVersionWait()
-    setChromeStatus(version == null ? 'Not installed' : 'Installed')
-  })
-
+export function AppsList({
+  archaeologist,
+  className,
+}: {
+  archaeologist: ArchaeologistState
+  className?: string
+}) {
   return (
     <Box className={className}>
       <AppItem href={kGoogleChromeStoreLink}>
         <Logo src={GoogleChromeLogo} />
         <Name>
-          Mazed for Chrome{' '}
-          <Comment>
-            &mdash;{' '}
-            {chromeStatus === 'loading' ? <Spinner.Ring /> : chromeStatus}
-          </Comment>
+          Mazed for Chrome <Comment>&mdash; {describe(archaeologist)}</Comment>
         </Name>
       </AppItem>
     </Box>

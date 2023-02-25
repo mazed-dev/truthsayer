@@ -7,6 +7,7 @@ import { Spinner } from 'elementary'
 import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 import { TruthsayerLink } from '../lib/TrueLink'
 import BrowserLogo from '../apps-list/img/GoogleChromeLogo.svg'
+import { ArchaeologistState } from '../apps-list/archaeologistState'
 
 export { BrowserLogo }
 
@@ -19,7 +20,7 @@ const Comment = styled.div`
 
 const kMinimalArchaeologistVersion = '0.1.16'
 
-type ArchaeologistState =
+type BrowserHistoryImporterState =
   | { type: 'not-found' }
   | { type: 'version-mismatch'; actual: string }
   | { type: 'loading' }
@@ -34,50 +35,47 @@ type ArchaeologistState =
  */
 export function BrowserHistoryImporter({
   className,
+  archaeologistState,
   ...config
 }: {
   className?: string
+  archaeologistState: ArchaeologistState
 } & truthsayer_archaeologist_communication.BrowserHistoryImport.Config) {
-  const [archaeologistState, setArchaeologistState] =
-    React.useState<ArchaeologistState>({ type: 'loading' })
-  React.useEffect(() => {
-    // To get Archaeologist version we need 2 things to happen consequentially
-    // - Truthsayer page to get fully rendered
-    // - Archaeologist augmentation to get rendered
-    // And only then we can read Archaeologist version, for this we have to wait
-    sleep(2000).then(() => {
-      const version =
-        truthsayer_archaeologist_communication.truthsayer.getArchaeologistVersion(
-          window.document
-        )
-      if (version == null) {
-        setArchaeologistState({ type: 'not-found' })
-        return
-      }
-      const state: ArchaeologistState = semver.gte(
-        version.version,
+  let state: BrowserHistoryImporterState = { type: 'loading' }
+  switch (archaeologistState.state) {
+    case 'loading': {
+      state = { type: 'loading' }
+      break
+    }
+    case 'installed': {
+      state = semver.gte(
+        archaeologistState.version.version,
         kMinimalArchaeologistVersion
       )
         ? { type: 'good' }
         : {
             type: 'version-mismatch',
-            actual: version.version,
+            actual: archaeologistState.version.version,
           }
-      setArchaeologistState(state)
-    })
-  }, [])
+      break
+    }
+    case 'not-installed': {
+      state = { type: 'not-found' }
+      break
+    }
+  }
 
   return (
     <Box className={className}>
       <truthsayer_archaeologist_communication.BrowserHistoryImport.truthsayer.Beacon
         {...config}
       />
-      {describe(archaeologistState)}
+      {describe(state)}
     </Box>
   )
 }
 
-function describe(state: ArchaeologistState) {
+function describe(state: BrowserHistoryImporterState) {
   switch (state.type) {
     case 'loading': {
       return (

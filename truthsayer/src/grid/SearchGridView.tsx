@@ -11,13 +11,18 @@ import { Onboarding } from '../account/onboard/Onboarding'
 import lodash from 'lodash'
 import MzdGlobalContext from '../lib/global'
 import { ArchaeologistNotInstalledNotice } from '../account/onboard/ArchaeologistNotInstalledNotice'
+import { ArchaeologistState } from '../apps-list/archaeologistState'
 
 const Box = styled.div`
   width: 100%;
   max-width: 100%;
 `
 
-export const SearchGridView = () => {
+export const SearchGridView = ({
+  archaeologistState,
+}: {
+  archaeologistState: ArchaeologistState
+}) => {
   const loc = useLocation()
   const ctx = useContext(MzdGlobalContext)
   const params = parse(loc.search)
@@ -30,10 +35,12 @@ export const SearchGridView = () => {
   }
   return (
     <Box>
-      <ArchaeologistNotInstalledNotice />
+      <ArchaeologistNotInstalledNotice
+        archaeologistState={archaeologistState}
+      />
       <SearchGrid q={queryStr} defaultSearch storage={ctx.storage} />
       <CreateNewNodeMenu />
-      <Onboarding />
+      <Onboarding archaeologistState={archaeologistState} />
     </Box>
   )
 }

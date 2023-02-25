@@ -427,11 +427,6 @@ const App = () => {
         <BrowserHistoryImportControlPortal
           progress={state.browserHistoryUploadProgress}
         />
-        <truthsayer_archaeologist_communication.archaeologist.ArchaeologistVersion
-          version={{
-            version: browser.runtime.getManifest().version,
-          }}
-        />
         {truthsayer.url.belongs(document.URL) ? null : (
           <>
             <Toaster />

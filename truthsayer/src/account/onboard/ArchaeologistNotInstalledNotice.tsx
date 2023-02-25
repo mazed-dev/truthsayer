@@ -4,10 +4,10 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import styled from '@emotion/styled'
 import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
-import { getArchaeologistVersionWait } from '../../apps-list/AppsList'
 import { useAsyncEffect } from 'use-async-effect'
 import { log } from 'armoury'
 import { routes } from '../../lib/route'
+import { ArchaeologistState } from '../../apps-list/archaeologistState'
 
 const Box = styled.div`
   with: 100%;
@@ -20,10 +20,11 @@ const Message = styled.div`
   padding-top: 8px;
 `
 
-export function ArchaeologistNotInstalledNotice() {
-  const [chromeStatus, setChromeStatus] = React.useState<
-    'loading' | 'Installed' | 'Not installed'
-  >('loading')
+export function ArchaeologistNotInstalledNotice({
+  archaeologistState,
+}: {
+  archaeologistState: ArchaeologistState
+}) {
   const [storageType, setStorageType] = React.useState<
     'loading' | truthsayer_archaeologist_communication.StorageType
   >('loading')
@@ -33,12 +34,10 @@ export function ArchaeologistNotInstalledNotice() {
     log.debug('Mazed Settings', settings)
     setStorageType(settings.storageType)
   })
-  useAsyncEffect(async () => {
-    const version = await getArchaeologistVersionWait()
-    log.debug('Archaeologist Version', version)
-    setChromeStatus(version == null ? 'Not installed' : 'Installed')
-  })
-  if (chromeStatus === 'Not installed' && storageType === 'browser_ext') {
+  if (
+    archaeologistState.state === 'not-installed' &&
+    storageType === 'browser_ext'
+  ) {
     return (
       <Box>
         <Message>
