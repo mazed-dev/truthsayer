@@ -49,6 +49,7 @@ import { TabLoad } from './tabLoad'
 import { BrowserHistoryUpload } from './background/external-import/browserHistory'
 import { requestPageSavedStatus } from './background/pageStatus'
 import { calculateInitialContentState } from './background/contentInit'
+import { uploadAllOpenTabs } from './background/external-import/openedTabs'
 
 const BADGE_MARKER_PAGE_SAVED = '✓'
 
@@ -516,6 +517,10 @@ class Background {
                 message.payload
               ),
             }
+          }
+          case 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST': {
+            await uploadAllOpenTabs(ctx.storage)
+            return { type: 'UPLOAD_CURRENTLY_OPEN_TABS_RESPONSE' }
           }
         }
         throw new Error(

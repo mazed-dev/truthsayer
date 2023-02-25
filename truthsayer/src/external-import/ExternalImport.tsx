@@ -16,6 +16,7 @@ import {
 } from './BrowserHistoryImporter'
 import { DataCentreImporter, getLogoImage } from './DataCentreImporter'
 import { ArchaeologistState } from '../apps-list/archaeologistState'
+import { OpenTabsImporter } from './OpenTabsImporter'
 
 const Box = styled.div`
   padding: 18px;
@@ -67,6 +68,10 @@ export function ExternalImport({
             archaeologistState={archaeologistState}
             {...browserHistoryImportConfig}
           />
+        </Item>
+        <Item key={'open-tabs'}>
+          <LogoImg src={BrowserHistoryImporterLogo} />
+          <OpenTabsImporter archaeologistState={archaeologistState} />
         </Item>
         <Item key={'onedrive'}>
           <LogoImg src={MicrosoftOfficeOneDriveLogoImg} />
