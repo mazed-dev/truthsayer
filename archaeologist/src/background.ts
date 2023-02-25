@@ -46,7 +46,7 @@ import { makeBrowserExtStorageApi } from './storage_api_browser_ext'
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
 import { getAppSettings, setAppSettings } from './appSettings'
 import { TabLoad } from './tabLoad'
-import { BrowserHistoryUpload } from './background/bulk-upload/browserHistory'
+import { BrowserHistoryUpload } from './background/external-import/browserHistory'
 import { requestPageSavedStatus } from './background/pageStatus'
 import { calculateInitialContentState } from './background/contentInit'
 
