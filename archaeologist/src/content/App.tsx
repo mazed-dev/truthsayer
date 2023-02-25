@@ -14,7 +14,6 @@ import type {
   StorageApiMsgReturnValue,
 } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log, productanalytics } from 'armoury'
-import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 
 import { truthsayer } from 'elementary'
 

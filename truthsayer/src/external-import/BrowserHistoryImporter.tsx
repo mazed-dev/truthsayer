@@ -2,7 +2,6 @@ import React from 'react'
 import styled from '@emotion/styled'
 import semver from 'semver'
 
-import { sleep } from 'armoury'
 import { Spinner } from 'elementary'
 import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 import { TruthsayerLink } from '../lib/TrueLink'
