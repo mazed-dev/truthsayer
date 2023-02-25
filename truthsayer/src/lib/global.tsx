@@ -19,7 +19,6 @@ import type {
 
 import styles from './global.module.css'
 import { NotificationToast } from './Toaster'
-import { errorise, log, productanalytics } from 'armoury'
 import { useAsyncEffect } from 'use-async-effect'
 import {
   FromTruthsayer,
@@ -81,9 +80,6 @@ type MzdGlobalState = {
   storage: StorageApi
   analytics: PostHog | null
 }
-
-const kAnonymousAnalyticsWarning =
-  'future product analytics events will be attached to an anonymous identity'
 
 export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
   const [toasts, setToasts] = React.useState<React.ReactElement[]>([])
