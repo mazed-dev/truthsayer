@@ -1,4 +1,3 @@
-import * as omnibox from './omnibox/omnibox'
 import * as webNavigation from './web-navigation/webNavigation'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
 import * as auth from './background/auth'
@@ -633,7 +632,6 @@ class Background {
     }
 
     this.deinitialisers.push(browserBookmarks.register(ctx.storage))
-    this.deinitialisers.push(omnibox.register(ctx.storage))
     this.deinitialisers.push(webNavigation.register(ctx.storage))
     this.deinitialisers.push(await similarity.register(ctx.storage))
 
