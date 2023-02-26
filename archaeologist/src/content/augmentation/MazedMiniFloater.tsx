@@ -8,8 +8,8 @@ import { ContentContext } from '../context'
 
 const Box = styled.div`
   position: relative;
-  height: 42px;
-  width: 42px;
+  height: 32px;
+  width: 32px;
   border-radius: 50%;
 
   border: 1px solid #ececec;
@@ -25,10 +25,10 @@ const Box = styled.div`
 
 const LogoBox = styled.img`
   position: absolute;
-  top: calc(50% - 13px);
-  left: calc(50% - 13px);
-  width: 26px;
-  /* height: 26px; */
+  top: calc(50% - 10px);
+  left: calc(50% - 10px);
+  width: 20px;
+  /* height: 20px; */
 
   margin: 0;
   padding: 0;

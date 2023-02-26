@@ -22,7 +22,7 @@ import { MazedMiniFloater } from './MazedMiniFloater'
 import {
   Close,
   ContentCopy,
-  DragIndicator,
+  DragIndicator as DragIndicatorIcon,
   ExpandLess,
   ExpandMore,
   OpenInNew,
@@ -255,15 +255,23 @@ const SuggestedCards = ({
   )
 }
 
+const DragIndicator = styled(DragIndicatorIcon)`
+  cursor: move; /* fallback if "grab" & "grabbing" cursors are not supported */
+  cursor: grab;
+  &: active {
+    cursor: grabbing;
+  }
+`
+
 const MiniFloaterBox = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   #mazed-archaeologist-suggestions-floater-drag-handle {
-    opacity: 0.05;
+    opacity: 0.1;
   }
-  &:hover {
+  &:hover &:active {
     #mazed-archaeologist-suggestions-floater-drag-handle {
       opacity: 1;
     }
@@ -271,7 +279,7 @@ const MiniFloaterBox = styled.div`
 `
 
 const getStartDragPosition = (isMaximised: boolean) =>
-  isMaximised ? { x: -320, y: 0 } : { x: -64, y: 0 }
+  isMaximised ? { x: -314, y: 0 } : { x: -56, y: 0 }
 
 export const SuggestionsFloater = ({
   nodes,
@@ -295,6 +303,7 @@ export const SuggestionsFloater = ({
         nodeRef={nodeRef}
         onStop={onDragStop}
         handle="#mazed-archaeologist-suggestions-floater-drag-handle"
+        axis="y"
       >
         <DraggableElement ref={nodeRef}>
           {isMaximised ? (
@@ -307,7 +316,7 @@ export const SuggestionsFloater = ({
             <MiniFloaterBox>
               <DragIndicator
                 id="mazed-archaeologist-suggestions-floater-drag-handle"
-                size={24}
+                size="22px"
               />
               <MazedMiniFloater onClick={() => setMaximised(true)}>
                 {isLoading ? <Spinner.Ring /> : nodes.length}
