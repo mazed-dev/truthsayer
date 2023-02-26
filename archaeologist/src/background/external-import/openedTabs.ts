@@ -1,6 +1,6 @@
 import { errorise, log } from 'armoury'
 import { StorageApi } from 'smuggler-api'
-import browser, { Tabs } from 'webextension-polyfill'
+import browser from 'webextension-polyfill'
 import { isPageAutosaveable } from '../../content/extractor/url/autosaveable'
 import { FromContent, ToContent } from '../../message/types'
 import { TabLoad } from '../../tabLoad'
