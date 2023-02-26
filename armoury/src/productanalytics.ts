@@ -10,7 +10,6 @@ import type { PostHogConfig } from 'posthog-js'
 
 import { errorise } from './exception'
 import { log } from './log'
-import { v4 as uuidv4 } from 'uuid'
 
 const kLogCategory = '[productanalytics]'
 
@@ -40,19 +39,12 @@ function makeAnalytics(
     return previouslyCreatedInstance
   }
 
-  const userIdBootstrap = config?.bootstrap?.isIdentifiedID
-    ? config.bootstrap
-    : {
-        distinctID: makePostHogIdentityFromUserUid(uuidv4(), nodeEnv), // anonymous ID
-        isIdentifiedID: false,
-      }
   try {
     // PostHog token and API host URL can be found at https://eu.posthog.com/project/settings
     const posthogToken = 'phc_p8GUvTa63ZKNpa05iuGI7qUvXYyyz3JG3UWe88KT7yj'
     const posthogApiHost = 'https://eu.posthog.com'
     const finalConfig: Partial<PostHogConfig> = {
       ...config,
-      bootstrap: userIdBootstrap,
       api_host: posthogApiHost,
       // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies
       secure_cookie: true,
@@ -71,53 +63,13 @@ function makeAnalytics(
     if (!(ret instanceof PostHog)) {
       throw new Error(`${logPrefix} Object is not of expected type`)
     }
-    if (userIdBootstrap.isIdentifiedID) {
-      log.debug(
-        `${logPrefix} Valid user account, future events will be identified as '${userIdBootstrap.distinctID}'`
-      )
-    } else {
-      log.debug(
-        `${logPrefix} initialised, until user is identified events will be` +
-          ` published as ${userIdBootstrap.distinctID}`
-      )
-    }
-    ret.register({ source: analyticsSourceName })
+
+    ret.register({ source: analyticsSourceName, environment: nodeEnv })
     return ret
   } catch (e) {
     log.warning(`${logPrefix} Failed to init, error = ${errorise(e)}`)
   }
   return null
-}
-
-function identifyUser({
-  analytics,
-  nodeEnv,
-  userUid,
-}: {
-  analytics: PostHog
-  nodeEnv: NodeEnv
-  userUid: string
-}) {
-  const logPrefix = `${kLogCategory} '${analytics.get_config('name')}'`
-  const identity = makePostHogIdentityFromUserUid(userUid, nodeEnv)
-  try {
-    analytics.identify(identity, { uid: userUid })
-    log.debug(
-      `${logPrefix} Valid user account, future events will be identified as '${identity}'`
-    )
-  } catch (e) {
-    log.warning(
-      `${logPrefix} Failed to identify user as ${identity}: ${errorise(e)}`
-    )
-  }
-}
-
-function makePostHogIdentityFromUserUid(userUid: string, nodeEnv: NodeEnv) {
-  // Note that this helper can't rely on process.env.NODE_ENV directly because
-  // it's not available in all environments when product analytics are needed
-  // (e.g. it is not available in content script)
-  const envPrefix = nodeEnv !== 'production' ? 'dev/' : ''
-  return `${envPrefix}${userUid}`
 }
 
 /**
@@ -139,9 +91,5 @@ function markClassNameForExclusion(className?: string): string {
 
 export const productanalytics = {
   make: makeAnalytics,
-  identifyUser,
   classExclude: markClassNameForExclusion,
-  identity: {
-    fromUserId: makePostHogIdentityFromUserUid,
-  },
 }

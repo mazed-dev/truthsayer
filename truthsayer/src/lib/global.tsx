@@ -19,7 +19,6 @@ import type {
 
 import styles from './global.module.css'
 import { NotificationToast } from './Toaster'
-import { errorise, log, productanalytics } from 'armoury'
 import { useAsyncEffect } from 'use-async-effect'
 import {
   FromTruthsayer,
@@ -82,9 +81,6 @@ type MzdGlobalState = {
   analytics: PostHog | null
 }
 
-const kAnonymousAnalyticsWarning =
-  'future product analytics events will be attached to an anonymous identity'
-
 export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
   const [toasts, setToasts] = React.useState<React.ReactElement[]>([])
   const pushToast = React.useCallback(
@@ -113,39 +109,6 @@ export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
     toaster: { push: pushToast },
     analytics: props.analytics,
   })
-
-  useAsyncEffect(async () => {
-    if (state.analytics == null) {
-      return
-    }
-
-    try {
-      // TODO[snikitin@outlook.com] In cases when truthsayer is launched
-      // the user is already logged in user identification should happen
-      // immediately at the point of product analytics instance creation
-      // (via 'PostHogConfig.bootstrap' field). Without that, opening
-      // truthsayer produces a single anonymous '$pageview' event followed
-      // immediately by an '$identify' event. This makes analytics data
-      // more difficult to navigate and consumes extra quota.
-      productanalytics.identifyUser({
-        analytics: state.analytics,
-        nodeEnv: process.env.NODE_ENV,
-        userUid: props.account.getUid(),
-      })
-    } catch (e) {
-      log.warning(`${errorise(e).message}, ${kAnonymousAnalyticsWarning}`)
-      throw e
-    }
-
-    return () => {
-      if (state.analytics) {
-        state.analytics.reset()
-        log.debug(
-          `Product analytics identity have been reset, ${kAnonymousAnalyticsWarning}`
-        )
-      }
-    }
-  }, [])
 
   if (storage == null) {
     return <Loader size={'large'} />
