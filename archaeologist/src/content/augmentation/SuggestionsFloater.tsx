@@ -316,7 +316,7 @@ export const SuggestionsFloater = ({
             <MiniFloaterBox>
               <DragIndicator
                 id="mazed-archaeologist-suggestions-floater-drag-handle"
-                size={24}
+                size="22px"
               />
               <MazedMiniFloater onClick={() => setMaximised(true)}>
                 {isLoading ? <Spinner.Ring /> : nodes.length}
