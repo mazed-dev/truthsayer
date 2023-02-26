@@ -3,7 +3,7 @@
 import React from 'react'
 import styled from '@emotion/styled'
 
-import LogoImage from '../../../public/logo-fade-48x48.png'
+import LogoImage from '../../../public/logo-strip.svg'
 import { ContentContext } from '../context'
 
 const Box = styled.div`
@@ -23,25 +23,25 @@ const Box = styled.div`
   z-index: 1024;
 `
 
-const LogoBox = styled.img`
+const Logo = styled.div`
   position: absolute;
   top: calc(50% - 10px);
-  left: calc(50% - 10px);
+  left: calc(50% - 10.5px);
   width: 20px;
-  /* height: 20px; */
+  height: 20px;
 
   margin: 0;
   padding: 0;
+
+  background-color: #ffffffeb;
+  mask: url(${LogoImage}) no-repeat center;
 }
 `
-const Logo = ({ className }: { className?: string }) => (
-  <LogoBox draggable={'false'} src={LogoImage} className={className} />
-)
 
 const BadgeBubble = styled.div`
   position: absolute;
-  bottom: 1px;
-  right: 0;
+  bottom: -3px;
+  right: -3px;
 
   width: 16px;
   height: 16px;
