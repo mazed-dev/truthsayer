@@ -9,26 +9,15 @@ export async function setActive(status?: boolean) {
   if (status) {
     await _browserAction.setIcon({
       path: {
-        16: 'logo-16x16.png',
-        48: 'logo-48x48.png',
-        72: 'logo-72x72.png',
         128: 'logo-128x128.png',
+        16: 'logo-16x16.png',
+        24: 'logo-24x24.png',
+        72: 'logo-72x72.png',
       },
     })
   } else {
-    await setInactive()
+    //await setInactive()
   }
-}
-
-export async function setInactive() {
-  await _browserAction.setIcon({
-    path: {
-      16: 'logo-fade-16x16.png',
-      48: 'logo-fade-48x48.png',
-      72: 'logo-fade-72x72.png',
-      128: 'logo-fade-128x128.png',
-    },
-  })
 }
 
 /**

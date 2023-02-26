@@ -8,7 +8,7 @@
   "action": {
     "default_icon": {
       "16": "logo-16x16.png",
-      "48": "logo-48x48.png",
+      "24": "logo-24x24.png",
       "72": "logo-72x72.png",
       "128": "logo-128x128.png"
     },
@@ -17,7 +17,7 @@
   },
   "icons": {
       "16": "logo-16x16.png",
-      "48": "logo-48x48.png",
+      "24": "logo-24x24.png",
       "72": "logo-72x72.png",
       "128": "logo-128x128.png"
   },
