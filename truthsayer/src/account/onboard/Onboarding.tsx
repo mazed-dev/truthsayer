@@ -9,6 +9,7 @@ import { Modal, Button } from 'react-bootstrap'
 import { AppsList } from '../../apps-list/AppsList'
 import { ExternalImport } from '../../external-import/ExternalImport'
 import { accountConfig } from '../../account/config'
+import { ArchaeologistState } from '../../apps-list/archaeologistState'
 
 const InstallAppsStep = styled(AppsList)`
   padding: 0;
@@ -22,28 +23,36 @@ type Step = {
   title: string
   body: React.ReactNode
 }
-const kSteps: Step[] = [
-  {
-    title: 'Install Apps',
-    body: <InstallAppsStep />,
-  },
-  {
-    title: 'Import fragments',
-    body: (
-      <ExternalImportStep
-        browserHistoryImportConfig={
-          // NOTE: one of the goals of the onboarding experience is to showcase
-          // the value of the product to a new user as quick as possible, before
-          // the product loses their attention. For this reason the slower modes
-          // of browser history import modes are not enabled.
-          { modes: ['untracked'] }
-        }
-      />
-    ),
-  },
-]
+function steps({
+  archaeologistState,
+}: {
+  archaeologistState: ArchaeologistState
+}): Step[] {
+  return [
+    {
+      title: 'Install Apps',
+      body: <InstallAppsStep archaeologist={archaeologistState} />,
+    },
+    {
+      title: 'Import fragments',
+      body: (
+        <ExternalImportStep
+          archaeologistState={archaeologistState}
+          browserHistoryImportConfig={
+            // NOTE: one of the goals of the onboarding experience is to showcase
+            // the value of the product to a new user as quick as possible, before
+            // the product loses their attention. For this reason the slower modes
+            // of browser history import modes are not enabled.
+            { modes: ['untracked'] }
+          }
+        />
+      ),
+    },
+  ]
+}
 
 function OnboardingModal({
+  archaeologistState,
   step,
   nextStep,
   onClose,
@@ -51,11 +60,14 @@ function OnboardingModal({
   step: number
   nextStep: (step: number) => void
   onClose: () => void
+  archaeologistState: ArchaeologistState
 }) {
   const [show, setShow] = React.useState<boolean>(true /* param != null */)
+  const [allSteps] = React.useState<Step[]>(steps({ archaeologistState }))
+
   const nextStepChecked = (direction: 'next' | 'prev') => {
     step = step + (direction === 'next' ? 1 : -1)
-    if (step >= kSteps.length) {
+    if (step >= allSteps.length) {
       onClose()
     }
     if (step >= 0) {
@@ -66,7 +78,7 @@ function OnboardingModal({
     onClose()
     setShow(false)
   }
-  const { title, body } = kSteps[step]
+  const { title, body } = allSteps[step]
   return (
     <Modal
       show={show}
@@ -99,7 +111,7 @@ function OnboardingModal({
             Previous
           </Button>
         ) : null}
-        {step < kSteps.length - 1 ? (
+        {step < allSteps.length - 1 ? (
           <Button variant="primary" onClick={() => nextStepChecked('next')}>
             Next
           </Button>
@@ -113,7 +125,11 @@ function OnboardingModal({
   )
 }
 
-export function Onboarding() {
+export function Onboarding({
+  archaeologistState,
+}: {
+  archaeologistState: ArchaeologistState
+}) {
   const loc = useLocation()
   const onboardingStep: number = parseInt(
     parse(loc.search)['onboarding_step'] as string
@@ -137,6 +153,7 @@ export function Onboarding() {
         nextStep={(step: number) => {
           history.push({ search: `onboarding_step=${step}` })
         }}
+        archaeologistState={archaeologistState}
       />
     )
   }

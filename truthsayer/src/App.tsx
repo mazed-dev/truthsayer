@@ -51,7 +51,7 @@ import {
   CookiePolicyPopUp,
   PrivacyPolicy,
 } from './public-page/legal/Index'
-import { log, productanalytics } from 'armoury'
+import { errorise, log, productanalytics } from 'armoury'
 import { ApplicationSettings } from './AppSettings'
 import {
   AccountInterface,
@@ -60,6 +60,11 @@ import {
   UserAccount,
 } from 'smuggler-api'
 import { KnockerElement } from './auth/Knocker'
+import {
+  FromTruthsayer,
+  ToTruthsayer,
+} from 'truthsayer-archaeologist-communication'
+import { ArchaeologistState } from './apps-list/archaeologistState'
 
 function isAuthenticated(account: AccountInterface): account is UserAccount {
   return account.isAuthenticated()
@@ -95,6 +100,19 @@ function AppRouter() {
     }
     log.info('Initialised an authenticated user account')
     setAccount(acc)
+  }, [])
+
+  const [archaeologistState, setArchaeologistState] =
+    React.useState<ArchaeologistState>({ state: 'loading' })
+  useAsyncEffect(async () => {
+    try {
+      setArchaeologistState({
+        state: 'installed',
+        version: await waitForArchaeologistToLoad(),
+      })
+    } catch {
+      setArchaeologistState({ state: 'not-installed' })
+    }
   }, [])
 
   const publicOnlyRoutes = [
@@ -138,7 +156,7 @@ function AppRouter() {
       <GoToInboxToConfirmEmail />
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pub-route-2'} path="/apps-to-install">
-      <AppsList />
+      <AppsList archaeologist={archaeologistState} />
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pub-route-3'} path="/help">
       <HelpInfo />
@@ -169,7 +187,7 @@ function AppRouter() {
       <Redirect to={{ pathname: '/search' }} />
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-private-route-1'} path={'/search'}>
-      <SearchGridView />
+      <SearchGridView archaeologistState={archaeologistState} />
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-private-route-2'} path="/account">
       <AccountView />
@@ -179,6 +197,7 @@ function AppRouter() {
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-private-route-4'} path="/external-import">
       <ExternalImport
+        archaeologistState={archaeologistState}
         browserHistoryImportConfig={{ modes: ['untracked', 'resumable'] }}
       />
     </TruthsayerRoute>,
@@ -195,7 +214,7 @@ function AppRouter() {
       <TriptychView />
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-private-route-8'} path="/settings">
-      <ApplicationSettings />
+      <ApplicationSettings archaeologistState={archaeologistState} />
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pub-route-9'} path={'/logout'}>
       <Logout />
@@ -335,4 +354,25 @@ function PageviewEventTracker({ analytics }: { analytics: PostHog }) {
   }, [history, track])
 
   return <div />
+}
+
+async function waitForArchaeologistToLoad(): Promise<ToTruthsayer.ArchaeologistVersion> {
+  const maxAttempts = 5
+  let error = ''
+  for (let attempt = 0; attempt < maxAttempts; ++attempt) {
+    try {
+      const response = await FromTruthsayer.sendMessage({
+        type: 'GET_ARCHAEOLOGIST_STATE_REQUEST',
+      })
+      return response.version
+    } catch (reason) {
+      if (attempt === maxAttempts - 1) {
+        error = errorise(reason).message
+      }
+    }
+  }
+  throw new Error(
+    `Failed to get archaeologist state after ${maxAttempts} attempts. ` +
+      `Last error: ${error}`
+  )
 }

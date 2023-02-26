@@ -6,7 +6,6 @@ import browser from 'webextension-polyfill'
 import styled from '@emotion/styled'
 import { css } from '@emotion/react'
 import { PostHog } from 'posthog-js'
-import type { PostHogConfig } from 'posthog-js'
 
 import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
@@ -42,20 +41,11 @@ function updateState(_: State, action: Action): State {
       if (action.userUid == null) {
         return {}
       }
-      const analyticsConfig: Partial<PostHogConfig> = {
-        bootstrap: {
-          distinctID: productanalytics.identity.fromUserId(
-            action.userUid,
-            process.env.NODE_ENV
-          ),
-          isIdentifiedID: true,
-        },
-      }
       const analytics: PostHog | undefined =
         productanalytics.make(
           'archaeologist/popup',
           process.env.NODE_ENV,
-          analyticsConfig
+          {}
         ) ?? undefined
       return {
         userUid: action.userUid,
