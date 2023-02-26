@@ -57,9 +57,6 @@
       "run_at": "document_end"
     }
   ],
-  "omnibox": {
-    "keyword": "//"
-  },
   "externally_connectable": {
     "ids": [],
     "matches": []
