@@ -15,6 +15,7 @@ import {
   BrowserLogo as BrowserHistoryImporterLogo,
 } from './BrowserHistoryImporter'
 import { DataCentreImporter, getLogoImage } from './DataCentreImporter'
+import { ArchaeologistState } from '../apps-list/archaeologistState'
 
 const Box = styled.div`
   padding: 18px;
@@ -50,9 +51,11 @@ const LogoImg = styled.img`
 
 export function ExternalImport({
   className,
+  archaeologistState,
   browserHistoryImportConfig,
 }: {
   className?: string
+  archaeologistState: ArchaeologistState
   browserHistoryImportConfig: truthsayer_archaeologist_communication.BrowserHistoryImport.Config
 }) {
   return (
@@ -60,7 +63,10 @@ export function ExternalImport({
       <ItemsBox>
         <Item key={'browser-history'}>
           <LogoImg src={BrowserHistoryImporterLogo} />
-          <BrowserHistoryImporter {...browserHistoryImportConfig} />
+          <BrowserHistoryImporter
+            archaeologistState={archaeologistState}
+            {...browserHistoryImportConfig}
+          />
         </Item>
         <Item key={'onedrive'}>
           <LogoImg src={MicrosoftOfficeOneDriveLogoImg} />
