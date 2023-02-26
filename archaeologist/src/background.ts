@@ -23,13 +23,7 @@ import {
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
-import {
-  log,
-  isAbortError,
-  unixtime,
-  errorise,
-  productanalytics,
-} from 'armoury'
+import { log, isAbortError, unixtime, errorise } from 'armoury'
 import {
   Nid,
   TNodeJson,
@@ -433,14 +427,6 @@ class Background {
     // Product analytics should be initialised ASAP because
     // other initialisation stages may require access to feature flags
     const analytics = await backgroundpa.make()
-    if (analytics != null) {
-      productanalytics.identifyUser({
-        analytics,
-        nodeEnv: process.env.NODE_ENV,
-        userUid: account.getUid(),
-      })
-      this.deinitialisers.push(() => analytics.reset())
-    }
 
     const storage = makeStorageApi(
       await getAppSettings(browser.storage.local),
