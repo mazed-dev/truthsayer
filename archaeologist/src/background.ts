@@ -12,9 +12,7 @@ import {
   FromPopUp,
   FromContent,
   ToBackground,
-  ContentAppOperationMode,
   BrowserHistoryUploadProgress,
-  BrowserHistoryUploadMode,
 } from './message/types'
 import { TDoc } from 'elementary'
 import * as badge from './badge/badge'
@@ -28,35 +26,29 @@ import {
 import {
   log,
   isAbortError,
-  genOriginId,
   unixtime,
   errorise,
   productanalytics,
 } from 'armoury'
 import {
   Nid,
-  TNode,
   TNodeJson,
   NodeUtil,
   TotalUserActivity,
-  ResourceVisit,
-  UserExternalPipelineId,
   NodeCreatedVia,
-  UserExternalPipelineIngestionProgress,
   StorageApi,
-  steroid,
   makeDatacenterStorageApi,
   processMsgFromMsgProxyStorageApi,
   UserAccount,
-  Ack,
 } from 'smuggler-api'
 
 import { makeBrowserExtStorageApi } from './storage_api_browser_ext'
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
-import { isMemorable } from './content/extractor/url/unmemorable'
-import { isPageAutosaveable } from './content/extractor/url/autosaveable'
-import lodash from 'lodash'
 import { getAppSettings, setAppSettings } from './appSettings'
+import { TabLoad } from './tabLoad'
+import { BrowserHistoryUpload } from './background/external-import/browserHistory'
+import { requestPageSavedStatus } from './background/pageStatus'
+import { calculateInitialContentState } from './background/contentInit'
 
 const BADGE_MARKER_PAGE_SAVED = '✓'
 
@@ -76,93 +68,6 @@ async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
     }
   }
   return null
-}
-
-async function requestPageConnections(storage: StorageApi, bookmark?: TNode) {
-  let fromNodes: TNode[] = []
-  let toNodes: TNode[] = []
-  if (bookmark == null) {
-    return { fromNodes, toNodes }
-  }
-  try {
-    // Fetch all edges for a given node
-    const { from_edges: fromEdges, to_edges: toEdges } = await storage.edge.get(
-      { nid: bookmark.nid }
-    )
-    // Gather node IDs of neighbour nodes to reqeust them
-    const nids = fromEdges
-      .map((edge) => edge.from_nid)
-      .concat(toEdges.map((edge) => edge.to_nid))
-    const { nodes } = await storage.node.batch.get({ nids })
-    // Sort neighbour nodes out
-    fromNodes = nodes.filter(
-      (node) => fromEdges.findIndex((edge) => edge.from_nid === node.nid) !== -1
-    )
-    toNodes = nodes.filter(
-      (node) => toEdges.findIndex((edge) => edge.to_nid === node.nid) !== -1
-    )
-  } catch (err) {
-    log.debug(`Loading of node ${bookmark.nid} connections failed with`, err)
-  }
-  return { fromNodes, toNodes }
-}
-
-async function requestPageSavedStatus(
-  storage: StorageApi,
-  url: string | undefined
-) {
-  if (url == null) {
-    return { unmemorable: false }
-  }
-  if (!isMemorable(url)) {
-    return { unmemorable: true }
-  }
-  let nodes
-  try {
-    nodes = await steroid(storage).node.lookup({ url })
-  } catch (err) {
-    log.debug('Lookup by origin ID failed, consider page as non saved', err)
-    return { unmemorable: false }
-  }
-  let bookmark: TNode | undefined = undefined
-  for (const node of nodes) {
-    if (NodeUtil.isWebBookmark(node)) {
-      bookmark = node
-      break
-    }
-  }
-  const { fromNodes, toNodes } = await requestPageConnections(storage, bookmark)
-  return { bookmark, fromNodes, toNodes }
-}
-
-/**
- * Convert a Date object to a format compatible with browser.history APIs
- *
- * webextension-polyfill.browser.history APIs promise to accept datetimes in
- * multiple forms, including a Date, however at least on Chromium
- * the Date version doesn't work, while milliseconds version does
- */
-function historyDateCompat(date: Date): number {
-  return date.getTime()
-}
-
-function sortWithOldestLastVisitAtEnd(
-  lhs: browser.History.HistoryItem,
-  rhs: browser.History.HistoryItem
-): number {
-  if (lhs.lastVisitTime == null && rhs.lastVisitTime == null) {
-    return 0
-  } else if (lhs.lastVisitTime == null) {
-    return -1
-  } else if (rhs.lastVisitTime == null) {
-    return 1
-  }
-  if (lhs.lastVisitTime < rhs.lastVisitTime) {
-    return -1
-  } else if (lhs.lastVisitTime === rhs.lastVisitTime) {
-    return 0
-  }
-  return 1
 }
 
 async function registerAttentionTime(
@@ -255,208 +160,6 @@ async function lookupForSuggestionsToPageInActiveTab(
   return []
 }
 
-namespace TabLoadCompletion {
-  type Monitors = {
-    [key: number /* browser.Tabs.Tab.id */]: {
-      onComplete: (tab: Tabs.Tab) => void
-      onAbort: (reason: string) => void
-    }
-  }
-
-  const monitors: Monitors = {}
-  const takeOvers: Monitors = {}
-
-  /**
-   * Returns a Promise that will be resolved as soon as the is loaded completely
-   * (according to @see report() ).
-   * Will not interfere with the default way web pages get loaded (as opposed to
-   * @see takeOverInit() )
-   */
-  export function monitor(tabId: number): Promise<Tabs.Tab> {
-    return new Promise<Tabs.Tab>((resolve, reject) => {
-      if (monitors[tabId] != null) {
-        reject(
-          `Tab ${tabId} is already monitored for completion by someone else`
-        )
-        return
-      }
-      if (takeOvers[tabId] != null) {
-        reject(
-          `Tab ${tabId} init has been taken over by someone else and it's ` +
-            `load completion can't be monitored`
-        )
-        return
-      }
-      monitors[tabId] = { onComplete: resolve, onAbort: reject }
-    })
-  }
-
-  /**
-   * Returns a Promise that will be resolved as soon as the is loaded completely
-   * (according to @see report() ).
-   * Will "take over" how a web page gets initialised and skip the process used
-   * by default (in contrast to @see monitor() )
-   */
-  export function takeOverInit(tabId: number): Promise<Tabs.Tab> {
-    return new Promise<Tabs.Tab>((resolve, reject) => {
-      if (takeOvers[tabId] != null) {
-        reject(`Tab ${tabId} init has already been taken over by someone else`)
-        return
-      }
-      if (monitors[tabId] != null) {
-        reject(
-          `Tab ${tabId} init can't be taken over because someone else is already ` +
-            `monitoring its load completion`
-        )
-        return
-      }
-
-      takeOvers[tabId] = { onComplete: resolve, onAbort: reject }
-    })
-  }
-  /**
-   * Return false if a tab is expected to be initialised through the default process.
-   * Return true if initialisation was taken over by something (@see takeOverInit() )
-   */
-  export function initTakenOver(tabId: number): boolean {
-    return takeOvers[tabId] != null
-  }
-  /**
-   * Report that a tab with given ID has been completely loaded
-   * (expected to be called based on @see browser.Tabs.OnUpdatedChangeInfoType )
-   */
-  export async function report(tab: Tabs.Tab) {
-    if (tab.id == null) {
-      throw new Error(
-        `Attempted to report load completion of a tab without an ID: ${JSON.stringify(
-          tab
-        )}`
-      )
-    }
-
-    let parsedUrl: URL | null = null
-    try {
-      parsedUrl = new URL(tab.url ?? 'null')
-    } catch {
-      const msg = `Failed to parse ${tab.url} as a URL of tab ${tab.id}`
-      abort(tab.id, msg)
-      throw new Error(msg)
-    }
-
-    if (monitors[tab.id] != null) {
-      try {
-        await simulateWaitForDynamicInit(parsedUrl)
-        monitors[tab.id].onComplete(tab)
-      } finally {
-        delete monitors[tab.id]
-      }
-    } else if (takeOvers[tab.id] != null) {
-      try {
-        await simulateWaitForDynamicInit(parsedUrl)
-        takeOvers[tab.id].onComplete(tab)
-      } finally {
-        delete takeOvers[tab.id]
-      }
-    }
-  }
-  export function abort(tabId: number, reason: string) {
-    if (monitors[tabId] != null) {
-      try {
-        monitors[tabId].onAbort(reason)
-      } finally {
-        delete monitors[tabId]
-      }
-    } else if (takeOvers[tabId] != null) {
-      try {
-        takeOvers[tabId].onAbort(reason)
-      } finally {
-        delete takeOvers[tabId]
-      }
-    }
-  }
-
-  function sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms))
-  }
-
-  async function simulateWaitForDynamicInit(url: URL) {
-    // TODO[snikitin@outlook.com] Dynamic pages like GMail or Twitter
-    // have less deterministic loading process (e.g. they emit multiple
-    //    `browser.Tabs.OnUpdatedChangeInfoType.status === 'complete'`
-    // events). A sleep is used to as cheap, but unreliable solution to this
-    // observability problem.
-    // Some directions that may make this deterministic:
-    //    1. try to make 'content' script observe the state of each page via
-    //       tools like MutationObserver. Seems like that'll require us to
-    //       reverse-engineer how each "important" page behaves and then to
-    //       hand-write a set of bespoke observer conditions.
-    //       I tried this and couldn't make it work in short amount of time.
-    //    2. at the time of this writing TabLoadCompletion waits for a single
-    //       call to TabLoadCompletion.report() on `status === "complete"` event.
-    //       It can be extended to wait for a configurable amount of events.
-    //       That'll require us to again reverse-engineer the behaviour of
-    //       "important" pages, but looking into the background events a page
-    //       emits is much easier then reverse-engineering what happens in
-    //       DOM from content script.
-    //       I tried this and it is doable, but turned out too complex on the
-    //       first try due to:
-    //          - the problem of redirects (difficult to determine the correct
-    //            set of events to use until redirects settle)
-    //          - difficulties to marry this with other flows that call initMazedPartsOfTab()
-    switch (url.host) {
-      case 'mail.google.com':
-      case 'twitter.com': {
-        await sleep(2000)
-        break
-      }
-    }
-  }
-}
-
-async function getPageContentViaTemporaryTab(
-  storage: StorageApi,
-  url: string
-): Promise<
-  | FromContent.SavePageResponse
-  | FromContent.PageAlreadySavedResponse
-  | FromContent.PageNotWorthSavingResponse
-> {
-  const startTime = new Date()
-  let tab = await browser.tabs.create({
-    active: false,
-    url,
-  })
-  const tabId = tab.id
-  if (tabId == null) {
-    throw new Error(`Failed to create a temporary tab for ${url}`)
-  }
-  try {
-    tab = await TabLoadCompletion.takeOverInit(tabId)
-    await initMazedPartsOfTab(storage, tab, 'passive-mode-content-app')
-    return await ToContent.sendMessage(tabId, {
-      type: 'REQUEST_PAGE_CONTENT',
-      manualAction: false,
-    })
-  } finally {
-    try {
-      await browser.tabs.remove(tabId)
-    } catch (err) {
-      log.debug(`Failed to remove tab ${tab.url}: ${err}`)
-    }
-    const endTime = new Date()
-    try {
-      await browser.history.deleteRange({
-        startTime: historyDateCompat(startTime),
-        endTime: historyDateCompat(endTime),
-      })
-    } catch (err) {
-      log.warning(
-        `Failed to cleanup history after temporary tab ${tab.url}: ${err}`
-      )
-    }
-  }
-}
-
 async function handleMessageFromContent(
   ctx: BackgroundContext,
   message: FromContent.Request,
@@ -469,17 +172,21 @@ async function handleMessageFromContent(
       await registerAttentionTime(ctx.storage, tab, message)
       return { type: 'VOID_RESPONSE' }
     case 'UPLOAD_BROWSER_HISTORY': {
-      await uploadBrowserHistory(ctx.storage, message)
+      await BrowserHistoryUpload.upload(
+        ctx.storage,
+        message,
+        reportBrowserHistoryUploadProgress
+      )
       return { type: 'VOID_RESPONSE' }
     }
     case 'CANCEL_BROWSER_HISTORY_UPLOAD': {
-      shouldCancelBrowserHistoryUpload = true
+      BrowserHistoryUpload.cancel()
       return { type: 'VOID_RESPONSE' }
     }
     case 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY': {
       const numDeleted = await ctx.storage.node.bulkDelete({
         createdVia: {
-          autoIngestion: idOfBrowserHistoryOnThisDeviceAsExternalPipeline(),
+          autoIngestion: BrowserHistoryUpload.externalPipelineId(),
         },
       })
       return {
@@ -515,59 +222,6 @@ async function handleMessageFromContent(
   )
 }
 
-async function historyVisitsOf(url: string): Promise<ResourceVisit[]> {
-  const visits = await browser.history.getVisits({ url })
-  return visits.map((visit): ResourceVisit => {
-    return { timestamp: unixtime.from(new Date(visit.visitTime ?? 0)) }
-  })
-}
-
-/**
- * Browser history data on a particular device and from a particular browser
- * can be treated as a pipeline of data to be consumed. This function
- * computes @see UserExternalPipelineId for this pipeline.
- */
-function idOfBrowserHistoryOnThisDeviceAsExternalPipeline(): UserExternalPipelineId {
-  // TODO [snikitin@outlook.com] User can use multiple browsers and have
-  // multiple devices. Ignoring the fact that modern browsers are capable of
-  // syncing history, 'pipeline_key' should be populated with something that
-  // uniquely identifies both the used browser and the device.
-  const browserId = 'bid'
-  const deviceId = 'did'
-  return {
-    pipeline_key: `hist-${deviceId}-${browserId}`,
-  }
-}
-
-// TODO[snikitin@outlook.com] This boolean is an extremely naive tool to cancel
-// an asyncronous task. In general AbortController would have been used instead
-// (see https://medium.com/@bramus/cancel-a-javascript-promise-with-abortcontroller-3540cbbda0a9)
-// but if controller is passed across the popup/background or content/background
-// boundary it stops working.
-//
-// One of the weaknesses of this boolean is it's a global, so it may work in happy
-// case when there is just one browser history upload job running, but if for any
-// reason there are more, then attempts to cancel them will lead to unexpected results.
-//
-// Another weakness is the boolean state is completely disconneted from whether or not
-// browser history upload is actually in progress.
-let shouldCancelBrowserHistoryUpload = false
-
-/**
- * Same as browser.History.HistoryItem, but with certain fields important
- * to archaeologist validated
- */
-type ValidHistoryItem = Omit<
-  browser.History.HistoryItem,
-  'url' | 'lastVisitTime'
-> &
-  Required<Pick<browser.History.HistoryItem, 'url' | 'lastVisitTime'>>
-function isValidHistoryItem(
-  item: browser.History.HistoryItem
-): item is ValidHistoryItem {
-  return item.url != null && item.lastVisitTime != null
-}
-
 async function reportBrowserHistoryUploadProgress(
   progress: BrowserHistoryUploadProgress
 ) {
@@ -589,120 +243,6 @@ async function reportBrowserHistoryUploadProgress(
         errorise(err).message
       }`
     )
-  }
-}
-
-async function uploadBrowserHistory(
-  storage: StorageApi,
-  mode: BrowserHistoryUploadMode
-) {
-  const reportProgress = lodash.throttle(
-    reportBrowserHistoryUploadProgress,
-    1123
-  )
-
-  const epid = idOfBrowserHistoryOnThisDeviceAsExternalPipeline()
-  const currentProgress = await storage.external.ingestion.get({ epid })
-
-  log.debug('Progress until now:', currentProgress)
-
-  const advanceIngestionProgress = lodash.throttle(
-    // The implementation of this function mustn't throw
-    // due to the expectations with which it gets used later
-    mode.mode !== 'untracked'
-      ? async (date: Date) => {
-          const ingested_until: number = unixtime.from(date)
-          const nack: Ack = { ack: false }
-          return storage.external.ingestion
-            .advance({ epid, new_progress: { ingested_until } })
-            .catch(() => nack)
-        }
-      : async (_: Date) => {},
-    1123
-  )
-
-  const items: ValidHistoryItem[] = (
-    await browser.history.search(toHistorySearchQuery(mode, currentProgress))
-  )
-    .filter(isValidHistoryItem)
-    .filter((item) => isPageAutosaveable(item.url))
-    // NOTE: With Chromium at least the output of `browser.history.search`
-    // is already in the order from "pages that hasn't been visited the longest"
-    // to "most recently visited". However `browser.history.search` doesn't seem
-    // to provide any guarantees about it. Since logic which relies on
-    // `storage.thirdparty.fs.progress` would break under different ordering,
-    // explicit sorting is added as a safeguard
-    .sort(sortWithOldestLastVisitAtEnd)
-
-  for (
-    let index = 0;
-    index < items.length && !shouldCancelBrowserHistoryUpload;
-    await advanceIngestionProgress(new Date(items[index].lastVisitTime)),
-      reportProgress({ processed: index + 1, total: items.length }),
-      index++
-  ) {
-    const item: ValidHistoryItem = items[index]
-    try {
-      const total: TotalUserActivity = await storage.activity.external.add({
-        origin: genOriginId(item.url),
-        activity: {
-          visit: { visits: await historyVisitsOf(item.url), reported_by: epid },
-        },
-      })
-      if (!isReadyToBeAutoSaved(total, 0)) {
-        continue
-      }
-
-      const resp = await getPageContentViaTemporaryTab(storage, item.url)
-      if (resp.type !== 'PAGE_TO_SAVE') {
-        continue
-      }
-      const createdVia: NodeCreatedVia = { autoIngestion: epid }
-      const visitedAt: unixtime.Type = item.lastVisitTime
-      await saveWebPage(storage, resp, createdVia, undefined, visitedAt)
-    } catch (err) {
-      log.error(`Failed to process ${item.url} during history upload: ${err}`)
-    }
-  }
-  shouldCancelBrowserHistoryUpload = false
-
-  reportProgress({ processed: items.length, total: items.length })
-  reportProgress.flush()
-  await advanceIngestionProgress.flush()
-}
-
-function toHistorySearchQuery(
-  mode: BrowserHistoryUploadMode,
-  currentProgress: UserExternalPipelineIngestionProgress
-): browser.History.SearchQueryType {
-  switch (mode.mode) {
-    case 'resumable': {
-      return {
-        // TODO[snikitin@outlook.com] Such a naive implementation which queries
-        // the entire history at once may consume too much memory for users
-        // with years of browser history.
-        // A more iterative implementation is difficult to implement due the
-        // assymetry of the API - the inputs allow to restrict how visits
-        // will be searched, but output includes web pages instead of visits.
-        endTime: historyDateCompat(new Date()),
-        startTime: historyDateCompat(
-          // NOTE: 'startTime' of 'browser.history.search' is an inclusive boundary
-          // which requires an increment by 1 to avoid getting edge items multiple
-          // times between runs of this function
-          unixtime.toDate(currentProgress.ingested_until + 1)
-        ),
-        maxResults: 1000000,
-        text: '',
-      }
-    }
-    case 'untracked': {
-      return {
-        endTime: historyDateCompat(unixtime.toDate(mode.unixtime.end)),
-        startTime: historyDateCompat(unixtime.toDate(mode.unixtime.start)),
-        maxResults: 1000000,
-        text: '',
-      }
-    }
   }
 }
 
@@ -794,45 +334,6 @@ async function handleMessageFromPopup(
       message
     )}`
   )
-}
-
-async function initMazedPartsOfTab(
-  storage: StorageApi,
-  tab: browser.Tabs.Tab,
-  mode: ContentAppOperationMode
-) {
-  if (tab.id == null || tab.url == null) {
-    return
-  }
-  // Request page saved status on new non-incognito page loading
-  const { bookmark, fromNodes, toNodes } = await requestPageSavedStatus(
-    storage,
-    tab.url
-  )
-  await badge.setStatus(
-    tab.id,
-    bookmark != null ? BADGE_MARKER_PAGE_SAVED : undefined
-  )
-  try {
-    await ToContent.sendMessage(tab.id, {
-      type: 'INIT_CONTENT_AUGMENTATION_REQUEST',
-      nodeEnv: process.env.NODE_ENV,
-      userUid: auth.account().getUid(),
-      bookmark: bookmark ? NodeUtil.toJson(bookmark) : undefined,
-      fromNodes: fromNodes?.map((node) => NodeUtil.toJson(node)) ?? [],
-      toNodes: toNodes?.map((node) => NodeUtil.toJson(node)) ?? [],
-      mode,
-    })
-  } catch (err) {
-    if (!isAbortError(err)) {
-      // As 'REQUEST_UPDATE_CONTENT_AUGMENTATION' updates tab-specific data,
-      // a failure due to premature tab closure is not a concern since there
-      // is no data to update any longer
-      log.warning(
-        `Failed to update content augmentation for ${tab.url} tab: ${err}`
-      )
-    }
-  }
 }
 
 function makeStorageApi(
@@ -1029,6 +530,25 @@ class Background {
       )
     }
 
+    // Init content once tab is fully loaded
+    {
+      const onComplete = async (tab: Tabs.Tab) => {
+        if (tab.incognito || tab.hidden || !tab.url || tab.id == null) {
+          return
+        }
+        const request = await calculateInitialContentState(
+          ctx.storage,
+          tab,
+          'active-mode-content-app'
+        )
+        await ToContent.sendMessage(tab.id, request)
+        badge.setStatus(
+          tab.id,
+          request.bookmark != null ? BADGE_MARKER_PAGE_SAVED : undefined
+        )
+      }
+      this.deinitialisers.push(TabLoad.register(onComplete))
+    }
     // Listen for tab updates
     {
       // NOTE: on more complex web-pages onUpdated may be invoked multiple times
@@ -1036,35 +556,18 @@ class Background {
       // be able to handle that.
       // See https://stackoverflow.com/a/18302254/3375765 for more information.
       const onTabUpdate = async (
-        tabId: number,
+        _tabId: number,
         changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
         tab: browser.Tabs.Tab
       ) => {
         try {
-          if (
-            !tab.incognito &&
-            !tab.hidden &&
-            tab.url &&
-            changeInfo.status === 'complete' &&
-            !TabLoadCompletion.initTakenOver(tabId)
-          ) {
-            await initMazedPartsOfTab(
-              ctx.storage,
-              tab,
-              'active-mode-content-app'
-            )
-          }
         } finally {
           if (changeInfo.status === 'complete') {
             // NOTE: if loading of a tab did complete, it is important to ensure
             // report() gets called regardless of what happens in the other parts of
             // browser.tabs.onUpdated (e.g. something throws). Otherwise any part of
-            // code that waits on a TabLoadCompletion promise will wait forever.
-            //
-            // At the same time, it is important to call report() *after* all or most
-            // of Mazed's content init has been completed so tab can be in a predictable
-            // state from the perspective of Mazed code that waits for TabLoadCompletion
-            TabLoadCompletion.report(tab)
+            // code that waits on a TabLoad promise will wait forever.
+            TabLoad.report(tab)
           }
         }
       }
@@ -1081,7 +584,7 @@ class Background {
         tabId: number,
         _removeInfo: browser.Tabs.OnRemovedRemoveInfoType
       ) => {
-        TabLoadCompletion.abort(tabId, 'Tab removed')
+        TabLoad.abort(tabId, 'Tab removed')
       }
       browser.tabs.onRemoved.addListener(onTabRemoval)
       this.deinitialisers.push(() =>
