@@ -6,41 +6,13 @@ import { FromContent, ToContent } from '../../message/types'
 import { TabLoad } from '../../tabLoad'
 import { saveWebPage } from '../savePage'
 
-async function getTabContent(
-  tabId: number
-): Promise<
-  | FromContent.SavePageResponse
-  | FromContent.PageAlreadySavedResponse
-  | FromContent.PageNotWorthSavingResponse
-> {
-  const requestContent: ToContent.RequestPageContent = {
-    type: 'REQUEST_PAGE_CONTENT',
-    manualAction: false,
-  }
-  let response:
-    | FromContent.SavePageResponse
-    | FromContent.PageAlreadySavedResponse
-    | FromContent.PageNotWorthSavingResponse
-    | null = null
-  try {
-    response = await ToContent.sendMessage(tabId, requestContent)
-  } catch (firstError) {
-    try {
-      await Promise.all([browser.tabs.reload(tabId), TabLoad.monitor(tabId)])
-      response = await ToContent.sendMessage(tabId, requestContent)
-    } catch (secondError) {
-      throw new Error(
-        `Failed to get contents of a tab. Tried to reload it to make ` +
-          `sure content script has been loaded, but that lead to another error. ` +
-          `Error1 = ${errorise(firstError).message}, ` +
-          `Error2 = ${errorise(secondError).message}`
-      )
-    }
-  }
-  return response
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 /**
+ * @summary Upload the content of all the tabs user has currently open to Mazed.
+ * @description WARNING: may refresh the tabs, a user-visible effect.
  * @return number of successfully uploaded tabs
  */
 export async function uploadAllOpenTabs(storage: StorageApi): Promise<number> {
@@ -70,4 +42,47 @@ export async function uploadAllOpenTabs(storage: StorageApi): Promise<number> {
     }
   }
   return numOfUploaded
+}
+
+function contentScriptProbablyDoesntExist(error: Error) {
+  return error.message.search(/receiving end does not exist/i) >= 0
+}
+
+async function getTabContent(
+  tabId: number
+): Promise<
+  | FromContent.SavePageResponse
+  | FromContent.PageAlreadySavedResponse
+  | FromContent.PageNotWorthSavingResponse
+> {
+  const requestContent: ToContent.RequestPageContent = {
+    type: 'REQUEST_PAGE_CONTENT',
+    manualAction: false,
+  }
+  try {
+    return await ToContent.sendMessage(tabId, requestContent)
+  } catch (error) {
+    // If content script doesn't exist, retry. For every other error - rethrow.
+    if (!contentScriptProbablyDoesntExist(errorise(error))) {
+      throw error
+    }
+  }
+  // If content script doesn't exist, it may be that the user has opened this
+  // tab before they installed archaeologist. In this case refreshing the tab
+  // should load the script.
+  try {
+    await Promise.all([browser.tabs.reload(tabId), TabLoad.monitor(tabId)])
+    return await ToContent.sendMessage(tabId, requestContent)
+  } catch (error) {
+    // If content script still doesn't exist, retry. For every other error - rethrow.
+    if (!contentScriptProbablyDoesntExist(errorise(error))) {
+      throw error
+    }
+  }
+
+  // If content still doesn't exist, it might be due to TabLoad.monitor() not being
+  // fully deterministic in case of dynamic pages. Sleep for a small period of time
+  // as a last attempt to give content script a chance.
+  await sleep(1000)
+  return await ToContent.sendMessage(tabId, requestContent)
 }
