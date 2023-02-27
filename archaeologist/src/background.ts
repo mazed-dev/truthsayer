@@ -12,6 +12,7 @@ import {
   FromContent,
   ToBackground,
   BrowserHistoryUploadProgress,
+  SuggestedAssociationsFloaterState,
 } from './message/types'
 import { TDoc } from 'elementary'
 import * as badge from './badge/badge'
@@ -198,6 +199,16 @@ async function handleMessageFromContent(
         suggested: relevantNodes.map(({ node }) => NodeUtil.toJson(node)),
       }
     }
+    case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS_FLOATER_STATE': {
+      const setState = message.setState
+      if (setState != null) {
+        suggestedAssociationsFloaterState = setState
+      }
+      return {
+        type: 'RESPONSE_SUGGESTED_CONTENT_ASSOCIATIONS_FLOATER_STATE',
+        state: suggestedAssociationsFloaterState,
+      }
+    }
     case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
       return {
         type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE',
@@ -346,6 +357,9 @@ type BackgroundContext = {
   analytics: PostHog | null
 }
 
+//FIXME(Alexander)
+let suggestedAssociationsFloaterState: SuggestedAssociationsFloaterState= {}
+
 /**
  * Intended to be responsible for actions similar to what a main()
  * function might do in other environments, like
@@ -358,7 +372,7 @@ class Background {
     | { phase: 'not-init' }
     | { phase: 'loading'; loading: Promise<void> }
     | { phase: 'unloading'; unloading: Promise<void> }
-    | { phase: 'init-done'; context: BackgroundContext } = { phase: 'not-init' }
+    | { phase: 'init-done'; context: BackgroundContext; } = { phase: 'not-init' }
 
   private deinitialisers: (() => void | Promise<void>)[] = []
 
@@ -375,7 +389,7 @@ class Background {
           try {
             log.debug(`Background init started`)
             const context = await this.init(account)
-            this.state = { phase: 'init-done', context }
+            this.state = { phase: 'init-done', context, }
             log.debug(`Background init done`)
             resolve()
           } catch (reason) {

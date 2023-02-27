@@ -55,6 +55,14 @@ export type StorageAccessResponse = {
   value: StorageApiMsgReturnValue
 }
 
+export type SuggestedAssociationsFloaterState = {
+  isRevealed?: boolean
+}
+export interface SuggestedAssociationsFloaterStateResponse {
+  type: 'RESPONSE_SUGGESTED_CONTENT_ASSOCIATIONS_FLOATER_STATE'
+  state: SuggestedAssociationsFloaterState
+}
+
 export interface WebPageContent {
   url: string
   title: string | null
@@ -259,6 +267,7 @@ export namespace ToContent {
     | DeletePreviouslyUploadedBrowserHistoryResponse
     | SuggestedAssociationsResponse
     | StorageAccessResponse
+    | SuggestedAssociationsFloaterStateResponse
 
   export function sendMessage(
     tabId: number,
@@ -368,6 +377,10 @@ export namespace FromContent {
     phrase: string
     limit: number
   }
+  export interface SuggestedAssociationsFloaterStateRequest {
+    type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS_FLOATER_STATE'
+    setState?: SuggestedAssociationsFloaterState
+  }
 
   export type Request =
     | AttentionTimeChunk
@@ -376,6 +389,7 @@ export namespace FromContent {
     | DeletePreviouslyUploadedBrowserHistoryRequest
     | SuggestedAssociationsRequest
     | StorageAccessRequest
+    | SuggestedAssociationsFloaterStateRequest
 
   export type Response =
     | GetSelectedQuoteResponse
@@ -402,6 +416,12 @@ export namespace FromContent {
   export function sendMessage(
     message: StorageAccessRequest
   ): Promise<StorageAccessResponse>
+  export function sendMessage(
+    message: StorageAccessRequest
+  ): Promise<StorageAccessResponse>
+  export function sendMessage(
+    message: SuggestedAssociationsFloaterStateRequest
+  ): Promise<SuggestedAssociationsFloaterStateResponse>
   export function sendMessage(message: Request): Promise<ToContent.Response> {
     const msg: ToBackground.Request = { direction: 'from-content', ...message }
     return browser.runtime.sendMessage(msg).catch((error) => {
