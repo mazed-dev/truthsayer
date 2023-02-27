@@ -505,7 +505,11 @@ class Background {
           }
           case 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST': {
             await OpenTabs.uploadAll(ctx.storage)
-            return { type: 'UPLOAD_CURRENTLY_OPEN_TABS_RESPONSE' }
+            return { type: 'VOID_RESPONSE' }
+          }
+          case 'CANCEL_UPLOAD_OF_CURRENTLY_OPEN_TABS_REQUEST': {
+            await OpenTabs.cancel()
+            return { type: 'VOID_RESPONSE' }
           }
         }
         throw new Error(
