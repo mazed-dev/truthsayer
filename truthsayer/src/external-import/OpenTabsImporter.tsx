@@ -1,13 +1,9 @@
 import styled from '@emotion/styled'
 import { Spinner } from 'elementary'
-import { useState, useContext } from 'react'
+import { useState } from 'react'
 import { FromTruthsayer } from 'truthsayer-archaeologist-communication'
 import { ArchaeologistState } from '../apps-list/archaeologistState'
-import MzdGlobalContext from '../lib/global'
-import { TruthsayerLink } from '../lib/TrueLink'
 
-const Box = styled.div``
-const Message = styled.div``
 const Comment = styled.div`
   font-style: italic;
   color: grey;
@@ -63,7 +59,7 @@ export function OpenTabsImporter({
           .finally(() => setState({ state: 'ready' }))
         setState({ state: 'in-progress', progress })
       }
-      return <Button onClick={upload}>Upload open tabs</Button>
+      return <Button onClick={upload}>Import open tabs</Button>
     }
     case 'in-progress':
     case 'cancelling': {
@@ -75,7 +71,9 @@ export function OpenTabsImporter({
       }
       return (
         <Button onClick={cancel} disabled={state.state === 'cancelling'}>
-          {state.state !== 'cancelling' ? 'Cancel' : 'Cancelling...'}
+          {state.state !== 'cancelling'
+            ? 'Cancel open tabs import'
+            : 'Cancelling...'}
         </Button>
       )
     }
