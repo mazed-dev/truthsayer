@@ -42,7 +42,7 @@ import { TabLoad } from './tabLoad'
 import { BrowserHistoryUpload } from './background/external-import/browserHistory'
 import { requestPageSavedStatus } from './background/pageStatus'
 import { calculateInitialContentState } from './background/contentInit'
-import { uploadAllOpenTabs } from './background/external-import/openedTabs'
+import { OpenTabs } from './background/external-import/openTabs'
 
 const BADGE_MARKER_PAGE_SAVED = '✓'
 
@@ -504,7 +504,7 @@ class Background {
             }
           }
           case 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST': {
-            await uploadAllOpenTabs(ctx.storage)
+            await OpenTabs.uploadAll(ctx.storage)
             return { type: 'UPLOAD_CURRENTLY_OPEN_TABS_RESPONSE' }
           }
         }
