@@ -4,7 +4,7 @@ import { css } from '@emotion/react'
 
 import { StyleButtonWhite, ColourButtonWhite } from 'elementary'
 
-import LogoImage from '../../public/logo-48x48.png'
+import LogoImage from '../../public/logo-24x24.png'
 
 // All CSS properties are tagged as `!important` here to protect Mazed
 // augmentation against overrides from WebPage CSS.
