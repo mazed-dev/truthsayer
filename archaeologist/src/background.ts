@@ -42,6 +42,7 @@ import { TabLoad } from './tabLoad'
 import { BrowserHistoryUpload } from './background/external-import/browserHistory'
 import { requestPageSavedStatus } from './background/pageStatus'
 import { calculateInitialContentState } from './background/contentInit'
+import { OpenTabs } from './background/external-import/openTabs'
 
 const BADGE_MARKER_PAGE_SAVED = '✓'
 
@@ -501,6 +502,14 @@ class Background {
                 message.payload
               ),
             }
+          }
+          case 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST': {
+            await OpenTabs.uploadAll(ctx.storage)
+            return { type: 'VOID_RESPONSE' }
+          }
+          case 'CANCEL_UPLOAD_OF_CURRENTLY_OPEN_TABS_REQUEST': {
+            await OpenTabs.cancel()
+            return { type: 'VOID_RESPONSE' }
           }
         }
         throw new Error(

@@ -15,7 +15,7 @@ export namespace TabLoad {
       }
     | {
         phase: 'registered'
-        defaultOnComplete: (tab: Tabs.Tab) => void
+        defaultOnComplete: (tab: Tabs.Tab) => Promise<void>
         monitors: Monitors
         takeOvers: Monitors
       } = { phase: 'not-registered' }
@@ -25,7 +25,7 @@ export namespace TabLoad {
    * @return Functor which, once invoked, de-inits the module.
    */
   export function register(
-    defaultOnComplete: (tab: Tabs.Tab) => void
+    defaultOnComplete: (tab: Tabs.Tab) => Promise<void>
   ): () => void {
     if (state.phase === 'registered') {
       throw new Error(`Attempted to register TabLoad more than once`)
@@ -145,7 +145,7 @@ export namespace TabLoad {
         state.takeOvers[tab.id] == null
           ? state.defaultOnComplete
           : state.takeOvers[tab.id].onComplete
-      onComplete(tab)
+      await onComplete(tab)
     } finally {
       delete state.takeOvers[tab.id]
     }
