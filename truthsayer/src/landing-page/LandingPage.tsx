@@ -356,7 +356,8 @@ export function LandingPage() {
           </Topbar>
           <FirstSlideBody>
             <Header>
-              Reference anything you've read. <wbr />
+              Reference&nbsp;anything you've&nbsp;read.
+              <wbr />
               <b>Without&nbsp;looking&nbsp;for&nbsp;it.</b>
             </Header>
             <Description>
