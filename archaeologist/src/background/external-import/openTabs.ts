@@ -84,20 +84,25 @@ export namespace OpenTabs {
     // If content script doesn't exist, it may be that the user has opened this
     // tab before they installed archaeologist. In this case refreshing the tab
     // should load the script.
-    try {
-      await Promise.all([browser.tabs.reload(tabId), TabLoad.monitor(tabId)])
-      return await ToContent.sendMessage(tabId, requestContent)
-    } catch (error) {
-      // If content script still doesn't exist, retry. For every other error - rethrow.
-      if (!contentScriptProbablyDoesntExist(errorise(error))) {
-        throw error
-      }
-    }
+    // try {
+    // await Promise.all([browser.tabs.reload(tabId), TabLoad.monitor(tabId)])
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ['content.js'],
+    })
+    await sleep(1000)
+    return await ToContent.sendMessage(tabId, requestContent)
+    // } catch (error) {
+    // If content script still doesn't exist, retry. For every other error - rethrow.
+    // if (!contentScriptProbablyDoesntExist(errorise(error))) {
+    // throw error
+    // }
+    // }
 
     // If content still doesn't exist, it might be due to TabLoad.monitor() not being
     // fully deterministic in case of dynamic pages. Sleep for a small period of time
     // as a last attempt to give content script a chance.
-    await sleep(1000)
-    return await ToContent.sendMessage(tabId, requestContent)
+    // await sleep(1000)
+    // return await ToContent.sendMessage(tabId, requestContent)
   }
 }
