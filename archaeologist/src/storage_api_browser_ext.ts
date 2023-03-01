@@ -892,10 +892,13 @@ async function addExternalUserActivity(
     yek: { kind: 'origin->activity', key: origin },
   }
   const oldLav: OriginToActivityLav | undefined = await store.get(yek)
-  if (oldLav == null) {
-    return { visits: [], seconds_of_attention: 0 }
+  const value: NonNullable<typeof oldLav>['lav']['value'] = oldLav?.lav
+    .value ?? {
+    visits: [],
+    attentions: [],
+    total_seconds_of_attention: 0,
   }
-  const value = oldLav.lav.value
+
   if ('visit' in activity && activity.visit != null) {
     const newVisits: (ResourceVisit & {
       reported_by?: UserExternalPipelineId

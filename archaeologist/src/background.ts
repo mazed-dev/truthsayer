@@ -70,11 +70,10 @@ async function registerAttentionTime(
   message: FromContent.AttentionTimeChunk
 ): Promise<void> {
   if (tab?.id == null) {
-    log.debug("Can't register attention time for a tab: ", tab)
+    log.debug("Can't register attention time for a tab: ", tab?.url)
     return
   }
   const { totalSecondsEstimation, deltaSeconds, origin } = message
-  log.debug('Register Attention Time', tab, totalSecondsEstimation)
   let total: TotalUserActivity
   try {
     total = await storage.activity.external.add({
@@ -92,6 +91,10 @@ async function registerAttentionTime(
     }
     return
   }
+  log.debug(
+    `Origin ${origin.id}, registered attention time: ` +
+      `+${deltaSeconds} sec (total = ${total.seconds_of_attention}, full read = ${totalSecondsEstimation})`
+  )
   if (isReadyToBeAutoSaved(total, totalSecondsEstimation)) {
     const response:
       | FromContent.SavePageResponse
