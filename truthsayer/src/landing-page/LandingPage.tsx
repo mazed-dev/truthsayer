@@ -18,6 +18,8 @@ import {
   Salesforce as SalesforceLogo,
 } from '@emotion-icons/fa-brands'
 
+const FontSize: string[] = ['50px', '37px', '28px', '21px', '16px', '12px']
+
 const SlidesBox = styled.div`
   height: 100vh;
   width: 100vw;
@@ -25,7 +27,7 @@ const SlidesBox = styled.div`
   scroll-snap-type: y mandatory;
 
   font-family: 'Roboto', arial, sans-serif;
-  font-size: 22px;
+  font-size: ${FontSize[4]};
 
   color: ${(props) => props.theme.color.primary};
   background-color: ${(props) => props.theme.backgroundColor.primary};
@@ -56,24 +58,24 @@ const FirstSlideBody = styled.div`
   padding: 20px;
 `
 const Header = styled.h1`
-  font-size: 48px;
+  font-size: ${FontSize[0]};
   @media (max-width: 600px) {
-    font-size: 36px;
+    font-size: ${FontSize[2]};
   }
   text-align: center;
 `
 const Description = styled.h2`
-  font-size: 28px;
+  font-size: ${FontSize[1]};
   @media (max-width: 600px) {
-    font-size: 20px;
+    font-size: ${FontSize[4]};
   }
   text-align: center;
   margin: 10px 0 10px 0;
 `
 const Comment = styled.h2`
-  font-size: 16px;
-  @media (max-width: 800px) {
-    font-size: 14px;
+  font-size: ${FontSize[3]};
+  @media (max-width: 600px) {
+    font-size: ${FontSize[5]};
   }
   text-align: center;
   margin: 6px 0 12px 0;
@@ -83,12 +85,9 @@ const TrustedByBox = styled.div`
 `
 const TrustedByTitle = styled(Comment)``
 const TrustedByLogosBox = styled.div`
-  font-size: 48px;
-  @media (max-width: 800px) {
-    font-size: 36px;
-  }
+  font-size: ${FontSize[0]};
   @media (max-width: 600px) {
-    font-size: 32px;
+    font-size: ${FontSize[2]};
   }
   display: flex;
   justify-content: center;
@@ -99,9 +98,9 @@ const TrustedByLogosBox = styled.div`
 const Logo = styled.div`
   font-family: 'Comfortaa';
   font-weight: 900;
-  font-size: 32px;
-  @media (max-width: 800px) {
-    font-size: 28px;
+  font-size: ${FontSize[1]};
+  @media (max-width: 600px) {
+    font-size: ${FontSize[3]};
   }
   cursor: pointer;
   color: ${(props) => props.theme.color.primary};
@@ -133,8 +132,8 @@ const Topbar = styled.div`
   height: 6%;
 `
 const LoginBox = styled.div`
-  margin-right: 16px;
-  font-size: 16px;
+  margin-right: ${FontSize[4]};
+  font-size: ${FontSize[4]};
 `
 const RefBtnBox = styled.a`
   background-color: white;
@@ -176,9 +175,9 @@ const SignUpFormBox = styled.form`
   border-radius: 10px;
   width: 100%;
 
-  font-size: 18px;
+  font-size: ${FontSize[2]};
   @media (max-width: 600px) {
-    font-size: 16px;
+    font-size: ${FontSize[5]};
   }
 
   display: flex;
@@ -314,7 +313,7 @@ const FooterCol = styled.div`
   text-align: center;
 `
 const FooterItem = styled.div`
-  font-size: 14px;
+  font-size: ${FontSize[5]};
   margin: 0 16px 4px 16px;
 `
 
@@ -357,7 +356,8 @@ export function LandingPage() {
           </Topbar>
           <FirstSlideBody>
             <Header>
-              Reference anything you've read. <wbr />
+              Reference&nbsp;anything you've&nbsp;read.
+              <wbr />
               <b>Without&nbsp;looking&nbsp;for&nbsp;it.</b>
             </Header>
             <Description>

@@ -65,11 +65,19 @@ export namespace FromTruthsayer {
     type: 'MSG_PROXY_STORAGE_ACCESS_REQUEST'
     payload: StorageApiMsgPayload
   }
+  export type UploadCurrentlyOpenTabsRequest = {
+    type: 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST'
+  }
+  export type CancelUploadOfCurrentlyOpenTabsRequest = {
+    type: 'CANCEL_UPLOAD_OF_CURRENTLY_OPEN_TABS_REQUEST'
+  }
   export type Request =
     | GetArchaeologistStateRequest
     | GetAppSettingsRequest
     | SetAppSettingsRequest
     | StorageAccessRequest
+    | UploadCurrentlyOpenTabsRequest
+    | CancelUploadOfCurrentlyOpenTabsRequest
 
   export function sendMessage(
     message: GetArchaeologistStateRequest
@@ -83,6 +91,12 @@ export namespace FromTruthsayer {
   export function sendMessage(
     message: StorageAccessRequest
   ): Promise<ToTruthsayer.StorageAccessResponse>
+  export function sendMessage(
+    message: UploadCurrentlyOpenTabsRequest
+  ): Promise<ToTruthsayer.VoidResponse>
+  export function sendMessage(
+    message: CancelUploadOfCurrentlyOpenTabsRequest
+  ): Promise<ToTruthsayer.VoidResponse>
   export function sendMessage(
     message: Request
   ): Promise<ToTruthsayer.Response> {
