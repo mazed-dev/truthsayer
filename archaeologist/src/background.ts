@@ -1,10 +1,6 @@
 import * as webNavigation from './web-navigation/webNavigation'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
-import * as auth from './background/auth'
-import { saveWebPage, savePageQuote } from './background/savePage'
-import { backgroundpa } from './background/productanalytics'
 import { PostHog } from 'posthog-js'
-import * as similarity from './background/search/similarity'
 import {
   ToPopUp,
   ToContent,
@@ -12,7 +8,6 @@ import {
   FromContent,
   ToBackground,
   BrowserHistoryUploadProgress,
-  SuggestedAssociationsFloaterState,
 } from './message/types'
 import { TDoc } from 'elementary'
 import * as badge from './badge/badge'
@@ -42,8 +37,12 @@ import { getAppSettings, setAppSettings } from './appSettings'
 import { TabLoad } from './tabLoad'
 import { BrowserHistoryUpload } from './background/external-import/browserHistory'
 import { requestPageSavedStatus } from './background/pageStatus'
-import { calculateInitialContentState } from './background/contentInit'
+import { saveWebPage, savePageQuote } from './background/savePage'
+import { backgroundpa } from './background/productanalytics'
 import { OpenTabs } from './background/external-import/openTabs'
+import * as contentState from './background/contentState'
+import * as similarity from './background/search/similarity'
+import * as auth from './background/auth'
 
 const BADGE_MARKER_PAGE_SAVED = '✓'
 
@@ -200,14 +199,13 @@ async function handleMessageFromContent(
         suggested: relevantNodes.map(({ node }) => NodeUtil.toJson(node)),
       }
     }
-    case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS_FLOATER_STATE': {
-      const setState = message.setState
-      if (setState != null) {
-        suggestedAssociationsFloaterState = setState
+    case 'REQUEST_CONTENT_AUGMENTATION_SETTINGS': {
+      if (message.settings != null) {
+        contentState.updateAugmentationSettings(message.settings)
       }
       return {
-        type: 'RESPONSE_SUGGESTED_CONTENT_ASSOCIATIONS_FLOATER_STATE',
-        state: suggestedAssociationsFloaterState,
+        type: 'RESPONSE_CONTENT_AUGMENTATION_SETTINGS',
+        state: contentState.getAugmentationSettings(),
       }
     }
     case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
@@ -358,9 +356,6 @@ type BackgroundContext = {
   analytics: PostHog | null
 }
 
-//FIXME(Alexander)
-let suggestedAssociationsFloaterState: SuggestedAssociationsFloaterState= {}
-
 /**
  * Intended to be responsible for actions similar to what a main()
  * function might do in other environments, like
@@ -373,7 +368,7 @@ class Background {
     | { phase: 'not-init' }
     | { phase: 'loading'; loading: Promise<void> }
     | { phase: 'unloading'; unloading: Promise<void> }
-    | { phase: 'init-done'; context: BackgroundContext; } = { phase: 'not-init' }
+    | { phase: 'init-done'; context: BackgroundContext } = { phase: 'not-init' }
 
   private deinitialisers: (() => void | Promise<void>)[] = []
 
@@ -390,7 +385,7 @@ class Background {
           try {
             log.debug(`Background init started`)
             const context = await this.init(account)
-            this.state = { phase: 'init-done', context, }
+            this.state = { phase: 'init-done', context }
             log.debug(`Background init done`)
             resolve()
           } catch (reason) {
@@ -544,7 +539,7 @@ class Background {
         if (tab.incognito || tab.hidden || !tab.url || tab.id == null) {
           return
         }
-        const request = await calculateInitialContentState(
+        const request = await contentState.calculateInitialContentState(
           ctx.storage,
           tab,
           'active-mode-content-app'

@@ -1,7 +1,7 @@
 import { NodeUtil, StorageApi } from 'smuggler-api'
 import browser from 'webextension-polyfill'
 import type { ContentAppOperationMode } from '../message/types'
-import { ToContent } from '../message/types'
+import { ToContent, ContentAugmentationSettings } from '../message/types'
 import { requestPageSavedStatus } from './pageStatus'
 import * as auth from './auth'
 
@@ -29,4 +29,21 @@ export async function calculateInitialContentState(
     toNodes: toNodes?.map((node) => NodeUtil.toJson(node)) ?? [],
     mode,
   }
+}
+
+let contentAugmentationSettings: ContentAugmentationSettings = {}
+
+export function updateAugmentationSettings(
+  settings: ContentAugmentationSettings
+): ContentAugmentationSettings {
+  contentAugmentationSettings.isRevealed =
+    settings.isRevealed ?? contentAugmentationSettings.isRevealed
+  return contentAugmentationSettings
+}
+export function getAugmentationSettings(): ContentAugmentationSettings {
+  return contentAugmentationSettings
+}
+
+export async function register() {
+  return () => {}
 }

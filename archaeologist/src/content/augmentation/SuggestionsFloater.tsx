@@ -2,7 +2,7 @@
 
 import React from 'react'
 import styled from '@emotion/styled'
-import {useAsyncEffect} from 'use-async-effect'
+import { useAsyncEffect } from 'use-async-effect'
 
 import {
   TDoc,
@@ -299,14 +299,14 @@ export const SuggestionsFloater = ({
   const [isRevealed, setRevealed] = React.useState<boolean>(false)
   const saveRevealed = React.useCallback((revealed: boolean) => {
     setRevealed(revealed)
-     FromContent.sendMessage({
-       type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS_FLOATER_STATE',
-       setState: { isRevealed: revealed }
-     })
-    }, [])
+    FromContent.sendMessage({
+      type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
+      settings: { isRevealed: revealed },
+    })
+  }, [])
   useAsyncEffect(async () => {
     const response = await FromContent.sendMessage({
-      type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS_FLOATER_STATE',
+      type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
     })
     setRevealed(response.state.isRevealed ?? false)
   }, [])
@@ -323,7 +323,9 @@ export const SuggestionsFloater = ({
         <DraggableElement ref={nodeRef}>
           {isRevealed ? (
             <SuggestedCards
-              onClose={() => {saveRevealed(false)}}
+              onClose={() => {
+                saveRevealed(false)
+              }}
               nodes={nodes}
               isLoading={isLoading}
             />

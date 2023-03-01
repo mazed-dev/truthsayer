@@ -55,14 +55,13 @@ export type StorageAccessResponse = {
   value: StorageApiMsgReturnValue
 }
 
-export type SuggestedAssociationsFloaterState = {
+export type ContentAugmentationSettings = {
   isRevealed?: boolean
 }
-export interface SuggestedAssociationsFloaterStateResponse {
-  type: 'RESPONSE_SUGGESTED_CONTENT_ASSOCIATIONS_FLOATER_STATE'
-  state: SuggestedAssociationsFloaterState
+export interface ContentAugmentationSettingsResponse {
+  type: 'RESPONSE_CONTENT_AUGMENTATION_SETTINGS'
+  state: ContentAugmentationSettings
 }
-
 export interface WebPageContent {
   url: string
   title: string | null
@@ -267,7 +266,7 @@ export namespace ToContent {
     | DeletePreviouslyUploadedBrowserHistoryResponse
     | SuggestedAssociationsResponse
     | StorageAccessResponse
-    | SuggestedAssociationsFloaterStateResponse
+    | ContentAugmentationSettingsResponse
 
   export function sendMessage(
     tabId: number,
@@ -377,9 +376,11 @@ export namespace FromContent {
     phrase: string
     limit: number
   }
-  export interface SuggestedAssociationsFloaterStateRequest {
-    type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS_FLOATER_STATE'
-    setState?: SuggestedAssociationsFloaterState
+  export interface ContentAugmentationSettingsRequest {
+    type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS'
+    // Reset settings if provided in the request, if not just return previously
+    // saved settings
+    settings?: ContentAugmentationSettings
   }
 
   export type Request =
@@ -389,7 +390,7 @@ export namespace FromContent {
     | DeletePreviouslyUploadedBrowserHistoryRequest
     | SuggestedAssociationsRequest
     | StorageAccessRequest
-    | SuggestedAssociationsFloaterStateRequest
+    | ContentAugmentationSettingsRequest
 
   export type Response =
     | GetSelectedQuoteResponse
@@ -420,8 +421,8 @@ export namespace FromContent {
     message: StorageAccessRequest
   ): Promise<StorageAccessResponse>
   export function sendMessage(
-    message: SuggestedAssociationsFloaterStateRequest
-  ): Promise<SuggestedAssociationsFloaterStateResponse>
+    message: ContentAugmentationSettingsRequest
+  ): Promise<ContentAugmentationSettingsResponse>
   export function sendMessage(message: Request): Promise<ToContent.Response> {
     const msg: ToBackground.Request = { direction: 'from-content', ...message }
     return browser.runtime.sendMessage(msg).catch((error) => {
