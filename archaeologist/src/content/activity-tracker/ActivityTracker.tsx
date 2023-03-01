@@ -83,9 +83,7 @@ const AttentionTimeTracker = ({
             totalSeconds >= totalTimeEstimationSeconds
           ) {
             log.debug(
-              'Register attention time',
-              deltaSeconds,
-              totalTimeEstimationSeconds
+              `Register attention time: +${deltaSeconds} (full read = ${totalTimeEstimationSeconds})`
             )
             registerAttentionTime(deltaSeconds, totalTimeEstimationSeconds)
             deltaSeconds = 0
