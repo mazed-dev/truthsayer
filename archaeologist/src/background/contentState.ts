@@ -31,7 +31,7 @@ export async function calculateInitialContentState(
   }
 }
 
-let contentAugmentationSettings: ContentAugmentationSettings = {}
+const contentAugmentationSettings: ContentAugmentationSettings = {}
 
 export function updateAugmentationSettings(
   settings: ContentAugmentationSettings
@@ -44,6 +44,6 @@ export function getAugmentationSettings(): ContentAugmentationSettings {
   return contentAugmentationSettings
 }
 
-export async function register() {
+export function register() {
   return () => {}
 }

@@ -652,6 +652,7 @@ class Background {
     this.deinitialisers.push(browserBookmarks.register(ctx.storage))
     this.deinitialisers.push(webNavigation.register(ctx.storage))
     this.deinitialisers.push(await similarity.register(ctx.storage))
+    this.deinitialisers.push(contentState.register())
 
     return ctx
   }
