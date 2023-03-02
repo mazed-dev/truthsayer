@@ -23,6 +23,9 @@ export type AppSettings = {
   storageType: StorageType
 }
 
+// TODO[snikitin@outlook.com] docs
+export type BackgroundAction = 'browser-history-upload' | 'open-tabs-upload'
+
 export function defaultSettings(): AppSettings {
   return { storageType: 'browser_ext' }
 }

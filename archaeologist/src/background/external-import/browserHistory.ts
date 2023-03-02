@@ -13,7 +13,7 @@ import type {
 } from 'smuggler-api'
 import type {
   BrowserHistoryUploadMode,
-  BrowserHistoryUploadProgress,
+  BackgroundActionProgress,
 } from '../../message/types'
 import { FromContent, ToContent } from '../../message/types'
 
@@ -60,7 +60,7 @@ export namespace BrowserHistoryUpload {
   export async function upload(
     storage: StorageApi,
     mode: BrowserHistoryUploadMode,
-    onProgress: (progress: BrowserHistoryUploadProgress) => Promise<void>
+    onProgress: (progress: BackgroundActionProgress) => Promise<void>
   ) {
     const reportProgress = lodash.throttle(onProgress, 1123)
 

@@ -11,7 +11,7 @@ import {
   FromPopUp,
   FromContent,
   ToBackground,
-  BrowserHistoryUploadProgress,
+  BackgroundActionProgress,
 } from './message/types'
 import { TDoc } from 'elementary'
 import * as badge from './badge/badge'
@@ -19,6 +19,7 @@ import * as badge from './badge/badge'
 import browser, { Tabs } from 'webextension-polyfill'
 import {
   AppSettings,
+  BackgroundAction,
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
@@ -172,7 +173,8 @@ async function handleMessageFromContent(
       await BrowserHistoryUpload.upload(
         ctx.storage,
         message,
-        reportBrowserHistoryUploadProgress
+        (progress: BackgroundActionProgress) =>
+          reportBackgroundActionProgress('browser-history-upload', progress)
       )
       return { type: 'VOID_RESPONSE' }
     }
@@ -219,8 +221,9 @@ async function handleMessageFromContent(
   )
 }
 
-async function reportBrowserHistoryUploadProgress(
-  progress: BrowserHistoryUploadProgress
+async function reportBackgroundActionProgress(
+  action: BackgroundAction,
+  progress: BackgroundActionProgress
 ) {
   // The implementation of this function mustn't throw
   // due to the expectations with which it gets used later
@@ -231,14 +234,13 @@ async function reportBrowserHistoryUploadProgress(
       return
     }
     await ToContent.sendMessage(tabId, {
-      type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS',
+      type: 'REPORT_BACKGROUND_OPERATION_PROGRESS',
+      operation: action,
       newState: progress,
     })
   } catch (err) {
     log.debug(
-      `Failed to report browser history upload progress, ${
-        errorise(err).message
-      }`
+      `Failed to report ${action} progress, ${errorise(err).message}`
     )
   }
 }
@@ -507,7 +509,11 @@ class Background {
             }
           }
           case 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST': {
-            await OpenTabs.uploadAll(ctx.storage)
+            await OpenTabs.uploadAll(
+              ctx.storage,
+              (progress: BackgroundActionProgress) =>
+                reportBackgroundActionProgress('open-tabs-upload', progress)
+            )
             return { type: 'VOID_RESPONSE' }
           }
           case 'CANCEL_UPLOAD_OF_CURRENTLY_OPEN_TABS_REQUEST': {

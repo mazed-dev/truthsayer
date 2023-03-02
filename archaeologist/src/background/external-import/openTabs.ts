@@ -3,8 +3,11 @@ import { StorageApi } from 'smuggler-api'
 import browser from 'webextension-polyfill'
 import { isPageAutosaveable } from '../../content/extractor/url/autosaveable'
 import { FromContent, ToContent } from '../../message/types'
+import type { BackgroundActionProgress } from '../../message/types'
 import { calculateInitialContentState } from '../contentInit'
 import { saveWebPage } from '../savePage'
+import lodash from 'lodash'
+import { truthsayer } from 'elementary'
 
 /** Tools to import to Mazed the content of currently open tabs */
 export namespace OpenTabs {
@@ -16,7 +19,12 @@ export namespace OpenTabs {
    * @summary Upload the content of all the tabs user has currently open to Mazed.
    * @description WARNING: may refresh the tabs, a user-visible effect.
    */
-  export async function uploadAll(storage: StorageApi): Promise<void> {
+  export async function uploadAll(
+    storage: StorageApi,
+    onProgress: (progress: BackgroundActionProgress) => Promise<void>
+  ): Promise<void> {
+    const reportProgress = lodash.throttle(onProgress, 1123)
+
     const tabs: browser.Tabs.Tab[] = await browser.tabs.query({})
     for (
       let index = 0;
@@ -24,8 +32,12 @@ export namespace OpenTabs {
       index++
     ) {
       await upload(storage, tabs[index])
+      reportProgress({ processed: index, total: tabs.length })
     }
     shouldCancelOpenTabsUpload = false
+
+    reportProgress({ processed: tabs.length, total: tabs.length })
+    await reportProgress.flush()
   }
 
   export function cancel() {
@@ -37,6 +49,10 @@ export namespace OpenTabs {
       log.debug(
         `Attempted to upload contents of an invalid tab: ${JSON.stringify(tab)}`
       )
+      return
+    }
+
+    if (truthsayer.url.belongs(tab.url)) {
       return
     }
 

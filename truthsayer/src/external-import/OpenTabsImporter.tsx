@@ -1,7 +1,10 @@
 import styled from '@emotion/styled'
 import { Spinner } from 'elementary'
 import { useState } from 'react'
-import { FromTruthsayer } from 'truthsayer-archaeologist-communication'
+import {
+  FromTruthsayer,
+  BackgroundActionProgressConnection,
+} from 'truthsayer-archaeologist-communication'
 import { ArchaeologistState } from '../apps-list/archaeologistState'
 
 const Comment = styled.div`
@@ -49,6 +52,11 @@ export function OpenTabsImporter({
     )
   }
 
+  const progressBeacon = (
+    <BackgroundActionProgressConnection.truthsayer.Beacon
+      action={'open-tabs-upload'}
+    />
+  )
   switch (state.state) {
     case 'ready': {
       const upload = () => {
@@ -59,7 +67,12 @@ export function OpenTabsImporter({
           .finally(() => setState({ state: 'ready' }))
         setState({ state: 'in-progress', progress })
       }
-      return <Button onClick={upload}>Import open tabs</Button>
+      return (
+        <>
+          <Button onClick={upload}>Import open tabs</Button>
+          {progressBeacon}
+        </>
+      )
     }
     case 'in-progress':
     case 'cancelling': {
@@ -70,11 +83,14 @@ export function OpenTabsImporter({
         setState({ state: 'cancelling', progress: state.progress })
       }
       return (
-        <Button onClick={cancel} disabled={state.state === 'cancelling'}>
-          {state.state !== 'cancelling'
-            ? 'Cancel open tabs import'
-            : 'Cancelling...'}
-        </Button>
+        <>
+          <Button onClick={cancel} disabled={state.state === 'cancelling'}>
+            {state.state !== 'cancelling'
+              ? 'Cancel open tabs import'
+              : 'Cancelling...'}
+          </Button>
+          {progressBeacon}
+        </>
       )
     }
   }
