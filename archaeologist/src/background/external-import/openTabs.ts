@@ -87,7 +87,7 @@ export namespace OpenTabs {
     // If content script doesn't exist, it may be that the user has opened this
     // tab before they installed archaeologist. In this case instruct the browser
     // to load content script explicitely.
-    await chrome.scripting.executeScript({
+    await browser.scripting.executeScript({
       target: { tabId },
       files: ['content.js'],
     })
