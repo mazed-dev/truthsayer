@@ -3,7 +3,6 @@ import { StorageApi } from 'smuggler-api'
 import browser from 'webextension-polyfill'
 import { isPageAutosaveable } from '../../content/extractor/url/autosaveable'
 import { FromContent, ToContent } from '../../message/types'
-import { TabLoad } from '../../tabLoad'
 import { calculateInitialContentState } from '../contentInit'
 import { saveWebPage } from '../savePage'
 
@@ -12,10 +11,6 @@ export namespace OpenTabs {
   // TODO[snikitin@outlook.com] This boolean is an extremely naive tool to cancel
   // an asyncronous task. See `shouldCancelBrowserHistoryUpload` for more information.
   let shouldCancelOpenTabsUpload = false
-
-  function sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms))
-  }
 
   /**
    * @summary Upload the content of all the tabs user has currently open to Mazed.

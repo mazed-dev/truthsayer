@@ -1,5 +1,4 @@
 import { NodeUtil, StorageApi } from 'smuggler-api'
-import browser from 'webextension-polyfill'
 import type { ContentAppOperationMode } from '../message/types'
 import { ToContent } from '../message/types'
 import { requestPageSavedStatus } from './pageStatus'
