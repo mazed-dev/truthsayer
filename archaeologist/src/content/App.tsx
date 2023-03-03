@@ -21,7 +21,6 @@ import {
   FromContent,
   ToContent,
   ContentAppOperationMode,
-  BackgroundActionProgress,
 } from './../message/types'
 import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/url/unmemorable'
@@ -44,7 +43,10 @@ import { BrowserHistoryImportControlPortal } from './BrowserHistoryImportControl
 import { SuggestedRelatives } from './augmentation/SuggestedRelatives'
 import { AugmentationMountPoint } from './augmentation/Mount'
 import { ContentContext } from './context'
-import { BackgroundActionProgressPortal } from './BackgroundActionProgress'
+import {
+  BackgroundActionProgress,
+  FromArchaeologistContent,
+} from 'truthsayer-archaeologist-communication'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
@@ -281,10 +283,8 @@ function updateState(state: State, action: Action): State {
           }
         }
         case 'open-tabs-upload': {
-          return {
-            ...state,
-            openTabsUploadProgress: action.data.newState,
-          }
+          FromArchaeologistContent.sendMessage(action.data)
+          return state
         }
       }
   }
@@ -427,10 +427,6 @@ const App = () => {
       >
         <BrowserHistoryImportControlPortal
           progress={state.browserHistoryUploadProgress}
-        />
-        <BackgroundActionProgressPortal
-          operation={'open-tabs-upload'}
-          progress={state.openTabsUploadProgress}
         />
         {truthsayer.url.belongs(document.URL) ? null : (
           <>

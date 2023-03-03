@@ -11,7 +11,6 @@ import {
   FromPopUp,
   FromContent,
   ToBackground,
-  BackgroundActionProgress,
 } from './message/types'
 import { TDoc } from 'elementary'
 import * as badge from './badge/badge'
@@ -20,6 +19,7 @@ import browser, { Tabs } from 'webextension-polyfill'
 import {
   AppSettings,
   BackgroundAction,
+  BackgroundActionProgress,
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
@@ -239,9 +239,7 @@ async function reportBackgroundActionProgress(
       newState: progress,
     })
   } catch (err) {
-    log.debug(
-      `Failed to report ${action} progress, ${errorise(err).message}`
-    )
+    log.debug(`Failed to report ${action} progress, ${errorise(err).message}`)
   }
 }
 

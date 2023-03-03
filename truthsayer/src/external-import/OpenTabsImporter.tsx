@@ -1,11 +1,10 @@
 import styled from '@emotion/styled'
 import { Spinner } from 'elementary'
 import { useState } from 'react'
-import {
-  FromTruthsayer,
-  BackgroundActionProgressConnection,
-} from 'truthsayer-archaeologist-communication'
+import { FromTruthsayer } from 'truthsayer-archaeologist-communication'
+import type { BackgroundActionProgress } from 'truthsayer-archaeologist-communication'
 import { ArchaeologistState } from '../apps-list/archaeologistState'
+import React from 'react'
 
 const Comment = styled.div`
   font-style: italic;
@@ -23,89 +22,46 @@ const Button = styled.button`
   }
 `
 
-type OpenTabsImporterState =
-  | {
-      state: 'ready'
-    }
-  | {
-      state: 'in-progress'
-      progress: Promise<void>
-    }
-  | {
-      state: 'cancelling'
-      progress: Promise<void>
-    }
-
 export function OpenTabsImporter({
   archaeologistState,
+  progress,
 }: {
   archaeologistState: ArchaeologistState
+  progress: BackgroundActionProgress
 }) {
-  const [state, setState] = useState<OpenTabsImporterState | null>(
-    initStateFrom(archaeologistState)
-  )
-  if (state == null) {
-    return (
-      <Comment>
-        <Spinner.Ring />
-      </Comment>
-    )
-  }
-
-  const progressBeacon = (
-    <BackgroundActionProgressConnection.truthsayer.Beacon
-      action={'open-tabs-upload'}
-    />
-  )
-  switch (state.state) {
-    case 'ready': {
-      const upload = () => {
-        const progress: Promise<void> = FromTruthsayer.sendMessage({
-          type: 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST',
-        })
-          .then(() => {})
-          .finally(() => setState({ state: 'ready' }))
-        setState({ state: 'in-progress', progress })
-      }
-      return (
-        <>
-          <Button onClick={upload}>Import open tabs</Button>
-          {progressBeacon}
-        </>
-      )
-    }
-    case 'in-progress':
-    case 'cancelling': {
-      const cancel = () => {
-        FromTruthsayer.sendMessage({
-          type: 'CANCEL_UPLOAD_OF_CURRENTLY_OPEN_TABS_REQUEST',
-        })
-        setState({ state: 'cancelling', progress: state.progress })
-      }
-      return (
-        <>
-          <Button onClick={cancel} disabled={state.state === 'cancelling'}>
-            {state.state !== 'cancelling'
-              ? 'Cancel open tabs import'
-              : 'Cancelling...'}
-          </Button>
-          {progressBeacon}
-        </>
-      )
-    }
-  }
-}
-
-function initStateFrom(
-  archaeologistState: ArchaeologistState
-): OpenTabsImporterState | null {
   switch (archaeologistState.state) {
     case 'loading':
     case 'not-installed': {
-      return null
+      return (
+        <Comment>
+          <Spinner.Ring />
+        </Comment>
+      )
     }
     case 'installed': {
-      return { state: 'ready' }
+      break
     }
   }
+
+  const upload = () => {
+    FromTruthsayer.sendMessage({
+      type: 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST',
+    })
+  }
+  const cancel = () => {
+    FromTruthsayer.sendMessage({
+      type: 'CANCEL_UPLOAD_OF_CURRENTLY_OPEN_TABS_REQUEST',
+    })
+  }
+
+  return progress.processed === progress.total ? (
+    <>
+      <Button onClick={upload}>Import open tabs</Button>
+    </>
+  ) : (
+    <>
+      <Button onClick={cancel}>Cancel open tabs import</Button>
+      <Spinner.Ring />[{progress.processed}/{progress.total}]
+    </>
+  )
 }

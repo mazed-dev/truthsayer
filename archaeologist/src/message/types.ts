@@ -8,7 +8,10 @@ import type {
   TNodeJson,
 } from 'smuggler-api'
 import { OriginIdentity } from 'armoury'
-import type { BackgroundAction } from 'truthsayer-archaeologist-communication'
+import type {
+  BackgroundAction,
+  BackgroundActionProgress,
+} from 'truthsayer-archaeologist-communication'
 
 /**
  * There are 3 kinds of message senders/receivers:
@@ -170,10 +173,6 @@ export type ContentAppOperationMode =
    */
   | 'active-mode-content-app'
 
-export type BackgroundActionProgress = {
-  processed: number
-  total: number
-}
 export type BrowserHistoryUploadMode =
   /** Mode in which the progress will be tracked by Mazed and, if the process is
    * interrupted, then on restart the upload will start from the beginning.
