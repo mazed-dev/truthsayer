@@ -18,7 +18,7 @@ import { isReadyToBeAutoSaved } from '../pageAutoSaving'
 import { saveWebPage } from '../savePage'
 import { isPageAutosaveable } from '../../content/extractor/url/autosaveable'
 import { TabLoad } from '../../tabLoad'
-import { calculateInitialContentState } from '../contentInit'
+import { calculateInitialContentState } from '../contentState'
 import type { BackgroundActionProgress } from 'truthsayer-archaeologist-communication'
 
 export namespace BrowserHistoryUpload {
