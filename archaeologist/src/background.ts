@@ -1,10 +1,6 @@
 import * as webNavigation from './web-navigation/webNavigation'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
-import * as auth from './background/auth'
-import { saveWebPage, savePageQuote } from './background/savePage'
-import { backgroundpa } from './background/productanalytics'
 import { PostHog } from 'posthog-js'
-import * as similarity from './background/search/similarity'
 import {
   ToPopUp,
   ToContent,
@@ -41,8 +37,12 @@ import { getAppSettings, setAppSettings } from './appSettings'
 import { TabLoad } from './tabLoad'
 import { BrowserHistoryUpload } from './background/external-import/browserHistory'
 import { requestPageSavedStatus } from './background/pageStatus'
-import { calculateInitialContentState } from './background/contentInit'
+import { saveWebPage, savePageQuote } from './background/savePage'
+import { backgroundpa } from './background/productanalytics'
 import { OpenTabs } from './background/external-import/openTabs'
+import * as contentState from './background/contentState'
+import * as similarity from './background/search/similarity'
+import * as auth from './background/auth'
 
 const BADGE_MARKER_PAGE_SAVED = '✓'
 
@@ -200,6 +200,15 @@ async function handleMessageFromContent(
       return {
         type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
         suggested: relevantNodes.map(({ node }) => NodeUtil.toJson(node)),
+      }
+    }
+    case 'REQUEST_CONTENT_AUGMENTATION_SETTINGS': {
+      if (message.settings != null) {
+        contentState.updateAugmentationSettings(message.settings)
+      }
+      return {
+        type: 'RESPONSE_CONTENT_AUGMENTATION_SETTINGS',
+        state: contentState.getAugmentationSettings(),
       }
     }
     case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
@@ -533,7 +542,7 @@ class Background {
         if (tab.incognito || tab.hidden || !tab.url || tab.id == null) {
           return
         }
-        const request = await calculateInitialContentState(
+        const request = await contentState.calculateInitialContentState(
           ctx.storage,
           tab.url,
           'active-mode-content-app'
@@ -646,6 +655,7 @@ class Background {
     this.deinitialisers.push(browserBookmarks.register(ctx.storage))
     this.deinitialisers.push(webNavigation.register(ctx.storage))
     this.deinitialisers.push(await similarity.register(ctx.storage))
+    this.deinitialisers.push(contentState.register())
 
     return ctx
   }

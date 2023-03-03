@@ -21,7 +21,7 @@ import { isReadyToBeAutoSaved } from '../pageAutoSaving'
 import { saveWebPage } from '../savePage'
 import { isPageAutosaveable } from '../../content/extractor/url/autosaveable'
 import { TabLoad } from '../../tabLoad'
-import { calculateInitialContentState } from '../contentInit'
+import { calculateInitialContentState } from '../contentState'
 
 export namespace BrowserHistoryUpload {
   // TODO[snikitin@outlook.com] This boolean is an extremely naive tool to cancel
