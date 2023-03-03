@@ -15,7 +15,6 @@
     "lint:eslint": "yarn eslint \"./src/**/*.{ts,tsx}\"",
     "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,json,ts,tsx}\"",
     "lint:typescript": "yarn tsc --build ./ --force",
-    "postinstall": "yarn build",
     "test": "yarn jest"
   },
   "dependencies": {
