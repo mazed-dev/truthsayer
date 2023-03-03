@@ -3,7 +3,7 @@ import { StorageApi } from 'smuggler-api'
 import browser from 'webextension-polyfill'
 import { isPageAutosaveable } from '../../content/extractor/url/autosaveable'
 import { FromContent, ToContent } from '../../message/types'
-import { calculateInitialContentState } from '../contentInit'
+import { calculateInitialContentState } from '../contentState'
 import { saveWebPage } from '../savePage'
 
 /** Tools to import to Mazed the content of currently open tabs */
