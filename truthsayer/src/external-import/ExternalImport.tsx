@@ -71,7 +71,8 @@ export function ExternalImport({
   React.useEffect(() => {
     const listener = (event: MessageEvent) => {
       // Only accept messages sent from archaeologist's content script
-      if (event.source !== window) {
+      // eslint-disable-next-line eqeqeq
+      if (event.source != window) {
         return
       }
 
