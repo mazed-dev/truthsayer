@@ -2,6 +2,7 @@
 
 import React from 'react'
 import styled from '@emotion/styled'
+import { useAsyncEffect } from 'use-async-effect'
 
 import {
   TDoc,
@@ -19,6 +20,7 @@ import { AugmentationElement } from './Mount'
 import { MeteredButton } from '../elements/MeteredButton'
 import { ContentContext } from '../context'
 import { MazedMiniFloater } from './MazedMiniFloater'
+import { FromContent } from './../../message/types'
 import {
   Close,
   ContentCopy,
@@ -278,8 +280,8 @@ const MiniFloaterBox = styled.div`
   }
 `
 
-const getStartDragPosition = (isMaximised: boolean) =>
-  isMaximised ? { x: -314, y: 0 } : { x: -56, y: 0 }
+const getStartDragPosition = (isRevealed: boolean) =>
+  isRevealed ? { x: -314, y: 0 } : { x: -56, y: 0 }
 
 export const SuggestionsFloater = ({
   nodes,
@@ -288,27 +290,42 @@ export const SuggestionsFloater = ({
   nodes: TNode[]
   isLoading: boolean
 }) => {
-  const [isMaximised, setMaximised] = React.useState<boolean>(false)
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
     // TODO(Alexander): Persist these values in local storage to preserve user's
     // choice for floater state when new pages is opened. Don't forget to
     // throttle the call
     log.debug('Last position', data.x, data.y)
   }
+  const [isRevealed, setRevealed] = React.useState<boolean>(false)
+  const saveRevealed = React.useCallback((revealed: boolean) => {
+    setRevealed(revealed)
+    FromContent.sendMessage({
+      type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
+      settings: { isRevealed: revealed },
+    })
+  }, [])
+  useAsyncEffect(async () => {
+    const response = await FromContent.sendMessage({
+      type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
+    })
+    setRevealed(response.state.isRevealed ?? false)
+  }, [])
   const nodeRef = React.useRef(null)
   return (
     <AugmentationElement>
       <Draggable
-        defaultPosition={getStartDragPosition(isMaximised)}
+        defaultPosition={getStartDragPosition(isRevealed)}
         nodeRef={nodeRef}
         onStop={onDragStop}
         handle="#mazed-archaeologist-suggestions-floater-drag-handle"
         axis="y"
       >
         <DraggableElement ref={nodeRef}>
-          {isMaximised ? (
+          {isRevealed ? (
             <SuggestedCards
-              onClose={() => setMaximised(false)}
+              onClose={() => {
+                saveRevealed(false)
+              }}
               nodes={nodes}
               isLoading={isLoading}
             />
@@ -318,7 +335,7 @@ export const SuggestionsFloater = ({
                 id="mazed-archaeologist-suggestions-floater-drag-handle"
                 size="22px"
               />
-              <MazedMiniFloater onClick={() => setMaximised(true)}>
+              <MazedMiniFloater onClick={() => saveRevealed(true)}>
                 {isLoading ? <Spinner.Ring /> : nodes.length}
               </MazedMiniFloater>
             </MiniFloaterBox>
