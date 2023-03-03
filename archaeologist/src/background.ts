@@ -544,7 +544,7 @@ class Background {
         }
         const request = await contentState.calculateInitialContentState(
           ctx.storage,
-          tab,
+          tab.url,
           'active-mode-content-app'
         )
         await ToContent.sendMessage(tab.id, request)

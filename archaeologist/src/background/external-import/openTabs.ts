@@ -3,7 +3,7 @@ import { StorageApi } from 'smuggler-api'
 import browser from 'webextension-polyfill'
 import { isPageAutosaveable } from '../../content/extractor/url/autosaveable'
 import { FromContent, ToContent } from '../../message/types'
-import { TabLoad } from '../../tabLoad'
+import { calculateInitialContentState } from '../contentState'
 import { saveWebPage } from '../savePage'
 
 /** Tools to import to Mazed the content of currently open tabs */
@@ -11,10 +11,6 @@ export namespace OpenTabs {
   // TODO[snikitin@outlook.com] This boolean is an extremely naive tool to cancel
   // an asyncronous task. See `shouldCancelBrowserHistoryUpload` for more information.
   let shouldCancelOpenTabsUpload = false
-
-  function sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms))
-  }
 
   /**
    * @summary Upload the content of all the tabs user has currently open to Mazed.
@@ -48,7 +44,7 @@ export namespace OpenTabs {
       if (!isPageAutosaveable(tab.url)) {
         return
       }
-      const response = await getTabContent(tab.id)
+      const response = await getTabContent(storage, tab.id, tab.url)
       if (response.type !== 'PAGE_TO_SAVE') {
         return
       }
@@ -63,7 +59,9 @@ export namespace OpenTabs {
   }
 
   async function getTabContent(
-    tabId: number
+    storage: StorageApi,
+    tabId: number,
+    tabUrl: string
   ): Promise<
     | FromContent.SavePageResponse
     | FromContent.PageAlreadySavedResponse
@@ -82,22 +80,18 @@ export namespace OpenTabs {
       }
     }
     // If content script doesn't exist, it may be that the user has opened this
-    // tab before they installed archaeologist. In this case refreshing the tab
-    // should load the script.
-    try {
-      await Promise.all([browser.tabs.reload(tabId), TabLoad.monitor(tabId)])
-      return await ToContent.sendMessage(tabId, requestContent)
-    } catch (error) {
-      // If content script still doesn't exist, retry. For every other error - rethrow.
-      if (!contentScriptProbablyDoesntExist(errorise(error))) {
-        throw error
-      }
-    }
-
-    // If content still doesn't exist, it might be due to TabLoad.monitor() not being
-    // fully deterministic in case of dynamic pages. Sleep for a small period of time
-    // as a last attempt to give content script a chance.
-    await sleep(1000)
+    // tab before they installed archaeologist. In this case instruct the browser
+    // to load content script explicitely.
+    await browser.scripting.executeScript({
+      target: { tabId },
+      files: ['content.js'],
+    })
+    const initRequest = await calculateInitialContentState(
+      storage,
+      tabUrl,
+      'passive-mode-content-app'
+    )
+    await ToContent.sendMessage(tabId, initRequest)
     return await ToContent.sendMessage(tabId, requestContent)
   }
 }

@@ -259,9 +259,12 @@ export namespace BrowserHistoryUpload {
       // contents from a page with a mostly uninitialised content and do the rest
       // directly in background.
       tab = await TabLoad.customise(tabId)
+      if (tab.url == null) {
+        throw new Error(`Can't init content in temporary tab, tab has no URL`)
+      }
       const request = await calculateInitialContentState(
         storage,
-        tab,
+        tab.url,
         'passive-mode-content-app'
       )
       await ToContent.sendMessage(tabId, request)

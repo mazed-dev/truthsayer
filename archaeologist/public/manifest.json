@@ -33,7 +33,8 @@
     "tabs",
     "webNavigation",
     "storage",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "scripting"
   ],
   "cross_origin_embedder_policy": {
     "value": "require-corp"
@@ -42,6 +43,7 @@
     "value": "same-origin"
   },
   "host_permissions": [
+    "*://*/*"
   ],
   "content_scripts": [
     {
