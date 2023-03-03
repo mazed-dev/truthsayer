@@ -24,9 +24,10 @@ export type AppSettings = {
   storageType: StorageType
 }
 
-// TODO[snikitin@outlook.com] docs
+/** Name of a long-running action performed by archaeologist's background script */
 export type BackgroundAction = 'browser-history-upload' | 'open-tabs-upload'
 
+/** Progress of a particular @see BackgroundAction */
 export type BackgroundActionProgress = {
   processed: number
   total: number

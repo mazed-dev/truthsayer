@@ -21,7 +21,6 @@ import {
   BackgroundActionProgress,
   FromArchaeologistContent,
 } from 'truthsayer-archaeologist-communication'
-import { log } from 'armoury'
 
 const Box = styled.div`
   padding: 18px;
@@ -72,7 +71,7 @@ export function ExternalImport({
   React.useEffect(() => {
     const listener = (event: MessageEvent) => {
       // Only accept messages sent from archaeologist's content script
-      if (event.source != window) {
+      if (event.source !== window) {
         return
       }
 

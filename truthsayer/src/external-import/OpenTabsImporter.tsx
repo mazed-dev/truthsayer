@@ -1,6 +1,5 @@
 import styled from '@emotion/styled'
 import { Spinner } from 'elementary'
-import { useState } from 'react'
 import { FromTruthsayer } from 'truthsayer-archaeologist-communication'
 import type { BackgroundActionProgress } from 'truthsayer-archaeologist-communication'
 import { ArchaeologistState } from '../apps-list/archaeologistState'
