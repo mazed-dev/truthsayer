@@ -15,7 +15,6 @@
     "lint:eslint": "yarn eslint \"./src/**/*.{ts,tsx}\"",
     "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,json,ts,tsx}\"",
     "lint:typescript": "yarn tsc --build ./ --force",
-    "postinstall": "yarn build",
     "test": "yarn jest"
   },
   "dependencies": {
@@ -23,6 +22,7 @@
     "@emotion/styled": "^11.8.1",
     "@types/react-router-dom": "^5.3.0",
     "armoury": "0.0.1",
+    "elementary": "0.0.1",
     "eslint": "^8.16.0",
     "lodash": "^4.17.21",
     "prettier": "^2.2",

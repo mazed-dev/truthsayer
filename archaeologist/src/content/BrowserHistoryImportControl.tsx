@@ -11,11 +11,8 @@ import {
   truthsayer,
 } from 'elementary'
 import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
-import {
-  FromContent,
-  BrowserHistoryUploadProgress,
-  BrowserHistoryUploadMode,
-} from '../message/types'
+import { FromContent, BrowserHistoryUploadMode } from '../message/types'
+import type { BackgroundActionProgress } from 'truthsayer-archaeologist-communication'
 
 import { toSentenceCase, unixtime } from 'armoury'
 
@@ -56,7 +53,7 @@ const DeletePic = styled(MdiDelete)`
 `
 
 type UploadBrowserHistoryProps = React.PropsWithChildren<{
-  progress: BrowserHistoryUploadProgress
+  progress: BackgroundActionProgress
 }>
 
 type BrowserHistoryImportControlState =

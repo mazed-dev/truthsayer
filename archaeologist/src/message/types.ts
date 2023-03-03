@@ -8,6 +8,10 @@ import type {
   TNodeJson,
 } from 'smuggler-api'
 import { OriginIdentity } from 'armoury'
+import type {
+  BackgroundAction,
+  BackgroundActionProgress,
+} from 'truthsayer-archaeologist-communication'
 
 /**
  * There are 3 kinds of message senders/receivers:
@@ -176,10 +180,6 @@ export type ContentAppOperationMode =
    */
   | 'active-mode-content-app'
 
-export type BrowserHistoryUploadProgress = {
-  processed: number
-  total: number
-}
 export type BrowserHistoryUploadMode =
   /** Mode in which the progress will be tracked by Mazed and, if the process is
    * interrupted, then on restart the upload will start from the beginning.
@@ -237,9 +237,10 @@ export namespace ToContent {
     tooltip?: string
     timeoutMsec?: number
   }
-  export interface ReportBrowserHistoryUploadProgress {
-    type: 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS'
-    newState: BrowserHistoryUploadProgress
+  export interface ReportBackgroundOperationProgress {
+    type: 'REPORT_BACKGROUND_OPERATION_PROGRESS'
+    operation: BackgroundAction
+    newState: BackgroundActionProgress
   }
   export interface SuggestedAssociationsResponse {
     type: 'SUGGESTED_CONTENT_ASSOCIATIONS'
@@ -251,7 +252,7 @@ export namespace ToContent {
     | InitContentAugmentationRequest
     | UpdateContentAugmentationRequest
     | ShowDisappearingNotificationRequest
-    | ReportBrowserHistoryUploadProgress
+    | ReportBackgroundOperationProgress
   /** Requests that aim to retrieve part of recepient's state without modifying it. */
   export type ReadOnlyRequest = RequestPageContent | GetSelectedQuoteRequest
 
@@ -294,7 +295,7 @@ export namespace ToContent {
   ): Promise<VoidResponse>
   export function sendMessage(
     tabId: number,
-    message: ReportBrowserHistoryUploadProgress
+    message: ReportBackgroundOperationProgress
   ): Promise<VoidResponse>
   export function sendMessage(
     tabId: number,

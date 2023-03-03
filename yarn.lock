@@ -20873,6 +20873,7 @@ __metadata:
     "@emotion/styled": ^11.8.1
     "@types/react-router-dom": ^5.3.0
     armoury: 0.0.1
+    elementary: 0.0.1
     eslint: ^8.16.0
     eslint-plugin-import: ^2.18.2
     jest: 26.6.0
