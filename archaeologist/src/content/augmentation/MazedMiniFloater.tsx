@@ -16,6 +16,8 @@ const Box = styled.div`
   background-image: linear-gradient(#54a3ff, #006eed);
   box-shadow: 2px 2px 4px #8c8c8ceb;
 
+  margin-right: 4px;
+
   user-select: none;
   cursor: pointer;
   pointer-events: all;

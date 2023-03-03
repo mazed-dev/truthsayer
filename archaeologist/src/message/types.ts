@@ -55,8 +55,13 @@ export type StorageAccessResponse = {
   value: StorageApiMsgReturnValue
 }
 
+export type ContentAugmentationPosition = {
+  x: number
+  y: number
+}
 export type ContentAugmentationSettings = {
   isRevealed?: boolean
+  positionY?: number
 }
 export interface ContentAugmentationSettingsResponse {
   type: 'RESPONSE_CONTENT_AUGMENTATION_SETTINGS'

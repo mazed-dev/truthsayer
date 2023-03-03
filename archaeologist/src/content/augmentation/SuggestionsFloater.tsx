@@ -12,7 +12,6 @@ import {
   HoverTooltip,
   Spinner,
 } from 'elementary'
-import { log } from 'armoury'
 import { NodeUtil, StorageApi } from 'smuggler-api'
 import type { TNode } from 'smuggler-api'
 
@@ -22,12 +21,12 @@ import { ContentContext } from '../context'
 import { MazedMiniFloater } from './MazedMiniFloater'
 import { FromContent } from './../../message/types'
 import {
-  Close,
   ContentCopy,
   DragIndicator as DragIndicatorIcon,
   ExpandLess,
   ExpandMore,
   OpenInNew,
+  Minimize,
 } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
 import {} from '@emotion-icons/material'
@@ -246,7 +245,7 @@ const SuggestedCards = ({
           css={{ marginRight: '2px', marginTop: '2px' }}
         >
           <HoverTooltip tooltip={'Open in Mazed'} placement="bottom">
-            <Close size="16px" />
+            <Minimize size="16px" />
           </HoverTooltip>
         </MeteredButton>
       </Header>
@@ -280,8 +279,14 @@ const MiniFloaterBox = styled.div`
   }
 `
 
-const getStartDragPosition = (isRevealed: boolean) =>
-  isRevealed ? { x: -314, y: 0 } : { x: -56, y: 0 }
+type Position2D = {
+  x: number
+  y: number
+}
+const getStartDragPosition = (isRevealed: boolean): Position2D =>
+  isRevealed ? { x: -300, y: 0 } : { x: -30, y: 0 }
+
+const getYPos = (y: number) => Math.min(y, window.innerHeight - 76)
 
 export const SuggestionsFloater = ({
   nodes,
@@ -290,14 +295,15 @@ export const SuggestionsFloater = ({
   nodes: TNode[]
   isLoading: boolean
 }) => {
-  const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
-    // TODO(Alexander): Persist these values in local storage to preserve user's
-    // choice for floater state when new pages is opened. Don't forget to
-    // throttle the call
-    log.debug('Last position', data.x, data.y)
-  }
+  const nodeRef = React.useRef(null)
+  const [controlledPosition, setControlledPosition] =
+    React.useState<Position2D | null>(null) // getStartDragPosition(false))
   const [isRevealed, setRevealed] = React.useState<boolean>(false)
   const saveRevealed = React.useCallback((revealed: boolean) => {
+    setControlledPosition((pos) => {
+      const defaultPos = getStartDragPosition(revealed)
+      return { x: defaultPos.x, y: pos?.y ?? defaultPos.y }
+    })
     setRevealed(revealed)
     FromContent.sendMessage({
       type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
@@ -308,40 +314,53 @@ export const SuggestionsFloater = ({
     const response = await FromContent.sendMessage({
       type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
     })
-    setRevealed(response.state.isRevealed ?? false)
+    const revealed = response.state.isRevealed ?? false
+    setRevealed(revealed)
+    const defaultPosition = getStartDragPosition(revealed)
+    setControlledPosition({
+      x: defaultPosition.x,
+      y: getYPos(response.state.positionY ?? defaultPosition.y),
+    })
   }, [])
-  const nodeRef = React.useRef(null)
+  const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
+    FromContent.sendMessage({
+      type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
+      settings: { positionY: data.y },
+    })
+  }
   return (
     <AugmentationElement>
-      <Draggable
-        defaultPosition={getStartDragPosition(isRevealed)}
-        nodeRef={nodeRef}
-        onStop={onDragStop}
-        handle="#mazed-archaeologist-suggestions-floater-drag-handle"
-        axis="y"
-      >
-        <DraggableElement ref={nodeRef}>
-          {isRevealed ? (
-            <SuggestedCards
-              onClose={() => {
-                saveRevealed(false)
-              }}
-              nodes={nodes}
-              isLoading={isLoading}
-            />
-          ) : (
-            <MiniFloaterBox>
-              <DragIndicator
-                id="mazed-archaeologist-suggestions-floater-drag-handle"
-                size="22px"
+      {controlledPosition != null ? (
+        <Draggable
+          onStop={onDragStop}
+          handle="#mazed-archaeologist-suggestions-floater-drag-handle"
+          axis="y"
+          defaultPosition={controlledPosition}
+          nodeRef={nodeRef}
+        >
+          <DraggableElement ref={nodeRef}>
+            {isRevealed ? (
+              <SuggestedCards
+                onClose={() => {
+                  saveRevealed(false)
+                }}
+                nodes={nodes}
+                isLoading={isLoading}
               />
-              <MazedMiniFloater onClick={() => saveRevealed(true)}>
-                {isLoading ? <Spinner.Ring /> : nodes.length}
-              </MazedMiniFloater>
-            </MiniFloaterBox>
-          )}
-        </DraggableElement>
-      </Draggable>
+            ) : (
+              <MiniFloaterBox>
+                <MazedMiniFloater onClick={() => saveRevealed(true)}>
+                  {isLoading ? <Spinner.Ring /> : nodes.length}
+                </MazedMiniFloater>
+                <DragIndicator
+                  id="mazed-archaeologist-suggestions-floater-drag-handle"
+                  size="22px"
+                />
+              </MiniFloaterBox>
+            )}
+          </DraggableElement>
+        </Draggable>
+      ) : null}
     </AugmentationElement>
   )
 }
