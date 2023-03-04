@@ -126,15 +126,4 @@ export namespace OpenTabs {
   function isValidTab(tab: browser.Tabs.Tab): tab is ValidTab {
     return tab.id != null && tab.url != null
   }
-
-  function sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms))
-  }
-  function timeout(ms: number, timedOutAction: string) {
-    return sleep(ms).then(() => {
-      throw new Error(
-        `Following action timed out after ${ms / 1000} sec: '${timedOutAction}'`
-      )
-    })
-  }
 }
