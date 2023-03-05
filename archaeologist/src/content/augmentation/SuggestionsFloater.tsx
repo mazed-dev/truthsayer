@@ -279,14 +279,21 @@ const MiniFloaterBox = styled.div`
   }
 `
 
-type Position2D = {
-  x: number
-  y: number
-}
-const getStartDragPosition = (isRevealed: boolean): Position2D =>
-  isRevealed ? { x: -300, y: 0 } : { x: -30, y: 0 }
+type Position2D = { x: number; y: number }
 
-const getYPos = (y: number) => Math.min(y, window.innerHeight - 76)
+/**
+ * Position of the floater on veritcal line depends on the width of a floater,
+ * because we want it to be always anchored to the rigth edge of the window.
+ */
+const getStartDragPosition = (isRevealed: boolean): Position2D =>
+  isRevealed ? { x: -300, y: 0 } : { x: -32, y: 0 }
+
+/**
+ * Make sure that floter is visisble within a window: not too low or too high -
+ * right within view frame.
+ */
+const frameYPosition = (y: number) =>
+  Math.max(0, Math.min(y, window.innerHeight - 76))
 
 export const SuggestionsFloater = ({
   nodes,
@@ -319,7 +326,7 @@ export const SuggestionsFloater = ({
     const defaultPosition = getStartDragPosition(revealed)
     setControlledPosition({
       x: defaultPosition.x,
-      y: getYPos(response.state.positionY ?? defaultPosition.y),
+      y: frameYPosition(response.state.positionY ?? defaultPosition.y),
     })
   }, [])
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
