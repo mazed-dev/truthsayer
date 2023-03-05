@@ -3,7 +3,7 @@ import lodash from 'lodash'
 
 import { log } from 'armoury'
 import { NodeUtil } from 'smuggler-api'
-import type { TNode, TNodeJson } from 'smuggler-api'
+import type { Nid, TNode, TNodeJson } from 'smuggler-api'
 
 import { FromContent } from './../../message/types'
 import { SuggestionsFloater } from './SuggestionsFloater'
@@ -39,7 +39,12 @@ function updateUserInputFromKeyboardEvent(keyboardEvent: KeyboardEvent) {
   return { target: null, phrase: null }
 }
 
-export function SuggestedRelatives(_props: { stableUrl?: string }) {
+export function SuggestedRelatives({
+  excludeNids,
+}: {
+  stableUrl?: string
+  excludeNids?: Nid[]
+}) {
   const [suggestedNodes, setSuggestedNodes] = React.useState<TNode[]>([])
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
@@ -59,6 +64,7 @@ export function SuggestedRelatives(_props: { stableUrl?: string }) {
             type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
             limit: 8,
             phrase,
+            excludeNids,
           })
           setSuggestedNodes(
             response.suggested.map((value: TNodeJson) =>
@@ -70,7 +76,7 @@ export function SuggestedRelatives(_props: { stableUrl?: string }) {
         661,
         {}
       ),
-    []
+    [excludeNids]
   )
   const [userInput, setUserInput] = React.useState<UserInput>({
     target: null,

@@ -441,7 +441,12 @@ const App = () => {
               )}
             />
             {activityTrackerOrNull}
-            <SuggestedRelatives stableUrl={state.originIdentity.stableUrl} />
+            <SuggestedRelatives
+              stableUrl={state.originIdentity.stableUrl}
+              excludeNids={
+                state.bookmark != null ? [state.bookmark.nid] : undefined
+              }
+            />
           </>
         )}
       </ContentContext.Provider>
