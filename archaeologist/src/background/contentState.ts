@@ -33,6 +33,8 @@ export function updateAugmentationSettings(
 ): ContentAugmentationSettings {
   contentAugmentationSettings.isRevealed =
     settings.isRevealed ?? contentAugmentationSettings.isRevealed
+  contentAugmentationSettings.positionY =
+    settings.positionY ?? contentAugmentationSettings.positionY
   return contentAugmentationSettings
 }
 export function getAugmentationSettings(): ContentAugmentationSettings {
