@@ -175,6 +175,15 @@ function CardCopyButton({
   )
 }
 
+function getOriginalPageUrl(node: TNode): string {
+  if (NodeUtil.isWebBookmark(node) && node.extattrs?.web != null) {
+    return node.extattrs.web.url
+  } else if (NodeUtil.isWebQuote(node) && node.extattrs?.web_quote != null) {
+    return node.extattrs.web_quote.url
+  }
+  return truthsayer.url.makeNode(node.nid).toString()
+}
+
 const SuggestedCard = ({
   node,
   onClose,
@@ -197,10 +206,10 @@ const SuggestedCard = ({
       <SuggestedCardTools>
         <CardCopyButton node={node} onClose={onClose} />
         <SuggestionButton
-          href={truthsayer.url.makeNode(node.nid).toString()}
+          href={getOriginalPageUrl(node)}
           metricLabel={'Suggested Fragment Open in Mazed'}
         >
-          <HoverTooltip tooltip={'Open in Mazed'} placement="bottom">
+          <HoverTooltip tooltip={'Open original page'} placement="bottom">
             <OpenInNew size="14px" />
           </HoverTooltip>
         </SuggestionButton>
