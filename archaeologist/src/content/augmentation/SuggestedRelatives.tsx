@@ -42,7 +42,7 @@ function updateUserInputFromKeyboardEvent(keyboardEvent: KeyboardEvent) {
 export function SuggestedRelatives(_props: { stableUrl?: string }) {
   const [suggestedNodes, setSuggestedNodes] = React.useState<TNode[]>([])
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
-    React.useState<boolean>(false)
+    React.useState<boolean>(true)
   const pageContent = React.useMemo(() => {
     const baseURL = `${document.location.protocol}//${document.location.host}`
     return exctractPageContent(document, baseURL)
@@ -53,8 +53,8 @@ export function SuggestedRelatives(_props: { stableUrl?: string }) {
     () =>
       lodash.debounce(
         async (phrase: string) => {
-          log.debug(`Look for "${phrase}" in Mazed`)
           setSuggestionsSearchIsActive(true)
+          log.debug(`Look for "${phrase}" in Mazed`)
           const response = await FromContent.sendMessage({
             type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
             limit: 8,
