@@ -47,6 +47,15 @@ export namespace NodeUtil {
     return ntype === NodeType.WebQuote
   }
 
+  export function getOriginalUrl(node: TNode): string | undefined {
+    if (isWebBookmark(node) && node.extattrs?.web != null) {
+      return node.extattrs.web.url
+    } else if (isWebQuote(node) && node.extattrs?.web_quote != null) {
+      return node.extattrs.web_quote.url
+    }
+    return undefined
+  }
+
   export function toJson(node: TNode): TNodeJson {
     return {
       nid: node.nid,

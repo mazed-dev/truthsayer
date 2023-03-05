@@ -12,6 +12,7 @@ import {
 } from 'elementary'
 
 import type { Ack, TNode, NodeTextData } from 'smuggler-api'
+import { NodeUtil } from 'smuggler-api'
 import { PopUpContext } from './context'
 
 const BoxEditor = styled(SmallCard)`
@@ -61,13 +62,14 @@ export const NodeReadOnly = ({
   className?: string
 }) => {
   const ctx = useContext(PopUpContext)
-  const { nid } = node
   return (
     <Box className={className}>
       <FixedShrinkCard
         onClick={() =>
           browser.tabs.create({
-            url: truthsayer.url.makeNode(nid).toString(),
+            url:
+              NodeUtil.getOriginalUrl(node) ??
+              truthsayer.url.makeNode(node.nid).toString(),
           })
         }
       >
