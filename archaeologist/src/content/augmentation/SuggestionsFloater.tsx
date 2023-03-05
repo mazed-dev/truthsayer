@@ -220,6 +220,15 @@ const SuggestedCard = ({
   )
 }
 
+const NoSuggestedCardsBox = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  align-items: flex-start;
+  margin: 12px 0 12px 0;
+`
+
 const SuggestedCards = ({
   nodes,
   onClose,
@@ -238,7 +247,9 @@ const SuggestedCards = ({
         <SuggestedCardsHeaderIcon>
           <DragIndicator size="16px" />
         </SuggestedCardsHeaderIcon>
-        <HeaderText>({isLoading ? <Spinner.Ring /> : nodes.length})</HeaderText>
+        <HeaderText>
+          ※&nbsp;{isLoading ? <Spinner.Ring /> : nodes.length}
+        </HeaderText>
         <MeteredButton
           onClick={onClose}
           metricLabel={'Suggestions Floater Close'}
@@ -250,7 +261,12 @@ const SuggestedCards = ({
         </MeteredButton>
       </Header>
       <SuggestionsFloaterSuggestionsBox>
-        {suggestedCards}
+        {isLoading ? (
+          <NoSuggestedCardsBox>
+            <Spinner.Ring />
+          </NoSuggestedCardsBox>
+        ) : null}
+        {suggestedCards.length > 0 ? suggestedCards : <NoSuggestedCardsBox />}
       </SuggestionsFloaterSuggestionsBox>
     </SuggestedCardsBox>
   )
