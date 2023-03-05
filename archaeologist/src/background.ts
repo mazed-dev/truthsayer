@@ -335,6 +335,11 @@ async function handleMessageFromPopup(
         ),
       }
     }
+    case 'REQUEST_UPDATE_NODE': {
+      const { args } = message
+      await ctx.storage.node.update(args)
+      return { type: 'VOID_RESPONSE' }
+    }
   }
   throw new Error(
     `background received msg from popup of unknown type, message: ${JSON.stringify(

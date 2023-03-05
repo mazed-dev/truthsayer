@@ -31,9 +31,10 @@
 import React from 'react'
 import styled from '@emotion/styled'
 
-import type { TNode } from 'smuggler-api'
-import { NodeCard } from './NodeCard'
+import type { NodeTextData, TNode } from 'smuggler-api'
+import { NodeReadOnly, NodeEditor } from './NodeCard'
 import { Spinner } from 'elementary'
+import { FromPopUp } from './../message/types'
 
 const Box = styled.div`
   display: block;
@@ -41,11 +42,11 @@ const Box = styled.div`
   margin: 0;
   background-color: white;
 `
-const PopUpBookmarkCard = styled(NodeCard)`
+const PopUpBookmarkCard = styled(NodeEditor)`
   width: 300px;
 `
 
-const PopUpToNodeCard = styled(NodeCard)`
+const PopUpToNodeCard = styled(NodeReadOnly)`
   width: 300px;
   position: relative;
   &:before {
@@ -62,7 +63,7 @@ const PopUpToNodeCard = styled(NodeCard)`
   }
 `
 
-const PopUpFromNodeCard = styled(NodeCard)`
+const PopUpFromNodeCard = styled(NodeReadOnly)`
   width: 300px;
   position: relative;
   &:before {
@@ -113,7 +114,16 @@ const sortNodesByCreationTimeLatestFirst = (a: TNode, b: TNode) => {
 const BookmarkCard = ({ bookmark }: { bookmark?: TNode }) => {
   return bookmark == null ? null : (
     <BookmarkRow key={bookmark?.nid}>
-      <PopUpBookmarkCard node={bookmark} key={bookmark.nid} />
+      <PopUpBookmarkCard
+        node={bookmark}
+        key={bookmark.nid}
+        saveNode={async (text: NodeTextData) => {
+          await FromPopUp.sendMessage({
+            type: 'REQUEST_UPDATE_NODE',
+            args: { nid: bookmark.nid, text },
+          })
+        }}
+      />
     </BookmarkRow>
   )
 }

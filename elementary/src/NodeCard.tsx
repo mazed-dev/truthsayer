@@ -19,11 +19,13 @@ export function NodeCard({
   saveNode,
   className,
   storage,
+  strippedFormatToolbar,
 }: {
   node: TNode
   saveNode: (text: NodeTextData) => Promise<Ack> | undefined
   className?: string
   storage: StorageApi
+  strippedFormatToolbar?: boolean
 }) {
   const saveText = (text: SlateText) => {
     const doc = new TDoc(text)
@@ -32,7 +34,12 @@ export function NodeCard({
   return (
     <Box className={className}>
       <NodeMedia node={node} storage={storage} />
-      <NodeTextEditor node={node} saveText={saveText} storage={storage} />
+      <NodeTextEditor
+        node={node}
+        saveText={saveText}
+        storage={storage}
+        strippedFormatToolbar={strippedFormatToolbar}
+      />
     </Box>
   )
 }
