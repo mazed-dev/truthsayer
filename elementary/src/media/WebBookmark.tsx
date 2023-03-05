@@ -93,10 +93,12 @@ const PreviewImage = ({
   icon,
   url,
   hostname,
+  onLaunch,
 }: {
   icon: Optional<PreviewImageSmall>
   url?: string
   hostname: string
+  onLaunch?: () => void
 }) => {
   const img =
     icon == null ? (
@@ -108,7 +110,7 @@ const PreviewImage = ({
     <PreviewImageBox className={productanalytics.classExclude()}>
       {img}
       {url != null ? (
-        <IconLaunch href={url}>
+        <IconLaunch href={url} onClick={onLaunch}>
           <MdiLaunch />
         </IconLaunch>
       ) : null}
@@ -186,12 +188,14 @@ type WebBookmarkProps = {
   extattrs: NodeExtattrs
   className?: string
   strippedRefs?: boolean
+  onLaunch?: () => void
 }
 
 export const WebBookmark = ({
   extattrs,
   className,
   strippedRefs,
+  onLaunch,
 }: WebBookmarkProps) => {
   const { web, preview_image, title, description, author } = extattrs
   if (web == null) {
@@ -219,6 +223,7 @@ export const WebBookmark = ({
           icon={preview_image || null}
           url={strippedRefs ? undefined : url}
           hostname={hostname}
+          onLaunch={onLaunch}
         />
         <TitleBox>
           <Title className={productanalytics.classExclude()}>{title}</Title>

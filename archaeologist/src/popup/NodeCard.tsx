@@ -45,6 +45,14 @@ export const NodeEditor = ({
           return { ack: true }
         }}
         strippedFormatToolbar
+        onMediaLaunch={() =>
+          browser.tabs.create({
+            // Open Bookmark in Truthsayer Web App, on click on Media.
+            // No reason to open an original page, because the page is already
+            // in front of the user.
+            url: truthsayer.url.makeNode(node.nid).toString(),
+          })
+        }
       />
       <NodeTimeBadge
         created_at={node.created_at}

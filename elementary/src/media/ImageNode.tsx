@@ -61,11 +61,13 @@ export const ImageNode = ({
   className,
   strippedActions,
   storage,
+  onLaunch,
 }: {
   node: TNode
   className?: string
   strippedActions?: boolean
   storage: StorageApi
+  onLaunch?: () => void
 }) => {
   const source = storage.blob.sourceUrl(node.nid)
   if (source == null) {
@@ -101,7 +103,7 @@ export const ImageNode = ({
       <ImageInCardZoom
         src={source}
         className={productanalytics.classExclude(className)}
-        onClick={() => setShow(true)}
+        onClick={() => (onLaunch == null ? setShow(true) : onLaunch())}
       />
       <Modal show={show} fullscreen scrollable onHide={() => setShow(false)}>
         <Modal.Header closeButton>

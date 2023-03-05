@@ -56,10 +56,12 @@ export const WebQuote = ({
   extattrs,
   className,
   strippedRefs,
+  onLaunch,
 }: {
   extattrs: NodeExtattrs
   className?: string
   strippedRefs?: boolean
+  onLaunch?: () => void
 }) => {
   const { web_quote, author, content_type } = extattrs
   const authorElement = author ? <Author>&mdash; {author} </Author> : null
@@ -87,6 +89,7 @@ export const WebQuote = ({
             <RefLink
               href={quoteUrl.toString()}
               className={productanalytics.classExclude()}
+              onClick={onLaunch}
             >
               {authorElement}
               {hostname}
