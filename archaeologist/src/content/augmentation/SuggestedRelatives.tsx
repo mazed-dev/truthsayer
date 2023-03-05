@@ -72,20 +72,22 @@ export function SuggestedRelatives(_props: { stableUrl?: string }) {
       ),
     []
   )
-  const consumeKeyboardEvent = React.useReducer(
-    (_userInput: UserInput, keyboardEvent: KeyboardEvent) => {
+  const [userInput, setUserInput] = React.useState<UserInput>({
+    target: null,
+    phrase: null,
+  })
+  const consumeKeyboardEvent = React.useCallback(
+    (keyboardEvent: KeyboardEvent) => {
       const newInput = updateUserInputFromKeyboardEvent(keyboardEvent)
       const { phrase } = newInput
-      if (phrase != null && phrase.length > 3) {
+      if (phrase != null && phrase.length > 3 && userInput.phrase !== phrase) {
         requestSuggestedAssociations(phrase)
+        setUserInput(newInput)
       }
       return newInput
     },
-    {
-      target: null,
-      phrase: null,
-    }
-  )[1]
+    [userInput, requestSuggestedAssociations]
+  )
   React.useEffect(() => {
     const phrase = [
       pageContent.title,
