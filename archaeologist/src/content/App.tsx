@@ -21,7 +21,6 @@ import {
   FromContent,
   ToContent,
   ContentAppOperationMode,
-  BrowserHistoryUploadProgress,
 } from './../message/types'
 import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/url/unmemorable'
@@ -44,6 +43,10 @@ import { BrowserHistoryImportControlPortal } from './BrowserHistoryImportControl
 import { SuggestedRelatives } from './augmentation/SuggestedRelatives'
 import { AugmentationMountPoint } from './augmentation/Mount'
 import { ContentContext } from './context'
+import {
+  BackgroundActionProgress,
+  FromArchaeologistContent,
+} from 'truthsayer-archaeologist-communication'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
@@ -115,7 +118,8 @@ type InitializedState = {
   toNodes: TNode[]
   fromNodes: TNode[]
   notification?: DisappearingToastProps
-  browserHistoryUploadProgress: BrowserHistoryUploadProgress
+  browserHistoryUploadProgress: BackgroundActionProgress
+  openTabsUploadProgress: BackgroundActionProgress
 
   analytics: PostHog | null
 }
@@ -130,8 +134,8 @@ type Action =
       data: ToContent.ShowDisappearingNotificationRequest
     }
   | {
-      type: 'update-browser-history-upload-progress'
-      data: ToContent.ReportBrowserHistoryUploadProgress
+      type: 'update-background-operation-progress'
+      data: ToContent.ReportBackgroundOperationProgress
     }
 
 function updateState(state: State, action: Action): State {
@@ -222,6 +226,7 @@ function updateState(state: State, action: Action): State {
         toNodes,
         fromNodes,
         browserHistoryUploadProgress: { processed: 0, total: 0 },
+        openTabsUploadProgress: { processed: 0, total: 0 },
         analytics,
       }
     }
@@ -265,14 +270,22 @@ function updateState(state: State, action: Action): State {
           timeoutMsec,
         },
       }
-    case 'update-browser-history-upload-progress':
+    case 'update-background-operation-progress':
       if (state.mode === 'uninitialised-content-app') {
         throw new Error("Can't modify state of an unitialized content app")
       }
 
-      return {
-        ...state,
-        browserHistoryUploadProgress: action.data.newState,
+      switch (action.data.operation) {
+        case 'browser-history-upload': {
+          return {
+            ...state,
+            browserHistoryUploadProgress: action.data.newState,
+          }
+        }
+        case 'open-tabs-upload': {
+          FromArchaeologistContent.sendMessage(action.data)
+          return state
+        }
       }
   }
 }
@@ -335,8 +348,8 @@ function mutatingRequestToAction(request: ToContent.MutatingRequest): Action {
     case 'SHOW_DISAPPEARING_NOTIFICATION': {
       return { type: 'show-notification', data: request }
     }
-    case 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS': {
-      return { type: 'update-browser-history-upload-progress', data: request }
+    case 'REPORT_BACKGROUND_OPERATION_PROGRESS': {
+      return { type: 'update-background-operation-progress', data: request }
     }
   }
 }
@@ -361,7 +374,7 @@ const App = () => {
         case 'INIT_CONTENT_AUGMENTATION_REQUEST':
         case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
         case 'SHOW_DISAPPEARING_NOTIFICATION':
-        case 'REPORT_BROWSER_HISTORY_UPLOAD_PROGRESS': {
+        case 'REPORT_BACKGROUND_OPERATION_PROGRESS': {
           dispatch(mutatingRequestToAction(message))
           return { type: 'VOID_RESPONSE' }
         }

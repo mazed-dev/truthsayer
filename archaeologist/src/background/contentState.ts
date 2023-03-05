@@ -1,5 +1,4 @@
 import { NodeUtil, StorageApi } from 'smuggler-api'
-import browser from 'webextension-polyfill'
 import type { ContentAppOperationMode } from '../message/types'
 import { ToContent, ContentAugmentationSettings } from '../message/types'
 import { requestPageSavedStatus } from './pageStatus'
@@ -8,16 +7,12 @@ import * as auth from './auth'
 /** Calculates how the content script of a specific tab should be initialised. */
 export async function calculateInitialContentState(
   storage: StorageApi,
-  tab: browser.Tabs.Tab,
+  tabUrl: string,
   mode: ContentAppOperationMode
 ): Promise<ToContent.InitContentAugmentationRequest> {
-  if (tab.url == null) {
-    throw new Error(`Can't calculate content state, input tab has no URL`)
-  }
-
   const { bookmark, fromNodes, toNodes } = await requestPageSavedStatus(
     storage,
-    tab.url
+    tabUrl
   )
 
   return {

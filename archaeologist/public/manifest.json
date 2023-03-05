@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Mazed",
   "author": "ASG Mazed Inc",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Reference anything you've read, without looking for it. Mazed is your second brain, serving you information you've read before.",
   "homepage_url": "https://mazed.se",
   "action": {
@@ -33,7 +33,8 @@
     "tabs",
     "webNavigation",
     "storage",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "scripting"
   ],
   "cross_origin_embedder_policy": {
     "value": "require-corp"
@@ -42,6 +43,7 @@
     "value": "same-origin"
   },
   "host_permissions": [
+    "*://*/*"
   ],
   "content_scripts": [
     {

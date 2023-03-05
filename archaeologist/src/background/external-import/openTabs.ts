@@ -3,8 +3,12 @@ import { StorageApi } from 'smuggler-api'
 import browser from 'webextension-polyfill'
 import { isPageAutosaveable } from '../../content/extractor/url/autosaveable'
 import { FromContent, ToContent } from '../../message/types'
-import { TabLoad } from '../../tabLoad'
+import { calculateInitialContentState } from '../contentState'
 import { saveWebPage } from '../savePage'
+import lodash from 'lodash'
+import { truthsayer } from 'elementary'
+import type { BackgroundActionProgress } from 'truthsayer-archaeologist-communication'
+import { TabLoad } from '../../tabLoad'
 
 /** Tools to import to Mazed the content of currently open tabs */
 export namespace OpenTabs {
@@ -12,35 +16,44 @@ export namespace OpenTabs {
   // an asyncronous task. See `shouldCancelBrowserHistoryUpload` for more information.
   let shouldCancelOpenTabsUpload = false
 
-  function sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms))
-  }
+  /**
+   * Same as browser.Tabs.Tab, but with certain fields important
+   * to archaeologist validated
+   */
+  type ValidTab = Omit<browser.Tabs.Tab, 'id' | 'url'> &
+    Required<Pick<browser.Tabs.Tab, 'id' | 'url'>>
 
   /**
    * @summary Upload the content of all the tabs user has currently open to Mazed.
    * @description WARNING: may refresh the tabs, a user-visible effect.
    */
-  export async function uploadAll(storage: StorageApi): Promise<void> {
-    const tabs: browser.Tabs.Tab[] = await browser.tabs.query({})
+  export async function uploadAll(
+    storage: StorageApi,
+    onProgress: (progress: BackgroundActionProgress) => Promise<void>
+  ): Promise<void> {
+    const reportProgress = lodash.throttle(onProgress, 1123)
+
+    const tabs: ValidTab[] = (await browser.tabs.query({})).filter(isValidTab)
     for (
       let index = 0;
       index < tabs.length && !shouldCancelOpenTabsUpload;
       index++
     ) {
       await upload(storage, tabs[index])
+      reportProgress({ processed: index, total: tabs.length })
     }
     shouldCancelOpenTabsUpload = false
+
+    reportProgress({ processed: tabs.length, total: tabs.length })
+    await reportProgress.flush()
   }
 
   export function cancel() {
     shouldCancelOpenTabsUpload = true
   }
 
-  async function upload(storage: StorageApi, tab: browser.Tabs.Tab) {
-    if (tab.id == null || tab.url == null) {
-      log.debug(
-        `Attempted to upload contents of an invalid tab: ${JSON.stringify(tab)}`
-      )
+  async function upload(storage: StorageApi, tab: ValidTab) {
+    if (truthsayer.url.belongs(tab.url)) {
       return
     }
 
@@ -48,7 +61,7 @@ export namespace OpenTabs {
       if (!isPageAutosaveable(tab.url)) {
         return
       }
-      const response = await getTabContent(tab.id)
+      const response = await getTabContent(storage, tab)
       if (response.type !== 'PAGE_TO_SAVE') {
         return
       }
@@ -63,18 +76,31 @@ export namespace OpenTabs {
   }
 
   async function getTabContent(
-    tabId: number
+    storage: StorageApi,
+    tab: ValidTab
   ): Promise<
     | FromContent.SavePageResponse
     | FromContent.PageAlreadySavedResponse
     | FromContent.PageNotWorthSavingResponse
   > {
+    if (tab.discarded) {
+      // If a tab is discarded, trying to communicate with them via
+      // 'sendMessage' or `executeScript` hangs indefinitely. There doesn't seem
+      // to be an "undiscard" API, so the only option is to reload a tab.
+      //
+      // As an example, if Edge decides to turn a tab into a "sleeping tab"
+      // to conserve resources then the tab will become discarded.
+      // See https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/discard
+      // for more information.
+      await Promise.all([browser.tabs.reload(tab.id), TabLoad.monitor(tab.id)])
+    }
+
     const requestContent: ToContent.RequestPageContent = {
       type: 'REQUEST_PAGE_CONTENT',
       manualAction: false,
     }
     try {
-      return await ToContent.sendMessage(tabId, requestContent)
+      return await ToContent.sendMessage(tab.id, requestContent)
     } catch (error) {
       // If content script doesn't exist, retry. For every other error - rethrow.
       if (!contentScriptProbablyDoesntExist(errorise(error))) {
@@ -82,22 +108,22 @@ export namespace OpenTabs {
       }
     }
     // If content script doesn't exist, it may be that the user has opened this
-    // tab before they installed archaeologist. In this case refreshing the tab
-    // should load the script.
-    try {
-      await Promise.all([browser.tabs.reload(tabId), TabLoad.monitor(tabId)])
-      return await ToContent.sendMessage(tabId, requestContent)
-    } catch (error) {
-      // If content script still doesn't exist, retry. For every other error - rethrow.
-      if (!contentScriptProbablyDoesntExist(errorise(error))) {
-        throw error
-      }
-    }
+    // tab before they installed archaeologist. In this case instruct the browser
+    // to load content script explicitely.
+    await browser.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ['content.js'],
+    })
+    const initRequest = await calculateInitialContentState(
+      storage,
+      tab.url,
+      'passive-mode-content-app'
+    )
+    await ToContent.sendMessage(tab.id, initRequest)
+    return await ToContent.sendMessage(tab.id, requestContent)
+  }
 
-    // If content still doesn't exist, it might be due to TabLoad.monitor() not being
-    // fully deterministic in case of dynamic pages. Sleep for a small period of time
-    // as a last attempt to give content script a chance.
-    await sleep(1000)
-    return await ToContent.sendMessage(tabId, requestContent)
+  function isValidTab(tab: browser.Tabs.Tab): tab is ValidTab {
+    return tab.id != null && tab.url != null
   }
 }

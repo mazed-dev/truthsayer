@@ -11,10 +11,7 @@ import type {
   UserExternalPipelineId,
   UserExternalPipelineIngestionProgress,
 } from 'smuggler-api'
-import type {
-  BrowserHistoryUploadMode,
-  BrowserHistoryUploadProgress,
-} from '../../message/types'
+import type { BrowserHistoryUploadMode } from '../../message/types'
 import { FromContent, ToContent } from '../../message/types'
 
 import { isReadyToBeAutoSaved } from '../pageAutoSaving'
@@ -22,6 +19,7 @@ import { saveWebPage } from '../savePage'
 import { isPageAutosaveable } from '../../content/extractor/url/autosaveable'
 import { TabLoad } from '../../tabLoad'
 import { calculateInitialContentState } from '../contentState'
+import type { BackgroundActionProgress } from 'truthsayer-archaeologist-communication'
 
 export namespace BrowserHistoryUpload {
   // TODO[snikitin@outlook.com] This boolean is an extremely naive tool to cancel
@@ -60,7 +58,7 @@ export namespace BrowserHistoryUpload {
   export async function upload(
     storage: StorageApi,
     mode: BrowserHistoryUploadMode,
-    onProgress: (progress: BrowserHistoryUploadProgress) => Promise<void>
+    onProgress: (progress: BackgroundActionProgress) => Promise<void>
   ) {
     const reportProgress = lodash.throttle(onProgress, 1123)
 
@@ -259,9 +257,12 @@ export namespace BrowserHistoryUpload {
       // contents from a page with a mostly uninitialised content and do the rest
       // directly in background.
       tab = await TabLoad.customise(tabId)
+      if (tab.url == null) {
+        throw new Error(`Can't init content in temporary tab, tab has no URL`)
+      }
       const request = await calculateInitialContentState(
         storage,
-        tab,
+        tab.url,
         'passive-mode-content-app'
       )
       await ToContent.sendMessage(tabId, request)

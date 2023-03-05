@@ -14,6 +14,7 @@ import type {
   StorageApiMsgReturnValue,
 } from 'smuggler-api'
 import { log, errorise } from 'armoury'
+import { truthsayer } from 'elementary'
 
 export type StorageType =
   | 'datacenter' /** Stores user data in @file storage_api_datacenter.ts */
@@ -21,6 +22,15 @@ export type StorageType =
 
 export type AppSettings = {
   storageType: StorageType
+}
+
+/** Name of a long-running action performed by archaeologist's background script */
+export type BackgroundAction = 'browser-history-upload' | 'open-tabs-upload'
+
+/** Progress of a particular @see BackgroundAction */
+export type BackgroundActionProgress = {
+  processed: number
+  total: number
 }
 
 export function defaultSettings(): AppSettings {
@@ -183,4 +193,43 @@ export namespace ToTruthsayer {
     | GetArchaeologistStateResponse
     | GetAppSettingsResponse
     | StorageAccessResponse
+}
+
+/**
+ * To send messages from the content script which archaeologist injects
+ * *into truthsayer* (NOT from any content script)
+ */
+export namespace FromArchaeologistContent {
+  export interface ReportBackgroundOperationProgress {
+    type: 'REPORT_BACKGROUND_OPERATION_PROGRESS'
+    operation: BackgroundAction
+    newState: BackgroundActionProgress
+  }
+
+  export type Request = ReportBackgroundOperationProgress
+
+  /** A marker to help distinguish between business logic
+   * messages sent from archaeologist to truthsayer and other
+   * service messages, such as 'webpackHotUpdate'
+   */
+  const DISTINGUISHER_VALUE = 'from-mazed-archaeologist'
+
+  export function isRequest(value: any): value is Request {
+    return value?.distinguisher === DISTINGUISHER_VALUE
+  }
+
+  /**
+   * @returns Nothing. Built-in APIs which send in this direction can't return
+   * a value, but there are libraries that provide this functionality, such as
+   * https://github.com/dollarshaveclub/postmate
+   */
+  export function sendMessage(message: Request): void {
+    window.postMessage(
+      {
+        ...message,
+        distinguisher: DISTINGUISHER_VALUE,
+      },
+      truthsayer.url.make({}).origin
+    )
+  }
 }
