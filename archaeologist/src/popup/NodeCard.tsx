@@ -11,7 +11,7 @@ import {
   truthsayer,
 } from 'elementary'
 
-import type { Ack, TNode, NodeTextData } from 'smuggler-api'
+import type { Ack, NodeTextData, TNode } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
 import { PopUpContext } from './context'
 
