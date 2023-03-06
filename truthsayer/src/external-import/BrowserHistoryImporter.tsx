@@ -1,14 +1,14 @@
 import React from 'react'
 import styled from '@emotion/styled'
-import semver from 'semver'
 
-import { Spinner } from 'elementary'
-import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
-import { TruthsayerLink } from '../lib/TrueLink'
-import BrowserLogo from '../apps-list/img/GoogleChromeLogo.svg'
+import { MdiCancel, MdiCloudUpload, MdiDelete, Spinner } from 'elementary'
 import { ArchaeologistState } from '../apps-list/archaeologistState'
-
-export { BrowserLogo }
+import {
+  BackgroundActionProgress,
+  BrowserHistoryUploadMode,
+  FromTruthsayer,
+} from 'truthsayer-archaeologist-communication'
+import { toSentenceCase, unixtime } from 'armoury'
 
 const Box = styled.div``
 const Message = styled.div``
@@ -17,98 +17,198 @@ const Comment = styled.div`
   color: grey;
 `
 
-const kMinimalArchaeologistVersion = '0.1.16'
+const Title = styled.div`
+  margin-bottom: 10px;
+`
+const Button = styled.button`
+  background-color: #ffffff;
+  border-style: solid;
+  border-width: 0;
+  border-radius: 32px;
+  margin-right: 10px;
 
-type BrowserHistoryImporterState =
-  | { type: 'not-found' }
-  | { type: 'version-mismatch'; actual: string }
-  | { type: 'loading' }
-  | { type: 'good' }
-
-/**
- * A truthsayer-side shell of an importer which by itself doesn't define any
- * UI elements to control browser history import, but expects that archaeologist
- * will inject @see BrowserHistoryImportControl augmentation into it at runtime.
- * @see truthsayer_archaeologist_communication.BrowserHistoryImport
- * for more information.
- */
-export function BrowserHistoryImporter({
-  className,
-  archaeologistState,
-  ...config
-}: {
-  className?: string
-  archaeologistState: ArchaeologistState
-} & truthsayer_archaeologist_communication.BrowserHistoryImport.Config) {
-  let state: BrowserHistoryImporterState = { type: 'loading' }
-  switch (archaeologistState.state) {
-    case 'loading': {
-      state = { type: 'loading' }
-      break
-    }
-    case 'installed': {
-      state = semver.gte(
-        archaeologistState.version.version,
-        kMinimalArchaeologistVersion
-      )
-        ? { type: 'good' }
-        : {
-            type: 'version-mismatch',
-            actual: archaeologistState.version.version,
-          }
-      break
-    }
-    case 'not-installed': {
-      state = { type: 'not-found' }
-      break
-    }
+  &:hover {
+    background-color: #d0d1d2;
   }
+`
+const CancelPic = styled(MdiCancel)`
+  vertical-align: middle;
+`
+const CloudUploadPic = styled(MdiCloudUpload)`
+  vertical-align: middle;
+`
+const DeletePic = styled(MdiDelete)`
+  vertical-align: middle;
+`
 
-  return (
-    <Box className={className}>
-      <truthsayer_archaeologist_communication.BrowserHistoryImport.truthsayer.Beacon
-        {...config}
-      />
-      {describe(state)}
-    </Box>
-  )
+export type BrowserHistoryImportConfig = {
+  /** @see BrowserHistoryUploadMode for more info on what each mode means */
+  modes: ('untracked' | 'resumable')[]
 }
 
-function describe(state: BrowserHistoryImporterState) {
-  switch (state.type) {
-    case 'loading': {
+type UploadBrowserHistoryProps = React.PropsWithChildren<
+  {
+    progress: BackgroundActionProgress
+  } & BrowserHistoryImportConfig
+>
+
+type BrowserHistoryImportControlState =
+  | {
+      step: 'standby'
+      deletedNodesCount: number
+    }
+  | {
+      step: 'pre-start'
+      chosenMode: BrowserHistoryUploadMode
+    }
+  | {
+      step: 'in-progress'
+      isBeingCancelled: boolean
+    }
+
+function BrowserHistoryImportControl({
+  progress,
+  modes,
+}: UploadBrowserHistoryProps) {
+  const [state, setState] = React.useState<BrowserHistoryImportControlState>(
+    progress.processed !== progress.total
+      ? {
+          step: 'in-progress',
+          isBeingCancelled: false,
+        }
+      : {
+          step: 'standby',
+          deletedNodesCount: 0,
+        }
+  )
+
+  const showPreStartMessage = (chosenMode: BrowserHistoryUploadMode) => {
+    setState({ step: 'pre-start', chosenMode })
+  }
+  const startUpload = (mode: BrowserHistoryUploadMode) => {
+    setState({ step: 'in-progress', isBeingCancelled: false })
+    FromTruthsayer.sendMessage({
+      type: 'UPLOAD_BROWSER_HISTORY',
+      ...mode,
+    })
+  }
+  const cancelUpload = () => {
+    setState({ step: 'in-progress', isBeingCancelled: true })
+    FromTruthsayer.sendMessage({
+      type: 'CANCEL_BROWSER_HISTORY_UPLOAD',
+    }).then(() => {
+      setState({ step: 'standby', deletedNodesCount: 0 })
+    })
+  }
+  const deletePreviouslyUploaded = () => {
+    FromTruthsayer.sendMessage({
+      type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
+    }).then((response) =>
+      setState({ step: 'standby', deletedNodesCount: response.numDeleted })
+    )
+  }
+  const browserName = toSentenceCase(process.env.BROWSER || 'browser')
+
+  if (state.step === 'standby') {
+    const resumableUploadBtn = (
+      <Button onClick={() => showPreStartMessage({ mode: 'resumable' })}>
+        <CloudUploadPic /> Full import
+      </Button>
+    )
+
+    const now = new Date()
+    const daysToUpload = 31
+    const daysAgo = new Date(now)
+    daysAgo.setDate(now.getDate() - daysToUpload)
+    const untrackedUploadBtn = (
+      <Button
+        onClick={() =>
+          showPreStartMessage({
+            mode: 'untracked',
+            unixtime: {
+              start: unixtime.from(daysAgo),
+              end: unixtime.from(now),
+            },
+          })
+        }
+      >
+        <CloudUploadPic /> Quick import (last {daysToUpload} days)
+      </Button>
+    )
+    return (
+      <Box>
+        <Title>Import {browserName} history</Title>
+        {modes.indexOf('untracked') !== -1 ? untrackedUploadBtn : null}
+        {modes.indexOf('resumable') !== -1 ? resumableUploadBtn : null}
+        {state.deletedNodesCount > 0 ? (
+          <span>[{state.deletedNodesCount}] deleted </span>
+        ) : (
+          <Button onClick={deletePreviouslyUploaded}>
+            <DeletePic /> Delete imported
+          </Button>
+        )}
+      </Box>
+    )
+  } else if (state.step === 'pre-start') {
+    return (
+      <Box>
+        <Message>
+          Mazed will be opening and closing pages from your {browserName}{' '}
+          history to save them exactly as you saw them. All tabs opened by Mazed
+          will be closed automatically.
+        </Message>
+        <Button onClick={() => startUpload(state.chosenMode)}>Continue</Button>
+        <Button
+          onClick={() => setState({ step: 'standby', deletedNodesCount: 0 })}
+        >
+          Cancel
+        </Button>
+      </Box>
+    )
+  } else if (state.step === 'in-progress') {
+    return (
+      <Box>
+        <Title>
+          <Spinner.Ring /> Importing {browserName} history [{progress.processed}
+          /{progress.total}]
+          <Comment>
+            {' '}
+            (background process &mdash; you can close this tab)
+          </Comment>
+        </Title>
+        <Button onClick={cancelUpload} disabled={state.isBeingCancelled}>
+          <CancelPic /> Cancel
+        </Button>
+      </Box>
+    )
+  }
+  return null
+}
+
+/**
+ * Widget with buttons that allow user to control import of their local browser
+ * history
+ */
+export function BrowserHistoryImporter({
+  archaeologistState,
+  progress,
+  modes,
+}: {
+  archaeologistState: ArchaeologistState
+} & UploadBrowserHistoryProps) {
+  switch (archaeologistState.state) {
+    case 'loading':
+    case 'not-installed': {
       return (
         <Comment>
-          <Spinner.Ring /> Checking browser extension
+          <Spinner.Ring />
         </Comment>
       )
     }
-    case 'not-found': {
-      return (
-        <Message>
-          Compatible version of Mazed browser extension is not found, go to{' '}
-          <TruthsayerLink to={'/apps-to-install'}>Mazed Apps</TruthsayerLink> to
-          install Mazed for your browser. Minimal version of browser extension
-          is &ldquo;{kMinimalArchaeologistVersion}&rdquo;.
-        </Message>
-      )
-    }
-    case 'version-mismatch': {
-      return (
-        <Message>
-          Mazed browser extension is of version &ldquo;{state.actual}&rdquo;,
-          minimal required version is &ldquo;
-          {kMinimalArchaeologistVersion}&rdquo;. Ensure you have the latest
-          version via{' '}
-          <TruthsayerLink to={'/apps-to-install'}>Mazed Apps</TruthsayerLink>.
-        </Message>
-      )
-    }
-    case 'good': {
-      // NOTE: when this is the case, it is expected that archaeologist
-      // will inject @see BrowserHistoryImportControl augmentation in place
-      // of this 'null'
-      return null
+    case 'installed': {
+      break
     }
   }
+
+  return <BrowserHistoryImportControl progress={progress} modes={modes} />
 }
