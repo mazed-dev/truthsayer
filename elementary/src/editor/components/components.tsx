@@ -31,7 +31,7 @@ export const InlineLinkNode = styled.a`
 
 export const BlockQuoteBox = styled.div`
   padding: 6px 0 6px 0;
-  margin: 0 0 1em 0;
+  margin: 1em 0 0 0;
   background: #f8f8f8;
   border-radius: 5px;
   font-style: italic;
@@ -121,7 +121,7 @@ export const Header1Box = styled.h6`
   /* color: #1a4301; */
   color: #004b23;
 
-  margin: 0 0 1em 0;
+  margin: 1em 0 0 0;
 `
 
 export const Header2Box = styled.h6`
@@ -131,7 +131,7 @@ export const Header2Box = styled.h6`
   color: #006400;
   display: block;
 
-  margin: 0 0 1em 0;
+  margin: 1em 0 0 0;
 `
 
 export const Header3Box = styled.h6`
@@ -141,7 +141,7 @@ export const Header3Box = styled.h6`
   color: #007200;
   display: block;
 
-  margin: 0 0 1em 0;
+  margin: 1em 0 0 0;
 `
 
 export const Header4Box = styled.h6`
@@ -151,7 +151,7 @@ export const Header4Box = styled.h6`
   color: #008000;
   display: block;
 
-  margin: 0 0 1em 0;
+  margin: 1em 0 0 0;
 `
 
 export const Header5Box = styled.h6`
@@ -161,7 +161,7 @@ export const Header5Box = styled.h6`
   color: #38b000;
   display: block;
 
-  margin: 0 0 1em 0;
+  margin: 1em 0 0 0;
 `
 
 export const Header6Box = styled.h6`
@@ -171,7 +171,7 @@ export const Header6Box = styled.h6`
   color: #70e000;
   display: block;
 
-  margin: 0 0 1em 0;
+  margin: 1em 0 0 0;
 `
 
 const kColourCodeBg = 'rgba(27, 31, 35, 0.05)'
@@ -226,6 +226,6 @@ export const ListItemBox = styled.li`
 
 export const ParagraphBox = styled.p`
   white-space: pre-wrap;
-  margin: 0 0 1em 0;
+  margin: 1em 0 0 0;
   display: block;
 `

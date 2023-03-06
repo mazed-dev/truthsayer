@@ -30,8 +30,10 @@
  */
 import React from 'react'
 import styled from '@emotion/styled'
+import { css } from '@emotion/react'
 
 import type { NodeTextData, TNode } from 'smuggler-api'
+import { NodeType } from 'smuggler-api'
 import { NodeReadOnly, NodeEditor } from './NodeCard'
 import { Spinner } from 'elementary'
 import { FromPopUp } from './../message/types'
@@ -46,37 +48,52 @@ const PopUpBookmarkCard = styled(NodeEditor)`
   width: 300px;
 `
 
+const RightHandCardArrow = css`
+  content: ' ';
+  position: absolute;
+  width: 0;
+  height: 0;
+  left: -10px;
+  right: auto;
+  top: 7px;
+  bottom: auto;
+  border: 7px solid;
+  border-color: transparent transparent transparent #e3e3e3;
+`
+
 const PopUpToNodeCard = styled(NodeReadOnly)`
   width: 300px;
   position: relative;
   &:before {
-    content: ' ';
-    position: absolute;
-    width: 0;
-    height: 0;
-    left: -10px;
-    right: auto;
-    top: 7px;
-    bottom: auto;
-    border: 7px solid;
-    border-color: transparent transparent transparent #e3e3e3;
+    ${RightHandCardArrow}
   }
+`
+const PopUpToQuoteCard = styled(NodeEditor)`
+  width: 300px;
+  position: relative;
+  &:before {
+    ${RightHandCardArrow}
+  }
+`
+
+const LeftHandCardArrow = css`
+  content: ' ';
+  position: absolute;
+  width: 0;
+  height: 0;
+  right: -17px;
+  left: auto;
+  bottom: 7px;
+  top: auto;
+  border: 7px solid;
+  border-color: transparent transparent transparent #e3e3e3;
 `
 
 const PopUpFromNodeCard = styled(NodeReadOnly)`
   width: 300px;
   position: relative;
   &:before {
-    content: ' ';
-    position: absolute;
-    width: 0;
-    height: 0;
-    right: -17px;
-    left: auto;
-    bottom: 7px;
-    top: auto;
-    border: 7px solid;
-    border-color: transparent transparent transparent #e3e3e3;
+    ${LeftHandCardArrow}
   }
 `
 
@@ -131,11 +148,29 @@ const BookmarkCard = ({ bookmark }: { bookmark?: TNode }) => {
 const ToNodesCards = ({ toNodes }: { toNodes: TNode[] }) => {
   return (
     <>
-      {toNodes.sort(sortNodesByCreationTimeLatestFirst).map((node: TNode) => (
-        <RightCardRow key={node.nid}>
-          <PopUpToNodeCard node={node} />
-        </RightCardRow>
-      ))}
+      {toNodes.sort(sortNodesByCreationTimeLatestFirst).map((node: TNode) => {
+        if (node.ntype === NodeType.WebQuote) {
+          return (
+            <RightCardRow key={node.nid}>
+              <PopUpToQuoteCard
+                node={node}
+                saveNode={async (text: NodeTextData) => {
+                  await FromPopUp.sendMessage({
+                    type: 'REQUEST_UPDATE_NODE',
+                    args: { nid: node.nid, text },
+                  })
+                }}
+              />
+            </RightCardRow>
+          )
+        } else {
+          return (
+            <RightCardRow key={node.nid}>
+              <PopUpToNodeCard node={node} />
+            </RightCardRow>
+          )
+        }
+      })}
     </>
   )
 }
