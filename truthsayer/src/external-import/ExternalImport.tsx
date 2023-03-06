@@ -4,16 +4,16 @@ import React from 'react'
 import styled from '@emotion/styled'
 
 import { kCardBorder } from 'elementary'
-import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 
 import {
   MicrosoftOfficeOneDriveImporter,
   MicrosoftOfficeOneDriveLogoImg,
 } from './third-party-filesystem/MicrosoftOfficeOneDriveImporter'
 import {
+  BrowserHistoryImportConfig,
   BrowserHistoryImporter,
-  BrowserLogo as BrowserHistoryImporterLogo,
 } from './BrowserHistoryImporter'
+import BrowserLogo from '../apps-list/img/GoogleChromeLogo.svg'
 import { DataCentreImporter, getLogoImage } from './DataCentreImporter'
 import { ArchaeologistState } from '../apps-list/archaeologistState'
 import { OpenTabsImporter } from './OpenTabsImporter'
@@ -61,8 +61,13 @@ export function ExternalImport({
 }: {
   className?: string
   archaeologistState: ArchaeologistState
-  browserHistoryImportConfig: truthsayer_archaeologist_communication.BrowserHistoryImport.Config
+  browserHistoryImportConfig: BrowserHistoryImportConfig
 }) {
+  const [historyImportProgress, setHistoryImportProgress] =
+    React.useState<BackgroundActionProgress>({
+      processed: 0,
+      total: 0,
+    })
   const [openTabsProgress, setOpenTabsProgress] =
     React.useState<BackgroundActionProgress>({
       processed: 0,
@@ -88,6 +93,11 @@ export function ExternalImport({
           switch (request.operation) {
             case 'open-tabs-upload': {
               setOpenTabsProgress(request.newState)
+              break
+            }
+            case 'browser-history-upload': {
+              setHistoryImportProgress(request.newState)
+              break
             }
           }
         }
@@ -101,14 +111,15 @@ export function ExternalImport({
     <Box className={className}>
       <ItemsBox>
         <Item key={'browser-history'}>
-          <LogoImg src={BrowserHistoryImporterLogo} />
+          <LogoImg src={BrowserLogo} />
           <BrowserHistoryImporter
             archaeologistState={archaeologistState}
+            progress={historyImportProgress}
             {...browserHistoryImportConfig}
           />
         </Item>
         <Item key={'open-tabs'}>
-          <LogoImg src={BrowserHistoryImporterLogo} />
+          <LogoImg src={BrowserLogo} />
           <OpenTabsImporter
             archaeologistState={archaeologistState}
             progress={openTabsProgress}

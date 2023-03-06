@@ -11,7 +11,6 @@ import type {
   UserExternalPipelineId,
   UserExternalPipelineIngestionProgress,
 } from 'smuggler-api'
-import type { BrowserHistoryUploadMode } from '../../message/types'
 import { FromContent, ToContent } from '../../message/types'
 
 import { isReadyToBeAutoSaved } from '../pageAutoSaving'
@@ -19,7 +18,10 @@ import { saveWebPage } from '../savePage'
 import { isPageAutosaveable } from '../../content/extractor/url/autosaveable'
 import { TabLoad } from '../../tabLoad'
 import { calculateInitialContentState } from '../contentState'
-import type { BackgroundActionProgress } from 'truthsayer-archaeologist-communication'
+import type {
+  BackgroundActionProgress,
+  BrowserHistoryUploadMode,
+} from 'truthsayer-archaeologist-communication'
 
 export namespace BrowserHistoryUpload {
   // TODO[snikitin@outlook.com] This boolean is an extremely naive tool to cancel
