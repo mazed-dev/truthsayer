@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      - name: Build libs
+        run: yarn build-libs
+
       - name: Build truthsayer
         # This is a little absurd, but CI=true forces React build script to treat
         # all warnings as errors. Let's turn it off to unblock the change. Once
