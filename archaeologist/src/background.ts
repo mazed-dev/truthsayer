@@ -197,7 +197,8 @@ async function handleMessageFromContent(
       const relevantNodes = await similarity.findRelevantNodes(
         message.phrase,
         ctx.storage,
-        message.limit
+        message.limit,
+        new Set(message.excludeNids)
       )
       return {
         type: 'SUGGESTED_CONTENT_ASSOCIATIONS',

@@ -441,7 +441,14 @@ const App = () => {
               )}
             />
             {activityTrackerOrNull}
-            <SuggestedRelatives stableUrl={state.originIdentity.stableUrl} />
+            <SuggestedRelatives
+              stableUrl={state.originIdentity.stableUrl}
+              excludeNids={state.toNodes
+                // Don't show the page itself and it's quotes among suggested
+                .filter((node) => node.ntype === NodeType.WebQuote)
+                .map((node) => node.nid)
+                .concat(state.bookmark != null ? [state.bookmark.nid] : [])}
+            />
           </>
         )}
       </ContentContext.Provider>

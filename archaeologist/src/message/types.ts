@@ -2,6 +2,7 @@ import { PreviewImageSmall } from 'smuggler-api'
 
 import browser from 'webextension-polyfill'
 import type {
+  Nid,
   OriginHash,
   StorageApiMsgPayload,
   StorageApiMsgReturnValue,
@@ -381,6 +382,7 @@ export namespace FromContent {
     type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS'
     phrase: string
     limit: number
+    excludeNids?: Nid[]
   }
   export interface ContentAugmentationSettingsRequest {
     type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS'
