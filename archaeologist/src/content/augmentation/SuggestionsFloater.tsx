@@ -197,10 +197,13 @@ const SuggestedCard = ({
       <SuggestedCardTools>
         <CardCopyButton node={node} onClose={onClose} />
         <SuggestionButton
-          href={truthsayer.url.makeNode(node.nid).toString()}
-          metricLabel={'Suggested Fragment Open in Mazed'}
+          href={
+            NodeUtil.getOriginalUrl(node) ??
+            truthsayer.url.makeNode(node.nid).toString()
+          }
+          metricLabel={'Suggested Fragment Open original page'}
         >
-          <HoverTooltip tooltip={'Open in Mazed'} placement="bottom">
+          <HoverTooltip tooltip={'Open original page'} placement="bottom">
             <OpenInNew size="14px" />
           </HoverTooltip>
         </SuggestionButton>
