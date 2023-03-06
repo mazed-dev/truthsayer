@@ -42,10 +42,7 @@ import { isPageAutosaveable } from './extractor/url/autosaveable'
 import { SuggestedRelatives } from './augmentation/SuggestedRelatives'
 import { AugmentationMountPoint } from './augmentation/Mount'
 import { ContentContext } from './context'
-import {
-  BackgroundActionProgress,
-  FromArchaeologistContent,
-} from 'truthsayer-archaeologist-communication'
+import { FromArchaeologistContent } from 'truthsayer-archaeologist-communication'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
