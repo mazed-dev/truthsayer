@@ -169,30 +169,6 @@ async function handleMessageFromContent(
     case 'ATTENTION_TIME_CHUNK':
       await registerAttentionTime(ctx.storage, tab, message)
       return { type: 'VOID_RESPONSE' }
-    case 'UPLOAD_BROWSER_HISTORY': {
-      await BrowserHistoryUpload.upload(
-        ctx.storage,
-        message,
-        (progress: BackgroundActionProgress) =>
-          reportBackgroundActionProgress('browser-history-upload', progress)
-      )
-      return { type: 'VOID_RESPONSE' }
-    }
-    case 'CANCEL_BROWSER_HISTORY_UPLOAD': {
-      BrowserHistoryUpload.cancel()
-      return { type: 'VOID_RESPONSE' }
-    }
-    case 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY': {
-      const numDeleted = await ctx.storage.node.bulkDelete({
-        createdVia: {
-          autoIngestion: BrowserHistoryUpload.externalPipelineId(),
-        },
-      })
-      return {
-        type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
-        numDeleted,
-      }
-    }
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
       const relevantNodes = await similarity.findRelevantNodes(
         message.phrase,
@@ -513,6 +489,33 @@ class Background {
                 ctx.storage,
                 message.payload
               ),
+            }
+          }
+          case 'UPLOAD_BROWSER_HISTORY': {
+            await BrowserHistoryUpload.upload(
+              ctx.storage,
+              message,
+              (progress: BackgroundActionProgress) =>
+                reportBackgroundActionProgress(
+                  'browser-history-upload',
+                  progress
+                )
+            )
+            return { type: 'VOID_RESPONSE' }
+          }
+          case 'CANCEL_BROWSER_HISTORY_UPLOAD': {
+            BrowserHistoryUpload.cancel()
+            return { type: 'VOID_RESPONSE' }
+          }
+          case 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY': {
+            const numDeleted = await ctx.storage.node.bulkDelete({
+              createdVia: {
+                autoIngestion: BrowserHistoryUpload.externalPipelineId(),
+              },
+            })
+            return {
+              type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
+              numDeleted,
             }
           }
           case 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST': {

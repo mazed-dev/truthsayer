@@ -33,6 +33,19 @@ export type BackgroundActionProgress = {
   total: number
 }
 
+/**
+ * Mode of operation for @see BrowserHistoryUpload
+ */
+export type BrowserHistoryUploadMode =
+  /** Mode in which the progress will be tracked by Mazed and, if the process is
+   * interrupted, then on restart the upload will start from the beginning.
+   */
+  | { mode: 'untracked'; unixtime: { start: number; end: number } }
+  /** Mode in which the progress will be tracked by Mazed and, if the process is
+   * interrupted, then on restart the upload will resume where it previously ended.
+   */
+  | { mode: 'resumable' }
+
 export function defaultSettings(): AppSettings {
   return { storageType: 'browser_ext' }
 }
@@ -75,6 +88,15 @@ export namespace FromTruthsayer {
     type: 'MSG_PROXY_STORAGE_ACCESS_REQUEST'
     payload: StorageApiMsgPayload
   }
+  export type UploadBrowserHistoryRequest = {
+    type: 'UPLOAD_BROWSER_HISTORY'
+  } & BrowserHistoryUploadMode
+  export type CancelBrowserHistoryUploadRequest = {
+    type: 'CANCEL_BROWSER_HISTORY_UPLOAD'
+  }
+  export type DeletePreviouslyUploadedBrowserHistoryRequest = {
+    type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY'
+  }
   export type UploadCurrentlyOpenTabsRequest = {
     type: 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST'
   }
@@ -86,6 +108,9 @@ export namespace FromTruthsayer {
     | GetAppSettingsRequest
     | SetAppSettingsRequest
     | StorageAccessRequest
+    | UploadBrowserHistoryRequest
+    | CancelBrowserHistoryUploadRequest
+    | DeletePreviouslyUploadedBrowserHistoryRequest
     | UploadCurrentlyOpenTabsRequest
     | CancelUploadOfCurrentlyOpenTabsRequest
 
@@ -101,6 +126,15 @@ export namespace FromTruthsayer {
   export function sendMessage(
     message: StorageAccessRequest
   ): Promise<ToTruthsayer.StorageAccessResponse>
+  export function sendMessage(
+    message: UploadBrowserHistoryRequest
+  ): Promise<ToTruthsayer.VoidResponse>
+  export function sendMessage(
+    message: CancelBrowserHistoryUploadRequest
+  ): Promise<ToTruthsayer.VoidResponse>
+  export function sendMessage(
+    message: DeletePreviouslyUploadedBrowserHistoryRequest
+  ): Promise<ToTruthsayer.DeletePreviouslyUploadedBrowserHistoryResponse>
   export function sendMessage(
     message: UploadCurrentlyOpenTabsRequest
   ): Promise<ToTruthsayer.VoidResponse>
@@ -188,11 +222,16 @@ export namespace ToTruthsayer {
     type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE'
     value: StorageApiMsgReturnValue
   }
+  export type DeletePreviouslyUploadedBrowserHistoryResponse = {
+    type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY'
+    numDeleted: number
+  }
   export type Response =
     | VoidResponse
     | GetArchaeologistStateResponse
     | GetAppSettingsResponse
     | StorageAccessResponse
+    | DeletePreviouslyUploadedBrowserHistoryResponse
 }
 
 /**

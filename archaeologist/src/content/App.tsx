@@ -39,7 +39,6 @@ import {
 } from './toaster/Toaster'
 import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
-import { BrowserHistoryImportControlPortal } from './BrowserHistoryImportControl'
 import { SuggestedRelatives } from './augmentation/SuggestedRelatives'
 import { AugmentationMountPoint } from './augmentation/Mount'
 import { ContentContext } from './context'
@@ -118,8 +117,6 @@ type InitializedState = {
   toNodes: TNode[]
   fromNodes: TNode[]
   notification?: DisappearingToastProps
-  browserHistoryUploadProgress: BackgroundActionProgress
-  openTabsUploadProgress: BackgroundActionProgress
 
   analytics: PostHog | null
 }
@@ -132,10 +129,6 @@ type Action =
   | {
       type: 'show-notification'
       data: ToContent.ShowDisappearingNotificationRequest
-    }
-  | {
-      type: 'update-background-operation-progress'
-      data: ToContent.ReportBackgroundOperationProgress
     }
 
 function updateState(state: State, action: Action): State {
@@ -225,8 +218,6 @@ function updateState(state: State, action: Action): State {
         bookmark,
         toNodes,
         fromNodes,
-        browserHistoryUploadProgress: { processed: 0, total: 0 },
-        openTabsUploadProgress: { processed: 0, total: 0 },
         analytics,
       }
     }
@@ -269,23 +260,6 @@ function updateState(state: State, action: Action): State {
           href,
           timeoutMsec,
         },
-      }
-    case 'update-background-operation-progress':
-      if (state.mode === 'uninitialised-content-app') {
-        throw new Error("Can't modify state of an unitialized content app")
-      }
-
-      switch (action.data.operation) {
-        case 'browser-history-upload': {
-          return {
-            ...state,
-            browserHistoryUploadProgress: action.data.newState,
-          }
-        }
-        case 'open-tabs-upload': {
-          FromArchaeologistContent.sendMessage(action.data)
-          return state
-        }
       }
   }
 }
@@ -348,9 +322,6 @@ function mutatingRequestToAction(request: ToContent.MutatingRequest): Action {
     case 'SHOW_DISAPPEARING_NOTIFICATION': {
       return { type: 'show-notification', data: request }
     }
-    case 'REPORT_BACKGROUND_OPERATION_PROGRESS': {
-      return { type: 'update-background-operation-progress', data: request }
-    }
   }
 }
 
@@ -373,9 +344,12 @@ const App = () => {
         }
         case 'INIT_CONTENT_AUGMENTATION_REQUEST':
         case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
-        case 'SHOW_DISAPPEARING_NOTIFICATION':
-        case 'REPORT_BACKGROUND_OPERATION_PROGRESS': {
+        case 'SHOW_DISAPPEARING_NOTIFICATION': {
           dispatch(mutatingRequestToAction(message))
+          return { type: 'VOID_RESPONSE' }
+        }
+        case 'REPORT_BACKGROUND_OPERATION_PROGRESS': {
+          FromArchaeologistContent.sendMessage(message)
           return { type: 'VOID_RESPONSE' }
         }
       }
@@ -425,9 +399,6 @@ const App = () => {
           storage: makeMsgProxyStorageApi(forwardToBackground),
         }}
       >
-        <BrowserHistoryImportControlPortal
-          progress={state.browserHistoryUploadProgress}
-        />
         {truthsayer.url.belongs(document.URL) ? null : (
           <>
             <Toaster />

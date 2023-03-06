@@ -185,16 +185,6 @@ export type ContentAppOperationMode =
    */
   | 'active-mode-content-app'
 
-export type BrowserHistoryUploadMode =
-  /** Mode in which the progress will be tracked by Mazed and, if the process is
-   * interrupted, then on restart the upload will start from the beginning.
-   */
-  | { mode: 'untracked'; unixtime: { start: number; end: number } }
-  /** Mode in which the progress will be tracked by Mazed and, if the process is
-   * interrupted, then on restart the upload will resume where it previously ended.
-   */
-  | { mode: 'resumable' }
-
 /* Value of process.env.NODE_ENV (options come from react-scripts.NodeJS.ProcessEnv.NodeEnv) */
 export type NodeEnv = 'development' | 'production' | 'test'
 
@@ -257,19 +247,15 @@ export namespace ToContent {
     | InitContentAugmentationRequest
     | UpdateContentAugmentationRequest
     | ShowDisappearingNotificationRequest
-    | ReportBackgroundOperationProgress
   /** Requests that aim to retrieve part of recepient's state without modifying it. */
   export type ReadOnlyRequest = RequestPageContent | GetSelectedQuoteRequest
+  /** Requests that are sent to content only to be forwarded somewhere else. */
+  export type PassthroughRequest = ReportBackgroundOperationProgress
 
-  export type Request = MutatingRequest | ReadOnlyRequest
+  export type Request = MutatingRequest | ReadOnlyRequest | PassthroughRequest
 
-  export interface DeletePreviouslyUploadedBrowserHistoryResponse {
-    type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY'
-    numDeleted: number
-  }
   export type Response =
     | VoidResponse
-    | DeletePreviouslyUploadedBrowserHistoryResponse
     | SuggestedAssociationsResponse
     | StorageAccessResponse
     | ContentAugmentationSettingsResponse
@@ -368,15 +354,6 @@ export namespace FromContent {
     origin: OriginIdentity
   }
 
-  export type UploadBrowserHistoryRequest = {
-    type: 'UPLOAD_BROWSER_HISTORY'
-  } & BrowserHistoryUploadMode
-  export interface CancelBrowserHistoryUploadRequest {
-    type: 'CANCEL_BROWSER_HISTORY_UPLOAD'
-  }
-  export interface DeletePreviouslyUploadedBrowserHistoryRequest {
-    type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY'
-  }
   export interface SuggestedAssociationsRequest {
     type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS'
     phrase: string
@@ -391,9 +368,6 @@ export namespace FromContent {
 
   export type Request =
     | AttentionTimeChunk
-    | UploadBrowserHistoryRequest
-    | CancelBrowserHistoryUploadRequest
-    | DeletePreviouslyUploadedBrowserHistoryRequest
     | SuggestedAssociationsRequest
     | StorageAccessRequest
     | ContentAugmentationSettingsRequest
@@ -408,15 +382,6 @@ export namespace FromContent {
   export function sendMessage(
     message: AttentionTimeChunk
   ): Promise<VoidResponse>
-  export function sendMessage(
-    message: UploadBrowserHistoryRequest
-  ): Promise<VoidResponse>
-  export function sendMessage(
-    message: CancelBrowserHistoryUploadRequest
-  ): Promise<VoidResponse>
-  export function sendMessage(
-    message: DeletePreviouslyUploadedBrowserHistoryRequest
-  ): Promise<ToContent.DeletePreviouslyUploadedBrowserHistoryResponse>
   export function sendMessage(
     message: SuggestedAssociationsRequest
   ): Promise<ToContent.SuggestedAssociationsResponse>
