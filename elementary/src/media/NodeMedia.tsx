@@ -12,12 +12,16 @@ export function NodeMedia({
   strippedRefs,
   strippedActions,
   storage,
+  onLaunch,
 }: {
   node: TNode
   className?: string
   strippedRefs?: boolean
   strippedActions?: boolean
   storage: StorageApi
+  // This is a hack to assign special action on media click instead of opening
+  // original page e.g. on a preview image click
+  onLaunch?: () => void
 }) {
   const { extattrs } = node
   if (NodeUtil.isImage(node)) {
@@ -27,6 +31,7 @@ export function NodeMedia({
         className={className}
         strippedActions={strippedActions}
         storage={storage}
+        onLaunch={onLaunch}
       />
     )
   } else if (NodeUtil.isWebBookmark(node)) {
@@ -36,6 +41,7 @@ export function NodeMedia({
           extattrs={extattrs}
           strippedRefs={strippedRefs}
           className={className}
+          onLaunch={onLaunch}
         />
       )
     }
@@ -46,6 +52,7 @@ export function NodeMedia({
           extattrs={extattrs}
           strippedRefs={strippedRefs}
           className={className}
+          onLaunch={onLaunch}
         />
       )
     }

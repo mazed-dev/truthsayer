@@ -19,11 +19,17 @@ export function NodeCard({
   saveNode,
   className,
   storage,
+  strippedFormatToolbar,
+  onMediaLaunch,
 }: {
   node: TNode
   saveNode: (text: NodeTextData) => Promise<Ack> | undefined
   className?: string
   storage: StorageApi
+  strippedFormatToolbar?: boolean
+  // This is a hack to assign special action on media click instead of opening
+  // original page e.g. on a preview image click
+  onMediaLaunch?: () => void
 }) {
   const saveText = (text: SlateText) => {
     const doc = new TDoc(text)
@@ -31,8 +37,13 @@ export function NodeCard({
   }
   return (
     <Box className={className}>
-      <NodeMedia node={node} storage={storage} />
-      <NodeTextEditor node={node} saveText={saveText} storage={storage} />
+      <NodeMedia node={node} storage={storage} onLaunch={onMediaLaunch} />
+      <NodeTextEditor
+        node={node}
+        saveText={saveText}
+        storage={storage}
+        strippedFormatToolbar={strippedFormatToolbar}
+      />
     </Box>
   )
 }

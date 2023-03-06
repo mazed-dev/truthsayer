@@ -7,6 +7,7 @@ import type {
   StorageApiMsgPayload,
   StorageApiMsgReturnValue,
   TNodeJson,
+  NodeUpdateArgs,
 } from 'smuggler-api'
 import { OriginIdentity } from 'armoury'
 import type {
@@ -102,12 +103,17 @@ export namespace FromPopUp {
   export interface SavePageRequest {
     type: 'REQUEST_PAGE_TO_SAVE'
   }
+  export interface UpdateNodeRequest {
+    type: 'REQUEST_UPDATE_NODE'
+    args: NodeUpdateArgs
+  }
   export type Request =
     | SavePageRequest
     | PageInActiveTabStatusRequest
     | AuthStatusRequest
     | StorageAccessRequest
     | GetSuggestionsToPageInActiveTabRequest
+    | UpdateNodeRequest
 
   export function sendMessage(
     message: AuthStatusRequest
@@ -124,6 +130,7 @@ export namespace FromPopUp {
   export function sendMessage(
     message: StorageAccessRequest
   ): Promise<StorageAccessResponse>
+  export function sendMessage(message: UpdateNodeRequest): Promise<VoidResponse>
   export function sendMessage(message: Request): Promise<ToPopUp.Response> {
     const msg: ToBackground.Request = { direction: 'from-popup', ...message }
     return browser.runtime.sendMessage(msg).catch((error) => {

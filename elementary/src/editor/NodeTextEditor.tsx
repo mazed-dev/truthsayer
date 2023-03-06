@@ -28,11 +28,13 @@ export const NodeTextEditor = ({
   node,
   saveText,
   storage,
+  strippedFormatToolbar,
 }: {
   node: TNode
   saveText: (text: SlateText) => void
   className?: string
   storage: StorageApi
+  strippedFormatToolbar?: boolean
 }) => {
   const [isJinnShown, setShowJinn] = useState<boolean>(false)
   const nid = node.nid
@@ -84,7 +86,7 @@ export const NodeTextEditor = ({
           }
         }}
       >
-        <FormatToolbar />
+        {strippedFormatToolbar ? null : <FormatToolbar />}
         <Editable
           className={productanalytics.classExclude()}
           renderElement={renderElement}
@@ -92,7 +94,7 @@ export const NodeTextEditor = ({
           spellCheck
           autoFocus
           css={css`
-            padding: 1em 1em 0 1em;
+            padding: 0 1em 0 1em;
           `}
         />
       </Slate>
