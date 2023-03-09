@@ -54,14 +54,22 @@ const LogoImg = styled.img`
   margin: 4px 24px 4px 4px;
 `
 
+export type ExternalImportType =
+  | 'browser-history'
+  | 'open-tabs'
+  | 'onedrive'
+  | 'data-centre-importer'
+
 export function ExternalImport({
   className,
   archaeologistState,
   browserHistoryImportConfig,
+  importTypes, // if unspecified, show all types availiable
 }: {
   className?: string
   archaeologistState: ArchaeologistState
   browserHistoryImportConfig: BrowserHistoryImportConfig
+  importTypes?: ExternalImportType[]
 }) {
   const [historyImportProgress, setHistoryImportProgress] =
     React.useState<BackgroundActionProgress>({
@@ -107,33 +115,48 @@ export function ExternalImport({
     return () => window.removeEventListener('message', listener)
   })
 
+  const itemsByKey = {
+    'browser-history': (
+      <Item key={'browser-history'}>
+        <LogoImg src={BrowserLogo} />
+        <BrowserHistoryImporter
+          archaeologistState={archaeologistState}
+          progress={historyImportProgress}
+          {...browserHistoryImportConfig}
+        />
+      </Item>
+    ),
+    'open-tabs': (
+      <Item key={'open-tabs'}>
+        <LogoImg src={BrowserLogo} />
+        <OpenTabsImporter
+          archaeologistState={archaeologistState}
+          progress={openTabsProgress}
+        />
+      </Item>
+    ),
+    onedrive: (
+      <Item key={'onedrive'}>
+        <LogoImg src={MicrosoftOfficeOneDriveLogoImg} />
+        <MicrosoftOfficeOneDriveImporter />
+      </Item>
+    ),
+    'data-centre-importer': (
+      <Item key={'data-centre-importer'}>
+        <LogoImg src={getLogoImage()} />
+        <DataCentreImporter />
+      </Item>
+    ),
+  }
+  importTypes = importTypes ?? [
+    'open-tabs',
+    'browser-history',
+    'onedrive',
+    'data-centre-importer',
+  ]
   return (
     <Box className={className}>
-      <ItemsBox>
-        <Item key={'browser-history'}>
-          <LogoImg src={BrowserLogo} />
-          <BrowserHistoryImporter
-            archaeologistState={archaeologistState}
-            progress={historyImportProgress}
-            {...browserHistoryImportConfig}
-          />
-        </Item>
-        <Item key={'open-tabs'}>
-          <LogoImg src={BrowserLogo} />
-          <OpenTabsImporter
-            archaeologistState={archaeologistState}
-            progress={openTabsProgress}
-          />
-        </Item>
-        <Item key={'onedrive'}>
-          <LogoImg src={MicrosoftOfficeOneDriveLogoImg} />
-          <MicrosoftOfficeOneDriveImporter />
-        </Item>
-        <Item key={'data-centre-importer'}>
-          <LogoImg src={getLogoImage()} />
-          <DataCentreImporter />
-        </Item>
-      </ItemsBox>
+      <ItemsBox>{importTypes.map((t) => itemsByKey[t])}</ItemsBox>
     </Box>
   )
 }

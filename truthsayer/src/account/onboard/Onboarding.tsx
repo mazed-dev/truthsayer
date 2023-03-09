@@ -10,6 +10,7 @@ import { AppsList } from '../../apps-list/AppsList'
 import { ExternalImport } from '../../external-import/ExternalImport'
 import { accountConfig } from '../../account/config'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
+import { YouAreReadyToGoStep } from './YouAreReadyToGoStep'
 
 const InstallAppsStep = styled(AppsList)`
   padding: 0;
@@ -20,7 +21,7 @@ const ExternalImportStep = styled(ExternalImport)`
 `
 
 type Step = {
-  title: string
+  title: React.ReactNode
   body: React.ReactNode
 }
 function steps({
@@ -30,11 +31,22 @@ function steps({
 }): Step[] {
   return [
     {
-      title: 'Install Apps',
+      title: (
+        <>
+          Welcome to Mazed!
+          <br />
+          Let's set up your second brain.
+        </>
+      ),
       body: <InstallAppsStep archaeologist={archaeologistState} />,
     },
     {
-      title: 'Import fragments',
+      title: (
+        <>
+          Great! Now, let's begin filling your second brain with useful
+          information.
+        </>
+      ),
       body: (
         <ExternalImportStep
           archaeologistState={archaeologistState}
@@ -45,8 +57,18 @@ function steps({
             // of browser history import modes are not enabled.
             { modes: ['untracked'] }
           }
+          importTypes={['open-tabs']}
         />
       ),
+    },
+    {
+      title: (
+        <>
+          You're ready to go! You're on your way to a smarter, more productive
+          life.
+        </>
+      ),
+      body: <YouAreReadyToGoStep />,
     },
   ]
 }
@@ -63,7 +85,10 @@ function OnboardingModal({
   archaeologistState: ArchaeologistState
 }) {
   const [show, setShow] = React.useState<boolean>(true /* param != null */)
-  const [allSteps] = React.useState<Step[]>(steps({ archaeologistState }))
+  const allSteps = React.useMemo<Step[]>(
+    () => steps({ archaeologistState }),
+    [archaeologistState]
+  )
 
   const nextStepChecked = (direction: 'next' | 'prev') => {
     step = step + (direction === 'next' ? 1 : -1)

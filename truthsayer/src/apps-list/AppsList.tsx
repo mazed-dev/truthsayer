@@ -5,6 +5,7 @@ import styled from '@emotion/styled'
 import { kCardBorder, Spinner } from 'elementary'
 import GoogleChromeLogo from './img/GoogleChromeLogo.svg'
 import { ArchaeologistState } from './archaeologistState'
+import { Button } from 'react-bootstrap'
 
 type MazedAppLinks =
   | 'https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc'
@@ -16,16 +17,17 @@ const Name = styled.div`
   font-size: 16px;
   margin: 10px;
 `
-const Comment = styled.span`
-  font-style: italic;
-  color: grey;
-  margin-left: 1em;
-`
 const Box = styled(Container)`
   padding: 18px;
-  height: 200px;
 `
 
+const DescriptionBox = styled.div``
+const DescriptionList = styled.ul``
+const DescriptionListItem = styled.li`
+  list-style-type: '✅';
+  padding-left: 12px;
+`
+const AppsBox = styled.div``
 const AppItem = styled.a`
   display: flex;
   justify-content: left;
@@ -50,10 +52,10 @@ function describe(state: ArchaeologistState) {
       return <Spinner.Ring />
     }
     case 'installed': {
-      return 'Installed'
+      return <Button disabled>Installed</Button>
     }
     case 'not-installed': {
-      return 'Not installed'
+      return <Button href={kGoogleChromeStoreLink}>Install</Button>
     }
   }
 }
@@ -67,12 +69,28 @@ export function AppsList({
 }) {
   return (
     <Box className={className}>
-      <AppItem href={kGoogleChromeStoreLink}>
-        <Logo src={GoogleChromeLogo} />
-        <Name>
-          Mazed for Chrome <Comment>&mdash; {describe(archaeologist)}</Comment>
-        </Name>
-      </AppItem>
+      <DescriptionBox>
+        <DescriptionList>
+          <DescriptionListItem>
+            <b>Instant.</b> Mazed allows you reference anything you've read,
+            without searching for it.
+          </DescriptionListItem>
+          <DescriptionListItem>
+            <b>Automatic.</b> Mazed helps you remember everything you read,
+            automatically.
+          </DescriptionListItem>
+          <DescriptionListItem>
+            <b>Private.</b> Nothing you read or write leaves your device, with
+            local storage.
+          </DescriptionListItem>
+        </DescriptionList>
+      </DescriptionBox>
+      <AppsBox>
+        <AppItem href={kGoogleChromeStoreLink}>
+          <Logo src={GoogleChromeLogo} />
+          <Name>Mazed for Chrome &mdash; {describe(archaeologist)}</Name>
+        </AppItem>
+      </AppsBox>
     </Box>
   )
 }
