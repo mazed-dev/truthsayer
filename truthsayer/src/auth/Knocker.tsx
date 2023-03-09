@@ -9,7 +9,7 @@ export function KnockerElement() {
     })
     knocker.start({})
     return () => {
-      knocker.abort()
+      knocker.stop()
     }
   }, [])
   return <></>
