@@ -4,23 +4,16 @@ import { FromTruthsayer } from 'truthsayer-archaeologist-communication'
 import type { BackgroundActionProgress } from 'truthsayer-archaeologist-communication'
 import { ArchaeologistState } from '../apps-list/archaeologistState'
 import React from 'react'
+import { Button } from 'react-bootstrap'
 
+const Box = styled.div`
+  margin: 6px;
+`
 const Comment = styled.div`
-  font-style: italic;
-  color: grey;
+  font-weight: 500;
+  margin: 0 0 12px 0;
 `
-const Button = styled.button`
-  background-color: #ffffff;
-  border-style: solid;
-  border-width: 0;
-  border-radius: 32px;
-  margin-right: 10px;
-
-  &:hover {
-    background-color: #d0d1d2;
-  }
-`
-
+const ButtonBox = styled.div``
 export function OpenTabsImporter({
   archaeologistState,
   progress,
@@ -31,11 +24,7 @@ export function OpenTabsImporter({
   switch (archaeologistState.state) {
     case 'loading':
     case 'not-installed': {
-      return (
-        <Comment>
-          <Spinner.Ring />
-        </Comment>
-      )
+      return <Spinner.Ring />
     }
     case 'installed': {
       break
@@ -53,14 +42,25 @@ export function OpenTabsImporter({
     })
   }
 
-  return progress.processed === progress.total ? (
-    <>
-      <Button onClick={upload}>Import open tabs</Button>
-    </>
-  ) : (
-    <>
-      <Button onClick={cancel}>Cancel open tabs import</Button>
-      <Spinner.Ring />[{progress.processed}/{progress.total}]
-    </>
+  return (
+    <Box>
+      <Comment>Add your current tabs to your Mazed memory:</Comment>
+      <ButtonBox>
+        {progress.processed === progress.total ? (
+          <>
+            <Button variant="primary" onClick={upload}>
+              Add my open tabs
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button variant="secondary" onClick={cancel}>
+              Cancel open tabs saving
+            </Button>
+            <Spinner.Ring />[{progress.processed}/{progress.total}]
+          </>
+        )}
+      </ButtonBox>
+    </Box>
   )
 }

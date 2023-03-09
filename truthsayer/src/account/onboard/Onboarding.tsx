@@ -20,7 +20,7 @@ const ExternalImportStep = styled(ExternalImport)`
 `
 
 type Step = {
-  title: string
+  title: React.ReactNode
   body: React.ReactNode
 }
 function steps({
@@ -30,11 +30,17 @@ function steps({
 }): Step[] {
   return [
     {
-      title: 'Install Apps',
+      title: (
+        <>
+          Welcome to Mazed!
+          <br />
+          Let's set up your second brain.
+        </>
+      ),
       body: <InstallAppsStep archaeologist={archaeologistState} />,
     },
     {
-      title: 'Import fragments',
+      title: <>Import fragments</>,
       body: (
         <ExternalImportStep
           archaeologistState={archaeologistState}
@@ -45,6 +51,7 @@ function steps({
             // of browser history import modes are not enabled.
             { modes: ['untracked'] }
           }
+          importTypes={['open-tabs']}
         />
       ),
     },
@@ -63,7 +70,10 @@ function OnboardingModal({
   archaeologistState: ArchaeologistState
 }) {
   const [show, setShow] = React.useState<boolean>(true /* param != null */)
-  const [allSteps] = React.useState<Step[]>(steps({ archaeologistState }))
+  const allSteps = React.useMemo<Step[]>(
+    () => steps({ archaeologistState }),
+    [archaeologistState]
+  )
 
   const nextStepChecked = (direction: 'next' | 'prev') => {
     step = step + (direction === 'next' ? 1 : -1)
