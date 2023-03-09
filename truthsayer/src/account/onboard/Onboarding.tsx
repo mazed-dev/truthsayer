@@ -10,6 +10,7 @@ import { AppsList } from '../../apps-list/AppsList'
 import { ExternalImport } from '../../external-import/ExternalImport'
 import { accountConfig } from '../../account/config'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
+import { YouAreReadyToGoStep } from './YouAreReadyToGoStep'
 
 const InstallAppsStep = styled(AppsList)`
   padding: 0;
@@ -40,7 +41,12 @@ function steps({
       body: <InstallAppsStep archaeologist={archaeologistState} />,
     },
     {
-      title: <>Import fragments</>,
+      title: (
+        <>
+          Great! Now, let's begin filling your second brain with useful
+          information.
+        </>
+      ),
       body: (
         <ExternalImportStep
           archaeologistState={archaeologistState}
@@ -54,6 +60,15 @@ function steps({
           importTypes={['open-tabs']}
         />
       ),
+    },
+    {
+      title: (
+        <>
+          You're ready to go! You're on your way to a smarter, more productive
+          life.
+        </>
+      ),
+      body: <YouAreReadyToGoStep />,
     },
   ]
 }
