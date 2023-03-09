@@ -82,12 +82,25 @@ export class Knocker {
     )
   }
 
-  abort = async () => {
+  /**
+   * Reverses the effect of @see start() with no side effects.
+   * @see abort() for a version with side effects.
+   */
+  stop = () => {
     if (this.#scheduledId) {
       clearTimeout(this.#scheduledId)
       this.#scheduledId = null
     }
     this.#abortController.abort()
+  }
+
+  /**
+   * Reverses the effect of @see start() & invokes the abort callback supplied
+   * during construction.
+   * @see stop() for a side effect-free version.
+   */
+  abort = async () => {
+    stop()
     if (this.#abortCallback) {
       this.#abortCallback()
     }
