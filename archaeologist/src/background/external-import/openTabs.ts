@@ -61,7 +61,7 @@ export namespace OpenTabs {
       if (!isPageAutosaveable(tab.url)) {
         return
       }
-      const response = await getTabContent(storage, tab)
+      const response = await getTabContent(tab)
       if (response.type !== 'PAGE_TO_SAVE') {
         return
       }
@@ -76,7 +76,6 @@ export namespace OpenTabs {
   }
 
   async function getTabContent(
-    storage: StorageApi,
     tab: ValidTab
   ): Promise<
     | FromContent.SavePageResponse
@@ -108,18 +107,9 @@ export namespace OpenTabs {
       }
     }
     // If content script doesn't exist, it may be that the user has opened this
-    // tab before they installed archaeologist. In this case instruct the browser
-    // to load content script explicitely.
-    await browser.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ['content.js'],
-    })
-    const initRequest = await calculateInitialContentState(
-      storage,
-      tab.url,
-      'passive-mode-content-app'
-    )
-    await ToContent.sendMessage(tab.id, initRequest)
+    // tab before they installed archaeologist. In this case reload the tab
+    // explicitily.
+    await Promise.all([browser.tabs.reload(tab.id), TabLoad.monitor(tab.id)])
     return await ToContent.sendMessage(tab.id, requestContent)
   }
 
