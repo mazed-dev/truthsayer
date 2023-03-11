@@ -100,7 +100,7 @@ export class Knocker {
    * @see stop() for a side effect-free version.
    */
   abort = async () => {
-    stop()
+    this.stop()
     if (this.#abortCallback) {
       this.#abortCallback()
     }
@@ -144,9 +144,15 @@ export class Knocker {
           log.debug('Failed to renew smuggler access token')
           onKnockFailure()
         }
+      } else {
+        // Just retry in all other cases, e.g. temporary offline mode should not
+        // result in log out.
+        log.warning(
+          `Failed to renew smuggler access token but will retry. Error: ${
+            errorise(error).message
+          }`
+        )
       }
-      // Just retry in all other cases, e.g. temporary offline mode should not
-      // resutl in log out.
     }
     onCheckSuccess()
   }

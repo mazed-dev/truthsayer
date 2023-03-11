@@ -281,6 +281,8 @@ async function handleMessageFromPopup(
       }
     }
     case 'REQUEST_AUTH_STATUS': {
+      // TODO[snikitin@outlook.com] This is copy-pasted in onAuthenticationMessage,
+      // should somehow be consolidated
       const account = auth.account()
       const authenticated = account.isAuthenticated()
       badge.setActive(account.isAuthenticated())
@@ -288,6 +290,9 @@ async function handleMessageFromPopup(
         type: 'AUTH_STATUS',
         userUid: authenticated ? account.getUid() : undefined,
       }
+    }
+    case 'REQUEST_TO_LOG_IN': {
+      throw new Error(`Authentication has already been successfully completed`)
     }
     case 'REQUEST_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB': {
       const suggestedAkinNodes: TNodeJson[] = []
@@ -358,6 +363,39 @@ class Background {
   private deinitialisers: (() => void | Promise<void>)[] = []
 
   constructor() {
+    const onAuthenticationMessage = async (message: ToBackground.Request) => {
+      if (
+        message.direction !== 'from-popup' ||
+        (message.type !== 'REQUEST_TO_LOG_IN' &&
+          message.type !== 'REQUEST_AUTH_STATUS')
+      ) {
+        const error =
+          "until authentication is successful, only 'from-popup' messages related to authentication are allowed"
+        console.error(
+          `Rejected '${message.direction}' message '${message.type}', ${error}`
+        )
+        throw error
+      }
+      switch (message.type) {
+        case 'REQUEST_AUTH_STATUS': {
+          // TODO[snikitin@outlook.com] This is copy-pasted in onMessage,
+          // should somehow be consolidated
+          const account = auth.account()
+          const authenticated = account.isAuthenticated()
+          badge.setActive(account.isAuthenticated())
+          return {
+            type: 'AUTH_STATUS',
+            userUid: authenticated ? account.getUid() : undefined,
+          }
+        }
+        case 'REQUEST_TO_LOG_IN': {
+          await auth.login(message.args)
+          return { type: 'VOID_RESPONSE' }
+        }
+      }
+    }
+
+    browser.runtime.onMessage.addListener(onAuthenticationMessage)
     auth.register()
     auth.observe({
       onLogin: (account: UserAccount) => {
@@ -366,6 +404,7 @@ class Background {
             `Attempted to init background, but it has unexpected state '${this.state.phase}'`
           )
         }
+        browser.runtime.onMessage.removeListener(onAuthenticationMessage)
         const loading = new Promise<void>(async (resolve, reject) => {
           try {
             log.debug(`Background init started`)
@@ -374,6 +413,7 @@ class Background {
             log.debug(`Background init done`)
             resolve()
           } catch (reason) {
+            browser.runtime.onMessage.addListener(onAuthenticationMessage)
             reject(reason)
           }
         })
@@ -394,6 +434,7 @@ class Background {
           log.debug(`Background deinit started`)
           await this.deinit()
           this.state = { phase: 'not-init' }
+          browser.runtime.onMessage.addListener(onAuthenticationMessage)
           log.debug(`Background deinit ended`)
         }
         switch (this.state.phase) {

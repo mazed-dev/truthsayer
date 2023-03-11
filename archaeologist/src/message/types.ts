@@ -1,4 +1,4 @@
-import { PreviewImageSmall } from 'smuggler-api'
+import { PreviewImageSmall, SessionCreateArgs } from 'smuggler-api'
 
 import browser from 'webextension-polyfill'
 import type {
@@ -88,6 +88,10 @@ export namespace FromPopUp {
   export interface AuthStatusRequest {
     type: 'REQUEST_AUTH_STATUS'
   }
+  export interface LogInRequest {
+    type: 'REQUEST_TO_LOG_IN'
+    args: SessionCreateArgs
+  }
 
   export interface PageInActiveTabStatusRequest {
     type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS'
@@ -111,6 +115,7 @@ export namespace FromPopUp {
     | SavePageRequest
     | PageInActiveTabStatusRequest
     | AuthStatusRequest
+    | LogInRequest
     | StorageAccessRequest
     | GetSuggestionsToPageInActiveTabRequest
     | UpdateNodeRequest
@@ -118,6 +123,7 @@ export namespace FromPopUp {
   export function sendMessage(
     message: AuthStatusRequest
   ): Promise<ToPopUp.AuthStatusResponse>
+  export function sendMessage(message: LogInRequest): Promise<VoidResponse>
   export function sendMessage(
     message: SavePageRequest
   ): Promise<ToPopUp.PageSavedResponse>

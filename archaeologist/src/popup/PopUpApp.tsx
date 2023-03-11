@@ -6,12 +6,13 @@ import browser from 'webextension-polyfill'
 import styled from '@emotion/styled'
 import { css } from '@emotion/react'
 import { PostHog } from 'posthog-js'
+import { Form, Row, Col } from 'react-bootstrap'
 
 import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { Button } from './Button'
 import { MdiLaunch, truthsayer } from 'elementary'
-import { productanalytics } from 'armoury'
+import { errorise, log, productanalytics } from 'armoury'
 import { PopUpContext } from './context'
 import type {
   ForwardToRealImpl,
@@ -98,33 +99,92 @@ const LoginImageBox = styled.div`
   display: flex;
   justify-content: center;
 `
-const LoginBtnBox = styled.div`
-  margin: 24px auto 0 auto;
-  display: flex;
-  justify-content: center;
-`
+
+type LoginPageState = {
+  email: string
+  password: string
+}
 
 const LoginPage = () => {
-  const onClick = () => {
+  const [state, setState] = React.useState<LoginPageState>({
+    email: '',
+    password: '',
+  })
+  const onSignUp = () => {
     browser.tabs.create({
-      url: truthsayer.url.make({ pathname: '/login' }).toString(),
+      url: truthsayer.url.make({ pathname: '/signup' }).toString(),
     })
   }
+  const onSubmit = React.useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      FromPopUp.sendMessage({
+        type: 'REQUEST_TO_LOG_IN',
+        args: {
+          email: state.email,
+          password: state.password,
+          permissions: null,
+        },
+      }).catch((reason) => {
+        // TODO[snikitin@outlook.com] Instead of just logging the error should
+        // be communicated in some shape to the user
+        log.error(`Failed to log in: ${errorise(reason).message}`)
+      })
+    },
+    [state]
+  )
+
   return (
     <LoginPageBox>
       <LoginImageBox>
         <LogoImg src="/logo-128x128.png" />
       </LoginImageBox>
-      <LoginBtnBox>
-        <Button onClick={onClick}>
-          Login
-          <MdiLaunch
-            css={css`
-              vertical-align: middle;
-            `}
-          />
-        </Button>
-      </LoginBtnBox>
+
+      <Form className="m-4" onSubmit={onSubmit}>
+        <Form.Group as={Row} controlId="formLoginEmail">
+          <Form.Label column sm="2">
+            Email
+          </Form.Label>
+          <Col>
+            <Form.Control
+              type="email"
+              value={state.email}
+              onChange={(event) =>
+                setState({ ...state, email: event.target.value })
+              }
+            />
+          </Col>
+        </Form.Group>
+
+        <Form.Group as={Row} controlId="formLoginPassword">
+          <Form.Label column sm="2">
+            Password
+          </Form.Label>
+          <Col>
+            <Form.Control
+              type="password"
+              value={state.password}
+              onChange={(event) =>
+                setState({ ...state, password: event.target.value })
+              }
+            />
+          </Col>
+        </Form.Group>
+        <Row>
+          <Col />
+          <Col>
+            <Button type="submit">Log in</Button>
+            <Button onClick={onSignUp}>
+              Sign up{' '}
+              <MdiLaunch
+                css={css`
+                  vertical-align: middle;
+                `}
+              />
+            </Button>
+          </Col>
+        </Row>
+      </Form>
     </LoginPageBox>
   )
 }
