@@ -46,7 +46,6 @@ export function SuggestedRelatives({
   stableUrl?: string
   excludeNids?: Nid[]
 }) {
-  log.debug('SuggestedRelatives', stableUrl)
   const [suggestedNodes, setSuggestedNodes] = React.useState<TNode[]>([])
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
@@ -106,7 +105,6 @@ export function SuggestedRelatives({
     (keyboardEvent: KeyboardEvent) => {
       const newInput = updateUserInputFromKeyboardEvent(keyboardEvent)
       const { phrase } = newInput
-      log.debug('consumeKeyboardEvent', phrase, userInput)
       if (phrase != null && phrase.length > 3 && userInput.phrase !== phrase) {
         requestSuggestedAssociations(phrase)
         setUserInput(newInput)
