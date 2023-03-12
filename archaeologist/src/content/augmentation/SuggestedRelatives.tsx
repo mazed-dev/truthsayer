@@ -40,18 +40,38 @@ function updateUserInputFromKeyboardEvent(keyboardEvent: KeyboardEvent) {
 }
 
 export function SuggestedRelatives({
+  stableUrl,
   excludeNids,
 }: {
   stableUrl?: string
   excludeNids?: Nid[]
 }) {
+  log.debug('SuggestedRelatives', stableUrl)
   const [suggestedNodes, setSuggestedNodes] = React.useState<TNode[]>([])
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
-  const pageContent = React.useMemo(() => {
+  const pagePhrase = React.useMemo(() => {
     const baseURL = `${document.location.protocol}//${document.location.host}`
-    return exctractPageContent(document, baseURL)
-  }, [])
+    const pageContent = exctractPageContent(document, baseURL)
+    const phrase = [
+      pageContent.title,
+      pageContent.description,
+      ...pageContent.author,
+      pageContent.text,
+      ...(stableUrl?.split('/') ?? []),
+    ]
+      .filter((v) => !!v)
+      .join('.\n')
+    return phrase
+  }, [
+    /**
+     * The dependency guarantees `pagePhrase` regenration on a newopened page,
+     * it's important when a new page is opened by the same React App and DOM is
+     * not completely reloaded, but just updated. Because of this don't remove
+     * this dependency even if you don't want to insert URL into a search phrase.
+     */
+    stableUrl,
+  ])
   const requestSuggestedAssociations = React.useMemo(
     // Using `useMemo` instead of `useCallback` to avoid eslint complains
     // https://kyleshevlin.com/debounce-and-throttle-callbacks-with-react-hooks
@@ -86,27 +106,22 @@ export function SuggestedRelatives({
     (keyboardEvent: KeyboardEvent) => {
       const newInput = updateUserInputFromKeyboardEvent(keyboardEvent)
       const { phrase } = newInput
+      log.debug('consumeKeyboardEvent', phrase, userInput)
       if (phrase != null && phrase.length > 3 && userInput.phrase !== phrase) {
         requestSuggestedAssociations(phrase)
         setUserInput(newInput)
+      } else if (phrase == null && pagePhrase.length > 8) {
+        requestSuggestedAssociations(pagePhrase)
       }
       return newInput
     },
-    [userInput, requestSuggestedAssociations]
+    [userInput, requestSuggestedAssociations, pagePhrase]
   )
   React.useEffect(() => {
-    const phrase = [
-      pageContent.title,
-      pageContent.description,
-      ...pageContent.author,
-      pageContent.text,
-    ]
-      .filter((v) => !!v)
-      .join('.\n')
-    if (phrase.length > 8) {
-      requestSuggestedAssociations(phrase)
+    if (pagePhrase.length > 8) {
+      requestSuggestedAssociations(pagePhrase)
     }
-  }, [pageContent, requestSuggestedAssociations])
+  }, [pagePhrase, requestSuggestedAssociations])
   React.useEffect(() => {
     const opts: AddEventListenerOptions = { passive: true, capture: true }
     window.addEventListener('keyup', consumeKeyboardEvent, opts)
