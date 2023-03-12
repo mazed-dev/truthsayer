@@ -325,16 +325,15 @@ export const SuggestionsFloater = ({
   const [controlledPosition, setControlledPosition] =
     React.useState<Position2D | null>(null) // getStartDragPosition(false))
   const [isRevealed, setRevealed] = React.useState<boolean>(false)
-  const saveRevealed = React.useCallback((revealed: boolean) => {
-    setControlledPosition((pos) => {
-      const defaultPos = getStartDragPosition(revealed)
-      return { x: defaultPos.x, y: pos?.y ?? defaultPos.y }
-    })
-    setRevealed(revealed)
-    FromContent.sendMessage({
+  const saveRevealed = React.useCallback(async (revealed: boolean) => {
+    const response = await FromContent.sendMessage({
       type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
       settings: { isRevealed: revealed },
     })
+    const { positionY } = response.state
+    const defaultPos = getStartDragPosition(revealed)
+    setControlledPosition({ x: defaultPos.x, y: positionY ?? defaultPos.y })
+    setRevealed(revealed)
   }, [])
   useAsyncEffect(async () => {
     const response = await FromContent.sendMessage({
