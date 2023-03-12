@@ -66,7 +66,7 @@ async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
 }
 
 async function registerAttentionTime(
-  storage: StorageApi,
+  ctx: BackgroundContext,
   tab: browser.Tabs.Tab | null,
   message: FromContent.AttentionTimeChunk
 ): Promise<void> {
@@ -77,7 +77,7 @@ async function registerAttentionTime(
   const { totalSecondsEstimation, deltaSeconds, origin } = message
   let total: TotalUserActivity
   try {
-    total = await storage.activity.external.add({
+    total = await ctx.storage.activity.external.add({
       origin: { id: origin.id },
       activity: {
         attention: {
@@ -108,7 +108,7 @@ async function registerAttentionTime(
       return
     }
     const createdVia: NodeCreatedVia = { autoAttentionTracking: null }
-    await saveWebPage(storage, response, createdVia, tab.id)
+    await saveWebPage(ctx.storage, ctx.analytics, response, createdVia, tab.id)
   }
 }
 
@@ -167,7 +167,7 @@ async function handleMessageFromContent(
   log.debug('Get message from content', message, tab)
   switch (message.type) {
     case 'ATTENTION_TIME_CHUNK':
-      await registerAttentionTime(ctx.storage, tab, message)
+      await registerAttentionTime(ctx, tab, message)
       return { type: 'VOID_RESPONSE' }
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
       const relevantNodes = await similarity.findRelevantNodes(
@@ -255,6 +255,7 @@ async function handleMessageFromPopup(
       const createdVia: NodeCreatedVia = { manualAction: null }
       const { node, unmemorable } = await saveWebPage(
         ctx.storage,
+        ctx.analytics,
         response,
         createdVia,
         tabId
@@ -500,6 +501,7 @@ class Background {
           case 'UPLOAD_BROWSER_HISTORY': {
             await BrowserHistoryUpload.upload(
               ctx.storage,
+              ctx.analytics,
               message,
               (progress: BackgroundActionProgress) =>
                 reportBackgroundActionProgress(
@@ -527,6 +529,7 @@ class Background {
           case 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST': {
             await OpenTabs.uploadAll(
               ctx.storage,
+              ctx.analytics,
               (progress: BackgroundActionProgress) =>
                 reportBackgroundActionProgress('open-tabs-upload', progress)
             )
@@ -645,6 +648,7 @@ class Background {
             const createdVia: NodeCreatedVia = { manualAction: null }
             await savePageQuote(
               ctx.storage,
+              ctx.analytics,
               { url, path, text },
               createdVia,
               lang,
@@ -665,7 +669,9 @@ class Background {
       )
     }
 
-    this.deinitialisers.push(browserBookmarks.register(ctx.storage))
+    this.deinitialisers.push(
+      browserBookmarks.register(ctx.storage, ctx.analytics)
+    )
     this.deinitialisers.push(webNavigation.register(ctx.storage))
     this.deinitialisers.push(await similarity.register(ctx.storage))
     this.deinitialisers.push(contentState.register())

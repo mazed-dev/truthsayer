@@ -1,4 +1,5 @@
 import browser from 'webextension-polyfill'
+import { PostHog } from 'posthog-js'
 import { log } from 'armoury'
 import { FromContent, ToContent } from '../message/types'
 import { saveWebPage } from '../background/savePage'
@@ -6,6 +7,7 @@ import { NodeCreatedVia, StorageApi } from 'smuggler-api'
 
 async function onCreatedEventListener(
   storage: StorageApi,
+  analytics: PostHog | null,
   id: string,
   bookmark: browser.Bookmarks.BookmarkTreeNode
 ): Promise<void> {
@@ -28,7 +30,7 @@ async function onCreatedEventListener(
       return
     }
     const createdVia: NodeCreatedVia = { manualAction: null }
-    await saveWebPage(storage, response, createdVia)
+    await saveWebPage(storage, analytics, response, createdVia)
   }
 }
 
@@ -38,9 +40,9 @@ async function onCreatedEventListener(
  * Add listeners for:
  *  - created naitive bookmark
  */
-export function register(storage: StorageApi) {
+export function register(storage: StorageApi, analytics: PostHog | null) {
   const callback = (id: string, bookmark: browser.Bookmarks.BookmarkTreeNode) =>
-    onCreatedEventListener(storage, id, bookmark)
+    onCreatedEventListener(storage, analytics, id, bookmark)
   browser.bookmarks.onCreated.addListener(callback)
   return () => {
     browser.bookmarks.onCreated.removeListener(callback)

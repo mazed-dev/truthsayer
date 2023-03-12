@@ -11,6 +11,7 @@ import {
   truthsayer,
   HoverTooltip,
   Spinner,
+  ImgButton,
 } from 'elementary'
 import { NodeUtil, StorageApi } from 'smuggler-api'
 import type { TNode } from 'smuggler-api'
@@ -253,15 +254,14 @@ const SuggestedCards = ({
         <HeaderText>
           ※&nbsp;{isLoading ? <Spinner.Ring /> : nodes.length}
         </HeaderText>
-        <MeteredButton
+        <ImgButton
           onClick={onClose}
-          metricLabel={'Suggestions Floater Close'}
           css={{ marginRight: '2px', marginTop: '2px' }}
         >
           <HoverTooltip tooltip={'Open in Mazed'} placement="bottom">
             <Minimize size="16px" />
           </HoverTooltip>
-        </MeteredButton>
+        </ImgButton>
       </Header>
       <SuggestionsFloaterSuggestionsBox>
         {isLoading ? (
@@ -325,16 +325,24 @@ export const SuggestionsFloater = ({
   const [controlledPosition, setControlledPosition] =
     React.useState<Position2D | null>(null) // getStartDragPosition(false))
   const [isRevealed, setRevealed] = React.useState<boolean>(false)
-  const saveRevealed = React.useCallback(async (revealed: boolean) => {
-    const response = await FromContent.sendMessage({
-      type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
-      settings: { isRevealed: revealed },
-    })
-    const { positionY } = response.state
-    const defaultPos = getStartDragPosition(revealed)
-    setControlledPosition({ x: defaultPos.x, y: positionY ?? defaultPos.y })
-    setRevealed(revealed)
-  }, [])
+  const analytics = React.useContext(ContentContext).analytics
+  const saveRevealed = React.useCallback(
+    async (revealed: boolean) => {
+      const response = await FromContent.sendMessage({
+        type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
+        settings: { isRevealed: revealed },
+      })
+      const { positionY } = response.state
+      const defaultPos = getStartDragPosition(revealed)
+      setControlledPosition({ x: defaultPos.x, y: positionY ?? defaultPos.y })
+      setRevealed(revealed)
+      analytics?.capture('Click SuggestionsFloater visibility toggle', {
+        'Event type': 'change',
+        isRevealed: revealed,
+      })
+    },
+    [analytics]
+  )
   useAsyncEffect(async () => {
     const response = await FromContent.sendMessage({
       type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
@@ -348,9 +356,15 @@ export const SuggestionsFloater = ({
     })
   }, [])
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
+    const positionY = data.y
     FromContent.sendMessage({
       type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
-      settings: { positionY: data.y },
+      settings: { positionY },
+    })
+    analytics?.capture('Drag SuggestionsFloater', {
+      'Event type': 'drag',
+      positionY,
+      isRevealed,
     })
   }
   return (

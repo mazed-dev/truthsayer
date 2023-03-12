@@ -1,6 +1,7 @@
 import { errorise, log } from 'armoury'
 import { StorageApi } from 'smuggler-api'
 import browser from 'webextension-polyfill'
+import { PostHog } from 'posthog-js'
 import { isPageAutosaveable } from '../../content/extractor/url/autosaveable'
 import { FromContent, ToContent } from '../../message/types'
 import { saveWebPage } from '../savePage'
@@ -28,6 +29,7 @@ export namespace OpenTabs {
    */
   export async function uploadAll(
     storage: StorageApi,
+    analytics: PostHog | null,
     onProgress: (progress: BackgroundActionProgress) => Promise<void>
   ): Promise<void> {
     const reportProgress = lodash.throttle(onProgress, 1123)
@@ -38,7 +40,7 @@ export namespace OpenTabs {
       index < tabs.length && !shouldCancelOpenTabsUpload;
       index++
     ) {
-      await upload(storage, tabs[index])
+      await upload(storage, analytics, tabs[index])
       reportProgress({ processed: index, total: tabs.length })
     }
     shouldCancelOpenTabsUpload = false
@@ -51,7 +53,11 @@ export namespace OpenTabs {
     shouldCancelOpenTabsUpload = true
   }
 
-  async function upload(storage: StorageApi, tab: ValidTab) {
+  async function upload(
+    storage: StorageApi,
+    analytics: PostHog | null,
+    tab: ValidTab
+  ) {
     if (truthsayer.url.belongs(tab.url)) {
       return
     }
@@ -64,7 +70,13 @@ export namespace OpenTabs {
       if (response.type !== 'PAGE_TO_SAVE') {
         return
       }
-      await saveWebPage(storage, response, { manualAction: null }, tab.id)
+      await saveWebPage(
+        storage,
+        analytics,
+        response,
+        { manualAction: null },
+        tab.id
+      )
     } catch (reason) {
       log.error(errorise(reason).message)
     }

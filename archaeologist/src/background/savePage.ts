@@ -1,3 +1,5 @@
+import { PostHog } from 'posthog-js'
+
 import { DisappearingToastProps } from '../content/toaster/Toaster'
 import { extractSearchEngineQuery } from '../content/extractor/url/searchEngineQuery'
 
@@ -118,6 +120,7 @@ async function _getOriginRelationNids(
 
 export async function saveWebPage(
   storage: StorageApi,
+  analytics: PostHog | null,
   { url, originId, content, quoteNids }: FromContent.SaveablePage,
   createdVia: NodeCreatedVia,
   tabId?: number,
@@ -217,11 +220,17 @@ export async function saveWebPage(
     tooltip: 'Page is added to your timeline',
     href: truthsayer.url.makeNode(nid).toString(),
   })
+  analytics?.capture('Archaeologist background save web page', {
+    'Event type': 'create node',
+    ntype: NodeType.Url,
+    nid,
+  })
   return { node, unmemorable: false }
 }
 
 export async function savePageQuote(
   storage: StorageApi,
+  analytics: PostHog | null,
   { url, path, text }: NodeExtattrsWebQuote,
   createdVia: NodeCreatedVia,
   lang?: string,
@@ -246,6 +255,12 @@ export async function savePageQuote(
     const { nid } = resp
     const node = await storage.node.get({ nid })
     await updateContent([], [node], undefined, tabId)
+    analytics?.capture('Archaeologist background save web quote', {
+      'Event type': 'create node',
+      ntype: NodeType.Url,
+      nid,
+      lang,
+    })
   }
 }
 

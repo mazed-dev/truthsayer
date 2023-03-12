@@ -1,5 +1,6 @@
 import lodash from 'lodash'
 import browser from 'webextension-polyfill'
+import { PostHog } from 'posthog-js'
 
 import { genOriginId, log, unixtime } from 'armoury'
 import type {
@@ -59,6 +60,7 @@ export namespace BrowserHistoryUpload {
 
   export async function upload(
     storage: StorageApi,
+    analytics: PostHog | null,
     mode: BrowserHistoryUploadMode,
     onProgress: (progress: BackgroundActionProgress) => Promise<void>
   ) {
@@ -125,7 +127,14 @@ export namespace BrowserHistoryUpload {
         }
         const createdVia: NodeCreatedVia = { autoIngestion: epid }
         const visitedAt: unixtime.Type = item.lastVisitTime
-        await saveWebPage(storage, resp, createdVia, undefined, visitedAt)
+        await saveWebPage(
+          storage,
+          analytics,
+          resp,
+          createdVia,
+          undefined,
+          visitedAt
+        )
       } catch (err) {
         log.error(`Failed to process ${item.url} during history upload: ${err}`)
       }
