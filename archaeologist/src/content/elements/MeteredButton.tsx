@@ -15,7 +15,7 @@ export const MeteredButton = React.forwardRef<HTMLButtonElement, Props>(
     const onMeteredClick = (event: React.MouseEvent) => {
       ctx.analytics?.capture(`Button:Click ${metricLabel}`, {
         text: reactNodeToString(children),
-        event_type: 'click',
+        'Event type': 'click',
         className,
       })
       if (onClick != null) {
