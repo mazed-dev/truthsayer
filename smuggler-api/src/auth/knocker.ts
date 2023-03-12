@@ -100,7 +100,7 @@ export class Knocker {
    * @see stop() for a side effect-free version.
    */
   abort = async () => {
-    stop()
+    this.stop()
     if (this.#abortCallback) {
       this.#abortCallback()
     }
