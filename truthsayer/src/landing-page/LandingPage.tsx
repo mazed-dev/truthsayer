@@ -358,7 +358,7 @@ export function LandingPage() {
             <Header>
               Reference&nbsp;anything you've&nbsp;read.
               <wbr />
-              <b>Without&nbsp;looking&nbsp;for&nbsp;it.</b>
+              <b> Without&nbsp;looking&nbsp;for&nbsp;it.</b>
             </Header>
             <Description>
               Mazed&nbsp;is&nbsp;your&nbsp;second&nbsp;brain, serving you
