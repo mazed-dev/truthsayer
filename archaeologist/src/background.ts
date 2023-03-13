@@ -396,7 +396,6 @@ class Background {
     }
 
     browser.runtime.onMessage.addListener(onAuthenticationMessage)
-    auth.register()
     auth.observe({
       onLogin: (account: UserAccount) => {
         if (this.state.phase !== 'not-init') {
@@ -412,9 +411,25 @@ class Background {
             this.state = { phase: 'init-done', context }
             log.debug(`Background init done`)
             resolve()
-          } catch (reason) {
+          } catch (initFailureReason) {
+            try {
+              await this.deinit()
+              log.error(
+                `Background init failed: ${errorise(initFailureReason).message}`
+              )
+            } catch (deinitFailureReason) {
+              log.error(
+                `Background init failed: ${
+                  errorise(initFailureReason).message
+                }\n` +
+                  `Also failed to revert the partially complete init: ${
+                    errorise(deinitFailureReason).message
+                  }`
+              )
+            }
+            this.state = { phase: 'not-init' }
             browser.runtime.onMessage.addListener(onAuthenticationMessage)
-            reject(reason)
+            reject(initFailureReason)
           }
         })
         this.state = { phase: 'loading', loading }
@@ -455,6 +470,7 @@ class Background {
         }
       },
     })
+    auth.register()
   }
 
   private async init(account: UserAccount): Promise<BackgroundContext> {
