@@ -12,7 +12,7 @@ import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { Button } from './Button'
 import { MdiLaunch, truthsayer } from 'elementary'
-import { errorise, log, productanalytics } from 'armoury'
+import { errorise, productanalytics } from 'armoury'
 import { PopUpContext } from './context'
 import type {
   ForwardToRealImpl,
