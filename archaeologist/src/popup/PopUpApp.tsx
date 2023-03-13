@@ -16,6 +16,7 @@ import { errorise, log, productanalytics } from 'armoury'
 import { PopUpContext } from './context'
 import type {
   ForwardToRealImpl,
+  SessionCreateArgs,
   StorageApiMsgPayload,
   StorageApiMsgReturnValue,
 } from 'smuggler-api'
@@ -103,6 +104,7 @@ const LoginImageBox = styled.div`
 type LoginPageState = {
   email: string
   password: string
+  error?: string
 }
 
 const LoginPage = () => {
@@ -118,17 +120,17 @@ const LoginPage = () => {
   const onSubmit = React.useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault()
+      const args: SessionCreateArgs = {
+        email: state.email,
+        password: state.password,
+        permissions: null,
+      }
+      setState({ ...state, error: undefined })
       FromPopUp.sendMessage({
         type: 'REQUEST_TO_LOG_IN',
-        args: {
-          email: state.email,
-          password: state.password,
-          permissions: null,
-        },
+        args,
       }).catch((reason) => {
-        // TODO[snikitin@outlook.com] Instead of just logging the error should
-        // be communicated in some shape to the user
-        log.error(`Failed to log in: ${errorise(reason).message}`)
+        setState({ ...state, error: errorise(reason).message })
       })
     },
     [state]
@@ -183,6 +185,7 @@ const LoginPage = () => {
               />
             </Button>
           </Col>
+          {state.error != null ? <Col>{state.error}</Col> : null}
         </Row>
       </Form>
     </LoginPageBox>
