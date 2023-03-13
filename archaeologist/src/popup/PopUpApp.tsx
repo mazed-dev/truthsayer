@@ -157,7 +157,6 @@ const LoginPage = () => {
             />
           </Col>
         </Form.Group>
-
         <Form.Group as={Row} controlId="formLoginPassword">
           <Form.Label column sm="2">
             Password
