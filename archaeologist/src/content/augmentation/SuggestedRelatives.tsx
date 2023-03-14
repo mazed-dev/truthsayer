@@ -8,6 +8,7 @@ import type { Nid, TNode, TNodeJson } from 'smuggler-api'
 import { FromContent } from './../../message/types'
 import { SuggestionsFloater } from './SuggestionsFloater'
 import { exctractPageContent } from '../extractor/webPageContent'
+import { ContentContext } from '../context'
 
 export function getKeyPhraseFromUserInput(
   target?: HTMLTextAreaElement
@@ -46,6 +47,7 @@ export function SuggestedRelatives({
   stableUrl?: string
   excludeNids?: Nid[]
 }) {
+  const analytics = React.useContext(ContentContext).analytics
   const [suggestedNodes, setSuggestedNodes] = React.useState<TNode[]>([])
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
@@ -91,11 +93,16 @@ export function SuggestedRelatives({
             )
           )
           setSuggestionsSearchIsActive(false)
+          analytics?.capture('Search suggested associations', {
+            'Event type': 'search',
+            result_length: response.suggested.length,
+            phrase_size: phrase.length,
+          })
         },
         661,
         {}
       ),
-    [excludeNids]
+    [excludeNids, analytics]
   )
   const [userInput, setUserInput] = React.useState<UserInput>({
     target: null,
