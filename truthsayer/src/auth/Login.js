@@ -56,9 +56,11 @@ class Login extends React.Component {
     const permissions = null
     authentication.session
       .create(
-        email,
-        password,
-        permissions,
+        {
+          email,
+          password,
+          permissions
+        },
         this.createSessionAbortController.signal
       )
       .catch(this.handleSubmitError)
