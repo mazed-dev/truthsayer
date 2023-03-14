@@ -1,17 +1,12 @@
 import React from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 
-import browser from 'webextension-polyfill'
-
 import styled from '@emotion/styled'
-import { css } from '@emotion/react'
 import { PostHog } from 'posthog-js'
-import { Form, Row, Col } from 'react-bootstrap'
 
 import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
-import { Button } from './Button'
-import { MdiLaunch, truthsayer } from 'elementary'
+import { LoginForm } from 'elementary'
 import { errorise, productanalytics } from 'armoury'
 import { PopUpContext } from './context'
 import type {
@@ -101,39 +96,37 @@ const LoginImageBox = styled.div`
   justify-content: center;
 `
 
-type LoginPageState = {
-  email: string
-  password: string
-  error?: string
-}
+const ErrorBox = styled.div`
+  color: red;
+`
+
+const LoginFormBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+`
+const LoginFormForPopUp = styled(LoginForm)``
 
 const LoginPage = () => {
-  const [state, setState] = React.useState<LoginPageState>({
-    email: '',
-    password: '',
-  })
-  const onSignUp = () => {
-    browser.tabs.create({
-      url: truthsayer.url.make({ pathname: '/signup' }).toString(),
-    })
-  }
+  const [error, setError] = React.useState<string | null>(null)
   const onSubmit = React.useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
+    async (email: string, password: string) => {
       const args: SessionCreateArgs = {
-        email: state.email,
-        password: state.password,
+        email: email,
+        password: password,
         permissions: null,
       }
-      setState({ ...state, error: undefined })
+      setError(null)
       FromPopUp.sendMessage({
         type: 'REQUEST_TO_LOG_IN',
         args,
       }).catch((reason) => {
-        setState({ ...state, error: errorise(reason).message })
+        setError(errorise(reason).message)
       })
     },
-    [state]
+    [setError]
   )
 
   return (
@@ -141,52 +134,10 @@ const LoginPage = () => {
       <LoginImageBox>
         <LogoImg src="/logo-128x128.png" />
       </LoginImageBox>
-
-      <Form className="m-4" onSubmit={onSubmit}>
-        <Form.Group as={Row} controlId="formLoginEmail">
-          <Form.Label column sm="2">
-            Email
-          </Form.Label>
-          <Col>
-            <Form.Control
-              type="email"
-              value={state.email}
-              onChange={(event) =>
-                setState({ ...state, email: event.target.value })
-              }
-            />
-          </Col>
-        </Form.Group>
-        <Form.Group as={Row} controlId="formLoginPassword">
-          <Form.Label column sm="2">
-            Password
-          </Form.Label>
-          <Col>
-            <Form.Control
-              type="password"
-              value={state.password}
-              onChange={(event) =>
-                setState({ ...state, password: event.target.value })
-              }
-            />
-          </Col>
-        </Form.Group>
-        <Row>
-          <Col />
-          <Col>
-            <Button type="submit">Log in</Button>
-            <Button onClick={onSignUp}>
-              Sign up{' '}
-              <MdiLaunch
-                css={css`
-                  vertical-align: middle;
-                `}
-              />
-            </Button>
-          </Col>
-          {state.error != null ? <Col>{state.error}</Col> : null}
-        </Row>
-      </Form>
+      <LoginFormBox>
+        <LoginFormForPopUp onSubmit={onSubmit} />
+      </LoginFormBox>
+      <ErrorBox>{error}</ErrorBox>
     </LoginPageBox>
   )
 }
