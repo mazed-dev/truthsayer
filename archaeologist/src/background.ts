@@ -363,6 +363,7 @@ class Background {
   private deinitialisers: (() => void | Promise<void>)[] = []
 
   constructor() {
+    log.debug(`Background one-time pre-init started`)
     const onAuthenticationMessage = async (message: ToBackground.Request) => {
       if (
         message.direction !== 'from-popup' ||
@@ -374,7 +375,7 @@ class Background {
         console.error(
           `Rejected '${message.direction}' message '${message.type}', ${error}`
         )
-        throw error
+        throw new Error(error)
       }
       switch (message.type) {
         case 'REQUEST_AUTH_STATUS': {
@@ -471,6 +472,7 @@ class Background {
       },
     })
     auth.register()
+    log.debug(`Background one-time pre-init ended`)
   }
 
   private async init(account: UserAccount): Promise<BackgroundContext> {
