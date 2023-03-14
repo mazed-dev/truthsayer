@@ -95,7 +95,7 @@ export function SuggestedRelatives({
           setSuggestionsSearchIsActive(false)
           analytics?.capture('Search suggested associations', {
             'Event type': 'search',
-            result_size: response.suggested.length,
+            result_length: response.suggested.length,
             phrase_size: phrase.length,
           })
         },

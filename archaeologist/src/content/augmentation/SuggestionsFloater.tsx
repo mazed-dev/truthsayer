@@ -242,6 +242,13 @@ const SuggestedCards = ({
   onClose: () => void
   isLoading: boolean
 }) => {
+  const analytics = React.useContext(ContentContext).analytics
+  React.useEffect(() => {
+    analytics?.capture('Show suggested associations', {
+      'Event type': 'show',
+      length: nodes.length,
+    })
+  }, [nodes, analytics])
   const suggestedCards = nodes.map((node: TNode) => {
     return <SuggestedCard key={node.nid} node={node} onClose={onClose} />
   })
