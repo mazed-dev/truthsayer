@@ -6,8 +6,8 @@ import { PostHog } from 'posthog-js'
 
 import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
-import { LoginForm } from 'elementary'
-import { errorise, productanalytics } from 'armoury'
+import { LoginForm, Spinner } from 'elementary'
+import { errorise, log, productanalytics } from 'armoury'
 import { PopUpContext } from './context'
 import type {
   ForwardToRealImpl,
@@ -109,35 +109,67 @@ const LoginFormBox = styled.div`
 `
 const LoginFormForPopUp = styled(LoginForm)``
 
+type LoginPageState =
+  | { type: 'awaiting-input' }
+  | { type: 'logging-in' }
+  | { type: 'error'; message: string }
+  | { type: 'logged-in' }
+
 const LoginPage = () => {
-  const [error, setError] = React.useState<string | null>(null)
+  const [state, setState] = React.useState<LoginPageState>({
+    type: 'awaiting-input',
+  })
   const onSubmit = React.useCallback(
     async (email: string, password: string) => {
+      setState({ type: 'logging-in' })
       const args: SessionCreateArgs = {
         email: email,
         password: password,
         permissions: null,
       }
-      setError(null)
-      FromPopUp.sendMessage({
-        type: 'REQUEST_TO_LOG_IN',
-        args,
-      }).catch((reason) => {
-        setError(errorise(reason).message)
-      })
+      try {
+        await FromPopUp.sendMessage({
+          type: 'REQUEST_TO_LOG_IN',
+          args,
+        })
+      } catch (reason) {
+        setState({ type: 'error', message: errorise(reason).message })
+        return
+      }
+      setState({ type: 'logged-in' })
     },
-    [setError]
+    [setState]
   )
+
+  const determineWidget = (state: LoginPageState) => {
+    const input = <LoginFormForPopUp onSubmit={onSubmit} />
+    switch (state.type) {
+      case 'awaiting-input': {
+        return input
+      }
+      case 'logging-in': {
+        return <Spinner.Ring />
+      }
+      case 'error': {
+        return (
+          <>
+            {input}
+            <ErrorBox>{state.message}</ErrorBox>
+          </>
+        )
+      }
+      case 'logged-in': {
+        return <>Logged in✅</>
+      }
+    }
+  }
 
   return (
     <LoginPageBox>
       <LoginImageBox>
         <LogoImg src="/logo-128x128.png" />
       </LoginImageBox>
-      <LoginFormBox>
-        <LoginFormForPopUp onSubmit={onSubmit} />
-      </LoginFormBox>
-      <ErrorBox>{error}</ErrorBox>
+      <LoginFormBox>{determineWidget(state)}</LoginFormBox>
     </LoginPageBox>
   )
 }

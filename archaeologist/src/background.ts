@@ -48,6 +48,10 @@ import * as auth from './background/auth'
 
 const BADGE_MARKER_PAGE_SAVED = '✓'
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
     const tabs = await browser.tabs.query({
@@ -286,7 +290,7 @@ async function handleMessageFromPopup(
       // should somehow be consolidated
       const account = auth.account()
       const authenticated = account.isAuthenticated()
-      badge.setActive(account.isAuthenticated())
+      badge.setActive(authenticated)
       return {
         type: 'AUTH_STATUS',
         userUid: authenticated ? account.getUid() : undefined,
@@ -598,7 +602,7 @@ class Background {
     sender: browser.Runtime.MessageSender
   ): Promise<FromBackground.Response> {
     if (this.state.phase === 'not-init') {
-      return await this.handleAuthenticationMessage(message)
+      return await this.handleAuthenticationMessageFromPopup(message)
     }
     if (this.state.phase !== 'init-done') {
       throw new Error(`background unexpectedly had state '${this.state.phase}'`)
@@ -618,7 +622,7 @@ class Background {
     )
   }
 
-  async handleAuthenticationMessage(
+  async handleAuthenticationMessageFromPopup(
     message: ToBackground.Request
   ): Promise<FromBackground.Response> {
     const error =
@@ -633,14 +637,32 @@ class Background {
         // should somehow be consolidated
         const account = auth.account()
         const authenticated = account.isAuthenticated()
-        badge.setActive(account.isAuthenticated())
+        badge.setActive(authenticated)
         return {
           type: 'AUTH_STATUS',
           userUid: authenticated ? account.getUid() : undefined,
         }
       }
       case 'REQUEST_TO_LOG_IN': {
+        const timeout = new Promise<null>((_, reject) => {
+          sleep(5000).then(() =>
+            reject(`Initialisation after successful login has timed out`)
+          )
+        })
+        const result = new Promise<void>((resolve, reject) => {
+          const stopObserving = auth.observe({
+            onLogin: (_: UserAccount) => {
+              stopObserving()
+              resolve()
+            },
+            onLogout: () => {
+              stopObserving()
+              reject()
+            },
+          })
+        })
         await auth.login(message.args)
+        await Promise.race([timeout, result])
         return { type: 'VOID_RESPONSE' }
       }
     }
@@ -741,7 +763,7 @@ const bg = new Background()
 browser.runtime.onMessage.addListener(
   (message: ToBackground.Request, sender: browser.Runtime.MessageSender) => {
     try {
-      bg.onMessageFromOtherPartsOfArchaeologist(message, sender)
+      return bg.onMessageFromOtherPartsOfArchaeologist(message, sender)
     } catch (reason) {
       log.error(
         `Failed to process '${message.direction}' message '${message.type}': ` +
@@ -757,7 +779,7 @@ browser.runtime.onMessage.addListener(
 browser.runtime.onMessageExternal.addListener(
   (message: FromTruthsayer.Request, sender: browser.Runtime.MessageSender) => {
     try {
-      bg.onMessageFromTruthsayer(message, sender)
+      return bg.onMessageFromTruthsayer(message, sender)
     } catch (reason) {
       log.error(
         `Failed to process 'from-truthsayer' message '${message.type}', ` +
