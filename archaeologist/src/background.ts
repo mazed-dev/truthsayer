@@ -7,6 +7,7 @@ import {
   FromPopUp,
   FromContent,
   ToBackground,
+  FromBackground,
 } from './message/types'
 import { TDoc } from 'elementary'
 import * as badge from './badge/badge'
@@ -162,7 +163,7 @@ async function handleMessageFromContent(
   ctx: BackgroundContext,
   message: FromContent.Request,
   sender: browser.Runtime.MessageSender
-): Promise<ToContent.Response | FromContent.Response> {
+): Promise<ToContent.Response> {
   const tab = sender.tab ?? (await getActiveTab())
   log.debug('Get message from content', message, tab)
   switch (message.type) {
@@ -364,39 +365,6 @@ class Background {
 
   constructor() {
     log.debug(`Background one-time pre-init started`)
-    const onAuthenticationMessage = async (message: ToBackground.Request) => {
-      if (
-        message.direction !== 'from-popup' ||
-        (message.type !== 'REQUEST_TO_LOG_IN' &&
-          message.type !== 'REQUEST_AUTH_STATUS')
-      ) {
-        const error =
-          "until authentication is successful, only 'from-popup' messages related to authentication are allowed"
-        console.error(
-          `Rejected '${message.direction}' message '${message.type}', ${error}`
-        )
-        throw new Error(error)
-      }
-      switch (message.type) {
-        case 'REQUEST_AUTH_STATUS': {
-          // TODO[snikitin@outlook.com] This is copy-pasted in onMessage,
-          // should somehow be consolidated
-          const account = auth.account()
-          const authenticated = account.isAuthenticated()
-          badge.setActive(account.isAuthenticated())
-          return {
-            type: 'AUTH_STATUS',
-            userUid: authenticated ? account.getUid() : undefined,
-          }
-        }
-        case 'REQUEST_TO_LOG_IN': {
-          await auth.login(message.args)
-          return { type: 'VOID_RESPONSE' }
-        }
-      }
-    }
-
-    browser.runtime.onMessage.addListener(onAuthenticationMessage)
     auth.observe({
       onLogin: (account: UserAccount) => {
         if (this.state.phase !== 'not-init') {
@@ -404,7 +372,6 @@ class Background {
             `Attempted to init background, but it has unexpected state '${this.state.phase}'`
           )
         }
-        browser.runtime.onMessage.removeListener(onAuthenticationMessage)
         const loading = new Promise<void>(async (resolve, reject) => {
           try {
             log.debug(`Background init started`)
@@ -429,7 +396,6 @@ class Background {
               )
             }
             this.state = { phase: 'not-init' }
-            browser.runtime.onMessage.addListener(onAuthenticationMessage)
             reject(initFailureReason)
           }
         })
@@ -450,7 +416,6 @@ class Background {
           log.debug(`Background deinit started`)
           await this.deinit()
           this.state = { phase: 'not-init' }
-          browser.runtime.onMessage.addListener(onAuthenticationMessage)
           log.debug(`Background deinit ended`)
         }
         switch (this.state.phase) {
@@ -486,127 +451,6 @@ class Background {
     )
 
     const ctx: BackgroundContext = { storage, analytics }
-
-    // Listen to messages from other parts of archaeologist
-    {
-      const onMessage = async (
-        message: ToBackground.Request,
-        sender: browser.Runtime.MessageSender
-      ) => {
-        try {
-          switch (message.direction) {
-            case 'from-content':
-              return await handleMessageFromContent(ctx, message, sender)
-            case 'from-popup':
-              return await handleMessageFromPopup(ctx, message)
-            default:
-          }
-        } catch (error) {
-          console.error(
-            `Failed to process '${message.direction}' message '${message.type}', ${error}`
-          )
-          throw error
-        }
-
-        throw new Error(
-          `background received msg of unknown direction, message: ${JSON.stringify(
-            message
-          )}`
-        )
-      }
-      browser.runtime.onMessage.addListener(onMessage)
-      this.deinitialisers.push(() =>
-        browser.runtime.onMessage.removeListener(onMessage)
-      )
-    }
-
-    // Listen to messages from truthsayer
-    {
-      const onExternalMessage = async (
-        message: FromTruthsayer.Request,
-        _: browser.Runtime.MessageSender
-      ): Promise<ToTruthsayer.Response> => {
-        switch (message.type) {
-          case 'GET_ARCHAEOLOGIST_STATE_REQUEST': {
-            return {
-              type: 'GET_ARCHAEOLOGIST_STATE_RESPONSE',
-              version: {
-                version: browser.runtime.getManifest().version,
-              },
-            }
-          }
-          case 'GET_APP_SETTINGS_REQUEST': {
-            return {
-              type: 'GET_APP_SETTINGS_RESPONSE',
-              settings: await getAppSettings(browser.storage.local),
-            }
-          }
-          case 'SET_APP_SETTINGS_REQUEST': {
-            await setAppSettings(browser.storage.local, message.newValue)
-            return {
-              type: 'VOID_RESPONSE',
-            }
-          }
-          case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
-            return {
-              type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE',
-              value: await processMsgFromMsgProxyStorageApi(
-                ctx.storage,
-                message.payload
-              ),
-            }
-          }
-          case 'UPLOAD_BROWSER_HISTORY': {
-            await BrowserHistoryUpload.upload(
-              ctx.storage,
-              message,
-              (progress: BackgroundActionProgress) =>
-                reportBackgroundActionProgress(
-                  'browser-history-upload',
-                  progress
-                )
-            )
-            return { type: 'VOID_RESPONSE' }
-          }
-          case 'CANCEL_BROWSER_HISTORY_UPLOAD': {
-            BrowserHistoryUpload.cancel()
-            return { type: 'VOID_RESPONSE' }
-          }
-          case 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY': {
-            const numDeleted = await ctx.storage.node.bulkDelete({
-              createdVia: {
-                autoIngestion: BrowserHistoryUpload.externalPipelineId(),
-              },
-            })
-            return {
-              type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
-              numDeleted,
-            }
-          }
-          case 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST': {
-            await OpenTabs.uploadAll(
-              ctx.storage,
-              (progress: BackgroundActionProgress) =>
-                reportBackgroundActionProgress('open-tabs-upload', progress)
-            )
-            return { type: 'VOID_RESPONSE' }
-          }
-          case 'CANCEL_UPLOAD_OF_CURRENTLY_OPEN_TABS_REQUEST': {
-            await OpenTabs.cancel()
-            return { type: 'VOID_RESPONSE' }
-          }
-        }
-        throw new Error(
-          `background received msg from truthsayer of unknown type, message: ${JSON.stringify(
-            message
-          )}`
-        )
-      }
-      browser.runtime.onMessageExternal.addListener(onExternalMessage)
-      this.deinitialisers.push(() =>
-        browser.runtime.onMessageExternal.removeListener(onExternalMessage)
-      )
-    }
 
     // Init content once tab is fully loaded
     {
@@ -748,6 +592,178 @@ class Background {
     }
     this.deinitialisers = []
   }
+
+  async onMessageFromOtherPartsOfArchaeologist(
+    message: ToBackground.Request,
+    sender: browser.Runtime.MessageSender
+  ): Promise<FromBackground.Response> {
+    if (this.state.phase === 'not-init') {
+      return await this.handleAuthenticationMessage(message)
+    }
+    if (this.state.phase !== 'init-done') {
+      throw new Error(`background unexpectedly had state '${this.state.phase}'`)
+    }
+
+    const ctx = this.state.context
+    switch (message.direction) {
+      case 'from-content':
+        return await handleMessageFromContent(ctx, message, sender)
+      case 'from-popup':
+        return await handleMessageFromPopup(ctx, message)
+    }
+    throw new Error(
+      `background received msg of unknown direction, message: ${JSON.stringify(
+        message
+      )}`
+    )
+  }
+
+  async handleAuthenticationMessage(
+    message: ToBackground.Request
+  ): Promise<FromBackground.Response> {
+    const error =
+      "until authentication is successful, only 'from-popup' messages related to authentication are allowed"
+    if (message.direction !== 'from-popup') {
+      throw new Error(error)
+    }
+
+    switch (message.type) {
+      case 'REQUEST_AUTH_STATUS': {
+        // TODO[snikitin@outlook.com] This is copy-pasted in handleMessageFromPopup,
+        // should somehow be consolidated
+        const account = auth.account()
+        const authenticated = account.isAuthenticated()
+        badge.setActive(account.isAuthenticated())
+        return {
+          type: 'AUTH_STATUS',
+          userUid: authenticated ? account.getUid() : undefined,
+        }
+      }
+      case 'REQUEST_TO_LOG_IN': {
+        await auth.login(message.args)
+        return { type: 'VOID_RESPONSE' }
+      }
+    }
+    throw new Error(error)
+  }
+
+  async onMessageFromTruthsayer(
+    message: FromTruthsayer.Request,
+    _: browser.Runtime.MessageSender
+  ): Promise<ToTruthsayer.Response> {
+    if (this.state.phase !== 'init-done') {
+      throw new Error(`background unexpectedly had state '${this.state.phase}'`)
+    }
+    const ctx = this.state.context
+
+    switch (message.type) {
+      case 'GET_ARCHAEOLOGIST_STATE_REQUEST': {
+        return {
+          type: 'GET_ARCHAEOLOGIST_STATE_RESPONSE',
+          version: {
+            version: browser.runtime.getManifest().version,
+          },
+        }
+      }
+      case 'GET_APP_SETTINGS_REQUEST': {
+        return {
+          type: 'GET_APP_SETTINGS_RESPONSE',
+          settings: await getAppSettings(browser.storage.local),
+        }
+      }
+      case 'SET_APP_SETTINGS_REQUEST': {
+        await setAppSettings(browser.storage.local, message.newValue)
+        return {
+          type: 'VOID_RESPONSE',
+        }
+      }
+      case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
+        return {
+          type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE',
+          value: await processMsgFromMsgProxyStorageApi(
+            ctx.storage,
+            message.payload
+          ),
+        }
+      }
+      case 'UPLOAD_BROWSER_HISTORY': {
+        await BrowserHistoryUpload.upload(
+          ctx.storage,
+          message,
+          (progress: BackgroundActionProgress) =>
+            reportBackgroundActionProgress('browser-history-upload', progress)
+        )
+        return { type: 'VOID_RESPONSE' }
+      }
+      case 'CANCEL_BROWSER_HISTORY_UPLOAD': {
+        BrowserHistoryUpload.cancel()
+        return { type: 'VOID_RESPONSE' }
+      }
+      case 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY': {
+        const numDeleted = await ctx.storage.node.bulkDelete({
+          createdVia: {
+            autoIngestion: BrowserHistoryUpload.externalPipelineId(),
+          },
+        })
+        return {
+          type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
+          numDeleted,
+        }
+      }
+      case 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST': {
+        await OpenTabs.uploadAll(
+          ctx.storage,
+          (progress: BackgroundActionProgress) =>
+            reportBackgroundActionProgress('open-tabs-upload', progress)
+        )
+        return { type: 'VOID_RESPONSE' }
+      }
+      case 'CANCEL_UPLOAD_OF_CURRENTLY_OPEN_TABS_REQUEST': {
+        await OpenTabs.cancel()
+        return { type: 'VOID_RESPONSE' }
+      }
+    }
+    throw new Error(
+      `background received msg from truthsayer of unknown type, message: ${JSON.stringify(
+        message
+      )}`
+    )
+  }
 }
 
-const bg = new Background() // eslint-disable-line @typescript-eslint/no-unused-vars
+const bg = new Background()
+
+// NOTE: it is important that there is exactly one listener for browser.runtime.onMessage
+// at all times (including the very first stages of background initialisation).
+// This guarantees tha when other parts of archaeologist send messages, there
+// is at least *some* response in every case (instad of difficult to
+// diagnose "Could not establish connection. Receiving end does not exist." errors).
+browser.runtime.onMessage.addListener(
+  (message: ToBackground.Request, sender: browser.Runtime.MessageSender) => {
+    try {
+      bg.onMessageFromOtherPartsOfArchaeologist(message, sender)
+    } catch (reason) {
+      log.error(
+        `Failed to process '${message.direction}' message '${message.type}': ` +
+          `${errorise(reason).message}`
+      )
+      throw reason
+    }
+  }
+)
+// NOTE: the same that's described above for browser.runtime.onMessage
+// is true here as well. There must be exactly one listener for
+// browser.runtime.onMessageExternal, as soon as possible.
+browser.runtime.onMessageExternal.addListener(
+  (message: FromTruthsayer.Request, sender: browser.Runtime.MessageSender) => {
+    try {
+      bg.onMessageFromTruthsayer(message, sender)
+    } catch (reason) {
+      log.error(
+        `Failed to process 'from-truthsayer' message '${message.type}', ` +
+          `${errorise(reason).message}`
+      )
+      throw reason
+    }
+  }
+)

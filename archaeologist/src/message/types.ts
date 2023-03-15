@@ -422,3 +422,6 @@ export namespace ToBackground {
     | ({ direction: 'from-popup' } & FromPopUp.Request)
     | ({ direction: 'from-content' } & FromContent.Request)
 }
+export namespace FromBackground {
+  export type Response = ToPopUp.Response | ToContent.Response
+}
