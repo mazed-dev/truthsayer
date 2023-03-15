@@ -72,7 +72,7 @@ class Login extends React.Component {
         {
           email,
           password,
-          permissions
+          permissions,
         },
         this.createSessionAbortController.signal
       )
