@@ -6,6 +6,8 @@ import { css } from '@emotion/react'
 import { BlockQuote } from '../editor/components/BlockQuote'
 import { MdiLaunch } from '../MaterialIcons'
 
+import { Launch } from '@emotion-icons/material'
+
 import type { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
 import type { Optional } from 'armoury'
 import { productanalytics } from 'armoury'
@@ -111,7 +113,7 @@ const PreviewImage = ({
       {img}
       {url != null ? (
         <IconLaunch href={url} onClick={onLaunch}>
-          <MdiLaunch />
+          <Launch size={20} />
         </IconLaunch>
       ) : null}
     </PreviewImageBox>
@@ -148,9 +150,10 @@ const BookmarkUrlStripped = ({
 }) => {
   url = url.replace(/^https?:\/\//, '')
   return (
-    <p
+    <a
       className={className}
       css={css`
+        display: inline-block;
         font-size: 0.84em;
         letter-spacing: 0.025em;
         color: #478ac0;
@@ -162,10 +165,12 @@ const BookmarkUrlStripped = ({
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        text-decoration: none;
       `}
+      href={url}
     >
       {url}
-    </p>
+    </a>
   )
 }
 
@@ -175,13 +180,14 @@ const Author = styled.p`
   font-style: italic;
 `
 
-const DescriptionBox = styled.div`
+const Description = styled.blockquote`
   font-size: 1em;
-  padding: 0;
-  margin: 0 8px 0 8px;
-`
-const Description = styled(BlockQuote)`
-  margin: 4px 0 6px 0;
+  line-height: 142%;
+
+  padding: 8px 8px 8px 8px;
+  margin: 0;
+  color: #5e5e5e;
+  background: #f8f8f8;
 `
 
 type WebBookmarkProps = {
@@ -210,11 +216,9 @@ export const WebBookmark = ({
     </Author>
   ) : null
   const descriptionElement = description ? (
-    <DescriptionBox>
       <Description cite={url} className={productanalytics.classExclude()}>
         {description}
       </Description>
-    </DescriptionBox>
   ) : null
   return (
     <Box className={className}>

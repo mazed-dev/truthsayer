@@ -8766,6 +8766,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "elementary@workspace:elementary"
   dependencies:
+    "@emotion-icons/material": ^3.14.0
     "@emotion/react": ^11.9.0
     "@emotion/styled": ^11.8.1
     "@testing-library/dom": ^7.29

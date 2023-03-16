@@ -42,6 +42,8 @@ const SuggestedCardsBox = styled.div`
   border-radius: 4px;
   color: black;
   box-shadow: 2px 2px 4px #8c8c8ceb;
+
+  user-select: auto;
 `
 const DraggableElement = styled.div`
   position: absolute;
@@ -64,7 +66,7 @@ const HeaderText = styled.div`
 const SuggestionsFloaterSuggestionsBox = styled.div`
   display: flex;
   flex-direction: column;
-  max-height: 80vh;
+  max-height: 90vh;
   padding: 4px 0 4px 0;
   overflow-y: scroll;
 `
@@ -85,7 +87,7 @@ const SuggestionButton = styled(MeteredButton)`
 const SuggestedCardBox = styled.div`
   font-size: 12px;
 
-  margin: 1px 4px 1px 4px;
+  margin: 1px 2px 1px 2px;
 
   border: 1px solid #ececec;
   border-radius: 6px;
@@ -93,6 +95,7 @@ const SuggestedCardBox = styled.div`
 
 const SuggestedCardTools = styled.div`
   display: flex;
+  display: none;
   flex-direction: row;
   justify-content: space-evenly;
   padding: 0;
@@ -187,14 +190,11 @@ const SuggestedCard = ({
   const ctx = React.useContext(ContentContext)
   return (
     <SuggestedCardBox>
-      <ShrinkMinimalCard showMore={seeMore} height={'116px'}>
-        <NodeCardReadOnly
-          node={node}
-          strippedRefs
-          strippedActions
-          storage={ctx.storage}
-        />
-      </ShrinkMinimalCard>
+      <NodeCardReadOnly
+        node={node}
+        strippedActions
+        storage={ctx.storage}
+      />
       <SuggestedCardTools>
         <CardCopyButton node={node} onClose={onClose} />
         <SuggestionButton

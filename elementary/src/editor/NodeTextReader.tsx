@@ -46,7 +46,7 @@ export const NodeTextReader = ({
             renderLeaf={renderLeaf}
             readOnly
             css={css`
-              padding: 1em 1em 0 1em;
+              padding: 0 0.8em 0.8em 0.8em;
             `}
             className={productanalytics.classExclude()}
           />
