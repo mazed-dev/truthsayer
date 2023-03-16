@@ -7,7 +7,7 @@ import { PostHog } from 'posthog-js'
 import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { LoginForm, Spinner } from 'elementary'
-import { errorise, log, productanalytics } from 'armoury'
+import { errorise, productanalytics } from 'armoury'
 import { PopUpContext } from './context'
 import type {
   ForwardToRealImpl,
