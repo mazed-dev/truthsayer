@@ -158,7 +158,7 @@ const LoginPage = ({
         setState({ type: 'error', message: errorise(reason).message })
       }
     },
-    [setState, onLogin]
+    [state.type, setState, onLogin]
   )
 
   const determineWidget = (state: LoginPageState) => {
@@ -179,7 +179,7 @@ const LoginPage = ({
         )
       }
       case 'logged-in': {
-        return <>Logged in✅</>
+        return <>Logged in ✅</>
       }
     }
   }
