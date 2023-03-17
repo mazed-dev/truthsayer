@@ -649,7 +649,20 @@ class Background {
             reject(`Initialisation after successful login has timed out`)
           )
         })
-        const result = new Promise<void>((resolve, reject) => {
+        // The goal of the promise below is to wait until Background.init()
+        // finishes fully. This means the sender of the request knows
+        // deterministically when it's allowed to start sending requests
+        // not related to authentication.
+        //
+        // HACK: Implementation of the above however is a hack -- it
+        // piggy backs on the fact that
+        //    - `auth.observe` executes callbacks in order of their registration
+        //    - when `auth.observe` executes callbacks, it `await`s for a callback
+        //      to finish before going to the next one
+        //    - the very first callback registered with `auth.observe` is the
+        //      one which calls `Background.init()`
+        // in order of their registreation
+        const waitUntilInitIsDone = new Promise<void>((resolve, reject) => {
           const stopObserving = auth.observe({
             onLogin: (_: UserAccount) => {
               stopObserving()
@@ -662,7 +675,7 @@ class Background {
           })
         })
         await auth.login(message.args)
-        await Promise.race([timeout, result])
+        await Promise.race([timeout, waitUntilInitIsDone])
         return { type: 'VOID_RESPONSE' }
       }
     }
