@@ -7,6 +7,7 @@ import {
   FromPopUp,
   FromContent,
   ToBackground,
+  FromBackground,
 } from './message/types'
 import { TDoc } from 'elementary'
 import * as badge from './badge/badge'
@@ -46,6 +47,10 @@ import * as similarity from './background/search/similarity'
 import * as auth from './background/auth'
 
 const BADGE_MARKER_PAGE_SAVED = '✓'
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
 
 async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
   try {
@@ -162,7 +167,7 @@ async function handleMessageFromContent(
   ctx: BackgroundContext,
   message: FromContent.Request,
   sender: browser.Runtime.MessageSender
-): Promise<ToContent.Response | FromContent.Response> {
+): Promise<ToContent.Response> {
   const tab = sender.tab ?? (await getActiveTab())
   log.debug('Get message from content', message, tab)
   switch (message.type) {
@@ -281,13 +286,18 @@ async function handleMessageFromPopup(
       }
     }
     case 'REQUEST_AUTH_STATUS': {
+      // TODO[snikitin@outlook.com] This is copy-pasted in onAuthenticationMessage,
+      // should somehow be consolidated
       const account = auth.account()
       const authenticated = account.isAuthenticated()
-      badge.setActive(account.isAuthenticated())
+      badge.setActive(authenticated)
       return {
         type: 'AUTH_STATUS',
         userUid: authenticated ? account.getUid() : undefined,
       }
+    }
+    case 'REQUEST_TO_LOG_IN': {
+      throw new Error(`Authentication has already been successfully completed`)
     }
     case 'REQUEST_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB': {
       const suggestedAkinNodes: TNodeJson[] = []
@@ -351,35 +361,48 @@ type BackgroundContext = {
 class Background {
   state:
     | { phase: 'not-init' }
-    | { phase: 'loading'; loading: Promise<void> }
-    | { phase: 'unloading'; unloading: Promise<void> }
+    | { phase: 'loading' }
+    | { phase: 'unloading' }
     | { phase: 'init-done'; context: BackgroundContext } = { phase: 'not-init' }
 
   private deinitialisers: (() => void | Promise<void>)[] = []
 
   constructor() {
-    auth.register()
+    log.debug(`Background one-time pre-init started`)
     auth.observe({
-      onLogin: (account: UserAccount) => {
+      onLogin: async (account: UserAccount) => {
         if (this.state.phase !== 'not-init') {
           throw new Error(
             `Attempted to init background, but it has unexpected state '${this.state.phase}'`
           )
         }
-        const loading = new Promise<void>(async (resolve, reject) => {
+        this.state = { phase: 'loading' }
+        try {
+          log.debug(`Background init started`)
+          const context = await this.init(account)
+          this.state = { phase: 'init-done', context }
+          log.debug(`Background init done`)
+        } catch (initFailureReason) {
           try {
-            log.debug(`Background init started`)
-            const context = await this.init(account)
-            this.state = { phase: 'init-done', context }
-            log.debug(`Background init done`)
-            resolve()
-          } catch (reason) {
-            reject(reason)
+            await this.deinit()
+            log.error(
+              `Background init failed: ${errorise(initFailureReason).message}`
+            )
+          } catch (deinitFailureReason) {
+            log.error(
+              `Background init failed: ${
+                errorise(initFailureReason).message
+              }\n` +
+                `Also failed to revert the partially complete init: ${
+                  errorise(deinitFailureReason).message
+                }`
+            )
           }
-        })
-        this.state = { phase: 'loading', loading }
+          this.state = { phase: 'not-init' }
+          throw initFailureReason
+        }
       },
-      onLogout: () => {
+      onLogout: async () => {
         if (
           this.state.phase === 'not-init' ||
           this.state.phase === 'unloading'
@@ -390,30 +413,15 @@ class Background {
           return
         }
 
-        const deinitAndChangePhase = async () => {
-          log.debug(`Background deinit started`)
-          await this.deinit()
-          this.state = { phase: 'not-init' }
-          log.debug(`Background deinit ended`)
-        }
-        switch (this.state.phase) {
-          case 'loading': {
-            this.state = {
-              phase: 'unloading',
-              unloading: this.state.loading.then(deinitAndChangePhase),
-            }
-            return
-          }
-          case 'init-done': {
-            this.state = {
-              phase: 'unloading',
-              unloading: deinitAndChangePhase(),
-            }
-            return
-          }
-        }
+        log.debug(`Background deinit started`)
+        this.state = { phase: 'unloading' }
+        await this.deinit()
+        this.state = { phase: 'not-init' }
+        log.debug(`Background deinit ended`)
       },
     })
+    auth.register()
+    log.debug(`Background one-time pre-init ended`)
   }
 
   private async init(account: UserAccount): Promise<BackgroundContext> {
@@ -427,127 +435,6 @@ class Background {
     )
 
     const ctx: BackgroundContext = { storage, analytics }
-
-    // Listen to messages from other parts of archaeologist
-    {
-      const onMessage = async (
-        message: ToBackground.Request,
-        sender: browser.Runtime.MessageSender
-      ) => {
-        try {
-          switch (message.direction) {
-            case 'from-content':
-              return await handleMessageFromContent(ctx, message, sender)
-            case 'from-popup':
-              return await handleMessageFromPopup(ctx, message)
-            default:
-          }
-        } catch (error) {
-          console.error(
-            `Failed to process '${message.direction}' message '${message.type}', ${error}`
-          )
-          throw error
-        }
-
-        throw new Error(
-          `background received msg of unknown direction, message: ${JSON.stringify(
-            message
-          )}`
-        )
-      }
-      browser.runtime.onMessage.addListener(onMessage)
-      this.deinitialisers.push(() =>
-        browser.runtime.onMessage.removeListener(onMessage)
-      )
-    }
-
-    // Listen to messages from truthsayer
-    {
-      const onExternalMessage = async (
-        message: FromTruthsayer.Request,
-        _: browser.Runtime.MessageSender
-      ): Promise<ToTruthsayer.Response> => {
-        switch (message.type) {
-          case 'GET_ARCHAEOLOGIST_STATE_REQUEST': {
-            return {
-              type: 'GET_ARCHAEOLOGIST_STATE_RESPONSE',
-              version: {
-                version: browser.runtime.getManifest().version,
-              },
-            }
-          }
-          case 'GET_APP_SETTINGS_REQUEST': {
-            return {
-              type: 'GET_APP_SETTINGS_RESPONSE',
-              settings: await getAppSettings(browser.storage.local),
-            }
-          }
-          case 'SET_APP_SETTINGS_REQUEST': {
-            await setAppSettings(browser.storage.local, message.newValue)
-            return {
-              type: 'VOID_RESPONSE',
-            }
-          }
-          case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
-            return {
-              type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE',
-              value: await processMsgFromMsgProxyStorageApi(
-                ctx.storage,
-                message.payload
-              ),
-            }
-          }
-          case 'UPLOAD_BROWSER_HISTORY': {
-            await BrowserHistoryUpload.upload(
-              ctx.storage,
-              message,
-              (progress: BackgroundActionProgress) =>
-                reportBackgroundActionProgress(
-                  'browser-history-upload',
-                  progress
-                )
-            )
-            return { type: 'VOID_RESPONSE' }
-          }
-          case 'CANCEL_BROWSER_HISTORY_UPLOAD': {
-            BrowserHistoryUpload.cancel()
-            return { type: 'VOID_RESPONSE' }
-          }
-          case 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY': {
-            const numDeleted = await ctx.storage.node.bulkDelete({
-              createdVia: {
-                autoIngestion: BrowserHistoryUpload.externalPipelineId(),
-              },
-            })
-            return {
-              type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
-              numDeleted,
-            }
-          }
-          case 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST': {
-            await OpenTabs.uploadAll(
-              ctx.storage,
-              (progress: BackgroundActionProgress) =>
-                reportBackgroundActionProgress('open-tabs-upload', progress)
-            )
-            return { type: 'VOID_RESPONSE' }
-          }
-          case 'CANCEL_UPLOAD_OF_CURRENTLY_OPEN_TABS_REQUEST': {
-            await OpenTabs.cancel()
-            return { type: 'VOID_RESPONSE' }
-          }
-        }
-        throw new Error(
-          `background received msg from truthsayer of unknown type, message: ${JSON.stringify(
-            message
-          )}`
-        )
-      }
-      browser.runtime.onMessageExternal.addListener(onExternalMessage)
-      this.deinitialisers.push(() =>
-        browser.runtime.onMessageExternal.removeListener(onExternalMessage)
-      )
-    }
 
     // Init content once tab is fully loaded
     {
@@ -689,6 +576,216 @@ class Background {
     }
     this.deinitialisers = []
   }
+
+  async onMessageFromOtherPartsOfArchaeologist(
+    message: ToBackground.Request,
+    sender: browser.Runtime.MessageSender
+  ): Promise<FromBackground.Response> {
+    if (this.state.phase === 'not-init') {
+      return await this.handleAuthenticationMessageFromPopup(message)
+    }
+    if (this.state.phase !== 'init-done') {
+      throw new Error(`background unexpectedly had state '${this.state.phase}'`)
+    }
+
+    const ctx = this.state.context
+    switch (message.direction) {
+      case 'from-content':
+        return await handleMessageFromContent(ctx, message, sender)
+      case 'from-popup':
+        return await handleMessageFromPopup(ctx, message)
+    }
+    throw new Error(
+      `background received msg of unknown direction, message: ${JSON.stringify(
+        message
+      )}`
+    )
+  }
+
+  async handleAuthenticationMessageFromPopup(
+    message: ToBackground.Request
+  ): Promise<FromBackground.Response> {
+    const error =
+      "until authentication is successful, only 'from-popup' messages related to authentication are allowed"
+    if (message.direction !== 'from-popup') {
+      throw new Error(error)
+    }
+
+    switch (message.type) {
+      case 'REQUEST_AUTH_STATUS': {
+        // TODO[snikitin@outlook.com] This is copy-pasted in handleMessageFromPopup,
+        // should somehow be consolidated
+        const account = auth.account()
+        const authenticated = account.isAuthenticated()
+        badge.setActive(authenticated)
+        return {
+          type: 'AUTH_STATUS',
+          userUid: authenticated ? account.getUid() : undefined,
+        }
+      }
+      case 'REQUEST_TO_LOG_IN': {
+        const timeout = new Promise<never>((_, reject) => {
+          sleep(5000).then(() =>
+            reject(`Initialisation after successful login has timed out`)
+          )
+        })
+        // The goal of the promise below is to wait until Background.init()
+        // finishes fully. This means the sender of the request knows
+        // deterministically when it's allowed to start sending requests
+        // not related to authentication.
+        //
+        // HACK: Implementation of the above however is a hack -- it
+        // piggy backs on the fact that
+        //    - `auth.observe` executes callbacks in order of their registration
+        //    - when `auth.observe` executes callbacks, it `await`s for a callback
+        //      to finish before going to the next one
+        //    - the very first callback registered with `auth.observe` is the
+        //      one which calls `Background.init()`
+        // in order of their registreation
+        const waitForInit = new Promise<UserAccount>((resolve, reject) => {
+          const stopObserving = auth.observe({
+            onLogin: async (account: UserAccount) => {
+              stopObserving()
+              resolve(account)
+            },
+            onLogout: async () => {
+              stopObserving()
+              reject()
+            },
+          })
+        })
+        await auth.login(message.args)
+        const account = await Promise.race([timeout, waitForInit])
+        return {
+          type: 'RESPONSE_LOG_IN',
+          user: {
+            email: account.getEmail(),
+            uid: account.getUid(),
+            name: account.getName(),
+          },
+        }
+      }
+    }
+    throw new Error(error)
+  }
+
+  async onMessageFromTruthsayer(
+    message: FromTruthsayer.Request,
+    _: browser.Runtime.MessageSender
+  ): Promise<ToTruthsayer.Response> {
+    if (this.state.phase !== 'init-done') {
+      throw new Error(`background unexpectedly had state '${this.state.phase}'`)
+    }
+    const ctx = this.state.context
+
+    switch (message.type) {
+      case 'GET_ARCHAEOLOGIST_STATE_REQUEST': {
+        return {
+          type: 'GET_ARCHAEOLOGIST_STATE_RESPONSE',
+          version: {
+            version: browser.runtime.getManifest().version,
+          },
+        }
+      }
+      case 'GET_APP_SETTINGS_REQUEST': {
+        return {
+          type: 'GET_APP_SETTINGS_RESPONSE',
+          settings: await getAppSettings(browser.storage.local),
+        }
+      }
+      case 'SET_APP_SETTINGS_REQUEST': {
+        await setAppSettings(browser.storage.local, message.newValue)
+        return {
+          type: 'VOID_RESPONSE',
+        }
+      }
+      case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
+        return {
+          type: 'MSG_PROXY_STORAGE_ACCESS_RESPONSE',
+          value: await processMsgFromMsgProxyStorageApi(
+            ctx.storage,
+            message.payload
+          ),
+        }
+      }
+      case 'UPLOAD_BROWSER_HISTORY': {
+        await BrowserHistoryUpload.upload(
+          ctx.storage,
+          message,
+          (progress: BackgroundActionProgress) =>
+            reportBackgroundActionProgress('browser-history-upload', progress)
+        )
+        return { type: 'VOID_RESPONSE' }
+      }
+      case 'CANCEL_BROWSER_HISTORY_UPLOAD': {
+        BrowserHistoryUpload.cancel()
+        return { type: 'VOID_RESPONSE' }
+      }
+      case 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY': {
+        const numDeleted = await ctx.storage.node.bulkDelete({
+          createdVia: {
+            autoIngestion: BrowserHistoryUpload.externalPipelineId(),
+          },
+        })
+        return {
+          type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
+          numDeleted,
+        }
+      }
+      case 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST': {
+        await OpenTabs.uploadAll(
+          ctx.storage,
+          (progress: BackgroundActionProgress) =>
+            reportBackgroundActionProgress('open-tabs-upload', progress)
+        )
+        return { type: 'VOID_RESPONSE' }
+      }
+      case 'CANCEL_UPLOAD_OF_CURRENTLY_OPEN_TABS_REQUEST': {
+        await OpenTabs.cancel()
+        return { type: 'VOID_RESPONSE' }
+      }
+    }
+    throw new Error(
+      `background received msg from truthsayer of unknown type, message: ${JSON.stringify(
+        message
+      )}`
+    )
+  }
 }
 
-const bg = new Background() // eslint-disable-line @typescript-eslint/no-unused-vars
+const bg = new Background()
+
+// NOTE: it is important that there is exactly one listener for browser.runtime.onMessage
+// at all times (including the very first stages of background initialisation).
+// This guarantees tha when other parts of archaeologist send messages, there
+// is at least *some* response in every case (instad of difficult to
+// diagnose "Could not establish connection. Receiving end does not exist." errors).
+browser.runtime.onMessage.addListener(
+  (message: ToBackground.Request, sender: browser.Runtime.MessageSender) => {
+    try {
+      return bg.onMessageFromOtherPartsOfArchaeologist(message, sender)
+    } catch (reason) {
+      log.error(
+        `Failed to process '${message.direction}' message '${message.type}': ` +
+          `${errorise(reason).message}`
+      )
+      throw reason
+    }
+  }
+)
+// NOTE: the same that's described above for browser.runtime.onMessage
+// is true here as well. There must be exactly one listener for
+// browser.runtime.onMessageExternal, as soon as possible.
+browser.runtime.onMessageExternal.addListener(
+  (message: FromTruthsayer.Request, sender: browser.Runtime.MessageSender) => {
+    try {
+      return bg.onMessageFromTruthsayer(message, sender)
+    } catch (reason) {
+      log.error(
+        `Failed to process 'from-truthsayer' message '${message.type}', ` +
+          `${errorise(reason).message}`
+      )
+      throw reason
+    }
+  }
+)

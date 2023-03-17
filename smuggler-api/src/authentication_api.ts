@@ -1,14 +1,15 @@
 import { Ack, AccountInfo } from './types'
 
+export type SessionCreateArgs = {
+  email: string
+  password: string
+  permissions: number | null
+}
+
 export type AuthenticationApi = {
   getAuth: ({ signal }: { signal?: AbortSignal }) => Promise<AccountInfo>
   session: {
-    create: (
-      email: string,
-      password: string,
-      permissions: number | null,
-      signal?: AbortSignal
-    ) => Promise<{}>
+    create: (args: SessionCreateArgs, signal?: AbortSignal) => Promise<{}>
     delete: ({ signal }: { signal: AbortSignal }) => Promise<Ack>
     update: (signal?: AbortSignal) => Promise<Ack>
   }

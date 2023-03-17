@@ -64,7 +64,7 @@ import moment from 'moment'
 import { StatusCode } from './status_codes'
 import { authCookie } from './auth/cookie'
 import { makeEmptyNodeTextData, NodeUtil } from './typesutil'
-import { AuthenticationApi } from './authentication_api'
+import { AuthenticationApi, SessionCreateArgs } from './authentication_api'
 import { NodeEvent } from './api_node_event_listener'
 
 const kHeaderCreatedAt = 'x-created-at'
@@ -493,14 +493,11 @@ function verifyIsNotNull(value: Optional<any>): void {
 }
 
 async function createSession(
-  email: string,
-  password: string,
-  permissions: number | null,
+  { email, password, permissions }: SessionCreateArgs,
   signal?: AbortSignal
 ): Promise<{}> {
   verifyIsNotNull(email)
   verifyIsNotNull(password)
-  verifyIsNotNull(signal)
   if (!permissions) {
     permissions = 31
   }
