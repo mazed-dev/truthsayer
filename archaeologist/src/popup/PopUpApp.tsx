@@ -1,20 +1,17 @@
 import React from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 
-import browser from 'webextension-polyfill'
-
 import styled from '@emotion/styled'
-import { css } from '@emotion/react'
 import { PostHog } from 'posthog-js'
 
 import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
-import { Button } from './Button'
-import { MdiLaunch, truthsayer } from 'elementary'
-import { productanalytics } from 'armoury'
+import { LoginForm, Spinner } from 'elementary'
+import { errorise, productanalytics } from 'armoury'
 import { PopUpContext } from './context'
 import type {
   ForwardToRealImpl,
+  SessionCreateArgs,
   StorageApiMsgPayload,
   StorageApiMsgReturnValue,
 } from 'smuggler-api'
@@ -33,26 +30,33 @@ type State = {
   analytics?: PostHog
 }
 
-type Action = ToPopUp.AuthStatusResponse
+type Action = ToPopUp.AuthStatusResponse | ToPopUp.LogInResponse
 
-function updateState(_: State, action: Action): State {
+function updateState(state: State, action: Action): State {
   switch (action.type) {
     case 'AUTH_STATUS': {
       if (action.userUid == null) {
         return {}
       }
-      const analytics: PostHog | undefined =
-        productanalytics.make(
-          'archaeologist/popup',
-          process.env.NODE_ENV,
-          {}
-        ) ?? undefined
       return {
         userUid: action.userUid,
-        analytics,
+        analytics: state.analytics ?? makeAnalytics(),
+      }
+    }
+    case 'RESPONSE_LOG_IN': {
+      return {
+        userUid: action.user.uid,
+        analytics: state.analytics ?? makeAnalytics(),
       }
     }
   }
+}
+
+function makeAnalytics(): PostHog | undefined {
+  return (
+    productanalytics.make('archaeologist/popup', process.env.NODE_ENV, {}) ??
+    undefined
+  )
 }
 
 export const PopUpApp = () => {
@@ -80,7 +84,11 @@ export const PopUpApp = () => {
       <PopUpContext.Provider
         value={{ storage: makeMsgProxyStorageApi(forwardToBackground) }}
       >
-        {state.userUid == null ? <LoginPage /> : <ViewActiveTabStatus />}
+        {state.userUid == null ? (
+          <LoginPage onLogin={dispatch} />
+        ) : (
+          <ViewActiveTabStatus />
+        )}
       </PopUpContext.Provider>
     </AppContainer>
   )
@@ -98,33 +106,90 @@ const LoginImageBox = styled.div`
   display: flex;
   justify-content: center;
 `
-const LoginBtnBox = styled.div`
-  margin: 24px auto 0 auto;
-  display: flex;
-  justify-content: center;
+
+const ErrorBox = styled.div`
+  color: red;
 `
 
-const LoginPage = () => {
-  const onClick = () => {
-    browser.tabs.create({
-      url: truthsayer.url.make({ pathname: '/login' }).toString(),
-    })
+const LoginFormBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+`
+const LoginFormForPopUp = styled(LoginForm)``
+
+type LoginPageState =
+  | { type: 'awaiting-input' }
+  | { type: 'logging-in' }
+  | { type: 'error'; message: string }
+  | { type: 'logged-in' }
+
+const LoginPage = ({
+  onLogin,
+}: {
+  onLogin: (response: ToPopUp.LogInResponse) => void
+}) => {
+  const [state, setState] = React.useState<LoginPageState>({
+    type: 'awaiting-input',
+  })
+  const onSubmit = React.useCallback(
+    async (email: string, password: string) => {
+      if (state.type === 'logged-in' || state.type === 'logging-in') {
+        throw new Error(
+          `Tried to log in, but the state is already '${state.type}'`
+        )
+      }
+      setState({ type: 'logging-in' })
+      const args: SessionCreateArgs = {
+        email: email,
+        password: password,
+        permissions: null,
+      }
+      try {
+        const response = await FromPopUp.sendMessage({
+          type: 'REQUEST_TO_LOG_IN',
+          args,
+        })
+        setState({ type: 'logged-in' })
+        onLogin(response)
+      } catch (reason) {
+        setState({ type: 'error', message: errorise(reason).message })
+      }
+    },
+    [state.type, setState, onLogin]
+  )
+
+  const determineWidget = (state: LoginPageState) => {
+    const input = <LoginFormForPopUp onSubmit={onSubmit} />
+    switch (state.type) {
+      case 'awaiting-input': {
+        return input
+      }
+      case 'logging-in': {
+        return <Spinner.Ring />
+      }
+      case 'error': {
+        return (
+          <>
+            {input}
+            <ErrorBox>{state.message}</ErrorBox>
+          </>
+        )
+      }
+      case 'logged-in': {
+        return <>Logged in ✅</>
+      }
+    }
   }
+
   return (
     <LoginPageBox>
       <LoginImageBox>
         <LogoImg src="/logo-128x128.png" />
       </LoginImageBox>
-      <LoginBtnBox>
-        <Button onClick={onClick}>
-          Login
-          <MdiLaunch
-            css={css`
-              vertical-align: middle;
-            `}
-          />
-        </Button>
-      </LoginBtnBox>
+      <LoginFormBox>{determineWidget(state)}</LoginFormBox>
     </LoginPageBox>
   )
 }

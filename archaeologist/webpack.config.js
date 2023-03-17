@@ -1,7 +1,7 @@
-const webpack = require("webpack");
-const path = require("path");
-const CopyPlugin = require("copy-webpack-plugin");
-const TerserPlugin = require('terser-webpack-plugin');
+const webpack = require("webpack")
+const path = require("path")
+const CopyPlugin = require("copy-webpack-plugin")
+const TerserPlugin = require('terser-webpack-plugin')
 
 const _getTruthsayerUrl = (mode) => {
   return mode === 'development' ? 'http://localhost:3000' : 'https://mazed.se/'
@@ -19,18 +19,12 @@ const _getSmugglerApiUrl = (mode) => {
     : "https://mazed.se/smuggler"
 }
 
-const _getSmugglerApiUrlMask = (mode) => {
-  const url = new URL(_getSmugglerApiUrl(mode))
-  url.pathname = '*'
-  return url.toString().replace(/:\d+/, '')
-}
-
 const _manifestTransformDowngradeToV2 = (manifest) => {
   // Downgrade manifest to version 2, Firefox does not support version 3 yet
   manifest.manifest_version = 2
   // background scripts are declared differently in v2
   const { service_worker } = manifest.background
-  manifest.background.scripts = [ service_worker ]
+  manifest.background.scripts = [service_worker]
   delete manifest.background.service_worker
   // host_permissions are not supported in v2
   manifest.permissions.push(
@@ -57,11 +51,8 @@ const _isChromium = (env) => {
 const _manifestTransform = (buffer, mode, env) => {
   let manifest = JSON.parse(buffer.toString())
 
-  const { firefox=false } = env
+  const { firefox = false } = env
 
-  // Add Mazed URL to host_permissions to grant access to mazed cookies
-  const smugglerApiUrlMask = _getSmugglerApiUrlMask(mode)
-  manifest.host_permissions.push(smugglerApiUrlMask)
   // Add Mazed URL to externally_connectable to allow to send messages
   // from truthsayer to archaeologist.
   // See https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/externally_connectable
@@ -86,7 +77,7 @@ const _manifestTransform = (buffer, mode, env) => {
     manifest.key =
       'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlcUBTiNA5dfNL88e5juZzzi0lmQNBox3tHo14gAnd6RaOT/XC8q6wh9ju8VhzTmUtNiApLnVDTzlU1QPw6wALrxaly8rTsmt7wdqZmOGmKTr+Qebp3uEzxNVdK6jzHQxrjSqaOk5huGXHqaOA7/LfFAhMPO7uimpUSv2uRLIOYSrewRnaQPw7JGdl4Py29+mmEmkcyjQUDK2+UHDRyskaT923VUA6XBxdTZEhv4aLFJZX1vxQrRYPTHDpFsP67Y7+Ta7qaP/GMj/bPDFPlBY4n0r+A/D2n7pS61hl7AVqSFKe/Jv/RjNG2TFEja6FY57zuwreL9zVXi2+u2KzXl6SwIDAQAB'
   }
-  return JSON.stringify(manifest, null, 2);
+  return JSON.stringify(manifest, null, 2)
 }
 
 const config = (env, argv) => {
@@ -96,7 +87,7 @@ const config = (env, argv) => {
       content: path.join(__dirname, "src/content.ts"),
       background: path.join(__dirname, "src/background.ts"),
     },
-    output: {path: path.join(__dirname, "target/unpacked"), filename: "[name].js"},
+    output: { path: path.join(__dirname, "target/unpacked"), filename: "[name].js" },
     module: {
       rules: [
         {
@@ -108,7 +99,7 @@ const config = (env, argv) => {
           // https://github.com/microsoft/PowerBI-visuals-tools/issues/365#issuecomment-1099716186
           test: /\.m?js/,
           resolve: {
-              fullySpecified: false
+            fullySpecified: false
           }
         },
         {
@@ -195,6 +186,6 @@ const config = (env, argv) => {
       }),
     ],
   }
-};
+}
 
-module.exports = config;
+module.exports = config

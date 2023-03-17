@@ -2,14 +2,31 @@
 
 import React from 'react'
 
-import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
+import styled from '@emotion/styled'
 
 import PropTypes from 'prop-types'
-import { css } from '@emotion/react'
-import { withRouter, Link } from 'react-router-dom'
+import { withRouter } from 'react-router-dom'
 
 import { authentication } from 'smuggler-api'
 import { goto } from '../lib/route'
+import { LoginForm } from 'elementary'
+
+const LoginCardBox = styled.div`
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+`
+
+const TruthsayerLoginForm = styled(LoginForm)`
+  margin-top: 22px;
+`
+const ErrorBox = styled.div`
+  color: red;
+`
 
 class Login extends React.Component {
   constructor(props) {
@@ -47,18 +64,16 @@ class Login extends React.Component {
     this.setState({ isReady })
   }
 
-  onSubmit = (event) => {
-    event.preventDefault()
-    this.setState({
-      server_error: null,
-    })
-    const { email, password } = this.state
+  onSubmit = (email, password) => {
+    this.setState({ server_error: null })
     const permissions = null
     authentication.session
       .create(
-        email,
-        password,
-        permissions,
+        {
+          email,
+          password,
+          permissions,
+        },
         this.createSessionAbortController.signal
       )
       .catch(this.handleSubmitError)
@@ -89,76 +104,11 @@ class Login extends React.Component {
   }
 
   render() {
-    let server_error
-    if (this.state.server_error) {
-      server_error = (
-        <p
-          css={{
-            color: 'red',
-          }}
-        >
-          {this.state.server_error}
-        </p>
-      )
-    }
     return (
-      <Container>
-        <Card className="border-0">
-          <Card.Body className="p-3">
-            <Card.Title
-              css={css`
-                font-family: 'Comfortaa';
-              `}
-            >
-              Log in
-            </Card.Title>
-            <Form className="m-4" onSubmit={this.onSubmit}>
-              <Form.Group as={Row} controlId="formLoginEmail">
-                <Form.Label column sm="2">
-                  Email
-                </Form.Label>
-                <Col>
-                  <Form.Control
-                    type="email"
-                    value={this.state.email}
-                    onChange={this.handleEmailChange}
-                    ref={this.emailRef}
-                  />
-                </Col>
-              </Form.Group>
-
-              <Form.Group as={Row} controlId="formLoginPassword">
-                <Form.Label column sm="2">
-                  Password
-                </Form.Label>
-                <Col>
-                  <Form.Control
-                    type="password"
-                    value={this.state.password}
-                    onChange={this.handlePasswordChange}
-                  />
-                </Col>
-              </Form.Group>
-              <Row>
-                <Col />
-                <Col>
-                  <Button
-                    variant="secondary"
-                    type="submit"
-                    disabled={!this.state.isReady}
-                  >
-                    Log in
-                  </Button>
-                  <Button variant="secondary" as={Link} to="/signup">
-                    Sign up
-                  </Button>
-                </Col>
-                <Col>{server_error}</Col>
-              </Row>
-            </Form>
-          </Card.Body>
-        </Card>
-      </Container>
+      <LoginCardBox>
+        <TruthsayerLoginForm onSubmit={this.onSubmit} />
+        <ErrorBox>{this.state.server_error}</ErrorBox>
+      </LoginCardBox>
     )
   }
 }
