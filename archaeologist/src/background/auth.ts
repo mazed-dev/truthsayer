@@ -37,26 +37,26 @@ const _listeners: Map<
   string /*listener ID*/,
   {
     // External listener for login events
-    onLogin: (account: UserAccount) => void
+    onLogin: (account: UserAccount) => Promise<void>
     // External listener for logout events
-    onLogout: () => void
+    onLogout: () => Promise<void>
   }
 > = new Map()
 
-function _onLogin(account: UserAccount) {
+async function _onLogin(account: UserAccount) {
   for (const { onLogin } of _listeners.values()) {
     try {
-      onLogin(account)
+      await onLogin(account)
     } catch (reason) {
       log.error(`onLogin listener failed: ${errorise(reason).message}`)
     }
   }
 }
 
-function _onLogout() {
+async function _onLogout() {
   for (const { onLogout } of _listeners.values()) {
     try {
-      onLogout()
+      await onLogout()
     } catch (reason) {
       log.error(`onLogin listener failed: ${errorise(reason).message}`)
     }
@@ -77,16 +77,19 @@ async function _loginHandler(user: AccountInfo) {
       /* onKnockFailure */
     })
   }
-  _onLogin(account)
+  await _onLogin(account)
   await badge.setActive(true)
 }
 
 // Internal actions to do on logout event
 async function _logoutHandler() {
   _account = new AnonymousAccount()
-  await _authKnocker.stop()
-  await badge.setActive(false)
-  _onLogout()
+  try {
+    await _authKnocker.stop()
+    await badge.setActive(false)
+  } finally {
+    await _onLogout()
+  }
 }
 
 export function account(): AccountInterface {
@@ -115,8 +118,8 @@ export function observe({
   onLogin,
   onLogout,
 }: {
-  onLogin: (account: UserAccount) => void
-  onLogout: () => void
+  onLogin: (account: UserAccount) => Promise<void>
+  onLogout: () => Promise<void>
 }): () => void {
   const listenerId = uuidv4()
   _listeners.set(listenerId, { onLogin, onLogout })
@@ -151,9 +154,8 @@ export async function register() {
     await _loginHandler(user)
   }
   return async () => {
-    await _logoutHandler()
     try {
-      _onLogout()
+      await _logoutHandler()
     } finally {
       _listeners.clear()
     }

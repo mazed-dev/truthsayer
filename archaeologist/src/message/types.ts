@@ -1,4 +1,4 @@
-import { PreviewImageSmall, SessionCreateArgs } from 'smuggler-api'
+import { AccountInfo, PreviewImageSmall, SessionCreateArgs } from 'smuggler-api'
 
 import browser from 'webextension-polyfill'
 import type {
@@ -123,7 +123,9 @@ export namespace FromPopUp {
   export function sendMessage(
     message: AuthStatusRequest
   ): Promise<ToPopUp.AuthStatusResponse>
-  export function sendMessage(message: LogInRequest): Promise<VoidResponse>
+  export function sendMessage(
+    message: LogInRequest
+  ): Promise<ToPopUp.LogInResponse>
   export function sendMessage(
     message: SavePageRequest
   ): Promise<ToPopUp.PageSavedResponse>
@@ -173,12 +175,18 @@ export namespace ToPopUp {
     suggestedAkinNodes: TNodeJson[]
   }
 
+  export type LogInResponse = {
+    type: 'RESPONSE_LOG_IN'
+    user: AccountInfo
+  }
+
   export type Response =
     | AuthStatusResponse
     | ActiveTabStatusResponse
     | PageSavedResponse
     | StorageAccessResponse
     | VoidResponse
+    | LogInResponse
     | GetSuggestionsToPageInActiveTabResponse
   export function sendMessage(message: undefined): Promise<undefined> {
     return browser.runtime.sendMessage(message)

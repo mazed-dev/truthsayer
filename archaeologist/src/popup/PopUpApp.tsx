@@ -30,26 +30,33 @@ type State = {
   analytics?: PostHog
 }
 
-type Action = ToPopUp.AuthStatusResponse
+type Action = ToPopUp.AuthStatusResponse | ToPopUp.LogInResponse
 
-function updateState(_: State, action: Action): State {
+function updateState(state: State, action: Action): State {
   switch (action.type) {
     case 'AUTH_STATUS': {
       if (action.userUid == null) {
         return {}
       }
-      const analytics: PostHog | undefined =
-        productanalytics.make(
-          'archaeologist/popup',
-          process.env.NODE_ENV,
-          {}
-        ) ?? undefined
       return {
         userUid: action.userUid,
-        analytics,
+        analytics: state.analytics ?? makeAnalytics(),
+      }
+    }
+    case 'RESPONSE_LOG_IN': {
+      return {
+        userUid: action.user.uid,
+        analytics: state.analytics ?? makeAnalytics(),
       }
     }
   }
+}
+
+function makeAnalytics(): PostHog | undefined {
+  return (
+    productanalytics.make('archaeologist/popup', process.env.NODE_ENV, {}) ??
+    undefined
+  )
 }
 
 export const PopUpApp = () => {
@@ -77,7 +84,11 @@ export const PopUpApp = () => {
       <PopUpContext.Provider
         value={{ storage: makeMsgProxyStorageApi(forwardToBackground) }}
       >
-        {state.userUid == null ? <LoginPage /> : <ViewActiveTabStatus />}
+        {state.userUid == null ? (
+          <LoginPage onLogin={dispatch} />
+        ) : (
+          <ViewActiveTabStatus />
+        )}
       </PopUpContext.Provider>
     </AppContainer>
   )
@@ -115,12 +126,21 @@ type LoginPageState =
   | { type: 'error'; message: string }
   | { type: 'logged-in' }
 
-const LoginPage = () => {
+const LoginPage = ({
+  onLogin,
+}: {
+  onLogin: (response: ToPopUp.LogInResponse) => void
+}) => {
   const [state, setState] = React.useState<LoginPageState>({
     type: 'awaiting-input',
   })
   const onSubmit = React.useCallback(
     async (email: string, password: string) => {
+      if (state.type === 'logged-in' || state.type === 'logging-in') {
+        throw new Error(
+          `Tried to log in, but the state is already '${state.type}'`
+        )
+      }
       setState({ type: 'logging-in' })
       const args: SessionCreateArgs = {
         email: email,
@@ -128,17 +148,17 @@ const LoginPage = () => {
         permissions: null,
       }
       try {
-        await FromPopUp.sendMessage({
+        const response = await FromPopUp.sendMessage({
           type: 'REQUEST_TO_LOG_IN',
           args,
         })
+        setState({ type: 'logged-in' })
+        onLogin(response)
       } catch (reason) {
         setState({ type: 'error', message: errorise(reason).message })
-        return
       }
-      setState({ type: 'logged-in' })
     },
-    [setState]
+    [setState, onLogin]
   )
 
   const determineWidget = (state: LoginPageState) => {

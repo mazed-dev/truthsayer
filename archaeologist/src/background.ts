@@ -361,8 +361,8 @@ type BackgroundContext = {
 class Background {
   state:
     | { phase: 'not-init' }
-    | { phase: 'loading'; loading: Promise<void> }
-    | { phase: 'unloading'; unloading: Promise<void> }
+    | { phase: 'loading' }
+    | { phase: 'unloading' }
     | { phase: 'init-done'; context: BackgroundContext } = { phase: 'not-init' }
 
   private deinitialisers: (() => void | Promise<void>)[] = []
@@ -370,42 +370,39 @@ class Background {
   constructor() {
     log.debug(`Background one-time pre-init started`)
     auth.observe({
-      onLogin: (account: UserAccount) => {
+      onLogin: async (account: UserAccount) => {
         if (this.state.phase !== 'not-init') {
           throw new Error(
             `Attempted to init background, but it has unexpected state '${this.state.phase}'`
           )
         }
-        const loading = new Promise<void>(async (resolve, reject) => {
+        this.state = { phase: 'loading' }
+        try {
+          log.debug(`Background init started`)
+          const context = await this.init(account)
+          this.state = { phase: 'init-done', context }
+          log.debug(`Background init done`)
+        } catch (initFailureReason) {
           try {
-            log.debug(`Background init started`)
-            const context = await this.init(account)
-            this.state = { phase: 'init-done', context }
-            log.debug(`Background init done`)
-            resolve()
-          } catch (initFailureReason) {
-            try {
-              await this.deinit()
-              log.error(
-                `Background init failed: ${errorise(initFailureReason).message}`
-              )
-            } catch (deinitFailureReason) {
-              log.error(
-                `Background init failed: ${
-                  errorise(initFailureReason).message
-                }\n` +
-                  `Also failed to revert the partially complete init: ${
-                    errorise(deinitFailureReason).message
-                  }`
-              )
-            }
-            this.state = { phase: 'not-init' }
-            reject(initFailureReason)
+            await this.deinit()
+            log.error(
+              `Background init failed: ${errorise(initFailureReason).message}`
+            )
+          } catch (deinitFailureReason) {
+            log.error(
+              `Background init failed: ${
+                errorise(initFailureReason).message
+              }\n` +
+                `Also failed to revert the partially complete init: ${
+                  errorise(deinitFailureReason).message
+                }`
+            )
           }
-        })
-        this.state = { phase: 'loading', loading }
+          this.state = { phase: 'not-init' }
+          throw initFailureReason
+        }
       },
-      onLogout: () => {
+      onLogout: async () => {
         if (
           this.state.phase === 'not-init' ||
           this.state.phase === 'unloading'
@@ -416,28 +413,11 @@ class Background {
           return
         }
 
-        const deinitAndChangePhase = async () => {
-          log.debug(`Background deinit started`)
-          await this.deinit()
-          this.state = { phase: 'not-init' }
-          log.debug(`Background deinit ended`)
-        }
-        switch (this.state.phase) {
-          case 'loading': {
-            this.state = {
-              phase: 'unloading',
-              unloading: this.state.loading.then(deinitAndChangePhase),
-            }
-            return
-          }
-          case 'init-done': {
-            this.state = {
-              phase: 'unloading',
-              unloading: deinitAndChangePhase(),
-            }
-            return
-          }
-        }
+        log.debug(`Background deinit started`)
+        this.state = { phase: 'unloading' }
+        await this.deinit()
+        this.state = { phase: 'not-init' }
+        log.debug(`Background deinit ended`)
       },
     })
     auth.register()
@@ -644,7 +624,7 @@ class Background {
         }
       }
       case 'REQUEST_TO_LOG_IN': {
-        const timeout = new Promise<null>((_, reject) => {
+        const timeout = new Promise<never>((_, reject) => {
           sleep(5000).then(() =>
             reject(`Initialisation after successful login has timed out`)
           )
@@ -662,21 +642,28 @@ class Background {
         //    - the very first callback registered with `auth.observe` is the
         //      one which calls `Background.init()`
         // in order of their registreation
-        const waitUntilInitIsDone = new Promise<void>((resolve, reject) => {
+        const waitForInit = new Promise<UserAccount>((resolve, reject) => {
           const stopObserving = auth.observe({
-            onLogin: (_: UserAccount) => {
+            onLogin: async (account: UserAccount) => {
               stopObserving()
-              resolve()
+              resolve(account)
             },
-            onLogout: () => {
+            onLogout: async () => {
               stopObserving()
               reject()
             },
           })
         })
         await auth.login(message.args)
-        await Promise.race([timeout, waitUntilInitIsDone])
-        return { type: 'VOID_RESPONSE' }
+        const account = await Promise.race([timeout, waitForInit])
+        return {
+          type: 'RESPONSE_LOG_IN',
+          user: {
+            email: account.getEmail(),
+            uid: account.getUid(),
+            name: account.getName(),
+          },
+        }
       }
     }
     throw new Error(error)
