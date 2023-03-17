@@ -6,7 +6,6 @@ import { useAsyncEffect } from 'use-async-effect'
 
 import {
   TDoc,
-  ShrinkMinimalCard,
   NodeCardReadOnly,
   truthsayer,
   HoverTooltip,
@@ -190,11 +189,7 @@ const SuggestedCard = ({
   const ctx = React.useContext(ContentContext)
   return (
     <SuggestedCardBox>
-      <NodeCardReadOnly
-        node={node}
-        strippedActions
-        storage={ctx.storage}
-      />
+      <NodeCardReadOnly node={node} strippedActions storage={ctx.storage} />
       <SuggestedCardTools>
         <CardCopyButton node={node} onClose={onClose} />
         <SuggestionButton

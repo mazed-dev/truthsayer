@@ -60,7 +60,6 @@ const Box = styled.div<Props>`
     opacity: 1;
 
     visibility: hidden;
-
     transition: 0s visibility;
   }
 

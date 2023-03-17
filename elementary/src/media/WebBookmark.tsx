@@ -3,9 +3,6 @@
 import React from 'react'
 import { css } from '@emotion/react'
 
-import { BlockQuote } from '../editor/components/BlockQuote'
-import { MdiLaunch } from '../MaterialIcons'
-
 import { Launch } from '@emotion-icons/material'
 
 import type { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
@@ -13,6 +10,8 @@ import type { Optional } from 'armoury'
 import { productanalytics } from 'armoury'
 import { log } from 'armoury'
 import styled from '@emotion/styled'
+
+import { OverlayCopyOnHover } from '../OverlayCopyOnHover'
 
 const Box = styled.div`
   width: 100%;
@@ -131,14 +130,14 @@ const BadgeBox = styled.div`
 
 const TitleBox = styled.div`
   display: inline-block;
-  margin: 8px 4px 0 8px;
+  margin: 6px 4px 0 6px;
+  line-height: 1.3em;
 `
 
 const Title = styled.p`
   font-size: 1em;
   font-weight: 500;
-
-  margin: 0 0 0.36em 0;
+  margin: 0 0 4px 0;
 `
 
 const BookmarkUrlStripped = ({
@@ -159,7 +158,7 @@ const BookmarkUrlStripped = ({
         color: #478ac0;
         font-weight: 400;
         line-height: 1em;
-        margin: 0 0 0.4em 0;
+        margin: 0 0 4px 0;
 
         width: 12em;
         white-space: nowrap;
@@ -187,7 +186,15 @@ const Description = styled.blockquote`
   padding: 8px 8px 8px 8px;
   margin: 0;
   color: #5e5e5e;
-  background: #f8f8f8;
+  /* background: #f8f8f8; */
+
+  quotes: '“' '”' '‘' '’';
+  &:before {
+    content: open-quote;
+  }
+  &:after {
+    content: close-quote;
+  }
 `
 
 type WebBookmarkProps = {
@@ -216,9 +223,9 @@ export const WebBookmark = ({
     </Author>
   ) : null
   const descriptionElement = description ? (
-      <Description cite={url} className={productanalytics.classExclude()}>
-        {description}
-      </Description>
+    <Description cite={url} className={productanalytics.classExclude()}>
+      {description}
+    </Description>
   ) : null
   return (
     <Box className={className}>
@@ -230,11 +237,15 @@ export const WebBookmark = ({
           onLaunch={onLaunch}
         />
         <TitleBox>
-          <Title className={productanalytics.classExclude()}>{title}</Title>
-          <BookmarkUrlStripped
-            className={productanalytics.classExclude()}
-            url={url}
-          />
+          <OverlayCopyOnHover onClick={() => {}}>
+            <Title className={productanalytics.classExclude()}>{title}</Title>
+          </OverlayCopyOnHover>
+          <OverlayCopyOnHover onClick={() => {}}>
+            <BookmarkUrlStripped
+              className={productanalytics.classExclude()}
+              url={url}
+            />
+          </OverlayCopyOnHover>
           {authorBadge}
         </TitleBox>
       </BadgeBox>
