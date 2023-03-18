@@ -119,40 +119,40 @@ function goToInboxToConfirmEmail({
   })
 }
 
-type HistoryObj = { history: Optional<History> }
+type HistoryObj = { history?: Optional<History> }
 
 function gotoLogIn({ history }: HistoryObj) {
-  gotoPath(history, kLogInPath)
+  gotoPath(history ?? null, kLogInPath)
 }
 
 function gotoSignUp({ history }: HistoryObj) {
-  gotoPath(history, kSignUpPath)
+  gotoPath(history ?? null, kSignUpPath)
 }
 
 function gotoLogOut({ history }: HistoryObj) {
-  gotoPath(history, kLogOutPath)
+  gotoPath(history ?? null, kLogOutPath)
 }
 
 function gotoNode({ history, nid }: { history: History; nid: string }) {
-  gotoPath(history, kNodePathPrefix + nid)
+  gotoPath(history ?? null, kNodePathPrefix + nid)
 }
 
 function gotoMain({ history }: HistoryObj) {
   // *dbg*/ console.log('Go to main')
-  gotoPath(history, '/')
+  gotoPath(history ?? null, '/')
 }
 
 function gotoError({ history }: HistoryObj) {
   // *dbg*/ console.log('Go to error')
-  gotoPath(history, kNoticePathPrefix + kNoticeErrorPage)
+  gotoPath(history ?? null, kNoticePathPrefix + kNoticeErrorPage)
 }
 
 function gotoSeeYou({ history }: HistoryObj) {
-  gotoPath(history, kNoticePathPrefix + kNoticeSeeYouPage)
+  gotoPath(history ?? null, kNoticePathPrefix + kNoticeSeeYouPage)
 }
 
 function gotoLogInToContinue({ history }: HistoryObj) {
-  gotoPath(history, kNoticePathPrefix + kNoticeLogInToContinue)
+  gotoPath(history ?? null, kNoticePathPrefix + kNoticeLogInToContinue)
 }
 
 function gotoWaitingListNotice(history: History, state?: any) {
@@ -160,7 +160,7 @@ function gotoWaitingListNotice(history: History, state?: any) {
 }
 
 function gotoWaitingForApproval(history?: History, state?: any) {
-  gotoPath(history || null, kWaitingForApproval, state)
+  gotoPath(history ?? null, kWaitingForApproval, state)
 }
 
 function reload_(history: History) {
