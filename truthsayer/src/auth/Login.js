@@ -97,7 +97,7 @@ class Login extends React.Component {
     const { isLoading } = this.state
     return (
       <LoginCardBox>
-        <TruthsayerLoginForm onSubmit={this.onSubmit} />
+        <TruthsayerLoginForm onSubmit={this.onSubmit} disabled={isLoading}/>
         <ErrorBox>{this.state.server_error}</ErrorBox>
         {isLoading === true ? <Spinner.Wheel /> : null}
       </LoginCardBox>
