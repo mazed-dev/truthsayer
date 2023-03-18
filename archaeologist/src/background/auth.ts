@@ -101,6 +101,9 @@ export async function check() {
   if (user != null) {
     await _loginHandler(user)
   }
+  else {
+    await _logoutHandler()
+  }
 }
 
 export async function login(args: SessionCreateArgs) {
