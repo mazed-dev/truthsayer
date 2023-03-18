@@ -22,7 +22,7 @@ import { Triptych } from './card/Triptych'
 import { SearchGridView } from './grid/SearchGridView'
 
 import { GlobalNavBar } from './navbar/GlobalNavBar'
-import Login from './auth/Login'
+import { Login } from './auth/Login'
 import Logout from './auth/Logout'
 import { Signup } from './account/create/Signup'
 import PasswordChange from './auth/PasswordChange'
