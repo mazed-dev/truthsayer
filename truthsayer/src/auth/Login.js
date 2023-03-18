@@ -67,7 +67,13 @@ class Login extends React.Component {
       .then(() => {
         FromTruthsayer.sendMessage({
           type: 'CHECK_AUTHORISATION_STATUS_REQUEST',
-        }).then(() => goto.default({}))
+        })
+          .then(() =>
+            // Redirect to default on success and failure, because Archaeologist
+            // might be not yet installed
+            goto.default({})
+          )
+          .catch(() => goto.default({}))
         // { history: this.props.history });
       })
   }
@@ -97,7 +103,7 @@ class Login extends React.Component {
     const { isLoading } = this.state
     return (
       <LoginCardBox>
-        <TruthsayerLoginForm onSubmit={this.onSubmit} disabled={isLoading}/>
+        <TruthsayerLoginForm onSubmit={this.onSubmit} disabled={isLoading} />
         <ErrorBox>{this.state.server_error}</ErrorBox>
         {isLoading === true ? <Spinner.Wheel /> : null}
       </LoginCardBox>
