@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
 import { withRouter } from 'react-router-dom'
 import { goto } from '../lib/route'
 import { authCookie, authentication } from 'smuggler-api'
+import { FromTruthsayer } from 'truthsayer-archaeologist-communication'
 
 import { MzdGlobalContext } from './../lib/global'
 
@@ -32,8 +33,10 @@ class Logout extends React.Component {
         .then((res) => {
           if (res != null) {
             authCookie.veil.drop()
-            // for some reason proper redirect with history doesn't work here
-            goto.notice.seeYou({})
+            // For some reason proper redirect with history doesn't work here
+            FromTruthsayer.sendMessage({
+              type: 'CHECK_AUTHORISATION_STATUS_REQUEST',
+            }).then(() => goto.notice.seeYou({}))
           } else {
             goto.notice.error({})
           }

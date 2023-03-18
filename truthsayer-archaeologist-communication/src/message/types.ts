@@ -103,6 +103,9 @@ export namespace FromTruthsayer {
   export type CancelUploadOfCurrentlyOpenTabsRequest = {
     type: 'CANCEL_UPLOAD_OF_CURRENTLY_OPEN_TABS_REQUEST'
   }
+  export type CheckAuthorisationStatusRequest = {
+    type: 'CHECK_AUTHORISATION_STATUS_REQUEST'
+  }
   export type Request =
     | GetArchaeologistStateRequest
     | GetAppSettingsRequest
@@ -113,6 +116,7 @@ export namespace FromTruthsayer {
     | DeletePreviouslyUploadedBrowserHistoryRequest
     | UploadCurrentlyOpenTabsRequest
     | CancelUploadOfCurrentlyOpenTabsRequest
+    | CheckAuthorisationStatusRequest
 
   export function sendMessage(
     message: GetArchaeologistStateRequest
@@ -140,6 +144,9 @@ export namespace FromTruthsayer {
   ): Promise<ToTruthsayer.VoidResponse>
   export function sendMessage(
     message: CancelUploadOfCurrentlyOpenTabsRequest
+  ): Promise<ToTruthsayer.VoidResponse>
+  export function sendMessage(
+    message: CheckAuthorisationStatusRequest
   ): Promise<ToTruthsayer.VoidResponse>
   export function sendMessage(
     message: Request
