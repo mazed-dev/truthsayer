@@ -51,7 +51,7 @@ import {
   CookiePolicyPopUp,
   PrivacyPolicy,
 } from './public-page/legal/Index'
-import { errorise, log, productanalytics } from 'armoury'
+import { errorise, log, productanalytics, sleep } from 'armoury'
 import { ApplicationSettings } from './AppSettings'
 import {
   AccountInterface,
@@ -110,7 +110,7 @@ function AppRouter() {
         state: 'installed',
         version: await waitForArchaeologistToLoad(),
       })
-    } catch {
+    } catch (err) {
       setArchaeologistState({ state: 'not-installed' })
     }
   }, [])
@@ -370,6 +370,7 @@ async function waitForArchaeologistToLoad(): Promise<ToTruthsayer.ArchaeologistV
         error = errorise(reason).message
       }
     }
+    sleep(100)
   }
   throw new Error(
     `Failed to get archaeologist state after ${maxAttempts} attempts. ` +

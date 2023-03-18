@@ -673,6 +673,10 @@ class Background {
     message: FromTruthsayer.Request,
     _: browser.Runtime.MessageSender
   ): Promise<ToTruthsayer.Response> {
+    if (message.type === 'CHECK_AUTHORISATION_STATUS_REQUEST') {
+      await auth.check()
+      return { type: 'VOID_RESPONSE' }
+    }
     if (this.state.phase !== 'init-done') {
       throw new Error(`background unexpectedly had state '${this.state.phase}'`)
     }
@@ -741,7 +745,7 @@ class Background {
         return { type: 'VOID_RESPONSE' }
       }
       case 'CANCEL_UPLOAD_OF_CURRENTLY_OPEN_TABS_REQUEST': {
-        await OpenTabs.cancel()
+        OpenTabs.cancel()
         return { type: 'VOID_RESPONSE' }
       }
     }

@@ -9,7 +9,8 @@ import { withRouter } from 'react-router-dom'
 
 import { authentication } from 'smuggler-api'
 import { goto } from '../lib/route'
-import { LoginForm } from 'elementary'
+import { LoginForm, Spinner } from 'elementary'
+import { FromTruthsayer } from 'truthsayer-archaeologist-communication'
 
 const LoginCardBox = styled.div`
   border: 0;
@@ -36,6 +37,7 @@ class Login extends React.Component {
       password: '',
       isReady: false,
       server_error: null,
+      isLoading: false,
     }
     this.emailRef = React.createRef()
     this.createSessionAbortController = new AbortController()
@@ -49,23 +51,8 @@ class Login extends React.Component {
     this.createSessionAbortController.abort()
   }
 
-  handleEmailChange = (event) => {
-    this.setState({ email: event.target.value })
-    this.checkState()
-  }
-
-  handlePasswordChange = (event) => {
-    this.setState({ password: event.target.value })
-    this.checkState()
-  }
-
-  checkState = () => {
-    const isReady = this.emailRef.current.validity.valid
-    this.setState({ isReady })
-  }
-
   onSubmit = (email, password) => {
-    this.setState({ server_error: null })
+    this.setState({ server_error: null, isLoading: true })
     const permissions = null
     authentication.session
       .create(
@@ -78,7 +65,16 @@ class Login extends React.Component {
       )
       .catch(this.handleSubmitError)
       .then(() => {
-        goto.default({}) // { history: this.props.history });
+        FromTruthsayer.sendMessage({
+          type: 'CHECK_AUTHORISATION_STATUS_REQUEST',
+        })
+          .then(() =>
+            // Redirect to default on success and failure, because Archaeologist
+            // might be not yet installed
+            goto.default({})
+          )
+          .catch(() => goto.default({}))
+        // { history: this.props.history });
       })
   }
 
@@ -104,10 +100,12 @@ class Login extends React.Component {
   }
 
   render() {
+    const { isLoading } = this.state
     return (
       <LoginCardBox>
-        <TruthsayerLoginForm onSubmit={this.onSubmit} />
+        <TruthsayerLoginForm onSubmit={this.onSubmit} disabled={isLoading} />
         <ErrorBox>{this.state.server_error}</ErrorBox>
+        {isLoading === true ? <Spinner.Wheel /> : null}
       </LoginCardBox>
     )
   }
