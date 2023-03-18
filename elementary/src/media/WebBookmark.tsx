@@ -1,7 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
 import React from 'react'
-import { css } from '@emotion/react'
 
 import { Launch } from '@emotion-icons/material'
 
@@ -140,6 +139,22 @@ const Title = styled.p`
   margin: 0 0 4px 0;
 `
 
+const BookmarkUrlStrippedBox = styled.a`
+  display: inline-block;
+  font-size: 0.88em;
+  letter-spacing: 0.025em;
+  color: #478ac0;
+  font-weight: 400;
+  line-height: 1em;
+  margin: 0 0 4px 0;
+
+  width: 18em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+`
+
 const BookmarkUrlStripped = ({
   url,
   className,
@@ -147,29 +162,11 @@ const BookmarkUrlStripped = ({
   url: string
   className?: string
 }) => {
-  url = url.replace(/^https?:\/\//, '')
+  const urlToShow = url.replace(/^https?:\/\//, '').replace(/^www\./, '')
   return (
-    <a
-      className={className}
-      css={css`
-        display: inline-block;
-        font-size: 0.84em;
-        letter-spacing: 0.025em;
-        color: #478ac0;
-        font-weight: 400;
-        line-height: 1em;
-        margin: 0 0 4px 0;
-
-        width: 12em;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        text-decoration: none;
-      `}
-      href={url}
-    >
-      {url}
-    </a>
+    <BookmarkUrlStrippedBox className={className} href={url}>
+      {urlToShow}
+    </BookmarkUrlStrippedBox>
   )
 }
 
@@ -223,9 +220,11 @@ export const WebBookmark = ({
     </Author>
   ) : null
   const descriptionElement = description ? (
-    <Description cite={url} className={productanalytics.classExclude()}>
-      {description}
-    </Description>
+    <OverlayCopyOnHover onClick={() => {}}>
+      <Description cite={url} className={productanalytics.classExclude()}>
+        {description}
+      </Description>
+    </OverlayCopyOnHover>
   ) : null
   return (
     <Box className={className}>

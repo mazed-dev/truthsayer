@@ -12,6 +12,7 @@ import {
   Spinner,
   ImgButton,
 } from 'elementary'
+import { log } from 'armoury'
 import { NodeUtil, StorageApi } from 'smuggler-api'
 import type { TNode } from 'smuggler-api'
 
@@ -22,7 +23,7 @@ import { MazedMiniFloater } from './MazedMiniFloater'
 import { FromContent } from './../../message/types'
 import {
   ContentCopy,
-  DragIndicator as DragIndicatorIcon,
+  DragHandle,
   ExpandLess,
   ExpandMore,
   OpenInNew,
@@ -36,13 +37,8 @@ const SuggestedCardsBox = styled.div`
   display: flex;
   flex-direction: column;
 
-  margin: 4px;
-  background: #ffffff;
-  border-radius: 4px;
-  color: black;
-  box-shadow: 2px 2px 4px #8c8c8ceb;
-
-  user-select: auto;
+  background: rgba(0, 0, 0, 0);
+  user-select: text;
 `
 const DraggableElement = styled.div`
   position: absolute;
@@ -53,29 +49,34 @@ const Header = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  border-bottom: 1px solid #ececec;
-`
-const HeaderText = styled.div`
-  color: #7a7a7a;
-  font-size: 14px;
-  padding: 4px;
-  vertical-align: middle;
+  /*border-bottom: 1px solid #ececec;*/
+  /* box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.2); */
 `
 
 const SuggestionsFloaterSuggestionsBox = styled.div`
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
   padding: 4px 0 4px 0;
   overflow-y: scroll;
 `
 
-const SuggestedCardsHeaderIcon = styled.div`
-  opacity: 0.32;
+const kBoxShadow = 'box-shadow: rgba(32, 34, 36, 0.46) 1px 1px 4px 0px;'
+
+const CloseBtn = styled(ImgButton)`
+  padding: 4px 5px 4px 5px;
+  margin: 0 5px 0 5px;
   font-size: 12px;
-  padding: 0.4em 0.5em 0.4em 0.5em;
   vertical-align: middle;
+  background: white;
+  border-radius: 12px;
+  opacity: 0.32;
+  &:hover {
+    opacity: 1;
+  }
+  ${kBoxShadow}
 `
+const SuggestedCardsHeaderIcon = CloseBtn.withComponent('div')
+
 const SuggestionButton = styled(MeteredButton)`
   opacity: 0.32;
   font-size: 12px;
@@ -83,13 +84,14 @@ const SuggestionButton = styled(MeteredButton)`
   vertical-align: middle;
 `
 
+/* Radiant blue colour border: 1px solid #59b6ff8f; */
 const SuggestedCardBox = styled.div`
   font-size: 12px;
 
-  margin: 1px 2px 1px 2px;
-
-  border: 1px solid #ececec;
-  border-radius: 6px;
+  margin: 2px 4px 2px 2px;
+  border-radius: 4px;
+  background: #ffffff;
+  ${kBoxShadow}
 `
 
 const SuggestedCardTools = styled.div`
@@ -253,17 +255,11 @@ const SuggestedCards = ({
         <SuggestedCardsHeaderIcon>
           <DragIndicator size="16px" />
         </SuggestedCardsHeaderIcon>
-        <HeaderText>
-          ※&nbsp;{isLoading ? <Spinner.Ring /> : nodes.length}
-        </HeaderText>
-        <ImgButton
-          onClick={onClose}
-          css={{ marginRight: '2px', marginTop: '2px' }}
-        >
-          <HoverTooltip tooltip={'Open in Mazed'} placement="bottom">
+        <CloseBtn onClick={onClose}>
+          <HoverTooltip tooltip="Close" placement="bottom">
             <Minimize size="16px" />
           </HoverTooltip>
-        </ImgButton>
+        </CloseBtn>
       </Header>
       <SuggestionsFloaterSuggestionsBox>
         {isLoading ? (
@@ -277,7 +273,7 @@ const SuggestedCards = ({
   )
 }
 
-const DragIndicator = styled(DragIndicatorIcon)`
+const DragIndicator = styled(DragHandle)`
   cursor: move; /* fallback if "grab" & "grabbing" cursors are not supported */
   cursor: grab;
   &: active {
@@ -307,7 +303,7 @@ type Position2D = { x: number; y: number }
  * because we want it to be always anchored to the rigth edge of the window.
  */
 const getStartDragPosition = (isRevealed: boolean): Position2D =>
-  isRevealed ? { x: -300, y: 0 } : { x: -32, y: 0 }
+  isRevealed ? { x: -300, y: 42 } : { x: -32, y: 42 }
 
 /**
  * Make sure that floter is visisble within a window: not too low or too high -
@@ -359,6 +355,7 @@ export const SuggestionsFloater = ({
   }, [])
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
     const positionY = data.y
+    log.debug('onDragStop', positionY)
     FromContent.sendMessage({
       type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
       settings: { positionY },

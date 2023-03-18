@@ -11,12 +11,12 @@ type Props = React.PropsWithChildren<{
 }>
 
 const Btn = styled.button`
-  padding: 4px;
+  padding: 5px;
 
   position: absolute;
-  bottom: 0;
+  top: 0;
   right: 0;
-  transform: translate(-1%, -1%);
+  transform: translate(-10%, -24%);
 
   zindex: 1;
 
@@ -27,10 +27,12 @@ const Btn = styled.button`
   border-width: 0;
   border-radius: 18px;
 
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.12);
+  opacity: 0.4;
+  cursor: pointer;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.1);
+    opacity: 1;
   }
 `
 const kBtnId =
@@ -39,7 +41,7 @@ const Box = styled.div`
   position: relative;
   &:hover #${kBtnId} {
     visibility: visible;
-    transition-delay: 0.2s;
+    transition-delay: 0.1s;
   }
 `
 
@@ -52,7 +54,7 @@ export const OverlayCopyOnHover = ({ children, onClick, tooltip }: Props) => {
           tooltip={tooltip ?? 'Copy to Clipboard'}
           placement="bottom-left"
         >
-          <CopyIcon size={'1.2em'} />
+          <CopyIcon size={'1em'} />
         </HoverTooltip>
       </Btn>
     </Box>
