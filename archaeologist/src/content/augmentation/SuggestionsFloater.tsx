@@ -37,8 +37,10 @@ const SuggestedCardsBox = styled.div`
   display: flex;
   flex-direction: column;
 
-  background: rgba(0, 0, 0, 0);
+  border-radius: 5px;
+  background: #ffffff;
   user-select: text;
+  box-shadow: rgba(32, 34, 36, 0.46) 1px 1px 4px 0px;
 `
 const DraggableElement = styled.div`
   position: absolute;
@@ -48,19 +50,22 @@ const DraggableElement = styled.div`
 const Header = styled.div`
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
-  /*border-bottom: 1px solid #ececec;*/
-  /* box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.2); */
+  justify-content: flex-end;
+  border-bottom: 1px solid #dadada;
+
+  cursor: move; /* fallback if "grab" & "grabbing" cursors are not supported */
+  cursor: grab;
+  &: active {
+    cursor: grabbing;
+  }
 `
 
 const SuggestionsFloaterSuggestionsBox = styled.div`
   display: flex;
   flex-direction: column;
-  padding: 4px 0 4px 0;
+  padding: 0;
   overflow-y: scroll;
 `
-
-const kBoxShadow = 'box-shadow: rgba(32, 34, 36, 0.46) 1px 1px 4px 0px;'
 
 const CloseBtn = styled(ImgButton)`
   padding: 4px 5px 4px 5px;
@@ -73,9 +78,7 @@ const CloseBtn = styled(ImgButton)`
   &:hover {
     opacity: 1;
   }
-  ${kBoxShadow}
 `
-const SuggestedCardsHeaderIcon = CloseBtn.withComponent('div')
 
 const SuggestionButton = styled(MeteredButton)`
   opacity: 0.32;
@@ -87,11 +90,10 @@ const SuggestionButton = styled(MeteredButton)`
 /* Radiant blue colour border: 1px solid #59b6ff8f; */
 const SuggestedCardBox = styled.div`
   font-size: 12px;
-
-  margin: 2px 4px 2px 2px;
-  border-radius: 4px;
+  margin: 0;
   background: #ffffff;
-  ${kBoxShadow}
+  border: 1px solid #dadada;
+  border-radius: 5px;
 `
 
 const SuggestedCardTools = styled.div`
@@ -252,9 +254,6 @@ const SuggestedCards = ({
   return (
     <SuggestedCardsBox>
       <Header id="mazed-archaeologist-suggestions-floater-drag-handle">
-        <SuggestedCardsHeaderIcon>
-          <DragIndicator size="16px" />
-        </SuggestedCardsHeaderIcon>
         <CloseBtn onClick={onClose}>
           <HoverTooltip tooltip="Close" placement="bottom">
             <Minimize size="16px" />
