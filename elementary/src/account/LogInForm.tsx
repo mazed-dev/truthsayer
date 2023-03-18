@@ -25,9 +25,11 @@ const Title = styled.h1`
 export const LoginForm = ({
   onSubmit,
   className,
+  disabled,
 }: {
   onSubmit: (email: string, password: string) => Promise<void>
   className?: string
+  disabled?: boolean
 }) => {
   const [email, setEmail] = React.useState<string>('')
   const [password, setPassword] = React.useState<string>('')
@@ -58,7 +60,9 @@ export const LoginForm = ({
         />
       </Form.Group>
       <LoginFormRow>
-        <Button type="submit">Log in</Button>
+        <Button type="submit" disabled={disabled ?? false}>
+          Log in
+        </Button>
       </LoginFormRow>
     </LoginFormBox>
   )

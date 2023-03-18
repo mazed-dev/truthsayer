@@ -28,7 +28,7 @@ const DescriptionListItem = styled.li`
   padding-left: 12px;
 `
 const AppsBox = styled.div``
-const AppItem = styled.a`
+const AppItem = styled.div`
   display: flex;
   justify-content: left;
   align-items: center;
@@ -86,7 +86,7 @@ export function AppsList({
         </DescriptionList>
       </DescriptionBox>
       <AppsBox>
-        <AppItem href={kGoogleChromeStoreLink}>
+        <AppItem>
           <Logo src={GoogleChromeLogo} />
           <Name>Mazed for Chrome &mdash; {describe(archaeologist)}</Name>
         </AppItem>

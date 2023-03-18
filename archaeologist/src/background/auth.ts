@@ -85,7 +85,7 @@ async function _loginHandler(user: AccountInfo) {
 async function _logoutHandler() {
   _account = new AnonymousAccount()
   try {
-    await _authKnocker.stop()
+    _authKnocker.stop()
     await badge.setActive(false)
   } finally {
     await _onLogout()
@@ -96,12 +96,16 @@ export function account(): AccountInterface {
   return _account
 }
 
-export async function login(args: SessionCreateArgs) {
-  await authentication.session.create(args)
+export async function check() {
   const user = await authentication.getAuth({}).catch(() => null)
   if (user != null) {
     await _loginHandler(user)
   }
+}
+
+export async function login(args: SessionCreateArgs) {
+  await authentication.session.create(args)
+  await check()
 }
 
 /**
@@ -148,11 +152,11 @@ export function observe({
  *- It stops after a first renewal failure.
  */
 export async function register() {
-  log.debug('Authorisation module is registered')
   const user = await authentication.getAuth({}).catch(() => null)
   if (user != null) {
     await _loginHandler(user)
   }
+  log.debug('Authorisation module is registered')
   return async () => {
     try {
       await _logoutHandler()
