@@ -33,6 +33,7 @@ import WaitingForApproval from './account/create/WaitingForApproval'
 import { GoToInboxToConfirmEmail } from './account/create/GoToInboxToConfirmEmail'
 import UserPreferences from './auth/UserPreferences'
 import { LandingPage } from './landing-page/LandingPage'
+import { Onboarding } from './account/onboard/Onboarding'
 import {
   TruthsayerPath,
   PasswordRecoverFormUrlParams,
@@ -187,7 +188,7 @@ function AppRouter() {
       <Redirect to={{ pathname: '/search' }} />
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-private-route-1'} path={'/search'}>
-      <SearchGridView archaeologistState={archaeologistState} />
+      <SearchGridView />
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-private-route-2'} path="/account">
       <AccountView />
@@ -218,6 +219,9 @@ function AppRouter() {
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pub-route-9'} path={'/logout'}>
       <Logout />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-pub-route-9'} path={'/onboarding'}>
+      <Onboarding archaeologistState={archaeologistState} />
     </TruthsayerRoute>,
   ]
 

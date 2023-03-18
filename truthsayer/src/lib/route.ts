@@ -32,6 +32,7 @@ export type TruthsayerPath =
   | '/user-preferences'
   | '/account/create/waiting-for-approval'
   | '/account/create/go-to-inbox-to-confirm-email'
+  | '/onboarding'
 
 const kLogInPath: TruthsayerPath = '/login'
 const kSignUpPath: TruthsayerPath = '/signup'

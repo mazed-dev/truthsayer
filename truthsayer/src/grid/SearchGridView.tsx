@@ -6,23 +6,16 @@ import { parse } from 'query-string'
 
 import { SearchGrid } from 'elementary'
 import { CreateNewNodeMenu } from './CreateNewNodeMenu'
-import { Onboarding } from '../account/onboard/Onboarding'
 
 import lodash from 'lodash'
 import MzdGlobalContext from '../lib/global'
-import { ArchaeologistNotInstalledNotice } from '../account/onboard/ArchaeologistNotInstalledNotice'
-import { ArchaeologistState } from '../apps-list/archaeologistState'
 
 const Box = styled.div`
   width: 100%;
   max-width: 100%;
 `
 
-export const SearchGridView = ({
-  archaeologistState,
-}: {
-  archaeologistState: ArchaeologistState
-}) => {
+export const SearchGridView = () => {
   const loc = useLocation()
   const ctx = useContext(MzdGlobalContext)
   const params = parse(loc.search)
@@ -35,12 +28,8 @@ export const SearchGridView = ({
   }
   return (
     <Box>
-      <ArchaeologistNotInstalledNotice
-        archaeologistState={archaeologistState}
-      />
       <SearchGrid q={queryStr} defaultSearch storage={ctx.storage} />
       <CreateNewNodeMenu />
-      <Onboarding archaeologistState={archaeologistState} />
     </Box>
   )
 }
