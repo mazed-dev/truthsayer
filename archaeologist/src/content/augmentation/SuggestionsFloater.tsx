@@ -30,17 +30,21 @@ import {
   Minimize,
 } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
-import {} from '@emotion-icons/material'
 
 const SuggestedCardsBox = styled.div`
   width: 320px;
   display: flex;
   flex-direction: column;
 
-  border-radius: 5px;
-  background: #ffffff;
+  background: #eaeaeadb;
+  box-shadow: 0 2px 5px 1px rgba(64, 60, 67, 0.16);
+  &:hover,
+  active {
+    background: #eaeaea;
+    box-shadow: 0 2px 8px 1px rgba(64, 60, 67, 0.24);
+  }
+  border-radius: 6px;
   user-select: text;
-  box-shadow: rgba(32, 34, 36, 0.46) 1px 1px 4px 0px;
 `
 const DraggableElement = styled.div`
   position: absolute;
@@ -51,11 +55,14 @@ const Header = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
+  /*
   border-bottom: 1px solid #dadada;
+  border-radius: 6px;
+  */
 
   cursor: move; /* fallback if "grab" & "grabbing" cursors are not supported */
   cursor: grab;
-  &: active {
+  &:active {
     cursor: grabbing;
   }
 `
@@ -65,19 +72,19 @@ const SuggestionsFloaterSuggestionsBox = styled.div`
   flex-direction: column;
   padding: 0;
   overflow-y: scroll;
+  height: 80vh;
+
+  border-radius: 6px;
+  user-select: text;
 `
 
 const CloseBtn = styled(ImgButton)`
-  padding: 4px 5px 4px 5px;
-  margin: 0 5px 0 5px;
+  padding: 3px 4px 3px 4px;
+  margin: 1px 5px 0 5px;
   font-size: 12px;
   vertical-align: middle;
-  background: white;
+  background: unset;
   border-radius: 12px;
-  opacity: 0.32;
-  &:hover {
-    opacity: 1;
-  }
 `
 
 const SuggestionButton = styled(MeteredButton)`
@@ -90,10 +97,10 @@ const SuggestionButton = styled(MeteredButton)`
 /* Radiant blue colour border: 1px solid #59b6ff8f; */
 const SuggestedCardBox = styled.div`
   font-size: 12px;
-  margin: 0;
+  margin: 2px 4px 2px 4px;
   background: #ffffff;
-  border: 1px solid #dadada;
-  border-radius: 5px;
+  border-radius: 6px;
+  user-select: text;
 `
 
 const SuggestedCardTools = styled.div`
