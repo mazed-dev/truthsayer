@@ -100,6 +100,8 @@ export async function check() {
   const user = await authentication.getAuth({}).catch(() => null)
   if (user != null) {
     await _loginHandler(user)
+  } else {
+    await _logoutHandler()
   }
 }
 
