@@ -51,7 +51,7 @@ import {
   CookiePolicyPopUp,
   PrivacyPolicy,
 } from './public-page/legal/Index'
-import { errorise, log, productanalytics, sleep } from 'armoury'
+import { AnalyticsIdentity, errorise, log, productanalytics, sleep } from 'armoury'
 import { ApplicationSettings } from './AppSettings'
 import {
   AccountInterface,
@@ -106,9 +106,11 @@ function AppRouter() {
     React.useState<ArchaeologistState>({ state: 'loading' })
   useAsyncEffect(async () => {
     try {
+      const result = await waitForArchaeologistToLoad()
+      analytics?.identify(result.analyticsIdentity.analyticsIdentity)
       setArchaeologistState({
         state: 'installed',
-        version: await waitForArchaeologistToLoad(),
+        version: result.version,
       })
     } catch (err) {
       setArchaeologistState({ state: 'not-installed' })
@@ -356,7 +358,7 @@ function PageviewEventTracker({ analytics }: { analytics: PostHog }) {
   return <div />
 }
 
-async function waitForArchaeologistToLoad(): Promise<ToTruthsayer.ArchaeologistVersion> {
+async function waitForArchaeologistToLoad(): Promise<{version: ToTruthsayer.ArchaeologistVersion, analyticsIdentity: AnalyticsIdentity}> {
   const maxAttempts = 5
   let error = ''
   for (let attempt = 0; attempt < maxAttempts; ++attempt) {
@@ -364,7 +366,7 @@ async function waitForArchaeologistToLoad(): Promise<ToTruthsayer.ArchaeologistV
       const response = await FromTruthsayer.sendMessage({
         type: 'GET_ARCHAEOLOGIST_STATE_REQUEST',
       })
-      return response.version
+      return {version: response.version, analyticsIdentity: response.analyticsIdentity}
     } catch (reason) {
       if (attempt === maxAttempts - 1) {
         error = errorise(reason).message

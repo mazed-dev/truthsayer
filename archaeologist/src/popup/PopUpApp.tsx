@@ -8,6 +8,7 @@ import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { LoginForm, Spinner } from 'elementary'
 import { errorise, productanalytics } from 'armoury'
+import type { AnalyticsIdentity } from 'armoury'
 import { PopUpContext } from './context'
 import type {
   ForwardToRealImpl,
@@ -25,47 +26,63 @@ const AppContainer = styled.div`
   font-weight: 400;
 `
 
-type State = {
-  userUid?: string
-  analytics?: PostHog
-}
+type State = 
+ | { type: 'not-init'} 
+ | {type: 'not-logged-in', analyticsIdentity: AnalyticsIdentity}
+ | {type: 'logged-in', userUid: string, analyticsIdentity: AnalyticsIdentity, analytics?: PostHog}
 
-type Action = ToPopUp.AuthStatusResponse | ToPopUp.LogInResponse
+type Action = ToPopUp.AppStatusResponse | ToPopUp.LogInResponse
 
 function updateState(state: State, action: Action): State {
   switch (action.type) {
-    case 'AUTH_STATUS': {
+    case 'APP_STATUS_RESPONSE': {
+      if (state.type !== 'not-init') {
+        throw new Error(`Tried to do first-time init of popup app, but it already has state '${state.type}'`)
+      }
       if (action.userUid == null) {
-        return {}
+        return {type: 'not-logged-in', analyticsIdentity: action.analyticsIdentity}
       }
       return {
+        type: 'logged-in',
         userUid: action.userUid,
-        analytics: state.analytics ?? makeAnalytics(),
+        analyticsIdentity: action.analyticsIdentity,
+        analytics: makeAnalytics(action.analyticsIdentity),
       }
     }
     case 'RESPONSE_LOG_IN': {
-      return {
-        userUid: action.user.uid,
-        analytics: state.analytics ?? makeAnalytics(),
+      if (state.type !== 'not-logged-in') {
+        throw new Error(`Tried to log in, but popup app is in state '${state.type}'`)
       }
+      return {
+        type: 'logged-in',
+        userUid: action.user.uid,
+        analyticsIdentity: state.analyticsIdentity,
+        analytics: makeAnalytics(state.analyticsIdentity),
+      }
+
     }
   }
 }
 
-function makeAnalytics(): PostHog | undefined {
+function makeAnalytics(analyticsIdentity: AnalyticsIdentity): PostHog | undefined {
   return (
-    productanalytics.make('archaeologist/popup', process.env.NODE_ENV, {}) ??
+    productanalytics.make('archaeologist/popup', process.env.NODE_ENV, {
+      bootstrap: {
+        distinctID: analyticsIdentity.analyticsIdentity,
+        isIdentifiedID: true,
+      }
+    }) ??
     undefined
   )
 }
 
 export const PopUpApp = () => {
-  const initialState: State = {}
+  const initialState: State = {type: 'not-init'}
   const [state, dispatch] = React.useReducer(updateState, initialState)
 
   useAsyncEffect(async () => {
     const response = await FromPopUp.sendMessage({
-      type: 'REQUEST_AUTH_STATUS',
+      type: 'REQUEST_APP_STATUS',
     })
     dispatch(response)
   }, [])
@@ -84,14 +101,24 @@ export const PopUpApp = () => {
       <PopUpContext.Provider
         value={{ storage: makeMsgProxyStorageApi(forwardToBackground) }}
       >
-        {state.userUid == null ? (
-          <LoginPage onLogin={dispatch} />
-        ) : (
-          <ViewActiveTabStatus />
-        )}
+      {determineWidget(state, dispatch)}
       </PopUpContext.Provider>
     </AppContainer>
   )
+}
+
+function determineWidget(state: State, dispatch: React.Dispatch<Action>) {
+  switch (state.type) {
+    case 'not-init': {
+      return <Spinner.Ring />
+    }
+    case 'not-logged-in': {
+      return <LoginPage onLogin={dispatch} />
+    }
+    case 'logged-in': {
+      return <ViewActiveTabStatus />
+    }
+  }
 }
 
 const LogoImg = styled.img`
