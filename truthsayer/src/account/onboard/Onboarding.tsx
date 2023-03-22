@@ -17,7 +17,7 @@ const Header = styled.h1`
 
 const Box = styled(Container)`
   margin: 30vh auto auto auto;
-  max-width: 760px;
+  max-width: 800px;
 `
 const StepBox = styled.div`
   margin-bottom: 24px;
@@ -40,7 +40,7 @@ const StepFotbar = styled.div`
   flex-shrink: 0;
   align-items: center;
   justify-content: flex-end;
-  padding: 0.75rem;
+  padding: 0.5rem;
 `
 const FootNote = styled.div`
   margin-top: 24px;
@@ -146,7 +146,7 @@ const StepBootstrapMemory = ({
         importTypes={['open-tabs']}
       />
       <StepFotbar>
-        <StepFotbarButton variant="secondary" onClick={nextStep}>
+        <StepFotbarButton variant="primary" onClick={nextStep}>
           Next
         </StepFotbarButton>
       </StepFotbar>
@@ -154,10 +154,12 @@ const StepBootstrapMemory = ({
   )
 }
 
-const YouAreReadyToGoStep = ({
+const StepYouAreReadyToGo = ({
+  nextStep,
   prevStep,
   onClose,
 }: {
+  nextStep: () => void
   prevStep: () => void
   onClose: () => void
 }) => {
@@ -188,14 +190,44 @@ const YouAreReadyToGoStep = ({
         </DescriptionList>
       </DescriptionBox>
       <StepFotbar>
-        <StepFotbarButton variant="secondary" onClick={prevStep}>
+        <StepFotbarButton variant="outline-secondary" onClick={prevStep}>
           Previous
         </StepFotbarButton>
-        <StepFotbarButton variant="primary" onClick={onClose}>
-          Done
+        <StepFotbarButton variant="primary" onClick={nextStep}>
+          Next
         </StepFotbarButton>
       </StepFotbar>
     </StepBox>
+  )
+}
+
+const StepTangoShowAroundBox = styled(StepBox)`
+  height: 85.5vh;
+`
+const StepTangoShowAround = ({
+  onClose,
+}: {
+  onClose: () => void
+}) => {
+  return (
+    <StepTangoShowAroundBox>
+      <iframe
+        src="https://app.tango.us/app/embed/c99490cf-dfe4-4f17-9f83-80e18fee80e6?iframe"
+        sandbox="allow-scripts allow-top-navigation-by-user-activation allow-popups allow-same-origin"
+        security="restricted"
+        title="Let's show you around your second brain."
+        width="100%"
+        height="100%"
+        referrerPolicy="strict-origin-when-cross-origin"
+        frameBorder="0"
+        allowFullScreen
+      ></iframe>
+      <StepFotbar>
+        <StepFotbarButton variant="outline-primary" onClick={onClose} size="sm">
+          Done
+        </StepFotbarButton>
+      </StepFotbar>
+    </StepTangoShowAroundBox>
   )
 }
 
@@ -210,9 +242,10 @@ function OnboardingSteps({
   onClose: () => void
   archaeologistState: ArchaeologistState
 }) {
+  const kStepsNumber = 4
   const nextStepChecked = () => {
     step = step + 1
-    if (step > 2) {
+    if (step >= kStepsNumber) {
       onClose()
     }
     if (step >= 0) {
@@ -225,31 +258,40 @@ function OnboardingSteps({
       nextStep(step)
     }
   }
-  let widget
   switch (step) {
     case 0:
-      widget = (
-        <StepWelcomePleaseInstall
-          archaeologistState={archaeologistState}
-          nextStep={nextStepChecked}
-        />
+      return (
+        <Box>
+          <StepWelcomePleaseInstall
+            archaeologistState={archaeologistState}
+            nextStep={nextStepChecked}
+          />
+        </Box>
       )
-      break
     case 1:
-      widget = (
-        <StepBootstrapMemory
-          archaeologistState={archaeologistState}
-          nextStep={nextStepChecked}
-        />
+      return (
+        <Box>
+          <StepBootstrapMemory
+            archaeologistState={archaeologistState}
+            nextStep={nextStepChecked}
+          />
+        </Box>
       )
-      break
     case 2:
-      widget = (
-        <YouAreReadyToGoStep prevStep={prevStepChecked} onClose={onClose} />
+      return (
+        <Box>
+          <StepYouAreReadyToGo
+            prevStep={prevStepChecked}
+            onClose={onClose}
+            nextStep={nextStepChecked}
+          />
+        </Box>
       )
-      break
+    default:
+      return (
+        <StepTangoShowAround onClose={onClose} />
+      )
   }
-  return <Box>{widget}</Box>
 }
 
 function parseStepFromSearchString(search: string): number {

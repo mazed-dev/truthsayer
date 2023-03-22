@@ -37,7 +37,7 @@ export const SearchGridView = ({
     if (archaeologistState.state === 'not-installed') {
       goto.onboarding({ history })
     }
-  }, [archaeologistState])
+  }, [archaeologistState, history])
   return (
     <Box>
       <SearchGrid q={queryStr} defaultSearch storage={ctx.storage} />
