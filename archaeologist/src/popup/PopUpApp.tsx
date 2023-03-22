@@ -26,10 +26,15 @@ const AppContainer = styled.div`
   font-weight: 400;
 `
 
-type State = 
- | { type: 'not-init'} 
- | {type: 'not-logged-in', analyticsIdentity: AnalyticsIdentity}
- | {type: 'logged-in', userUid: string, analyticsIdentity: AnalyticsIdentity, analytics?: PostHog}
+type State =
+  | { type: 'not-init' }
+  | { type: 'not-logged-in'; analyticsIdentity: AnalyticsIdentity }
+  | {
+      type: 'logged-in'
+      userUid: string
+      analyticsIdentity: AnalyticsIdentity
+      analytics?: PostHog
+    }
 
 type Action = ToPopUp.AppStatusResponse | ToPopUp.LogInResponse
 
@@ -37,10 +42,15 @@ function updateState(state: State, action: Action): State {
   switch (action.type) {
     case 'APP_STATUS_RESPONSE': {
       if (state.type !== 'not-init') {
-        throw new Error(`Tried to do first-time init of popup app, but it already has state '${state.type}'`)
+        throw new Error(
+          `Tried to do first-time init of popup app, but it already has state '${state.type}'`
+        )
       }
       if (action.userUid == null) {
-        return {type: 'not-logged-in', analyticsIdentity: action.analyticsIdentity}
+        return {
+          type: 'not-logged-in',
+          analyticsIdentity: action.analyticsIdentity,
+        }
       }
       return {
         type: 'logged-in',
@@ -51,7 +61,9 @@ function updateState(state: State, action: Action): State {
     }
     case 'RESPONSE_LOG_IN': {
       if (state.type !== 'not-logged-in') {
-        throw new Error(`Tried to log in, but popup app is in state '${state.type}'`)
+        throw new Error(
+          `Tried to log in, but popup app is in state '${state.type}'`
+        )
       }
       return {
         type: 'logged-in',
@@ -59,25 +71,25 @@ function updateState(state: State, action: Action): State {
         analyticsIdentity: state.analyticsIdentity,
         analytics: makeAnalytics(state.analyticsIdentity),
       }
-
     }
   }
 }
 
-function makeAnalytics(analyticsIdentity: AnalyticsIdentity): PostHog | undefined {
+function makeAnalytics(
+  analyticsIdentity: AnalyticsIdentity
+): PostHog | undefined {
   return (
     productanalytics.make('archaeologist/popup', process.env.NODE_ENV, {
       bootstrap: {
         distinctID: analyticsIdentity.analyticsIdentity,
         isIdentifiedID: true,
-      }
-    }) ??
-    undefined
+      },
+    }) ?? undefined
   )
 }
 
 export const PopUpApp = () => {
-  const initialState: State = {type: 'not-init'}
+  const initialState: State = { type: 'not-init' }
   const [state, dispatch] = React.useReducer(updateState, initialState)
 
   useAsyncEffect(async () => {
@@ -101,7 +113,7 @@ export const PopUpApp = () => {
       <PopUpContext.Provider
         value={{ storage: makeMsgProxyStorageApi(forwardToBackground) }}
       >
-      {determineWidget(state, dispatch)}
+        {determineWidget(state, dispatch)}
       </PopUpContext.Provider>
     </AppContainer>
   )
