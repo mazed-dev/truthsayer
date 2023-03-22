@@ -107,8 +107,8 @@ function makePostHogIdentityFromString(
 }
 
 /**
- * @summary A string ID which is safe & privacy-conscious to to identify a user for
- * product analytics purposes.
+ * @summary A string ID which is sufficiently safe & privacy-conscious to identify
+ * a user for product analytics purposes.
  *
  * @description The string is wrapped into a type for type safety, to reduce chances
  * of using it for unrelated purposes.

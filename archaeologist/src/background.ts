@@ -20,13 +20,7 @@ import {
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
-import {
-  log,
-  isAbortError,
-  unixtime,
-  errorise,
-  AnalyticsIdentity,
-} from 'armoury'
+import { log, isAbortError, unixtime, errorise } from 'armoury'
 import {
   Nid,
   TNodeJson,
@@ -704,6 +698,9 @@ class Background {
           version: {
             version: browser.runtime.getManifest().version,
           },
+          analyticsIdentity: await backgroundpa.getIdentity(
+            browser.storage.local
+          ),
         }
       }
       case 'GET_APP_SETTINGS_REQUEST': {
