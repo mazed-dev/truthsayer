@@ -112,14 +112,11 @@ function AppRouter() {
         version: await waitForArchaeologistToLoad(5, 200 /* Ms */),
       })
       isInstalled = true
-      log.debug('Installed')
     } catch (err) {
       setArchaeologistState({ state: 'not-installed' })
       isInstalled = false
-      log.debug('Not Installed')
     }
     if (!isInstalled) {
-      log.debug('Not Installed -> wait')
       // If not installed, go to onboarding page and wait much longer for User
       // to install Archaeologist
       try {
@@ -389,7 +386,6 @@ async function waitForArchaeologistToLoad(
       })
       return response.version
     } catch (reason) {
-      log.debug('waitForArchaeologistToLoad', reason)
       if (attempt === maxAttempts - 1) {
         error = errorise(reason).message
       }
