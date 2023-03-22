@@ -60,6 +60,7 @@ const kContacts: TruthsayerPath = '/contacts'
 const kPrivacyPolicy: TruthsayerPath = '/privacy-policy'
 const kTermsOfService: TruthsayerPath = '/terms-of-service'
 const kCookiePolicy: TruthsayerPath = '/cookie-policy'
+const kOnboarding: TruthsayerPath = '/onboarding'
 
 export type PasswordRecoverFormUrlParams = { token: string }
 export type TriptychUrlParams = { nid: string }
@@ -73,6 +74,20 @@ function gotoSearch({ history, query }: { history: History; query: string }) {
     pathname: kSearchPath,
     search: stringify({ q: query }),
   })
+}
+
+function gotoOnboarding({
+  history,
+  step,
+}: {
+  history?: History
+  step?: number
+}) {
+  if (history) {
+    history.push({ pathname: kOnboarding, search: stringify({ step }) })
+  } else {
+    window.location.pathname = kOnboarding
+  }
 }
 
 function getSearchAnchor({ location }: { location: Location }) {
@@ -187,6 +202,7 @@ export const routes = {
   privacy: kPrivacyPolicy,
   terms: kTermsOfService,
   cookiePolicy: kCookiePolicy,
+  onboarding: kOnboarding,
 }
 
 export const goto = {
@@ -196,6 +212,7 @@ export const goto = {
   logout: gotoLogOut,
   node: gotoNode,
   search: gotoSearch,
+  onboarding: gotoOnboarding,
   notice: {
     error: gotoError,
     seeYou: gotoSeeYou,

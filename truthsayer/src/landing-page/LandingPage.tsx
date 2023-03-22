@@ -317,15 +317,6 @@ const FooterItem = styled.div`
   margin: 0 16px 4px 16px;
 `
 
-// const TextStrikeThrough = styled.span`
-//   text-decoration: line-through;
-//   text-decoration-color: ${(props) => props.theme.color.positive};
-// `
-// const TextHighlight = styled.span`
-//   font-weight: 900;
-//   color: ${(props) => props.theme.color.positive};
-// `
-
 const themeDark = {
   backgroundColor: {
     primary: '#0c141f',
