@@ -204,11 +204,7 @@ const StepYouAreReadyToGo = ({
 const StepTangoShowAroundBox = styled(StepBox)`
   height: 85.5vh;
 `
-const StepTangoShowAround = ({
-  onClose,
-}: {
-  onClose: () => void
-}) => {
+const StepTangoShowAround = ({ onClose }: { onClose: () => void }) => {
   return (
     <StepTangoShowAroundBox>
       <iframe
@@ -288,9 +284,7 @@ function OnboardingSteps({
         </Box>
       )
     default:
-      return (
-        <StepTangoShowAround onClose={onClose} />
-      )
+      return <StepTangoShowAround onClose={onClose} />
   }
 }
 
