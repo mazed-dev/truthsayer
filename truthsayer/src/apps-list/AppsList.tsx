@@ -21,12 +21,6 @@ const Box = styled(Container)`
   padding: 18px;
 `
 
-const DescriptionBox = styled.div``
-const DescriptionList = styled.ul``
-const DescriptionListItem = styled.li`
-  list-style-type: '✅';
-  padding-left: 12px;
-`
 const AppsBox = styled.div``
 const AppItem = styled.div`
   display: flex;
@@ -69,22 +63,6 @@ export function AppsList({
 }) {
   return (
     <Box className={className}>
-      <DescriptionBox>
-        <DescriptionList>
-          <DescriptionListItem>
-            <b>Instant.</b> Mazed allows you reference anything you've read,
-            without searching for it.
-          </DescriptionListItem>
-          <DescriptionListItem>
-            <b>Automatic.</b> Mazed helps you remember everything you read,
-            automatically.
-          </DescriptionListItem>
-          <DescriptionListItem>
-            <b>Private.</b> Nothing you read or write leaves your device, with
-            local storage.
-          </DescriptionListItem>
-        </DescriptionList>
-      </DescriptionBox>
       <AppsBox>
         <AppItem>
           <Logo src={GoogleChromeLogo} />
