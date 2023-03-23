@@ -52,7 +52,13 @@ import {
   CookiePolicyPopUp,
   PrivacyPolicy,
 } from './public-page/legal/Index'
-import { errorise, log, productanalytics, sleep } from 'armoury'
+import {
+  AnalyticsIdentity,
+  errorise,
+  log,
+  productanalytics,
+  sleep,
+} from 'armoury'
 import { ApplicationSettings } from './AppSettings'
 import {
   AccountInterface,
@@ -107,9 +113,11 @@ function AppRouter() {
   useAsyncEffect(async () => {
     let isInstalled
     try {
+      const result = await waitForArchaeologistToLoad(5, 200 /* Ms */)
+      analytics?.identify(result.analyticsIdentity.analyticsIdentity)
       setArchaeologistState({
         state: 'installed',
-        version: await waitForArchaeologistToLoad(5, 200 /* Ms */),
+        version: result.version,
       })
       isInstalled = true
     } catch (err) {
@@ -120,9 +128,11 @@ function AppRouter() {
       // If not installed, go to onboarding page and wait much longer for User
       // to install Archaeologist
       try {
+        const result = await waitForArchaeologistToLoad(3600, 1000 /* Ms */)
+        analytics?.identify(result.analyticsIdentity.analyticsIdentity)
         setArchaeologistState({
           state: 'installed',
-          version: await waitForArchaeologistToLoad(3600, 1000 /* Ms */),
+          version: result.version,
         })
       } catch (err) {
         setArchaeologistState({ state: 'not-installed' })
@@ -377,14 +387,20 @@ function PageviewEventTracker({ analytics }: { analytics: PostHog }) {
 async function waitForArchaeologistToLoad(
   maxAttempts: number,
   sleepBetweenAttemptsMs: number
-): Promise<ToTruthsayer.ArchaeologistVersion> {
+): Promise<{
+  version: ToTruthsayer.ArchaeologistVersion
+  analyticsIdentity: AnalyticsIdentity
+}> {
   let error = ''
   for (let attempt = 0; attempt < maxAttempts; ++attempt) {
     try {
       const response = await FromTruthsayer.sendMessage({
         type: 'GET_ARCHAEOLOGIST_STATE_REQUEST',
       })
-      return response.version
+      return {
+        version: response.version,
+        analyticsIdentity: response.analyticsIdentity,
+      }
     } catch (reason) {
       if (attempt === maxAttempts - 1) {
         error = errorise(reason).message

@@ -14,6 +14,7 @@ import type {
   StorageApiMsgReturnValue,
 } from 'smuggler-api'
 import { log, errorise } from 'armoury'
+import type { AnalyticsIdentity } from 'armoury'
 import { truthsayer } from 'elementary'
 
 export type StorageType =
@@ -220,6 +221,7 @@ export namespace ToTruthsayer {
   export type GetArchaeologistStateResponse = {
     type: 'GET_ARCHAEOLOGIST_STATE_RESPONSE'
     version: ArchaeologistVersion
+    analyticsIdentity: AnalyticsIdentity
   }
   export type GetAppSettingsResponse = {
     type: 'GET_APP_SETTINGS_RESPONSE'

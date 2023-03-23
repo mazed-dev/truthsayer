@@ -169,7 +169,7 @@ function updateState(state: State, action: Action): State {
       )
 
       let analytics: PostHog | null = null
-      if (mode !== 'passive-mode-content-app') {
+      if (mode.type !== 'passive-mode-content-app') {
         analytics = productanalytics.make('archaeologist/content', nodeEnv, {
           // Opening every web page that gets augmented with a content scripts
           // gets counted as a '$pageview' event, doesn't matter if a user actually
@@ -189,6 +189,16 @@ function updateState(state: State, action: Action): State {
             '$initial_referring_domain',
           ],
           save_referrer: false,
+          bootstrap: {
+            // NOTE: in content script analytics it is important to identify
+            // a user at the moment of analytics instance creation, not via deferred
+            // call to identify() because identify() generates a separate "$identify"
+            // event to PostHog. Every web page user opens then produces such
+            // an event which (as believed at the time of this writing) produces
+            // no value and just makes the data in PostHog difficult to navigate.
+            distinctID: mode.analyticsIdentity.analyticsIdentity,
+            isIdentifiedID: true,
+          },
           // Unlike product analytics tracked for truthsayer, persist data
           // about a single augmented web page in memory of the page itself.
           // This means that different "instances" of product analytics
@@ -363,7 +373,7 @@ const App = () => {
   }
 
   const activityTrackerOrNull =
-    state.mode === 'active-mode-content-app' ? (
+    state.mode.type === 'active-mode-content-app' ? (
       <ActivityTracker
         registerAttentionTime={(
           deltaSeconds: number,
