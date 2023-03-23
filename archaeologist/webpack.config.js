@@ -1,5 +1,7 @@
 const webpack = require("webpack")
 const path = require("path")
+var fs = require('fs')
+const util = require('util')
 const CopyPlugin = require("copy-webpack-plugin")
 const TerserPlugin = require('terser-webpack-plugin')
 
@@ -17,6 +19,13 @@ const _getSmugglerApiUrl = (mode) => {
   return mode === 'development'
     ? "http://localhost:3000"
     : "https://mazed.se/smuggler"
+}
+
+const _readVersionFromFile = async () => {
+  filePath = path.join(__dirname, 'public/version.txt')
+  const readFile = util.promisify(fs.readFile)
+
+  return await readFile(filePath, {encoding: 'utf-8'})
 }
 
 const _manifestTransformDowngradeToV2 = (manifest) => {
@@ -48,8 +57,9 @@ const _isChromium = (env) => {
   return env.chrome || env.edge || false
 }
 
-const _manifestTransform = (buffer, mode, env) => {
+const _manifestTransform = (buffer, mode, env, archaeologistVersion) => {
   let manifest = JSON.parse(buffer.toString())
+  manifest.version = archaeologistVersion
 
   const { firefox = false } = env
 
@@ -80,7 +90,8 @@ const _manifestTransform = (buffer, mode, env) => {
   return JSON.stringify(manifest, null, 2)
 }
 
-const config = (env, argv) => {
+const config = async (env, argv) => {
+  archeologistVersion = await _readVersionFromFile()
   return {
     entry: {
       popup: path.join(__dirname, "src/popup.tsx"),
@@ -156,7 +167,7 @@ const config = (env, argv) => {
           from: "public", to: ".",
           transform: (context, absoluteFrom) => {
             if (absoluteFrom.endsWith("/manifest.json")) {
-              return _manifestTransform(context, argv.mode, env)
+              return _manifestTransform(context, argv.mode, env, archeologistVersion)
             }
             return context
           },
