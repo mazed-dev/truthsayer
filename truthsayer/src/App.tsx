@@ -33,6 +33,7 @@ import WaitingForApproval from './account/create/WaitingForApproval'
 import { GoToInboxToConfirmEmail } from './account/create/GoToInboxToConfirmEmail'
 import UserPreferences from './auth/UserPreferences'
 import { LandingPage } from './landing-page/LandingPage'
+import { Onboarding } from './account/onboard/Onboarding'
 import {
   TruthsayerPath,
   PasswordRecoverFormUrlParams,
@@ -107,19 +108,35 @@ function AppRouter() {
     log.info('Initialised an authenticated user account')
     setAccount(acc)
   }, [])
-
   const [archaeologistState, setArchaeologistState] =
     React.useState<ArchaeologistState>({ state: 'loading' })
   useAsyncEffect(async () => {
+    let isInstalled
     try {
-      const result = await waitForArchaeologistToLoad()
+      const result = await waitForArchaeologistToLoad(5, 200 /* Ms */)
       analytics?.identify(result.analyticsIdentity.analyticsIdentity)
       setArchaeologistState({
         state: 'installed',
         version: result.version,
       })
+      isInstalled = true
     } catch (err) {
       setArchaeologistState({ state: 'not-installed' })
+      isInstalled = false
+    }
+    if (!isInstalled) {
+      // If not installed, go to onboarding page and wait much longer for User
+      // to install Archaeologist
+      try {
+        const result = await waitForArchaeologistToLoad(3600, 1000 /* Ms */)
+        analytics?.identify(result.analyticsIdentity.analyticsIdentity)
+        setArchaeologistState({
+          state: 'installed',
+          version: result.version,
+        })
+      } catch (err) {
+        setArchaeologistState({ state: 'not-installed' })
+      }
     }
   }, [])
 
@@ -226,6 +243,9 @@ function AppRouter() {
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pub-route-9'} path={'/logout'}>
       <Logout />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-pub-route-onboarding'} path={'/onboarding'}>
+      <Onboarding archaeologistState={archaeologistState} />
     </TruthsayerRoute>,
   ]
 
@@ -364,11 +384,13 @@ function PageviewEventTracker({ analytics }: { analytics: PostHog }) {
   return <div />
 }
 
-async function waitForArchaeologistToLoad(): Promise<{
+async function waitForArchaeologistToLoad(
+  maxAttempts: number,
+  sleepBetweenAttemptsMs: number
+): Promise<{
   version: ToTruthsayer.ArchaeologistVersion
   analyticsIdentity: AnalyticsIdentity
 }> {
-  const maxAttempts = 5
   let error = ''
   for (let attempt = 0; attempt < maxAttempts; ++attempt) {
     try {
@@ -384,7 +406,7 @@ async function waitForArchaeologistToLoad(): Promise<{
         error = errorise(reason).message
       }
     }
-    sleep(100)
+    await sleep(sleepBetweenAttemptsMs)
   }
   throw new Error(
     `Failed to get archaeologist state after ${maxAttempts} attempts. ` +
