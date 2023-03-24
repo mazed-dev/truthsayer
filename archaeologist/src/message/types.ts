@@ -9,7 +9,7 @@ import type {
   TNodeJson,
   NodeUpdateArgs,
 } from 'smuggler-api'
-import { OriginIdentity } from 'armoury'
+import { AnalyticsIdentity, OriginIdentity } from 'armoury'
 import type {
   BackgroundAction,
   BackgroundActionProgress,
@@ -85,8 +85,8 @@ export interface WebPageContent {
 }
 
 export namespace FromPopUp {
-  export interface AuthStatusRequest {
-    type: 'REQUEST_AUTH_STATUS'
+  export interface AppStatusRequest {
+    type: 'REQUEST_APP_STATUS'
   }
   export interface LogInRequest {
     type: 'REQUEST_TO_LOG_IN'
@@ -114,15 +114,15 @@ export namespace FromPopUp {
   export type Request =
     | SavePageRequest
     | PageInActiveTabStatusRequest
-    | AuthStatusRequest
+    | AppStatusRequest
     | LogInRequest
     | StorageAccessRequest
     | GetSuggestionsToPageInActiveTabRequest
     | UpdateNodeRequest
 
   export function sendMessage(
-    message: AuthStatusRequest
-  ): Promise<ToPopUp.AuthStatusResponse>
+    message: AppStatusRequest
+  ): Promise<ToPopUp.AppStatusResponse>
   export function sendMessage(
     message: LogInRequest
   ): Promise<ToPopUp.LogInResponse>
@@ -147,8 +147,9 @@ export namespace FromPopUp {
   }
 }
 export namespace ToPopUp {
-  export interface AuthStatusResponse {
-    type: 'AUTH_STATUS'
+  export interface AppStatusResponse {
+    type: 'APP_STATUS_RESPONSE'
+    analyticsIdentity: AnalyticsIdentity
     /** If undefined - user not logged in, otherwise - user's UID (@see AccountInterface.getUid() ) */
     userUid?: string
   }
@@ -181,7 +182,7 @@ export namespace ToPopUp {
   }
 
   export type Response =
-    | AuthStatusResponse
+    | AppStatusResponse
     | ActiveTabStatusResponse
     | PageSavedResponse
     | StorageAccessResponse
@@ -197,15 +198,15 @@ export type ContentAppOperationMode =
   /**
    * Mode in which content app is only allowed to act as a passive responder
    * to requests received from other parts of the system
-   * (@see FromContent.Request are disallowed).
+   * (publishing metrics, sending @see FromContent.Request etc are disallowed).
    */
-  | 'passive-mode-content-app'
+  | { type: 'passive-mode-content-app' }
   /**
    * Mode in which content app is allowed to perform actions on its own,
    * without an explicit request from a different part of the system
    * (@see FromContent.Request are allowed).
    */
-  | 'active-mode-content-app'
+  | { type: 'active-mode-content-app'; analyticsIdentity: AnalyticsIdentity }
 
 /* Value of process.env.NODE_ENV (options come from react-scripts.NodeJS.ProcessEnv.NodeEnv) */
 export type NodeEnv = 'development' | 'production' | 'test'

@@ -89,7 +89,42 @@ function markClassNameForExclusion(className?: string): string {
   return `ph-no-capture ${className}`
 }
 
+/**
+ * @summary Transform an input string into a @see AnalyticsIdentity
+ *
+ * @param str Any string that is deemed appropriate & safe to identify a user for
+ * product analytics purposes.
+ */
+function makePostHogIdentityFromString(
+  str: string,
+  nodeEnv: NodeEnv
+): AnalyticsIdentity {
+  // Note that this helper can't rely on process.env.NODE_ENV directly because
+  // it's not available in all environments when product analytics are needed
+  // (e.g. it is not available in content script)
+  const envPrefix = nodeEnv !== 'production' ? 'dev/' : ''
+  return { analyticsIdentity: `${envPrefix}${str}` }
+}
+
+/**
+ * @summary A string ID which is sufficiently safe & privacy-conscious to identify
+ * a user for product analytics purposes.
+ *
+ * @description The string is wrapped into a type for type safety, to reduce chances
+ * of using it for unrelated purposes.
+ */
+export type AnalyticsIdentity = {
+  analyticsIdentity: string
+}
+
+export function isAnalyticsIdentity(input: any): input is AnalyticsIdentity {
+  return 'analyticsIdentity' in input
+}
+
 export const productanalytics = {
   make: makeAnalytics,
   classExclude: markClassNameForExclusion,
+  identity: {
+    from: makePostHogIdentityFromString,
+  },
 }

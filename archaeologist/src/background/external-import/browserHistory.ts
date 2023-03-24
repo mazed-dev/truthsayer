@@ -262,11 +262,9 @@ export namespace BrowserHistoryUpload {
       if (tab.url == null) {
         throw new Error(`Can't init content in temporary tab, tab has no URL`)
       }
-      const request = await calculateInitialContentState(
-        storage,
-        tab.url,
-        'passive-mode-content-app'
-      )
+      const request = await calculateInitialContentState(storage, tab.url, {
+        type: 'passive-mode-content-app',
+      })
       await ToContent.sendMessage(tabId, request)
       return await ToContent.sendMessage(tabId, {
         type: 'REQUEST_PAGE_CONTENT',
