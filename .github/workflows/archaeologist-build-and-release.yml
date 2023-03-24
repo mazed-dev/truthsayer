@@ -33,13 +33,13 @@ jobs:
         run: |-
           ./archaeologist/pack/chrome/pack.sh
         env:
-          OUTPUT_FILENAME: mazed-for-chrome-${{ github.event.pull_request.head.sha }}.zip
+          OUTPUT_FILENAME: mazed-for-chrome-${{ github.sha }}.zip
 
       - name: Archive chrome-extension artifact
         uses: actions/upload-artifact@v3
         with:
           name: mazed-for-chrome-${{ github.sha }}
-          path: mazed-for-chrome-${{ github.event.pull_request.head.sha }}.zip
+          path: mazed-for-chrome-${{ github.sha }}.zip
 
   # api usage reference:
   # * <https://developer.chrome.com/docs/webstore/using_webstore_api/>
@@ -74,7 +74,7 @@ jobs:
       - name: Upload step
         run: |-
           chrome-webstore-upload upload \\
-            --source mazed-for-chrome-${{ github.event.pull_request.head.sha }}.zip \\
+            --source mazed-for-chrome-${{ github.sha }}.zip \\
             --extension-id ${{ env.EXTENSION_ID }} \\
             --client-id ${{ secrets.CI_GOOGLE_OATH_CLIENT_ID }} \\
             --client-secret ${{ secrets.CI_GOOGLE_OATH_CLIENT_SECRET }} \\
