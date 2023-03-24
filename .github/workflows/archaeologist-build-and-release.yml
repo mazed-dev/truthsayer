@@ -8,6 +8,8 @@ on:
     paths:
       - 'archaeologist/public/version.txt'
 
+  workflow_dispatch:
+
 jobs:
   build-chrome-extension:
     name: Build Chrome extension artifact
