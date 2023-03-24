@@ -57,7 +57,7 @@ jobs:
 
     needs: build-chrome-extension
     env:
-      EXTENSION_ID: hkfjmbjendcoblcoackpapfphijagddc
+      CHROME_EXTENSION_ID: hkfjmbjendcoblcoackpapfphijagddc
 
     steps:
       - name: Use Node.js ${{ matrix.node-version }}
@@ -78,7 +78,7 @@ jobs:
         run: |-
           chrome-webstore-upload upload \\
             --source mazed-for-chrome-${{ github.sha }}.zip \\
-            --extension-id ${{ env.EXTENSION_ID }} \\
+            --extension-id ${{ env.CHROME_EXTENSION_ID }} \\
             --client-id ${{ secrets.CI_GOOGLE_OATH_CLIENT_ID }} \\
             --client-secret ${{ secrets.CI_GOOGLE_OATH_CLIENT_SECRET }} \\
             --refresh-token ${{ secrets.CI_GOOGLE_OATH_REFRESH_TOKEN }}
