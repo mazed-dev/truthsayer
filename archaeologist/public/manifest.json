@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Mazed",
   "author": "ASG Mazed Inc",
-  "version": "0.3.6",
+  "version": "comes-from.version.txt",
   "description": "Reference anything you've read, without looking for it. Mazed is your second brain, serving you information you've read before.",
   "homepage_url": "https://mazed.se",
   "action": {

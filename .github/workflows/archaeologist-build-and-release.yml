@@ -1,0 +1,81 @@
+# Mostly taken from https://jam.dev/blog/automating-chrome-extension-publishing/
+name: Upload Archaeologist to Chrome Web Store
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'archaeologist/public/version.txt'
+
+jobs:
+  build-chrome-extension:
+    name: Build Chrome extension artifact
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build
+        run: |-
+          ./archaeologist/pack/chrome/pack.sh
+        env:
+          OUTPUT_FILENAME: mazed-for-chrome-${{ github.event.pull_request.head.sha }}.zip
+
+      - name: Archive chrome-extension artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: mazed-for-chrome-${{ github.sha }}
+          path: mazed-for-chrome-${{ github.event.pull_request.head.sha }}.zip
+
+  # api usage reference:
+  # * <https://developer.chrome.com/docs/webstore/using_webstore_api/>
+  # * <https://github.com/fregante/chrome-webstore-upload/blob/main/How%20to%20generate%20Google%20API%20keys.md>
+  upload-extension:
+    name: Upload extension (but not publish for review)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    needs: build-chrome-extension
+    env:
+      EXTENSION_ID: hkfjmbjendcoblcoackpapfphijagddc
+
+    steps:
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Download bundle artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: mazed-for-chrome-${{ github.sha }}
+
+      - name: Install webstore cli
+        run: |-
+          npm install -g chrome-webstore-upload-cli
+
+      - name: Upload step
+        run: |-
+          chrome-webstore-upload upload \\
+            --source mazed-for-chrome-${{ github.event.pull_request.head.sha }}.zip \\
+            --extension-id ${{ env.EXTENSION_ID }} \\
+            --client-id ${{ secrets.CI_GOOGLE_OATH_CLIENT_ID }} \\
+            --client-secret ${{ secrets.CI_GOOGLE_OATH_CLIENT_SECRET }} \\
+            --refresh-token ${{ secrets.CI_GOOGLE_OATH_REFRESH_TOKEN }}
