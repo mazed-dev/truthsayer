@@ -41,7 +41,8 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: mazed-for-chrome-${{ github.sha }}
-          path: mazed-for-chrome-${{ github.sha }}.zip
+          path: archaeologist/target/mazed-for-chrome-${{ github.sha }}.zip
+          if-no-files-found: error
 
   # api usage reference:
   # * <https://developer.chrome.com/docs/webstore/using_webstore_api/>
