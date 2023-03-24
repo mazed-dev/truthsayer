@@ -1,17 +1,16 @@
 /** @jsxImportSource @emotion/react */
 import React, { useContext } from 'react'
 import styled from '@emotion/styled'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useHistory } from 'react-router-dom'
 import { parse } from 'query-string'
 
 import { SearchGrid } from 'elementary'
 import { CreateNewNodeMenu } from './CreateNewNodeMenu'
-import { Onboarding } from '../account/onboard/Onboarding'
+import { ArchaeologistState } from '../apps-list/archaeologistState'
+import { goto } from '../lib/route'
 
 import lodash from 'lodash'
 import MzdGlobalContext from '../lib/global'
-import { ArchaeologistNotInstalledNotice } from '../account/onboard/ArchaeologistNotInstalledNotice'
-import { ArchaeologistState } from '../apps-list/archaeologistState'
 
 const Box = styled.div`
   width: 100%;
@@ -24,6 +23,7 @@ export const SearchGridView = ({
   archaeologistState: ArchaeologistState
 }) => {
   const loc = useLocation()
+  const history = useHistory()
   const ctx = useContext(MzdGlobalContext)
   const params = parse(loc.search)
   let { q } = params
@@ -33,14 +33,15 @@ export const SearchGridView = ({
   } else {
     queryStr = q
   }
+  React.useEffect(() => {
+    if (archaeologistState.state === 'not-installed') {
+      goto.onboarding({ history })
+    }
+  }, [archaeologistState, history])
   return (
     <Box>
-      <ArchaeologistNotInstalledNotice
-        archaeologistState={archaeologistState}
-      />
       <SearchGrid q={queryStr} defaultSearch storage={ctx.storage} />
       <CreateNewNodeMenu />
-      <Onboarding archaeologistState={archaeologistState} />
     </Box>
   )
 }

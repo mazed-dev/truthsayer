@@ -22,7 +22,7 @@ import { Triptych } from './card/Triptych'
 import { SearchGridView } from './grid/SearchGridView'
 
 import { GlobalNavBar } from './navbar/GlobalNavBar'
-import Login from './auth/Login'
+import { Login } from './auth/Login'
 import Logout from './auth/Logout'
 import { Signup } from './account/create/Signup'
 import PasswordChange from './auth/PasswordChange'
@@ -33,6 +33,7 @@ import WaitingForApproval from './account/create/WaitingForApproval'
 import { GoToInboxToConfirmEmail } from './account/create/GoToInboxToConfirmEmail'
 import UserPreferences from './auth/UserPreferences'
 import { LandingPage } from './landing-page/LandingPage'
+import { Onboarding } from './account/onboard/Onboarding'
 import {
   TruthsayerPath,
   PasswordRecoverFormUrlParams,
@@ -51,7 +52,13 @@ import {
   CookiePolicyPopUp,
   PrivacyPolicy,
 } from './public-page/legal/Index'
-import { errorise, log, productanalytics, sleep } from 'armoury'
+import {
+  AnalyticsIdentity,
+  errorise,
+  log,
+  productanalytics,
+  sleep,
+} from 'armoury'
 import { ApplicationSettings } from './AppSettings'
 import {
   AccountInterface,
@@ -101,17 +108,35 @@ function AppRouter() {
     log.info('Initialised an authenticated user account')
     setAccount(acc)
   }, [])
-
   const [archaeologistState, setArchaeologistState] =
     React.useState<ArchaeologistState>({ state: 'loading' })
   useAsyncEffect(async () => {
+    let isInstalled
     try {
+      const result = await waitForArchaeologistToLoad(5, 200 /* Ms */)
+      analytics?.identify(result.analyticsIdentity.analyticsIdentity)
       setArchaeologistState({
         state: 'installed',
-        version: await waitForArchaeologistToLoad(),
+        version: result.version,
       })
+      isInstalled = true
     } catch (err) {
       setArchaeologistState({ state: 'not-installed' })
+      isInstalled = false
+    }
+    if (!isInstalled) {
+      // If not installed, go to onboarding page and wait much longer for User
+      // to install Archaeologist
+      try {
+        const result = await waitForArchaeologistToLoad(3600, 1000 /* Ms */)
+        analytics?.identify(result.analyticsIdentity.analyticsIdentity)
+        setArchaeologistState({
+          state: 'installed',
+          version: result.version,
+        })
+      } catch (err) {
+        setArchaeologistState({ state: 'not-installed' })
+      }
     }
   }, [])
 
@@ -218,6 +243,9 @@ function AppRouter() {
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pub-route-9'} path={'/logout'}>
       <Logout />
+    </TruthsayerRoute>,
+    <TruthsayerRoute key={'mzd-pub-route-onboarding'} path={'/onboarding'}>
+      <Onboarding archaeologistState={archaeologistState} />
     </TruthsayerRoute>,
   ]
 
@@ -356,21 +384,29 @@ function PageviewEventTracker({ analytics }: { analytics: PostHog }) {
   return <div />
 }
 
-async function waitForArchaeologistToLoad(): Promise<ToTruthsayer.ArchaeologistVersion> {
-  const maxAttempts = 5
+async function waitForArchaeologistToLoad(
+  maxAttempts: number,
+  sleepBetweenAttemptsMs: number
+): Promise<{
+  version: ToTruthsayer.ArchaeologistVersion
+  analyticsIdentity: AnalyticsIdentity
+}> {
   let error = ''
   for (let attempt = 0; attempt < maxAttempts; ++attempt) {
     try {
       const response = await FromTruthsayer.sendMessage({
         type: 'GET_ARCHAEOLOGIST_STATE_REQUEST',
       })
-      return response.version
+      return {
+        version: response.version,
+        analyticsIdentity: response.analyticsIdentity,
+      }
     } catch (reason) {
       if (attempt === maxAttempts - 1) {
         error = errorise(reason).message
       }
     }
-    sleep(100)
+    await sleep(sleepBetweenAttemptsMs)
   }
   throw new Error(
     `Failed to get archaeologist state after ${maxAttempts} attempts. ` +

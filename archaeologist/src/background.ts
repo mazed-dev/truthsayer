@@ -285,15 +285,18 @@ async function handleMessageFromPopup(
         unmemorable,
       }
     }
-    case 'REQUEST_AUTH_STATUS': {
+    case 'REQUEST_APP_STATUS': {
       // TODO[snikitin@outlook.com] This is copy-pasted in onAuthenticationMessage,
       // should somehow be consolidated
       const account = auth.account()
       const authenticated = account.isAuthenticated()
       badge.setActive(authenticated)
       return {
-        type: 'AUTH_STATUS',
+        type: 'APP_STATUS_RESPONSE',
         userUid: authenticated ? account.getUid() : undefined,
+        analyticsIdentity: await backgroundpa.getIdentity(
+          browser.storage.local
+        ),
       }
     }
     case 'REQUEST_TO_LOG_IN': {
@@ -425,9 +428,12 @@ class Background {
   }
 
   private async init(account: UserAccount): Promise<BackgroundContext> {
+    const analyticsIdentity = await backgroundpa.getIdentity(
+      browser.storage.local
+    )
     // Product analytics should be initialised ASAP because
     // other initialisation stages may require access to feature flags
-    const analytics = await backgroundpa.make()
+    const analytics = await backgroundpa.make(analyticsIdentity)
 
     const storage = makeStorageApi(
       await getAppSettings(browser.storage.local),
@@ -445,7 +451,7 @@ class Background {
         const request = await contentState.calculateInitialContentState(
           ctx.storage,
           tab.url,
-          'active-mode-content-app'
+          { type: 'active-mode-content-app', analyticsIdentity }
         )
         await ToContent.sendMessage(tab.id, request)
         badge.setStatus(
@@ -612,15 +618,18 @@ class Background {
     }
 
     switch (message.type) {
-      case 'REQUEST_AUTH_STATUS': {
+      case 'REQUEST_APP_STATUS': {
         // TODO[snikitin@outlook.com] This is copy-pasted in handleMessageFromPopup,
         // should somehow be consolidated
         const account = auth.account()
         const authenticated = account.isAuthenticated()
         badge.setActive(authenticated)
         return {
-          type: 'AUTH_STATUS',
+          type: 'APP_STATUS_RESPONSE',
           userUid: authenticated ? account.getUid() : undefined,
+          analyticsIdentity: await backgroundpa.getIdentity(
+            browser.storage.local
+          ),
         }
       }
       case 'REQUEST_TO_LOG_IN': {
@@ -689,6 +698,9 @@ class Background {
           version: {
             version: browser.runtime.getManifest().version,
           },
+          analyticsIdentity: await backgroundpa.getIdentity(
+            browser.storage.local
+          ),
         }
       }
       case 'GET_APP_SETTINGS_REQUEST': {

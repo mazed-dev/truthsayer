@@ -32,6 +32,7 @@ export type TruthsayerPath =
   | '/user-preferences'
   | '/account/create/waiting-for-approval'
   | '/account/create/go-to-inbox-to-confirm-email'
+  | '/onboarding'
 
 const kLogInPath: TruthsayerPath = '/login'
 const kSignUpPath: TruthsayerPath = '/signup'
@@ -59,6 +60,7 @@ const kContacts: TruthsayerPath = '/contacts'
 const kPrivacyPolicy: TruthsayerPath = '/privacy-policy'
 const kTermsOfService: TruthsayerPath = '/terms-of-service'
 const kCookiePolicy: TruthsayerPath = '/cookie-policy'
+const kOnboarding: TruthsayerPath = '/onboarding'
 
 export type PasswordRecoverFormUrlParams = { token: string }
 export type TriptychUrlParams = { nid: string }
@@ -72,6 +74,20 @@ function gotoSearch({ history, query }: { history: History; query: string }) {
     pathname: kSearchPath,
     search: stringify({ q: query }),
   })
+}
+
+function gotoOnboarding({
+  history,
+  step,
+}: {
+  history?: History
+  step?: number
+}) {
+  if (history) {
+    history.push({ pathname: kOnboarding, search: stringify({ step }) })
+  } else {
+    window.location.pathname = kOnboarding
+  }
 }
 
 function getSearchAnchor({ location }: { location: Location }) {
@@ -119,40 +135,40 @@ function goToInboxToConfirmEmail({
   })
 }
 
-type HistoryObj = { history: Optional<History> }
+type HistoryObj = { history?: Optional<History> }
 
 function gotoLogIn({ history }: HistoryObj) {
-  gotoPath(history, kLogInPath)
+  gotoPath(history ?? null, kLogInPath)
 }
 
 function gotoSignUp({ history }: HistoryObj) {
-  gotoPath(history, kSignUpPath)
+  gotoPath(history ?? null, kSignUpPath)
 }
 
 function gotoLogOut({ history }: HistoryObj) {
-  gotoPath(history, kLogOutPath)
+  gotoPath(history ?? null, kLogOutPath)
 }
 
 function gotoNode({ history, nid }: { history: History; nid: string }) {
-  gotoPath(history, kNodePathPrefix + nid)
+  gotoPath(history ?? null, kNodePathPrefix + nid)
 }
 
 function gotoMain({ history }: HistoryObj) {
   // *dbg*/ console.log('Go to main')
-  gotoPath(history, '/')
+  gotoPath(history ?? null, '/')
 }
 
 function gotoError({ history }: HistoryObj) {
   // *dbg*/ console.log('Go to error')
-  gotoPath(history, kNoticePathPrefix + kNoticeErrorPage)
+  gotoPath(history ?? null, kNoticePathPrefix + kNoticeErrorPage)
 }
 
 function gotoSeeYou({ history }: HistoryObj) {
-  gotoPath(history, kNoticePathPrefix + kNoticeSeeYouPage)
+  gotoPath(history ?? null, kNoticePathPrefix + kNoticeSeeYouPage)
 }
 
 function gotoLogInToContinue({ history }: HistoryObj) {
-  gotoPath(history, kNoticePathPrefix + kNoticeLogInToContinue)
+  gotoPath(history ?? null, kNoticePathPrefix + kNoticeLogInToContinue)
 }
 
 function gotoWaitingListNotice(history: History, state?: any) {
@@ -160,7 +176,7 @@ function gotoWaitingListNotice(history: History, state?: any) {
 }
 
 function gotoWaitingForApproval(history?: History, state?: any) {
-  gotoPath(history || null, kWaitingForApproval, state)
+  gotoPath(history ?? null, kWaitingForApproval, state)
 }
 
 function reload_(history: History) {
@@ -186,6 +202,7 @@ export const routes = {
   privacy: kPrivacyPolicy,
   terms: kTermsOfService,
   cookiePolicy: kCookiePolicy,
+  onboarding: kOnboarding,
 }
 
 export const goto = {
@@ -195,6 +212,7 @@ export const goto = {
   logout: gotoLogOut,
   node: gotoNode,
   search: gotoSearch,
+  onboarding: gotoOnboarding,
   notice: {
     error: gotoError,
     seeYou: gotoSeeYou,
