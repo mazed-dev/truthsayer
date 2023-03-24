@@ -76,9 +76,4 @@ jobs:
 
       - name: Upload step
         run: |-
-          chrome-webstore-upload upload \\
-            --source mazed-for-chrome-${{ github.sha }}.zip \\
-            --extension-id ${{ env.CHROME_EXTENSION_ID }} \\
-            --client-id ${{ secrets.CI_GOOGLE_OATH_CLIENT_ID }} \\
-            --client-secret ${{ secrets.CI_GOOGLE_OATH_CLIENT_SECRET }} \\
-            --refresh-token ${{ secrets.CI_GOOGLE_OATH_REFRESH_TOKEN }}
+          chrome-webstore-upload upload --source mazed-for-chrome-${{ github.sha }}.zip --extension-id ${{ env.CHROME_EXTENSION_ID }} --client-id ${{ secrets.CI_GOOGLE_OATH_CLIENT_ID }} --client-secret ${{ secrets.CI_GOOGLE_OATH_CLIENT_SECRET }} --refresh-token ${{ secrets.CI_GOOGLE_OATH_REFRESH_TOKEN }}
