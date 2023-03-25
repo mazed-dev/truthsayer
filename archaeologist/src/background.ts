@@ -680,7 +680,7 @@ class Background {
 
   async onMessageFromTruthsayer(
     message: FromTruthsayer.Request,
-    _: browser.Runtime.MessageSender
+    sender: browser.Runtime.MessageSender
   ): Promise<ToTruthsayer.Response> {
     if (message.type === 'CHECK_AUTHORISATION_STATUS_REQUEST') {
       await auth.check()
@@ -759,6 +759,20 @@ class Background {
       case 'CANCEL_UPLOAD_OF_CURRENTLY_OPEN_TABS_REQUEST': {
         OpenTabs.cancel()
         return { type: 'VOID_RESPONSE' }
+      }
+      case 'ACTIVATE_MY_TAB_REQUEST': {
+        const tabId = sender.tab?.id
+        if (tabId == null) {
+          throw new Error(
+            `background can not activate tab with no ID: ${JSON.stringify(
+              sender
+            )}`
+          )
+        }
+        log.debug('ACTIVATE_MY_TAB_REQUEST', sender)
+        await browser.tabs.update(tabId, { active: true })
+        await browser.tabs.reload(tabId)
+        log.debug('ACTIVATE_MY_TAB_REQUEST -> Success', sender)
       }
     }
     throw new Error(
