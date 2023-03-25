@@ -224,7 +224,6 @@ export const SuggestionsFloater = ({
   }, [])
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
     const positionY = data.y
-    log.debug('onDragStop', positionY)
     FromContent.sendMessage({
       type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
       settings: { positionY },
