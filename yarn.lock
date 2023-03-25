@@ -2631,7 +2631,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@emotion/babel-plugin@npm:^11.7.1, @emotion/babel-plugin@npm:^11.9.2":
+"@emotion/babel-plugin@npm:^11.7.1":
   version: 11.9.2
   resolution: "@emotion/babel-plugin@npm:11.9.2"
   dependencies:
@@ -8836,7 +8836,6 @@ __metadata:
   resolution: "elementary@workspace:elementary"
   dependencies:
     "@emotion-icons/material": ^3.14.0
-    "@emotion/babel-plugin": ^11.10.6
     "@emotion/react": ^11.9.0
     "@emotion/styled": ^11.8.1
     "@testing-library/dom": ^7.29
@@ -20953,7 +20952,7 @@ __metadata:
     "@babel/preset-typescript": ^7.17.12
     "@builder.io/react": ^2.0.7
     "@emotion-icons/fa-brands": ^3.19.0
-    "@emotion/babel-plugin": ^11.9.2
+    "@emotion/babel-plugin": ^11.10.6
     "@emotion/react": ^11.9.0
     "@emotion/styled": ^11.8.1
     "@microsoft/microsoft-graph-client": ^3.0.0
