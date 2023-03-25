@@ -76,6 +76,7 @@ function BrowserHistoryImportControl({
       processed: 0,
       total: 0,
     })
+  const [isFinished, setFinished] = React.useState<boolean>(false)
   const [state, setState] = React.useState<BrowserHistoryImportControlState>(
     progress.processed !== progress.total
       ? {
@@ -108,6 +109,7 @@ function BrowserHistoryImportControl({
             setHistoryImportProgress(request.newState)
             if (request.newState.processed === request.newState.total) {
               onFinish?.()
+              setFinished(true)
             }
           }
         }
@@ -146,7 +148,10 @@ function BrowserHistoryImportControl({
 
   if (state.step === 'standby') {
     const resumableUploadBtn = (
-      <Button onClick={() => showPreStartMessage({ mode: 'resumable' })}>
+      <Button
+        onClick={() => showPreStartMessage({ mode: 'resumable' })}
+        disabled={isFinished}
+      >
         <CloudUploadPic /> Full import
       </Button>
     )
@@ -166,6 +171,7 @@ function BrowserHistoryImportControl({
             },
           })
         }
+        disabled={isFinished}
       >
         <CloudUploadPic /> Quick import (last {daysToUpload} days)
       </Button>
