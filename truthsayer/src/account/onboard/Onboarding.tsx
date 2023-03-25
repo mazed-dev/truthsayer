@@ -14,7 +14,7 @@ import { AppsList } from '../../apps-list/AppsList'
 import { ExternalImport } from '../../external-import/ExternalImport'
 import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
-import { sleep, log, isAbortError } from 'armoury'
+import { sleep, isAbortError } from 'armoury'
 
 const Header = styled.h1`
   margin-bottom: 24px;
@@ -101,7 +101,7 @@ const StepWelcomePleaseInstall = ({
         await sleep(101)
       }
       if (version != null) {
-        FromTruthsayer.sendMessage({
+        await FromTruthsayer.sendMessage({
           type: 'ACTIVATE_MY_TAB_REQUEST',
           reload: true,
         })
