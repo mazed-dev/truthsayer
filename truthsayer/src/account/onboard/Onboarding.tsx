@@ -97,7 +97,6 @@ const StepWelcomePleaseInstall = ({
           if (isAbortError(err)) {
             break
           }
-          log.debug('Still waiting', err)
         }
         await sleep(101)
       }
