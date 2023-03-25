@@ -15,14 +15,17 @@ import { TDoc } from './types'
 import type { TNode } from 'smuggler-api'
 
 import { makeElementRender } from './ElementRender'
+import { OverlayCopyOnHover } from '../OverlayCopyOnHover'
 import { productanalytics } from 'armoury'
 
 export const NodeTextReader = ({
   className,
   node,
+  captureMetricOnCopy,
 }: {
   node: TNode
   className?: string
+  captureMetricOnCopy?: (subj: string) => void
 }) => {
   const initialValue = useMemo(() => {
     const doc = TDoc.fromNodeTextData(node.text)
@@ -40,17 +43,24 @@ export const NodeTextReader = ({
   return (
     <div className={className}>
       {initialValue.getTextLength() === 0 ? null : (
-        <Slate editor={editor} value={initialValue.slate}>
-          <Editable
-            renderElement={renderElement}
-            renderLeaf={renderLeaf}
-            readOnly
-            css={css`
-              padding: 1em 1em 0 1em;
-            `}
-            className={productanalytics.classExclude()}
-          />
-        </Slate>
+        <OverlayCopyOnHover
+          getTextToCopy={() => {
+            captureMetricOnCopy?.('comment')
+            return initialValue.genPlainText()
+          }}
+        >
+          <Slate editor={editor} value={initialValue.slate}>
+            <Editable
+              renderElement={renderElement}
+              renderLeaf={renderLeaf}
+              readOnly
+              css={css`
+                padding: 0 0.8em 0.8em 0.8em;
+              `}
+              className={productanalytics.classExclude()}
+            />
+          </Slate>
+        </OverlayCopyOnHover>
       )}
     </div>
   )

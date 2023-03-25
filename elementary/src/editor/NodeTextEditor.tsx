@@ -35,6 +35,7 @@ export const NodeTextEditor = ({
   className?: string
   storage: StorageApi
   strippedFormatToolbar?: boolean
+  captureMetricOnCopy?: (subj: string) => void
 }) => {
   const [isJinnShown, setShowJinn] = useState<boolean>(false)
   const nid = node.nid

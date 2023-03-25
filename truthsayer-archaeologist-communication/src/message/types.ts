@@ -107,6 +107,13 @@ export namespace FromTruthsayer {
   export type CheckAuthorisationStatusRequest = {
     type: 'CHECK_AUTHORISATION_STATUS_REQUEST'
   }
+  /**
+   * Request from content script to activate it's tab and optionally reload
+   */
+  export type ActivateMyTabRequest = {
+    type: 'ACTIVATE_MY_TAB_REQUEST'
+    reload?: boolean // Default is false
+  }
   export type Request =
     | GetArchaeologistStateRequest
     | GetAppSettingsRequest
@@ -118,6 +125,7 @@ export namespace FromTruthsayer {
     | UploadCurrentlyOpenTabsRequest
     | CancelUploadOfCurrentlyOpenTabsRequest
     | CheckAuthorisationStatusRequest
+    | ActivateMyTabRequest
 
   export function sendMessage(
     message: GetArchaeologistStateRequest
@@ -148,6 +156,9 @@ export namespace FromTruthsayer {
   ): Promise<ToTruthsayer.VoidResponse>
   export function sendMessage(
     message: CheckAuthorisationStatusRequest
+  ): Promise<ToTruthsayer.VoidResponse>
+  export function sendMessage(
+    message: ActivateMyTabRequest
   ): Promise<ToTruthsayer.VoidResponse>
   export function sendMessage(
     message: Request

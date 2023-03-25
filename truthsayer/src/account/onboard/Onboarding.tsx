@@ -1,10 +1,15 @@
 /** @jsxImportSource @emotion/react */
 
 import React from 'react'
+import { useAsyncEffect } from 'use-async-effect'
 import { parse } from 'query-string'
 import { useHistory, useLocation } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { Button, Container } from 'react-bootstrap'
+import {
+  FromTruthsayer,
+  ToTruthsayer,
+} from 'truthsayer-archaeologist-communication'
 import { AppsList } from '../../apps-list/AppsList'
 import {
   ExternalImport,
@@ -12,6 +17,7 @@ import {
 } from '../../external-import/ExternalImport'
 import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
+import { sleep, isAbortError } from 'armoury'
 
 const Header = styled.h1`
   margin-bottom: 24px;
@@ -77,9 +83,32 @@ const StepWelcomePleaseInstall = ({
   archaeologistState: ArchaeologistState
   nextStep: () => void
 }) => {
-  React.useEffect(() => {
+  useAsyncEffect(async () => {
     if (archaeologistState.state === 'installed') {
       nextStep()
+    }
+    if (archaeologistState.state === 'not-installed') {
+      let version: ToTruthsayer.ArchaeologistVersion | null = null
+      for (let attempt = 0; attempt < 9999; ++attempt) {
+        try {
+          const response = await FromTruthsayer.sendMessage({
+            type: 'GET_ARCHAEOLOGIST_STATE_REQUEST',
+          })
+          version = response.version
+          break
+        } catch (err) {
+          if (isAbortError(err)) {
+            break
+          }
+        }
+        await sleep(101)
+      }
+      if (version != null) {
+        await FromTruthsayer.sendMessage({
+          type: 'ACTIVATE_MY_TAB_REQUEST',
+          reload: true,
+        })
+      }
     }
   }, [archaeologistState, nextStep])
   return (

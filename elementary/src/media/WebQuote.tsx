@@ -5,6 +5,7 @@ import { log, MimeType, productanalytics } from 'armoury'
 import { BlockQuoteBox, BlockQuotePad } from '../editor/components/components'
 
 import { MdiLaunch } from '../MaterialIcons'
+import { OverlayCopyOnHover } from '../OverlayCopyOnHover'
 
 import styled from '@emotion/styled'
 
@@ -57,11 +58,13 @@ export const WebQuote = ({
   className,
   strippedRefs,
   onLaunch,
+  captureMetricOnCopy,
 }: {
   extattrs: NodeExtattrs
   className?: string
   strippedRefs?: boolean
   onLaunch?: () => void
+  captureMetricOnCopy?: (subj: string) => void
 }) => {
   const { web_quote, author, content_type } = extattrs
   const authorElement = author ? <Author>&mdash; {author} </Author> : null
@@ -78,12 +81,19 @@ export const WebQuote = ({
   return (
     <Box className={className}>
       <WebBlockQuoteBox className={className}>
-        <WebBlockQuotePad
-          cite={web_quote.url}
-          className={productanalytics.classExclude()}
+        <OverlayCopyOnHover
+          getTextToCopy={() => {
+            captureMetricOnCopy?.('quote')
+            return `“${text}” ${author ?? ''} ${web_quote.url}`
+          }}
         >
-          {text}
-        </WebBlockQuotePad>
+          <WebBlockQuotePad
+            cite={web_quote.url}
+            className={productanalytics.classExclude()}
+          >
+            {text}
+          </WebBlockQuotePad>
+        </OverlayCopyOnHover>
         {strippedRefs ? null : (
           <RefBox>
             <RefLink

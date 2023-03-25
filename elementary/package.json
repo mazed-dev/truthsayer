@@ -18,6 +18,7 @@
     "test": "yarn jest"
   },
   "dependencies": {
+    "@emotion-icons/material": "^3.14.0",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
     "armoury": "0.0.1",
