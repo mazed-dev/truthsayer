@@ -1,16 +1,16 @@
 /** @jsxImportSource @emotion/react */
 
 import React from 'react'
-import { css } from '@emotion/react'
 
-import { BlockQuote } from '../editor/components/BlockQuote'
-import { MdiLaunch } from '../MaterialIcons'
+import { Launch } from '@emotion-icons/material'
 
 import type { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
 import type { Optional } from 'armoury'
 import { productanalytics } from 'armoury'
 import { log } from 'armoury'
 import styled from '@emotion/styled'
+
+import { OverlayCopyOnHover } from '../OverlayCopyOnHover'
 
 const Box = styled.div`
   width: 100%;
@@ -111,7 +111,7 @@ const PreviewImage = ({
       {img}
       {url != null ? (
         <IconLaunch href={url} onClick={onLaunch}>
-          <MdiLaunch />
+          <Launch size={20} />
         </IconLaunch>
       ) : null}
     </PreviewImageBox>
@@ -129,14 +129,30 @@ const BadgeBox = styled.div`
 
 const TitleBox = styled.div`
   display: inline-block;
-  margin: 8px 4px 0 8px;
+  margin: 6px 4px 0 6px;
+  line-height: 1.3em;
 `
 
 const Title = styled.p`
   font-size: 1em;
   font-weight: 500;
+  margin: 0 0 4px 0;
+`
 
-  margin: 0 0 0.36em 0;
+const BookmarkUrlStrippedBox = styled.a`
+  display: inline-block;
+  font-size: 0.88em;
+  letter-spacing: 0.025em;
+  color: #478ac0;
+  font-weight: 400;
+  line-height: 1em;
+  margin: 0 0 4px 0;
+
+  width: 18em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
 `
 
 const BookmarkUrlStripped = ({
@@ -146,26 +162,11 @@ const BookmarkUrlStripped = ({
   url: string
   className?: string
 }) => {
-  url = url.replace(/^https?:\/\//, '')
+  const urlToShow = url.replace(/^https?:\/\//, '').replace(/^www\./, '')
   return (
-    <p
-      className={className}
-      css={css`
-        font-size: 0.84em;
-        letter-spacing: 0.025em;
-        color: #478ac0;
-        font-weight: 400;
-        line-height: 1em;
-        margin: 0 0 0.4em 0;
-
-        width: 12em;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      `}
-    >
-      {url}
-    </p>
+    <BookmarkUrlStrippedBox className={className} href={url}>
+      {urlToShow}
+    </BookmarkUrlStrippedBox>
   )
 }
 
@@ -175,13 +176,22 @@ const Author = styled.p`
   font-style: italic;
 `
 
-const DescriptionBox = styled.div`
+const Description = styled.blockquote`
   font-size: 1em;
-  padding: 0;
-  margin: 0 8px 0 8px;
-`
-const Description = styled(BlockQuote)`
-  margin: 4px 0 6px 0;
+  line-height: 142%;
+
+  padding: 8px 8px 8px 8px;
+  margin: 0;
+  color: #5e5e5e;
+  /* background: #f8f8f8; */
+
+  quotes: '“' '”' '‘' '’';
+  &:before {
+    content: open-quote;
+  }
+  &:after {
+    content: close-quote;
+  }
 `
 
 type WebBookmarkProps = {
@@ -189,6 +199,7 @@ type WebBookmarkProps = {
   className?: string
   strippedRefs?: boolean
   onLaunch?: () => void
+  captureMetricOnCopy?: (subj: string) => void
 }
 
 export const WebBookmark = ({
@@ -196,6 +207,7 @@ export const WebBookmark = ({
   className,
   strippedRefs,
   onLaunch,
+  captureMetricOnCopy,
 }: WebBookmarkProps) => {
   const { web, preview_image, title, description, author } = extattrs
   if (web == null) {
@@ -205,16 +217,28 @@ export const WebBookmark = ({
   const url = web.url
   const hostname = new URL(url).hostname
   const authorBadge = author ? (
-    <Author className={productanalytics.classExclude()}>
-      &mdash; {author}
-    </Author>
+    <OverlayCopyOnHover
+      getTextToCopy={() => {
+        captureMetricOnCopy?.('author')
+        return author
+      }}
+    >
+      <Author className={productanalytics.classExclude()}>
+        &mdash; {author}
+      </Author>
+    </OverlayCopyOnHover>
   ) : null
   const descriptionElement = description ? (
-    <DescriptionBox>
+    <OverlayCopyOnHover
+      getTextToCopy={() => {
+        captureMetricOnCopy?.('description')
+        return description
+      }}
+    >
       <Description cite={url} className={productanalytics.classExclude()}>
         {description}
       </Description>
-    </DescriptionBox>
+    </OverlayCopyOnHover>
   ) : null
   return (
     <Box className={className}>
@@ -226,11 +250,25 @@ export const WebBookmark = ({
           onLaunch={onLaunch}
         />
         <TitleBox>
-          <Title className={productanalytics.classExclude()}>{title}</Title>
-          <BookmarkUrlStripped
-            className={productanalytics.classExclude()}
-            url={url}
-          />
+          <OverlayCopyOnHover
+            getTextToCopy={() => {
+              captureMetricOnCopy?.('title')
+              return title ?? null
+            }}
+          >
+            <Title className={productanalytics.classExclude()}>{title}</Title>
+          </OverlayCopyOnHover>
+          <OverlayCopyOnHover
+            getTextToCopy={() => {
+              captureMetricOnCopy?.('url')
+              return url
+            }}
+          >
+            <BookmarkUrlStripped
+              className={productanalytics.classExclude()}
+              url={url}
+            />
+          </OverlayCopyOnHover>
           {authorBadge}
         </TitleBox>
       </BadgeBox>
