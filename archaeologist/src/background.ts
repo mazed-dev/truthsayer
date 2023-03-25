@@ -192,7 +192,6 @@ async function handleMessageFromContent(
   message: FromContent.Request,
   sender: browser.Runtime.MessageSender
 ): Promise<ToContent.Response> {
-  // const tab = sender.tab ?? (await getActiveTab())
   log.debug('Get message from content', message, sender.tab)
   switch (message.type) {
     case 'ATTENTION_TIME_CHUNK':
