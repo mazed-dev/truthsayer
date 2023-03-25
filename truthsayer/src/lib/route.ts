@@ -33,6 +33,7 @@ export type TruthsayerPath =
   | '/account/create/waiting-for-approval'
   | '/account/create/go-to-inbox-to-confirm-email'
   | '/onboarding'
+  | '/browser-history-import-loading-screen'
 
 const kLogInPath: TruthsayerPath = '/login'
 const kSignUpPath: TruthsayerPath = '/signup'
@@ -61,6 +62,8 @@ const kPrivacyPolicy: TruthsayerPath = '/privacy-policy'
 const kTermsOfService: TruthsayerPath = '/terms-of-service'
 const kCookiePolicy: TruthsayerPath = '/cookie-policy'
 const kOnboarding: TruthsayerPath = '/onboarding'
+const kBrowserHistoryImportLoadingScreen: TruthsayerPath =
+  '/browser-history-import-loading-screen'
 
 export type PasswordRecoverFormUrlParams = { token: string }
 export type TriptychUrlParams = { nid: string }
@@ -203,6 +206,7 @@ export const routes = {
   terms: kTermsOfService,
   cookiePolicy: kCookiePolicy,
   onboarding: kOnboarding,
+  browserHistoryImportLoadingScreen: kBrowserHistoryImportLoadingScreen,
 }
 
 export const goto = {

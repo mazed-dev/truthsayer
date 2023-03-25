@@ -9,7 +9,7 @@ import {
   ToBackground,
   FromBackground,
 } from './message/types'
-import { TDoc } from 'elementary'
+import { TDoc, truthsayer } from 'elementary'
 import * as badge from './badge/badge'
 
 import browser, { Tabs } from 'webextension-polyfill'
@@ -52,16 +52,40 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-async function getActiveTab(): Promise<browser.Tabs.Tab | null> {
+/**
+ * Same as browser.Tabs.Tab, but with certain fields important
+ * to archaeologist validated
+ */
+type ValidTab = Omit<browser.Tabs.Tab, 'id' | 'url' | 'windowId'> &
+  Required<Pick<browser.Tabs.Tab, 'id' | 'url' | 'windowId'>>
+
+function isValidTab(tab: browser.Tabs.Tab): tab is ValidTab {
+  return tab.id != null && tab.url != null
+}
+
+async function getTruthsayerTabs(): Promise<ValidTab[]> {
+  try {
+    const tabs = await browser.tabs.query({
+      active: true,
+      url: truthsayer.url.make({ pathname: '*' }).toString(),
+    })
+    return tabs.filter((tab) => tab.active).filter(isValidTab)
+  } catch (err) {
+    if (!isAbortError(err)) {
+      log.exception(err)
+    }
+  }
+  return []
+}
+
+async function getActiveTab(): Promise<ValidTab | null> {
   try {
     const tabs = await browser.tabs.query({
       active: true,
       currentWindow: true,
     })
-    const tab = tabs.find((tab) => {
-      return tab.id && tab.url && tab.active
-    })
-    return tab || null
+    const tab = tabs.find((tab) => tab.active)
+    return tab != null && isValidTab(tab) ? tab : null
   } catch (err) {
     if (!isAbortError(err)) {
       log.exception(err)
@@ -168,11 +192,16 @@ async function handleMessageFromContent(
   message: FromContent.Request,
   sender: browser.Runtime.MessageSender
 ): Promise<ToContent.Response> {
-  const tab = sender.tab ?? (await getActiveTab())
-  log.debug('Get message from content', message, tab)
+  // const tab = sender.tab ?? (await getActiveTab())
+  log.debug('Get message from content', message, sender.tab)
   switch (message.type) {
     case 'ATTENTION_TIME_CHUNK':
-      await registerAttentionTime(ctx.storage, tab, message)
+      if (sender.tab == null) {
+        throw new Error(
+          'Request from content came with sender that has no tab associated'
+        )
+      }
+      await registerAttentionTime(ctx.storage, sender.tab, message)
       return { type: 'VOID_RESPONSE' }
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
       const relevantNodes = await similarity.findRelevantNodes(
@@ -217,20 +246,29 @@ async function reportBackgroundActionProgress(
   progress: BackgroundActionProgress
 ) {
   // The implementation of this function mustn't throw
-  // due to the expectations with which it gets used later
-  try {
-    const tab: browser.Tabs.Tab | null = await getActiveTab()
-    const tabId = tab?.id
-    if (tabId == null) {
-      return
+  // due to the expectations with which it gets used at its callsites.
+  const reportToOneTab = async (tab: ValidTab) => {
+    try {
+      await ToContent.sendMessage(tab.id, {
+        type: 'REPORT_BACKGROUND_OPERATION_PROGRESS',
+        operation: action,
+        newState: progress,
+      })
+    } catch (err) {
+      log.debug(
+        `Failed to report ${action} progress to tab ${tab.id}, ${
+          errorise(err).message
+        }`
+      )
     }
-    await ToContent.sendMessage(tabId, {
-      type: 'REPORT_BACKGROUND_OPERATION_PROGRESS',
-      operation: action,
-      newState: progress,
-    })
+  }
+  try {
+    const tabs: ValidTab[] = await getTruthsayerTabs()
+    await Promise.allSettled(tabs.map((tab) => reportToOneTab(tab)))
   } catch (err) {
-    log.debug(`Failed to report ${action} progress, ${errorise(err).message}`)
+    log.error(
+      `Failed to report ${action} progress to tabs, ${errorise(err).message}`
+    )
   }
 }
 

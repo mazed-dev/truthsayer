@@ -173,9 +173,10 @@ function BrowserHistoryImportControl({
     return (
       <Box>
         <Message>
-          Mazed will be opening and closing pages from your {browserName}{' '}
-          history to save them exactly as you saw them. All tabs opened by Mazed
-          will be closed automatically.
+          Mazed will create an additional temporary window of your browser where
+          it will open & close pages from your {browserName} history to save
+          them exactly as you saw them. The window will be closed automatically
+          once the process completes.
         </Message>
         <Button onClick={() => startUpload(state.chosenMode)}>Continue</Button>
         <Button

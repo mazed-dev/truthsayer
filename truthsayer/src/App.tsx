@@ -40,7 +40,10 @@ import {
   TriptychUrlParams,
 } from './lib/route'
 import { Loader } from './lib/loader'
-import { ExternalImport } from './external-import/ExternalImport'
+import {
+  ExternalImport,
+  ExternalImportProgress,
+} from './external-import/ExternalImport'
 import { Export } from './export/Export'
 import { AppsList } from './apps-list/AppsList'
 import { AppHead } from './AppHead'
@@ -68,10 +71,13 @@ import {
 } from 'smuggler-api'
 import { KnockerElement } from './auth/Knocker'
 import {
+  BackgroundActionProgress,
+  FromArchaeologistContent,
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
 import { ArchaeologistState } from './apps-list/archaeologistState'
+import { BrowserHistoryImporterLoadingScreen } from './external-import/BrowserHistoryImporterLoadingScreen'
 
 function isAuthenticated(account: AccountInterface): account is UserAccount {
   return account.isAuthenticated()
@@ -207,6 +213,54 @@ function AppRouter() {
     <TruthsayerRoute key={'mzd-pub-route-10'} exact path={'/empty'} />,
   ]
 
+  const [historyImportProgress, setHistoryImportProgress] =
+    React.useState<BackgroundActionProgress>({
+      processed: 0,
+      total: 0,
+    })
+  const [openTabsImportProgress, setOpenTabsProgress] =
+    React.useState<BackgroundActionProgress>({
+      processed: 0,
+      total: 0,
+    })
+  const externalImportProgress: ExternalImportProgress = {
+    historyImportProgress,
+    openTabsProgress: openTabsImportProgress,
+  }
+  React.useEffect(() => {
+    const listener = (event: MessageEvent) => {
+      // Only accept messages sent from archaeologist's content script
+      // eslint-disable-next-line eqeqeq
+      if (event.source != window) {
+        return
+      }
+
+      // Discard any events that are not part of truthsayer/archaeologist
+      // business logic communication
+      const request = event.data
+      if (!FromArchaeologistContent.isRequest(request)) {
+        return
+      }
+
+      switch (request.type) {
+        case 'REPORT_BACKGROUND_OPERATION_PROGRESS': {
+          switch (request.operation) {
+            case 'open-tabs-upload': {
+              setOpenTabsProgress(request.newState)
+              break
+            }
+            case 'browser-history-upload': {
+              setHistoryImportProgress(request.newState)
+              break
+            }
+          }
+        }
+      }
+    }
+    window.addEventListener('message', listener)
+    return () => window.removeEventListener('message', listener)
+  })
+
   const privateRoutes = [
     <TruthsayerRoute key={'mzd-private-route-0'} exact path="/">
       <Redirect to={{ pathname: '/search' }} />
@@ -223,6 +277,7 @@ function AppRouter() {
     <TruthsayerRoute key={'mzd-private-route-4'} path="/external-import">
       <ExternalImport
         archaeologistState={archaeologistState}
+        progress={externalImportProgress}
         browserHistoryImportConfig={{ modes: ['untracked', 'resumable'] }}
       />
     </TruthsayerRoute>,
@@ -241,11 +296,20 @@ function AppRouter() {
     <TruthsayerRoute key={'mzd-private-route-8'} path="/settings">
       <ApplicationSettings archaeologistState={archaeologistState} />
     </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-pub-route-9'} path={'/logout'}>
+    <TruthsayerRoute key={'mzd-private-route-9'} path={'/logout'}>
       <Logout />
     </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-pub-route-onboarding'} path={'/onboarding'}>
-      <Onboarding archaeologistState={archaeologistState} />
+    <TruthsayerRoute key={'mzd-private-route-onboarding'} path={'/onboarding'}>
+      <Onboarding
+        archaeologistState={archaeologistState}
+        progress={externalImportProgress}
+      />
+    </TruthsayerRoute>,
+    <TruthsayerRoute
+      key={'mzd-private-route-11'}
+      path={'/browser-history-import-loading-screen'}
+    >
+      <BrowserHistoryImporterLoadingScreen progress={historyImportProgress} />
     </TruthsayerRoute>,
   ]
 

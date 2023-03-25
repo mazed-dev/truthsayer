@@ -6,7 +6,10 @@ import { useHistory, useLocation } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { Button, Container } from 'react-bootstrap'
 import { AppsList } from '../../apps-list/AppsList'
-import { ExternalImport } from '../../external-import/ExternalImport'
+import {
+  ExternalImport,
+  ExternalImportProgress,
+} from '../../external-import/ExternalImport'
 import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
 
@@ -120,9 +123,11 @@ const StepWelcomePleaseInstall = ({
 
 const StepBootstrapMemory = ({
   archaeologistState,
+  progress,
   nextStep,
 }: {
   nextStep: () => void
+  progress: ExternalImportProgress
   archaeologistState: ArchaeologistState
 }) => {
   return (
@@ -136,6 +141,7 @@ const StepBootstrapMemory = ({
       </DescriptionBox>
       <ExternalImportStep
         archaeologistState={archaeologistState}
+        progress={progress}
         browserHistoryImportConfig={
           // NOTE: one of the goals of the onboarding experience is to showcase
           // the value of the product to a new user as quick as possible, before
@@ -229,6 +235,7 @@ const StepTangoShowAround = ({ onClose }: { onClose: () => void }) => {
 
 function OnboardingSteps({
   archaeologistState,
+  progress,
   step,
   nextStep,
   onClose,
@@ -237,6 +244,7 @@ function OnboardingSteps({
   nextStep: (step: number) => void
   onClose: () => void
   archaeologistState: ArchaeologistState
+  progress: ExternalImportProgress
 }) {
   const kStepsNumber = 4
   const nextStepChecked = () => {
@@ -269,6 +277,7 @@ function OnboardingSteps({
         <Box>
           <StepBootstrapMemory
             archaeologistState={archaeologistState}
+            progress={progress}
             nextStep={nextStepChecked}
           />
         </Box>
@@ -298,8 +307,10 @@ function parseStepFromSearchString(search: string): number {
 
 export function Onboarding({
   archaeologistState,
+  progress,
 }: {
   archaeologistState: ArchaeologistState
+  progress: ExternalImportProgress
 }) {
   const loc = useLocation()
   const history = useHistory()
@@ -313,6 +324,7 @@ export function Onboarding({
       step={onboardingStep}
       nextStep={(step: number) => history.push({ search: `step=${step}` })}
       archaeologistState={archaeologistState}
+      progress={progress}
     />
   )
 }
