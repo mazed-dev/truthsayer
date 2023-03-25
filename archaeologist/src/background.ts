@@ -771,7 +771,9 @@ class Background {
         }
         log.debug('ACTIVATE_MY_TAB_REQUEST', sender)
         await browser.tabs.update(tabId, { active: true })
-        await browser.tabs.reload(tabId)
+        if (message.reload) {
+          await browser.tabs.reload(tabId)
+        }
         log.debug('ACTIVATE_MY_TAB_REQUEST -> Success', sender)
       }
     }
