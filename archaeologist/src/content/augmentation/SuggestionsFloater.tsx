@@ -5,7 +5,6 @@ import styled from '@emotion/styled'
 import { useAsyncEffect } from 'use-async-effect'
 
 import { NodeCardReadOnly, HoverTooltip, Spinner, ImgButton } from 'elementary'
-import { log } from 'armoury'
 import type { TNode } from 'smuggler-api'
 
 import { AugmentationElement } from './Mount'
