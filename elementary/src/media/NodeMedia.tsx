@@ -13,7 +13,7 @@ export function NodeMedia({
   strippedActions,
   storage,
   onLaunch,
-  onCopy,
+  captureMetricOnCopy,
 }: {
   node: TNode
   className?: string
@@ -24,7 +24,7 @@ export function NodeMedia({
   // original page e.g. on a preview image click
   onLaunch?: () => void
   // This is a hack to run extra actions on copying content from node fields
-  onCopy?: (subj: string) => void
+  captureMetricOnCopy?: (subj: string) => void
 }) {
   const { extattrs } = node
   if (NodeUtil.isImage(node)) {
@@ -45,7 +45,7 @@ export function NodeMedia({
           strippedRefs={strippedRefs}
           className={className}
           onLaunch={onLaunch}
-          onCopy={onCopy}
+          captureMetricOnCopy={captureMetricOnCopy}
         />
       )
     }
@@ -57,7 +57,7 @@ export function NodeMedia({
           strippedRefs={strippedRefs}
           className={className}
           onLaunch={onLaunch}
-          onCopy={onCopy}
+          captureMetricOnCopy={captureMetricOnCopy}
         />
       )
     }

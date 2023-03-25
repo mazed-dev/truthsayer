@@ -21,7 +21,7 @@ export function NodeCard({
   storage,
   strippedFormatToolbar,
   onMediaLaunch,
-  onCopy,
+  captureMetricOnCopy,
 }: {
   node: TNode
   saveNode: (text: NodeTextData) => Promise<Ack> | undefined
@@ -31,7 +31,7 @@ export function NodeCard({
   // This is a hack to assign special action on media click instead of opening
   // original page e.g. on a preview image click
   onMediaLaunch?: () => void
-  onCopy?: (subj: string) => void
+  captureMetricOnCopy?: (subj: string) => void
 }) {
   const saveText = (text: SlateText) => {
     const doc = new TDoc(text)
@@ -43,14 +43,14 @@ export function NodeCard({
         node={node}
         storage={storage}
         onLaunch={onMediaLaunch}
-        onCopy={onCopy}
+        captureMetricOnCopy={captureMetricOnCopy}
       />
       <NodeTextEditor
         node={node}
         saveText={saveText}
         storage={storage}
         strippedFormatToolbar={strippedFormatToolbar}
-        onCopy={onCopy}
+        captureMetricOnCopy={captureMetricOnCopy}
       />
     </Box>
   )

@@ -199,7 +199,7 @@ type WebBookmarkProps = {
   className?: string
   strippedRefs?: boolean
   onLaunch?: () => void
-  onCopy?: (subj: string) => void
+  captureMetricOnCopy?: (subj: string) => void
 }
 
 export const WebBookmark = ({
@@ -207,7 +207,7 @@ export const WebBookmark = ({
   className,
   strippedRefs,
   onLaunch,
-  onCopy,
+  captureMetricOnCopy,
 }: WebBookmarkProps) => {
   const { web, preview_image, title, description, author } = extattrs
   if (web == null) {
@@ -219,7 +219,7 @@ export const WebBookmark = ({
   const authorBadge = author ? (
     <OverlayCopyOnHover
       getTextToCopy={() => {
-        onCopy?.('author')
+        captureMetricOnCopy?.('author')
         return author
       }}
     >
@@ -231,7 +231,7 @@ export const WebBookmark = ({
   const descriptionElement = description ? (
     <OverlayCopyOnHover
       getTextToCopy={() => {
-        onCopy?.('description')
+        captureMetricOnCopy?.('description')
         return description
       }}
     >
@@ -252,7 +252,7 @@ export const WebBookmark = ({
         <TitleBox>
           <OverlayCopyOnHover
             getTextToCopy={() => {
-              onCopy?.('title')
+              captureMetricOnCopy?.('title')
               return title ?? null
             }}
           >
@@ -260,7 +260,7 @@ export const WebBookmark = ({
           </OverlayCopyOnHover>
           <OverlayCopyOnHover
             getTextToCopy={() => {
-              onCopy?.('url')
+              captureMetricOnCopy?.('url')
               return url
             }}
           >

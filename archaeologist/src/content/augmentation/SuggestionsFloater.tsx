@@ -85,7 +85,7 @@ const SuggestedCard = ({ node }: { node: TNode }) => {
         node={node}
         strippedActions
         storage={ctx.storage}
-        onCopy={(subj: string) => {
+        captureMetricOnCopy={(subj: string) => {
           ctx.analytics?.capture('Button:Click Suggested Fragment Copy', {
             text: subj,
             'Event type': 'click',

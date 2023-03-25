@@ -21,11 +21,11 @@ import { productanalytics } from 'armoury'
 export const NodeTextReader = ({
   className,
   node,
-  onCopy,
+  captureMetricOnCopy,
 }: {
   node: TNode
   className?: string
-  onCopy?: (subj: string) => void
+  captureMetricOnCopy?: (subj: string) => void
 }) => {
   const initialValue = useMemo(() => {
     const doc = TDoc.fromNodeTextData(node.text)
@@ -45,7 +45,7 @@ export const NodeTextReader = ({
       {initialValue.getTextLength() === 0 ? null : (
         <OverlayCopyOnHover
           getTextToCopy={() => {
-            onCopy?.('comment')
+            captureMetricOnCopy?.('comment')
             return initialValue.genPlainText()
           }}
         >
