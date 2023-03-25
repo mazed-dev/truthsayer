@@ -97,7 +97,11 @@ type LoadingState =
   | { type: 'standby' }
   | { type: 'loading'; progress: string }
   | { type: 'done' }
-export function DownloadUserDataFromMazedBackendControl() {
+export function DownloadUserDataFromMazedBackendControl({
+  onFinish,
+}: {
+  onFinish?: () => void
+}) {
   const [loadingState, setLoadingState] = React.useState<LoadingState>({
     type: 'standby',
   })
@@ -125,6 +129,7 @@ export function DownloadUserDataFromMazedBackendControl() {
       break
     case 'done':
       buttonText = <>Done 🏁 </>
+      onFinish?.()
       break
   }
   return (
@@ -141,7 +146,13 @@ export function DownloadUserDataFromMazedBackendControl() {
   )
 }
 
-export function DataCentreImporter({ className }: { className?: string }) {
+export function DataCentreImporter({
+  className,
+  onFinish,
+}: {
+  className?: string
+  onFinish?: () => void
+}) {
   const [storageType, setStorageType] = React.useState<
     'loading' | truthsayer_archaeologist_communication.StorageType
   >('loading')
@@ -156,7 +167,7 @@ export function DataCentreImporter({ className }: { className?: string }) {
       element = <Spinner.Ring />
       break
     case 'browser_ext':
-      element = <DownloadUserDataFromMazedBackendControl />
+      element = <DownloadUserDataFromMazedBackendControl onFinish={onFinish} />
       break
     case 'datacenter':
       element = <NotImplementedMessage />

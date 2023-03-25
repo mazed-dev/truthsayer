@@ -6,6 +6,7 @@ import { ArchaeologistState } from '../apps-list/archaeologistState'
 import {
   BackgroundActionProgress,
   BrowserHistoryUploadMode,
+  FromArchaeologistContent,
   FromTruthsayer,
 } from 'truthsayer-archaeologist-communication'
 import { toSentenceCase, unixtime } from 'armoury'
@@ -47,9 +48,9 @@ export type BrowserHistoryImportConfig = {
 }
 
 type UploadBrowserHistoryProps = React.PropsWithChildren<
-  {
-    progress: BackgroundActionProgress
-  } & BrowserHistoryImportConfig
+  BrowserHistoryImportConfig & {
+    onFinish?: () => void
+  }
 >
 
 type BrowserHistoryImportControlState =
@@ -67,9 +68,14 @@ type BrowserHistoryImportControlState =
     }
 
 function BrowserHistoryImportControl({
-  progress,
   modes,
+  onFinish,
 }: UploadBrowserHistoryProps) {
+  const [progress, setHistoryImportProgress] =
+    React.useState<BackgroundActionProgress>({
+      processed: 0,
+      total: 0,
+    })
   const [state, setState] = React.useState<BrowserHistoryImportControlState>(
     progress.processed !== progress.total
       ? {
@@ -81,6 +87,35 @@ function BrowserHistoryImportControl({
           deletedNodesCount: 0,
         }
   )
+  React.useEffect(() => {
+    const listener = (event: MessageEvent) => {
+      // Only accept messages sent from archaeologist's content script
+      // eslint-disable-next-line eqeqeq
+      if (event.source != window) {
+        return
+      }
+
+      // Discard any events that are not part of truthsayer/archaeologist
+      // business logic communication
+      const request = event.data
+      if (!FromArchaeologistContent.isRequest(request)) {
+        return
+      }
+
+      switch (request.type) {
+        case 'REPORT_BACKGROUND_OPERATION_PROGRESS': {
+          if (request.operation === 'browser-history-upload') {
+            setHistoryImportProgress(request.newState)
+            if (request.newState.processed === request.newState.total) {
+              onFinish?.()
+            }
+          }
+        }
+      }
+    }
+    window.addEventListener('message', listener)
+    return () => window.removeEventListener('message', listener)
+  })
 
   const showPreStartMessage = (chosenMode: BrowserHistoryUploadMode) => {
     setState({ step: 'pre-start', chosenMode })
@@ -191,7 +226,7 @@ function BrowserHistoryImportControl({
  */
 export function BrowserHistoryImporter({
   archaeologistState,
-  progress,
+  onFinish,
   modes,
 }: {
   archaeologistState: ArchaeologistState
@@ -210,5 +245,5 @@ export function BrowserHistoryImporter({
     }
   }
 
-  return <BrowserHistoryImportControl progress={progress} modes={modes} />
+  return <BrowserHistoryImportControl onFinish={onFinish} modes={modes} />
 }

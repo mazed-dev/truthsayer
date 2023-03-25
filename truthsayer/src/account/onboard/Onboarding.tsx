@@ -125,6 +125,7 @@ const StepBootstrapMemory = ({
   nextStep: () => void
   archaeologistState: ArchaeologistState
 }) => {
+  const [isFinished, setFinished] = React.useState<boolean>(false)
   return (
     <StepBox>
       <Header>
@@ -144,9 +145,14 @@ const StepBootstrapMemory = ({
           { modes: ['untracked'] }
         }
         importTypes={['open-tabs']}
+        onFinish={() => setFinished(true)}
       />
       <StepFotbar>
-        <StepFotbarButton variant="primary" onClick={nextStep}>
+        <StepFotbarButton
+          variant="primary"
+          onClick={nextStep}
+          disabled={!isFinished}
+        >
           Next
         </StepFotbarButton>
       </StepFotbar>
@@ -157,11 +163,9 @@ const StepBootstrapMemory = ({
 const StepYouAreReadyToGo = ({
   nextStep,
   prevStep,
-  onClose,
 }: {
   nextStep: () => void
   prevStep: () => void
-  onClose: () => void
 }) => {
   return (
     <StepBox>
@@ -278,7 +282,6 @@ function OnboardingSteps({
         <Box>
           <StepYouAreReadyToGo
             prevStep={prevStepChecked}
-            onClose={onClose}
             nextStep={nextStepChecked}
           />
         </Box>
