@@ -6,7 +6,7 @@ import { HoverTooltip } from './HoverTooltip'
 import { ContentCopy as CopyIcon } from '@emotion-icons/material'
 
 type Props = React.PropsWithChildren<{
-  onClick: () => void
+  onClick: () => string | null
   tooltip?: string
 }>
 
@@ -46,12 +46,23 @@ const Box = styled.div`
 `
 
 export const OverlayCopyOnHover = ({ children, onClick, tooltip }: Props) => {
+  const [tooltipText, setTooltipText] = React.useState<string>(
+    tooltip ?? 'Copy to Clipboard'
+  )
+  const onClickReal = () => {
+    const toInsert = onClick()
+    if (toInsert != null) {
+      navigator.clipboard.writeText(toInsert)
+      setTooltipText('Copied')
+    }
+  }
   return (
     <Box>
       {children}
-      <Btn onClick={onClick} id={kBtnId}>
+      <Btn onClick={onClickReal} id={kBtnId}>
         <HoverTooltip
-          tooltip={tooltip ?? 'Copy to Clipboard'}
+          tooltip={tooltipText}
+          transitionDelaySec={0.21}
           placement="bottom-left"
         >
           <CopyIcon size={'1em'} />

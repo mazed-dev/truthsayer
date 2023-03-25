@@ -36,12 +36,12 @@ const SuggestedCardsBox = styled.div`
   display: flex;
   flex-direction: column;
 
-  background: #eaeaeadb;
-  box-shadow: 0 2px 5px 1px rgba(64, 60, 67, 0.16);
+  background: #f4f4f5db;
+  box-shadow: 0 2px 5px 2px rgba(60, 64, 68, 0.16);
   &:hover,
-  active {
-    background: #eaeaea;
-    box-shadow: 0 2px 8px 1px rgba(64, 60, 67, 0.24);
+  &:active {
+    background: #f4f4f5;
+    box-shadow: 0 2px 8px 2px rgba(60, 64, 68, 0.24);
   }
   border-radius: 6px;
   user-select: text;
@@ -309,7 +309,7 @@ type Position2D = { x: number; y: number }
  * because we want it to be always anchored to the rigth edge of the window.
  */
 const getStartDragPosition = (isRevealed: boolean): Position2D =>
-  isRevealed ? { x: -300, y: 42 } : { x: -32, y: 42 }
+  isRevealed ? { x: -300, y: 72 } : { x: -32, y: 72 }
 
 /**
  * Make sure that floter is visisble within a window: not too low or too high -

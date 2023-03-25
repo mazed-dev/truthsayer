@@ -10,6 +10,7 @@ type Placement =
   | 'bottom-right'
 type Props = {
   placement: Placement
+  transitionDelaySec?: number
 }
 
 function getPlacementStyle(placement: Placement): string {
@@ -37,7 +38,7 @@ const Box = styled.div<Props>`
   position: relative;
   height: 100%;
   width: 100%;
-  z-index: 1000;
+  z-index: 2000;
   span {
     position: absolute;
 
@@ -67,7 +68,7 @@ const Box = styled.div<Props>`
   &:focus:not(:disabled) span,
   &:active:not(:disabled) span {
     visibility: visible;
-    transition-delay: 0.72s;
+    transition-delay: ${(props) => props.transitionDelaySec ?? 0.72}s;
   }
 `
 
@@ -75,6 +76,7 @@ type HoverTooltipProps = React.PropsWithChildren<{
   tooltip: string
   className?: string
   placement?: Placement
+  transitionDelaySec?: number
 }>
 
 // https://www.w3schools.com/css/css_tooltip.asp
@@ -83,10 +85,11 @@ export const HoverTooltip = ({
   children,
   className,
   placement,
+  transitionDelaySec,
 }: HoverTooltipProps) => {
   placement = placement ?? 'bottom'
   return (
-    <Box placement={placement}>
+    <Box placement={placement} transitionDelaySec={transitionDelaySec}>
       <span className={className}>{tooltip}</span>
       {children}
     </Box>

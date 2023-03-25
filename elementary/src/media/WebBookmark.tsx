@@ -215,12 +215,14 @@ export const WebBookmark = ({
   const url = web.url
   const hostname = new URL(url).hostname
   const authorBadge = author ? (
-    <Author className={productanalytics.classExclude()}>
-      &mdash; {author}
-    </Author>
+    <OverlayCopyOnHover onClick={() => author}>
+      <Author className={productanalytics.classExclude()}>
+        &mdash; {author}
+      </Author>
+    </OverlayCopyOnHover>
   ) : null
   const descriptionElement = description ? (
-    <OverlayCopyOnHover onClick={() => {}}>
+    <OverlayCopyOnHover onClick={() => description}>
       <Description cite={url} className={productanalytics.classExclude()}>
         {description}
       </Description>
@@ -236,10 +238,10 @@ export const WebBookmark = ({
           onLaunch={onLaunch}
         />
         <TitleBox>
-          <OverlayCopyOnHover onClick={() => {}}>
+          <OverlayCopyOnHover onClick={() => title ?? null}>
             <Title className={productanalytics.classExclude()}>{title}</Title>
           </OverlayCopyOnHover>
-          <OverlayCopyOnHover onClick={() => {}}>
+          <OverlayCopyOnHover onClick={() => url}>
             <BookmarkUrlStripped
               className={productanalytics.classExclude()}
               url={url}
