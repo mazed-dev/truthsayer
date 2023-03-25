@@ -4,12 +4,7 @@ import React from 'react'
 import styled from '@emotion/styled'
 import { useAsyncEffect } from 'use-async-effect'
 
-import {
-  NodeCardReadOnly,
-  HoverTooltip,
-  Spinner,
-  ImgButton,
-} from 'elementary'
+import { NodeCardReadOnly, HoverTooltip, Spinner, ImgButton } from 'elementary'
 import { log } from 'armoury'
 import type { TNode } from 'smuggler-api'
 
@@ -17,10 +12,7 @@ import { AugmentationElement } from './Mount'
 import { ContentContext } from '../context'
 import { MazedMiniFloater } from './MazedMiniFloater'
 import { FromContent } from './../../message/types'
-import {
-  DragHandle,
-  Minimize,
-} from '@emotion-icons/material'
+import { DragHandle, Minimize } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
 
 const SuggestedCardsBox = styled.div`
@@ -86,15 +78,21 @@ const SuggestedCardBox = styled.div`
   user-select: text;
 `
 
-const SuggestedCard = ({
-  node,
-}: {
-  node: TNode
-}) => {
+const SuggestedCard = ({ node }: { node: TNode }) => {
   const ctx = React.useContext(ContentContext)
   return (
     <SuggestedCardBox>
-      <NodeCardReadOnly node={node} strippedActions storage={ctx.storage} />
+      <NodeCardReadOnly
+        node={node}
+        strippedActions
+        storage={ctx.storage}
+        onCopy={(subj: string) => {
+          ctx.analytics?.capture('Button:Click Suggested Fragment Copy', {
+            text: subj,
+            'Event type': 'click',
+          })
+        }}
+      />
     </SuggestedCardBox>
   )
 }

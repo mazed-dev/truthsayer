@@ -58,11 +58,13 @@ export const WebQuote = ({
   className,
   strippedRefs,
   onLaunch,
+  onCopy,
 }: {
   extattrs: NodeExtattrs
   className?: string
   strippedRefs?: boolean
   onLaunch?: () => void
+  onCopy?: (subj: string) => void
 }) => {
   const { web_quote, author, content_type } = extattrs
   const authorElement = author ? <Author>&mdash; {author} </Author> : null
@@ -80,7 +82,10 @@ export const WebQuote = ({
     <Box className={className}>
       <WebBlockQuoteBox className={className}>
         <OverlayCopyOnHover
-          onClick={() => `“${text}” ${author ?? ''} ${web_quote.url}`}
+          getTextToCopy={() => {
+            onCopy?.('quote')
+            return `“${text}” ${author ?? ''} ${web_quote.url}`
+          }}
         >
           <WebBlockQuotePad
             cite={web_quote.url}

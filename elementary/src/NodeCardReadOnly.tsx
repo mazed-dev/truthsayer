@@ -18,12 +18,14 @@ export function NodeCardReadOnly({
   strippedRefs,
   strippedActions,
   storage,
+  onCopy,
 }: {
   node: TNode
   className?: string
   strippedRefs?: boolean
   strippedActions?: boolean
   storage: StorageApi
+  onCopy?: (subj: string) => void
 }) {
   return (
     <Box className={productanalytics.classExclude(className)}>
@@ -33,8 +35,9 @@ export function NodeCardReadOnly({
         node={node}
         strippedRefs={strippedRefs}
         strippedActions={strippedActions}
+        onCopy={onCopy}
       />
-      <NodeTextReader node={node} />
+      <NodeTextReader node={node} onCopy={onCopy} />
     </Box>
   )
 }

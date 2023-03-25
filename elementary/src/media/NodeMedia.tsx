@@ -13,6 +13,7 @@ export function NodeMedia({
   strippedActions,
   storage,
   onLaunch,
+  onCopy,
 }: {
   node: TNode
   className?: string
@@ -22,6 +23,8 @@ export function NodeMedia({
   // This is a hack to assign special action on media click instead of opening
   // original page e.g. on a preview image click
   onLaunch?: () => void
+  // This is a hack to run extra actions on copying content from node fields
+  onCopy?: (subj: string) => void
 }) {
   const { extattrs } = node
   if (NodeUtil.isImage(node)) {
@@ -42,6 +45,7 @@ export function NodeMedia({
           strippedRefs={strippedRefs}
           className={className}
           onLaunch={onLaunch}
+          onCopy={onCopy}
         />
       )
     }
@@ -53,6 +57,7 @@ export function NodeMedia({
           strippedRefs={strippedRefs}
           className={className}
           onLaunch={onLaunch}
+          onCopy={onCopy}
         />
       )
     }

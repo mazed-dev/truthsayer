@@ -21,9 +21,11 @@ import { productanalytics } from 'armoury'
 export const NodeTextReader = ({
   className,
   node,
+  onCopy,
 }: {
   node: TNode
   className?: string
+  onCopy?: (subj: string) => void
 }) => {
   const initialValue = useMemo(() => {
     const doc = TDoc.fromNodeTextData(node.text)
@@ -41,7 +43,12 @@ export const NodeTextReader = ({
   return (
     <div className={className}>
       {initialValue.getTextLength() === 0 ? null : (
-        <OverlayCopyOnHover onClick={() => initialValue.genPlainText()}>
+        <OverlayCopyOnHover
+          getTextToCopy={() => {
+            onCopy?.('comment')
+            return initialValue.genPlainText()
+          }}
+        >
           <Slate editor={editor} value={initialValue.slate}>
             <Editable
               renderElement={renderElement}

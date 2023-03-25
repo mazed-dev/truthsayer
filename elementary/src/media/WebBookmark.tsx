@@ -199,6 +199,7 @@ type WebBookmarkProps = {
   className?: string
   strippedRefs?: boolean
   onLaunch?: () => void
+  onCopy?: (subj: string) => void
 }
 
 export const WebBookmark = ({
@@ -206,6 +207,7 @@ export const WebBookmark = ({
   className,
   strippedRefs,
   onLaunch,
+  onCopy,
 }: WebBookmarkProps) => {
   const { web, preview_image, title, description, author } = extattrs
   if (web == null) {
@@ -215,14 +217,24 @@ export const WebBookmark = ({
   const url = web.url
   const hostname = new URL(url).hostname
   const authorBadge = author ? (
-    <OverlayCopyOnHover onClick={() => author}>
+    <OverlayCopyOnHover
+      getTextToCopy={() => {
+        onCopy?.('author')
+        return author
+      }}
+    >
       <Author className={productanalytics.classExclude()}>
         &mdash; {author}
       </Author>
     </OverlayCopyOnHover>
   ) : null
   const descriptionElement = description ? (
-    <OverlayCopyOnHover onClick={() => description}>
+    <OverlayCopyOnHover
+      getTextToCopy={() => {
+        onCopy?.('description')
+        return description
+      }}
+    >
       <Description cite={url} className={productanalytics.classExclude()}>
         {description}
       </Description>
@@ -238,10 +250,20 @@ export const WebBookmark = ({
           onLaunch={onLaunch}
         />
         <TitleBox>
-          <OverlayCopyOnHover onClick={() => title ?? null}>
+          <OverlayCopyOnHover
+            getTextToCopy={() => {
+              onCopy?.('title')
+              return title ?? null
+            }}
+          >
             <Title className={productanalytics.classExclude()}>{title}</Title>
           </OverlayCopyOnHover>
-          <OverlayCopyOnHover onClick={() => url}>
+          <OverlayCopyOnHover
+            getTextToCopy={() => {
+              onCopy?.('url')
+              return url
+            }}
+          >
             <BookmarkUrlStripped
               className={productanalytics.classExclude()}
               url={url}
