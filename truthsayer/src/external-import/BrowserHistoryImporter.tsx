@@ -8,7 +8,7 @@ import {
   BrowserHistoryUploadMode,
   FromTruthsayer,
 } from 'truthsayer-archaeologist-communication'
-import { toSentenceCase, unixtime } from 'armoury'
+import { errorise, toSentenceCase, unixtime } from 'armoury'
 
 const Box = styled.div``
 const Message = styled.div``
@@ -41,6 +41,10 @@ const DeletePic = styled(MdiDelete)`
   vertical-align: middle;
 `
 
+const ErrorBox = styled.div`
+  color: red;
+`
+
 export type BrowserHistoryImportConfig = {
   /** @see BrowserHistoryUploadMode for more info on what each mode means */
   modes: ('untracked' | 'resumable')[]
@@ -56,6 +60,7 @@ type BrowserHistoryImportControlState =
   | {
       step: 'standby'
       deletedNodesCount: number
+      lastError?: string
     }
   | {
       step: 'pre-start'
@@ -85,27 +90,41 @@ function BrowserHistoryImportControl({
   const showPreStartMessage = (chosenMode: BrowserHistoryUploadMode) => {
     setState({ step: 'pre-start', chosenMode })
   }
-  const startUpload = (mode: BrowserHistoryUploadMode) => {
+  const startUpload = async (mode: BrowserHistoryUploadMode) => {
     setState({ step: 'in-progress', isBeingCancelled: false })
-    FromTruthsayer.sendMessage({
-      type: 'UPLOAD_BROWSER_HISTORY',
-      ...mode,
-    })
+    try {
+      await FromTruthsayer.sendMessage({
+        type: 'UPLOAD_BROWSER_HISTORY',
+        ...mode,
+      })
+    } catch (err) {
+      setState({
+        step: 'standby',
+        deletedNodesCount: 0,
+        lastError: `Upload failed: "${errorise(err).message}"`,
+      })
+    }
   }
-  const cancelUpload = () => {
+  const cancelUpload = async () => {
     setState({ step: 'in-progress', isBeingCancelled: true })
-    FromTruthsayer.sendMessage({
+    await FromTruthsayer.sendMessage({
       type: 'CANCEL_BROWSER_HISTORY_UPLOAD',
-    }).then(() => {
-      setState({ step: 'standby', deletedNodesCount: 0 })
     })
+    setState({ step: 'standby', deletedNodesCount: 0 })
   }
-  const deletePreviouslyUploaded = () => {
-    FromTruthsayer.sendMessage({
-      type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
-    }).then((response) =>
+  const deletePreviouslyUploaded = async () => {
+    try {
+      const response = await FromTruthsayer.sendMessage({
+        type: 'DELETE_PREVIOUSLY_UPLOADED_BROWSER_HISTORY',
+      })
       setState({ step: 'standby', deletedNodesCount: response.numDeleted })
-    )
+    } catch (err) {
+      setState({
+        step: 'standby',
+        deletedNodesCount: 0,
+        lastError: `Deletion failed: "${errorise(err).message}"`,
+      })
+    }
   }
   const browserName = toSentenceCase(process.env.BROWSER || 'browser')
 
@@ -147,6 +166,7 @@ function BrowserHistoryImportControl({
             <DeletePic /> Delete imported
           </Button>
         )}
+        <ErrorBox>{state.lastError}</ErrorBox>
       </Box>
     )
   } else if (state.step === 'pre-start') {
