@@ -49,7 +49,15 @@ function describe(state: ArchaeologistState) {
       return <Button disabled>Installed</Button>
     }
     case 'not-installed': {
-      return <Button href={kGoogleChromeStoreLink}>Install</Button>
+      return (
+        <Button
+          href={kGoogleChromeStoreLink}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Install
+        </Button>
+      )
     }
   }
 }
