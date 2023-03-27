@@ -5,7 +5,6 @@ import type { BackgroundActionProgress } from 'truthsayer-archaeologist-communic
 import { ArchaeologistState } from '../apps-list/archaeologistState'
 import React from 'react'
 import { Button } from 'react-bootstrap'
-import { FromArchaeologistContent } from 'truthsayer-archaeologist-communication'
 import { errorise } from 'armoury'
 
 const Box = styled.div`
@@ -23,48 +22,25 @@ const ErrorBox = styled.div`
 
 export function OpenTabsImporter({
   archaeologistState,
-  onFinish,
+  progress,
+  disabled,
 }: {
   archaeologistState: ArchaeologistState
-  onFinish?: () => void
+  progress: BackgroundActionProgress
+  disabled?: boolean
 }) {
-  const [progress, setOpenTabsProgress] =
-    React.useState<BackgroundActionProgress>({
-      processed: 0,
-      total: 0,
-    })
-  const [isFinished, setFinished] = React.useState<boolean>(false)
-  React.useEffect(() => {
-    const listener = (event: MessageEvent) => {
-      // Only accept messages sent from archaeologist's content script
-      // eslint-disable-next-line eqeqeq
-      if (event.source != window) {
-        return
-      }
-
-      // Discard any events that are not part of truthsayer/archaeologist
-      // business logic communication
-      const request = event.data
-      if (!FromArchaeologistContent.isRequest(request)) {
-        return
-      }
-
-      switch (request.type) {
-        case 'REPORT_BACKGROUND_OPERATION_PROGRESS': {
-          if (request.operation === 'open-tabs-upload') {
-            setOpenTabsProgress(request.newState)
-            if (request.newState.processed === request.newState.total) {
-              setFinished(true)
-              onFinish?.()
-            }
-          }
-        }
-      }
-    }
-    window.addEventListener('message', listener)
-    return () => window.removeEventListener('message', listener)
-  })
   const [error, setError] = React.useState<string | undefined>(undefined)
+
+  switch (archaeologistState.state) {
+    case 'loading':
+    case 'not-installed': {
+      return <Spinner.Ring />
+    }
+    case 'installed': {
+      break
+    }
+  }
+
   const upload = async () => {
     setError(undefined)
     try {
@@ -85,22 +61,14 @@ export function OpenTabsImporter({
       setError(`Failed to cancel: ${errorise(err).message}`)
     }
   }
-  switch (archaeologistState.state) {
-    case 'loading':
-    case 'not-installed': {
-      return <Spinner.Ring />
-    }
-    case 'installed': {
-      break
-    }
-  }
+
   return (
     <Box>
       <Comment>Add your current tabs to your Mazed memory:</Comment>
       <ButtonBox>
         {progress.processed === progress.total ? (
           <>
-            <Button variant="primary" onClick={upload} disabled={isFinished}>
+            <Button variant="primary" onClick={upload} disabled={disabled}>
               Add my open tabs
             </Button>
           </>

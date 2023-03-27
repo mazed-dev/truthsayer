@@ -17,6 +17,10 @@ import BrowserLogo from '../apps-list/img/GoogleChromeLogo.svg'
 import { DataCentreImporter, getLogoImage } from './DataCentreImporter'
 import { ArchaeologistState } from '../apps-list/archaeologistState'
 import { OpenTabsImporter } from './OpenTabsImporter'
+import {
+  BackgroundActionProgress,
+  FromArchaeologistContent,
+} from 'truthsayer-archaeologist-communication'
 
 const Box = styled.div`
   padding: 18px;
@@ -69,16 +73,20 @@ export function ExternalImport({
   importTypes?: ExternalImportType[]
   onFinish?: (extImportType: ExternalImportType) => void
 }) {
-  const [historyImportProgress, setHistoryImportProgress] =
-    React.useState<BackgroundActionProgress>({
-      processed: 0,
-      total: 0,
-    })
-  const [openTabsProgress, setOpenTabsProgress] =
-    React.useState<BackgroundActionProgress>({
-      processed: 0,
-      total: 0,
-    })
+  const [historyImportProgress, setHistoryImportProgress] = React.useState<
+    BackgroundActionProgress & { isFinished: boolean }
+  >({
+    processed: 0,
+    total: 0,
+    isFinished: false,
+  })
+  const [openTabsProgress, setOpenTabsProgress] = React.useState<
+    BackgroundActionProgress & { isFinished: boolean }
+  >({
+    processed: 0,
+    total: 0,
+    isFinished: false,
+  })
   React.useEffect(() => {
     const listener = (event: MessageEvent) => {
       // Only accept messages sent from archaeologist's content script
@@ -98,11 +106,21 @@ export function ExternalImport({
         case 'REPORT_BACKGROUND_OPERATION_PROGRESS': {
           switch (request.operation) {
             case 'open-tabs-upload': {
-              setOpenTabsProgress(request.newState)
+              const isFinished =
+                request.newState.processed === request.newState.total
+              if (isFinished) {
+                onFinish?.('open-tabs')
+              }
+              setOpenTabsProgress({ ...request.newState, isFinished })
               break
             }
             case 'browser-history-upload': {
-              setHistoryImportProgress(request.newState)
+              const isFinished =
+                request.newState.processed === request.newState.total
+              if (isFinished) {
+                onFinish?.('browser-history')
+              }
+              setHistoryImportProgress({ ...request.newState, isFinished })
               break
             }
           }
@@ -119,7 +137,7 @@ export function ExternalImport({
         <BrowserHistoryImporter
           archaeologistState={archaeologistState}
           progress={historyImportProgress}
-          onFinish={() => onFinish?.('browser-history')}
+          disabled={historyImportProgress.isFinished}
           {...browserHistoryImportConfig}
         />
       </Item>
@@ -129,8 +147,8 @@ export function ExternalImport({
         <LogoImg src={BrowserLogo} />
         <OpenTabsImporter
           archaeologistState={archaeologistState}
-          onFinish={() => onFinish?.('open-tabs')}
           progress={openTabsProgress}
+          disabled={openTabsProgress.isFinished}
         />
       </Item>
     ),

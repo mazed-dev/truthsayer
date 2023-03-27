@@ -6,7 +6,6 @@ import { ArchaeologistState } from '../apps-list/archaeologistState'
 import {
   BackgroundActionProgress,
   BrowserHistoryUploadMode,
-  FromArchaeologistContent,
   FromTruthsayer,
 } from 'truthsayer-archaeologist-communication'
 import { errorise, toSentenceCase, unixtime } from 'armoury'
@@ -52,9 +51,10 @@ export type BrowserHistoryImportConfig = {
 }
 
 type UploadBrowserHistoryProps = React.PropsWithChildren<
-  BrowserHistoryImportConfig & {
-    onFinish?: () => void
-  }
+  {
+    progress: BackgroundActionProgress
+    disabled?: boolean
+  } & BrowserHistoryImportConfig
 >
 
 type BrowserHistoryImportControlState =
@@ -73,15 +73,10 @@ type BrowserHistoryImportControlState =
     }
 
 function BrowserHistoryImportControl({
+  progress,
   modes,
-  onFinish,
+  disabled,
 }: UploadBrowserHistoryProps) {
-  const [progress, setHistoryImportProgress] =
-    React.useState<BackgroundActionProgress>({
-      processed: 0,
-      total: 0,
-    })
-  const [isFinished, setFinished] = React.useState<boolean>(false)
   const [state, setState] = React.useState<BrowserHistoryImportControlState>(
     progress.processed !== progress.total
       ? {
@@ -93,36 +88,6 @@ function BrowserHistoryImportControl({
           deletedNodesCount: 0,
         }
   )
-  React.useEffect(() => {
-    const listener = (event: MessageEvent) => {
-      // Only accept messages sent from archaeologist's content script
-      // eslint-disable-next-line eqeqeq
-      if (event.source != window) {
-        return
-      }
-
-      // Discard any events that are not part of truthsayer/archaeologist
-      // business logic communication
-      const request = event.data
-      if (!FromArchaeologistContent.isRequest(request)) {
-        return
-      }
-
-      switch (request.type) {
-        case 'REPORT_BACKGROUND_OPERATION_PROGRESS': {
-          if (request.operation === 'browser-history-upload') {
-            setHistoryImportProgress(request.newState)
-            if (request.newState.processed === request.newState.total) {
-              onFinish?.()
-              setFinished(true)
-            }
-          }
-        }
-      }
-    }
-    window.addEventListener('message', listener)
-    return () => window.removeEventListener('message', listener)
-  })
 
   const showPreStartMessage = (chosenMode: BrowserHistoryUploadMode) => {
     setState({ step: 'pre-start', chosenMode })
@@ -169,7 +134,7 @@ function BrowserHistoryImportControl({
     const resumableUploadBtn = (
       <Button
         onClick={() => showPreStartMessage({ mode: 'resumable' })}
-        disabled={isFinished}
+        disabled={disabled}
       >
         <CloudUploadPic /> Full import
       </Button>
@@ -190,7 +155,7 @@ function BrowserHistoryImportControl({
             },
           })
         }
-        disabled={isFinished}
+        disabled={disabled}
       >
         <CloudUploadPic /> Quick import (last {daysToUpload} days)
       </Button>
@@ -252,8 +217,9 @@ function BrowserHistoryImportControl({
  */
 export function BrowserHistoryImporter({
   archaeologistState,
-  onFinish,
+  progress,
   modes,
+  disabled,
 }: {
   archaeologistState: ArchaeologistState
 } & UploadBrowserHistoryProps) {
@@ -271,5 +237,11 @@ export function BrowserHistoryImporter({
     }
   }
 
-  return <BrowserHistoryImportControl onFinish={onFinish} modes={modes} />
+  return (
+    <BrowserHistoryImportControl
+      progress={progress}
+      modes={modes}
+      disabled={disabled}
+    />
+  )
 }
