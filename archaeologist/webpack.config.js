@@ -25,7 +25,7 @@ const _readVersionFromFile = async () => {
   filePath = path.join(__dirname, 'public/version.txt')
   const readFile = util.promisify(fs.readFile)
 
-  return await readFile(filePath, {encoding: 'ascii'})
+  return (await readFile(filePath, {encoding: 'ascii'})).trim()
 }
 
 const _manifestTransformDowngradeToV2 = (manifest) => {
