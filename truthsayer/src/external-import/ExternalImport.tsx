@@ -65,22 +65,28 @@ export function ExternalImport({
   archaeologistState,
   browserHistoryImportConfig,
   importTypes, // if unspecified, show all types availiable
+  onFinish,
 }: {
   className?: string
   archaeologistState: ArchaeologistState
   browserHistoryImportConfig: BrowserHistoryImportConfig
   importTypes?: ExternalImportType[]
+  onFinish?: (extImportType: ExternalImportType) => void
 }) {
-  const [historyImportProgress, setHistoryImportProgress] =
-    React.useState<BackgroundActionProgress>({
-      processed: 0,
-      total: 0,
-    })
-  const [openTabsProgress, setOpenTabsProgress] =
-    React.useState<BackgroundActionProgress>({
-      processed: 0,
-      total: 0,
-    })
+  const [historyImportProgress, setHistoryImportProgress] = React.useState<
+    BackgroundActionProgress & { isFinished: boolean }
+  >({
+    processed: 0,
+    total: 0,
+    isFinished: false,
+  })
+  const [openTabsProgress, setOpenTabsProgress] = React.useState<
+    BackgroundActionProgress & { isFinished: boolean }
+  >({
+    processed: 0,
+    total: 0,
+    isFinished: false,
+  })
   React.useEffect(() => {
     const listener = (event: MessageEvent) => {
       // Only accept messages sent from archaeologist's content script
@@ -100,11 +106,21 @@ export function ExternalImport({
         case 'REPORT_BACKGROUND_OPERATION_PROGRESS': {
           switch (request.operation) {
             case 'open-tabs-upload': {
-              setOpenTabsProgress(request.newState)
+              const isFinished =
+                request.newState.processed === request.newState.total
+              if (isFinished) {
+                onFinish?.('open-tabs')
+              }
+              setOpenTabsProgress({ ...request.newState, isFinished })
               break
             }
             case 'browser-history-upload': {
-              setHistoryImportProgress(request.newState)
+              const isFinished =
+                request.newState.processed === request.newState.total
+              if (isFinished) {
+                onFinish?.('browser-history')
+              }
+              setHistoryImportProgress({ ...request.newState, isFinished })
               break
             }
           }
@@ -114,7 +130,6 @@ export function ExternalImport({
     window.addEventListener('message', listener)
     return () => window.removeEventListener('message', listener)
   })
-
   const itemsByKey = {
     'browser-history': (
       <Item key={'browser-history'}>
@@ -122,6 +137,7 @@ export function ExternalImport({
         <BrowserHistoryImporter
           archaeologistState={archaeologistState}
           progress={historyImportProgress}
+          disabled={historyImportProgress.isFinished}
           {...browserHistoryImportConfig}
         />
       </Item>
@@ -132,19 +148,24 @@ export function ExternalImport({
         <OpenTabsImporter
           archaeologistState={archaeologistState}
           progress={openTabsProgress}
+          disabled={openTabsProgress.isFinished}
         />
       </Item>
     ),
     onedrive: (
       <Item key={'onedrive'}>
         <LogoImg src={MicrosoftOfficeOneDriveLogoImg} />
-        <MicrosoftOfficeOneDriveImporter />
+        <MicrosoftOfficeOneDriveImporter
+          onFinish={() => onFinish?.('onedrive')}
+        />
       </Item>
     ),
     'data-centre-importer': (
       <Item key={'data-centre-importer'}>
         <LogoImg src={getLogoImage()} />
-        <DataCentreImporter />
+        <DataCentreImporter
+          onFinish={() => onFinish?.('data-centre-importer')}
+        />
       </Item>
     ),
   }

@@ -13,7 +13,6 @@ import {
 import { MdiInsertLink, MdiLinkOff, MdiSync, MdiCloudSync } from 'elementary'
 import { errorise, genOriginId, log } from 'armoury'
 import {
-  AccountInterface,
   NodeCreateArgs,
   steroid,
   UserExternalPipelineId,
@@ -117,11 +116,11 @@ async function uploadFilesFromFolder(
  *      authenticated Microsoft account (@see graph() )
  */
 export function OneDriveIntegrationManager({
-  account,
   className,
+  onFinish,
 }: {
-  account: AccountInterface
   className?: string
+  onFinish?: () => void
 }) {
   // Significant chunk of the code for integration with OneDrive was taken from
   // https://docs.microsoft.com/en-us/azure/active-directory/develop/tutorial-v2-react
@@ -175,7 +174,10 @@ export function OneDriveIntegrationManager({
                       `Failed to call Microsoft Graph`
                     )
                   })
-                  .finally(() => setOneDriveUploadCounter(0))
+                  .finally(() => {
+                    setOneDriveUploadCounter(0)
+                    onFinish?.()
+                  })
               }}
             >
               {oneDriveSyncButton}
@@ -204,8 +206,10 @@ export function OneDriveIntegrationManager({
 
 export function MicrosoftOfficeOneDriveImporter({
   className,
+  onFinish,
 }: {
   className?: string
+  onFinish?: () => void
 }) {
   const ctx = React.useContext(MzdGlobalContext)
   const account = ctx.account
@@ -214,5 +218,7 @@ export function MicrosoftOfficeOneDriveImporter({
       'Microsoft Office OneDrive integration requires a valid Mazed account available'
     )
   }
-  return <OneDriveIntegrationManager account={account} className={className} />
+  return (
+    <OneDriveIntegrationManager className={className} onFinish={onFinish} />
+  )
 }

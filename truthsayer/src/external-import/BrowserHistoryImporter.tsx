@@ -53,6 +53,7 @@ export type BrowserHistoryImportConfig = {
 type UploadBrowserHistoryProps = React.PropsWithChildren<
   {
     progress: BackgroundActionProgress
+    disabled?: boolean
   } & BrowserHistoryImportConfig
 >
 
@@ -74,6 +75,7 @@ type BrowserHistoryImportControlState =
 function BrowserHistoryImportControl({
   progress,
   modes,
+  disabled,
 }: UploadBrowserHistoryProps) {
   const [state, setState] = React.useState<BrowserHistoryImportControlState>(
     progress.processed !== progress.total
@@ -130,7 +132,10 @@ function BrowserHistoryImportControl({
 
   if (state.step === 'standby') {
     const resumableUploadBtn = (
-      <Button onClick={() => showPreStartMessage({ mode: 'resumable' })}>
+      <Button
+        onClick={() => showPreStartMessage({ mode: 'resumable' })}
+        disabled={disabled}
+      >
         <CloudUploadPic /> Full import
       </Button>
     )
@@ -150,6 +155,7 @@ function BrowserHistoryImportControl({
             },
           })
         }
+        disabled={disabled}
       >
         <CloudUploadPic /> Quick import (last {daysToUpload} days)
       </Button>
@@ -213,6 +219,7 @@ export function BrowserHistoryImporter({
   archaeologistState,
   progress,
   modes,
+  disabled,
 }: {
   archaeologistState: ArchaeologistState
 } & UploadBrowserHistoryProps) {
@@ -230,5 +237,11 @@ export function BrowserHistoryImporter({
     }
   }
 
-  return <BrowserHistoryImportControl progress={progress} modes={modes} />
+  return (
+    <BrowserHistoryImportControl
+      progress={progress}
+      modes={modes}
+      disabled={disabled}
+    />
+  )
 }
