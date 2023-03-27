@@ -15,7 +15,7 @@ import { ExternalImport } from '../../external-import/ExternalImport'
 import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
 import { sleep, isAbortError } from 'armoury'
-import { accountConfig } from '../account/config'
+import { accountConfig } from '../config'
 
 const Header = styled.h1`
   margin-bottom: 24px;
