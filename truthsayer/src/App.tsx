@@ -111,32 +111,15 @@ function AppRouter() {
   const [archaeologistState, setArchaeologistState] =
     React.useState<ArchaeologistState>({ state: 'loading' })
   useAsyncEffect(async () => {
-    let isInstalled
     try {
-      const result = await waitForArchaeologistToLoad(5, 200 /* Ms */)
+      const result = await waitForArchaeologistToLoad()
       analytics?.identify(result.analyticsIdentity.analyticsIdentity)
       setArchaeologistState({
         state: 'installed',
         version: result.version,
       })
-      isInstalled = true
     } catch (err) {
       setArchaeologistState({ state: 'not-installed' })
-      isInstalled = false
-    }
-    if (!isInstalled) {
-      // If not installed, go to onboarding page and wait much longer for User
-      // to install Archaeologist
-      try {
-        const result = await waitForArchaeologistToLoad(3600, 1000 /* Ms */)
-        analytics?.identify(result.analyticsIdentity.analyticsIdentity)
-        setArchaeologistState({
-          state: 'installed',
-          version: result.version,
-        })
-      } catch (err) {
-        setArchaeologistState({ state: 'not-installed' })
-      }
     }
   }, [])
 
@@ -384,13 +367,11 @@ function PageviewEventTracker({ analytics }: { analytics: PostHog }) {
   return <div />
 }
 
-async function waitForArchaeologistToLoad(
-  maxAttempts: number,
-  sleepBetweenAttemptsMs: number
-): Promise<{
+async function waitForArchaeologistToLoad(): Promise<{
   version: ToTruthsayer.ArchaeologistVersion
   analyticsIdentity: AnalyticsIdentity
 }> {
+  const maxAttempts = 5
   let error = ''
   for (let attempt = 0; attempt < maxAttempts; ++attempt) {
     try {
@@ -406,7 +387,7 @@ async function waitForArchaeologistToLoad(
         error = errorise(reason).message
       }
     }
-    await sleep(sleepBetweenAttemptsMs)
+    await sleep(200 /* ms */)
   }
   throw new Error(
     `Failed to get archaeologist state after ${maxAttempts} attempts. ` +

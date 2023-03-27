@@ -69,14 +69,58 @@ export function ExternalImport({
   importTypes?: ExternalImportType[]
   onFinish?: (extImportType: ExternalImportType) => void
 }) {
+  const [historyImportProgress, setHistoryImportProgress] =
+    React.useState<BackgroundActionProgress>({
+      processed: 0,
+      total: 0,
+    })
+  const [openTabsProgress, setOpenTabsProgress] =
+    React.useState<BackgroundActionProgress>({
+      processed: 0,
+      total: 0,
+    })
+  React.useEffect(() => {
+    const listener = (event: MessageEvent) => {
+      // Only accept messages sent from archaeologist's content script
+      // eslint-disable-next-line eqeqeq
+      if (event.source != window) {
+        return
+      }
+
+      // Discard any events that are not part of truthsayer/archaeologist
+      // business logic communication
+      const request = event.data
+      if (!FromArchaeologistContent.isRequest(request)) {
+        return
+      }
+
+      switch (request.type) {
+        case 'REPORT_BACKGROUND_OPERATION_PROGRESS': {
+          switch (request.operation) {
+            case 'open-tabs-upload': {
+              setOpenTabsProgress(request.newState)
+              break
+            }
+            case 'browser-history-upload': {
+              setHistoryImportProgress(request.newState)
+              break
+            }
+          }
+        }
+      }
+    }
+    window.addEventListener('message', listener)
+    return () => window.removeEventListener('message', listener)
+  })
   const itemsByKey = {
     'browser-history': (
       <Item key={'browser-history'}>
         <LogoImg src={BrowserLogo} />
         <BrowserHistoryImporter
           archaeologistState={archaeologistState}
-          {...browserHistoryImportConfig}
+          progress={historyImportProgress}
           onFinish={() => onFinish?.('browser-history')}
+          {...browserHistoryImportConfig}
         />
       </Item>
     ),
@@ -86,6 +130,7 @@ export function ExternalImport({
         <OpenTabsImporter
           archaeologistState={archaeologistState}
           onFinish={() => onFinish?.('open-tabs')}
+          progress={openTabsProgress}
         />
       </Item>
     ),

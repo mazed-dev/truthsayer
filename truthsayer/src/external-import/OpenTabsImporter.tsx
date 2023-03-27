@@ -6,6 +6,7 @@ import { ArchaeologistState } from '../apps-list/archaeologistState'
 import React from 'react'
 import { Button } from 'react-bootstrap'
 import { FromArchaeologistContent } from 'truthsayer-archaeologist-communication'
+import { errorise } from 'armoury'
 
 const Box = styled.div`
   margin: 6px;
@@ -15,6 +16,11 @@ const Comment = styled.div`
   margin: 0 0 12px 0;
 `
 const ButtonBox = styled.div``
+
+const ErrorBox = styled.div`
+  color: red;
+`
+
 export function OpenTabsImporter({
   archaeologistState,
   onFinish,
@@ -58,15 +64,26 @@ export function OpenTabsImporter({
     window.addEventListener('message', listener)
     return () => window.removeEventListener('message', listener)
   })
-  const upload = () => {
-    FromTruthsayer.sendMessage({
-      type: 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST',
-    })
+  const [error, setError] = React.useState<string | undefined>(undefined)
+  const upload = async () => {
+    setError(undefined)
+    try {
+      await FromTruthsayer.sendMessage({
+        type: 'UPLOAD_CURRENTLY_OPEN_TABS_REQUEST',
+      })
+    } catch (err) {
+      setError(`Upload failed: ${errorise(err).message}`)
+    }
   }
-  const cancel = () => {
-    FromTruthsayer.sendMessage({
-      type: 'CANCEL_UPLOAD_OF_CURRENTLY_OPEN_TABS_REQUEST',
-    })
+  const cancel = async () => {
+    setError(undefined)
+    try {
+      await FromTruthsayer.sendMessage({
+        type: 'CANCEL_UPLOAD_OF_CURRENTLY_OPEN_TABS_REQUEST',
+      })
+    } catch (err) {
+      setError(`Failed to cancel: ${errorise(err).message}`)
+    }
   }
   switch (archaeologistState.state) {
     case 'loading':
@@ -96,6 +113,7 @@ export function OpenTabsImporter({
           </>
         )}
       </ButtonBox>
+      <ErrorBox>{error}</ErrorBox>
     </Box>
   )
 }
