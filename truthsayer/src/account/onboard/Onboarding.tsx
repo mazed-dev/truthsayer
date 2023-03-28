@@ -7,6 +7,7 @@ import { useHistory, useLocation } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { Button, Container } from 'react-bootstrap'
 import {
+  BackgroundActionProgress,
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
@@ -159,6 +160,8 @@ const StepBootstrapMemory = ({
   progress: ExternalImportProgress
   archaeologistState: ArchaeologistState
 }) => {
+  const isFinished = (progress: BackgroundActionProgress) =>
+    progress.total !== 0 && progress.total === progress.processed
   return (
     <StepBox>
       <Header>
@@ -184,11 +187,7 @@ const StepBootstrapMemory = ({
         <StepFotbarButton
           variant="primary"
           onClick={nextStep}
-          disabled={
-            progress.openTabsProgress.total !== 0 &&
-            progress.openTabsProgress.total ===
-              progress.openTabsProgress.processed
-          }
+          disabled={!isFinished(progress.openTabsProgress)}
         >
           Next
         </StepFotbarButton>
