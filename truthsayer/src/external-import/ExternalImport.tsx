@@ -95,7 +95,6 @@ export function ExternalImport({
         <OpenTabsImporter
           archaeologistState={archaeologistState}
           progress={progress.openTabsProgress}
-          disabled={isFinished(progress.openTabsProgress)}
         />
       </Item>
     ),
