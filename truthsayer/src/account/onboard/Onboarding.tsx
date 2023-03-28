@@ -181,7 +181,15 @@ const StepBootstrapMemory = ({
         importTypes={['open-tabs']}
       />
       <StepFotbar>
-        <StepFotbarButton variant="primary" onClick={nextStep}>
+        <StepFotbarButton
+          variant="primary"
+          onClick={nextStep}
+          disabled={
+            progress.openTabsProgress.total !== 0 &&
+            progress.openTabsProgress.total ===
+              progress.openTabsProgress.processed
+          }
+        >
           Next
         </StepFotbarButton>
       </StepFotbar>
@@ -192,11 +200,9 @@ const StepBootstrapMemory = ({
 const StepYouAreReadyToGo = ({
   nextStep,
   prevStep,
-  onClose,
 }: {
   nextStep: () => void
   prevStep: () => void
-  onClose: () => void
 }) => {
   return (
     <StepBox>
@@ -316,7 +322,6 @@ function OnboardingSteps({
         <Box>
           <StepYouAreReadyToGo
             prevStep={prevStepChecked}
-            onClose={onClose}
             nextStep={nextStepChecked}
           />
         </Box>

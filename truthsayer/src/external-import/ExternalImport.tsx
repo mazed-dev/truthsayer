@@ -75,6 +75,8 @@ export function ExternalImport({
   browserHistoryImportConfig: BrowserHistoryImportConfig
   importTypes?: ExternalImportType[]
 }) {
+  const isFinished = (progress: BackgroundActionProgress) =>
+    progress.total !== 0 && progress.total === progress.processed
   const itemsByKey = {
     'browser-history': (
       <Item key={'browser-history'}>
@@ -83,6 +85,7 @@ export function ExternalImport({
           archaeologistState={archaeologistState}
           progress={progress.historyImportProgress}
           {...browserHistoryImportConfig}
+          disabled={isFinished(progress.historyImportProgress)}
         />
       </Item>
     ),
@@ -92,6 +95,7 @@ export function ExternalImport({
         <OpenTabsImporter
           archaeologistState={archaeologistState}
           progress={progress.openTabsProgress}
+          disabled={isFinished(progress.openTabsProgress)}
         />
       </Item>
     ),
