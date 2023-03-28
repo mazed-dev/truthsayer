@@ -97,7 +97,7 @@ type LoadingState =
   | { type: 'standby' }
   | { type: 'loading'; progress: string }
   | { type: 'done' }
-export function DownloadUserDataFromMazedBackendControl({}: {}) {
+export function DownloadUserDataFromMazedBackendControl() {
   const [loadingState, setLoadingState] = React.useState<LoadingState>({
     type: 'standby',
   })
