@@ -15,6 +15,7 @@ import { ExternalImport } from '../../external-import/ExternalImport'
 import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
 import { sleep, isAbortError } from 'armoury'
+import { accountConfig } from '../config'
 
 const Header = styled.h1`
   margin-bottom: 24px;
@@ -196,6 +197,9 @@ const StepYouAreReadyToGo = ({
   nextStep: () => void
   prevStep: () => void
 }) => {
+  React.useEffect(() => {
+    accountConfig.local.onboarding.set({ invoked: true })
+  }, [])
   return (
     <StepBox>
       <Header>
