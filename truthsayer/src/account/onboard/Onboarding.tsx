@@ -13,8 +13,8 @@ import {
 } from 'truthsayer-archaeologist-communication'
 import { AppsList } from '../../apps-list/AppsList'
 import {
-  ExternalImport,
   ExternalImportProgress,
+  ExternalImportForOnboarding,
 } from '../../external-import/ExternalImport'
 import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
@@ -73,7 +73,7 @@ const InstallAppsStep = styled(AppsList)`
   padding: 0;
 `
 
-const ExternalImportStep = styled(ExternalImport)`
+const ExternalImportStep = styled(ExternalImportForOnboarding)`
   padding: 0;
 `
 
@@ -160,8 +160,8 @@ const StepBootstrapMemory = ({
   progress: ExternalImportProgress
   archaeologistState: ArchaeologistState
 }) => {
-  const isFinished = (progress: BackgroundActionProgress) =>
-    progress.total !== 0 && progress.total === progress.processed
+  const hasStarted = (progress: BackgroundActionProgress) =>
+    progress.total !== 0 && progress.processed !== 0
   return (
     <StepBox>
       <Header>
@@ -169,25 +169,17 @@ const StepBootstrapMemory = ({
         information.
       </Header>
       <DescriptionBox>
-        Add your current tabs to your Mazed memory:
+        Add your browser hisotory to Mazed memory:
       </DescriptionBox>
       <ExternalImportStep
         archaeologistState={archaeologistState}
         progress={progress}
-        browserHistoryImportConfig={
-          // NOTE: one of the goals of the onboarding experience is to showcase
-          // the value of the product to a new user as quick as possible, before
-          // the product loses their attention. For this reason the slower modes
-          // of browser history import modes are not enabled.
-          { modes: ['untracked'] }
-        }
-        importTypes={['open-tabs']}
       />
       <StepFotbar>
         <StepFotbarButton
           variant="primary"
           onClick={nextStep}
-          disabled={!isFinished(progress.openTabsProgress)}
+          disabled={!hasStarted(progress.historyImportProgress)}
         >
           Next
         </StepFotbarButton>
