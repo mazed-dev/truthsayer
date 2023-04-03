@@ -75,7 +75,7 @@ export namespace BrowserHistoryUpload {
       // due to the expectations with which it gets used later
       mode.mode !== 'untracked'
         ? async (date: Date) => {
-            const ingested_until: number = unixtime.from(date)
+            const ingested_until: number = unixtime.fromDate(date)
             const nack: Ack = { ack: false }
             return storage.external.ingestion
               .advance({ epid, new_progress: { ingested_until } })
@@ -200,7 +200,7 @@ export namespace BrowserHistoryUpload {
   async function historyVisitsOf(url: string): Promise<ResourceVisit[]> {
     const visits = await browser.history.getVisits({ url })
     return visits.map((visit): ResourceVisit => {
-      return { timestamp: unixtime.from(new Date(visit.visitTime ?? 0)) }
+      return { timestamp: unixtime.fromDate(new Date(visit.visitTime ?? 0)) }
     })
   }
 
