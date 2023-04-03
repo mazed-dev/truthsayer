@@ -15,7 +15,7 @@ import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
 import MzdGlobalContext from '../lib/global'
 
 const CreateNodeBigIcon = styled(MdiAdd)`
-  font-size: 46px;
+  font-size: 32px !important;
 `
 
 const kShadow = '0px 1px 2px 1px rgba(0, 0, 0, 0.2)'
@@ -42,18 +42,20 @@ const CreateNewNodeMenuFixed = styled.div`
   z-index: 1024;
 `
 
-const CustomDropdownToggle = styled(Dropdown.Toggle)({
-  fontSize: 0,
-  borderRadius: '42px',
-  padding: '6px',
-  boxShadow: kShadow,
-  borderWidth: 0,
-  '&:after': {
-    // Hide dropdown arrow
-    display: 'none',
-  },
-  ...StyleButtonCreate,
-})
+const CustomDropdownToggle = styled(Dropdown.Toggle)`
+  font-size: 0;
+  border-radius: 42px;
+  padding: 6px;
+  box-shadow: ${kShadow};
+  border-width: 0;
+  &:after {
+    display: none;
+  }
+  &:focus {
+    box-shadow: 0 0 0 0.25rem #54a3ff80 !important;
+  }
+  ${StyleButtonCreate}
+`
 
 const CustomDropdownMenu = styled(Dropdown.Menu)({
   backgroundColor: 'transparent',
@@ -61,19 +63,20 @@ const CustomDropdownMenu = styled(Dropdown.Menu)({
   padding: '4px 0 4px 0',
 })
 
-const CustomDropdownItem = styled(Dropdown.Item)({
-  backgroundColor: 'white',
-  padding: '12px 12px 12px 12px',
-  margin: '8px 12px 8px 12px',
-  boxShadow: kShadow,
-  border: '1px solid rgba(0,0,0,.15)',
-  borderRadius: '32px',
-  '&:active': {
-    backgroundColor: '#008000',
-    boxShadow: '0 0 0 .25rem rgba(60,153,110,.5)',
-    border: 'none',
-  },
-})
+const CustomDropdownItem = styled(Dropdown.Item)`
+  padding: 12px 12px 12px 12px;
+  margin: 8px 12px 8px 12px;
+  box-shadow: ${kShadow};
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 32px;
+  &:focus {
+    box-shadow: 0 0 0 0.25rem #54a3ff80 !important;
+  }
+  ${StyleButtonCreate}
+  background-image: none;
+  background-color: white;
+  color: inherit;
+`
 
 export const CreateNewNodeMenu = () => {
   const history = useHistory()

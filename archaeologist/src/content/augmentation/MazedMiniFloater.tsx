@@ -5,6 +5,7 @@ import styled from '@emotion/styled'
 
 import LogoImage from '../../../public/logo-strip.svg'
 import { ContentContext } from '../context'
+import { StyleButtonCreate } from 'elementary'
 
 const Box = styled.div`
   position: relative;
@@ -49,8 +50,8 @@ const BadgeBubble = styled.div`
   height: 16px;
 
   border-radius: 16px;
-  border: 1px solid #ececec;
-  background-image: linear-gradient(#54a3ff, #006eed);
+
+  ${StyleButtonCreate}
 
   text-align: center;
   display: inline-flex;
