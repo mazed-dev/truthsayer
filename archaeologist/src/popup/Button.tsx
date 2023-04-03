@@ -18,6 +18,6 @@ export const Button = styled.button`
   }
 `
 
-export const ButtonCreate = styled(Button)({
-  ...StyleButtonCreate,
-})
+export const ButtonCreate = styled(Button)`
+  ${StyleButtonCreate}
+`
