@@ -10,9 +10,10 @@ import {
   BrowserHistoryUploadMode,
   FromTruthsayer,
 } from 'truthsayer-archaeologist-communication'
-import { errorise, toSentenceCase, unixtime } from 'armoury'
+import { errorise, toSentenceCase } from 'armoury'
 import { routes } from '../lib/route'
 import { getBrowserName } from '../util/browser'
+import moment from 'moment'
 
 const Box = styled.div``
 const Message = styled.div`
@@ -248,10 +249,6 @@ function BrowserHistoryImportControlForOnboarding({
   const browserName = toSentenceCase(getBrowserName() ?? 'browser')
 
   if (state.step === 'standby') {
-    const now = new Date()
-    const daysToUpload = 31
-    const daysAgo = new Date(now)
-    daysAgo.setDate(now.getDate() - daysToUpload)
     return (
       <Box>
         <Comment>
@@ -265,8 +262,8 @@ function BrowserHistoryImportControlForOnboarding({
             startUpload({
               mode: 'untracked',
               unixtime: {
-                start: unixtime.from(daysAgo),
-                end: unixtime.from(now),
+                start: moment().subtract(31, 'days').unix(),
+                end: moment().unix(),
               },
             })
           }}
