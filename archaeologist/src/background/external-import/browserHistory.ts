@@ -144,7 +144,7 @@ export namespace BrowserHistoryUpload {
           continue
         }
         const createdVia: NodeCreatedVia = { autoIngestion: epid }
-        const visitedAt: unixtime.Type = item.lastVisitTime
+        const visitedAt = unixtime.fromMilliseconds(item.lastVisitTime)
         await saveWebPage(storage, resp, createdVia, undefined, visitedAt)
       } catch (err) {
         log.error(`Failed to process ${item.url} during history upload: ${err}`)
