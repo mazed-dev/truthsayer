@@ -12,6 +12,7 @@ import {
 import {
   BrowserHistoryImportConfig,
   BrowserHistoryImporter,
+  BrowserHistoryImporterForOnboarding,
 } from './BrowserHistoryImporter'
 import BrowserLogo from '../apps-list/img/GoogleChromeLogo.svg'
 import { DataCentreImporter, getLogoImage } from './DataCentreImporter'
@@ -120,6 +121,36 @@ export function ExternalImport({
   return (
     <Box className={className}>
       <ItemsBox>{importTypes.map((t) => itemsByKey[t])}</ItemsBox>
+    </Box>
+  )
+}
+
+export function ExternalImportForOnboarding({
+  className,
+  archaeologistState,
+  progress,
+  onClick,
+}: {
+  className?: string
+  archaeologistState: ArchaeologistState
+  progress: ExternalImportProgress
+  onClick?: () => void
+}) {
+  const isFinished = (progress: BackgroundActionProgress) =>
+    progress.total !== 0 && progress.total === progress.processed
+  return (
+    <Box className={className}>
+      <ItemsBox>
+        <Item key={'browser-history'}>
+          <LogoImg src={BrowserLogo} />
+          <BrowserHistoryImporterForOnboarding
+            archaeologistState={archaeologistState}
+            progress={progress.historyImportProgress}
+            disabled={isFinished(progress.historyImportProgress)}
+            onClick={onClick}
+          />
+        </Item>
+      </ItemsBox>
     </Box>
   )
 }
