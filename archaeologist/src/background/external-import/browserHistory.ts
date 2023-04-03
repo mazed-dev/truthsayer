@@ -23,6 +23,7 @@ import type {
   BrowserHistoryUploadMode,
 } from 'truthsayer-archaeologist-communication'
 import { truthsayer } from 'elementary'
+import moment from 'moment'
 
 export namespace BrowserHistoryUpload {
   // TODO[snikitin@outlook.com] This boolean is an extremely naive tool to cancel
@@ -144,8 +145,13 @@ export namespace BrowserHistoryUpload {
           continue
         }
         const createdVia: NodeCreatedVia = { autoIngestion: epid }
-        const visitedAt = unixtime.fromMilliseconds(item.lastVisitTime)
-        await saveWebPage(storage, resp, createdVia, undefined, visitedAt)
+        await saveWebPage(
+          storage,
+          resp,
+          createdVia,
+          undefined,
+          moment(item.lastVisitTime).unix()
+        )
       } catch (err) {
         log.error(`Failed to process ${item.url} during history upload: ${err}`)
       }
@@ -200,7 +206,7 @@ export namespace BrowserHistoryUpload {
   async function historyVisitsOf(url: string): Promise<ResourceVisit[]> {
     const visits = await browser.history.getVisits({ url })
     return visits.map((visit): ResourceVisit => {
-      return { timestamp: unixtime.fromDate(new Date(visit.visitTime ?? 0)) }
+      return { timestamp: moment(visit.visitTime ?? 0).unix() }
     })
   }
 
