@@ -7,7 +7,6 @@ import { useHistory, useLocation } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { Button, Container } from 'react-bootstrap'
 import {
-  BackgroundActionProgress,
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
@@ -160,26 +159,24 @@ const StepBootstrapMemory = ({
   progress: ExternalImportProgress
   archaeologistState: ArchaeologistState
 }) => {
-  const hasStarted = (progress: BackgroundActionProgress) =>
-    progress.total !== 0 && progress.processed !== 0
+  const [isBootstrapStarted, setBootstrapStarted] =
+    React.useState<boolean>(false)
   return (
     <StepBox>
       <Header>
         Great! Now, let's begin filling your second brain with useful
         information.
       </Header>
-      <DescriptionBox>
-        Add your browser hisotory to Mazed memory:
-      </DescriptionBox>
       <ExternalImportStep
         archaeologistState={archaeologistState}
         progress={progress}
+        onClick={() => setBootstrapStarted(true)}
       />
       <StepFotbar>
         <StepFotbarButton
           variant="primary"
           onClick={nextStep}
-          disabled={!hasStarted(progress.historyImportProgress)}
+          disabled={!isBootstrapStarted}
         >
           Next
         </StepFotbarButton>

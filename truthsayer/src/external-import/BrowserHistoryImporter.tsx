@@ -12,12 +12,16 @@ import {
 } from 'truthsayer-archaeologist-communication'
 import { errorise, toSentenceCase, unixtime } from 'armoury'
 import { routes } from '../lib/route'
+import { getBrowserName } from '../util/browser'
 
 const Box = styled.div``
-const Message = styled.div``
+const Message = styled.div`
+  margin: 0 0 8px 0;
+`
 const Comment = styled.div`
   font-style: italic;
   color: grey;
+  margin: 0 0 8px 0;
 `
 
 const Title = styled.div`
@@ -42,6 +46,7 @@ const CancelPic = styled(MdiCancel)`
 `
 const CloudUploadPic = styled(MdiCloudUpload)`
   vertical-align: middle;
+  margin-right: 4px;
 `
 const DeletePic = styled(MdiDelete)`
   vertical-align: middle;
@@ -139,7 +144,7 @@ function BrowserHistoryImportControl({
       setState({ step: 'finished' })
     }
   }, [progress])
-  const browserName = toSentenceCase(process.env.BROWSER || 'browser')
+  const browserName = toSentenceCase(getBrowserName() ?? 'browser')
 
   if (state.step === 'standby') {
     return (
@@ -205,7 +210,10 @@ function BrowserHistoryImportControl({
 function BrowserHistoryImportControlForOnboarding({
   progress,
   disabled,
-}: UploadBrowserHistoryProps) {
+  onClick,
+}: {
+  onClick?: () => void
+} & UploadBrowserHistoryProps) {
   const [state, setState] = React.useState<BrowserHistoryImportControlState>(
     progress.processed !== progress.total
       ? {
@@ -217,9 +225,6 @@ function BrowserHistoryImportControlForOnboarding({
           deletedNodesCount: 0,
         }
   )
-  const showPreStartMessage = (chosenMode: BrowserHistoryUploadMode) => {
-    setState({ step: 'pre-start', chosenMode })
-  }
   const startUpload = async (mode: BrowserHistoryUploadMode) => {
     setState({ step: 'in-progress', isBeingCancelled: false })
     try {
@@ -240,7 +245,7 @@ function BrowserHistoryImportControlForOnboarding({
       setState({ step: 'finished' })
     }
   }, [progress])
-  const browserName = toSentenceCase(process.env.BROWSER || 'browser')
+  const browserName = toSentenceCase(getBrowserName() ?? 'browser')
 
   if (state.step === 'standby') {
     const now = new Date()
@@ -249,37 +254,27 @@ function BrowserHistoryImportControlForOnboarding({
     daysAgo.setDate(now.getDate() - daysToUpload)
     return (
       <Box>
+        <Comment>
+          Mazed will be opening and closing pages from your {browserName}{' '}
+          history to save them exactly as you saw them. All tabs opened by Mazed
+          will be closed automatically.
+        </Comment>
         <OnboardingButton
-          onClick={() =>
-            showPreStartMessage({
+          onClick={() => {
+            onClick?.()
+            startUpload({
               mode: 'untracked',
               unixtime: {
                 start: unixtime.from(daysAgo),
                 end: unixtime.from(now),
               },
             })
-          }
+          }}
           disabled={disabled}
         >
-          <CloudUploadPic /> Quick import
+          <CloudUploadPic /> Import {browserName} history
         </OnboardingButton>
         <ErrorBox>{state.lastError}</ErrorBox>
-      </Box>
-    )
-  } else if (state.step === 'pre-start') {
-    return (
-      <Box>
-        <Message>
-          Mazed will be opening and closing pages from your {browserName}{' '}
-          history to save them exactly as you saw them. All tabs opened by Mazed
-          will be closed automatically.
-        </Message>
-        <OnboardingButton
-          onClick={() => startUpload(state.chosenMode)}
-          variant="outline-primary"
-        >
-          Continue
-        </OnboardingButton>
       </Box>
     )
   } else if (state.step === 'in-progress') {
@@ -332,8 +327,10 @@ export function BrowserHistoryImporterForOnboarding({
   archaeologistState,
   progress,
   disabled,
+  onClick,
 }: {
   archaeologistState: ArchaeologistState
+  onClick?: () => void
 } & UploadBrowserHistoryProps) {
   switch (archaeologistState.state) {
     case 'not-installed': {
@@ -354,6 +351,7 @@ export function BrowserHistoryImporterForOnboarding({
     <BrowserHistoryImportControlForOnboarding
       progress={progress}
       disabled={disabled}
+      onClick={onClick}
     />
   )
 }

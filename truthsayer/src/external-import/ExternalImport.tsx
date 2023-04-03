@@ -129,10 +129,12 @@ export function ExternalImportForOnboarding({
   className,
   archaeologistState,
   progress,
+  onClick,
 }: {
   className?: string
   archaeologistState: ArchaeologistState
   progress: ExternalImportProgress
+  onClick?: () => void
 }) {
   const isFinished = (progress: BackgroundActionProgress) =>
     progress.total !== 0 && progress.total === progress.processed
@@ -145,6 +147,7 @@ export function ExternalImportForOnboarding({
             archaeologistState={archaeologistState}
             progress={progress.historyImportProgress}
             disabled={isFinished(progress.historyImportProgress)}
+            onClick={onClick}
           />
         </Item>
       </ItemsBox>
