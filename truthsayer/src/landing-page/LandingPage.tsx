@@ -175,7 +175,7 @@ const SignUpFormBox = styled.form`
   border-radius: 10px;
   width: 100%;
 
-  font-size: ${FontSize[2]};
+  font-size: ${FontSize[3]};
   @media (max-width: 600px) {
     font-size: ${FontSize[5]};
   }
