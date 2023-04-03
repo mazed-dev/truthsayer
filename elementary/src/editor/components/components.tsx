@@ -1,31 +1,12 @@
 import styled from '@emotion/styled'
-import { css } from '@emotion/react'
 
-const InlineLink = css`
+export const InlineLink = styled.a`
   font-weight: 500;
-  color: #38b000;
   text-decoration-line: none;
 
   &:hover {
-    color: #70e000;
     text-decoration-line: underline;
     cursor: pointer;
-  }
-`
-
-export const InlineLinkExt = styled.a`
-  ${InlineLink};
-  &:before {
-    content: '🌍 ';
-    opacity: 0.7;
-  }
-`
-
-export const InlineLinkNode = styled.a`
-  ${InlineLink};
-  &:before {
-    content: '📄 ';
-    opacity: 0.7;
   }
 `
 
