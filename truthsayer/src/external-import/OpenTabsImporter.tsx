@@ -23,11 +23,9 @@ const ErrorBox = styled.div`
 export function OpenTabsImporter({
   archaeologistState,
   progress,
-  disabled,
 }: {
   archaeologistState: ArchaeologistState
   progress: BackgroundActionProgress
-  disabled?: boolean
 }) {
   const [error, setError] = React.useState<string | undefined>(undefined)
 
@@ -68,7 +66,7 @@ export function OpenTabsImporter({
       <ButtonBox>
         {progress.processed === progress.total ? (
           <>
-            <Button variant="primary" onClick={upload} disabled={disabled}>
+            <Button variant="primary" onClick={upload}>
               Add my open tabs
             </Button>
           </>

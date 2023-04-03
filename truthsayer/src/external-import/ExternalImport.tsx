@@ -12,15 +12,13 @@ import {
 import {
   BrowserHistoryImportConfig,
   BrowserHistoryImporter,
+  BrowserHistoryImporterForOnboarding,
 } from './BrowserHistoryImporter'
 import BrowserLogo from '../apps-list/img/GoogleChromeLogo.svg'
 import { DataCentreImporter, getLogoImage } from './DataCentreImporter'
 import { ArchaeologistState } from '../apps-list/archaeologistState'
 import { OpenTabsImporter } from './OpenTabsImporter'
-import {
-  BackgroundActionProgress,
-  FromArchaeologistContent,
-} from 'truthsayer-archaeologist-communication'
+import { BackgroundActionProgress } from 'truthsayer-archaeologist-communication'
 
 const Box = styled.div`
   padding: 18px;
@@ -60,85 +58,35 @@ export type ExternalImportType =
   | 'onedrive'
   | 'data-centre-importer'
 
+export type ExternalImportProgress = {
+  openTabsProgress: BackgroundActionProgress
+  historyImportProgress: BackgroundActionProgress
+}
+
 export function ExternalImport({
   className,
   archaeologistState,
+  progress,
   browserHistoryImportConfig,
   importTypes, // if unspecified, show all types availiable
-  onFinish,
 }: {
   className?: string
   archaeologistState: ArchaeologistState
+  progress: ExternalImportProgress
   browserHistoryImportConfig: BrowserHistoryImportConfig
   importTypes?: ExternalImportType[]
-  onFinish?: (extImportType: ExternalImportType) => void
 }) {
-  const [historyImportProgress, setHistoryImportProgress] = React.useState<
-    BackgroundActionProgress & { isFinished: boolean }
-  >({
-    processed: 0,
-    total: 0,
-    isFinished: false,
-  })
-  const [openTabsProgress, setOpenTabsProgress] = React.useState<
-    BackgroundActionProgress & { isFinished: boolean }
-  >({
-    processed: 0,
-    total: 0,
-    isFinished: false,
-  })
-  React.useEffect(() => {
-    const listener = (event: MessageEvent) => {
-      // Only accept messages sent from archaeologist's content script
-      // eslint-disable-next-line eqeqeq
-      if (event.source != window) {
-        return
-      }
-
-      // Discard any events that are not part of truthsayer/archaeologist
-      // business logic communication
-      const request = event.data
-      if (!FromArchaeologistContent.isRequest(request)) {
-        return
-      }
-
-      switch (request.type) {
-        case 'REPORT_BACKGROUND_OPERATION_PROGRESS': {
-          switch (request.operation) {
-            case 'open-tabs-upload': {
-              const isFinished =
-                request.newState.processed === request.newState.total
-              if (isFinished) {
-                onFinish?.('open-tabs')
-              }
-              setOpenTabsProgress({ ...request.newState, isFinished })
-              break
-            }
-            case 'browser-history-upload': {
-              const isFinished =
-                request.newState.processed === request.newState.total
-              if (isFinished) {
-                onFinish?.('browser-history')
-              }
-              setHistoryImportProgress({ ...request.newState, isFinished })
-              break
-            }
-          }
-        }
-      }
-    }
-    window.addEventListener('message', listener)
-    return () => window.removeEventListener('message', listener)
-  })
+  const isFinished = (progress: BackgroundActionProgress) =>
+    progress.total !== 0 && progress.total === progress.processed
   const itemsByKey = {
     'browser-history': (
       <Item key={'browser-history'}>
         <LogoImg src={BrowserLogo} />
         <BrowserHistoryImporter
           archaeologistState={archaeologistState}
-          progress={historyImportProgress}
-          disabled={historyImportProgress.isFinished}
+          progress={progress.historyImportProgress}
           {...browserHistoryImportConfig}
+          disabled={isFinished(progress.historyImportProgress)}
         />
       </Item>
     ),
@@ -147,25 +95,20 @@ export function ExternalImport({
         <LogoImg src={BrowserLogo} />
         <OpenTabsImporter
           archaeologistState={archaeologistState}
-          progress={openTabsProgress}
-          disabled={openTabsProgress.isFinished}
+          progress={progress.openTabsProgress}
         />
       </Item>
     ),
     onedrive: (
       <Item key={'onedrive'}>
         <LogoImg src={MicrosoftOfficeOneDriveLogoImg} />
-        <MicrosoftOfficeOneDriveImporter
-          onFinish={() => onFinish?.('onedrive')}
-        />
+        <MicrosoftOfficeOneDriveImporter />
       </Item>
     ),
     'data-centre-importer': (
       <Item key={'data-centre-importer'}>
         <LogoImg src={getLogoImage()} />
-        <DataCentreImporter
-          onFinish={() => onFinish?.('data-centre-importer')}
-        />
+        <DataCentreImporter />
       </Item>
     ),
   }
@@ -178,6 +121,36 @@ export function ExternalImport({
   return (
     <Box className={className}>
       <ItemsBox>{importTypes.map((t) => itemsByKey[t])}</ItemsBox>
+    </Box>
+  )
+}
+
+export function ExternalImportForOnboarding({
+  className,
+  archaeologistState,
+  progress,
+  onClick,
+}: {
+  className?: string
+  archaeologistState: ArchaeologistState
+  progress: ExternalImportProgress
+  onClick?: () => void
+}) {
+  const isFinished = (progress: BackgroundActionProgress) =>
+    progress.total !== 0 && progress.total === progress.processed
+  return (
+    <Box className={className}>
+      <ItemsBox>
+        <Item key={'browser-history'}>
+          <LogoImg src={BrowserLogo} />
+          <BrowserHistoryImporterForOnboarding
+            archaeologistState={archaeologistState}
+            progress={progress.historyImportProgress}
+            disabled={isFinished(progress.historyImportProgress)}
+            onClick={onClick}
+          />
+        </Item>
+      </ItemsBox>
     </Box>
   )
 }

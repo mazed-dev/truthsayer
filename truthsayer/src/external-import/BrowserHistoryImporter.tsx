@@ -1,5 +1,7 @@
 import React from 'react'
 import styled from '@emotion/styled'
+import { Redirect } from 'react-router'
+import { Button as ReactBootstrapButton } from 'react-bootstrap'
 
 import { MdiCancel, MdiCloudUpload, MdiDelete, Spinner } from 'elementary'
 import { ArchaeologistState } from '../apps-list/archaeologistState'
@@ -9,12 +11,17 @@ import {
   FromTruthsayer,
 } from 'truthsayer-archaeologist-communication'
 import { errorise, toSentenceCase, unixtime } from 'armoury'
+import { routes } from '../lib/route'
+import { getBrowserName } from '../util/browser'
 
 const Box = styled.div``
-const Message = styled.div``
+const Message = styled.div`
+  margin: 0 0 8px 0;
+`
 const Comment = styled.div`
   font-style: italic;
   color: grey;
+  margin: 0 0 8px 0;
 `
 
 const Title = styled.div`
@@ -31,11 +38,15 @@ const Button = styled.button`
     background-color: #d0d1d2;
   }
 `
+const OnboardingButton = styled(ReactBootstrapButton)`
+  margin-right: 10px;
+`
 const CancelPic = styled(MdiCancel)`
   vertical-align: middle;
 `
 const CloudUploadPic = styled(MdiCloudUpload)`
   vertical-align: middle;
+  margin-right: 4px;
 `
 const DeletePic = styled(MdiDelete)`
   vertical-align: middle;
@@ -50,12 +61,10 @@ export type BrowserHistoryImportConfig = {
   modes: ('untracked' | 'resumable')[]
 }
 
-type UploadBrowserHistoryProps = React.PropsWithChildren<
-  {
-    progress: BackgroundActionProgress
-    disabled?: boolean
-  } & BrowserHistoryImportConfig
->
+type UploadBrowserHistoryProps = React.PropsWithChildren<{
+  progress: BackgroundActionProgress
+  disabled?: boolean
+}>
 
 type BrowserHistoryImportControlState =
   | {
@@ -71,10 +80,12 @@ type BrowserHistoryImportControlState =
       step: 'in-progress'
       isBeingCancelled: boolean
     }
+  | {
+      step: 'finished'
+    }
 
 function BrowserHistoryImportControl({
   progress,
-  modes,
   disabled,
 }: UploadBrowserHistoryProps) {
   const [state, setState] = React.useState<BrowserHistoryImportControlState>(
@@ -128,43 +139,23 @@ function BrowserHistoryImportControl({
       })
     }
   }
-  const browserName = toSentenceCase(process.env.BROWSER || 'browser')
+  React.useEffect(() => {
+    if (progress.processed === progress.total && progress.processed > 0) {
+      setState({ step: 'finished' })
+    }
+  }, [progress])
+  const browserName = toSentenceCase(getBrowserName() ?? 'browser')
 
   if (state.step === 'standby') {
-    const resumableUploadBtn = (
-      <Button
-        onClick={() => showPreStartMessage({ mode: 'resumable' })}
-        disabled={disabled}
-      >
-        <CloudUploadPic /> Full import
-      </Button>
-    )
-
-    const now = new Date()
-    const daysToUpload = 31
-    const daysAgo = new Date(now)
-    daysAgo.setDate(now.getDate() - daysToUpload)
-    const untrackedUploadBtn = (
-      <Button
-        onClick={() =>
-          showPreStartMessage({
-            mode: 'untracked',
-            unixtime: {
-              start: unixtime.from(daysAgo),
-              end: unixtime.from(now),
-            },
-          })
-        }
-        disabled={disabled}
-      >
-        <CloudUploadPic /> Quick import (last {daysToUpload} days)
-      </Button>
-    )
     return (
       <Box>
         <Title>Import {browserName} history</Title>
-        {modes.indexOf('untracked') !== -1 ? untrackedUploadBtn : null}
-        {modes.indexOf('resumable') !== -1 ? resumableUploadBtn : null}
+        <Button
+          onClick={() => showPreStartMessage({ mode: 'resumable' })}
+          disabled={disabled}
+        >
+          <CloudUploadPic /> Full import
+        </Button>
         {state.deletedNodesCount > 0 ? (
           <span>[{state.deletedNodesCount}] deleted </span>
         ) : (
@@ -208,7 +199,100 @@ function BrowserHistoryImportControl({
       </Box>
     )
   }
-  return null
+  return (
+    <Box>
+      <Title>Import {browserName} history</Title>
+      <span>🏁 Finished, {progress.total} pages saved</span>
+    </Box>
+  )
+}
+
+function BrowserHistoryImportControlForOnboarding({
+  progress,
+  disabled,
+  onClick,
+}: {
+  onClick?: () => void
+} & UploadBrowserHistoryProps) {
+  const [state, setState] = React.useState<BrowserHistoryImportControlState>(
+    progress.processed !== progress.total
+      ? {
+          step: 'in-progress',
+          isBeingCancelled: false,
+        }
+      : {
+          step: 'standby',
+          deletedNodesCount: 0,
+        }
+  )
+  const startUpload = async (mode: BrowserHistoryUploadMode) => {
+    setState({ step: 'in-progress', isBeingCancelled: false })
+    try {
+      await FromTruthsayer.sendMessage({
+        type: 'UPLOAD_BROWSER_HISTORY',
+        ...mode,
+      })
+    } catch (err) {
+      setState({
+        step: 'standby',
+        deletedNodesCount: 0,
+        lastError: `Upload failed: "${errorise(err).message}"`,
+      })
+    }
+  }
+  React.useEffect(() => {
+    if (progress.processed === progress.total && progress.processed > 0) {
+      setState({ step: 'finished' })
+    }
+  }, [progress])
+  const browserName = toSentenceCase(getBrowserName() ?? 'browser')
+
+  if (state.step === 'standby') {
+    const now = new Date()
+    const daysToUpload = 31
+    const daysAgo = new Date(now)
+    daysAgo.setDate(now.getDate() - daysToUpload)
+    return (
+      <Box>
+        <Comment>
+          Mazed will be opening and closing pages from your {browserName}{' '}
+          history to save them exactly as you saw them. All tabs opened by Mazed
+          will be closed automatically.
+        </Comment>
+        <OnboardingButton
+          onClick={() => {
+            onClick?.()
+            startUpload({
+              mode: 'untracked',
+              unixtime: {
+                start: unixtime.from(daysAgo),
+                end: unixtime.from(now),
+              },
+            })
+          }}
+          disabled={disabled}
+        >
+          <CloudUploadPic /> Import {browserName} history
+        </OnboardingButton>
+        <ErrorBox>{state.lastError}</ErrorBox>
+      </Box>
+    )
+  } else if (state.step === 'in-progress') {
+    return (
+      <Box>
+        <Title>
+          Importing {browserName} history [{progress.processed}/{progress.total}
+          ]<Comment> (background process &mdash; you can continue)</Comment>
+        </Title>
+      </Box>
+    )
+  }
+  return (
+    <Box>
+      <Title>Import {browserName} history</Title>
+      <span>🏁 Finished, {progress.total} pages saved</span>
+    </Box>
+  )
 }
 
 /**
@@ -218,7 +302,6 @@ function BrowserHistoryImportControl({
 export function BrowserHistoryImporter({
   archaeologistState,
   progress,
-  modes,
   disabled,
 }: {
   archaeologistState: ArchaeologistState
@@ -237,11 +320,38 @@ export function BrowserHistoryImporter({
     }
   }
 
+  return <BrowserHistoryImportControl progress={progress} disabled={disabled} />
+}
+
+export function BrowserHistoryImporterForOnboarding({
+  archaeologistState,
+  progress,
+  disabled,
+  onClick,
+}: {
+  archaeologistState: ArchaeologistState
+  onClick?: () => void
+} & UploadBrowserHistoryProps) {
+  switch (archaeologistState.state) {
+    case 'not-installed': {
+      return <Redirect to={routes.onboarding} />
+    }
+    case 'loading': {
+      return (
+        <Comment>
+          <Spinner.Ring />
+        </Comment>
+      )
+    }
+    case 'installed': {
+      break
+    }
+  }
   return (
-    <BrowserHistoryImportControl
+    <BrowserHistoryImportControlForOnboarding
       progress={progress}
-      modes={modes}
       disabled={disabled}
+      onClick={onClick}
     />
   )
 }

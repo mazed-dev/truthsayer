@@ -11,7 +11,10 @@ import {
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
 import { AppsList } from '../../apps-list/AppsList'
-import { ExternalImport } from '../../external-import/ExternalImport'
+import {
+  ExternalImportProgress,
+  ExternalImportForOnboarding,
+} from '../../external-import/ExternalImport'
 import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
 import { sleep, isAbortError } from 'armoury'
@@ -70,7 +73,7 @@ const InstallAppsStep = styled(AppsList)`
   padding: 0;
 `
 
-const ExternalImportStep = styled(ExternalImport)`
+const ExternalImportStep = styled(ExternalImportForOnboarding)`
   padding: 0;
 `
 
@@ -150,38 +153,31 @@ const StepWelcomePleaseInstall = ({
 
 const StepBootstrapMemory = ({
   archaeologistState,
+  progress,
   nextStep,
 }: {
   nextStep: () => void
+  progress: ExternalImportProgress
   archaeologistState: ArchaeologistState
 }) => {
-  const [isFinished, setFinished] = React.useState<boolean>(false)
+  const [isBootstrapStarted, setBootstrapStarted] =
+    React.useState<boolean>(false)
   return (
     <StepBox>
       <Header>
         Great! Now, let's begin filling your second brain with useful
         information.
       </Header>
-      <DescriptionBox>
-        Add your current tabs to your Mazed memory:
-      </DescriptionBox>
       <ExternalImportStep
         archaeologistState={archaeologistState}
-        browserHistoryImportConfig={
-          // NOTE: one of the goals of the onboarding experience is to showcase
-          // the value of the product to a new user as quick as possible, before
-          // the product loses their attention. For this reason the slower modes
-          // of browser history import modes are not enabled.
-          { modes: ['untracked'] }
-        }
-        importTypes={['open-tabs']}
-        onFinish={() => setFinished(true)}
+        progress={progress}
+        onClick={() => setBootstrapStarted(true)}
       />
       <StepFotbar>
         <StepFotbarButton
           variant="primary"
           onClick={nextStep}
-          disabled={!isFinished}
+          disabled={!isBootstrapStarted}
         >
           Next
         </StepFotbarButton>
@@ -266,6 +262,7 @@ const StepTangoShowAround = ({ onClose }: { onClose: () => void }) => {
 
 function OnboardingSteps({
   archaeologistState,
+  progress,
   step,
   nextStep,
   onClose,
@@ -274,6 +271,7 @@ function OnboardingSteps({
   nextStep: (step: number) => void
   onClose: () => void
   archaeologistState: ArchaeologistState
+  progress: ExternalImportProgress
 }) {
   const kStepsNumber = 4
   const nextStepChecked = () => {
@@ -306,6 +304,7 @@ function OnboardingSteps({
         <Box>
           <StepBootstrapMemory
             archaeologistState={archaeologistState}
+            progress={progress}
             nextStep={nextStepChecked}
           />
         </Box>
@@ -334,8 +333,10 @@ function parseStepFromSearchString(search: string): number {
 
 export function Onboarding({
   archaeologistState,
+  progress,
 }: {
   archaeologistState: ArchaeologistState
+  progress: ExternalImportProgress
 }) {
   const loc = useLocation()
   const history = useHistory()
@@ -349,6 +350,7 @@ export function Onboarding({
       step={onboardingStep}
       nextStep={(step: number) => history.push({ search: `step=${step}` })}
       archaeologistState={archaeologistState}
+      progress={progress}
     />
   )
 }

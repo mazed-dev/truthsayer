@@ -117,10 +117,8 @@ async function uploadFilesFromFolder(
  */
 export function OneDriveIntegrationManager({
   className,
-  onFinish,
 }: {
   className?: string
-  onFinish?: () => void
 }) {
   // Significant chunk of the code for integration with OneDrive was taken from
   // https://docs.microsoft.com/en-us/azure/active-directory/develop/tutorial-v2-react
@@ -176,7 +174,6 @@ export function OneDriveIntegrationManager({
                   })
                   .finally(() => {
                     setOneDriveUploadCounter(0)
-                    onFinish?.()
                   })
               }}
             >
@@ -206,10 +203,8 @@ export function OneDriveIntegrationManager({
 
 export function MicrosoftOfficeOneDriveImporter({
   className,
-  onFinish,
 }: {
   className?: string
-  onFinish?: () => void
 }) {
   const ctx = React.useContext(MzdGlobalContext)
   const account = ctx.account
@@ -218,7 +213,5 @@ export function MicrosoftOfficeOneDriveImporter({
       'Microsoft Office OneDrive integration requires a valid Mazed account available'
     )
   }
-  return (
-    <OneDriveIntegrationManager className={className} onFinish={onFinish} />
-  )
+  return <OneDriveIntegrationManager className={className} />
 }

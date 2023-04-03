@@ -1,7 +1,7 @@
 import lodash from 'lodash'
 import browser from 'webextension-polyfill'
 
-import { genOriginId, log, unixtime } from 'armoury'
+import { errorise, genOriginId, log, unixtime } from 'armoury'
 import type {
   Ack,
   NodeCreatedVia,
@@ -22,6 +22,7 @@ import type {
   BackgroundActionProgress,
   BrowserHistoryUploadMode,
 } from 'truthsayer-archaeologist-communication'
+import { truthsayer } from 'elementary'
 
 export namespace BrowserHistoryUpload {
   // TODO[snikitin@outlook.com] This boolean is an extremely naive tool to cancel
@@ -97,9 +98,24 @@ export namespace BrowserHistoryUpload {
       // explicit sorting is added as a safeguard
       .sort(sortWithOldestLastVisitAtEnd)
 
+    const window = await createMinimisedWindow()
+    if (window.id == null || window.tabs == null) {
+      throw new Error('Created an invalid temporary window which has no id')
+    }
+
+    const windowStillExists = async (windowId: number) => {
+      try {
+        await browser.windows.get(windowId)
+        return true
+      } catch (err) {
+        return false
+      }
+    }
     for (
       let index = 0;
-      index < items.length && !shouldCancelBrowserHistoryUpload;
+      index < items.length &&
+      !shouldCancelBrowserHistoryUpload &&
+      (await windowStillExists(window.id));
       await advanceIngestionProgress(new Date(items[index].lastVisitTime)),
         reportProgress({ processed: index + 1, total: items.length }),
         index++
@@ -119,7 +135,11 @@ export namespace BrowserHistoryUpload {
           continue
         }
 
-        const resp = await getPageContentViaTemporaryTab(storage, item.url)
+        const resp = await getPageContentViaTemporaryTab(
+          storage,
+          window.id,
+          item.url
+        )
         if (resp.type !== 'PAGE_TO_SAVE') {
           continue
         }
@@ -129,6 +149,11 @@ export namespace BrowserHistoryUpload {
       } catch (err) {
         log.error(`Failed to process ${item.url} during history upload: ${err}`)
       }
+    }
+    try {
+      await browser.windows.remove(window.id)
+    } catch (err) {
+      log.warning(`Failed to close temporary window: ${errorise(err).message}`)
     }
     shouldCancelBrowserHistoryUpload = false
 
@@ -226,8 +251,19 @@ export namespace BrowserHistoryUpload {
     }
   }
 
+  export async function createMinimisedWindow(): Promise<browser.Windows.Window> {
+    return await browser.windows.create({
+      url: truthsayer.url
+        .make({ pathname: 'browser-history-import-loading-screen' })
+        .toString(),
+      focused: false,
+      state: 'minimized',
+    })
+  }
+
   async function getPageContentViaTemporaryTab(
     storage: StorageApi,
+    windowId: number,
     url: string
   ): Promise<
     | FromContent.SavePageResponse
@@ -235,7 +271,7 @@ export namespace BrowserHistoryUpload {
     | FromContent.PageNotWorthSavingResponse
   > {
     const startTime = new Date()
-    let tab = await browser.tabs.create({ active: false, url })
+    let tab = await browser.tabs.create({ active: false, url, windowId })
     const tabId = tab.id
     if (tabId == null) {
       throw new Error(`Failed to create a temporary tab for ${url}`)
