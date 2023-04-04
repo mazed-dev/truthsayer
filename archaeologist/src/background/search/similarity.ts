@@ -73,6 +73,7 @@ export async function findRelevantNodes(
       relevantNodes.push({ node, score })
     }
   }
+  log.debug('Relevant', relevantNodes)
   return relevantNodes
 }
 
