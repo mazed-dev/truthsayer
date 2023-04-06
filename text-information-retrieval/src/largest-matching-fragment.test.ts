@@ -144,7 +144,7 @@ There may come a day when the trailer-based hype around Sony’s Spider-Man: Acr
         indexes
           .map((ind) => {
             const pos = firstPos[ind]
-            return (ind === 0 || pos === 'PUNCT' || pos === 'PART') ? '' : ' ' + firstTokens[ind]
+            return ((ind === 0 || pos === 'PUNCT' || pos === 'PART') ? '' : ' ') + firstTokens[ind]
           })
           .join('') +
         suffix
