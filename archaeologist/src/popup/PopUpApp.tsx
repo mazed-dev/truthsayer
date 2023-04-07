@@ -148,9 +148,9 @@ function determineWidget(state: State, dispatch: React.Dispatch<Action>) {
   switch (state.type) {
     case 'not-init': {
       return (
-          <Centered>
-            <Spinner.Wheel />
-          </Centered>
+        <Centered>
+          <Spinner.Wheel />
+        </Centered>
       )
     }
     case 'error': {
