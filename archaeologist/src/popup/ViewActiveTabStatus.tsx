@@ -39,7 +39,7 @@ const ErrorBox = styled.div`
 type BookmarkState =
   | { type: 'saved'; value: TNode }
   | { type: 'saving' }
-  | { type: 'not-saved'; memorable: boolean }
+  | { type: 'not-saved'; memorable: boolean; error?: string }
 
 type TabState =
   | { status: 'loading' }
@@ -98,17 +98,28 @@ function makeBookmarkPageButton(
 ) {
   const handleSave = async () => {
     dispatch({ type: 'update-bookmark', state: { type: 'saving' } })
-    const { bookmark, unmemorable } = await FromPopUp.sendMessage({
-      type: 'REQUEST_PAGE_TO_SAVE',
-    })
-    const state: BookmarkState =
-      bookmark != null
-        ? { type: 'saved', value: NodeUtil.fromJson(bookmark) }
-        : { type: 'not-saved', memorable: !unmemorable }
-    dispatch({
-      type: 'update-bookmark',
-      state,
-    })
+    try {
+      const { bookmark, unmemorable } = await FromPopUp.sendMessage({
+        type: 'REQUEST_PAGE_TO_SAVE',
+      })
+      const newBookmarkState: BookmarkState =
+        bookmark != null
+          ? { type: 'saved', value: NodeUtil.fromJson(bookmark) }
+          : { type: 'not-saved', memorable: !unmemorable }
+      dispatch({
+        type: 'update-bookmark',
+        state: newBookmarkState,
+      })
+    } catch (e) {
+      const newBookmarkState: BookmarkState =
+        bookmarkState.type === 'not-saved'
+          ? { ...bookmarkState, error: errorise(e).message }
+          : bookmarkState
+      dispatch({
+        type: 'update-bookmark',
+        state: newBookmarkState,
+      })
+    }
   }
 
   switch (bookmarkState.type) {
@@ -183,17 +194,18 @@ export const ViewActiveTabStatus = () => {
     )
   } else if (tabState.status === 'error') {
     // If failed to load tab information, show a single error and nothing else
-    return (
-      <Toolbar>
-        <ErrorBox>{tabState.error}</ErrorBox>
-      </Toolbar>
-    )
+    return <ErrorBox>{tabState.error}</ErrorBox>
   }
   // If tab information is known, show action button, suggestions etc
 
   return (
     <Container>
       <Toolbar>{makeBookmarkPageButton(tabState.bookmark, dispatch)}</Toolbar>
+      <ErrorBox>
+        {tabState.bookmark.type === 'not-saved'
+          ? tabState.bookmark.error
+          : null}
+      </ErrorBox>
       <CardsConnectedToPage
         bookmark={
           tabState.bookmark.type === 'saved'

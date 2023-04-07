@@ -44,6 +44,11 @@ const Box = styled.div`
   margin: 0;
   background-color: white;
 `
+const Centered = styled.div`
+  margin: 0 auto 0 auto;
+  display: flex;
+  justify-content: center;
+`
 const PopUpBookmarkCard = styled(NodeEditor)`
   width: 300px;
 `
@@ -273,12 +278,18 @@ export const CardsSuggestedForPage = (props: CardsSuggestedForPageProps) => {
   let body
   switch (props.status) {
     case 'loading': {
-      body = <Spinner.Wheel />
+      body = (
+        <Centered>
+          <Spinner.Wheel />
+        </Centered>
+      )
       break
     }
     case 'loaded': {
       body = (
-        <SuggestedAkinNodes suggestedAkinNodes={props.suggestedAkinNodes} />
+        <Box>
+          <SuggestedAkinNodes suggestedAkinNodes={props.suggestedAkinNodes} />
+        </Box>
       )
       break
     }
@@ -289,9 +300,9 @@ export const CardsSuggestedForPage = (props: CardsSuggestedForPageProps) => {
   }
 
   return (
-    <Box>
+    <>
       {header}
       {body}
-    </Box>
+    </>
   )
 }
