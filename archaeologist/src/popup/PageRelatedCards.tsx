@@ -119,6 +119,10 @@ const LeftCardRow = styled(RefCardRow)`
   justify-content: flex-start;
 `
 
+const ErrorBox = styled.div`
+  color: red;
+`
+
 const sortNodesByCreationTimeLatestFirst = (a: TNode, b: TNode) => {
   if (a.created_at === b.created_at) {
     return 0
@@ -128,9 +132,9 @@ const sortNodesByCreationTimeLatestFirst = (a: TNode, b: TNode) => {
   return -1
 }
 
-const BookmarkCard = ({ bookmark }: { bookmark?: TNode }) => {
-  return bookmark == null ? null : (
-    <BookmarkRow key={bookmark?.nid}>
+const BookmarkCard = ({ bookmark }: { bookmark: TNode }) => {
+  return (
+    <BookmarkRow key={bookmark.nid}>
       <PopUpBookmarkCard
         node={bookmark}
         key={bookmark.nid}
@@ -197,21 +201,14 @@ const SuggestedTitle = styled.span`
   font-style: italic;
   color: #9f9f9f;
 `
+
 const SuggestedAkinNodes = ({
   suggestedAkinNodes,
 }: {
-  suggestedAkinNodes?: TNode[]
+  suggestedAkinNodes: TNode[]
 }) => {
-  if (suggestedAkinNodes == null) {
-    return <Spinner.Wheel />
-  }
   return (
     <>
-      <SuggestedHeader>
-        <SuggestedTitle>
-          🪄 Likely related ({suggestedAkinNodes.length})
-        </SuggestedTitle>
-      </SuggestedHeader>
       {suggestedAkinNodes.map((node: TNode) => (
         <RightCardRow key={node.nid}>
           <PopUpToNodeCard node={node} />
@@ -221,23 +218,80 @@ const SuggestedAkinNodes = ({
   )
 }
 
-export const PageRelatedCards = ({
+export const CardsConnectedToPage = ({
   bookmark,
   fromNodes,
   toNodes,
-  suggestedAkinNodes,
 }: {
-  bookmark: TNode | undefined
+  bookmark?: TNode
   fromNodes: TNode[]
   toNodes: TNode[]
-  suggestedAkinNodes?: TNode[]
 }) => {
   return (
     <Box>
-      <BookmarkCard bookmark={bookmark} />
+      {bookmark != null ? <BookmarkCard bookmark={bookmark} /> : null}
       <ToNodesCards toNodes={toNodes} />
       <FromNodesCards fromNodes={fromNodes} />
-      <SuggestedAkinNodes suggestedAkinNodes={suggestedAkinNodes} />
+    </Box>
+  )
+}
+
+export type CardsSuggestedForPageProps =
+  | { status: 'loading' }
+  | {
+      status: 'loaded'
+      suggestedAkinNodes: TNode[]
+    }
+  | {
+      status: 'error'
+      error: string
+    }
+
+function makeSuggestionCountHint(props: CardsSuggestedForPageProps) {
+  switch (props.status) {
+    case 'loading': {
+      return '...'
+    }
+    case 'loaded': {
+      return props.suggestedAkinNodes.length
+    }
+    case 'error': {
+      return '🤷'
+    }
+  }
+}
+
+export const CardsSuggestedForPage = (props: CardsSuggestedForPageProps) => {
+  const header = (
+    <SuggestedHeader>
+      <SuggestedTitle>
+        🪄 Likely related ({makeSuggestionCountHint(props)})
+      </SuggestedTitle>
+    </SuggestedHeader>
+  )
+
+  let body
+  switch (props.status) {
+    case 'loading': {
+      body = <Spinner.Wheel />
+      break
+    }
+    case 'loaded': {
+      body = (
+        <SuggestedAkinNodes suggestedAkinNodes={props.suggestedAkinNodes} />
+      )
+      break
+    }
+    case 'error': {
+      body = <ErrorBox>{props.error}</ErrorBox>
+      break
+    }
+  }
+
+  return (
+    <Box>
+      {header}
+      {body}
     </Box>
   )
 }
