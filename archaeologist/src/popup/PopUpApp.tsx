@@ -26,8 +26,15 @@ const AppContainer = styled.div`
   font-weight: 400;
 `
 
+const Centered = styled.div`
+  margin: 0 auto 0 auto;
+  display: flex;
+  justify-content: center;
+`
+
 type State =
   | { type: 'not-init' }
+  | { type: 'error'; error: string }
   | { type: 'not-logged-in'; analyticsIdentity: AnalyticsIdentity }
   | {
       type: 'logged-in'
@@ -36,7 +43,10 @@ type State =
       analytics?: PostHog
     }
 
-type Action = ToPopUp.AppStatusResponse | ToPopUp.LogInResponse
+type Action =
+  | ToPopUp.AppStatusResponse
+  | ToPopUp.LogInResponse
+  | { type: 'mark-as-errored'; error: string }
 
 function updateState(state: State, action: Action): State {
   switch (action.type) {
@@ -72,6 +82,17 @@ function updateState(state: State, action: Action): State {
         analytics: makeAnalytics(state.analyticsIdentity),
       }
     }
+    case 'mark-as-errored': {
+      if (state.type !== 'not-init') {
+        throw new Error(
+          `Tried to do mark popup app init as failed, but it has unexpected state '${state.type}'`
+        )
+      }
+      return {
+        type: 'error',
+        error: action.error,
+      }
+    }
   }
 }
 
@@ -93,10 +114,14 @@ export const PopUpApp = () => {
   const [state, dispatch] = React.useReducer(updateState, initialState)
 
   useAsyncEffect(async () => {
-    const response = await FromPopUp.sendMessage({
-      type: 'REQUEST_APP_STATUS',
-    })
-    dispatch(response)
+    try {
+      const response = await FromPopUp.sendMessage({
+        type: 'REQUEST_APP_STATUS',
+      })
+      dispatch(response)
+    } catch (e) {
+      dispatch({ type: 'mark-as-errored', error: errorise(e).message })
+    }
   }, [])
 
   const forwardToBackground: ForwardToRealImpl = async (
@@ -122,7 +147,14 @@ export const PopUpApp = () => {
 function determineWidget(state: State, dispatch: React.Dispatch<Action>) {
   switch (state.type) {
     case 'not-init': {
-      return <Spinner.Ring />
+      return (
+          <Centered>
+            <Spinner.Wheel />
+          </Centered>
+      )
+    }
+    case 'error': {
+      return <ErrorBox>{state.error}</ErrorBox>
     }
     case 'not-logged-in': {
       return <LoginPage onLogin={dispatch} />
