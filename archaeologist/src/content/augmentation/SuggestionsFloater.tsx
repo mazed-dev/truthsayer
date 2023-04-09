@@ -14,14 +14,6 @@ import { FromContent } from './../../message/types'
 import { DragHandle, Minimize } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
 
-const DraggableCursorStyles = `
-  cursor: move; /* fallback if "grab" & "grabbing" cursors are not supported */
-  cursor: grab;
-  &:active {
-    cursor: grabbing;
-  }
-`
-
 const SuggestedCardsBox = styled.div`
   width: 320px;
   display: flex;
@@ -36,6 +28,14 @@ const SuggestedCardsBox = styled.div`
   }
   border-radius: 6px;
   user-select: text;
+`
+
+const DraggableCursorStyles = `
+  cursor: move; /* fallback if "grab" & "grabbing" cursors are not supported */
+  cursor: grab;
+  &:active {
+    cursor: grabbing;
+  }
 `
 
 const DraggableElement = styled.div`
@@ -180,7 +180,7 @@ type Position2D = { x: number; y: number }
  * because we want it to be always anchored to the rigth edge of the window.
  */
 const getStartDragPosition = (isRevealed: boolean): Position2D =>
-  isRevealed ? { x: -300, y: 82 } : { x: -32, y: 82 }
+  isRevealed ? { x: -300, y: 72 } : { x: -32, y: 72 }
 
 /**
  * Make sure that floter is visisble within a window: not too low or too high -
