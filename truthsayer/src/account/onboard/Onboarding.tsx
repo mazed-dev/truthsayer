@@ -243,6 +243,10 @@ const StepTangoIframBox = styled.div`
   position: relative;
   width: 100%;
   height: 0;
+  /**
+  * 66.66 = 2/3 because of the aspect ratio of 3:2, see
+  * https://stackoverflow.com/questions/25302836/responsive-video-iframes-keeping-aspect-ratio-with-only-css
+  */
   padding-bottom: 66.66%;
 `
 const StepTangoIframe = styled.iframe`
