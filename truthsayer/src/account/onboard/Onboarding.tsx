@@ -233,10 +233,10 @@ const StepYouAreReadyToGo = ({
 const StepTangoShowAroundBox = styled(StepBox)`
   height: calc(100vh - 40px); /* leave some space for bottom bar */
   width: 100%;
-  @media (min-width: 1140px) {
-    width: 1140px;
+  @media (min-width: 1280px) {
+    width: 1280px;
     margin: 0 auto 0 auto;
-    padding-top: calc(100vh - 1140px);
+    padding-top: calc(100vh - 1280px);
   }
 `
 const StepTangoIframBox = styled.div`
