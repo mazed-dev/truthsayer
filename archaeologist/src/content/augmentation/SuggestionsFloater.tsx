@@ -50,7 +50,7 @@ const Header = styled.div`
   ${DraggableCursorStyles}
 `
 const Footter = styled.div`
-  height: 6px;
+  height: 8px;
   ${DraggableCursorStyles}
 `
 
