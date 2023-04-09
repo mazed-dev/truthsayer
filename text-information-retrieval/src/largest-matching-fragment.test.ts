@@ -25,7 +25,6 @@ function findLargestCommonSubsequenceIndexes<T>(
     for (let j = 1; j <= n; j++) {
       if (arr1[i - 1] === arr2[j - 1]) {
         table[i][j] = table[i - 1][j - 1] + 1
-        // const indexes = findLargestCommonSubsequenceIndexes(
       } else {
         table[i][j] = Math.max(table[i - 1][j], table[i][j - 1])
       }
@@ -104,7 +103,7 @@ There may come a day when the trailer-based hype around Sony’s Spider-Man: Acr
     const firstDoc = wink.readDoc(first)
     const secondDoc = wink.readDoc(second)
 
-    let indexes = findLargestCommonContinuousSubsequenceIndexes(
+    let indexes = findLargestCommonSubsequenceIndexes(
       firstDoc.tokens().out(wink.its.stem),
       secondDoc.tokens().out(wink.its.stem)
     )
