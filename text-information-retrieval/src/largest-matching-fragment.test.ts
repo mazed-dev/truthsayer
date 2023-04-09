@@ -92,43 +92,134 @@ function findLargestCommonContinuousSubsequenceIndexes<T>(
   return result
 }
 
+function splitIntoContinuousIntervals(row: number[]): number[][] {
+  const intervals:number[][] = []
+  let current: number[] = []
+  for (const item of row) {
+    if (current.length === 0) {
+      current.push(item)
+    } else {
+      const prev = current[current.length - 1]
+      if (item === prev + 1) {
+        current.push(item)
+      } else {
+        intervals.push(current)
+        current = [item]
+      }
+    }
+  }
+  if (current.length !== 0) {
+    intervals.push(current)
+  }
+  return intervals
+}
+
+function connectCloseIntervals(row: number[], threshold: number): number[] {
+  const res: number[] = []
+  for (const item of row) {
+    if (res.length !== 0) {
+      const prev = res[res.length-1]
+      if (/* prev + 1 !== item && */ item <= prev + threshold) {
+        // Fill the small gap
+        for (const v of range(prev + 1, item)) {
+          res.push(v)
+        }
+      }
+    }
+    res.push(item)
+  }
+  return res
+}
+
+function extendInterval(row: number[], len: number, maxItem: number): number[] {
+    const first = row[0]
+    const last = row[row.length - 1]
+    for (const item of range(Math.max(0, first - len), first)) {
+      row.unshift(item)
+    }
+    for (const item of range(Math.min(last + 1, maxItem), Math.min(maxItem, last + len + 1))) {
+      row.push(item)
+    }
+    return row
+    // if (indexes.length < kExpectedLen) {
+    //   const half = kExpectedLen / 2
+    //   const startInd = Math.max(indexes[0] - half, 0)
+    //   const tailLen = Math.max(indexes[0] - startInd, half)
+    //   const endInd = Math.min(
+    //     indexes[indexes.length - 1] + tailLen,
+    //     firstTokens.length
+    //   )
+    //   indexes = range(startInd, endInd)
+    //   if (startInd > 0) {
+    //     prefix = '…'
+    //   }
+    //   if (endInd < firstTokens.length) {
+    //     suffix = '…'
+    //   }
+    // }
+}
+
 describe('', () => {
+  it('connectCloseIntervals', () => {
+    expect(connectCloseIntervals([], 1)).toStrictEqual([])
+    expect(connectCloseIntervals([], 2)).toStrictEqual([])
+    expect(connectCloseIntervals([1], 2)).toStrictEqual([1])
+    expect(connectCloseIntervals([1, 2], 1)).toStrictEqual([1, 2])
+    expect(connectCloseIntervals([1, 2, 4], 2)).toStrictEqual([1, 2, 3, 4])
+    expect(connectCloseIntervals([1, 2, 5], 2)).toStrictEqual([1, 2, 5])
+    expect(connectCloseIntervals([1, 2, 5], 3)).toStrictEqual([1, 2, 3, 4, 5])
+    expect(connectCloseIntervals([1, 2, 5, 8], 3)).toStrictEqual([1, 2, 3, 4, 5, 6, 7, 8])
+    expect(connectCloseIntervals([1, 3, 5, 7], 2)).toStrictEqual([1, 2, 3, 4, 5, 6, 7])
+    expect(connectCloseIntervals([0, 2, 4, 6, 8], 2)).toStrictEqual([0, 1, 2, 3, 4, 5, 6, 7, 8])
+  })
+  it('splitIntoContinuousIntervals', () => {
+    expect(splitIntoContinuousIntervals([])).toStrictEqual([])
+    expect(splitIntoContinuousIntervals([1])).toStrictEqual([[1]])
+    expect(splitIntoContinuousIntervals([1,2])).toStrictEqual([[1,2]])
+    expect(splitIntoContinuousIntervals([1,2,4])).toStrictEqual([[1,2],[4]])
+    expect(splitIntoContinuousIntervals([1,2,4,5])).toStrictEqual([[1,2],[4,5]])
+    expect(splitIntoContinuousIntervals([1,2,4,5,7])).toStrictEqual([[1,2],[4,5],[7]])
+    expect(splitIntoContinuousIntervals([1,2,4,7,8])).toStrictEqual([[1,2],[4],[7,8]])
+  })
   it('', () => {
     const wink = winkNLP(model)
-    const first = ` Spider-Man: Across the Spider-Verse’s new trailer pits Miles against the multiverse - The Verge.
-Sony has released a second trailer for Spider-Man: Across the Spider-Verse (Part One), which is releasing on June 2nd. It finds Miles Morales on the run as an entire universe of Spider-People chase him from one universe to another..
-Charles Pulliam-Moore.
-There may come a day when the trailer-based hype around Sony’s Spider-Man: Across the Spider-Verse (Part One) no longer feels warranted, but that day is categorically not today.Across the Spider-Verse’s new trailer finds Miles Morales (Shameik Moore) doing just fine in his home universe as he balances life between doing fine in school and dealing with friendly neighborhood villains like the Spot (Jason Schwartzman). As always, all Miles’ mother Rio (Luna Lauren Vélez) and father Jefferson (Brian Tyree Henry) want is for their son to be happy and open up to them. But rather than telling his parents about his double life, whatever Miles is dealing with brings him face to face with his good friend Gwen (Hailee Steinfeld) from another dimension, and this time around she shows up with an invitation to take Miles on an adventure.Across the Spider-Verse’s first trailer implied that Miles’ journey from one reality to another would be marked by conflict with other Spider-people despite them all ostensibly being on the same team. But the newest spot makes it much more clear why Miguel O’Hara (Oscar Isaac) is going to end up leading the charge to catch Miles. Every big Spider-Man story’s been marked by tragic loss, and it seems very much like Miles may have to choose between saving a single person he loves, or saving the entire universe — a difficult decision that’s going to put him at odds with the film’s other webheads.Heavy as that all is, the trailer also leaves little doubt that Across the Spider-Verse is going to go every bit as hard as its predecessor, which is almost certainly going to make it a must-see when it premieres on June 2nd, 2023.`
-    const second = `The Mandalorian season 3 premiere review: a return to simple Star Wars - The Verge. The Mandalorian’s Chapter 17: The Apostate felt like a big, action-packed, and overly familiar tour of the galaxy that could have taken more risks.. Charles Pulliam-Moore. Between The Mandalorian’s second season and the way it played into The Book of Boba Fett, it wouldn’t have been surprising if Mando’s and Grogu’s season 3 returns were shot through with a seriousness that spoke to how high-stakes their adventures have become. But instead, The Mandalorian’s season 3 premiere felt much more like a purposeful return to what the show was when it first premiered: a big and sometimes rather goofy joyride through space that’s focused on forging the next generation of young Star Wars faithful.Though Disney and Lucasfilm might want all of their Disney Plus series to feel accessible enough for viewers to be able to jump in anytime, The Mandalorian’s season 3 premiere crystalizes just how involved and complicated the show became in the buildup to Din Djarin (Pedro Pascal) willingly unmasking himself for his adoptive son Grogu. “Chapter 17: The Apostate” from director Rick Famuyiwa and writer Jon Favreau catches the bounty hunter father / Force-sensitive son duo reunited and feeling good as they embark on a new journey in search of a way to redeem Mando for exposing his face to someone else — a violation of the Mandalorian code.After two seasons of teasing out new facets of Mandalorian culture in bits and pieces, the way “The Apostate” opens on the Armorer (Emily Swallow) overseeing a young Mandalorian’s induction ceremony feels like a signifier of how the show’s entered into a new chapter of its existence, defined by providing more information instead of leading with intrigue. Similar to how it was sort of wild to see an infant of Yoda’s species, it’s interesting to see how young Mandalorians are brought into the fold and given their first child-size beskar helmets (which they presumably have to reforge as their heads get bigger with age). Image: LucasfilmWhat’s even more fascinating about “The Apostate,” though, is how the episode uses its brief glimpses of other Mandalorians and its action set pieces to illustrate important pieces of Mandalorian cultural identity that have been weighing on Din and others like Bo-Katan Kryze (Katee Sackhoff).At the same time that Din’s grappling with the possibility of being expelled from one family because of his devotion to another, “The Apostate” also makes clear that the Mandalorians, as a people, place more value on their traditions than any one of their members — even when it seems as if they aren’t committed to The Way as individuals. Compelling as the motivation behind Din’s quest to find and then purify himself in the living waters of Mandalore is, “The Apostate” makes short work of using the plot beat as a reason to send Mando and Grogu on yet another series of space errands that all feel like the show retreading familiar territory in order to check in with figures like Greef Karga (Carl Weathers) and Peli Motto (Amy Sedaris).As it’s following Mando to places like the new and improved — and mostly pirate-free — planet Nevarro, you can feel The Mandalorian trying to tap into that classic lived-in and practically created Star Wars magic. Especially in moments when “The Apostate” is focused on Grogu, or any one of its other tiny alien creatures brought to life with puppetry, it’s easy to be reminded of what first made The Mandalorian feel distinct in this era of larger-than-life Star Wars narratives. But “The Apostate” moves through its story so swiftly that you never really get a chance to appreciate all of its rich detail, which sometimes makes it feel like the episode’s really just checking off a series of general scene-setting boxes rather than trying to more deeply explore this universe.Image: LucasfilmCompared to something like Andor, all of those creative choices might make The Mandalorian seem like it isn’t trying hard enough to live up to the prestige-adjacent hype Disney’s committed to maintaining around the show. But the reality’s more that The Mandalorian’s a half-hour-ish series entering its third season, and Disney’s very interested in keeping it going as long as it possibly can. It doesn’t feel entirely fair to assume that “The Apostate” alone speaks to how The Mandalorian’s entire third season’s going to turn out. But in things like the episode’s overlong repetition-based jokes and action pieces that feel like pitches for future theme park attractions, you do get the sense that The Mandalorian’s going for quick, easy thrills and not necessarily telling the most engrossing tale at this point.Again, there’s probably more to The Mandalorian’s third season than its premiere would have you think. It’s very possible that the show might revisit or expand on some of the things that work well in “The Apostate,” like its implication that Grogu’s gaining a much more nuanced understanding of the world around him. But taken on its own, the episode leaves more than a bit to be desired — particularly if you’ve been looking forward to seeing The Mandalorian try something a little more bold and new.. https:. theverge.com. 23620519. the-mandalorian-season-3-premiere-the-apostate`
+    const first = `Jinx was added as a playable champion to the marksman roster of League of Legends in October 2013. As established in the lore written by Graham McNeill, Jinx was once a young innocent girl from Zaun, the seedy underbelly of the utopian city of Piltover. She harbors a dark and mysterious past with Vi, another champion from the game. Following a childhood tragedy, Jinx grew up to become "manic and impulsive" and her capacity for creating mayhem "became the stuff of legend".`
+    const second = `Jinx is a character in Riot Games' video game League of Legends and its associated media franchise. She first appeared in the music video "Get Jinxed" to commemorate her official debut as a playable champion in the game's October 2013 update. Jinx is depicted as a manic and impulsive criminal from Zaun who serves as the archenemy of the Piltover enforcer Vi.`
     const firstDoc = wink.readDoc(first)
     const secondDoc = wink.readDoc(second)
+
+    const firstTokens = firstDoc.tokens().out()
+    const firstPos = firstDoc.tokens().out(wink.its.pos)
+    const firstTypes = firstDoc.tokens().out(wink.its.type)
+    const firstStopWords = firstDoc.tokens().out(wink.its.stopWordFlag)
 
     let indexes = findLargestCommonSubsequenceIndexes(
       firstDoc.tokens().out(wink.its.stem),
       secondDoc.tokens().out(wink.its.stem)
     )
-    const kExpectedLen = 42
-    const firstTokens = firstDoc.tokens().out()
-    const firstPos = firstDoc.tokens().out(wink.its.pos)
-    const firstTypes = firstDoc.tokens().out(wink.its.type)
+
+    indexes = indexes.filter((item) => {
+      return firstPos[item] !== 'PUNCT' && firstPos[item] !== 'PART' && !firstStopWords[item]
+    })
+    // const kExpectedLen = 42
     let prefix = ''
     let suffix = ''
-    if (indexes.length < kExpectedLen) {
-      const half = kExpectedLen / 2
-      const startInd = Math.max(indexes[0] - half, 0)
-      const tailLen = Math.max(indexes[0] - startInd, half)
-      const endInd = Math.min(
-        indexes[indexes.length - 1] + tailLen,
-        firstTokens.length
-      )
-      indexes = range(startInd, endInd)
-      if (startInd > 0) {
-        prefix = '…'
-      }
-      if (endInd < firstTokens.length) {
-        suffix = '…'
-      }
-    }
+    // if (indexes.length < kExpectedLen) {
+    //   const half = kExpectedLen / 2
+    //   const startInd = Math.max(indexes[0] - half, 0)
+    //   const tailLen = Math.max(indexes[0] - startInd, half)
+    //   const endInd = Math.min(
+    //     indexes[indexes.length - 1] + tailLen,
+    //     firstTokens.length
+    //   )
+    //   indexes = range(startInd, endInd)
+    //   if (startInd > 0) {
+    //     prefix = '…'
+    //   }
+    //   if (endInd < firstTokens.length) {
+    //     suffix = '…'
+    //   }
+    // }
 
     console.log('Stem 1', firstDoc.tokens().out(wink.its.stem))
     console.log('Stem 2', secondDoc.tokens().out(wink.its.stem))
@@ -136,17 +227,29 @@ There may come a day when the trailer-based hype around Sony’s Spider-Man: Acr
     console.log('Out 2', secondDoc.tokens().out())
     console.log('Pos 1', firstPos)
     console.log('Pos 1', firstTypes)
-    console.log('Result', indexes) // .map(ind => firstDoc.tokens().itemAt(ind)))
+    console.log('Result', indexes) // .map(item => firstDoc.tokens().itemAt(item)))
     console.log(
-      'Result',
+      'Result: …',
       prefix +
         indexes
-          .map((ind) => {
-            const pos = firstPos[ind]
-            return ((ind === 0 || pos === 'PUNCT' || pos === 'PART') ? '' : ' ') + firstTokens[ind]
+          .map((item) => {
+            const pos = firstPos[item]
+            return ((item === 0 || pos === 'PUNCT' || pos === 'PART') ? '' : ' ') + firstTokens[item]
           })
           .join('') +
-        suffix
+        suffix, '…'
     )
+    for (const interval of splitIntoContinuousIntervals(connectCloseIntervals(indexes, 8))) {
+      const extended = extendInterval(interval, 2, firstTokens.length - 1)
+      console.log(
+        'Result: …',
+          extended
+            .map((item) => {
+              const pos = firstPos[item]
+              return ((item === 0 || pos === 'PUNCT' || pos === 'PART') ? '' : ' ') + firstTokens[item]
+            })
+            .join(''), '…'
+      )
+    }
   })
 })
