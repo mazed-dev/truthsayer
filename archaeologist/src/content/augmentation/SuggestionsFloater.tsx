@@ -14,6 +14,14 @@ import { FromContent } from './../../message/types'
 import { DragHandle, Minimize } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
 
+const DraggableCursorStyles = `
+  cursor: move; /* fallback if "grab" & "grabbing" cursors are not supported */
+  cursor: grab;
+  &:active {
+    cursor: grabbing;
+  }
+`
+
 const SuggestedCardsBox = styled.div`
   width: 320px;
   display: flex;
@@ -29,17 +37,10 @@ const SuggestedCardsBox = styled.div`
   border-radius: 6px;
   user-select: text;
 `
+
 const DraggableElement = styled.div`
   position: absolute;
   user-select: none;
-`
-
-const DraggableCursorStyles = `
-  cursor: move; /* fallback if "grab" & "grabbing" cursors are not supported */
-  cursor: grab;
-  &:active {
-    cursor: grabbing;
-  }
 `
 
 const Header = styled.div`
@@ -48,13 +49,17 @@ const Header = styled.div`
   justify-content: flex-end;
   ${DraggableCursorStyles}
 `
+const Footter = styled.div`
+  height: 6px;
+  ${DraggableCursorStyles}
+`
 
 const SuggestionsFloaterSuggestionsBox = styled.div`
   display: flex;
   flex-direction: column;
   padding: 0;
   overflow-y: scroll;
-  height: 80vh;
+  max-height: 80vh;
 
   border-radius: 6px;
   user-select: text;
@@ -72,6 +77,9 @@ const CloseBtn = styled(ImgButton)`
 const SuggestedCardBox = styled.div`
   font-size: 12px;
   margin: 2px 4px 2px 4px;
+  &:last-child {
+    margin: 2px 4px 0px 4px;
+  }
   background: #ffffff;
   border-radius: 6px;
   user-select: text;
@@ -141,6 +149,7 @@ const SuggestedCards = ({
         ) : null}
         {suggestedCards.length > 0 ? suggestedCards : <NoSuggestedCardsBox />}
       </SuggestionsFloaterSuggestionsBox>
+      <Footter id="mazed-archaeologist-suggestions-floater-drag-handle" />
     </SuggestedCardsBox>
   )
 }
@@ -171,7 +180,7 @@ type Position2D = { x: number; y: number }
  * because we want it to be always anchored to the rigth edge of the window.
  */
 const getStartDragPosition = (isRevealed: boolean): Position2D =>
-  isRevealed ? { x: -300, y: 72 } : { x: -32, y: 72 }
+  isRevealed ? { x: -300, y: 82 } : { x: -32, y: 82 }
 
 /**
  * Make sure that floter is visisble within a window: not too low or too high -
@@ -200,7 +209,10 @@ export const SuggestionsFloater = ({
       })
       const { positionY } = response.state
       const defaultPos = getStartDragPosition(revealed)
-      setControlledPosition({ x: defaultPos.x, y: positionY ?? defaultPos.y })
+      setControlledPosition({
+        x: defaultPos.x,
+        y: frameYPosition(positionY ?? defaultPos.y),
+      })
       setRevealed(revealed)
       analytics?.capture('Click SuggestionsFloater visibility toggle', {
         'Event type': 'change',
@@ -222,7 +234,7 @@ export const SuggestionsFloater = ({
     })
   }, [])
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
-    const positionY = data.y
+    const positionY = frameYPosition(data.y)
     FromContent.sendMessage({
       type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
       settings: { positionY },
