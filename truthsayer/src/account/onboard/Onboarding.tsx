@@ -231,22 +231,36 @@ const StepYouAreReadyToGo = ({
 }
 
 const StepTangoShowAroundBox = styled(StepBox)`
-  height: 85.5vh;
+  height: calc(100vh - 40px); /* leave some space for bottom bar */
+`
+const StepTangoIframBox = styled.div`
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 66.66%;
+  margin: 0;
+`
+const StepTangoIframe = styled.iframe`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 `
 const StepTangoShowAround = ({ onClose }: { onClose: () => void }) => {
   return (
     <StepTangoShowAroundBox>
-      <iframe
-        src="https://app.tango.us/app/embed/c99490cf-dfe4-4f17-9f83-80e18fee80e6?iframe"
-        sandbox="allow-scripts allow-top-navigation-by-user-activation allow-popups allow-same-origin"
-        security="restricted"
-        title="Let's show you around your second brain."
-        width="100%"
-        height="100%"
-        referrerPolicy="strict-origin-when-cross-origin"
-        frameBorder="0"
-        allowFullScreen
-      ></iframe>
+      <StepTangoIframBox>
+        <StepTangoIframe
+          src="https://app.tango.us/app/embed/c99490cf-dfe4-4f17-9f83-80e18fee80e6?iframe"
+          sandbox="allow-scripts allow-top-navigation-by-user-activation allow-popups allow-same-origin"
+          security="restricted"
+          title="Let's show you around your second brain."
+          referrerPolicy="strict-origin-when-cross-origin"
+          frameBorder="0"
+          allowFullScreen
+        ></StepTangoIframe>
+      </StepTangoIframBox>
       <StepFotbar>
         <StepFotbarButton variant="outline-primary" onClick={onClose} size="sm">
           Done
