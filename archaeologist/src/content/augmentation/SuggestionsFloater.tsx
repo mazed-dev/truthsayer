@@ -214,7 +214,7 @@ export const SuggestionsFloater = ({
         })
         log.warning(
           `Failed to update user settings, Mazed will go back to previous ones.\n` +
-            `Full error: "${errorise(e).message}"`
+          `Full error: "${errorise(e).message}"`
         )
         positionY = defaultPos.y
       }
@@ -243,7 +243,7 @@ export const SuggestionsFloater = ({
       })
       log.warning(
         'Failed to get user settings, Mazed will use defaults. ' +
-          `Full error: "${errorise(e).message}"`
+        `Full error: "${errorise(e).message}"`
       )
     }
     const revealed = settings?.isRevealed ?? false
@@ -268,7 +268,7 @@ export const SuggestionsFloater = ({
       })
       log.warning(
         `Failed to update user settings, Mazed will go back to previous ones.\n` +
-          `Full error: "${errorise(e).message}"`
+        `Full error: "${errorise(e).message}"`
       )
     })
     analytics?.capture('Drag SuggestionsFloater', {
