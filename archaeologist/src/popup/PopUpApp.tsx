@@ -123,11 +123,14 @@ export const PopUpApp = () => {
   return (
     <AppContainer>
       <PopUpContext.Provider
-        value={{ storage: makeMsgProxyStorageApi(forwardToBackground), analytics: analyticsFrom(state) }}
+        value={{
+          storage: makeMsgProxyStorageApi(forwardToBackground),
+          analytics: analyticsFrom(state),
+        }}
       >
         {determineWidget(state, dispatch)}
       </PopUpContext.Provider>
-    </AppContainer >
+    </AppContainer>
   )
 }
 
