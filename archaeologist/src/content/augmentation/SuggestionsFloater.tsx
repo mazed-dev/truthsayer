@@ -30,10 +30,6 @@ const SuggestedCardsBox = styled.div`
   border-radius: 6px;
   user-select: text;
 `
-const DraggableElement = styled.div`
-  position: absolute;
-  user-select: none;
-`
 
 const DraggableCursorStyles = `
   cursor: move; /* fallback if "grab" & "grabbing" cursors are not supported */
@@ -43,10 +39,19 @@ const DraggableCursorStyles = `
   }
 `
 
+const DraggableElement = styled.div`
+  position: absolute;
+  user-select: none;
+`
+
 const Header = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
+  ${DraggableCursorStyles}
+`
+const Footter = styled.div`
+  height: 8px;
   ${DraggableCursorStyles}
 `
 
@@ -55,7 +60,7 @@ const SuggestionsFloaterSuggestionsBox = styled.div`
   flex-direction: column;
   padding: 0;
   overflow-y: scroll;
-  height: 80vh;
+  max-height: 80vh;
 
   border-radius: 6px;
   user-select: text;
@@ -73,6 +78,9 @@ const CloseBtn = styled(ImgButton)`
 const SuggestedCardBox = styled.div`
   font-size: 12px;
   margin: 2px 4px 2px 4px;
+  &:last-child {
+    margin: 2px 4px 0px 4px;
+  }
   background: #ffffff;
   border-radius: 6px;
   user-select: text;
@@ -140,6 +148,7 @@ const SuggestedCards = ({ nodes, onClose, isLoading }: SuggestedCardsProps) => {
         ) : null}
         {suggestedCards.length > 0 ? suggestedCards : <NoSuggestedCardsBox />}
       </SuggestionsFloaterSuggestionsBox>
+      <Footter id="mazed-archaeologist-suggestions-floater-drag-handle" />
     </SuggestedCardsBox>
   )
 }
@@ -214,7 +223,7 @@ export const SuggestionsFloater = ({
         positionY = defaultPos.y
       }
 
-      setControlledPosition({ x: defaultPos.x, y: positionY })
+      setControlledPosition({ x: defaultPos.x, y: frameYPosition(positionY) })
       setRevealed(revealed)
       analytics?.capture('Click SuggestionsFloater visibility toggle', {
         'Event type': 'change',
@@ -250,7 +259,7 @@ export const SuggestionsFloater = ({
     })
   }, [])
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
-    const positionY = data.y
+    const positionY = frameYPosition(data.y)
     FromContent.sendMessage({
       type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
       settings: { positionY },
