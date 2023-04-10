@@ -6,8 +6,8 @@ import { PostHog } from 'posthog-js'
 
 import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
-import { LoginForm, Spinner } from 'elementary'
-import { errorise, productanalytics } from 'armoury'
+import { LoginForm, Spinner, userFacingLoginErrorFrom } from 'elementary'
+import { log, productanalytics } from 'armoury'
 import type { AnalyticsIdentity } from 'armoury'
 import { PopUpContext } from './context'
 import type {
@@ -194,7 +194,7 @@ const LoginPage = ({
         setState({ type: 'logged-in' })
         onLogin(response)
       } catch (reason) {
-        setState({ type: 'error', message: errorise(reason).message })
+        setState({ type: 'error', message: userFacingLoginErrorFrom(reason) })
       }
     },
     [state.type, setState, onLogin]

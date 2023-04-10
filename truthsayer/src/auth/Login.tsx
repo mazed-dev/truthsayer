@@ -4,9 +4,9 @@ import React from 'react'
 
 import styled from '@emotion/styled'
 
-import { authentication, SmugglerError } from 'smuggler-api'
+import { authentication } from 'smuggler-api'
 import { goto } from '../lib/route'
-import { LoginForm, Spinner } from 'elementary'
+import { LoginForm, Spinner, userFacingLoginErrorFrom } from 'elementary'
 import { FromTruthsayer } from 'truthsayer-archaeologist-communication'
 import { log } from 'armoury'
 
@@ -32,6 +32,7 @@ export const Login = () => {
   const onSubmit = React.useCallback(
     async (email: string, password: string) => {
       setLoading(true)
+      setError(null)
       const permissions = null
       try {
         await authentication.session.create({
@@ -66,19 +67,4 @@ export const Login = () => {
       {isLoading === true ? <Spinner.Wheel /> : null}
     </LoginCardBox>
   )
-}
-
-function userFacingLoginErrorFrom(err: any): string {
-  const defaultError = 'Unknown error occured, please try again'
-  if (err! instanceof SmugglerError) {
-    return defaultError
-  }
-  switch (err.status) {
-    case 401:
-      return 'Invalid email or password'
-    case 403:
-      return 'Account has not been activated yet'
-    default:
-      return defaultError
-  }
 }

@@ -12,6 +12,7 @@ export {
   authentication,
   makeDatacenterStorageApi,
   SmugglerError,
+  isSmugglerError,
 } from './api_datacenter'
 export { steroid } from './steroid/steroid'
 export * from './storage_api_msg_proxy'
