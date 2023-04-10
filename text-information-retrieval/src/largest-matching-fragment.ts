@@ -204,11 +204,11 @@ export function findLargestCommonContinuousSubsequenceOfStems(
     suffixToExtendCharsNumber,
     firstTokens.length - 1
   )
-  // Join string, sort out spaces and add ellipsises at the begining and the end
+  // Join string and sort out spaces
   return {
-    extended: `…${impl.sortOutSpacesAroundPunctuation(
+    extended: impl.sortOutSpacesAroundPunctuation(
       extended.map((item) => firstTokens[item]).join(' ')
-    )}…`,
+    ),
     realMatchLen,
   }
 }

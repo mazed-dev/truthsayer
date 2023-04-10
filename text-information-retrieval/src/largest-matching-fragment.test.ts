@@ -107,7 +107,7 @@ Jinx was one of the first champions from League of Legends to star in her own an
         6
       ).extended
     ).toStrictEqual(
-      `…, another champion from the game. Following a childhood tragedy, Jinx grew up to become "manic and impulsive" and her capacity for creating…`
+      `, another champion from the game. Following a childhood tragedy, Jinx grew up to become "manic and impulsive" and her capacity for creating`
     )
   })
   it('findLargestCommonContinuousSubsequenceOfStems - The Verge - Tesla', () => {
@@ -167,7 +167,7 @@ The Netherlands isn’t the only country where Tesla’s Sentry Mode has raised 
         8
       ).extended
     ).toStrictEqual(
-      `…/ The Verge. Tesla is weathering the global chip shortage by rewriting its vehicle software to support alternative chips, CEO Elon…`
+      `/ The Verge. Tesla is weathering the global chip shortage by rewriting its vehicle software to support alternative chips, CEO Elon`
     )
   })
   it('findLargestCommonContinuousSubsequenceOfStems - The Verge - Tesla', () => {
@@ -206,10 +206,10 @@ Overall, the benefits of AI in healthcare are clear. By improving the accuracy a
         wink,
         10,
         2,
-        12
+        24
       ).extended
     ).toStrictEqual(
-      `…Ethics of Artificial Intelligence ". Artificial intelligence (AI) has the potential to revolutionize many industries, but it also raises ethical concerns. As AI…`
+      `Ethics of Artificial Intelligence ". Artificial intelligence (AI) has the potential to revolutionize many industries, but it also raises ethical concerns. As AI becomes more advanced, it will be able to make decisions that`
     )
   })
 })
