@@ -37,6 +37,8 @@ import { NodeType } from 'smuggler-api'
 import { NodeReadOnly, NodeEditor } from './NodeCard'
 import { Spinner } from 'elementary'
 import { FromPopUp } from './../message/types'
+import { renderUserFacingError } from './userFacingError'
+import type { UserFacingError } from './userFacingError'
 
 const Box = styled.div`
   display: block;
@@ -249,7 +251,7 @@ export type CardsSuggestedForPageProps =
     }
   | {
       status: 'error'
-      error: string
+      error: UserFacingError
     }
 
 function makeSuggestionCountHint(props: CardsSuggestedForPageProps) {
@@ -294,7 +296,7 @@ export const CardsSuggestedForPage = (props: CardsSuggestedForPageProps) => {
       break
     }
     case 'error': {
-      body = <ErrorBox>{props.error}</ErrorBox>
+      body = <ErrorBox>{renderUserFacingError(props.error)}</ErrorBox>
       break
     }
   }

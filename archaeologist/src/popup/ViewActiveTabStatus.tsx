@@ -18,7 +18,7 @@ import {
 } from './PageRelatedCards'
 import { errorise, log } from 'armoury'
 import { PopUpContext } from './context'
-import { makeUserFacingError } from './error'
+import { renderUserFacingError } from './userFacingError'
 
 const Container = styled.div`
   margin: 0;
@@ -194,7 +194,13 @@ export const ViewActiveTabStatus = () => {
         error: error,
       })
       log.error(`Failed to load tab suggestions: ${error}`)
-      setSuggestions({ status: 'error', error })
+      setSuggestions({
+        status: 'error',
+        error: {
+          failedTo: 'get suggestions for this tab',
+          tryTo: 'reopen this popup',
+        },
+      })
     }
   }, [])
 
@@ -212,7 +218,7 @@ export const ViewActiveTabStatus = () => {
     return (
       <Container>
         <ErrorBox>
-          {makeUserFacingError({
+          {renderUserFacingError({
             failedTo: 'load data for this tab',
             tryTo: 're-open this popup',
           })}
@@ -228,7 +234,7 @@ export const ViewActiveTabStatus = () => {
       {tabState.bookmark.type === 'not-saved' &&
       tabState.bookmark.saveError != null ? (
         <ErrorBox>
-          {makeUserFacingError({
+          {renderUserFacingError({
             failedTo: 'save this tab',
             tryTo: 're-open this popup & retry',
           })}
