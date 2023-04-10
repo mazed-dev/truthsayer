@@ -75,6 +75,11 @@ describe('Find largest matching fragment of text', () => {
     ).toStrictEqual(`"a" 'abc abc'`)
     expect(
       impl.sortOutSpacesAroundPunctuation(
+        ` [ 12 + 21 ] = { 21 + 12 } = ( 33 ) `
+      )
+    ).toStrictEqual(`[12 + 21] = {21 + 12} = (33)`)
+    expect(
+      impl.sortOutSpacesAroundPunctuation(
         `These are the colours I ' m talking about : blue , red, yellow ! Yan said " they all need just a few tweaks " . `
       )
     ).toStrictEqual(
@@ -163,6 +168,48 @@ The Netherlands isn’t the only country where Tesla’s Sentry Mode has raised 
       ).extended
     ).toStrictEqual(
       `…/ The Verge. Tesla is weathering the global chip shortage by rewriting its vehicle software to support alternative chips, CEO Elon…`
+    )
+  })
+  it('findLargestCommonContinuousSubsequenceOfStems - The Verge - Tesla', () => {
+    const first = `"The Ethics of Artificial Intelligence"
+
+Artificial intelligence (AI) has the potential to revolutionize many industries, but it also raises ethical concerns. As AI becomes more advanced, it will be able to make decisions that were once reserved for humans, such as driving a car or diagnosing a medical condition. This raises questions about how we should regulate and oversee the development and use of AI.
+
+One major ethical concern about AI is the potential for bias. AI algorithms are only as unbiased as the data they are trained on. If the data used to train an AI system is biased, the system will be biased as well. For example, if an AI system is trained on data that contains racial or gender biases, the system may produce biased results. This can have serious consequences, such as perpetuating systemic discrimination.
+
+Another major ethical concern about AI is the potential for job displacement. As AI becomes more advanced, it has the potential to replace jobs that were once done by humans. This could have significant economic and social consequences. It's important to consider how we can prepare for a future where AI plays a larger role in the job market.
+
+Finally, there are concerns about the potential for AI to be used for malicious purposes. As AI becomes more advanced, it will be able to carry out tasks that were once impossible. This includes tasks that are harmful or unethical. For example, AI could be used to create convincing fake videos, which could be used to spread misinformation or manipulate public opinion.
+
+Overall, it's essential to consider the ethical implications of AI as we continue to develop and implement these technologies. We need to ensure that AI is developed and used in a responsible and ethical manner that prioritizes fairness, transparency, and accountability.
+  `
+    const second = `"The Benefits of Artificial Intelligence in Healthcare"
+
+Artificial intelligence (AI) has the potential to revolutionize healthcare in numerous ways. By processing and analyzing large amounts of data, AI can help doctors diagnose and treat patients more accurately and efficiently. Here are some of the ways that AI is already being used in healthcare:
+
+1: Medical imaging: AI can analyze medical images such as X-rays and MRIs to help doctors identify and diagnose conditions more accurately. For example, AI can be used to identify early signs of cancer, which can lead to earlier treatment and better outcomes.
+
+2: Personalized medicine: AI can analyze a patient's genetic data to identify personalized treatments that are tailored to their specific needs. This can lead to more effective treatments and better outcomes.
+
+3: Drug discovery: AI can help researchers identify potential new drugs more quickly and accurately than traditional methods. This could lead to the development of new treatments for a wide range of conditions.
+
+4: Virtual assistants: AI-powered virtual assistants can help patients manage their health by reminding them to take their medication, schedule appointments, and track their symptoms.
+
+5: Administrative tasks: AI can automate many administrative tasks, such as billing and scheduling, which can free up time for doctors and other healthcare professionals to focus on patient care.
+
+Overall, the benefits of AI in healthcare are clear. By improving the accuracy and efficiency of medical diagnoses and treatments, AI has the potential to save lives and improve the quality of life for millions of people. As AI continues to develop, we can expect to see even more innovative uses of this technology in healthcare.
+  `
+    expect(
+      findLargestCommonContinuousSubsequenceOfStems(
+        first,
+        second,
+        wink,
+        10,
+        2,
+        12
+      ).extended
+    ).toStrictEqual(
+      `…Ethics of Artificial Intelligence ". Artificial intelligence (AI) has the potential to revolutionize many industries, but it also raises ethical concerns. As AI…`
     )
   })
 })

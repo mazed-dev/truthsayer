@@ -116,7 +116,7 @@ export namespace impl {
     return str
       .replace(/\s*"\s*(.*?)\s*"/g, ' "$1" ') // ' abc ' -> 'abc'
       .replace(/\s*'\s*(.*?)\s*'/g, " '$1' ") // " abc " -> "abc"
-      .replace(/\s*([«“„〝])\s*(.*?)\s*([»”‟〞])/g, ' $1$2$3 ')
+      .replace(/\s*([«“„〝({\[])\s*(.*?)\s*([»”‟〞)\]}])/g, ' $1$2$3 ')
       .replace(/\s+([:;!?.,…'ʼ’])\s+/g, '$1 ')
       .replace(/\s*(['ʼ’])\s*(ll|s|m|d)/g, '$1$2')
       .replace(/\s\s+/g, ' ')
@@ -141,8 +141,8 @@ export function findLargestCommonContinuousSubsequenceOfStems(
   suffixToExtendCharsNumber: number
 ): LargestCommonContinuousSubsequenceOfStems {
   // Clean up the inputs a bit
-  first = first.replace(/\n/g, '. ').replace(/\s+/g, ' ')
-  second = second.replace(/\n/g, '. ').replace(/\s+/g, ' ')
+  first = first.replace(/\n+/g, '. ').replace(/\s+/g, ' ')
+  second = second.replace(/\n+/g, '. ').replace(/\s+/g, ' ')
 
   const firstDoc = wink.readDoc(first)
   const secondDoc = wink.readDoc(second)
