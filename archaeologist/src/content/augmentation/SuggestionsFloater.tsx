@@ -112,11 +112,7 @@ type SuggestedCardsProps = {
   isLoading: boolean
 }
 
-const SuggestedCards = ({
-  nodes,
-  onClose,
-  isLoading,
-}: SuggestedCardsProps) => {
+const SuggestedCards = ({ nodes, onClose, isLoading }: SuggestedCardsProps) => {
   const analytics = React.useContext(ContentContext).analytics
   React.useEffect(() => {
     analytics?.capture('Show suggested associations', {
@@ -198,7 +194,6 @@ export const SuggestionsFloater = ({
   const analytics = React.useContext(ContentContext).analytics
   const saveRevealed = React.useCallback(
     async (revealed: boolean) => {
-
       const defaultPos = getStartDragPosition(revealed)
       let positionY: number | null = null
       try {
@@ -214,7 +209,7 @@ export const SuggestionsFloater = ({
         })
         log.warning(
           `Failed to update user settings, Mazed will go back to previous ones.\n` +
-          `Full error: "${errorise(e).message}"`
+            `Full error: "${errorise(e).message}"`
         )
         positionY = defaultPos.y
       }
@@ -229,7 +224,6 @@ export const SuggestionsFloater = ({
     [analytics]
   )
   useAsyncEffect(async () => {
-
     let settings: ContentAugmentationSettings | null = null
     try {
       const response = await FromContent.sendMessage({
@@ -243,7 +237,7 @@ export const SuggestionsFloater = ({
       })
       log.warning(
         'Failed to get user settings, Mazed will use defaults. ' +
-        `Full error: "${errorise(e).message}"`
+          `Full error: "${errorise(e).message}"`
       )
     }
     const revealed = settings?.isRevealed ?? false
@@ -256,7 +250,6 @@ export const SuggestionsFloater = ({
     })
   }, [])
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
-
     const positionY = data.y
     FromContent.sendMessage({
       type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
@@ -268,7 +261,7 @@ export const SuggestionsFloater = ({
       })
       log.warning(
         `Failed to update user settings, Mazed will go back to previous ones.\n` +
-        `Full error: "${errorise(e).message}"`
+          `Full error: "${errorise(e).message}"`
       )
     })
     analytics?.capture('Drag SuggestionsFloater', {
@@ -298,9 +291,7 @@ export const SuggestionsFloater = ({
               />
             ) : (
               <MiniFloaterBox>
-                <MazedMiniFloater
-                  onClick={() => saveRevealed(true)}
-                >
+                <MazedMiniFloater onClick={() => saveRevealed(true)}>
                   {isLoading ? <Spinner.Ring /> : nodes.length}
                 </MazedMiniFloater>
                 <DragIndicator
