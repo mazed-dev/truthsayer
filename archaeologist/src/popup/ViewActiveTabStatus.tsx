@@ -16,7 +16,9 @@ import {
   CardsSuggestedForPage,
   CardsSuggestedForPageProps,
 } from './PageRelatedCards'
-import { errorise } from 'armoury'
+import { errorise, log } from 'armoury'
+import { PopUpContext } from './context'
+import { makeUserFacingError } from './error'
 
 const Container = styled.div`
   margin: 0;
@@ -39,7 +41,7 @@ const ErrorBox = styled.div`
 type BookmarkState =
   | { type: 'saved'; value: TNode }
   | { type: 'saving' }
-  | { type: 'not-saved'; memorable: boolean; error?: string }
+  | { type: 'not-saved'; memorable: boolean; saveError?: string }
 
 type TabState =
   | { status: 'loading' }
@@ -51,7 +53,6 @@ type TabState =
     }
   | {
       status: 'error'
-      error?: string
     }
 
 type TabStateAction =
@@ -63,7 +64,6 @@ type TabStateAction =
     }
   | {
       type: 'mark-as-errored'
-      error: string
     }
   | { type: 'update-bookmark'; state: BookmarkState }
 
@@ -79,7 +79,7 @@ function updateTabState(state: TabState, action: TabStateAction): TabState {
       }
     }
     case 'mark-as-errored': {
-      return { status: 'error', error: action.error }
+      return { status: 'error' }
     }
     case 'update-bookmark': {
       if (state.status !== 'loaded') {
@@ -113,7 +113,7 @@ function makeBookmarkPageButton(
     } catch (e) {
       const newBookmarkState: BookmarkState =
         bookmarkState.type === 'not-saved'
-          ? { ...bookmarkState, error: errorise(e).message }
+          ? { ...bookmarkState, saveError: errorise(e).message }
           : bookmarkState
       dispatch({
         type: 'update-bookmark',
@@ -143,6 +143,7 @@ function makeBookmarkPageButton(
 export const ViewActiveTabStatus = () => {
   const initialTabState: TabState = { status: 'loading' }
   const [tabState, dispatch] = React.useReducer(updateTabState, initialTabState)
+  const analytics = React.useContext(PopUpContext).analytics
 
   useAsyncEffect(async () => {
     try {
@@ -161,7 +162,13 @@ export const ViewActiveTabStatus = () => {
         toNodes: toNodes.map((json: TNodeJson) => NodeUtil.fromJson(json)),
       })
     } catch (e) {
-      dispatch({ type: 'mark-as-errored', error: errorise(e).message })
+      const error = errorise(e).message
+      analytics?.capture('Floater: Failed to load tab status', {
+        'Event type': 'error',
+        error: error,
+      })
+      log.error(`Failed to load tab status: ${error}`)
+      dispatch({ type: 'mark-as-errored' })
     }
   }, [])
 
@@ -181,7 +188,13 @@ export const ViewActiveTabStatus = () => {
         ),
       })
     } catch (e) {
-      setSuggestions({ status: 'error', error: errorise(e).message })
+      const error = errorise(e).message
+      analytics?.capture('Floater: Failed to load suggestions', {
+        'Event type': 'error',
+        error: error,
+      })
+      log.error(`Failed to load tab suggestions: ${error}`)
+      setSuggestions({ status: 'error', error })
     }
   }, [])
 
@@ -189,23 +202,38 @@ export const ViewActiveTabStatus = () => {
     // If no tab information is known yet, show a single spinner and nothing else
     return (
       <Container>
-      <Toolbar>
-        <Spinner.Wheel />
-      </Toolbar>
+        <Toolbar>
+          <Spinner.Wheel />
+        </Toolbar>
       </Container>
     )
   } else if (tabState.status === 'error') {
     // If failed to load tab information, show a single error and nothing else
-    return <Container><ErrorBox>{tabState.error}</ErrorBox></Container>
+    return (
+      <Container>
+        <ErrorBox>
+          {makeUserFacingError({
+            failedTo: 'load data for this tab',
+            tryTo: 're-open this popup',
+          })}
+        </ErrorBox>
+      </Container>
+    )
   }
   // If tab information is known, show action button, suggestions etc
 
   return (
     <Container>
       <Toolbar>{makeBookmarkPageButton(tabState.bookmark, dispatch)}</Toolbar>
-      {tabState.bookmark.type === 'not-saved'
-        ? <ErrorBox>tabState.bookmark.error</ErrorBox>
-        : null}
+      {tabState.bookmark.type === 'not-saved' &&
+      tabState.bookmark.saveError != null ? (
+        <ErrorBox>
+          {makeUserFacingError({
+            failedTo: 'save this tab',
+            tryTo: 're-open this popup & retry',
+          })}
+        </ErrorBox>
+      ) : null}
       <CardsConnectedToPage
         bookmark={
           tabState.bookmark.type === 'saved'

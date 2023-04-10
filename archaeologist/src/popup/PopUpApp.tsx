@@ -35,13 +35,8 @@ const Centered = styled.div`
 type State =
   | { type: 'not-init' }
   | { type: 'error'; error: string }
-  | { type: 'not-logged-in'; analyticsIdentity: AnalyticsIdentity }
-  | {
-      type: 'logged-in'
-      userUid: string
-      analyticsIdentity: AnalyticsIdentity
-      analytics?: PostHog
-    }
+  | { type: 'not-logged-in'; analytics?: PostHog }
+  | { type: 'logged-in'; userUid: string; analytics?: PostHog }
 
 type Action =
   | ToPopUp.AppStatusResponse
@@ -56,18 +51,11 @@ function updateState(state: State, action: Action): State {
           `Tried to do first-time init of popup app, but it already has state '${state.type}'`
         )
       }
+      const analytics = makeAnalytics(action.analyticsIdentity)
       if (action.userUid == null) {
-        return {
-          type: 'not-logged-in',
-          analyticsIdentity: action.analyticsIdentity,
-        }
+        return { type: 'not-logged-in', analytics }
       }
-      return {
-        type: 'logged-in',
-        userUid: action.userUid,
-        analyticsIdentity: action.analyticsIdentity,
-        analytics: makeAnalytics(action.analyticsIdentity),
-      }
+      return { type: 'logged-in', userUid: action.userUid, analytics }
     }
     case 'RESPONSE_LOG_IN': {
       if (state.type !== 'not-logged-in') {
@@ -78,8 +66,7 @@ function updateState(state: State, action: Action): State {
       return {
         type: 'logged-in',
         userUid: action.user.uid,
-        analyticsIdentity: state.analyticsIdentity,
-        analytics: makeAnalytics(state.analyticsIdentity),
+        analytics: state.analytics,
       }
     }
     case 'mark-as-errored': {
@@ -136,11 +123,11 @@ export const PopUpApp = () => {
   return (
     <AppContainer>
       <PopUpContext.Provider
-        value={{ storage: makeMsgProxyStorageApi(forwardToBackground) }}
+        value={{ storage: makeMsgProxyStorageApi(forwardToBackground), analytics: analyticsFrom(state) }}
       >
         {determineWidget(state, dispatch)}
       </PopUpContext.Provider>
-    </AppContainer>
+    </AppContainer >
   )
 }
 
@@ -161,6 +148,19 @@ function determineWidget(state: State, dispatch: React.Dispatch<Action>) {
     }
     case 'logged-in': {
       return <ViewActiveTabStatus />
+    }
+  }
+}
+
+function analyticsFrom(state: State): PostHog | undefined {
+  switch (state.type) {
+    case 'not-init':
+    case 'error': {
+      return undefined
+    }
+    case 'not-logged-in':
+    case 'logged-in': {
+      return state.analytics
     }
   }
 }
