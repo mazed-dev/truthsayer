@@ -203,14 +203,11 @@ export const SuggestionsFloater = ({
   const analytics = React.useContext(ContentContext).analytics
   const saveRevealed = React.useCallback(
     async (revealed: boolean) => {
-      const defaultPos = getStartDragPosition(revealed)
-      let positionY: number | null = null
       try {
-        const response = await FromContent.sendMessage({
+        await FromContent.sendMessage({
           type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
           settings: { isRevealed: revealed },
         })
-        positionY = response.state.positionY ?? defaultPos.y
       } catch (e) {
         analytics?.capture('Floater: failed to update user settings', {
           'Event type': 'warning',
@@ -220,10 +217,8 @@ export const SuggestionsFloater = ({
           `Failed to update user settings, Mazed will go back to previous ones.\n` +
             `Full error: "${errorise(e).message}"`
         )
-        positionY = defaultPos.y
       }
 
-      setControlledPosition({ x: defaultPos.x, y: frameYPosition(positionY) })
       setRevealed(revealed)
       analytics?.capture('Click SuggestionsFloater visibility toggle', {
         'Event type': 'change',
