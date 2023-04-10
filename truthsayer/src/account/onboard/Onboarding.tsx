@@ -233,10 +233,10 @@ const StepYouAreReadyToGo = ({
 const StepTangoShowAroundBox = styled(StepBox)`
   height: calc(100vh - 40px); /* leave some space for bottom bar */
   width: 100%;
-  @media (min-width: 1280px) {
-    width: 1280px;
+  @media (min-width: 720px) {
+    width: 720px;
     margin: 0 auto 0 auto;
-    padding-top: calc(100vh - 1280px);
+    padding-top: calc(100vh - 1200px);
   }
 `
 const StepTangoIframBox = styled.div`
@@ -244,10 +244,10 @@ const StepTangoIframBox = styled.div`
   width: 100%;
   height: 0;
   /**
-  * 66.66 = 2/3 because of the aspect ratio of 3:2, see
+  * 0.75 = 3/4 because of the aspect ratio of 4:3, see
   * https://stackoverflow.com/questions/25302836/responsive-video-iframes-keeping-aspect-ratio-with-only-css
   */
-  padding-bottom: 66.66%;
+  padding-bottom: 75%;
 `
 const StepTangoIframe = styled.iframe`
   position: absolute;
