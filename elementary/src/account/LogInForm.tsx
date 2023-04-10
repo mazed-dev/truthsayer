@@ -82,7 +82,8 @@ export function userFacingLoginErrorFrom(err: any): string {
     // Even if an exception is thrown as `SmugglerError`, if it travels through
     // the messaging boundary of a web extension, webextension-polyfill
     // will suppress basic context of this error such as `Error.name`,
-    // so it's not easy to figure out what kind of error it is.
+    // see https://github.com/mozilla/webextension-polyfill/blob/9398f8cc20ed7e1cc2b475180ed1bc4dee2ebae5/src/browser-polyfill.js#L482-L488
+    // So it's not easy to figure out what kind of error it is.
     // As a fallback, check the error message directly for likely patterns
     //
     // TODO[snikitin@outlook.com] Experiment with packing errors into Error.message
