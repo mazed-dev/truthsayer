@@ -188,24 +188,24 @@ export const ViewActiveTabStatus = () => {
   if (tabState.status === 'loading') {
     // If no tab information is known yet, show a single spinner and nothing else
     return (
+      <Container>
       <Toolbar>
         <Spinner.Wheel />
       </Toolbar>
+      </Container>
     )
   } else if (tabState.status === 'error') {
     // If failed to load tab information, show a single error and nothing else
-    return <ErrorBox>{tabState.error}</ErrorBox>
+    return <Container><ErrorBox>{tabState.error}</ErrorBox></Container>
   }
   // If tab information is known, show action button, suggestions etc
 
   return (
     <Container>
       <Toolbar>{makeBookmarkPageButton(tabState.bookmark, dispatch)}</Toolbar>
-      <ErrorBox>
-        {tabState.bookmark.type === 'not-saved'
-          ? tabState.bookmark.error
-          : null}
-      </ErrorBox>
+      {tabState.bookmark.type === 'not-saved'
+        ? <ErrorBox>tabState.bookmark.error</ErrorBox>
+        : null}
       <CardsConnectedToPage
         bookmark={
           tabState.bookmark.type === 'saved'
