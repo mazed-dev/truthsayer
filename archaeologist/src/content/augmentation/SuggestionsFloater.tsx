@@ -70,14 +70,6 @@ const CloseBtn = styled(ImgButton)`
   border-radius: 12px;
 `
 
-const WarningHint = styled.div`
-  padding: 2px 3px 2px 3px;
-  margin: 1px 5px 0 5px;
-  font-size: 12px;
-  vertical-align: middle;
-  background: unset;
-`
-
 const SuggestedCardBox = styled.div`
   font-size: 12px;
   margin: 2px 4px 2px 4px;
