@@ -5,7 +5,7 @@ import styled from '@emotion/styled'
 
 import LogoImage from '../../../public/logo-strip.svg'
 import { ContentContext } from '../context'
-import { HoverTooltip, StyleButtonCreate } from 'elementary'
+import { StyleButtonCreate } from 'elementary'
 
 const Box = styled.div`
   position: relative;
@@ -63,23 +63,6 @@ const BadgeBubble = styled.div`
   text-decoration: none;
 `
 
-const WarningHint = styled.div`
-  position: absolute;
-  bottom: 3px;
-  right: 18px;
-
-  width: 16px;
-  height: 16px;
-
-  text-align: center;
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  text-decoration: none;
-`
-
 const BadgeText = styled.span`
   font-size: 12px;
   letter-spacing: 0;
@@ -88,11 +71,9 @@ const BadgeText = styled.span`
 
 export const MazedMiniFloater = ({
   onClick,
-  warning,
   children,
 }: React.PropsWithChildren<{
   onClick: (event: React.MouseEvent) => void
-  warning: string | null
 }>) => {
   const ctx = React.useContext(ContentContext)
   const onMeteredClick = React.useCallback(
@@ -108,13 +89,6 @@ export const MazedMiniFloater = ({
   return (
     <Box onClick={onMeteredClick}>
       <Logo />
-      {warning != null ? (
-        <WarningHint>
-          <HoverTooltip tooltip={warning} placement="bottom">
-            ⚠️
-          </HoverTooltip>
-        </WarningHint>
-      ) : null}
       <BadgeBubble>
         <BadgeText>{children}</BadgeText>
       </BadgeBubble>

@@ -13,7 +13,7 @@ import { MazedMiniFloater } from './MazedMiniFloater'
 import { ContentAugmentationSettings, FromContent } from './../../message/types'
 import { DragHandle, Minimize } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
-import { errorise } from 'armoury'
+import { errorise, log } from 'armoury'
 
 const SuggestedCardsBox = styled.div`
   width: 320px;
@@ -118,14 +118,12 @@ type SuggestedCardsProps = {
   nodes: TNode[]
   onClose: () => void
   isLoading: boolean
-  warning: string | null
 }
 
 const SuggestedCards = ({
   nodes,
   onClose,
   isLoading,
-  warning,
 }: SuggestedCardsProps) => {
   const analytics = React.useContext(ContentContext).analytics
   React.useEffect(() => {
@@ -140,13 +138,6 @@ const SuggestedCards = ({
   return (
     <SuggestedCardsBox>
       <Header id="mazed-archaeologist-suggestions-floater-drag-handle">
-        {warning != null ? (
-          <WarningHint>
-            <HoverTooltip tooltip={warning} placement="bottom">
-              ⚠️
-            </HoverTooltip>
-          </WarningHint>
-        ) : null}
         <CloseBtn onClick={onClose}>
           <HoverTooltip tooltip="Close" placement="bottom">
             <Minimize size="16px" />
@@ -211,12 +202,10 @@ export const SuggestionsFloater = ({
   const [controlledPosition, setControlledPosition] =
     React.useState<Position2D | null>(null) // getStartDragPosition(false))
   const [isRevealed, setRevealed] = React.useState<boolean>(false)
-  const [warning, setWarning] = React.useState<string | null>(null)
 
   const analytics = React.useContext(ContentContext).analytics
   const saveRevealed = React.useCallback(
     async (revealed: boolean) => {
-      setWarning(null)
 
       const defaultPos = getStartDragPosition(revealed)
       let positionY: number | null = null
@@ -227,7 +216,11 @@ export const SuggestionsFloater = ({
         })
         positionY = response.state.positionY ?? defaultPos.y
       } catch (e) {
-        setWarning(
+        analytics?.capture('Floater: failed to update user settings', {
+          'Event type': 'warning',
+          error: errorise(e).message,
+        })
+        log.warning(
           `Failed to update user settings, Mazed will go back to previous ones.\n` +
             `Full error: "${errorise(e).message}"`
         )
@@ -244,7 +237,6 @@ export const SuggestionsFloater = ({
     [analytics]
   )
   useAsyncEffect(async () => {
-    setWarning(null)
 
     let settings: ContentAugmentationSettings | null = null
     try {
@@ -253,8 +245,12 @@ export const SuggestionsFloater = ({
       })
       settings = response.state
     } catch (e) {
-      setWarning(
-        `Failed to get user settings, Mazed will use defaults.\n` +
+      analytics?.capture('Floater: failed to get user settings', {
+        'Event type': 'warning',
+        error: errorise(e).message,
+      })
+      log.warning(
+        'Failed to get user settings, Mazed will use defaults. ' +
           `Full error: "${errorise(e).message}"`
       )
     }
@@ -268,14 +264,17 @@ export const SuggestionsFloater = ({
     })
   }, [])
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
-    setWarning(null)
 
     const positionY = data.y
     FromContent.sendMessage({
       type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
       settings: { positionY },
     }).catch((e) => {
-      setWarning(
+      analytics?.capture('Floater: failed to update user settings', {
+        'Event type': 'warning',
+        error: errorise(e).message,
+      })
+      log.warning(
         `Failed to update user settings, Mazed will go back to previous ones.\n` +
           `Full error: "${errorise(e).message}"`
       )
@@ -304,13 +303,11 @@ export const SuggestionsFloater = ({
                 }}
                 nodes={nodes}
                 isLoading={isLoading}
-                warning={warning}
               />
             ) : (
               <MiniFloaterBox>
                 <MazedMiniFloater
                   onClick={() => saveRevealed(true)}
-                  warning={warning}
                 >
                   {isLoading ? <Spinner.Ring /> : nodes.length}
                 </MazedMiniFloater>
