@@ -93,7 +93,7 @@ function findLargestCommonContinuousSubsequenceIndexes<T>(
 }
 
 function splitIntoContinuousIntervals(row: number[]): number[][] {
-  const intervals:number[][] = []
+  const intervals: number[][] = []
   let current: number[] = []
   for (const item of row) {
     if (current.length === 0) {
@@ -118,7 +118,7 @@ function fillSmallGaps(row: number[], maxGapLen: number): number[] {
   const res: number[] = []
   for (const item of row) {
     if (res.length !== 0) {
-      const prev = res[res.length-1]
+      const prev = res[res.length - 1]
       if (item <= prev + maxGapLen) {
         // Fill the small gap
         for (const v of range(prev + 1, item)) {
@@ -131,16 +131,35 @@ function fillSmallGaps(row: number[], maxGapLen: number): number[] {
   return res
 }
 
-function extendInterval(row: number[], prefixLen: number, suffixLen: number, maxItem: number): number[] {
-    const first = row[0]
-    const last = row[row.length - 1]
-    for (const item of range(Math.max(0, first - prefixLen), first)) {
-      row.unshift(item)
-    }
-    for (const item of range(Math.min(last + 1, maxItem), Math.min(maxItem, last + suffixLen + 1))) {
-      row.push(item)
-    }
-    return row
+function extendInterval(
+  row: number[],
+  prefixLen: number,
+  suffixLen: number,
+  maxItem: number
+): number[] {
+  const first = row[0]
+  const last = row[row.length - 1]
+  for (const item of range(Math.max(0, first - prefixLen), first)) {
+    row.unshift(item)
+  }
+  for (const item of range(
+    Math.min(last + 1, maxItem),
+    Math.min(maxItem, last + suffixLen + 1)
+  )) {
+    row.push(item)
+  }
+  return row
+}
+
+function sortOutSpacesAroundPunctuation(str: string): string {
+  return str
+    .replace(/\s*"\s*(.*?)\s*"/g, ' "$1" ')
+    .replace(/\s*'\s*(.*?)\s*'/g, " '$1' ")
+    .replace(/\s*([«“„〝])\s*(.*?)\s*([»”‟〞])/g, ' $1$2$3 ')
+    .replace(/\s*([:;!?.,…])\s*/g, '$1 ')
+    .replace(/\s+(['ʼ])\s+/g, '$1')
+    .replace(/\s\s+/g, ' ')
+    .trim()
 }
 
 describe('', () => {
@@ -152,18 +171,54 @@ describe('', () => {
     expect(fillSmallGaps([1, 2, 4], 2)).toStrictEqual([1, 2, 3, 4])
     expect(fillSmallGaps([1, 2, 5], 2)).toStrictEqual([1, 2, 5])
     expect(fillSmallGaps([1, 2, 5], 3)).toStrictEqual([1, 2, 3, 4, 5])
-    expect(fillSmallGaps([1, 2, 5, 8], 3)).toStrictEqual([1, 2, 3, 4, 5, 6, 7, 8])
+    expect(fillSmallGaps([1, 2, 5, 8], 3)).toStrictEqual([
+      1, 2, 3, 4, 5, 6, 7, 8,
+    ])
     expect(fillSmallGaps([1, 3, 5, 7], 2)).toStrictEqual([1, 2, 3, 4, 5, 6, 7])
-    expect(fillSmallGaps([0, 2, 4, 6, 8], 2)).toStrictEqual([0, 1, 2, 3, 4, 5, 6, 7, 8])
+    expect(fillSmallGaps([0, 2, 4, 6, 8], 2)).toStrictEqual([
+      0, 1, 2, 3, 4, 5, 6, 7, 8,
+    ])
   })
   it('splitIntoContinuousIntervals', () => {
     expect(splitIntoContinuousIntervals([])).toStrictEqual([])
     expect(splitIntoContinuousIntervals([1])).toStrictEqual([[1]])
-    expect(splitIntoContinuousIntervals([1,2])).toStrictEqual([[1,2]])
-    expect(splitIntoContinuousIntervals([1,2,4])).toStrictEqual([[1,2],[4]])
-    expect(splitIntoContinuousIntervals([1,2,4,5])).toStrictEqual([[1,2],[4,5]])
-    expect(splitIntoContinuousIntervals([1,2,4,5,7])).toStrictEqual([[1,2],[4,5],[7]])
-    expect(splitIntoContinuousIntervals([1,2,4,7,8])).toStrictEqual([[1,2],[4],[7,8]])
+    expect(splitIntoContinuousIntervals([1, 2])).toStrictEqual([[1, 2]])
+    expect(splitIntoContinuousIntervals([1, 2, 4])).toStrictEqual([[1, 2], [4]])
+    expect(splitIntoContinuousIntervals([1, 2, 4, 5])).toStrictEqual([
+      [1, 2],
+      [4, 5],
+    ])
+    expect(splitIntoContinuousIntervals([1, 2, 4, 5, 7])).toStrictEqual([
+      [1, 2],
+      [4, 5],
+      [7],
+    ])
+    expect(splitIntoContinuousIntervals([1, 2, 4, 7, 8])).toStrictEqual([
+      [1, 2],
+      [4],
+      [7, 8],
+    ])
+  })
+  it('sortOutSpacesAroundPunctuation', () => {
+    expect(sortOutSpacesAroundPunctuation('')).toStrictEqual('')
+    expect(sortOutSpacesAroundPunctuation('Abc bcd.')).toStrictEqual('Abc bcd.')
+    expect(
+      sortOutSpacesAroundPunctuation(
+        'Mileena returned in Mortal Kombat 11 … First . second ! Is it the last one ? '
+      )
+    ).toStrictEqual(
+      'Mileena returned in Mortal Kombat 11… First. second! Is it the last one?'
+    )
+    expect(sortOutSpacesAroundPunctuation(` " a " ' abc abc ' `)).toStrictEqual(
+      `"a" 'abc abc'`
+    )
+    expect(
+      sortOutSpacesAroundPunctuation(
+        `These are the colours I ' m talking about : blue , red, yellow ! Yan said " they all need just a few tweaks " . `
+      )
+    ).toStrictEqual(
+      `These are the colours I'm talking about: blue, red, yellow! Yan said "they all need just a few tweaks".`
+    )
   })
   it('', () => {
     const wink = winkNLP(model)
@@ -183,11 +238,15 @@ describe('', () => {
     )
 
     indexes = indexes.filter((item) => {
-      return firstPos[item] !== 'PUNCT' && firstPos[item] !== 'PART' && !firstStopWords[item]
+      return (
+        firstPos[item] !== 'PUNCT' &&
+        firstPos[item] !== 'PART' &&
+        !firstStopWords[item]
+      )
     })
     // const kExpectedLen = 42
-    let prefix = ''
-    let suffix = ''
+    const prefix = ''
+    const suffix = ''
     // if (indexes.length < kExpectedLen) {
     //   const half = kExpectedLen / 2
     //   const startInd = Math.max(indexes[0] - half, 0)
@@ -213,26 +272,20 @@ describe('', () => {
     console.log('Pos 1', firstTypes)
     console.log('Result', indexes) // .map(item => firstDoc.tokens().itemAt(item)))
     console.log(
-      'Result: …',
-      prefix +
-        indexes
-          .map((item) => {
-            const pos = firstPos[item]
-            return ((item === 0 || pos === 'PUNCT' || pos === 'PART') ? '' : ' ') + firstTokens[item]
-          })
-          .join('') +
-        suffix, '…'
+      'Result:',
+      `${prefix}…${sortOutSpacesAroundPunctuation(
+        indexes.map((item) => firstTokens[item]).join(' ')
+      )}…${suffix}`
     )
-    for (const interval of splitIntoContinuousIntervals(fillSmallGaps(indexes, 8))) {
+    for (const interval of splitIntoContinuousIntervals(
+      fillSmallGaps(indexes, 8)
+    )) {
       const extended = extendInterval(interval, 2, 2, firstTokens.length - 1)
       console.log(
-        'Result: …',
-          extended
-            .map((item) => {
-              const pos = firstPos[item]
-              return ((item === 0 || pos === 'PUNCT' || pos === 'PART') ? '' : ' ') + firstTokens[item]
-            })
-            .join(''), '…'
+        'Result: ',
+        `…${sortOutSpacesAroundPunctuation(
+          extended.map((item) => firstTokens[item]).join(' ')
+        )}…`
       )
     }
   })
