@@ -114,12 +114,12 @@ function splitIntoContinuousIntervals(row: number[]): number[][] {
   return intervals
 }
 
-function connectCloseIntervals(row: number[], threshold: number): number[] {
+function fillSmallGaps(row: number[], maxGapLen: number): number[] {
   const res: number[] = []
   for (const item of row) {
     if (res.length !== 0) {
       const prev = res[res.length-1]
-      if (/* prev + 1 !== item && */ item <= prev + threshold) {
+      if (item <= prev + maxGapLen) {
         // Fill the small gap
         for (const v of range(prev + 1, item)) {
           res.push(v)
@@ -131,46 +131,30 @@ function connectCloseIntervals(row: number[], threshold: number): number[] {
   return res
 }
 
-function extendInterval(row: number[], len: number, maxItem: number): number[] {
+function extendInterval(row: number[], prefixLen: number, suffixLen: number, maxItem: number): number[] {
     const first = row[0]
     const last = row[row.length - 1]
-    for (const item of range(Math.max(0, first - len), first)) {
+    for (const item of range(Math.max(0, first - prefixLen), first)) {
       row.unshift(item)
     }
-    for (const item of range(Math.min(last + 1, maxItem), Math.min(maxItem, last + len + 1))) {
+    for (const item of range(Math.min(last + 1, maxItem), Math.min(maxItem, last + suffixLen + 1))) {
       row.push(item)
     }
     return row
-    // if (indexes.length < kExpectedLen) {
-    //   const half = kExpectedLen / 2
-    //   const startInd = Math.max(indexes[0] - half, 0)
-    //   const tailLen = Math.max(indexes[0] - startInd, half)
-    //   const endInd = Math.min(
-    //     indexes[indexes.length - 1] + tailLen,
-    //     firstTokens.length
-    //   )
-    //   indexes = range(startInd, endInd)
-    //   if (startInd > 0) {
-    //     prefix = '…'
-    //   }
-    //   if (endInd < firstTokens.length) {
-    //     suffix = '…'
-    //   }
-    // }
 }
 
 describe('', () => {
-  it('connectCloseIntervals', () => {
-    expect(connectCloseIntervals([], 1)).toStrictEqual([])
-    expect(connectCloseIntervals([], 2)).toStrictEqual([])
-    expect(connectCloseIntervals([1], 2)).toStrictEqual([1])
-    expect(connectCloseIntervals([1, 2], 1)).toStrictEqual([1, 2])
-    expect(connectCloseIntervals([1, 2, 4], 2)).toStrictEqual([1, 2, 3, 4])
-    expect(connectCloseIntervals([1, 2, 5], 2)).toStrictEqual([1, 2, 5])
-    expect(connectCloseIntervals([1, 2, 5], 3)).toStrictEqual([1, 2, 3, 4, 5])
-    expect(connectCloseIntervals([1, 2, 5, 8], 3)).toStrictEqual([1, 2, 3, 4, 5, 6, 7, 8])
-    expect(connectCloseIntervals([1, 3, 5, 7], 2)).toStrictEqual([1, 2, 3, 4, 5, 6, 7])
-    expect(connectCloseIntervals([0, 2, 4, 6, 8], 2)).toStrictEqual([0, 1, 2, 3, 4, 5, 6, 7, 8])
+  it('fillSmallGaps', () => {
+    expect(fillSmallGaps([], 1)).toStrictEqual([])
+    expect(fillSmallGaps([], 2)).toStrictEqual([])
+    expect(fillSmallGaps([1], 2)).toStrictEqual([1])
+    expect(fillSmallGaps([1, 2], 1)).toStrictEqual([1, 2])
+    expect(fillSmallGaps([1, 2, 4], 2)).toStrictEqual([1, 2, 3, 4])
+    expect(fillSmallGaps([1, 2, 5], 2)).toStrictEqual([1, 2, 5])
+    expect(fillSmallGaps([1, 2, 5], 3)).toStrictEqual([1, 2, 3, 4, 5])
+    expect(fillSmallGaps([1, 2, 5, 8], 3)).toStrictEqual([1, 2, 3, 4, 5, 6, 7, 8])
+    expect(fillSmallGaps([1, 3, 5, 7], 2)).toStrictEqual([1, 2, 3, 4, 5, 6, 7])
+    expect(fillSmallGaps([0, 2, 4, 6, 8], 2)).toStrictEqual([0, 1, 2, 3, 4, 5, 6, 7, 8])
   })
   it('splitIntoContinuousIntervals', () => {
     expect(splitIntoContinuousIntervals([])).toStrictEqual([])
@@ -239,8 +223,8 @@ describe('', () => {
           .join('') +
         suffix, '…'
     )
-    for (const interval of splitIntoContinuousIntervals(connectCloseIntervals(indexes, 8))) {
-      const extended = extendInterval(interval, 2, firstTokens.length - 1)
+    for (const interval of splitIntoContinuousIntervals(fillSmallGaps(indexes, 8))) {
+      const extended = extendInterval(interval, 2, 2, firstTokens.length - 1)
       console.log(
         'Result: …',
           extended
