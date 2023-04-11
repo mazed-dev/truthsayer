@@ -8,14 +8,30 @@ import model from 'wink-eng-lite-web-model'
 describe('Find largest matching fragment of text', () => {
   const wink = winkNLP(model)
   it('extendInterval', () => {
-    expect(impl.extendInterval([1], 1, 1, 10)).toStrictEqual([0, 1, 2])
-    expect(impl.extendInterval([1, 2], 1, 1, 10)).toStrictEqual([0, 1, 2, 3])
-    expect(impl.extendInterval([1, 2], 1, 2, 10)).toStrictEqual([0, 1, 2, 3, 4])
-    expect(impl.extendInterval([1, 2], 2, 2, 10)).toStrictEqual([0, 1, 2, 3, 4])
-    expect(impl.extendInterval([1, 2], 2, 2, 3)).toStrictEqual([0, 1, 2, 3])
-    expect(impl.extendInterval([10, 11], 3, 5, 100)).toStrictEqual([
-      7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-    ])
+    expect(impl.extendInterval([1], 1, 1, 10)).toStrictEqual({
+      prefix: [0],
+      suffix: [2],
+    })
+    expect(impl.extendInterval([1, 2], 1, 1, 10)).toStrictEqual({
+      prefix: [0],
+      suffix: [3],
+    })
+    expect(impl.extendInterval([1, 2], 1, 2, 10)).toStrictEqual({
+      prefix: [0],
+      suffix: [3, 4],
+    })
+    expect(impl.extendInterval([1, 2], 2, 2, 10)).toStrictEqual({
+      prefix: [0],
+      suffix: [3, 4],
+    })
+    expect(impl.extendInterval([1, 2], 2, 2, 3)).toStrictEqual({
+      prefix: [0],
+      suffix: [3],
+    })
+    expect(impl.extendInterval([10, 11], 3, 5, 100)).toStrictEqual({
+      prefix: [7, 8, 9],
+      suffix: [12, 13, 14, 15, 16],
+    })
   })
   it('fillSmallGaps', () => {
     expect(impl.fillSmallGaps([], 1)).toStrictEqual([])
@@ -97,78 +113,19 @@ The first season of Arcane reveals that Jinx was originally named Powder.[15] Sh
 Jinx was one of the first champions from League of Legends to star in her own animated music video in the lead-up to her in-game debut. "Get Jinxed" by Agnete Kjølsrud from the band Djerv, which follows Jinx's destructive exploits in Piltover, was released on YouTube on October 8, 2013.
     `
 
-    expect(
-      findLargestCommonContinuousSubsequenceOfStems(
-        first,
-        second,
-        wink,
-        10,
-        2,
-        6
-      ).extended
-    ).toStrictEqual(
-      `, another champion from the game. Following a childhood tragedy, Jinx grew up to become "manic and impulsive" and her capacity for creating`
+    const lccs = findLargestCommonContinuousSubsequenceOfStems(
+      first,
+      second,
+      wink,
+      10,
+      2,
+      6
     )
-  })
-  it('findLargestCommonContinuousSubsequenceOfStems - The Verge - Tesla', () => {
-    const first = `
-Tesla rewrote its own software to survive the chip shortage
-/ The company was able to swap substitute chips after rewriting its firmware
-By ANDREW J. HAWKINS / @andyjayhawk
-
-Photo by Sean O’Kane / The Verge
-Tesla is weathering the global chip shortage by rewriting its vehicle software to support alternative chips, CEO Elon Musk said during an earnings call Monday. The shortage has upended the auto industry at a time of historic demand for new cars, leading to factory shutdowns, longer wait times, and higher prices.
-
-“We were able to substitute alternative chips, and then write the firmware in a matter of weeks,” Musk said. “It’s not just a matter of swapping out a chip; you also have to rewrite the software.”
-
-This approach has helped Tesla maintain high levels of production, delivering over 200,000 vehicles to customers over the course of the last three months, the company said. Tesla generated $11.9 billion in revenue in the quarter, including $1.1 billion in profit.
-
-Tesla isn’t alone in feeling the effects of the global shortage. With demand for cars at an all-time high, automakers around the world are feeling the constraints of production with chips in short supply. This week, Daimler and BMW said the lack of chips has forced it to shutdown some of their assembly lines, which will cut the companies’ output by tens of thousands of vehicles.
-
-“The global chip shortage situation remains quite serious”
-
-Musk said that Tesla’s future growth will depend on a swift resolution to the global semiconductor shortage. “The global chip shortage situation remains quite serious,” he said. “For the rest of this year, our growth rate will be determined by the slowest part in our supply chain,” which includes the wide range of chips used in Tesla’s vehicles.
-
-Tesla relies on chips to power everything from its airbags to the modules that control the vehicles’ seatbelts — which now means Tesla is missing components that are essential for the vehicle’s safety features. “A big struggle this quarter was the module that controls the airbags and seatbelts,” Musk said. “And obviously you cannot ship a car without those.”
-
-Musk sounded an uncertain note about the future. “It does seem like it’s getting better,” he said, “but it’s hard to predict.”
-  `
-
-    const second = `
-  Tesla employees reportedly passed around personal videos from owners’ cars
-/ Tesla workers viewed and shared private videos of car crashes, road rage incidents, and other potentially embarrassing clips, according to a report from Reuters.
-By EMMA ROTH
-
-This is a stock image of the Tesla logo spelled out in red with a white shape forming around it and a tilted and zoomed red Tesla T logo behind it.
-Illustration by Alex Castro / The Verge
-Tesla employees passed around and poked fun at private videos recorded by vehicle cameras, according to a report from Reuters. The videos, which were reportedly shared via Tesla’s internal messaging systems from 2019 through 2022, were recorded on the cameras that come mounted on Tesla vehicles to enable self-driving features.
-
-As described by sources to Reuters, the recordings shared by Tesla workers range from graphic crashes and road rage incidents to more embarrassing scenes, including a video of a naked man approaching a car. Some employees reportedly even created memes using captures from recorded videos and later shared them in private group chats.
-
-Tesla says “Sentry Mode recordings are not transmitted to us”
-
-One former Tesla employee tells Reuters that some of the videos may have even been recorded when vehicles were turned off. “We could see inside people’s garages and their private properties,” a former employee tells Reuters. “Let’s say that a Tesla customer had something in their garage that was distinctive, you know, people would post those kinds of things.”
-
-According to Reuters, Tesla previously had a policy that allowed the company to receive recordings from non-running vehicles if customers signed off on it. After an investigation from the Dutch Data Protection Authority (DPA) found that Tesla vehicles “were often filming everyone who came near the vehicle,” Tesla was turning off its vehicles’ cameras by default by 2023.
-
-Tesla launched Sentry Mode in 2019, advertising the feature as a way to alert drivers of any suspicious activity around their parked vehicles and then store recorded incidents in the car’s onboard memory. Tesla updated this feature in 2021 and started letting drivers use their vehicles’ cameras to livestream their cars’ surroundings from the Tesla app.
-
-On its support page for the feature, Tesla says “Sentry Mode recordings are not transmitted to us” while adding that livestreams are end-to-end encrypted and “cannot be accessed” by the company. Tesla also added a couple of other privacy-focused tweaks to Sentry Mode following the DPA’s investigation. Now cameras only start recording when the vehicle is touched, instead of right when it detects suspicious activity. Tesla also started warning passersby that its vehicles are recording by making their headlights flash.
-
-The Netherlands isn’t the only country where Tesla’s Sentry Mode has raised concerns. Last year, Germany’s consumer organization VZBZ sued Tesla, claiming Sentry Mode “violates data protection law.” Tesla vehicles were also banned from China’s Beidaihe district last year over concerns that the vehicles’ cameras would capture a private meeting between the country’s senior leadership, while the Chinese military banned Tesla vehicles in 2021 over similar surveillance concerns.
-  `
-    expect(
-      findLargestCommonContinuousSubsequenceOfStems(
-        first,
-        second,
-        wink,
-        10,
-        2,
-        8
-      ).extended
-    ).toStrictEqual(
-      `/ The Verge. Tesla is weathering the global chip shortage by rewriting its vehicle software to support alternative chips, CEO Elon`
+    expect(lccs.match).toStrictEqual(
+      `champion from the game. Following a childhood tragedy, Jinx grew up to become " manic and impulsive`
     )
+    expect(lccs.prefix).toStrictEqual(`, another`)
+    expect(lccs.suffix).toStrictEqual(`" and her capacity for creating`)
   })
   it('findLargestCommonContinuousSubsequenceOfStems - The Verge - Tesla', () => {
     const first = `"The Ethics of Artificial Intelligence"
@@ -199,17 +156,20 @@ Artificial intelligence (AI) has the potential to revolutionize healthcare in nu
 
 Overall, the benefits of AI in healthcare are clear. By improving the accuracy and efficiency of medical diagnoses and treatments, AI has the potential to save lives and improve the quality of life for millions of people. As AI continues to develop, we can expect to see even more innovative uses of this technology in healthcare.
   `
-    expect(
-      findLargestCommonContinuousSubsequenceOfStems(
-        first,
-        second,
-        wink,
-        10,
-        2,
-        24
-      ).extended
-    ).toStrictEqual(
-      `Ethics of Artificial Intelligence ". Artificial intelligence (AI) has the potential to revolutionize many industries, but it also raises ethical concerns. As AI becomes more advanced, it will be able to make decisions that`
+    const lccs = findLargestCommonContinuousSubsequenceOfStems(
+      first,
+      second,
+      wink,
+      10,
+      8,
+      10
+    )
+    expect(lccs.match).toStrictEqual(
+      `Artificial Intelligence ". Artificial intelligence (AI) has the potential to revolutionize`
+    )
+    expect(lccs.prefix).toStrictEqual(`" The Ethics of`)
+    expect(lccs.suffix).toStrictEqual(
+      `many industries, but it also raises ethical concerns.`
     )
   })
 })

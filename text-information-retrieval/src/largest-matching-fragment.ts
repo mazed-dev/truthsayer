@@ -92,24 +92,24 @@ export namespace impl {
     prefixLen: number,
     suffixLen: number,
     maxItem: number
-  ): number[] {
+  ): { prefix: number[]; suffix: number[] } {
+    const prefix: number[] = []
+    const suffix: number[] = []
     if (row.length === 0) {
-      return row
+      return { prefix, suffix }
     }
     const first = row[0]
     const last = row[row.length - 1]
-    const prefix: number[] = []
     for (const item of range(Math.max(0, first - prefixLen), first)) {
       prefix.push(item)
     }
-    row.unshift(...prefix)
     for (const item of range(
       Math.min(last, maxItem),
       Math.min(maxItem, last + suffixLen)
     )) {
-      row.push(item + 1)
+      suffix.push(item + 1)
     }
-    return row
+    return { prefix, suffix }
   }
 
   export function sortOutSpacesAroundPunctuation(str: string): string {
@@ -117,7 +117,8 @@ export namespace impl {
       .replace(/\s*"\s*(.*?)\s*"/g, ' "$1" ') // ' abc ' -> 'abc'
       .replace(/\s*'\s*(.*?)\s*'/g, " '$1' ") // " abc " -> "abc"
       .replace(/\s*([«“„〝({\[])\s*(.*?)\s*([»”‟〞)\]}])/g, ' $1$2$3 ')
-      .replace(/\s+([:;!?.,…'ʼ’])\s+/g, '$1 ')
+      .replace(/\s+([:;!?.,…'ʼ’])\s+/g, '$1 ') // "abc . Abc" -> "abc. Abc"
+      .replace(/\s+([:;!?.,…'ʼ’])$/g, '$1') // "A abc ." -> "A abc."
       .replace(/\s*(['ʼ’])\s*(ll|s|m|d)/g, '$1$2')
       .replace(/\s\s+/g, ' ')
       .trim()
@@ -125,8 +126,9 @@ export namespace impl {
 } // namespace impl
 
 type LargestCommonContinuousSubsequenceOfStems = {
-  extended: string
-  realMatchLen: number // As string without spaces
+  match: string
+  prefix: string
+  suffix: string
 }
 
 /**
@@ -178,9 +180,6 @@ export function findLargestCommonContinuousSubsequenceOfStems(
   const lengths = rows.map((a) => a.length)
   const largestInd = lengths.indexOf(Math.max(...lengths))
   const largestRow = rows[largestInd]
-  const realMatchLen = largestRow
-    .map((index) => firstTokens[index].length)
-    .reduce((a: number, b: number) => a + b, 0)
   // log.debug('Result longest row', largestInd)
   // for (const ind in rows) {
   //   const interval = rows[ind]
@@ -198,7 +197,7 @@ export function findLargestCommonContinuousSubsequenceOfStems(
   //     )}…`
   //   )
   // }
-  const extended = impl.extendInterval(
+  const { prefix, suffix } = impl.extendInterval(
     largestRow,
     prefixToExtendCharsNumber,
     suffixToExtendCharsNumber,
@@ -206,9 +205,14 @@ export function findLargestCommonContinuousSubsequenceOfStems(
   )
   // Join string and sort out spaces
   return {
-    extended: impl.sortOutSpacesAroundPunctuation(
-      extended.map((item) => firstTokens[item]).join(' ')
+    match: impl.sortOutSpacesAroundPunctuation(
+      largestRow.map((item) => firstTokens[item]).join(' ')
     ),
-    realMatchLen,
+    prefix: impl.sortOutSpacesAroundPunctuation(
+      prefix.map((item) => firstTokens[item]).join(' ')
+    ),
+    suffix: impl.sortOutSpacesAroundPunctuation(
+      suffix.map((item) => firstTokens[item]).join(' ')
+    ),
   }
 }
