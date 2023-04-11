@@ -2,6 +2,8 @@ import winkNLP, { WinkMethods, Document as WinkDocument } from 'wink-nlp'
 import model from 'wink-eng-lite-web-model'
 import { range /* log */ } from 'armoury'
 
+export type { WinkDocument, WinkMethods }
+
 export namespace impl {
   export function findLargestCommonSubsequenceIndexes<T>(
     arr1: T[],
@@ -147,8 +149,8 @@ export function findLargestCommonContinuousSubsequence(
   secondDoc: WinkDocument,
   wink: WinkMethods,
   gapToFillWordsNumber: number,
-  prefixToExtendCharsNumber: number,
-  suffixToExtendCharsNumber: number
+  prefixToExtendWordsNumber: number,
+  suffixToExtendWordsNumber: number
 ): LargestCommonContinuousSubsequenceOfStems {
   // Clean up the inputs a bit
   // first = first.replace(/\n+/g, '. ').replace(/\s+/g, ' ')
@@ -192,8 +194,8 @@ export function findLargestCommonContinuousSubsequence(
   //   const interval = rows[ind]
   //   const extended = extendInterval(
   //     interval,
-  //     prefixToExtendCharsNumber,
-  //     suffixToExtendCharsNumber,
+  //     prefixToExtendWordsNumber,
+  //     suffixToExtendWordsNumber,
   //     firstTokens.length - 1
   //   )
   //   log.debug(
@@ -206,8 +208,8 @@ export function findLargestCommonContinuousSubsequence(
   // }
   const { prefix, suffix } = impl.extendInterval(
     largestRow,
-    prefixToExtendCharsNumber,
-    suffixToExtendCharsNumber,
+    prefixToExtendWordsNumber,
+    suffixToExtendWordsNumber,
     firstTokens.length - 1
   )
   // Join string and sort out spaces

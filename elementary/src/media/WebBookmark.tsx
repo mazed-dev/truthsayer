@@ -194,12 +194,197 @@ const Description = styled.blockquote`
   }
 `
 
+export type WebBookmarkDescriptionConfig =
+  | {
+      type: 'original' // default
+    }
+  | {
+      type: 'match'
+      match: string
+      prefix: string
+      suffix: string
+    }
+
+const MatchDescriptionSpan = styled.span`
+  text-decoration-line: underline;
+  text-decoration-color: #0691ea9c;
+  text-decoration-style: solid;
+  text-decoration-thickness: 1px;
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
+`
+const MatchDescriptionContextSpan = styled.span``
+const MatchDescriptionSeeMoreBtn = styled.span`
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+`
+
+const BookmarkMatchDescription = ({
+  url,
+  match,
+  prefix,
+  suffix,
+  captureMetricOnCopy,
+}: {
+  url: string
+  match: string
+  prefix: string
+  suffix: string
+  captureMetricOnCopy?: (subj: string) => void
+}) => {
+  const [seeMore, setSeeMore] = React.useState<boolean>(false)
+  const [hiddenPrefix, visisblePrefix] = React.useMemo(() => {
+    const border = -2
+    const arr: string[] = prefix.split(' ')
+    return [
+      `${arr.slice(0, border).join(' ')} `,
+      `${arr.slice(border).join(' ')} `,
+    ]
+  }, [prefix])
+  const [visisbleSuffix, hiddenSuffix] = React.useMemo(() => {
+    const border = 40
+    const arr: string[] = suffix.split(' ')
+    return [
+      ` ${arr.slice(0, border).join(' ')}`,
+      ` ${arr.slice(border).join(' ')}`,
+    ]
+  }, [suffix])
+  return (
+    <OverlayCopyOnHover
+      getTextToCopy={() => {
+        captureMetricOnCopy?.('description')
+        return seeMore
+          ? [prefix, match, suffix].join(' ')
+          : [visisblePrefix, match, visisbleSuffix].join(' ')
+      }}
+    >
+      <Description cite={url} className={productanalytics.classExclude()}>
+        &#8230;
+        <MatchDescriptionContextSpan
+          css={{
+            display: seeMore ? 'inline' : 'none',
+          }}
+        >
+          {hiddenPrefix}
+        </MatchDescriptionContextSpan>
+        <MatchDescriptionContextSpan>
+          {visisblePrefix}
+        </MatchDescriptionContextSpan>
+        <MatchDescriptionSpan>{match}</MatchDescriptionSpan>
+        <MatchDescriptionContextSpan>
+          {visisbleSuffix}
+        </MatchDescriptionContextSpan>
+        <MatchDescriptionContextSpan
+          css={{
+            display: seeMore ? 'inline' : 'none',
+          }}
+        >
+          {hiddenSuffix}
+        </MatchDescriptionContextSpan>
+        &#8230;{' '}
+        <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore((more) => !more)}>
+          see&nbsp;{seeMore ? 'less' : 'more'}
+        </MatchDescriptionSeeMoreBtn>
+      </Description>
+    </OverlayCopyOnHover>
+  )
+}
+
+const BookmarkOriginalDescription = ({
+  url,
+  description,
+  captureMetricOnCopy,
+}: {
+  url: string
+  description: string
+  captureMetricOnCopy?: (subj: string) => void
+}) => {
+  const [seeMore, setSeeMore] = React.useState<boolean>(false)
+  const [visisble, hidden] = React.useMemo(() => {
+    // Show only first N words of the description, hide the rest under the hood
+    const border = 54
+    const arr: string[] = description.split(' ')
+    return [arr.slice(0, border).join(' '), arr.slice(border).join(' ')]
+  }, [description])
+  return (
+    <OverlayCopyOnHover
+      getTextToCopy={() => {
+        captureMetricOnCopy?.('description')
+        return seeMore ? description : visisble
+      }}
+    >
+      <Description cite={url} className={productanalytics.classExclude()}>
+        <MatchDescriptionContextSpan>{visisble}</MatchDescriptionContextSpan>
+        <MatchDescriptionContextSpan
+          css={{
+            display: seeMore ? 'inline' : 'none',
+          }}
+        >
+          {hidden}
+        </MatchDescriptionContextSpan>
+        {!seeMore && !!hidden ? '… ' : ' '}
+        {hidden ? (
+          <MatchDescriptionSeeMoreBtn
+            onClick={() => setSeeMore((more) => !more)}
+          >
+            see&nbsp;{seeMore ? 'less' : 'more'}
+          </MatchDescriptionSeeMoreBtn>
+        ) : null}
+      </Description>
+    </OverlayCopyOnHover>
+  )
+}
+
+const BookmarkDescription = ({
+  url,
+  description,
+  webBookmarkDescriptionConfig,
+  captureMetricOnCopy,
+}: {
+  url: string
+  description?: string
+  webBookmarkDescriptionConfig: WebBookmarkDescriptionConfig
+  captureMetricOnCopy?: (subj: string) => void
+}) => {
+  switch (webBookmarkDescriptionConfig.type) {
+    case 'original':
+      if (description) {
+        return (
+          <BookmarkOriginalDescription
+            url={url}
+            description={description}
+            captureMetricOnCopy={captureMetricOnCopy}
+          />
+        )
+      } else {
+        return null
+      }
+    case 'match':
+      const { match, prefix, suffix } = webBookmarkDescriptionConfig
+      return (
+        <BookmarkMatchDescription
+          url={url}
+          match={match}
+          prefix={prefix}
+          suffix={suffix}
+          captureMetricOnCopy={captureMetricOnCopy}
+        />
+      )
+  }
+}
+
 type WebBookmarkProps = {
   extattrs: NodeExtattrs
   className?: string
   strippedRefs?: boolean
   onLaunch?: () => void
   captureMetricOnCopy?: (subj: string) => void
+  webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
 }
 
 export const WebBookmark = ({
@@ -208,6 +393,7 @@ export const WebBookmark = ({
   strippedRefs,
   onLaunch,
   captureMetricOnCopy,
+  webBookmarkDescriptionConfig,
 }: WebBookmarkProps) => {
   const { web, preview_image, title, description, author } = extattrs
   if (web == null) {
@@ -226,18 +412,6 @@ export const WebBookmark = ({
       <Author className={productanalytics.classExclude()}>
         &mdash; {author}
       </Author>
-    </OverlayCopyOnHover>
-  ) : null
-  const descriptionElement = description ? (
-    <OverlayCopyOnHover
-      getTextToCopy={() => {
-        captureMetricOnCopy?.('description')
-        return description
-      }}
-    >
-      <Description cite={url} className={productanalytics.classExclude()}>
-        {description}
-      </Description>
     </OverlayCopyOnHover>
   ) : null
   return (
@@ -272,7 +446,14 @@ export const WebBookmark = ({
           {authorBadge}
         </TitleBox>
       </BadgeBox>
-      {descriptionElement}
+      <BookmarkDescription
+        url={url}
+        description={description}
+        webBookmarkDescriptionConfig={
+          webBookmarkDescriptionConfig ?? { type: 'original' }
+        }
+        captureMetricOnCopy={captureMetricOnCopy}
+      />
     </Box>
   )
 }

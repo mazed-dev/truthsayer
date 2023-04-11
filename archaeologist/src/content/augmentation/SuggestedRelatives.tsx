@@ -70,6 +70,7 @@ export function SuggestedRelatives({
      * not completely reloaded, but just updated. Because of this don't remove
      * this dependency even if you don't want to insert URL into a search phrase.
      */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     stableUrl,
   ])
   const requestSuggestedAssociations = React.useMemo(

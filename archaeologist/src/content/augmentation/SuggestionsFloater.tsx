@@ -4,8 +4,15 @@ import React from 'react'
 import styled from '@emotion/styled'
 import { useAsyncEffect } from 'use-async-effect'
 
-import { NodeCardReadOnly, HoverTooltip, Spinner, ImgButton } from 'elementary'
+import {
+  HoverTooltip,
+  ImgButton,
+  NodeCardReadOnly,
+  Spinner,
+  WebBookmarkDescriptionConfig,
+} from 'elementary'
 import type { TNode } from 'smuggler-api'
+import { NodeUtil } from 'smuggler-api'
 
 import { AugmentationElement } from './Mount'
 import { ContentContext } from '../context'
@@ -14,6 +21,7 @@ import { ContentAugmentationSettings, FromContent } from './../../message/types'
 import { DragHandle, Minimize } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
 import { errorise, log } from 'armoury'
+import type { WinkDocument, WinkMethods } from 'text-information-retrieval'
 import {
   loadWinkModel,
   findLargestCommonContinuousSubsequence,
@@ -90,7 +98,13 @@ const SuggestedCardBox = styled.div`
   user-select: text;
 `
 
-const SuggestedCard = ({ node }: { node: TNode }) => {
+const SuggestedCard = ({
+  node,
+  webBookmarkDescriptionConfig,
+}: {
+  node: TNode
+  webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
+}) => {
   const ctx = React.useContext(ContentContext)
   return (
     <SuggestedCardBox>
@@ -104,6 +118,7 @@ const SuggestedCard = ({ node }: { node: TNode }) => {
             'Event type': 'click',
           })
         }}
+        webBookmarkDescriptionConfig={webBookmarkDescriptionConfig}
       />
     </SuggestedCardBox>
   )
@@ -119,7 +134,46 @@ const NoSuggestedCardsBox = styled.div`
 `
 
 function normlizeString(str: string): string {
-  return str.replace(/\n+/g, '. ').replace(/\s+/g, ' ')
+  return str.replace(/\s+/g, ' ')
+}
+
+function getMatchingText(
+  node: TNode,
+  phaseWinkDoc: WinkDocument,
+  wink: WinkMethods
+): WebBookmarkDescriptionConfig {
+  if (!NodeUtil.isWebBookmark(node)) {
+    return { type: 'original' }
+  }
+  const text = [
+    node.extattrs?.description,
+    node.index_text?.plaintext,
+    // node.extattrs?.author,
+  ]
+    .filter((str: string | undefined) => !!str)
+    .join('\n')
+  const winkDoc = wink.readDoc(normlizeString(text))
+  const { match, prefix, suffix } = findLargestCommonContinuousSubsequence(
+    winkDoc,
+    phaseWinkDoc,
+    wink,
+    12,
+    24,
+    54
+  )
+  log.debug(
+    'LCC',
+    prefix.split(' ').length,
+    match.split(' ').length,
+    suffix.split(' ').length
+  )
+  if (match.length < 32) {
+    // If longest matching text is shorter than 32 characters, texts probably
+    // doesn't match directly. In that case let's just show original
+    // description, best we can do in such curcumstances.
+    return { type: 'original' }
+  }
+  return { type: 'match', match, prefix, suffix }
 }
 
 type SuggestedCardsProps = {
@@ -148,26 +202,18 @@ const SuggestedCards = ({
     [phrase, wink]
   )
   const suggestedCards = nodes.map((node: TNode) => {
-    const text = [
-      // node.extattrs?.title,
-      // node.extattrs?.web_quote?.text,
-      node.extattrs?.description,
-      node.index_text?.plaintext,
-      // node.extattrs?.author,
-    ]
-      .filter((str: string | undefined) => !!str)
-      .join('\n')
-    const winkDoc = wink.readDoc(normlizeString(text))
-    const lcc = findLargestCommonContinuousSubsequence(
-      winkDoc,
+    const webBookmarkDescriptionConfig = getMatchingText(
+      node,
       phaseWinkDoc,
-      wink,
-      12,
-      12,
-      42
+      wink
     )
-    log.debug('Lcc', lcc)
-    return <SuggestedCard key={node.nid} node={node} />
+    return (
+      <SuggestedCard
+        key={node.nid}
+        node={node}
+        webBookmarkDescriptionConfig={webBookmarkDescriptionConfig}
+      />
+    )
   })
   return (
     <SuggestedCardsBox>

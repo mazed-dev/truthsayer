@@ -3,7 +3,7 @@ import React from 'react'
 import { NodeUtil } from 'smuggler-api'
 import type { TNode, StorageApi } from 'smuggler-api'
 import { ImageNode } from './ImageNode'
-import { WebBookmark } from './WebBookmark'
+import { WebBookmark, WebBookmarkDescriptionConfig } from './WebBookmark'
 import { WebQuote } from './WebQuote'
 
 export function NodeMedia({
@@ -14,6 +14,7 @@ export function NodeMedia({
   storage,
   onLaunch,
   captureMetricOnCopy,
+  webBookmarkDescriptionConfig,
 }: {
   node: TNode
   className?: string
@@ -25,6 +26,7 @@ export function NodeMedia({
   onLaunch?: () => void
   // This is a hack to run extra actions on copying content from node fields
   captureMetricOnCopy?: (subj: string) => void
+  webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
 }) {
   const { extattrs } = node
   if (NodeUtil.isImage(node)) {
@@ -46,6 +48,7 @@ export function NodeMedia({
           className={className}
           onLaunch={onLaunch}
           captureMetricOnCopy={captureMetricOnCopy}
+          webBookmarkDescriptionConfig={webBookmarkDescriptionConfig}
         />
       )
     }
