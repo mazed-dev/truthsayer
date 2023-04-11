@@ -2,6 +2,9 @@ import React from 'react'
 
 import styled from '@emotion/styled'
 import { Form, Button } from 'react-bootstrap'
+import { truthsayer } from '../truthsayer/url'
+
+import { isSmugglerError } from 'smuggler-api'
 
 const LoginFormBox = styled(Form)`
   display: flex;
@@ -52,7 +55,28 @@ export const LoginForm = ({
         />
       </Form.Group>
       <Form.Group as={LoginFormRow} controlId="formLoginPassword">
-        <LoginFormLabel>Password</LoginFormLabel>
+        <LoginFormLabel>
+          <span>
+            Password (
+            <a
+              href={
+                truthsayer.url.make({ pathname: '/password-recover-request' })
+                  .href
+              }
+              // Below parameters are expected to make the link open a new tab
+              // when clicked. This is because this component lives in 'elementary'
+              // and gets used in different environments, e.g. in a web app
+              // and in browser extension's popup. In the latter case, by default
+              // clicking a link does nothing -- only opening a link in a new tab
+              // works.
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              forgot?
+            </a>
+            )
+          </span>
+        </LoginFormLabel>
         <Form.Control
           type="password"
           value={password}
@@ -66,4 +90,45 @@ export const LoginForm = ({
       </LoginFormRow>
     </LoginFormBox>
   )
+}
+
+/**
+ * Given an error thrown during smuggler-api.session.create(),
+ * return a user-facing error message.
+ */
+export function userFacingLoginErrorFrom(err: any): string {
+  const defaultError = 'Unknown error occured, please try again'
+  const invalidPasswordError = 'Invalid email or password'
+  const accountNotActivatedYet = 'Account has not been activated yet'
+  if (!isSmugglerError(err)) {
+    // Even if an exception is thrown as `SmugglerError`, if it travels through
+    // the messaging boundary of a web extension, webextension-polyfill
+    // will suppress basic context of this error such as `Error.name`,
+    // see https://github.com/mozilla/webextension-polyfill/blob/9398f8cc20ed7e1cc2b475180ed1bc4dee2ebae5/src/browser-polyfill.js#L482-L488
+    // So it's not easy to figure out what kind of error it is.
+    // As a fallback, check the error message directly for likely patterns
+    //
+    // TODO[snikitin@outlook.com] Experiment with packing errors into Error.message
+    // as JSON before they travel through the messaging boundary. Unpacking on the receiving
+    // end can help avoid these hacks.
+    const isString = (x: any): x is string => typeof x === 'string'
+    if ('message' in err) {
+      const message = err.message
+      const lowercase = isString(message) ? message : ''
+      if (lowercase.includes('401')) {
+        return invalidPasswordError
+      } else if (lowercase.includes('403')) {
+        return accountNotActivatedYet
+      }
+    }
+    return defaultError
+  }
+  switch (err.status) {
+    case 401:
+      return invalidPasswordError
+    case 403:
+      return 'Account has not been activated yet'
+    default:
+      return defaultError
+  }
 }

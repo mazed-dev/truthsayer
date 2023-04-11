@@ -10,9 +10,10 @@ import type { TNode } from 'smuggler-api'
 import { AugmentationElement } from './Mount'
 import { ContentContext } from '../context'
 import { MazedMiniFloater } from './MazedMiniFloater'
-import { FromContent } from './../../message/types'
+import { ContentAugmentationSettings, FromContent } from './../../message/types'
 import { DragHandle, Minimize } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
+import { errorise, log } from 'armoury'
 
 const SuggestedCardsBox = styled.div`
   width: 320px;
@@ -29,10 +30,6 @@ const SuggestedCardsBox = styled.div`
   border-radius: 6px;
   user-select: text;
 `
-const DraggableElement = styled.div`
-  position: absolute;
-  user-select: none;
-`
 
 const DraggableCursorStyles = `
   cursor: move; /* fallback if "grab" & "grabbing" cursors are not supported */
@@ -42,10 +39,19 @@ const DraggableCursorStyles = `
   }
 `
 
+const DraggableElement = styled.div`
+  position: absolute;
+  user-select: none;
+`
+
 const Header = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
+  ${DraggableCursorStyles}
+`
+const Footter = styled.div`
+  height: 8px;
   ${DraggableCursorStyles}
 `
 
@@ -54,7 +60,7 @@ const SuggestionsFloaterSuggestionsBox = styled.div`
   flex-direction: column;
   padding: 0;
   overflow-y: scroll;
-  height: 80vh;
+  max-height: 80vh;
 
   border-radius: 6px;
   user-select: text;
@@ -72,6 +78,9 @@ const CloseBtn = styled(ImgButton)`
 const SuggestedCardBox = styled.div`
   font-size: 12px;
   margin: 2px 4px 2px 4px;
+  &:last-child {
+    margin: 2px 4px 0px 4px;
+  }
   background: #ffffff;
   border-radius: 6px;
   user-select: text;
@@ -105,15 +114,13 @@ const NoSuggestedCardsBox = styled.div`
   margin: 12px 0 12px 0;
 `
 
-const SuggestedCards = ({
-  nodes,
-  onClose,
-  isLoading,
-}: {
+type SuggestedCardsProps = {
   nodes: TNode[]
   onClose: () => void
   isLoading: boolean
-}) => {
+}
+
+const SuggestedCards = ({ nodes, onClose, isLoading }: SuggestedCardsProps) => {
   const analytics = React.useContext(ContentContext).analytics
   React.useEffect(() => {
     analytics?.capture('Show suggested associations', {
@@ -141,6 +148,7 @@ const SuggestedCards = ({
         ) : null}
         {suggestedCards.length > 0 ? suggestedCards : <NoSuggestedCardsBox />}
       </SuggestionsFloaterSuggestionsBox>
+      <Footter id="mazed-archaeologist-suggestions-floater-drag-handle" />
     </SuggestedCardsBox>
   )
 }
@@ -191,16 +199,26 @@ export const SuggestionsFloater = ({
   const [controlledPosition, setControlledPosition] =
     React.useState<Position2D | null>(null) // getStartDragPosition(false))
   const [isRevealed, setRevealed] = React.useState<boolean>(false)
+
   const analytics = React.useContext(ContentContext).analytics
   const saveRevealed = React.useCallback(
     async (revealed: boolean) => {
-      const response = await FromContent.sendMessage({
-        type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
-        settings: { isRevealed: revealed },
-      })
-      const { positionY } = response.state
-      const defaultPos = getStartDragPosition(revealed)
-      setControlledPosition({ x: defaultPos.x, y: positionY ?? defaultPos.y })
+      try {
+        await FromContent.sendMessage({
+          type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
+          settings: { isRevealed: revealed },
+        })
+      } catch (e) {
+        analytics?.capture('Floater: failed to update user settings', {
+          'Event type': 'warning',
+          error: errorise(e).message,
+        })
+        log.warning(
+          `Failed to update user settings, Mazed will go back to previous ones.\n` +
+            `Full error: "${errorise(e).message}"`
+        )
+      }
+
       setRevealed(revealed)
       analytics?.capture('Click SuggestionsFloater visibility toggle', {
         'Event type': 'change',
@@ -210,22 +228,45 @@ export const SuggestionsFloater = ({
     [analytics]
   )
   useAsyncEffect(async () => {
-    const response = await FromContent.sendMessage({
-      type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
-    })
-    const revealed = response.state.isRevealed ?? false
-    setRevealed(revealed)
+    let settings: ContentAugmentationSettings | null = null
+    try {
+      const response = await FromContent.sendMessage({
+        type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
+      })
+      settings = response.state
+    } catch (e) {
+      analytics?.capture('Floater: failed to get user settings', {
+        'Event type': 'warning',
+        error: errorise(e).message,
+      })
+      log.warning(
+        'Failed to get user settings, Mazed will use defaults. ' +
+          `Full error: "${errorise(e).message}"`
+      )
+    }
+    const revealed = settings?.isRevealed ?? false
     const defaultPosition = getStartDragPosition(revealed)
+
+    setRevealed(revealed)
     setControlledPosition({
       x: defaultPosition.x,
-      y: frameYPosition(response.state.positionY ?? defaultPosition.y),
+      y: frameYPosition(settings?.positionY ?? defaultPosition.y),
     })
   }, [])
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
-    const positionY = data.y
+    const positionY = frameYPosition(data.y)
     FromContent.sendMessage({
       type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
       settings: { positionY },
+    }).catch((e) => {
+      analytics?.capture('Floater: failed to update user settings', {
+        'Event type': 'warning',
+        error: errorise(e).message,
+      })
+      log.warning(
+        `Failed to update user settings, Mazed will go back to previous ones.\n` +
+          `Full error: "${errorise(e).message}"`
+      )
     })
     analytics?.capture('Drag SuggestionsFloater', {
       'Event type': 'drag',
