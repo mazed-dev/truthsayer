@@ -17,6 +17,7 @@ import type {
   StorageApiMsgReturnValue,
 } from 'smuggler-api'
 import { makeMsgProxyStorageApi } from 'smuggler-api'
+import { renderUserFacingError } from './userFacingError'
 
 const AppContainer = styled.div`
   width: 340px;
@@ -107,7 +108,13 @@ export const PopUpApp = () => {
       })
       dispatch(response)
     } catch (e) {
-      dispatch({ type: 'mark-as-errored', error: errorise(e).message })
+      dispatch({
+        type: 'mark-as-errored',
+        error: renderUserFacingError({
+          failedTo: 'detect its web extension',
+          tryTo: 're-open this popup',
+        }),
+      })
     }
   }, [])
 

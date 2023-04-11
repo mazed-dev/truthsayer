@@ -19,6 +19,7 @@ import {
 import { errorise, log } from 'armoury'
 import { PopUpContext } from './context'
 import { renderUserFacingError } from './userFacingError'
+import { PostHog } from 'posthog-js'
 
 const Container = styled.div`
   margin: 0;
@@ -94,7 +95,8 @@ function updateTabState(state: TabState, action: TabStateAction): TabState {
 
 function makeBookmarkPageButton(
   bookmarkState: BookmarkState,
-  dispatch: React.Dispatch<TabStateAction>
+  dispatch: React.Dispatch<TabStateAction>,
+  analytics?: PostHog
 ) {
   const handleSave = async () => {
     dispatch({ type: 'update-bookmark', state: { type: 'saving' } })
@@ -111,6 +113,10 @@ function makeBookmarkPageButton(
         state: newBookmarkState,
       })
     } catch (e) {
+      analytics?.capture('Popup: Failed to bookmark a page', {
+        'Event type': 'error',
+        error: errorise(e).message,
+      })
       const newBookmarkState: BookmarkState =
         bookmarkState.type === 'not-saved'
           ? { ...bookmarkState, saveError: errorise(e).message }
@@ -163,7 +169,7 @@ export const ViewActiveTabStatus = () => {
       })
     } catch (e) {
       const error = errorise(e).message
-      analytics?.capture('Floater: Failed to load tab status', {
+      analytics?.capture('Popup: Failed to load tab status', {
         'Event type': 'error',
         error: error,
       })
@@ -189,7 +195,7 @@ export const ViewActiveTabStatus = () => {
       })
     } catch (e) {
       const error = errorise(e).message
-      analytics?.capture('Floater: Failed to load suggestions', {
+      analytics?.capture('Popup: Failed to load suggestions', {
         'Event type': 'error',
         error: error,
       })
@@ -198,7 +204,7 @@ export const ViewActiveTabStatus = () => {
         status: 'error',
         error: {
           failedTo: 'get suggestions for this tab',
-          tryTo: 'reopen this popup',
+          tryTo: 're-open this popup',
         },
       })
     }
@@ -230,7 +236,9 @@ export const ViewActiveTabStatus = () => {
 
   return (
     <Container>
-      <Toolbar>{makeBookmarkPageButton(tabState.bookmark, dispatch)}</Toolbar>
+      <Toolbar>
+        {makeBookmarkPageButton(tabState.bookmark, dispatch, analytics)}
+      </Toolbar>
       {tabState.bookmark.type === 'not-saved' &&
       tabState.bookmark.saveError != null ? (
         <ErrorBox>
