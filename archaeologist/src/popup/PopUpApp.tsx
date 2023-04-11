@@ -17,6 +17,7 @@ import type {
   StorageApiMsgReturnValue,
 } from 'smuggler-api'
 import { makeMsgProxyStorageApi } from 'smuggler-api'
+import { renderUserFacingError } from './userFacingError'
 
 const AppContainer = styled.div`
   width: 340px;
@@ -26,17 +27,22 @@ const AppContainer = styled.div`
   font-weight: 400;
 `
 
+const Centered = styled.div`
+  margin: 0 auto 0 auto;
+  display: flex;
+  justify-content: center;
+`
+
 type State =
   | { type: 'not-init' }
-  | { type: 'not-logged-in'; analyticsIdentity: AnalyticsIdentity }
-  | {
-      type: 'logged-in'
-      userUid: string
-      analyticsIdentity: AnalyticsIdentity
-      analytics?: PostHog
-    }
+  | { type: 'error'; error: string }
+  | { type: 'not-logged-in'; analytics?: PostHog }
+  | { type: 'logged-in'; userUid: string; analytics?: PostHog }
 
-type Action = ToPopUp.AppStatusResponse | ToPopUp.LogInResponse
+type Action =
+  | ToPopUp.AppStatusResponse
+  | ToPopUp.LogInResponse
+  | { type: 'mark-as-errored'; error: string }
 
 function updateState(state: State, action: Action): State {
   switch (action.type) {
@@ -46,18 +52,11 @@ function updateState(state: State, action: Action): State {
           `Tried to do first-time init of popup app, but it already has state '${state.type}'`
         )
       }
+      const analytics = makeAnalytics(action.analyticsIdentity)
       if (action.userUid == null) {
-        return {
-          type: 'not-logged-in',
-          analyticsIdentity: action.analyticsIdentity,
-        }
+        return { type: 'not-logged-in', analytics }
       }
-      return {
-        type: 'logged-in',
-        userUid: action.userUid,
-        analyticsIdentity: action.analyticsIdentity,
-        analytics: makeAnalytics(action.analyticsIdentity),
-      }
+      return { type: 'logged-in', userUid: action.userUid, analytics }
     }
     case 'RESPONSE_LOG_IN': {
       if (state.type !== 'not-logged-in') {
@@ -68,8 +67,18 @@ function updateState(state: State, action: Action): State {
       return {
         type: 'logged-in',
         userUid: action.user.uid,
-        analyticsIdentity: state.analyticsIdentity,
-        analytics: makeAnalytics(state.analyticsIdentity),
+        analytics: state.analytics,
+      }
+    }
+    case 'mark-as-errored': {
+      if (state.type !== 'not-init') {
+        throw new Error(
+          `Tried to do mark popup app init as failed, but it has unexpected state '${state.type}'`
+        )
+      }
+      return {
+        type: 'error',
+        error: action.error,
       }
     }
   }
@@ -93,10 +102,20 @@ export const PopUpApp = () => {
   const [state, dispatch] = React.useReducer(updateState, initialState)
 
   useAsyncEffect(async () => {
-    const response = await FromPopUp.sendMessage({
-      type: 'REQUEST_APP_STATUS',
-    })
-    dispatch(response)
+    try {
+      const response = await FromPopUp.sendMessage({
+        type: 'REQUEST_APP_STATUS',
+      })
+      dispatch(response)
+    } catch (e) {
+      dispatch({
+        type: 'mark-as-errored',
+        error: renderUserFacingError({
+          failedTo: 'detect its web extension',
+          tryTo: 're-open this popup',
+        }),
+      })
+    }
   }, [])
 
   const forwardToBackground: ForwardToRealImpl = async (
@@ -111,7 +130,10 @@ export const PopUpApp = () => {
   return (
     <AppContainer>
       <PopUpContext.Provider
-        value={{ storage: makeMsgProxyStorageApi(forwardToBackground) }}
+        value={{
+          storage: makeMsgProxyStorageApi(forwardToBackground),
+          analytics: analyticsFrom(state),
+        }}
       >
         {determineWidget(state, dispatch)}
       </PopUpContext.Provider>
@@ -122,13 +144,33 @@ export const PopUpApp = () => {
 function determineWidget(state: State, dispatch: React.Dispatch<Action>) {
   switch (state.type) {
     case 'not-init': {
-      return <Spinner.Ring />
+      return (
+        <Centered>
+          <Spinner.Wheel />
+        </Centered>
+      )
+    }
+    case 'error': {
+      return <ErrorBox>{state.error}</ErrorBox>
     }
     case 'not-logged-in': {
       return <LoginPage onLogin={dispatch} />
     }
     case 'logged-in': {
       return <ViewActiveTabStatus />
+    }
+  }
+}
+
+function analyticsFrom(state: State): PostHog | undefined {
+  switch (state.type) {
+    case 'not-init':
+    case 'error': {
+      return undefined
+    }
+    case 'not-logged-in':
+    case 'logged-in': {
+      return state.analytics
     }
   }
 }
