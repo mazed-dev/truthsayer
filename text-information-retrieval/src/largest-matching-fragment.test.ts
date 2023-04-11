@@ -1,12 +1,12 @@
 import {
   impl,
-  findLargestCommonContinuousSubsequenceOfStems,
+  findLargestCommonContinuousSubsequence,
+  loadWinkModel,
+  sortOutSpacesAroundPunctuation,
 } from './largest-matching-fragment'
-import winkNLP from 'wink-nlp'
-import model from 'wink-eng-lite-web-model'
 
 describe('Find largest matching fragment of text', () => {
-  const wink = winkNLP(model)
+  const wink = loadWinkModel()
   it('extendInterval', () => {
     expect(impl.extendInterval([1], 1, 1, 10)).toStrictEqual({
       prefix: [0],
@@ -75,34 +75,30 @@ describe('Find largest matching fragment of text', () => {
     ])
   })
   it('sortOutSpacesAroundPunctuation', () => {
-    expect(impl.sortOutSpacesAroundPunctuation('')).toStrictEqual('')
-    expect(impl.sortOutSpacesAroundPunctuation('Abc bcd.')).toStrictEqual(
-      'Abc bcd.'
-    )
+    expect(sortOutSpacesAroundPunctuation('')).toStrictEqual('')
+    expect(sortOutSpacesAroundPunctuation('Abc bcd.')).toStrictEqual('Abc bcd.')
     expect(
-      impl.sortOutSpacesAroundPunctuation(
+      sortOutSpacesAroundPunctuation(
         'Mileena returned in Mortal Kombat 11 … First . second ! Is it the last one ? '
       )
     ).toStrictEqual(
       'Mileena returned in Mortal Kombat 11… First. second! Is it the last one?'
     )
+    expect(sortOutSpacesAroundPunctuation(` " a " ' abc abc ' `)).toStrictEqual(
+      `"a" 'abc abc'`
+    )
     expect(
-      impl.sortOutSpacesAroundPunctuation(` " a " ' abc abc ' `)
-    ).toStrictEqual(`"a" 'abc abc'`)
-    expect(
-      impl.sortOutSpacesAroundPunctuation(
-        ` [ 12 + 21 ] = { 21 + 12 } = ( 33 ) `
-      )
+      sortOutSpacesAroundPunctuation(` [ 12 + 21 ] = { 21 + 12 } = ( 33 ) `)
     ).toStrictEqual(`[12 + 21] = {21 + 12} = (33)`)
     expect(
-      impl.sortOutSpacesAroundPunctuation(
+      sortOutSpacesAroundPunctuation(
         `These are the colours I ' m talking about : blue , red, yellow ! Yan said " they all need just a few tweaks " . `
       )
     ).toStrictEqual(
       `These are the colours I'm talking about: blue, red, yellow! Yan said "they all need just a few tweaks".`
     )
   })
-  it('findLargestCommonContinuousSubsequenceOfStems - Jinx', () => {
+  it('findLargestCommonContinuousSubsequence - Jinx', () => {
     const first = `Jinx was added as a playable champion to the marksman roster of League of Legends in October 2013. As established in the lore written by Graham McNeill, Jinx was once a young innocent girl from Zaun, the seedy underbelly of the utopian city of Piltover. She harbors a dark and mysterious past with Vi, another champion from the game. Following a childhood tragedy, Jinx grew up to become "manic and impulsive" and her capacity for creating mayhem "became the stuff of legend".
 
 The first season of Arcane reveals that Jinx was originally named Powder.[15] She and her older sister Violet "Vi" were orphaned following the repressed undercity's failed uprising against the utopian city of Piltover, after which they were taken in by Vander, the leader of the rebellion.
@@ -113,9 +109,9 @@ The first season of Arcane reveals that Jinx was originally named Powder.[15] Sh
 Jinx was one of the first champions from League of Legends to star in her own animated music video in the lead-up to her in-game debut. "Get Jinxed" by Agnete Kjølsrud from the band Djerv, which follows Jinx's destructive exploits in Piltover, was released on YouTube on October 8, 2013.
     `
 
-    const lccs = findLargestCommonContinuousSubsequenceOfStems(
-      first,
-      second,
+    const lccs = findLargestCommonContinuousSubsequence(
+      wink.readDoc(impl.normlizeString(first)),
+      wink.readDoc(impl.normlizeString(second)),
       wink,
       10,
       2,
@@ -127,7 +123,7 @@ Jinx was one of the first champions from League of Legends to star in her own an
     expect(lccs.prefix).toStrictEqual(`, another`)
     expect(lccs.suffix).toStrictEqual(`" and her capacity for creating`)
   })
-  it('findLargestCommonContinuousSubsequenceOfStems - The Verge - Tesla', () => {
+  it('findLargestCommonContinuousSubsequence - The Verge - Tesla', () => {
     const first = `"The Ethics of Artificial Intelligence"
 
 Artificial intelligence (AI) has the potential to revolutionize many industries, but it also raises ethical concerns. As AI becomes more advanced, it will be able to make decisions that were once reserved for humans, such as driving a car or diagnosing a medical condition. This raises questions about how we should regulate and oversee the development and use of AI.
@@ -156,9 +152,9 @@ Artificial intelligence (AI) has the potential to revolutionize healthcare in nu
 
 Overall, the benefits of AI in healthcare are clear. By improving the accuracy and efficiency of medical diagnoses and treatments, AI has the potential to save lives and improve the quality of life for millions of people. As AI continues to develop, we can expect to see even more innovative uses of this technology in healthcare.
   `
-    const lccs = findLargestCommonContinuousSubsequenceOfStems(
-      first,
-      second,
+    const lccs = findLargestCommonContinuousSubsequence(
+      wink.readDoc(impl.normlizeString(first)),
+      wink.readDoc(impl.normlizeString(second)),
       wink,
       10,
       8,

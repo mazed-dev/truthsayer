@@ -14,6 +14,10 @@ import { ContentAugmentationSettings, FromContent } from './../../message/types'
 import { DragHandle, Minimize } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
 import { errorise, log } from 'armoury'
+import {
+  loadWinkModel,
+  findLargestCommonContinuousSubsequence,
+} from 'text-information-retrieval'
 
 const SuggestedCardsBox = styled.div`
   width: 320px;
@@ -114,13 +118,23 @@ const NoSuggestedCardsBox = styled.div`
   margin: 12px 0 12px 0;
 `
 
+function normlizeString(str: string): string {
+  return str.replace(/\n+/g, '. ').replace(/\s+/g, ' ')
+}
+
 type SuggestedCardsProps = {
   nodes: TNode[]
+  phrase: string
   onClose: () => void
   isLoading: boolean
 }
 
-const SuggestedCards = ({ nodes, onClose, isLoading }: SuggestedCardsProps) => {
+const SuggestedCards = ({
+  nodes,
+  phrase,
+  onClose,
+  isLoading,
+}: SuggestedCardsProps) => {
   const analytics = React.useContext(ContentContext).analytics
   React.useEffect(() => {
     analytics?.capture('Show suggested associations', {
@@ -128,7 +142,31 @@ const SuggestedCards = ({ nodes, onClose, isLoading }: SuggestedCardsProps) => {
       length: nodes.length,
     })
   }, [nodes, analytics])
+  const wink = React.useMemo(() => loadWinkModel(), [])
+  const phaseWinkDoc = React.useMemo(
+    () => wink.readDoc(normlizeString(phrase)),
+    [phrase, wink]
+  )
   const suggestedCards = nodes.map((node: TNode) => {
+    const text = [
+      // node.extattrs?.title,
+      // node.extattrs?.web_quote?.text,
+      node.extattrs?.description,
+      node.index_text?.plaintext,
+      // node.extattrs?.author,
+    ]
+      .filter((str: string | undefined) => !!str)
+      .join('\n')
+    const winkDoc = wink.readDoc(normlizeString(text))
+    const lcc = findLargestCommonContinuousSubsequence(
+      winkDoc,
+      phaseWinkDoc,
+      wink,
+      12,
+      12,
+      42
+    )
+    log.debug('Lcc', lcc)
     return <SuggestedCard key={node.nid} node={node} />
   })
   return (
@@ -190,9 +228,11 @@ const frameYPosition = (y: number) =>
 
 export const SuggestionsFloater = ({
   nodes,
+  phrase,
   isLoading,
 }: {
   nodes: TNode[]
+  phrase: string
   isLoading: boolean
 }) => {
   const nodeRef = React.useRef(null)
@@ -291,6 +331,7 @@ export const SuggestionsFloater = ({
                   saveRevealed(false)
                 }}
                 nodes={nodes}
+                phrase={phrase}
                 isLoading={isLoading}
               />
             ) : (

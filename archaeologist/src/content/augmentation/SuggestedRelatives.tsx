@@ -59,10 +59,9 @@ export function SuggestedRelatives({
       pageContent.description,
       ...pageContent.author,
       pageContent.text,
-      ...(stableUrl?.split('/') ?? []),
     ]
       .filter((v) => !!v)
-      .join('.\n')
+      .join('\n')
     return phrase
   }, [
     /**
@@ -137,6 +136,7 @@ export function SuggestedRelatives({
   return (
     <SuggestionsFloater
       nodes={suggestedNodes}
+      phrase={pagePhrase}
       isLoading={suggestionsSearchIsActive}
     />
   )

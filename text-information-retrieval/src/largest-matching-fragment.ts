@@ -1,5 +1,5 @@
-import { /* winkNLP, */ WinkMethods } from 'wink-nlp'
-// import model from 'wink-eng-lite-web-model'
+import winkNLP, { WinkMethods, Document as WinkDocument } from 'wink-nlp'
+import model from 'wink-eng-lite-web-model'
 import { range /* log */ } from 'armoury'
 
 export namespace impl {
@@ -112,18 +112,26 @@ export namespace impl {
     return { prefix, suffix }
   }
 
-  export function sortOutSpacesAroundPunctuation(str: string): string {
-    return str
-      .replace(/\s*"\s*(.*?)\s*"/g, ' "$1" ') // ' abc ' -> 'abc'
-      .replace(/\s*'\s*(.*?)\s*'/g, " '$1' ") // " abc " -> "abc"
-      .replace(/\s*([«“„〝({\[])\s*(.*?)\s*([»”‟〞)\]}])/g, ' $1$2$3 ')
-      .replace(/\s+([:;!?.,…'ʼ’])\s+/g, '$1 ') // "abc . Abc" -> "abc. Abc"
-      .replace(/\s+([:;!?.,…'ʼ’])$/g, '$1') // "A abc ." -> "A abc."
-      .replace(/\s*(['ʼ’])\s*(ll|s|m|d)/g, '$1$2')
-      .replace(/\s\s+/g, ' ')
-      .trim()
+  export function normlizeString(str: string): string {
+    return str.replace(/\n+/g, '. ').replace(/\s+/g, ' ')
   }
 } // namespace impl
+
+export function loadWinkModel(): WinkMethods {
+  return winkNLP(model)
+}
+
+export function sortOutSpacesAroundPunctuation(str: string): string {
+  return str
+    .replace(/\s*"\s*(.*?)\s*"/g, ' "$1" ') // ' abc ' -> 'abc'
+    .replace(/\s*'\s*(.*?)\s*'/g, " '$1' ") // " abc " -> "abc"
+    .replace(/\s*([«“„〝({\[])\s*(.*?)\s*([»”‟〞)\]}])/g, ' $1$2$3 ')
+    .replace(/\s+([:;!?.,…'ʼ’])\s+/g, '$1 ') // "abc . Abc" -> "abc. Abc"
+    .replace(/\s+([:;!?.,…'ʼ’])$/g, '$1') // "A abc ." -> "A abc."
+    .replace(/\s*(['ʼ’])\s*(ll|s|m|d|re)/g, '$1$2')
+    .replace(/\s\s+/g, ' ')
+    .trim()
+}
 
 type LargestCommonContinuousSubsequenceOfStems = {
   match: string
@@ -134,20 +142,19 @@ type LargestCommonContinuousSubsequenceOfStems = {
 /**
  * Returns largest substring of the first string that matches the second string
  */
-export function findLargestCommonContinuousSubsequenceOfStems(
-  first: string,
-  second: string,
+export function findLargestCommonContinuousSubsequence(
+  firstDoc: WinkDocument,
+  secondDoc: WinkDocument,
   wink: WinkMethods,
   gapToFillWordsNumber: number,
   prefixToExtendCharsNumber: number,
   suffixToExtendCharsNumber: number
 ): LargestCommonContinuousSubsequenceOfStems {
   // Clean up the inputs a bit
-  first = first.replace(/\n+/g, '. ').replace(/\s+/g, ' ')
-  second = second.replace(/\n+/g, '. ').replace(/\s+/g, ' ')
-
-  const firstDoc = wink.readDoc(first)
-  const secondDoc = wink.readDoc(second)
+  // first = first.replace(/\n+/g, '. ').replace(/\s+/g, ' ')
+  // second = second.replace(/\n+/g, '. ').replace(/\s+/g, ' ')
+  // const firstDoc = wink.readDoc(first)
+  // const secondDoc = wink.readDoc(second)
 
   const firstTokens = firstDoc.tokens().out()
   const firstPartsOfSpeach = firstDoc.tokens().out(wink.its.pos)
@@ -205,13 +212,13 @@ export function findLargestCommonContinuousSubsequenceOfStems(
   )
   // Join string and sort out spaces
   return {
-    match: impl.sortOutSpacesAroundPunctuation(
+    match: sortOutSpacesAroundPunctuation(
       largestRow.map((item) => firstTokens[item]).join(' ')
     ),
-    prefix: impl.sortOutSpacesAroundPunctuation(
+    prefix: sortOutSpacesAroundPunctuation(
       prefix.map((item) => firstTokens[item]).join(' ')
     ),
-    suffix: impl.sortOutSpacesAroundPunctuation(
+    suffix: sortOutSpacesAroundPunctuation(
       suffix.map((item) => firstTokens[item]).join(' ')
     ),
   }
