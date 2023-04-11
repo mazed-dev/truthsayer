@@ -189,23 +189,6 @@ export function findLargestCommonContinuousSubsequence(
   const lengths = rows.map((a) => a.length)
   const largestInd = lengths.indexOf(Math.max(...lengths))
   const largestRow = rows[largestInd]
-  // log.debug('Result longest row', largestInd)
-  // for (const ind in rows) {
-  //   const interval = rows[ind]
-  //   const extended = extendInterval(
-  //     interval,
-  //     prefixToExtendWordsNumber,
-  //     suffixToExtendWordsNumber,
-  //     firstTokens.length - 1
-  //   )
-  //   log.debug(
-  //     'Result: ',
-  //     ind,
-  //     `…${sortOutSpacesAroundPunctuation(
-  //       extended.map((item) => firstTokens[item]).join(' ')
-  //     )}…`
-  //   )
-  // }
   const { prefix, suffix } = impl.extendInterval(
     largestRow,
     prefixToExtendWordsNumber,

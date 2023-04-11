@@ -207,7 +207,7 @@ export type WebBookmarkDescriptionConfig =
 
 const MatchDescriptionSpan = styled.span`
   text-decoration-line: underline;
-  text-decoration-color: #0691ea9c;
+  text-decoration-color: #2880b99c;
   text-decoration-style: solid;
   text-decoration-thickness: 1px;
   &:hover {
@@ -239,7 +239,7 @@ const BookmarkMatchDescription = ({
 }) => {
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
   const [hiddenPrefix, visisblePrefix] = React.useMemo(() => {
-    const border = -2
+    const border = -4
     const arr: string[] = prefix.split(' ')
     return [
       `${arr.slice(0, border).join(' ')} `,
@@ -247,7 +247,7 @@ const BookmarkMatchDescription = ({
     ]
   }, [prefix])
   const [visisbleSuffix, hiddenSuffix] = React.useMemo(() => {
-    const border = 40
+    const border = 42
     const arr: string[] = suffix.split(' ')
     return [
       ` ${arr.slice(0, border).join(' ')}`,

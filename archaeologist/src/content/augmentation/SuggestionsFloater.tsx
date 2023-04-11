@@ -157,15 +157,9 @@ function getMatchingText(
     winkDoc,
     phaseWinkDoc,
     wink,
-    12,
+    14,
     24,
-    54
-  )
-  log.debug(
-    'LCC',
-    prefix.split(' ').length,
-    match.split(' ').length,
-    suffix.split(' ').length
+    96
   )
   if (match.length < 32) {
     // If longest matching text is shorter than 32 characters, texts probably
