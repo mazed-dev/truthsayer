@@ -218,8 +218,16 @@ export const SuggestionsFloater = ({
             `Full error: "${errorise(e).message}"`
         )
       }
-
       setRevealed(revealed)
+      // Reset floater position to adjust horisontal position (X), it has only
+      // 2 values for revealed/hidden floater. Y position must remain the same.
+      setControlledPosition((prev) => {
+        const defaultPosition = getStartDragPosition(revealed)
+        return {
+          x: defaultPosition.x,
+          y: frameYPosition(prev?.y ?? defaultPosition.y),
+        }
+      })
       analytics?.capture('Click SuggestionsFloater visibility toggle', {
         'Event type': 'change',
         isRevealed: revealed,
