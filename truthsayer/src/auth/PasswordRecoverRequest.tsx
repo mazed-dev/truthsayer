@@ -11,12 +11,29 @@ import {
 } from 'react-bootstrap'
 
 import { Emoji } from './../lib/Emoji'
-import PropTypes from 'prop-types'
 import { authentication } from 'smuggler-api'
-import { withRouter } from 'react-router-dom'
+import { RouteComponentProps, withRouter } from 'react-router-dom'
+import { StaticContext } from 'react-router'
 
-class PasswordRecoverRequest extends React.Component {
-  constructor(props) {
+type PasswordRecoverRequestPros = {} & RouteComponentProps<
+  {},
+  StaticContext,
+  { email: string }
+>
+type PasswordRecoverRequestState = {
+  email: string
+  reset_request_is_sent: boolean
+  isReady: boolean
+}
+
+class PasswordRecoverRequest extends React.Component<
+  PasswordRecoverRequestPros,
+  PasswordRecoverRequestState
+> {
+  emailRef: React.RefObject<HTMLInputElement>
+  abortControler: AbortController
+
+  constructor(props: PasswordRecoverRequestPros) {
     super(props)
     let email = ''
     if (this.props.location.state && this.props.location.state.email) {
@@ -25,14 +42,10 @@ class PasswordRecoverRequest extends React.Component {
     this.state = {
       email,
       reset_request_is_sent: false,
+      isReady: false,
     }
     this.emailRef = React.createRef()
     this.abortControler = new AbortController()
-  }
-
-  static propTypes = {
-    history: PropTypes.object.isRequired,
-    location: PropTypes.object.isRequired,
   }
 
   componentDidMount() {
@@ -53,7 +66,7 @@ class PasswordRecoverRequest extends React.Component {
     this.abortControler.abort()
   }
 
-  handleEmailChange = (event) => {
+  handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({ email: event.target.value })
     this.checkState()
   }
@@ -65,7 +78,7 @@ class PasswordRecoverRequest extends React.Component {
     }
   }
 
-  onSubmit = (event) => {
+  onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     authentication.user.password
       .recover({

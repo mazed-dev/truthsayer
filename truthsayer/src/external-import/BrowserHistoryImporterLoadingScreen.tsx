@@ -33,9 +33,17 @@ export function BrowserHistoryImporterLoadingScreen({
     <>
       <BigBox>🧘</BigBox>
       <Box>
-        This temporary browser window is used by Mazed to import your browser
-        history. It will open & close tabs with the pages you visited in the
-        past, to extract their data exactly as you saw them.
+        This temporary browser window is used by Mazed to save your browser
+        history to your personal Mazed account. To do so, it will open & close
+        tabs with the pages you visited in the past.
+      </Box>
+      <Box>
+        <span>
+          As a reminder, this information is stored locally on your device,
+          protecting your privacy. It will not take up any significant amount of
+          storage. For more information on how we protect your privacy, you can
+          read our <a href="/privacy-policy">privacy policy</a> here.
+        </span>
       </Box>
       <Box>
         <Spinner.Ring /> {progress.processed} of {progress.total} webpages

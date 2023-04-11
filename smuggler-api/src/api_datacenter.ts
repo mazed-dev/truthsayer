@@ -759,6 +759,7 @@ export class SmugglerError extends Error {
     statusText?: string
   }) {
     super(message)
+    this.name = 'SmugglerError'
     this.status = status
     this.statusText = statusText
     Object.setPrototypeOf(this, SmugglerError.prototype)
@@ -774,6 +775,10 @@ export class SmugglerError extends Error {
     }
     return null
   }
+}
+
+export function isSmugglerError(value: any): value is SmugglerError {
+  return value instanceof Error && value.name === 'SmugglerError'
 }
 
 function _makeResponseError(response: Response, message?: string): Error {
