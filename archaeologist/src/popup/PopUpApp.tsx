@@ -7,7 +7,7 @@ import { PostHog } from 'posthog-js'
 import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
 import { LoginForm, Spinner, userFacingLoginErrorFrom } from 'elementary'
-import { log, productanalytics } from 'armoury'
+import { productanalytics } from 'armoury'
 import type { AnalyticsIdentity } from 'armoury'
 import { PopUpContext } from './context'
 import type {
