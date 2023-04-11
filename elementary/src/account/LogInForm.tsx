@@ -2,6 +2,7 @@ import React from 'react'
 
 import styled from '@emotion/styled'
 import { Form, Button } from 'react-bootstrap'
+import { truthsayer } from '../truthsayer/url'
 
 import { isSmugglerError } from 'smuggler-api'
 
@@ -54,7 +55,28 @@ export const LoginForm = ({
         />
       </Form.Group>
       <Form.Group as={LoginFormRow} controlId="formLoginPassword">
-        <LoginFormLabel>Password</LoginFormLabel>
+        <LoginFormLabel>
+          <span>
+            Password (
+            <a
+              href={
+                truthsayer.url.make({ pathname: '/password-recover-request' })
+                  .href
+              }
+              // Below parameters are expected to make the link open a new tab
+              // when clicked. This is because this component lives in 'elementary'
+              // and gets used in different environments, e.g. in a web app
+              // and in browser extension's popup. In the latter case, by default
+              // clicking a link does nothing -- only opening a link in a new tab
+              // works.
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              forgot?
+            </a>
+            )
+          </span>
+        </LoginFormLabel>
         <Form.Control
           type="password"
           value={password}
