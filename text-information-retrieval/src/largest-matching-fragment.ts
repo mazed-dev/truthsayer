@@ -1,6 +1,6 @@
 import winkNLP, { WinkMethods, Document as WinkDocument } from 'wink-nlp'
 import model from 'wink-eng-lite-web-model'
-import { range /* log */ } from 'armoury'
+import { range } from 'armoury'
 
 export type { WinkDocument, WinkMethods }
 
@@ -11,7 +11,6 @@ export namespace impl {
   ): number[] {
     const m = arr1.length
     const n = arr2.length
-
     // Initialize the table with zeros
     const table: number[][] = []
     for (let i = 0; i <= m; i++) {
@@ -20,7 +19,6 @@ export namespace impl {
         table[i][j] = 0
       }
     }
-
     // Fill in the table using dynamic programming
     for (let i = 1; i <= m; i++) {
       for (let j = 1; j <= n; j++) {
@@ -31,7 +29,6 @@ export namespace impl {
         }
       }
     }
-
     // Trace back the table to find the subsequence indexes
     const result: number[] = []
     let i = m
@@ -158,12 +155,6 @@ export function findLargestCommonContinuousSubsequence(
     suffixToExtendWordsNumber: number
   }
 ): LargestCommonContinuousSubsequenceOfStems {
-  // Clean up the inputs a bit
-  // first = first.replace(/\n+/g, '. ').replace(/\s+/g, ' ')
-  // second = second.replace(/\n+/g, '. ').replace(/\s+/g, ' ')
-  // const firstDoc = wink.readDoc(first)
-  // const secondDoc = wink.readDoc(second)
-
   const firstTokens = firstDoc.tokens().out()
   const firstPartsOfSpeach = firstDoc.tokens().out(wink.its.pos)
   const firstStopWords = firstDoc.tokens().out(wink.its.stopWordFlag)
@@ -182,13 +173,6 @@ export function findLargestCommonContinuousSubsequence(
         !firstStopWords[item]
       )
     })
-  // log.debug('Out 1', firstDoc.tokens().out())
-  // log.debug('Stem 1', firstDoc.tokens().out(wink.its.stem))
-  // log.debug('Stem 2', secondDoc.tokens().out(wink.its.stem))
-  // log.debug('Out 2', secondDoc.tokens().out())
-  // log.debug('Pos 1', firstPartsOfSpeach)
-  // log.debug('Types 1', firstTypes)
-  // log.debug('Result indexes', indexes)
   const rows = impl.splitIntoContinuousIntervals(
     impl.fillSmallGaps(indexes, gapToFillWordsNumber)
   )
