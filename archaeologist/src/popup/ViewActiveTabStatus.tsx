@@ -11,7 +11,15 @@ import { MdiBookmarkAdd, Spinner } from 'elementary'
 import { ButtonCreate } from './Button'
 
 import { FromPopUp } from './../message/types'
-import { PageRelatedCards } from './PageRelatedCards'
+import {
+  CardsConnectedToPage,
+  CardsSuggestedForPage,
+  CardsSuggestedForPageProps,
+} from './PageRelatedCards'
+import { errorise, log } from 'armoury'
+import { PopUpContext } from './context'
+import { renderUserFacingError } from './userFacingError'
+import { PostHog } from 'posthog-js'
 
 const Container = styled.div`
   margin: 0;
@@ -27,135 +35,229 @@ const Toolbar = styled.div`
   justify-content: center;
 `
 
-type Status = 'saved' | 'loading' | 'unmemorable' | 'memorable'
+const ErrorBox = styled.div`
+  color: red;
+`
 
-type State = {
-  status: Status
-  bookmark: TNode | null
-  fromNodes: TNode[]
-  toNodes: TNode[]
-  suggestedAkinNodes?: TNode[]
+type BookmarkState =
+  | { type: 'saved'; value: TNode }
+  | { type: 'saving' }
+  | { type: 'not-saved'; memorable: boolean; saveError?: string }
+
+type TabState =
+  | { status: 'loading' }
+  | {
+      status: 'loaded'
+      bookmark: BookmarkState
+      fromNodes: TNode[]
+      toNodes: TNode[]
+    }
+  | {
+      status: 'error'
+    }
+
+type TabStateAction =
+  | {
+      type: 'init'
+      bookmark: BookmarkState
+      fromNodes: TNode[]
+      toNodes: TNode[]
+    }
+  | {
+      type: 'mark-as-errored'
+    }
+  | { type: 'update-bookmark'; state: BookmarkState }
+
+function updateTabState(state: TabState, action: TabStateAction): TabState {
+  switch (action.type) {
+    case 'init': {
+      const { bookmark, fromNodes, toNodes } = action
+      return {
+        status: 'loaded',
+        bookmark,
+        fromNodes,
+        toNodes,
+      }
+    }
+    case 'mark-as-errored': {
+      return { status: 'error' }
+    }
+    case 'update-bookmark': {
+      if (state.status !== 'loaded') {
+        throw new Error(
+          `Attempted to update bookmark, but tab state unexpectedly is '${state.status}'`
+        )
+      }
+      return { ...state, bookmark: action.state }
+    }
+  }
 }
 
-type Action =
-  | {
-      type: 'reset' | 'append'
-      bookmark?: TNodeJson
-      unmemorable?: boolean
-      fromNodes: TNodeJson[]
-      toNodes: TNodeJson[]
+function makeBookmarkPageButton(
+  bookmarkState: BookmarkState,
+  dispatch: React.Dispatch<TabStateAction>,
+  analytics?: PostHog
+) {
+  const handleSave = async () => {
+    dispatch({ type: 'update-bookmark', state: { type: 'saving' } })
+    try {
+      const { bookmark, unmemorable } = await FromPopUp.sendMessage({
+        type: 'REQUEST_PAGE_TO_SAVE',
+      })
+      const newBookmarkState: BookmarkState =
+        bookmark != null
+          ? { type: 'saved', value: NodeUtil.fromJson(bookmark) }
+          : { type: 'not-saved', memorable: !unmemorable }
+      dispatch({
+        type: 'update-bookmark',
+        state: newBookmarkState,
+      })
+    } catch (e) {
+      analytics?.capture('Popup: Failed to bookmark a page', {
+        'Event type': 'error',
+        error: errorise(e).message,
+      })
+      const newBookmarkState: BookmarkState =
+        bookmarkState.type === 'not-saved'
+          ? { ...bookmarkState, saveError: errorise(e).message }
+          : bookmarkState
+      dispatch({
+        type: 'update-bookmark',
+        state: newBookmarkState,
+      })
     }
-  | {
-      type: 'reset-suggested-akin-nodes'
-      suggestedAkinNodes: TNodeJson[]
-    }
-  | { type: 'update-status'; status: Status }
+  }
 
-function updateState(state: State, action: Action): State {
-  switch (action.type) {
-    case 'reset':
-    case 'append': {
-      let { bookmark, status, fromNodes, toNodes } = state
-      if (action.bookmark != null) {
-        bookmark = NodeUtil.fromJson(action.bookmark)
-        status = 'saved'
-      } else {
-        if (action.type === 'reset') {
-          bookmark = null
-        }
+  switch (bookmarkState.type) {
+    case 'not-saved': {
+      if (!bookmarkState.memorable) {
+        return null
       }
-      if (action.unmemorable) {
-        status = 'unmemorable'
-      } else {
-        status = 'memorable'
-      }
-      fromNodes = action.fromNodes
-        .map((json: TNodeJson) => NodeUtil.fromJson(json))
-        .concat(action.type === 'reset' ? [] : fromNodes)
-      toNodes = action.toNodes
-        .map((json: TNodeJson) => NodeUtil.fromJson(json))
-        .concat(action.type === 'reset' ? [] : toNodes)
-      return { ...state, bookmark, status, fromNodes, toNodes }
+      const btnIcon = <MdiBookmarkAdd css={{ verticalAlign: 'top' }} />
+      return <ButtonCreate onClick={handleSave}>{btnIcon}</ButtonCreate>
     }
-    case 'reset-suggested-akin-nodes': {
-      const suggestedAkinNodes = action.suggestedAkinNodes.map(
-        (json: TNodeJson) => NodeUtil.fromJson(json)
-      )
-      return { ...state, suggestedAkinNodes }
+    case 'saving': {
+      return <Spinner.Wheel />
     }
-    case 'update-status': {
-      const status = action.status
-      return { ...state, status }
+    case 'saved': {
+      // Page already bookmarked, its card will be displayed by a different widget
+      return null
     }
   }
 }
 
 export const ViewActiveTabStatus = () => {
-  const initialState: State = {
-    status: 'loading',
-    bookmark: null,
-    fromNodes: [],
-    toNodes: [],
-  }
-  const [state, dispatch] = React.useReducer(updateState, initialState)
+  const initialTabState: TabState = { status: 'loading' }
+  const [tabState, dispatch] = React.useReducer(updateTabState, initialTabState)
+  const analytics = React.useContext(PopUpContext).analytics
 
   useAsyncEffect(async () => {
-    const { bookmark, unmemorable, fromNodes, toNodes } =
-      await FromPopUp.sendMessage({
-        type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS',
+    try {
+      const { bookmark, unmemorable, fromNodes, toNodes } =
+        await FromPopUp.sendMessage({
+          type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS',
+        })
+      const bookmarkState: BookmarkState =
+        bookmark != null
+          ? { type: 'saved', value: NodeUtil.fromJson(bookmark) }
+          : { type: 'not-saved', memorable: !unmemorable }
+      dispatch({
+        type: 'init',
+        bookmark: bookmarkState,
+        fromNodes: fromNodes.map((json: TNodeJson) => NodeUtil.fromJson(json)),
+        toNodes: toNodes.map((json: TNodeJson) => NodeUtil.fromJson(json)),
       })
-    dispatch({
-      type: 'reset',
-      bookmark,
-      unmemorable,
-      fromNodes,
-      toNodes,
-    })
+    } catch (e) {
+      const error = errorise(e).message
+      analytics?.capture('Popup: Failed to load tab status', {
+        'Event type': 'error',
+        error: error,
+      })
+      log.error(`Failed to load tab status: ${error}`)
+      dispatch({ type: 'mark-as-errored' })
+    }
   }, [])
 
+  const [suggestions, setSuggestions] =
+    React.useState<CardsSuggestedForPageProps>({
+      status: 'loading',
+    })
   useAsyncEffect(async () => {
-    const { suggestedAkinNodes } = await FromPopUp.sendMessage({
-      type: 'REQUEST_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB',
-    })
-    dispatch({ type: 'reset-suggested-akin-nodes', suggestedAkinNodes })
+    try {
+      const { suggestedAkinNodes } = await FromPopUp.sendMessage({
+        type: 'REQUEST_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB',
+      })
+      setSuggestions({
+        status: 'loaded',
+        suggestedAkinNodes: suggestedAkinNodes.map((json: TNodeJson) =>
+          NodeUtil.fromJson(json)
+        ),
+      })
+    } catch (e) {
+      const error = errorise(e).message
+      analytics?.capture('Popup: Failed to load suggestions', {
+        'Event type': 'error',
+        error: error,
+      })
+      log.error(`Failed to load tab suggestions: ${error}`)
+      setSuggestions({
+        status: 'error',
+        error: {
+          failedTo: 'get suggestions for this tab',
+          tryTo: 're-open this popup',
+        },
+      })
+    }
   }, [])
 
-  const handleSave = async () => {
-    dispatch({ type: 'update-status', status: 'loading' })
-    const { bookmark, unmemorable } = await FromPopUp.sendMessage({
-      type: 'REQUEST_PAGE_TO_SAVE',
-    })
-    dispatch({
-      type: 'append',
-      bookmark,
-      unmemorable,
-      fromNodes: [],
-      toNodes: [],
-    })
-  }
-  let btn
-  if (state.status === 'memorable' && state.bookmark == null) {
-    btn = (
-      <ButtonCreate onClick={handleSave}>
-        <MdiBookmarkAdd
-          css={{
-            verticalAlign: 'top',
-          }}
-        />
-      </ButtonCreate>
+  if (tabState.status === 'loading') {
+    // If no tab information is known yet, show a single spinner and nothing else
+    return (
+      <Container>
+        <Toolbar>
+          <Spinner.Wheel />
+        </Toolbar>
+      </Container>
     )
-  } else if (state.status === 'loading') {
-    btn = <Spinner.Wheel />
+  } else if (tabState.status === 'error') {
+    // If failed to load tab information, show a single error and nothing else
+    return (
+      <Container>
+        <ErrorBox>
+          {renderUserFacingError({
+            failedTo: 'load data for this tab',
+            tryTo: 're-open this popup',
+          })}
+        </ErrorBox>
+      </Container>
+    )
   }
+  // If tab information is known, show action button, suggestions etc
+
   return (
     <Container>
-      <Toolbar>{btn}</Toolbar>
-      <PageRelatedCards
-        bookmark={state.bookmark || undefined}
-        fromNodes={state.fromNodes}
-        toNodes={state.toNodes}
-        suggestedAkinNodes={state.suggestedAkinNodes}
+      <Toolbar>
+        {makeBookmarkPageButton(tabState.bookmark, dispatch, analytics)}
+      </Toolbar>
+      {tabState.bookmark.type === 'not-saved' &&
+      tabState.bookmark.saveError != null ? (
+        <ErrorBox>
+          {renderUserFacingError({
+            failedTo: 'save this tab',
+            tryTo: 're-open this popup & retry',
+          })}
+        </ErrorBox>
+      ) : null}
+      <CardsConnectedToPage
+        bookmark={
+          tabState.bookmark.type === 'saved'
+            ? tabState.bookmark.value
+            : undefined
+        }
+        fromNodes={tabState.fromNodes}
+        toNodes={tabState.toNodes}
       />
+      <CardsSuggestedForPage {...suggestions} />
     </Container>
   )
 }
