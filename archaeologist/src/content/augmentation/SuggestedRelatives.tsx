@@ -52,7 +52,9 @@ export function SuggestedRelatives({
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
   const pagePhrase = React.useMemo(() => {
-    const baseURL = `${document.location.protocol}//${document.location.host}`
+    const baseURL = stableUrl
+      ? new URL(stableUrl).origin
+      : `${document.location.protocol}//${document.location.host}`
     const pageContent = exctractPageContent(document, baseURL)
     const phrase = [
       pageContent.title,
@@ -70,7 +72,6 @@ export function SuggestedRelatives({
      * not completely reloaded, but just updated. Because of this don't remove
      * this dependency even if you don't want to insert URL into a search phrase.
      */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     stableUrl,
   ])
   const requestSuggestedAssociations = React.useMemo(

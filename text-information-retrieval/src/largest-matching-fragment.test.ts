@@ -113,9 +113,11 @@ Jinx was one of the first champions from League of Legends to star in her own an
       wink.readDoc(impl.normlizeString(first)),
       wink.readDoc(impl.normlizeString(second)),
       wink,
-      10,
-      2,
-      6
+      {
+        gapToFillWordsNumber: 10,
+        prefixToExtendWordsNumber: 2,
+        suffixToExtendWordsNumber: 6,
+      }
     )
     expect(lccs.match).toStrictEqual(
       `champion from the game. Following a childhood tragedy, Jinx grew up to become " manic and impulsive`
@@ -156,9 +158,11 @@ Overall, the benefits of AI in healthcare are clear. By improving the accuracy a
       wink.readDoc(impl.normlizeString(first)),
       wink.readDoc(impl.normlizeString(second)),
       wink,
-      10,
-      8,
-      10
+      {
+        gapToFillWordsNumber: 10,
+        prefixToExtendWordsNumber: 8,
+        suffixToExtendWordsNumber: 10,
+      }
     )
     expect(lccs.match).toStrictEqual(
       `Artificial Intelligence ". Artificial intelligence (AI) has the potential to revolutionize`

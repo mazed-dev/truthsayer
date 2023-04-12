@@ -6,7 +6,12 @@ import { Launch } from '@emotion-icons/material'
 
 import type { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
 import type { Optional } from 'armoury'
-import { productanalytics } from 'armoury'
+import {
+  productanalytics,
+  splitStringByWord,
+  padNonEmptyStringWithSpaceHead,
+  padNonEmptyStringWithSpaceTail,
+} from 'armoury'
 import { log } from 'armoury'
 import styled from '@emotion/styled'
 
@@ -208,10 +213,11 @@ export type WebBookmarkDescriptionConfig =
 const MatchDescriptionSpan = styled.span`
   text-decoration-line: underline;
   text-decoration-color: #2880b99c;
+  text-decoration-color: rgba(0, 110, 237, 0.64);
   text-decoration-style: solid;
   text-decoration-thickness: 1px;
   &:hover {
-    text-decoration-thickness: 2px;
+    text-decoration-color: rgba(0, 110, 237, 0.92);
   }
 `
 const MatchDescriptionContextSpan = styled.span``
@@ -238,22 +244,14 @@ const BookmarkMatchDescription = ({
   captureMetricOnCopy?: (subj: string) => void
 }) => {
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
-  const [hiddenPrefix, visisblePrefix] = React.useMemo(() => {
-    const border = -4
-    const arr: string[] = prefix.split(' ')
-    return [
-      `${arr.slice(0, border).join(' ')} `,
-      `${arr.slice(border).join(' ')} `,
-    ]
-  }, [prefix])
-  const [visisbleSuffix, hiddenSuffix] = React.useMemo(() => {
-    const border = 42
-    const arr: string[] = suffix.split(' ')
-    return [
-      ` ${arr.slice(0, border).join(' ')}`,
-      ` ${arr.slice(border).join(' ')}`,
-    ]
-  }, [suffix])
+  const [hiddenPrefix, visisblePrefix] = React.useMemo(
+    () => splitStringByWord(prefix, -18),
+    [prefix]
+  )
+  const [visisbleSuffix, hiddenSuffix] = React.useMemo(
+    () => splitStringByWord(suffix, 154),
+    [suffix]
+  )
   return (
     <OverlayCopyOnHover
       getTextToCopy={() => {
@@ -266,25 +264,21 @@ const BookmarkMatchDescription = ({
       <Description cite={url} className={productanalytics.classExclude()}>
         &#8230;
         <MatchDescriptionContextSpan
-          css={{
-            display: seeMore ? 'inline' : 'none',
-          }}
+          css={{ display: seeMore ? 'inline' : 'none' }}
         >
-          {hiddenPrefix}
+          {padNonEmptyStringWithSpaceTail(hiddenPrefix)}
         </MatchDescriptionContextSpan>
         <MatchDescriptionContextSpan>
-          {visisblePrefix}
+          {padNonEmptyStringWithSpaceTail(visisblePrefix)}
         </MatchDescriptionContextSpan>
         <MatchDescriptionSpan>{match}</MatchDescriptionSpan>
         <MatchDescriptionContextSpan>
-          {visisbleSuffix}
+          {padNonEmptyStringWithSpaceHead(visisbleSuffix)}
         </MatchDescriptionContextSpan>
         <MatchDescriptionContextSpan
-          css={{
-            display: seeMore ? 'inline' : 'none',
-          }}
+          css={{ display: seeMore ? 'inline' : 'none' }}
         >
-          {hiddenSuffix}
+          {padNonEmptyStringWithSpaceHead(hiddenSuffix)}
         </MatchDescriptionContextSpan>
         &#8230;{' '}
         <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore((more) => !more)}>
@@ -305,12 +299,10 @@ const BookmarkOriginalDescription = ({
   captureMetricOnCopy?: (subj: string) => void
 }) => {
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
-  const [visisble, hidden] = React.useMemo(() => {
-    // Show only first N words of the description, hide the rest under the hood
-    const border = 54
-    const arr: string[] = description.split(' ')
-    return [arr.slice(0, border).join(' '), arr.slice(border).join(' ')]
-  }, [description])
+  const [visisble, hidden] = React.useMemo(
+    () => splitStringByWord(description, 210),
+    [description]
+  )
   return (
     <OverlayCopyOnHover
       getTextToCopy={() => {
@@ -320,20 +312,20 @@ const BookmarkOriginalDescription = ({
     >
       <Description cite={url} className={productanalytics.classExclude()}>
         <MatchDescriptionContextSpan>{visisble}</MatchDescriptionContextSpan>
-        <MatchDescriptionContextSpan
-          css={{
-            display: seeMore ? 'inline' : 'none',
-          }}
-        >
-          {hidden}
-        </MatchDescriptionContextSpan>
-        {!seeMore && !!hidden ? '… ' : ' '}
         {hidden ? (
-          <MatchDescriptionSeeMoreBtn
-            onClick={() => setSeeMore((more) => !more)}
-          >
-            see&nbsp;{seeMore ? 'less' : 'more'}
-          </MatchDescriptionSeeMoreBtn>
+          <>
+            <MatchDescriptionContextSpan
+              css={{ display: seeMore ? 'inline' : 'none' }}
+            >
+              {padNonEmptyStringWithSpaceHead(hidden)}
+            </MatchDescriptionContextSpan>
+            {!seeMore ? '… ' : ' '}
+            <MatchDescriptionSeeMoreBtn
+              onClick={() => setSeeMore((more) => !more)}
+            >
+              see&nbsp;{seeMore ? 'less' : 'more'}
+            </MatchDescriptionSeeMoreBtn>
+          </>
         ) : null}
       </Description>
     </OverlayCopyOnHover>

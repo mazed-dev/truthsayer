@@ -20,8 +20,8 @@ export const BlockQuoteBox = styled.div`
 export const BlockQuotePad = styled.blockquote`
   padding: 0 8px 0 8px;
   margin: 0 0 0 8px;
-  border-left: 1px solid rgb(182, 182, 182);
-  color: #5e5e5e;
+  border-left: 1px solid rgba(0, 110, 237, 0.42);
+  color: rgb(92, 92, 92);
   line-height: 142%;
 `
 

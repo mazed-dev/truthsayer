@@ -157,9 +157,11 @@ function getMatchingText(
     winkDoc,
     phaseWinkDoc,
     wink,
-    14,
-    24,
-    96
+    {
+      gapToFillWordsNumber: 14,
+      prefixToExtendWordsNumber: 24,
+      suffixToExtendWordsNumber: 92,
+    }
   )
   if (match.length < 32) {
     // If longest matching text is shorter than 32 characters, texts probably

@@ -148,9 +148,15 @@ export function findLargestCommonContinuousSubsequence(
   firstDoc: WinkDocument,
   secondDoc: WinkDocument,
   wink: WinkMethods,
-  gapToFillWordsNumber: number,
-  prefixToExtendWordsNumber: number,
-  suffixToExtendWordsNumber: number
+  {
+    gapToFillWordsNumber,
+    prefixToExtendWordsNumber,
+    suffixToExtendWordsNumber,
+  }: {
+    gapToFillWordsNumber: number
+    prefixToExtendWordsNumber: number
+    suffixToExtendWordsNumber: number
+  }
 ): LargestCommonContinuousSubsequenceOfStems {
   // Clean up the inputs a bit
   // first = first.replace(/\n+/g, '. ').replace(/\s+/g, ' ')
