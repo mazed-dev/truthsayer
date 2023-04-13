@@ -187,8 +187,7 @@ const Description = styled.blockquote`
 
   padding: 8px 8px 8px 8px;
   margin: 0;
-  color: #5e5e5e;
-  /* background: #f8f8f8; */
+  color: #424242;
 
   quotes: '“' '”' '‘' '’';
   &:before {
