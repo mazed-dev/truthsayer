@@ -221,7 +221,7 @@ function updateState(state: State, action: Action): State {
 
       return {
         mode,
-        originIdentity: genOriginId(exctractPageUrl(document)),
+        originIdentity,
         bookmark,
         toNodes,
         fromNodes,
