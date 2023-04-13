@@ -1,7 +1,7 @@
 import React from 'react'
 import lodash from 'lodash'
 
-import { log } from 'armoury'
+import { errorise, log } from 'armoury'
 import { NodeUtil } from 'smuggler-api'
 import type { Nid, TNode, TNodeJson } from 'smuggler-api'
 
@@ -94,23 +94,35 @@ export function SuggestedRelatives({
         async (phrase: string) => {
           setSuggestionsSearchIsActive(true)
           log.debug(`Look for "${phrase}" in Mazed`)
-          const response = await FromContent.sendMessage({
-            type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
-            limit: 8,
-            phrase,
-            excludeNids,
-          })
-          setSuggestedNodes(
-            response.suggested.map((value: TNodeJson) =>
-              NodeUtil.fromJson(value)
+          try {
+            const response = await FromContent.sendMessage({
+              type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
+              limit: 8,
+              phrase,
+              excludeNids,
+            })
+            setSuggestedNodes(
+              response.suggested.map((value: TNodeJson) =>
+                NodeUtil.fromJson(value)
+              )
             )
-          )
+            analytics?.capture('Search suggested associations', {
+              'Event type': 'search',
+              result_length: response.suggested.length,
+              phrase_size: phrase.length,
+            })
+          } catch (e) {
+            setSuggestedNodes([])
+            analytics?.capture('Floater: failed to get content suggestions', {
+              'Event type': 'warning',
+              error: errorise(e).message,
+            })
+            log.warning(
+              'Failed to get content suggestions. Full error: ',
+              errorise(e).message
+            )
+          }
           setSuggestionsSearchIsActive(false)
-          analytics?.capture('Search suggested associations', {
-            'Event type': 'search',
-            result_length: response.suggested.length,
-            phrase_size: phrase.length,
-          })
         },
         661,
         {}
