@@ -52,17 +52,18 @@ export function SuggestedRelatives({
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
   const pagePhrase = React.useMemo(() => {
-    const baseURL = `${document.location.protocol}//${document.location.host}`
+    const baseURL = stableUrl
+      ? new URL(stableUrl).origin
+      : `${document.location.protocol}//${document.location.host}`
     const pageContent = exctractPageContent(document, baseURL)
     const phrase = [
       pageContent.title,
       pageContent.description,
       ...pageContent.author,
       pageContent.text,
-      ...(stableUrl?.split('/') ?? []),
     ]
       .filter((v) => !!v)
-      .join('.\n')
+      .join('\n')
     return phrase
   }, [
     /**
@@ -137,6 +138,7 @@ export function SuggestedRelatives({
   return (
     <SuggestionsFloater
       nodes={suggestedNodes}
+      phrase={pagePhrase}
       isLoading={suggestionsSearchIsActive}
     />
   )

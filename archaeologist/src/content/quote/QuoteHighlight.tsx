@@ -13,7 +13,7 @@ import {
 
 const HighlightedText = styled('mark')`
   text-decoration-line: underline !important;
-  text-decoration-color: #00a8008f !important;
+  text-decoration-color: rgba(0, 110, 237, 0.56) !important;
   text-decoration-style: solid !important;
   text-decoration-thickness: 0.16em !important;
   background: inherit !important;
@@ -27,7 +27,7 @@ const HighlightedText = styled('mark')`
   }
 
   &:hover {
-    text-decoration-color: #00a800de !important;
+    text-decoration-color: rgba(0, 110, 237, 0.92) !important;
     text-decoration-thickness: 0.2em !important;
 
     mazed-toolbar {

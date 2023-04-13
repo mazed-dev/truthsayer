@@ -13,7 +13,6 @@ export const InlineLink = styled.a`
 export const BlockQuoteBox = styled.div`
   padding: 6px 0 6px 0;
   margin: 1em 0 0 0;
-  background: #f8f8f8;
   border-radius: 5px;
   font-style: italic;
 `
@@ -21,8 +20,9 @@ export const BlockQuoteBox = styled.div`
 export const BlockQuotePad = styled.blockquote`
   padding: 0 8px 0 8px;
   margin: 0 0 0 8px;
-  border-left: 1px solid rgb(182, 182, 182);
-  color: #5e5e5e;
+  border-left: 1px solid rgba(0, 110, 237, 0.42);
+  color: rgb(92, 92, 92);
+  line-height: 142%;
 `
 
 export const CodeBlockBox = styled.code`

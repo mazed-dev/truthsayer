@@ -39,6 +39,7 @@ export type {
   ThematicBreakElement,
   UnorderedListElement,
 } from './editor/types'
+export type { WebBookmarkDescriptionConfig } from './media/WebBookmark'
 
 export {
   TDoc,
