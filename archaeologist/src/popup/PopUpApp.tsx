@@ -6,7 +6,12 @@ import { PostHog } from 'posthog-js'
 
 import { FromPopUp, ToPopUp } from './../message/types'
 import { ViewActiveTabStatus } from './ViewActiveTabStatus'
-import { LoginForm, Spinner, userFacingLoginErrorFrom } from 'elementary'
+import {
+  ErrorBox,
+  LoginForm,
+  Spinner,
+  userFacingLoginErrorFrom,
+} from 'elementary'
 import { productanalytics } from 'armoury'
 import type { AnalyticsIdentity } from 'armoury'
 import { PopUpContext } from './context'
@@ -186,10 +191,6 @@ const LoginImageBox = styled.div`
   margin: 42px auto 0 auto;
   display: flex;
   justify-content: center;
-`
-
-const ErrorBox = styled.div`
-  color: red;
 `
 
 const LoginFormBox = styled.div`
