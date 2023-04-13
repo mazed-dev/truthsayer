@@ -4,7 +4,7 @@ import type { NodeExtattrs } from 'smuggler-api'
 import { log, MimeType, productanalytics } from 'armoury'
 import { BlockQuoteBox, BlockQuotePad } from '../editor/components/components'
 
-import { MdiLaunch } from '../MaterialIcons'
+import { Launch as LaunchIcon } from '@emotion-icons/material'
 import { OverlayCopyOnHover } from '../OverlayCopyOnHover'
 
 import styled from '@emotion/styled'
@@ -37,11 +37,6 @@ const RefLink = styled.a`
 `
 const Author = styled.span`
   font-style: italic;
-`
-const RefLinkIcon = styled(MdiLaunch)`
-  margin-left: 4px;
-  font-size: 14px !important;
-  vertical-align: middle;
 `
 
 const WebBlockQuoteBox = styled(BlockQuoteBox)`
@@ -102,8 +97,8 @@ export const WebQuote = ({
               onClick={onLaunch}
             >
               {authorElement}
-              {hostname}
-              <RefLinkIcon />
+              {hostname}&nbsp;
+              <LaunchIcon size={'14px'} />
             </RefLink>
           </RefBox>
         )}
