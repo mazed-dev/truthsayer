@@ -35,7 +35,7 @@ import { css } from '@emotion/react'
 import type { NodeTextData, TNode } from 'smuggler-api'
 import { NodeType } from 'smuggler-api'
 import { NodeReadOnly, NodeEditor } from './NodeCard'
-import { Spinner } from 'elementary'
+import { ErrorBox, Spinner } from 'elementary'
 import { FromPopUp } from './../message/types'
 import { renderUserFacingError } from './userFacingError'
 import type { UserFacingError } from './userFacingError'
@@ -124,10 +124,6 @@ const RightCardRow = styled(RefCardRow)`
 
 const LeftCardRow = styled(RefCardRow)`
   justify-content: flex-start;
-`
-
-const ErrorBox = styled.div`
-  color: red;
 `
 
 const sortNodesByCreationTimeLatestFirst = (a: TNode, b: TNode) => {
