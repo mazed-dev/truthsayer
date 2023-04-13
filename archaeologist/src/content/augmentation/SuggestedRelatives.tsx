@@ -9,6 +9,7 @@ import { FromContent } from './../../message/types'
 import { SuggestionsFloater } from './SuggestionsFloater'
 import { exctractPageContent } from '../extractor/webPageContent'
 import { ContentContext } from '../context'
+import { extractSearchEngineQuery } from '../extractor/url/searchEngineQuery'
 
 export function getKeyPhraseFromUserInput(
   target?: HTMLTextAreaElement
@@ -40,6 +41,11 @@ function updateUserInputFromKeyboardEvent(keyboardEvent: KeyboardEvent) {
   return { target: null, phrase: null }
 }
 
+type SimilaritySearchInput = {
+  phrase: string
+  isSearchEngine: boolean
+}
+
 export function SuggestedRelatives({
   stableUrl,
   excludeNids,
@@ -51,7 +57,13 @@ export function SuggestedRelatives({
   const [suggestedNodes, setSuggestedNodes] = React.useState<TNode[]>([])
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
-  const pagePhrase = React.useMemo(() => {
+  const pageSimilaritySearchInput = React.useMemo<SimilaritySearchInput>(() => {
+    const searchEngineQuery = extractSearchEngineQuery(
+      stableUrl ?? document.location.href
+    )
+    if (searchEngineQuery?.phrase != null) {
+      return { phrase: searchEngineQuery.phrase, isSearchEngine: true }
+    }
     const baseURL = stableUrl
       ? new URL(stableUrl).origin
       : `${document.location.protocol}//${document.location.host}`
@@ -64,10 +76,10 @@ export function SuggestedRelatives({
     ]
       .filter((v) => !!v)
       .join('\n')
-    return phrase
+    return { phrase, isSearchEngine: false }
   }, [
     /**
-     * The dependency guarantees `pagePhrase` regenration on a newopened page,
+     * The dependency guarantees `pageSimilaritySearchInput` regenration on a newopened page,
      * it's important when a new page is opened by the same React App and DOM is
      * not completely reloaded, but just updated. Because of this don't remove
      * this dependency even if you don't want to insert URL into a search phrase.
@@ -128,18 +140,21 @@ export function SuggestedRelatives({
       if (phrase != null && phrase.length > 3 && userInput.phrase !== phrase) {
         requestSuggestedAssociations(phrase)
         setUserInput(newInput)
-      } else if (phrase == null && pagePhrase.length > 8) {
-        requestSuggestedAssociations(pagePhrase)
+      } else if (
+        phrase == null &&
+        pageSimilaritySearchInput.phrase.length > 8
+      ) {
+        requestSuggestedAssociations(pageSimilaritySearchInput.phrase)
       }
       return newInput
     },
-    [userInput, requestSuggestedAssociations, pagePhrase]
+    [userInput, requestSuggestedAssociations, pageSimilaritySearchInput.phrase]
   )
   React.useEffect(() => {
-    if (pagePhrase.length > 8) {
-      requestSuggestedAssociations(pagePhrase)
+    if (pageSimilaritySearchInput.phrase.length > 8) {
+      requestSuggestedAssociations(pageSimilaritySearchInput.phrase)
     }
-  }, [pagePhrase, requestSuggestedAssociations])
+  }, [pageSimilaritySearchInput.phrase, requestSuggestedAssociations])
   React.useEffect(() => {
     const opts: AddEventListenerOptions = { passive: true, capture: true }
     window.addEventListener('keyup', consumeKeyboardEvent, opts)
@@ -150,8 +165,9 @@ export function SuggestedRelatives({
   return (
     <SuggestionsFloater
       nodes={suggestedNodes}
-      phrase={pagePhrase}
+      phrase={pageSimilaritySearchInput.phrase}
       isLoading={suggestionsSearchIsActive}
+      defaultRevelaed={pageSimilaritySearchInput.isSearchEngine}
     />
   )
 }

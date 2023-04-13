@@ -1,6 +1,6 @@
 export * from './relevance'
 export {
   loadWinkModel,
-  findLargestCommonContinuousSubsequence,
+  findLongestCommonQuote,
 } from './largest-matching-fragment'
 export type { WinkDocument, WinkMethods } from './largest-matching-fragment'
