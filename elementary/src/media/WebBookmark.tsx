@@ -204,6 +204,9 @@ export type WebBookmarkDescriptionConfig =
       type: 'original' // default
     }
   | {
+      type: 'original-cutted'
+    }
+  | {
       type: 'match'
       match: string
       prefix: string
@@ -299,7 +302,7 @@ const BookmarkOriginalDescription = ({
   captureMetricOnCopy?: (subj: string) => void
 }) => {
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
-  const [visisble, hidden] = React.useMemo(
+  const [visible, hidden] = React.useMemo(
     () => splitStringByWord(description, 210),
     [description]
   )
@@ -307,11 +310,11 @@ const BookmarkOriginalDescription = ({
     <OverlayCopyOnHover
       getTextToCopy={() => {
         captureMetricOnCopy?.('description')
-        return seeMore ? description : visisble
+        return seeMore ? description : visible
       }}
     >
       <Description cite={url} className={productanalytics.classExclude()}>
-        <MatchDescriptionContextSpan>{visisble}</MatchDescriptionContextSpan>
+        <MatchDescriptionContextSpan>{visible}</MatchDescriptionContextSpan>
         {hidden ? (
           <>
             <MatchDescriptionContextSpan
@@ -345,17 +348,32 @@ const BookmarkDescription = ({
 }) => {
   switch (webBookmarkDescriptionConfig.type) {
     case 'original':
-      if (description) {
-        return (
-          <BookmarkOriginalDescription
-            url={url}
-            description={description}
-            captureMetricOnCopy={captureMetricOnCopy}
-          />
-        )
-      } else {
+      if (!description) {
         return null
       }
+      return (
+        <OverlayCopyOnHover
+          getTextToCopy={() => {
+            captureMetricOnCopy?.('description')
+            return description
+          }}
+        >
+          <Description cite={url} className={productanalytics.classExclude()}>
+            {description}
+          </Description>
+        </OverlayCopyOnHover>
+      )
+    case 'original-cutted':
+      if (!description) {
+        return null
+      }
+      return (
+        <BookmarkOriginalDescription
+          url={url}
+          description={description}
+          captureMetricOnCopy={captureMetricOnCopy}
+        />
+      )
     case 'match':
       const { match, prefix, suffix } = webBookmarkDescriptionConfig
       return (

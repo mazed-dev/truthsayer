@@ -143,7 +143,7 @@ function getMatchingText(
   wink: WinkMethods
 ): WebBookmarkDescriptionConfig {
   if (!NodeUtil.isWebBookmark(node)) {
-    return { type: 'original' }
+    return { type: 'original-cutted' }
   }
   const text = [
     node.extattrs?.description,
