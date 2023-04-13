@@ -5,46 +5,29 @@ import { range } from 'armoury'
 export type { WinkDocument, WinkMethods }
 
 export namespace impl {
-  export function findLargestCommonSubsequenceIndexes<T>(
-    arr1: T[],
-    arr2: T[]
+  export function longestCommonContinuousSubsequenceIndexes<T>(
+    seq1: T[],
+    seq2: T[]
   ): number[] {
-    const m = arr1.length
-    const n = arr2.length
-    // Initialize the table with zeros
-    const table: number[][] = []
-    for (let i = 0; i <= m; i++) {
-      table[i] = []
-      for (let j = 0; j <= n; j++) {
-        table[i][j] = 0
-      }
-    }
-    // Fill in the table using dynamic programming
+    const m = seq1.length
+    const n = seq2.length
+    const dp: Array<Array<number>> = new Array(m + 1)
+      .fill(null)
+      .map(() => new Array(n + 1).fill(0))
+    let maxLength = 0
+    let endIndex = 0
     for (let i = 1; i <= m; i++) {
       for (let j = 1; j <= n; j++) {
-        if (arr1[i - 1] === arr2[j - 1]) {
-          table[i][j] = table[i - 1][j - 1] + 1
-        } else {
-          table[i][j] = Math.max(table[i - 1][j], table[i][j - 1])
+        if (seq1[i - 1] === seq2[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1] + 1
+          if (dp[i][j] > maxLength) {
+            maxLength = dp[i][j]
+            endIndex = i - 1
+          }
         }
       }
     }
-    // Trace back the table to find the subsequence indexes
-    const result: number[] = []
-    let i = m
-    let j = n
-    while (i > 0 && j > 0) {
-      if (arr1[i - 1] === arr2[j - 1]) {
-        result.unshift(i - 1)
-        i--
-        j--
-      } else if (table[i - 1][j] > table[i][j - 1]) {
-        i--
-      } else {
-        j--
-      }
-    }
-    return result
+    return range(endIndex - maxLength + 1, endIndex + 1)
   }
 
   export function splitIntoContinuousIntervals(row: number[]): number[][] {
@@ -133,6 +116,8 @@ export function sortOutSpacesAroundPunctuation(str: string): string {
 }
 
 type LargestCommonContinuousSubsequenceOfStems = {
+  matchTokensCount: number
+  matchValuableTokensCount: number
   match: string
   prefix: string
   suffix: string
@@ -141,12 +126,12 @@ type LargestCommonContinuousSubsequenceOfStems = {
 /**
  * Returns largest substring of the first string that matches the second string
  */
-export function findLargestCommonContinuousSubsequence(
+export function findLongestCommonQuote(
   firstDoc: WinkDocument,
   secondDoc: WinkDocument,
   wink: WinkMethods,
   {
-    gapToFillWordsNumber,
+    // gapToFillWordsNumber,
     prefixToExtendWordsNumber,
     suffixToExtendWordsNumber,
   }: {
@@ -156,29 +141,37 @@ export function findLargestCommonContinuousSubsequence(
   }
 ): LargestCommonContinuousSubsequenceOfStems {
   const firstTokens = firstDoc.tokens().out()
+  const firstStems = firstDoc.tokens().out(wink.its.stem)
+  const firstStopWordFlags = firstDoc.tokens().out(wink.its.stopWordFlag)
   const firstPartsOfSpeach = firstDoc.tokens().out(wink.its.pos)
-  const firstStopWords = firstDoc.tokens().out(wink.its.stopWordFlag)
-
-  const indexes = impl
-    .findLargestCommonSubsequenceIndexes(
-      firstDoc.tokens().out(wink.its.stem),
-      secondDoc.tokens().out(wink.its.stem)
-    )
-    .filter((item) => {
-      // Remove matches for punctuation, spaces, symbols and stop words
-      return (
-        firstPartsOfSpeach[item] !== 'PUNCT' &&
-        firstPartsOfSpeach[item] !== 'SPACE' &&
-        firstPartsOfSpeach[item] !== 'SYM' &&
-        !firstStopWords[item]
-      )
-    })
-  const rows = impl.splitIntoContinuousIntervals(
-    impl.fillSmallGaps(indexes, gapToFillWordsNumber)
+  const secondStems = secondDoc.tokens().out(wink.its.stem)
+  const largestRow = impl.longestCommonContinuousSubsequenceIndexes(
+    firstStems,
+    secondStems
   )
-  const lengths = rows.map((a) => a.length)
-  const largestInd = lengths.indexOf(Math.max(...lengths))
-  const largestRow = rows[largestInd]
+  // TODO(Alexander): Extend this to find all long enough common subsequences
+  // const rows = impl.splitIntoContinuousIntervals(
+  //   impl.fillSmallGaps(indexes, gapToFillWordsNumber)
+  // )
+  // for (const row of rows) {
+  //   log.debug('match', sortOutSpacesAroundPunctuation(
+  //     row.map((index) => firstTokens[index]).join(' ')
+  //   ))
+  // }
+  // const lengths = rows.map((a) => a.length)
+  // const largestInd = lengths.indexOf(Math.max(...lengths))
+  // const largestRow = rows[largestInd]
+
+  const matchValuableTokensCount = largestRow.filter(
+    // Don't count punctuation, spaces, symbols and stop words
+    (index) =>
+      !(
+        firstStopWordFlags[index] ||
+        firstPartsOfSpeach[index] === 'PUNCT' ||
+        firstPartsOfSpeach[index] === 'SPACE' ||
+        firstPartsOfSpeach[index] === 'SYM'
+      )
+  ).length
   const { prefix, suffix } = impl.extendInterval(
     largestRow,
     prefixToExtendWordsNumber,
@@ -188,13 +181,15 @@ export function findLargestCommonContinuousSubsequence(
   // Join string and sort out spaces
   return {
     match: sortOutSpacesAroundPunctuation(
-      largestRow.map((item) => firstTokens[item]).join(' ')
+      largestRow.map((index) => firstTokens[index]).join(' ')
     ),
+    matchValuableTokensCount,
+    matchTokensCount: largestRow.length,
     prefix: sortOutSpacesAroundPunctuation(
-      prefix.map((item) => firstTokens[item]).join(' ')
+      prefix.map((index) => firstTokens[index]).join(' ')
     ),
     suffix: sortOutSpacesAroundPunctuation(
-      suffix.map((item) => firstTokens[item]).join(' ')
+      suffix.map((index) => firstTokens[index]).join(' ')
     ),
   }
 }

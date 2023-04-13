@@ -24,7 +24,7 @@ import { errorise, log } from 'armoury'
 import type { WinkDocument, WinkMethods } from 'text-information-retrieval'
 import {
   loadWinkModel,
-  findLargestCommonContinuousSubsequence,
+  findLongestCommonQuote,
 } from 'text-information-retrieval'
 
 const SuggestedCardsBox = styled.div`
@@ -146,25 +146,17 @@ function getMatchingText(
   if (!NodeUtil.isWebBookmark(node)) {
     return { type: 'original-cutted' }
   }
-  const text = [
-    node.extattrs?.description,
-    node.index_text?.plaintext,
-    // node.extattrs?.author,
-  ]
+  const text = [node.extattrs?.description, node.index_text?.plaintext]
     .filter((str: string | undefined) => !!str)
     .join('\n')
   const winkDoc = wink.readDoc(normlizeString(text))
-  const { match, prefix, suffix } = findLargestCommonContinuousSubsequence(
-    winkDoc,
-    phaseWinkDoc,
-    wink,
-    {
+  const { match, matchValuableTokensCount, prefix, suffix } =
+    findLongestCommonQuote(winkDoc, phaseWinkDoc, wink, {
       gapToFillWordsNumber: 14,
       prefixToExtendWordsNumber: 24,
       suffixToExtendWordsNumber: 92,
-    }
-  )
-  if (match.length < 32) {
+    })
+  if (matchValuableTokensCount < 2) {
     // If longest matching text is shorter than 32 characters, texts probably
     // doesn't match directly. In that case let's just show original
     // description, best we can do in such curcumstances.
@@ -273,15 +265,17 @@ export const SuggestionsFloater = ({
   nodes,
   phrase,
   isLoading,
+  defaultRevelaed,
 }: {
   nodes: TNode[]
   phrase: string
   isLoading: boolean
+  defaultRevelaed: boolean
 }) => {
   const nodeRef = React.useRef(null)
   const [controlledPosition, setControlledPosition] =
     React.useState<Position2D | null>(null) // getStartDragPosition(false))
-  const [isRevealed, setRevealed] = React.useState<boolean>(false)
+  const [isRevealed, setRevealed] = React.useState<boolean>(defaultRevelaed)
 
   const analytics = React.useContext(ContentContext).analytics
   const saveRevealed = React.useCallback(
@@ -335,7 +329,7 @@ export const SuggestionsFloater = ({
           `Full error: "${errorise(e).message}"`
       )
     }
-    const revealed = settings?.isRevealed ?? false
+    const revealed = (settings?.isRevealed ?? false) || defaultRevelaed
     const defaultPosition = getStartDragPosition(revealed)
 
     setRevealed(revealed)

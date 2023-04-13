@@ -1,12 +1,53 @@
 import {
   impl,
-  findLargestCommonContinuousSubsequence,
+  findLongestCommonQuote,
   loadWinkModel,
   sortOutSpacesAroundPunctuation,
 } from './largest-matching-fragment'
 
 describe('Find largest matching fragment of text', () => {
   const wink = loadWinkModel()
+  it('longestCommonContinuousSubsequenceIndexes', () => {
+    expect(
+      impl.longestCommonContinuousSubsequenceIndexes(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        [-1, -1, 2, 3, 4, -1, -1, -1, 6, 7, 0, 0, 10]
+      )
+    ).toStrictEqual([2, 3, 4])
+    expect(
+      impl.longestCommonContinuousSubsequenceIndexes(
+        [
+          'googl',
+          'stadia',
+          'is',
+          'offici',
+          'be',
+          'shut',
+          'down',
+          ',',
+          'and',
+          'few',
+          'gamer',
+          'are',
+          'surpris',
+          'that',
+          'the',
+          'cloud',
+          'stream',
+          'servic',
+          'ultim',
+          'fail',
+          '.',
+          'home',
+          'googl',
+          'stadia',
+          'fail',
+          'and',
+        ],
+        ['googl', 'stadia', 'is', 'offici', 'be', 'shut', 'down']
+      )
+    ).toStrictEqual([0, 1, 2, 3, 4, 5, 6])
+  })
   it('extendInterval', () => {
     expect(impl.extendInterval([1], 1, 1, 10)).toStrictEqual({
       prefix: [0],
@@ -98,7 +139,7 @@ describe('Find largest matching fragment of text', () => {
       `These are the colours I'm talking about: blue, red, yellow! Yan said "they all need just a few tweaks".`
     )
   })
-  it('findLargestCommonContinuousSubsequence - Jinx', () => {
+  it('findLongestCommonQuote - Jinx', () => {
     const first = `Jinx was added as a playable champion to the marksman roster of League of Legends in October 2013. As established in the lore written by Graham McNeill, Jinx was once a young innocent girl from Zaun, the seedy underbelly of the utopian city of Piltover. She harbors a dark and mysterious past with Vi, another champion from the game. Following a childhood tragedy, Jinx grew up to become "manic and impulsive" and her capacity for creating mayhem "became the stuff of legend".
 
 The first season of Arcane reveals that Jinx was originally named Powder.[15] She and her older sister Violet "Vi" were orphaned following the repressed undercity's failed uprising against the utopian city of Piltover, after which they were taken in by Vander, the leader of the rebellion.
@@ -109,23 +150,23 @@ The first season of Arcane reveals that Jinx was originally named Powder.[15] Sh
 Jinx was one of the first champions from League of Legends to star in her own animated music video in the lead-up to her in-game debut. "Get Jinxed" by Agnete Kjølsrud from the band Djerv, which follows Jinx's destructive exploits in Piltover, was released on YouTube on October 8, 2013.
     `
 
-    const lccs = findLargestCommonContinuousSubsequence(
+    const lccs = findLongestCommonQuote(
       wink.readDoc(impl.normlizeString(first)),
       wink.readDoc(impl.normlizeString(second)),
       wink,
       {
         gapToFillWordsNumber: 10,
         prefixToExtendWordsNumber: 2,
-        suffixToExtendWordsNumber: 6,
+        suffixToExtendWordsNumber: 8,
       }
     )
-    expect(lccs.match).toStrictEqual(
-      `champion from the game. Following a childhood tragedy, Jinx grew up to become " manic and impulsive`
+    expect(lccs.match).toStrictEqual(`as a playable champion`)
+    expect(lccs.prefix).toStrictEqual(`was added`)
+    expect(lccs.suffix).toStrictEqual(
+      `to the marksman roster of League of Legends`
     )
-    expect(lccs.prefix).toStrictEqual(`, another`)
-    expect(lccs.suffix).toStrictEqual(`" and her capacity for creating`)
   })
-  it('findLargestCommonContinuousSubsequence - The Verge - Tesla', () => {
+  it('findLongestCommonQuote - The Verge - Tesla', () => {
     const first = `"The Ethics of Artificial Intelligence"
 
 Artificial intelligence (AI) has the potential to revolutionize many industries, but it also raises ethical concerns. As AI becomes more advanced, it will be able to make decisions that were once reserved for humans, such as driving a car or diagnosing a medical condition. This raises questions about how we should regulate and oversee the development and use of AI.
@@ -154,7 +195,7 @@ Artificial intelligence (AI) has the potential to revolutionize healthcare in nu
 
 Overall, the benefits of AI in healthcare are clear. By improving the accuracy and efficiency of medical diagnoses and treatments, AI has the potential to save lives and improve the quality of life for millions of people. As AI continues to develop, we can expect to see even more innovative uses of this technology in healthcare.
   `
-    const lccs = findLargestCommonContinuousSubsequence(
+    const lccs = findLongestCommonQuote(
       wink.readDoc(impl.normlizeString(first)),
       wink.readDoc(impl.normlizeString(second)),
       wink,
@@ -165,9 +206,9 @@ Overall, the benefits of AI in healthcare are clear. By improving the accuracy a
       }
     )
     expect(lccs.match).toStrictEqual(
-      `Artificial Intelligence ". Artificial intelligence (AI) has the potential to revolutionize`
+      `". Artificial intelligence (AI) has the potential to revolutionize`
     )
-    expect(lccs.prefix).toStrictEqual(`" The Ethics of`)
+    expect(lccs.prefix).toStrictEqual(`" The Ethics of Artificial Intelligence`)
     expect(lccs.suffix).toStrictEqual(
       `many industries, but it also raises ethical concerns.`
     )
