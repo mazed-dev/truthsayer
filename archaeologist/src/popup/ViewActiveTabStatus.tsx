@@ -7,7 +7,7 @@ import styled from '@emotion/styled'
 import { NodeUtil } from 'smuggler-api'
 import type { TNode, TNodeJson } from 'smuggler-api'
 
-import { MdiBookmarkAdd, Spinner } from 'elementary'
+import { ErrorBox, MdiBookmarkAdd, Spinner } from 'elementary'
 import { ButtonCreate } from './Button'
 
 import { FromPopUp } from './../message/types'
@@ -33,10 +33,6 @@ const Toolbar = styled.div`
   margin: 0 auto 0 auto;
   display: flex;
   justify-content: center;
-`
-
-const ErrorBox = styled.div`
-  color: red;
 `
 
 type BookmarkState =

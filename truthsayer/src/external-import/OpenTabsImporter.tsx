@@ -1,5 +1,5 @@
 import styled from '@emotion/styled'
-import { Spinner } from 'elementary'
+import { ErrorBox, Spinner } from 'elementary'
 import { FromTruthsayer } from 'truthsayer-archaeologist-communication'
 import type { BackgroundActionProgress } from 'truthsayer-archaeologist-communication'
 import { ArchaeologistState } from '../apps-list/archaeologistState'
@@ -15,10 +15,6 @@ const Comment = styled.div`
   margin: 0 0 12px 0;
 `
 const ButtonBox = styled.div``
-
-const ErrorBox = styled.div`
-  color: red;
-`
 
 export function OpenTabsImporter({
   archaeologistState,

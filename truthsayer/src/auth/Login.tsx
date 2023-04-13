@@ -6,7 +6,12 @@ import styled from '@emotion/styled'
 
 import { authentication } from 'smuggler-api'
 import { goto } from '../lib/route'
-import { LoginForm, Spinner, userFacingLoginErrorFrom } from 'elementary'
+import {
+  ErrorBox,
+  LoginForm,
+  Spinner,
+  userFacingLoginErrorFrom,
+} from 'elementary'
 import { FromTruthsayer } from 'truthsayer-archaeologist-communication'
 import { log } from 'armoury'
 
@@ -23,9 +28,7 @@ const LoginCardBox = styled.div`
 const TruthsayerLoginForm = styled(LoginForm)`
   margin-top: 22px;
 `
-const ErrorBox = styled.div`
-  color: red;
-`
+
 export const Login = () => {
   const [error, setError] = React.useState<string | null>(null)
   const [isLoading, setLoading] = React.useState<boolean>(false)
