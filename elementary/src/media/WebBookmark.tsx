@@ -282,7 +282,7 @@ const BookmarkMatchDescription = ({
         >
           {padNonEmptyStringWithSpaceHead(hiddenSuffix)}
         </MatchDescriptionContextSpan>
-        &#8230;{' '}
+        &#8230;&nbsp;
         <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore((more) => !more)}>
           see&nbsp;{seeMore ? 'less' : 'more'}
         </MatchDescriptionSeeMoreBtn>

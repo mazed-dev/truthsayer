@@ -125,8 +125,8 @@ export function sortOutSpacesAroundPunctuation(str: string): string {
     .replace(/\s*"\s*(.*?)\s*"/g, ' "$1" ') // ' abc ' -> 'abc'
     .replace(/\s*'\s*(.*?)\s*'/g, " '$1' ") // " abc " -> "abc"
     .replace(/\s*([«“„〝({\[])\s*(.*?)\s*([»”‟〞)\]}])/g, ' $1$2$3 ')
-    .replace(/\s+([:;!?.,…'ʼ’])\s+/g, '$1 ') // "abc . Abc" -> "abc. Abc"
-    .replace(/\s+([:;!?.,…'ʼ’])$/g, '$1') // "A abc ." -> "A abc."
+    .replace(/\s+([:;!?.,…'ʼ’]+)\s+/g, '$1 ') // "abc ?! Abc" -> "abc?! Abc"
+    .replace(/\s+([:;!?.,…'ʼ’]+)$/g, '$1') // "A abc ." -> "A abc."
     .replace(/\s*(['ʼ’])\s*(ll|s|m|d|re)/g, '$1$2')
     .replace(/\s\s+/g, ' ')
     .trim()
