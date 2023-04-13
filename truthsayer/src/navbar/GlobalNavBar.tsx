@@ -90,6 +90,7 @@ const CustomNavbar = styled(Navbar)`
   padding-right: 0.8rem;
   justify-content: space-between;
   ${kCardBorder};
+  z-index: 10000;
 `
 
 const NavbarBrand = styled(Navbar.Brand)`
