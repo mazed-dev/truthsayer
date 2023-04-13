@@ -9,7 +9,7 @@ import { Spinner } from './spinner/mod'
 import { NodeMedia } from './media/NodeMedia'
 import { WebBookmarkDescriptionConfig } from './media/WebBookmark'
 
-const Box = styled.div`
+export const NodeCardBox = styled.div`
   border-radius: inherit;
 `
 
@@ -31,7 +31,7 @@ export function NodeCardReadOnly({
   webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
 }) {
   return (
-    <Box className={productanalytics.classExclude(className)}>
+    <NodeCardBox className={productanalytics.classExclude(className)}>
       <NodeMedia
         storage={storage}
         className={''}
@@ -42,7 +42,7 @@ export function NodeCardReadOnly({
         webBookmarkDescriptionConfig={webBookmarkDescriptionConfig}
       />
       <NodeTextReader node={node} captureMetricOnCopy={captureMetricOnCopy} />
-    </Box>
+    </NodeCardBox>
   )
 }
 
