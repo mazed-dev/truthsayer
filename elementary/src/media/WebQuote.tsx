@@ -97,7 +97,8 @@ export const WebQuote = ({
               onClick={onLaunch}
             >
               {authorElement}
-              {hostname}&nbsp;<LaunchIcon size={"14px"} />
+              {hostname}&nbsp;
+              <LaunchIcon size={'14px'} />
             </RefLink>
           </RefBox>
         )}
