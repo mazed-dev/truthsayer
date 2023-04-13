@@ -2,17 +2,13 @@
 
 import React, { useState } from 'react'
 import { useAsyncEffect } from 'use-async-effect'
-import styled from '@emotion/styled'
 
 import type { Ack, NodeTextData, StorageApi, TNode } from 'smuggler-api'
 import { NodeTextEditor } from './editor/NodeTextEditor'
 import { SlateText, TDoc } from './editor/types'
 import { Spinner } from './spinner/mod'
 import { NodeMedia } from './media/NodeMedia'
-
-const Box = styled.div`
-  border-radius: inherit;
-`
+import { NodeCardBox } from './NodeCardReadOnly'
 
 export function NodeCard({
   node,
@@ -38,7 +34,7 @@ export function NodeCard({
     saveNode(doc.toNodeTextData())
   }
   return (
-    <Box className={className}>
+    <NodeCardBox className={className}>
       <NodeMedia
         node={node}
         storage={storage}
@@ -52,7 +48,7 @@ export function NodeCard({
         strippedFormatToolbar={strippedFormatToolbar}
         captureMetricOnCopy={captureMetricOnCopy}
       />
-    </Box>
+    </NodeCardBox>
   )
 }
 
