@@ -13,6 +13,7 @@ import {
 } from 'elementary'
 import type { TNode } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
+import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 
 import { AugmentationElement } from './Mount'
 import { ContentContext } from '../context'
@@ -22,10 +23,7 @@ import { DragHandle, Minimize } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
 import { errorise, log } from 'armoury'
 import type { WinkDocument, WinkMethods } from 'text-information-retrieval'
-import {
-  loadWinkModel,
-  findLongestCommonQuote,
-} from 'text-information-retrieval'
+import { loadWinkModel } from 'text-information-retrieval'
 
 const SuggestedCardsBox = styled.div`
   width: 320px;
@@ -99,6 +97,11 @@ const SuggestedCardBox = styled.div`
   user-select: text;
 `
 
+export type SuggestedNode = {
+  node: TNode
+  matchedPiece?: LongestCommonContinuousPiece
+}
+
 const SuggestedCard = ({
   node,
   webBookmarkDescriptionConfig,
@@ -134,50 +137,30 @@ const NoSuggestedCardsBox = styled.div`
   margin: 12px 0 12px 0;
 `
 
-function normlizeString(str: string): string {
-  return str.replace(/\s+/g, ' ')
-}
-
-function getMatchingText(
-  node: TNode,
-  phaseWinkDoc: WinkDocument,
-  wink: WinkMethods
-): WebBookmarkDescriptionConfig {
-  if (!NodeUtil.isWebBookmark(node)) {
+function getMatchingText({
+  node,
+  matchedPiece,
+}: SuggestedNode): WebBookmarkDescriptionConfig {
+  if (!NodeUtil.isWebBookmark(node) || !matchedPiece) {
     return { type: 'original-cutted' }
   }
-  const text = [node.extattrs?.description, node.index_text?.plaintext]
-    .filter((str: string | undefined) => !!str)
-    .join('\n')
-  const winkDoc = wink.readDoc(normlizeString(text))
-  const { match, matchValuableTokensCount, prefix, suffix } =
-    findLongestCommonQuote(winkDoc, phaseWinkDoc, wink, {
-      gapToFillWordsNumber: 14,
-      prefixToExtendWordsNumber: 24,
-      suffixToExtendWordsNumber: 92,
-    })
+  const { match, matchValuableTokensCount, prefix, suffix } = matchedPiece
   if (matchValuableTokensCount < 2) {
     // If longest matching text is shorter than 32 characters, texts probably
     // doesn't match directly. In that case let's just show original
     // description, best we can do in such curcumstances.
-    return { type: 'original' }
+    return { type: 'original-cutted' }
   }
   return { type: 'match', match, prefix, suffix }
 }
 
 type SuggestedCardsProps = {
-  nodes: TNode[]
-  phrase: string
+  nodes: SuggestedNode[]
   onClose: () => void
   isLoading: boolean
 }
 
-const SuggestedCards = ({
-  nodes,
-  phrase,
-  onClose,
-  isLoading,
-}: SuggestedCardsProps) => {
+const SuggestedCards = ({ nodes, onClose, isLoading }: SuggestedCardsProps) => {
   const analytics = React.useContext(ContentContext).analytics
   React.useEffect(() => {
     analytics?.capture('Show suggested associations', {
@@ -185,22 +168,12 @@ const SuggestedCards = ({
       length: nodes.length,
     })
   }, [nodes, analytics])
-  const wink = React.useMemo(() => loadWinkModel(), [])
-  const phaseWinkDoc = React.useMemo(
-    () => wink.readDoc(normlizeString(phrase)),
-    [phrase, wink]
-  )
-  const suggestedCards = nodes.map((node: TNode) => {
-    const webBookmarkDescriptionConfig = getMatchingText(
-      node,
-      phaseWinkDoc,
-      wink
-    )
+  const suggestedCards = nodes.map((suggestedNode) => {
     return (
       <SuggestedCard
-        key={node.nid}
-        node={node}
-        webBookmarkDescriptionConfig={webBookmarkDescriptionConfig}
+        key={suggestedNode.node.nid}
+        node={suggestedNode.node}
+        webBookmarkDescriptionConfig={getMatchingText(suggestedNode)}
       />
     )
   })
@@ -267,7 +240,7 @@ export const SuggestionsFloater = ({
   isLoading,
   defaultRevelaed,
 }: {
-  nodes: TNode[]
+  nodes: SuggestedNode[]
   phrase: string
   isLoading: boolean
   defaultRevelaed: boolean
@@ -372,11 +345,8 @@ export const SuggestionsFloater = ({
           <DraggableElement ref={nodeRef}>
             {isRevealed ? (
               <SuggestedCards
-                onClose={() => {
-                  saveRevealed(false)
-                }}
+                onClose={() => saveRevealed(false)}
                 nodes={nodes}
-                phrase={phrase}
                 isLoading={isLoading}
               />
             ) : (

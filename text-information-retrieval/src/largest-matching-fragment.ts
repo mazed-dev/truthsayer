@@ -115,7 +115,7 @@ export function sortOutSpacesAroundPunctuation(str: string): string {
     .trim()
 }
 
-export type LargestCommonContinuousPiece = {
+export type LongestCommonContinuousPiece = {
   matchTokensCount: number
   matchValuableTokensCount: number
   match: string
@@ -139,7 +139,7 @@ export function findLongestCommonContinuousPiece(
     prefixToExtendWordsNumber: number
     suffixToExtendWordsNumber: number
   }
-): LargestCommonContinuousPiece {
+): LongestCommonContinuousPiece {
   const firstTokens = firstDoc.tokens().out()
   const firstStems = firstDoc.tokens().out(wink.its.stem)
   const firstStopWordFlags = firstDoc.tokens().out(wink.its.stopWordFlag)
