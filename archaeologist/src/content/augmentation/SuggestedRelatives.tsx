@@ -9,7 +9,7 @@ import { FromContent } from './../../message/types'
 import { SuggestionsFloater } from './SuggestionsFloater'
 import { exctractPageContent } from '../extractor/webPageContent'
 import { ContentContext } from '../context'
-import { extractSearchEngineQuery } from '../extractor/url/searchEngineQuery'
+// import { extractSearchEngineQuery } from '../extractor/url/searchEngineQuery'
 
 export function getKeyPhraseFromUserInput(
   target?: HTMLTextAreaElement
@@ -58,12 +58,13 @@ export function SuggestedRelatives({
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
   const pageSimilaritySearchInput = React.useMemo<SimilaritySearchInput>(() => {
-    const searchEngineQuery = extractSearchEngineQuery(
-      stableUrl ?? document.location.href
-    )
-    if (searchEngineQuery?.phrase != null) {
-      return { phrase: searchEngineQuery.phrase, isSearchEngine: true }
-    }
+    // FIXME(Alexander): To mitigate SEV
+    // const searchEngineQuery = extractSearchEngineQuery(
+    //   stableUrl ?? document.location.href
+    // )
+    // if (searchEngineQuery?.phrase != null) {
+    //   return { phrase: searchEngineQuery.phrase, isSearchEngine: true }
+    // }
     const baseURL = stableUrl
       ? new URL(stableUrl).origin
       : `${document.location.protocol}//${document.location.host}`
@@ -167,7 +168,9 @@ export function SuggestedRelatives({
       nodes={suggestedNodes}
       phrase={pageSimilaritySearchInput.phrase}
       isLoading={suggestionsSearchIsActive}
-      defaultRevelaed={pageSimilaritySearchInput.isSearchEngine}
+      defaultRevelaed={
+        false /*pageSimilaritySearchInput.isSearchEngine FIXME(Alexander): To mitigate SEV */
+      }
     />
   )
 }
