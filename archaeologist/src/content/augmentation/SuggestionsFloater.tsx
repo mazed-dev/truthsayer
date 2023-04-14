@@ -90,6 +90,7 @@ const CloseBtn = styled(ImgButton)`
 const SuggestedCardBox = styled.div`
   font-size: 12px;
   color: #484848;
+  text-align: left;
   margin: 2px 4px 2px 4px;
   &:last-child {
     margin: 2px 4px 0px 4px;
