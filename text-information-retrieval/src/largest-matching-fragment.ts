@@ -115,7 +115,7 @@ export function sortOutSpacesAroundPunctuation(str: string): string {
     .trim()
 }
 
-type LargestCommonContinuousSubsequenceOfStems = {
+export type LargestCommonContinuousPiece = {
   matchTokensCount: number
   matchValuableTokensCount: number
   match: string
@@ -126,7 +126,7 @@ type LargestCommonContinuousSubsequenceOfStems = {
 /**
  * Returns largest substring of the first string that matches the second string
  */
-export function findLongestCommonQuote(
+export function findLongestCommonContinuousPiece(
   firstDoc: WinkDocument,
   secondDoc: WinkDocument,
   wink: WinkMethods,
@@ -139,7 +139,7 @@ export function findLongestCommonQuote(
     prefixToExtendWordsNumber: number
     suffixToExtendWordsNumber: number
   }
-): LargestCommonContinuousSubsequenceOfStems {
+): LargestCommonContinuousPiece {
   const firstTokens = firstDoc.tokens().out()
   const firstStems = firstDoc.tokens().out(wink.its.stem)
   const firstStopWordFlags = firstDoc.tokens().out(wink.its.stopWordFlag)
