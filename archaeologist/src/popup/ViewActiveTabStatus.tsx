@@ -16,7 +16,7 @@ import {
   CardsSuggestedForPage,
   CardsSuggestedForPageProps,
 } from './PageRelatedCards'
-import { errorise, log } from 'armoury'
+import { errorise, log, productanalytics } from 'armoury'
 import { PopUpContext } from './context'
 import { renderUserFacingError } from './userFacingError'
 import { PostHog } from 'posthog-js'
@@ -109,10 +109,15 @@ function makeBookmarkPageButton(
         state: newBookmarkState,
       })
     } catch (e) {
-      analytics?.capture('Popup: Failed to bookmark a page', {
-        'Event type': 'error',
-        error: errorise(e).message,
-      })
+      productanalytics.error(
+        analytics ?? null,
+        {
+          failedTo: 'bookmark a page',
+          location: 'popup',
+          cause: errorise(e).message,
+        },
+        { andLog: true }
+      )
       const newBookmarkState: BookmarkState =
         bookmarkState.type === 'not-saved'
           ? { ...bookmarkState, saveError: errorise(e).message }
@@ -164,12 +169,15 @@ export const ViewActiveTabStatus = () => {
         toNodes: toNodes.map((json: TNodeJson) => NodeUtil.fromJson(json)),
       })
     } catch (e) {
-      const error = errorise(e).message
-      analytics?.capture('Popup: Failed to load tab status', {
-        'Event type': 'error',
-        error: error,
-      })
-      log.error(`Failed to load tab status: ${error}`)
+      productanalytics.error(
+        analytics ?? null,
+        {
+          failedTo: 'load tab status',
+          location: 'popup',
+          cause: errorise(e).message,
+        },
+        { andLog: true }
+      )
       dispatch({ type: 'mark-as-errored' })
     }
   }, [])
@@ -190,12 +198,15 @@ export const ViewActiveTabStatus = () => {
         ),
       })
     } catch (e) {
-      const error = errorise(e).message
-      analytics?.capture('Popup: Failed to load suggestions', {
-        'Event type': 'error',
-        error: error,
-      })
-      log.error(`Failed to load tab suggestions: ${error}`)
+      productanalytics.error(
+        analytics ?? null,
+        {
+          failedTo: 'load suggestions',
+          location: 'popup',
+          cause: errorise(e).message,
+        },
+        { andLog: true }
+      )
       setSuggestions({
         status: 'error',
         error: {
