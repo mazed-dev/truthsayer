@@ -12,7 +12,7 @@ import {
   WebBookmarkDescriptionConfig,
 } from 'elementary'
 import type { TNode } from 'smuggler-api'
-import { NodeUtil } from 'smuggler-api'
+// import { NodeUtil } from 'smuggler-api'
 
 import { AugmentationElement } from './Mount'
 import { ContentContext } from '../context'
@@ -20,12 +20,12 @@ import { MazedMiniFloater } from './MazedMiniFloater'
 import { ContentAugmentationSettings, FromContent } from './../../message/types'
 import { DragHandle, Minimize } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
-import { errorise, log, productanalytics } from 'armoury'
-import type { WinkDocument, WinkMethods } from 'text-information-retrieval'
-import {
-  loadWinkModel,
-  findLongestCommonQuote,
-} from 'text-information-retrieval'
+import { errorise, productanalytics } from 'armoury'
+// import type { WinkDocument, WinkMethods } from 'text-information-retrieval'
+// import {
+//   loadWinkModel,
+//   findLongestCommonQuote,
+// } from 'text-information-retrieval'
 
 const SuggestedCardsBox = styled.div`
   width: 320px;
@@ -90,6 +90,7 @@ const CloseBtn = styled(ImgButton)`
 const SuggestedCardBox = styled.div`
   font-size: 12px;
   color: #484848;
+  text-align: left;
   margin: 2px 4px 2px 4px;
   &:last-child {
     margin: 2px 4px 0px 4px;
@@ -134,35 +135,38 @@ const NoSuggestedCardsBox = styled.div`
   margin: 12px 0 12px 0;
 `
 
-function normlizeString(str: string): string {
-  return str.replace(/\s+/g, ' ')
-}
+// function normlizeString(str: string): string {
+//   return str.replace(/\s+/g, ' ')
+// }
 
-function getMatchingText(
+function getMatchingText(): WebBookmarkDescriptionConfig {
+  /*
   node: TNode,
   phaseWinkDoc: WinkDocument,
   wink: WinkMethods
-): WebBookmarkDescriptionConfig {
-  if (!NodeUtil.isWebBookmark(node)) {
-    return { type: 'original-cutted' }
-  }
-  const text = [node.extattrs?.description, node.index_text?.plaintext]
-    .filter((str: string | undefined) => !!str)
-    .join('\n')
-  const winkDoc = wink.readDoc(normlizeString(text))
-  const { match, matchValuableTokensCount, prefix, suffix } =
-    findLongestCommonQuote(winkDoc, phaseWinkDoc, wink, {
-      gapToFillWordsNumber: 14,
-      prefixToExtendWordsNumber: 24,
-      suffixToExtendWordsNumber: 92,
-    })
-  if (matchValuableTokensCount < 2) {
-    // If longest matching text is shorter than 32 characters, texts probably
-    // doesn't match directly. In that case let's just show original
-    // description, best we can do in such curcumstances.
-    return { type: 'original' }
-  }
-  return { type: 'match', match, prefix, suffix }
+   */
+  return { type: 'original' }
+  // FIXME(Alexander): Disable it all to mitigate SEV
+  // if (!NodeUtil.isWebBookmark(node)) {
+  //   return { type: 'original-cutted' }
+  // }
+  // const text = [node.extattrs?.description, node.index_text?.plaintext]
+  //   .filter((str: string | undefined) => !!str)
+  //   .join('\n')
+  // const winkDoc = wink.readDoc(normlizeString(text))
+  // const { match, matchValuableTokensCount, prefix, suffix } =
+  //   findLongestCommonQuote(winkDoc, phaseWinkDoc, wink, {
+  //     gapToFillWordsNumber: 14,
+  //     prefixToExtendWordsNumber: 24,
+  //     suffixToExtendWordsNumber: 92,
+  //   })
+  // if (matchValuableTokensCount < 2) {
+  //   // If longest matching text is shorter than 32 characters, texts probably
+  //   // doesn't match directly. In that case let's just show original
+  //   // description, best we can do in such curcumstances.
+  //   return { type: 'original' }
+  // }
+  // return { type: 'match', match, prefix, suffix }
 }
 
 type SuggestedCardsProps = {
@@ -174,7 +178,7 @@ type SuggestedCardsProps = {
 
 const SuggestedCards = ({
   nodes,
-  phrase,
+  // phrase,
   onClose,
   isLoading,
 }: SuggestedCardsProps) => {
@@ -185,17 +189,16 @@ const SuggestedCards = ({
       length: nodes.length,
     })
   }, [nodes, analytics])
-  const wink = React.useMemo(() => loadWinkModel(), [])
-  const phaseWinkDoc = React.useMemo(
-    () => wink.readDoc(normlizeString(phrase)),
-    [phrase, wink]
-  )
+  // const wink = React.useMemo(() => loadWinkModel(), [])
+  // const phaseWinkDoc = React.useMemo(
+  //   () => wink.readDoc(normlizeString(phrase)),
+  //   [phrase, wink]
+  // )
   const suggestedCards = nodes.map((node: TNode) => {
-    const webBookmarkDescriptionConfig = getMatchingText(
-      node,
-      phaseWinkDoc,
-      wink
-    )
+    const webBookmarkDescriptionConfig = getMatchingText()
+    //  node,
+    //  phaseWinkDoc,
+    //  wink
     return (
       <SuggestedCard
         key={node.nid}
