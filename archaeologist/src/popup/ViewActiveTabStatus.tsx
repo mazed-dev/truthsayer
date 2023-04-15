@@ -16,7 +16,7 @@ import {
   CardsSuggestedForPage,
   CardsSuggestedForPageProps,
 } from './PageRelatedCards'
-import { errorise, log, productanalytics } from 'armoury'
+import { errorise, productanalytics } from 'armoury'
 import { PopUpContext } from './context'
 import { renderUserFacingError } from './userFacingError'
 import { PostHog } from 'posthog-js'
