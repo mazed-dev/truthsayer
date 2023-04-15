@@ -20,7 +20,7 @@ import { MazedMiniFloater } from './MazedMiniFloater'
 import { ContentAugmentationSettings, FromContent } from './../../message/types'
 import { DragHandle, Minimize } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
-import { errorise, log } from 'armoury'
+import { errorise, productanalytics } from 'armoury'
 // import type { WinkDocument, WinkMethods } from 'text-information-retrieval'
 // import {
 //   loadWinkModel,
@@ -289,13 +289,14 @@ export const SuggestionsFloater = ({
           settings: { isRevealed: revealed },
         })
       } catch (e) {
-        analytics?.capture('Floater: failed to update user settings', {
-          'Event type': 'warning',
-          error: errorise(e).message,
-        })
-        log.warning(
-          `Failed to update user settings, Mazed will go back to previous ones.\n` +
-            `Full error: "${errorise(e).message}"`
+        productanalytics.warning(
+          analytics,
+          {
+            failedTo: 'update user settings',
+            location: 'floater',
+            cause: errorise(e).message,
+          },
+          { andLog: true }
         )
       }
       setRevealed(revealed)
@@ -323,13 +324,14 @@ export const SuggestionsFloater = ({
       })
       settings = response.state
     } catch (e) {
-      analytics?.capture('Floater: failed to get user settings', {
-        'Event type': 'warning',
-        error: errorise(e).message,
-      })
-      log.warning(
-        'Failed to get user settings, Mazed will use defaults. ' +
-          `Full error: "${errorise(e).message}"`
+      productanalytics.warning(
+        analytics,
+        {
+          failedTo: 'get user settings',
+          location: 'floater',
+          cause: errorise(e).message,
+        },
+        { andLog: true }
       )
     }
     const revealed = (settings?.isRevealed ?? false) || defaultRevelaed
@@ -347,13 +349,14 @@ export const SuggestionsFloater = ({
       type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
       settings: { positionY },
     }).catch((e) => {
-      analytics?.capture('Floater: failed to update user settings', {
-        'Event type': 'warning',
-        error: errorise(e).message,
-      })
-      log.warning(
-        `Failed to update user settings, Mazed will go back to previous ones.\n` +
-          `Full error: "${errorise(e).message}"`
+      productanalytics.warning(
+        analytics,
+        {
+          failedTo: 'update user settings',
+          location: 'floater',
+          cause: errorise(e).message,
+        },
+        { andLog: true }
       )
     })
     analytics?.capture('Drag SuggestionsFloater', {

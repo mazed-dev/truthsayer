@@ -1,7 +1,7 @@
 import React from 'react'
 import lodash from 'lodash'
 
-import { errorise, log } from 'armoury'
+import { errorise, log, productanalytics } from 'armoury'
 import { NodeUtil } from 'smuggler-api'
 import type { Nid, TNode, TNodeJson } from 'smuggler-api'
 
@@ -114,13 +114,14 @@ export function SuggestedRelatives({
             })
           } catch (e) {
             setSuggestedNodes([])
-            analytics?.capture('Floater: failed to get content suggestions', {
-              'Event type': 'warning',
-              error: errorise(e).message,
-            })
-            log.warning(
-              'Failed to get content suggestions. Full error: ',
-              errorise(e).message
+            productanalytics.error(
+              analytics,
+              {
+                failedTo: 'get content suggestions',
+                location: 'floater',
+                cause: errorise(e).message,
+              },
+              { andLog: true }
             )
           }
           setSuggestionsSearchIsActive(false)
