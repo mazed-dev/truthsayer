@@ -21,7 +21,7 @@ import { MazedMiniFloater } from './MazedMiniFloater'
 import { ContentAugmentationSettings, FromContent } from './../../message/types'
 import { DragHandle, Minimize } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
-import { errorise, log } from 'armoury'
+import { errorise, productanalytics } from 'armoury'
 
 const SuggestedCardsBox = styled.div`
   width: 320px;
@@ -84,10 +84,11 @@ const CloseBtn = styled(ImgButton)`
 `
 
 const SuggestedCardBox = styled.div`
-  font-size: 12px;
   color: #484848;
-  line-height: 142%;
+  font-size: 12px;
   letter-spacing: -0.01em;
+  line-height: 142%;
+  text-align: left;
 
   margin: 2px 4px 2px 4px;
   &:last-child {
@@ -143,16 +144,14 @@ function getMatchingText({
   node,
   matchedPiece,
 }: SuggestedNode): WebBookmarkDescriptionConfig {
-  if (!NodeUtil.isWebBookmark(node) || !matchedPiece) {
+  if (!NodeUtil.isWebBookmark(node) || matchedPiece == null || matchedPiece.matchValuableTokensCount < 2) {
+    // If card is not a bookmark, or there is no matching text or the longest
+    // matching text is shorter than 32 characters, texts probably doesn't match
+    // directly. In that case let's just show original description, best we can
+    // do in such curcumstances.
     return { type: 'original-cutted' }
   }
-  const { match, matchValuableTokensCount, prefix, suffix } = matchedPiece
-  if (matchValuableTokensCount < 2) {
-    // If longest matching text is shorter than 32 characters, texts probably
-    // doesn't match directly. In that case let's just show original
-    // description, best we can do in such curcumstances.
-    return { type: 'original-cutted' }
-  }
+  const { match, prefix, suffix } = matchedPiece
   return { type: 'match', prefix, match, suffix }
 }
 
@@ -259,13 +258,14 @@ export const SuggestionsFloater = ({
           settings: { isRevealed: revealed },
         })
       } catch (e) {
-        analytics?.capture('Floater: failed to update user settings', {
-          'Event type': 'warning',
-          error: errorise(e).message,
-        })
-        log.warning(
-          `Failed to update user settings, Mazed will go back to previous ones.\n` +
-            `Full error: "${errorise(e).message}"`
+        productanalytics.warning(
+          analytics,
+          {
+            failedTo: 'update user settings',
+            location: 'floater',
+            cause: errorise(e).message,
+          },
+          { andLog: true }
         )
       }
       setRevealed(revealed)
@@ -293,13 +293,14 @@ export const SuggestionsFloater = ({
       })
       settings = response.state
     } catch (e) {
-      analytics?.capture('Floater: failed to get user settings', {
-        'Event type': 'warning',
-        error: errorise(e).message,
-      })
-      log.warning(
-        'Failed to get user settings, Mazed will use defaults. ' +
-          `Full error: "${errorise(e).message}"`
+      productanalytics.warning(
+        analytics,
+        {
+          failedTo: 'get user settings',
+          location: 'floater',
+          cause: errorise(e).message,
+        },
+        { andLog: true }
       )
     }
     const revealed = (settings?.isRevealed ?? false) || defaultRevelaed
@@ -317,13 +318,14 @@ export const SuggestionsFloater = ({
       type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
       settings: { positionY },
     }).catch((e) => {
-      analytics?.capture('Floater: failed to update user settings', {
-        'Event type': 'warning',
-        error: errorise(e).message,
-      })
-      log.warning(
-        `Failed to update user settings, Mazed will go back to previous ones.\n` +
-          `Full error: "${errorise(e).message}"`
+      productanalytics.warning(
+        analytics,
+        {
+          failedTo: 'update user settings',
+          location: 'floater',
+          cause: errorise(e).message,
+        },
+        { andLog: true }
       )
     })
     analytics?.capture('Drag SuggestionsFloater', {
