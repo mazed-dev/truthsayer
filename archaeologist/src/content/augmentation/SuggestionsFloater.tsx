@@ -22,19 +22,17 @@ import { ContentAugmentationSettings, FromContent } from './../../message/types'
 import { DragHandle, Minimize } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
 import { errorise, log } from 'armoury'
-import type { WinkDocument, WinkMethods } from 'text-information-retrieval'
-import { loadWinkModel } from 'text-information-retrieval'
 
 const SuggestedCardsBox = styled.div`
   width: 320px;
   display: flex;
   flex-direction: column;
 
-  background: #f4f4f5db;
+  background: #eeeeefdb;
   box-shadow: 0 2px 5px 2px rgba(60, 64, 68, 0.16);
   &:hover,
   &:active {
-    background: #f4f4f5;
+    background: #eeeeef;
     box-shadow: 0 2px 8px 2px rgba(60, 64, 68, 0.24);
   }
   border-radius: 6px;
@@ -88,10 +86,14 @@ const CloseBtn = styled(ImgButton)`
 const SuggestedCardBox = styled.div`
   font-size: 12px;
   color: #484848;
+  line-height: 142%;
+  letter-spacing: -0.01em;
+
   margin: 2px 4px 2px 4px;
   &:last-child {
     margin: 2px 4px 0px 4px;
   }
+
   background: #ffffff;
   border-radius: 6px;
   user-select: text;
@@ -151,7 +153,7 @@ function getMatchingText({
     // description, best we can do in such curcumstances.
     return { type: 'original-cutted' }
   }
-  return { type: 'match', match, prefix, suffix }
+  return { type: 'match', prefix, match, suffix }
 }
 
 type SuggestedCardsProps = {
@@ -236,12 +238,10 @@ const frameYPosition = (y: number) =>
 
 export const SuggestionsFloater = ({
   nodes,
-  phrase,
   isLoading,
   defaultRevelaed,
 }: {
   nodes: SuggestedNode[]
-  phrase: string
   isLoading: boolean
   defaultRevelaed: boolean
 }) => {

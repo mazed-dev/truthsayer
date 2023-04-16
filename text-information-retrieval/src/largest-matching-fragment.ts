@@ -7,22 +7,27 @@ export type { WinkDocument, WinkMethods }
 export namespace impl {
   export function longestCommonContinuousSubsequenceIndexes<T>(
     seq1: T[],
-    seq2: T[]
+    seq2: T[],
+    maxLengthLimit: number // To cut the search if long enough quote is found
   ): number[] {
-    const m = seq1.length
-    const n = seq2.length
-    const dp: Array<Array<number>> = new Array(m + 1)
+    const seq1Len = seq1.length
+    const seq2Len = seq2.length
+    const dp: Array<Array<number>> = new Array(seq1Len + 1)
       .fill(null)
-      .map(() => new Array(n + 1).fill(0))
+      .map(() => new Array(seq2Len + 1).fill(0))
     let maxLength = 0
     let endIndex = 0
-    for (let i = 1; i <= m; i++) {
-      for (let j = 1; j <= n; j++) {
+    for (let i = 1; i <= seq1Len; i++) {
+      for (let j = 1; j <= seq2Len; j++) {
         if (seq1[i - 1] === seq2[j - 1]) {
           dp[i][j] = dp[i - 1][j - 1] + 1
           if (dp[i][j] > maxLength) {
             maxLength = dp[i][j]
             endIndex = i - 1
+            if (maxLength >= maxLengthLimit) {
+              // Exit earler if long enough piece is found already
+              return range(endIndex - maxLength + 1, endIndex + 1)
+            }
           }
         }
       }
@@ -131,13 +136,13 @@ export function findLongestCommonContinuousPiece(
   secondDoc: WinkDocument,
   wink: WinkMethods,
   {
-    // gapToFillWordsNumber,
     prefixToExtendWordsNumber,
-    suffixToExtendWordsNumber,
+    suffixToExtendWordsNumber, // Cut search if long enough quote is found
+    maxLengthOfCommonPieceWordsNumber,
   }: {
-    gapToFillWordsNumber: number
     prefixToExtendWordsNumber: number
     suffixToExtendWordsNumber: number
+    maxLengthOfCommonPieceWordsNumber: number
   }
 ): LongestCommonContinuousPiece {
   const firstTokens = firstDoc.tokens().out()
@@ -147,21 +152,10 @@ export function findLongestCommonContinuousPiece(
   const secondStems = secondDoc.tokens().out(wink.its.stem)
   const largestRow = impl.longestCommonContinuousSubsequenceIndexes(
     firstStems,
-    secondStems
+    secondStems,
+    maxLengthOfCommonPieceWordsNumber
   )
   // TODO(Alexander): Extend this to find all long enough common subsequences
-  // const rows = impl.splitIntoContinuousIntervals(
-  //   impl.fillSmallGaps(indexes, gapToFillWordsNumber)
-  // )
-  // for (const row of rows) {
-  //   log.debug('match', sortOutSpacesAroundPunctuation(
-  //     row.map((index) => firstTokens[index]).join(' ')
-  //   ))
-  // }
-  // const lengths = rows.map((a) => a.length)
-  // const largestInd = lengths.indexOf(Math.max(...lengths))
-  // const largestRow = rows[largestInd]
-
   const matchValuableTokensCount = largestRow.filter(
     // Don't count punctuation, spaces, symbols and stop words
     (index) =>

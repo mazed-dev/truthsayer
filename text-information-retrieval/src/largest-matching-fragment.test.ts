@@ -11,9 +11,17 @@ describe('Find largest matching fragment of text', () => {
     expect(
       impl.longestCommonContinuousSubsequenceIndexes(
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        [-1, -1, 2, 3, 4, -1, -1, -1, 6, 7, 0, 0, 10]
+        [-1, -1, 2, 3, 4, -1, -1, -1, 6, 7, 0, 0, 10],
+        9999
       )
     ).toStrictEqual([2, 3, 4])
+    expect(
+      impl.longestCommonContinuousSubsequenceIndexes(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        [-1, -1, 2, 3, 4, 5, 6, -1],
+        2
+      )
+    ).toStrictEqual([2, 3])
     expect(
       impl.longestCommonContinuousSubsequenceIndexes(
         [
@@ -44,7 +52,8 @@ describe('Find largest matching fragment of text', () => {
           'fail',
           'and',
         ],
-        ['googl', 'stadia', 'is', 'offici', 'be', 'shut', 'down']
+        ['googl', 'stadia', 'is', 'offici', 'be', 'shut', 'down'],
+        9999
       )
     ).toStrictEqual([0, 1, 2, 3, 4, 5, 6])
   })
@@ -155,9 +164,9 @@ Jinx was one of the first champions from League of Legends to star in her own an
       wink.readDoc(impl.normlizeString(second)),
       wink,
       {
-        gapToFillWordsNumber: 10,
         prefixToExtendWordsNumber: 2,
         suffixToExtendWordsNumber: 8,
+        maxLengthOfCommonPieceWordsNumber: 24,
       }
     )
     expect(lccs.match).toStrictEqual(`as a playable champion`)
@@ -200,9 +209,9 @@ Overall, the benefits of AI in healthcare are clear. By improving the accuracy a
       wink.readDoc(impl.normlizeString(second)),
       wink,
       {
-        gapToFillWordsNumber: 10,
         prefixToExtendWordsNumber: 8,
         suffixToExtendWordsNumber: 10,
+        maxLengthOfCommonPieceWordsNumber: 24,
       }
     )
     expect(lccs.match).toStrictEqual(

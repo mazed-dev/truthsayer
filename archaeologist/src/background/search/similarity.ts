@@ -92,10 +92,15 @@ export async function findRelevantNodes(
         winkDoc,
         phraseDoc,
         wink,
+        // These parameters are the subject of further iteration based on usage
+        // feedback. The current limit is chosen from aesthetic reason in my
+        // specific browser, with current styles - it all might look very
+        // different in other devices.
         {
-          gapToFillWordsNumber: 14,
           prefixToExtendWordsNumber: 24,
           suffixToExtendWordsNumber: 92,
+          // Cut search if long enough quote is found.
+          maxLengthOfCommonPieceWordsNumber: 36,
         }
       )
     }

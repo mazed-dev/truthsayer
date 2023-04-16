@@ -3,7 +3,7 @@ import lodash from 'lodash'
 
 import { errorise, log } from 'armoury'
 import { NodeUtil } from 'smuggler-api'
-import type { Nid, TNode, TNodeJson } from 'smuggler-api'
+import type { Nid } from 'smuggler-api'
 
 import { FromContent } from './../../message/types'
 import { SuggestionsFloater, SuggestedNode } from './SuggestionsFloater'
@@ -170,7 +170,6 @@ export function SuggestedRelatives({
   return (
     <SuggestionsFloater
       nodes={suggestedNodes}
-      phrase={pageSimilaritySearchInput.phrase}
       isLoading={suggestionsSearchIsActive}
       defaultRevelaed={pageSimilaritySearchInput.isSearchEngine}
     />

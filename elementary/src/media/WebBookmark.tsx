@@ -20,10 +20,10 @@ import { OverlayCopyOnHover } from '../OverlayCopyOnHover'
 const Box = styled.div`
   width: 100%;
 
-  border-top-right-radius: inherit;
   border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  border-bottom-left-radius: inherit;
   border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
 `
 
 const IconImg = styled.img`
@@ -39,6 +39,7 @@ const PreviewImageBox = styled.div`
   padding: 0;
   position: relative;
   border-top-left-radius: inherit;
+  border-bottom-left-radius: inherit;
 `
 
 const IconLaunch = styled.a`
@@ -130,6 +131,7 @@ const BadgeBox = styled.div`
   display: flex;
   border-top-right-radius: inherit;
   border-top-left-radius: inherit;
+  border-bottom-left-radius: inherit;
 `
 
 const TitleBox = styled.div`
@@ -204,6 +206,9 @@ export type WebBookmarkDescriptionConfig =
     }
   | {
       type: 'original-cutted'
+    }
+  | {
+      type: 'none'
     }
   | {
       type: 'match'
@@ -302,7 +307,7 @@ const BookmarkOriginalDescription = ({
 }) => {
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
   const [visible, hidden] = React.useMemo(
-    () => splitStringByWord(description, 210),
+    () => splitStringByWord(description, 220),
     [description]
   )
   return (
@@ -346,6 +351,8 @@ const BookmarkDescription = ({
   captureMetricOnCopy?: (subj: string) => void
 }) => {
   switch (webBookmarkDescriptionConfig.type) {
+    case 'none':
+      return null
     case 'original':
       if (!description) {
         return null
