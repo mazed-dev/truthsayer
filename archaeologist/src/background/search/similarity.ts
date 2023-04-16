@@ -36,6 +36,7 @@ export async function findRelevantNodes(
   limit?: number,
   excludedNids?: Set<Nid>
 ): Promise<RelevantNode[]> {
+  log.debug('findRelevantNodes for', text)
   const sizeLimit = limit ?? 16
   const results = relevance
     .findRelevantDocuments(text, sizeLimit * 2, overallIndex, perDocumentIndex)

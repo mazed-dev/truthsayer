@@ -9,7 +9,7 @@ import {
   ToBackground,
   FromBackground,
 } from './message/types'
-import { TDoc, truthsayer } from 'elementary'
+import { truthsayer } from 'elementary'
 import * as badge from './badge/badge'
 
 import browser, { Tabs } from 'webextension-polyfill'
@@ -22,7 +22,6 @@ import {
 } from 'truthsayer-archaeologist-communication'
 import { log, isAbortError, unixtime, errorise } from 'armoury'
 import {
-  Nid,
   TNodeJson,
   NodeUtil,
   TotalUserActivity,
@@ -146,45 +145,20 @@ async function lookupForSuggestionsToPageInActiveTab(
   tabId: number
 ): Promise<TNodeJson[]> {
   // Request page content first
-  const response:
-    | FromContent.SavePageResponse
-    | FromContent.PageAlreadySavedResponse
-    | FromContent.PageNotWorthSavingResponse = await ToContent.sendMessage(
-    tabId,
-    { type: 'REQUEST_PAGE_CONTENT', manualAction: true }
+  const response = await ToContent.sendMessage(tabId, {
+    type: 'REQUEST_PAGE_CONTENT_SEARCH_PHRASE',
+  })
+  const { phase, nidsExcludedFromSearch } = response
+  if (phase == null) {
+    return []
+  }
+  const nodes = await similarity.findRelevantNodes(
+    phase,
+    storage,
+    8,
+    new Set(nidsExcludedFromSearch)
   )
-  let textToSearchFor: string | null = null
-  const excludedNids: Set<Nid> = new Set()
-  if (response.type === 'PAGE_TO_SAVE' && response.content != null) {
-    const { title, author, description, text } = response.content
-    const desc = description ?? text
-    textToSearchFor = [title, author.join(', '), desc ?? ''].join('.\n')
-  } else if (response.type === 'PAGE_ALREADY_SAVED') {
-    for (const nid of [
-      response.bookmark.nid,
-      ...response.fromNodes.map((n) => n.nid),
-      ...response.toNodes.map((n) => n.nid),
-    ]) {
-      excludedNids.add(nid)
-    }
-    const node = NodeUtil.fromJson(response.bookmark)
-    const title = node.extattrs?.title
-    const description = node.extattrs?.description
-    const author = node.extattrs?.author
-    const coment = TDoc.fromNodeTextData(node.text).genPlainText()
-    const desc = description ?? node.index_text?.plaintext ?? ''
-    textToSearchFor = [title ?? '', desc, author ?? '', coment].join('.\n')
-  }
-  if (textToSearchFor != null && textToSearchFor.length >= 32) {
-    const nodes = await similarity.findRelevantNodes(
-      textToSearchFor,
-      storage,
-      8,
-      excludedNids
-    )
-    return nodes.map(({ node }) => NodeUtil.toJson(node))
-  }
-  return []
+  return nodes.map(({ node }) => NodeUtil.toJson(node))
 }
 
 async function handleMessageFromContent(

@@ -12,6 +12,7 @@ import type {
   ForwardToRealImpl,
   StorageApiMsgPayload,
   StorageApiMsgReturnValue,
+  Nid,
 } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log, productanalytics } from 'armoury'
 
@@ -29,6 +30,7 @@ import {
   exctractPageUrl,
   fetchAnyPagePreviewImage,
 } from './extractor/webPageContent'
+import { extractSimilaritySearchPhraseFromPageContent } from './extractor/webPageSearchPhrase'
 
 import { Quotes } from './quote/Quotes'
 import { ActivityTracker } from './activity-tracker/ActivityTracker'
@@ -315,6 +317,24 @@ async function handleReadOnlyRequest(
         fromNid: state.bookmark?.nid,
       }
     }
+    case 'REQUEST_PAGE_CONTENT_SEARCH_PHRASE': {
+      const baseURL = `${window.location.protocol}//${window.location.host}`
+      const phase =
+        extractSimilaritySearchPhraseFromPageContent(document, baseURL) ??
+        undefined
+      const nidsExcludedFromSearch: Nid[] = [
+        ...state.toNodes.map((node) => node.nid),
+        ...state.fromNodes.map((node) => node.nid),
+      ]
+      if (state.bookmark != null) {
+        nidsExcludedFromSearch.push(state.bookmark.nid)
+      }
+      return {
+        type: 'PAGE_CONTENT_SEARCH_PHRASE_RESPONSE',
+        phase,
+        nidsExcludedFromSearch,
+      }
+    }
   }
 }
 
@@ -341,7 +361,8 @@ const App = () => {
     async (message: ToContent.Request): Promise<FromContent.Response> => {
       switch (message.type) {
         case 'REQUEST_PAGE_CONTENT':
-        case 'REQUEST_SELECTED_WEB_QUOTE': {
+        case 'REQUEST_SELECTED_WEB_QUOTE':
+        case 'REQUEST_PAGE_CONTENT_SEARCH_PHRASE': {
           if (state.mode === 'uninitialised-content-app') {
             throw new Error(
               "Can't perform read requests on uninitalized content app"
