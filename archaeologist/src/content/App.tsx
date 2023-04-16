@@ -319,20 +319,15 @@ async function handleReadOnlyRequest(
     }
     case 'REQUEST_PAGE_CONTENT_SEARCH_PHRASE': {
       const baseURL = `${window.location.protocol}//${window.location.host}`
-      const phase =
-        extractSimilaritySearchPhraseFromPageContent(document, baseURL) ??
-        undefined
-      const nidsExcludedFromSearch: Nid[] = [
-        ...state.toNodes.map((node) => node.nid),
-        ...state.fromNodes.map((node) => node.nid),
-      ]
-      if (state.bookmark != null) {
-        nidsExcludedFromSearch.push(state.bookmark.nid)
-      }
       return {
         type: 'PAGE_CONTENT_SEARCH_PHRASE_RESPONSE',
-        phase,
-        nidsExcludedFromSearch,
+        nidsExcludedFromSearch: genExcludeNidsForSimilaritySearch(
+          state.toNodes,
+          state.bookmark
+        ),
+        phase:
+          extractSimilaritySearchPhraseFromPageContent(document, baseURL) ??
+          undefined,
       }
     }
   }
@@ -350,6 +345,19 @@ function mutatingRequestToAction(request: ToContent.MutatingRequest): Action {
       return { type: 'show-notification', data: request }
     }
   }
+}
+
+function genExcludeNidsForSimilaritySearch(
+  toNodes: TNode[],
+  bookmark?: TNode
+): Nid[] {
+  return (
+    toNodes
+      // Don't show the page itself and it's quotes among suggested
+      .filter((node) => node.ntype === NodeType.WebQuote)
+      .map((node) => node.nid)
+      .concat(bookmark != null ? [bookmark.nid] : [])
+  )
 }
 
 const App = () => {
@@ -442,11 +450,10 @@ const App = () => {
             {activityTrackerOrNull}
             <SuggestedRelatives
               stableUrl={state.originIdentity.stableUrl}
-              excludeNids={state.toNodes
-                // Don't show the page itself and it's quotes among suggested
-                .filter((node) => node.ntype === NodeType.WebQuote)
-                .map((node) => node.nid)
-                .concat(state.bookmark != null ? [state.bookmark.nid] : [])}
+              excludeNids={genExcludeNidsForSimilaritySearch(
+                state.toNodes,
+                state.bookmark
+              )}
             />
           </>
         )}
