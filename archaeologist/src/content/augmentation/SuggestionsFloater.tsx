@@ -144,7 +144,11 @@ function getMatchingText({
   node,
   matchedPiece,
 }: SuggestedNode): WebBookmarkDescriptionConfig {
-  if (!NodeUtil.isWebBookmark(node) || matchedPiece == null || matchedPiece.matchValuableTokensCount < 2) {
+  if (
+    !NodeUtil.isWebBookmark(node) ||
+    matchedPiece == null ||
+    matchedPiece.matchValuableTokensCount < 2
+  ) {
     // If card is not a bookmark, or there is no matching text or the longest
     // matching text is shorter than 32 characters, texts probably doesn't match
     // directly. In that case let's just show original description, best we can
