@@ -5,10 +5,14 @@ export function extractSimilaritySearchPhraseFromPageContent(
   baseURL: string
 ): string | null {
   const pageContent = exctractPageContent(document_, baseURL)
+  let author = pageContent.author.join(', ')
+  if (!!author) {
+    author = `By ${author}`
+  }
   const phrase = [
     pageContent.title,
     pageContent.description,
-    ...pageContent.author,
+    author,
     pageContent.text,
   ]
     .filter((v) => !!v)
