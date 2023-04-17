@@ -97,7 +97,8 @@ const SuggestedCardBox = styled.div`
 
   background: #ffffff;
   border-radius: 6px;
-  user-select: text;
+
+  user-select: auto;
 `
 
 export type RelevantNodeSuggestion = {

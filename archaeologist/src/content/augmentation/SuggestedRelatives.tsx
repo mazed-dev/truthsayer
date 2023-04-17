@@ -143,23 +143,20 @@ export function SuggestedRelatives({
       if (phrase != null && phrase.length > 3 && userInput.phrase !== phrase) {
         requestSuggestedAssociations(phrase)
         setUserInput(newInput)
-      } else if (
-        phrase == null &&
-        pageSimilaritySearchInput.phrase != null &&
-        pageSimilaritySearchInput.phrase.length > 8
-      ) {
-        requestSuggestedAssociations(pageSimilaritySearchInput.phrase)
       }
       return newInput
     },
-    [userInput, requestSuggestedAssociations, pageSimilaritySearchInput.phrase]
+    [
+      userInput,
+      requestSuggestedAssociations /* pageSimilaritySearchInput.phrase */,
+    ]
   )
   React.useEffect(() => {
     const phrase = pageSimilaritySearchInput.phrase
-    if (phrase != null && phrase.length > 8) {
+    if (phrase != null && phrase.length > 3) {
       requestSuggestedAssociations(phrase)
     }
-  }, [pageSimilaritySearchInput.phrase, requestSuggestedAssociations])
+  }, [pageSimilaritySearchInput, requestSuggestedAssociations])
   React.useEffect(() => {
     const opts: AddEventListenerOptions = { passive: true, capture: true }
     window.addEventListener('keyup', consumeKeyboardEvent, opts)
