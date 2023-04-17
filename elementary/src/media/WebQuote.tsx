@@ -12,10 +12,10 @@ import styled from '@emotion/styled'
 const Box = styled.div`
   width: 100%;
 
-  border-top-right-radius: inherit;
   border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  border-bottom-left-radius: inherit;
   border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
 `
 
 const RefBox = styled.p`

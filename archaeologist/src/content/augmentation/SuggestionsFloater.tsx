@@ -12,7 +12,8 @@ import {
   WebBookmarkDescriptionConfig,
 } from 'elementary'
 import type { TNode } from 'smuggler-api'
-// import { NodeUtil } from 'smuggler-api'
+import { NodeUtil } from 'smuggler-api'
+import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 
 import { AugmentationElement } from './Mount'
 import { ContentContext } from '../context'
@@ -21,22 +22,17 @@ import { ContentAugmentationSettings, FromContent } from './../../message/types'
 import { DragHandle, Minimize } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
 import { errorise, productanalytics } from 'armoury'
-// import type { WinkDocument, WinkMethods } from 'text-information-retrieval'
-// import {
-//   loadWinkModel,
-//   findLongestCommonQuote,
-// } from 'text-information-retrieval'
 
 const SuggestedCardsBox = styled.div`
   width: 320px;
   display: flex;
   flex-direction: column;
 
-  background: #f4f4f5db;
+  background: #eeeeefdb;
   box-shadow: 0 2px 5px 2px rgba(60, 64, 68, 0.16);
   &:hover,
   &:active {
-    background: #f4f4f5;
+    background: #eeeeef;
     box-shadow: 0 2px 8px 2px rgba(60, 64, 68, 0.24);
   }
   border-radius: 6px;
@@ -88,17 +84,26 @@ const CloseBtn = styled(ImgButton)`
 `
 
 const SuggestedCardBox = styled.div`
-  font-size: 12px;
   color: #484848;
+  font-size: 12px;
+  letter-spacing: -0.01em;
+  line-height: 142%;
   text-align: left;
+
   margin: 2px 4px 2px 4px;
   &:last-child {
     margin: 2px 4px 0px 4px;
   }
+
   background: #ffffff;
   border-radius: 6px;
   user-select: text;
 `
+
+export type RelevantNodeSuggestion = {
+  node: TNode
+  matchedPiece?: LongestCommonContinuousPiece
+}
 
 const SuggestedCard = ({
   node,
@@ -135,53 +140,32 @@ const NoSuggestedCardsBox = styled.div`
   margin: 12px 0 12px 0;
 `
 
-// function normlizeString(str: string): string {
-//   return str.replace(/\s+/g, ' ')
-// }
-
-function getMatchingText(): WebBookmarkDescriptionConfig {
-  /*
-  node: TNode,
-  phaseWinkDoc: WinkDocument,
-  wink: WinkMethods
-   */
-  return { type: 'original' }
-  // FIXME(Alexander): Disable it all to mitigate SEV
-  // if (!NodeUtil.isWebBookmark(node)) {
-  //   return { type: 'original-cutted' }
-  // }
-  // const text = [node.extattrs?.description, node.index_text?.plaintext]
-  //   .filter((str: string | undefined) => !!str)
-  //   .join('\n')
-  // const winkDoc = wink.readDoc(normlizeString(text))
-  // const { match, matchValuableTokensCount, prefix, suffix } =
-  //   findLongestCommonQuote(winkDoc, phaseWinkDoc, wink, {
-  //     gapToFillWordsNumber: 14,
-  //     prefixToExtendWordsNumber: 24,
-  //     suffixToExtendWordsNumber: 92,
-  //   })
-  // if (matchValuableTokensCount < 2) {
-  //   // If longest matching text is shorter than 32 characters, texts probably
-  //   // doesn't match directly. In that case let's just show original
-  //   // description, best we can do in such curcumstances.
-  //   return { type: 'original' }
-  // }
-  // return { type: 'match', match, prefix, suffix }
+function getMatchingText({
+  node,
+  matchedPiece,
+}: RelevantNodeSuggestion): WebBookmarkDescriptionConfig {
+  if (
+    !NodeUtil.isWebBookmark(node) ||
+    matchedPiece == null ||
+    matchedPiece.matchValuableTokensCount < 2
+  ) {
+    // If card is not a bookmark, or there is no matching text or the longest
+    // matching text is shorter than 32 characters, texts probably doesn't match
+    // directly. In that case let's just show original description, best we can
+    // do in such curcumstances.
+    return { type: 'original-cutted' }
+  }
+  const { match, prefix, suffix } = matchedPiece
+  return { type: 'match', prefix, match, suffix }
 }
 
 type SuggestedCardsProps = {
-  nodes: TNode[]
-  phrase: string
+  nodes: RelevantNodeSuggestion[]
   onClose: () => void
   isLoading: boolean
 }
 
-const SuggestedCards = ({
-  nodes,
-  // phrase,
-  onClose,
-  isLoading,
-}: SuggestedCardsProps) => {
+const SuggestedCards = ({ nodes, onClose, isLoading }: SuggestedCardsProps) => {
   const analytics = React.useContext(ContentContext).analytics
   React.useEffect(() => {
     analytics?.capture('Show suggested associations', {
@@ -189,21 +173,12 @@ const SuggestedCards = ({
       length: nodes.length,
     })
   }, [nodes, analytics])
-  // const wink = React.useMemo(() => loadWinkModel(), [])
-  // const phaseWinkDoc = React.useMemo(
-  //   () => wink.readDoc(normlizeString(phrase)),
-  //   [phrase, wink]
-  // )
-  const suggestedCards = nodes.map((node: TNode) => {
-    const webBookmarkDescriptionConfig = getMatchingText()
-    //  node,
-    //  phaseWinkDoc,
-    //  wink
+  const suggestedCards = nodes.map((RelevantNodeSuggestion) => {
     return (
       <SuggestedCard
-        key={node.nid}
-        node={node}
-        webBookmarkDescriptionConfig={webBookmarkDescriptionConfig}
+        key={RelevantNodeSuggestion.node.nid}
+        node={RelevantNodeSuggestion.node}
+        webBookmarkDescriptionConfig={getMatchingText(RelevantNodeSuggestion)}
       />
     )
   })
@@ -266,12 +241,10 @@ const frameYPosition = (y: number) =>
 
 export const SuggestionsFloater = ({
   nodes,
-  phrase,
   isLoading,
   defaultRevelaed,
 }: {
-  nodes: TNode[]
-  phrase: string
+  nodes: RelevantNodeSuggestion[]
   isLoading: boolean
   defaultRevelaed: boolean
 }) => {
@@ -378,11 +351,8 @@ export const SuggestionsFloater = ({
           <DraggableElement ref={nodeRef}>
             {isRevealed ? (
               <SuggestedCards
-                onClose={() => {
-                  saveRevealed(false)
-                }}
+                onClose={() => saveRevealed(false)}
                 nodes={nodes}
-                phrase={phrase}
                 isLoading={isLoading}
               />
             ) : (

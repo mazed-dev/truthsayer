@@ -1,12 +1,17 @@
-import { relevance } from 'text-information-retrieval'
+import {
+  bm25,
+  findLongestCommonContinuousPiece,
+} from 'text-information-retrieval'
+import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 import type {
   NodeEventType,
   NodeEventPatch,
   NodeEventListener,
   Nid,
   TNode,
+  StorageApi,
 } from 'smuggler-api'
-import { StorageApi } from 'smuggler-api'
+import { NodeUtil } from 'smuggler-api'
 import { TDoc } from 'elementary'
 import { log } from 'armoury'
 
@@ -24,32 +29,36 @@ export type DocId = {
   section: NodeSectionType
 }
 
-const [overallIndex, perDocumentIndex] = relevance.createIndex<DocId>()
+const [overallIndex, perDocumentIndex] = bm25.createIndex<DocId>()
 
 export type RelevantNode = {
   node: TNode
-  score: relevance.TextScore
+  score: bm25.TextScore
+  matchedPiece?: LongestCommonContinuousPiece
 }
 export async function findRelevantNodes(
-  text: string,
+  phrase: string,
   storage: StorageApi,
   limit?: number,
   excludedNids?: Set<Nid>
 ): Promise<RelevantNode[]> {
   log.debug('findRelevantNodes for', text)
   const sizeLimit = limit ?? 16
-  const results = relevance
-    .findRelevantDocuments(text, sizeLimit * 2, overallIndex, perDocumentIndex)
+  const { wink } = overallIndex.model
+  const phraseDoc = wink.readDoc(phrase)
+  const results = bm25
+    .findRelevantDocuments(
+      phraseDoc,
+      sizeLimit * 2,
+      overallIndex,
+      perDocumentIndex
+    )
     .filter((r) =>
       excludedNids != null ? !excludedNids.has(r.docId.nid) : true
     )
   log.debug('Results', results)
-  // FIXME(Alexander): Reconsider the solution to find and surface most relevant
-  // results only with max-25-pct. This is another Hack to show only most
-  // relevant results, we cut off the long tail of results with a relevance
-  // score less than 25% of a top result.
   const maxScore: number = results[0]?.score.total
-  const scoreMap: Map<Nid, relevance.TextScore> = new Map()
+  const scoreMap: Map<Nid, bm25.TextScore> = new Map()
   const nids = results
     .filter(({ docId, score }) => {
       if (score.total * 4 > maxScore && scoreMap.size < sizeLimit) {
@@ -70,15 +79,39 @@ export async function findRelevantNodes(
   for (const nid of nids) {
     const node = nodeMap.get(nid)
     const score = scoreMap.get(nid)
-    if (node != null && score != null) {
-      relevantNodes.push({ node, score })
+    if (node == null || score == null) {
+      continue
     }
+    let matchedPiece: LongestCommonContinuousPiece | undefined = undefined
+    if (NodeUtil.isWebBookmark(node)) {
+      const text = [node.extattrs?.description, node.index_text?.plaintext]
+        .filter((str: string | undefined) => !!str)
+        .join(' ')
+        .replace(/\s+/g, ' ')
+      const winkDoc = wink.readDoc(text)
+      matchedPiece = findLongestCommonContinuousPiece(
+        winkDoc,
+        phraseDoc,
+        wink,
+        // These parameters are the subject of further iteration based on usage
+        // feedback. The current limit is chosen from aesthetic reason in my
+        // specific browser, with current styles - it all might look very
+        // different in other devices.
+        {
+          prefixToExtendWordsNumber: 24,
+          suffixToExtendWordsNumber: 92,
+          // Cut search if long enough quote is found.
+          maxLengthOfCommonPieceWordsNumber: 36,
+        }
+      )
+    }
+    relevantNodes.push({ node, score, matchedPiece })
   }
   return relevantNodes
 }
 
 function addNodeSection(docId: DocId, text: string): void {
-  perDocumentIndex.push(relevance.addDocument(overallIndex, text, docId))
+  perDocumentIndex.push(bm25.addDocument(overallIndex, text, docId))
 }
 
 /**

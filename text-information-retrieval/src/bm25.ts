@@ -1,5 +1,5 @@
 // Load wink-nlp package.
-import winkNLP, { WinkMethods } from 'wink-nlp'
+import winkNLP, { WinkMethods, Document as WinkDocument } from 'wink-nlp'
 // Load english language model.
 import model from 'wink-eng-lite-web-model'
 
@@ -160,16 +160,15 @@ function isImportantTokenType(tokenType: string, token: string): boolean {
 }
 
 function createPerDocumentIndexFromText<DocIdType>(
-  text: string,
+  text: WinkDocument,
   model: NlpModel,
   docId: DocIdType
 ): OkapiBm25PlusPerDocumentIndex<DocIdType> {
   const { wink } = model
-  const doc = wink.readDoc(text)
-  const tokenTypes = doc.tokens().out(wink.its.type)
+  const tokenTypes = text.tokens().out(wink.its.type)
   const bagOfWords: BagOfWords = new Map()
   let wordsNumber = 0
-  const tokens = doc.tokens().out(wink.its.lemma)
+  const tokens = text.tokens().out(wink.its.lemma)
   for (const index in tokens) {
     const tokenType = tokenTypes[index]
     const token = tokens[index]
@@ -197,7 +196,11 @@ export function addDocument<DocIdType>(
   text: string,
   docId: DocIdType
 ): OkapiBm25PlusPerDocumentIndex<DocIdType> {
-  const doc = createPerDocumentIndexFromText(text, overallIndex.model, docId)
+  const doc = createPerDocumentIndexFromText(
+    overallIndex.model.wink.readDoc(text),
+    overallIndex.model,
+    docId
+  )
   overallIndex.wordsInAllDocuments += doc.wordsNumber
   overallIndex.documentsNumber += 1
   for (const word of doc.bagOfWords.keys()) {
@@ -292,7 +295,7 @@ export type RelevanceResult<DocIdType> = {
  * human know what they do when they type keyphrase.
  */
 export function findRelevantDocumentsForPhrase<DocIdType>(
-  keyphrase: string,
+  keyphrase: WinkDocument,
   limit: number,
   overallIndex: OkapiBm25PlusIndex,
   docs: OkapiBm25PlusPerDocumentIndex<DocIdType>[]
@@ -375,7 +378,7 @@ function getTextRelevanceScore<DocIdType>(
 }
 
 export function findRelevantDocuments<DocIdType>(
-  text: string,
+  text: WinkDocument,
   limit: number,
   overallIndex: OkapiBm25PlusIndex,
   corpusDocs: OkapiBm25PlusPerDocumentIndex<DocIdType>[]
