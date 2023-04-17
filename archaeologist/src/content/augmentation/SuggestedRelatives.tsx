@@ -6,7 +6,10 @@ import { NodeUtil } from 'smuggler-api'
 import type { Nid } from 'smuggler-api'
 
 import { FromContent } from './../../message/types'
-import { SuggestionsFloater, RelevantNodeSuggestion } from './SuggestionsFloater'
+import {
+  SuggestionsFloater,
+  RelevantNodeSuggestion,
+} from './SuggestionsFloater'
 import { exctractPageContent } from '../extractor/webPageContent'
 import { ContentContext } from '../context'
 import { extractSearchEngineQuery } from '../extractor/url/searchEngineQuery'
@@ -54,9 +57,9 @@ export function SuggestedRelatives({
   excludeNids?: Nid[]
 }) {
   const analytics = React.useContext(ContentContext).analytics
-  const [suggestedNodes, setSuggestedNodes] = React.useState<RelevantNodeSuggestion[]>(
-    []
-  )
+  const [suggestedNodes, setSuggestedNodes] = React.useState<
+    RelevantNodeSuggestion[]
+  >([])
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
   const pageSimilaritySearchInput = React.useMemo<SimilaritySearchInput>(() => {
