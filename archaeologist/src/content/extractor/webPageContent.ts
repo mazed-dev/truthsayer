@@ -269,10 +269,6 @@ export function _exctractPageText(document_: Document): string {
  * - <meta property="og:title" content="Page title">
  */
 export function _exctractPageTitle(document_: Document): string | null {
-  const title = unicodeText.trimWhitespace(document_.title)
-  if (title) {
-    return title
-  }
   for (const [selector, attribute] of [
     ['head > title', 'innerText'],
     ['meta[property="dc:title"]', 'content'],
@@ -285,10 +281,20 @@ export function _exctractPageTitle(document_: Document): string | null {
       const title = unicodeText.trimWhitespace(
         element.getAttribute(attribute)?.trim() || ''
       )
+      log.debug('_exctractPageTitle', selector, title)
       if (title) {
         return lodash.unescape(title)
       }
     }
+  }
+  // Put document.title after meta information, because some sneaky web
+  // developers like Twitter dev team put too much information into document
+  // title doing Search Engine Optimisation. Today info from a page metadata is
+  // more reliable because it's used for "preview" cards in social networks, so
+  // web developers would less likely screw it up.
+  const title = unicodeText.trimWhitespace(document_.title)
+  if (title) {
+    return title
   }
   return null
 }
