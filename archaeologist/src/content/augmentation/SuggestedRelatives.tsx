@@ -1,18 +1,18 @@
 import React from 'react'
 import lodash from 'lodash'
 
-import { errorise, log, productanalytics } from 'armoury'
-import { NodeUtil } from 'smuggler-api'
 import type { Nid } from 'smuggler-api'
+import { NodeUtil } from 'smuggler-api'
+import { errorise, log, productanalytics } from 'armoury'
 
-import { FromContent } from './../../message/types'
+import { FromContent } from '../../message/types'
+import { extractSimilaritySearchPhraseFromPageContent } from '../extractor/webPageSearchPhrase'
+import { ContentContext } from '../context'
+import { extractSearchEngineQuery } from '../extractor/url/searchEngineQuery'
 import {
   SuggestionsFloater,
   RelevantNodeSuggestion,
 } from './SuggestionsFloater'
-import { exctractPageContent } from '../extractor/webPageContent'
-import { ContentContext } from '../context'
-import { extractSearchEngineQuery } from '../extractor/url/searchEngineQuery'
 
 export function getKeyPhraseFromUserInput(
   target?: HTMLTextAreaElement
@@ -45,7 +45,7 @@ function updateUserInputFromKeyboardEvent(keyboardEvent: KeyboardEvent) {
 }
 
 type SimilaritySearchInput = {
-  phrase: string
+  phrase?: string
   isSearchEngine: boolean
 }
 
@@ -72,15 +72,9 @@ export function SuggestedRelatives({
     const baseURL = stableUrl
       ? new URL(stableUrl).origin
       : `${document.location.protocol}//${document.location.host}`
-    const pageContent = exctractPageContent(document, baseURL)
-    const phrase = [
-      pageContent.title,
-      pageContent.description,
-      ...pageContent.author,
-      pageContent.text,
-    ]
-      .filter((v) => !!v)
-      .join('\n')
+    const phrase =
+      extractSimilaritySearchPhraseFromPageContent(document, baseURL) ??
+      undefined
     return { phrase, isSearchEngine: false }
   }, [
     /**
@@ -151,6 +145,7 @@ export function SuggestedRelatives({
         setUserInput(newInput)
       } else if (
         phrase == null &&
+        pageSimilaritySearchInput.phrase != null &&
         pageSimilaritySearchInput.phrase.length > 8
       ) {
         requestSuggestedAssociations(pageSimilaritySearchInput.phrase)
@@ -160,8 +155,9 @@ export function SuggestedRelatives({
     [userInput, requestSuggestedAssociations, pageSimilaritySearchInput.phrase]
   )
   React.useEffect(() => {
-    if (pageSimilaritySearchInput.phrase.length > 8) {
-      requestSuggestedAssociations(pageSimilaritySearchInput.phrase)
+    const phrase = pageSimilaritySearchInput.phrase
+    if (phrase != null && phrase.length > 8) {
+      requestSuggestedAssociations(phrase)
     }
   }, [pageSimilaritySearchInput.phrase, requestSuggestedAssociations])
   React.useEffect(() => {

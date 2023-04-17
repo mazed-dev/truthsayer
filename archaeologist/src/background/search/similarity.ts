@@ -55,7 +55,6 @@ export async function findRelevantNodes(
     .filter((r) =>
       excludedNids != null ? !excludedNids.has(r.docId.nid) : true
     )
-  log.debug('Results', results)
   const maxScore: number = results[0]?.score.total
   const scoreMap: Map<Nid, bm25.TextScore> = new Map()
   const nids = results
@@ -106,6 +105,7 @@ export async function findRelevantNodes(
     }
     relevantNodes.push({ node, score, matchedPiece })
   }
+  log.debug('Similarity search results', relevantNodes)
   return relevantNodes
 }
 

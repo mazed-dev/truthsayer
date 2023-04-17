@@ -272,6 +272,9 @@ export namespace ToContent {
     type: 'SUGGESTED_CONTENT_ASSOCIATIONS'
     suggested: RelevantNodeSuggestion[]
   }
+  export interface RequestPageContentSearchPhrase {
+    type: 'REQUEST_PAGE_CONTENT_SEARCH_PHRASE'
+  }
 
   /** Requests that aim to modify recepient's state. */
   export type MutatingRequest =
@@ -279,7 +282,10 @@ export namespace ToContent {
     | UpdateContentAugmentationRequest
     | ShowDisappearingNotificationRequest
   /** Requests that aim to retrieve part of recepient's state without modifying it. */
-  export type ReadOnlyRequest = RequestPageContent | GetSelectedQuoteRequest
+  export type ReadOnlyRequest =
+    | RequestPageContent
+    | GetSelectedQuoteRequest
+    | RequestPageContentSearchPhrase
   /** Requests that are sent to content only to be forwarded somewhere else. */
   export type PassthroughRequest = ReportBackgroundOperationProgress
 
@@ -299,6 +305,10 @@ export namespace ToContent {
     | FromContent.PageAlreadySavedResponse
     | FromContent.PageNotWorthSavingResponse
   >
+  export function sendMessage(
+    tabId: number,
+    message: RequestPageContentSearchPhrase
+  ): Promise<FromContent.PageContentSearchPhraseResponse>
   export function sendMessage(
     tabId: number,
     message: UpdateContentAugmentationRequest
@@ -364,6 +374,11 @@ export namespace FromContent {
     fromNodes: TNodeJson[]
     toNodes: TNodeJson[]
   }
+  export type PageContentSearchPhraseResponse = {
+    type: 'PAGE_CONTENT_SEARCH_PHRASE_RESPONSE'
+    phrase?: string
+    nidsExcludedFromSearch: Nid[]
+  }
   export interface PageNotWorthSavingResponse {
     type: 'PAGE_NOT_WORTH_SAVING'
   }
@@ -410,6 +425,7 @@ export namespace FromContent {
     | PageAlreadySavedResponse
     | PageNotWorthSavingResponse
     | VoidResponse
+    | PageContentSearchPhraseResponse
 
   export function sendMessage(
     message: AttentionTimeChunk
