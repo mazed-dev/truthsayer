@@ -3550,10 +3550,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mozilla/readability@npm:^0.4.1":
-  version: 0.4.1
-  resolution: "@mozilla/readability@npm:0.4.1"
-  checksum: 1e6915e7dd753fcfc60532b9080bbd286252d716ab30b80daae41c0eecbbe68a470c097ae39a40f12d496eaf8d958dd97b4635e0046e8ba639e3d4a092282e9b
+"@mozilla/readability@npm:^0.4.4":
+  version: 0.4.4
+  resolution: "@mozilla/readability@npm:0.4.4"
+  checksum: 24af169a7cf388c3b300d0beb2c4dc90e075730b926b0fde985dd07dc6940ec4ed754cdd80f76b843fa45141470db43080c5f97e60abed81b1e66cf68751672b
   languageName: node
   linkType: hard
 
@@ -5673,7 +5673,7 @@ __metadata:
     "@emotion-icons/material": ^3.14.0
     "@emotion/react": ^11.9.0
     "@emotion/styled": ^11.8.1
-    "@mozilla/readability": ^0.4.1
+    "@mozilla/readability": ^0.4.4
     "@popperjs/core": ^2.10.2
     "@testing-library/dom": ^7.29
     "@testing-library/jest-dom": ^5.14.1
