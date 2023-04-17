@@ -146,10 +146,7 @@ export function SuggestedRelatives({
       }
       return newInput
     },
-    [
-      userInput,
-      requestSuggestedAssociations /* pageSimilaritySearchInput.phrase */,
-    ]
+    [userInput, requestSuggestedAssociations]
   )
   React.useEffect(() => {
     const phrase = pageSimilaritySearchInput.phrase
