@@ -281,7 +281,6 @@ export function _exctractPageTitle(document_: Document): string | null {
       const title = unicodeText.trimWhitespace(
         element.getAttribute(attribute)?.trim() || ''
       )
-      log.debug('_exctractPageTitle', selector, title)
       if (title) {
         return lodash.unescape(title)
       }
