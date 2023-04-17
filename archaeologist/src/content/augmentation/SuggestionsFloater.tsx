@@ -99,8 +99,8 @@ const SuggestedCardBox = styled.div`
   border-radius: 6px;
   user-select: text;
 `
-
-export type SuggestedNode = {
+// FIXME(Alexander): Use `RelevantNodeSuggestion` struct from /message/types.ts
+export type RelevantNodeSuggestion = {
   node: TNode
   matchedPiece?: LongestCommonContinuousPiece
 }
@@ -143,7 +143,7 @@ const NoSuggestedCardsBox = styled.div`
 function getMatchingText({
   node,
   matchedPiece,
-}: SuggestedNode): WebBookmarkDescriptionConfig {
+}: RelevantNodeSuggestion): WebBookmarkDescriptionConfig {
   if (
     !NodeUtil.isWebBookmark(node) ||
     matchedPiece == null ||
@@ -160,7 +160,7 @@ function getMatchingText({
 }
 
 type SuggestedCardsProps = {
-  nodes: SuggestedNode[]
+  nodes: RelevantNodeSuggestion[]
   onClose: () => void
   isLoading: boolean
 }
@@ -173,12 +173,12 @@ const SuggestedCards = ({ nodes, onClose, isLoading }: SuggestedCardsProps) => {
       length: nodes.length,
     })
   }, [nodes, analytics])
-  const suggestedCards = nodes.map((suggestedNode) => {
+  const suggestedCards = nodes.map((RelevantNodeSuggestion) => {
     return (
       <SuggestedCard
-        key={suggestedNode.node.nid}
-        node={suggestedNode.node}
-        webBookmarkDescriptionConfig={getMatchingText(suggestedNode)}
+        key={RelevantNodeSuggestion.node.nid}
+        node={RelevantNodeSuggestion.node}
+        webBookmarkDescriptionConfig={getMatchingText(RelevantNodeSuggestion)}
       />
     )
   })
@@ -244,7 +244,7 @@ export const SuggestionsFloater = ({
   isLoading,
   defaultRevelaed,
 }: {
-  nodes: SuggestedNode[]
+  nodes: RelevantNodeSuggestion[]
   isLoading: boolean
   defaultRevelaed: boolean
 }) => {
