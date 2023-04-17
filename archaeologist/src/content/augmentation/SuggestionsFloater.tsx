@@ -75,7 +75,7 @@ const SuggestionsFloaterSuggestionsBox = styled.div`
 `
 
 const CloseBtn = styled(ImgButton)`
-  padding: 3px 4px 3px 4px;
+  padding: 3px;
   margin: 1px 5px 0 5px;
   font-size: 12px;
   vertical-align: middle;

@@ -34,7 +34,8 @@ function getPlacementStyle(placement: Placement): string {
   }
 }
 
-const Box = styled.div<Props>`
+export const HoverTooltipBox = styled.div<Props>`
+  display: flex;
   position: relative;
   height: 100%;
   width: 100%;
@@ -71,6 +72,7 @@ const Box = styled.div<Props>`
     transition-delay: ${(props) => props.transitionDelaySec ?? 0.72}s;
   }
 `
+export const HoverTooltipOverlay = styled.span``
 
 type HoverTooltipProps = React.PropsWithChildren<{
   tooltip: string
@@ -89,9 +91,12 @@ export const HoverTooltip = ({
 }: HoverTooltipProps) => {
   placement = placement ?? 'bottom'
   return (
-    <Box placement={placement} transitionDelaySec={transitionDelaySec}>
-      <span className={className}>{tooltip}</span>
+    <HoverTooltipBox
+      placement={placement}
+      transitionDelaySec={transitionDelaySec}
+    >
+      <HoverTooltipOverlay className={className}>{tooltip}</HoverTooltipOverlay>
       {children}
-    </Box>
+    </HoverTooltipBox>
   )
 }
