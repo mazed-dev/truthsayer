@@ -319,15 +319,17 @@ async function handleReadOnlyRequest(
     }
     case 'REQUEST_PAGE_CONTENT_SEARCH_PHRASE': {
       const baseURL = `${window.location.protocol}//${window.location.host}`
+      const nidsExcludedFromSearch = genExcludeNidsForSimilaritySearch(
+        state.toNodes,
+        state.bookmark
+      )
+      const phrase =
+        extractSimilaritySearchPhraseFromPageContent(document, baseURL) ??
+        undefined
       return {
         type: 'PAGE_CONTENT_SEARCH_PHRASE_RESPONSE',
-        nidsExcludedFromSearch: genExcludeNidsForSimilaritySearch(
-          state.toNodes,
-          state.bookmark
-        ),
-        phase:
-          extractSimilaritySearchPhraseFromPageContent(document, baseURL) ??
-          undefined,
+        nidsExcludedFromSearch,
+        phrase,
       }
     }
   }

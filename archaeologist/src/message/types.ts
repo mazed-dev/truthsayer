@@ -376,7 +376,7 @@ export namespace FromContent {
   }
   export type PageContentSearchPhraseResponse = {
     type: 'PAGE_CONTENT_SEARCH_PHRASE_RESPONSE'
-    phase?: string
+    phrase?: string
     nidsExcludedFromSearch: Nid[]
   }
   export interface PageNotWorthSavingResponse {

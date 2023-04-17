@@ -147,12 +147,12 @@ async function lookupForSuggestionsToPageInActiveTab(
   const response = await ToContent.sendMessage(tabId, {
     type: 'REQUEST_PAGE_CONTENT_SEARCH_PHRASE',
   })
-  const { phase, nidsExcludedFromSearch } = response
-  if (phase == null) {
+  const { phrase, nidsExcludedFromSearch } = response
+  if (phrase == null) {
     return []
   }
   return await similarity.findRelevantNodes(
-    phase,
+    phrase,
     storage,
     8,
     new Set(nidsExcludedFromSearch)
