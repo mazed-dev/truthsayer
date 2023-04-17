@@ -18,7 +18,7 @@ import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 import { AugmentationElement } from './Mount'
 import { ContentContext } from '../context'
 import { MazedMiniFloater } from './MazedMiniFloater'
-import { ContentAugmentationSettings, FromContent } from './../../message/types'
+import { ContentAugmentationSettings, FromContent, RelevantNodeSuggestion } from './../../message/types'
 import { DragHandle, Minimize } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
 import { errorise, productanalytics } from 'armoury'
@@ -99,7 +99,7 @@ const SuggestedCardBox = styled.div`
   border-radius: 6px;
   user-select: text;
 `
-// FIXME(Alexander): Use `RelevantNodeSuggestion` struct from /message/types.ts
+
 export type RelevantNodeSuggestion = {
   node: TNode
   matchedPiece?: LongestCommonContinuousPiece
