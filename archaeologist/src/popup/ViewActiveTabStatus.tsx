@@ -193,8 +193,8 @@ export const ViewActiveTabStatus = () => {
       })
       setSuggestions({
         status: 'loaded',
-        suggestedAkinNodes: suggestedAkinNodes.map((json: TNodeJson) =>
-          NodeUtil.fromJson(json)
+        suggestedAkinNodes: suggestedAkinNodes.map(({ node }) =>
+          NodeUtil.fromJson(node)
         ),
       })
     } catch (e) {

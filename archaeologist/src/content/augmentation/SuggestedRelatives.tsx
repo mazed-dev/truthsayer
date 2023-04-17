@@ -3,13 +3,16 @@ import lodash from 'lodash'
 
 import { errorise, log, productanalytics } from 'armoury'
 import { NodeUtil } from 'smuggler-api'
-import type { Nid, TNode, TNodeJson } from 'smuggler-api'
+import type { Nid } from 'smuggler-api'
 
 import { FromContent } from './../../message/types'
-import { SuggestionsFloater } from './SuggestionsFloater'
+import {
+  SuggestionsFloater,
+  RelevantNodeSuggestion,
+} from './SuggestionsFloater'
 import { exctractPageContent } from '../extractor/webPageContent'
 import { ContentContext } from '../context'
-// import { extractSearchEngineQuery } from '../extractor/url/searchEngineQuery'
+import { extractSearchEngineQuery } from '../extractor/url/searchEngineQuery'
 
 export function getKeyPhraseFromUserInput(
   target?: HTMLTextAreaElement
@@ -54,17 +57,18 @@ export function SuggestedRelatives({
   excludeNids?: Nid[]
 }) {
   const analytics = React.useContext(ContentContext).analytics
-  const [suggestedNodes, setSuggestedNodes] = React.useState<TNode[]>([])
+  const [suggestedNodes, setSuggestedNodes] = React.useState<
+    RelevantNodeSuggestion[]
+  >([])
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
   const pageSimilaritySearchInput = React.useMemo<SimilaritySearchInput>(() => {
-    // FIXME(Alexander): To mitigate SEV
-    // const searchEngineQuery = extractSearchEngineQuery(
-    //   stableUrl ?? document.location.href
-    // )
-    // if (searchEngineQuery?.phrase != null) {
-    //   return { phrase: searchEngineQuery.phrase, isSearchEngine: true }
-    // }
+    const searchEngineQuery = extractSearchEngineQuery(
+      stableUrl ?? document.location.href
+    )
+    if (searchEngineQuery?.phrase != null) {
+      return { phrase: searchEngineQuery.phrase, isSearchEngine: true }
+    }
     const baseURL = stableUrl
       ? new URL(stableUrl).origin
       : `${document.location.protocol}//${document.location.host}`
@@ -103,9 +107,12 @@ export function SuggestedRelatives({
               excludeNids,
             })
             setSuggestedNodes(
-              response.suggested.map((value: TNodeJson) =>
-                NodeUtil.fromJson(value)
-              )
+              response.suggested.map((item) => {
+                return {
+                  node: NodeUtil.fromJson(item.node),
+                  matchedPiece: item.matchedPiece,
+                }
+              })
             )
             analytics?.capture('Search suggested associations', {
               'Event type': 'search',
@@ -167,11 +174,8 @@ export function SuggestedRelatives({
   return (
     <SuggestionsFloater
       nodes={suggestedNodes}
-      phrase={pageSimilaritySearchInput.phrase}
       isLoading={suggestionsSearchIsActive}
-      defaultRevelaed={
-        false /*pageSimilaritySearchInput.isSearchEngine FIXME(Alexander): To mitigate SEV */
-      }
+      defaultRevelaed={pageSimilaritySearchInput.isSearchEngine}
     />
   )
 }

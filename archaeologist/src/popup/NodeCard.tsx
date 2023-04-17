@@ -84,6 +84,7 @@ export const NodeReadOnly = ({
         <NodeCardReadOnly
           node={node}
           storage={ctx.storage}
+          webBookmarkDescriptionConfig={{ type: 'none' }}
           strippedRefs
           strippedActions
         />

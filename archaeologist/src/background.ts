@@ -23,7 +23,6 @@ import {
 import { log, isAbortError, unixtime, errorise } from 'armoury'
 import {
   Nid,
-  TNodeJson,
   NodeUtil,
   TotalUserActivity,
   NodeCreatedVia,
@@ -144,7 +143,7 @@ async function registerAttentionTime(
 async function lookupForSuggestionsToPageInActiveTab(
   storage: StorageApi,
   tabId: number
-): Promise<TNodeJson[]> {
+): Promise<similarity.RelevantNode[]> {
   // Request page content first
   const response:
     | FromContent.SavePageResponse
@@ -176,13 +175,12 @@ async function lookupForSuggestionsToPageInActiveTab(
     textToSearchFor = [title ?? '', desc, author ?? '', coment].join('.\n')
   }
   if (textToSearchFor != null && textToSearchFor.length >= 32) {
-    const nodes = await similarity.findRelevantNodes(
+    return await similarity.findRelevantNodes(
       textToSearchFor,
       storage,
       8,
       excludedNids
     )
-    return nodes.map(({ node }) => NodeUtil.toJson(node))
   }
   return []
 }
@@ -211,7 +209,9 @@ async function handleMessageFromContent(
       )
       return {
         type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
-        suggested: relevantNodes.map(({ node }) => NodeUtil.toJson(node)),
+        suggested: relevantNodes.map(({ node, matchedPiece }) => {
+          return { node: NodeUtil.toJson(node), matchedPiece }
+        }),
       }
     }
     case 'REQUEST_CONTENT_AUGMENTATION_SETTINGS': {
@@ -340,16 +340,22 @@ async function handleMessageFromPopup(
       throw new Error(`Authentication has already been successfully completed`)
     }
     case 'REQUEST_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB': {
-      const suggestedAkinNodes: TNodeJson[] = []
       const tabId = activeTab?.id
-      if (tabId != null) {
-        suggestedAkinNodes.push(
-          ...(await lookupForSuggestionsToPageInActiveTab(ctx.storage, tabId))
-        )
+      if (tabId == null) {
+        return {
+          type: 'RESPONSE_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB',
+          suggestedAkinNodes: [],
+        }
       }
+      const relevantNodes = await lookupForSuggestionsToPageInActiveTab(
+        ctx.storage,
+        tabId
+      )
       return {
         type: 'RESPONSE_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB',
-        suggestedAkinNodes,
+        suggestedAkinNodes: relevantNodes.map(({ node, matchedPiece }) => {
+          return { node: NodeUtil.toJson(node), matchedPiece }
+        }),
       }
     }
     case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {

@@ -20,7 +20,12 @@ export namespace relevance {
     relIndex: RelevanceIndex,
     docs: RelevancePerDocumentIndex<DocIdType>[]
   ): RelevanceResult<DocIdType>[] {
-    return bm25.findRelevantDocuments(text, limit, relIndex, docs)
+    return bm25.findRelevantDocuments(
+      relIndex.model.wink.readDoc(text),
+      limit,
+      relIndex,
+      docs
+    )
   }
 
   export function addDocument<DocIdType>(

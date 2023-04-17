@@ -1,5 +1,5 @@
 import { AccountInfo, PreviewImageSmall, SessionCreateArgs } from 'smuggler-api'
-
+import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 import browser from 'webextension-polyfill'
 import type {
   Nid,
@@ -82,6 +82,14 @@ export interface WebPageContent {
   publisher: string[]
   text: string | null
   image: PreviewImageSmall | null
+}
+
+export type RelevantNodeSuggestion = {
+  node: TNodeJson
+  /**
+   * Most relevant quote from the node
+   */
+  matchedPiece?: LongestCommonContinuousPiece
 }
 
 export namespace FromPopUp {
@@ -173,7 +181,7 @@ export namespace ToPopUp {
   }
   export interface GetSuggestionsToPageInActiveTabResponse {
     type: 'RESPONSE_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB'
-    suggestedAkinNodes: TNodeJson[]
+    suggestedAkinNodes: RelevantNodeSuggestion[]
   }
 
   export type LogInResponse = {
@@ -262,7 +270,7 @@ export namespace ToContent {
   }
   export interface SuggestedAssociationsResponse {
     type: 'SUGGESTED_CONTENT_ASSOCIATIONS'
-    suggested: TNodeJson[]
+    suggested: RelevantNodeSuggestion[]
   }
 
   /** Requests that aim to modify recepient's state. */
