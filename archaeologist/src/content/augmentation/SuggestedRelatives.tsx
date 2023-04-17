@@ -92,7 +92,7 @@ export function SuggestedRelatives({
       lodash.debounce(
         async (phrase: string) => {
           setSuggestionsSearchIsActive(true)
-          log.debug(`Look for "${phrase}" in Mazed`)
+          log.debug(`Look for the following phrase in Mazed ${phrase}`)
           try {
             const response = await FromContent.sendMessage({
               type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',

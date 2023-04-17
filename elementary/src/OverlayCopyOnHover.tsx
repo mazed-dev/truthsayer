@@ -18,6 +18,12 @@ const Btn = styled.button`
   right: 0;
   transform: translate(-10%, -24%);
 
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  align-items: center;
+
   zindex: 1;
 
   visibility: hidden;
