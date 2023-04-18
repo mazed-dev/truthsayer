@@ -1,6 +1,9 @@
 import {
   bm25,
   findLongestCommonContinuousPiece,
+  tfUse,
+  WinkDocument,
+  WinkMethods,
 } from 'text-information-retrieval'
 import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 import type {
@@ -31,9 +34,43 @@ export type DocId = {
 
 const [overallIndex, perDocumentIndex] = bm25.createIndex<DocId>()
 
+let tfIndex: tfUse.TfIndex | null = null
+let tfPerDocumentIndex: tfUse.TfPerDocumentIndex<DocId>[] = []
+
+const useTfSimilaritySearch: boolean = true
+
+function findLongestCommonContinuousPieceForNode(
+  node: TNode,
+  phraseDoc: WinkDocument,
+  wink: WinkMethods,
+): LongestCommonContinuousPiece | undefined {
+  if (!NodeUtil.isWebBookmark(node)) {
+    return undefined }
+      const text = [node.extattrs?.description, node.index_text?.plaintext]
+        .filter((str: string | undefined) => !!str)
+        .join(' ')
+        .replace(/\s+/g, ' ')
+      const winkDoc = wink.readDoc(text)
+      return findLongestCommonContinuousPiece(
+        winkDoc,
+        phraseDoc,
+        wink,
+        // These parameters are the subject of further iteration based on usage
+        // feedback. The current limit is chosen from aesthetic reason in my
+        // specific browser, with current styles - it all might look very
+        // different in other devices.
+        {
+          prefixToExtendWordsNumber: 24,
+          suffixToExtendWordsNumber: 92,
+          // Cut search if long enough quote is found.
+          maxLengthOfCommonPieceWordsNumber: 36,
+        }
+      )
+}
+
 export type RelevantNode = {
   node: TNode
-  score: bm25.TextScore
+  // score: bm25.TextScore
   matchedPiece?: LongestCommonContinuousPiece
 }
 export async function findRelevantNodes(
@@ -42,9 +79,37 @@ export async function findRelevantNodes(
   limit?: number,
   excludedNids?: Set<Nid>
 ): Promise<RelevantNode[]> {
-  const sizeLimit = limit ?? 16
   const { wink } = overallIndex.model
   const phraseDoc = wink.readDoc(phrase)
+  if (useTfSimilaritySearch) {
+    if (tfIndex == null) {
+      return []
+    }
+    const pattern = await tfIndex.encoder.embed(phrase)
+    const results = tfUse.findRelevantDocuments(pattern, tfPerDocumentIndex, 0.99).filter((r) =>
+      excludedNids != null ? !excludedNids.has(r.docId.nid) : true
+    )
+    const nids: Nid[] = results.map(({ docId }) => docId.nid)
+    const resp = await storage.node.batch.get({ nids })
+    const nodeMap: Map<Nid, TNode> = new Map()
+    for (const node of resp.nodes) {
+      nodeMap.set(node.nid, node)
+    }
+    return results.map(({ docId }) => {
+      const { nid } = docId
+      const node = nodeMap.get(nid)
+      if (node == null) {
+        return null
+      }
+      const relevantNode: RelevantNode = {
+        node,
+        matchedPiece: findLongestCommonContinuousPieceForNode(node, phraseDoc, wink)
+      }
+      return relevantNode
+    }).filter(item => !!item) as RelevantNode[]
+  }
+
+  const sizeLimit = limit ?? 16
   const results = bm25
     .findRelevantDocuments(
       phraseDoc,
@@ -103,7 +168,7 @@ export async function findRelevantNodes(
         }
       )
     }
-    relevantNodes.push({ node, score, matchedPiece })
+    relevantNodes.push({ node, matchedPiece })
   }
   log.debug('Similarity search results', relevantNodes)
   return relevantNodes
@@ -111,6 +176,35 @@ export async function findRelevantNodes(
 
 function addNodeSection(docId: DocId, text: string): void {
   perDocumentIndex.push(bm25.addDocument(overallIndex, text, docId))
+}
+
+async function tfAddNode(nid: Nid, patch: NodeEventPatch): Promise<void> {
+  if (tfIndex == null) {
+    return
+  }
+  const text = [
+    patch.extattrs?.title,
+    patch.extattrs?.author,
+    patch.extattrs?.description,
+    patch.extattrs?.web_quote?.text,
+    patch.text == null ? null : TDoc.fromNodeTextData(patch.text),
+    patch.index_text,
+    patch.extattrs?.web?.url,
+    patch.extattrs?.web_quote?.url,
+    patch.extattrs?.web_quote?.text
+  ].filter((str) => !!str).join('\n')
+  const perDocument = await tfUse.addDocument<DocId>(text, { nid, section: 'text' }, tfIndex)
+  tfPerDocumentIndex.push(perDocument)
+}
+
+async function tfRemoveNode(nid: Nid): Promise<void> {
+  for (let ind = 0; ind < tfPerDocumentIndex.length; ++ind) {
+    const item = tfPerDocumentIndex[ind]
+    const itemDocId = item.docId
+    if (itemDocId.nid === nid) {
+      perDocumentIndex.splice(ind, 1)
+    }
+  }
 }
 
 /**
@@ -145,7 +239,13 @@ const nodeEventListener: NodeEventListener = (
 ) => {
   if (type === 'deleted') {
     removeEntireNode(nid)
+    tfRemoveNode(nid)
   } else if (type === 'created' || type === 'updated') {
+    if (type === 'updated') {
+      tfRemoveNode(nid)
+    }
+    tfAddNode(nid, patch)
+
     const author = patch.extattrs?.author
     if (author) {
       const docId: DocId = { nid, section: 'author' }
@@ -212,6 +312,11 @@ export function addNode(node: TNode): void {
 }
 
 export async function register(storage: StorageApi) {
+  {
+    const [index, perDocument] = await tfUse.createIndex<DocId>()
+    tfIndex = index
+    tfPerDocumentIndex = perDocument
+  }
   const iter = await storage.node.iterate()
   while (true) {
     const node = await iter.next()
