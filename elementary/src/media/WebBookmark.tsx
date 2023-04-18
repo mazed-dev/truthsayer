@@ -138,6 +138,9 @@ const TitleBox = styled.div`
   display: inline-block;
   margin: 6px 4px 0 6px;
   line-height: 1.3em;
+
+  overflow-wrap: break-word;
+  word-break: normal;
 `
 
 const Title = styled.p`
@@ -186,6 +189,8 @@ const Author = styled.p`
 const Description = styled.blockquote`
   font-size: 1em;
   line-height: 142%;
+  overflow-wrap: break-word;
+  word-break: normal;
 
   padding: 8px 8px 8px 8px;
   margin: 0;
