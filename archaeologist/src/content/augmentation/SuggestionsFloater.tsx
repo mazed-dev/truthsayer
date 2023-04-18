@@ -4,34 +4,39 @@ import React from 'react'
 import styled from '@emotion/styled'
 import { useAsyncEffect } from 'use-async-effect'
 
-import { NodeCardReadOnly, HoverTooltip, Spinner, ImgButton } from 'elementary'
+import {
+  HoverTooltip,
+  ImgButton,
+  NodeCardReadOnly,
+  Spinner,
+  WebBookmarkDescriptionConfig,
+} from 'elementary'
 import type { TNode } from 'smuggler-api'
+import { NodeUtil } from 'smuggler-api'
+import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 
 import { AugmentationElement } from './Mount'
 import { ContentContext } from '../context'
 import { MazedMiniFloater } from './MazedMiniFloater'
-import { FromContent } from './../../message/types'
+import { ContentAugmentationSettings, FromContent } from './../../message/types'
 import { DragHandle, Minimize } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
+import { errorise, productanalytics } from 'armoury'
 
 const SuggestedCardsBox = styled.div`
   width: 320px;
   display: flex;
   flex-direction: column;
 
-  background: #f4f4f5db;
+  background: #eeeeefdb;
   box-shadow: 0 2px 5px 2px rgba(60, 64, 68, 0.16);
   &:hover,
   &:active {
-    background: #f4f4f5;
+    background: #eeeeef;
     box-shadow: 0 2px 8px 2px rgba(60, 64, 68, 0.24);
   }
   border-radius: 6px;
   user-select: text;
-`
-const DraggableElement = styled.div`
-  position: absolute;
-  user-select: none;
 `
 
 const DraggableCursorStyles = `
@@ -42,10 +47,19 @@ const DraggableCursorStyles = `
   }
 `
 
+const DraggableElement = styled.div`
+  position: absolute;
+  user-select: none;
+`
+
 const Header = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
+  ${DraggableCursorStyles}
+`
+const Footter = styled.div`
+  height: 8px;
   ${DraggableCursorStyles}
 `
 
@@ -54,14 +68,14 @@ const SuggestionsFloaterSuggestionsBox = styled.div`
   flex-direction: column;
   padding: 0;
   overflow-y: scroll;
-  height: 80vh;
+  max-height: 80vh;
 
   border-radius: 6px;
   user-select: text;
 `
 
 const CloseBtn = styled(ImgButton)`
-  padding: 3px 4px 3px 4px;
+  padding: 3px;
   margin: 1px 5px 0 5px;
   font-size: 12px;
   vertical-align: middle;
@@ -70,14 +84,35 @@ const CloseBtn = styled(ImgButton)`
 `
 
 const SuggestedCardBox = styled.div`
+  color: #484848;
   font-size: 12px;
+  letter-spacing: -0.01em;
+  line-height: 142%;
+  text-align: left;
+
   margin: 2px 4px 2px 4px;
+  &:last-child {
+    margin: 2px 4px 0px 4px;
+  }
+
   background: #ffffff;
   border-radius: 6px;
-  user-select: text;
+
+  user-select: auto;
 `
 
-const SuggestedCard = ({ node }: { node: TNode }) => {
+export type RelevantNodeSuggestion = {
+  node: TNode
+  matchedPiece?: LongestCommonContinuousPiece
+}
+
+const SuggestedCard = ({
+  node,
+  webBookmarkDescriptionConfig,
+}: {
+  node: TNode
+  webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
+}) => {
   const ctx = React.useContext(ContentContext)
   return (
     <SuggestedCardBox>
@@ -91,6 +126,7 @@ const SuggestedCard = ({ node }: { node: TNode }) => {
             'Event type': 'click',
           })
         }}
+        webBookmarkDescriptionConfig={webBookmarkDescriptionConfig}
       />
     </SuggestedCardBox>
   )
@@ -105,15 +141,32 @@ const NoSuggestedCardsBox = styled.div`
   margin: 12px 0 12px 0;
 `
 
-const SuggestedCards = ({
-  nodes,
-  onClose,
-  isLoading,
-}: {
-  nodes: TNode[]
+function getMatchingText({
+  node,
+  matchedPiece,
+}: RelevantNodeSuggestion): WebBookmarkDescriptionConfig {
+  if (
+    !NodeUtil.isWebBookmark(node) ||
+    matchedPiece == null ||
+    matchedPiece.matchValuableTokensCount < 2
+  ) {
+    // If card is not a bookmark, or there is no matching text or the longest
+    // matching text is shorter than 32 characters, texts probably doesn't match
+    // directly. In that case let's just show original description, best we can
+    // do in such curcumstances.
+    return { type: 'original-cutted' }
+  }
+  const { match, prefix, suffix } = matchedPiece
+  return { type: 'match', prefix, match, suffix }
+}
+
+type SuggestedCardsProps = {
+  nodes: RelevantNodeSuggestion[]
   onClose: () => void
   isLoading: boolean
-}) => {
+}
+
+const SuggestedCards = ({ nodes, onClose, isLoading }: SuggestedCardsProps) => {
   const analytics = React.useContext(ContentContext).analytics
   React.useEffect(() => {
     analytics?.capture('Show suggested associations', {
@@ -121,8 +174,14 @@ const SuggestedCards = ({
       length: nodes.length,
     })
   }, [nodes, analytics])
-  const suggestedCards = nodes.map((node: TNode) => {
-    return <SuggestedCard key={node.nid} node={node} />
+  const suggestedCards = nodes.map((RelevantNodeSuggestion) => {
+    return (
+      <SuggestedCard
+        key={RelevantNodeSuggestion.node.nid}
+        node={RelevantNodeSuggestion.node}
+        webBookmarkDescriptionConfig={getMatchingText(RelevantNodeSuggestion)}
+      />
+    )
   })
   return (
     <SuggestedCardsBox>
@@ -141,6 +200,7 @@ const SuggestedCards = ({
         ) : null}
         {suggestedCards.length > 0 ? suggestedCards : <NoSuggestedCardsBox />}
       </SuggestionsFloaterSuggestionsBox>
+      <Footter id="mazed-archaeologist-suggestions-floater-drag-handle" />
     </SuggestedCardsBox>
   )
 }
@@ -183,25 +243,46 @@ const frameYPosition = (y: number) =>
 export const SuggestionsFloater = ({
   nodes,
   isLoading,
+  defaultRevelaed,
 }: {
-  nodes: TNode[]
+  nodes: RelevantNodeSuggestion[]
   isLoading: boolean
+  defaultRevelaed: boolean
 }) => {
   const nodeRef = React.useRef(null)
   const [controlledPosition, setControlledPosition] =
     React.useState<Position2D | null>(null) // getStartDragPosition(false))
-  const [isRevealed, setRevealed] = React.useState<boolean>(false)
+  const [isRevealed, setRevealed] = React.useState<boolean>(defaultRevelaed)
+
   const analytics = React.useContext(ContentContext).analytics
   const saveRevealed = React.useCallback(
     async (revealed: boolean) => {
-      const response = await FromContent.sendMessage({
-        type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
-        settings: { isRevealed: revealed },
-      })
-      const { positionY } = response.state
-      const defaultPos = getStartDragPosition(revealed)
-      setControlledPosition({ x: defaultPos.x, y: positionY ?? defaultPos.y })
+      try {
+        await FromContent.sendMessage({
+          type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
+          settings: { isRevealed: revealed },
+        })
+      } catch (e) {
+        productanalytics.warning(
+          analytics,
+          {
+            failedTo: 'update user settings',
+            location: 'floater',
+            cause: errorise(e).message,
+          },
+          { andLog: true }
+        )
+      }
       setRevealed(revealed)
+      // Reset floater position to adjust horisontal position (X), it has only
+      // 2 values for revealed/hidden floater. Y position must remain the same.
+      setControlledPosition((prev) => {
+        const defaultPosition = getStartDragPosition(revealed)
+        return {
+          x: defaultPosition.x,
+          y: frameYPosition(prev?.y ?? defaultPosition.y),
+        }
+      })
       analytics?.capture('Click SuggestionsFloater visibility toggle', {
         'Event type': 'change',
         isRevealed: revealed,
@@ -210,22 +291,47 @@ export const SuggestionsFloater = ({
     [analytics]
   )
   useAsyncEffect(async () => {
-    const response = await FromContent.sendMessage({
-      type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
-    })
-    const revealed = response.state.isRevealed ?? false
-    setRevealed(revealed)
+    let settings: ContentAugmentationSettings | null = null
+    try {
+      const response = await FromContent.sendMessage({
+        type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
+      })
+      settings = response.state
+    } catch (e) {
+      productanalytics.warning(
+        analytics,
+        {
+          failedTo: 'get user settings',
+          location: 'floater',
+          cause: errorise(e).message,
+        },
+        { andLog: true }
+      )
+    }
+    const revealed = (settings?.isRevealed ?? false) || defaultRevelaed
     const defaultPosition = getStartDragPosition(revealed)
+
+    setRevealed(revealed)
     setControlledPosition({
       x: defaultPosition.x,
-      y: frameYPosition(response.state.positionY ?? defaultPosition.y),
+      y: frameYPosition(settings?.positionY ?? defaultPosition.y),
     })
   }, [])
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
-    const positionY = data.y
+    const positionY = frameYPosition(data.y)
     FromContent.sendMessage({
       type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
       settings: { positionY },
+    }).catch((e) => {
+      productanalytics.warning(
+        analytics,
+        {
+          failedTo: 'update user settings',
+          location: 'floater',
+          cause: errorise(e).message,
+        },
+        { andLog: true }
+      )
     })
     analytics?.capture('Drag SuggestionsFloater', {
       'Event type': 'drag',
@@ -246,9 +352,7 @@ export const SuggestionsFloater = ({
           <DraggableElement ref={nodeRef}>
             {isRevealed ? (
               <SuggestedCards
-                onClose={() => {
-                  saveRevealed(false)
-                }}
+                onClose={() => saveRevealed(false)}
                 nodes={nodes}
                 isLoading={isLoading}
               />

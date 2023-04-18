@@ -12,6 +12,7 @@ import type {
   ForwardToRealImpl,
   StorageApiMsgPayload,
   StorageApiMsgReturnValue,
+  Nid,
 } from 'smuggler-api'
 import { genOriginId, OriginIdentity, log, productanalytics } from 'armoury'
 
@@ -29,6 +30,7 @@ import {
   exctractPageUrl,
   fetchAnyPagePreviewImage,
 } from './extractor/webPageContent'
+import { extractSimilaritySearchPhraseFromPageContent } from './extractor/webPageSearchPhrase'
 
 import { Quotes } from './quote/Quotes'
 import { ActivityTracker } from './activity-tracker/ActivityTracker'
@@ -221,7 +223,7 @@ function updateState(state: State, action: Action): State {
 
       return {
         mode,
-        originIdentity: genOriginId(exctractPageUrl(document)),
+        originIdentity,
         bookmark,
         toNodes,
         fromNodes,
@@ -315,6 +317,21 @@ async function handleReadOnlyRequest(
         fromNid: state.bookmark?.nid,
       }
     }
+    case 'REQUEST_PAGE_CONTENT_SEARCH_PHRASE': {
+      const baseURL = `${window.location.protocol}//${window.location.host}`
+      const nidsExcludedFromSearch = genExcludeNidsForSimilaritySearch(
+        state.toNodes,
+        state.bookmark
+      )
+      const phrase =
+        extractSimilaritySearchPhraseFromPageContent(document, baseURL) ??
+        undefined
+      return {
+        type: 'PAGE_CONTENT_SEARCH_PHRASE_RESPONSE',
+        nidsExcludedFromSearch,
+        phrase,
+      }
+    }
   }
 }
 
@@ -332,6 +349,19 @@ function mutatingRequestToAction(request: ToContent.MutatingRequest): Action {
   }
 }
 
+function genExcludeNidsForSimilaritySearch(
+  toNodes: TNode[],
+  bookmark?: TNode
+): Nid[] {
+  return (
+    toNodes
+      // Don't show the page itself and it's quotes among suggested
+      .filter((node) => node.ntype === NodeType.WebQuote)
+      .map((node) => node.nid)
+      .concat(bookmark != null ? [bookmark.nid] : [])
+  )
+}
+
 const App = () => {
   const initialState: UninitializedState = {
     mode: 'uninitialised-content-app',
@@ -341,7 +371,8 @@ const App = () => {
     async (message: ToContent.Request): Promise<FromContent.Response> => {
       switch (message.type) {
         case 'REQUEST_PAGE_CONTENT':
-        case 'REQUEST_SELECTED_WEB_QUOTE': {
+        case 'REQUEST_SELECTED_WEB_QUOTE':
+        case 'REQUEST_PAGE_CONTENT_SEARCH_PHRASE': {
           if (state.mode === 'uninitialised-content-app') {
             throw new Error(
               "Can't perform read requests on uninitalized content app"
@@ -421,11 +452,10 @@ const App = () => {
             {activityTrackerOrNull}
             <SuggestedRelatives
               stableUrl={state.originIdentity.stableUrl}
-              excludeNids={state.toNodes
-                // Don't show the page itself and it's quotes among suggested
-                .filter((node) => node.ntype === NodeType.WebQuote)
-                .map((node) => node.nid)
-                .concat(state.bookmark != null ? [state.bookmark.nid] : [])}
+              excludeNids={genExcludeNidsForSimilaritySearch(
+                state.toNodes,
+                state.bookmark
+              )}
             />
           </>
         )}

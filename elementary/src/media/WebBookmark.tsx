@@ -6,7 +6,12 @@ import { Launch } from '@emotion-icons/material'
 
 import type { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
 import type { Optional } from 'armoury'
-import { productanalytics } from 'armoury'
+import {
+  productanalytics,
+  splitStringByWord,
+  padNonEmptyStringWithSpaceHead,
+  padNonEmptyStringWithSpaceTail,
+} from 'armoury'
 import { log } from 'armoury'
 import styled from '@emotion/styled'
 
@@ -15,10 +20,10 @@ import { OverlayCopyOnHover } from '../OverlayCopyOnHover'
 const Box = styled.div`
   width: 100%;
 
-  border-top-right-radius: inherit;
   border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  border-bottom-left-radius: inherit;
   border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
 `
 
 const IconImg = styled.img`
@@ -34,6 +39,7 @@ const PreviewImageBox = styled.div`
   padding: 0;
   position: relative;
   border-top-left-radius: inherit;
+  border-bottom-left-radius: inherit;
 `
 
 const IconLaunch = styled.a`
@@ -125,6 +131,7 @@ const BadgeBox = styled.div`
   display: flex;
   border-top-right-radius: inherit;
   border-top-left-radius: inherit;
+  border-bottom-left-radius: inherit;
 `
 
 const TitleBox = styled.div`
@@ -182,8 +189,7 @@ const Description = styled.blockquote`
 
   padding: 8px 8px 8px 8px;
   margin: 0;
-  color: #5e5e5e;
-  /* background: #f8f8f8; */
+  color: inherit;
 
   quotes: '“' '”' '‘' '’';
   &:before {
@@ -194,12 +200,207 @@ const Description = styled.blockquote`
   }
 `
 
+export type WebBookmarkDescriptionConfig =
+  | {
+      type: 'original' // default
+    }
+  | {
+      type: 'original-cutted'
+    }
+  | {
+      type: 'none'
+    }
+  | {
+      type: 'match'
+      match: string
+      prefix: string
+      suffix: string
+    }
+
+const MatchDescriptionSpan = styled.span`
+  text-decoration-line: underline;
+  text-decoration-color: #2880b99c;
+  text-decoration-color: rgba(0, 110, 237, 0.64);
+  text-decoration-style: solid;
+  text-decoration-thickness: 1px;
+  &:hover {
+    text-decoration-color: rgba(0, 110, 237, 0.92);
+  }
+`
+const MatchDescriptionContextSpan = styled.span``
+const MatchDescriptionSeeMoreBtn = styled.span`
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+`
+
+const BookmarkMatchDescription = ({
+  url,
+  match,
+  prefix,
+  suffix,
+  captureMetricOnCopy,
+}: {
+  url: string
+  match: string
+  prefix: string
+  suffix: string
+  captureMetricOnCopy?: (subj: string) => void
+}) => {
+  const [seeMore, setSeeMore] = React.useState<boolean>(false)
+  const [hiddenPrefix, visisblePrefix] = React.useMemo(
+    () => splitStringByWord(prefix, -18),
+    [prefix]
+  )
+  const [visisbleSuffix, hiddenSuffix] = React.useMemo(
+    () => splitStringByWord(suffix, 154),
+    [suffix]
+  )
+  return (
+    <OverlayCopyOnHover
+      getTextToCopy={() => {
+        captureMetricOnCopy?.('description')
+        return seeMore
+          ? [prefix, match, suffix].join(' ')
+          : [visisblePrefix, match, visisbleSuffix].join(' ')
+      }}
+    >
+      <Description cite={url} className={productanalytics.classExclude()}>
+        &#8230;
+        <MatchDescriptionContextSpan
+          css={{ display: seeMore ? 'inline' : 'none' }}
+        >
+          {padNonEmptyStringWithSpaceTail(hiddenPrefix)}
+        </MatchDescriptionContextSpan>
+        <MatchDescriptionContextSpan>
+          {padNonEmptyStringWithSpaceTail(visisblePrefix)}
+        </MatchDescriptionContextSpan>
+        <MatchDescriptionSpan>{match}</MatchDescriptionSpan>
+        <MatchDescriptionContextSpan>
+          {padNonEmptyStringWithSpaceHead(visisbleSuffix)}
+        </MatchDescriptionContextSpan>
+        <MatchDescriptionContextSpan
+          css={{ display: seeMore ? 'inline' : 'none' }}
+        >
+          {padNonEmptyStringWithSpaceHead(hiddenSuffix)}
+        </MatchDescriptionContextSpan>
+        &#8230;&nbsp;
+        <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore((more) => !more)}>
+          see&nbsp;{seeMore ? 'less' : 'more'}
+        </MatchDescriptionSeeMoreBtn>
+      </Description>
+    </OverlayCopyOnHover>
+  )
+}
+
+const BookmarkOriginalDescription = ({
+  url,
+  description,
+  captureMetricOnCopy,
+}: {
+  url: string
+  description: string
+  captureMetricOnCopy?: (subj: string) => void
+}) => {
+  const [seeMore, setSeeMore] = React.useState<boolean>(false)
+  const [visible, hidden] = React.useMemo(
+    () => splitStringByWord(description, 220),
+    [description]
+  )
+  return (
+    <OverlayCopyOnHover
+      getTextToCopy={() => {
+        captureMetricOnCopy?.('description')
+        return seeMore ? description : visible
+      }}
+    >
+      <Description cite={url} className={productanalytics.classExclude()}>
+        <MatchDescriptionContextSpan>{visible}</MatchDescriptionContextSpan>
+        {hidden ? (
+          <>
+            <MatchDescriptionContextSpan
+              css={{ display: seeMore ? 'inline' : 'none' }}
+            >
+              {padNonEmptyStringWithSpaceHead(hidden)}
+            </MatchDescriptionContextSpan>
+            {!seeMore ? '… ' : ' '}
+            <MatchDescriptionSeeMoreBtn
+              onClick={() => setSeeMore((more) => !more)}
+            >
+              see&nbsp;{seeMore ? 'less' : 'more'}
+            </MatchDescriptionSeeMoreBtn>
+          </>
+        ) : null}
+      </Description>
+    </OverlayCopyOnHover>
+  )
+}
+
+const BookmarkDescription = ({
+  url,
+  description,
+  webBookmarkDescriptionConfig,
+  captureMetricOnCopy,
+}: {
+  url: string
+  description?: string
+  webBookmarkDescriptionConfig: WebBookmarkDescriptionConfig
+  captureMetricOnCopy?: (subj: string) => void
+}) => {
+  switch (webBookmarkDescriptionConfig.type) {
+    case 'none':
+      return null
+    case 'original':
+      if (!description) {
+        return null
+      }
+      return (
+        <OverlayCopyOnHover
+          getTextToCopy={() => {
+            captureMetricOnCopy?.('description')
+            return description
+          }}
+        >
+          <Description cite={url} className={productanalytics.classExclude()}>
+            {description}
+          </Description>
+        </OverlayCopyOnHover>
+      )
+    case 'original-cutted':
+      if (!description) {
+        return null
+      }
+      return (
+        <BookmarkOriginalDescription
+          url={url}
+          description={description}
+          captureMetricOnCopy={captureMetricOnCopy}
+        />
+      )
+    case 'match':
+      const { match, prefix, suffix } = webBookmarkDescriptionConfig
+      return (
+        <BookmarkMatchDescription
+          url={url}
+          match={match}
+          prefix={prefix}
+          suffix={suffix}
+          captureMetricOnCopy={captureMetricOnCopy}
+        />
+      )
+  }
+}
+
 type WebBookmarkProps = {
   extattrs: NodeExtattrs
   className?: string
   strippedRefs?: boolean
   onLaunch?: () => void
   captureMetricOnCopy?: (subj: string) => void
+  webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
 }
 
 export const WebBookmark = ({
@@ -208,6 +409,7 @@ export const WebBookmark = ({
   strippedRefs,
   onLaunch,
   captureMetricOnCopy,
+  webBookmarkDescriptionConfig,
 }: WebBookmarkProps) => {
   const { web, preview_image, title, description, author } = extattrs
   if (web == null) {
@@ -226,18 +428,6 @@ export const WebBookmark = ({
       <Author className={productanalytics.classExclude()}>
         &mdash; {author}
       </Author>
-    </OverlayCopyOnHover>
-  ) : null
-  const descriptionElement = description ? (
-    <OverlayCopyOnHover
-      getTextToCopy={() => {
-        captureMetricOnCopy?.('description')
-        return description
-      }}
-    >
-      <Description cite={url} className={productanalytics.classExclude()}>
-        {description}
-      </Description>
     </OverlayCopyOnHover>
   ) : null
   return (
@@ -272,7 +462,14 @@ export const WebBookmark = ({
           {authorBadge}
         </TitleBox>
       </BadgeBox>
-      {descriptionElement}
+      <BookmarkDescription
+        url={url}
+        description={description}
+        webBookmarkDescriptionConfig={
+          webBookmarkDescriptionConfig ?? { type: 'original' }
+        }
+        captureMetricOnCopy={captureMetricOnCopy}
+      />
     </Box>
   )
 }

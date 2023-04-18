@@ -1,14 +1,18 @@
 import React from 'react'
 import lodash from 'lodash'
 
-import { log } from 'armoury'
+import type { Nid } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
-import type { Nid, TNode, TNodeJson } from 'smuggler-api'
+import { errorise, log, productanalytics } from 'armoury'
 
-import { FromContent } from './../../message/types'
-import { SuggestionsFloater } from './SuggestionsFloater'
-import { exctractPageContent } from '../extractor/webPageContent'
+import { FromContent } from '../../message/types'
+import { extractSimilaritySearchPhraseFromPageContent } from '../extractor/webPageSearchPhrase'
 import { ContentContext } from '../context'
+import { extractSearchEngineQuery } from '../extractor/url/searchEngineQuery'
+import {
+  SuggestionsFloater,
+  RelevantNodeSuggestion,
+} from './SuggestionsFloater'
 
 export function getKeyPhraseFromUserInput(
   target?: HTMLTextAreaElement
@@ -40,6 +44,11 @@ function updateUserInputFromKeyboardEvent(keyboardEvent: KeyboardEvent) {
   return { target: null, phrase: null }
 }
 
+type SimilaritySearchInput = {
+  phrase?: string
+  isSearchEngine: boolean
+}
+
 export function SuggestedRelatives({
   stableUrl,
   excludeNids,
@@ -48,25 +57,28 @@ export function SuggestedRelatives({
   excludeNids?: Nid[]
 }) {
   const analytics = React.useContext(ContentContext).analytics
-  const [suggestedNodes, setSuggestedNodes] = React.useState<TNode[]>([])
+  const [suggestedNodes, setSuggestedNodes] = React.useState<
+    RelevantNodeSuggestion[]
+  >([])
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
-  const pagePhrase = React.useMemo(() => {
-    const baseURL = `${document.location.protocol}//${document.location.host}`
-    const pageContent = exctractPageContent(document, baseURL)
-    const phrase = [
-      pageContent.title,
-      pageContent.description,
-      ...pageContent.author,
-      pageContent.text,
-      ...(stableUrl?.split('/') ?? []),
-    ]
-      .filter((v) => !!v)
-      .join('.\n')
-    return phrase
+  const pageSimilaritySearchInput = React.useMemo<SimilaritySearchInput>(() => {
+    const searchEngineQuery = extractSearchEngineQuery(
+      stableUrl ?? document.location.href
+    )
+    if (searchEngineQuery?.phrase != null) {
+      return { phrase: searchEngineQuery.phrase, isSearchEngine: true }
+    }
+    const baseURL = stableUrl
+      ? new URL(stableUrl).origin
+      : `${document.location.protocol}//${document.location.host}`
+    const phrase =
+      extractSimilaritySearchPhraseFromPageContent(document, baseURL) ??
+      undefined
+    return { phrase, isSearchEngine: false }
   }, [
     /**
-     * The dependency guarantees `pagePhrase` regenration on a newopened page,
+     * The dependency guarantees `pageSimilaritySearchInput` regenration on a newopened page,
      * it's important when a new page is opened by the same React App and DOM is
      * not completely reloaded, but just updated. Because of this don't remove
      * this dependency even if you don't want to insert URL into a search phrase.
@@ -80,24 +92,40 @@ export function SuggestedRelatives({
       lodash.debounce(
         async (phrase: string) => {
           setSuggestionsSearchIsActive(true)
-          log.debug(`Look for "${phrase}" in Mazed`)
-          const response = await FromContent.sendMessage({
-            type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
-            limit: 8,
-            phrase,
-            excludeNids,
-          })
-          setSuggestedNodes(
-            response.suggested.map((value: TNodeJson) =>
-              NodeUtil.fromJson(value)
+          log.debug(`Look for the following phrase in Mazed ${phrase}`)
+          try {
+            const response = await FromContent.sendMessage({
+              type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
+              limit: 8,
+              phrase,
+              excludeNids,
+            })
+            setSuggestedNodes(
+              response.suggested.map((item) => {
+                return {
+                  node: NodeUtil.fromJson(item.node),
+                  matchedPiece: item.matchedPiece,
+                }
+              })
             )
-          )
+            analytics?.capture('Search suggested associations', {
+              'Event type': 'search',
+              result_length: response.suggested.length,
+              phrase_size: phrase.length,
+            })
+          } catch (e) {
+            setSuggestedNodes([])
+            productanalytics.error(
+              analytics,
+              {
+                failedTo: 'get content suggestions',
+                location: 'floater',
+                cause: errorise(e).message,
+              },
+              { andLog: true }
+            )
+          }
           setSuggestionsSearchIsActive(false)
-          analytics?.capture('Search suggested associations', {
-            'Event type': 'search',
-            result_length: response.suggested.length,
-            phrase_size: phrase.length,
-          })
         },
         661,
         {}
@@ -115,18 +143,17 @@ export function SuggestedRelatives({
       if (phrase != null && phrase.length > 3 && userInput.phrase !== phrase) {
         requestSuggestedAssociations(phrase)
         setUserInput(newInput)
-      } else if (phrase == null && pagePhrase.length > 8) {
-        requestSuggestedAssociations(pagePhrase)
       }
       return newInput
     },
-    [userInput, requestSuggestedAssociations, pagePhrase]
+    [userInput, requestSuggestedAssociations]
   )
   React.useEffect(() => {
-    if (pagePhrase.length > 8) {
-      requestSuggestedAssociations(pagePhrase)
+    const phrase = pageSimilaritySearchInput.phrase
+    if (phrase != null && phrase.length > 3) {
+      requestSuggestedAssociations(phrase)
     }
-  }, [pagePhrase, requestSuggestedAssociations])
+  }, [pageSimilaritySearchInput, requestSuggestedAssociations])
   React.useEffect(() => {
     const opts: AddEventListenerOptions = { passive: true, capture: true }
     window.addEventListener('keyup', consumeKeyboardEvent, opts)
@@ -138,6 +165,7 @@ export function SuggestedRelatives({
     <SuggestionsFloater
       nodes={suggestedNodes}
       isLoading={suggestionsSearchIsActive}
+      defaultRevelaed={pageSimilaritySearchInput.isSearchEngine}
     />
   )
 }

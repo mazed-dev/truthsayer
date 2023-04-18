@@ -7,8 +7,9 @@ import { productanalytics } from 'armoury'
 import { NodeTextReader } from './editor/NodeTextReader'
 import { Spinner } from './spinner/mod'
 import { NodeMedia } from './media/NodeMedia'
+import { WebBookmarkDescriptionConfig } from './media/WebBookmark'
 
-const Box = styled.div`
+export const NodeCardBox = styled.div`
   border-radius: inherit;
 `
 
@@ -19,6 +20,7 @@ export function NodeCardReadOnly({
   strippedActions,
   storage,
   captureMetricOnCopy,
+  webBookmarkDescriptionConfig,
 }: {
   node: TNode
   className?: string
@@ -26,9 +28,10 @@ export function NodeCardReadOnly({
   strippedActions?: boolean
   storage: StorageApi
   captureMetricOnCopy?: (subj: string) => void
+  webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
 }) {
   return (
-    <Box className={productanalytics.classExclude(className)}>
+    <NodeCardBox className={productanalytics.classExclude(className)}>
       <NodeMedia
         storage={storage}
         className={''}
@@ -36,9 +39,10 @@ export function NodeCardReadOnly({
         strippedRefs={strippedRefs}
         strippedActions={strippedActions}
         captureMetricOnCopy={captureMetricOnCopy}
+        webBookmarkDescriptionConfig={webBookmarkDescriptionConfig}
       />
       <NodeTextReader node={node} captureMetricOnCopy={captureMetricOnCopy} />
-    </Box>
+    </NodeCardBox>
   )
 }
 

@@ -118,7 +118,7 @@ describe('data-driven test', () => {
 
   it('Simple search for phrase', () => {
     const res = findRelevantDocumentsForPhrase<DocIdType>(
-      'The RGB color model',
+      overallIndex.model.wink.readDoc('The RGB color model'),
       1,
       overallIndex,
       relIndexPerDocument
@@ -132,7 +132,7 @@ describe('data-driven test', () => {
     const start = Math.floor(Math.random() * (rows.length - len))
     rows.slice(start, start + len).forEach((row) => {
       const res = findRelevantDocuments(
-        row.text,
+        overallIndex.model.wink.readDoc(row.text),
         1,
         overallIndex,
         relIndexPerDocument
@@ -145,7 +145,7 @@ describe('data-driven test', () => {
     const text =
       'A class constructor is a special member function of a class that is'
     const res = findRelevantDocuments(
-      text,
+      overallIndex.model.wink.readDoc(text),
       1,
       overallIndex,
       relIndexPerDocument
@@ -156,7 +156,7 @@ describe('data-driven test', () => {
   })
   it('Search for non-dictionary words', () => {
     const res = findRelevantDocumentsForPhrase(
-      'Todo toolbar',
+      overallIndex.model.wink.readDoc('Todo toolbar'),
       1,
       overallIndex,
       relIndexPerDocument

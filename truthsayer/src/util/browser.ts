@@ -17,22 +17,6 @@ export function guessBrowserNameByUserAgentString(
   return null
 }
 
-interface NavigatorBrand {
-  brand: string
-  version?: string
-}
-interface NavigatorUAData {
-  brands: NavigatorBrand[]
-  mobile: boolean
-  platform: string
-}
-
 export function getBrowserName(): string | null {
-  const userAgentData = (window.navigator as Record<string, any>)[
-    'userAgentData'
-  ] as NavigatorUAData | null | undefined
-  if (userAgentData != null) {
-    return userAgentData.brands[0].brand
-  }
   return guessBrowserNameByUserAgentString(window.navigator.userAgent)
 }

@@ -1,5 +1,5 @@
 import { AccountInfo, PreviewImageSmall, SessionCreateArgs } from 'smuggler-api'
-
+import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 import browser from 'webextension-polyfill'
 import type {
   Nid,
@@ -82,6 +82,14 @@ export interface WebPageContent {
   publisher: string[]
   text: string | null
   image: PreviewImageSmall | null
+}
+
+export type RelevantNodeSuggestion = {
+  node: TNodeJson
+  /**
+   * Most relevant quote from the node
+   */
+  matchedPiece?: LongestCommonContinuousPiece
 }
 
 export namespace FromPopUp {
@@ -173,7 +181,7 @@ export namespace ToPopUp {
   }
   export interface GetSuggestionsToPageInActiveTabResponse {
     type: 'RESPONSE_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB'
-    suggestedAkinNodes: TNodeJson[]
+    suggestedAkinNodes: RelevantNodeSuggestion[]
   }
 
   export type LogInResponse = {
@@ -262,7 +270,10 @@ export namespace ToContent {
   }
   export interface SuggestedAssociationsResponse {
     type: 'SUGGESTED_CONTENT_ASSOCIATIONS'
-    suggested: TNodeJson[]
+    suggested: RelevantNodeSuggestion[]
+  }
+  export interface RequestPageContentSearchPhrase {
+    type: 'REQUEST_PAGE_CONTENT_SEARCH_PHRASE'
   }
 
   /** Requests that aim to modify recepient's state. */
@@ -271,7 +282,10 @@ export namespace ToContent {
     | UpdateContentAugmentationRequest
     | ShowDisappearingNotificationRequest
   /** Requests that aim to retrieve part of recepient's state without modifying it. */
-  export type ReadOnlyRequest = RequestPageContent | GetSelectedQuoteRequest
+  export type ReadOnlyRequest =
+    | RequestPageContent
+    | GetSelectedQuoteRequest
+    | RequestPageContentSearchPhrase
   /** Requests that are sent to content only to be forwarded somewhere else. */
   export type PassthroughRequest = ReportBackgroundOperationProgress
 
@@ -291,6 +305,10 @@ export namespace ToContent {
     | FromContent.PageAlreadySavedResponse
     | FromContent.PageNotWorthSavingResponse
   >
+  export function sendMessage(
+    tabId: number,
+    message: RequestPageContentSearchPhrase
+  ): Promise<FromContent.PageContentSearchPhraseResponse>
   export function sendMessage(
     tabId: number,
     message: UpdateContentAugmentationRequest
@@ -356,6 +374,11 @@ export namespace FromContent {
     fromNodes: TNodeJson[]
     toNodes: TNodeJson[]
   }
+  export type PageContentSearchPhraseResponse = {
+    type: 'PAGE_CONTENT_SEARCH_PHRASE_RESPONSE'
+    phrase?: string
+    nidsExcludedFromSearch: Nid[]
+  }
   export interface PageNotWorthSavingResponse {
     type: 'PAGE_NOT_WORTH_SAVING'
   }
@@ -402,6 +425,7 @@ export namespace FromContent {
     | PageAlreadySavedResponse
     | PageNotWorthSavingResponse
     | VoidResponse
+    | PageContentSearchPhraseResponse
 
   export function sendMessage(
     message: AttentionTimeChunk

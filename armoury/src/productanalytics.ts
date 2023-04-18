@@ -106,6 +106,59 @@ function makePostHogIdentityFromString(
   return { analyticsIdentity: `${envPrefix}${str}` }
 }
 
+type Problem = {
+  /** The action which was attempted, but couldn't be done due to this problem */
+  failedTo: string
+  /**
+   * Name of the user-facing component where to problem occured
+   * (e.g. 'floater', 'popup' etc)
+   */
+  location: string
+  /**
+   * Description of what caused the problem
+   * (e.g. an error message thrown by some module)
+   */
+  cause: string
+}
+
+/** Additional configuration of how problem should be captured by product analytics */
+type ProblemCaptureSettings = {
+  /** If true, problem will be logged in addition to being captured */
+  andLog?: true
+}
+
+function captureWarning(
+  analytics: PostHog | null,
+  data: Problem & Record<string, any>,
+  settings?: ProblemCaptureSettings
+) {
+  analytics?.capture('warning', {
+    ...data,
+    failedTo: `Failed to ${data.failedTo}`,
+  })
+  if (settings?.andLog) {
+    log.error(
+      `${data.location}: Failed to ${data.failedTo}, cause = '${data.cause}'`
+    )
+  }
+}
+
+function captureError(
+  analytics: PostHog | null,
+  data: Problem & Record<string, any>,
+  settings?: ProblemCaptureSettings
+) {
+  analytics?.capture('error', {
+    ...data,
+    failedTo: `Failed to ${data.failedTo}`,
+  })
+  if (settings?.andLog) {
+    log.error(
+      `${data.location}: Failed to ${data.failedTo}, cause = '${data.cause}'`
+    )
+  }
+}
+
 /**
  * @summary A string ID which is sufficiently safe & privacy-conscious to identify
  * a user for product analytics purposes.
@@ -127,4 +180,6 @@ export const productanalytics = {
   identity: {
     from: makePostHogIdentityFromString,
   },
+  warning: captureWarning,
+  error: captureError,
 }

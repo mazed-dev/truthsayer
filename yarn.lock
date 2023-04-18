@@ -3569,10 +3569,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mozilla/readability@npm:^0.4.1":
-  version: 0.4.1
-  resolution: "@mozilla/readability@npm:0.4.1"
-  checksum: 1e6915e7dd753fcfc60532b9080bbd286252d716ab30b80daae41c0eecbbe68a470c097ae39a40f12d496eaf8d958dd97b4635e0046e8ba639e3d4a092282e9b
+"@mozilla/readability@npm:^0.4.4":
+  version: 0.4.4
+  resolution: "@mozilla/readability@npm:0.4.4"
+  checksum: 24af169a7cf388c3b300d0beb2c4dc90e075730b926b0fde985dd07dc6940ec4ed754cdd80f76b843fa45141470db43080c5f97e60abed81b1e66cf68751672b
   languageName: node
   linkType: hard
 
@@ -5882,7 +5882,7 @@ __metadata:
     "@emotion-icons/material": ^3.14.0
     "@emotion/react": ^11.9.0
     "@emotion/styled": ^11.8.1
-    "@mozilla/readability": ^0.4.1
+    "@mozilla/readability": ^0.4.4
     "@popperjs/core": ^2.10.2
     "@testing-library/dom": ^7.29
     "@testing-library/jest-dom": ^5.14.1
@@ -22204,14 +22204,14 @@ __metadata:
   linkType: hard
 
 "vm2@npm:^3.9.10":
-  version: 3.9.11
-  resolution: "vm2@npm:3.9.11"
+  version: 3.9.16
+  resolution: "vm2@npm:3.9.16"
   dependencies:
     acorn: ^8.7.0
     acorn-walk: ^8.2.0
   bin:
     vm2: bin/vm2
-  checksum: aab39e6e4b59146d24abacd79f490e854a6e058a8b23d93d2be5aca7720778e2605d2cc028ccc4a5f50d3d91b0c38be9a6247a80d2da1a6de09425cc437770b4
+  checksum: 646b45dca721acb3c8e4ae0742129f13612972387911c2475f3c06ac2b4232000cab0bdaaa65d97d6ea8dc70880e039542618b1b3d04adea79cd94803cbc4ab3
   languageName: node
   linkType: hard
 

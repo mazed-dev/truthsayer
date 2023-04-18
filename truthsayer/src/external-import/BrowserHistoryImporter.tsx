@@ -3,7 +3,13 @@ import styled from '@emotion/styled'
 import { Redirect } from 'react-router'
 import { Button as ReactBootstrapButton } from 'react-bootstrap'
 
-import { MdiCancel, MdiCloudUpload, MdiDelete, Spinner } from 'elementary'
+import {
+  MdiCancel,
+  MdiCloudUpload,
+  MdiDelete,
+  Spinner,
+  ErrorBox,
+} from 'elementary'
 import { ArchaeologistState } from '../apps-list/archaeologistState'
 import {
   BackgroundActionProgress,
@@ -51,10 +57,6 @@ const CloudUploadPic = styled(MdiCloudUpload)`
 `
 const DeletePic = styled(MdiDelete)`
   vertical-align: middle;
-`
-
-const ErrorBox = styled.div`
-  color: red;
 `
 
 export type BrowserHistoryImportConfig = {

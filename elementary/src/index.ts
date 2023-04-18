@@ -9,6 +9,7 @@ export * from './SmallCard'
 export * from './WideCard'
 export * from './NodeCard'
 export * from './NodeCardReadOnly'
+export * from './ErrorBox'
 export * from './colour'
 export * from './editor/NodeTextEditor'
 export * from './grid/DynamicGrid'
@@ -38,6 +39,7 @@ export type {
   ThematicBreakElement,
   UnorderedListElement,
 } from './editor/types'
+export type { WebBookmarkDescriptionConfig } from './media/WebBookmark'
 
 export {
   TDoc,

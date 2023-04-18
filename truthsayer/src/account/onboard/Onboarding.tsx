@@ -18,7 +18,6 @@ import {
 import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
 import { sleep, isAbortError } from 'armoury'
-import { accountConfig } from '../config'
 
 const Header = styled.h1`
   margin-bottom: 24px;
@@ -193,9 +192,6 @@ const StepYouAreReadyToGo = ({
   nextStep: () => void
   prevStep: () => void
 }) => {
-  React.useEffect(() => {
-    accountConfig.local.onboarding.set({ invoked: true })
-  }, [])
   return (
     <StepBox>
       <Header>
@@ -235,22 +231,45 @@ const StepYouAreReadyToGo = ({
 }
 
 const StepTangoShowAroundBox = styled(StepBox)`
-  height: 85.5vh;
+  height: calc(100vh - 40px); /* leave some space for bottom bar */
+  width: 100%;
+  @media (min-width: 720px) {
+    width: 720px;
+    margin: 0 auto 0 auto;
+    padding-top: calc(100vh - 1200px);
+  }
+`
+const StepTangoIframBox = styled.div`
+  position: relative;
+  width: 100%;
+  height: 0;
+  /**
+  * 0.75 = 3/4 because of the aspect ratio of 4:3, see
+  * https://stackoverflow.com/questions/25302836/responsive-video-iframes-keeping-aspect-ratio-with-only-css
+  */
+  padding-bottom: 75%;
+`
+const StepTangoIframe = styled.iframe`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 `
 const StepTangoShowAround = ({ onClose }: { onClose: () => void }) => {
   return (
     <StepTangoShowAroundBox>
-      <iframe
-        src="https://app.tango.us/app/embed/c99490cf-dfe4-4f17-9f83-80e18fee80e6?iframe"
-        sandbox="allow-scripts allow-top-navigation-by-user-activation allow-popups allow-same-origin"
-        security="restricted"
-        title="Let's show you around your second brain."
-        width="100%"
-        height="100%"
-        referrerPolicy="strict-origin-when-cross-origin"
-        frameBorder="0"
-        allowFullScreen
-      ></iframe>
+      <StepTangoIframBox>
+        <StepTangoIframe
+          src="https://app.tango.us/app/embed/c99490cf-dfe4-4f17-9f83-80e18fee80e6?iframe"
+          sandbox="allow-scripts allow-top-navigation-by-user-activation allow-popups allow-same-origin"
+          security="restricted"
+          title="Let's show you around your second brain."
+          referrerPolicy="strict-origin-when-cross-origin"
+          frameBorder="0"
+          allowFullScreen
+        ></StepTangoIframe>
+      </StepTangoIframBox>
       <StepFotbar>
         <StepFotbarButton variant="outline-primary" onClick={onClose} size="sm">
           Done
