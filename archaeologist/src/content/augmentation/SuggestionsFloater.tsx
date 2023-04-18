@@ -90,6 +90,9 @@ const SuggestedCardBox = styled.div`
   line-height: 142%;
   text-align: left;
 
+  overflow-wrap: break-word;
+  word-break: normal;
+
   margin: 2px 4px 2px 4px;
   &:last-child {
     margin: 2px 4px 0px 4px;
