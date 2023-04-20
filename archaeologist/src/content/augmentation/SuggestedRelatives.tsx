@@ -150,7 +150,6 @@ export function SuggestedRelatives({
             })
           } catch (e) {
             setSuggestedNodes([])
-            log.error(`Exception is ${errorise(e).name}`)
             productanalytics.error(
               analytics,
               {

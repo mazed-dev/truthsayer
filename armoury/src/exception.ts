@@ -1,5 +1,3 @@
-import { log } from './log'
-
 /**
  * See https://stackoverflow.com/a/30469297/3375765 for more information
  * about the implementation
