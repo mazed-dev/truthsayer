@@ -9,7 +9,7 @@ import type {
   TNodeJson,
   NodeUpdateArgs,
 } from 'smuggler-api'
-import { AnalyticsIdentity, OriginIdentity, errorise } from 'armoury'
+import { AnalyticsIdentity, OriginIdentity } from 'armoury'
 import type {
   BackgroundAction,
   BackgroundActionProgress,
