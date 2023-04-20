@@ -175,22 +175,18 @@ async function handleMessageFromContent(
       await registerAttentionTime(ctx.storage, sender.tab, message)
       return { type: 'VOID_RESPONSE' }
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
-      throw new FromBackground.IncompatibleInitPhase({
-        expected: 'init-done',
-        actual: 'loading',
-      })
-      // const relevantNodes = await similarity.findRelevantNodes(
-      //   message.phrase,
-      //   ctx.storage,
-      //   message.limit,
-      //   new Set(message.excludeNids)
-      // )
-      // return {
-      //   type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
-      //   suggested: relevantNodes.map(({ node, matchedPiece }) => {
-      //     return { node: NodeUtil.toJson(node), matchedPiece }
-      //   }),
-      // }
+      const relevantNodes = await similarity.findRelevantNodes(
+        message.phrase,
+        ctx.storage,
+        message.limit,
+        new Set(message.excludeNids)
+      )
+      return {
+        type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
+        suggested: relevantNodes.map(({ node, matchedPiece }) => {
+          return { node: NodeUtil.toJson(node), matchedPiece }
+        }),
+      }
     }
     case 'REQUEST_CONTENT_AUGMENTATION_SETTINGS': {
       if (message.settings != null) {
