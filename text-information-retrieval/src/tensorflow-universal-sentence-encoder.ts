@@ -51,12 +51,13 @@ export function findRelevantDocuments<DocIdType>(
   const results: RelevanceResult<DocIdType>[] = []
   docs.forEach(({ docId, embedding }: TfPerDocumentIndex<DocIdType>) => {
     const score = euclideanDistance(pattern, embedding)
-    log.debug('Score', score)
-    if (score > scoreThreshold) {
+    log.debug('Score', score, docId)
+    if (score < scoreThreshold) {
       results.push({ score, docId })
     }
   })
-  results.sort((ar, br) => br.score - ar.score)
+  results.sort((ar, br) => ar.score - br.score)
+  log.debug('Results', results)
   return results
 }
 

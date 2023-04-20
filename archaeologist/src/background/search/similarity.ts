@@ -86,7 +86,7 @@ export async function findRelevantNodes(
       return []
     }
     const pattern = await tfIndex.encoder.embed(phrase)
-    const results = tfUse.findRelevantDocuments(pattern, tfPerDocumentIndex, 0.99).filter((r) =>
+    const results = tfUse.findRelevantDocuments(pattern, tfPerDocumentIndex, 1.0).filter((r) =>
       excludedNids != null ? !excludedNids.has(r.docId.nid) : true
     )
     const nids: Nid[] = results.map(({ docId }) => docId.nid)
@@ -317,7 +317,9 @@ export async function register(storage: StorageApi) {
     tfIndex = index
     tfPerDocumentIndex = perDocument
   }
+  log.debug('Start loading model', new Date())
   const iter = await storage.node.iterate()
+  log.debug('Model is loaded', new Date())
   while (true) {
     const node = await iter.next()
     if (node) {
@@ -326,7 +328,7 @@ export async function register(storage: StorageApi) {
       break
     }
   }
-  log.debug('documentsNumber', overallIndex.documentsNumber)
+  log.debug('documentsNumber', overallIndex.documentsNumber, new Date())
   log.debug('wordsInAllDocuments', overallIndex.wordsInAllDocuments)
   log.debug('bagOfWords', overallIndex.bagOfWords)
   storage.node.addListener(nodeEventListener)
