@@ -9,7 +9,7 @@ import type {
   TNodeJson,
   NodeUpdateArgs,
 } from 'smuggler-api'
-import { AnalyticsIdentity, OriginIdentity } from 'armoury'
+import { AnalyticsIdentity, ErrorViaMessage, OriginIdentity } from 'armoury'
 import type {
   BackgroundAction,
   BackgroundActionProgress,
@@ -150,7 +150,9 @@ export namespace FromPopUp {
   export function sendMessage(message: Request): Promise<ToPopUp.Response> {
     const msg: ToBackground.Request = { direction: 'from-popup', ...message }
     return browser.runtime.sendMessage(msg).catch((error) => {
-      throw new Error(`Failed to send ${message.type} from popup: ${error}`)
+      const unpacked = ErrorViaMessage.tryUnpack(error)
+      unpacked.message = `Failed to send ${message.type} from popup: ${unpacked.message}`
+      throw unpacked
     })
   }
 }
@@ -338,9 +340,9 @@ export namespace ToContent {
     message: Request
   ): Promise<FromContent.Response> {
     return browser.tabs.sendMessage(tabId, message).catch((error) => {
-      throw new Error(
-        `Failed to send ${message.type} to content (tabId = ${tabId}): ${error}`
-      )
+      const unpacked = ErrorViaMessage.tryUnpack(error)
+      unpacked.message = `Failed to send ${message.type} to content (tabId = ${tabId}): ${unpacked.message}`
+      throw unpacked
     })
   }
 
@@ -445,7 +447,9 @@ export namespace FromContent {
   export function sendMessage(message: Request): Promise<ToContent.Response> {
     const msg: ToBackground.Request = { direction: 'from-content', ...message }
     return browser.runtime.sendMessage(msg).catch((error) => {
-      throw new Error(`Failed to send ${message.type} from content: ${error}`)
+      const unpacked = ErrorViaMessage.tryUnpack(error)
+      unpacked.message = `Failed to send ${message.type} from content: ${unpacked.message}`
+      throw unpacked
     })
   }
 }

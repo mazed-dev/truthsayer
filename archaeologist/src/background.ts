@@ -20,7 +20,7 @@ import {
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
-import { log, isAbortError, unixtime, errorise } from 'armoury'
+import { log, isAbortError, unixtime, errorise, ErrorViaMessage } from 'armoury'
 import {
   NodeUtil,
   TotalUserActivity,
@@ -175,18 +175,22 @@ async function handleMessageFromContent(
       await registerAttentionTime(ctx.storage, sender.tab, message)
       return { type: 'VOID_RESPONSE' }
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
-      const relevantNodes = await similarity.findRelevantNodes(
-        message.phrase,
-        ctx.storage,
-        message.limit,
-        new Set(message.excludeNids)
-      )
-      return {
-        type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
-        suggested: relevantNodes.map(({ node, matchedPiece }) => {
-          return { node: NodeUtil.toJson(node), matchedPiece }
-        }),
-      }
+      throw new FromBackground.IncompatibleInitPhase({
+        expected: 'init-done',
+        actual: 'loading',
+      })
+      // const relevantNodes = await similarity.findRelevantNodes(
+      //   message.phrase,
+      //   ctx.storage,
+      //   message.limit,
+      //   new Set(message.excludeNids)
+      // )
+      // return {
+      //   type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
+      //   suggested: relevantNodes.map(({ node, matchedPiece }) => {
+      //     return { node: NodeUtil.toJson(node), matchedPiece }
+      //   }),
+      // }
     }
     case 'REQUEST_CONTENT_AUGMENTATION_SETTINGS': {
       if (message.settings != null) {
@@ -820,37 +824,41 @@ const bg = new Background()
 // is at least *some* response in every case (instad of difficult to
 // diagnose "Could not establish connection. Receiving end does not exist." errors).
 browser.runtime.onMessage.addListener(
-  async (
-    message: ToBackground.Request,
-    sender: browser.Runtime.MessageSender
-  ): Promise<FromBackground.Response> => {
-    try {
-      return await bg.onMessageFromOtherPartsOfArchaeologist(message, sender)
-    } catch (reason) {
-      log.error(
-        `Failed to process '${message.direction}' message '${message.type}': ` +
-          `${errorise(reason).message}`
-      )
-      throw reason
+  ErrorViaMessage.rethrow(
+    async (
+      message: ToBackground.Request,
+      sender: browser.Runtime.MessageSender
+    ): Promise<FromBackground.Response> => {
+      try {
+        return await bg.onMessageFromOtherPartsOfArchaeologist(message, sender)
+      } catch (reason) {
+        log.error(
+          `Failed to process '${message.direction}' message '${message.type}': ` +
+            `${errorise(reason).message}`
+        )
+        throw reason
+      }
     }
-  }
+  )
 )
 // NOTE: the same that's described above for browser.runtime.onMessage
 // is true here as well. There must be exactly one listener for
 // browser.runtime.onMessageExternal, as soon as possible.
 browser.runtime.onMessageExternal.addListener(
-  async (
-    message: FromTruthsayer.Request,
-    sender: browser.Runtime.MessageSender
-  ): Promise<ToTruthsayer.Response> => {
-    try {
-      return bg.onMessageFromTruthsayer(message, sender)
-    } catch (reason) {
-      log.error(
-        `Failed to process 'from-truthsayer' message '${message.type}', ` +
-          `${errorise(reason).message}`
-      )
-      throw reason
+  ErrorViaMessage.rethrow(
+    async (
+      message: FromTruthsayer.Request,
+      sender: browser.Runtime.MessageSender
+    ): Promise<ToTruthsayer.Response> => {
+      try {
+        return bg.onMessageFromTruthsayer(message, sender)
+      } catch (reason) {
+        log.error(
+          `Failed to process 'from-truthsayer' message '${message.type}', ` +
+            `${errorise(reason).message}`
+        )
+        throw reason
+      }
     }
-  }
+  )
 )

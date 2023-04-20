@@ -5,7 +5,7 @@ import type { Nid } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
 import { errorise, log, productanalytics, sleep } from 'armoury'
 
-import { FromContent } from '../../message/types'
+import { FromBackground, FromContent } from '../../message/types'
 import { extractSimilaritySearchPhraseFromPageContent } from '../extractor/webPageSearchPhrase'
 import { ContentContext } from '../context'
 import { extractSearchEngineQuery } from '../extractor/url/searchEngineQuery'
@@ -53,12 +53,11 @@ async function retryIfStillLoading<T>(
   fn: () => Promise<T>,
   { times, intervalMs }: { times: number; intervalMs: number }
 ): Promise<T> {
-  const backgroundIsStillLoading = (e: any) => {
-    const error = errorise(e)
-    return error.message.includes("background unexpectedly had state 'loading'")
-    // See userFacingLoginErrorFrom() for more information on why this relies on
-    // error message parsing rather than inspection if the error is
-    // of IncompatibleInitPhase type.
+  const backgroundIsStillLoading = (error: Error) => {
+    return (
+      FromBackground.isIncompatibleInitPhase(error) &&
+      error.phase.actual === 'loading'
+    )
   }
 
   for (let i = 0; i < times; i++, await sleep(intervalMs)) {
@@ -72,7 +71,6 @@ async function retryIfStillLoading<T>(
       if (!backgroundIsStillLoading(error)) {
         throw e
       }
-      log.debug('retry')
     }
   }
   return await fn()
@@ -152,6 +150,7 @@ export function SuggestedRelatives({
             })
           } catch (e) {
             setSuggestedNodes([])
+            log.error(`Exception is ${errorise(e).name}`)
             productanalytics.error(
               analytics,
               {
