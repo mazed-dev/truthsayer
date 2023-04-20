@@ -451,10 +451,47 @@ export namespace FromContent {
 }
 
 export namespace ToBackground {
+  export type RequestDirection = 'from-popup' | 'from-content'
   export type Request =
     | ({ direction: 'from-popup' } & FromPopUp.Request)
     | ({ direction: 'from-content' } & FromContent.Request)
 }
 export namespace FromBackground {
   export type Response = ToPopUp.Response | ToContent.Response
+
+  type InitPhase = 'not-init' | 'loading' | 'unloading' | 'init-done'
+  /**
+   * Exception thrown if background has received a request, but failed
+   * to process it because it was in the phase of initialization that is
+   * incompatible with the request.
+   */
+  export class IncompatibleInitPhase extends Error {
+    phase: {
+      expected: InitPhase
+      actual: InitPhase
+    }
+    reason?: string
+
+    constructor(
+      phase: { expected: InitPhase; actual: InitPhase },
+      reason?: string
+    ) {
+      let message =
+        `background unexpectedly had state '${phase.actual}' ` +
+        `(expected '${phase.expected}')`
+      if (reason) {
+        message += `: ${reason}`
+      }
+      super(message)
+      this.name = 'IncompatibleInitPhase'
+      this.phase = phase
+      this.reason = reason
+    }
+  }
+
+  export function isIncompatibleInitPhase(
+    value: any
+  ): value is IncompatibleInitPhase {
+    return value instanceof Error && value.name === 'IncompatibleInitPhase'
+  }
 }

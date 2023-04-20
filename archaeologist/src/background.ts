@@ -392,9 +392,10 @@ class Background {
     auth.observe({
       onLogin: async (account: UserAccount) => {
         if (this.state.phase !== 'not-init') {
-          throw new Error(
-            `Attempted to init background, but it has unexpected state '${this.state.phase}'`
-          )
+          throw new FromBackground.IncompatibleInitPhase({
+            expected: 'not-init',
+            actual: this.state.phase,
+          })
         }
         this.state = { phase: 'loading' }
         try {
@@ -608,7 +609,10 @@ class Background {
       return await this.handleAuthenticationMessageFromPopup(message)
     }
     if (this.state.phase !== 'init-done') {
-      throw new Error(`background unexpectedly had state '${this.state.phase}'`)
+      throw new FromBackground.IncompatibleInitPhase({
+        expected: 'init-done',
+        actual: this.state.phase,
+      })
     }
 
     const ctx = this.state.context
@@ -628,10 +632,15 @@ class Background {
   async handleAuthenticationMessageFromPopup(
     message: ToBackground.Request
   ): Promise<FromBackground.Response> {
-    const error =
+    const error = new FromBackground.IncompatibleInitPhase(
+      {
+        expected: 'init-done',
+        actual: 'not-init',
+      },
       "until authentication is successful, only 'from-popup' messages related to authentication are allowed"
+    )
     if (message.direction !== 'from-popup') {
-      throw new Error(error)
+      throw error
     }
 
     switch (message.type) {
@@ -692,7 +701,7 @@ class Background {
         }
       }
     }
-    throw new Error(error)
+    throw error
   }
 
   async onMessageFromTruthsayer(
@@ -704,7 +713,10 @@ class Background {
       return { type: 'VOID_RESPONSE' }
     }
     if (this.state.phase !== 'init-done') {
-      throw new Error(`background unexpectedly had state '${this.state.phase}'`)
+      throw new FromBackground.IncompatibleInitPhase({
+        expected: 'init-done',
+        actual: this.state.phase,
+      })
     }
     const ctx = this.state.context
 
@@ -808,9 +820,12 @@ const bg = new Background()
 // is at least *some* response in every case (instad of difficult to
 // diagnose "Could not establish connection. Receiving end does not exist." errors).
 browser.runtime.onMessage.addListener(
-  (message: ToBackground.Request, sender: browser.Runtime.MessageSender) => {
+  async (
+    message: ToBackground.Request,
+    sender: browser.Runtime.MessageSender
+  ): Promise<FromBackground.Response> => {
     try {
-      return bg.onMessageFromOtherPartsOfArchaeologist(message, sender)
+      return await bg.onMessageFromOtherPartsOfArchaeologist(message, sender)
     } catch (reason) {
       log.error(
         `Failed to process '${message.direction}' message '${message.type}': ` +
@@ -824,7 +839,10 @@ browser.runtime.onMessage.addListener(
 // is true here as well. There must be exactly one listener for
 // browser.runtime.onMessageExternal, as soon as possible.
 browser.runtime.onMessageExternal.addListener(
-  (message: FromTruthsayer.Request, sender: browser.Runtime.MessageSender) => {
+  async (
+    message: FromTruthsayer.Request,
+    sender: browser.Runtime.MessageSender
+  ): Promise<ToTruthsayer.Response> => {
     try {
       return bg.onMessageFromTruthsayer(message, sender)
     } catch (reason) {

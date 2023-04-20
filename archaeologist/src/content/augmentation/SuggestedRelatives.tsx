@@ -3,7 +3,7 @@ import lodash from 'lodash'
 
 import type { Nid } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
-import { errorise, log, productanalytics } from 'armoury'
+import { errorise, log, productanalytics, sleep } from 'armoury'
 
 import { FromContent } from '../../message/types'
 import { extractSimilaritySearchPhraseFromPageContent } from '../extractor/webPageSearchPhrase'
@@ -49,6 +49,35 @@ type SimilaritySearchInput = {
   isSearchEngine: boolean
 }
 
+async function retryIfStillLoading<T>(
+  fn: () => Promise<T>,
+  { times, intervalMs }: { times: number; intervalMs: number }
+): Promise<T> {
+  const backgroundIsStillLoading = (e: any) => {
+    const error = errorise(e)
+    return error.message.includes("background unexpectedly had state 'loading'")
+    // See userFacingLoginErrorFrom() for more information on why this relies on
+    // error message parsing rather than inspection if the error is
+    // of IncompatibleInitPhase type.
+  }
+
+  for (let i = 0; i < times; i++, await sleep(intervalMs)) {
+    try {
+      return await fn()
+    } catch (e) {
+      const error = errorise(e)
+      // Retry if the background script is still initialising as
+      // there is a chance it will be eventually ready.
+      // Do not retry on any unknown errors.
+      if (!backgroundIsStillLoading(error)) {
+        throw e
+      }
+      log.debug('retry')
+    }
+  }
+  return await fn()
+}
+
 export function SuggestedRelatives({
   stableUrl,
   excludeNids,
@@ -85,6 +114,7 @@ export function SuggestedRelatives({
      */
     stableUrl,
   ])
+
   const requestSuggestedAssociations = React.useMemo(
     // Using `useMemo` instead of `useCallback` to avoid eslint complains
     // https://kyleshevlin.com/debounce-and-throttle-callbacks-with-react-hooks
@@ -94,12 +124,19 @@ export function SuggestedRelatives({
           setSuggestionsSearchIsActive(true)
           log.debug(`Look for the following phrase in Mazed ${phrase}`)
           try {
-            const response = await FromContent.sendMessage({
-              type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
-              limit: 8,
-              phrase,
-              excludeNids,
-            })
+            const response = await retryIfStillLoading(
+              async () =>
+                FromContent.sendMessage({
+                  type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
+                  limit: 8,
+                  phrase,
+                  excludeNids,
+                }),
+              {
+                times: 10,
+                intervalMs: 500,
+              }
+            )
             setSuggestedNodes(
               response.suggested.map((item) => {
                 return {
