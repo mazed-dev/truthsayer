@@ -1,4 +1,4 @@
-import * as tf from '@tensorflow/tfjs-node-gpu'
+import * as tf from '@tensorflow/tfjs'
 import * as use from '@tensorflow-models/universal-sentence-encoder'
 
 import { log } from 'armoury'

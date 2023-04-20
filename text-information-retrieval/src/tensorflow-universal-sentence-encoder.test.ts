@@ -1,4 +1,4 @@
-import * as tf from '@tensorflow/tfjs-node-gpu'
+import * as tf from '@tensorflow/tfjs'
 import * as use from '@tensorflow-models/universal-sentence-encoder'
 
 import fs from 'fs'
@@ -50,17 +50,14 @@ describe('data-driven test', () => {
     stream.pipe(csvStream)
   })
   it('', async () => {
-    const text = 'Colour model: red, green and blue'
-
-    // Compute the cosine similarity between the input text and each of the texts in the array
     log.debug('Calculate embeddings for the test input', new Date())
+    const text = 'Colour model: red, green and blue'
     const inputEmbedding = await model.embed(text)
     log.debug('Calculate embeddings for the test input -> done', new Date())
     const similarities = embeddingsArray.map((embedding) =>
       euclideanDistance(inputEmbedding, embedding)
     )
     log.debug('Search for similar entries -> done', new Date())
-
     // Find the index of the most similar text in the array
     // const mostSimilarIndex = similarities.indexOf(Math.min(...similarities))
     const mostSimilarIndex = similarities.indexOf(Math.min(...similarities))
