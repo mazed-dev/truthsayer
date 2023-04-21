@@ -82,7 +82,7 @@ export async function findRelevantNodes(
     }
     let matchedPiece: LongestCommonContinuousPiece | undefined = undefined
     if (NodeUtil.isWebBookmark(node)) {
-      const text = [node.extattrs?.description, node.index_text?.plaintext]
+      const text = [node.index_text?.plaintext ?? node.extattrs?.description]
         .filter((str: string | undefined) => !!str)
         .join(' ')
         .replace(/\s+/g, ' ')
@@ -162,14 +162,22 @@ const nodeEventListener: NodeEventListener = (
       }
       addNodeSection(docId, title)
     }
-    const description = patch.extattrs?.description
-    if (description) {
-      const docId: DocId = { nid, section: 'description' }
-      if (type === 'updated') {
-        removeNodeSection(docId)
-      }
-      addNodeSection(docId, description)
-    }
+    // The problem is the "description" field in page meta information - vast
+    // majority of web sites misuses the field for ADS and SEO, gmail is a great
+    // example - the field always contains "Google's approach to gmail".
+    // Also, the important bit is that the field is invisible for a user when
+    // they see the original page -- another good reason to not show it in Mazed
+    //
+    // See https://mazed-dev.slack.com/archives/C02A1RF4AP3/p1682070369005649
+    //
+    // const description = patch.extattrs?.description
+    // if (description) {
+    //   const docId: DocId = { nid, section: 'description' }
+    //   if (type === 'updated') {
+    //     removeNodeSection(docId)
+    //   }
+    //   addNodeSection(docId, description)
+    // }
     const web_quote = patch.extattrs?.web_quote?.text
     if (web_quote) {
       const docId: DocId = { nid, section: 'web-quote' }
