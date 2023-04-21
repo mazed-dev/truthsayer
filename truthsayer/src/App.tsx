@@ -211,7 +211,9 @@ function AppRouter() {
     openTabsProgress: openTabsImportProgress,
   }
   React.useEffect(() => {
-    const listener = (event: MessageEvent) => {
+    const listener = (
+      event: MessageEvent
+    ): void /**this messaging channel doesn't natively support posting back responses*/ => {
       // Only accept messages sent from archaeologist's content script
       // eslint-disable-next-line eqeqeq
       if (event.source != window) {

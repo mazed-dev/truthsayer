@@ -20,7 +20,7 @@ import {
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
-import { log, isAbortError, unixtime, errorise } from 'armoury'
+import { log, isAbortError, unixtime, errorise, ErrorViaMessage } from 'armoury'
 import {
   NodeUtil,
   TotalUserActivity,
@@ -820,37 +820,41 @@ const bg = new Background()
 // is at least *some* response in every case (instad of difficult to
 // diagnose "Could not establish connection. Receiving end does not exist." errors).
 browser.runtime.onMessage.addListener(
-  async (
-    message: ToBackground.Request,
-    sender: browser.Runtime.MessageSender
-  ): Promise<FromBackground.Response> => {
-    try {
-      return await bg.onMessageFromOtherPartsOfArchaeologist(message, sender)
-    } catch (reason) {
-      log.error(
-        `Failed to process '${message.direction}' message '${message.type}': ` +
-          `${errorise(reason).message}`
-      )
-      throw reason
+  ErrorViaMessage.rethrow(
+    async (
+      message: ToBackground.Request,
+      sender: browser.Runtime.MessageSender
+    ): Promise<FromBackground.Response> => {
+      try {
+        return await bg.onMessageFromOtherPartsOfArchaeologist(message, sender)
+      } catch (reason) {
+        log.error(
+          `Failed to process '${message.direction}' message '${message.type}': ` +
+            `${errorise(reason).message}`
+        )
+        throw reason
+      }
     }
-  }
+  )
 )
 // NOTE: the same that's described above for browser.runtime.onMessage
 // is true here as well. There must be exactly one listener for
 // browser.runtime.onMessageExternal, as soon as possible.
 browser.runtime.onMessageExternal.addListener(
-  async (
-    message: FromTruthsayer.Request,
-    sender: browser.Runtime.MessageSender
-  ): Promise<ToTruthsayer.Response> => {
-    try {
-      return bg.onMessageFromTruthsayer(message, sender)
-    } catch (reason) {
-      log.error(
-        `Failed to process 'from-truthsayer' message '${message.type}', ` +
-          `${errorise(reason).message}`
-      )
-      throw reason
+  ErrorViaMessage.rethrow(
+    async (
+      message: FromTruthsayer.Request,
+      sender: browser.Runtime.MessageSender
+    ): Promise<ToTruthsayer.Response> => {
+      try {
+        return bg.onMessageFromTruthsayer(message, sender)
+      } catch (reason) {
+        log.error(
+          `Failed to process 'from-truthsayer' message '${message.type}', ` +
+            `${errorise(reason).message}`
+        )
+        throw reason
+      }
     }
-  }
+  )
 )

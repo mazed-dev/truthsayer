@@ -14,7 +14,13 @@ import type {
   StorageApiMsgReturnValue,
   Nid,
 } from 'smuggler-api'
-import { genOriginId, OriginIdentity, log, productanalytics } from 'armoury'
+import {
+  genOriginId,
+  OriginIdentity,
+  log,
+  productanalytics,
+  ErrorViaMessage,
+} from 'armoury'
 
 import { truthsayer } from 'elementary'
 
@@ -395,8 +401,9 @@ const App = () => {
     [state]
   )
   useEffect(() => {
-    browser.runtime.onMessage.addListener(listener)
-    return () => browser.runtime.onMessage.removeListener(listener)
+    const rethrown = ErrorViaMessage.rethrow(listener)
+    browser.runtime.onMessage.addListener(rethrown)
+    return () => browser.runtime.onMessage.removeListener(rethrown)
   }, [listener])
 
   if (state.mode === 'uninitialised-content-app') {
