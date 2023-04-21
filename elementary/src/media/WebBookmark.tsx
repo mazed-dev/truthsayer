@@ -181,7 +181,7 @@ const BookmarkUrlStripped = ({
 }
 
 const Author = styled.p`
-  margin: 0;
+  margin: 0 0 2px 0;
   font-size: 0.84em;
   font-style: italic;
 `
