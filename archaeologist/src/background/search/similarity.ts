@@ -229,9 +229,6 @@ export async function register(storage: StorageApi) {
       break
     }
   }
-  log.debug('documentsNumber', overallIndex.documentsNumber)
-  log.debug('wordsInAllDocuments', overallIndex.wordsInAllDocuments)
-  log.debug('bagOfWords', overallIndex.bagOfWords)
   storage.node.addListener(nodeEventListener)
   return () => {
     storage.node.removeListener(nodeEventListener)
