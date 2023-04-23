@@ -1,6 +1,7 @@
 import {
   bm25,
   findLongestCommonContinuousPiece,
+  tfUse,
 } from 'text-information-retrieval'
 import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 import type {
@@ -30,6 +31,8 @@ export type DocId = {
 }
 
 const [overallIndex, perDocumentIndex] = bm25.createIndex<DocId>()
+
+let tfState: tfUse.TfState | undefined = undefined
 
 export type RelevantNode = {
   node: TNode
@@ -215,20 +218,55 @@ const nodeEventListener: NodeEventListener = (
   }
 }
 
+function getNodePatchAsString(patch: NodeEventPatch): string {
+  const ret: string[] = [
+    patch.extattrs?.author ?? '',
+    patch.extattrs?.title ?? '',
+    patch.extattrs?.web_quote?.text ?? '',
+    patch.index_text?.plaintext ?? '',
+  ]
+  const text = patch.text
+  if (text) {
+    const coment = TDoc.fromNodeTextData(text)
+    ret.push(coment.genPlainText())
+  }
+  return ret.join('\n')
+}
+
 export function addNode(node: TNode): void {
   nodeEventListener('created', node.nid, { ...node })
 }
 
-export async function register(storage: StorageApi) {
-  const iter = await storage.node.iterate()
-  while (true) {
-    const node = await iter.next()
-    if (node) {
-      addNode(node)
-    } else {
-      break
-    }
+async function ensurePerNodeSimSearchIndexIntegrity(storage: StorageApi): Promise<void> {
+  if (tfState == null) {
+    log.error('Similarity search state is not initialised')
+    return
   }
+  const nids = await storage.node.getAllNids({})
+  for (const nid of nids) {
+    const nodeSimSearchInfo = await storage.node.getNodeSimilaritySearchInfo({ nid })
+    if (!tfUse.checkPerDocumentIndex(nodeSimSearchInfo?.algorithm, nodeSimSearchInfo?.version)) {
+      const node = await storage.node.get({ nid })
+      const text = getNodePatchAsString({ ...node })
+      const embedding = await tfState.encoder.embed(text)
+      const embeddingJson = tfUse.tensor2dToJson(embedding)
+      await storage.node.setNodeSimilaritySearchInfo({ nid, simsearch: {
+        algorithm: 'tf-embed',
+        version: 1,
+        embeddingJson,
+      } })
+    }
+    // if (nodeSimSearchInfo?.algorithm
+    // if (nodeSimSearchInfo?.version
+  }
+}
+
+export async function register(storage: StorageApi) {
+  tfState = await tfUse.createTfState()
+
+  // Run it as non-blocking async call
+  ensurePerNodeSimSearchIndexIntegrity(storage)
+
   storage.node.addListener(nodeEventListener)
   return () => {
     storage.node.removeListener(nodeEventListener)

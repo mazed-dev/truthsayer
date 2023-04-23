@@ -414,7 +414,16 @@ export type NodeBatch = {
   nodes: TNode[]
 }
 
+export type  embeddingJson: {
+    data: number[]
+    shape: [number, number]
+  }
+
 export type NodeSimilaritySearchInfo = null | {
   algorithm: 'tf-embed'
   version: 1 // TensorFlow with universal sentense encoder
+  embeddingJson: {
+    data: number[]
+    shape: [number, number]
+  }
 }
