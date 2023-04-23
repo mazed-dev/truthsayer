@@ -5,6 +5,7 @@ import type {
   GetUserExternalAssociationsResponse,
   NewNodeResponse,
   Nid,
+  NodeSimilaritySearchInfo,
   TEdgeJson,
   TNode,
   TNodeJson,
@@ -32,6 +33,7 @@ import type {
   NodeGetArgs,
   NodeGetByOriginArgs,
   NodeUpdateArgs,
+  SetNodeSimilaritySearchInfoArgs,
   StorageApi,
 } from './storage_api'
 import type { INodeIterator } from './node_slice_iterator'
@@ -63,6 +65,11 @@ export type StorageApiMsgPayload =
   | {
       apiName: 'external.ingestion.advance'
       args: ExternalIngestionAdvanceArgs
+    }
+  | { apiName: 'node.getNodeSimilaritySearchInfo'; args: NodeGetArgs }
+  | {
+      apiName: 'node.setNodeSimilaritySearchInfo'
+      args: SetNodeSimilaritySearchInfoArgs
     }
 
 export type StorageApiMsgReturnValue =
@@ -99,6 +106,11 @@ export type StorageApiMsgReturnValue =
       ret: UserExternalPipelineIngestionProgress
     }
   | { apiName: 'external.ingestion.advance'; ret: Ack }
+  | {
+      apiName: 'node.getNodeSimilaritySearchInfo'
+      ret: NodeSimilaritySearchInfo
+    }
+  | { apiName: 'node.setNodeSimilaritySearchInfo'; ret: Ack }
 
 function mismatchError(sent: string, got: string): Error {
   return new Error(`Sent ${sent} StorageApi message, received ${got}`)
@@ -238,6 +250,22 @@ export function makeMsgProxyStorageApi(forward: ForwardToRealImpl): StorageApi {
       url: () => 'https://mazed.se/unimplemented-yet',
       addListener: throwUnimplementedError('node.addListener'),
       removeListener: throwUnimplementedError('node.removeListener'),
+      getNodeSimilaritySearchInfo: async (args: NodeGetArgs) => {
+        const apiName = 'node.getNodeSimilaritySearchInfo'
+        const resp = await forward({ apiName, args })
+        if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
+        const ret: NodeSimilaritySearchInfo = resp.ret
+        return ret
+      },
+      setNodeSimilaritySearchInfo: async (
+        args: SetNodeSimilaritySearchInfoArgs
+      ) => {
+        const apiName = 'node.setNodeSimilaritySearchInfo'
+        const resp = await forward({ apiName, args })
+        if (apiName !== resp.apiName) throw mismatchError(apiName, resp.apiName)
+        const ret: Ack = resp.ret
+        return ret
+      },
     },
     blob: {
       upload: async (args: BlobUploadRequestArgs) => {
@@ -403,6 +431,16 @@ export async function processMsgFromMsgProxyStorageApi(
       return {
         apiName: payload.apiName,
         ret: await storage.node.bulkDelete(payload.args),
+      }
+    case 'node.getNodeSimilaritySearchInfo':
+      return {
+        apiName: payload.apiName,
+        ret: await storage.node.getNodeSimilaritySearchInfo(payload.args),
+      }
+    case 'node.setNodeSimilaritySearchInfo':
+      return {
+        apiName: payload.apiName,
+        ret: await storage.node.setNodeSimilaritySearchInfo(payload.args),
       }
     case 'node.batch.get': {
       const ret = await storage.node.batch.get(payload.args)

@@ -413,3 +413,8 @@ export type ExternalAssociationEnd = {
 export type NodeBatch = {
   nodes: TNode[]
 }
+
+export type NodeSimilaritySearchInfo = null | {
+  algorithm: 'tf-embed'
+  version: 1 // TensorFlow with universal sentense encoder
+}

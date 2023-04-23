@@ -15,44 +15,46 @@
 
 import type {
   Ack,
+  ActivityAssociationGetArgs,
+  ActivityAssociationRecordArgs,
+  ActivityExternalAddArgs,
+  ActivityExternalGetArgs,
   EdgeCreateArgs,
-  NodeCreateArgs,
+  EdgeGetArgs,
   Eid,
+  ExternalAssociationEnd,
+  ExternalIngestionAdvanceArgs,
+  ExternalIngestionGetArgs,
+  GetUserExternalAssociationsResponse,
   NewNodeResponse,
   Nid,
   NodeBatch,
   NodeBatchRequestBody,
+  NodeBulkDeleteArgs,
+  NodeCreateArgs,
+  NodeCreatedVia,
+  NodeDeleteArgs,
   NodeEdges,
+  NodeGetAllNidsArgs,
+  NodeGetArgs,
+  NodeGetByOriginArgs,
+  NodeSimilaritySearchInfo,
+  NodeUpdateArgs,
+  OriginHash,
   OriginId,
+  ResourceAttention,
+  ResourceVisit,
+  SetNodeSimilaritySearchInfoArgs,
   StorageApi,
   TEdge,
   TEdgeJson,
   TNode,
   TNodeJson,
   TotalUserActivity,
+  UserAccount,
+  UserExternalAssociationType,
   UserExternalPipelineId,
   UserExternalPipelineIngestionProgress,
-  NodeGetArgs,
-  NodeGetByOriginArgs,
-  NodeUpdateArgs,
-  EdgeGetArgs,
-  ActivityExternalAddArgs,
-  ActivityExternalGetArgs,
-  ActivityAssociationRecordArgs,
-  ActivityAssociationGetArgs,
-  ExternalIngestionAdvanceArgs,
-  ExternalIngestionGetArgs,
-  NodeGetAllNidsArgs,
-  NodeBulkDeleteArgs,
-  UserAccount,
-  ResourceVisit,
-  ResourceAttention,
-  NodeDeleteArgs,
-  NodeCreatedVia,
-  UserExternalAssociationType,
-  GetUserExternalAssociationsResponse,
-  OriginHash,
-  ExternalAssociationEnd,
 } from 'smuggler-api'
 import {
   INodeIterator,
@@ -175,6 +177,12 @@ type OriginToExtAssociationLav = GenericLav<
   OriginToExtAssociationValue[]
 >
 
+type NidToNodeSimilaritySearchInfoYek = GenericYek<'nid->sim-search-node', Nid>
+type NidToNodeSimilaritySearchInfoLav = GenericLav<
+  'nid->sim-search-node',
+  NodeSimilaritySearchInfo
+>
+
 type Yek =
   | AllNidsYek
   | NidToNodeYek
@@ -184,6 +192,8 @@ type Yek =
   | ExtPipelineYek
   | ExtPipelineToNidYek
   | OriginToExtAssociationYek
+  | NidToNodeSimilaritySearchInfoYek
+
 type Lav =
   | AllNidsLav
   | NidToNodeLav
@@ -193,6 +203,7 @@ type Lav =
   | ExtPipelineLav
   | ExtPipelineToNidLav
   | OriginToExtAssociationLav
+  | NidToNodeSimilaritySearchInfoLav
 
 type YekLav = { yek: Yek; lav: Lav }
 
@@ -255,6 +266,9 @@ class YekLavStore {
   get(
     yek: OriginToExtAssociationYek
   ): Promise<OriginToExtAssociationLav | undefined>
+  get(
+    yek: NidToNodeSimilaritySearchInfoYek
+  ): Promise<NidToNodeSimilaritySearchInfoLav | undefined>
   get(yek: Yek): Promise<Lav | undefined>
   get(yek: Yek | Yek[]): Promise<Lav | YekLav[] | undefined> {
     if (Array.isArray(yek)) {
@@ -458,6 +472,8 @@ class YekLavStore {
         return 'ext-pipe-id->nid:' + yek.yek.key.pipeline_key
       case 'origin->ext-assoc':
         return 'origin->ext-assoc:' + yek.yek.key.id
+      case 'nid->sim-search-node':
+        return 'nid->sim-search-node:' + yek.yek.key
     }
   }
 }
@@ -745,6 +761,12 @@ async function prepareNodeRemoval(
     ).then((yeklavs) => yeklavs.filter(isNotUndefined))
     toSet.push(...yeklavs)
   }
+  // Remove assosiated Similarity search info
+  toRemove.push(
+    ...nids.map((nid): NidToNodeSimilaritySearchInfoYek => {
+      return { yek: { kind: 'nid->sim-search-node', key: nid } }
+    })
+  )
   // TODO[snikitin@outlook.com] If a node was uploaded via UserExternalPipelineId,
   // its nid should be cleaned up from the corresponding ExtPipelineToNidYek.
   return { toRemove, toSet }
@@ -792,6 +814,35 @@ async function bulkDeleteNodes(
   await store.set(toSet)
 
   return nids.length
+}
+
+async function getNodeSimilaritySearchInfo(
+  store: YekLavStore,
+  { nid }: NodeGetArgs
+): Promise<NodeSimilaritySearchInfo> {
+  const yek: NidToNodeSimilaritySearchInfoYek = {
+    yek: { kind: 'nid->sim-search-node', key: nid },
+  }
+  const lav: NidToNodeSimilaritySearchInfoLav | undefined = await store.get(yek)
+  const value: NodeSimilaritySearchInfo | null = lav?.lav?.value ?? null
+  return value
+}
+
+async function setNodeSimilaritySearchInfo(
+  store: YekLavStore,
+  { nid, simsearch }: SetNodeSimilaritySearchInfoArgs
+): Promise<Ack> {
+  const yek: NidToNodeSimilaritySearchInfoYek = {
+    yek: { kind: 'nid->sim-search-node', key: nid },
+  }
+  const lav: NidToNodeSimilaritySearchInfoLav = {
+    lav: {
+      kind: 'nid->sim-search-node',
+      value: simsearch,
+    },
+  }
+  await store.set([{ yek, lav }])
+  return { ack: true }
 }
 
 class Iterator implements INodeIterator {
@@ -1152,6 +1203,10 @@ export function makeBrowserExtStorageApi(
       url: throwUnimplementedError('node.url'),
       addListener: NodeEvent.addListener,
       removeListener: NodeEvent.removeListener,
+      getNodeSimilaritySearchInfo: (args: NodeGetArgs) =>
+        getNodeSimilaritySearchInfo(store, args),
+      setNodeSimilaritySearchInfo: (args: SetNodeSimilaritySearchInfoArgs) =>
+        setNodeSimilaritySearchInfo(store, args),
     },
     // TODO[snikitin@outlook.com] At the time of this writing blob.upload and
     // blob_index.build are used together to create a single searchable blob node.

@@ -2,30 +2,31 @@ import { MimeType, unixtime } from 'armoury'
 import type { Optional } from 'armoury'
 import { INodeIterator } from './node_slice_iterator'
 import {
-  TNode,
-  NodePatchRequest,
   Ack,
-  NodeTextData,
-  NodeIndexText,
-  NodeExtattrs,
-  NodeType,
-  OriginId,
-  NodeCreatedVia,
+  AddUserActivityRequest,
+  AddUserExternalAssociationRequest,
+  AdvanceExternalPipelineIngestionProgress,
+  Eid,
+  GenerateBlobIndexResponse,
+  GetUserExternalAssociationsResponse,
   NewNodeResponse,
   Nid,
   NodeBatch,
-  UploadMultipartResponse,
-  GenerateBlobIndexResponse,
-  TEdge,
+  NodeCreatedVia,
   NodeEdges,
-  AddUserActivityRequest,
+  NodeExtattrs,
+  NodeIndexText,
+  NodePatchRequest,
+  NodeSimilaritySearchInfo,
+  NodeTextData,
+  NodeType,
+  OriginId,
+  TEdge,
+  TNode,
   TotalUserActivity,
-  AddUserExternalAssociationRequest,
-  GetUserExternalAssociationsResponse,
+  UploadMultipartResponse,
   UserExternalPipelineId,
   UserExternalPipelineIngestionProgress,
-  AdvanceExternalPipelineIngestionProgress,
-  Eid,
 } from './types'
 
 export type NodeGetArgs = { nid: Nid }
@@ -90,6 +91,10 @@ export type ExternalIngestionAdvanceArgs = {
   epid: UserExternalPipelineId
   new_progress: AdvanceExternalPipelineIngestionProgress
 }
+export type SetNodeSimilaritySearchInfoArgs = {
+  nid: Nid
+  simsearch: NodeSimilaritySearchInfo
+}
 
 export type NodeEventType = 'created' | 'deleted' | 'updated'
 /**
@@ -143,6 +148,14 @@ export type StorageApi = {
     url: (nid: Nid) => string
     addListener: (listener: NodeEventListener) => void
     removeListener: (listener: NodeEventListener) => void
+    getNodeSimilaritySearchInfo: (
+      args: NodeGetArgs,
+      signal?: AbortSignal
+    ) => Promise<NodeSimilaritySearchInfo>
+    setNodeSimilaritySearchInfo: (
+      args: SetNodeSimilaritySearchInfoArgs,
+      signal?: AbortSignal
+    ) => Promise<Ack>
   }
   blob: {
     upload: (
