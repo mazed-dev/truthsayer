@@ -3758,13 +3758,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/types@npm:^7.2.0":
-  version: 7.18.0
-  resolution: "@sentry/types@npm:7.18.0"
-  checksum: e05581cd6eb1b79208fe85ba7043f9b2606b49eab64d7207ad2490061aebd66bc1a29a6234001c74b3098221564fa68c5d1b1be2566cf6328c576ada7240b190
-  languageName: node
-  linkType: hard
-
 "@sinclair/typebox@npm:^0.23.3":
   version: 0.23.5
   resolution: "@sinclair/typebox@npm:0.23.5"
@@ -5806,7 +5799,7 @@ __metadata:
     js-base64: ^3.6
     lodash: ^4.17.21
     moment: ^2.29.4
-    posthog-js: ^1.34.0
+    posthog-js: ^1.53.4
     prettier: ^2.2
     query-string: ^7.0.0
     ts-jest: ^26.4.2
@@ -17304,14 +17297,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"posthog-js@npm:^1.34.0":
-  version: 1.34.0
-  resolution: "posthog-js@npm:1.34.0"
+"posthog-js@npm:^1.53.4":
+  version: 1.53.4
+  resolution: "posthog-js@npm:1.53.4"
   dependencies:
-    "@sentry/types": ^7.2.0
     fflate: ^0.4.1
     rrweb-snapshot: ^1.1.14
-  checksum: a02f2772a29c2344abdd98d6495ce8b58e3589a50f746f4e6a8d2a5718f8e8d4ca6939888e36e619f8a28c85d7de1ac0eae6d0c2451b8537796000cd55768a8e
+  checksum: c101770ef143d58dc654758885c89e6ad2a106ffe629b69e2d1096a046aeccb01cedc4c637c2f0c1e8e297e6bd27f4fd2fced79e30360173773ec8cd3b30e62f
   languageName: node
   linkType: hard
 

@@ -44,6 +44,14 @@ function makeAnalytics(
     const posthogToken = 'phc_p8GUvTa63ZKNpa05iuGI7qUvXYyyz3JG3UWe88KT7yj'
     const posthogApiHost = 'https://eu.posthog.com'
     const finalConfig: Partial<PostHogConfig> = {
+      on_xhr_error: (posthogReq: XMLHttpRequest) => {
+        if (nodeEnv !== 'development') {
+          return
+        }
+        log.warning(
+          `Failed to send analytics event: ${posthogReq.status} ${posthogReq.responseText}`
+        )
+      },
       ...config,
       api_host: posthogApiHost,
       // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies
