@@ -16,7 +16,7 @@ let tfState: tfUse.TfState | undefined = undefined
 
 const wink_ = loadWinkModel()
 
-const kScoreThreshold = 0.42 /* 0.66 for cosineDistance */
+const kScoreThreshold = 0.42
 
 export type RelevantNode = {
   node: TNode
