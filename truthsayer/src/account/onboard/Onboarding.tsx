@@ -231,45 +231,40 @@ const StepYouAreReadyToGo = ({
 }
 
 const StepTangoShowAroundBox = styled(StepBox)`
+  margin: 0 auto 0 auto;
+  padding-top: calc(100vh - 1200px);
   height: calc(100vh - 40px); /* leave some space for bottom bar */
   width: 100%;
-  @media (min-width: 720px) {
-    width: 720px;
-    margin: 0 auto 0 auto;
-    padding-top: calc(100vh - 1200px);
+  @media (min-width: 740px) {
+    width: 740px;
   }
 `
-const StepTangoIframBox = styled.div`
+
+const StepArcadeIframeBox = styled.div`
   position: relative;
-  width: 100%;
+  padding-bottom: calc(56.25% + 41px);
   height: 0;
-  /**
-  * 0.75 = 3/4 because of the aspect ratio of 4:3, see
-  * https://stackoverflow.com/questions/25302836/responsive-video-iframes-keeping-aspect-ratio-with-only-css
-  */
-  padding-bottom: 75%;
 `
-const StepTangoIframe = styled.iframe`
+const StepArcadeIframe = styled.iframe`
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  color-scheme: light;
 `
 const StepTangoShowAround = ({ onClose }: { onClose: () => void }) => {
   return (
     <StepTangoShowAroundBox>
-      <StepTangoIframBox>
-        <StepTangoIframe
-          src="https://app.tango.us/app/embed/c99490cf-dfe4-4f17-9f83-80e18fee80e6?iframe"
-          sandbox="allow-scripts allow-top-navigation-by-user-activation allow-popups allow-same-origin"
-          security="restricted"
-          title="Let's show you around your second brain."
-          referrerPolicy="strict-origin-when-cross-origin"
+      <StepArcadeIframeBox>
+        <StepArcadeIframe
+          src="https://demo.arcade.software/SE7RpzZGj6eq5F0TUNm5?embed"
           frameBorder="0"
+          loading="lazy"
           allowFullScreen
-        ></StepTangoIframe>
-      </StepTangoIframBox>
+          title="Let's get you started"
+        ></StepArcadeIframe>
+      </StepArcadeIframeBox>
       <StepFotbar>
         <StepFotbarButton variant="outline-primary" onClick={onClose} size="sm">
           Done
