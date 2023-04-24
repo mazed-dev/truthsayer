@@ -1,5 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 import * as use from '@tensorflow-models/universal-sentence-encoder'
+import { TfEmbeddingJson } from 'smuggler-api'
 
 export type TfState = {
   algorithm: 'tf-embed'
@@ -20,7 +21,10 @@ export function getVersion(): 1 {
   return 1
 }
 
-export function checkPerDocumentIndex(algorithm?: string, version?: number): boolean {
+export function isPerDocIndexUpToDate(
+  algorithm?: string,
+  version?: number
+): boolean {
   return version === getVersion() && algorithm === getAlgorithm()
 }
 
@@ -41,28 +45,23 @@ export function euclideanDistance(a: tf.Tensor, b: tf.Tensor): number {
 }
 
 export function cosineDistance(a: tf.Tensor2D, b: tf.Tensor2D): number {
-  const aNorm = tf.norm(a);
-  const bNorm = tf.norm(b);
-  const dotProduct = tf.matMul(a, b, false, true);
-  const cosSimilarity = dotProduct.div(aNorm.mul(bNorm));
-  const distance = 1 - cosSimilarity.dataSync()[0];
-  return distance;
+  const aNorm = tf.norm(a)
+  const bNorm = tf.norm(b)
+  const dotProduct = tf.matMul(a, b, false, true)
+  const cosSimilarity = dotProduct.div(aNorm.mul(bNorm))
+  const distance = 1 - cosSimilarity.dataSync()[0]
+  return distance
 }
 
-  embeddingJson: {
-    data: number[]
-    shape: [number, number]
-  }
-export function tensor2dToJson(tensor: tf.Tensor2D): string {
-
-  const data = Array.from(tensor.dataSync());
-  const shape = tensor.shape;
+export function tensor2dToJson(tensor: tf.Tensor2D): TfEmbeddingJson {
+  const data = Array.from(tensor.dataSync())
+  const shape = tensor.shape
   return { data, shape }
 }
 
 export function tensor2dFromJson(json: string): tf.Tensor2D {
-  const { data, shape } = JSON.parse(json);
-  return tf.tensor2d(data, shape);
+  const { data, shape } = JSON.parse(json)
+  return tf.tensor2d(data, shape)
 }
 
 // export function findRelevantDocuments<DocIdType>(
