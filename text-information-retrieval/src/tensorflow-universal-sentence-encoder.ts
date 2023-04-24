@@ -1,17 +1,11 @@
 import * as tf from '@tensorflow/tfjs'
 import * as use from '@tensorflow-models/universal-sentence-encoder'
-import { TfEmbeddingJson } from 'smuggler-api'
+import type { TfEmbeddingJson } from 'smuggler-api'
 
 export type TfState = {
   algorithm: 'tf-embed'
   version: 1 // TensorFlow with universal sentense encoder
   encoder: use.UniversalSentenceEncoder
-}
-
-export type TfPerDocumentIndex = {
-  algorithm: 'Tensorflow Embedding'
-  version: 1
-  embedding: tf.Tensor2D
 }
 
 export function getAlgorithm(): 'tf-embed' {
@@ -59,34 +53,9 @@ export function tensor2dToJson(tensor: tf.Tensor2D): TfEmbeddingJson {
   return { data, shape }
 }
 
-export function tensor2dFromJson(json: string): tf.Tensor2D {
-  const { data, shape } = JSON.parse(json)
+export function tensor2dFromJson({
+  data,
+  shape,
+}: TfEmbeddingJson): tf.Tensor2D {
   return tf.tensor2d(data, shape)
 }
-
-// export function findRelevantDocuments<DocIdType>(
-//   pattern: tf.Tensor2D,
-//   docs: TfPerDocumentIndex[],
-//   scoreThreshold: number
-// ): RelevanceResult<DocIdType>[] {
-//   const results: RelevanceResult<DocIdType>[] = []
-//   docs.forEach(({ docId, embedding }: TfPerDocumentIndex) => {
-//     const score = euclideanDistance(pattern, embedding)
-//     log.debug('Score', score, docId)
-//     if (score < scoreThreshold) {
-//       results.push({ score, docId })
-//     }
-//   })
-//   results.sort((ar, br) => ar.score - br.score)
-//   log.debug('Results', results)
-//   return results
-// }
-//
-// export async function addDocument<DocIdType>(
-//   text: string,
-//   docId: DocIdType,
-//   tfIndex: TfIndex
-// ): Promise<TfPerDocumentIndex<DocIdType>> {
-//   const embedding = await tfIndex.encoder.embed(text)
-//   return { algorithm: 'Tensorflow Embedding', version: 1, embedding, docId }
-// }

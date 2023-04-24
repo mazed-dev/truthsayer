@@ -63,7 +63,7 @@ export type NlpModel = {
   wink: WinkMethods
 }
 
-function createModel(): NlpModel {
+export function loadWinkModel(): NlpModel {
   // Instantiate winkNLP model
   const wink = winkNLP(model)
   return { wink }
@@ -80,7 +80,7 @@ export function createIndex<DocIdType>(): [
       bagOfWords: new Map(),
       documentsNumber: 0,
       wordsInAllDocuments: 0,
-      model: createModel(),
+      model: loadWinkModel(),
     },
     [],
   ]
@@ -117,7 +117,7 @@ export namespace json {
 
   export function parseIndex(buf: string): OkapiBm25PlusIndex {
     const obj = JSON.parse(buf)
-    obj.model = createModel()
+    obj.model = loadWinkModel()
     obj.bagOfWords = new Map(obj.bagOfWords) as BagOfWords
     return obj
   }

@@ -154,7 +154,6 @@ async function lookupForSuggestionsToPageInActiveTab(
   return await similarity.findRelevantNodes(
     phrase,
     storage,
-    8,
     new Set(nidsExcludedFromSearch)
   )
 }
@@ -178,7 +177,6 @@ async function handleMessageFromContent(
       const relevantNodes = await similarity.findRelevantNodes(
         message.phrase,
         ctx.storage,
-        message.limit,
         new Set(message.excludeNids)
       )
       return {
