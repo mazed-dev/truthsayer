@@ -1,8 +1,4 @@
-import {
-  findLongestCommonContinuousPiece,
-  tfUse,
-  loadWinkModel,
-} from 'text-information-retrieval'
+import { tfUse, loadWinkModel, bm25 } from 'text-information-retrieval'
 import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 import type {
   NodeEventType,
@@ -20,7 +16,7 @@ let tfState: tfUse.TfState | undefined = undefined
 
 const wink_ = loadWinkModel()
 
-const kScoreThreshold = 0.54 /* 0.66 for cosineDistance */
+const kScoreThreshold = 0.42 /* 0.66 for cosineDistance */
 
 export type RelevantNode = {
   node: TNode
@@ -93,43 +89,93 @@ export async function findRelevantNodes(
       )
       continue
     }
-    let matchedPiece: LongestCommonContinuousPiece | undefined = undefined
-    if (NodeUtil.isWebBookmark(node)) {
-      const text = [node.index_text?.plaintext ?? node.extattrs?.description]
-        .filter((str: string | undefined) => !!str)
-        .join(' ')
-        .replace(/\s+/g, ' ')
-      if (text) {
-        const winkDoc = wink_.readDoc(text)
-        matchedPiece = findLongestCommonContinuousPiece(
-          winkDoc,
-          phraseDoc,
-          wink_,
-          // These parameters are the subject of further iteration based on usage
-          // feedback. The current limit is chosen from aesthetic reason in my
-          // specific browser, with current styles - it all might look very
-          // different in other devices.
-          {
-            prefixToExtendWordsNumber: 24,
-            suffixToExtendWordsNumber: 92,
-            // Cut search if long enough quote is found.
-            maxLengthOfCommonPieceWordsNumber: 36,
-          }
-        )
-      }
-    }
-    relevantNodes.push({ node, score, matchedPiece })
+    relevantNodes.push({
+      node,
+      score,
+      matchedPiece: findRelevantQuote(phraseDoc, node),
+    })
   }
   log.debug('Similarity search results', relevantNodes)
   return relevantNodes
 }
 
+function findRelevantQuote(
+  phraseDoc: bm25.WinkDocument,
+  node: TNode
+): LongestCommonContinuousPiece | undefined {
+  if (!NodeUtil.isWebBookmark(node)) {
+    return undefined
+  }
+  const text = [node.index_text?.plaintext ?? node.extattrs?.description]
+    .filter((str: string | undefined) => !!str)
+    .join(' ')
+    .replace(/\s+/g, ' ')
+  if (!text) {
+    return undefined
+  }
+  const [overallIndex, perSentenceIndexes] = bm25.createIndex<number>()
+  const winkDoc = wink_.readDoc(text)
+  const sentences = winkDoc.sentences().out(wink_.its.value)
+  for (let ind = 0; ind < sentences.length; ++ind) {
+    const sentense = sentences[ind]
+    const sentenceInd = bm25.addDocument<number>(
+      wink_,
+      overallIndex,
+      sentense,
+      ind
+    )
+    perSentenceIndexes.push(sentenceInd)
+  }
+  const relevantIndexes = bm25.findRelevantDocuments<number>(
+    wink_,
+    phraseDoc,
+    1 /* limit */,
+    overallIndex,
+    perSentenceIndexes
+  )
+  if (relevantIndexes.length === 0) {
+    return undefined
+  }
+  const relevantSentenceIndex = relevantIndexes[0].docId
+  let prefix: string
+  let suffix: string
+  if (relevantSentenceIndex === 0) {
+    prefix = ''
+    // If there is no prefix to show, use longer suffix of 3 sentenses to add
+    // equal volume of context to the relevant sentense
+    suffix = sentences
+      .slice(relevantSentenceIndex + 1, relevantSentenceIndex + 4)
+      .join(' ')
+  } else {
+    // Use following 2 sentenses as a suffix
+    suffix = sentences
+      .slice(relevantSentenceIndex + 1, relevantSentenceIndex + 3)
+      .join(' ')
+    if (suffix === '' && relevantSentenceIndex > 1) {
+      // If there is no suffix to show, use longer prefix
+      prefix = sentences
+        .slice(relevantSentenceIndex - 2, relevantSentenceIndex)
+        .join(' ')
+    } else {
+      // Use previous sentence as prefix
+      prefix = sentences[relevantSentenceIndex - 1]
+    }
+  }
+  return {
+    matchTokensCount: 100, // Not released
+    matchValuableTokensCount: 100, // Not released
+    match: sentences[relevantSentenceIndex],
+    prefix,
+    suffix,
+  }
+}
+
 function getNodePatchAsString(patch: NodeEventPatch): string {
   const ret: string[] = [
-    patch.extattrs?.author ?? '',
     patch.extattrs?.title ?? '',
-    patch.extattrs?.web_quote?.text ?? '',
     patch.index_text?.plaintext ?? '',
+    patch.extattrs?.web_quote?.text ?? '',
+    patch.extattrs?.author ?? '',
   ]
   const text = patch.text
   if (text) {
@@ -187,7 +233,7 @@ async function ensurePerNodeSimSearchIndexIntegrity(
         nodeSimSearchInfo?.version
       )
     ) {
-      log.debug(
+      log.info(
         `Update node similarity index [${ind + 1}/${nids.length}] ${nid}`
       )
       const node = await storage.node.get({ nid })

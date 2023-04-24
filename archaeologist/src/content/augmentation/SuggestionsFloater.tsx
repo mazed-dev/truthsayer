@@ -148,11 +148,7 @@ function getMatchingText({
   node,
   matchedPiece,
 }: RelevantNodeSuggestion): WebBookmarkDescriptionConfig {
-  if (
-    !NodeUtil.isWebBookmark(node) ||
-    matchedPiece == null ||
-    matchedPiece.matchValuableTokensCount < 2
-  ) {
+  if (!NodeUtil.isWebBookmark(node) || matchedPiece == null) {
     return { type: 'none' }
   }
   const { match, prefix, suffix } = matchedPiece

@@ -1,11 +1,12 @@
 import {
-  createIndex,
   addDocument,
-  findRelevantDocumentsForPhrase,
+  createIndex,
   findRelevantDocuments,
-  json,
+  findRelevantDocumentsForPhrase,
   getTermInDocumentImportance,
   getTermInverseDocumentFrequency,
+  json,
+  loadWinkModel,
 } from './bm25'
 import fs from 'fs'
 import * as csv from '@fast-csv/parse'
@@ -26,6 +27,7 @@ type DocIdType = {
 describe('data-driven test', () => {
   let rows: TsvRow[] = []
   const [overallIndex, relIndexPerDocument] = createIndex<DocIdType>()
+  const wink_ = loadWinkModel()
 
   beforeAll((done) => {
     rows = []
@@ -36,14 +38,14 @@ describe('data-driven test', () => {
       })
       .on('end', () => {
         for (const row of rows) {
-          const docIndex = addDocument(overallIndex, row.text, {
+          const docIndex = addDocument(wink_, overallIndex, row.text, {
             url: row.url,
           })
           relIndexPerDocument.push(docIndex)
         }
         {
           // Add empty document
-          const docIndex = addDocument(overallIndex, '', {
+          const docIndex = addDocument(wink_, overallIndex, '', {
             url: 'http://empty',
           })
           relIndexPerDocument.push(docIndex)
@@ -51,6 +53,7 @@ describe('data-driven test', () => {
         {
           // Add a special doc to test docs & queries with JS keywords
           const docIndex = addDocument(
+            wink_,
             overallIndex,
             `A class constructor is a special member function of a class that is
             executed whenever we create new objects of that class. A constructor
@@ -64,6 +67,7 @@ describe('data-driven test', () => {
         }
         {
           const docIndex = addDocument(
+            wink_,
             overallIndex,
             `Todo: Bottom line toolbar`,
             {
@@ -118,7 +122,8 @@ describe('data-driven test', () => {
 
   it('Simple search for phrase', () => {
     const res = findRelevantDocumentsForPhrase<DocIdType>(
-      overallIndex.model.wink.readDoc('The RGB color model'),
+      wink_,
+      wink_.readDoc('The RGB color model'),
       1,
       overallIndex,
       relIndexPerDocument
@@ -132,7 +137,8 @@ describe('data-driven test', () => {
     const start = Math.floor(Math.random() * (rows.length - len))
     rows.slice(start, start + len).forEach((row) => {
       const res = findRelevantDocuments(
-        overallIndex.model.wink.readDoc(row.text),
+        wink_,
+        wink_.readDoc(row.text),
         1,
         overallIndex,
         relIndexPerDocument
@@ -145,7 +151,8 @@ describe('data-driven test', () => {
     const text =
       'A class constructor is a special member function of a class that is'
     const res = findRelevantDocuments(
-      overallIndex.model.wink.readDoc(text),
+      wink_,
+      wink_.readDoc(text),
       1,
       overallIndex,
       relIndexPerDocument
@@ -156,7 +163,8 @@ describe('data-driven test', () => {
   })
   it('Search for non-dictionary words', () => {
     const res = findRelevantDocumentsForPhrase(
-      overallIndex.model.wink.readDoc('Todo toolbar'),
+      wink_,
+      wink_.readDoc('Todo toolbar'),
       1,
       overallIndex,
       relIndexPerDocument
@@ -168,10 +176,9 @@ describe('data-driven test', () => {
 
   it('RelevanceIndex JSON (de)seriliasation', () => {
     const buf = json.stringifyIndex(overallIndex)
-    expect(buf.length).toBeGreaterThan(27_0000)
+    expect(buf.length).toBeGreaterThan(21_0000)
     const obj = json.parseIndex(buf)
     expect(obj.algorithm).toStrictEqual(overallIndex.algorithm)
-    expect(obj.model).toBeTruthy()
     expect(obj.documentsNumber).toStrictEqual(overallIndex.documentsNumber)
     expect(obj.version).toStrictEqual(overallIndex.version)
     expect(obj.wordsInAllDocuments).toStrictEqual(
