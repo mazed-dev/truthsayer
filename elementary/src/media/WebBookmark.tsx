@@ -227,7 +227,7 @@ const MatchDescriptionSpan = styled.span`
   text-decoration-color: #2880b99c;
   text-decoration-color: rgba(0, 110, 237, 0.64);
   text-decoration-style: solid;
-  text-decoration-thickness: 1px;
+  text-decoration-thickness: 2px;
   &:hover {
     text-decoration-color: rgba(0, 110, 237, 0.92);
   }
@@ -256,43 +256,28 @@ const BookmarkMatchDescription = ({
   captureMetricOnCopy?: (subj: string) => void
 }) => {
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
-  const [hiddenPrefix, visisblePrefix] = React.useMemo(
-    () => splitStringByWord(prefix, -18),
-    [prefix]
-  )
-  const [visisbleSuffix, hiddenSuffix] = React.useMemo(
-    () => splitStringByWord(suffix, 154),
-    [suffix]
-  )
   return (
     <OverlayCopyOnHover
       getTextToCopy={() => {
         captureMetricOnCopy?.('description')
-        return seeMore
-          ? [prefix, match, suffix].join(' ')
-          : [visisblePrefix, match, visisbleSuffix].join(' ')
+        return seeMore ? [prefix, match, suffix].join(' ') : match
       }}
     >
       <Description cite={url} className={productanalytics.classExclude()}>
-        &#8230;
-        <MatchDescriptionContextSpan
-          css={{ display: seeMore ? 'inline' : 'none' }}
-        >
-          {padNonEmptyStringWithSpaceTail(hiddenPrefix)}
-        </MatchDescriptionContextSpan>
-        <MatchDescriptionContextSpan>
-          {padNonEmptyStringWithSpaceTail(visisblePrefix)}
-        </MatchDescriptionContextSpan>
-        <MatchDescriptionSpan>{match}</MatchDescriptionSpan>
-        <MatchDescriptionContextSpan>
-          {padNonEmptyStringWithSpaceHead(visisbleSuffix)}
-        </MatchDescriptionContextSpan>
-        <MatchDescriptionContextSpan
-          css={{ display: seeMore ? 'inline' : 'none' }}
-        >
-          {padNonEmptyStringWithSpaceHead(hiddenSuffix)}
-        </MatchDescriptionContextSpan>
-        &#8230;&nbsp;
+        {!seeMore ? (
+          <MatchDescriptionContextSpan>{match}</MatchDescriptionContextSpan>
+        ) : (
+          <>
+            <MatchDescriptionContextSpan>
+              {padNonEmptyStringWithSpaceTail(prefix)}
+            </MatchDescriptionContextSpan>
+            <MatchDescriptionSpan>{match}</MatchDescriptionSpan>
+            <MatchDescriptionContextSpan>
+              {padNonEmptyStringWithSpaceHead(suffix)}
+            </MatchDescriptionContextSpan>
+          </>
+        )}
+        &nbsp;
         <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore((more) => !more)}>
           see&nbsp;{seeMore ? 'less' : 'more'}
         </MatchDescriptionSeeMoreBtn>
