@@ -224,7 +224,6 @@ export type WebBookmarkDescriptionConfig =
 
 const MatchDescriptionSpan = styled.span`
   text-decoration-line: underline;
-  text-decoration-color: #2880b99c;
   text-decoration-color: rgba(0, 110, 237, 0.64);
   text-decoration-style: solid;
   text-decoration-thickness: 2px;

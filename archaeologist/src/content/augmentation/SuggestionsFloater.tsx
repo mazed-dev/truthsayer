@@ -39,6 +39,10 @@ const SuggestedCardsBox = styled.div`
   user-select: text;
 `
 
+const LineLoader = styled(Spinner.Line)`
+  width: 320px;
+`
+
 const DraggableCursorStyles = `
   cursor: move; /* fallback if "grab" & "grabbing" cursors are not supported */
   cursor: grab;
@@ -187,12 +191,8 @@ const SuggestedCards = ({ nodes, onClose, isLoading }: SuggestedCardsProps) => {
           </HoverTooltip>
         </CloseBtn>
       </Header>
+      {isLoading ? <LineLoader /> : null}
       <SuggestionsFloaterSuggestionsBox>
-        {isLoading ? (
-          <NoSuggestedCardsBox>
-            <Spinner.Ring />
-          </NoSuggestedCardsBox>
-        ) : null}
         {suggestedCards.length > 0 ? suggestedCards : <NoSuggestedCardsBox />}
       </SuggestionsFloaterSuggestionsBox>
       <Footter id="mazed-archaeologist-suggestions-floater-drag-handle" />
