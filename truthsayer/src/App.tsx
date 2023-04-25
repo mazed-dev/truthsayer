@@ -14,7 +14,7 @@ import {
 
 import { css } from '@emotion/react'
 
-import { Card, Button, Container } from 'react-bootstrap'
+import { Card, Container } from 'react-bootstrap'
 import { PostHog } from 'posthog-js'
 import { useAsyncEffect } from 'use-async-effect'
 
@@ -50,11 +50,14 @@ import { AppHead } from './AppHead'
 
 import { MzdGlobal } from './lib/global'
 import {
-  TermsOfService,
+  AboutMazed,
+  ContactUs,
   CookiePolicy,
   CookiePolicyPopUp,
   PrivacyPolicy,
+  TermsOfService,
 } from './public-page/legal/Index'
+import { PublicPage } from './public-page/PublicPage'
 import {
   AnalyticsIdentity,
   errorise,
@@ -134,22 +137,30 @@ function AppRouter() {
       <LandingPage />
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pubonly-route-1'} path={'/login'}>
-      <Login />
+      <PublicPage>
+        <Login />
+      </PublicPage>
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pubonly-route-2'} path={'/signup'}>
-      <Signup />
+      <PublicPage>
+        <Signup />
+      </PublicPage>
     </TruthsayerRoute>,
     <TruthsayerRoute
       key={'mzd-pubonly-route-3'}
       path="/password-recover-request"
     >
-      <PasswordRecoverRequest />
+      <PublicPage>
+        <PasswordRecoverRequest />
+      </PublicPage>
     </TruthsayerRoute>,
     <TruthsayerRoute
       key={'mzd-pubonly-route-4'}
       path="/password-recover-reset/:token"
     >
-      <PasswordRecoverFormView />
+      <PublicPage>
+        <PasswordRecoverFormView />
+      </PublicPage>
     </TruthsayerRoute>,
     <Route key={'mzd-pubonly-route-5'} path="*">
       <Redirect to={{ pathname: '/' }} />
@@ -161,7 +172,9 @@ function AppRouter() {
       key={'mzd-pub-route-0'}
       path="/account/create/waiting-for-approval"
     >
-      <WaitingForApproval path="/account/create/waiting-for-approval" />
+      <PublicPage>
+        <WaitingForApproval path="/account/create/waiting-for-approval" />
+      </PublicPage>
     </TruthsayerRoute>,
     <TruthsayerRoute
       key={'mzd-pub-route-1'}
@@ -170,28 +183,44 @@ function AppRouter() {
       <GoToInboxToConfirmEmail />
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pub-route-2'} path="/apps-to-install">
-      <AppsList archaeologist={archaeologistState} />
+      <PublicPage>
+        <AppsList archaeologist={archaeologistState} />
+      </PublicPage>
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pub-route-3'} path="/help">
-      <HelpInfo />
+      <PublicPage>
+        <HelpInfo />
+      </PublicPage>
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pub-route-4'} path="/about">
-      <About />
+      <PublicPage>
+        <AboutMazed />
+      </PublicPage>
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pub-route-5'} path="/contacts">
-      <ContactUs />
+      <PublicPage>
+        <ContactUs />
+      </PublicPage>
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pub-route-6'} path="/notice/:page">
-      <Notice />
+      <PublicPage>
+        <Notice />
+      </PublicPage>
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pub-route-7'} path="/cookie-policy">
-      <CookiePolicy />
+      <PublicPage>
+        <CookiePolicy />
+      </PublicPage>
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pub-route-8'} path="/privacy-policy">
-      <PrivacyPolicy />
+      <PublicPage>
+        <PrivacyPolicy />
+      </PublicPage>
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pub-route-9'} path="/terms-of-service">
-      <TermsOfService />
+      <PublicPage>
+        <TermsOfService />
+      </PublicPage>
     </TruthsayerRoute>,
     <TruthsayerRoute key={'mzd-pub-route-10'} exact path={'/empty'} />,
   ]
@@ -360,36 +389,6 @@ function HelpInfo() {
         <Card.Body>
           <Card.Title>To be done</Card.Title>
           <Card.Text>To be done</Card.Text>
-        </Card.Body>
-      </Card>
-    </Container>
-  )
-}
-
-function About() {
-  return (
-    <Container>
-      <Card>
-        <Card.Body>
-          <Card.Title>To be done</Card.Title>
-          <Card.Text>To be done</Card.Text>
-          <Button variant="primary">Go somewhere</Button>
-        </Card.Body>
-      </Card>
-    </Container>
-  )
-}
-
-function ContactUs() {
-  return (
-    <Container>
-      <h2>Contact us</h2>
-      <Card>
-        <Card.Body>
-          <Card.Text>
-            For any questions, email us at{' '}
-            <a href="mailto:mazed@fastmail.com">mazed@fastmail.com</a>
-          </Card.Text>
         </Card.Body>
       </Card>
     </Container>
