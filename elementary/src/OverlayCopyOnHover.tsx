@@ -4,8 +4,10 @@ import React from 'react'
 import styled from '@emotion/styled'
 import { HoverTooltip } from './HoverTooltip'
 import { ContentCopy as CopyIcon } from '@emotion-icons/material'
+import type { AutocaptureIdentityHtmlDataAttribute } from 'armoury'
 
 type Props = React.PropsWithChildren<{
+  tracker: AutocaptureIdentityHtmlDataAttribute
   getTextToCopy: () => string | null
   tooltip?: string
 }>
@@ -53,6 +55,7 @@ const Box = styled.div`
 
 export const OverlayCopyOnHover = ({
   children,
+  tracker,
   getTextToCopy,
   tooltip,
 }: Props) => {
@@ -69,7 +72,7 @@ export const OverlayCopyOnHover = ({
   return (
     <Box>
       {children}
-      <Btn onClick={onClickReal} id={kBtnId}>
+      <Btn onClick={onClickReal} id={kBtnId} {...tracker}>
         <HoverTooltip
           tooltip={tooltipText}
           transitionDelaySec={0.21}

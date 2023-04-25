@@ -266,6 +266,9 @@ const BookmarkMatchDescription = ({
   )
   return (
     <OverlayCopyOnHover
+      tracker={productanalytics.autocaptureIdentity(
+        'btn-copy-node-description'
+      )}
       getTextToCopy={() => {
         captureMetricOnCopy?.('description')
         return seeMore
@@ -317,6 +320,9 @@ const BookmarkOriginalDescription = ({
   )
   return (
     <OverlayCopyOnHover
+      tracker={productanalytics.autocaptureIdentity(
+        'btn-copy-node-description'
+      )}
       getTextToCopy={() => {
         captureMetricOnCopy?.('description')
         return seeMore ? description : visible
@@ -364,6 +370,9 @@ const BookmarkDescription = ({
       }
       return (
         <OverlayCopyOnHover
+          tracker={productanalytics.autocaptureIdentity(
+            'btn-copy-node-description'
+          )}
           getTextToCopy={() => {
             captureMetricOnCopy?.('description')
             return description
@@ -425,6 +434,7 @@ export const WebBookmark = ({
   const hostname = new URL(url).hostname
   const authorBadge = author ? (
     <OverlayCopyOnHover
+      tracker={productanalytics.autocaptureIdentity('btn-copy-node-author')}
       getTextToCopy={() => {
         captureMetricOnCopy?.('author')
         return author
@@ -446,6 +456,9 @@ export const WebBookmark = ({
         />
         <TitleBox>
           <OverlayCopyOnHover
+            tracker={productanalytics.autocaptureIdentity(
+              'btn-copy-node-title'
+            )}
             getTextToCopy={() => {
               captureMetricOnCopy?.('title')
               return title ?? null
@@ -454,6 +467,7 @@ export const WebBookmark = ({
             <Title className={productanalytics.classExclude()}>{title}</Title>
           </OverlayCopyOnHover>
           <OverlayCopyOnHover
+            tracker={productanalytics.autocaptureIdentity('btn-copy-node-url')}
             getTextToCopy={() => {
               captureMetricOnCopy?.('url')
               return url
