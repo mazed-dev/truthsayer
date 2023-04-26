@@ -9,25 +9,24 @@ import { SlateText, TDoc } from './editor/types'
 import { Spinner } from './spinner/mod'
 import { NodeMedia } from './media/NodeMedia'
 import { NodeCardBox } from './NodeCardReadOnly'
+import { ElementaryContext } from './context'
 
 export function NodeCard({
+  ctx,
   node,
   saveNode,
   className,
-  storage,
   strippedFormatToolbar,
   onMediaLaunch,
-  captureMetricOnCopy,
 }: {
+  ctx: ElementaryContext
   node: TNode
   saveNode: (text: NodeTextData) => Promise<Ack> | undefined
   className?: string
-  storage: StorageApi
   strippedFormatToolbar?: boolean
   // This is a hack to assign special action on media click instead of opening
   // original page e.g. on a preview image click
   onMediaLaunch?: () => void
-  captureMetricOnCopy?: (subj: string) => void
 }) {
   const saveText = (text: SlateText) => {
     const doc = new TDoc(text)
@@ -35,39 +34,33 @@ export function NodeCard({
   }
   return (
     <NodeCardBox className={className}>
-      <NodeMedia
-        node={node}
-        storage={storage}
-        onLaunch={onMediaLaunch}
-        captureMetricOnCopy={captureMetricOnCopy}
-      />
+      <NodeMedia ctx={ctx} node={node} onLaunch={onMediaLaunch} />
       <NodeTextEditor
+        ctx={ctx}
         node={node}
         saveText={saveText}
-        storage={storage}
         strippedFormatToolbar={strippedFormatToolbar}
-        captureMetricOnCopy={captureMetricOnCopy}
       />
     </NodeCardBox>
   )
 }
 
 export function NodeCardFetching({
+  ctx,
   nid,
   saveNode,
   className,
-  storage,
 }: {
+  ctx: ElementaryContext
   nid: string
   saveNode: (text: NodeTextData) => Promise<Ack> | undefined
   className?: string
-  storage: StorageApi
 }) {
   const [node, setNode] = useState<TNode | null>(null)
   const fetchNodeAbortController = new AbortController()
   useAsyncEffect(
     async (isMounted) => {
-      const n = await storage.node.get(
+      const n = await ctx.storage.node.get(
         {
           nid,
         },
@@ -83,11 +76,6 @@ export function NodeCardFetching({
     return <Spinner.Wheel />
   }
   return (
-    <NodeCard
-      node={node}
-      saveNode={saveNode}
-      className={className}
-      storage={storage}
-    />
+    <NodeCard ctx={ctx} node={node} saveNode={saveNode} className={className} />
   )
 }

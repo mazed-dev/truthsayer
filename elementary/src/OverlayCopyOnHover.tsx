@@ -4,10 +4,17 @@ import React from 'react'
 import styled from '@emotion/styled'
 import { HoverTooltip } from './HoverTooltip'
 import { ContentCopy as CopyIcon } from '@emotion-icons/material'
-import type { AutocaptureIdentityHtmlDataAttribute } from 'armoury'
+import type { ElementaryContext } from './context'
 
 type Props = React.PropsWithChildren<{
-  tracker: AutocaptureIdentityHtmlDataAttribute
+  ctx: ElementaryContext
+  analytics: {
+    /**
+     * Identifies the "subject" of the data that will be copied if user
+     * clicks this button. For example, 'author' or 'title' etc.
+     */
+    subject: string
+  }
   getTextToCopy: () => string | null
   tooltip?: string
 }>
@@ -55,7 +62,8 @@ const Box = styled.div`
 
 export const OverlayCopyOnHover = ({
   children,
-  tracker,
+  ctx,
+  analytics,
   getTextToCopy,
   tooltip,
 }: Props) => {
@@ -63,6 +71,10 @@ export const OverlayCopyOnHover = ({
     tooltip ?? 'Copy to Clipboard'
   )
   const onClickReal = () => {
+    ctx?.analytics?.capture('Button:Copy', {
+      text: analytics.subject,
+      'Event type': 'click',
+    })
     const textToCopy = getTextToCopy()
     if (textToCopy != null) {
       navigator.clipboard.writeText(textToCopy)
@@ -72,7 +84,7 @@ export const OverlayCopyOnHover = ({
   return (
     <Box>
       {children}
-      <Btn onClick={onClickReal} id={kBtnId} {...tracker}>
+      <Btn onClick={onClickReal} id={kBtnId}>
         <HoverTooltip
           tooltip={tooltipText}
           transitionDelaySec={0.21}

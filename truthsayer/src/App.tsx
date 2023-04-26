@@ -362,7 +362,7 @@ function AppRouter() {
           {publicRoutes}
           {authorisationLikelyComplete ? (
             account != null ? (
-              <MzdGlobal analytics={analytics} account={account}>
+              <MzdGlobal analytics={analytics ?? undefined} account={account}>
                 {privateRoutes}
               </MzdGlobal>
             ) : (
