@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom'
 
-import browser from 'webextension-polyfill'
+import browser, { Tabs } from 'webextension-polyfill'
 import { PostHog } from 'posthog-js'
 import { v4 as uuidv4 } from 'uuid'
+import { useAsyncEffect } from 'use-async-effect'
 
 import { NodeUtil, NodeType, makeMsgProxyStorageApi } from 'smuggler-api'
 import type {
@@ -124,6 +125,8 @@ type InitializedState = {
   notification?: DisappearingToastProps
 
   analytics: PostHog | null
+
+  currentTab?: CurrentTabStatus
 }
 
 type State = UninitializedState | InitializedState
@@ -135,6 +138,14 @@ type Action =
       type: 'show-notification'
       data: ToContent.ShowDisappearingNotificationRequest
     }
+  | {
+      type: 'update-tab-status'
+      tabStatus: CurrentTabStatus
+    }
+
+  type CurrentTabStatus = {
+    isActive: boolean
+  }
 
 function updateState(state: State, action: Action): State {
   switch (action.type) {
@@ -276,6 +287,14 @@ function updateState(state: State, action: Action): State {
           timeoutMsec,
         },
       }
+    case 'update-tab-status':
+      if (state.mode === 'uninitialised-content-app') {
+        throw new Error("Can't update tab state of an unitialized content app")
+      }
+      return {
+        ...state,
+        currentTab: action.tabStatus
+      }
   }
 }
 
@@ -405,7 +424,12 @@ const App = () => {
     browser.runtime.onMessage.addListener(rethrown)
     return () => browser.runtime.onMessage.removeListener(rethrown)
   }, [listener])
-
+  useAsyncEffect(async () => {
+    //const tab = await browser.tabs.getCurrent()
+    //const isActive = (tab.active && !tab.discarded && !tab.hidden)
+    log.debug('Update tab status', browser)
+    // dispatch({ type: 'update-tab-status', tabStatus: { isActive: isActive }})
+  })
   if (state.mode === 'uninitialised-content-app') {
     return null
   }

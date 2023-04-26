@@ -4,6 +4,7 @@ import lodash from 'lodash'
 import type { Nid } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
 import { errorise, log, productanalytics, sleep } from 'armoury'
+import browser, { Tabs } from 'webextension-polyfill'
 
 import { FromBackground, FromContent } from '../../message/types'
 import { extractSimilaritySearchPhraseFromPageContent } from '../extractor/webPageSearchPhrase'

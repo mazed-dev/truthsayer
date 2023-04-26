@@ -11,6 +11,7 @@ import type {
 import { NodeUtil } from 'smuggler-api'
 import { TDoc } from 'elementary'
 import { log } from 'armoury'
+import CancellationToken from 'cancellationtoken'
 
 let tfState: tfUse.TfState | undefined = undefined
 
@@ -26,8 +27,10 @@ export type RelevantNode = {
 export async function findRelevantNodes(
   phrase: string,
   storage: StorageApi,
-  excludedNids?: Set<Nid>
+  excludedNids: Set<Nid>,
+  cancellationToken: CancellationToken,
 ): Promise<RelevantNode[]> {
+  cancellationToken.throwIfCancelled()
   if (tfState == null) {
     log.error('Similarity search state is not initialised')
     return []
@@ -37,9 +40,10 @@ export async function findRelevantNodes(
     phraseDoc.out(wink_.its.normal)
   )
   const allNids = await storage.node.getAllNids({})
+  cancellationToken.throwIfCancelled()
   let relevantNids: { score: number; nid: Nid }[] = []
   for (const nid of allNids) {
-    if (!!excludedNids?.has(nid)) {
+    if (!!excludedNids.has(nid)) {
       continue
     }
     const nodeSimSearchInfo = await storage.node.getNodeSimilaritySearchInfo({
@@ -66,6 +70,7 @@ export async function findRelevantNodes(
     if (score < kScoreThreshold) {
       relevantNids.push({ nid, score })
     }
+    cancellationToken.throwIfCancelled()
   }
   // Cut the long tail of results - we can't and we shouldn't show more relevant
   // results than some limit, let it be for now 42
@@ -80,6 +85,7 @@ export async function findRelevantNodes(
       nodeMap.set(node.nid, node)
     }
   }
+  cancellationToken.throwIfCancelled()
   const relevantNodes: RelevantNode[] = []
   for (const { nid, score } of relevantNids) {
     const node = nodeMap.get(nid)
@@ -94,6 +100,7 @@ export async function findRelevantNodes(
       score,
       matchedPiece: findRelevantQuote(phraseDoc, node),
     })
+    cancellationToken.throwIfCancelled()
   }
   log.debug('Similarity search results', relevantNodes)
   return relevantNodes
