@@ -167,15 +167,25 @@ const BookmarkUrlStrippedBox = styled.a`
 `
 
 const BookmarkUrlStripped = ({
+  ctx,
   url,
   className,
 }: {
+  ctx: ElementaryContext
   url: string
   className?: string
 }) => {
   const urlToShow = url.replace(/^https?:\/\//, '').replace(/^www\./, '')
   return (
-    <BookmarkUrlStrippedBox className={className} href={url}>
+    <BookmarkUrlStrippedBox
+      className={className}
+      href={url}
+      onClick={() => {
+        ctx.analytics?.capture("URL:Go to Bookmark's Native Version", {
+          'Event type': 'click',
+        })
+      }}
+    >
       {urlToShow}
     </BookmarkUrlStrippedBox>
   )
@@ -457,6 +467,7 @@ export const WebBookmark = ({
             getTextToCopy={() => url}
           >
             <BookmarkUrlStripped
+              ctx={ctx}
               className={productanalytics.classExclude()}
               url={url}
             />
