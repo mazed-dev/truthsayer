@@ -71,7 +71,7 @@ export const OverlayCopyOnHover = ({
     tooltip ?? 'Copy to Clipboard'
   )
   const onClickReal = () => {
-    ctx?.analytics?.capture('Button:Copy', {
+    ctx.analytics?.capture('Button:Copy', {
       text: analytics.subject,
       'Event type': 'click',
     })
