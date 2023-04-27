@@ -6,6 +6,7 @@ import { kCardBorder, Spinner } from 'elementary'
 import GoogleChromeLogo from './img/GoogleChromeLogo.svg'
 import { ArchaeologistState } from './archaeologistState'
 import { Button } from 'react-bootstrap'
+import { productanalytics } from 'armoury'
 
 type MazedAppLinks =
   | 'https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc'
@@ -54,6 +55,7 @@ function describe(state: ArchaeologistState) {
           href={kGoogleChromeStoreLink}
           target="_blank"
           rel="noopener noreferrer"
+          {...productanalytics.autocaptureIdentity('btn-install-archaeologist')}
         >
           Install
         </Button>

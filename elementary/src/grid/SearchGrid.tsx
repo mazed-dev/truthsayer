@@ -20,6 +20,7 @@ import { DynamicGrid } from './DynamicGrid'
 import { NodeCardReadOnly } from '../NodeCardReadOnly'
 import { Beagle } from './search/search'
 import { styleMobileTouchOnly } from '../util/xstyle'
+import { ElementaryContext } from '../context'
 
 const BoxPortable = styled.div`
   overflow-y: scroll;
@@ -56,12 +57,12 @@ export const GridCard = ({
 const Mutex = require('async-mutex').Mutex
 
 type SearchGridProps = React.PropsWithChildren<{
+  ctx: ElementaryContext
   q: string | null
   onCardClick?: (arg0: TNode) => void
   portable?: boolean
   defaultSearch?: boolean
   className?: string
-  storage: StorageApi
 }>
 type SearchGridWithHistProps = SearchGridProps & {
   history: RouteComponentProps['history']
@@ -143,7 +144,7 @@ class SearchGridWithHist extends React.Component<
     }
   }
   async resetSearchState(): Promise<void> {
-    const iter = await this.props.storage.node.iterate()
+    const iter = await this.props.ctx.storage.node.iterate()
     // Reset state and restart fetching process when state is updated
     this.setState(
       {
@@ -171,9 +172,9 @@ class SearchGridWithHist extends React.Component<
   }
   render() {
     const {
+      ctx,
       q,
       defaultSearch,
-      storage,
       onCardClick,
       portable,
       className,
@@ -198,10 +199,10 @@ class SearchGridWithHist extends React.Component<
         <GridCard onClick={onClick} key={node.nid}>
           <ShrinkCard>
             <NodeCardReadOnly
+              ctx={ctx}
               node={node}
               strippedRefs
               strippedActions
-              storage={storage}
             />
           </ShrinkCard>
           <NodeTimeBadge
