@@ -452,7 +452,6 @@ class Background {
     // Product analytics should be initialised ASAP because
     // other initialisation stages may require access to feature flags
     const analytics = await backgroundpa.make(analyticsIdentity)
-    analytics?.capture('background-init-started')
 
     const storage = makeStorageApi(
       await getAppSettings(browser.storage.local),
