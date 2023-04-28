@@ -19,7 +19,7 @@ import { AugmentationElement } from './Mount'
 import { ContentContext } from '../context'
 import { MazedMiniFloater } from './MazedMiniFloater'
 import { ContentAugmentationSettings, FromContent } from './../../message/types'
-import { DragHandle, Minimize } from '@emotion-icons/material'
+import { DragHandle, Minimize, Refresh } from '@emotion-icons/material'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
 import { errorise, productanalytics } from 'armoury'
 
@@ -59,7 +59,7 @@ const DraggableElement = styled.div`
 const Header = styled.div`
   display: flex;
   flex-direction: row;
-  justify-content: flex-end;
+  justify-content: space-between;
   ${DraggableCursorStyles}
 `
 const Footter = styled.div`
@@ -78,7 +78,7 @@ const SuggestionsFloaterSuggestionsBox = styled.div`
   user-select: text;
 `
 
-const CloseBtn = styled(ImgButton)`
+const FloateHeaderBtn = styled(ImgButton)`
   padding: 3px;
   margin: 1px 5px 0 5px;
   font-size: 12px;
@@ -156,10 +156,16 @@ function getMatchingText({
 type SuggestedCardsProps = {
   nodes: RelevantNodeSuggestion[]
   onClose: () => void
+  reloadSuggestions: () => void
   isLoading: boolean
 }
 
-const SuggestedCards = ({ nodes, onClose, isLoading }: SuggestedCardsProps) => {
+const SuggestedCards = ({
+  nodes,
+  onClose,
+  reloadSuggestions,
+  isLoading,
+}: SuggestedCardsProps) => {
   const analytics = React.useContext(ContentContext).analytics
   React.useEffect(() => {
     analytics?.capture('Show suggested associations', {
@@ -179,11 +185,16 @@ const SuggestedCards = ({ nodes, onClose, isLoading }: SuggestedCardsProps) => {
   return (
     <SuggestedCardsBox>
       <Header id="mazed-archaeologist-suggestions-floater-drag-handle">
-        <CloseBtn onClick={onClose}>
-          <HoverTooltip tooltip="Close" placement="bottom">
+        <FloateHeaderBtn onClick={reloadSuggestions}>
+          <HoverTooltip tooltip="Reload suggestions" placement="bottom">
+            <Refresh size="16px" />
+          </HoverTooltip>
+        </FloateHeaderBtn>
+        <FloateHeaderBtn onClick={onClose}>
+          <HoverTooltip tooltip="Minimize suggestions" placement="bottom">
             <Minimize size="16px" />
           </HoverTooltip>
-        </CloseBtn>
+        </FloateHeaderBtn>
       </Header>
       {isLoading ? <LineLoader /> : null}
       <SuggestionsFloaterSuggestionsBox>
@@ -233,10 +244,12 @@ export const SuggestionsFloater = ({
   nodes,
   isLoading,
   defaultRevelaed,
+  reloadSuggestions,
 }: {
   nodes: RelevantNodeSuggestion[]
   isLoading: boolean
   defaultRevelaed: boolean
+  reloadSuggestions: () => void
 }) => {
   const nodeRef = React.useRef(null)
   const [controlledPosition, setControlledPosition] =
@@ -344,6 +357,7 @@ export const SuggestionsFloater = ({
                 onClose={() => saveRevealed(false)}
                 nodes={nodes}
                 isLoading={isLoading}
+                reloadSuggestions={reloadSuggestions}
               />
             ) : (
               <MiniFloaterBox>

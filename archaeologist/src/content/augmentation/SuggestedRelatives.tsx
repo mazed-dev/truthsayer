@@ -209,6 +209,18 @@ export function SuggestedRelatives({
       nodes={suggestedNodes}
       isLoading={suggestionsSearchIsActive}
       defaultRevelaed={pageSimilaritySearchInput.isSearchEngine}
+      reloadSuggestions={() => {
+        const phrase = pageSimilaritySearchInput.phrase
+        if (phrase != null && phrase.length > 3) {
+          requestSuggestedAssociations(phrase)?.catch((reason) => {
+            log.error(
+              `Failed to manually reload suggestions: ${
+                errorise(reason).message
+              }`
+            )
+          })
+        }
+      }}
     />
   )
 }
