@@ -22,20 +22,20 @@ import type { StorageApi, TNode } from 'smuggler-api'
 
 import { makeElementRender } from './ElementRender'
 import { productanalytics } from 'armoury'
+import { ElementaryContext } from '../context'
 
 export const NodeTextEditor = ({
+  ctx,
   className,
   node,
   saveText,
-  storage,
   strippedFormatToolbar,
 }: {
+  ctx: ElementaryContext
   node: TNode
   saveText: (text: SlateText) => void
   className?: string
-  storage: StorageApi
   strippedFormatToolbar?: boolean
-  captureMetricOnCopy?: (subj: string) => void
 }) => {
   const [isJinnShown, setShowJinn] = useState<boolean>(false)
   const nid = node.nid
@@ -69,10 +69,10 @@ export const NodeTextEditor = ({
   return (
     <div className={className}>
       <Jinn
+        ctx={ctx}
         isShown={isJinnShown}
         onHide={() => setShowJinn(false)}
         editor={editor}
-        storage={storage}
       />
       <Slate
         editor={editor}

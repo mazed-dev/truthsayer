@@ -16,6 +16,7 @@ import { log } from 'armoury'
 import styled from '@emotion/styled'
 
 import { OverlayCopyOnHover } from '../OverlayCopyOnHover'
+import type { ElementaryContext } from '../context'
 
 const Box = styled.div`
   width: 100%;
@@ -166,15 +167,25 @@ const BookmarkUrlStrippedBox = styled.a`
 `
 
 const BookmarkUrlStripped = ({
+  ctx,
   url,
   className,
 }: {
+  ctx: ElementaryContext
   url: string
   className?: string
 }) => {
   const urlToShow = url.replace(/^https?:\/\//, '').replace(/^www\./, '')
   return (
-    <BookmarkUrlStrippedBox className={className} href={url}>
+    <BookmarkUrlStrippedBox
+      className={className}
+      href={url}
+      onClick={() => {
+        ctx.analytics?.capture("URL:Go to Bookmark's Native Version", {
+          'Event type': 'click',
+        })
+      }}
+    >
       {urlToShow}
     </BookmarkUrlStrippedBox>
   )
@@ -243,17 +254,17 @@ const MatchDescriptionSeeMoreBtn = styled.span`
 `
 
 const BookmarkMatchDescription = ({
+  ctx,
   url,
   match,
   prefix,
   suffix,
-  captureMetricOnCopy,
 }: {
+  ctx: ElementaryContext
   url: string
   match: string
   prefix: string
   suffix: string
-  captureMetricOnCopy?: (subj: string) => void
 }) => {
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
   const [hiddenPrefix, visisblePrefix] = React.useMemo(
@@ -266,8 +277,9 @@ const BookmarkMatchDescription = ({
   )
   return (
     <OverlayCopyOnHover
+      ctx={ctx}
+      analytics={{ subject: 'description' }}
       getTextToCopy={() => {
-        captureMetricOnCopy?.('description')
         return seeMore
           ? [prefix, match, suffix].join(' ')
           : [visisblePrefix, match, visisbleSuffix].join(' ')
@@ -302,13 +314,13 @@ const BookmarkMatchDescription = ({
 }
 
 const BookmarkOriginalDescription = ({
+  ctx,
   url,
   description,
-  captureMetricOnCopy,
 }: {
+  ctx: ElementaryContext
   url: string
   description: string
-  captureMetricOnCopy?: (subj: string) => void
 }) => {
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
   const [visible, hidden] = React.useMemo(
@@ -317,10 +329,9 @@ const BookmarkOriginalDescription = ({
   )
   return (
     <OverlayCopyOnHover
-      getTextToCopy={() => {
-        captureMetricOnCopy?.('description')
-        return seeMore ? description : visible
-      }}
+      ctx={ctx}
+      analytics={{ subject: 'description' }}
+      getTextToCopy={() => (seeMore ? description : visible)}
     >
       <Description cite={url} className={productanalytics.classExclude()}>
         <MatchDescriptionContextSpan>{visible}</MatchDescriptionContextSpan>
@@ -345,15 +356,15 @@ const BookmarkOriginalDescription = ({
 }
 
 const BookmarkDescription = ({
+  ctx,
   url,
   description,
   webBookmarkDescriptionConfig,
-  captureMetricOnCopy,
 }: {
+  ctx: ElementaryContext
   url: string
   description?: string
   webBookmarkDescriptionConfig: WebBookmarkDescriptionConfig
-  captureMetricOnCopy?: (subj: string) => void
 }) => {
   switch (webBookmarkDescriptionConfig.type) {
     case 'none':
@@ -364,10 +375,9 @@ const BookmarkDescription = ({
       }
       return (
         <OverlayCopyOnHover
-          getTextToCopy={() => {
-            captureMetricOnCopy?.('description')
-            return description
-          }}
+          ctx={ctx}
+          analytics={{ subject: 'description' }}
+          getTextToCopy={() => description}
         >
           <Description cite={url} className={productanalytics.classExclude()}>
             {description}
@@ -380,40 +390,40 @@ const BookmarkDescription = ({
       }
       return (
         <BookmarkOriginalDescription
+          ctx={ctx}
           url={url}
           description={description}
-          captureMetricOnCopy={captureMetricOnCopy}
         />
       )
     case 'match':
       const { match, prefix, suffix } = webBookmarkDescriptionConfig
       return (
         <BookmarkMatchDescription
+          ctx={ctx}
           url={url}
           match={match}
           prefix={prefix}
           suffix={suffix}
-          captureMetricOnCopy={captureMetricOnCopy}
         />
       )
   }
 }
 
 type WebBookmarkProps = {
+  ctx: ElementaryContext
   extattrs: NodeExtattrs
   className?: string
   strippedRefs?: boolean
   onLaunch?: () => void
-  captureMetricOnCopy?: (subj: string) => void
   webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
 }
 
 export const WebBookmark = ({
+  ctx,
   extattrs,
   className,
   strippedRefs,
   onLaunch,
-  captureMetricOnCopy,
   webBookmarkDescriptionConfig,
 }: WebBookmarkProps) => {
   const { web, preview_image, title, description, author } = extattrs
@@ -425,10 +435,9 @@ export const WebBookmark = ({
   const hostname = new URL(url).hostname
   const authorBadge = author ? (
     <OverlayCopyOnHover
-      getTextToCopy={() => {
-        captureMetricOnCopy?.('author')
-        return author
-      }}
+      ctx={ctx}
+      analytics={{ subject: 'author' }}
+      getTextToCopy={() => author}
     >
       <Author className={productanalytics.classExclude()}>
         &mdash; {author}
@@ -446,20 +455,19 @@ export const WebBookmark = ({
         />
         <TitleBox>
           <OverlayCopyOnHover
-            getTextToCopy={() => {
-              captureMetricOnCopy?.('title')
-              return title ?? null
-            }}
+            ctx={ctx}
+            analytics={{ subject: 'title' }}
+            getTextToCopy={() => title ?? null}
           >
             <Title className={productanalytics.classExclude()}>{title}</Title>
           </OverlayCopyOnHover>
           <OverlayCopyOnHover
-            getTextToCopy={() => {
-              captureMetricOnCopy?.('url')
-              return url
-            }}
+            ctx={ctx}
+            analytics={{ subject: 'url' }}
+            getTextToCopy={() => url}
           >
             <BookmarkUrlStripped
+              ctx={ctx}
               className={productanalytics.classExclude()}
               url={url}
             />
@@ -468,12 +476,12 @@ export const WebBookmark = ({
         </TitleBox>
       </BadgeBox>
       <BookmarkDescription
+        ctx={ctx}
         url={url}
         description={description}
         webBookmarkDescriptionConfig={
           webBookmarkDescriptionConfig ?? { type: 'original' }
         }
-        captureMetricOnCopy={captureMetricOnCopy}
       />
     </Box>
   )
