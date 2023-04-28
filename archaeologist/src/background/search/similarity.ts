@@ -17,7 +17,22 @@ let tfState: tfUse.TfState | undefined = undefined
 
 const wink_ = loadWinkModel()
 
-const kScoreThreshold = 0.42
+/**
+ * Get the cosine distance threshold below which we call two texts relevant.
+ * Cosine distance is a number that belongs to [0, 1], we can safely assume that
+ * all texts with cos between vectors smaller than 0.42 are related. Although,
+ * for texts shorter than 4 words, this assumption goes out of the window and we
+ * need to raise the threshold up to crazy 0.55 to be able to find anything at
+ * all. Average length of the word in English is 4.7, so threshold below which
+ * prhase is certainly short - 18.8 characters.
+ */
+function getCosineScoreThreshold(phrase: string): number {
+  if (phrase.length > 18) {
+    return 0.42
+  } else {
+    return 0.55
+  }
+}
 
 export type RelevantNode = {
   node: TNode
@@ -32,8 +47,7 @@ export async function findRelevantNodes(
 ): Promise<RelevantNode[]> {
   cancellationToken.throwIfCancelled()
   if (tfState == null) {
-    log.error('Similarity search state is not initialised')
-    return []
+    throw new Error('Similarity search state is not initialised')
   }
   const phraseDoc = wink_.readDoc(phrase)
   const phraseEmbedding = await tfState.encoder.embed(
@@ -42,6 +56,7 @@ export async function findRelevantNodes(
   const allNids = await storage.node.getAllNids({})
   cancellationToken.throwIfCancelled()
   let relevantNids: { score: number; nid: Nid }[] = []
+  const scoreThreshold = getCosineScoreThreshold(phrase)
   for (const nid of allNids) {
     if (!!excludedNids.has(nid)) {
       continue
@@ -67,7 +82,7 @@ export async function findRelevantNodes(
     )
     // const score = tfUse.euclideanDistance(phraseEmbedding, nodeEmbedding)
     const score = tfUse.cosineDistance(phraseEmbedding, nodeEmbedding)
-    if (score < kScoreThreshold) {
+    if (score < scoreThreshold) {
       relevantNids.push({ nid, score })
     }
     cancellationToken.throwIfCancelled()
@@ -198,8 +213,7 @@ async function updateNodeIndex(
   patch: NodeEventPatch
 ): Promise<void> {
   if (tfState == null) {
-    log.error('Similarity search state is not initialised')
-    return
+    throw new Error('Similarity search state is not initialised')
   }
   const text = getNodePatchAsString(patch)
   const textWinkDoc = wink_.readDoc(text)
