@@ -154,7 +154,7 @@ async function updateNodeIndex(
     textWinkDoc.out(wink_.its.normal)
   )
   const embeddingJson = tfUse.tensor2dToJson(embedding)
-  await storage.node.setNodeSimilaritySearchInfo({
+  await storage.node.similarity.setIndex({
     nid,
     simsearch: {
       algorithm: 'tf-embed',
@@ -178,7 +178,7 @@ async function ensurePerNodeSimSearchIndexIntegrity(
   const nids = await storage.node.getAllNids({})
   for (let ind = 0; ind < nids.length; ++ind) {
     const nid = nids[ind]
-    const nodeSimSearchInfo = await storage.node.getNodeSimilaritySearchInfo({
+    const nodeSimSearchInfo = await storage.node.similarity.getIndex({
       nid,
     })
     if (
