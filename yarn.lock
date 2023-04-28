@@ -5693,7 +5693,6 @@ __metadata:
     express: ^4.17.2
     jest: 26.6.0
     jsdom: ^17.0.0
-    posthog-js-lite: ^2.4.0
     posthog-node: ^3.1.0
     prettier: ^2.2
     process: ^0.11.10
@@ -17317,13 +17316,6 @@ __metadata:
     picocolors: ^1.0.0
     source-map-js: ^1.0.2
   checksum: fe58766ff32e4becf65a7d57678995cfd239df6deed2fe0557f038b47c94e4132e7e5f68b5aa820c13adfec32e523b693efaeb65798efb995ce49ccd83953816
-  languageName: node
-  linkType: hard
-
-"posthog-js-lite@npm:^2.4.0":
-  version: 2.4.0
-  resolution: "posthog-js-lite@npm:2.4.0"
-  checksum: 298917058399ed8a3811a073d30107649be6875d495339146983970708c2a5c41772aef00f5608ccf09281f707b37204be94b801b1dc26abc48562c606f53da0
   languageName: node
   linkType: hard
 
