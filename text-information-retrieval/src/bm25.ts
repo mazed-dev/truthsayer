@@ -393,7 +393,6 @@ export function findRelevantDocuments<DocIdType>(
       ]
     }
   )
-  // log.debug('queryTermsScores', queryTermsScores)
   const results: RelevanceResult<DocIdType>[] = []
   for (const corpusDoc of corpusDocs) {
     const score = getTextRelevanceScore(
