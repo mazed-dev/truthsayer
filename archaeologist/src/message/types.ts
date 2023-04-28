@@ -277,12 +277,19 @@ export namespace ToContent {
   export interface RequestPageContentSearchPhrase {
     type: 'REQUEST_PAGE_CONTENT_SEARCH_PHRASE'
   }
+  export interface RequestTabStatusUpdate {
+    type: 'REQUEST_UPDATE_TAB_STATUS'
+    change: {
+      activated?: boolean
+    }
+  }
 
   /** Requests that aim to modify recepient's state. */
   export type MutatingRequest =
     | InitContentAugmentationRequest
     | UpdateContentAugmentationRequest
     | ShowDisappearingNotificationRequest
+    | RequestTabStatusUpdate
   /** Requests that aim to retrieve part of recepient's state without modifying it. */
   export type ReadOnlyRequest =
     | RequestPageContent
@@ -330,6 +337,10 @@ export namespace ToContent {
   export function sendMessage(
     tabId: number,
     message: ReportBackgroundOperationProgress
+  ): Promise<VoidResponse>
+  export function sendMessage(
+    tabId: number,
+    message: RequestTabStatusUpdate
   ): Promise<VoidResponse>
   export function sendMessage(
     tabId: number,

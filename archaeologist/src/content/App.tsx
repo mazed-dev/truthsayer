@@ -124,6 +124,13 @@ type InitializedState = {
   notification?: DisappearingToastProps
 
   analytics: PostHog | null
+
+  tabStatus: {
+    // A counter that get bumped each time when the tab is re-activated, which
+    // means user returned to the tab from another one. It's used now to trigger
+    // new similarity search for suggestions on every change of this number.
+    activationCounter: number
+  }
 }
 
 type State = UninitializedState | InitializedState
@@ -134,6 +141,10 @@ type Action =
   | {
       type: 'show-notification'
       data: ToContent.ShowDisappearingNotificationRequest
+    }
+  | {
+      type: 'notify-tab-status-update'
+      data: ToContent.RequestTabStatusUpdate
     }
 
 function updateState(state: State, action: Action): State {
@@ -234,6 +245,9 @@ function updateState(state: State, action: Action): State {
         toNodes,
         fromNodes,
         analytics,
+        tabStatus: {
+          activationCounter: 0,
+        },
       }
     }
     case 'update-nodes':
@@ -274,6 +288,18 @@ function updateState(state: State, action: Action): State {
           tooltip,
           href,
           timeoutMsec,
+        },
+      }
+    case 'notify-tab-status-update':
+      if (state.mode === 'uninitialised-content-app') {
+        throw new Error("Can't update tab state of an unitialized content app")
+      }
+      const { activated } = action.data.change
+      return {
+        ...state,
+        tabStatus: {
+          activationCounter:
+            state.tabStatus.activationCounter + (!!activated ? 1 : 0),
         },
       }
   }
@@ -352,6 +378,9 @@ function mutatingRequestToAction(request: ToContent.MutatingRequest): Action {
     case 'SHOW_DISAPPEARING_NOTIFICATION': {
       return { type: 'show-notification', data: request }
     }
+    case 'REQUEST_UPDATE_TAB_STATUS': {
+      return { type: 'notify-tab-status-update', data: request }
+    }
   }
 }
 
@@ -388,6 +417,7 @@ const App = () => {
         }
         case 'INIT_CONTENT_AUGMENTATION_REQUEST':
         case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
+        case 'REQUEST_UPDATE_TAB_STATUS':
         case 'SHOW_DISAPPEARING_NOTIFICATION': {
           dispatch(mutatingRequestToAction(message))
           return { type: 'VOID_RESPONSE' }
@@ -405,7 +435,6 @@ const App = () => {
     browser.runtime.onMessage.addListener(rethrown)
     return () => browser.runtime.onMessage.removeListener(rethrown)
   }, [listener])
-
   if (state.mode === 'uninitialised-content-app') {
     return null
   }
@@ -463,6 +492,7 @@ const App = () => {
                 state.toNodes,
                 state.bookmark
               )}
+              tabActivationCounter={state.tabStatus.activationCounter}
             />
           </>
         )}
