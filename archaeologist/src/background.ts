@@ -1,6 +1,6 @@
 import * as webNavigation from './web-navigation/webNavigation'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
-import { PostHog } from 'posthog-js'
+import { PostHog } from 'posthog-node'
 import {
   ToPopUp,
   ToContent,
@@ -452,6 +452,11 @@ class Background {
     // Product analytics should be initialised ASAP because
     // other initialisation stages may require access to feature flags
     const analytics = await backgroundpa.make(analyticsIdentity)
+    analytics?.capture({
+      event: 'background-init-started',
+      // TODO[snikitin@outlook.com] Looks like this should be a UUID
+      distinctId: analyticsIdentity.analyticsIdentity,
+    })
 
     const storage = makeStorageApi(
       await getAppSettings(browser.storage.local),
