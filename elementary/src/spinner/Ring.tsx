@@ -17,7 +17,7 @@ export const Ring = styled.div`
   border-top: calc(1em / 10) solid #00000000;
   width: 1em;
   height: 1em;
-  animation: ${rotation} 1.8s linear infinite;
+  animation: ${rotation} 1s linear infinite;
   display: flex;
   vertical-align: middle;
 `
