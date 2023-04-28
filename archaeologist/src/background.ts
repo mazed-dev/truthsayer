@@ -1,6 +1,5 @@
 import * as webNavigation from './web-navigation/webNavigation'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
-import { PostHog } from 'posthog-node'
 import {
   ToPopUp,
   ToContent,
@@ -39,6 +38,7 @@ import { BrowserHistoryUpload } from './background/external-import/browserHistor
 import { requestPageSavedStatus } from './background/pageStatus'
 import { saveWebPage, savePageQuote } from './background/savePage'
 import { backgroundpa } from './background/productanalytics'
+import type { BackgroundPosthog } from './background/productanalytics'
 import { OpenTabs } from './background/external-import/openTabs'
 import * as contentState from './background/contentState'
 import * as similarity from './background/search/similarity'
@@ -368,7 +368,7 @@ function makeStorageApi(
 
 type BackgroundContext = {
   storage: StorageApi
-  analytics: PostHog | null
+  analytics: BackgroundPosthog | null
 }
 
 /**
@@ -452,11 +452,7 @@ class Background {
     // Product analytics should be initialised ASAP because
     // other initialisation stages may require access to feature flags
     const analytics = await backgroundpa.make(analyticsIdentity)
-    analytics?.capture({
-      event: 'background-init-started',
-      // TODO[snikitin@outlook.com] Looks like this should be a UUID
-      distinctId: analyticsIdentity.analyticsIdentity,
-    })
+    analytics?.capture('background-init-started')
 
     const storage = makeStorageApi(
       await getAppSettings(browser.storage.local),
