@@ -27,6 +27,10 @@ export function makeAlwaysThrowingStorageApi(): StorageApi {
       url: throwError,
       addListener: throwError,
       removeListener: throwError,
+      similarity: {
+        getIndex: throwError,
+        setIndex: throwError,
+      },
     },
     blob: {
       upload: throwError,

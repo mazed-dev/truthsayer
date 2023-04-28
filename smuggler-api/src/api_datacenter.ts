@@ -796,15 +796,19 @@ function _makeResponseError(response: Response, message?: string): Error {
 }
 
 export function makeDatacenterStorageApi(): StorageApi {
+  const throwUnimplementedError = (endpoint: string) => {
+    return (..._: any[]): never => {
+      throw new Error(
+        `Attempted to call an ${endpoint} endpoint of datacenter StorageApi` +
+          " which hasn't been implemented yet"
+      )
+    }
+  }
   return {
     node: {
       get: getNode,
       getByOrigin: getNodesByOrigin,
-      getAllNids: () => {
-        throw new Error(
-          `node.getAllNids hasn't been implemented yet for datacenter StorageApi`
-        )
-      },
+      getAllNids: throwUnimplementedError('node.getAllNids'),
       update: updateNode,
       create: createNode,
       iterate: async () => _getNodesSliceIter({}),
@@ -819,6 +823,10 @@ export function makeDatacenterStorageApi(): StorageApi {
       url: makeDirectUrl,
       addListener: NodeEvent.addListener,
       removeListener: NodeEvent.removeListener,
+      similarity: {
+        getIndex: throwUnimplementedError('node.similarity.getIndex'),
+        setIndex: throwUnimplementedError('node.similarity.setIndex'),
+      },
     },
     blob: {
       upload: uploadFiles,

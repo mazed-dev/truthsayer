@@ -243,7 +243,7 @@ export function register(storage: StorageApi) {
   ) {
     browser.webNavigation.onBeforeNavigate.addListener(onBeforeNavigateListener)
   }
-  log.debug('WebNavigation listeners are registered')
+  log.debug('WebNavigation module is loaded')
   return () => {
     browser.webNavigation.onCreatedNavigationTarget.removeListener(
       onCreatedNavigationTargetListener
