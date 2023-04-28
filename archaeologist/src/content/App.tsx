@@ -1,10 +1,9 @@
 import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom'
 
-import browser, { Tabs } from 'webextension-polyfill'
+import browser from 'webextension-polyfill'
 import { PostHog } from 'posthog-js'
 import { v4 as uuidv4 } from 'uuid'
-import { useAsyncEffect } from 'use-async-effect'
 
 import { NodeUtil, NodeType, makeMsgProxyStorageApi } from 'smuggler-api'
 import type {
@@ -126,7 +125,12 @@ type InitializedState = {
 
   analytics: PostHog | null
 
-  currentTab?: CurrentTabStatus
+  tabStatus: {
+    // A counter that get bumped each time when the tab is re-activated, which
+    // means user returned to the tab from another one. It's used now to trigger
+    // new similarity search for suggestions on every change of this number.
+    activationCounter: number
+  }
 }
 
 type State = UninitializedState | InitializedState
@@ -139,13 +143,9 @@ type Action =
       data: ToContent.ShowDisappearingNotificationRequest
     }
   | {
-      type: 'update-tab-status'
-      tabStatus: CurrentTabStatus
+      type: 'notify-tab-status-update'
+      data: ToContent.RequestTabStatusUpdate
     }
-
-  type CurrentTabStatus = {
-    isActive: boolean
-  }
 
 function updateState(state: State, action: Action): State {
   switch (action.type) {
@@ -245,6 +245,9 @@ function updateState(state: State, action: Action): State {
         toNodes,
         fromNodes,
         analytics,
+        tabStatus: {
+          activationCounter: 0,
+        },
       }
     }
     case 'update-nodes':
@@ -287,13 +290,17 @@ function updateState(state: State, action: Action): State {
           timeoutMsec,
         },
       }
-    case 'update-tab-status':
+    case 'notify-tab-status-update':
       if (state.mode === 'uninitialised-content-app') {
         throw new Error("Can't update tab state of an unitialized content app")
       }
+      const { activated } = action.data.change
       return {
         ...state,
-        currentTab: action.tabStatus
+        tabStatus: {
+          activationCounter:
+            state.tabStatus.activationCounter + (!!activated ? 1 : 0),
+        },
       }
   }
 }
@@ -371,6 +378,9 @@ function mutatingRequestToAction(request: ToContent.MutatingRequest): Action {
     case 'SHOW_DISAPPEARING_NOTIFICATION': {
       return { type: 'show-notification', data: request }
     }
+    case 'REQUEST_UPDATE_TAB_STATUS': {
+      return { type: 'notify-tab-status-update', data: request }
+    }
   }
 }
 
@@ -407,6 +417,7 @@ const App = () => {
         }
         case 'INIT_CONTENT_AUGMENTATION_REQUEST':
         case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
+        case 'REQUEST_UPDATE_TAB_STATUS':
         case 'SHOW_DISAPPEARING_NOTIFICATION': {
           dispatch(mutatingRequestToAction(message))
           return { type: 'VOID_RESPONSE' }
@@ -424,12 +435,6 @@ const App = () => {
     browser.runtime.onMessage.addListener(rethrown)
     return () => browser.runtime.onMessage.removeListener(rethrown)
   }, [listener])
-  useAsyncEffect(async () => {
-    //const tab = await browser.tabs.getCurrent()
-    //const isActive = (tab.active && !tab.discarded && !tab.hidden)
-    log.debug('Update tab status', browser)
-    // dispatch({ type: 'update-tab-status', tabStatus: { isActive: isActive }})
-  })
   if (state.mode === 'uninitialised-content-app') {
     return null
   }
@@ -487,6 +492,7 @@ const App = () => {
                 state.toNodes,
                 state.bookmark
               )}
+              tabActivationCounter={state.tabStatus.activationCounter}
             />
           </>
         )}

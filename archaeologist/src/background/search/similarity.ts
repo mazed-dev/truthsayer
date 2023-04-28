@@ -28,7 +28,7 @@ export async function findRelevantNodes(
   phrase: string,
   storage: StorageApi,
   excludedNids: Set<Nid>,
-  cancellationToken: CancellationToken,
+  cancellationToken: CancellationToken
 ): Promise<RelevantNode[]> {
   cancellationToken.throwIfCancelled()
   if (tfState == null) {

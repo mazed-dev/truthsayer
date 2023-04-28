@@ -45,7 +45,6 @@ import * as similarity from './background/search/similarity'
 import * as auth from './background/auth'
 import CancellationToken from 'cancellationtoken'
 
-
 let cancelPreviousSimilaritySearch: null | ((reason?: string) => void) = null
 
 const BADGE_MARKER_PAGE_SAVED = '✓'
@@ -162,7 +161,7 @@ async function lookupForSuggestionsToPageInActiveTab(
     phrase,
     storage,
     new Set(nidsExcludedFromSearch),
-    token,
+    token
   )
 }
 
@@ -183,7 +182,9 @@ async function handleMessageFromContent(
       return { type: 'VOID_RESPONSE' }
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
       if (!sender.tab?.active) {
-        throw new Error("Background should not run similarity search for inactive tabs")
+        throw new Error(
+          'Background should not run similarity search for inactive tabs'
+        )
       }
       cancelPreviousSimilaritySearch?.()
       const { cancel, token } = CancellationToken.create()
@@ -192,7 +193,7 @@ async function handleMessageFromContent(
         message.phrase,
         ctx.storage,
         new Set(message.excludeNids),
-        token,
+        token
       )
       return {
         type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
@@ -521,12 +522,30 @@ class Background {
       )
     }
 
+    // Listen to removal of tabs
+    {
+      const onTabRemoval = async (
+        tabId: number,
+        _removeInfo: browser.Tabs.OnRemovedRemoveInfoType
+      ) => {
+        TabLoad.abort(tabId, 'Tab removed')
+      }
+      browser.tabs.onRemoved.addListener(onTabRemoval)
+      this.deinitialisers.push(() =>
+        browser.tabs.onRemoved.removeListener(onTabRemoval)
+      )
+    }
+
     // Listen to activation of tabs
     {
       const onTabActivated = async (
         activatedInfo: browser.Tabs.OnActivatedActiveInfoType
       ) => {
         log.debug('Tab activated', activatedInfo)
+        await ToContent.sendMessage(activatedInfo.tabId, {
+          type: 'REQUEST_UPDATE_TAB_STATUS',
+          change: { activated: true },
+        })
       }
       browser.tabs.onActivated.addListener(onTabActivated)
       this.deinitialisers.push(() =>

@@ -4,7 +4,6 @@ import lodash from 'lodash'
 import type { Nid } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
 import { errorise, log, productanalytics, sleep } from 'armoury'
-import browser, { Tabs } from 'webextension-polyfill'
 
 import { FromBackground, FromContent } from '../../message/types'
 import { extractSimilaritySearchPhraseFromPageContent } from '../extractor/webPageSearchPhrase'
@@ -80,9 +79,12 @@ async function retryIfStillLoading<T>(
 export function SuggestedRelatives({
   stableUrl,
   excludeNids,
+  tabActivationCounter,
 }: {
   stableUrl?: string
   excludeNids?: Nid[]
+  // A counter to trigger new suggestions search when user gets back to the tab
+  tabActivationCounter: number
 }) {
   const analytics = React.useContext(ContentContext).analytics
   const [suggestedNodes, setSuggestedNodes] = React.useState<
@@ -150,7 +152,8 @@ export function SuggestedRelatives({
               phrase_size: phrase.length,
             })
           } catch (e) {
-            setSuggestedNodes([])
+            // Don't set empty list of suggestions here, keep whateve previously
+            // was suggested to show at least something
             productanalytics.error(
               analytics,
               {
@@ -163,7 +166,7 @@ export function SuggestedRelatives({
           }
           setSuggestionsSearchIsActive(false)
         },
-        661,
+        997,
         {}
       ),
     [excludeNids, analytics]
@@ -189,7 +192,11 @@ export function SuggestedRelatives({
     if (phrase != null && phrase.length > 3) {
       requestSuggestedAssociations(phrase)
     }
-  }, [pageSimilaritySearchInput, requestSuggestedAssociations])
+  }, [
+    pageSimilaritySearchInput,
+    requestSuggestedAssociations,
+    tabActivationCounter,
+  ])
   React.useEffect(() => {
     const opts: AddEventListenerOptions = { passive: true, capture: true }
     window.addEventListener('keyup', consumeKeyboardEvent, opts)

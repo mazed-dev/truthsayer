@@ -354,7 +354,13 @@ export const SuggestionsFloater = ({
             ) : (
               <MiniFloaterBox>
                 <MazedMiniFloater onClick={() => saveRevealed(true)}>
-                  {isLoading ? <Spinner.Ring /> : nodes.length}
+                  {isLoading ? (
+                    <Spinner.Ring />
+                  ) : nodes.length === 0 ? (
+                    '…'
+                  ) : (
+                    nodes.length
+                  )}
                 </MazedMiniFloater>
                 <DragIndicator
                   id="mazed-archaeologist-suggestions-floater-drag-handle"
