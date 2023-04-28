@@ -1,8 +1,4 @@
-import {
-  findLongestCommonContinuousPiece,
-  tfUse,
-  loadWinkModel,
-} from 'text-information-retrieval'
+import { tfUse, loadWinkModel, bm25 } from 'text-information-retrieval'
 import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 import type {
   NodeEventType,
@@ -13,7 +9,8 @@ import type {
   StorageApi,
 } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
-import { TDoc } from 'elementary'
+import { TDoc, Beagle } from 'elementary'
+import CancellationToken from 'cancellationtoken'
 import { log, errorise } from 'armoury'
 
 let tfState: tfUse.TfState | undefined = undefined
@@ -43,20 +40,70 @@ export type RelevantNode = {
 export async function findRelevantNodes(
   phrase: string,
   storage: StorageApi,
-  excludedNids?: Set<Nid>
+  excludedNids: Set<Nid>,
+  cancellationToken: CancellationToken
 ): Promise<RelevantNode[]> {
-  if (tfState == null) {
-    log.error('Similarity search state is not initialised')
-    return []
-  }
+  cancellationToken.throwIfCancelled()
   const phraseDoc = wink_.readDoc(phrase)
+  if (tfState == null) {
+    throw new Error('Similarity search state is not initialised')
+  }
+  let nodesWithScore: NodeWithScore[]
+  // Use plaintext search for a small queries, because similarity search based
+  // on ML embeddings has a poor quality results on a small texts.
+  if (phraseDoc.entities().length() < 4) {
+    log.debug(
+      'Use Beagle to find relevant nodes, because search phrase is short'
+    )
+    nodesWithScore = await findRelevantNodesUsingPlainTextSearch(
+      phraseDoc,
+      storage,
+      excludedNids,
+      cancellationToken
+    )
+  } else {
+    log.debug('Use tfjs based similarity search to find relevant nodes')
+    nodesWithScore = await findRelevantNodesUsingSimilaritySearch(
+      phraseDoc,
+      storage,
+      excludedNids,
+      cancellationToken
+    )
+  }
+  const relevantNodes: RelevantNode[] = []
+  for (const { node, score } of nodesWithScore) {
+    relevantNodes.push({
+      node,
+      score,
+      matchedPiece: findRelevantQuote(phraseDoc, node),
+    })
+  }
+  log.debug('Similarity search results', relevantNodes)
+  return relevantNodes
+}
+
+type NodeWithScore = {
+  score: number
+  node: TNode
+}
+
+async function findRelevantNodesUsingSimilaritySearch(
+  phraseDoc: bm25.WinkDocument,
+  storage: StorageApi,
+  excludedNids: Set<Nid>,
+  cancellationToken: CancellationToken
+): Promise<NodeWithScore[]> {
+  if (tfState == null) {
+    throw new Error('Similarity search state is not initialised')
+  }
   const phraseEmbedding = await tfState.encoder.embed(
     phraseDoc.out(wink_.its.normal)
   )
   const allNids = await storage.node.getAllNids({})
+  cancellationToken.throwIfCancelled()
   let relevantNids: { score: number; nid: Nid }[] = []
   for (const nid of allNids) {
-    if (!!excludedNids?.has(nid)) {
+    if (!!excludedNids.has(nid)) {
       continue
     }
     const nodeSimSearchInfo = await storage.node.similarity.getIndex({
@@ -78,11 +125,11 @@ export async function findRelevantNodes(
     const nodeEmbedding = tfUse.tensor2dFromJson(
       nodeSimSearchInfo.embeddingJson
     )
-    // const score = tfUse.euclideanDistance(phraseEmbedding, nodeEmbedding)
     const score = tfUse.cosineDistance(phraseEmbedding, nodeEmbedding)
     if (score < kSimilarityCosineDistanceThreshold) {
       relevantNids.push({ nid, score })
     }
+    cancellationToken.throwIfCancelled()
   }
   // Cut the long tail of results - we can't and we shouldn't show more relevant
   // results than some limit, let it be for now 42
@@ -97,7 +144,7 @@ export async function findRelevantNodes(
       nodeMap.set(node.nid, node)
     }
   }
-  const relevantNodes: RelevantNode[] = []
+  const nodesWithScore: NodeWithScore[] = []
   for (const { nid, score } of relevantNids) {
     const node = nodeMap.get(nid)
     if (node == null) {
@@ -106,43 +153,118 @@ export async function findRelevantNodes(
       )
       continue
     }
-    let matchedPiece: LongestCommonContinuousPiece | undefined = undefined
-    if (NodeUtil.isWebBookmark(node)) {
-      const text = [node.index_text?.plaintext ?? node.extattrs?.description]
-        .filter((str: string | undefined) => !!str)
-        .join(' ')
-        .replace(/\s+/g, ' ')
-      if (text) {
-        const winkDoc = wink_.readDoc(text)
-        matchedPiece = findLongestCommonContinuousPiece(
-          winkDoc,
-          phraseDoc,
-          wink_,
-          // These parameters are the subject of further iteration based on usage
-          // feedback. The current limit is chosen from aesthetic reason in my
-          // specific browser, with current styles - it all might look very
-          // different in other devices.
-          {
-            prefixToExtendWordsNumber: 24,
-            suffixToExtendWordsNumber: 92,
-            // Cut search if long enough quote is found.
-            maxLengthOfCommonPieceWordsNumber: 36,
-          }
-        )
-      }
-    }
-    relevantNodes.push({ node, score, matchedPiece })
+    nodesWithScore.push({ node, score })
   }
-  log.debug('Similarity search results', relevantNodes)
-  return relevantNodes
+  return nodesWithScore
+}
+
+async function findRelevantNodesUsingPlainTextSearch(
+  phraseDoc: bm25.WinkDocument,
+  storage: StorageApi,
+  excludedNids: Set<Nid>,
+  cancellationToken: CancellationToken
+): Promise<NodeWithScore[]> {
+  // Let's do a bit of a trick here, using stemmed forms of the words to search:
+  // http://snowball.tartarus.org/algorithms/english/stemmer.html
+  // If it proves to be working fine, I suggest we even used it for the search
+  // in Truthsayer.
+  const stems = phraseDoc.tokens().out(wink_.its.stem)
+  const beagle = new Beagle(stems)
+  const nodesWithScore: NodeWithScore[] = []
+  const iter = await storage.node.iterate()
+  while (true) {
+    cancellationToken.throwIfCancelled()
+    const node = await iter.next()
+    if (!node) {
+      break
+    }
+    if (!!excludedNids.has(node.nid)) {
+      continue
+    }
+    if (beagle.searchNode(node) != null) {
+      nodesWithScore.push({ node, score: 0 })
+    }
+  }
+  return nodesWithScore
+}
+
+function findRelevantQuote(
+  phraseDoc: bm25.WinkDocument,
+  node: TNode
+): LongestCommonContinuousPiece | undefined {
+  if (!NodeUtil.isWebBookmark(node)) {
+    return undefined
+  }
+  const text = [node.index_text?.plaintext ?? node.extattrs?.description]
+    .filter((str: string | undefined) => !!str)
+    .join(' ')
+    .replace(/\s+/g, ' ')
+  if (!text) {
+    return undefined
+  }
+  const [overallIndex, perSentenceIndexes] = bm25.createIndex<number>()
+  const winkDoc = wink_.readDoc(text)
+  const sentences = winkDoc.sentences().out(wink_.its.value)
+  for (let ind = 0; ind < sentences.length; ++ind) {
+    const sentense = sentences[ind]
+    const sentenceInd = bm25.addDocument<number>(
+      wink_,
+      overallIndex,
+      sentense,
+      ind
+    )
+    perSentenceIndexes.push(sentenceInd)
+  }
+  const relevantIndexes = bm25.findRelevantDocuments<number>(
+    wink_,
+    phraseDoc,
+    1 /* limit */,
+    overallIndex,
+    perSentenceIndexes
+  )
+  if (relevantIndexes.length === 0) {
+    return undefined
+  }
+  const relevantSentenceIndex = relevantIndexes[0].docId
+  let prefix: string
+  let suffix: string
+  if (relevantSentenceIndex === 0) {
+    prefix = ''
+    // If there is no prefix to show, use longer suffix of 3 sentenses to add
+    // equal volume of context to the relevant sentense
+    suffix = sentences
+      .slice(relevantSentenceIndex + 1, relevantSentenceIndex + 4)
+      .join(' ')
+  } else {
+    // Use following 2 sentenses as a suffix
+    suffix = sentences
+      .slice(relevantSentenceIndex + 1, relevantSentenceIndex + 3)
+      .join(' ')
+    if (suffix === '' && relevantSentenceIndex > 1) {
+      // If there is no suffix to show, use longer prefix
+      prefix = sentences
+        .slice(relevantSentenceIndex - 2, relevantSentenceIndex)
+        .join(' ')
+    } else {
+      // Use previous sentence as prefix
+      prefix = sentences[relevantSentenceIndex - 1]
+    }
+  }
+  return {
+    matchTokensCount: 100, // Not released
+    matchValuableTokensCount: 100, // Not released
+    match: sentences[relevantSentenceIndex],
+    prefix,
+    suffix,
+  }
 }
 
 function getNodePatchAsString(patch: NodeEventPatch): string {
   const ret: string[] = [
-    patch.extattrs?.author ?? '',
     patch.extattrs?.title ?? '',
-    patch.extattrs?.web_quote?.text ?? '',
     patch.index_text?.plaintext ?? '',
+    patch.extattrs?.web_quote?.text ?? '',
+    patch.extattrs?.author ?? '',
   ]
   const text = patch.text
   if (text) {
@@ -158,8 +280,7 @@ async function updateNodeIndex(
   patch: NodeEventPatch
 ): Promise<void> {
   if (tfState == null) {
-    log.error('Similarity search state is not initialised')
-    return
+    throw new Error('Similarity search state is not initialised')
   }
   const text = getNodePatchAsString(patch)
   const textWinkDoc = wink_.readDoc(text)
@@ -205,7 +326,7 @@ async function ensurePerNodeSimSearchIndexIntegrity(
         nodeSimSearchInfo?.signature.version
       )
     ) {
-      log.debug(
+      log.info(
         `Update node similarity index [${ind + 1}/${nids.length}] ${nid}`
       )
       const node = await storage.node.get({ nid })
@@ -215,7 +336,7 @@ async function ensurePerNodeSimSearchIndexIntegrity(
 }
 
 export async function register(storage: StorageApi) {
-  if (tfState != null) {
+  if (tfState == null) {
     tfState = await tfUse.createTfState()
   }
 
