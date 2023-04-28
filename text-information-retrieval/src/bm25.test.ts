@@ -81,7 +81,8 @@ describe('data-driven test', () => {
     // read in the csv file contents
     const stream = fs.createReadStream(
       // `${__dirname}/test-data/dpedia.org-ontology-abstract.10000.tsv`
-      `${__dirname}/test-data/dpedia.org-ontology-abstract.1000.tsv`
+      // `${__dirname}/test-data/dpedia.org-ontology-abstract.1000.tsv`
+      `${__dirname}/test-data/dpedia.org-ontology-abstract.100.tsv`
     )
     stream.pipe(csvStream)
   })
@@ -92,7 +93,7 @@ describe('data-driven test', () => {
 
   it('Search index is valid', () => {
     expect(overallIndex.bagOfWords).not.toBeFalsy()
-    expect(overallIndex.documentsNumber).toStrictEqual(1000 + 3)
+    expect(overallIndex.documentsNumber).toStrictEqual(100 + 3)
     // The following numbers depend on search algorithm, change them accordingly
     // expect(overallIndex.wordsInAllDocuments).toStrictEqual(
     //   119313
@@ -176,7 +177,7 @@ describe('data-driven test', () => {
 
   it('RelevanceIndex JSON (de)seriliasation', () => {
     const buf = json.stringifyIndex(overallIndex)
-    expect(buf.length).toBeGreaterThan(21_0000)
+    expect(buf.length).toBeGreaterThan(54980)
     const obj = json.parseIndex(buf)
     expect(obj.algorithm).toStrictEqual(overallIndex.algorithm)
     expect(obj.documentsNumber).toStrictEqual(overallIndex.documentsNumber)

@@ -61,10 +61,10 @@ function RefNodeCard({
         onClick={() => history.push({ pathname: `/n/${nid}` })}
       >
         <NodeCardReadOnlyFetching
+          ctx={ctx}
           nid={nid}
           strippedRefs={true}
           strippedActions={true}
-          storage={ctx.storage}
         />
       </ShrinkCard>
       <div
@@ -308,11 +308,7 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
     const { node, edges_right, edges_left } = this.state
     const nodeCard =
       node !== null ? (
-        <NodeCard
-          node={node}
-          saveNode={this.saveNode}
-          storage={this.context.storage}
-        />
+        <NodeCard ctx={this.context} node={node} saveNode={this.saveNode} />
       ) : (
         <Spinner.Wheel />
       )

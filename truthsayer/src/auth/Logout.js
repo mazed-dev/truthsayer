@@ -29,14 +29,14 @@ class Logout extends React.Component {
         .delete({
           signal: this.fetchAbortController.signal,
         })
-        .catch(this.handleError)
         .then((res) => {
           if (res != null) {
             authCookie.veil.drop()
             // For some reason proper redirect with history doesn't work here
             FromTruthsayer.sendMessage({
               type: 'CHECK_AUTHORISATION_STATUS_REQUEST',
-            }).then(() => goto.notice.seeYou({}))
+            })
+            goto.notice.seeYou({})
           } else {
             goto.notice.error({})
           }
@@ -44,11 +44,6 @@ class Logout extends React.Component {
     } else {
       goto.default({})
     }
-  }
-
-  handleError = (error) => {
-    // *dbg*/ console.log('Logout.handleError', error)
-    // goto.notice.error({ history: this.props.history });
   }
 
   render() {

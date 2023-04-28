@@ -15,7 +15,8 @@ const ItemBox = styled(Link)`
   color: black;
   text-decoration: none;
   font-size: 16px;
-  margin: auto 8px auto 8px;
+  letter-spacing: -0.02em;
+  margin: 2px 5px 6px 5px;
   &:hover {
     text-decoration: none;
     color: black;
@@ -59,10 +60,28 @@ function Logo() {
 const Bar = styled.div`
   display: flex;
   justify-content: left;
-  padding: 18px 12px 18px 12px;
+  padding: 12px 12px 18px 12px;
 
   width: 100%;
   background-color: white;
+`
+const BarLeftHandItems = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: left;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+
+  width: 84%;
+`
+const BarRightHandItems = styled.div`
+  display: flex;
+  justify-content: right;
+  padding: 0;
+  margin: 0;
+
+  width: 16%;
 `
 
 const Filler = styled.div`
@@ -73,11 +92,17 @@ export function PublicPageNavbar() {
   return (
     <div>
       <Bar>
-        <Logo />
-        <Item to={'/terms-of-service'}>Terms And Conditions</Item>
-        <Item to={'/privacy-policy'}>Privacy Policy</Item>
-        <Item to={'/cookie-policy'}>Cookie Policy</Item>
-        <Item to={'/contacts'}>Contact Us</Item>
+        <BarLeftHandItems>
+          <Logo />
+          <Item to={'/about'}>About</Item>
+          <Item to={'/terms-of-service'}>Terms&nbsp;And&nbsp;Conditions</Item>
+          <Item to={'/privacy-policy'}>Privacy&nbsp;Policy</Item>
+          <Item to={'/cookie-policy'}>Cookie&nbsp;Policy</Item>
+          <Item to={'/contacts'}>Contact&nbsp;Us</Item>
+        </BarLeftHandItems>
+        <BarRightHandItems>
+          <Item to={'/login'}>Log&nbsp;In</Item>
+        </BarRightHandItems>
       </Bar>
       <Filler />
     </div>

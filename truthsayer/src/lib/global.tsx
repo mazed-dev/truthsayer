@@ -54,7 +54,7 @@ export type MzdGlobalContextProps = {
   account: null | UserAccount
   toaster: Toaster
   storage: StorageApi
-  analytics: PostHog | null
+  analytics?: PostHog
 }
 
 const NOOP_TOASTER_PUSH = (_item: React.ReactElement) => {
@@ -67,18 +67,17 @@ export const MzdGlobalContext = React.createContext<MzdGlobalContextProps>({
     push: NOOP_TOASTER_PUSH,
   },
   storage: makeAlwaysThrowingStorageApi(),
-  analytics: null,
 })
 
 type MzdGlobalProps = {
-  analytics: PostHog | null
+  analytics?: PostHog
   account: UserAccount
 }
 type MzdGlobalState = {
   toaster: Toaster
   account: UserAccount | null
   storage: StorageApi
-  analytics: PostHog | null
+  analytics?: PostHog
 }
 
 export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {

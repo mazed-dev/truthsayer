@@ -17,7 +17,7 @@ import {
 } from '../../external-import/ExternalImport'
 import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
-import { sleep, isAbortError } from 'armoury'
+import { sleep, isAbortError, productanalytics } from 'armoury'
 
 const Header = styled.h1`
   margin-bottom: 24px;
@@ -266,7 +266,12 @@ const StepTangoShowAround = ({ onClose }: { onClose: () => void }) => {
         ></StepArcadeIframe>
       </StepArcadeIframeBox>
       <StepFotbar>
-        <StepFotbarButton variant="outline-primary" onClick={onClose} size="sm">
+        <StepFotbarButton
+          variant="outline-primary"
+          onClick={onClose}
+          size="sm"
+          {...productanalytics.autocaptureIdentity('btn-onboarding-done')}
+        >
           Done
         </StepFotbarButton>
       </StepFotbar>
