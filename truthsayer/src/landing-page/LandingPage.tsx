@@ -371,6 +371,11 @@ export function LandingPage() {
             <Footer>
               <FooterCol>
                 <FooterItem>
+                  <RefBtn href={routes.about}>About</RefBtn>
+                </FooterItem>
+              </FooterCol>
+              <FooterCol>
+                <FooterItem>
                   <RefBtn href={routes.terms}>Terms of Service</RefBtn>
                 </FooterItem>
               </FooterCol>

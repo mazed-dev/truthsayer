@@ -38,8 +38,8 @@ export const NodeEditor = ({
   return (
     <BoxEditor className={className}>
       <NodeCard
+        ctx={ctx}
         node={node}
-        storage={ctx.storage}
         saveNode={async (text: NodeTextData): Promise<Ack> => {
           await saveNode(text)
           return { ack: true }
@@ -82,8 +82,8 @@ export const NodeReadOnly = ({
         }
       >
         <NodeCardReadOnly
+          ctx={ctx}
           node={node}
-          storage={ctx.storage}
           webBookmarkDescriptionConfig={{ type: 'none' }}
           strippedRefs
           strippedActions

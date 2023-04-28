@@ -414,13 +414,19 @@ export type NodeBatch = {
   nodes: TNode[]
 }
 
+/**
+ * Raw data to create tf.Tensor2D
+ * https://js.tensorflow.org/api/2.3.0/#class:Tensor
+ */
 export type TfEmbeddingJson = {
   data: number[]
   shape: [number, number]
 }
 
 export type NodeSimilaritySearchInfo = null | {
-  algorithm: 'tf-embed'
-  version: 1 // TensorFlow with universal sentense encoder
+  signature: {
+    algorithm: 'tf-embed'
+    version: 1 // TensorFlow with universal sentense encoder
+  }
   embeddingJson: TfEmbeddingJson
 }
