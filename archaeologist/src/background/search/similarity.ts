@@ -268,7 +268,7 @@ async function ensurePerNodeSimSearchIndexIntegrity(
 }
 
 export async function register(storage: StorageApi) {
-  if (tfState != null) {
+  if (tfState == null) {
     tfState = await tfUse.createTfState()
   }
 
