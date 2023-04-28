@@ -167,6 +167,45 @@ function captureError(
   }
 }
 
+export type AutocaptureIdentityHtmlDataAttribute = {
+  'data-mazed-pa': string
+}
+
+/**
+ * @summary Create an HTML data attribute value which indicates to a reader that
+ * given HTML element is being tracked by product analytics & changes to the
+ * attribute value will break some dashboards, etc.
+ *
+ * @description See https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes
+ * for general information about HTML data attributes.
+ * See https://posthog.com/docs/data/actions?utm_medium=in-product&utm_campaign=action-page#matching-selectors
+ * for more information about using HTML data attributes specifically in context
+ * of PostHog's CSS selectors.
+ *
+ * Events captured via PostHog's autocapture have a variaty of datapoints gathered.
+ * When working with PostHog's dashboards, events of interest have to be identified
+ * across everything that it gathered. For manually published events (e.g. created
+ * via @see PostHog.capture() ) event identification is not a problem because
+ * developer has control over the name & props of the event -- and therefore
+ * usage of this helper makes no sense in these cases.
+ *
+ * Opposite to that, for auto-captured the way to identify events of interest is
+ * to figure out which UI element they are related to. Although PostHog allows
+ * multiple ways of doing that (see links above), HTML data attribute is the
+ * recommended one. They have to be manually set though.
+ * This may be surprising as this means *auto*capture has to be combined with
+ * *manual* instrumentation, but in practice non-instrumented auto-captured
+ * events without an HTML data attributes are useful to identify *what*
+ * is useful to track, but doesn't provide a reliable way *how* to track it.
+ * Once the useful "what" has been identified, the data attribute can be manually
+ * added to make the "how" reliable.
+ */
+function toAutocaptureIdentityHtmlDataAttribute(
+  attributeValue: string
+): AutocaptureIdentityHtmlDataAttribute {
+  return { 'data-mazed-pa': attributeValue }
+}
+
 /**
  * @summary A string ID which is sufficiently safe & privacy-conscious to identify
  * a user for product analytics purposes.
@@ -185,6 +224,7 @@ export function isAnalyticsIdentity(input: any): input is AnalyticsIdentity {
 export const productanalytics = {
   make: makeAnalytics,
   classExclude: markClassNameForExclusion,
+  autocaptureIdentity: toAutocaptureIdentityHtmlDataAttribute,
   identity: {
     from: makePostHogIdentityFromString,
   },
