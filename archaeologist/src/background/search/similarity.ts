@@ -65,8 +65,8 @@ export async function findRelevantNodes(
     if (
       nodeSimSearchInfo == null ||
       !tfUse.isPerDocIndexUpToDate(
-        nodeSimSearchInfo?.algorithm,
-        nodeSimSearchInfo?.version
+        nodeSimSearchInfo?.signature.algorithm,
+        nodeSimSearchInfo?.signature.version
       )
     ) {
       // Skip nodes with invalid index

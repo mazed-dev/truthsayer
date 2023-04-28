@@ -424,7 +424,9 @@ export type TfEmbeddingJson = {
 }
 
 export type NodeSimilaritySearchInfo = null | {
-  algorithm: 'tf-embed'
-  version: 1 // TensorFlow with universal sentense encoder
+  signature: {
+    algorithm: 'tf-embed'
+    version: 1 // TensorFlow with universal sentense encoder
+  }
   embeddingJson: TfEmbeddingJson
 }
