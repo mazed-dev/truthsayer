@@ -414,6 +414,10 @@ export type NodeBatch = {
   nodes: TNode[]
 }
 
+/**
+ * Raw data to create tf.Tensor2D
+ * https://js.tensorflow.org/api/2.3.0/#class:Tensor
+ */
 export type TfEmbeddingJson = {
   data: number[]
   shape: [number, number]
