@@ -10,13 +10,26 @@ import type {
 } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
 import { TDoc } from 'elementary'
-import { log } from 'armoury'
+import { log, errorise } from 'armoury'
 
 let tfState: tfUse.TfState | undefined = undefined
 
 const wink_ = loadWinkModel()
 
-const kScoreThreshold = 0.42
+/**
+ * The cosine distance threshold below which we call two texts relevant.
+ * In data analysis, cosine similarity is a measure of similarity between two
+ * non-zero vectors defined in an inner product space. Cosine similarity is the
+ * cosine of the angle between the vectors; that is, it is the dot product of
+ * the vectors divided by the product of their lengths.
+ * https://en.wikipedia.org/wiki/Cosine_similarity
+ *
+ * Cosine distance is a number that belongs to [0, 1], we can safely assume that
+ * all texts with cos between vectors smaller than 0.42 are related. Although,
+ * for some texts this similarity measurement might not work, if this is the
+ * case consider using euclidean distance insted.
+ */
+const kSimilarityCosineDistanceThreshold = 0.42
 
 export type RelevantNode = {
   node: TNode
@@ -42,19 +55,19 @@ export async function findRelevantNodes(
     if (!!excludedNids?.has(nid)) {
       continue
     }
-    const nodeSimSearchInfo = await storage.node.getNodeSimilaritySearchInfo({
+    const nodeSimSearchInfo = await storage.node.similarity.getIndex({
       nid,
     })
     if (
       nodeSimSearchInfo == null ||
       !tfUse.isPerDocIndexUpToDate(
-        nodeSimSearchInfo?.algorithm,
-        nodeSimSearchInfo?.version
+        nodeSimSearchInfo?.signature.algorithm,
+        nodeSimSearchInfo?.signature.version
       )
     ) {
       // Skip nodes with invalid index
       log.warning(
-        `Similarity index for node ${nid} is invalid "${nodeSimSearchInfo?.algorithm}:${nodeSimSearchInfo?.version}"`
+        `Similarity index for node ${nid} is invalid "${nodeSimSearchInfo?.signature.algorithm}:${nodeSimSearchInfo?.signature.version}"`
       )
       continue
     }
@@ -63,7 +76,7 @@ export async function findRelevantNodes(
     )
     // const score = tfUse.euclideanDistance(phraseEmbedding, nodeEmbedding)
     const score = tfUse.cosineDistance(phraseEmbedding, nodeEmbedding)
-    if (score < kScoreThreshold) {
+    if (score < kSimilarityCosineDistanceThreshold) {
       relevantNids.push({ nid, score })
     }
   }
@@ -200,11 +213,10 @@ async function updateNodeIndex(
     textWinkDoc.out(wink_.its.normal)
   )
   const embeddingJson = tfUse.tensor2dToJson(embedding)
-  await storage.node.setNodeSimilaritySearchInfo({
+  await storage.node.similarity.setIndex({
     nid,
     simsearch: {
-      algorithm: 'tf-embed',
-      version: 1,
+      signature: tfUse.getExpectedSignature(),
       embeddingJson,
     },
   })
@@ -213,7 +225,13 @@ async function updateNodeIndex(
 function createNodeEventListener(storage: StorageApi): NodeEventListener {
   return (type: NodeEventType, nid: Nid, patch: NodeEventPatch) => {
     if (type === 'created' || type === 'updated') {
-      updateNodeIndex(storage, nid, patch)
+      updateNodeIndex(storage, nid, patch).catch((reason) => {
+        log.error(
+          `Failed to ensure similarity search index integrity: ${
+            errorise(reason).message
+          }`
+        )
+      })
     }
   }
 }
@@ -224,34 +242,43 @@ async function ensurePerNodeSimSearchIndexIntegrity(
   const nids = await storage.node.getAllNids({})
   for (let ind = 0; ind < nids.length; ++ind) {
     const nid = nids[ind]
-    const nodeSimSearchInfo = await storage.node.getNodeSimilaritySearchInfo({
+    const nodeSimSearchInfo = await storage.node.similarity.getIndex({
       nid,
     })
     if (
       !tfUse.isPerDocIndexUpToDate(
-        nodeSimSearchInfo?.algorithm,
-        nodeSimSearchInfo?.version
+        nodeSimSearchInfo?.signature.algorithm,
+        nodeSimSearchInfo?.signature.version
       )
     ) {
       log.info(
         `Update node similarity index [${ind + 1}/${nids.length}] ${nid}`
       )
       const node = await storage.node.get({ nid })
-      updateNodeIndex(storage, nid, { ...node })
+      await updateNodeIndex(storage, nid, { ...node })
     }
   }
 }
 
 export async function register(storage: StorageApi) {
-  tfState = await tfUse.createTfState()
+  if (tfState != null) {
+    tfState = await tfUse.createTfState()
+  }
 
   // Run it as non-blocking async call
-  ensurePerNodeSimSearchIndexIntegrity(storage)
+  ensurePerNodeSimSearchIndexIntegrity(storage).catch((reason) => {
+    log.error(
+      `Failed to ensure similarity search index integrity: ${
+        errorise(reason).message
+      }`
+    )
+  })
 
   const nodeEventListener = createNodeEventListener(storage)
   storage.node.addListener(nodeEventListener)
   log.debug('Similarity search module is loaded')
   return () => {
     storage.node.removeListener(nodeEventListener)
+    tfState = undefined
   }
 }

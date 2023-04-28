@@ -8,6 +8,7 @@ import { Launch as LaunchIcon } from '@emotion-icons/material'
 import { OverlayCopyOnHover } from '../OverlayCopyOnHover'
 
 import styled from '@emotion/styled'
+import type { ElementaryContext } from '../context'
 
 const Box = styled.div`
   width: 100%;
@@ -52,17 +53,17 @@ const WebBlockQuotePad = styled(BlockQuotePad)`
 `
 
 export const WebQuote = ({
+  ctx,
   extattrs,
   className,
   strippedRefs,
   onLaunch,
-  captureMetricOnCopy,
 }: {
+  ctx: ElementaryContext
   extattrs: NodeExtattrs
   className?: string
   strippedRefs?: boolean
   onLaunch?: () => void
-  captureMetricOnCopy?: (subj: string) => void
 }) => {
   const { web_quote, author, content_type } = extattrs
   const authorElement = author ? <Author>&mdash; {author} </Author> : null
@@ -80,8 +81,9 @@ export const WebQuote = ({
     <Box className={className}>
       <WebBlockQuoteBox className={className}>
         <OverlayCopyOnHover
+          ctx={ctx}
+          analytics={{ subject: 'quote' }}
           getTextToCopy={() => {
-            captureMetricOnCopy?.('quote')
             return `“${text}” ${author ?? ''} ${web_quote.url}`
           }}
         >

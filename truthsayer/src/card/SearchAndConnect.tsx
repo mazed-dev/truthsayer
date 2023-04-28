@@ -104,11 +104,11 @@ class SearchAndConnectJinnModal extends React.Component<
           ref={this.inputRef}
         />
         <SearchGrid
+          ctx={this.context}
           q={q}
           defaultSearch
           onCardClick={this.onNodeCardClick}
           portable
-          storage={this.context.storage}
         >
           {cards}
         </SearchGrid>

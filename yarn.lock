@@ -9014,6 +9014,7 @@ __metadata:
     jsdom: ^17.0.0
     lodash: ^4.17.21
     moment: ^2.29.4
+    posthog-js: ^1.53.4
     prettier: ^2.2
     react: ^16.14.0
     react-bootstrap: ^2.0.0

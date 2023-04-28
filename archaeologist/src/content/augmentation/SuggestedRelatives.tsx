@@ -151,7 +151,7 @@ export function SuggestedRelatives({
           } catch (e) {
             setSuggestedNodes([])
             productanalytics.error(
-              analytics,
+              analytics ?? null,
               {
                 failedTo: 'get content suggestions',
                 location: 'floater',
