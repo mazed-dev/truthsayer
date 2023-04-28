@@ -14,10 +14,10 @@ const rotation = keyframes`
 export const Ring = styled.div`
   border: calc(1em / 10) solid #f3f3f3;
   border-radius: 50%;
-  border-top: calc(1em / 10) solid black;
+  border-top: calc(1em / 10) solid #00000000;
   width: 1em;
   height: 1em;
   animation: ${rotation} 1s linear infinite;
-  display: inline-block;
+  display: flex;
   vertical-align: middle;
 `
