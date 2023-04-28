@@ -45,8 +45,6 @@ import * as similarity from './background/search/similarity'
 import * as auth from './background/auth'
 import CancellationToken from 'cancellationtoken'
 
-let cancelPreviousSimilaritySearch: null | ((reason?: string) => void) = null
-
 const BADGE_MARKER_PAGE_SAVED = '✓'
 
 function sleep(ms: number) {
@@ -143,7 +141,7 @@ async function registerAttentionTime(
 }
 
 async function lookupForSuggestionsToPageInActiveTab(
-  storage: StorageApi,
+  ctx: BackgroundContext,
   tabId: number
 ): Promise<similarity.RelevantNode[]> {
   // Request page content first
@@ -154,12 +152,12 @@ async function lookupForSuggestionsToPageInActiveTab(
   if (phrase == null) {
     return []
   }
-  cancelPreviousSimilaritySearch?.()
+  ctx.similarity.cancelPreviousSearch?.()
   const { cancel, token } = CancellationToken.create()
-  cancelPreviousSimilaritySearch = cancel
+  ctx.similarity.cancelPreviousSearch = cancel
   return await similarity.findRelevantNodes(
     phrase,
-    storage,
+    ctx.storage,
     new Set(nidsExcludedFromSearch),
     token
   )
@@ -186,9 +184,9 @@ async function handleMessageFromContent(
           'Background should not run similarity search for inactive tabs'
         )
       }
-      cancelPreviousSimilaritySearch?.()
+      ctx.similarity.cancelPreviousSearch?.()
       const { cancel, token } = CancellationToken.create()
-      cancelPreviousSimilaritySearch = cancel
+      ctx.similarity.cancelPreviousSearch = cancel
       const relevantNodes = await similarity.findRelevantNodes(
         message.phrase,
         ctx.storage,
@@ -336,7 +334,7 @@ async function handleMessageFromPopup(
         }
       }
       const relevantNodes = await lookupForSuggestionsToPageInActiveTab(
-        ctx.storage,
+        ctx,
         tabId
       )
       return {
@@ -383,6 +381,9 @@ function makeStorageApi(
 type BackgroundContext = {
   storage: StorageApi
   analytics: PostHog | null
+  similarity: {
+    cancelPreviousSearch?: (reason?: string) => void
+  }
 }
 
 /**
@@ -472,7 +473,7 @@ class Background {
       account
     )
 
-    const ctx: BackgroundContext = { storage, analytics }
+    const ctx: BackgroundContext = { storage, analytics, similarity: {} }
 
     // Init content once tab is fully loaded
     {
