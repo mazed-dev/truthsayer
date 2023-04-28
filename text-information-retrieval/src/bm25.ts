@@ -3,8 +3,7 @@ import winkNLP, { WinkMethods, Document as WinkDocument } from 'wink-nlp'
 // Load english language model.
 import model from 'wink-eng-lite-web-model'
 
-import { isStopWord } from './stopWord'
-import { log } from 'armoury'
+export type { WinkMethods, Document as WinkDocument } from 'wink-nlp'
 
 // Feel free to reconsider all these values when you get more insights in type
 // of texts saved to Mazed.
@@ -42,8 +41,6 @@ export type OkapiBm25PlusIndex = {
   bagOfWords: BagOfWords
   documentsNumber: number
   wordsInAllDocuments: number
-
-  model: NlpModel
 }
 
 export type OkapiBm25PlusPerDocumentIndex<DocIdType> = {
@@ -59,14 +56,9 @@ export type OkapiBm25PlusPerDocumentIndex<DocIdType> = {
   wordsNumber: number
 }
 
-export type NlpModel = {
-  wink: WinkMethods
-}
-
-function createModel(): NlpModel {
+export function loadWinkModel(): WinkMethods {
   // Instantiate winkNLP model
-  const wink = winkNLP(model)
-  return { wink }
+  return winkNLP(model)
 }
 
 export function createIndex<DocIdType>(): [
@@ -80,7 +72,6 @@ export function createIndex<DocIdType>(): [
       bagOfWords: new Map(),
       documentsNumber: 0,
       wordsInAllDocuments: 0,
-      model: createModel(),
     },
     [],
   ]
@@ -117,7 +108,6 @@ export namespace json {
 
   export function parseIndex(buf: string): OkapiBm25PlusIndex {
     const obj = JSON.parse(buf)
-    obj.model = createModel()
     obj.bagOfWords = new Map(obj.bagOfWords) as BagOfWords
     return obj
   }
@@ -160,22 +150,22 @@ function isImportantTokenType(tokenType: string, token: string): boolean {
 }
 
 function createPerDocumentIndexFromText<DocIdType>(
+  wink: WinkMethods,
   text: WinkDocument,
-  model: NlpModel,
   docId: DocIdType
 ): OkapiBm25PlusPerDocumentIndex<DocIdType> {
-  const { wink } = model
   const tokenTypes = text.tokens().out(wink.its.type)
+  const isStopWord = text.tokens().out(wink.its.stopWordFlag)
   const bagOfWords: BagOfWords = new Map()
   let wordsNumber = 0
-  const tokens = text.tokens().out(wink.its.lemma)
+  const tokens = text.tokens().out(wink.its.stem)
   for (const index in tokens) {
     const tokenType = tokenTypes[index]
     const token = tokens[index]
     // We use our own very small list of stop wors here and do not use the
     // 'stopWord' flag from wink NLP because it filters out too many potentially
     // important words such number names.
-    if (isImportantTokenType(tokenType, token) && !isStopWord(token)) {
+    if (isImportantTokenType(tokenType, token) && !isStopWord[index]) {
       // TODO(Alexander): take care of the "time" token, converting it into
       // common format perhaps
       // TODO(Alexander): take care of the "url" token, as an option split it
@@ -192,15 +182,12 @@ function createPerDocumentIndexFromText<DocIdType>(
 }
 
 export function addDocument<DocIdType>(
+  wink: WinkMethods,
   overallIndex: OkapiBm25PlusIndex,
   text: string,
   docId: DocIdType
 ): OkapiBm25PlusPerDocumentIndex<DocIdType> {
-  const doc = createPerDocumentIndexFromText(
-    overallIndex.model.wink.readDoc(text),
-    overallIndex.model,
-    docId
-  )
+  const doc = createPerDocumentIndexFromText(wink, wink.readDoc(text), docId)
   overallIndex.wordsInAllDocuments += doc.wordsNumber
   overallIndex.documentsNumber += 1
   for (const word of doc.bagOfWords.keys()) {
@@ -295,6 +282,7 @@ export type RelevanceResult<DocIdType> = {
  * human know what they do when they type keyphrase.
  */
 export function findRelevantDocumentsForPhrase<DocIdType>(
+  wink: WinkMethods,
   keyphrase: WinkDocument,
   limit: number,
   overallIndex: OkapiBm25PlusIndex,
@@ -302,7 +290,7 @@ export function findRelevantDocumentsForPhrase<DocIdType>(
 ): RelevanceResult<DocIdType>[] {
   const averageDocumentSizeInWords =
     overallIndex.wordsInAllDocuments / overallIndex.documentsNumber
-  const doc = createPerDocumentIndexFromText(keyphrase, overallIndex.model, {})
+  const doc = createPerDocumentIndexFromText(wink, keyphrase, {})
   const lemmas = Array.from(doc.bagOfWords.keys())
   const termsIDFs: number[] = lemmas.map((lemma: string) =>
     getTermInverseDocumentFrequency(
@@ -378,12 +366,13 @@ function getTextRelevanceScore<DocIdType>(
 }
 
 export function findRelevantDocuments<DocIdType>(
+  wink: WinkMethods,
   text: WinkDocument,
   limit: number,
   overallIndex: OkapiBm25PlusIndex,
   corpusDocs: OkapiBm25PlusPerDocumentIndex<DocIdType>[]
 ): RelevanceResult<DocIdType>[] {
-  const queryDoc = createPerDocumentIndexFromText(text, overallIndex.model, {})
+  const queryDoc = createPerDocumentIndexFromText(wink, text, {})
   const queryDocWordsNumber = queryDoc.wordsNumber
   const queryTermsOccurences = Array.from(queryDoc.bagOfWords.entries())
   const averageDocumentSizeInWords =
@@ -404,7 +393,6 @@ export function findRelevantDocuments<DocIdType>(
       ]
     }
   )
-  log.debug('queryTermsScores', queryTermsScores)
   const results: RelevanceResult<DocIdType>[] = []
   for (const corpusDoc of corpusDocs) {
     const score = getTextRelevanceScore(
