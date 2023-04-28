@@ -823,12 +823,10 @@ export function makeDatacenterStorageApi(): StorageApi {
       url: makeDirectUrl,
       addListener: NodeEvent.addListener,
       removeListener: NodeEvent.removeListener,
-      getNodeSimilaritySearchInfo: throwUnimplementedError(
-        'node.getNodeSimilaritySearchInfo'
-      ),
-      setNodeSimilaritySearchInfo: throwUnimplementedError(
-        'node.setNodeSimilaritySearchInfo'
-      ),
+      similarity: {
+        getIndex: throwUnimplementedError('node.similarity.getIndex'),
+        setIndex: throwUnimplementedError('node.similarity.setIndex'),
+      },
     },
     blob: {
       upload: uploadFiles,
