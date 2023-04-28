@@ -191,7 +191,7 @@ const SuggestedCards = ({
           </HoverTooltip>
         </FloateHeaderBtn>
         <FloateHeaderBtn onClick={onClose}>
-          <HoverTooltip tooltip="Minimize suggestions" placement="bottom">
+          <HoverTooltip tooltip="Minimize" placement="bottom">
             <Minimize size="16px" />
           </HoverTooltip>
         </FloateHeaderBtn>
