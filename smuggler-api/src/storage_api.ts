@@ -148,14 +148,16 @@ export type StorageApi = {
     url: (nid: Nid) => string
     addListener: (listener: NodeEventListener) => void
     removeListener: (listener: NodeEventListener) => void
-    getNodeSimilaritySearchInfo: (
-      args: NodeGetArgs,
-      signal?: AbortSignal
-    ) => Promise<NodeSimilaritySearchInfo>
-    setNodeSimilaritySearchInfo: (
-      args: SetNodeSimilaritySearchInfoArgs,
-      signal?: AbortSignal
-    ) => Promise<Ack>
+    similarity: {
+      getIndex: (
+        args: NodeGetArgs,
+        signal?: AbortSignal
+      ) => Promise<NodeSimilaritySearchInfo>
+      setIndex: (
+        args: SetNodeSimilaritySearchInfoArgs,
+        signal?: AbortSignal
+      ) => Promise<Ack>
+    }
   }
   blob: {
     upload: (

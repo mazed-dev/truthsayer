@@ -2,29 +2,30 @@ import * as tf from '@tensorflow/tfjs'
 import * as use from '@tensorflow-models/universal-sentence-encoder'
 import type { TfEmbeddingJson } from 'smuggler-api'
 
-export type TfState = {
+export type TfEmbeddingSignature = {
   algorithm: 'tf-embed'
   version: 1 // TensorFlow with universal sentense encoder
+}
+export type TfState = {
+  signature: TfEmbeddingSignature
   encoder: use.UniversalSentenceEncoder
 }
 
-export function getAlgorithm(): 'tf-embed' {
-  return 'tf-embed'
-}
-export function getVersion(): 1 {
-  return 1
+export function getExpectedSignature(): TfEmbeddingSignature {
+  return { algorithm: 'tf-embed', version: 1 }
 }
 
 export function isPerDocIndexUpToDate(
   algorithm?: string,
   version?: number
 ): boolean {
-  return version === getVersion() && algorithm === getAlgorithm()
+  const expected = getExpectedSignature()
+  return version === expected.version && algorithm === expected.algorithm
 }
 
 export async function createTfState(): Promise<TfState> {
   const encoder = await use.load()
-  return { algorithm: getAlgorithm(), version: getVersion(), encoder }
+  return { signature: getExpectedSignature(), encoder }
 }
 
 export type RelevanceResult<DocIdType> = {

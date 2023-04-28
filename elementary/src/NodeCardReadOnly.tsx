@@ -8,62 +8,60 @@ import { NodeTextReader } from './editor/NodeTextReader'
 import { Spinner } from './spinner/mod'
 import { NodeMedia } from './media/NodeMedia'
 import { WebBookmarkDescriptionConfig } from './media/WebBookmark'
+import { ElementaryContext } from './context'
 
 export const NodeCardBox = styled.div`
   border-radius: inherit;
 `
 
 export function NodeCardReadOnly({
+  ctx,
   node,
   className,
   strippedRefs,
   strippedActions,
-  storage,
-  captureMetricOnCopy,
   webBookmarkDescriptionConfig,
 }: {
+  ctx: ElementaryContext
   node: TNode
   className?: string
   strippedRefs?: boolean
   strippedActions?: boolean
-  storage: StorageApi
-  captureMetricOnCopy?: (subj: string) => void
   webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
 }) {
   return (
     <NodeCardBox className={productanalytics.classExclude(className)}>
       <NodeMedia
-        storage={storage}
+        ctx={ctx}
         className={''}
         node={node}
         strippedRefs={strippedRefs}
         strippedActions={strippedActions}
-        captureMetricOnCopy={captureMetricOnCopy}
         webBookmarkDescriptionConfig={webBookmarkDescriptionConfig}
       />
-      <NodeTextReader node={node} captureMetricOnCopy={captureMetricOnCopy} />
+      <NodeTextReader ctx={ctx} node={node} />
     </NodeCardBox>
   )
 }
 
 export function NodeCardReadOnlyFetching({
+  ctx,
   nid,
   className,
   strippedRefs,
   strippedActions,
-  storage,
 }: {
+  ctx: ElementaryContext
   nid: string
   className?: string
   strippedRefs?: boolean
   strippedActions?: boolean
-  storage: StorageApi
 }) {
   const [node, setNode] = useState<TNode | null>(null)
   const fetchNodeAbortController = new AbortController()
   useAsyncEffect(
     async (isMounted) => {
-      const n = await storage.node.get(
+      const n = await ctx.storage.node.get(
         {
           nid,
         },
@@ -80,11 +78,11 @@ export function NodeCardReadOnlyFetching({
   }
   return (
     <NodeCardReadOnly
+      ctx={ctx}
       node={node}
       strippedRefs={strippedRefs}
       strippedActions={strippedActions}
       className={className}
-      storage={storage}
     />
   )
 }

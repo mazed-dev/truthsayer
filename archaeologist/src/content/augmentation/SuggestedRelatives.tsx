@@ -155,7 +155,7 @@ export function SuggestedRelatives({
             // Don't set empty list of suggestions here, keep whateve previously
             // was suggested to show at least something
             productanalytics.error(
-              analytics,
+              analytics ?? null,
               {
                 failedTo: 'get content suggestions',
                 location: 'floater',
