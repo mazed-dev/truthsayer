@@ -5,27 +5,23 @@ import type { TNode, StorageApi } from 'smuggler-api'
 import { ImageNode } from './ImageNode'
 import { WebBookmark, WebBookmarkDescriptionConfig } from './WebBookmark'
 import { WebQuote } from './WebQuote'
+import type { ElementaryContext } from '../context'
 
 export function NodeMedia({
+  ctx,
   node,
   className,
   strippedRefs,
   strippedActions,
-  storage,
   onLaunch,
-  captureMetricOnCopy,
   webBookmarkDescriptionConfig,
 }: {
+  ctx: ElementaryContext
   node: TNode
   className?: string
   strippedRefs?: boolean
   strippedActions?: boolean
-  storage: StorageApi
-  // This is a hack to assign special action on media click instead of opening
-  // original page e.g. on a preview image click
   onLaunch?: () => void
-  // This is a hack to run extra actions on copying content from node fields
-  captureMetricOnCopy?: (subj: string) => void
   webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
 }) {
   const { extattrs } = node
@@ -35,7 +31,7 @@ export function NodeMedia({
         node={node}
         className={className}
         strippedActions={strippedActions}
-        storage={storage}
+        storage={ctx.storage}
         onLaunch={onLaunch}
       />
     )
@@ -43,11 +39,11 @@ export function NodeMedia({
     if (extattrs != null) {
       return (
         <WebBookmark
+          ctx={ctx}
           extattrs={extattrs}
           strippedRefs={strippedRefs}
           className={className}
           onLaunch={onLaunch}
-          captureMetricOnCopy={captureMetricOnCopy}
           webBookmarkDescriptionConfig={webBookmarkDescriptionConfig}
         />
       )
@@ -56,11 +52,11 @@ export function NodeMedia({
     if (extattrs != null) {
       return (
         <WebQuote
+          ctx={ctx}
           extattrs={extattrs}
           strippedRefs={strippedRefs}
           className={className}
           onLaunch={onLaunch}
-          captureMetricOnCopy={captureMetricOnCopy}
         />
       )
     }

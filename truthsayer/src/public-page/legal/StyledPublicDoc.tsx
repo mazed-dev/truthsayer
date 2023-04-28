@@ -1,6 +1,7 @@
 import styled from '@emotion/styled'
 
 export const StyledPublicDoc = styled.div`
+  font-size: 16px;
   h1 {
     font-size: 28px;
     margin-bottom: 1em;
@@ -36,6 +37,8 @@ export const StyledPublicDoc = styled.div`
   tr:hover {
     background-color: #ddd;
   }
+
+  max-width: 648px;
+  padding: 10px 24px 0 24px;
   margin: 24px auto 24px auto;
-  max-width: 760px;
 `

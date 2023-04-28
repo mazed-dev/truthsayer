@@ -124,15 +124,9 @@ const SuggestedCard = ({
   return (
     <SuggestedCardBox>
       <NodeCardReadOnly
+        ctx={ctx}
         node={node}
         strippedActions
-        storage={ctx.storage}
-        captureMetricOnCopy={(subj: string) => {
-          ctx.analytics?.capture('Button:Click Suggested Fragment Copy', {
-            text: subj,
-            'Event type': 'click',
-          })
-        }}
         webBookmarkDescriptionConfig={webBookmarkDescriptionConfig}
       />
     </SuggestedCardBox>
@@ -272,7 +266,7 @@ export const SuggestionsFloater = ({
         })
       } catch (e) {
         productanalytics.warning(
-          analytics,
+          analytics ?? null,
           {
             failedTo: 'update user settings',
             location: 'floater',
@@ -307,7 +301,7 @@ export const SuggestionsFloater = ({
       settings = response.state
     } catch (e) {
       productanalytics.warning(
-        analytics,
+        analytics ?? null,
         {
           failedTo: 'get user settings',
           location: 'floater',
@@ -332,7 +326,7 @@ export const SuggestionsFloater = ({
       settings: { positionY },
     }).catch((e) => {
       productanalytics.warning(
-        analytics,
+        analytics ?? null,
         {
           failedTo: 'update user settings',
           location: 'floater',

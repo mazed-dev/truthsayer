@@ -17,15 +17,16 @@ import type { TNode } from 'smuggler-api'
 import { makeElementRender } from './ElementRender'
 import { OverlayCopyOnHover } from '../OverlayCopyOnHover'
 import { productanalytics } from 'armoury'
+import type { ElementaryContext } from '../context'
 
 export const NodeTextReader = ({
+  ctx,
   className,
   node,
-  captureMetricOnCopy,
 }: {
+  ctx: ElementaryContext
   node: TNode
   className?: string
-  captureMetricOnCopy?: (subj: string) => void
 }) => {
   const initialValue = useMemo(() => {
     const doc = TDoc.fromNodeTextData(node.text)
@@ -44,8 +45,9 @@ export const NodeTextReader = ({
     <div className={className}>
       {initialValue.getTextLength() === 0 ? null : (
         <OverlayCopyOnHover
+          ctx={ctx}
+          analytics={{ subject: 'comment' }}
           getTextToCopy={() => {
-            captureMetricOnCopy?.('comment')
             return initialValue.genPlainText()
           }}
         >

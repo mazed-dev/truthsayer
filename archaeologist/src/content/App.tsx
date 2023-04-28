@@ -469,7 +469,7 @@ const App = () => {
     <AppErrorBoundary>
       <ContentContext.Provider
         value={{
-          analytics: state.analytics,
+          analytics: state.analytics ?? undefined,
           storage: makeMsgProxyStorageApi(forwardToBackground),
         }}
       >

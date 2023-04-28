@@ -40,7 +40,7 @@ export const SearchGridView = ({
   }, [archaeologistState, history])
   return (
     <Box>
-      <SearchGrid q={queryStr} defaultSearch storage={ctx.storage} />
+      <SearchGrid q={queryStr} defaultSearch ctx={ctx} />
       <CreateNewNodeMenu />
     </Box>
   )

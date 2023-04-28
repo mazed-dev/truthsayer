@@ -16,21 +16,22 @@ import type { StorageApi, TNode } from 'smuggler-api'
 import { SearchGrid } from '../../grid/SearchGrid'
 import { makeNodeLink, TDoc, CustomEditor } from '../types'
 import { dateTimeJinnSearch } from './jinn-datetime'
+import { ElementaryContext } from '../../context'
 
 const JinnInput = styled(Form.Control)`
   margin-bottom: 8px;
 `
 
 function JinnModal({
+  ctx,
   editor,
   selection,
   onHide,
-  storage,
 }: {
+  ctx: ElementaryContext
   editor: Editor
   selection: Range | null
   onHide: () => void
-  storage: StorageApi
 }) {
   if (selection == null) {
     return null
@@ -91,11 +92,11 @@ function JinnModal({
         ref={inputRef}
       />
       <SearchGrid
+        ctx={ctx}
         q={searchQuery}
         defaultSearch
         onCardClick={onNodeCardClick}
         portable
-        storage={storage}
       >
         {extraCards}
       </SearchGrid>
@@ -104,15 +105,15 @@ function JinnModal({
 }
 
 export const Jinn = ({
+  ctx,
   isShown,
   onHide,
   editor,
-  storage,
 }: {
+  ctx: ElementaryContext
   isShown: boolean
   onHide: () => void
   editor: CustomEditor
-  storage: StorageApi
 }) => {
   // Preserve editor selection to pass it to modal
   const { selection } = editor
@@ -131,10 +132,10 @@ export const Jinn = ({
       enforceFocus
     >
       <JinnModal
+        ctx={ctx}
         onHide={onHide}
         editor={editor}
         selection={selection}
-        storage={storage}
       />
     </Modal>
   )
