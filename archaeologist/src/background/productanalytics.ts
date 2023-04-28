@@ -2,6 +2,7 @@
  * Wrapper around @see armoury.productanalytics tailored to needs
  * specific to the background script.
  */
+
 import { PostHog as NodePostHog } from 'posthog-node'
 import browser from 'webextension-polyfill'
 import { v4 as uuidv4 } from 'uuid'
