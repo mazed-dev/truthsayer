@@ -170,8 +170,7 @@ async function updateNodeIndex(
   await storage.node.similarity.setIndex({
     nid,
     simsearch: {
-      algorithm: 'tf-embed',
-      version: 1,
+      signature: tfUse.getExpectedSignature(),
       embeddingJson,
     },
   })
@@ -202,8 +201,8 @@ async function ensurePerNodeSimSearchIndexIntegrity(
     })
     if (
       !tfUse.isPerDocIndexUpToDate(
-        nodeSimSearchInfo?.algorithm,
-        nodeSimSearchInfo?.version
+        nodeSimSearchInfo?.signature.algorithm,
+        nodeSimSearchInfo?.signature.version
       )
     ) {
       log.debug(
