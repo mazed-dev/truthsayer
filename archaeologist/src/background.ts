@@ -43,6 +43,7 @@ import { OpenTabs } from './background/external-import/openTabs'
 import * as contentState from './background/contentState'
 import * as similarity from './background/search/similarity'
 import * as auth from './background/auth'
+import CancellationToken from 'cancellationtoken'
 
 const BADGE_MARKER_PAGE_SAVED = '✓'
 
@@ -140,7 +141,7 @@ async function registerAttentionTime(
 }
 
 async function lookupForSuggestionsToPageInActiveTab(
-  storage: StorageApi,
+  ctx: BackgroundContext,
   tabId: number
 ): Promise<similarity.RelevantNode[]> {
   // Request page content first
@@ -151,11 +152,14 @@ async function lookupForSuggestionsToPageInActiveTab(
   if (phrase == null) {
     return []
   }
+  ctx.similarity.cancelPreviousSearch?.()
+  const { cancel, token } = CancellationToken.create()
+  ctx.similarity.cancelPreviousSearch = cancel
   return await similarity.findRelevantNodes(
     phrase,
-    storage,
-    8,
-    new Set(nidsExcludedFromSearch)
+    ctx.storage,
+    new Set(nidsExcludedFromSearch),
+    token
   )
 }
 
@@ -175,11 +179,19 @@ async function handleMessageFromContent(
       await registerAttentionTime(ctx.storage, sender.tab, message)
       return { type: 'VOID_RESPONSE' }
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
+      if (!sender.tab?.active) {
+        throw new Error(
+          'Background should not run similarity search for inactive tabs'
+        )
+      }
+      ctx.similarity.cancelPreviousSearch?.()
+      const { cancel, token } = CancellationToken.create()
+      ctx.similarity.cancelPreviousSearch = cancel
       const relevantNodes = await similarity.findRelevantNodes(
         message.phrase,
         ctx.storage,
-        message.limit,
-        new Set(message.excludeNids)
+        new Set(message.excludeNids),
+        token
       )
       return {
         type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
@@ -322,7 +334,7 @@ async function handleMessageFromPopup(
         }
       }
       const relevantNodes = await lookupForSuggestionsToPageInActiveTab(
-        ctx.storage,
+        ctx,
         tabId
       )
       return {
@@ -369,6 +381,9 @@ function makeStorageApi(
 type BackgroundContext = {
   storage: StorageApi
   analytics: PostHog | null
+  similarity: {
+    cancelPreviousSearch?: (reason?: string) => void
+  }
 }
 
 /**
@@ -458,7 +473,7 @@ class Background {
       account
     )
 
-    const ctx: BackgroundContext = { storage, analytics }
+    const ctx: BackgroundContext = { storage, analytics, similarity: {} }
 
     // Init content once tab is fully loaded
     {
@@ -519,6 +534,23 @@ class Background {
       browser.tabs.onRemoved.addListener(onTabRemoval)
       this.deinitialisers.push(() =>
         browser.tabs.onRemoved.removeListener(onTabRemoval)
+      )
+    }
+
+    // Listen to activation of tabs
+    {
+      const onTabActivated = async (
+        activatedInfo: browser.Tabs.OnActivatedActiveInfoType
+      ) => {
+        log.debug('Tab activated', activatedInfo)
+        await ToContent.sendMessage(activatedInfo.tabId, {
+          type: 'REQUEST_UPDATE_TAB_STATUS',
+          change: { activated: true },
+        })
+      }
+      browser.tabs.onActivated.addListener(onTabActivated)
+      this.deinitialisers.push(() =>
+        browser.tabs.onActivated.removeListener(onTabActivated)
       )
     }
 

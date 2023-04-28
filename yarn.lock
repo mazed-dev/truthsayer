@@ -3958,6 +3958,112 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tensorflow-models/universal-sentence-encoder@npm:^1.3.3":
+  version: 1.3.3
+  resolution: "@tensorflow-models/universal-sentence-encoder@npm:1.3.3"
+  peerDependencies:
+    "@tensorflow/tfjs-converter": ^3.6.0
+    "@tensorflow/tfjs-core": ^3.6.0
+  checksum: 99fea126088a11385501f104983fbc3de2a3cb4414aad94d08200cd40678f7f7711c7e8735ad570369151834b6ec8acb970d7b464c76d40ff9f102e476e45f57
+  languageName: node
+  linkType: hard
+
+"@tensorflow/tfjs-backend-cpu@npm:4.4.0":
+  version: 4.4.0
+  resolution: "@tensorflow/tfjs-backend-cpu@npm:4.4.0"
+  dependencies:
+    "@types/seedrandom": ^2.4.28
+    seedrandom: ^3.0.5
+  peerDependencies:
+    "@tensorflow/tfjs-core": 4.4.0
+  checksum: e84eee75989ea7d2fcf7090a59021a44fbc9428cf4264cbaaaa0bba16664728a4edf5f229d5ee9c5e860c62b00d052b9e41204ca5b5b1a24cebf614f43deebe8
+  languageName: node
+  linkType: hard
+
+"@tensorflow/tfjs-backend-webgl@npm:4.4.0":
+  version: 4.4.0
+  resolution: "@tensorflow/tfjs-backend-webgl@npm:4.4.0"
+  dependencies:
+    "@tensorflow/tfjs-backend-cpu": 4.4.0
+    "@types/offscreencanvas": ~2019.3.0
+    "@types/seedrandom": ^2.4.28
+    "@types/webgl-ext": 0.0.30
+    seedrandom: ^3.0.5
+  peerDependencies:
+    "@tensorflow/tfjs-core": 4.4.0
+  checksum: c106a7a29cf71d115102e06ce2475ab2912b70bb4222239b9777c587498a96dc286587210c7d64ccf427baeb492917f6f81012361fd96f0a5ffc9ba31a3b48f5
+  languageName: node
+  linkType: hard
+
+"@tensorflow/tfjs-converter@npm:4.4.0":
+  version: 4.4.0
+  resolution: "@tensorflow/tfjs-converter@npm:4.4.0"
+  peerDependencies:
+    "@tensorflow/tfjs-core": 4.4.0
+  checksum: 5e0c71f53ed9ee48122f6580ae35ef3b82ed84caeab3ee5f6ea24d88f9761c01649d9fe5d2603558fa9c133bf0cc55e60b17db2e62ea1a38349e123418852fdf
+  languageName: node
+  linkType: hard
+
+"@tensorflow/tfjs-core@npm:4.4.0":
+  version: 4.4.0
+  resolution: "@tensorflow/tfjs-core@npm:4.4.0"
+  dependencies:
+    "@types/long": ^4.0.1
+    "@types/offscreencanvas": ~2019.7.0
+    "@types/seedrandom": ^2.4.28
+    "@types/webgl-ext": 0.0.30
+    "@webgpu/types": 0.1.30
+    long: 4.0.0
+    node-fetch: ~2.6.1
+    seedrandom: ^3.0.5
+  checksum: 89b1c7a726cf0d640bc0dcc7404fc29b3b8ee229de52ab0c58f665b9933958f9ec140684e4ceb868860cdf97b9e4fa70c5df679a81bfae7c77f3783ba71c02c2
+  languageName: node
+  linkType: hard
+
+"@tensorflow/tfjs-data@npm:4.4.0":
+  version: 4.4.0
+  resolution: "@tensorflow/tfjs-data@npm:4.4.0"
+  dependencies:
+    "@types/node-fetch": ^2.1.2
+    node-fetch: ~2.6.1
+    string_decoder: ^1.3.0
+  peerDependencies:
+    "@tensorflow/tfjs-core": 4.4.0
+    seedrandom: ^3.0.5
+  checksum: 8fed0a176e355915165449e0477f4c3e4d210721abec92e52dcf88246ce6a4a8d3a6d6abbd2eb0a5a743b8efaea5b8025c02cf028c8b91046057bc2f8f7be321
+  languageName: node
+  linkType: hard
+
+"@tensorflow/tfjs-layers@npm:4.4.0":
+  version: 4.4.0
+  resolution: "@tensorflow/tfjs-layers@npm:4.4.0"
+  peerDependencies:
+    "@tensorflow/tfjs-core": 4.4.0
+  checksum: 5ab71d0a8e0a5369efd18b17593e941a52e3d37a38a3c01d2051031a54e2c67388006ea77a06cf1fdfc40ea5937727fe12e0acdb305dcaa576fd912656de84b2
+  languageName: node
+  linkType: hard
+
+"@tensorflow/tfjs@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "@tensorflow/tfjs@npm:4.4.0"
+  dependencies:
+    "@tensorflow/tfjs-backend-cpu": 4.4.0
+    "@tensorflow/tfjs-backend-webgl": 4.4.0
+    "@tensorflow/tfjs-converter": 4.4.0
+    "@tensorflow/tfjs-core": 4.4.0
+    "@tensorflow/tfjs-data": 4.4.0
+    "@tensorflow/tfjs-layers": 4.4.0
+    argparse: ^1.0.10
+    chalk: ^4.1.0
+    core-js: 3.29.1
+    regenerator-runtime: ^0.13.5
+    yargs: ^16.0.3
+  bin:
+    tfjs-custom-module: dist/tools/custom_module/cli.js
+  checksum: 4ea65bc77bd7d7dee2d53918ae1deac758df14d69226b3c337d20b3fd15ebeff72a9ebe55c5f514601a0e12791d51a992c4a87f0d1ddcb3e9ddcf4e3e4793f74
+  languageName: node
+  linkType: hard
+
 "@testing-library/dom@npm:^7.29":
   version: 7.31.2
   resolution: "@testing-library/dom@npm:7.31.2"
@@ -4508,6 +4614,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/long@npm:^4.0.1":
+  version: 4.0.2
+  resolution: "@types/long@npm:4.0.2"
+  checksum: d16cde7240d834cf44ba1eaec49e78ae3180e724cd667052b194a372f350d024cba8dd3f37b0864931683dab09ca935d52f0c4c1687178af5ada9fc85b0635f4
+  languageName: node
+  linkType: hard
+
 "@types/mdast@npm:^3.0.0, @types/mdast@npm:^3.0.10":
   version: 3.0.10
   resolution: "@types/mdast@npm:3.0.10"
@@ -4559,6 +4672,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node-fetch@npm:^2.1.2":
+  version: 2.6.3
+  resolution: "@types/node-fetch@npm:2.6.3"
+  dependencies:
+    "@types/node": "*"
+    form-data: ^3.0.0
+  checksum: b68cda58e91535a42dd5337932443c37f8e198ca1e8deeb95bd92a64a9a84d92071867b91c5eb84ee8e13f33d45a70549fe2bc11dd070a894dd561909f4d39f5
+  languageName: node
+  linkType: hard
+
 "@types/node@npm:*":
   version: 17.0.8
   resolution: "@types/node@npm:17.0.8"
@@ -4584,6 +4707,20 @@ __metadata:
   version: 2.4.1
   resolution: "@types/normalize-package-data@npm:2.4.1"
   checksum: e87bccbf11f95035c89a132b52b79ce69a1e3652fe55962363063c9c0dae0fe2477ebc585e03a9652adc6f381d24ba5589cc5e51849df4ced3d3e004a7d40ed5
+  languageName: node
+  linkType: hard
+
+"@types/offscreencanvas@npm:~2019.3.0":
+  version: 2019.3.0
+  resolution: "@types/offscreencanvas@npm:2019.3.0"
+  checksum: 006361d170aac80925b16a8c0421d5ee7bfe6acb5cd6b22407e2c28be091becc7de5ba1fd21293a1fdff70648918d9c035001ffafd4d6c49d1c5a22dab88ed0d
+  languageName: node
+  linkType: hard
+
+"@types/offscreencanvas@npm:~2019.7.0":
+  version: 2019.7.0
+  resolution: "@types/offscreencanvas@npm:2019.7.0"
+  checksum: 018cfcd19e0c59c44d14ba61caaca7246f77fbb512839c7881654b7f2b6591dbdd5857362eccbf49f29cdc93724e71a4b37c8b6cf203388f9c04e913a53ea390
   languageName: node
   linkType: hard
 
@@ -4761,6 +4898,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/seedrandom@npm:^2.4.28":
+  version: 2.4.30
+  resolution: "@types/seedrandom@npm:2.4.30"
+  checksum: 1bcf634bb0146b5de443d4581556795e52186f830072ef12f42efb6f15a4e9950630f1c4322356df0f39e953436d4fb17b5fb2834e867ff6cf6e5570849ebad2
+  languageName: node
+  linkType: hard
+
 "@types/serve-index@npm:^1.9.1":
   version: 1.9.1
   resolution: "@types/serve-index@npm:1.9.1"
@@ -4844,6 +4988,13 @@ __metadata:
   version: 0.8.2
   resolution: "@types/webextension-polyfill@npm:0.8.2"
   checksum: 59d12c51f2d92515346d1e99682ff44a0d9b5791575f9ece9d46a98ac3f04ee79ed1a820ada884f31cd687edc1110913c80a12b537aa4a7d474a61b008e03e27
+  languageName: node
+  linkType: hard
+
+"@types/webgl-ext@npm:0.0.30":
+  version: 0.0.30
+  resolution: "@types/webgl-ext@npm:0.0.30"
+  checksum: c98aa8af2d24d54dc29d836aed0ca5acff45903dc91879d62110e84e615024ca071af69d1dcff26857aa2ab80c86bea9373d718616dcc61dbfdc6a6dd917a064
   languageName: node
   linkType: hard
 
@@ -5184,6 +5335,13 @@ __metadata:
     "@webassemblyjs/ast": 1.11.1
     "@xtuc/long": 4.2.2
   checksum: f15ae4c2441b979a3b4fce78f3d83472fb22350c6dc3fd34bfe7c3da108e0b2360718734d961bba20e7716cb8578e964b870da55b035e209e50ec9db0378a3f7
+  languageName: node
+  linkType: hard
+
+"@webgpu/types@npm:0.1.30":
+  version: 0.1.30
+  resolution: "@webgpu/types@npm:0.1.30"
+  checksum: c07516879c60617214717d63789f4a512004d004e845ed0439449f564fb8b94bd48882d599918e7db26914d584c70aecda25e90a327aabc32e57c90aa818ac06
   languageName: node
   linkType: hard
 
@@ -5685,6 +5843,7 @@ __metadata:
     base32-encode: ^2.0.0
     body-parser: ^1.19.1
     bootstrap: ^5.1.3
+    cancellationtoken: ^2.2.0
     copy-webpack-plugin: ^6.2.1
     css-loader: ^4.3.0
     download: ^8.0.0
@@ -5755,7 +5914,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"argparse@npm:^1.0.7":
+"argparse@npm:^1.0.10, argparse@npm:^1.0.7":
   version: 1.0.10
   resolution: "argparse@npm:1.0.10"
   dependencies:
@@ -6871,6 +7030,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cancellationtoken@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "cancellationtoken@npm:2.2.0"
+  checksum: 1a89c3c25dfbc3839ca475c60e43eddcbb367c94a27714f957a1ebc2c32d2ae657275f98bc34dc1173e32d58b276320be3dda53aa880ba30d1a89371b4ecfbcf
+  languageName: node
+  linkType: hard
+
 "caniuse-api@npm:^3.0.0":
   version: 3.0.0
   resolution: "caniuse-api@npm:3.0.0"
@@ -7581,6 +7747,13 @@ __metadata:
   version: 3.21.0
   resolution: "core-js@npm:3.21.0"
   checksum: 87df49aa2c5d0a521c52102b6669842dd30b334742e86dd4e0173c51230bc48d610060ab6de0f149766d188325b8c1b84598f901cf455674fe6c03ccc5c8026f
+  languageName: node
+  linkType: hard
+
+"core-js@npm:3.29.1":
+  version: 3.29.1
+  resolution: "core-js@npm:3.29.1"
+  checksum: b38446dbfcfd3887b3d4922990da487e2c95044cb4c5717aaf95e786a4c6b218f05c056c7ed6c699169b9794a49fec890e402659d54661fc56965a0eb717e7bd
   languageName: node
   linkType: hard
 
@@ -14205,6 +14378,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"long@npm:4.0.0":
+  version: 4.0.0
+  resolution: "long@npm:4.0.0"
+  checksum: 16afbe8f749c7c849db1f4de4e2e6a31ac6e617cead3bdc4f9605cb703cd20e1e9fc1a7baba674ffcca57d660a6e5b53a9e236d7b25a295d3855cca79cc06744
+  languageName: node
+  linkType: hard
+
 "longest-streak@npm:^3.0.0":
   version: 3.0.1
   resolution: "longest-streak@npm:3.0.1"
@@ -15451,6 +15631,20 @@ __metadata:
     encoding:
       optional: true
   checksum: 8d816ffd1ee22cab8301c7756ef04f3437f18dace86a1dae22cf81db8ef29c0bf6655f3215cb0cdb22b420b6fe141e64b26905e7f33f9377a7fa59135ea3e10b
+  languageName: node
+  linkType: hard
+
+"node-fetch@npm:~2.6.1":
+  version: 2.6.9
+  resolution: "node-fetch@npm:2.6.9"
+  dependencies:
+    whatwg-url: ^5.0.0
+  peerDependencies:
+    encoding: ^0.1.0
+  peerDependenciesMeta:
+    encoding:
+      optional: true
+  checksum: acb04f9ce7224965b2b59e71b33c639794d8991efd73855b0b250921382b38331ffc9d61bce502571f6cc6e11a8905ca9b1b6d4aeb586ab093e2756a1fd190d0
   languageName: node
   linkType: hard
 
@@ -18246,7 +18440,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"regenerator-runtime@npm:^0.13.11":
+"regenerator-runtime@npm:^0.13.11, regenerator-runtime@npm:^0.13.5":
   version: 0.13.11
   resolution: "regenerator-runtime@npm:0.13.11"
   checksum: 27481628d22a1c4e3ff551096a683b424242a216fee44685467307f14d58020af1e19660bf2e26064de946bad7eff28950eae9f8209d55723e2d9351e632bbb4
@@ -19037,6 +19231,13 @@ __metadata:
   dependencies:
     compute-scroll-into-view: ^1.0.17
   checksum: 0b18d33118091ae0b5b1bd67913042b6903d2ad11d777e7763530317feee46d867e6367f9eec7213a15b62c464a008cfd79bcabb16490fe097e0e5448bee2277
+  languageName: node
+  linkType: hard
+
+"seedrandom@npm:^3.0.5":
+  version: 3.0.5
+  resolution: "seedrandom@npm:3.0.5"
+  checksum: 728b56bc3bc1b9ddeabd381e449b51cb31bdc0aa86e27fcd0190cea8c44613d5bcb2f6bb63ed79f78180cbe791c20b8ec31a9627f7b7fc7f476fd2bdb7e2da9f
   languageName: node
   linkType: hard
 
@@ -20095,7 +20296,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"string_decoder@npm:^1.1.1":
+"string_decoder@npm:^1.1.1, string_decoder@npm:^1.3.0":
   version: 1.3.0
   resolution: "string_decoder@npm:1.3.0"
   dependencies:
@@ -20602,6 +20803,8 @@ __metadata:
   resolution: "text-information-retrieval@workspace:text-information-retrieval"
   dependencies:
     "@fast-csv/parse": ^4.3.6
+    "@tensorflow-models/universal-sentence-encoder": ^1.3.3
+    "@tensorflow/tfjs": ^4.4.0
     "@typescript-eslint/eslint-plugin": ^5.26.0
     "@typescript-eslint/parser": ^5.26.0
     armoury: 0.0.1
@@ -20612,6 +20815,7 @@ __metadata:
     jest: 26.6.0
     lodash: ^4.17.21
     prettier: ^2.2
+    smuggler-api: 0.0.1
     ts-jest: ^26.4.2
     typescript: 4.1.3
     wink-eng-lite-web-model: ^1.4.3
@@ -22888,7 +23092,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yargs@npm:16.2.0, yargs@npm:^16.2.0":
+"yargs@npm:16.2.0, yargs@npm:^16.0.3, yargs@npm:^16.2.0":
   version: 16.2.0
   resolution: "yargs@npm:16.2.0"
   dependencies:

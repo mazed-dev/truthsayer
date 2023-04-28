@@ -42,6 +42,7 @@ export function register(storage: StorageApi) {
   const callback = (id: string, bookmark: browser.Bookmarks.BookmarkTreeNode) =>
     onCreatedEventListener(storage, id, bookmark)
   browser.bookmarks.onCreated.addListener(callback)
+  log.debug('Bookmark module is loaded')
   return () => {
     browser.bookmarks.onCreated.removeListener(callback)
   }

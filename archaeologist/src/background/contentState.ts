@@ -3,6 +3,7 @@ import type { ContentAppOperationMode } from '../message/types'
 import { ToContent, ContentAugmentationSettings } from '../message/types'
 import { requestPageSavedStatus } from './pageStatus'
 import * as auth from './auth'
+import { log } from 'armoury'
 
 /** Calculates how the content script of a specific tab should be initialised. */
 export async function calculateInitialContentState(
@@ -42,5 +43,6 @@ export function getAugmentationSettings(): ContentAugmentationSettings {
 }
 
 export function register() {
+  log.debug('ContentState module is loaded')
   return () => {}
 }
