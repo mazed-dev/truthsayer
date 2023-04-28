@@ -71,7 +71,7 @@ export async function findRelevantNodes(
     ) {
       // Skip nodes with invalid index
       log.warning(
-        `Similarity index for node ${nid} is invalid "${nodeSimSearchInfo?.algorithm}:${nodeSimSearchInfo?.version}"`
+        `Similarity index for node ${nid} is invalid "${nodeSimSearchInfo?.signature.algorithm}:${nodeSimSearchInfo?.signature.version}"`
       )
       continue
     }
