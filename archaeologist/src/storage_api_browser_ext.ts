@@ -1203,10 +1203,12 @@ export function makeBrowserExtStorageApi(
       url: throwUnimplementedError('node.url'),
       addListener: NodeEvent.addListener,
       removeListener: NodeEvent.removeListener,
-      getNodeSimilaritySearchInfo: (args: NodeGetArgs) =>
-        getNodeSimilaritySearchInfo(store, args),
-      setNodeSimilaritySearchInfo: (args: SetNodeSimilaritySearchInfoArgs) =>
-        setNodeSimilaritySearchInfo(store, args),
+      similarity: {
+        getIndex: (args: NodeGetArgs) =>
+          getNodeSimilaritySearchInfo(store, args),
+        setIndex: (args: SetNodeSimilaritySearchInfoArgs) =>
+          setNodeSimilaritySearchInfo(store, args),
+      },
     },
     // TODO[snikitin@outlook.com] At the time of this writing blob.upload and
     // blob_index.build are used together to create a single searchable blob node.
