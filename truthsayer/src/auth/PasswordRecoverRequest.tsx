@@ -137,7 +137,7 @@ class PasswordRecoverRequest extends React.Component<
           <Form className="m-4" onSubmit={this.onSubmit}>
             <Form.Group as={Row} controlId="formLoginEmail">
               <Form.Label column sm="2">
-                email
+                Email
               </Form.Label>
               <Col>
                 <Form.Control
@@ -150,14 +150,11 @@ class PasswordRecoverRequest extends React.Component<
             </Form.Group>
             <ButtonGroup>
               <Button
-                variant="secondary"
+                variant="primary"
                 type="submit"
                 disabled={!this.state.isReady}
               >
                 Reset password
-              </Button>
-              <Button variant="outline-secondary" onClick={this.onGoBackToMain}>
-                Go back
               </Button>
             </ButtonGroup>
           </Form>

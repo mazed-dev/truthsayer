@@ -26,7 +26,7 @@ const LoginCardBox = styled.div`
 `
 
 const TruthsayerLoginForm = styled(LoginForm)`
-  margin-top: 22px;
+  margin-bottom: 10vh;
 `
 
 export const Login = () => {
