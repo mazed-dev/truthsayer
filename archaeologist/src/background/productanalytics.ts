@@ -38,6 +38,7 @@ export type BackgroundPosthog = {
     properties?: EventMessageV1['properties'],
     options?: CaptureOptions
   ) => void
+  isFeatureEnabled: (key: string) => Promise<boolean | undefined>
 }
 
 async function make(
@@ -80,6 +81,9 @@ async function make(
           },
           distinctId: identity.analyticsIdentity,
         })
+      },
+      isFeatureEnabled: async (key: string) => {
+        return await ret.isFeatureEnabled(key, identity.analyticsIdentity)
       },
     }
   } catch (reason) {
