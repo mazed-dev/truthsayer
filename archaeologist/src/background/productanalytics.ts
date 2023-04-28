@@ -82,7 +82,7 @@ async function make(
           distinctId: identity.analyticsIdentity,
         })
       },
-      isFeatureEnabled: async (key: string) => {
+      isFeatureEnabled: async (key: string): Promise<boolean | undefined> => {
         return await ret.isFeatureEnabled(key, identity.analyticsIdentity)
       },
     }
