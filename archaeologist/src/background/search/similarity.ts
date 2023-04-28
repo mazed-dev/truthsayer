@@ -9,7 +9,7 @@ import type {
   StorageApi,
 } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
-import { TDoc } from 'elementary'
+import { TDoc, Beagle } from 'elementary'
 import CancellationToken from 'cancellationtoken'
 import { log, errorise } from 'armoury'
 
@@ -29,19 +29,8 @@ const wink_ = loadWinkModel()
  * all texts with cos between vectors smaller than 0.42 are related. Although,
  * for some texts this similarity measurement might not work, if this is the
  * case consider using euclidean distance insted.
- *
- * For texts shorter than 4 words, this assumption goes out of the window and we
- * need to raise the threshold up to crazy 0.55 to be able to find anything at
- * all. Average length of the word in English is 4.7, so threshold below which
- * prhase is certainly short - 18.8 characters.
  */
-function getCosineScoreThreshold(phrase: string): number {
-  if (phrase.length > 18) {
-    return 0.42
-  } else {
-    return 0.55
-  }
-}
+const kSimilarityCosineDistanceThreshold = 0.42
 
 export type RelevantNode = {
   node: TNode
@@ -55,17 +44,64 @@ export async function findRelevantNodes(
   cancellationToken: CancellationToken
 ): Promise<RelevantNode[]> {
   cancellationToken.throwIfCancelled()
+  const phraseDoc = wink_.readDoc(phrase)
   if (tfState == null) {
     throw new Error('Similarity search state is not initialised')
   }
-  const phraseDoc = wink_.readDoc(phrase)
+  let nodesWithScore: NodeWithScore[]
+  // Use plaintext search for a small queries, because similarity search based
+  // on ML embeddings has a poor quality results on a small texts.
+  if (phraseDoc.entities().length() < 4) {
+    log.debug(
+      'Use Beagle to find relevant nodes, because search phrase is short'
+    )
+    nodesWithScore = await findRelevantNodesUsingPlainTextSearch(
+      phraseDoc,
+      storage,
+      excludedNids,
+      cancellationToken
+    )
+  } else {
+    log.debug('Use tfjs based similarity search to find relevant nodes')
+    nodesWithScore = await findRelevantNodesUsingSimilaritySearch(
+      phraseDoc,
+      storage,
+      excludedNids,
+      cancellationToken
+    )
+  }
+  const relevantNodes: RelevantNode[] = []
+  for (const { node, score } of nodesWithScore) {
+    relevantNodes.push({
+      node,
+      score,
+      matchedPiece: findRelevantQuote(phraseDoc, node),
+    })
+  }
+  log.debug('Similarity search results', relevantNodes)
+  return relevantNodes
+}
+
+type NodeWithScore = {
+  score: number
+  node: TNode
+}
+
+async function findRelevantNodesUsingSimilaritySearch(
+  phraseDoc: bm25.WinkDocument,
+  storage: StorageApi,
+  excludedNids: Set<Nid>,
+  cancellationToken: CancellationToken
+): Promise<NodeWithScore[]> {
+  if (tfState == null) {
+    throw new Error('Similarity search state is not initialised')
+  }
   const phraseEmbedding = await tfState.encoder.embed(
     phraseDoc.out(wink_.its.normal)
   )
   const allNids = await storage.node.getAllNids({})
   cancellationToken.throwIfCancelled()
   let relevantNids: { score: number; nid: Nid }[] = []
-  const scoreThreshold = getCosineScoreThreshold(phrase)
   for (const nid of allNids) {
     if (!!excludedNids.has(nid)) {
       continue
@@ -89,9 +125,8 @@ export async function findRelevantNodes(
     const nodeEmbedding = tfUse.tensor2dFromJson(
       nodeSimSearchInfo.embeddingJson
     )
-    // const score = tfUse.euclideanDistance(phraseEmbedding, nodeEmbedding)
     const score = tfUse.cosineDistance(phraseEmbedding, nodeEmbedding)
-    if (score < scoreThreshold) {
+    if (score < kSimilarityCosineDistanceThreshold) {
       relevantNids.push({ nid, score })
     }
     cancellationToken.throwIfCancelled()
@@ -109,8 +144,7 @@ export async function findRelevantNodes(
       nodeMap.set(node.nid, node)
     }
   }
-  cancellationToken.throwIfCancelled()
-  const relevantNodes: RelevantNode[] = []
+  const nodesWithScore: NodeWithScore[] = []
   for (const { nid, score } of relevantNids) {
     const node = nodeMap.get(nid)
     if (node == null) {
@@ -119,15 +153,39 @@ export async function findRelevantNodes(
       )
       continue
     }
-    relevantNodes.push({
-      node,
-      score,
-      matchedPiece: findRelevantQuote(phraseDoc, node),
-    })
-    cancellationToken.throwIfCancelled()
+    nodesWithScore.push({ node, score })
   }
-  log.debug('Similarity search results', relevantNodes)
-  return relevantNodes
+  return nodesWithScore
+}
+
+async function findRelevantNodesUsingPlainTextSearch(
+  phraseDoc: bm25.WinkDocument,
+  storage: StorageApi,
+  excludedNids: Set<Nid>,
+  cancellationToken: CancellationToken
+): Promise<NodeWithScore[]> {
+  // Let's do a bit of a trick here, using stemmed forms of the words to search:
+  // http://snowball.tartarus.org/algorithms/english/stemmer.html
+  // If it proves to be working fine, I suggest we even used it for the search
+  // in Truthsayer.
+  const stems = phraseDoc.tokens().out(wink_.its.stem)
+  const beagle = new Beagle(stems)
+  const nodesWithScore: NodeWithScore[] = []
+  const iter = await storage.node.iterate()
+  while (true) {
+    cancellationToken.throwIfCancelled()
+    const node = await iter.next()
+    if (!node) {
+      break
+    }
+    if (!!excludedNids.has(node.nid)) {
+      continue
+    }
+    if (beagle.searchNode(node) != null) {
+      nodesWithScore.push({ node, score: 0 })
+    }
+  }
+  return nodesWithScore
 }
 
 function findRelevantQuote(
