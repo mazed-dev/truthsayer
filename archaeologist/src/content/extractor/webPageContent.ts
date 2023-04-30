@@ -15,8 +15,15 @@ import { PreviewImageSmall } from 'smuggler-api'
 
 import { Readability as MozillaReadability } from '@mozilla/readability'
 import lodash from 'lodash'
+import DOMPurify from 'dompurify'
 
-import { MimeType, log, stabiliseUrlForOriginId, unicodeText } from 'armoury'
+import {
+  MimeType,
+  log,
+  stabiliseUrlForOriginId,
+  unicodeText,
+  sortOutSpacesAroundPunctuation,
+} from 'armoury'
 
 async function fetchImagePreviewAsBase64(
   url: string,
@@ -128,14 +135,12 @@ export function exctractPageContent(
       excerpt,
       byline,
       siteName,
+      content,
     } = article
-    if (title == null && articleTitle) {
-      // We don't trust MozillaReadability with title, it fails to extract title
-      // on some web sites such as YouTube. So we get back to it only if our own
-      // title extractor discovered no good title.
+    if (articleTitle) {
       title = articleTitle
     }
-    text = unicodeText.trimWhitespace(textContent)
+    text = _extractPlainTextFromContentHtml(content, textContent)
     if (description == null && excerpt) {
       // Same story for a description, we can't fully rely on MozillaReadability
       // with page description, but get back to it when our own description
@@ -171,6 +176,7 @@ export function exctractPageContent(
     separator: unicodeText.kTruncateSeparatorSpace,
     omission: '',
   })
+  title = _cureTitle(title, url)
   return {
     url,
     title: title || null,
@@ -374,6 +380,23 @@ export interface VideoObjectSchema {
   genre?: string
 }
 
+/**
+ * Bunch of dirty hacks to make Title looks prettier and imporove similarity
+ * search quality by removing clutter from specific type of titles.
+ */
+export function _cureTitle(
+  title: string | undefined,
+  url: string
+): string | undefined {
+  if (!title) {
+    return title
+  }
+  if (url.match(/mail\.google\.com\/mail/)) {
+    return title.replace(/[--] *Gmail$/i, '').trimEnd()
+  }
+  return title
+}
+
 export function _exctractYouTubeVideoObjectSchema(
   document_: Document
 ): VideoObjectSchema | null {
@@ -486,6 +509,34 @@ export function _extractPageThumbnailUrls(
     seen.add(ref)
     return true
   })
+}
+
+/**
+ * Bunch of hacks to make plaintext representation looks readable
+ */
+export function _extractPlainTextFromContentHtml(
+  html: string,
+  textContent: string,
+): string {
+  // We don't trust MozillaReadability with plaintext extraction - it drops
+  // spaces a lot in random places, text without spaces between words
+  // affects similarity search quality. Instead we deal with dropping HTML
+  // tags ourselves from HTML version of content from MozillaReadability.
+  let clean = DOMPurify.sanitize(html, {
+    USE_PROFILES: { html: true },
+  })
+  const doc = new DOMParser().parseFromString(
+    clean
+      .replace(/<\/(h\d|tr)>/gi, '.')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/(\.\s+){2,}/g, '. '), // Because we insert shedload of dots above, let's remove excesive ones
+    'text/html'
+  )
+  return unicodeText.trimWhitespace(
+    sortOutSpacesAroundPunctuation(
+      doc.documentElement?.textContent ?? textContent
+    )
+  )
 }
 
 /**

@@ -1,6 +1,6 @@
 import winkNLP, { WinkMethods, Document as WinkDocument } from 'wink-nlp'
 import model from 'wink-eng-lite-web-model'
-import { range } from 'armoury'
+import { range, sortOutSpacesAroundPunctuation } from 'armoury'
 
 export type { WinkDocument, WinkMethods }
 
@@ -106,18 +106,6 @@ export namespace impl {
 
 export function loadWinkModel(): WinkMethods {
   return winkNLP(model)
-}
-
-export function sortOutSpacesAroundPunctuation(str: string): string {
-  return str
-    .replace(/\s*"\s*(.*?)\s*"/g, ' "$1" ') // ' abc ' -> 'abc'
-    .replace(/\s*'\s*(.*?)\s*'/g, " '$1' ") // " abc " -> "abc"
-    .replace(/\s*([«“„〝({\[])\s*(.*?)\s*([»”‟〞)\]}])/g, ' $1$2$3 ')
-    .replace(/\s+([:;!?.,…'ʼ’]+)\s+/g, '$1 ') // "abc ?! Abc" -> "abc?! Abc"
-    .replace(/\s+([:;!?.,…'ʼ’]+)$/g, '$1') // "A abc ." -> "A abc."
-    .replace(/\s*(['ʼ’])\s*(ll|s|m|d|re)/g, '$1$2')
-    .replace(/\s\s+/g, ' ')
-    .trim()
 }
 
 export type LongestCommonContinuousPiece = {
