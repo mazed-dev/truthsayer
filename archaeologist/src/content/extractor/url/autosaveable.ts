@@ -83,24 +83,37 @@ export function _isTitleOfNotFoundPage(title?: string | null): boolean {
 
 export function isPageAutosaveable(url: string, document_?: Document): boolean {
   if (_isManuallyAllowed(url)) {
+    log.debug('Autosaving is manually allowed for', url)
     return true
   }
   if (_isManuallyBlocked(url)) {
+    log.debug('Autosaving is manually blocked for', url)
     return false
   }
   if (isSearchEngineQueryUrl(url)) {
+    log.debug('Search engine URL - autosaving is allowed for', url)
     return false
   }
-  if (!isMemorable(url) || !_isArticleUrl(new URL(url))) {
+  if (!isMemorable(url)) {
+    log.debug('Not memorable - autosaving is blocked for', url)
+    return false
+  }
+  if (!_isArticleUrl(new URL(url))) {
+    log.debug('Not an article - autosaving is blocked for', url)
     return false
   }
   if (document_ == null) {
-    return true
+    log.debug('There is no document - autosaving is blocked for', url)
+    return false
+  }
+  if (_isTitleOfNotFoundPage(document_.title)) {
+    log.debug('The page is likely 404 - autosaving is blocked for', url)
+    return false
   }
   const isPageProbablyReaderable = isProbablyReaderable(document_, {
     // Experimental value, selected based on results for very small pages
     minContentLength: 300,
   })
-  log.debug('Is page readable', isPageProbablyReaderable)
-  return !_isTitleOfNotFoundPage(document_.title) && isPageProbablyReaderable
+  log.debug('The page is readable ->', isPageProbablyReaderable)
+  return isPageProbablyReaderable
 }

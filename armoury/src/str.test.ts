@@ -3,6 +3,7 @@ import {
   splitStringByWord,
   padNonEmptyStringWithSpaceHead,
   padNonEmptyStringWithSpaceTail,
+  sortOutSpacesAroundPunctuation,
 } from './str'
 
 test('isSmartCase', () => {
@@ -35,4 +36,29 @@ test('padNonEmptyStringWithSpaceTail', () => {
   expect(padNonEmptyStringWithSpaceTail('')).toStrictEqual('')
   expect(padNonEmptyStringWithSpaceTail(' ')).toStrictEqual(' ')
   expect(padNonEmptyStringWithSpaceTail('a')).toStrictEqual('a ')
+})
+
+test('sortOutSpacesAroundPunctuation', () => {
+  expect(sortOutSpacesAroundPunctuation('')).toStrictEqual('')
+  expect(sortOutSpacesAroundPunctuation('Abc bcd.')).toStrictEqual('Abc bcd.')
+  expect(
+    sortOutSpacesAroundPunctuation(
+      'Mileena returned in Mortal Kombat 11 … First . second ! Is it the last one ? '
+    )
+  ).toStrictEqual(
+    'Mileena returned in Mortal Kombat 11… First. second! Is it the last one?'
+  )
+  expect(sortOutSpacesAroundPunctuation(` " a " ' abc abc ' `)).toStrictEqual(
+    `"a" 'abc abc'`
+  )
+  expect(
+    sortOutSpacesAroundPunctuation(` [ 12 + 21 ] = { 21 + 12 } = ( 33 ) `)
+  ).toStrictEqual(`[12 + 21] = {21 + 12} = (33)`)
+  expect(
+    sortOutSpacesAroundPunctuation(
+      `These are the colours I ' m talking about : blue , red, yellow ! Yan said " they all need just a few tweaks " . `
+    )
+  ).toStrictEqual(
+    `These are the colours I'm talking about: blue, red, yellow! Yan said "they all need just a few tweaks".`
+  )
 })

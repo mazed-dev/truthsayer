@@ -7,6 +7,7 @@ import type React from 'react' // eslint-disable-line @typescript-eslint/no-unus
 import jsdom from 'jsdom'
 
 import {
+  _cureTitle,
   _exctractPageAuthor,
   _exctractPageLanguage,
   _exctractPagePublisher,
@@ -15,6 +16,7 @@ import {
   _exctractYouTubeVideoObjectSchema,
   _extractPageAttributes,
   _extractPageThumbnailUrls,
+  _extractPlainTextFromContentHtml,
   exctractPageContent,
 } from './webPageContent'
 
@@ -297,4 +299,33 @@ test('_extractPageThumbnailUrls', () => {
     'https://www.youtube.com/s/e69b/img/favicon.ico',
     'https://base.ytimg.com/favicon.ico',
   ])
+})
+
+test('_cureTitle', () => {
+  expect(
+    _cureTitle(
+      '☕ Checkmate - x926453253@gmail.com - Gmail',
+      'https://mail.google.com/mail/u/0/'
+    )
+  ).toStrictEqual('☕ Checkmate - x926453253@gmail.com')
+})
+
+test('_extractPlainTextFromContentHtml - put extra dot after header and table rows', () => {
+  expect(
+    _extractPlainTextFromContentHtml(
+      '<div><h2>From the Crew</h2><h3> </h3><h3></h3><p>Just one extra message</p></div>',
+      ''
+    )
+  ).toStrictEqual('From the Crew. Just one extra message')
+  expect(
+    _extractPlainTextFromContentHtml(
+      `<table><tbody>
+        <tr><td>Born</td><td>15 March 1813</td></tr>
+        <tr></tr>
+        <tr><td>Alma mater</td><td>	University of London (MD)</td></tr>
+      </tbody></table>
+      `,
+      ''
+    )
+  ).toStrictEqual('Born 15 March 1813. Alma mater University of London (MD).')
 })

@@ -2,7 +2,6 @@ import {
   impl,
   findLongestCommonContinuousPiece,
   loadWinkModel,
-  sortOutSpacesAroundPunctuation,
 } from './largest-matching-fragment'
 
 describe('Find largest matching fragment of text', () => {
@@ -123,30 +122,6 @@ describe('Find largest matching fragment of text', () => {
       [4],
       [7, 8],
     ])
-  })
-  it('sortOutSpacesAroundPunctuation', () => {
-    expect(sortOutSpacesAroundPunctuation('')).toStrictEqual('')
-    expect(sortOutSpacesAroundPunctuation('Abc bcd.')).toStrictEqual('Abc bcd.')
-    expect(
-      sortOutSpacesAroundPunctuation(
-        'Mileena returned in Mortal Kombat 11 … First . second ! Is it the last one ? '
-      )
-    ).toStrictEqual(
-      'Mileena returned in Mortal Kombat 11… First. second! Is it the last one?'
-    )
-    expect(sortOutSpacesAroundPunctuation(` " a " ' abc abc ' `)).toStrictEqual(
-      `"a" 'abc abc'`
-    )
-    expect(
-      sortOutSpacesAroundPunctuation(` [ 12 + 21 ] = { 21 + 12 } = ( 33 ) `)
-    ).toStrictEqual(`[12 + 21] = {21 + 12} = (33)`)
-    expect(
-      sortOutSpacesAroundPunctuation(
-        `These are the colours I ' m talking about : blue , red, yellow ! Yan said " they all need just a few tweaks " . `
-      )
-    ).toStrictEqual(
-      `These are the colours I'm talking about: blue, red, yellow! Yan said "they all need just a few tweaks".`
-    )
   })
   it('findLongestCommonContinuousPiece - Jinx', () => {
     const first = `Jinx was added as a playable champion to the marksman roster of League of Legends in October 2013. As established in the lore written by Graham McNeill, Jinx was once a young innocent girl from Zaun, the seedy underbelly of the utopian city of Piltover. She harbors a dark and mysterious past with Vi, another champion from the game. Following a childhood tragedy, Jinx grew up to become "manic and impulsive" and her capacity for creating mayhem "became the stuff of legend".
