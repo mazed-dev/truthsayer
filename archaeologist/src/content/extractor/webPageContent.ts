@@ -605,6 +605,34 @@ export function _extractPlainTextFromContentHtml(
 }
 
 /**
+ * Bunch of hacks to make plaintext representation looks readable
+ */
+export function _extractPlainTextFromContentHtml(
+  html: string,
+  textContent: string
+): string {
+  // We don't trust MozillaReadability with plaintext extraction - it drops
+  // spaces a lot in random places, text without spaces between words
+  // affects similarity search quality. Instead we deal with dropping HTML
+  // tags ourselves from HTML version of content from MozillaReadability.
+  let clean = DOMPurify.sanitize(html, {
+    USE_PROFILES: { html: true },
+  })
+  const doc = new DOMParser().parseFromString(
+    clean
+      .replace(/<\/(h\d|tr)>/gi, '.')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/(\.\s+){2,}/g, '. '), // Because we insert shedload of dots above, let's remove excesive ones
+    'text/html'
+  )
+  return unicodeText.trimWhitespace(
+    sortOutSpacesAroundPunctuation(
+      doc.documentElement?.textContent ?? textContent
+    )
+  )
+}
+
+/**
  * Try to fetch images for given urls. First successfully retrieved image is
  * returned, so sort urls by priority beforehands placing best options for a
  * preview image at the front of the `thumbnailUrls` array.
