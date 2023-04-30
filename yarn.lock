@@ -5852,6 +5852,7 @@ __metadata:
     express: ^4.17.2
     jest: 26.6.0
     jsdom: ^17.0.0
+    posthog-node: ^3.1.0
     prettier: ^2.2
     process: ^0.11.10
     query-string: ^7.0.0
@@ -6217,6 +6218,16 @@ __metadata:
   version: 4.3.5
   resolution: "axe-core@npm:4.3.5"
   checksum: 973c6a80f0aaa663820b209d4202de7a0c240a2dea2f3cff168b09c0f221b27179b1f0988f00ad11ed63cbc50535920f8ca779de1c60dc82090ab2d275f71fdd
+  languageName: node
+  linkType: hard
+
+"axios@npm:^0.27.0":
+  version: 0.27.2
+  resolution: "axios@npm:0.27.2"
+  dependencies:
+    follow-redirects: ^1.14.9
+    form-data: ^4.0.0
+  checksum: 38cb7540465fe8c4102850c4368053c21683af85c5fdf0ea619f9628abbcb59415d1e22ebc8a6390d2bbc9b58a9806c874f139767389c862ec9b772235f06854
   languageName: node
   linkType: hard
 
@@ -10581,6 +10592,16 @@ __metadata:
     debug:
       optional: true
   checksum: f6d03e5e30877431065bca0d1b2e3db93949eb799d368a5c07ea8a4b71205f0349a3f8f0191bf13a07c93885522834dca1dc8e527dc99a772c6911fba24edc5f
+  languageName: node
+  linkType: hard
+
+"follow-redirects@npm:^1.14.9":
+  version: 1.15.2
+  resolution: "follow-redirects@npm:1.15.2"
+  peerDependenciesMeta:
+    debug:
+      optional: true
+  checksum: faa66059b66358ba65c234c2f2a37fcec029dc22775f35d9ad6abac56003268baf41e55f9ee645957b32c7d9f62baf1f0b906e68267276f54ec4b4c597c2b190
   languageName: node
   linkType: hard
 
@@ -17502,6 +17523,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"posthog-node@npm:^3.1.0":
+  version: 3.1.1
+  resolution: "posthog-node@npm:3.1.1"
+  dependencies:
+    axios: ^0.27.0
+    rusha: ^0.8.14
+  checksum: 9401a173fc9ed699eb8668b03609e255455017b92903a2e068499456bf850952a034700f69f1b8c3c705655122345c45b3f5a1cc7745942e3a21d7695e1079ed
+  languageName: node
+  linkType: hard
+
 "preact@npm:^10.1.0":
   version: 10.11.0
   resolution: "preact@npm:10.11.0"
@@ -19031,6 +19062,13 @@ __metadata:
   dependencies:
     queue-microtask: ^1.2.2
   checksum: cb4f97ad25a75ebc11a8ef4e33bb962f8af8516bb2001082ceabd8902e15b98f4b84b4f8a9b222e5d57fc3bd1379c483886ed4619367a7680dad65316993021d
+  languageName: node
+  linkType: hard
+
+"rusha@npm:^0.8.14":
+  version: 0.8.14
+  resolution: "rusha@npm:0.8.14"
+  checksum: d76d7b4b5df1191712eca1e2465d07054dc9bd5e9ec357e1e0f3ddf95006a762330a3c0348e96ac39853656a3fbe02e65e780aa5f61b9355ad914fa296185623
   languageName: node
   linkType: hard
 

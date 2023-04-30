@@ -58,6 +58,7 @@
     "css-loader": "^4.3.0",
     "elementary": "0.0.1",
     "jsdom": "^17.0.0",
+    "posthog-node": "^3.1.0",
     "prettier": "^2.2",
     "process": "^0.11.10",
     "query-string": "^7.0.0",

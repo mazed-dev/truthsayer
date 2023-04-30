@@ -2,7 +2,8 @@
  * Wrapper around @see armoury.productanalytics tailored to needs
  * specific to the background script.
  */
-import { PostHog } from 'posthog-js'
+
+import { PostHog as NodePostHog } from 'posthog-node'
 import browser from 'webextension-polyfill'
 import { v4 as uuidv4 } from 'uuid'
 import { log, errorise, productanalytics, isAnalyticsIdentity } from 'armoury'
@@ -10,52 +11,89 @@ import type { AnalyticsIdentity } from 'armoury'
 
 const kLogCategory = '[productanalytics/archaeologist/background]'
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+/**
+ * As of posthog-node 3.1.0, @see EventMessageV1 is the type of the only input
+ * parameter for @see PostHog.capture(). The type is not exported, but it can be
+ * deduced manually
+ */
+type EventMessageV1 = Parameters<NodePostHog['capture']>[0]
+
+/**
+ * All the properties of @see EventMessageV1 except the ones that in
+ * case of @see PostHog.capture from 'posthog-js'
+ *  - either get passed in as their own arguments dedicated arguments (like 'event')
+ *  - or implicitely reused from the init procedure (like 'distinct_id')
+ */
+type CaptureOptions = Omit<
+  EventMessageV1,
+  'event' | 'distinct_id' | 'properties'
+>
+/**
+ * A thin wrapper on top of @see NodePostHog to make its public API
+ * more aligned with PostHog from 'posthog-js'
+ */
+export type BackgroundPosthog = {
+  capture: (
+    event_name: string,
+    properties?: EventMessageV1['properties'],
+    options?: CaptureOptions
+  ) => void
+  isFeatureEnabled: (key: string) => Promise<boolean | undefined>
 }
 
-async function make(identity: AnalyticsIdentity): Promise<PostHog | null> {
-  // If product analytics can't be initialised for a considerable amount of time
-  // then it most likely means that something went wrong in PostHog and it failed
-  // to asyncronously invoke its `loaded` parameter. Without a timeout this
-  // can result in a never-ending wait.
-  const timeout = new Promise<null>((resolve) => {
-    sleep(2000).then(() => resolve(null))
-  })
-  const result = new Promise<PostHog | null>((resolve) =>
-    productanalytics.make('archaeologist/background', process.env.NODE_ENV, {
-      autocapture: false,
-      capture_pageview: false,
-      // See https://posthog.com/docs/integrate/client/js#identifying-users
-      // for more information on why it may not be a good idea to return
-      // and use a PostHog instance immediately, even though its creation is
-      // synchronous
-      loaded: (analytics: PostHog) => resolve(analytics),
+async function make(
+  identity: AnalyticsIdentity
+): Promise<BackgroundPosthog | null> {
+  // PostHog token and API host URL can be found at https://eu.posthog.com/project/settings
+  const posthogToken = 'phc_p8GUvTa63ZKNpa05iuGI7qUvXYyyz3JG3UWe88KT7yj'
+  const posthogApiHost = 'https://eu.posthog.com'
+  try {
+    const ret = new NodePostHog(posthogToken, {
+      host: posthogApiHost,
       bootstrap: {
-        distinctID: identity.analyticsIdentity,
-        isIdentifiedID: true,
+        distinctId: identity.analyticsIdentity,
+        isIdentifiedId: true,
       },
-      // All other available types of PostHog persistence seem to rely
-      // on browser APIs that are not available within background script, like
-      // 'window.localStorage', 'cookieStore' etc. Note that conceptually
-      // some of these APIs may be available to background scripts, but the way
-      // PostHog accesses them is not (e.g. cookies are accessible via
-      // 'browser.cookies', but PostHog uses 'cookieStore').
-      persistence: 'memory',
-      // Attempting to capture referrer data within background script breaks PostHog,
-      // but that's not really an issue because the whole "URL which referred user
-      // to current URL" does not make sense within background.
-      save_referrer: false,
+      disableGeoip: true,
+      fetch: (url, options) => {
+        return fetch(url, options)
+      },
     })
-  ).catch((reason) => {
+    return {
+      capture: (
+        event_name: string,
+        properties?: EventMessageV1['properties'],
+        options?: CaptureOptions
+      ) => {
+        ret.capture({
+          event: event_name,
+          ...options,
+          properties: {
+            // $user_id is a "native" property in 'posthog-js'
+            // that seems to be used instead of 'distinct_id' in certain
+            // UI views, even though their meaning is the same
+            $user_id: identity.analyticsIdentity,
+            // 'source' & 'environment' are custom properties, copy-pasted
+            // from armoury.productanalytics.make()
+            source: 'archaeologist/background',
+            environment: process.env.NODE_ENV,
+            ...properties,
+          },
+          distinctId: identity.analyticsIdentity,
+        })
+      },
+      isFeatureEnabled: async (key: string): Promise<boolean | undefined> => {
+        return await ret.isFeatureEnabled(key, identity.analyticsIdentity)
+      },
+    }
+  } catch (reason) {
     log.debug(
       `${kLogCategory} Failed to create an instance: ${
         errorise(reason).message
       }`
     )
     return null
-  })
-  return Promise.race([result, timeout])
+  }
 }
 
 /**
