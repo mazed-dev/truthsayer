@@ -117,46 +117,48 @@ export function exctractPageContent(
   const url = stabiliseUrlForOriginId(document_.URL || document_.documentURI)
   let { title, description, lang, author, publisher, thumbnailUrls } =
     _extractPageAttributes(document_, baseURL)
-  let text: string | null = null
-  // The parse() method of @mozilla/readability works by modifying the DOM. This
-  // removes some elements in the web page. We avoid this by passing the clone
-  // of the document object to the Readability constructor.
-  const article = new MozillaReadability(
-    document_.cloneNode(true) as Document,
-    {
-      keepClasses: false,
-    }
-  ).parse()
-  if (article) {
-    // Do a best effort with what @mozilla/readability gives us here
-    const {
-      title: articleTitle,
-      textContent,
-      excerpt,
-      byline,
-      siteName,
-      content,
-    } = article
-    if (articleTitle) {
-      title = articleTitle
-    }
-    text = _extractPlainTextFromContentHtml(content, textContent)
-    if (description == null && excerpt) {
-      // Same story for a description, we can't fully rely on MozillaReadability
-      // with page description, but get back to it when our own description
-      // extractor fails.
-      if (textContent.indexOf(excerpt) < 0) {
-        // MozillaReadability takes first paragraph as a description, if it
-        // hasn't found description in the article's metadata. Such description
-        // is quite bad, it's better without description at all then.
-        description = excerpt
+  let text: string | null = _exctractPageTextSpecialPages(document_, url)
+  if (text == null) {
+    // The parse() method of @mozilla/readability works by modifying the DOM. This
+    // removes some elements in the web page. We avoid this by passing the clone
+    // of the document object to the Readability constructor.
+    const article = new MozillaReadability(
+      document_.cloneNode(true) as Document,
+      {
+        keepClasses: false,
       }
-    }
-    if (author.length === 0 && byline) {
-      author.push(unicodeText.trimWhitespace(byline))
-    }
-    if (siteName) {
-      publisher.push(siteName)
+    ).parse()
+    if (article) {
+      // Do a best effort with what @mozilla/readability gives us here
+      const {
+        title: articleTitle,
+        textContent,
+        excerpt,
+        byline,
+        siteName,
+        content,
+      } = article
+      if (articleTitle) {
+        title = articleTitle
+      }
+      text = _extractPlainTextFromContentHtml(content, textContent)
+      if (description == null && excerpt) {
+        // Same story for a description, we can't fully rely on MozillaReadability
+        // with page description, but get back to it when our own description
+        // extractor fails.
+        if (textContent.indexOf(excerpt) < 0) {
+          // MozillaReadability takes first paragraph as a description, if it
+          // hasn't found description in the article's metadata. Such description
+          // is quite bad, it's better without description at all then.
+          description = excerpt
+        }
+      }
+      if (author.length === 0 && byline) {
+        author.push(unicodeText.trimWhitespace(byline))
+      }
+      if (siteName) {
+        publisher.push(siteName)
+      }
     }
   }
   author = author.filter((value: string, index: number, self: string[]) => {
@@ -461,6 +463,57 @@ export function _extractPageAttributes(
   return { lang, title, description, author, publisher, thumbnailUrls }
 }
 
+type GoogleDocModelChunk =
+  | {
+      ty: 'is'
+      s?: string
+      ibi: number
+      sl: number
+      sh: number
+    }
+  | {
+      ty: 'as'
+      si?: number
+      sm: any
+    }
+
+/**
+ * A simple hack to extact Google Doc text from Document meta information, it's
+ * very fragile and will be broken with the next big release of Google Docs. But
+ * for now to prove the point it should do the job.
+ *
+ * Test it on a real Google Document please, I couldn't come up with good enough
+ * UT - script tags doesn't work with JSON in jest.
+ */
+export function _extractGoogleDocsText(document_: Document): string | null {
+  const chunks: string[] = []
+  const elements = document_.getElementsByTagName('script')
+  for (const el of elements) {
+    if (!el.innerText) {
+      continue
+    }
+    for (const line of el.innerText.split(';')) {
+      if (line.startsWith('DOCS_modelChunk = ')) {
+        try {
+          const gchunks: GoogleDocModelChunk[] = JSON.parse(line.split('=')[1])
+          for (const gch of gchunks) {
+            if (gch.ty === 'is' && typeof gch.s === 'string' && gch) {
+              chunks.push(gch.s)
+            }
+          }
+        } catch (err) {
+          log.error('Google Docs content parsing failed with error', err)
+        }
+      }
+    }
+  }
+  const str = chunks.join('')
+  if (!str) {
+    return null
+  }
+  return str
+}
+
 function ensureAbsRef(ref: string, baseURL: string): string {
   if (ref.startsWith('/')) {
     return `${baseURL}${ref}`
@@ -509,6 +562,18 @@ export function _extractPageThumbnailUrls(
     seen.add(ref)
     return true
   })
+}
+
+export function _exctractPageTextSpecialPages(
+  document_: Document,
+  url: string
+): string | null {
+  log.debug('_exctractPageTextSpecialPages', url)
+  if (url.match(/https:\/\/docs\.google\.com\/document\/d\//i)) {
+    log.debug('Detected Google Doc page type, using special extractor for it')
+    return _extractGoogleDocsText(document_)
+  }
+  return null
 }
 
 /**
