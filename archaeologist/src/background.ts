@@ -1,6 +1,5 @@
 import * as webNavigation from './web-navigation/webNavigation'
 import * as browserBookmarks from './browser-bookmarks/bookmarks'
-import { PostHog } from 'posthog-js'
 import {
   ToPopUp,
   ToContent,
@@ -39,6 +38,7 @@ import { BrowserHistoryUpload } from './background/external-import/browserHistor
 import { requestPageSavedStatus } from './background/pageStatus'
 import { saveWebPage, savePageQuote } from './background/savePage'
 import { backgroundpa } from './background/productanalytics'
+import type { BackgroundPosthog } from './background/productanalytics'
 import { OpenTabs } from './background/external-import/openTabs'
 import * as contentState from './background/contentState'
 import * as similarity from './background/search/similarity'
@@ -380,7 +380,7 @@ function makeStorageApi(
 
 type BackgroundContext = {
   storage: StorageApi
-  analytics: PostHog | null
+  analytics: BackgroundPosthog | null
   similarity: {
     cancelPreviousSearch?: (reason?: string) => void
   }
