@@ -1,3 +1,4 @@
+import lodash from 'lodash'
 import { tfUse, loadWinkModel, bm25 } from 'text-information-retrieval'
 import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 import type {
@@ -31,6 +32,10 @@ const wink_ = loadWinkModel()
  * case consider using euclidean distance insted.
  */
 const kSimilarityCosineDistanceThreshold = 0.42
+
+function getSuggestionsNumberLimit(): number {
+  return lodash.random(7, 12)
+}
 
 export type RelevantNode = {
   node: TNode
@@ -132,9 +137,9 @@ async function findRelevantNodesUsingSimilaritySearch(
     cancellationToken.throwIfCancelled()
   }
   // Cut the long tail of results - we can't and we shouldn't show more relevant
-  // results than some limit, let it be for now 42
+  // results than some limit
   relevantNids.sort((ar, br) => ar.score - br.score)
-  relevantNids = relevantNids.slice(0, 42)
+  relevantNids = relevantNids.slice(0, getSuggestionsNumberLimit())
   const nodeMap: Map<Nid, TNode> = new Map()
   {
     const resp = await storage.node.batch.get({
@@ -172,6 +177,7 @@ async function findRelevantNodesUsingPlainTextSearch(
   const beagle = new Beagle(stems)
   const nodesWithScore: NodeWithScore[] = []
   const iter = await storage.node.iterate()
+  const expectedLimit = getSuggestionsNumberLimit()
   while (true) {
     cancellationToken.throwIfCancelled()
     const node = await iter.next()
@@ -183,6 +189,9 @@ async function findRelevantNodesUsingPlainTextSearch(
     }
     if (beagle.searchNode(node) != null) {
       nodesWithScore.push({ node, score: 0 })
+    }
+    if (nodesWithScore.length >= expectedLimit) {
+      break
     }
   }
   return nodesWithScore
