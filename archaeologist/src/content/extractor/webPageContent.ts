@@ -516,7 +516,7 @@ export function _extractPageThumbnailUrls(
  */
 export function _extractPlainTextFromContentHtml(
   html: string,
-  textContent: string,
+  textContent: string
 ): string {
   // We don't trust MozillaReadability with plaintext extraction - it drops
   // spaces a lot in random places, text without spaces between words

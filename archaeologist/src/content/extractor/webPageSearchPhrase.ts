@@ -11,7 +11,11 @@ export function extractSimilaritySearchPhraseFromPageContent(
   if (!!author) {
     author = `By ${author}`
   }
-  const phrase = [pageContent.title, author, pageContent.text]
+  const text =
+    (pageContent.description?.length ?? 0) > (pageContent.text?.length ?? 0)
+      ? pageContent.description
+      : pageContent.text
+  const phrase = [pageContent.title, author, text]
     .map((v) => {
       if (v) {
         return ensureSentenceEndPunctuation(v, '.')

@@ -314,7 +314,7 @@ test('_extractPlainTextFromContentHtml - put extra dot after header and table ro
   expect(
     _extractPlainTextFromContentHtml(
       '<div><h2>From the Crew</h2><h3> </h3><h3></h3><p>Just one extra message</p></div>',
-      '',
+      ''
     )
   ).toStrictEqual('From the Crew. Just one extra message')
   expect(
@@ -325,7 +325,7 @@ test('_extractPlainTextFromContentHtml - put extra dot after header and table ro
         <tr><td>Alma mater</td><td>	University of London (MD)</td></tr>
       </tbody></table>
       `,
-      '',
+      ''
     )
   ).toStrictEqual('Born 15 March 1813. Alma mater University of London (MD).')
 })
