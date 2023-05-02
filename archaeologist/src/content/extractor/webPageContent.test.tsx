@@ -17,6 +17,7 @@ import {
   _extractPageAttributes,
   _extractPageThumbnailUrls,
   _extractPlainTextFromContentHtml,
+  _postProcessPagePlainTextSpecialPages,
   exctractPageContent,
 } from './webPageContent'
 
@@ -314,7 +315,8 @@ test('_extractPlainTextFromContentHtml - put extra dot after header and table ro
   expect(
     _extractPlainTextFromContentHtml(
       '<div><h2>From the Crew</h2><h3> </h3><h3></h3><p>Just one extra message</p></div>',
-      ''
+      '',
+      'https://example.com'
     )
   ).toStrictEqual('From the Crew. Just one extra message')
   expect(
@@ -325,7 +327,24 @@ test('_extractPlainTextFromContentHtml - put extra dot after header and table ro
         <tr><td>Alma mater</td><td>	University of London (MD)</td></tr>
       </tbody></table>
       `,
-      ''
+      '',
+      'https://example.com'
     )
   ).toStrictEqual('Born 15 March 1813. Alma mater University of London (MD).')
+})
+test('_postProcessPagePlainTextSpecialPages', () => {
+  expect(
+    _postProcessPagePlainTextSpecialPages(
+      'New Guinea, to Hainan.[2]',
+      'https://en.exsmple.com'
+    )
+  ).toStrictEqual('New Guinea, to Hainan.[2]')
+  expect(
+    _postProcessPagePlainTextSpecialPages(
+      '[edit] the former Australian territory of New Guinea, to Hainan.[2] The sinking',
+      'https://en.wikipedia.org/wiki/Montevideo'
+    )
+  ).toStrictEqual(
+    '[edit] the former Australian territory of New Guinea, to Hainan. The sinking'
+  )
 })

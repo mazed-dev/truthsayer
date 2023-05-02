@@ -141,7 +141,7 @@ export function exctractPageContent(
       if (articleTitle) {
         title = articleTitle
       }
-      text = _extractPlainTextFromContentHtml(content, textContent)
+      text = _extractPlainTextFromContentHtml(content, textContent, url)
       if (description == null && excerpt) {
         // Same story for a description, we can't fully rely on MozillaReadability
         // with page description, but get back to it when our own description
@@ -568,12 +568,20 @@ export function _exctractPageTextSpecialPages(
   document_: Document,
   url: string
 ): string | null {
-  log.debug('_exctractPageTextSpecialPages', url)
   if (url.match(/https:\/\/docs\.google\.com\/document\/d\//i)) {
-    log.debug('Detected Google Doc page type, using special extractor for it')
     return _extractGoogleDocsText(document_)
   }
   return null
+}
+
+export function _postProcessPagePlainTextSpecialPages(
+  plaintext: string,
+  url: string
+): string {
+  if (url.search(/\.wikipedia\.org\//i) !== -1) {
+    return plaintext.replace(/\[\d+\]/g, '')
+  }
+  return plaintext
 }
 
 /**
@@ -581,7 +589,8 @@ export function _exctractPageTextSpecialPages(
  */
 export function _extractPlainTextFromContentHtml(
   html: string,
-  textContent: string
+  textContent: string,
+  url: string
 ): string {
   // We don't trust MozillaReadability with plaintext extraction - it drops
   // spaces a lot in random places, text without spaces between words
@@ -597,11 +606,11 @@ export function _extractPlainTextFromContentHtml(
       .replace(/(\.\s+){2,}/g, '. '), // Because we insert shedload of dots above, let's remove excesive ones
     'text/html'
   )
-  return unicodeText.trimWhitespace(
-    sortOutSpacesAroundPunctuation(
-      doc.documentElement?.textContent ?? textContent
-    )
+  const plaintext = _postProcessPagePlainTextSpecialPages(
+    doc.documentElement?.textContent ?? textContent,
+    url
   )
+  return unicodeText.trimWhitespace(sortOutSpacesAroundPunctuation(plaintext))
 }
 
 /**
