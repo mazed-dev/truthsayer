@@ -13,6 +13,7 @@ import { NodeUtil } from 'smuggler-api'
 import { TDoc, Beagle } from 'elementary'
 import CancellationToken from 'cancellationtoken'
 import { log, errorise } from 'armoury'
+import type { BackgroundPosthog } from '../productanalytics'
 
 let tfState: tfUse.TfState | undefined = undefined
 
@@ -44,9 +45,10 @@ export type RelevantNode = {
 }
 export async function findRelevantNodes(
   phrase: string,
-  storage: StorageApi,
   excludedNids: Set<Nid>,
-  cancellationToken: CancellationToken
+  cancellationToken: CancellationToken,
+  storage: StorageApi,
+  _analytics: BackgroundPosthog | null
 ): Promise<RelevantNode[]> {
   cancellationToken.throwIfCancelled()
   const phraseDoc = wink_.readDoc(phrase)
@@ -291,7 +293,11 @@ async function updateNodeIndex(
   if (tfState == null) {
     throw new Error('Similarity search state is not initialised')
   }
-  const text = getNodePatchAsString(patch)
+  let text = getNodePatchAsString(patch)
+  if (!text) {
+    // Hack: Embedding fails on completely empty string
+    text = 'empty'
+  }
   const textWinkDoc = wink_.readDoc(text)
   const embedding = await tfState.encoder.embed(
     textWinkDoc.out(wink_.its.normal)
@@ -311,7 +317,7 @@ function createNodeEventListener(storage: StorageApi): NodeEventListener {
     if (type === 'created' || type === 'updated') {
       updateNodeIndex(storage, nid, patch).catch((reason) => {
         log.error(
-          `Failed to ensure similarity search index integrity: ${
+          `Failed to ensure similarity search index integrity for node ${nid}: ${
             errorise(reason).message
           }`
         )
@@ -321,41 +327,60 @@ function createNodeEventListener(storage: StorageApi): NodeEventListener {
 }
 
 async function ensurePerNodeSimSearchIndexIntegrity(
-  storage: StorageApi
+  storage: StorageApi,
+  analytics?: BackgroundPosthog | null
 ): Promise<void> {
   const nids = await storage.node.getAllNids({})
   for (let ind = 0; ind < nids.length; ++ind) {
     const nid = nids[ind]
-    const nodeSimSearchInfo = await storage.node.similarity.getIndex({
-      nid,
-    })
-    if (
-      !tfUse.isPerDocIndexUpToDate(
-        nodeSimSearchInfo?.signature.algorithm,
-        nodeSimSearchInfo?.signature.version
-      )
-    ) {
-      log.info(
-        `Update node similarity index [${ind + 1}/${nids.length}] ${nid}`
-      )
-      const node = await storage.node.get({ nid })
-      await updateNodeIndex(storage, nid, { ...node })
+    try {
+      // Failure to update one index should not interfere with others
+      const nodeSimSearchInfo = await storage.node.similarity.getIndex({
+        nid,
+      })
+      if (
+        !tfUse.isPerDocIndexUpToDate(
+          nodeSimSearchInfo?.signature.algorithm,
+          nodeSimSearchInfo?.signature.version
+        )
+      ) {
+        log.info(
+          `Update node similarity index [${ind + 1}/${nids.length}] ${nid}`
+        )
+        const node = await storage.node.get({ nid })
+        await updateNodeIndex(storage, nid, { ...node })
+      }
+    } catch (e) {
+      const err = errorise(e)
+      const failedTo = `Failed to update similarity search index for node: ${err.message}`
+      log.error(failedTo)
+      analytics?.capture('error', {
+        location: 'background',
+        cause: err.message,
+        failedTo,
+      })
     }
   }
 }
 
-export async function register(storage: StorageApi) {
+export async function register(
+  storage: StorageApi,
+  analytics?: BackgroundPosthog | null
+) {
   if (tfState == null) {
     tfState = await tfUse.createTfState()
   }
 
   // Run it as non-blocking async call
   ensurePerNodeSimSearchIndexIntegrity(storage).catch((reason) => {
-    log.error(
-      `Failed to ensure similarity search index integrity: ${
-        errorise(reason).message
-      }`
-    )
+    const err = errorise(reason)
+    const failedTo = `Failed to ensure similarity search index integrity: ${err.message}`
+    log.error(failedTo)
+    analytics?.capture('error', {
+      location: 'background',
+      cause: err.message,
+      failedTo,
+    })
   })
 
   const nodeEventListener = createNodeEventListener(storage)
