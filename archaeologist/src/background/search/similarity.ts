@@ -58,9 +58,16 @@ export async function findRelevantNodes(
   let nodesWithScore: NodeWithScore[]
   // Use plaintext search for a small queries, because similarity search based
   // on ML embeddings has a poor quality results on a small texts.
-  if (phraseDoc.entities().length() < 4) {
+  const phraseLen = phraseDoc.tokens().length()
+  if (phraseLen === 0) {
+    throw new Error(
+      'Similarity search failed because search phrase is empty string'
+    )
+  }
+  if (phraseLen < 4) {
     log.debug(
-      'Use Beagle to find relevant nodes, because search phrase is short'
+      'Use Beagle to find relevant nodes, because search phrase is short',
+      phraseLen
     )
     nodesWithScore = await findRelevantNodesUsingPlainTextSearch(
       phraseDoc,

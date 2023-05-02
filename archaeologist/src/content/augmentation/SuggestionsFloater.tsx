@@ -90,6 +90,7 @@ const FloateHeaderBtn = styled(ImgButton)`
 const SuggestedCardBox = styled.div`
   color: #484848;
   font-size: 12px;
+  font-family: 'Roboto', Helvetica, Arial, sans-serif;
   letter-spacing: -0.01em;
   line-height: 142%;
   text-align: left;
