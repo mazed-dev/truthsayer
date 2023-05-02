@@ -157,9 +157,10 @@ async function lookupForSuggestionsToPageInActiveTab(
   ctx.similarity.cancelPreviousSearch = cancel
   return await similarity.findRelevantNodes(
     phrase,
-    ctx.storage,
     new Set(nidsExcludedFromSearch),
-    token
+    token,
+    ctx.storage,
+    ctx.analytics
   )
 }
 
@@ -189,9 +190,10 @@ async function handleMessageFromContent(
       ctx.similarity.cancelPreviousSearch = cancel
       const relevantNodes = await similarity.findRelevantNodes(
         message.phrase,
-        ctx.storage,
         new Set(message.excludeNids),
-        token
+        token,
+        ctx.storage,
+        ctx.analytics
       )
       return {
         type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
@@ -610,7 +612,9 @@ class Background {
 
     this.deinitialisers.push(browserBookmarks.register(ctx.storage))
     this.deinitialisers.push(webNavigation.register(ctx.storage))
-    this.deinitialisers.push(await similarity.register(ctx.storage))
+    this.deinitialisers.push(
+      await similarity.register(ctx.storage, ctx.analytics)
+    )
     this.deinitialisers.push(contentState.register())
 
     return ctx
