@@ -99,7 +99,7 @@ async function registerAttentionTime(
   message: FromContent.AttentionTimeChunk
 ): Promise<void> {
   if (tab?.id == null) {
-    log.debug("Can't register attention time for a tab: ", tab?.url)
+    log.error("Can't register attention time for a tab: ", tab?.url)
     return
   }
   const { totalSecondsEstimation, deltaSeconds, origin } = message
@@ -120,7 +120,7 @@ async function registerAttentionTime(
     }
     return
   }
-  log.debug(
+  log.info(
     `Origin ${origin.id}, registered attention time: ` +
       `+${deltaSeconds} sec (total = ${total.seconds_of_attention}, full read = ${totalSecondsEstimation})`
   )
@@ -169,7 +169,7 @@ async function handleMessageFromContent(
   message: FromContent.Request,
   sender: browser.Runtime.MessageSender
 ): Promise<ToContent.Response> {
-  log.debug('Get message from content', message, sender.tab)
+  log.info('Get message from content', message, sender.tab)
   switch (message.type) {
     case 'ATTENTION_TIME_CHUNK':
       if (sender.tab == null) {
@@ -242,7 +242,7 @@ async function reportBackgroundActionProgress(
         newState: progress,
       })
     } catch (err) {
-      log.debug(
+      log.error(
         `Failed to report ${action} progress to tab ${tab.id}, ${
           errorise(err).message
         }`
@@ -265,7 +265,7 @@ async function handleMessageFromPopup(
 ): Promise<ToPopUp.Response> {
   // process is not defined in browsers extensions - use it to set up axios
   const activeTab = await getActiveTab()
-  log.debug('Get message from popup', message, activeTab)
+  log.info('Get message from popup', message, activeTab)
   switch (message.type) {
     case 'REQUEST_PAGE_TO_SAVE':
       const tabId = activeTab?.id
@@ -503,12 +503,18 @@ class Background {
       // be able to handle that.
       // See https://stackoverflow.com/a/18302254/3375765 for more information.
       const onTabUpdate = async (
-        _tabId: number,
+        tabId: number,
         changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
         tab: browser.Tabs.Tab
       ) => {
         try {
         } finally {
+          if (changeInfo.title != null) {
+            await ToContent.sendMessage(tabId, {
+              type: 'REQUEST_UPDATE_TAB_STATUS',
+              change: { titleUpdated: true },
+            })
+          }
           if (changeInfo.status === 'complete') {
             // NOTE: if loading of a tab did complete, it is important to ensure
             // report() gets called regardless of what happens in the other parts of
@@ -544,7 +550,6 @@ class Background {
       const onTabActivated = async (
         activatedInfo: browser.Tabs.OnActivatedActiveInfoType
       ) => {
-        log.debug('Tab activated', activatedInfo)
         await ToContent.sendMessage(activatedInfo.tabId, {
           type: 'REQUEST_UPDATE_TAB_STATUS',
           change: { activated: true },

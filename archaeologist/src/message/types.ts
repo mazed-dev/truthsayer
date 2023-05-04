@@ -281,6 +281,7 @@ export namespace ToContent {
     type: 'REQUEST_UPDATE_TAB_STATUS'
     change: {
       activated?: boolean
+      titleUpdated?: boolean
     }
   }
 

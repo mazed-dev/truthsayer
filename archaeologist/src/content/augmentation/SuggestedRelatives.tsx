@@ -80,11 +80,13 @@ export function SuggestedRelatives({
   stableUrl,
   excludeNids,
   tabActivationCounter,
+  tabTitleUpdateCounter,
 }: {
   stableUrl?: string
   excludeNids?: Nid[]
   // A counter to trigger new suggestions search when user gets back to the tab
   tabActivationCounter: number
+  tabTitleUpdateCounter: number
 }) {
   const analytics = React.useContext(ContentContext).analytics
   const [suggestedNodes, setSuggestedNodes] = React.useState<
@@ -92,29 +94,40 @@ export function SuggestedRelatives({
   >([])
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
-  const pageSimilaritySearchInput = React.useMemo<SimilaritySearchInput>(() => {
-    const searchEngineQuery = extractSearchEngineQuery(
-      stableUrl ?? document.location.href
-    )
-    if (searchEngineQuery?.phrase != null) {
-      return { phrase: searchEngineQuery.phrase, isSearchEngine: true }
-    }
-    const baseURL = stableUrl
-      ? new URL(stableUrl).origin
-      : `${document.location.protocol}//${document.location.host}`
-    const phrase =
-      extractSimilaritySearchPhraseFromPageContent(document, baseURL) ??
-      undefined
-    return { phrase, isSearchEngine: false }
-  }, [
-    /**
-     * The dependency guarantees `pageSimilaritySearchInput` regenration on a newopened page,
-     * it's important when a new page is opened by the same React App and DOM is
-     * not completely reloaded, but just updated. Because of this don't remove
-     * this dependency even if you don't want to insert URL into a search phrase.
-     */
-    stableUrl,
-  ])
+  const pageSimilaritySearchInput = React.useMemo<SimilaritySearchInput>(
+    () => {
+      const searchEngineQuery = extractSearchEngineQuery(
+        stableUrl ?? document.location.href
+      )
+      if (searchEngineQuery?.phrase != null) {
+        return { phrase: searchEngineQuery.phrase, isSearchEngine: true }
+      }
+      const baseURL = stableUrl
+        ? new URL(stableUrl).origin
+        : `${document.location.protocol}//${document.location.host}`
+      const phrase =
+        extractSimilaritySearchPhraseFromPageContent(document, baseURL) ??
+        undefined
+      return { phrase, isSearchEngine: false }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      /**
+       * The dependency on stableUrl guarantees `pageSimilaritySearchInput`
+       * regenration on a newopened page, it's important when a new page is
+       * opened by the same React App and DOM is not completely reloaded, but just
+       * updated. Because of this don't remove this dependency even if you don't
+       * want to insert URL into a search phrase.
+       */
+      stableUrl,
+      /**
+       * The dependency on title update conuter guarantees regenration of search
+       * phrase every time when page changes it's title. Changed title with a very
+       * hight probability means changed content by page JS.
+       */
+      tabTitleUpdateCounter,
+    ]
+  )
 
   const requestSuggestedAssociations = React.useMemo(
     // Using `useMemo` instead of `useCallback` to avoid eslint complains
