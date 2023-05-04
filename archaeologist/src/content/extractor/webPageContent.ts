@@ -13,7 +13,10 @@
 
 import { PreviewImageSmall } from 'smuggler-api'
 
-import { Readability as MozillaReadability } from '@mozilla/readability'
+import {
+  Readability as MozillaReadability,
+  isProbablyReaderable,
+} from '@mozilla/readability'
 import lodash from 'lodash'
 import DOMPurify from 'dompurify'
 
@@ -776,4 +779,19 @@ export async function fetchAnyPagePreviewImage(
     }
   }
   return null
+}
+
+export function isPageTextWorthReading(
+  document_: Document,
+  url: string
+): boolean {
+  // Minimal length of content in characters. Experimental value, selected based
+  // on results for very small pages. Feel free to adjust if needed.
+  const minContentLength = 300
+  if (shouldUseCustomExtractorsFor(url)) {
+    const text = extractPageTextCustom(document_, url)
+    return text.length >= minContentLength
+  } else {
+    return isProbablyReaderable(document_, { minContentLength })
+  }
 }

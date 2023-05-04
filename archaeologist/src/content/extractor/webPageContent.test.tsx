@@ -178,9 +178,9 @@ test('_extractPagePublisher', () => {
   expect(publisher).toStrictEqual(['The Publisher Abc'])
 })
 
-test('extractPageContent - main', async () => {
-  const originalUrl = 'https://example.org/test.html'
-  const origin = 'https://example.org'
+test('extractPageContent - custom', async () => {
+  const originalUrl = 'https://notion.so/test.html'
+  const origin = 'https://notion.so'
   const dom = new JSDOM(
     `<!DOCTYPE html>
 <html class="responsive" lang="en">
@@ -216,7 +216,7 @@ test('extractPageContent - main', async () => {
   expect(content.lang).toStrictEqual('en')
   expect(content.previewImageUrls).toStrictEqual([
     'https://example.com/favicons/favicon-dark.svg',
-    'https://example.org/favicon.ico',
+    'https://notion.so/favicon.ico',
   ])
 })
 

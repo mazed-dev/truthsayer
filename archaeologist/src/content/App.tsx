@@ -448,24 +448,6 @@ const App = () => {
   if (state.mode === 'uninitialised-content-app') {
     return null
   }
-
-  const activityTrackerOrNull =
-    state.mode.type === 'active-mode-content-app' ? (
-      <ActivityTracker
-        registerAttentionTime={(
-          deltaSeconds: number,
-          totalSecondsEstimation: number
-        ) =>
-          FromContent.sendMessage({
-            type: 'ATTENTION_TIME_CHUNK',
-            deltaSeconds,
-            totalSecondsEstimation,
-            origin: state.originIdentity,
-          })
-        }
-        disabled={state.bookmark != null}
-      />
-    ) : null
   const forwardToBackground: ForwardToRealImpl = async (
     payload: StorageApiMsgPayload
   ): Promise<StorageApiMsgReturnValue> => {
@@ -495,7 +477,24 @@ const App = () => {
                 (node) => node.ntype === NodeType.WebQuote
               )}
             />
-            {activityTrackerOrNull}
+            {state.mode.type === 'active-mode-content-app' ? (
+              <ActivityTracker
+                registerAttentionTime={(
+                  deltaSeconds: number,
+                  totalSecondsEstimation: number
+                ) =>
+                  FromContent.sendMessage({
+                    type: 'ATTENTION_TIME_CHUNK',
+                    deltaSeconds,
+                    totalSecondsEstimation,
+                    origin: state.originIdentity,
+                  })
+                }
+                disabled={state.bookmark != null}
+                stableUrl={state.originIdentity.stableUrl}
+                tabTitleUpdateCounter={state.tabStatus.titleUpdateCounter}
+              />
+            ) : null}
             <SuggestedRelatives
               stableUrl={state.originIdentity.stableUrl}
               excludeNids={genExcludeNidsForSimilaritySearch(
