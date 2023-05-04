@@ -1,7 +1,7 @@
 import { isMemorable } from './unmemorable'
 import { isSearchEngineQueryUrl } from './searchEngineQuery'
 import { log } from 'armoury'
-import { isProbablyReaderable } from '@mozilla/readability'
+import { isPageTextWorthReading } from '../webPageContent'
 
 const kHomepage: RegExp[] = [
   /^\/?$/, // empty path
@@ -110,10 +110,7 @@ export function isPageAutosaveable(url: string, document_?: Document): boolean {
     log.debug('The page is likely 404 - autosaving is blocked for', url)
     return false
   }
-  const isPageProbablyReaderable = isProbablyReaderable(document_, {
-    // Experimental value, selected based on results for very small pages
-    minContentLength: 300,
-  })
+  const isPageProbablyReaderable = isPageTextWorthReading(document_, url)
   log.debug('The page is readable ->', isPageProbablyReaderable)
   return isPageProbablyReaderable
 }

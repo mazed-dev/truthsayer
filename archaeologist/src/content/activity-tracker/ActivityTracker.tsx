@@ -13,17 +13,31 @@ import { isPageAutosaveable } from '../extractor/url/autosaveable'
 export const ActivityTracker = ({
   registerAttentionTime,
   disabled,
+  stableUrl,
+  tabTitleUpdateCounter,
 }: {
   registerAttentionTime: (
     deltaSeconds: number,
     totalSecondsEstimation: number
   ) => void
   disabled?: boolean
+  stableUrl?: string
+  tabTitleUpdateCounter: number
 }) => {
-  if (
-    disabled ||
-    !isPageAutosaveable(window.location.toString(), window.document)
-  ) {
+  const isAutosaveable = React.useMemo<boolean>(
+    () => isPageAutosaveable(window.location.toString(), window.document),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      /**
+       * The dependency on stableUrl and tabTitleUpdateCounter guarantees
+       * readability re-check when user get to a new page or current pages is
+       * updated.
+       */
+      stableUrl,
+      tabTitleUpdateCounter,
+    ]
+  )
+  if (disabled || !isAutosaveable) {
     return null
   }
   return <AttentionTimeTracker registerAttentionTime={registerAttentionTime} />
