@@ -19,7 +19,8 @@ import { AugmentationElement } from './Mount'
 import { ContentContext } from '../context'
 import { MazedMiniFloater } from './MazedMiniFloater'
 import { ContentAugmentationSettings, FromContent } from './../../message/types'
-import { DragHandle, Minimize, Refresh } from '@emotion-icons/material'
+import { Minimize, Refresh } from '@emotion-icons/material'
+import { DragHandle } from '@emotion-icons/material-rounded'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
 import { errorise, productanalytics } from 'armoury'
 
@@ -208,6 +209,8 @@ const SuggestedCards = ({
 
 const DragIndicator = styled(DragHandle)`
   ${DraggableCursorStyles}
+  border-radius: 50%;
+  fill: #a3c7f3;
 `
 
 const MiniFloaterBox = styled.div`
@@ -216,7 +219,7 @@ const MiniFloaterBox = styled.div`
   align-items: center;
   justify-content: center;
   #mazed-archaeologist-suggestions-floater-drag-handle {
-    opacity: 0.1;
+    opacity: 0.6;
   }
   &:hover &:active {
     #mazed-archaeologist-suggestions-floater-drag-handle {
@@ -363,13 +366,7 @@ export const SuggestionsFloater = ({
             ) : (
               <MiniFloaterBox>
                 <MazedMiniFloater onClick={() => saveRevealed(true)}>
-                  {isLoading ? (
-                    <Spinner.Ring />
-                  ) : nodes.length === 0 ? (
-                    '…'
-                  ) : (
-                    nodes.length
-                  )}
+                  {nodes.length === 0 ? '…' : nodes.length}
                 </MazedMiniFloater>
                 <DragIndicator
                   id="mazed-archaeologist-suggestions-floater-drag-handle"

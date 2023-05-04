@@ -2598,6 +2598,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@emotion-icons/material-rounded@npm:^3.14.0":
+  version: 3.14.0
+  resolution: "@emotion-icons/material-rounded@npm:3.14.0"
+  dependencies:
+    "@babel/runtime": ^7.14.0
+    "@emotion-icons/emotion-icon": 4.1.0
+  peerDependencies:
+    "@emotion/react": ">=11.0.0 <12"
+    "@emotion/styled": ">=11.0.0 <12"
+    react: "*"
+  checksum: b02fd025465d130793acecb693648bef94378bb5584f63d17ad2eeb41b6b9f07ff64488042bbd55c89f681c797b4de6d13323c880dc4a7ba17fa7ef1f09f67ad
+  languageName: node
+  linkType: hard
+
 "@emotion-icons/material@npm:^3.14.0":
   version: 3.14.0
   resolution: "@emotion-icons/material@npm:3.14.0"
@@ -5838,6 +5852,7 @@ __metadata:
     "@babel/preset-react": ^7.14.5
     "@babel/preset-typescript": ^7.17.12
     "@emotion-icons/material": ^3.14.0
+    "@emotion-icons/material-rounded": ^3.14.0
     "@emotion/react": ^11.9.0
     "@emotion/styled": ^11.8.1
     "@mozilla/readability": ^0.4.4
