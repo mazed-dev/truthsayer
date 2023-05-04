@@ -287,7 +287,6 @@ export function _extractPageTextCustomGeneric(
       continue
     }
     let { textContent, element } = got
-    log.debug('Body', element)
     textContent = _extractPlainTextFromContentHtml(
       element.innerHTML,
       textContent

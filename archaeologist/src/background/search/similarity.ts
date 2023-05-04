@@ -12,7 +12,7 @@ import type {
 import { NodeUtil } from 'smuggler-api'
 import { TDoc, Beagle } from 'elementary'
 import CancellationToken from 'cancellationtoken'
-import { log, errorise } from 'armoury'
+import { log, errorise, AbortError } from 'armoury'
 import type { BackgroundPosthog } from '../productanalytics'
 
 let tfState: tfUse.TfState | undefined = undefined
@@ -38,6 +38,12 @@ function getSuggestionsNumberLimit(): number {
   return lodash.random(7, 12)
 }
 
+function throwIfCancelled(cancellationToken: CancellationToken): void {
+  if (cancellationToken.canBeCancelled && cancellationToken.isCancelled) {
+    throw new AbortError('Similarity search was canceled by CancellationToken')
+  }
+}
+
 export type RelevantNode = {
   node: TNode
   score: number
@@ -50,7 +56,7 @@ export async function findRelevantNodes(
   storage: StorageApi,
   _analytics: BackgroundPosthog | null
 ): Promise<RelevantNode[]> {
-  cancellationToken.throwIfCancelled()
+  throwIfCancelled(cancellationToken)
   const phraseDoc = wink_.readDoc(phrase)
   if (tfState == null) {
     throw new Error('Similarity search state is not initialised')
@@ -114,7 +120,7 @@ async function findRelevantNodesUsingSimilaritySearch(
     phraseDoc.out(wink_.its.normal)
   )
   const allNids = await storage.node.getAllNids({})
-  cancellationToken.throwIfCancelled()
+  throwIfCancelled(cancellationToken)
   let relevantNids: { score: number; nid: Nid }[] = []
   for (const nid of allNids) {
     if (!!excludedNids.has(nid)) {
@@ -143,7 +149,7 @@ async function findRelevantNodesUsingSimilaritySearch(
     if (score < kSimilarityCosineDistanceThreshold) {
       relevantNids.push({ nid, score })
     }
-    cancellationToken.throwIfCancelled()
+    throwIfCancelled(cancellationToken)
   }
   // Cut the long tail of results - we can't and we shouldn't show more relevant
   // results than some limit
@@ -188,7 +194,7 @@ async function findRelevantNodesUsingPlainTextSearch(
   const iter = await storage.node.iterate()
   const expectedLimit = getSuggestionsNumberLimit()
   while (true) {
-    cancellationToken.throwIfCancelled()
+    throwIfCancelled(cancellationToken)
     const node = await iter.next()
     if (!node) {
       break
