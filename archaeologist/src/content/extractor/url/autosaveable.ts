@@ -2,7 +2,10 @@ import { isMemorable } from './unmemorable'
 import { isSearchEngineQueryUrl } from './searchEngineQuery'
 import { log } from 'armoury'
 import { isProbablyReaderable } from '@mozilla/readability'
-import { shouldUseCustomExtractorsFor, extractPageTextCustom } from '../webPageContent'
+import {
+  shouldUseCustomExtractorsFor,
+  extractPageTextCustom,
+} from '../webPageContent'
 
 const kHomepage: RegExp[] = [
   /^\/?$/, // empty path
@@ -82,15 +85,17 @@ export function _isTitleOfNotFoundPage(title?: string | null): boolean {
   return false
 }
 
-
 function isPageReaderable(url: string, document_: Document): boolean {
+  // Minimal length of content in characters. Experimental value, selected based
+  // on results for very small pages. Feel free to adjust if needed.
+  const minContentLength = 300
   if (shouldUseCustomExtractorsFor(url)) {
     const text = extractPageTextCustom(document_, url)
+    log.debug('isPageReaderable - custom', text.length, text)
+    return text.length >= minContentLength
   } else {
-    return isProbablyReaderable(document_, {
-      // Experimental value, selected based on results for very small pages
-      minContentLength: 300,
-    })
+    return isProbablyReaderable(document_, { minContentLength })
+  }
 }
 
 export function isPageAutosaveable(url: string, document_?: Document): boolean {

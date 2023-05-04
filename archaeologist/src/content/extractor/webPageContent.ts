@@ -155,9 +155,9 @@ const isSameOrDescendant = function (parent: Element, child: Element) {
 }
 
 const kUrlMasksToUseCustomExtractorsFor: RegExp[] = [
-  /https:\/\/docs\.google\.com\/document\/d\//i,
-  /https:\/\/notion\.so\//i,
-  /https:\/\/youtube\.com\//i,
+  /https:\/\/(www.)?docs\.google\.com\/document\/d\//i,
+  /https:\/\/(www.)?notion\.so\//i,
+  /https:\/\/(www.)?youtube\.com\//i,
 ]
 export function shouldUseCustomExtractorsFor(url: string): boolean {
   return !!kUrlMasksToUseCustomExtractorsFor.find((r: RegExp) => {
