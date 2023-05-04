@@ -213,9 +213,9 @@ function BrowserHistoryImportControl({
 function BrowserHistoryImportControlForOnboarding({
   progress,
   disabled,
-  onClick,
+  onStart,
 }: {
-  onClick?: () => void
+  onStart?: () => void
 } & UploadBrowserHistoryProps) {
   const [state, setState] = React.useState<BrowserHistoryImportControlState>(
     progress.processed !== progress.total
@@ -235,6 +235,7 @@ function BrowserHistoryImportControlForOnboarding({
         type: 'UPLOAD_BROWSER_HISTORY',
         ...mode,
       })
+      onStart?.()
     } catch (err) {
       setState({
         step: 'standby',
@@ -260,7 +261,6 @@ function BrowserHistoryImportControlForOnboarding({
         </Comment>
         <OnboardingButton
           onClick={() => {
-            onClick?.()
             startUpload({
               mode: 'untracked',
               unixtime: {
@@ -326,10 +326,10 @@ export function BrowserHistoryImporterForOnboarding({
   archaeologistState,
   progress,
   disabled,
-  onClick,
+  onStart,
 }: {
   archaeologistState: ArchaeologistState
-  onClick?: () => void
+  onStart?: () => void
 } & UploadBrowserHistoryProps) {
   switch (archaeologistState.state) {
     case 'not-installed': {
@@ -350,7 +350,7 @@ export function BrowserHistoryImporterForOnboarding({
     <BrowserHistoryImportControlForOnboarding
       progress={progress}
       disabled={disabled}
-      onClick={onClick}
+      onStart={onStart}
     />
   )
 }

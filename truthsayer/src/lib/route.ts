@@ -72,11 +72,15 @@ export type NoticeUrlParams = { page: string }
 export type History = RouteComponentProps['history']
 export type Location = RouteComponentProps['location']
 
-function gotoSearch({ history, query }: { history: History; query: string }) {
-  history.push({
-    pathname: kSearchPath,
-    search: stringify({ q: query }),
-  })
+function gotoSearch({ history, query }: { history?: History; query: string }) {
+  if (history) {
+    history.push({
+      pathname: kSearchPath,
+      search: stringify({ q: query }),
+    })
+  } else {
+    window.location.assign(`${kSearchPath}?${stringify({ q: query })}`)
+  }
 }
 
 function gotoOnboarding({
