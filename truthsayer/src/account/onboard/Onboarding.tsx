@@ -6,6 +6,7 @@ import { parse } from 'query-string'
 import { useHistory, useLocation } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { Button, Container } from 'react-bootstrap'
+import lodash from 'lodash'
 import {
   FromTruthsayer,
   ToTruthsayer,
@@ -18,6 +19,7 @@ import {
 import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
 import { sleep, isAbortError, productanalytics } from 'armoury'
+import { Spinner, MdiClose } from 'elementary'
 
 const Header = styled.h1`
   margin-bottom: 24px;
@@ -161,6 +163,10 @@ const StepBootstrapMemory = ({
 }) => {
   const [isBootstrapStarted, setBootstrapStarted] =
     React.useState<boolean>(false)
+  const onStart = React.useCallback(() => {
+    setBootstrapStarted(true)
+    lodash.delay(nextStep, 500, {})
+  }, [nextStep])
   return (
     <StepBox>
       <Header>
@@ -170,17 +176,9 @@ const StepBootstrapMemory = ({
       <ExternalImportStep
         archaeologistState={archaeologistState}
         progress={progress}
-        onClick={() => setBootstrapStarted(true)}
+        onStart={onStart}
       />
-      <StepFotbar>
-        <StepFotbarButton
-          variant="primary"
-          onClick={nextStep}
-          disabled={!isBootstrapStarted}
-        >
-          Next
-        </StepFotbarButton>
-      </StepFotbar>
+      {isBootstrapStarted ? <Spinner.Wheel /> : null}
     </StepBox>
   )
 }
@@ -253,9 +251,27 @@ const StepArcadeIframe = styled.iframe`
   height: 100%;
   color-scheme: light;
 `
+const StepArcadeBar = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0;
+`
 const StepTangoShowAround = ({ onClose }: { onClose: () => void }) => {
   return (
     <StepTangoShowAroundBox>
+      <StepArcadeBar>
+        <Button
+          variant="outline-default"
+          onClick={onClose}
+          size="sm"
+          {...productanalytics.autocaptureIdentity('btn-onboarding-done')}
+        >
+          <MdiClose />
+        </Button>
+      </StepArcadeBar>
       <StepArcadeIframeBox>
         <StepArcadeIframe
           src="https://demo.arcade.software/SE7RpzZGj6eq5F0TUNm5?embed"
@@ -265,16 +281,6 @@ const StepTangoShowAround = ({ onClose }: { onClose: () => void }) => {
           title="Let's get you started"
         ></StepArcadeIframe>
       </StepArcadeIframeBox>
-      <StepFotbar>
-        <StepFotbarButton
-          variant="outline-primary"
-          onClick={onClose}
-          size="sm"
-          {...productanalytics.autocaptureIdentity('btn-onboarding-done')}
-        >
-          Done
-        </StepFotbarButton>
-      </StepFotbar>
     </StepTangoShowAroundBox>
   )
 }
@@ -361,7 +367,9 @@ export function Onboarding({
   const history = useHistory()
   const onboardingStep = parseStepFromSearchString(loc.search)
   const onClose = () => {
-    goto.search({ history, query: '' })
+    // Navigate to /search without react-route history object to fully reload
+    // Truthsayer web app, otherwise bootstraped cards not always show up
+    goto.search({ query: '' })
   }
   return (
     <OnboardingSteps
