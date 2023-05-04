@@ -16,6 +16,15 @@ export function isAbortError(exception: Error): boolean {
   return exception.name === 'AbortError'
 }
 
+export class AbortError extends Error {
+  name: 'AbortError'
+
+  constructor(message?: string) {
+    super(message)
+    this.name = 'AbortError'
+  }
+}
+
 export function errorise(value: any): Error {
   if (isError(value)) {
     return value

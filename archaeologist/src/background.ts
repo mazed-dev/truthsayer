@@ -869,10 +869,16 @@ browser.runtime.onMessage.addListener(
       try {
         return await bg.onMessageFromOtherPartsOfArchaeologist(message, sender)
       } catch (reason) {
-        log.error(
-          `Failed to process '${message.direction}' message '${message.type}': ` +
-            `${errorise(reason).message}`
-        )
+        const error = errorise(reason)
+        if (isAbortError(error)) {
+          log.debug(
+            `Aborted processing '${message.direction}' message '${message.type}': ${error.message}`
+          )
+        } else {
+          log.error(
+            `Failed to process '${message.direction}' message '${message.type}': ${error.message}`
+          )
+        }
         throw reason
       }
     }
@@ -890,10 +896,16 @@ browser.runtime.onMessageExternal.addListener(
       try {
         return bg.onMessageFromTruthsayer(message, sender)
       } catch (reason) {
-        log.error(
-          `Failed to process 'from-truthsayer' message '${message.type}', ` +
-            `${errorise(reason).message}`
-        )
+        const error = errorise(reason)
+        if (isAbortError(error)) {
+          log.debug(
+            `Aborted processing 'from-truthsayer' message '${message.type}', ${error.message}`
+          )
+        } else {
+          log.error(
+            `Failed to process 'from-truthsayer' message '${message.type}', ${error.message}`
+          )
+        }
         throw reason
       }
     }

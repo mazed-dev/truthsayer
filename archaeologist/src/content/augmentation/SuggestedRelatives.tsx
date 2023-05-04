@@ -3,7 +3,7 @@ import lodash from 'lodash'
 
 import type { Nid } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
-import { errorise, log, productanalytics, sleep } from 'armoury'
+import { errorise, log, productanalytics, sleep, isAbortError } from 'armoury'
 
 import { FromBackground, FromContent } from '../../message/types'
 import { extractSimilaritySearchPhraseFromPageContent } from '../extractor/webPageSearchPhrase'
@@ -167,15 +167,18 @@ export function SuggestedRelatives({
           } catch (e) {
             // Don't set empty list of suggestions here, keep whateve previously
             // was suggested to show at least something
-            productanalytics.error(
-              analytics ?? null,
-              {
-                failedTo: 'get content suggestions',
-                location: 'floater',
-                cause: errorise(e).message,
-              },
-              { andLog: true }
-            )
+            const error = errorise(e)
+            if (!isAbortError(error)) {
+              productanalytics.error(
+                analytics ?? null,
+                {
+                  failedTo: 'get content suggestions',
+                  location: 'floater',
+                  cause: error.message,
+                },
+                { andLog: true }
+              )
+            }
           }
           setSuggestionsSearchIsActive(false)
         },
