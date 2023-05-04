@@ -99,7 +99,7 @@ export function extractPageUrl(document_: Document): string {
 
 export function extractReadableTextFromPage(document_: Document): string {
   const url = stabiliseUrlForOriginId(document_.URL || document_.documentURI)
-  const useCustomExtractors = _useCustomExtractors(url)
+  const useCustomExtractors = shouldUseCustomExtractorsFor(url)
   const { textContent } = useCustomExtractors
     ? _extractPageContentCustom(document_, url, url)
     : _extractPageContentMozila(document_, url)
@@ -114,7 +114,7 @@ export function extractPageContent(
   baseURL: string
 ): WebPageContent {
   const url = stabiliseUrlForOriginId(document_.URL || document_.documentURI)
-  const useCustomExtractors = _useCustomExtractors(url)
+  const useCustomExtractors = shouldUseCustomExtractorsFor(url)
   const {
     title,
     description,
@@ -158,9 +158,8 @@ const kUrlMasksToUseCustomExtractorsFor: RegExp[] = [
   /https:\/\/docs\.google\.com\/document\/d\//i,
   /https:\/\/notion\.so\//i,
   /https:\/\/youtube\.com\//i,
-  /https:\/\/example\.org\//i,
 ]
-export function _useCustomExtractors(url: string): boolean {
+export function shouldUseCustomExtractorsFor(url: string): boolean {
   return !!kUrlMasksToUseCustomExtractorsFor.find((r: RegExp) => {
     return url.match(r)
   })
@@ -222,7 +221,7 @@ function selectTextFromDomElement(
  *   - ARIA element role: `article`, `main`.
  *   - ? Element class: `content`, `main`
  */
-export function _extractPageTextCustom(
+export function extractPageTextCustom(
   document_: Document,
   url: string
 ): string {
@@ -748,7 +747,7 @@ export function _extractPageContentCustom(
 ): ExtractedPageAttributes & { textContent?: string } {
   const { title, description, lang, author, publisher, thumbnailUrls } =
     _extractPageAttributes(document_, baseURL)
-  const textContent = _extractPageTextCustom(document_, url)
+  const textContent = extractPageTextCustom(document_, url)
   return {
     title,
     description,

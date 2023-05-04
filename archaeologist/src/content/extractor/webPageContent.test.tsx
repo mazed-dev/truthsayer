@@ -12,7 +12,7 @@ import {
   _extractPageAuthor,
   _extractPageLanguage,
   _extractPagePublisher,
-  _extractPageTextCustom,
+  extractPageTextCustom,
   _extractPageTitle,
   _extractYouTubeVideoObjectSchema,
   _extractPageAttributes,
@@ -23,7 +23,7 @@ import {
 
 const { JSDOM } = jsdom
 
-test('_extractPageTextCustom - main', () => {
+test('extractPageTextCustom - main', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html class="responsive">
 <head>
@@ -41,11 +41,11 @@ test('_extractPageTextCustom - main', () => {
 </body>
 </html>
 `)
-  const text = _extractPageTextCustom(dom.window.document, '')
+  const text = extractPageTextCustom(dom.window.document, '')
   expect(text).toStrictEqual('First and second Third and forth')
 })
 
-test('_extractPageTextCustom - article', () => {
+test('extractPageTextCustom - article', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html class="responsive">
 <head>
@@ -61,11 +61,11 @@ test('_extractPageTextCustom - article', () => {
 </body>
 </html>
 `)
-  const text = _extractPageTextCustom(dom.window.document, '')
+  const text = extractPageTextCustom(dom.window.document, '')
   expect(text).toStrictEqual('First and second Third and forth')
 })
 
-test('_extractPageTextCustom - <div role="main">', () => {
+test('extractPageTextCustom - <div role="main">', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html class="responsive">
 <head>
@@ -81,11 +81,11 @@ test('_extractPageTextCustom - <div role="main">', () => {
 </body>
 </html>
 `)
-  const text = _extractPageTextCustom(dom.window.document, '')
+  const text = extractPageTextCustom(dom.window.document, '')
   expect(text).toStrictEqual('First and second Third and forth')
 })
 
-test('_extractPageTextCustom - nested elements', () => {
+test('extractPageTextCustom - nested elements', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html class="responsive">
 <head>
@@ -101,7 +101,7 @@ test('_extractPageTextCustom - nested elements', () => {
 </body>
 </html>
 `)
-  const text = _extractPageTextCustom(dom.window.document, '')
+  const text = extractPageTextCustom(dom.window.document, '')
   expect(text).toStrictEqual('First and second Third and forth')
 })
 

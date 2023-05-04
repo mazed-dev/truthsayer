@@ -2,6 +2,7 @@ import { isMemorable } from './unmemorable'
 import { isSearchEngineQueryUrl } from './searchEngineQuery'
 import { log } from 'armoury'
 import { isProbablyReaderable } from '@mozilla/readability'
+import { shouldUseCustomExtractorsFor, extractPageTextCustom } from '../webPageContent'
 
 const kHomepage: RegExp[] = [
   /^\/?$/, // empty path
@@ -81,6 +82,17 @@ export function _isTitleOfNotFoundPage(title?: string | null): boolean {
   return false
 }
 
+
+function isPageReaderable(url: string, document_: Document): boolean {
+  if (shouldUseCustomExtractorsFor(url)) {
+    const text = extractPageTextCustom(document_, url)
+  } else {
+    return isProbablyReaderable(document_, {
+      // Experimental value, selected based on results for very small pages
+      minContentLength: 300,
+    })
+}
+
 export function isPageAutosaveable(url: string, document_?: Document): boolean {
   if (_isManuallyAllowed(url)) {
     log.debug('Autosaving is manually allowed for', url)
@@ -110,10 +122,7 @@ export function isPageAutosaveable(url: string, document_?: Document): boolean {
     log.debug('The page is likely 404 - autosaving is blocked for', url)
     return false
   }
-  const isPageProbablyReaderable = isProbablyReaderable(document_, {
-    // Experimental value, selected based on results for very small pages
-    minContentLength: 300,
-  })
+  const isPageProbablyReaderable = isPageReaderable(url, document_)
   log.debug('The page is readable ->', isPageProbablyReaderable)
   return isPageProbablyReaderable
 }
