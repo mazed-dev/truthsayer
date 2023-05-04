@@ -7,23 +7,23 @@ import type React from 'react' // eslint-disable-line @typescript-eslint/no-unus
 import jsdom from 'jsdom'
 
 import {
+  _cureTextContent,
   _cureTitle,
-  _exctractPageAuthor,
-  _exctractPageLanguage,
-  _exctractPagePublisher,
-  _exctractPageText,
-  _exctractPageTitle,
-  _exctractYouTubeVideoObjectSchema,
+  _extractPageAuthor,
+  _extractPageLanguage,
+  _extractPagePublisher,
+  _extractPageTextCustom,
+  _extractPageTitle,
+  _extractYouTubeVideoObjectSchema,
   _extractPageAttributes,
   _extractPageThumbnailUrls,
   _extractPlainTextFromContentHtml,
-  _postProcessPagePlainTextSpecialPages,
-  exctractPageContent,
+  extractPageContent,
 } from './webPageContent'
 
 const { JSDOM } = jsdom
 
-test('_exctractPageText - main', () => {
+test('_extractPageTextCustom - main', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html class="responsive">
 <head>
@@ -41,11 +41,11 @@ test('_exctractPageText - main', () => {
 </body>
 </html>
 `)
-  const text = _exctractPageText(dom.window.document)
+  const text = _extractPageTextCustom(dom.window.document, '')
   expect(text).toStrictEqual('First and second Third and forth')
 })
 
-test('_exctractPageText - article', () => {
+test('_extractPageTextCustom - article', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html class="responsive">
 <head>
@@ -61,11 +61,11 @@ test('_exctractPageText - article', () => {
 </body>
 </html>
 `)
-  const text = _exctractPageText(dom.window.document)
+  const text = _extractPageTextCustom(dom.window.document, '')
   expect(text).toStrictEqual('First and second Third and forth')
 })
 
-test('_exctractPageText - <div role="main">', () => {
+test('_extractPageTextCustom - <div role="main">', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html class="responsive">
 <head>
@@ -81,11 +81,11 @@ test('_exctractPageText - <div role="main">', () => {
 </body>
 </html>
 `)
-  const text = _exctractPageText(dom.window.document)
+  const text = _extractPageTextCustom(dom.window.document, '')
   expect(text).toStrictEqual('First and second Third and forth')
 })
 
-test('_exctractPageText - nested elements', () => {
+test('_extractPageTextCustom - nested elements', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html class="responsive">
 <head>
@@ -101,11 +101,11 @@ test('_exctractPageText - nested elements', () => {
 </body>
 </html>
 `)
-  const text = _exctractPageText(dom.window.document)
+  const text = _extractPageTextCustom(dom.window.document, '')
   expect(text).toStrictEqual('First and second Third and forth')
 })
 
-test('_exctractPageTitle - <title>', () => {
+test('_extractPageTitle - <title>', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html>
 <head>
@@ -116,11 +116,11 @@ test('_exctractPageTitle - <title>', () => {
 </body>
 </html>
 `)
-  const text = _exctractPageTitle(dom.window.document)
+  const text = _extractPageTitle(dom.window.document)
   expect(text).toStrictEqual('Correct title')
 })
 
-test('_exctractPageTitle - <meta property="og:title">', () => {
+test('_extractPageTitle - <meta property="og:title">', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html>
 <head>
@@ -130,11 +130,11 @@ test('_exctractPageTitle - <meta property="og:title">', () => {
 </body>
 </html>
 `)
-  const text = _exctractPageTitle(dom.window.document)
+  const text = _extractPageTitle(dom.window.document)
   expect(text).toStrictEqual('Correct title')
 })
 
-test('_exctractPageAuthor', () => {
+test('_extractPageAuthor', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html>
 <head>
@@ -146,14 +146,11 @@ test('_exctractPageAuthor', () => {
 </body>
 </html>
 `)
-  const author = _exctractPageAuthor(dom.window.document)
-  expect(author).toStrictEqual([
-    'Correct First Author',
-    'Correct Second Author',
-  ])
+  const author = _extractPageAuthor(dom.window.document)
+  expect(author).toStrictEqual(['Correct First Author'])
 })
 
-test('_exctractPageLanguage', () => {
+test('_extractPageLanguage', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -162,11 +159,11 @@ test('_exctractPageLanguage', () => {
 </body>
 </html>
 `)
-  const lang = _exctractPageLanguage(dom.window.document)
+  const lang = _extractPageLanguage(dom.window.document)
   expect(lang).toStrictEqual('en')
 })
 
-test('_exctractPagePublisher', () => {
+test('_extractPagePublisher', () => {
   const dom = new JSDOM(`<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -177,11 +174,11 @@ test('_exctractPagePublisher', () => {
 </html>
 `)
   const head = dom.window.document.getElementsByTagName('head')[0]
-  const publisher = _exctractPagePublisher(head)
+  const publisher = _extractPagePublisher(head)
   expect(publisher).toStrictEqual(['The Publisher Abc'])
 })
 
-test('exctractPageContent - main', async () => {
+test('extractPageContent - main', async () => {
   const originalUrl = 'https://example.org/test.html'
   const origin = 'https://example.org'
   const dom = new JSDOM(
@@ -189,8 +186,7 @@ test('exctractPageContent - main', async () => {
 <html class="responsive" lang="en">
 <head>
   <title>Some title</title>
-  <meta property="author" content="Correct First Author">
-  <meta property="author" content="Correct Second Author">
+  <meta property="author" content="Correct Author">
   <meta property="og:site_name" content="The Publisher">
   <meta name="twitter:description" content="A JavaScript implementation">
   <link rel="icon" class="js-site-favicon" type="image/svg+xml" href="https://example.com/favicons/favicon-dark.svg">
@@ -210,14 +206,11 @@ test('exctractPageContent - main', async () => {
     { url: originalUrl }
   )
 
-  const content = exctractPageContent(dom.window.document, origin)
+  const content = extractPageContent(dom.window.document, origin)
   expect(content.text).toStrictEqual('First and second Third and forth')
   expect(content.url).toStrictEqual(originalUrl)
   expect(content.title).toStrictEqual('Some title')
-  expect(content.author).toStrictEqual([
-    'Correct First Author',
-    'Correct Second Author',
-  ])
+  expect(content.author).toStrictEqual(['Correct Author'])
   expect(content.publisher).toStrictEqual(['The Publisher'])
   expect(content.description).toStrictEqual('A JavaScript implementation')
   expect(content.lang).toStrictEqual('en')
@@ -239,7 +232,7 @@ const kYoutubeDom = new JSDOM(
   { url: kYoutubeUrl }
 )
 test('YouTube special extractor', () => {
-  const videoObject = _exctractYouTubeVideoObjectSchema(
+  const videoObject = _extractYouTubeVideoObjectSchema(
     kYoutubeDom.window.document
   )
   expect(videoObject?.name).toStrictEqual('Lorem Ipsum')
@@ -315,8 +308,7 @@ test('_extractPlainTextFromContentHtml - put extra dot after header and table ro
   expect(
     _extractPlainTextFromContentHtml(
       '<div><h2>From the Crew</h2><h3> </h3><h3></h3><p>Just one extra message</p></div>',
-      '',
-      'https://example.com'
+      ''
     )
   ).toStrictEqual('From the Crew. Just one extra message')
   expect(
@@ -327,20 +319,16 @@ test('_extractPlainTextFromContentHtml - put extra dot after header and table ro
         <tr><td>Alma mater</td><td>	University of London (MD)</td></tr>
       </tbody></table>
       `,
-      '',
-      'https://example.com'
+      ''
     )
   ).toStrictEqual('Born 15 March 1813. Alma mater University of London (MD).')
 })
-test('_postProcessPagePlainTextSpecialPages', () => {
+test('_cureTextContent', () => {
   expect(
-    _postProcessPagePlainTextSpecialPages(
-      'New Guinea, to Hainan.[2]',
-      'https://en.exsmple.com'
-    )
+    _cureTextContent('New Guinea, to Hainan.[2]', 'https://en.example.com')
   ).toStrictEqual('New Guinea, to Hainan.[2]')
   expect(
-    _postProcessPagePlainTextSpecialPages(
+    _cureTextContent(
       '[edit] the former Australian territory of New Guinea, to Hainan.[2] The sinking',
       'https://en.wikipedia.org/wiki/Montevideo'
     )

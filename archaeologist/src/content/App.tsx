@@ -32,8 +32,8 @@ import {
 import { genElementDomPath } from './extractor/html'
 import { isMemorable } from './extractor/url/unmemorable'
 import {
-  exctractPageContent,
-  exctractPageUrl,
+  extractPageContent,
+  extractPageUrl,
   fetchAnyPagePreviewImage,
 } from './extractor/webPageContent'
 import { extractSimilaritySearchPhraseFromPageContent } from './extractor/webPageSearchPhrase'
@@ -55,7 +55,7 @@ import { FromArchaeologistContent } from 'truthsayer-archaeologist-communication
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
   const content = isMemorable(origin.stableUrl)
-    ? exctractPageContent(document, baseURL)
+    ? extractPageContent(document, baseURL)
     : undefined
   if (content) {
     const image = await fetchAnyPagePreviewImage(
@@ -126,10 +126,13 @@ type InitializedState = {
   analytics: PostHog | null
 
   tabStatus: {
-    // A counter that get bumped each time when the tab is re-activated, which
+    // A counter that gets bumped each time when the tab is re-activated, which
     // means user returned to the tab from another one. It's used now to trigger
     // new similarity search for suggestions on every change of this number.
     activationCounter: number
+    // A counter that gets bumped each time when background observe changes to
+    // the tab's title.
+    titleUpdateCounter: number
   }
 }
 
@@ -150,7 +153,7 @@ type Action =
 function updateState(state: State, action: Action): State {
   switch (action.type) {
     case 'init-app': {
-      const originIdentity = genOriginId(exctractPageUrl(document))
+      const originIdentity = genOriginId(extractPageUrl(document))
       if (
         state.mode !== 'uninitialised-content-app' &&
         state.originIdentity.stableUrl === originIdentity.stableUrl
@@ -247,6 +250,7 @@ function updateState(state: State, action: Action): State {
         analytics,
         tabStatus: {
           activationCounter: 0,
+          titleUpdateCounter: 0,
         },
       }
     }
@@ -292,15 +296,21 @@ function updateState(state: State, action: Action): State {
       }
     case 'notify-tab-status-update':
       if (state.mode === 'uninitialised-content-app') {
-        throw new Error("Can't update tab state of an unitialized content app")
-      }
-      const { activated } = action.data.change
-      return {
-        ...state,
-        tabStatus: {
-          activationCounter:
-            state.tabStatus.activationCounter + (!!activated ? 1 : 0),
-        },
+        log.debug(
+          "Can't update tab state of an unitialized content app, drop the update"
+        )
+        return state
+      } else {
+        const { activated, titleUpdated } = action.data.change
+        return {
+          ...state,
+          tabStatus: {
+            activationCounter:
+              state.tabStatus.activationCounter + (!!activated ? 1 : 0),
+            titleUpdateCounter:
+              state.tabStatus.titleUpdateCounter + (!!titleUpdated ? 1 : 0),
+          },
+        }
       }
   }
 }
@@ -493,6 +503,7 @@ const App = () => {
                 state.bookmark
               )}
               tabActivationCounter={state.tabStatus.activationCounter}
+              tabTitleUpdateCounter={state.tabStatus.titleUpdateCounter}
             />
           </>
         )}
