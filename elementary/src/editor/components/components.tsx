@@ -1,5 +1,12 @@
 import styled from '@emotion/styled'
 
+const kParagraphMarginStyles = `
+  margin-top: 0;
+  margin-bottom: 1em;
+  &:last-child {
+    margin-bottom: 0;
+  }
+`
 export const InlineLink = styled.a`
   font-weight: 500;
   text-decoration-line: none;
@@ -12,7 +19,8 @@ export const InlineLink = styled.a`
 
 export const BlockQuoteBox = styled.div`
   padding: 6px 0 6px 0;
-  margin: 1em 0 0 0;
+  ${kParagraphMarginStyles}
+
   border-radius: 5px;
   font-style: italic;
 `
@@ -26,7 +34,6 @@ export const BlockQuotePad = styled.blockquote`
 `
 
 export const CodeBlockBox = styled.code`
-  margin: 0;
   padding: 4px 12px 4px 12px;
 
   background-color: rgb(246, 248, 248);
@@ -42,9 +49,9 @@ export const CodeBlockBox = styled.code`
 
   &:last-of-type {
     border-radius: 0 0 6px 6px;
-    margin-top: 0;
-    margin-bottom: 1em;
   }
+
+  ${kParagraphMarginStyles}
 `
 
 export const DateTimePill = styled.span`
@@ -90,8 +97,7 @@ export const HorizontalRule = styled.div`
     rgba(0, 0, 0, 0.312),
     rgba(0, 0, 0, 0)
   );
-  margin-top: 0;
-  margin-bottom: 1em;
+  ${kParagraphMarginStyles}
 `
 
 export const Header1Box = styled.h6`
@@ -102,7 +108,7 @@ export const Header1Box = styled.h6`
   /* color: #1a4301; */
   color: #004b23;
 
-  margin: 1em 0 0 0;
+  ${kParagraphMarginStyles}
 `
 
 export const Header2Box = styled.h6`
@@ -112,7 +118,7 @@ export const Header2Box = styled.h6`
   color: #006400;
   display: block;
 
-  margin: 1em 0 0 0;
+  ${kParagraphMarginStyles}
 `
 
 export const Header3Box = styled.h6`
@@ -122,7 +128,7 @@ export const Header3Box = styled.h6`
   color: #007200;
   display: block;
 
-  margin: 1em 0 0 0;
+  ${kParagraphMarginStyles}
 `
 
 export const Header4Box = styled.h6`
@@ -132,7 +138,7 @@ export const Header4Box = styled.h6`
   color: #008000;
   display: block;
 
-  margin: 1em 0 0 0;
+  ${kParagraphMarginStyles}
 `
 
 export const Header5Box = styled.h6`
@@ -142,7 +148,7 @@ export const Header5Box = styled.h6`
   color: #38b000;
   display: block;
 
-  margin: 1em 0 0 0;
+  ${kParagraphMarginStyles}
 `
 
 export const Header6Box = styled.h6`
@@ -152,7 +158,7 @@ export const Header6Box = styled.h6`
   color: #70e000;
   display: block;
 
-  margin: 1em 0 0 0;
+  ${kParagraphMarginStyles}
 `
 
 const kColourCodeBg = 'rgba(27, 31, 35, 0.05)'
@@ -207,6 +213,7 @@ export const ListItemBox = styled.li`
 
 export const ParagraphBox = styled.p`
   white-space: pre-wrap;
-  margin: 1em 0 0 0;
   display: block;
+
+  ${kParagraphMarginStyles}
 `

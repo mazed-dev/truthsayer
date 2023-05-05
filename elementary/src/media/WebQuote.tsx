@@ -5,7 +5,6 @@ import { log, MimeType, productanalytics } from 'armoury'
 import { BlockQuoteBox, BlockQuotePad } from '../editor/components/components'
 
 import { Launch as LaunchIcon } from '@emotion-icons/material'
-import { OverlayCopyOnHover } from '../OverlayCopyOnHover'
 
 import styled from '@emotion/styled'
 import type { ElementaryContext } from '../context'
@@ -53,7 +52,6 @@ const WebBlockQuotePad = styled(BlockQuotePad)`
 `
 
 export const WebQuote = ({
-  ctx,
   extattrs,
   className,
   strippedRefs,
@@ -80,20 +78,12 @@ export const WebQuote = ({
   return (
     <Box className={className}>
       <WebBlockQuoteBox className={className}>
-        <OverlayCopyOnHover
-          ctx={ctx}
-          analytics={{ subject: 'quote' }}
-          getTextToCopy={() => {
-            return `“${text}” ${author ?? ''} ${web_quote.url}`
-          }}
+        <WebBlockQuotePad
+          cite={web_quote.url}
+          className={productanalytics.classExclude()}
         >
-          <WebBlockQuotePad
-            cite={web_quote.url}
-            className={productanalytics.classExclude()}
-          >
-            {text}
-          </WebBlockQuotePad>
-        </OverlayCopyOnHover>
+          {text}
+        </WebBlockQuotePad>
         {strippedRefs ? null : (
           <RefBox>
             <RefLink

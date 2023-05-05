@@ -2,8 +2,8 @@
 
 import React, { useState, useCallback, useMemo } from 'react'
 
-import { css } from '@emotion/react'
-import { Editable, Slate, withReact } from 'slate-react'
+import { Slate, withReact } from 'slate-react'
+import { EditableStyled } from './SlateStyled'
 import { createEditor } from 'slate'
 
 import { withHistory } from 'slate-history'
@@ -18,7 +18,7 @@ import { Leaf } from './components/Leaf'
 
 import { FormatToolbar } from './FormatToolbar'
 import { TDoc, SlateText } from './types'
-import type { StorageApi, TNode } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 
 import { makeElementRender } from './ElementRender'
 import { productanalytics } from 'armoury'
@@ -88,15 +88,12 @@ export const NodeTextEditor = ({
         }}
       >
         {strippedFormatToolbar ? null : <FormatToolbar />}
-        <Editable
+        <EditableStyled
           className={productanalytics.classExclude()}
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           spellCheck
           autoFocus
-          css={css`
-            padding: 0 1em 0 1em;
-          `}
         />
       </Slate>
     </div>
