@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 import styled from '@emotion/styled'
 
-import type { TNode, StorageApi } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 import { productanalytics } from 'armoury'
 import { NodeTextReader } from './editor/NodeTextReader'
 import { Spinner } from './spinner/mod'
@@ -39,7 +39,7 @@ export function NodeCardReadOnly({
         strippedActions={strippedActions}
         webBookmarkDescriptionConfig={webBookmarkDescriptionConfig}
       />
-      <NodeTextReader ctx={ctx} node={node} />
+      <NodeTextReader node={node} />
     </NodeCardBox>
   )
 }

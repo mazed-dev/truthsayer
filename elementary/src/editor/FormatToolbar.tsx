@@ -49,8 +49,8 @@ const ToolbarButtonActive = styled(ToolbarButtonInactive)`
 
 const ToolbarBox = styled(ButtonGroup)`
   border-bottom: 1px solid ${kCardBorderColour};
-  padding: 6px 0 6px 0px;
-  margin: 0;
+  padding: 6px 0 6px 0;
+  margin-top: 8px;
   display: flex;
   /* To make usable on narrow screens */
   /* https://www.w3schools.com/howto/howto_css_menu_horizontal_scroll.asp */

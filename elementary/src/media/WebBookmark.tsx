@@ -15,7 +15,7 @@ import {
 import { log } from 'armoury'
 import styled from '@emotion/styled'
 
-import { OverlayCopyOnHover } from '../OverlayCopyOnHover'
+import { CopyFieldHandle } from '../CopyFieldHandle'
 import type { ElementaryContext } from '../context'
 
 const Box = styled.div`
@@ -157,7 +157,6 @@ const BookmarkUrlStrippedBox = styled.a`
   color: #478ac0;
   font-weight: 400;
   line-height: 1em;
-  margin: 0 0 4px 0;
 
   width: 18em;
   white-space: nowrap;
@@ -192,7 +191,7 @@ const BookmarkUrlStripped = ({
 }
 
 const Author = styled.p`
-  margin: 0 0 2px 0;
+  margin: 0.25em 0 0.25em 0;
   font-size: 0.84em;
   font-style: italic;
 `
@@ -203,7 +202,7 @@ const Description = styled.blockquote`
   overflow-wrap: break-word;
   word-break: normal;
 
-  padding: 8px 8px 8px 8px;
+  padding: 10px 10px 0 10px;
   margin: 0;
   color: inherit;
 
@@ -253,13 +252,11 @@ const MatchDescriptionSeeMoreBtn = styled.span`
 `
 
 const BookmarkMatchDescription = ({
-  ctx,
   url,
   match,
   prefix,
   suffix,
 }: {
-  ctx: ElementaryContext
   url: string
   match: string
   prefix: string
@@ -267,42 +264,32 @@ const BookmarkMatchDescription = ({
 }) => {
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
   return (
-    <OverlayCopyOnHover
-      ctx={ctx}
-      analytics={{ subject: 'description' }}
-      getTextToCopy={() => {
-        return seeMore ? [prefix, match, suffix].join(' ') : match
-      }}
-    >
-      <Description cite={url} className={productanalytics.classExclude()}>
-        {!seeMore ? (
-          <MatchDescriptionContextSpan>{match}</MatchDescriptionContextSpan>
-        ) : (
-          <>
-            <MatchDescriptionContextSpan>
-              {padNonEmptyStringWithSpaceTail(prefix)}
-            </MatchDescriptionContextSpan>
-            <MatchDescriptionSpan>{match}</MatchDescriptionSpan>
-            <MatchDescriptionContextSpan>
-              {padNonEmptyStringWithSpaceHead(suffix)}
-            </MatchDescriptionContextSpan>
-          </>
-        )}
-        &nbsp;
-        <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore((more) => !more)}>
-          see&nbsp;{seeMore ? 'less' : 'more'}
-        </MatchDescriptionSeeMoreBtn>
-      </Description>
-    </OverlayCopyOnHover>
+    <Description cite={url} className={productanalytics.classExclude()}>
+      {!seeMore ? (
+        <MatchDescriptionContextSpan>{match}</MatchDescriptionContextSpan>
+      ) : (
+        <>
+          <MatchDescriptionContextSpan>
+            {padNonEmptyStringWithSpaceTail(prefix)}
+          </MatchDescriptionContextSpan>
+          <MatchDescriptionSpan>{match}</MatchDescriptionSpan>
+          <MatchDescriptionContextSpan>
+            {padNonEmptyStringWithSpaceHead(suffix)}
+          </MatchDescriptionContextSpan>
+        </>
+      )}
+      &nbsp;
+      <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore((more) => !more)}>
+        see&nbsp;{seeMore ? 'less' : 'more'}
+      </MatchDescriptionSeeMoreBtn>
+    </Description>
   )
 }
 
 const BookmarkOriginalDescription = ({
-  ctx,
   url,
   description,
 }: {
-  ctx: ElementaryContext
   url: string
   description: string
 }) => {
@@ -312,40 +299,32 @@ const BookmarkOriginalDescription = ({
     [description]
   )
   return (
-    <OverlayCopyOnHover
-      ctx={ctx}
-      analytics={{ subject: 'description' }}
-      getTextToCopy={() => (seeMore ? description : visible)}
-    >
-      <Description cite={url} className={productanalytics.classExclude()}>
-        <MatchDescriptionContextSpan>{visible}</MatchDescriptionContextSpan>
-        {hidden ? (
-          <>
-            <MatchDescriptionContextSpan
-              css={{ display: seeMore ? 'inline' : 'none' }}
-            >
-              {padNonEmptyStringWithSpaceHead(hidden)}
-            </MatchDescriptionContextSpan>
-            {!seeMore ? '… ' : ' '}
-            <MatchDescriptionSeeMoreBtn
-              onClick={() => setSeeMore((more) => !more)}
-            >
-              see&nbsp;{seeMore ? 'less' : 'more'}
-            </MatchDescriptionSeeMoreBtn>
-          </>
-        ) : null}
-      </Description>
-    </OverlayCopyOnHover>
+    <Description cite={url} className={productanalytics.classExclude()}>
+      <MatchDescriptionContextSpan>{visible}</MatchDescriptionContextSpan>
+      {hidden ? (
+        <>
+          <MatchDescriptionContextSpan
+            css={{ display: seeMore ? 'inline' : 'none' }}
+          >
+            {padNonEmptyStringWithSpaceHead(hidden)}
+          </MatchDescriptionContextSpan>
+          {!seeMore ? '… ' : ' '}
+          <MatchDescriptionSeeMoreBtn
+            onClick={() => setSeeMore((more) => !more)}
+          >
+            see&nbsp;{seeMore ? 'less' : 'more'}
+          </MatchDescriptionSeeMoreBtn>
+        </>
+      ) : null}
+    </Description>
   )
 }
 
 const BookmarkDescription = ({
-  ctx,
   url,
   description,
   webBookmarkDescriptionConfig,
 }: {
-  ctx: ElementaryContext
   url: string
   description?: string
   webBookmarkDescriptionConfig: WebBookmarkDescriptionConfig
@@ -358,32 +337,19 @@ const BookmarkDescription = ({
         return null
       }
       return (
-        <OverlayCopyOnHover
-          ctx={ctx}
-          analytics={{ subject: 'description' }}
-          getTextToCopy={() => description}
-        >
-          <Description cite={url} className={productanalytics.classExclude()}>
-            {description}
-          </Description>
-        </OverlayCopyOnHover>
+        <Description cite={url} className={productanalytics.classExclude()}>
+          {description}
+        </Description>
       )
     case 'original-cutted':
       if (!description) {
         return null
       }
-      return (
-        <BookmarkOriginalDescription
-          ctx={ctx}
-          url={url}
-          description={description}
-        />
-      )
+      return <BookmarkOriginalDescription url={url} description={description} />
     case 'match':
       const { match, prefix, suffix } = webBookmarkDescriptionConfig
       return (
         <BookmarkMatchDescription
-          ctx={ctx}
           url={url}
           match={match}
           prefix={prefix}
@@ -418,15 +384,9 @@ export const WebBookmark = ({
   const url = web.url
   const hostname = new URL(url).hostname
   const authorBadge = author ? (
-    <OverlayCopyOnHover
-      ctx={ctx}
-      analytics={{ subject: 'author' }}
-      getTextToCopy={() => author}
-    >
-      <Author className={productanalytics.classExclude()}>
-        &mdash; {author}
-      </Author>
-    </OverlayCopyOnHover>
+    <Author className={productanalytics.classExclude()}>
+      &mdash; {author}
+    </Author>
   ) : null
   return (
     <Box className={className}>
@@ -438,29 +398,23 @@ export const WebBookmark = ({
           onLaunch={onLaunch}
         />
         <TitleBox>
-          <OverlayCopyOnHover
-            ctx={ctx}
-            analytics={{ subject: 'title' }}
-            getTextToCopy={() => title ?? null}
-          >
-            <Title className={productanalytics.classExclude()}>{title}</Title>
-          </OverlayCopyOnHover>
-          <OverlayCopyOnHover
+          <Title className={productanalytics.classExclude()}>{title}</Title>
+          <CopyFieldHandle
             ctx={ctx}
             analytics={{ subject: 'url' }}
             getTextToCopy={() => url}
+            disabled={strippedRefs}
           >
             <BookmarkUrlStripped
               ctx={ctx}
               className={productanalytics.classExclude()}
               url={url}
             />
-          </OverlayCopyOnHover>
+          </CopyFieldHandle>
           {authorBadge}
         </TitleBox>
       </BadgeBox>
       <BookmarkDescription
-        ctx={ctx}
         url={url}
         description={description}
         webBookmarkDescriptionConfig={

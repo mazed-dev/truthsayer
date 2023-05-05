@@ -1,8 +1,8 @@
 /** @jsxImportSource @emotion/react */
 
 import React, { useCallback, useMemo } from 'react'
-import { css } from '@emotion/react'
-import { Editable, Slate, withReact } from 'slate-react'
+import { Slate, withReact } from 'slate-react'
+import { EditableStyled } from './SlateStyled'
 import { createEditor } from 'slate'
 
 import { withTypography } from './plugins/typography'
@@ -15,16 +15,12 @@ import { TDoc } from './types'
 import type { TNode } from 'smuggler-api'
 
 import { makeElementRender } from './ElementRender'
-import { OverlayCopyOnHover } from '../OverlayCopyOnHover'
 import { productanalytics } from 'armoury'
-import type { ElementaryContext } from '../context'
 
 export const NodeTextReader = ({
-  ctx,
   className,
   node,
 }: {
-  ctx: ElementaryContext
   node: TNode
   className?: string
 }) => {
@@ -44,25 +40,14 @@ export const NodeTextReader = ({
   return (
     <div className={className}>
       {initialValue.getTextLength() === 0 ? null : (
-        <OverlayCopyOnHover
-          ctx={ctx}
-          analytics={{ subject: 'comment' }}
-          getTextToCopy={() => {
-            return initialValue.genPlainText()
-          }}
-        >
-          <Slate editor={editor} value={initialValue.slate}>
-            <Editable
-              renderElement={renderElement}
-              renderLeaf={renderLeaf}
-              readOnly
-              css={css`
-                padding: 0 0.8em 0.8em 0.8em;
-              `}
-              className={productanalytics.classExclude()}
-            />
-          </Slate>
-        </OverlayCopyOnHover>
+        <Slate editor={editor} value={initialValue.slate}>
+          <EditableStyled
+            renderElement={renderElement}
+            renderLeaf={renderLeaf}
+            readOnly
+            className={productanalytics.classExclude()}
+          />
+        </Slate>
       )}
     </div>
   )

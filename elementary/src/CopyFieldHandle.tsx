@@ -17,17 +17,13 @@ type Props = React.PropsWithChildren<{
   }
   getTextToCopy: () => string | null
   tooltip?: string
+  disabled?: boolean
 }>
 
 const Btn = styled.button`
-  padding: 5px;
+  padding: 0.25em;
 
-  position: absolute;
-  top: 0;
-  right: 0;
-  transform: translate(-10%, -24%);
-
-  display: flex;
+  display: inline-flex;
   align-content: center;
   justify-content: center;
   flex-wrap: nowrap;
@@ -35,37 +31,38 @@ const Btn = styled.button`
 
   zindex: 1;
 
-  visibility: hidden;
-  transition: 0s visibility;
-
   border-style: solid;
   border-width: 0;
   border-radius: 18px;
 
-  background: rgba(0, 0, 0, 0.12);
+  background: inherit;
   opacity: 0.4;
   cursor: pointer;
 
   &:hover {
     opacity: 1;
-  }
-`
-const kBtnId =
-  'mazed-lz89dzqweagmecanst2ax3d3q41j0rmjzrqavt9k5sotavwz3obqq4qrwvorftuc'
-const Box = styled.div`
-  position: relative;
-  &:hover #${kBtnId} {
-    visibility: visible;
-    transition-delay: 0.1s;
+    background: rgba(0, 0, 0, 0.08);
   }
 `
 
-export const OverlayCopyOnHover = ({
+const CopyFieldHandleBox = styled.div`
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  flex-direction: row;
+`
+const CopyFieldHandleChildren = styled.div`
+  display: inline-flex;
+  margin-left: 0.36em;
+`
+export const CopyFieldHandle = ({
   children,
   ctx,
   analytics,
   getTextToCopy,
   tooltip,
+  disabled,
 }: Props) => {
   const [tooltipText, setTooltipText] = React.useState<string>(
     tooltip ?? 'Copy to Clipboard'
@@ -81,18 +78,21 @@ export const OverlayCopyOnHover = ({
       setTooltipText('Copied')
     }
   }
+  if (disabled) {
+    return <>{children}</>
+  }
   return (
-    <Box>
-      {children}
-      <Btn onClick={onClickReal} id={kBtnId}>
+    <CopyFieldHandleBox>
+      <Btn onClick={onClickReal}>
         <HoverTooltip
           tooltip={tooltipText}
           transitionDelaySec={0.21}
-          placement="bottom-left"
+          placement="bottom"
         >
           <CopyIcon size={'1em'} />
         </HoverTooltip>
       </Btn>
-    </Box>
+      <CopyFieldHandleChildren>{children}</CopyFieldHandleChildren>
+    </CopyFieldHandleBox>
   )
 }
