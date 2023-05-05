@@ -42,14 +42,34 @@ export const AugmentationMountPoint = ({
 
 export const AugmentationElement = ({
   children,
-}: React.PropsWithChildren<{}>) => {
+  disableInFullscreenMode,
+}: React.PropsWithChildren<{
+  disableInFullscreenMode?: boolean
+}>) => {
+  const [isFullscreenModeEnabled, setFullscreenModeEnabled] =
+    React.useState<boolean>(false)
+  React.useEffect(() => {
+    const listener = (_event: Event) => {
+      setFullscreenModeEnabled(document.fullscreenElement != null)
+    }
+    document.addEventListener('fullscreenchange', listener)
+    return () => {
+      document.removeEventListener('fullscreenchange', listener)
+    }
+  }, [])
   const box = document.createElement('mazed-archaeologist-toast')
   React.useEffect(
     () => {
       const target = document.getElementById(kMountBoxElementId)
-      target?.appendChild(box)
+      let inserted: boolean = false
+      if (!(disableInFullscreenMode && isFullscreenModeEnabled)) {
+        target?.appendChild(box)
+        inserted = true
+      }
       return () => {
-        target?.removeChild(box)
+        if (inserted) {
+          target?.removeChild(box)
+        }
       }
     }
     /**
