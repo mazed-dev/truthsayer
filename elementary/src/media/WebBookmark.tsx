@@ -202,7 +202,7 @@ const Description = styled.blockquote`
   overflow-wrap: break-word;
   word-break: normal;
 
-  padding: 8px 8px 0 8px;
+  padding: 10px 10px 0 10px;
   margin: 0;
   color: inherit;
 

@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 
-import type { Ack, NodeTextData, StorageApi, TNode } from 'smuggler-api'
+import type { Ack, NodeTextData, TNode } from 'smuggler-api'
 import { NodeTextEditor } from './editor/NodeTextEditor'
 import { SlateText, TDoc } from './editor/types'
 import { Spinner } from './spinner/mod'

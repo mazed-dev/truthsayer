@@ -45,7 +45,7 @@ const WebBlockQuoteBox = styled(BlockQuoteBox)`
 `
 const WebBlockQuotePad = styled(BlockQuotePad)`
   padding: 0 0.8em 0 0.8em;
-  margin: 0 0 0 0.8em;
+  margin: 0 0 0 10px;
 
   overflow-wrap: break-word;
   word-break: normal;

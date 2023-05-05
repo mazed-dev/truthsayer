@@ -2,7 +2,7 @@ import styled from '@emotion/styled'
 
 const kParagraphMarginStyles = `
   margin-top: 0;
-  margin-bottom: 1em;
+  margin-bottom: 0.8em;
   &:last-child {
     margin-bottom: 0;
   }
