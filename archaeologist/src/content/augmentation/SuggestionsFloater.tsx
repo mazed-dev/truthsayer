@@ -347,7 +347,7 @@ export const SuggestionsFloater = ({
     })
   }
   return (
-    <AugmentationElement>
+    <AugmentationElement disableInFullscreenMode>
       {controlledPosition != null ? (
         <Draggable
           onStop={onDragStop}
