@@ -145,7 +145,7 @@ export async function saveWebPage(
   }
   const text = makeEmptyNodeTextData()
   const index_text: NodeIndexText = {
-    plaintext: content.text || undefined,
+    text_blocks: content.textContentBlocks || undefined,
     labels: [],
     brands: [],
     dominant_colors: [],

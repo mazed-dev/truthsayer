@@ -8,6 +8,7 @@ import type {
   StorageApiMsgReturnValue,
   TNodeJson,
   NodeUpdateArgs,
+  TextContentBlock,
 } from 'smuggler-api'
 import { AnalyticsIdentity, ErrorViaMessage, OriginIdentity } from 'armoury'
 import type {
@@ -80,7 +81,7 @@ export interface WebPageContent {
   lang: string | null
   author: string[]
   publisher: string[]
-  text: string | null
+  textContentBlocks: TextContentBlock[]
   image: PreviewImageSmall | null
 }
 
@@ -390,7 +391,7 @@ export namespace FromContent {
   }
   export type PageContentSearchPhraseResponse = {
     type: 'PAGE_CONTENT_SEARCH_PHRASE_RESPONSE'
-    phrase?: string
+    textContentBlocks?: TextContentBlock[]
     nidsExcludedFromSearch: Nid[]
   }
   export interface PageNotWorthSavingResponse {
@@ -416,7 +417,7 @@ export namespace FromContent {
 
   export interface SuggestedAssociationsRequest {
     type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS'
-    phrase: string
+    textContentBlocks: TextContentBlock[]
     limit: number
     excludeNids?: Nid[]
   }

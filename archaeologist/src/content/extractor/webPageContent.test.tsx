@@ -17,9 +17,9 @@ import {
   _extractYouTubeVideoObjectSchema,
   _extractPageAttributes,
   _extractPageThumbnailUrls,
-  _extractPlainTextFromContentHtml,
   extractPageContent,
 } from './webPageContent'
+import { extractTextContentBlocksFromHtml } from './webPageTextFromHtml'
 
 const { JSDOM } = jsdom
 
@@ -207,7 +207,9 @@ test('extractPageContent - custom', async () => {
   )
 
   const content = extractPageContent(dom.window.document, origin)
-  expect(content.text).toStrictEqual('First and second Third and forth')
+  expect(content.textContentBlocks).toStrictEqual([
+    { type: 'P', text: 'First and second Third and forth' },
+  ])
   expect(content.url).toStrictEqual(originalUrl)
   expect(content.title).toStrictEqual('Some title')
   expect(content.author).toStrictEqual(['Correct Author'])
@@ -304,15 +306,15 @@ test('_cureTitle', () => {
   ).toStrictEqual('☕ Checkmate - x926453253@gmail.com')
 })
 
-test('_extractPlainTextFromContentHtml - put extra dot after header and table rows', () => {
+test('extractTextContentBlocksFromHtml - put extra dot after header and table rows', () => {
   expect(
-    _extractPlainTextFromContentHtml(
+    extractTextContentBlocksFromHtml(
       '<div><h2>From the Crew</h2><h3> </h3><h3></h3><p>Just one extra message</p></div>',
       ''
     )
-  ).toStrictEqual('From the Crew. Just one extra message')
+  ).toStrictEqual([{ text: 'From the Crew. Just one extra message' }])
   expect(
-    _extractPlainTextFromContentHtml(
+    extractTextContentBlocksFromHtml(
       `<table><tbody>
         <tr><td>Born</td><td>15 March 1813</td></tr>
         <tr></tr>
@@ -321,18 +323,34 @@ test('_extractPlainTextFromContentHtml - put extra dot after header and table ro
       `,
       ''
     )
-  ).toStrictEqual('Born 15 March 1813. Alma mater University of London (MD).')
+  ).toStrictEqual([
+    {
+      text: 'Born 15 March 1813. Alma mater University of London (MD).',
+      type: 'P',
+    },
+  ])
 })
 test('_cureTextContent', () => {
   expect(
-    _cureTextContent('New Guinea, to Hainan.[2]', 'https://en.example.com')
-  ).toStrictEqual('New Guinea, to Hainan.[2]')
+    _cureTextContent(
+      [{ type: 'P', text: 'New Guinea, to Hainan.[2]' }],
+      'https://en.example.com'
+    )
+  ).toStrictEqual([{ type: 'P', text: 'New Guinea, to Hainan.[2]' }])
   expect(
     _cureTextContent(
-      '[edit] the former Australian territory of New Guinea, to Hainan.[2] The sinking',
+      [
+        {
+          type: 'P',
+          text: '[edit] the former Australian territory of New Guinea, to Hainan.[2] The sinking',
+        },
+      ],
       'https://en.wikipedia.org/wiki/Montevideo'
     )
-  ).toStrictEqual(
-    '[edit] the former Australian territory of New Guinea, to Hainan. The sinking'
-  )
+  ).toStrictEqual([
+    {
+      type: 'P',
+      text: '[edit] the former Australian territory of New Guinea, to Hainan. The sinking',
+    },
+  ])
 })

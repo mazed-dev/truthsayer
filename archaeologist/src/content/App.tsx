@@ -365,13 +365,13 @@ async function handleReadOnlyRequest(
         state.toNodes,
         state.bookmark
       )
-      const phrase =
+      const textContentBlocks =
         extractSimilaritySearchPhraseFromPageContent(document, baseURL) ??
         undefined
       return {
         type: 'PAGE_CONTENT_SEARCH_PHRASE_RESPONSE',
         nidsExcludedFromSearch,
-        phrase,
+        textContentBlocks,
       }
     }
   }

@@ -1,7 +1,7 @@
 import React from 'react'
 import lodash from 'lodash'
 
-import type { Nid } from 'smuggler-api'
+import type { Nid, TextContentBlock } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
 import { errorise, log, productanalytics, sleep, isAbortError } from 'armoury'
 
@@ -29,7 +29,7 @@ export function getKeyPhraseFromUserInput(
 
 type UserInput = {
   target: HTMLTextAreaElement | null
-  phrase: string | null
+  value: string | null
 }
 function updateUserInputFromKeyboardEvent(keyboardEvent: KeyboardEvent) {
   if ('altKey' in keyboardEvent) {
@@ -37,15 +37,15 @@ function updateUserInputFromKeyboardEvent(keyboardEvent: KeyboardEvent) {
       keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
     const target = event.target as HTMLTextAreaElement
     if (target.isContentEditable || target.tagName === 'TEXTAREA') {
-      const phrase = getKeyPhraseFromUserInput(target)
-      return { target, phrase }
+      const value = getKeyPhraseFromUserInput(target)
+      return { target, value }
     }
   }
-  return { target: null, phrase: null }
+  return { target: null, value: null }
 }
 
 type SimilaritySearchInput = {
-  phrase?: string
+  textContentBlocks?: TextContentBlock[]
   isSearchEngine: boolean
 }
 
@@ -100,15 +100,18 @@ export function SuggestedRelatives({
         stableUrl ?? document.location.href
       )
       if (searchEngineQuery?.phrase != null) {
-        return { phrase: searchEngineQuery.phrase, isSearchEngine: true }
+        return {
+          textContentBlocks: [{ type: 'P', text: searchEngineQuery.phrase }],
+          isSearchEngine: true,
+        }
       }
       const baseURL = stableUrl
         ? new URL(stableUrl).origin
         : `${document.location.protocol}//${document.location.host}`
-      const phrase =
+      const textContentBlocks =
         extractSimilaritySearchPhraseFromPageContent(document, baseURL) ??
         undefined
-      return { phrase, isSearchEngine: false }
+      return { textContentBlocks, isSearchEngine: false }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -134,16 +137,16 @@ export function SuggestedRelatives({
     // https://kyleshevlin.com/debounce-and-throttle-callbacks-with-react-hooks
     () =>
       lodash.debounce(
-        async (phrase: string) => {
+        async (textContentBlocks: TextContentBlock[]) => {
           setSuggestionsSearchIsActive(true)
-          log.debug(`Look for the following phrase in Mazed ${phrase}`)
+          log.debug('Look for the following phrase in Mazed', textContentBlocks)
           try {
             const response = await retryIfStillLoading(
               async () =>
                 FromContent.sendMessage({
                   type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS',
                   limit: 8,
-                  phrase,
+                  textContentBlocks,
                   excludeNids,
                 }),
               {
@@ -162,7 +165,6 @@ export function SuggestedRelatives({
             analytics?.capture('Search suggested associations', {
               'Event type': 'search',
               result_length: response.suggested.length,
-              phrase_size: phrase.length,
             })
           } catch (e) {
             // Don't set empty list of suggestions here, keep whateve previously
@@ -189,14 +191,14 @@ export function SuggestedRelatives({
   )
   const [userInput, setUserInput] = React.useState<UserInput>({
     target: null,
-    phrase: null,
+    value: null,
   })
   const consumeKeyboardEvent = React.useCallback(
     (keyboardEvent: KeyboardEvent) => {
       const newInput = updateUserInputFromKeyboardEvent(keyboardEvent)
-      const { phrase } = newInput
-      if (phrase != null && phrase.length > 3 && userInput.phrase !== phrase) {
-        requestSuggestedAssociations(phrase)
+      const { value } = newInput
+      if (value != null && value.length > 3 && userInput.value !== value) {
+        requestSuggestedAssociations([{ text: value, type: 'P' }])
         setUserInput(newInput)
       }
       return newInput
@@ -204,9 +206,9 @@ export function SuggestedRelatives({
     [userInput, requestSuggestedAssociations]
   )
   React.useEffect(() => {
-    const phrase = pageSimilaritySearchInput.phrase
-    if (phrase != null && phrase.length > 3) {
-      requestSuggestedAssociations(phrase)
+    const { textContentBlocks } = pageSimilaritySearchInput
+    if (textContentBlocks) {
+      requestSuggestedAssociations(textContentBlocks)
     }
   }, [
     pageSimilaritySearchInput,
@@ -226,9 +228,9 @@ export function SuggestedRelatives({
       isLoading={suggestionsSearchIsActive}
       defaultRevelaed={pageSimilaritySearchInput.isSearchEngine}
       reloadSuggestions={() => {
-        const phrase = pageSimilaritySearchInput.phrase
-        if (phrase != null && phrase.length > 3) {
-          requestSuggestedAssociations(phrase)?.catch((reason) => {
+        const { textContentBlocks } = pageSimilaritySearchInput
+        if (textContentBlocks) {
+          requestSuggestedAssociations(textContentBlocks)?.catch((reason) => {
             log.error(
               `Failed to manually reload suggestions: ${
                 errorise(reason).message

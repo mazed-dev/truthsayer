@@ -74,8 +74,7 @@ const AttentionTimeTracker = ({
     // see `checkReadingTotalTime` for more details.
     // We simply don't have time for it today, but we will get back to fix it
     // if it becomes a problem.
-    const text = extractReadableTextFromPage(document)
-    const estimation = unicodeText.getTimeToRead(text)
+    const estimation = moment.duration(20, 'seconds')
     log.info('Page estimated reading time in seconds', estimation.asSeconds())
     return estimation
   }, [])

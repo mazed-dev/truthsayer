@@ -120,8 +120,16 @@ export type Color = {
   alpha: number
 }
 
+export type TextContentBlockType = 'P' | 'H'
+export type TextContentBlock = {
+  text: string
+  type: TextContentBlockType
+  level?: number
+}
+
 export type NodeIndexText = {
   plaintext?: string
+  text_blocks?: TextContentBlock[]
   labels: string[]
   brands: string[]
   dominant_colors: Color[]
@@ -423,10 +431,22 @@ export type TfEmbeddingJson = {
   shape: [number, number]
 }
 
-export type NodeSimilaritySearchInfo = null | {
-  signature: {
-    algorithm: 'tf-embed'
-    version: 1 // TensorFlow with universal sentense encoder
-  }
+export type TfEmbeddingForBlockJson = {
+  index: number
   embeddingJson: TfEmbeddingJson
 }
+
+export type NodeSimilaritySearchInfo =
+  | null
+  | {
+      signature: {
+        algorithm: 'tf-embed'
+        version: 1
+      }
+      embeddingJson: TfEmbeddingJson
+    }
+  | {
+      signature: 'tf-embed-2'
+      embeddingJson: TfEmbeddingJson
+      embeddingJsonForBlocks: TfEmbeddingForBlockJson[]
+    }
