@@ -1,5 +1,5 @@
 import browser from 'webextension-polyfill'
-import { log, genOriginId, unixtime, OriginIdentity } from 'armoury'
+import { log, genOriginId, unixtime, OriginIdentity, Timer } from 'armoury'
 import { StorageApi } from 'smuggler-api'
 
 // See https://developer.chrome.com/docs/extensions/reference/webNavigation/#type-TransitionType
@@ -194,6 +194,7 @@ const onBeforeNavigateListener = (
 ) => {}
 
 export function register(storage: StorageApi) {
+  const timer = new Timer()
   const onCompletedCb = (
     details: browser.WebNavigation.OnCompletedDetailsType
   ) => onCompletedListener(storage, details)
@@ -243,7 +244,7 @@ export function register(storage: StorageApi) {
   ) {
     browser.webNavigation.onBeforeNavigate.addListener(onBeforeNavigateListener)
   }
-  log.debug('WebNavigation module is loaded')
+  log.debug('WebNavigation module is loaded', timer.elapsed())
   return () => {
     browser.webNavigation.onCreatedNavigationTarget.removeListener(
       onCreatedNavigationTargetListener
