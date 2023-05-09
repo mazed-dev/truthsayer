@@ -22,7 +22,7 @@ import { ContentAugmentationSettings, FromContent } from './../../message/types'
 import { Minimize, Refresh } from '@emotion-icons/material'
 import { DragHandle } from '@emotion-icons/material-rounded'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
-import { errorise, productanalytics } from 'armoury'
+import { errorise, productanalytics, log } from 'armoury'
 
 const SuggestedCardsBox = styled.div`
   width: 320px;
@@ -219,6 +219,16 @@ const MiniFloaterBox = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  position: absolute;
+
+  transform: translate(36px, 0);
+
+  transition-property: transform;
+  transition-duration: 0.5s;
+  transition-timing-function: ease-in-out;
+  &:hover {
+    transform: translate(0, 0);
+  }
   #mazed-archaeologist-suggestions-floater-drag-handle {
     opacity: 0.6;
   }
@@ -236,7 +246,7 @@ type Position2D = { x: number; y: number }
  * because we want it to be always anchored to the rigth edge of the window.
  */
 const getStartDragPosition = (isRevealed: boolean): Position2D =>
-  isRevealed ? { x: -300, y: 72 } : { x: -32, y: 72 }
+  isRevealed ? { x: -300, y: 72 } : { x: -24, y: 72 }
 
 /**
  * Make sure that floter is visisble within a window: not too low or too high -
@@ -365,7 +375,7 @@ export const SuggestionsFloater = ({
                 reloadSuggestions={reloadSuggestions}
               />
             ) : (
-              <MiniFloaterBox>
+              <MiniFloaterBox >
                 <MazedMiniFloater onClick={() => saveRevealed(true)}>
                   {nodes.length === 0 ? '…' : nodes.length}
                 </MazedMiniFloater>

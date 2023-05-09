@@ -6,6 +6,7 @@ import styled from '@emotion/styled'
 import LogoImage from '../../../public/logo-strip.svg'
 import { ContentContext } from '../context'
 import { StyleButtonCreate } from 'elementary'
+import { log } from 'armoury'
 
 const Box = styled.div`
   position: relative;
@@ -42,12 +43,8 @@ const Logo = styled.div`
 `
 
 const BadgeBubble = styled.div`
-  position: absolute;
-  bottom: -3px;
-  right: -3px;
-
-  width: 16px;
-  height: 16px;
+  width: 28px;
+  height: 28px;
 
   border-radius: 16px;
 
@@ -64,7 +61,7 @@ const BadgeBubble = styled.div`
 `
 
 const BadgeText = styled.span`
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 0;
   color: white;
 `
@@ -87,11 +84,9 @@ export const MazedMiniFloater = ({
     [onClick, ctx]
   )
   return (
-    <Box onClick={onMeteredClick}>
-      <Logo />
-      <BadgeBubble>
-        <BadgeText>{children}</BadgeText>
-      </BadgeBubble>
-    </Box>
+    <BadgeBubble onClick={onMeteredClick}
+    >
+      <BadgeText>{children}</BadgeText>
+    </BadgeBubble>
   )
 }
