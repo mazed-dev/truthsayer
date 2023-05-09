@@ -70,11 +70,13 @@ export async function findRelevantNodes(
       'Similarity search failed because search phrase is empty string'
     )
   }
+  let searchEngineName: string
   if (phraseLen < 4) {
     log.debug(
       'Use Beagle to find relevant nodes, because search phrase is short',
       phraseLen
     )
+    searchEngineName = 'Beagle'
     nodesWithScore = await findRelevantNodesUsingPlainTextSearch(
       phraseDoc,
       storage,
@@ -82,7 +84,7 @@ export async function findRelevantNodes(
       cancellationToken
     )
   } else {
-    log.debug('Use tfjs based similarity search to find relevant nodes')
+    searchEngineName = 'TFJS'
     nodesWithScore = await findRelevantNodesUsingSimilaritySearch(
       phraseDoc,
       storage,
@@ -98,7 +100,7 @@ export async function findRelevantNodes(
       matchedPiece: findRelevantQuote(phraseDoc, node),
     })
   }
-  log.debug('Similarity search results', relevantNodes)
+  log.debug(`Similarity search results [${searchEngineName}]`, relevantNodes)
   return relevantNodes
 }
 

@@ -20,6 +20,7 @@ import {
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
 import {
+  AbortError,
   log,
   isAbortError,
   unixtime,
@@ -188,7 +189,7 @@ async function handleMessageFromContent(
       return { type: 'VOID_RESPONSE' }
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
       if (!sender.tab?.active) {
-        throw new Error(
+        throw new AbortError(
           'Background should not run similarity search for inactive tabs'
         )
       }
@@ -515,21 +516,21 @@ class Background {
         changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
         tab: browser.Tabs.Tab
       ) => {
-        try {
-        } finally {
-          if (changeInfo.title != null) {
-            await ToContent.sendMessage(tabId, {
-              type: 'REQUEST_UPDATE_TAB_STATUS',
-              change: { titleUpdated: true },
-            })
-          }
-          if (changeInfo.status === 'complete') {
-            // NOTE: if loading of a tab did complete, it is important to ensure
-            // report() gets called regardless of what happens in the other parts of
-            // browser.tabs.onUpdated (e.g. something throws). Otherwise any part of
-            // code that waits on a TabLoad promise will wait forever.
-            TabLoad.report(tab)
-          }
+        // Inform content scrip obout title change, to update suggestions.
+        // Don't try to message content script when tab is in "loading" mode,
+        // there is not content script yet.
+        if (changeInfo.title != null && tab.status === 'complete') {
+          await ToContent.sendMessage(tabId, {
+            type: 'REQUEST_UPDATE_TAB_STATUS',
+            change: { titleUpdated: true },
+          })
+        }
+        if (changeInfo.status === 'complete') {
+          // NOTE: if loading of a tab did complete, it is important to ensure
+          // report() gets called regardless of what happens in the other parts of
+          // browser.tabs.onUpdated (e.g. something throws). Otherwise any part of
+          // code that waits on a TabLoad promise will wait forever.
+          TabLoad.report(tab)
         }
       }
 
@@ -880,11 +881,11 @@ browser.runtime.onMessage.addListener(
         const error = errorise(reason)
         if (isAbortError(error)) {
           log.debug(
-            `Aborted processing '${message.direction}' message '${message.type}': ${error.message}`
+            `Aborted processing '${message.direction}' message '${message.type}': ${error.name} ${error.message}`
           )
         } else {
           log.error(
-            `Failed to process '${message.direction}' message '${message.type}': ${error.message}`
+            `Failed to process '${message.direction}' message '${message.type}': ${error.name} ${error.message}`
           )
         }
         throw reason
@@ -907,11 +908,11 @@ browser.runtime.onMessageExternal.addListener(
         const error = errorise(reason)
         if (isAbortError(error)) {
           log.debug(
-            `Aborted processing 'from-truthsayer' message '${message.type}', ${error.message}`
+            `Aborted processing 'from-truthsayer' message '${message.type}': ${error.name} ${error.message}`
           )
         } else {
           log.error(
-            `Failed to process 'from-truthsayer' message '${message.type}', ${error.message}`
+            `Failed to process 'from-truthsayer' message '${message.type}': ${error.name} ${error.message}`
           )
         }
         throw reason
