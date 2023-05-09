@@ -1,5 +1,5 @@
 import browser from 'webextension-polyfill'
-import { log } from 'armoury'
+import { log, Timer } from 'armoury'
 import { FromContent, ToContent } from '../message/types'
 import { saveWebPage } from '../background/savePage'
 import { NodeCreatedVia, StorageApi } from 'smuggler-api'
@@ -39,10 +39,11 @@ async function onCreatedEventListener(
  *  - created naitive bookmark
  */
 export function register(storage: StorageApi) {
+  const timer = new Timer()
   const callback = (id: string, bookmark: browser.Bookmarks.BookmarkTreeNode) =>
     onCreatedEventListener(storage, id, bookmark)
   browser.bookmarks.onCreated.addListener(callback)
-  log.debug('Bookmark module is loaded')
+  log.debug('Bookmark module is loaded', timer.elapsed())
   return () => {
     browser.bookmarks.onCreated.removeListener(callback)
   }
