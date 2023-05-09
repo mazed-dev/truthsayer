@@ -225,6 +225,7 @@ const MiniFloaterBox = styled.div`
 
   transition-property: transform;
   transition-duration: 0.5s;
+  transition-delay: 0.3s;
   transition-timing-function: ease-in-out;
   &:hover {
     transform: translate(0, 0);
