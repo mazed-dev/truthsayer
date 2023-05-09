@@ -19,7 +19,14 @@ import {
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
-import { log, isAbortError, unixtime, errorise, ErrorViaMessage, Timer } from 'armoury'
+import {
+  log,
+  isAbortError,
+  unixtime,
+  errorise,
+  ErrorViaMessage,
+  Timer,
+} from 'armoury'
 import {
   NodeUtil,
   TotalUserActivity,
