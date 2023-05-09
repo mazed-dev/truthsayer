@@ -96,8 +96,26 @@ export function account(): AccountInterface {
   return _account
 }
 
+const kUserAccountSecureSessionStorageKey = 'user-account-info-cache'
+
+async function setUserAccountCache(user?: AccountInfo): Promise<void> {
+  await chrome.storage.session.set({
+    [kUserAccountSecureSessionStorageKey]: user,
+  })
+  await getUserAccountCache()
+}
+
+async function getUserAccountCache(): Promise<AccountInfo | undefined> {
+  const record = await chrome.storage.session.get(
+    kUserAccountSecureSessionStorageKey
+  )
+  log.debug('getUserAccountCache', record)
+  return record[kUserAccountSecureSessionStorageKey] as AccountInfo | undefined
+}
+
 export async function check() {
   const user = await authentication.getAuth({}).catch(() => null)
+  await setUserAccountCache(user ?? undefined)
   if (user != null) {
     await _loginHandler(user)
   } else {
@@ -155,7 +173,23 @@ export function observe({
  */
 export async function register() {
   const timer = new Timer()
-  const user = await authentication.getAuth({}).catch(() => null)
+  // Use session storage cache to preserve User Account information between
+  // background awake sessions and avoid long waiting to receive this info every
+  // time background wakes up.
+  let user = (await getUserAccountCache()) ?? null
+  if (user == null) {
+    // If there is nothing in cache, fall back to requesting this information
+    // from smuggler, assuming the network is available.
+    // Print info about it to the logs, to monitor this
+    log.debug(
+      'No account information in session storage, requesting it from Smuggler'
+    )
+    user = await authentication.getAuth({}).catch(() => null)
+    if (user != null) {
+      // Save account information to sessions storage cache
+      await setUserAccountCache(user)
+    }
+  }
   if (user != null) {
     await _loginHandler(user)
   }

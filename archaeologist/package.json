@@ -97,7 +97,7 @@
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.1.0",
     "@testing-library/user-event": "^12.6",
-    "@types/chrome": "^0.0.154",
+    "@types/chrome": "^0.0.235",
     "@types/copy-webpack-plugin": "^8.0.1",
     "@types/download": "^8.0.1",
     "@types/jsdom": "^16.2.13",
