@@ -221,7 +221,7 @@ const MiniFloaterBox = styled.div`
   justify-content: center;
   position: absolute;
 
-  transform: translate(36px, 0);
+  transform: translate(32px, 0);
 
   transition-property: transform;
   transition-duration: 0.5s;
