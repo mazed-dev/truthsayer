@@ -325,6 +325,10 @@ function AppRouter() {
     >
       <BrowserHistoryImporterLoadingScreen progress={historyImportProgress} />
     </TruthsayerRoute>,
+    <Route key={'mzd-private-route-12'} path="*">
+      {/* if path is unknown, get user to /search */}
+      <Redirect to={{ pathname: '/search' }} />
+    </Route>,
   ]
 
   const authorisationLikelyComplete = authCookie.veil.check()
