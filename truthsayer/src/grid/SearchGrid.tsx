@@ -8,19 +8,20 @@ import { css } from '@emotion/react'
 import type { RouteComponentProps } from 'react-router-dom'
 import { useHistory } from 'react-router-dom'
 
-import { SmallCard } from '../SmallCard'
-import { ShrinkCard } from '../ShrinkCard'
-import { NodeTimeBadge } from '../NodeTimeBadge'
-
-import type { TNode, INodeIterator, StorageApi } from 'smuggler-api'
+import type { TNode, INodeIterator } from 'smuggler-api'
 
 import { log, isAbortError, errorise } from 'armoury'
+import MzdGlobalContext, { MzdGlobalContextProps } from '../lib/global'
 
-import { DynamicGrid } from './DynamicGrid'
-import { NodeCardReadOnly } from '../NodeCardReadOnly'
-import { Beagle } from './search/search'
-import { styleMobileTouchOnly } from '../util/xstyle'
-import { ElementaryContext } from '../context'
+import {
+  DynamicGrid,
+  NodeCardReadOnly,
+  Beagle,
+  styleMobileTouchOnly,
+  SmallCard,
+  ShrinkCard,
+  NodeTimeBadge,
+} from 'elementary'
 
 const BoxPortable = styled.div`
   overflow-y: scroll;
@@ -57,7 +58,6 @@ export const GridCard = ({
 const Mutex = require('async-mutex').Mutex
 
 type SearchGridProps = React.PropsWithChildren<{
-  ctx: ElementaryContext
   q: string | null
   onCardClick?: (arg0: TNode) => void
   portable?: boolean
@@ -66,6 +66,7 @@ type SearchGridProps = React.PropsWithChildren<{
 }>
 type SearchGridWithHistProps = SearchGridProps & {
   history: RouteComponentProps['history']
+  ctx: MzdGlobalContextProps
 }
 type SearchGridState = {
   iter?: INodeIterator
@@ -253,5 +254,6 @@ class SearchGridWithHist extends React.Component<
 
 export const SearchGrid = (props: SearchGridProps) => {
   const history = useHistory()
-  return <SearchGridWithHist history={history} {...props} />
+  const ctx = React.useContext(MzdGlobalContext)
+  return <SearchGridWithHist history={history} ctx={ctx} {...props} />
 }

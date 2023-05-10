@@ -9061,8 +9061,6 @@ __metadata:
     "@testing-library/user-event": ^12.6
     "@types/is-url": ^1.2.30
     "@types/jsdom": ^16.2.13
-    "@types/react-dom": ^16.9.16
-    "@types/react-router-dom": ^5.3.0
     armoury: 0.0.1
     async-mutex: ^0.4.0
     eslint: ^8.16.0
@@ -9077,8 +9075,6 @@ __metadata:
     prettier: ^2.2
     react: ^16.14.0
     react-bootstrap: ^2.0.0
-    react-dom: ^16.14.0
-    react-router-dom: ^5.3.0
     remark-parse: ^10.0.1
     remark-slate: ^1.8.6
     slate: ^0.81.0
