@@ -249,3 +249,7 @@ export const notice = {
   logInToContinue: kNoticeLogInToContinue,
   youAreInWaitingList: kNoticeYouAreInWaitingList,
 }
+
+export function truthsayerPath(path: TruthsayerPath): TruthsayerPath {
+  return path
+}

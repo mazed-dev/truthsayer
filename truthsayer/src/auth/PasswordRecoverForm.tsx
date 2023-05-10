@@ -14,8 +14,9 @@ export const PasswordRecoverForm = ({ token }: PasswordRecoverFormProps) => {
   const abortControllerRef = useRef(new AbortController())
 
   useEffect(() => {
+    const ref = abortControllerRef
     return () => {
-      abortControllerRef.current.abort()
+      ref.current.abort()
     }
   }, [])
 
