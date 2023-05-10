@@ -1,22 +1,13 @@
 import React from 'react'
 
-import PropTypes from 'prop-types'
-
-import { withRouter } from 'react-router-dom'
 import { goto } from '../lib/route'
 import { authCookie, authentication } from 'smuggler-api'
 import { FromTruthsayer } from 'truthsayer-archaeologist-communication'
 
-import { MzdGlobalContext } from './../lib/global'
-
-class Logout extends React.Component {
+export class Logout extends React.Component {
   constructor(props) {
     super(props)
     this.fetchAbortController = new AbortController()
-  }
-
-  static propTypes = {
-    history: PropTypes.object.isRequired,
   }
 
   componentWillUnmount() {
@@ -50,7 +41,3 @@ class Logout extends React.Component {
     return <h3>Logout...</h3>
   }
 }
-
-Logout.contextType = MzdGlobalContext
-
-export default withRouter(Logout)

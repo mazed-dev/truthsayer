@@ -1,12 +1,12 @@
 import React from 'react'
-import { Link, withRouter } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import { Button, Container, Image } from 'react-bootstrap'
 
 import user_default_pic from './img/user-default-pic.png'
 import { productanalytics } from 'armoury'
 
-class UserPreferences extends React.Component {
+export class UserPreferences extends React.Component {
   render() {
     const name = this.props.account.getName()
     const email = this.props.account.getEmail()
@@ -49,5 +49,3 @@ class UserPreferences extends React.Component {
     )
   }
 }
-
-export default withRouter(UserPreferences)

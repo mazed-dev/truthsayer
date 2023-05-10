@@ -6,7 +6,6 @@ import { Card, Container } from 'react-bootstrap'
 import { MdiLaunch } from 'elementary'
 import { css } from '@emotion/react'
 import { normalizeUrl } from 'armoury'
-import { GoToInboxToConfirmEmailLocationState } from '../../lib/route'
 
 function getInboxUrl(email?: string): null | string {
   try {
@@ -24,7 +23,7 @@ function getInboxUrl(email?: string): null | string {
 }
 
 export function GoToInboxToConfirmEmail() {
-  const location_ = useLocation<GoToInboxToConfirmEmailLocationState>()
+  const location_ = useLocation()
   const name = location_.state?.name ?? 'Mr X'
   const inboxUrl = getInboxUrl(location_.state?.email)
   const inboxRefEl =

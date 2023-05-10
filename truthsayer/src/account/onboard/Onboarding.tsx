@@ -3,7 +3,7 @@
 import React from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 import { parse } from 'query-string'
-import { useHistory, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { Button, Container } from 'react-bootstrap'
 import lodash from 'lodash'
@@ -364,7 +364,7 @@ export function Onboarding({
   progress: ExternalImportProgress
 }) {
   const loc = useLocation()
-  const history = useHistory()
+  const navigate = useNavigate()
   const onboardingStep = parseStepFromSearchString(loc.search)
   const onClose = () => {
     // Navigate to /search without react-route history object to fully reload
@@ -375,7 +375,7 @@ export function Onboarding({
     <OnboardingSteps
       onClose={onClose}
       step={onboardingStep}
-      nextStep={(step: number) => history.push({ search: `step=${step}` })}
+      nextStep={(step: number) => navigate({ search: `step=${step}` })}
       archaeologistState={archaeologistState}
       progress={progress}
     />

@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react'
 import styled from '@emotion/styled'
-import { useLocation, useHistory } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { parse } from 'query-string'
 
 import { SearchGrid } from './SearchGrid'
@@ -22,7 +22,7 @@ export const SearchGridView = ({
   archaeologistState: ArchaeologistState
 }) => {
   const loc = useLocation()
-  const history = useHistory()
+  const navigate = useNavigate()
   const params = parse(loc.search)
   let { q } = params
   let queryStr: null | string = null
@@ -33,9 +33,9 @@ export const SearchGridView = ({
   }
   React.useEffect(() => {
     if (archaeologistState.state === 'not-installed') {
-      goto.onboarding({ history })
+      goto.onboarding({ navigate })
     }
-  }, [archaeologistState, history])
+  }, [archaeologistState, navigate])
   return (
     <Box>
       <SearchGrid q={queryStr} defaultSearch />

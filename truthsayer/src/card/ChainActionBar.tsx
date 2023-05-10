@@ -6,10 +6,10 @@ import styled from '@emotion/styled'
 import { css } from '@emotion/react'
 
 import { Dropdown } from 'react-bootstrap'
-import { useHistory } from 'react-router-dom'
+import { useNavigate, NavigateFunction } from 'react-router-dom'
 
 import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
-import { goto, History } from '../lib/route'
+import { goto } from '../lib/route'
 
 import { StorageApi } from 'smuggler-api'
 import type { TNode, NewNodeResponse, NodeExtattrs } from 'smuggler-api'
@@ -94,23 +94,23 @@ class ChainActionHandler {
   nid: string
   nidIsPrivate: boolean
   abortSignal?: AbortSignal
-  history: History
+  navigate: NavigateFunction
 
   constructor({
     nid,
     nidIsPrivate,
-    history,
+    navigate,
     abortSignal,
   }: {
     nid: string
     nidIsPrivate: boolean
     abortSignal?: AbortSignal
-    history: History
+    navigate: NavigateFunction
   }) {
     this.nid = nid
     this.nidIsPrivate = nidIsPrivate
     this.abortSignal = abortSignal
-    this.history = history
+    this.navigate = navigate
   }
 
   logInNeeded = (context: MzdGlobalContextProps): boolean => {
@@ -119,7 +119,7 @@ class ChainActionHandler {
 
   handleNext = (context: MzdGlobalContextProps, side: ChainActionBarSide) => {
     if (this.logInNeeded(context)) {
-      goto.notice.logInToContinue({ history: this.history })
+      goto.notice.logInToContinue({ navigate: this.navigate })
       return
     }
     context.storage.node
@@ -134,7 +134,7 @@ class ChainActionHandler {
       .then((node) => {
         if (node) {
           const { nid } = node
-          goto.node({ history: this.history, nid })
+          goto.node({ navigate: this.navigate, nid })
         }
       })
   }
@@ -144,7 +144,7 @@ class ChainActionHandler {
     side: ChainActionBarSide
   ) => {
     if (this.logInNeeded(context)) {
-      goto.notice.logInToContinue({ history: this.history })
+      goto.notice.logInToContinue({ navigate: this.navigate })
       return
     }
     cloneNode({
@@ -155,7 +155,7 @@ class ChainActionHandler {
     }).then((node) => {
       if (node) {
         const { nid } = node
-        goto.node({ history: this.history, nid })
+        goto.node({ navigate: this.navigate, nid })
       }
     })
   }
@@ -223,13 +223,13 @@ export const ChainActionBar = ({
   addRef: ({ from, to }: { from: string; to: string }) => void
   className?: string
 }) => {
-  const history = useHistory()
+  const navigate = useNavigate()
   const [showSearchModal, setShowSearchModal] = useState(false)
   const handler = new ChainActionHandler({
     nid,
     nidIsPrivate,
     abortSignal,
-    history,
+    navigate,
   })
   const uploadFileFormRef = useRef<HTMLInputElement>(null)
   const ctx = useContext(MzdGlobalContext)

@@ -5,8 +5,8 @@ import React from 'react'
 import styled from '@emotion/styled'
 
 import { css } from '@emotion/react'
-import type { RouteComponentProps } from 'react-router-dom'
-import { useHistory } from 'react-router-dom'
+import type { NavigateFunction } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import type { TNode, INodeIterator } from 'smuggler-api'
 
@@ -65,7 +65,7 @@ type SearchGridProps = React.PropsWithChildren<{
   className?: string
 }>
 type SearchGridWithHistProps = SearchGridProps & {
-  history: RouteComponentProps['history']
+  navigate: NavigateFunction
   ctx: MzdGlobalContextProps
 }
 type SearchGridState = {
@@ -180,7 +180,7 @@ class SearchGridWithHist extends React.Component<
       portable,
       className,
       children,
-      history,
+      navigate,
     } = this.props
     const { nodes } = this.state
     if (q == null && !defaultSearch) {
@@ -191,7 +191,7 @@ class SearchGridWithHist extends React.Component<
         if (onCardClick) {
           onCardClick(node)
         } else {
-          history.push({
+          navigate({
             pathname: `/n/${node.nid}`,
           })
         }
@@ -253,7 +253,7 @@ class SearchGridWithHist extends React.Component<
 }
 
 export const SearchGrid = (props: SearchGridProps) => {
-  const history = useHistory()
+  const navigate = useNavigate()
   const ctx = React.useContext(MzdGlobalContext)
-  return <SearchGridWithHist history={history} ctx={ctx} {...props} />
+  return <SearchGridWithHist navigate={navigate} ctx={ctx} {...props} />
 }

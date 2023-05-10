@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
 import React, { useContext } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { Row, Col } from 'react-bootstrap'
 
@@ -44,7 +44,7 @@ function RefNodeCard({
   cutOffRef: any
   className?: string
 }) {
-  const history = useHistory()
+  const navigate = useNavigate()
   const ctx = useContext(MzdGlobalContext)
   return (
     <SmallCard
@@ -58,7 +58,7 @@ function RefNodeCard({
           margin-bottom: 12px;
           cursor: pointer;
         `}
-        onClick={() => history.push({ pathname: `/n/${nid}` })}
+        onClick={() => navigate({ pathname: `/n/${nid}` })}
       >
         <NodeCardReadOnlyFetching
           ctx={ctx}
