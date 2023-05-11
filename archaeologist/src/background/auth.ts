@@ -9,7 +9,7 @@ import {
   UserAccount,
 } from 'smuggler-api'
 import { Knocker } from 'smuggler-api'
-import { log, isAbortError, errorise } from 'armoury'
+import { log, isAbortError, errorise, Timer } from 'armoury'
 import { v4 as uuidv4 } from 'uuid'
 
 const _lastUpdateTime: SmugglerTokenLastUpdateCookies = { time: 0 }
@@ -154,11 +154,12 @@ export function observe({
  *- It stops after a first renewal failure.
  */
 export async function register() {
+  const timer = new Timer()
   const user = await authentication.getAuth({}).catch(() => null)
   if (user != null) {
     await _loginHandler(user)
   }
-  log.debug('Authorisation module is registered')
+  log.debug('Authorisation module is registered', timer.elapsed())
   return async () => {
     try {
       await _logoutHandler()

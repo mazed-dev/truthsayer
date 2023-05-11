@@ -15,7 +15,7 @@ import type {
 import { NodeUtil } from 'smuggler-api'
 import { TDoc, Beagle } from 'elementary'
 import CancellationToken from 'cancellationtoken'
-import { log, errorise, AbortError } from 'armoury'
+import { log, errorise, AbortError, Timer } from 'armoury'
 import type { BackgroundPosthog } from '../productanalytics'
 
 let tfState: tfUse.TfState | undefined = undefined
@@ -490,6 +490,7 @@ export async function register(
   storage: StorageApi,
   analytics?: BackgroundPosthog | null
 ) {
+  const timer = new Timer()
   if (tfState == null) {
     tfState = await tfUse.createTfState()
   }
@@ -508,7 +509,7 @@ export async function register(
 
   const nodeEventListener = createNodeEventListener(storage)
   storage.node.addListener(nodeEventListener)
-  log.debug('Similarity search module is loaded')
+  log.debug('Similarity search module is loaded', timer.elapsed())
   return () => {
     storage.node.removeListener(nodeEventListener)
     tfState = undefined

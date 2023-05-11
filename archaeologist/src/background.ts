@@ -19,7 +19,14 @@ import {
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
-import { log, isAbortError, unixtime, errorise, ErrorViaMessage } from 'armoury'
+import {
+  log,
+  isAbortError,
+  unixtime,
+  errorise,
+  ErrorViaMessage,
+  Timer,
+} from 'armoury'
 import {
   NodeUtil,
   TotalUserActivity,
@@ -408,6 +415,7 @@ class Background {
     log.debug(`Background one-time pre-init started`)
     auth.observe({
       onLogin: async (account: UserAccount) => {
+        const timer = new Timer()
         if (this.state.phase !== 'not-init') {
           throw new FromBackground.IncompatibleInitPhase({
             expected: 'not-init',
@@ -419,7 +427,7 @@ class Background {
           log.debug(`Background init started`)
           const context = await this.init(account)
           this.state = { phase: 'init-done', context }
-          log.debug(`Background init done`)
+          log.debug('Background init done', timer.elapsed())
         } catch (initFailureReason) {
           try {
             await this.deinit()
