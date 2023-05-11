@@ -483,10 +483,10 @@ export function _cureTextContent(
     if (textSizeBytes > 10240) {
       break
     }
-    textSizeBytes += text.length
     if (url.search(/\.wikipedia\.org\//i) !== -1) {
       text = text.replace(/\[\d+\]/g, '').replace(/\[\s*edit\s*\]/g, '')
     }
+    textSizeBytes += text.length
     blocks.push({ text, type, level })
   }
   return blocks

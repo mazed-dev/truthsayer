@@ -18,8 +18,6 @@ import CancellationToken from 'cancellationtoken'
 import { log, errorise, AbortError, Timer } from 'armoury'
 import type { BackgroundPosthog } from '../productanalytics'
 
-let tfState: tfUse.TfState | undefined = undefined
-
 const wink_ = loadWinkModel()
 
 /**
@@ -59,13 +57,10 @@ export async function findRelevantNodes(
   storage: StorageApi,
   _analytics: BackgroundPosthog | null
 ): Promise<RelevantNode[]> {
+  const timer = new Timer()
   throwIfCancelled(cancellationToken)
-  const phraseDoc = wink_.readDoc(
-    textContentBlocks.map(({ text }) => text).join('\n')
-  )
-  if (tfState == null) {
-    throw new Error('Similarity search state is not initialised')
-  }
+  const textContentPlainText = textContentBlocks.map(({ text }) => text).join('\n')
+  const phraseDoc = wink_.readDoc(textContentPlainText)
   // Use plaintext search for a small queries, because similarity search based
   // on ML embeddings has a poor quality results on a small texts.
   const phraseLen = phraseDoc.tokens().length()
@@ -89,16 +84,58 @@ export async function findRelevantNodes(
   } else {
     log.debug('Use tfjs based similarity search to find relevant nodes')
     relevantNodes = await findRelevantNodesUsingSimilaritySearch(
-      phraseDoc,
+      textContentPlainText,
       textContentBlocks,
       storage,
       excludedNids,
       cancellationToken
     )
   }
-  log.debug('Similarity search results', relevantNodes)
+  log.debug('Similarity search results', timer.elapsed(), relevantNodes)
   return relevantNodes
 }
+
+// async function findRelevantNodesForTextBlock(
+//   textContentBlock: TextContentBlock,
+//   excludedNids: Set<Nid>,
+//   cancellationToken: CancellationToken,
+//   storage: StorageApi,
+//   _analytics: BackgroundPosthog | null
+// ): Promise<RelevantNode[]> {
+//   const timer = new Timer()
+//   throwIfCancelled(cancellationToken)
+//   const { text } = textContentBlock
+//   const phraseDoc = wink_.readDoc(text)
+//   // Use plaintext search for a small queries, because similarity search based
+//   // on ML embeddings has a poor quality results on a small texts.
+//   const phraseLen = phraseDoc.tokens().length()
+//   if (phraseLen === 0) {
+//     return []
+//   }
+//   let relevantNodes: RelevantNode[]
+//   if (phraseLen < 4) {
+//     log.debug(
+//       'Use Beagle to find relevant nodes, because search phrase is short',
+//       phraseLen
+//     )
+//     relevantNodes = await findRelevantNodesUsingPlainTextSearch(
+//       phraseDoc,
+//       storage,
+//       excludedNids,
+//       cancellationToken
+//     )
+//   } else {
+//     log.debug('Use tfjs based similarity search to find relevant nodes')
+//     relevantNodes = await findRelevantNodesUsingSimilaritySearch(
+//       text,
+//       storage,
+//       excludedNids,
+//       cancellationToken
+//     )
+//   }
+//   log.debug('Similarity search results', timer.elapsed(), relevantNodes)
+//   return relevantNodes
+// }
 
 type RawSimilarityResults = {
   score: number
@@ -112,36 +149,26 @@ type PatternBlockEmbedding = {
 }
 
 async function findRelevantNodesUsingSimilaritySearch(
-  plaintextDoc: bm25.WinkDocument,
+  textContentPlainText: string,
   textContentBlocks: TextContentBlock[],
   storage: StorageApi,
   excludedNids: Set<Nid>,
   cancellationToken: CancellationToken
 ): Promise<RelevantNode[]> {
-  if (tfState == null) {
-    throw new Error('Similarity search state is not initialised')
-  }
-  const patterns: PatternBlockEmbedding[] = []
-  patterns.push({
-    embedding: await tfState.encoder.embed(plaintextDoc.out(wink_.its.normal)),
-  })
+  const timer = new Timer()
+  const tfState = await tfUse.createTfState()
   textContentBlocks = textContentBlocks.filter(
-    ({ type }: TextContentBlock) => type === 'P'
+    ({ type, text }: TextContentBlock) => type === 'P' && text.length > 15
   )
-  patterns.push(
-    ...(await Promise.all(
+  textContentBlocks.push({ text: textContentPlainText, type: 'P', })
+  const patterns: PatternBlockEmbedding[] = await Promise.all(
       textContentBlocks.map(async ({ text }: TextContentBlock) => {
-        if (tfState == null) {
-          throw new Error('Similarity search state is not initialised')
-        }
-        const winkDoc = wink_.readDoc(text)
-        return {
-          embedding: await tfState.encoder.embed(winkDoc.out(wink_.its.normal)),
-        }
+        return { embedding: await tfState.encoder.embed(text) }
       })
-    ))
-  )
+    )
+  log.debug('Pattern embeddings are calculated', patterns.length, timer.elapsed())
   const allNids = await storage.node.getAllNids({})
+  log.debug('All nids', allNids.length)
   throwIfCancelled(cancellationToken)
   let rawSimilarityResults: RawSimilarityResults[] = []
   for (const nid of allNids) {
@@ -182,6 +209,7 @@ async function findRelevantNodesUsingSimilaritySearch(
     }
     throwIfCancelled(cancellationToken)
   }
+  log.debug('RawSimilarityResults are calculated', rawSimilarityResults.length, timer.elapsed())
   // Cut the long tail of results - we can't and we shouldn't show more relevant
   // results than some limit
   rawSimilarityResults.sort((ar, br) => ar.score - br.score)
@@ -237,24 +265,22 @@ function calculateNodeSimilarity(
   patterns: PatternBlockEmbedding[],
   nodeEmbeddings: PatternBlockEmbedding[]
 ): RawSimilarityResults | null {
-  let minScore: number = 1
-  let minScoreForBlockIndex: number = 1
+  let minScore: number = kSimilarityCosineDistanceThreshold
+  let minScoreForBlockIndex: number = kSimilarityCosineDistanceThreshold
   let blockIndexWithMinScore: number | undefined = undefined
   for (const { embedding: patternEmbedding } of patterns) {
     for (const { embedding: nodeEmbedding, blockIndex } of nodeEmbeddings) {
       const score = tfUse.cosineDistance(patternEmbedding, nodeEmbedding)
-      if (score < kSimilarityCosineDistanceThreshold) {
-        if (score < minScore) {
-          minScore = score
-        }
-        if (blockIndex != null && score < minScoreForBlockIndex) {
-          minScoreForBlockIndex = score
-          blockIndexWithMinScore = blockIndex
-        }
+      if (score < minScore) {
+        minScore = score
+      }
+      if (blockIndex != null && score < minScoreForBlockIndex) {
+        minScoreForBlockIndex = score
+        blockIndexWithMinScore = blockIndex
       }
     }
   }
-  if (minScore < 1) {
+  if (minScore < kSimilarityCosineDistanceThreshold) {
     return { nid, score: minScore, blockIndex: blockIndexWithMinScore }
   }
   return null
@@ -294,77 +320,6 @@ async function findRelevantNodesUsingPlainTextSearch(
   return nodesWithScore
 }
 
-function findRelevantQuote(
-  phraseDoc: bm25.WinkDocument,
-  node: TNode
-): LongestCommonContinuousPiece | undefined {
-  if (!NodeUtil.isWebBookmark(node)) {
-    return undefined
-  }
-  const text = [node.index_text?.plaintext ?? node.extattrs?.description]
-    .filter((str: string | undefined) => !!str)
-    .join(' ')
-    .replace(/\s+/g, ' ')
-  if (!text) {
-    return undefined
-  }
-  const [overallIndex, perSentenceIndexes] = bm25.createIndex<number>()
-  const winkDoc = wink_.readDoc(text)
-  const sentences = winkDoc.sentences().out(wink_.its.value)
-  for (let ind = 0; ind < sentences.length; ++ind) {
-    const sentense = sentences[ind]
-    const sentenceInd = bm25.addDocument<number>(
-      wink_,
-      overallIndex,
-      sentense,
-      ind
-    )
-    perSentenceIndexes.push(sentenceInd)
-  }
-  const relevantIndexes = bm25.findRelevantDocuments<number>(
-    wink_,
-    phraseDoc,
-    1 /* limit */,
-    overallIndex,
-    perSentenceIndexes
-  )
-  if (relevantIndexes.length === 0) {
-    return undefined
-  }
-  const relevantSentenceIndex = relevantIndexes[0].docId
-  let prefix: string
-  let suffix: string
-  if (relevantSentenceIndex === 0) {
-    prefix = ''
-    // If there is no prefix to show, use longer suffix of 3 sentenses to add
-    // equal volume of context to the relevant sentense
-    suffix = sentences
-      .slice(relevantSentenceIndex + 1, relevantSentenceIndex + 4)
-      .join(' ')
-  } else {
-    // Use following 2 sentenses as a suffix
-    suffix = sentences
-      .slice(relevantSentenceIndex + 1, relevantSentenceIndex + 3)
-      .join(' ')
-    if (suffix === '' && relevantSentenceIndex > 1) {
-      // If there is no suffix to show, use longer prefix
-      prefix = sentences
-        .slice(relevantSentenceIndex - 2, relevantSentenceIndex)
-        .join(' ')
-    } else {
-      // Use previous sentence as prefix
-      prefix = sentences[relevantSentenceIndex - 1]
-    }
-  }
-  return {
-    matchTokensCount: 100, // Not released
-    matchValuableTokensCount: 100, // Not released
-    match: sentences[relevantSentenceIndex],
-    prefix,
-    suffix,
-  }
-}
-
 function getNodePatchAsString(patch: NodeEventPatch): {
   plaintext: string
   textContentBlocks: TextContentBlock[]
@@ -397,11 +352,9 @@ function getNodePatchAsString(patch: NodeEventPatch): {
 async function updateNodeIndex(
   storage: StorageApi,
   nid: Nid,
-  patch: NodeEventPatch
+  patch: NodeEventPatch,
+  tfState: tfUse.TfState,
 ): Promise<void> {
-  if (tfState == null) {
-    throw new Error('Similarity search state is not initialised')
-  }
   const { plaintext, textContentBlocks } = getNodePatchAsString(patch)
   const textWinkDoc = wink_.readDoc(plaintext)
   const embedding = await tfState.encoder.embed(
@@ -443,12 +396,14 @@ async function updateNodeIndex(
 function createNodeEventListener(storage: StorageApi): NodeEventListener {
   return (type: NodeEventType, nid: Nid, patch: NodeEventPatch) => {
     if (type === 'created' || type === 'updated') {
-      updateNodeIndex(storage, nid, patch).catch((reason) => {
-        log.error(
-          `Failed to ensure similarity search index integrity for node ${nid}: ${
-            errorise(reason).message
-          }`
-        )
+      tfUse.createTfState().then((tfState: tfUse.TfState) => {
+        updateNodeIndex(storage, nid, patch, tfState).catch((reason) => {
+          log.error(
+            `Failed to ensure similarity search index integrity for node ${nid}: ${
+              errorise(reason).message
+            }`
+          )
+        })
       })
     }
   }
@@ -458,6 +413,7 @@ async function ensurePerNodeSimSearchIndexIntegrity(
   storage: StorageApi,
   analytics?: BackgroundPosthog | null
 ): Promise<void> {
+  const tfState = await tfUse.createTfState()
   const nids = await storage.node.getAllNids({})
   for (let ind = 0; ind < nids.length; ++ind) {
     const nid = nids[ind]
@@ -471,7 +427,7 @@ async function ensurePerNodeSimSearchIndexIntegrity(
           `Update node similarity index [${ind + 1}/${nids.length}] ${nid}`
         )
         const node = await storage.node.get({ nid })
-        await updateNodeIndex(storage, nid, { ...node })
+        await updateNodeIndex(storage, nid, { ...node }, tfState)
       }
     } catch (e) {
       const err = errorise(e)
@@ -491,10 +447,6 @@ export async function register(
   analytics?: BackgroundPosthog | null
 ) {
   const timer = new Timer()
-  if (tfState == null) {
-    tfState = await tfUse.createTfState()
-  }
-
   // Run it as non-blocking async call
   ensurePerNodeSimSearchIndexIntegrity(storage).catch((reason) => {
     const err = errorise(reason)
@@ -512,6 +464,5 @@ export async function register(
   log.debug('Similarity search module is loaded', timer.elapsed())
   return () => {
     storage.node.removeListener(nodeEventListener)
-    tfState = undefined
   }
 }

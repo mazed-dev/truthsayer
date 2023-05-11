@@ -5,7 +5,7 @@
  */
 
 import DOMPurify from 'dompurify'
-import { log, unicodeText, sortOutSpacesAroundPunctuation } from 'armoury'
+import { unicodeText, sortOutSpacesAroundPunctuation } from 'armoury'
 import type { TextContentBlockType, TextContentBlock } from 'smuggler-api'
 
 export type { TextContentBlockType, TextContentBlock }
@@ -108,7 +108,6 @@ function _extractPlainTextFromSanitizedContentHtml(
         currentChunkText.push(textContent)
       }
     }
-    log.debug('Node', node)
   }
   const text = unicodeText.trimWhitespace(
     sortOutSpacesAroundPunctuation(currentChunkText.join('').trim())
