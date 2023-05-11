@@ -12,21 +12,18 @@ import {
 
 import { Emoji } from './../lib/Emoji'
 import { authentication } from 'smuggler-api'
-import { RouteComponentProps, withRouter } from 'react-router-dom'
-import { StaticContext } from 'react-router'
+import { useNavigate, NavigateFunction } from 'react-router-dom'
 
-type PasswordRecoverRequestPros = {} & RouteComponentProps<
-  {},
-  StaticContext,
-  { email: string }
->
+type PasswordRecoverRequestPros = {
+  navigate: NavigateFunction
+}
 type PasswordRecoverRequestState = {
   email: string
   reset_request_is_sent: boolean
   isReady: boolean
 }
 
-class PasswordRecoverRequest extends React.Component<
+class PasswordRecoverRequestImpl extends React.Component<
   PasswordRecoverRequestPros,
   PasswordRecoverRequestState
 > {
@@ -35,12 +32,8 @@ class PasswordRecoverRequest extends React.Component<
 
   constructor(props: PasswordRecoverRequestPros) {
     super(props)
-    let email = ''
-    if (this.props.location.state && this.props.location.state.email) {
-      email = this.props.location.state.email
-    }
     this.state = {
-      email,
+      email: '',
       reset_request_is_sent: false,
       isReady: false,
     }
@@ -98,7 +91,7 @@ class PasswordRecoverRequest extends React.Component<
   }
 
   onGoBackToMain = () => {
-    this.props.history.push('/')
+    this.props.navigate('/')
   }
 
   render() {
@@ -174,4 +167,7 @@ class PasswordRecoverRequest extends React.Component<
   }
 }
 
-export default withRouter(PasswordRecoverRequest)
+export function PasswordRecoverRequest() {
+  const navigate = useNavigate()
+  return <PasswordRecoverRequestImpl navigate={navigate} />
+}

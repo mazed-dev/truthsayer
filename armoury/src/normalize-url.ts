@@ -392,9 +392,10 @@ export function normalizeUrl(urlString: string, options?: Options): string {
     try {
       urlObject.pathname = decodeURI(urlObject.pathname)
     } catch (err) {
+      const error = errorise(err)
       // This is a best effort, so we swallowing an errror here
-      if (!isAbortError(err)) {
-        log.debug(err)
+      if (!isAbortError(error)) {
+        log.debug(error)
       }
     }
   }
@@ -456,9 +457,10 @@ export function normalizeUrl(urlString: string, options?: Options): string {
     try {
       urlObject.search = decodeURIComponent(urlObject.search)
     } catch (err) {
+      const error = errorise(err)
       // This is a best effort, so we swallowing an errror here
-      if (!isAbortError(err)) {
-        log.debug(err)
+      if (!isAbortError(error)) {
+        log.debug(error)
       }
     }
   }

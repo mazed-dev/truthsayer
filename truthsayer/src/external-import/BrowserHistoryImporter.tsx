@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from '@emotion/styled'
-import { Redirect } from 'react-router'
+import { Navigate } from 'react-router'
 import { Button as ReactBootstrapButton } from 'react-bootstrap'
 
 import {
@@ -333,7 +333,7 @@ export function BrowserHistoryImporterForOnboarding({
 } & UploadBrowserHistoryProps) {
   switch (archaeologistState.state) {
     case 'not-installed': {
-      return <Redirect to={routes.onboarding} />
+      return <Navigate to={routes.onboarding} />
     }
     case 'loading': {
       return (
