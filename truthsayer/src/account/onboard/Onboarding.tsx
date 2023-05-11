@@ -18,7 +18,7 @@ import {
 } from '../../external-import/ExternalImport'
 import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
-import { sleep, isAbortError, productanalytics } from 'armoury'
+import { sleep, isAbortError, productanalytics, errorise } from 'armoury'
 import { Spinner, MdiClose } from 'elementary'
 
 const Header = styled.h1`
@@ -98,7 +98,8 @@ const StepWelcomePleaseInstall = ({
           })
           version = response.version
           break
-        } catch (err) {
+        } catch (e) {
+          const err = errorise(e)
           if (isAbortError(err)) {
             break
           }

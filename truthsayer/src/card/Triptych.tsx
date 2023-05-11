@@ -15,7 +15,7 @@ import { ChainActionBar } from './ChainActionBar'
 import { DynamicGrid } from 'elementary'
 
 import { MzdGlobalContext } from '../lib/global'
-import { Optional, isAbortError, log } from 'armoury'
+import { Optional, isAbortError, log, errorise } from 'armoury'
 import { styleMobileTouchOnly } from 'elementary'
 
 import { TNode, NodeTextData, TEdge, NodeUtil } from 'smuggler-api'
@@ -206,7 +206,8 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
           .concat(to_edges)
           .filter((edge) => !edge.is_sticky),
       })
-    } catch (err) {
+    } catch (e) {
+      const err = errorise(e)
       if (!isAbortError(err)) {
         log.exception(err)
       }
@@ -224,7 +225,8 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
         this.fetchNodeAbortController.signal
       )
       this.setState({ node })
-    } catch (err) {
+    } catch (e) {
+      const err = errorise(e)
       if (!isAbortError(err)) {
         log.exception(err)
       }

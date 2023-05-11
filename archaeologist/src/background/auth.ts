@@ -18,7 +18,8 @@ const _authKnocker = new Knocker(
   async () => {
     try {
       _logoutHandler()
-    } catch (err) {
+    } catch (e) {
+      const err = errorise(e)
       if (!isAbortError(err)) {
         log.exception(err)
       }
