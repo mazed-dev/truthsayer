@@ -28,6 +28,7 @@ function posthogApiHost(): string {
   // At the time of writing the reverse proxy is running inside a DigitalOcean
   // droplet, and the routing from the below domain to that droplet is controlled
   // through https://cloud.digitalocean.com/networking/domains/mazed.se?i=2ec704
+  //
   // See https://github.com/mazed-dev/posthog-reverse-proxy for how the proxy
   // is expected to be configured.
   return 'https://pa.mazed.se'
