@@ -16,6 +16,24 @@ const kLogCategory = '[productanalytics]'
 export type NodeEnv = 'development' | 'production' | 'test'
 
 /**
+ * Identifies where analytics data should be sent to.
+ * Needs to be passed to PostHog's API during initialisation.
+ */
+function posthogApiHost(): string {
+  // Below host is intended to point to somewhere where PostHog's reverse proxy
+  // is running. See https://posthog.com/docs/advanced/proxy for more info about
+  // them. The only reason to use a reverse proxy is to decrease the percentage
+  // of users that get their analytics data blocked by ad/tracker blockers.
+  //
+  // At the time of writing the reverse proxy is running inside a DigitalOcean
+  // droplet, and the routing from the below domain to that droplet is controlled
+  // through https://cloud.digitalocean.com/networking/domains/mazed.se?i=2ec704
+  // See https://github.com/mazed-dev/posthog-reverse-proxy for how the proxy
+  // is expected to be configured.
+  return 'https://pa.mazed.se'
+}
+
+/**
  * Create an instance of PostHog analytics.
  * @param analyticsSourceName name that PostHog will use to cache the instance
  * internally.
@@ -222,6 +240,7 @@ export function isAnalyticsIdentity(input: any): input is AnalyticsIdentity {
 }
 
 export const productanalytics = {
+  apiHost: posthogApiHost,
   make: makeAnalytics,
   classExclude: markClassNameForExclusion,
   autocaptureIdentity: toAutocaptureIdentityHtmlDataAttribute,
