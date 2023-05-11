@@ -1,16 +1,15 @@
 /** @jsxImportSource @emotion/react */
-import React, { useContext } from 'react'
+import React from 'react'
 import styled from '@emotion/styled'
-import { useLocation, useHistory } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { parse } from 'query-string'
 
-import { SearchGrid } from 'elementary'
+import { SearchGrid } from './SearchGrid'
 import { CreateNewNodeMenu } from './CreateNewNodeMenu'
 import { ArchaeologistState } from '../apps-list/archaeologistState'
 import { goto } from '../lib/route'
 
 import lodash from 'lodash'
-import MzdGlobalContext from '../lib/global'
 
 const Box = styled.div`
   width: 100%;
@@ -23,8 +22,7 @@ export const SearchGridView = ({
   archaeologistState: ArchaeologistState
 }) => {
   const loc = useLocation()
-  const history = useHistory()
-  const ctx = useContext(MzdGlobalContext)
+  const navigate = useNavigate()
   const params = parse(loc.search)
   let { q } = params
   let queryStr: null | string = null
@@ -35,12 +33,12 @@ export const SearchGridView = ({
   }
   React.useEffect(() => {
     if (archaeologistState.state === 'not-installed') {
-      goto.onboarding({ history })
+      goto.onboarding({ navigate })
     }
-  }, [archaeologistState, history])
+  }, [archaeologistState, navigate])
   return (
     <Box>
-      <SearchGrid q={queryStr} defaultSearch ctx={ctx} />
+      <SearchGrid q={queryStr} defaultSearch />
       <CreateNewNodeMenu />
     </Box>
   )
