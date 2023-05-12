@@ -64,5 +64,11 @@ export function makeAlwaysThrowingStorageApi(): StorageApi {
         advance: throwError,
       },
     },
+    account: {
+      info: {
+        get: throwError,
+        set: throwError,
+      },
+    },
   }
 }
