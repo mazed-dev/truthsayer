@@ -63,8 +63,6 @@ async function _onLogout() {
 
 // Internal actions to do on login event
 async function _loginHandler(account: UserAccount) {
-  // const account = new UserAccount(user.uid, user.name, user.email, {})
-
   if (!_authKnocker.isActive()) {
     await _authKnocker.start({
       /* onKnockFailure */
