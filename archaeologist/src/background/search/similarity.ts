@@ -10,9 +10,7 @@ import type {
   StorageApi,
   TextContentBlock,
   TfEmbeddingForBlockJson,
-  TfEmbeddingJson,
 } from 'smuggler-api'
-import { NodeUtil } from 'smuggler-api'
 import { TDoc, Beagle } from 'elementary'
 import CancellationToken from 'cancellationtoken'
 import { log, errorise, AbortError, Timer } from 'armoury'
@@ -94,48 +92,6 @@ export async function findRelevantNodes(
   log.debug('Similarity search results', timer.elapsed(), relevantNodes)
   return relevantNodes
 }
-
-// async function findRelevantNodesForTextBlock(
-//   textContentBlock: TextContentBlock,
-//   excludedNids: Set<Nid>,
-//   cancellationToken: CancellationToken,
-//   storage: StorageApi,
-//   _analytics: BackgroundPosthog | null
-// ): Promise<RelevantNode[]> {
-//   const timer = new Timer()
-//   throwIfCancelled(cancellationToken)
-//   const { text } = textContentBlock
-//   const phraseDoc = wink_.readDoc(text)
-//   // Use plaintext search for a small queries, because similarity search based
-//   // on ML embeddings has a poor quality results on a small texts.
-//   const phraseLen = phraseDoc.tokens().length()
-//   if (phraseLen === 0) {
-//     return []
-//   }
-//   let relevantNodes: RelevantNode[]
-//   if (phraseLen < 4) {
-//     log.debug(
-//       'Use Beagle to find relevant nodes, because search phrase is short',
-//       phraseLen
-//     )
-//     relevantNodes = await findRelevantNodesUsingPlainTextSearch(
-//       phraseDoc,
-//       storage,
-//       excludedNids,
-//       cancellationToken
-//     )
-//   } else {
-//     log.debug('Use tfjs based similarity search to find relevant nodes')
-//     relevantNodes = await findRelevantNodesUsingSimilaritySearch(
-//       text,
-//       storage,
-//       excludedNids,
-//       cancellationToken
-//     )
-//   }
-//   log.debug('Similarity search results', timer.elapsed(), relevantNodes)
-//   return relevantNodes
-// }
 
 type RawSimilarityResults = {
   score: number
@@ -284,6 +240,26 @@ function calculateNodeSimilarity(
     return { nid, score: minScore, blockIndex: blockIndexWithMinScore }
   }
   return null
+}
+
+async function tryToMergeParagraphs(textContentBlocks: TextContentBlock[]): Promise<void> {
+  const timer = new Timer()
+  const tfState = await tfUse.createTfState()
+  const embeddings = await Promise.all(
+      textContentBlocks.map(async ({ text }: TextContentBlock) => {
+        return await tfState.encoder.embed(text)
+      })
+    )
+  if (textContentBlocks.length < 2) {
+    return
+  }
+  for (let rind = 1; rind < textContentBlocks.length; ++rind) {
+    const lind = rind - 1;
+    const score = tfUse.cosineDistance(embeddings[lind], embeddings[rind])
+    log.debug('Pair', score, textContentBlocks[lind])
+  }
+  log.debug('Pair', textContentBlocks[textContentBlocks.length - 1], timer.elapsed())
+  return
 }
 
 async function findRelevantNodesUsingPlainTextSearch(

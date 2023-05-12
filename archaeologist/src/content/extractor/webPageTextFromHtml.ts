@@ -39,7 +39,7 @@ function getChunkTypeFromNode(node: Node): TextContentBlockType | null {
   }
   const nodeName = node.nodeName
   const element = node as Element
-  if (nodeName === 'TABLE' || nodeName === 'P') {
+  if (nodeName === 'TABLE' || nodeName === 'P' || nodeName === 'LI') {
     return 'P'
   }
   if (nodeName.match(/^H\d+$/)) {
