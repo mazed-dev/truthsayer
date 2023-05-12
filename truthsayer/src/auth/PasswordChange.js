@@ -2,11 +2,10 @@ import React from 'react'
 
 import { Badge, Button, Card, Col, Container, Form, Row } from 'react-bootstrap'
 
-import PropTypes from 'prop-types'
 import { authentication } from 'smuggler-api'
-import { withRouter } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
-class PasswordChange extends React.Component {
+class PasswordChangeImpl extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -18,10 +17,6 @@ class PasswordChange extends React.Component {
       new_password_is_not_confirmed: false,
     }
     this.abortControler = new AbortController()
-  }
-
-  static propTypes = {
-    history: PropTypes.object.isRequired,
   }
 
   componentWillUnmount() {
@@ -65,7 +60,7 @@ class PasswordChange extends React.Component {
       })
       .then((res) => {
         if (res) {
-          this.props.history.push('/login')
+          this.props.navigate('/login')
         }
       })
   }
@@ -142,4 +137,7 @@ class PasswordChange extends React.Component {
   }
 }
 
-export default withRouter(PasswordChange)
+export function PasswordChange() {
+  const navigate = useNavigate()
+  return <PasswordChangeImpl navigate={navigate} />
+}

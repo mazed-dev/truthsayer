@@ -1,12 +1,11 @@
 import React, { useState, useRef } from 'react'
 
-import { Link, useHistory } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button, Form, ListGroup, Modal } from 'react-bootstrap'
 
 import { uploadLocalFile } from './UploadLocalFile'
 
 import { Emoji } from '../lib/Emoji'
-import { goto } from '../lib/route'
 import { jcss } from 'elementary'
 import { Optional } from 'armoury'
 
@@ -72,7 +71,7 @@ export const UploadFileAsNodeForm = React.forwardRef<
 >(({ from_nid, to_nid }, ref) => {
   const [show, setShow] = useState(false)
   const [items, setItems] = useState<JSX.Element[]>([])
-  const history = useHistory()
+  const navigate = useNavigate()
 
   const handleFileInputChange = () => {
     // @ts-ignore: Property 'current' does not exist on type '(instance: HTMLInputElement | null) => void'
@@ -100,7 +99,8 @@ export const UploadFileAsNodeForm = React.forwardRef<
   const onClose = () => {
     setShow(false)
     setItems([])
-    goto.reload(history)
+    navigate('/empty')
+    navigate(-1)
   }
 
   return (

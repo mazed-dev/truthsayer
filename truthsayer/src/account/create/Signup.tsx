@@ -2,12 +2,13 @@
 
 import React from 'react'
 
-import { useHistory, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { css } from '@emotion/react'
 
 import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
 
-import { goto, History, routes } from '../../lib/route'
+import { goto, routes } from '../../lib/route'
+import { NavigateFunction } from 'react-router-dom'
 
 import { log } from 'armoury'
 
@@ -15,7 +16,7 @@ import { authentication } from 'smuggler-api'
 import { Link } from 'react-router-dom'
 
 type SignupProps = {
-  history: History
+  navigate: NavigateFunction
   email?: string
 }
 
@@ -79,7 +80,7 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
 
   onSuccessfulRegistration = () => {
     goto.goToInboxToConfirmEmail({
-      history: this.props.history,
+      navigate: this.props.navigate,
       state: {
         name: this.state.name,
         email: this.state.email,
@@ -127,12 +128,7 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
             {this.state.errorMsg}
           </Col>
           <Col>
-            <Link
-              to={{
-                pathname: '/password-recover-request',
-                state: { email: this.state.email },
-              }}
-            >
+            <Link to={{ pathname: '/password-recover-request' }}>
               Forgot your password?
             </Link>
           </Col>
@@ -237,13 +233,9 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
   }
 }
 
-interface LocationState {
-  email: string
-}
-
 export const Signup = () => {
-  const history = useHistory()
-  const _location = useLocation<LocationState>()
+  const navigate = useNavigate()
+  const _location = useLocation()
   const email = _location.state?.email
-  return <SignupImpl history={history} email={email} />
+  return <SignupImpl navigate={navigate} email={email} />
 }
