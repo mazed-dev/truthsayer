@@ -1,6 +1,5 @@
 import * as badge from './../badge/badge'
 import {
-  AccountInfo,
   SessionCreateArgs,
   SmugglerTokenLastUpdateCookies,
   StorageApi,
@@ -85,62 +84,24 @@ async function _logoutHandler() {
   }
 }
 
-export async function check(): Promise<AccountInfo | null> {
+export async function check(): Promise<void> {
   const accountInfo = await authentication.getAuth({}).catch(() => null)
   if (accountInfo != null) {
-    await _loginHandler(accountInfo)
-    return accountInfo
-  } else {
-    log.debug('auth.check -> null')
-    await _logoutHandler()
-    return null
-  }
-}
-
-export async function login(args: SessionCreateArgs): Promise<AccountInfo> {
-  await authentication.session.create(args)
-  const user = await check()
-  if (user == null) {
-    throw new Error('Authorisation failed')
-  }
-  return user
-}
-
-async function getUserAccount(
-  storage: StorageApi
-  // accountInfo?: AccountInfo
-): Promise<UserAccount | null> {
-  // if (accountInfo != null) {
-  //   // If account is known by the init time, preserve it in local storage
-  //   await storage.account.info.set({
-  //     accountInfo,
-  //   })
-  // } else {
-  // Check the local storage for cached userAccount first
-  let accountInfo = await storage.account.info.get({})
-  if (accountInfo == null) {
-    // If there is no account information in local storage let send a request
-    // to smuggler to make sure Archaeologist is logged in as a last resort.
-    try {
-      accountInfo = await authentication.getAuth({})
-    } catch {
-    }
-    // if (accountInfo == null) {
-    //   throw new Error('Background is not authorised, please log in')
-    // }
-    // await storage.account.info.set({ accountInfo })
-  }
-  if (accountInfo == null) {
-    return null
-  } else {
-    const account = new UserAccount(
+    const userAccount = new UserAccount(
       accountInfo.uid,
       accountInfo.name,
       accountInfo.email,
       {}
     )
-    return account
+    await _loginHandler(userAccount)
+  } else {
+    await _logoutHandler()
   }
+}
+
+export async function login(args: SessionCreateArgs): Promise<void> {
+  await authentication.session.create(args)
+  await check()
 }
 
 /**
@@ -180,18 +141,37 @@ export async function register(storage: StorageApi) {
   const timer = new Timer()
   observe({
     onLogin: async (account: UserAccount) => {
-      await storage.account.info.set({ accountInfo: {
-        uid: account.getUid(),
-        email: account.getEmail(),
-        name: account.getName(),
-      }})
+      log.debug('Auth.onLogin')
+      await storage.account.info.set({
+        accountInfo: {
+          uid: account.getUid(),
+          email: account.getEmail(),
+          name: account.getName(),
+        },
+      })
     },
     onLogout: async () => {
       await storage.account.info.set({})
     },
   })
-  const userAccount = await getUserAccount(storage)
-  if (userAccount != null) {
+
+  let accountInfo = await storage.account.info.get({})
+  if (accountInfo == null) {
+    // If there is no account information in local storage let send a request
+    // to smuggler to make sure Archaeologist is logged in as a last resort.
+    try {
+      accountInfo = await authentication.getAuth({})
+    } catch (err) {
+      log.debug('Failed to fetch user account information from smuggler', err)
+    }
+  }
+  if (accountInfo != null) {
+    const userAccount = new UserAccount(
+      accountInfo.uid,
+      accountInfo.name,
+      accountInfo.email,
+      {}
+    )
     _loginHandler(userAccount)
   }
   log.debug('Authorisation module is registered', timer.elapsed())

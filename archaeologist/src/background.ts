@@ -13,7 +13,6 @@ import * as badge from './badge/badge'
 
 import browser, { Tabs } from 'webextension-polyfill'
 import {
-  AppSettings,
   BackgroundAction,
   BackgroundActionProgress,
   FromTruthsayer,
@@ -414,6 +413,7 @@ class Background {
     const storage = makeStorageApi('browser_ext')
     auth.observe({
       onLogin: async (account: UserAccount) => {
+        log.debug('Background.onLogin')
         const timer = new Timer()
         if (this.state.phase !== 'not-init') {
           throw new FromBackground.IncompatibleInitPhase({
@@ -741,13 +741,14 @@ class Background {
             },
           })
         })
-        const accountInfo = await auth.login(message.args)
+        await auth.login(message.args)
+        const account = await Promise.race([timeout, waitForInit])
         return {
           type: 'RESPONSE_LOG_IN',
           user: {
-            email: accountInfo.email,
-            uid: accountInfo.uid,
-            name: accountInfo.name,
+            email: account.getEmail(),
+            uid: account.getUid(),
+            name: account.getName(),
           },
         }
       }
@@ -759,16 +760,16 @@ class Background {
     message: FromTruthsayer.Request,
     sender: browser.Runtime.MessageSender
   ): Promise<ToTruthsayer.Response> {
+    if (message.type === 'CHECK_AUTHORISATION_STATUS_REQUEST') {
+      log.debug('CHECK_AUTHORISATION_STATUS_REQUEST')
+      await auth.check()
+      return { type: 'VOID_RESPONSE' }
+    }
     if (this.state.phase !== 'init-done') {
       throw new FromBackground.IncompatibleInitPhase({
         expected: 'init-done',
         actual: this.state.phase,
       })
-    }
-    if (message.type === 'CHECK_AUTHORISATION_STATUS_REQUEST') {
-      log.debug('CHECK_AUTHORISATION_STATUS_REQUEST')
-      await auth.check()
-      return { type: 'VOID_RESPONSE' }
     }
     const ctx = this.state.context
     switch (message.type) {
