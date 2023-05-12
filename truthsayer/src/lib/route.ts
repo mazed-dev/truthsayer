@@ -1,5 +1,5 @@
 import { stringify, parse } from 'query-string'
-import { RouteComponentProps } from 'react-router-dom'
+import { NavigateFunction, Location } from 'react-router-dom'
 import { Optional } from 'armoury'
 
 export type TruthsayerPath =
@@ -30,7 +30,6 @@ export type TruthsayerPath =
   | '/terms-of-service'
   | '/user-encryption'
   | '/user-preferences'
-  | '/account/create/waiting-for-approval'
   | '/account/create/go-to-inbox-to-confirm-email'
   | '/onboarding'
   | '/browser-history-import-loading-screen'
@@ -41,8 +40,6 @@ const kLogOutPath: TruthsayerPath = '/logout'
 const kSearchPath: TruthsayerPath = '/search'
 const kEmptyPath: TruthsayerPath = '/empty'
 const kNodePathPrefix = '/n/'
-const kWaitingForApproval: TruthsayerPath =
-  '/account/create/waiting-for-approval'
 
 const kNoticePathPrefix: TruthsayerPath = '/notice/'
 
@@ -69,12 +66,17 @@ export type PasswordRecoverFormUrlParams = { token: string }
 export type TriptychUrlParams = { nid: string }
 export type NoticeUrlParams = { page: string }
 
-export type History = RouteComponentProps['history']
-export type Location = RouteComponentProps['location']
+export type { Location }
 
-function gotoSearch({ history, query }: { history?: History; query: string }) {
-  if (history) {
-    history.push({
+function gotoSearch({
+  navigate,
+  query,
+}: {
+  navigate?: NavigateFunction
+  query: string
+}) {
+  if (navigate) {
+    navigate({
       pathname: kSearchPath,
       search: stringify({ q: query }),
     })
@@ -84,14 +86,14 @@ function gotoSearch({ history, query }: { history?: History; query: string }) {
 }
 
 function gotoOnboarding({
-  history,
+  navigate,
   step,
 }: {
-  history?: History
+  navigate?: NavigateFunction
   step?: number
 }) {
-  if (history) {
-    history.push({ pathname: kOnboarding, search: stringify({ step }) })
+  if (navigate) {
+    navigate({ pathname: kOnboarding, search: stringify({ step }) })
   } else {
     window.location.pathname = kOnboarding
   }
@@ -104,10 +106,14 @@ function getSearchAnchor({ location }: { location: Location }) {
   return { query: params.q || '' }
 }
 
-function gotoPath(history: Optional<History>, path: string, state?: any) {
-  if (history) {
-    // *dbg*/ console.log('History push', path)
-    history.push(path, state)
+function gotoPath(
+  navigate: Optional<NavigateFunction>,
+  path: string,
+  state?: any
+) {
+  if (navigate) {
+    // *dbg*/ console.log('NavigateFunction push', path)
+    navigate(path, state)
   } else {
     // *dbg*/ console.log('Window location href', path)
     window.location.href = path
@@ -117,11 +123,11 @@ function gotoPath(history: Optional<History>, path: string, state?: any) {
 function goToTruthsayerPath(
   path: TruthsayerPath,
   params?: {
-    history?: History
+    navigate?: NavigateFunction
     state?: any
   }
 ) {
-  gotoPath(params?.history ?? null, path, params?.state ?? null)
+  gotoPath(params?.navigate ?? null, path, params?.state ?? null)
 }
 
 export interface GoToInboxToConfirmEmailLocationState {
@@ -130,65 +136,62 @@ export interface GoToInboxToConfirmEmailLocationState {
 }
 
 function goToInboxToConfirmEmail({
-  history,
+  navigate,
   state,
 }: {
-  history?: History
+  navigate?: NavigateFunction
   state: GoToInboxToConfirmEmailLocationState
 }) {
   goToTruthsayerPath('/account/create/go-to-inbox-to-confirm-email', {
     state,
-    history,
+    navigate,
   })
 }
 
-type HistoryObj = { history?: Optional<History> }
+type HavigateObj = { navigate?: Optional<NavigateFunction> }
 
-function gotoLogIn({ history }: HistoryObj) {
-  gotoPath(history ?? null, kLogInPath)
+function gotoLogIn({ navigate }: HavigateObj) {
+  gotoPath(navigate ?? null, kLogInPath)
 }
 
-function gotoSignUp({ history }: HistoryObj) {
-  gotoPath(history ?? null, kSignUpPath)
+function gotoSignUp({ navigate }: HavigateObj) {
+  gotoPath(navigate ?? null, kSignUpPath)
 }
 
-function gotoLogOut({ history }: HistoryObj) {
-  gotoPath(history ?? null, kLogOutPath)
+function gotoLogOut({ navigate }: HavigateObj) {
+  gotoPath(navigate ?? null, kLogOutPath)
 }
 
-function gotoNode({ history, nid }: { history: History; nid: string }) {
-  gotoPath(history ?? null, kNodePathPrefix + nid)
+function gotoNode({
+  navigate,
+  nid,
+}: {
+  navigate: NavigateFunction
+  nid: string
+}) {
+  gotoPath(navigate ?? null, kNodePathPrefix + nid)
 }
 
-function gotoMain({ history }: HistoryObj) {
+function gotoMain({ navigate }: HavigateObj) {
   // *dbg*/ console.log('Go to main')
-  gotoPath(history ?? null, '/')
+  gotoPath(navigate ?? null, '/')
 }
 
-function gotoError({ history }: HistoryObj) {
+function gotoError({ navigate }: HavigateObj) {
   // *dbg*/ console.log('Go to error')
-  gotoPath(history ?? null, kNoticePathPrefix + kNoticeErrorPage)
+  gotoPath(navigate ?? null, kNoticePathPrefix + kNoticeErrorPage)
 }
 
-function gotoSeeYou({ history }: HistoryObj) {
-  gotoPath(history ?? null, kNoticePathPrefix + kNoticeSeeYouPage)
+function gotoSeeYou({ navigate }: HavigateObj) {
+  gotoPath(navigate ?? null, kNoticePathPrefix + kNoticeSeeYouPage)
 }
 
-function gotoLogInToContinue({ history }: HistoryObj) {
-  gotoPath(history ?? null, kNoticePathPrefix + kNoticeLogInToContinue)
+function gotoLogInToContinue({ navigate }: HavigateObj) {
+  gotoPath(navigate ?? null, kNoticePathPrefix + kNoticeLogInToContinue)
 }
 
-function gotoWaitingListNotice(history: History, state?: any) {
-  gotoPath(history, kNoticePathPrefix + kNoticeYouAreInWaitingList, state)
-}
-
-function gotoWaitingForApproval(history?: History, state?: any) {
-  gotoPath(history ?? null, kWaitingForApproval, state)
-}
-
-function reload_(history: History) {
-  history.push({ pathname: kEmptyPath })
-  history.goBack()
+function gotoWaitingListNotice(navigate: NavigateFunction, state?: any) {
+  gotoPath(navigate, kNoticePathPrefix + kNoticeYouAreInWaitingList, state)
 }
 
 export const routes = {
@@ -227,8 +230,6 @@ export const goto = {
     logInToContinue: gotoLogInToContinue,
     youAreInWaitingList: gotoWaitingListNotice,
   },
-  waitingForApproval: gotoWaitingForApproval,
-  reload: reload_,
   goToInboxToConfirmEmail,
 }
 
@@ -247,4 +248,8 @@ export const notice = {
   seeYou: kNoticeSeeYouPage,
   logInToContinue: kNoticeLogInToContinue,
   youAreInWaitingList: kNoticeYouAreInWaitingList,
+}
+
+export function truthsayerPath(path: TruthsayerPath): TruthsayerPath {
+  return path
 }

@@ -40,4 +40,9 @@ export class Timer {
     }
     return duration
   }
+
+  elapsedSecondsPretty(): string {
+    const duration = new Date().getTime() - this.start
+    return `${duration / 1000}s`
+  }
 }

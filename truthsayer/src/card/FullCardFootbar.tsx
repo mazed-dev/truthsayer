@@ -3,7 +3,7 @@
 import React, { PropsWithChildren, useContext } from 'react'
 import { css } from '@emotion/react'
 
-import { RouteComponentProps, withRouter } from 'react-router-dom'
+import { useNavigate, NavigateFunction } from 'react-router-dom'
 import { ButtonToolbar } from 'react-bootstrap'
 
 import { NodeMeta, NodeUtil, StorageApi, TNode } from 'smuggler-api'
@@ -53,11 +53,13 @@ type PrivateFullCardFootbarProps = PropsWithChildren<{
 }>
 
 class PrivateFullCardFootbarImpl extends React.Component<
-  PrivateFullCardFootbarProps & RouteComponentProps
+  PrivateFullCardFootbarProps & { navigate: NavigateFunction }
 > {
   deleteAbortController: AbortController
 
-  constructor(props: PrivateFullCardFootbarProps & RouteComponentProps) {
+  constructor(
+    props: PrivateFullCardFootbarProps & { navigate: NavigateFunction }
+  ) {
     super(props)
     this.state = {}
     this.deleteAbortController = new AbortController()
@@ -127,7 +129,7 @@ class PrivateFullCardFootbarImpl extends React.Component<
             key={this.props.nid}
           />
         )
-        goto.default({ history: this.props.history })
+        goto.default({ navigate: this.props.navigate })
       })
   }
 
@@ -202,31 +204,19 @@ class PrivateFullCardFootbarImpl extends React.Component<
   }
 }
 
-const PrivateFullCardFootbar = withRouter(PrivateFullCardFootbarImpl)
+function PrivateFullCardFootbar(props: PrivateFullCardFootbarProps) {
+  const navigate = useNavigate()
+  return <PrivateFullCardFootbarImpl navigate={navigate} {...props} />
+}
 
 type PublicFullCardFootbarProps = PropsWithChildren<{
   nid: string
   context: MzdGlobalContextProps
 }>
 
-class PublicFullCardFootbarImpl extends React.Component<
-  PublicFullCardFootbarProps & RouteComponentProps
-> {
-  constructor(props: PublicFullCardFootbarProps & RouteComponentProps) {
-    super(props)
-    this.state = {}
-  }
-
-  render() {
-    return (
-      <>
-        <ButtonToolbar className={jcss(styles.toolbar)} />
-      </>
-    )
-  }
+function PublicFullCardFootbar(_props: PublicFullCardFootbarProps) {
+  return <ButtonToolbar className={jcss(styles.toolbar)} />
 }
-
-const PublicFullCardFootbar = withRouter(PublicFullCardFootbarImpl)
 
 export function FullCardFootbar({
   /* children,  */ node,

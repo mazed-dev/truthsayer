@@ -5,7 +5,7 @@ import React, { useContext, useRef } from 'react'
 import styled from '@emotion/styled'
 
 import { Dropdown } from 'react-bootstrap'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { MdiAdd, MdiFileUpload, StyleButtonCreate, TDoc } from 'elementary'
 
@@ -79,7 +79,7 @@ const CustomDropdownItem = styled(Dropdown.Item)`
 `
 
 export const CreateNewNodeMenu = () => {
-  const history = useHistory()
+  const navigate = useNavigate()
   const ctx = useContext(MzdGlobalContext)
   const newNodeClick = () => {
     const doc = TDoc.makeEmpty()
@@ -93,7 +93,7 @@ export const CreateNewNodeMenu = () => {
       })
       .then((node) => {
         if (node) {
-          goto.node({ history: history, nid: node.nid })
+          goto.node({ navigate, nid: node.nid })
         }
       })
   }
