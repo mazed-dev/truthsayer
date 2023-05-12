@@ -14,7 +14,10 @@
  */
 
 import type {
+  AccountInfo,
   Ack,
+  AccountInfoGetArgs,
+  AccountInfoSetArgs,
   ActivityAssociationGetArgs,
   ActivityAssociationRecordArgs,
   ActivityExternalAddArgs,
@@ -51,7 +54,6 @@ import type {
   TNode,
   TNodeJson,
   TotalUserActivity,
-  UserAccount,
   UserExternalAssociationType,
   UserExternalPipelineId,
   UserExternalPipelineIngestionProgress,
@@ -183,6 +185,9 @@ type NidToNodeSimilaritySearchInfoLav = GenericLav<
   NodeSimilaritySearchInfo
 >
 
+type UserAccountInfoYek = GenericYek<'account-info', undefined>
+type UserAccountInfoLav = GenericLav<'account-info', AccountInfo>
+
 type Yek =
   | AllNidsYek
   | NidToNodeYek
@@ -193,6 +198,7 @@ type Yek =
   | ExtPipelineToNidYek
   | OriginToExtAssociationYek
   | NidToNodeSimilaritySearchInfoYek
+  | UserAccountInfoYek
 
 type Lav =
   | AllNidsLav
@@ -204,6 +210,7 @@ type Lav =
   | ExtPipelineToNidLav
   | OriginToExtAssociationLav
   | NidToNodeSimilaritySearchInfoLav
+  | UserAccountInfoLav
 
 type YekLav = { yek: Yek; lav: Lav }
 
@@ -269,6 +276,7 @@ class YekLavStore {
   get(
     yek: NidToNodeSimilaritySearchInfoYek
   ): Promise<NidToNodeSimilaritySearchInfoLav | undefined>
+  get(yek: UserAccountInfoYek): Promise<UserAccountInfoLav | undefined>
   get(yek: Yek): Promise<Lav | undefined>
   get(yek: Yek | Yek[]): Promise<Lav | YekLav[] | undefined> {
     if (Array.isArray(yek)) {
@@ -474,6 +482,8 @@ class YekLavStore {
         return 'origin->ext-assoc:' + yek.yek.key.id
       case 'nid->sim-search-node':
         return 'nid->sim-search-node:' + yek.yek.key
+      case 'account-info':
+        return 'account-info'
     }
   }
 }
@@ -500,8 +510,7 @@ function generateEid(): Eid {
 
 async function createNode(
   store: YekLavStore,
-  args: NodeCreateArgs,
-  account: UserAccount
+  args: NodeCreateArgs
 ): Promise<NewNodeResponse> {
   const from_nid: Nid[] = args.from_nid ?? []
   const to_nid: Nid[] = args.to_nid ?? []
@@ -514,9 +523,6 @@ async function createNode(
     index_text: args.index_text,
     created_at: createdAt,
     updated_at: createdAt,
-    meta: {
-      uid: account.getUid(),
-    },
   }
 
   let records: YekLav[] = [
@@ -569,7 +575,6 @@ async function createNode(
       crtd: createdAt,
       upd: createdAt,
       is_sticky: false,
-      owned_by: account.getUid(),
     }
     // Step 1: create records that allow to discover connected nodes from the
     // newly created node
@@ -886,8 +891,7 @@ class Iterator implements INodeIterator {
 
 async function createEdge(
   store: YekLavStore,
-  args: EdgeCreateArgs,
-  account: UserAccount
+  args: EdgeCreateArgs
 ): Promise<TEdge> {
   const createdAt: number = unixtime.now()
   const edge: TEdgeJson = {
@@ -897,7 +901,6 @@ async function createEdge(
     crtd: createdAt,
     upd: createdAt,
     is_sticky: false,
-    owned_by: account.getUid(),
   }
 
   const items: YekLav[] = []
@@ -1182,9 +1185,40 @@ async function getAssociations(
   return ret
 }
 
+async function getUserAccountInforFromLocalStorage(
+  store: YekLavStore,
+  _args: AccountInfoGetArgs
+): Promise<AccountInfo | null> {
+  const yek: UserAccountInfoYek = {
+    yek: { kind: 'account-info', key: undefined },
+  }
+  const lav: UserAccountInfoLav | undefined = await store.get(yek)
+  if (lav == null) {
+    return null
+  }
+  return lav.lav.value
+}
+
+async function setUserAccountInfoToLocalStorage(
+  store: YekLavStore,
+  args: AccountInfoSetArgs
+): Promise<Ack> {
+  const yek: UserAccountInfoYek = {
+    yek: { kind: 'account-info', key: undefined },
+  }
+  if (args.accountInfo != null) {
+    const lav: UserAccountInfoLav = {
+      lav: { kind: 'account-info', value: args.accountInfo },
+    }
+    await store.set([{ yek, lav }])
+  } else {
+    await store.remove([yek])
+  }
+  return { ack: true }
+}
+
 export function makeBrowserExtStorageApi(
-  browserStore: browser.Storage.StorageArea,
-  account: UserAccount
+  browserStore: browser.Storage.StorageArea
 ): StorageApi {
   const store = new YekLavStore(browserStore)
 
@@ -1203,7 +1237,7 @@ export function makeBrowserExtStorageApi(
       getByOrigin: (args: NodeGetByOriginArgs) => getNodesByOrigin(store, args),
       getAllNids: (args: NodeGetAllNidsArgs) => getAllNids(store, args),
       update: (args: NodeUpdateArgs) => updateNode(store, args),
-      create: (args: NodeCreateArgs) => createNode(store, args, account),
+      create: (args: NodeCreateArgs) => createNode(store, args),
       iterate: () => Iterator.create(store),
       delete: (args: NodeDeleteArgs) => deleteNode(store, args),
       bulkDelete: (args: NodeBulkDeleteArgs) => bulkDeleteNodes(store, args),
@@ -1237,7 +1271,7 @@ export function makeBrowserExtStorageApi(
       },
     },
     edge: {
-      create: (args: EdgeCreateArgs) => createEdge(store, args, account),
+      create: (args: EdgeCreateArgs) => createEdge(store, args),
       get: (args: EdgeGetArgs) => getNodeAllEdges(store, args),
       sticky: throwUnimplementedError('edge.sticky'),
       delete: throwUnimplementedError('edge.delete'),
@@ -1261,6 +1295,14 @@ export function makeBrowserExtStorageApi(
           getUserIngestionProgress(store, args),
         advance: (args: ExternalIngestionAdvanceArgs) =>
           advanceUserIngestionProgress(store, args),
+      },
+    },
+    account: {
+      info: {
+        get: (args: AccountInfoGetArgs) =>
+          getUserAccountInforFromLocalStorage(store, args),
+        set: (args: AccountInfoSetArgs) =>
+          setUserAccountInfoToLocalStorage(store, args),
       },
     },
   }

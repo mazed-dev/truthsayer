@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Form } from 'react-bootstrap'
 
 import styles from './SearchForm.module.css'
@@ -19,7 +19,7 @@ export function SearchForm({
 }) {
   const [value, setValue] = useState<string>(from)
   const searchCmdRef = useRef<HTMLInputElement>(null)
-  const history = useHistory()
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (inFocus) {
@@ -29,7 +29,7 @@ export function SearchForm({
 
   const gotoSearchResults_ = (query: string) => {
     if (value === '' || value.length > 1) {
-      goto.search({ history, query })
+      goto.search({ navigate, query })
     }
   }
   const gotoSearchResultsDebounced = useRef(
@@ -44,7 +44,7 @@ export function SearchForm({
 
   const handleSumbit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    goto.search({ history: history, query: value })
+    goto.search({ navigate, query: value })
     gotoSearchResultsDebounced.current(value)
   }
 

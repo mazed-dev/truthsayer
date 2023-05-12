@@ -1,5 +1,6 @@
 import { authentication } from '../api_datacenter'
 import { authCookie } from './cookie'
+import { AccountInfo } from '../types'
 import { AccountInterface } from './account_interface'
 import type { LocalCrypto } from './account_interface'
 
@@ -49,6 +50,15 @@ export class UserAccount extends AnonymousAccount {
     // const lc = await LocalCrypto.initInstance(user.uid)
     const lc: LocalCrypto = {}
     return new UserAccount(user.uid, user.name, user.email, lc)
+  }
+
+  static fromAccountInfo(accountInfo: AccountInfo): UserAccount {
+    return new UserAccount(
+      accountInfo.uid,
+      accountInfo.name,
+      accountInfo.email,
+      {}
+    )
   }
 
   getUid(): string {
