@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 
 import { Slate, withReact } from 'slate-react'
 import { EditableStyled } from './SlateStyled'
@@ -8,7 +8,6 @@ import { createEditor } from 'slate'
 
 import { withHistory } from 'slate-history'
 
-import { withJinn, Jinn } from './plugins/jinn'
 import { withTypography } from './plugins/typography'
 import { withShortcuts } from './plugins/shortcuts'
 import { withLinks } from './plugins/link'
@@ -25,7 +24,6 @@ import { productanalytics } from 'armoury'
 import { ElementaryContext } from '../context'
 
 export const NodeTextEditor = ({
-  ctx,
   className,
   node,
   saveText,
@@ -37,7 +35,6 @@ export const NodeTextEditor = ({
   className?: string
   strippedFormatToolbar?: boolean
 }) => {
-  const [isJinnShown, setShowJinn] = useState<boolean>(false)
   const nid = node.nid
   const renderElement = useCallback(
     (props) => {
@@ -50,12 +47,9 @@ export const NodeTextEditor = ({
   }, [])
   const editor = useMemo(() => {
     return withHistory(
-      withJinn(
-        () => setShowJinn(true),
-        withTypography(
-          withLinks(
-            withImages(withShortcuts(withReact(withHistory(createEditor()))))
-          )
+      withTypography(
+        withLinks(
+          withImages(withShortcuts(withReact(withHistory(createEditor()))))
         )
       )
     )
@@ -68,12 +62,6 @@ export const NodeTextEditor = ({
   }, [nid])
   return (
     <div className={className}>
-      <Jinn
-        ctx={ctx}
-        isShown={isJinnShown}
-        onHide={() => setShowJinn(false)}
-        editor={editor}
-      />
       <Slate
         editor={editor}
         value={initialValue}

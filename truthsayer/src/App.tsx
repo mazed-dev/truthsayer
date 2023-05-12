@@ -1,15 +1,14 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useCallback } from 'react'
+import React from 'react'
 
 import {
   BrowserRouter as Router,
-  Redirect,
+  Navigate,
   Route,
-  Switch,
+  Routes,
   useParams,
-  RouteProps,
-  useHistory,
+  useLocation,
 } from 'react-router-dom'
 
 import { css } from '@emotion/react'
@@ -23,21 +22,19 @@ import { SearchGridView } from './grid/SearchGridView'
 
 import { GlobalNavBar } from './navbar/GlobalNavBar'
 import { Login } from './auth/Login'
-import Logout from './auth/Logout'
+import { Logout } from './auth/Logout'
 import { Signup } from './account/create/Signup'
-import PasswordChange from './auth/PasswordChange'
-import PasswordRecoverForm from './auth/PasswordRecoverForm'
-import PasswordRecoverRequest from './auth/PasswordRecoverRequest'
+import { PasswordChange } from './auth/PasswordChange'
+import { PasswordRecoverForm } from './auth/PasswordRecoverForm'
+import { PasswordRecoverRequest } from './auth/PasswordRecoverRequest'
 import { Notice } from './notice/Notice.js'
-import WaitingForApproval from './account/create/WaitingForApproval'
 import { GoToInboxToConfirmEmail } from './account/create/GoToInboxToConfirmEmail'
-import UserPreferences from './auth/UserPreferences'
 import { LandingPage } from './landing-page/LandingPage'
 import { Onboarding } from './account/onboard/Onboarding'
 import {
-  TruthsayerPath,
   PasswordRecoverFormUrlParams,
   TriptychUrlParams,
+  truthsayerPath,
 } from './lib/route'
 import { Loader } from './lib/loader'
 import {
@@ -132,99 +129,6 @@ function AppRouter() {
     }
   }, [])
 
-  const publicOnlyRoutes = [
-    <TruthsayerRoute key={'mzd-pubonly-route-0'} exact path="/">
-      <LandingPage />
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-pubonly-route-1'} path={'/login'}>
-      <PublicPage>
-        <Login />
-      </PublicPage>
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-pubonly-route-2'} path={'/signup'}>
-      <PublicPage>
-        <Signup />
-      </PublicPage>
-    </TruthsayerRoute>,
-    <TruthsayerRoute
-      key={'mzd-pubonly-route-3'}
-      path="/password-recover-request"
-    >
-      <PublicPage>
-        <PasswordRecoverRequest />
-      </PublicPage>
-    </TruthsayerRoute>,
-    <TruthsayerRoute
-      key={'mzd-pubonly-route-4'}
-      path="/password-recover-reset/:token"
-    >
-      <PublicPage>
-        <PasswordRecoverFormView />
-      </PublicPage>
-    </TruthsayerRoute>,
-    <Route key={'mzd-pubonly-route-5'} path="*">
-      <Redirect to={{ pathname: '/' }} />
-    </Route>,
-  ]
-
-  const publicRoutes = [
-    <TruthsayerRoute
-      key={'mzd-pub-route-0'}
-      path="/account/create/waiting-for-approval"
-    >
-      <PublicPage>
-        <WaitingForApproval path="/account/create/waiting-for-approval" />
-      </PublicPage>
-    </TruthsayerRoute>,
-    <TruthsayerRoute
-      key={'mzd-pub-route-1'}
-      path="/account/create/go-to-inbox-to-confirm-email"
-    >
-      <GoToInboxToConfirmEmail />
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-pub-route-2'} path="/apps-to-install">
-      <PublicPage>
-        <AppsList archaeologist={archaeologistState} />
-      </PublicPage>
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-pub-route-3'} path="/help">
-      <PublicPage>
-        <HelpInfo />
-      </PublicPage>
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-pub-route-4'} path="/about">
-      <PublicPage>
-        <AboutMazed />
-      </PublicPage>
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-pub-route-5'} path="/contacts">
-      <PublicPage>
-        <ContactUs />
-      </PublicPage>
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-pub-route-6'} path="/notice/:page">
-      <PublicPage>
-        <Notice />
-      </PublicPage>
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-pub-route-7'} path="/cookie-policy">
-      <PublicPage>
-        <CookiePolicy />
-      </PublicPage>
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-pub-route-8'} path="/privacy-policy">
-      <PublicPage>
-        <PrivacyPolicy />
-      </PublicPage>
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-pub-route-9'} path="/terms-of-service">
-      <PublicPage>
-        <TermsOfService />
-      </PublicPage>
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-pub-route-10'} exact path={'/empty'} />,
-  ]
-
   const [historyImportProgress, setHistoryImportProgress] =
     React.useState<BackgroundActionProgress>({
       processed: 0,
@@ -275,59 +179,7 @@ function AppRouter() {
     return () => window.removeEventListener('message', listener)
   })
 
-  const privateRoutes = [
-    <TruthsayerRoute key={'mzd-private-route-0'} exact path="/">
-      <Redirect to={{ pathname: '/search' }} />
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-private-route-1'} path={'/search'}>
-      <SearchGridView archaeologistState={archaeologistState} />
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-private-route-2'} path="/account">
-      <AccountView />
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-private-route-3'} path="/user-preferences">
-      <UserPreferences />
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-private-route-4'} path="/external-import">
-      <ExternalImport
-        archaeologistState={archaeologistState}
-        progress={externalImportProgress}
-        browserHistoryImportConfig={{ modes: ['untracked', 'resumable'] }}
-      />
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-private-route-5'} path="/export">
-      <Export />
-    </TruthsayerRoute>,
-    <TruthsayerRoute
-      key={'mzd-private-route-6'}
-      path="/password-recover-change"
-    >
-      <PasswordChange />
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-private-route-7'} path={'/n/:nid'}>
-      <TriptychView />
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-private-route-8'} path="/settings">
-      <ApplicationSettings archaeologistState={archaeologistState} />
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-private-route-9'} path={'/logout'}>
-      <Logout />
-    </TruthsayerRoute>,
-    <TruthsayerRoute key={'mzd-private-route-onboarding'} path={'/onboarding'}>
-      <Onboarding
-        archaeologistState={archaeologistState}
-        progress={externalImportProgress}
-      />
-    </TruthsayerRoute>,
-    <TruthsayerRoute
-      key={'mzd-private-route-11'}
-      path={'/browser-history-import-loading-screen'}
-    >
-      <BrowserHistoryImporterLoadingScreen progress={historyImportProgress} />
-    </TruthsayerRoute>,
-  ]
-
-  const authorisationLikelyComplete = authCookie.veil.check()
+  const isLikelyAuthorised = authCookie.veil.check()
 
   return (
     <Router>
@@ -358,27 +210,288 @@ function AppRouter() {
           }
         `}
       >
-        <Switch>
-          {publicRoutes}
-          {authorisationLikelyComplete ? (
-            account != null ? (
-              <MzdGlobal analytics={analytics ?? undefined} account={account}>
-                {privateRoutes}
-              </MzdGlobal>
-            ) : (
-              <Loader size={'large'} />
-            )
-          ) : (
-            publicOnlyRoutes
-          )}
-        </Switch>
+        <PrivatePageContext
+          isLikelyAuthorised={isLikelyAuthorised}
+          account={account ?? undefined}
+          analytics={analytics ?? undefined}
+        >
+          <Routes>
+            <Route path="/">
+              <Route
+                index
+                element={
+                  <LandingPageView isLikelyAuthorised={isLikelyAuthorised} />
+                }
+              />
+              <Route
+                path={truthsayerPath(
+                  '/account/create/go-to-inbox-to-confirm-email'
+                )}
+                element={<GoToInboxToConfirmEmail />}
+              />
+              <Route
+                path={truthsayerPath('/apps-to-install')}
+                element={
+                  <PublicPage>
+                    <AppsList archaeologist={archaeologistState} />
+                  </PublicPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/help')}
+                element={
+                  <PublicPage>
+                    <HelpInfo />
+                  </PublicPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/about')}
+                element={
+                  <PublicPage>
+                    <AboutMazed />
+                  </PublicPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/contacts')}
+                element={
+                  <PublicPage>
+                    <ContactUs />
+                  </PublicPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/notice/:page')}
+                element={
+                  <PublicPage>
+                    <Notice />
+                  </PublicPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/cookie-policy')}
+                element={
+                  <PublicPage>
+                    <CookiePolicy />
+                  </PublicPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/privacy-policy')}
+                element={
+                  <PublicPage>
+                    <PrivacyPolicy />
+                  </PublicPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/terms-of-service')}
+                element={
+                  <PublicPage>
+                    <TermsOfService />
+                  </PublicPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/login')}
+                element={
+                  <PublicOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <PublicPage>
+                      <Login />
+                    </PublicPage>
+                  </PublicOnlyPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/signup')}
+                element={
+                  <PublicOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <PublicPage>
+                      <Signup />
+                    </PublicPage>
+                  </PublicOnlyPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/password-recover-request')}
+                element={
+                  <PublicOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <PublicPage>
+                      <PasswordRecoverRequest />
+                    </PublicPage>
+                  </PublicOnlyPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/password-recover-reset/:token')}
+                element={
+                  <PublicOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <PublicPage>
+                      <PasswordRecoverFormView />
+                    </PublicPage>
+                  </PublicOnlyPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/')}
+                element={
+                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <Navigate to={{ pathname: '/search' }} />
+                  </PrivateOnlyPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/search')}
+                element={
+                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <SearchGridView archaeologistState={archaeologistState} />
+                  </PrivateOnlyPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/account')}
+                element={
+                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <AccountView />
+                  </PrivateOnlyPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/external-import')}
+                element={
+                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <ExternalImport
+                      archaeologistState={archaeologistState}
+                      progress={externalImportProgress}
+                      browserHistoryImportConfig={{
+                        modes: ['untracked', 'resumable'],
+                      }}
+                    />
+                  </PrivateOnlyPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/export')}
+                element={
+                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <Export />
+                  </PrivateOnlyPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/password-recover-change')}
+                element={
+                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <PasswordChange />
+                  </PrivateOnlyPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/n/:nid')}
+                element={
+                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <TriptychView />
+                  </PrivateOnlyPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/settings')}
+                element={
+                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <ApplicationSettings
+                      archaeologistState={archaeologistState}
+                    />
+                  </PrivateOnlyPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/logout')}
+                element={
+                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <Logout />
+                  </PrivateOnlyPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/onboarding')}
+                element={
+                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <Onboarding
+                      archaeologistState={archaeologistState}
+                      progress={externalImportProgress}
+                    />
+                  </PrivateOnlyPage>
+                }
+              />
+              <Route
+                path={truthsayerPath('/browser-history-import-loading-screen')}
+                element={
+                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <BrowserHistoryImporterLoadingScreen
+                      progress={historyImportProgress}
+                    />
+                  </PrivateOnlyPage>
+                }
+              />
+              <Route path="*" element={<Navigate to={{ pathname: '/' }} />} />
+            </Route>
+          </Routes>
+        </PrivatePageContext>
       </Container>
     </Router>
   )
 }
 
-function TruthsayerRoute(props: RouteProps & { path: TruthsayerPath }) {
-  return <Route {...props} />
+function PublicOnlyPage({
+  children,
+  isLikelyAuthorised,
+}: React.PropsWithChildren<{ isLikelyAuthorised: boolean }>) {
+  if (isLikelyAuthorised) {
+    return <Navigate to="/" />
+  }
+  return <>{children}</>
+}
+
+function PrivateOnlyPage({
+  children,
+  isLikelyAuthorised,
+}: React.PropsWithChildren<{
+  isLikelyAuthorised: boolean
+}>) {
+  if (!isLikelyAuthorised) {
+    return <Navigate to="/" />
+  }
+  return <>{children}</>
+}
+
+function PrivatePageContext({
+  isLikelyAuthorised,
+  children,
+  account,
+  analytics,
+}: React.PropsWithChildren<{
+  isLikelyAuthorised: boolean
+  account?: UserAccount
+  analytics?: PostHog
+}>) {
+  if (isLikelyAuthorised) {
+    if (account == null) {
+      return (
+        <>
+          <Loader size={'small'} />
+          {children}
+        </>
+      )
+    } else {
+      return (
+        <MzdGlobal analytics={analytics} account={account}>
+          {children}
+        </MzdGlobal>
+      )
+    }
+  }
+  return <>{children}</>
 }
 
 function HelpInfo() {
@@ -405,6 +518,9 @@ function AccountView() {
 
 function PasswordRecoverFormView() {
   const { token } = useParams<PasswordRecoverFormUrlParams>()
+  if (token == null) {
+    return <Navigate to="/" />
+  }
   return <PasswordRecoverForm token={token} />
 }
 
@@ -412,23 +528,31 @@ function TriptychView() {
   // We can use the `useParams` hook here to access
   // the dynamic pieces of the URL.
   const { nid } = useParams<TriptychUrlParams>()
+  if (nid == null) {
+    return <Navigate to="/" />
+  }
   return <Triptych nid={nid} />
+}
+
+function LandingPageView({
+  isLikelyAuthorised,
+}: {
+  isLikelyAuthorised: boolean
+}) {
+  if (isLikelyAuthorised) {
+    return <Navigate to="/search" />
+  }
+  return <LandingPage />
 }
 
 // Based on https://www.sheshbabu.com/posts/automatic-pageview-tracking-using-react-router/
 function PageviewEventTracker({ analytics }: { analytics: PostHog }) {
-  const track = useCallback(() => {
+  const location = useLocation()
+  React.useEffect(() => {
     // See https://posthog.com/docs/integrate/client/js#one-page-apps-and-page-views
     // for more information about pageview events in PostHog
     analytics.capture('$pageview')
-  }, [analytics])
-
-  const history = useHistory()
-  React.useEffect(() => {
-    const unregister = history.listen(track)
-    return unregister
-  }, [history, track])
-
+  }, [location, analytics])
   return <div />
 }
 

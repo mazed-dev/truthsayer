@@ -76,7 +76,8 @@ async function getTruthsayerTabs(): Promise<ValidTab[]> {
       url: truthsayer.url.make({ pathname: '*' }).toString(),
     })
     return tabs.filter((tab) => tab.active).filter(isValidTab)
-  } catch (err) {
+  } catch (e) {
+    const err = errorise(e)
     if (!isAbortError(err)) {
       log.exception(err)
     }
@@ -92,7 +93,8 @@ async function getActiveTab(): Promise<ValidTab | null> {
     })
     const tab = tabs.find((tab) => tab.active)
     return tab != null && isValidTab(tab) ? tab : null
-  } catch (err) {
+  } catch (e) {
+    const err = errorise(e)
     if (!isAbortError(err)) {
       log.exception(err)
     }
@@ -121,7 +123,8 @@ async function registerAttentionTime(
         },
       },
     })
-  } catch (err) {
+  } catch (e) {
+    const err = errorise(e)
     if (!isAbortError(err)) {
       log.exception(err, 'Could not register external activity')
     }
@@ -609,7 +612,8 @@ class Background {
               tab?.id,
               fromNid
             )
-          } catch (err) {
+          } catch (e) {
+            const err = errorise(e)
             if (!isAbortError(err)) {
               log.exception(err)
             }

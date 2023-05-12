@@ -81,7 +81,8 @@ async function showDisappearingNotification(
       type: 'SHOW_DISAPPEARING_NOTIFICATION',
       ...notification,
     })
-  } catch (err) {
+  } catch (e) {
+    const err = errorise(e)
     if (isAbortError(err)) {
       return
     }

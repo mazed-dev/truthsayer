@@ -1,7 +1,7 @@
 import React from 'react'
 import { Modal, Form } from 'react-bootstrap'
 
-import { SearchGrid } from 'elementary'
+import { SearchGrid } from '../grid/SearchGrid'
 
 import lodash from 'lodash'
 import { MzdGlobalContext } from '../lib/global'
@@ -104,7 +104,6 @@ class SearchAndConnectJinnModal extends React.Component<
           ref={this.inputRef}
         />
         <SearchGrid
-          ctx={this.context}
           q={q}
           defaultSearch
           onCardClick={this.onNodeCardClick}

@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
 import React, { useState, useRef } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { ThemeProvider } from '@emotion/react'
 import { Form } from 'react-bootstrap'
@@ -247,7 +247,7 @@ const SignUp = () => {
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value)
   }
-  const history = useHistory()
+  const navigate = useNavigate()
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     authentication.user
@@ -260,7 +260,7 @@ const SignUp = () => {
       })
       .then((res) => {
         if (res) {
-          goto.notice.youAreInWaitingList(history, {
+          goto.notice.youAreInWaitingList(navigate, {
             name: email.split('@')[0],
             email: email,
           })
