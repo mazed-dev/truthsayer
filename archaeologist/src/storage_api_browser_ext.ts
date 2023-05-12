@@ -1083,20 +1083,13 @@ async function recordAssociation(
   if (!lav.lav.value.every((assoc) => assoc.other.id !== to.id)) {
     // Don't fail here, user might open the same link many times, there is
     // nothing unusual in it.
-    log.debug(`Association already exists`, from, '->', to)
+    log.debug(`${from.id} -> ${to.id} association already exists.`)
     return { ack: true }
   }
   if (!rlav.lav.value.every((assoc) => assoc.other.id !== from.id)) {
-    // Don't fail here, user might open the same link many times, there is
-    // nothing unusual in it. Incosistency of data on the other hand could be be
-    // a sign of a problem, so let's print a warning about it.
-    log.debug(
-      'Association does not exist, but its reverse version does. Data is unexpectedly inconsistent.',
-      from,
-      '->',
-      to
+    throw new Error(
+      `${from.id} -> ${to.id} association does not exist, but its reverse version does. Data is unexpectedly inconsistent.`
     )
-    return { ack: true }
   }
 
   lav.lav.value.push({
