@@ -85,12 +85,7 @@ async function _logoutHandler() {
 export async function check(): Promise<void> {
   const accountInfo = await authentication.getAuth({}).catch(() => null)
   if (accountInfo != null) {
-    const userAccount = new UserAccount(
-      accountInfo.uid,
-      accountInfo.name,
-      accountInfo.email,
-      {}
-    )
+    const userAccount = UserAccount.fromAccountInfo(accountInfo)
     await _loginHandler(userAccount)
   } else {
     await _logoutHandler()
@@ -163,16 +158,14 @@ export async function register(storage: StorageApi) {
     try {
       accountInfo = await authentication.getAuth({})
     } catch (err) {
-      log.debug('Failed to fetch user account information from Smuggler, assume that user is not logged in yet', err)
+      log.debug(
+        'Failed to fetch user account information from Smuggler, assume that user is not logged in yet',
+        err
+      )
     }
   }
   if (accountInfo != null) {
-    const userAccount = new UserAccount(
-      accountInfo.uid,
-      accountInfo.name,
-      accountInfo.email,
-      {}
-    )
+    const userAccount = UserAccount.fromAccountInfo(accountInfo)
     _loginHandler(userAccount)
   }
   log.debug('Authorisation module is registered', timer.elapsedSecondsPretty())
