@@ -137,6 +137,8 @@ export function observe({
  */
 export async function register(storage: StorageApi) {
   const timer = new Timer()
+  // Additional callbacks to cache user account to local storage on every login,
+  // and to reset that cache on log out.
   observe({
     onLogin: async (account: UserAccount) => {
       await storage.account.info.set({
@@ -151,7 +153,6 @@ export async function register(storage: StorageApi) {
       await storage.account.info.set({})
     },
   })
-
   // Check the local storage for cached info about user account first to avoid
   // sending request to Smuggler risking waiting for too long or even failing
   // due to unstable connection.
