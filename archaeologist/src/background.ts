@@ -759,7 +759,6 @@ class Background {
     sender: browser.Runtime.MessageSender
   ): Promise<ToTruthsayer.Response> {
     if (message.type === 'CHECK_AUTHORISATION_STATUS_REQUEST') {
-      log.debug('CHECK_AUTHORISATION_STATUS_REQUEST')
       await auth.check()
       return { type: 'VOID_RESPONSE' }
     }
