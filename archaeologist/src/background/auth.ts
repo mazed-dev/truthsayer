@@ -141,7 +141,6 @@ export async function register(storage: StorageApi) {
   const timer = new Timer()
   observe({
     onLogin: async (account: UserAccount) => {
-      log.debug('Auth.onLogin')
       await storage.account.info.set({
         accountInfo: {
           uid: account.getUid(),
@@ -155,14 +154,17 @@ export async function register(storage: StorageApi) {
     },
   })
 
+  // Check the local storage for cached info about user account first to avoid
+  // sending request to Smuggler risking waiting for too long or even failing
+  // due to unstable connection.
   let accountInfo = await storage.account.info.get({})
   if (accountInfo == null) {
     // If there is no account information in local storage let send a request
-    // to smuggler to make sure Archaeologist is logged in as a last resort.
+    // to Smuggler to make sure Archaeologist is logged in as a last resort.
     try {
       accountInfo = await authentication.getAuth({})
     } catch (err) {
-      log.debug('Failed to fetch user account information from smuggler', err)
+      log.debug('Failed to fetch user account information from Smuggler, assume that user is not logged in yet', err)
     }
   }
   if (accountInfo != null) {
@@ -174,7 +176,7 @@ export async function register(storage: StorageApi) {
     )
     _loginHandler(userAccount)
   }
-  log.debug('Authorisation module is registered', timer.elapsed())
+  log.debug('Authorisation module is registered', timer.elapsedSecondsPretty())
   return async () => {
     try {
       await _logoutHandler()

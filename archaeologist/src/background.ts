@@ -413,7 +413,6 @@ class Background {
     const storage = makeStorageApi('browser_ext')
     auth.observe({
       onLogin: async (account: UserAccount) => {
-        log.debug('Background.onLogin')
         const timer = new Timer()
         if (this.state.phase !== 'not-init') {
           throw new FromBackground.IncompatibleInitPhase({
@@ -426,7 +425,7 @@ class Background {
           log.debug(`Background init started`)
           const context = await this.init(storage, account)
           this.state = { phase: 'init-done', context }
-          log.debug('Background init done', timer.elapsed())
+          log.debug('Background init done', timer.elapsedSecondsPretty())
         } catch (initFailureReason) {
           log.error(
             `Background init failed: ${errorise(initFailureReason).message}`
@@ -447,7 +446,6 @@ class Background {
         }
       },
       onLogout: async () => {
-        log.debug('Deinit state')
         if (
           this.state.phase === 'not-init' ||
           this.state.phase === 'unloading'

@@ -44,6 +44,6 @@ export function getAugmentationSettings(): ContentAugmentationSettings {
 
 export function register() {
   const timer = new Timer()
-  log.debug('ContentState module is loaded', timer.elapsed())
+  log.debug('ContentState module is loaded', timer.elapsedSecondsPretty())
   return () => {}
 }
