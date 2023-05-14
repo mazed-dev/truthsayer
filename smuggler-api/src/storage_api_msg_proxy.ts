@@ -1,5 +1,6 @@
 import { MimeType } from 'armoury'
 import type {
+  AccountInfo,
   Ack,
   GenerateBlobIndexResponse,
   GetUserExternalAssociationsResponse,
@@ -14,6 +15,8 @@ import type {
   UserExternalPipelineIngestionProgress,
 } from './types'
 import type {
+  AccountInfoGetArgs,
+  AccountInfoSetArgs,
   ActivityAssociationGetArgs,
   ActivityAssociationRecordArgs,
   ActivityExternalAddArgs,
@@ -71,6 +74,8 @@ export type StorageApiMsgPayload =
       apiName: 'node.similarity.setIndex'
       args: SetNodeSimilaritySearchInfoArgs
     }
+  | { apiName: 'account.info.get'; args: AccountInfoGetArgs }
+  | { apiName: 'account.info.set'; args: AccountInfoSetArgs }
 
 export type StorageApiMsgReturnValue =
   | { apiName: 'node.get'; ret: TNodeJson }
@@ -111,6 +116,8 @@ export type StorageApiMsgReturnValue =
       ret: NodeSimilaritySearchInfo
     }
   | { apiName: 'node.similarity.setIndex'; ret: Ack }
+  | { apiName: 'account.info.get'; ret: AccountInfo | null }
+  | { apiName: 'account.info.set'; ret: Ack }
 
 function mismatchError(sent: string, got: string): Error {
   return new Error(`Sent ${sent} StorageApi message, received ${got}`)
@@ -385,6 +392,26 @@ export function makeMsgProxyStorageApi(forward: ForwardToRealImpl): StorageApi {
         },
       },
     },
+    account: {
+      info: {
+        get: async (args: AccountInfoGetArgs) => {
+          const apiName = 'account.info.get'
+          const resp = await forward({ apiName, args })
+          if (apiName !== resp.apiName)
+            throw mismatchError(apiName, resp.apiName)
+          const ret: AccountInfo | null = resp.ret
+          return ret
+        },
+        set: async (args: AccountInfoSetArgs) => {
+          const apiName = 'account.info.set'
+          const resp = await forward({ apiName, args })
+          if (apiName !== resp.apiName)
+            throw mismatchError(apiName, resp.apiName)
+          const ret: Ack = resp.ret
+          return ret
+        },
+      },
+    },
   }
 }
 
@@ -516,6 +543,16 @@ export async function processMsgFromMsgProxyStorageApi(
       return {
         apiName: payload.apiName,
         ret: await storage.external.ingestion.advance(payload.args),
+      }
+    case 'account.info.get':
+      return {
+        apiName: payload.apiName,
+        ret: await storage.account.info.get(payload.args),
+      }
+    case 'account.info.set':
+      return {
+        apiName: payload.apiName,
+        ret: await storage.account.info.set(payload.args),
       }
   }
 }
