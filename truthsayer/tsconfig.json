@@ -33,10 +33,16 @@
     },
     {
       "path": "../armoury"
+    },
+    {
+      "path": "../librarius"
+    },
+    {
+      "path": "../truthsayer-archaeologist-communication"
     }
   ],
   "include": [
-    "src"
+    "./src/**/*"
   ],
   "exclude": [
     "node_modules",
