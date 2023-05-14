@@ -69,7 +69,7 @@ import { v4 as uuidv4 } from 'uuid'
 import base32Encode from 'base32-encode'
 
 import browser from 'webextension-polyfill'
-import { MimeType, unixtime } from 'armoury'
+import { MimeType, log, unixtime } from 'armoury'
 import lodash from 'lodash'
 
 // TODO[snikitin@outlook.com] Describe that "yek" is "key" in reverse,
@@ -1081,11 +1081,14 @@ async function recordAssociation(
   ])
 
   if (!lav.lav.value.every((assoc) => assoc.other.id !== to.id)) {
-    throw new Error(`${from} -> ${to} association already exists`)
+    // Don't fail here, user might open the same link many times, there is
+    // nothing unusual in it.
+    log.debug(`${from.id} -> ${to.id} association already exists.`)
+    return { ack: true }
   }
   if (!rlav.lav.value.every((assoc) => assoc.other.id !== from.id)) {
     throw new Error(
-      `${from} -> ${to} association does not exist, but its reverse version does. Data is unexpectedly inconsistent.`
+      `${from.id} -> ${to.id} association does not exist, but its reverse version does. Data is unexpectedly inconsistent.`
     )
   }
 
