@@ -860,6 +860,12 @@ export function makeDatacenterStorageApi(): StorageApi {
         advance: advanceUserIngestionProgress,
       },
     },
+    account: {
+      info: {
+        get: throwUnimplementedError('account.info.get'),
+        set: throwUnimplementedError('account.info.set'),
+      },
+    },
   }
 }
 

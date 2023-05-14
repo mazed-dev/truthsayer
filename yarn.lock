@@ -4104,13 +4104,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chrome@npm:^0.0.154":
-  version: 0.0.154
-  resolution: "@types/chrome@npm:0.0.154"
+"@types/chrome@npm:^0.0.235":
+  version: 0.0.235
+  resolution: "@types/chrome@npm:0.0.235"
   dependencies:
     "@types/filesystem": "*"
     "@types/har-format": "*"
-  checksum: 143fb34b7e283415b6a839748f1b5ff0422fc27b6c7052b7ba5c033d8d313bc911fea68f595b170e4e649b448a159415a77465ff1cf63d8ed6f7d6a10d825734
+  checksum: ace0b9dac6d531c2a361e0ef4f807f02f2614062bc2628f6788e1e4b4c06543828c65b6b11560db69ff45b34bf9c6ddb8df0a47209b1cd3f4488a76c8aec1bdd
   languageName: node
   linkType: hard
 
@@ -5678,7 +5678,7 @@ __metadata:
     "@testing-library/jest-dom": ^5.14.1
     "@testing-library/react": ^12.1.0
     "@testing-library/user-event": ^12.6
-    "@types/chrome": ^0.0.154
+    "@types/chrome": ^0.0.235
     "@types/copy-webpack-plugin": ^8.0.1
     "@types/dompurify": ^3.0.2
     "@types/download": ^8.0.1
@@ -8175,9 +8175,9 @@ __metadata:
   linkType: hard
 
 "decode-uri-component@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "decode-uri-component@npm:0.2.0"
-  checksum: f3749344ab9305ffcfe4bfe300e2dbb61fc6359e2b736812100a3b1b6db0a5668cba31a05e4b45d4d63dbf1a18dfa354cd3ca5bb3ededddabb8cd293f4404f94
+  version: 0.2.2
+  resolution: "decode-uri-component@npm:0.2.2"
+  checksum: 95476a7d28f267292ce745eac3524a9079058bbb35767b76e3ee87d42e34cd0275d2eb19d9d08c3e167f97556e8a2872747f5e65cbebcac8b0c98d83e285f139
   languageName: node
   linkType: hard
 
