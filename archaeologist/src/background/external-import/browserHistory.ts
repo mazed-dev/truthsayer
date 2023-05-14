@@ -8,6 +8,7 @@ import type {
   ResourceVisit,
   StorageApi,
   TotalUserActivity,
+  UserAccount,
   UserExternalPipelineId,
   UserExternalPipelineIngestionProgress,
 } from 'smuggler-api'
@@ -61,6 +62,7 @@ export namespace BrowserHistoryUpload {
 
   export async function upload(
     storage: StorageApi,
+    account: UserAccount,
     mode: BrowserHistoryUploadMode,
     onProgress: (progress: BackgroundActionProgress) => Promise<void>
   ) {
@@ -138,6 +140,7 @@ export namespace BrowserHistoryUpload {
 
         const resp = await getPageContentViaTemporaryTab(
           storage,
+          account,
           window.id,
           item.url
         )
@@ -269,6 +272,7 @@ export namespace BrowserHistoryUpload {
 
   async function getPageContentViaTemporaryTab(
     storage: StorageApi,
+    account: UserAccount,
     windowId: number,
     url: string
   ): Promise<
@@ -304,9 +308,14 @@ export namespace BrowserHistoryUpload {
       if (tab.url == null) {
         throw new Error(`Can't init content in temporary tab, tab has no URL`)
       }
-      const request = await calculateInitialContentState(storage, tab.url, {
-        type: 'passive-mode-content-app',
-      })
+      const request = await calculateInitialContentState(
+        storage,
+        account,
+        tab.url,
+        {
+          type: 'passive-mode-content-app',
+        }
+      )
       await ToContent.sendMessage(tabId, request)
       return await ToContent.sendMessage(tabId, {
         type: 'REQUEST_PAGE_CONTENT',

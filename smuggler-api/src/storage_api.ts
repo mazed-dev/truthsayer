@@ -2,6 +2,7 @@ import { MimeType, unixtime } from 'armoury'
 import type { Optional } from 'armoury'
 import { INodeIterator } from './node_slice_iterator'
 import {
+  AccountInfo,
   Ack,
   AddUserActivityRequest,
   AddUserExternalAssociationRequest,
@@ -94,6 +95,11 @@ export type ExternalIngestionAdvanceArgs = {
 export type SetNodeSimilaritySearchInfoArgs = {
   nid: Nid
   simsearch: NodeSimilaritySearchInfo
+}
+
+export type AccountInfoGetArgs = {}
+export type AccountInfoSetArgs = {
+  accountInfo?: AccountInfo
 }
 
 export type NodeEventType = 'created' | 'deleted' | 'updated'
@@ -223,6 +229,12 @@ export type StorageApi = {
         args: ExternalIngestionAdvanceArgs,
         signal?: AbortSignal
       ) => Promise<Ack>
+    }
+  }
+  account: {
+    info: {
+      get: (args: AccountInfoGetArgs) => Promise<AccountInfo | null>
+      set: (args: AccountInfoSetArgs) => Promise<Ack>
     }
   }
 }

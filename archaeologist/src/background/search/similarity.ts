@@ -399,7 +399,7 @@ export async function register(
 
   const nodeEventListener = createNodeEventListener(storage)
   storage.node.addListener(nodeEventListener)
-  log.debug('Similarity search module is loaded', timer.elapsed())
+  log.debug('Similarity search module is loaded', timer.elapsedSecondsPretty())
   return () => {
     storage.node.removeListener(nodeEventListener)
     tfState = undefined

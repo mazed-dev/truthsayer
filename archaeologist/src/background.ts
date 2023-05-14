@@ -13,11 +13,11 @@ import * as badge from './badge/badge'
 
 import browser, { Tabs } from 'webextension-polyfill'
 import {
-  AppSettings,
   BackgroundAction,
   BackgroundActionProgress,
   FromTruthsayer,
   ToTruthsayer,
+  StorageType,
 } from 'truthsayer-archaeologist-communication'
 import {
   log,
@@ -321,14 +321,10 @@ async function handleMessageFromPopup(
       }
     }
     case 'REQUEST_APP_STATUS': {
-      // TODO[snikitin@outlook.com] This is copy-pasted in onAuthenticationMessage,
-      // should somehow be consolidated
-      const account = auth.account()
-      const authenticated = account.isAuthenticated()
-      badge.setActive(authenticated)
+      badge.setActive(true)
       return {
         type: 'APP_STATUS_RESPONSE',
-        userUid: authenticated ? account.getUid() : undefined,
+        userUid: ctx.account.getUid(),
         analyticsIdentity: await backgroundpa.getIdentity(
           browser.storage.local
         ),
@@ -378,15 +374,12 @@ async function handleMessageFromPopup(
   )
 }
 
-function makeStorageApi(
-  appSettings: AppSettings,
-  account: UserAccount
-): StorageApi {
-  switch (appSettings.storageType) {
+function makeStorageApi(storageType: StorageType): StorageApi {
+  switch (storageType) {
     case 'datacenter':
       return makeDatacenterStorageApi()
     case 'browser_ext':
-      return makeBrowserExtStorageApi(browser.storage.local, account)
+      return makeBrowserExtStorageApi(browser.storage.local)
   }
 }
 
@@ -396,6 +389,7 @@ type BackgroundContext = {
   similarity: {
     cancelPreviousSearch?: (reason?: string) => void
   }
+  account: UserAccount
 }
 
 /**
@@ -416,6 +410,7 @@ class Background {
 
   constructor() {
     log.debug(`Background one-time pre-init started`)
+    const storage = makeStorageApi('browser_ext')
     auth.observe({
       onLogin: async (account: UserAccount) => {
         const timer = new Timer()
@@ -428,15 +423,15 @@ class Background {
         this.state = { phase: 'loading' }
         try {
           log.debug(`Background init started`)
-          const context = await this.init(account)
+          const context = await this.init(storage, account)
           this.state = { phase: 'init-done', context }
-          log.debug('Background init done', timer.elapsed())
+          log.debug('Background init done', timer.elapsedSecondsPretty())
         } catch (initFailureReason) {
+          log.error(
+            `Background init failed: ${errorise(initFailureReason).message}`
+          )
           try {
             await this.deinit()
-            log.error(
-              `Background init failed: ${errorise(initFailureReason).message}`
-            )
           } catch (deinitFailureReason) {
             log.error(
               `Background init failed: ${
@@ -448,7 +443,6 @@ class Background {
             )
           }
           this.state = { phase: 'not-init' }
-          throw initFailureReason
         }
       },
       onLogout: async () => {
@@ -461,7 +455,6 @@ class Background {
           )
           return
         }
-
         log.debug(`Background deinit started`)
         this.state = { phase: 'unloading' }
         await this.deinit()
@@ -469,11 +462,14 @@ class Background {
         log.debug(`Background deinit ended`)
       },
     })
-    auth.register()
+    auth.register(storage)
     log.debug(`Background one-time pre-init ended`)
   }
 
-  private async init(account: UserAccount): Promise<BackgroundContext> {
+  private async init(
+    storage: StorageApi,
+    account: UserAccount
+  ): Promise<BackgroundContext> {
     const analyticsIdentity = await backgroundpa.getIdentity(
       browser.storage.local
     )
@@ -481,12 +477,12 @@ class Background {
     // other initialisation stages may require access to feature flags
     const analytics = await backgroundpa.make(analyticsIdentity)
 
-    const storage = makeStorageApi(
-      await getAppSettings(browser.storage.local),
-      account
-    )
-
-    const ctx: BackgroundContext = { storage, analytics, similarity: {} }
+    const ctx: BackgroundContext = {
+      storage,
+      analytics,
+      similarity: {},
+      account,
+    }
 
     // Init content once tab is fully loaded
     {
@@ -496,6 +492,7 @@ class Background {
         }
         const request = await contentState.calculateInitialContentState(
           ctx.storage,
+          account,
           tab.url,
           { type: 'active-mode-content-app', analyticsIdentity }
         )
@@ -698,14 +695,14 @@ class Background {
 
     switch (message.type) {
       case 'REQUEST_APP_STATUS': {
-        // TODO[snikitin@outlook.com] This is copy-pasted in handleMessageFromPopup,
-        // should somehow be consolidated
-        const account = auth.account()
-        const authenticated = account.isAuthenticated()
-        badge.setActive(authenticated)
+        const userUid =
+          this.state.phase === 'init-done'
+            ? this.state.context.account.getUid()
+            : undefined
+        badge.setActive(userUid != null)
         return {
           type: 'APP_STATUS_RESPONSE',
-          userUid: authenticated ? account.getUid() : undefined,
+          userUid,
           analyticsIdentity: await backgroundpa.getIdentity(
             browser.storage.local
           ),
@@ -772,7 +769,6 @@ class Background {
       })
     }
     const ctx = this.state.context
-
     switch (message.type) {
       case 'GET_ARCHAEOLOGIST_STATE_REQUEST': {
         return {
@@ -809,6 +805,7 @@ class Background {
       case 'UPLOAD_BROWSER_HISTORY': {
         await BrowserHistoryUpload.upload(
           ctx.storage,
+          ctx.account,
           message,
           (progress: BackgroundActionProgress) =>
             reportBackgroundActionProgress('browser-history-upload', progress)
