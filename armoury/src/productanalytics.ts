@@ -61,7 +61,6 @@ function makeAnalytics(
   try {
     // PostHog token and API host URL can be found at https://eu.posthog.com/project/settings
     const posthogToken = 'phc_p8GUvTa63ZKNpa05iuGI7qUvXYyyz3JG3UWe88KT7yj'
-    const posthogApiHost = 'https://eu.posthog.com'
     const finalConfig: Partial<PostHogConfig> = {
       on_xhr_error: (posthogReq: XMLHttpRequest) => {
         if (nodeEnv !== 'development') {
@@ -72,7 +71,7 @@ function makeAnalytics(
         )
       },
       ...config,
-      api_host: posthogApiHost,
+      api_host: posthogApiHost(),
       // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies
       secure_cookie: true,
       // Not much documentation about this PostHog feature, but seemingly it referrs
