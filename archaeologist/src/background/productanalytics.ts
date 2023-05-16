@@ -46,10 +46,9 @@ async function make(
 ): Promise<BackgroundPosthog | null> {
   // PostHog token and API host URL can be found at https://eu.posthog.com/project/settings
   const posthogToken = 'phc_p8GUvTa63ZKNpa05iuGI7qUvXYyyz3JG3UWe88KT7yj'
-  const posthogApiHost = 'https://eu.posthog.com'
   try {
     const ret = new NodePostHog(posthogToken, {
-      host: posthogApiHost,
+      host: productanalytics.apiHost(),
       bootstrap: {
         distinctId: identity.analyticsIdentity,
         isIdentifiedId: true,

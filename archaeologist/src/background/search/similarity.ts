@@ -67,12 +67,10 @@ export async function findRelevantNodes(
       'Similarity search failed because search phrase is empty string'
     )
   }
+  let searchEngineName: string
   let relevantNodes: RelevantNode[]
   if (phraseLen < 4) {
-    log.debug(
-      'Use Beagle to find relevant nodes, because search phrase is short',
-      phraseLen
-    )
+    searchEngineName = 'Beagle'
     relevantNodes = await findRelevantNodesUsingPlainTextSearch(
       phraseDoc,
       storage,
@@ -80,7 +78,7 @@ export async function findRelevantNodes(
       cancellationToken
     )
   } else {
-    log.debug('Use tfjs based similarity search to find relevant nodes')
+    searchEngineName = 'TFJS'
     relevantNodes = await findRelevantNodesUsingSimilaritySearch(
       textContentPlainText,
       textContentBlocks,
@@ -89,7 +87,7 @@ export async function findRelevantNodes(
       cancellationToken
     )
   }
-  log.debug('Similarity search results', timer.elapsed(), relevantNodes)
+  log.debug(`Similarity search results [${searchEngineName}] in ${timer.elapsedSecondsPretty()}`, relevantNodes)
   return relevantNodes
 }
 
@@ -437,7 +435,7 @@ export async function register(
 
   const nodeEventListener = createNodeEventListener(storage)
   storage.node.addListener(nodeEventListener)
-  log.debug('Similarity search module is loaded', timer.elapsed())
+  log.debug('Similarity search module is loaded', timer.elapsedSecondsPretty())
   return () => {
     storage.node.removeListener(nodeEventListener)
   }

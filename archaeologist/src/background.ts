@@ -13,13 +13,14 @@ import * as badge from './badge/badge'
 
 import browser, { Tabs } from 'webextension-polyfill'
 import {
-  AppSettings,
   BackgroundAction,
   BackgroundActionProgress,
   FromTruthsayer,
   ToTruthsayer,
+  StorageType,
 } from 'truthsayer-archaeologist-communication'
 import {
+  AbortError,
   log,
   isAbortError,
   unixtime,
@@ -191,7 +192,7 @@ async function handleMessageFromContent(
       return { type: 'VOID_RESPONSE' }
     case 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS': {
       if (!sender.tab?.active) {
-        throw new Error(
+        throw new AbortError(
           'Background should not run similarity search for inactive tabs'
         )
       }
@@ -321,14 +322,10 @@ async function handleMessageFromPopup(
       }
     }
     case 'REQUEST_APP_STATUS': {
-      // TODO[snikitin@outlook.com] This is copy-pasted in onAuthenticationMessage,
-      // should somehow be consolidated
-      const account = auth.account()
-      const authenticated = account.isAuthenticated()
-      badge.setActive(authenticated)
+      badge.setActive(true)
       return {
         type: 'APP_STATUS_RESPONSE',
-        userUid: authenticated ? account.getUid() : undefined,
+        userUid: ctx.account.getUid(),
         analyticsIdentity: await backgroundpa.getIdentity(
           browser.storage.local
         ),
@@ -378,15 +375,12 @@ async function handleMessageFromPopup(
   )
 }
 
-function makeStorageApi(
-  appSettings: AppSettings,
-  account: UserAccount
-): StorageApi {
-  switch (appSettings.storageType) {
+function makeStorageApi(storageType: StorageType): StorageApi {
+  switch (storageType) {
     case 'datacenter':
       return makeDatacenterStorageApi()
     case 'browser_ext':
-      return makeBrowserExtStorageApi(browser.storage.local, account)
+      return makeBrowserExtStorageApi(browser.storage.local)
   }
 }
 
@@ -396,6 +390,7 @@ type BackgroundContext = {
   similarity: {
     cancelPreviousSearch?: (reason?: string) => void
   }
+  account: UserAccount
 }
 
 /**
@@ -416,6 +411,7 @@ class Background {
 
   constructor() {
     log.debug(`Background one-time pre-init started`)
+    const storage = makeStorageApi('browser_ext')
     auth.observe({
       onLogin: async (account: UserAccount) => {
         const timer = new Timer()
@@ -428,15 +424,15 @@ class Background {
         this.state = { phase: 'loading' }
         try {
           log.debug(`Background init started`)
-          const context = await this.init(account)
+          const context = await this.init(storage, account)
           this.state = { phase: 'init-done', context }
-          log.debug('Background init done', timer.elapsed())
+          log.debug('Background init done', timer.elapsedSecondsPretty())
         } catch (initFailureReason) {
+          log.error(
+            `Background init failed: ${errorise(initFailureReason).message}`
+          )
           try {
             await this.deinit()
-            log.error(
-              `Background init failed: ${errorise(initFailureReason).message}`
-            )
           } catch (deinitFailureReason) {
             log.error(
               `Background init failed: ${
@@ -448,7 +444,6 @@ class Background {
             )
           }
           this.state = { phase: 'not-init' }
-          throw initFailureReason
         }
       },
       onLogout: async () => {
@@ -461,7 +456,6 @@ class Background {
           )
           return
         }
-
         log.debug(`Background deinit started`)
         this.state = { phase: 'unloading' }
         await this.deinit()
@@ -469,11 +463,14 @@ class Background {
         log.debug(`Background deinit ended`)
       },
     })
-    auth.register()
+    auth.register(storage)
     log.debug(`Background one-time pre-init ended`)
   }
 
-  private async init(account: UserAccount): Promise<BackgroundContext> {
+  private async init(
+    storage: StorageApi,
+    account: UserAccount
+  ): Promise<BackgroundContext> {
     const analyticsIdentity = await backgroundpa.getIdentity(
       browser.storage.local
     )
@@ -481,12 +478,12 @@ class Background {
     // other initialisation stages may require access to feature flags
     const analytics = await backgroundpa.make(analyticsIdentity)
 
-    const storage = makeStorageApi(
-      await getAppSettings(browser.storage.local),
-      account
-    )
-
-    const ctx: BackgroundContext = { storage, analytics, similarity: {} }
+    const ctx: BackgroundContext = {
+      storage,
+      analytics,
+      similarity: {},
+      account,
+    }
 
     // Init content once tab is fully loaded
     {
@@ -496,6 +493,7 @@ class Background {
         }
         const request = await contentState.calculateInitialContentState(
           ctx.storage,
+          account,
           tab.url,
           { type: 'active-mode-content-app', analyticsIdentity }
         )
@@ -518,21 +516,21 @@ class Background {
         changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
         tab: browser.Tabs.Tab
       ) => {
-        try {
-        } finally {
-          if (changeInfo.title != null) {
-            await ToContent.sendMessage(tabId, {
-              type: 'REQUEST_UPDATE_TAB_STATUS',
-              change: { titleUpdated: true },
-            })
-          }
-          if (changeInfo.status === 'complete') {
-            // NOTE: if loading of a tab did complete, it is important to ensure
-            // report() gets called regardless of what happens in the other parts of
-            // browser.tabs.onUpdated (e.g. something throws). Otherwise any part of
-            // code that waits on a TabLoad promise will wait forever.
-            TabLoad.report(tab)
-          }
+        // Inform content scrip obout title change, to update suggestions.
+        // Don't try to message content script when tab is in "loading" mode,
+        // there is not content script yet.
+        if (changeInfo.title != null && tab.status === 'complete') {
+          await ToContent.sendMessage(tabId, {
+            type: 'REQUEST_UPDATE_TAB_STATUS',
+            change: { titleUpdated: true },
+          })
+        }
+        if (changeInfo.status === 'complete') {
+          // NOTE: if loading of a tab did complete, it is important to ensure
+          // report() gets called regardless of what happens in the other parts of
+          // browser.tabs.onUpdated (e.g. something throws). Otherwise any part of
+          // code that waits on a TabLoad promise will wait forever.
+          TabLoad.report(tab)
         }
       }
 
@@ -698,14 +696,14 @@ class Background {
 
     switch (message.type) {
       case 'REQUEST_APP_STATUS': {
-        // TODO[snikitin@outlook.com] This is copy-pasted in handleMessageFromPopup,
-        // should somehow be consolidated
-        const account = auth.account()
-        const authenticated = account.isAuthenticated()
-        badge.setActive(authenticated)
+        const userUid =
+          this.state.phase === 'init-done'
+            ? this.state.context.account.getUid()
+            : undefined
+        badge.setActive(userUid != null)
         return {
           type: 'APP_STATUS_RESPONSE',
-          userUid: authenticated ? account.getUid() : undefined,
+          userUid,
           analyticsIdentity: await backgroundpa.getIdentity(
             browser.storage.local
           ),
@@ -772,7 +770,6 @@ class Background {
       })
     }
     const ctx = this.state.context
-
     switch (message.type) {
       case 'GET_ARCHAEOLOGIST_STATE_REQUEST': {
         return {
@@ -809,6 +806,7 @@ class Background {
       case 'UPLOAD_BROWSER_HISTORY': {
         await BrowserHistoryUpload.upload(
           ctx.storage,
+          ctx.account,
           message,
           (progress: BackgroundActionProgress) =>
             reportBackgroundActionProgress('browser-history-upload', progress)
@@ -884,11 +882,11 @@ browser.runtime.onMessage.addListener(
         const error = errorise(reason)
         if (isAbortError(error)) {
           log.debug(
-            `Aborted processing '${message.direction}' message '${message.type}': ${error.message}`
+            `Aborted processing '${message.direction}' message '${message.type}': ${error.name} ${error.message}`
           )
         } else {
           log.error(
-            `Failed to process '${message.direction}' message '${message.type}': ${error.message}`
+            `Failed to process '${message.direction}' message '${message.type}': ${error.name} ${error.message}`
           )
         }
         throw reason
@@ -911,11 +909,11 @@ browser.runtime.onMessageExternal.addListener(
         const error = errorise(reason)
         if (isAbortError(error)) {
           log.debug(
-            `Aborted processing 'from-truthsayer' message '${message.type}', ${error.message}`
+            `Aborted processing 'from-truthsayer' message '${message.type}': ${error.name} ${error.message}`
           )
         } else {
           log.error(
-            `Failed to process 'from-truthsayer' message '${message.type}', ${error.message}`
+            `Failed to process 'from-truthsayer' message '${message.type}': ${error.name} ${error.message}`
           )
         }
         throw reason

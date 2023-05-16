@@ -173,7 +173,7 @@ export type TEdge = {
   upd: moment.Moment
   weight?: number
   is_sticky: boolean
-  owned_by: string
+  owned_by?: string // DEPRECATED
 }
 
 export type TEdgeJson = {
@@ -185,7 +185,7 @@ export type TEdgeJson = {
   upd: number
   weight?: number
   is_sticky: boolean
-  owned_by: string
+  owned_by?: string // DEPRECATED
 }
 
 /**

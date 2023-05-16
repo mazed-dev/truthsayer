@@ -1,12 +1,10 @@
 import * as badge from './../badge/badge'
 import {
-  AccountInfo,
-  AccountInterface,
-  AnonymousAccount,
-  authentication,
   SessionCreateArgs,
   SmugglerTokenLastUpdateCookies,
+  StorageApi,
   UserAccount,
+  authentication,
 } from 'smuggler-api'
 import { Knocker } from 'smuggler-api'
 import { log, isAbortError, errorise, Timer } from 'armoury'
@@ -33,7 +31,6 @@ const _authKnocker = new Knocker(
   }
 )
 
-let _account: AccountInterface = new AnonymousAccount()
 const _listeners: Map<
   string /*listener ID*/,
   {
@@ -64,15 +61,8 @@ async function _onLogout() {
   }
 }
 
-function isAuthenticated(account: AccountInterface): account is UserAccount {
-  return account.isAuthenticated()
-}
-
 // Internal actions to do on login event
-async function _loginHandler(user: AccountInfo) {
-  const account = new UserAccount(user.uid, user.name, user.email, {})
-  _account = account
-
+async function _loginHandler(account: UserAccount) {
   if (!_authKnocker.isActive()) {
     await _authKnocker.start({
       /* onKnockFailure */
@@ -84,7 +74,6 @@ async function _loginHandler(user: AccountInfo) {
 
 // Internal actions to do on logout event
 async function _logoutHandler() {
-  _account = new AnonymousAccount()
   try {
     _authKnocker.stop()
     await badge.setActive(false)
@@ -93,20 +82,17 @@ async function _logoutHandler() {
   }
 }
 
-export function account(): AccountInterface {
-  return _account
-}
-
-export async function check() {
-  const user = await authentication.getAuth({}).catch(() => null)
-  if (user != null) {
-    await _loginHandler(user)
+export async function check(): Promise<void> {
+  const accountInfo = await authentication.getAuth({}).catch(() => null)
+  if (accountInfo != null) {
+    const userAccount = UserAccount.fromAccountInfo(accountInfo)
+    await _loginHandler(userAccount)
   } else {
     await _logoutHandler()
   }
 }
 
-export async function login(args: SessionCreateArgs) {
+export async function login(args: SessionCreateArgs): Promise<void> {
   await authentication.session.create(args)
   await check()
 }
@@ -134,16 +120,6 @@ export function observe({
   const unregister = () => {
     _listeners.delete(listenerId)
   }
-
-  try {
-    if (isAuthenticated(_account)) {
-      onLogin(_account)
-    }
-  } catch (e) {
-    unregister()
-    throw e
-  }
-
   return unregister
 }
 
@@ -154,13 +130,45 @@ export function observe({
  *- Knocker role is to renew auth token after successful login periodically.
  *- It stops after a first renewal failure.
  */
-export async function register() {
+export async function register(storage: StorageApi) {
   const timer = new Timer()
-  const user = await authentication.getAuth({}).catch(() => null)
-  if (user != null) {
-    await _loginHandler(user)
+  // Additional callbacks to cache user account to local storage on every login,
+  // and to reset that cache on log out.
+  observe({
+    onLogin: async (account: UserAccount) => {
+      await storage.account.info.set({
+        accountInfo: {
+          uid: account.getUid(),
+          email: account.getEmail(),
+          name: account.getName(),
+        },
+      })
+    },
+    onLogout: async () => {
+      await storage.account.info.set({})
+    },
+  })
+  // Check the local storage for cached info about user account first to avoid
+  // sending request to Smuggler risking waiting for too long or even failing
+  // due to unstable connection.
+  let accountInfo = await storage.account.info.get({})
+  if (accountInfo == null) {
+    // If there is no account information in local storage let send a request
+    // to Smuggler to make sure Archaeologist is logged in as a last resort.
+    try {
+      accountInfo = await authentication.getAuth({})
+    } catch (err) {
+      log.debug(
+        'Failed to fetch user account information from Smuggler, assume that user is not logged in yet',
+        err
+      )
+    }
   }
-  log.debug('Authorisation module is registered', timer.elapsed())
+  if (accountInfo != null) {
+    const userAccount = UserAccount.fromAccountInfo(accountInfo)
+    _loginHandler(userAccount)
+  }
+  log.debug('Authorisation module is registered', timer.elapsedSecondsPretty())
   return async () => {
     try {
       await _logoutHandler()
