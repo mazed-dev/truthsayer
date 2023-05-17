@@ -151,7 +151,7 @@ export namespace FromPopUp {
     const msg: ToBackground.Request = { direction: 'from-popup', ...message }
     return browser.runtime.sendMessage(msg).catch((error) => {
       const unpacked = ErrorViaMessage.tryUnpack(error)
-      unpacked.message = `Failed to send ${message.type} from popup: ${unpacked.message}:${unpacked.name}`
+      unpacked.message = `Failed to send ${message.type} from popup: ${unpacked.message}`
       throw unpacked
     })
   }
