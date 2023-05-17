@@ -159,15 +159,15 @@ async function lookupForSuggestionsToPageInActiveTab(
   const response = await ToContent.sendMessage(tabId, {
     type: 'REQUEST_PAGE_CONTENT_SEARCH_PHRASE',
   })
-  const { textContentBlocks, nidsExcludedFromSearch } = response
-  if (!textContentBlocks) {
+  const { phrase, nidsExcludedFromSearch } = response
+  if (!phrase) {
     return []
   }
   ctx.similarity.cancelPreviousSearch?.()
   const { cancel, token } = CancellationToken.create()
   ctx.similarity.cancelPreviousSearch = cancel
   return await similarity.findRelevantNodes(
-    textContentBlocks,
+    phrase,
     new Set(nidsExcludedFromSearch),
     token,
     ctx.storage,
@@ -200,7 +200,7 @@ async function handleMessageFromContent(
       const { cancel, token } = CancellationToken.create()
       ctx.similarity.cancelPreviousSearch = cancel
       const relevantNodes = await similarity.findRelevantNodes(
-        message.textContentBlocks,
+        message.phrase,
         new Set(message.excludeNids),
         token,
         ctx.storage,

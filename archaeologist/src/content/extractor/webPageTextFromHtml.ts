@@ -61,7 +61,7 @@ const kNodeNamesToEnforcePunctuation: Set<string> = new Set(['TR'])
 
 function getExtraText(node: Node): string {
   if (kNodeNamesToEnforceSpacing.has(node.nodeName)) {
-    return ' '
+    return '; '
   }
   if (kNodeNamesToEnforcePunctuation.has(node.nodeName)) {
     return '. '

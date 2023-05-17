@@ -431,42 +431,60 @@ export type TfEmbeddingJson = {
   shape: [number, number]
 }
 
-export type NodeBlockKey = {
-  field: 'ind_text'
-  index: number
-} | {
-  field: 'coment'
-  index?: number
-}| {
-  field: 'all'
-}
-
+export type NodeBlockKey =
+  | {
+      field: 'index-txt'
+      index: number
+    }
+  | {
+      field: 'text' // comment
+    }
+  | {
+      // Index web quote separatelly from the rest of extattrs for better quality
+      // suggestions
+      field: 'web-quote'
+    }
+  | {
+      // To index the entire plain text representation of a node
+      field: '*'
+    }
 
 export type NodeBlockKeyStr = string
 
-export function getNodeBlock(node: TNode, blockKey: NodeBlockKey): undefined | string {
+export function getNodeStringField(
+  node: TNode,
+  blockKey: NodeBlockKey
+): undefined | string {
   switch (blockKey.field) {
-    case 'ind_text': {
-      if (blockKey.index != null && node.index_text?.text_blocks != null) {
+    case 'index-txt': {
+      if (node.index_text?.text_blocks != null) {
         return node.index_text?.text_blocks[blockKey.index]?.text ?? undefined
+      } else {
+        return node.index_text?.plaintext
       }
-      break;
     }
-    case 'coment':
-    case 'all':
+    case '*':
+    case 'text':
+    case 'web-quote':
       return undefined
   }
-  return undefined
 }
 
 export function nodeBlockKeyToString(key: NodeBlockKey): string {
-  return [key.field, key.index].filter(s => !!s).join('/')
+  switch (key.field) {
+    case 'index-txt':
+      return `${key.field}/${key.index}`
+    case '*':
+    case 'text':
+    case 'web-quote':
+      return key.field
+  }
 }
 
 export function nodeBlockKeyFromString(key: string): NodeBlockKey {
   const components = key.split('/')
   if (components.length < 1 || components.length > 2) {
-    throw new Error("Error 445 - TODO(Alexander)")
+    throw new Error('Error 445 - TODO(Alexander)')
   }
   return {
     field: components[0],
@@ -478,16 +496,17 @@ export type TfEmbeddingForBlockJson = {
   key: NodeBlockKey
   embeddingJson: TfEmbeddingJson
 }
-export type NodeSimilaritySearchInfoSignature = {
-  algorithm: 'tf-embed'
-  version: 1
-} | 'tf-embed-3'
+export type NodeSimilaritySearchInfoSignature =
+  | {
+      algorithm: 'tf-embed'
+      version: 1
+    }
+  | 'tf-embed-3'
 
 export type NodeSimilaritySearchInfoLatestVerstion = {
   signature: 'tf-embed-3'
   forBlocks: Record<string, TfEmbeddingJson>
 }
-
 
 export type NodeSimilaritySearchInfo =
   | null
@@ -499,7 +518,6 @@ export type NodeSimilaritySearchInfo =
       embeddingJson: TfEmbeddingJson
     }
   | NodeSimilaritySearchInfoLatestVerstion
-
 
 export function verifySimilaritySearchInfoVersion(
   simsearch: NodeSimilaritySearchInfo

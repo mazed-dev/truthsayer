@@ -475,12 +475,12 @@ export function _cureTextContent(
   url: string
 ): TextContentBlock[] {
   const blocks: TextContentBlock[] = []
-  // Cut string by length 10KiB to avoid blowing up backend with huge JSON.
+  // Cut string by length 20KiB to avoid blowing up backend with huge JSON.
   // We cut the text here avoiding splitting words, by using kTruncateSeparatorSpace separator.
   // Later on we can and perhaps should reconsider this limit.
   let textSizeBytes = 0
   for (let { text, type, level } of textContentBlocks) {
-    if (textSizeBytes > 10240) {
+    if (textSizeBytes > 20480) {
       break
     }
     if (url.search(/\.wikipedia\.org\//i) !== -1) {

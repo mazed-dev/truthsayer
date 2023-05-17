@@ -391,7 +391,7 @@ export namespace FromContent {
   }
   export type PageContentSearchPhraseResponse = {
     type: 'PAGE_CONTENT_SEARCH_PHRASE_RESPONSE'
-    textContentBlocks?: TextContentBlock[]
+    phrase?: string
     nidsExcludedFromSearch: Nid[]
   }
   export interface PageNotWorthSavingResponse {
@@ -417,7 +417,7 @@ export namespace FromContent {
 
   export interface SuggestedAssociationsRequest {
     type: 'REQUEST_SUGGESTED_CONTENT_ASSOCIATIONS'
-    textContentBlocks: TextContentBlock[]
+    phrase: string
     limit: number
     excludeNids?: Nid[]
   }

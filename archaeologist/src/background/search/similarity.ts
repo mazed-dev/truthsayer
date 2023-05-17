@@ -8,17 +8,16 @@ import type {
   NodeEventListener,
   Nid,
   TNode,
+  NodeBlockKey,
   StorageApi,
   TextContentBlock,
-  TfEmbeddingForBlockJson,
   NodeSimilaritySearchInfoLatestVerstion,
-  NodeBlockKey,
 } from 'smuggler-api'
 import {
   verifySimilaritySearchInfoVersion,
   nodeBlockKeyToString,
   nodeBlockKeyFromString,
-  getNodeBlock,
+  getNodeStringField,
 } from 'smuggler-api'
 import { TDoc, Beagle } from 'elementary'
 import CancellationToken from 'cancellationtoken'
@@ -38,7 +37,7 @@ async function createTfState(): Promise<tf.TfState> {
 
 type BlockEmbeddingProjection = {
   nid: Nid
-  blockKey: NodeBlockKey
+  blockKeyStr: string
   projection: tf.Tensor2D
 }
 
@@ -49,7 +48,7 @@ type FastIndex = {
 
 type FastResult = {
   nid: Nid
-  blockKey: NodeBlockKey
+  blockKeyStr: string
   score: number
 }
 
@@ -57,7 +56,7 @@ let _fastIndex: FastIndex | undefined = undefined
 
 async function getFastIndex(
   storage: StorageApi,
-  sampleVector: tf.Tensor2D,
+  sampleVector: tf.Tensor2D
 ): Promise<FastIndex> {
   if (_fastIndex != null) {
     return _fastIndex
@@ -67,7 +66,9 @@ async function getFastIndex(
   const projections: BlockEmbeddingProjection[] = []
   const allNids = await storage.node.getAllNids({})
   for (const nid of allNids) {
-    const nodeSimSearchInfo = verifySimilaritySearchInfoVersion(await storage.node.similarity.getIndex({ nid }))
+    const nodeSimSearchInfo = verifySimilaritySearchInfoVersion(
+      await storage.node.similarity.getIndex({ nid })
+    )
     if (nodeSimSearchInfo == null) {
       // Skip nodes with invalid index
       log.warning(`Similarity index for node ${nid} is outdated`)
@@ -77,13 +78,14 @@ async function getFastIndex(
     for (const blockKeyStr in forBlocks) {
       const embeddingJson = forBlocks[blockKeyStr]
       const projection = tf.projectVector(
-        tf.tensor2dFromJson(embeddingJson), dimensions)
-      const blockKey = nodeBlockKeyFromString(blockKeyStr)
-      projections.push({blockKey, nid, projection})
+        tf.tensor2dFromJson(embeddingJson),
+        dimensions
+      )
+      projections.push({ blockKeyStr, nid, projection })
     }
   }
-  log.debug('Fast simsearch index craeated', timer.elapsedSecondsPretty())
-  _fastIndex = { dimensions, projections, }
+  log.debug(`Fast simsearch index created in ${timer.elapsedSecondsPretty()}`)
+  _fastIndex = { dimensions, projections }
   return _fastIndex
 }
 
@@ -99,26 +101,24 @@ async function updateNodeFastIndex(
   for (const blockKeyStr in forBlocks) {
     const embeddingJson = forBlocks[blockKeyStr]
     const projection = tf.projectVector(
-      tf.tensor2dFromJson(embeddingJson), dimensions)
-    const blockKey = nodeBlockKeyFromString(blockKeyStr)
-    _fastIndex.projections.push({blockKey, nid, projection})
+      tf.tensor2dFromJson(embeddingJson),
+      dimensions
+    )
+    _fastIndex.projections.push({ blockKeyStr, nid, projection })
   }
 }
 
 /**
- * The cosine distance threshold below which we call two texts relevant.
- * In data analysis, cosine similarity is a measure of similarity between two
- * non-zero vectors defined in an inner product space. Cosine similarity is the
- * cosine of the angle between the vectors; that is, it is the dot product of
- * the vectors divided by the product of their lengths.
- * https://en.wikipedia.org/wiki/Cosine_similarity
+ * The euclidean distance threshold below which we call two texts relevant.
+ * In data analysis, euclidean similarity is a measure of similarity between two
+ * non-zero vectors defined in an inner product space.
+ * https://en.wikipedia.org/wiki/Euclidean_distance
  *
- * Cosine distance is a number that belongs to [0, 1], we can safely assume that
- * all texts with cos between vectors smaller than 0.42 are related. Although,
- * for some texts this similarity measurement might not work, if this is the
- * case consider using euclidean distance insted.
+ * We can safely assume that all texts with their vectors closeer than 1.0 are
+ * related. Although, to be sure we take tighter threshold than 1.0, to avoid
+ * giving somewhat irrelevant information.
  */
-const kSimilarityCosineDistanceThreshold = 0.42
+const kSimilarityEuclideanDistanceThreshold = 0.96
 
 function getSuggestionsNumberLimit(): number {
   return lodash.random(7, 12)
@@ -179,17 +179,6 @@ export async function findRelevantNodes(
   return relevantNodes
 }
 
-type RawSimilarityResults = {
-  score: number
-  nid: Nid
-  blockIndex?: number
-}
-
-type PatternBlockEmbedding = {
-  embedding: tf.Tensor2D
-  blockIndex?: number
-}
-
 async function findRelevantNodesUsingSimilaritySearch(
   phrase: string,
   storage: StorageApi,
@@ -203,61 +192,68 @@ async function findRelevantNodesUsingSimilaritySearch(
   throwIfCancelled(cancellationToken)
   const fastIndex = await getFastIndex(storage, phraseEmbedding)
   throwIfCancelled(cancellationToken)
-  const fastResults: FastResult[][] = []
-
-    const projectedPatternEmbedding = tf.projectVector(embedding, fastIndex.dimensions)
-    const patternFastResults: FastResult[] = []
-    for (const { blockKey, nid, projection } of fastIndex.projections) {
-      throwIfCancelled(cancellationToken)
-      if (excludedNids.has(nid)) {
-        continue
-      }
-      const score = tf.euclideanDistance(projectedPatternEmbedding, projection)
-      if (score < 0.5) {
-        patternFastResults.push({blockKey, nid, score})
-      }
+  const phraseEmbeddingProjected = tf.projectVector(
+    phraseEmbedding,
+    fastIndex.dimensions
+  )
+  let fastResults: FastResult[] = []
+  for (const { blockKeyStr, nid, projection } of fastIndex.projections) {
+    throwIfCancelled(cancellationToken)
+    if (excludedNids.has(nid)) {
+      continue
     }
-    patternFastResults.sort((a, b) => b.score - a.score)
-    const knownNids: Set<Nid> = new Set()
-    // To have each nid no more than once per phrase
-    patternFastResults.filter(({nid}) => {
-      if (knownNids.has(nid)) {
-        return false
-      }
-      knownNids.add(nid)
-      return true
-    })
-    fastResults.push(patternFastResults.slice(0, 10))
-    // 10 Fast Results per patterh
+    const score = tf.euclideanDistance(phraseEmbeddingProjected, projection)
+    if (score < 0.3) {
+      fastResults.push({ blockKeyStr, nid, score })
+    }
   }
-  log.debug(`Fast results are calculated in ${timer.elapsedSecondsPretty()}`, fastResults)
+  fastResults.sort((a, b) => a.score - b.score)
+  // Top N Fast Results to look closely
+  fastResults = fastResults.slice(0, 42)
+  log.debug(
+    `Fast results are calculated in ${timer.elapsedSecondsPretty()} (${
+      fastIndex.projections.length
+    })`,
+    fastResults
+  )
   let rawSimilarityResults: FastResult[] = []
-  for (let patternIndex = 0; patternIndex < patterns.length; ++patternIndex) {
-    const patternEmbedding = patterns[patternIndex].embedding
-    const patternFastResults = fastResults[patternIndex]
-    for (const { nid, blockKey } of patternFastResults) {
-      throwIfCancelled(cancellationToken)
-      const nodeSimSearchInfo = verifySimilaritySearchInfoVersion(await storage.node.similarity.getIndex({ nid }))
-      if (nodeSimSearchInfo == null) {
-        // Skip nodes with invalid index
-        log.warning(`Similarity index for node ${nid} is outdated`)
-        continue
-      }
-      const blockKeyStr = nodeBlockKeyToString(blockKey)
-      const embeddingJson = nodeSimSearchInfo.forBlocks[blockKeyStr] ?? null
-      if (embeddingJson != null) {
-        const embedding = tf.tensor2dFromJson(embeddingJson)
-        const score = tf.euclideanDistance(embedding, patternEmbedding)
-        if (score < 1) {
-          rawSimilarityResults.push({ nid, blockKey, score })
-        }
-      }
+  for (const { nid, blockKeyStr } of fastResults) {
+    throwIfCancelled(cancellationToken)
+    const nodeSimSearchInfo = verifySimilaritySearchInfoVersion(
+      await storage.node.similarity.getIndex({ nid })
+    )
+    if (nodeSimSearchInfo == null) {
+      // Skip nodes with invalid index
+      log.warning(`Similarity index for node ${nid} is outdated`)
+      continue
+    }
+    const embeddingJson = nodeSimSearchInfo.forBlocks[blockKeyStr]
+    if (embeddingJson == null) {
+      log.error(`No such embedding for a node ${nid} and key ${blockKeyStr}`)
+    }
+    const embedding = tf.tensor2dFromJson(embeddingJson)
+    const score = tf.euclideanDistance(embedding, phraseEmbedding)
+    if (score < kSimilarityEuclideanDistanceThreshold) {
+      rawSimilarityResults.push({ nid, blockKeyStr, score })
     }
   }
+  // Sort once again and leave exactly 1 result per node
+  rawSimilarityResults = rawSimilarityResults.sort((a, b) => a.score - b.score)
+  const knownBlocksForNids: Map<Nid, string> = new Map()
+  // To have each nid no more than once per phrase
+  rawSimilarityResults = rawSimilarityResults.filter(({ nid, blockKeyStr }) => {
+    const knownNid = knownBlocksForNids.has(nid)
+    if (knownNid) {
+      // Saw this node before and has block key for it
+      return false
+    }
+    knownBlocksForNids.set(nid, blockKeyStr)
+    return true
+  })
   log.debug(
     'RawSimilarityResults are calculated',
-    rawSimilarityResults.length,
-    timer.elapsed()
+    timer.elapsedSecondsPretty(),
+    rawSimilarityResults
   )
   // Cut the long tail of results - we can't and we shouldn't show more relevant
   // results than some limit
@@ -276,7 +272,7 @@ async function findRelevantNodesUsingSimilaritySearch(
     }
   }
   const relevantNodes: RelevantNode[] = []
-  for (const { nid, score, blockKey } of rawSimilarityResults) {
+  for (const { nid, score, blockKeyStr } of rawSimilarityResults) {
     const node = nodeMap.get(nid)
     if (node == null) {
       log.error(
@@ -285,15 +281,30 @@ async function findRelevantNodesUsingSimilaritySearch(
       continue
     }
     let matchedPiece: LongestCommonContinuousPiece | undefined = undefined
-    const text = getNodeBlock(node, blockKey)
-    if (text) {
-      matchedPiece = {
-        matchTokensCount: 100,
-        matchValuableTokensCount: 100,
-        match: text,
-        prefix: '',
-        suffix: '',
+    try {
+      const blockKey = nodeBlockKeyFromString(blockKeyStr)
+      if (blockKey.field === 'index-txt') {
+        const text = getNodeStringField(node, blockKey)
+        if (text) {
+          const nextBlockKey: NodeBlockKey = {
+            ...blockKey,
+            index: blockKey.index + 1,
+          }
+          const prevBlockKey: NodeBlockKey = {
+            ...blockKey,
+            index: blockKey.index - 1,
+          }
+          matchedPiece = {
+            matchTokensCount: 100,
+            matchValuableTokensCount: 100,
+            match: text,
+            prefix: getNodeStringField(node, prevBlockKey) ?? '',
+            suffix: getNodeStringField(node, nextBlockKey) ?? '',
+          }
+        }
       }
+    } catch (err) {
+      log.error('Direct quote extraction failed', err)
     }
     relevantNodes.push({ node, score, matchedPiece })
   }
@@ -364,18 +375,21 @@ function getNodePatchAsString(patch: NodeEventPatch): {
   plaintext: string
   textContentBlocks: TextContentBlock[]
   coment?: string
+  extQuote?: string
 } {
   let coment: string | undefined = undefined
+  const textContentBlocks: TextContentBlock[] = []
   let lines: string[] = [
     patch.extattrs?.title ?? '',
-    patch.index_text?.plaintext ?? '',
-    patch.extattrs?.web_quote?.text ?? '',
     patch.extattrs?.author ?? '',
   ]
-  const textContentBlocks: TextContentBlock[] = []
-  const indexTextBlocks = patch.index_text?.text_blocks
-  if (indexTextBlocks != null) {
-    textContentBlocks.push(...indexTextBlocks)
+  if (patch.index_text) {
+    const { text_blocks, plaintext } = patch.index_text
+    if (text_blocks) {
+      textContentBlocks.push(...text_blocks)
+    } else if (plaintext) {
+      textContentBlocks.push({ text: plaintext, type: 'P' })
+    }
     lines.push(...textContentBlocks.map(({ text }) => text))
   }
   if (patch.text) {
@@ -384,12 +398,16 @@ function getNodePatchAsString(patch: NodeEventPatch): {
     lines.push(docAsPlaintext)
     coment = docAsPlaintext
   }
-  let plaintext = lines.join('.\n')
+  const extQuote = patch.extattrs?.web_quote?.text ?? undefined
+  if (extQuote) {
+    lines.push(extQuote)
+  }
+  let plaintext = lines.join('.\n').trim()
   if (!plaintext) {
     // Hack: Embedding fails on completely empty string
     plaintext = 'empty'
   }
-  return { plaintext, textContentBlocks, coment }
+  return { plaintext, textContentBlocks, coment, extQuote }
 }
 
 async function updateNodeIndex(
@@ -398,24 +416,33 @@ async function updateNodeIndex(
   patch: NodeEventPatch,
   tfState: tf.TfState
 ): Promise<void> {
-  const { plaintext, textContentBlocks, coment } = getNodePatchAsString(patch)
+  const { plaintext, textContentBlocks, coment, extQuote } =
+    getNodePatchAsString(patch)
   const forBlocks: Record<string, TfEmbeddingJson> = {}
   {
     const embedding = await tfState.encoder.embed(plaintext)
-    forBlocks[nodeBlockKeyToString({ field: 'all' })] = tf.tensor2dToJson(embedding)
+    forBlocks[nodeBlockKeyToString({ field: '*' })] =
+      tf.tensor2dToJson(embedding)
   }
   if (coment) {
     const embedding = await tfState.encoder.embed(coment)
-    forBlocks[nodeBlockKeyToString({ field: 'coment' })] = tf.tensor2dToJson(embedding)
+    forBlocks[nodeBlockKeyToString({ field: 'text' })] =
+      tf.tensor2dToJson(embedding)
+  }
+  if (extQuote) {
+    const embedding = await tfState.encoder.embed(extQuote)
+    forBlocks[nodeBlockKeyToString({ field: 'web-quote' })] =
+      tf.tensor2dToJson(embedding)
   }
   for (let index = 0; index < textContentBlocks.length; ++index) {
     const { type, text } = textContentBlocks[index]
     if (type === 'H') {
+      // FIXME(Alexander)
       continue
     }
     const embedding = await tfState.encoder.embed(text)
     const embeddingJson = tf.tensor2dToJson(embedding)
-    const blockKeyStr = nodeBlockKeyToString({ field: 'ind_text', index })
+    const blockKeyStr = nodeBlockKeyToString({ field: 'index-txt', index })
     forBlocks[blockKeyStr] = embeddingJson
   }
   const simsearch: NodeSimilaritySearchInfoLatestVerstion = {

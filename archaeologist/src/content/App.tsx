@@ -330,7 +330,6 @@ async function handleReadOnlyRequest(
         }
         // Bookmark if not yet bookmarked
         const content = await contentOfThisDocument(state.originIdentity)
-        log.debug('Page content requested', content)
         const quotes = state.toNodes.filter(
           (node) => node.ntype === NodeType.WebQuote
         )
@@ -365,13 +364,13 @@ async function handleReadOnlyRequest(
         state.toNodes,
         state.bookmark
       )
-      const textContentBlocks =
+      const phrase =
         extractSimilaritySearchPhraseFromPageContent(document, baseURL) ??
         undefined
       return {
         type: 'PAGE_CONTENT_SEARCH_PHRASE_RESPONSE',
         nidsExcludedFromSearch,
-        textContentBlocks,
+        phrase,
       }
     }
   }
