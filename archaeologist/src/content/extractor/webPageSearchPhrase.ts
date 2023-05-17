@@ -13,7 +13,7 @@ export function extractSimilaritySearchPhraseFromPageContent(
   if (!!author) {
     author = `By ${author}`
   }
-  const header = [title ?? '', author].filter(v => !!v).join('. ')
+  const header = [title ?? '', author].filter((v) => !!v).join('. ')
   if (header.length > 2) {
     textContentBlocks.unshift({ text: header, type: 'H', level: 1 })
   }

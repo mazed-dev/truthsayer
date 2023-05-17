@@ -431,10 +431,63 @@ export type TfEmbeddingJson = {
   shape: [number, number]
 }
 
-export type TfEmbeddingForBlockJson = {
+export type NodeBlockKey = {
+  field: 'ind_text'
   index: number
+} | {
+  field: 'coment'
+  index?: number
+}| {
+  field: 'all'
+}
+
+
+export type NodeBlockKeyStr = string
+
+export function getNodeBlock(node: TNode, blockKey: NodeBlockKey): undefined | string {
+  switch (blockKey.field) {
+    case 'ind_text': {
+      if (blockKey.index != null && node.index_text?.text_blocks != null) {
+        return node.index_text?.text_blocks[blockKey.index]?.text ?? undefined
+      }
+      break;
+    }
+    case 'coment':
+    case 'all':
+      return undefined
+  }
+  return undefined
+}
+
+export function nodeBlockKeyToString(key: NodeBlockKey): string {
+  return [key.field, key.index].filter(s => !!s).join('/')
+}
+
+export function nodeBlockKeyFromString(key: string): NodeBlockKey {
+  const components = key.split('/')
+  if (components.length < 1 || components.length > 2) {
+    throw new Error("Error 445 - TODO(Alexander)")
+  }
+  return {
+    field: components[0],
+    index: components.length > 1 ? parseInt(components[1]) : undefined,
+  } as NodeBlockKey
+}
+
+export type TfEmbeddingForBlockJson = {
+  key: NodeBlockKey
   embeddingJson: TfEmbeddingJson
 }
+export type NodeSimilaritySearchInfoSignature = {
+  algorithm: 'tf-embed'
+  version: 1
+} | 'tf-embed-3'
+
+export type NodeSimilaritySearchInfoLatestVerstion = {
+  signature: 'tf-embed-3'
+  forBlocks: Record<string, TfEmbeddingJson>
+}
+
 
 export type NodeSimilaritySearchInfo =
   | null
@@ -445,8 +498,14 @@ export type NodeSimilaritySearchInfo =
       }
       embeddingJson: TfEmbeddingJson
     }
-  | {
-      signature: 'tf-embed-2'
-      embeddingJson: TfEmbeddingJson
-      embeddingJsonForBlocks: TfEmbeddingForBlockJson[]
-    }
+  | NodeSimilaritySearchInfoLatestVerstion
+
+
+export function verifySimilaritySearchInfoVersion(
+  simsearch: NodeSimilaritySearchInfo
+): NodeSimilaritySearchInfoLatestVerstion | null {
+  if (simsearch?.signature === 'tf-embed-3') {
+    return simsearch
+  }
+  return null
+}

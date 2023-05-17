@@ -2,34 +2,18 @@ import * as tf from '@tensorflow/tfjs'
 import { Tensor2D } from '@tensorflow/tfjs'
 import * as use from '@tensorflow-models/universal-sentence-encoder'
 import type { TfEmbeddingJson } from 'smuggler-api'
+import { range } from 'armoury'
+import lodash from 'lodash'
 
 export type { Tensor2D }
 
-export type TfEmbeddingSignature = {
-  algorithm: 'tf-embed-2'
-  version: 1
-}
-
 export type TfState = {
-  signature: TfEmbeddingSignature
   encoder: use.UniversalSentenceEncoder
-}
-
-export function getExpectedSignature(): TfEmbeddingSignature {
-  return { algorithm: 'tf-embed-2', version: 1 }
-}
-
-export function isPerDocIndexUpToDate(
-  algorithm?: string,
-  version?: number
-): boolean {
-  const expected = getExpectedSignature()
-  return version === expected.version && algorithm === expected.algorithm
 }
 
 export async function createTfState(): Promise<TfState> {
   const encoder = await use.load()
-  return { signature: getExpectedSignature(), encoder }
+  return { encoder }
 }
 
 export type RelevanceResult<DocIdType> = {
@@ -60,4 +44,26 @@ export function tensor2dToJson(tensor: Tensor2D): TfEmbeddingJson {
 
 export function tensor2dFromJson({ data, shape }: TfEmbeddingJson): Tensor2D {
   return tf.tensor2d(data, shape)
+}
+
+export function sampleDimensions(
+  inputVector: tf.Tensor2D,
+  targetSize: number
+): number[] {
+  return lodash.sampleSize(range(0, inputVector.shape[1]), targetSize)
+}
+
+export function projectVector(
+  inputVector: tf.Tensor2D,
+  dimensions: number[]
+): tf.Tensor2D {
+  // This is the "right" way to do a projection to a surface in the space of
+  // smaller dimensions, but it's not the faastest one.
+  // const projectionVector = tf.randomNormal([query.shape[1], smalerSpaceSize]);
+  // return tf.dot(inputVector, projectionVector)
+  // So the simpler and much quicker way is to sample the coordinates of the
+  // original vector, to have vector of
+  const dataSync = inputVector.dataSync()
+  const data = dimensions.map((index: number) => dataSync[index])
+  return tf.tensor2d(data, [1, data.length])
 }

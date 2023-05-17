@@ -1,15 +1,24 @@
 import lodash from 'lodash'
-import { tfUse, loadWinkModel, bm25 } from 'text-information-retrieval'
+import { tfUse as tf, loadWinkModel, bm25 } from 'text-information-retrieval'
 import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 import type {
   NodeEventType,
   NodeEventPatch,
+  TfEmbeddingJson,
   NodeEventListener,
   Nid,
   TNode,
   StorageApi,
   TextContentBlock,
   TfEmbeddingForBlockJson,
+  NodeSimilaritySearchInfoLatestVerstion,
+  NodeBlockKey,
+} from 'smuggler-api'
+import {
+  verifySimilaritySearchInfoVersion,
+  nodeBlockKeyToString,
+  nodeBlockKeyFromString,
+  getNodeBlock,
 } from 'smuggler-api'
 import { TDoc, Beagle } from 'elementary'
 import CancellationToken from 'cancellationtoken'
@@ -17,6 +26,84 @@ import { log, errorise, AbortError, Timer } from 'armoury'
 import type { BackgroundPosthog } from '../productanalytics'
 
 const wink_ = loadWinkModel()
+
+let _tfState: tf.TfState | undefined = undefined
+
+async function createTfState(): Promise<tf.TfState> {
+  if (_tfState == null) {
+    _tfState = await tf.createTfState()
+  }
+  return _tfState
+}
+
+type BlockEmbeddingProjection = {
+  nid: Nid
+  blockKey: NodeBlockKey
+  projection: tf.Tensor2D
+}
+
+type FastIndex = {
+  dimensions: number[]
+  projections: BlockEmbeddingProjection[]
+}
+
+type FastResult = {
+  nid: Nid
+  blockKey: NodeBlockKey
+  score: number
+}
+
+let _fastIndex: FastIndex | undefined = undefined
+
+async function getFastIndex(
+  storage: StorageApi,
+  sampleVector: tf.Tensor2D,
+): Promise<FastIndex> {
+  if (_fastIndex != null) {
+    return _fastIndex
+  }
+  const timer = new Timer()
+  const dimensions = tf.sampleDimensions(sampleVector, 42)
+  const projections: BlockEmbeddingProjection[] = []
+  const allNids = await storage.node.getAllNids({})
+  for (const nid of allNids) {
+    const nodeSimSearchInfo = verifySimilaritySearchInfoVersion(await storage.node.similarity.getIndex({ nid }))
+    if (nodeSimSearchInfo == null) {
+      // Skip nodes with invalid index
+      log.warning(`Similarity index for node ${nid} is outdated`)
+      continue
+    }
+    const forBlocks = nodeSimSearchInfo.forBlocks
+    for (const blockKeyStr in forBlocks) {
+      const embeddingJson = forBlocks[blockKeyStr]
+      const projection = tf.projectVector(
+        tf.tensor2dFromJson(embeddingJson), dimensions)
+      const blockKey = nodeBlockKeyFromString(blockKeyStr)
+      projections.push({blockKey, nid, projection})
+    }
+  }
+  log.debug('Fast simsearch index craeated', timer.elapsedSecondsPretty())
+  _fastIndex = { dimensions, projections, }
+  return _fastIndex
+}
+
+async function updateNodeFastIndex(
+  nid: Nid,
+  nodeSimSearchInfo: NodeSimilaritySearchInfoLatestVerstion
+): Promise<void> {
+  if (_fastIndex == null) {
+    return
+  }
+  const forBlocks = nodeSimSearchInfo.forBlocks
+  const dimensions = _fastIndex.dimensions
+  for (const blockKeyStr in forBlocks) {
+    const embeddingJson = forBlocks[blockKeyStr]
+    const projection = tf.projectVector(
+      tf.tensor2dFromJson(embeddingJson), dimensions)
+    const blockKey = nodeBlockKeyFromString(blockKeyStr)
+    _fastIndex.projections.push({blockKey, nid, projection})
+  }
+}
 
 /**
  * The cosine distance threshold below which we call two texts relevant.
@@ -57,7 +144,9 @@ export async function findRelevantNodes(
 ): Promise<RelevantNode[]> {
   const timer = new Timer()
   throwIfCancelled(cancellationToken)
-  const textContentPlainText = textContentBlocks.map(({ text }) => text).join('\n')
+  const textContentPlainText = textContentBlocks
+    .map(({ text }) => text)
+    .join('\n')
   const phraseDoc = wink_.readDoc(textContentPlainText)
   // Use plaintext search for a small queries, because similarity search based
   // on ML embeddings has a poor quality results on a small texts.
@@ -87,7 +176,10 @@ export async function findRelevantNodes(
       cancellationToken
     )
   }
-  log.debug(`Similarity search results [${searchEngineName}] in ${timer.elapsedSecondsPretty()}`, relevantNodes)
+  log.debug(
+    `Similarity search results [${searchEngineName}] in ${timer.elapsedSecondsPretty()}`,
+    relevantNodes
+  )
   return relevantNodes
 }
 
@@ -98,7 +190,7 @@ type RawSimilarityResults = {
 }
 
 type PatternBlockEmbedding = {
-  embedding: tfUse.Tensor2D
+  embedding: tf.Tensor2D
   blockIndex?: number
 }
 
@@ -110,60 +202,77 @@ async function findRelevantNodesUsingSimilaritySearch(
   cancellationToken: CancellationToken
 ): Promise<RelevantNode[]> {
   const timer = new Timer()
-  const tfState = await tfUse.createTfState()
+  const tfState = await createTfState()
+  // Hack and optimisation
   textContentBlocks = textContentBlocks.filter(
     ({ type, text }: TextContentBlock) => type === 'P' && text.length > 15
   )
-  textContentBlocks.push({ text: textContentPlainText, type: 'P', })
+  textContentBlocks.push({ text: textContentPlainText, type: 'P' })
   const patterns: PatternBlockEmbedding[] = await Promise.all(
-      textContentBlocks.map(async ({ text }: TextContentBlock) => {
-        return { embedding: await tfState.encoder.embed(text) }
-      })
-    )
-  log.debug('Pattern embeddings are calculated', patterns.length, timer.elapsed())
-  const allNids = await storage.node.getAllNids({})
-  log.debug('All nids', allNids.length)
-  throwIfCancelled(cancellationToken)
-  let rawSimilarityResults: RawSimilarityResults[] = []
-  for (const nid of allNids) {
-    if (!!excludedNids.has(nid)) {
-      continue
-    }
-    const nodeSimSearchInfo = await storage.node.similarity.getIndex({
-      nid,
+    textContentBlocks.map(async ({ text }: TextContentBlock) => {
+      return { embedding: await tfState.encoder.embed(text) }
     })
-    if (nodeSimSearchInfo?.signature !== 'tf-embed-2') {
-      // Skip nodes with invalid index
-      log.warning(
-        `Similarity index for node ${nid} is invalid "${nodeSimSearchInfo?.signature.algorithm}:${nodeSimSearchInfo?.signature.version}"`
-      )
-      continue
+  )
+  log.debug(`Pattern embeddings are calculated [${patterns.length}] in ${timer.elapsedSecondsPretty()}`)
+  throwIfCancelled(cancellationToken)
+  const fastIndex = await getFastIndex(storage, patterns[0].embedding)
+  throwIfCancelled(cancellationToken)
+  const fastResults: FastResult[][] = []
+  for (const { embedding } of patterns) {
+    const projectedPatternEmbedding = tf.projectVector(embedding, fastIndex.dimensions)
+    const patternFastResults: FastResult[] = []
+    for (const { blockKey, nid, projection } of fastIndex.projections) {
+      throwIfCancelled(cancellationToken)
+      if (excludedNids.has(nid)) {
+        continue
+      }
+      const score = tf.euclideanDistance(projectedPatternEmbedding, projection)
+      if (score < 0.5) {
+        patternFastResults.push({blockKey, nid, score})
+      }
     }
-    const nodeEmbeddings: PatternBlockEmbedding[] = [
-      {
-        embedding: tfUse.tensor2dFromJson(nodeSimSearchInfo.embeddingJson),
-      },
-      ...nodeSimSearchInfo.embeddingJsonForBlocks.map(
-        ({ index, embeddingJson }) => {
-          return {
-            embedding: tfUse.tensor2dFromJson(embeddingJson),
-            blockIndex: index,
-          }
-        }
-      ),
-    ]
-    throwIfCancelled(cancellationToken)
-    const rawSimilarityResult = calculateNodeSimilarity(
-      nid,
-      patterns,
-      nodeEmbeddings
-    )
-    if (rawSimilarityResult != null) {
-      rawSimilarityResults.push(rawSimilarityResult)
-    }
-    throwIfCancelled(cancellationToken)
+    patternFastResults.sort((a, b) => b.score - a.score)
+    const knownNids: Set<Nid> = new Set()
+    // To have each nid no more than once per pattern
+    patternFastResults.filter(({nid}) => {
+      if (knownNids.has(nid)) {
+        return false
+      }
+      knownNids.add(nid)
+      return true
+    })
+    // 10 Fast Results per patterh
+    fastResults.push(patternFastResults.slice(0, 10))
   }
-  log.debug('RawSimilarityResults are calculated', rawSimilarityResults.length, timer.elapsed())
+  log.debug(`Fast results are calculated in ${timer.elapsedSecondsPretty()}`, fastResults)
+  let rawSimilarityResults: FastResult[] = []
+  for (let patternIndex = 0; patternIndex < patterns.length; ++patternIndex) {
+    const patternEmbedding = patterns[patternIndex].embedding
+    const patternFastResults = fastResults[patternIndex]
+    for (const { nid, blockKey } of patternFastResults) {
+      throwIfCancelled(cancellationToken)
+      const nodeSimSearchInfo = verifySimilaritySearchInfoVersion(await storage.node.similarity.getIndex({ nid }))
+      if (nodeSimSearchInfo == null) {
+        // Skip nodes with invalid index
+        log.warning(`Similarity index for node ${nid} is outdated`)
+        continue
+      }
+      const blockKeyStr = nodeBlockKeyToString(blockKey)
+      const embeddingJson = nodeSimSearchInfo.forBlocks[blockKeyStr] ?? null
+      if (embeddingJson != null) {
+        const embedding = tf.tensor2dFromJson(embeddingJson)
+        const score = tf.euclideanDistance(embedding, patternEmbedding)
+        if (score < 1) {
+          rawSimilarityResults.push({ nid, blockKey, score })
+        }
+      }
+    }
+  }
+  log.debug(
+    'RawSimilarityResults are calculated',
+    rawSimilarityResults.length,
+    timer.elapsed()
+  )
   // Cut the long tail of results - we can't and we shouldn't show more relevant
   // results than some limit
   rawSimilarityResults.sort((ar, br) => ar.score - br.score)
@@ -181,7 +290,7 @@ async function findRelevantNodesUsingSimilaritySearch(
     }
   }
   const relevantNodes: RelevantNode[] = []
-  for (const { nid, score, blockIndex } of rawSimilarityResults) {
+  for (const { nid, score, blockKey } of rawSimilarityResults) {
     const node = nodeMap.get(nid)
     if (node == null) {
       log.error(
@@ -190,23 +299,14 @@ async function findRelevantNodesUsingSimilaritySearch(
       continue
     }
     let matchedPiece: LongestCommonContinuousPiece | undefined = undefined
-    if (
-      blockIndex != null &&
-      node.index_text?.text_blocks != null &&
-      blockIndex < node.index_text.text_blocks.length
-    ) {
+    const text = getNodeBlock(node, blockKey)
+    if (text) {
       matchedPiece = {
         matchTokensCount: 100,
         matchValuableTokensCount: 100,
-        match: node.index_text.text_blocks[blockIndex].text,
-        prefix:
-          blockIndex - 1 > 0
-            ? node.index_text.text_blocks[blockIndex - 1].text
-            : '',
-        suffix:
-          blockIndex + 1 < node.index_text.text_blocks.length
-            ? node.index_text.text_blocks[blockIndex + 1].text
-            : '',
+        match: text,
+        prefix: '',
+        suffix: '',
       }
     }
     relevantNodes.push({ node, score, matchedPiece })
@@ -214,49 +314,29 @@ async function findRelevantNodesUsingSimilaritySearch(
   return relevantNodes
 }
 
-function calculateNodeSimilarity(
-  nid: Nid,
-  patterns: PatternBlockEmbedding[],
-  nodeEmbeddings: PatternBlockEmbedding[]
-): RawSimilarityResults | null {
-  let minScore: number = kSimilarityCosineDistanceThreshold
-  let minScoreForBlockIndex: number = kSimilarityCosineDistanceThreshold
-  let blockIndexWithMinScore: number | undefined = undefined
-  for (const { embedding: patternEmbedding } of patterns) {
-    for (const { embedding: nodeEmbedding, blockIndex } of nodeEmbeddings) {
-      const score = tfUse.cosineDistance(patternEmbedding, nodeEmbedding)
-      if (score < minScore) {
-        minScore = score
-      }
-      if (blockIndex != null && score < minScoreForBlockIndex) {
-        minScoreForBlockIndex = score
-        blockIndexWithMinScore = blockIndex
-      }
-    }
-  }
-  if (minScore < kSimilarityCosineDistanceThreshold) {
-    return { nid, score: minScore, blockIndex: blockIndexWithMinScore }
-  }
-  return null
-}
-
-async function tryToMergeParagraphs(textContentBlocks: TextContentBlock[]): Promise<void> {
+async function tryToMergeParagraphs(
+  textContentBlocks: TextContentBlock[]
+): Promise<void> {
   const timer = new Timer()
-  const tfState = await tfUse.createTfState()
+  const tfState = await createTfState()
   const embeddings = await Promise.all(
-      textContentBlocks.map(async ({ text }: TextContentBlock) => {
-        return await tfState.encoder.embed(text)
-      })
-    )
+    textContentBlocks.map(async ({ text }: TextContentBlock) => {
+      return await tfState.encoder.embed(text)
+    })
+  )
   if (textContentBlocks.length < 2) {
     return
   }
   for (let rind = 1; rind < textContentBlocks.length; ++rind) {
-    const lind = rind - 1;
-    const score = tfUse.cosineDistance(embeddings[lind], embeddings[rind])
+    const lind = rind - 1
+    const score = tf.cosineDistance(embeddings[lind], embeddings[rind])
     log.debug('Pair', score, textContentBlocks[lind])
   }
-  log.debug('Pair', textContentBlocks[textContentBlocks.length - 1], timer.elapsed())
+  log.debug(
+    'Pair',
+    textContentBlocks[textContentBlocks.length - 1],
+    timer.elapsed()
+  )
   return
 }
 
@@ -297,7 +377,9 @@ async function findRelevantNodesUsingPlainTextSearch(
 function getNodePatchAsString(patch: NodeEventPatch): {
   plaintext: string
   textContentBlocks: TextContentBlock[]
+  coment?: string
 } {
+  let coment: string | undefined = undefined
   let lines: string[] = [
     patch.extattrs?.title ?? '',
     patch.index_text?.plaintext ?? '',
@@ -311,66 +393,57 @@ function getNodePatchAsString(patch: NodeEventPatch): {
     lines.push(...textContentBlocks.map(({ text }) => text))
   }
   if (patch.text) {
-    const coment = TDoc.fromNodeTextData(patch.text)
-    const docAsPlaintext = coment.genPlainText()
+    const doc = TDoc.fromNodeTextData(patch.text)
+    const docAsPlaintext = doc.genPlainText()
     lines.push(docAsPlaintext)
+    coment = docAsPlaintext
   }
   let plaintext = lines.join('.\n')
   if (!plaintext) {
     // Hack: Embedding fails on completely empty string
     plaintext = 'empty'
   }
-  return { plaintext, textContentBlocks }
+  return { plaintext, textContentBlocks, coment }
 }
 
 async function updateNodeIndex(
   storage: StorageApi,
   nid: Nid,
   patch: NodeEventPatch,
-  tfState: tfUse.TfState,
+  tfState: tf.TfState
 ): Promise<void> {
-  const { plaintext, textContentBlocks } = getNodePatchAsString(patch)
-  const textWinkDoc = wink_.readDoc(plaintext)
-  const embedding = await tfState.encoder.embed(
-    textWinkDoc.out(wink_.its.normal)
-  )
-  const embeddingJson = tfUse.tensor2dToJson(embedding)
-  const embeddingJsonForBlocksPromises: Promise<TfEmbeddingForBlockJson>[] = []
+  const { plaintext, textContentBlocks, coment } = getNodePatchAsString(patch)
+  const forBlocks: Record<string, TfEmbeddingJson> = {}
+  {
+    const embedding = await tfState.encoder.embed(plaintext)
+    forBlocks[nodeBlockKeyToString({ field: 'all' })] = tf.tensor2dToJson(embedding)
+  }
+  if (coment) {
+    const embedding = await tfState.encoder.embed(coment)
+    forBlocks[nodeBlockKeyToString({ field: 'coment' })] = tf.tensor2dToJson(embedding)
+  }
   for (let index = 0; index < textContentBlocks.length; ++index) {
     const { type, text } = textContentBlocks[index]
     if (type === 'H') {
       continue
     }
-    const textWinkDoc = wink_.readDoc(text)
-    if (textWinkDoc.tokens().length() < 4) {
-      continue
-    }
-    const callable = async (): Promise<TfEmbeddingForBlockJson> => {
-      if (tfState == null) {
-        throw new Error('Similarity search state is not initialised')
-      }
-      const embedding = await tfState.encoder.embed(
-        textWinkDoc.out(wink_.its.normal)
-      )
-      const embeddingJson = tfUse.tensor2dToJson(embedding)
-      return { index, embeddingJson }
-    }
-    embeddingJsonForBlocksPromises.push(callable())
+    const embedding = await tfState.encoder.embed(text)
+    const embeddingJson = tf.tensor2dToJson(embedding)
+    const blockKeyStr = nodeBlockKeyToString({ field: 'ind_text', index })
+    forBlocks[blockKeyStr] = embeddingJson
   }
-  await storage.node.similarity.setIndex({
-    nid,
-    simsearch: {
-      signature: 'tf-embed-2',
-      embeddingJson,
-      embeddingJsonForBlocks: await Promise.all(embeddingJsonForBlocksPromises),
-    },
-  })
+  const simsearch: NodeSimilaritySearchInfoLatestVerstion = {
+    signature: 'tf-embed-3',
+    forBlocks,
+  }
+  updateNodeFastIndex(nid, simsearch)
+  await storage.node.similarity.setIndex({ nid, simsearch })
 }
 
 function createNodeEventListener(storage: StorageApi): NodeEventListener {
   return (type: NodeEventType, nid: Nid, patch: NodeEventPatch) => {
     if (type === 'created' || type === 'updated') {
-      tfUse.createTfState().then((tfState: tfUse.TfState) => {
+      createTfState().then((tfState: tf.TfState) => {
         updateNodeIndex(storage, nid, patch, tfState).catch((reason) => {
           log.error(
             `Failed to ensure similarity search index integrity for node ${nid}: ${
@@ -387,7 +460,7 @@ async function ensurePerNodeSimSearchIndexIntegrity(
   storage: StorageApi,
   analytics?: BackgroundPosthog | null
 ): Promise<void> {
-  const tfState = await tfUse.createTfState()
+  const tfState = await createTfState()
   const nids = await storage.node.getAllNids({})
   for (let ind = 0; ind < nids.length; ++ind) {
     const nid = nids[ind]
@@ -396,7 +469,7 @@ async function ensurePerNodeSimSearchIndexIntegrity(
       const nodeSimSearchInfo = await storage.node.similarity.getIndex({
         nid,
       })
-      if (nodeSimSearchInfo?.signature !== 'tf-embed-2') {
+      if (nodeSimSearchInfo?.signature !== 'tf-embed-3') {
         log.info(
           `Update node similarity index [${ind + 1}/${nids.length}] ${nid}`
         )
