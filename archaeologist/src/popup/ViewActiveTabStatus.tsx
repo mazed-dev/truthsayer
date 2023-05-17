@@ -198,11 +198,11 @@ export const ViewActiveTabStatus = () => {
         ),
       })
     } catch (e) {
-      const reason = String(e)
+      const message = errorise(e).message
       let tryTo: string
       if (
-        /Receiving end does not exist/.test(reason) &&
-        /to content/.test(reason)
+        /Receiving end does not exist/.test(message) &&
+        /to content/.test(message)
       ) {
         // Let's try to be a bit smarter here and suggest better problem
         // resolution, if message contains words about content not responding

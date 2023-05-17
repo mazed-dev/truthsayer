@@ -1,3 +1,4 @@
+import { log } from './log'
 /**
  * See https://stackoverflow.com/a/30469297/3375765 for more information
  * about the implementation
@@ -87,8 +88,6 @@ export namespace ErrorViaMessage {
     )
     const error = new Error(data.message)
     Object.assign(error, data)
-    error.name = data.name
-    error.stack = data.stack
     return error
   }
   /**
