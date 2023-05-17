@@ -136,7 +136,7 @@ export type RelevantNode = {
   matchedPiece?: LongestCommonContinuousPiece
 }
 export async function findRelevantNodes(
-  textContentBlocks: TextContentBlock[],
+  phrase: string,
   excludedNids: Set<Nid>,
   cancellationToken: CancellationToken,
   storage: StorageApi,
@@ -144,10 +144,7 @@ export async function findRelevantNodes(
 ): Promise<RelevantNode[]> {
   const timer = new Timer()
   throwIfCancelled(cancellationToken)
-  const textContentPlainText = textContentBlocks
-    .map(({ text }) => text)
-    .join('\n')
-  const phraseDoc = wink_.readDoc(textContentPlainText)
+  const phraseDoc = wink_.readDoc(phrase)
   // Use plaintext search for a small queries, because similarity search based
   // on ML embeddings has a poor quality results on a small texts.
   const phraseLen = phraseDoc.tokens().length()
@@ -169,8 +166,7 @@ export async function findRelevantNodes(
   } else {
     searchEngineName = 'TFJS'
     relevantNodes = await findRelevantNodesUsingSimilaritySearch(
-      textContentPlainText,
-      textContentBlocks,
+      phrase,
       storage,
       excludedNids,
       cancellationToken
@@ -195,30 +191,20 @@ type PatternBlockEmbedding = {
 }
 
 async function findRelevantNodesUsingSimilaritySearch(
-  textContentPlainText: string,
-  textContentBlocks: TextContentBlock[],
+  phrase: string,
   storage: StorageApi,
   excludedNids: Set<Nid>,
   cancellationToken: CancellationToken
 ): Promise<RelevantNode[]> {
   const timer = new Timer()
   const tfState = await createTfState()
-  // Hack and optimisation
-  textContentBlocks = textContentBlocks.filter(
-    ({ type, text }: TextContentBlock) => type === 'P' && text.length > 15
-  )
-  textContentBlocks.push({ text: textContentPlainText, type: 'P' })
-  const patterns: PatternBlockEmbedding[] = await Promise.all(
-    textContentBlocks.map(async ({ text }: TextContentBlock) => {
-      return { embedding: await tfState.encoder.embed(text) }
-    })
-  )
-  log.debug(`Pattern embeddings are calculated [${patterns.length}] in ${timer.elapsedSecondsPretty()}`)
+  const phraseEmbedding = await tfState.encoder.embed(phrase)
+  log.debug(`Phrase embedding are calculated ${timer.elapsedSecondsPretty()}`)
   throwIfCancelled(cancellationToken)
-  const fastIndex = await getFastIndex(storage, patterns[0].embedding)
+  const fastIndex = await getFastIndex(storage, phraseEmbedding)
   throwIfCancelled(cancellationToken)
   const fastResults: FastResult[][] = []
-  for (const { embedding } of patterns) {
+
     const projectedPatternEmbedding = tf.projectVector(embedding, fastIndex.dimensions)
     const patternFastResults: FastResult[] = []
     for (const { blockKey, nid, projection } of fastIndex.projections) {
@@ -233,7 +219,7 @@ async function findRelevantNodesUsingSimilaritySearch(
     }
     patternFastResults.sort((a, b) => b.score - a.score)
     const knownNids: Set<Nid> = new Set()
-    // To have each nid no more than once per pattern
+    // To have each nid no more than once per phrase
     patternFastResults.filter(({nid}) => {
       if (knownNids.has(nid)) {
         return false
@@ -241,8 +227,8 @@ async function findRelevantNodesUsingSimilaritySearch(
       knownNids.add(nid)
       return true
     })
-    // 10 Fast Results per patterh
     fastResults.push(patternFastResults.slice(0, 10))
+    // 10 Fast Results per patterh
   }
   log.debug(`Fast results are calculated in ${timer.elapsedSecondsPretty()}`, fastResults)
   let rawSimilarityResults: FastResult[] = []
