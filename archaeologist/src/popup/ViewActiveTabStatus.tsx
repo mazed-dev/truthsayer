@@ -198,6 +198,20 @@ export const ViewActiveTabStatus = () => {
         ),
       })
     } catch (e) {
+      const message = errorise(e).message
+      let tryTo: string
+      if (
+        /Receiving end does not exist/.test(message) &&
+        /to content/.test(message)
+      ) {
+        // Let's try to be a bit smarter here and suggest better problem
+        // resolution, if message contains words about content not responding
+        // there is high chance it's not there yet. Reloading the browser tab
+        // should help to load content script.
+        tryTo = 'reload the tab'
+      } else {
+        tryTo = 're-open this popup'
+      }
       productanalytics.error(
         analytics ?? null,
         {
@@ -211,7 +225,7 @@ export const ViewActiveTabStatus = () => {
         status: 'error',
         error: {
           failedTo: 'get suggestions for this tab',
-          tryTo: 're-open this popup',
+          tryTo,
         },
       })
     }
