@@ -173,7 +173,7 @@ const SuggestedCards = ({
   React.useEffect(() => {
     analytics?.capture('Show suggested associations', {
       'Event type': 'show',
-      length: nodes.length,
+      count: nodes.length,
     })
   }, [nodes, analytics])
   const suggestedCards = nodes.map((RelevantNodeSuggestion) => {
