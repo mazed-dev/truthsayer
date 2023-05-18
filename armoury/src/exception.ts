@@ -70,9 +70,12 @@ export namespace ErrorViaMessage {
    */
   export function pack<T extends Error>(error: T): Error {
     const data = Object.assign({}, error)
-    // NOTE: for some reason `error.message` gets special treatment in
-    // Object.assign and doesn't get copied, so it has to be copied manually
+    // NOTE: for some reason `error.message`, `error.`, `error.stack` gets
+    // special treatment in Object.assign and doesn't get copied at least on
+    // some of the browsers, so it has to be copied manually.
     data.message = error.message
+    data.name = error.name
+    data.stack = error.stack
     return new Error(ERROR_VIA_MESSAGE_PAYLOAD_PREFIX + JSON.stringify(data))
   }
   /** Reverse @see pack() */
@@ -87,8 +90,12 @@ export namespace ErrorViaMessage {
     )
     const error = new Error(data.message)
     Object.assign(error, data)
-    error.name = data.name
-    error.stack = data.stack
+    if (data.name) {
+      error.name = data.name
+    }
+    if (data.stack) {
+      error.stack = data.stack
+    }
     return error
   }
   /**
