@@ -19,6 +19,9 @@ export function ScopedTimedAction({
   const [timer] = React.useState(() => setTimeout(action, after.milliseconds()))
 
   React.useEffect(() => {
+    // By clearing the timer, this cleanup callback leverages useEffect()'s
+    // lifecycle rules to ensure that the action doesn't get executed if
+    // the component gets unmounted.
     return () => clearTimeout(timer)
   }, [timer])
 
