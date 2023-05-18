@@ -208,8 +208,8 @@ async function handleMessageFromContent(
       )
       return {
         type: 'SUGGESTED_CONTENT_ASSOCIATIONS',
-        suggested: relevantNodes.map(({ node, matchedPiece }) => {
-          return { node: NodeUtil.toJson(node), matchedPiece }
+        suggested: relevantNodes.map(({ node, matchedQuotes, score }) => {
+          return { node: NodeUtil.toJson(node), matchedQuotes, score }
         }),
       }
     }
@@ -348,9 +348,11 @@ async function handleMessageFromPopup(
       )
       return {
         type: 'RESPONSE_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB',
-        suggestedAkinNodes: relevantNodes.map(({ node, matchedPiece }) => {
-          return { node: NodeUtil.toJson(node), matchedPiece }
-        }),
+        suggestedAkinNodes: relevantNodes.map(
+          ({ node, matchedQuotes, score }) => {
+            return { node: NodeUtil.toJson(node), matchedQuotes, score }
+          }
+        ),
       }
     }
     case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {

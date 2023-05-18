@@ -5,6 +5,8 @@ import type { TfEmbeddingJson } from 'smuggler-api'
 import { range } from 'armoury'
 import lodash from 'lodash'
 
+export { KNNClassifier } from '@tensorflow-models/knn-classifier'
+
 export type { Tensor2D }
 
 export type TfState = {

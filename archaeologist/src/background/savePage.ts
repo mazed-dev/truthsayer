@@ -146,7 +146,6 @@ export async function saveWebPage(
   }
   const text = makeEmptyNodeTextData()
   const index_text: NodeIndexText = {
-    text_blocks: content.textContentBlocks || undefined,
     labels: [],
     brands: [],
     dominant_colors: [],
@@ -160,6 +159,9 @@ export async function saveWebPage(
     author: content.author.join(', '),
     web: {
       url: url,
+      text: {
+        blocks: content.textContentBlocks,
+      },
     },
     blob: undefined,
   }

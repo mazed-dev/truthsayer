@@ -1,7 +1,7 @@
 import React from 'react'
 import lodash from 'lodash'
 
-import type { Nid, TextContentBlock } from 'smuggler-api'
+import type { Nid } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
 import { errorise, log, productanalytics, sleep, isAbortError } from 'armoury'
 
@@ -154,10 +154,7 @@ export function SuggestedRelatives({
             )
             setSuggestedNodes(
               response.suggested.map((item) => {
-                return {
-                  node: NodeUtil.fromJson(item.node),
-                  matchedPiece: item.matchedPiece,
-                }
+                return { ...item, node: NodeUtil.fromJson(item.node) }
               })
             )
             analytics?.capture('Search suggested associations', {

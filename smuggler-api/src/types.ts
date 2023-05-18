@@ -92,6 +92,11 @@ export type NodeExtattrsWeb = {
   // Store here any conditions or credentials to access that resource,
   // for example the resource is availiable only from certain contries
   url: string
+
+  text?: {
+    blocks: TextContentBlock[]
+    truncated?: boolean
+  }
 }
 
 // / Represents textual quotation on a web page
@@ -120,7 +125,7 @@ export type Color = {
   alpha: number
 }
 
-export type TextContentBlockType = 'P' | 'H'
+export type TextContentBlockType = 'P' | 'H' | 'LI'
 export type TextContentBlock = {
   text: string
   type: TextContentBlockType
@@ -129,7 +134,6 @@ export type TextContentBlock = {
 
 export type NodeIndexText = {
   plaintext?: string
-  text_blocks?: TextContentBlock[]
   labels: string[]
   brands: string[]
   dominant_colors: Color[]
@@ -449,26 +453,48 @@ export type NodeBlockKey =
       field: '*'
     }
 
-export type NodeBlockKeyStr = string
-
-export function getNodeStringField(
-  node: TNode,
-  blockKey: NodeBlockKey
-): undefined | string {
-  switch (blockKey.field) {
-    case 'index-txt': {
-      if (node.index_text?.text_blocks != null) {
-        return node.index_text?.text_blocks[blockKey.index]?.text ?? undefined
-      } else {
-        return node.index_text?.plaintext
+export function getNextBlockKey(
+  key: NodeBlockKey,
+  node: TNode
+): NodeBlockKey | undefined {
+  switch (key.field) {
+    case 'index-txt':
+      const len = node.extattrs?.web?.text?.blocks?.length
+      let { index } = key
+      if (len != null) {
+        index += 1
+        if (index < len) {
+          return { ...key, index }
+        }
       }
-    }
+      return undefined
     case '*':
     case 'text':
     case 'web-quote':
       return undefined
   }
 }
+
+export function getPrevBlockKey(
+  key: NodeBlockKey,
+  _node: TNode
+): NodeBlockKey | undefined {
+  switch (key.field) {
+    case 'index-txt':
+      let { index } = key
+      index -= 1
+      if (index > 0) {
+        return { ...key, index }
+      }
+      return undefined
+    case '*':
+    case 'text':
+    case 'web-quote':
+      return undefined
+  }
+}
+
+export type NodeBlockKeyStr = string
 
 export function nodeBlockKeyToString(key: NodeBlockKey): string {
   switch (key.field) {
@@ -486,10 +512,14 @@ export function nodeBlockKeyFromString(key: string): NodeBlockKey {
   if (components.length < 1 || components.length > 2) {
     throw new Error('Error 445 - TODO(Alexander)')
   }
-  return {
-    field: components[0],
-    index: components.length > 1 ? parseInt(components[1]) : undefined,
-  } as NodeBlockKey
+  if (components.length > 1) {
+    return {
+      field: components[0],
+      index: parseInt(components[1]),
+    } as NodeBlockKey
+  } else {
+    return { field: components[0] } as NodeBlockKey
+  }
 }
 
 export type TfEmbeddingForBlockJson = {

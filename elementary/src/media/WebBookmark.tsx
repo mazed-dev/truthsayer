@@ -4,15 +4,22 @@ import React from 'react'
 
 import { Launch } from '@emotion-icons/material'
 
-import type { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
+import type { TNode, PreviewImageSmall, NodeBlockKey } from 'smuggler-api'
+import {
+  nodeBlockKeyToString,
+  getNextBlockKey,
+  getPrevBlockKey,
+  TextContentBlock,
+} from 'smuggler-api'
 import type { Optional } from 'armoury'
+import { getNodeBlock } from '../editor/types'
+import { HRule } from '../editor/components/HRule'
 import {
   productanalytics,
   splitStringByWord,
   padNonEmptyStringWithSpaceHead,
-  padNonEmptyStringWithSpaceTail,
 } from 'armoury'
-import { log } from 'armoury'
+import { log, truncatePretty } from 'armoury'
 import styled from '@emotion/styled'
 
 import { CopyFieldHandle } from '../CopyFieldHandle'
@@ -205,14 +212,17 @@ const Description = styled.blockquote`
   padding: 10px 10px 0 10px;
   margin: 0;
   color: inherit;
+`
 
-  quotes: '“' '”' '‘' '’';
-  &:before {
-    content: open-quote;
-  }
-  &:after {
-    content: close-quote;
-  }
+const DirectQuote = styled.div`
+  font-size: 1em;
+  line-height: 142%;
+  overflow-wrap: break-word;
+  word-break: normal;
+
+  padding: 10px 10px 0 10px;
+  margin: 0;
+  color: inherit;
 `
 
 export type WebBookmarkDescriptionConfig =
@@ -226,22 +236,53 @@ export type WebBookmarkDescriptionConfig =
       type: 'none'
     }
   | {
-      type: 'match'
-      match: string
-      prefix: string
-      suffix: string
+      type: 'direct-quotes'
+      blocks: NodeBlockKey[]
+    }
+  | {
+      type: 'web-page'
     }
 
-const MatchDescriptionSpan = styled.span`
+const ContextBlockParagraphBox = styled.div`
+  font-size: 1em;
+  margin: 0 0 4px 0;
+`
+const ContextBlockHeaderBox = styled.h4`
+  font-size: 1.2em;
+  font-weight: 400;
+  margin: 0 0 4px 0;
+`
+const ContextBlockListItemBox = styled.div`
+  font-size: 1em;
+  margin: 0 0 4px 0;
+`
+const ContextBlock = ({ block, className }: {
+  block?: TextContentBlock
+  className?: string
+}) => {
+  if (block == null) {
+    return null
+  }
+  switch (block.type) {
+    case 'P':
+      return <ContextBlockParagraphBox className={className}>{block.text}</ContextBlockParagraphBox>
+    case 'H':
+      return <ContextBlockHeaderBox className={className}>{block.text}</ContextBlockHeaderBox>
+    case 'LI':
+      return <ContextBlockListItemBox className={className}>{block.text}</ContextBlockListItemBox>
+  }
+}
+const MatchedContentBlock = styled(ContextBlock)`
   text-decoration-line: underline;
-  text-decoration-color: rgba(0, 110, 237, 0.64);
+  text-decoration-color: rgba(0, 110, 237, 0.36);
   text-decoration-style: solid;
   text-decoration-thickness: 2px;
   &:hover {
-    text-decoration-color: rgba(0, 110, 237, 0.92);
+    text-decoration-color: rgba(0, 110, 237, 0.62);
   }
 `
 const MatchDescriptionContextSpan = styled.span``
+
 const MatchDescriptionSeeMoreBtn = styled.span`
   cursor: pointer;
   font-weight: 600;
@@ -251,39 +292,54 @@ const MatchDescriptionSeeMoreBtn = styled.span`
   }
 `
 
+const DirectQuoteSeparator = styled(HRule)`
+  margin: 8px 0 0 0;
+`
+
 const BookmarkMatchDescription = ({
-  url,
-  match,
-  prefix,
-  suffix,
+  node,
+  block,
 }: {
-  url: string
-  match: string
-  prefix: string
-  suffix: string
+  node: TNode
+  block: NodeBlockKey
 }) => {
+  const matchedBlock = getNodeBlock(node, block)
+  if (matchedBlock == null) {
+    return null
+  }
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
-  return (
-    <Description cite={url} className={productanalytics.classExclude()}>
-      {!seeMore ? (
-        <MatchDescriptionContextSpan>{match}</MatchDescriptionContextSpan>
-      ) : (
-        <>
-          <MatchDescriptionContextSpan>
-            {padNonEmptyStringWithSpaceTail(prefix)}
-          </MatchDescriptionContextSpan>
-          <MatchDescriptionSpan>{match}</MatchDescriptionSpan>
-          <MatchDescriptionContextSpan>
-            {padNonEmptyStringWithSpaceHead(suffix)}
-          </MatchDescriptionContextSpan>
-        </>
-      )}
-      &nbsp;
-      <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore((more) => !more)}>
-        see&nbsp;{seeMore ? 'less' : 'more'}
-      </MatchDescriptionSeeMoreBtn>
-    </Description>
-  )
+  if (!seeMore) {
+    // https://www.portent.com/blog/seo/featured-snippet-display-lengths-study-portent.htm
+    const truncated: TextContentBlock = {
+      ...matchedBlock,
+      text: truncatePretty(matchedBlock.text, 300),
+    }
+    return (
+      <DirectQuote className={productanalytics.classExclude()}>
+        <ContextBlock block={truncated} />
+        <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore(true)}>
+          See&nbsp;more
+        </MatchDescriptionSeeMoreBtn>
+        <DirectQuoteSeparator />
+      </DirectQuote>
+    )
+  } else {
+    const prefixKey = getPrevBlockKey(block, node)
+    const prefix = prefixKey ? getNodeBlock(node, prefixKey) : undefined
+    const suffixKey = getNextBlockKey(block, node)
+    const suffix = suffixKey ? getNodeBlock(node, suffixKey) : undefined
+    return (
+      <DirectQuote className={productanalytics.classExclude()}>
+        <ContextBlock block={prefix} />
+        <MatchedContentBlock block={matchedBlock} />
+        <ContextBlock block={suffix} />
+        <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore(false)}>
+          See&nbsp;less
+        </MatchDescriptionSeeMoreBtn>
+        <DirectQuoteSeparator />
+      </DirectQuote>
+    )
+  }
 }
 
 const BookmarkOriginalDescription = ({
@@ -322,46 +378,74 @@ const BookmarkOriginalDescription = ({
 
 const BookmarkDescription = ({
   url,
-  description,
+  node,
   webBookmarkDescriptionConfig,
 }: {
   url: string
-  description?: string
+  node: TNode
   webBookmarkDescriptionConfig: WebBookmarkDescriptionConfig
 }) => {
   switch (webBookmarkDescriptionConfig.type) {
     case 'none':
       return null
     case 'original':
-      if (!description) {
+      if (!node.extattrs?.description) {
         return null
       }
       return (
         <Description cite={url} className={productanalytics.classExclude()}>
-          {description}
+          {node.extattrs.description}
         </Description>
       )
     case 'original-cutted':
-      if (!description) {
+      if (!node.extattrs?.description) {
         return null
       }
-      return <BookmarkOriginalDescription url={url} description={description} />
-    case 'match':
-      const { match, prefix, suffix } = webBookmarkDescriptionConfig
       return (
-        <BookmarkMatchDescription
+        <BookmarkOriginalDescription
           url={url}
-          match={match}
-          prefix={prefix}
-          suffix={suffix}
+          description={node.extattrs.description}
         />
       )
+    case 'direct-quotes':
+      {
+      const blocks = webBookmarkDescriptionConfig.blocks
+      // Sort block to make sure quotes from the top of the document comes first
+      blocks.sort((a, b) => {
+        if (a.field === 'index-txt' && b.field === 'index-txt') {
+          return a.index - b.index
+        }
+        return a.field < b.field ? -1 : 1
+      })
+      return (
+        <>
+          {webBookmarkDescriptionConfig.blocks.map((block) => (
+            <BookmarkMatchDescription
+              node={node}
+              block={block}
+              key={nodeBlockKeyToString(block)}
+            />
+          ))}
+        </>
+      )
+      }
+    case 'web-page': {
+        const blocks = node.extattrs?.web?.text?.blocks
+        if (blocks == null) { return null }
+        return (
+          <DirectQuote>
+            {blocks.map((block, index) => {
+              return <ContextBlock block={block} key={index} />
+            })}
+          </DirectQuote>
+        )
+      }
   }
 }
 
 type WebBookmarkProps = {
   ctx: ElementaryContext
-  extattrs: NodeExtattrs
+  node: TNode
   className?: string
   strippedRefs?: boolean
   onLaunch?: () => void
@@ -370,17 +454,17 @@ type WebBookmarkProps = {
 
 export const WebBookmark = ({
   ctx,
-  extattrs,
+  node,
   className,
   strippedRefs,
   onLaunch,
   webBookmarkDescriptionConfig,
 }: WebBookmarkProps) => {
-  const { web, preview_image, title, description, author } = extattrs
-  if (web == null) {
+  if (node.extattrs?.web == null) {
     log.debug('Empty web bookmark node')
     return null
   }
+  const { web, preview_image, title, author } = node.extattrs
   const url = web.url
   const hostname = new URL(url).hostname
   const authorBadge = author ? (
@@ -416,7 +500,7 @@ export const WebBookmark = ({
       </BadgeBox>
       <BookmarkDescription
         url={url}
-        description={description}
+        node={node}
         webBookmarkDescriptionConfig={
           webBookmarkDescriptionConfig ?? { type: 'original' }
         }

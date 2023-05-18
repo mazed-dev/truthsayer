@@ -34,7 +34,9 @@ export function NodeCard({
   }
   return (
     <NodeCardBox className={className}>
-      <NodeMedia ctx={ctx} node={node} onLaunch={onMediaLaunch} />
+      <NodeMedia ctx={ctx} node={node} onLaunch={onMediaLaunch} 
+        webBookmarkDescriptionConfig={{type: 'web-page'}}
+      />
       <NodeTextEditor
         ctx={ctx}
         node={node}

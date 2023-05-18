@@ -1,5 +1,4 @@
 import { AccountInfo, PreviewImageSmall, SessionCreateArgs } from 'smuggler-api'
-import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 import browser from 'webextension-polyfill'
 import type {
   Nid,
@@ -9,6 +8,7 @@ import type {
   TNodeJson,
   NodeUpdateArgs,
   TextContentBlock,
+  NodeBlockKey,
 } from 'smuggler-api'
 import { AnalyticsIdentity, ErrorViaMessage, OriginIdentity } from 'armoury'
 import type {
@@ -87,10 +87,11 @@ export interface WebPageContent {
 
 export type RelevantNodeSuggestion = {
   node: TNodeJson
-  /**
-   * Most relevant quote from the node
-   */
-  matchedPiece?: LongestCommonContinuousPiece
+
+  /** Most relevant quotes from the node */
+  matchedQuotes: NodeBlockKey[]
+  /** Lower is better, 0 means perfect match */
+  score: number
 }
 
 export namespace FromPopUp {

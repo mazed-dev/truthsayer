@@ -60,4 +60,5 @@ export {
   kSlateBlockTypeParagraph,
   kSlateBlockTypeQuote,
   kSlateBlockTypeUnorderedList,
+  getNodeBlock,
 } from './editor/types'
