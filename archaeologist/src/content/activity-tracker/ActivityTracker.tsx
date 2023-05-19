@@ -1,9 +1,7 @@
 import React from 'react'
-import { log, unicodeText } from 'armoury'
+import { log } from 'armoury'
 import lodash from 'lodash'
 import moment from 'moment'
-
-import { extractReadableTextFromPage } from './../extractor/webPageContent'
 import { isPageAutosaveable } from '../extractor/url/autosaveable'
 
 /**
@@ -74,8 +72,7 @@ const AttentionTimeTracker = ({
     // see `checkReadingTotalTime` for more details.
     // We simply don't have time for it today, but we will get back to fix it
     // if it becomes a problem.
-    const text = extractReadableTextFromPage(document)
-    const estimation = unicodeText.getTimeToRead(text)
+    const estimation = moment.duration(24, 'seconds')
     log.info('Page estimated reading time in seconds', estimation.asSeconds())
     return estimation
   }, [])

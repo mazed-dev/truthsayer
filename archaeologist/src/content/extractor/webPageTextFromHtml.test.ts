@@ -137,7 +137,7 @@ test('HTML table -', () => {
   ])
 })
 
-test('notion.so document structure', () => {
+test('HTML lists', () => {
   const html = `<!DOCTYPE html>
 <html>
 <body>
@@ -243,6 +243,40 @@ test('notion.so document structure', () => {
     {
       text: 'Milk',
       type: 'LI',
+    },
+  ])
+})
+
+test('extractTextContentBlocksFromHtml - put extra dot after header and table rows', () => {
+  expect(
+    extractTextContentBlocksFromHtml(
+      `<div>
+        <h2>From the Crew</h2>
+        <h3></h3><h3></h3>
+        <p>Just one extra message</p>
+      </div>`,
+      ''
+    )
+  ).toStrictEqual([
+    { text: 'From the Crew', type: 'H' },
+    { text: 'Just one extra message', type: 'P' },
+  ])
+  expect(
+    extractTextContentBlocksFromHtml(
+      `<table>
+      <tbody>
+        <tr><td>Born</td><td>15 March 1813</td></tr>
+        <tr></tr>
+        <tr><td>Alma mater</td><td>	University of London (MD)</td></tr>
+      </tbody>
+      </table>
+      `,
+      ''
+    )
+  ).toStrictEqual([
+    {
+      text: '|| Born| 15 March 1813 | || Alma mater| University of London (MD)',
+      type: 'P',
     },
   ])
 })

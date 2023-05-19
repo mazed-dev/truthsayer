@@ -6,8 +6,8 @@ export function extractSimilaritySearchPhraseFromPageContent(
   baseURL: string
 ): string | null {
   const pageContent = extractPageContent(document_, baseURL)
-  const { title, textContentBlocks } = pageContent
   log.debug('Page content', pageContent)
+  const { title, textContentBlocks } = pageContent
   let author = pageContent.author.join(', ')
   if (!!author) {
     author = `By ${author}`

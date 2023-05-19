@@ -18,14 +18,7 @@ import {
   isProbablyReaderable,
 } from '@mozilla/readability'
 import lodash from 'lodash'
-import DOMPurify from 'dompurify'
-import {
-  MimeType,
-  log,
-  stabiliseUrlForOriginId,
-  unicodeText,
-  sortOutSpacesAroundPunctuation,
-} from 'armoury'
+import { MimeType, log, stabiliseUrlForOriginId, unicodeText } from 'armoury'
 import {
   extractTextContentBlocksFromHtml,
   TextContentBlock,
@@ -95,8 +88,8 @@ export interface WebPageContent {
   lang: string | null
   author: string[]
   publisher: string[]
-  textContentBlocks: TextContentBlock[]
   previewImageUrls: string[]
+  textContentBlocks: TextContentBlock[]
 }
 
 export function extractPageUrl(document_: Document): string {
@@ -493,7 +486,11 @@ export function _cureTextContent(
       text = text.replace(/\[\d+\]/g, '').replace(/\[\s*edit\s*\]/g, '')
     }
     textSizeBytes += text.length
-    blocks.push({ text, type, level })
+    if (level == null) {
+      blocks.push({ text, type })
+    } else {
+      blocks.push({ text, type, level })
+    }
   }
   return blocks
 }
@@ -591,7 +588,6 @@ export function _extractGoogleDocsText(
   document_: Document
 ): TextContentBlock[] {
   const blocks: TextContentBlock[] = []
-  const chunks: string[] = []
   const elements = document_.getElementsByTagName('script')
   for (const el of elements) {
     if (!el.innerText) {
@@ -672,44 +668,6 @@ export function _extractPageThumbnailUrls(
     seen.add(ref)
     return true
   })
-}
-
-export function _extractPageTextSpecialPages(
-  document_: Document,
-  url: string
-): string | null {
-  if (url.match(/https:\/\/docs\.google\.com\/document\/d\//i)) {
-    return _extractGoogleDocsText(document_)
-  }
-  return null
-}
-
-/**
- * Bunch of hacks to make plaintext representation looks readable
- */
-export function _extractPlainTextFromContentHtml(
-  html: string,
-  textContent: string
-): string {
-  // We don't trust MozillaReadability with plaintext extraction - it drops
-  // spaces a lot in random places, text without spaces between words
-  // affects similarity search quality. Instead we deal with dropping HTML
-  // tags ourselves from HTML version of content from MozillaReadability.
-  let clean = DOMPurify.sanitize(html, {
-    USE_PROFILES: { html: true },
-  })
-  const doc = new DOMParser().parseFromString(
-    clean
-      .replace(/<\/(h\d|tr)>/gi, '.')
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/(\.\s+){2,}/g, '. '), // Because we insert shedload of dots above, let's remove excesive ones
-    'text/html'
-  )
-  return unicodeText.trimWhitespace(
-    sortOutSpacesAroundPunctuation(
-      doc.documentElement?.textContent ?? textContent
-    )
-  )
 }
 
 export function _extractPageContentMozilla(
