@@ -1,5 +1,6 @@
 import type { TNode } from 'smuggler-api'
 import type { Optional } from 'armoury'
+import { log } from 'armoury'
 
 import { TDoc } from '../../editor/types'
 
@@ -47,6 +48,11 @@ export class Beagle {
         web_quote?.url,
         web_quote?.text
       )
+      const webPageText = web?.text?.blocks
+      if (webPageText != null) {
+        log.debug('Web page has some text', webPageText)
+        fields.push(...webPageText.map(({ text }) => text))
+      }
     }
     if (index_text != null) {
       const { labels, brands, plaintext } = index_text
@@ -54,7 +60,7 @@ export class Beagle {
     }
     const fieldsToSearchIn: string[] = []
     for (const field of fields) {
-      if (field != null) {
+      if (field) {
         fieldsToSearchIn.push(field)
       }
     }
