@@ -247,16 +247,19 @@ const ContextBlockParagraphBox = styled.div`
   font-size: 1em;
   margin: 0 0 4px 0;
 `
-const ContextBlockHeaderBox = styled.h4`
-  font-size: 1.2em;
-  font-weight: 400;
+const ContextBlockHeaderBox = styled.h3`
+  font-size: 1em;
+  font-weight: 600;
   margin: 0 0 4px 0;
 `
 const ContextBlockListItemBox = styled.div`
   font-size: 1em;
   margin: 0 0 4px 0;
 `
-const ContextBlock = ({ block, className }: {
+const ContextBlock = ({
+  block,
+  className,
+}: {
   block?: TextContentBlock
   className?: string
 }) => {
@@ -265,11 +268,23 @@ const ContextBlock = ({ block, className }: {
   }
   switch (block.type) {
     case 'P':
-      return <ContextBlockParagraphBox className={className}>{block.text}</ContextBlockParagraphBox>
+      return (
+        <ContextBlockParagraphBox className={className}>
+          {block.text}
+        </ContextBlockParagraphBox>
+      )
     case 'H':
-      return <ContextBlockHeaderBox className={className}>{block.text}</ContextBlockHeaderBox>
+      return (
+        <ContextBlockHeaderBox className={className}>
+          {block.text}
+        </ContextBlockHeaderBox>
+      )
     case 'LI':
-      return <ContextBlockListItemBox className={className}>{block.text}</ContextBlockListItemBox>
+      return (
+        <ContextBlockListItemBox className={className}>
+          {block.text}
+        </ContextBlockListItemBox>
+      )
   }
 }
 const MatchedContentBlock = styled(ContextBlock)`
@@ -327,7 +342,10 @@ const BookmarkMatchDescription = ({
     const prefixKey = getPrevBlockKey(block, node)
     const prefix = prefixKey ? getNodeBlock(node, prefixKey) : undefined
     const suffixKey = getNextBlockKey(block, node)
-    const suffix = suffixKey ? getNodeBlock(node, suffixKey) : undefined
+    let suffix = suffixKey ? getNodeBlock(node, suffixKey) : undefined
+    if (suffix?.type === 'H') {
+      suffix = undefined
+    }
     return (
       <DirectQuote className={productanalytics.classExclude()}>
         <ContextBlock block={prefix} />
@@ -407,8 +425,7 @@ const BookmarkDescription = ({
           description={node.extattrs.description}
         />
       )
-    case 'direct-quotes':
-      {
+    case 'direct-quotes': {
       const blocks = webBookmarkDescriptionConfig.blocks
       // Sort block to make sure quotes from the top of the document comes first
       blocks.sort((a, b) => {
@@ -428,18 +445,20 @@ const BookmarkDescription = ({
           ))}
         </>
       )
-      }
+    }
     case 'web-page': {
-        const blocks = node.extattrs?.web?.text?.blocks
-        if (blocks == null) { return null }
-        return (
-          <DirectQuote>
-            {blocks.map((block, index) => {
-              return <ContextBlock block={block} key={index} />
-            })}
-          </DirectQuote>
-        )
+      const blocks = node.extattrs?.web?.text?.blocks
+      if (blocks == null) {
+        return null
       }
+      return (
+        <DirectQuote>
+          {blocks.map((block, index) => {
+            return <ContextBlock block={block} key={index} />
+          })}
+        </DirectQuote>
+      )
+    }
   }
 }
 

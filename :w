@@ -489,7 +489,12 @@ class YekLavStore {
 }
 
 export function generateNid(): Nid {
-  return uuidv4().split('-').join('')
+  return uuidv4().split('-').map((hex:string) => parseInt(hex, 16).toString(36)).join('')
+  // uuid
+  // const h = xxh.h64()
+  // h.update(uuid)
+  // h.digest().toNumber()
+  // return h.digest().toString()
 }
 
 export function generateEid(): Eid {
