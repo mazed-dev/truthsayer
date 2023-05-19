@@ -92,6 +92,14 @@ export type NodeExtattrsWeb = {
   // Store here any conditions or credentials to access that resource,
   // for example the resource is availiable only from certain contries
   url: string
+
+  // Full text of the web page stored in as a flat array of paragraphs.
+  // In readability web pages structure is not flat, but for simplicity reasons
+  // we convert it to a flat structure to store here.
+  text?: {
+    blocks: TextContentBlock[]
+    truncated?: boolean
+  }
 }
 
 // / Represents textual quotation on a web page
@@ -429,4 +437,15 @@ export type NodeSimilaritySearchInfo = null | {
     version: 1 // TensorFlow with universal sentense encoder
   }
   embeddingJson: TfEmbeddingJson
+}
+
+export type TextContentBlockType =
+  | 'P' // Paragraph
+  | 'H' // Header
+  | 'LI' // List Item
+
+export type TextContentBlock = {
+  type: TextContentBlockType
+  text: string
+  level?: number // To deal with headers of different levels or nested lists
 }
