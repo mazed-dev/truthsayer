@@ -2,13 +2,13 @@ import * as tf from '@tensorflow/tfjs'
 import * as use from '@tensorflow-models/universal-sentence-encoder'
 import type { TfEmbeddingJson } from 'smuggler-api'
 
+export function getExpectedSignature(): 'tf-embed-1' {
+  return 'tf-embed-1'
+}
+
 export type TfState = {
   signature: 'tf-embed-1'
   encoder: use.UniversalSentenceEncoder
-}
-
-export function getExpectedSignature(): 'tf-embed-1' {
-  return 'tf-embed-1'
 }
 
 export async function createTfState(): Promise<TfState> {
