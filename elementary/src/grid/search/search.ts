@@ -1,6 +1,5 @@
 import type { TNode } from 'smuggler-api'
 import type { Optional } from 'armoury'
-import { log } from 'armoury'
 
 import { TDoc } from '../../editor/types'
 
@@ -50,7 +49,6 @@ export class Beagle {
       )
       const webPageText = web?.text?.blocks
       if (webPageText != null) {
-        log.debug('Web page has some text', webPageText)
         fields.push(...webPageText.map(({ text }) => text))
       }
     }

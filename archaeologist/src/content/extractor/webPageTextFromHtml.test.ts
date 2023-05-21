@@ -2,11 +2,8 @@ import { extractTextContentBlocksFromHtml } from './webPageTextFromHtml'
 
 test('notion.so document structure', () => {
   const html = `
-    <html>
-    <header></header>
-</body>
-    <main>
-    <div>
+<main>
+<div>
   <div>
     <div>
       <div>
@@ -50,8 +47,6 @@ test('notion.so document structure', () => {
   </div>
 </div>
 </main>
-</body>
-</html>
     `
   expect(extractTextContentBlocksFromHtml(html, '')).toStrictEqual([
     {
@@ -78,11 +73,7 @@ test('HTML table -', () => {
   // have text from tables indexed. Please whenever you have time, parse tables
   // properly and ideally render them accordingly as the direct quote.
   const html = `
-<!DOCTYPE html>
-<html>
-<head>
-</head>
-<body>
+<main>
 <h2>HTML Table</h2>
 <table>
   <tr>
@@ -121,8 +112,7 @@ test('HTML table -', () => {
     <td>Italy</td>
   </tr>
 </table>
-</body>
-</html>
+</main>
 `
   expect(extractTextContentBlocksFromHtml(html, '')).toStrictEqual([
     {
@@ -138,9 +128,7 @@ test('HTML table -', () => {
 })
 
 test('HTML lists', () => {
-  const html = `<!DOCTYPE html>
-<html>
-<body>
+  const html = `<main>
 <h2>An unordered HTML list</h2>
 <ul>
   <li>Coffee</li>
@@ -171,8 +159,7 @@ test('HTML lists', () => {
   </li>
   <li>Milk</li>
 </ul>
-</body>
-</html>
+</main>
 `
   // TODO(Alexander): Description lists are not supported very well now and
   // treated as mere paragraphs.

@@ -444,8 +444,25 @@ export type TextContentBlockType =
   | 'H' // Header
   | 'LI' // List Item
 
-export type TextContentBlock = {
-  type: TextContentBlockType
-  text: string
-  level?: number // To deal with headers of different levels or nested lists
-}
+/**
+ * This is an object to represent text of the original web page as an array of
+ * small blocks -- paragraphs. Each paragraph is a subject of individual
+ * similarity search indexing and rendering as a direct quote.
+ * The idea is to support more types of paragraphs here, such as lists,
+ * blockquotes, codeblocks etc. As for now we support only the set of basic ones.
+ */
+export type TextContentBlock =
+  | {
+      type: 'P'
+      text: string
+    }
+  | {
+      type: 'H'
+      text: string
+      level?: number // To deal with headers of different levels
+    }
+  | {
+      type: 'LI'
+      text: string
+      level?: number // To deal with nested lists
+    }

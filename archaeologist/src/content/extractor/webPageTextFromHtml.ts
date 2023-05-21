@@ -11,16 +11,12 @@ import type { TextContentBlockType, TextContentBlock } from 'smuggler-api'
 export type { TextContentBlockType, TextContentBlock }
 
 /**
- * Bunch of hacks to make plaintext representation looks readable
+ * Bunch of hacks to extract plain text from HTML as paragraph's objects.
  */
 export function extractTextContentBlocksFromHtml(
   html: string,
   textContent: string
 ): TextContentBlock[] {
-  // We don't trust MozillaReadability with plaintext extraction - it drops
-  // spaces a lot in random places, text without spaces between words
-  // affects similarity search quality. Instead we deal with dropping HTML
-  // tags ourselves from HTML version of content from MozillaReadability.
   let clean = DOMPurify.sanitize(html, {
     USE_PROFILES: { html: true },
   })

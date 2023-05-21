@@ -469,28 +469,34 @@ export function _cureTitle(
   return title
 }
 
+/**
+ * Post processing of the extracted text blocks from web page.
+ *
+ * That includes:
+ * - Removing certain elements of the text on certain URLs.
+ * - Limiting the size of the extracted text to avoid blowing up local storage
+ *   and similiarity search.
+ */
 export function _cureTextContent(
   textContentBlocks: TextContentBlock[],
   url: string
 ): TextContentBlock[] {
   const blocks: TextContentBlock[] = []
-  // Cut string by length 20KiB to avoid blowing up backend with huge JSON.
+  // Cut string by length 25KiB to avoid blowing up backend with huge JSON.
   // We cut the text here avoiding splitting words, by using kTruncateSeparatorSpace separator.
   // Later on we can and perhaps should reconsider this limit.
   let textSizeBytes = 0
-  for (let { text, type, level } of textContentBlocks) {
-    if (textSizeBytes > 20480) {
+  for (let { text, type } of textContentBlocks) {
+    if (textSizeBytes > 25600) {
       break
     }
     if (url.search(/\.wikipedia\.org\//i) !== -1) {
+      // For wikipedia pages - removing references [1] and [edit] buttons which
+      // are omnipresent in an average wiki page.
       text = text.replace(/\[\d+\]/g, '').replace(/\[\s*edit\s*\]/g, '')
     }
     textSizeBytes += text.length
-    if (level == null) {
-      blocks.push({ text, type })
-    } else {
-      blocks.push({ text, type, level })
-    }
+    blocks.push({ text, type })
   }
   return blocks
 }
@@ -706,7 +712,7 @@ export function _extractPageContentMozilla(
   )
   let description: string | undefined = undefined
   if (textContent.indexOf(excerpt) < 0) {
-    // MozillaReadability takes first paragraph as a description, if it
+    // '@mozilla/readability' takes first paragraph as a description, if it
     // hasn't found description in the article's metadata. Such description
     // is quite bad, it's better without description at all then.
     description = excerpt
@@ -766,19 +772,12 @@ export function isPageTextWorthReading(
   document_: Document,
   url: string
 ): boolean {
-  // Minimal length of content in characters. Experimental value, selected based
-  // on results for very small pages. Feel free to adjust if needed.
-  const minContentLength = 300
   if (shouldUseCustomExtractorsFor(url)) {
-    // FIXME(Alexander): This call might be very expensive, please make it
-    // cheaper, specifically we don't need a great precision answer here
-    const textContentBlocks = extractPageTextCustom(document_, url)
-    const len = textContentBlocks.reduce(
-      (prev, { text }) => prev + text.length,
-      0
-    )
-    return len >= minContentLength
+    return true
   } else {
+    // Minimal length of content in characters. Experimental value, selected
+    // based on results for very small pages. Feel free to adjust if needed.
+    const minContentLength = 300
     return isProbablyReaderable(document_, { minContentLength })
   }
 }
