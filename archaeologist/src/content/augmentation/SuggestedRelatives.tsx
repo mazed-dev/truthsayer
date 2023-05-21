@@ -99,13 +99,14 @@ export function SuggestedRelatives({
       const searchEngineQuery = extractSearchEngineQuery(
         stableUrl ?? document.location.href
       )
-      if (searchEngineQuery?.phrase != null) {
-        return { phrase: searchEngineQuery.phrase, isSearchEngine: true }
+      let phrase = searchEngineQuery?.phrase
+      if (phrase != null) {
+        return { phrase, isSearchEngine: true }
       }
       const baseURL = stableUrl
         ? new URL(stableUrl).origin
         : `${document.location.protocol}//${document.location.host}`
-      const phrase =
+      phrase =
         extractSimilaritySearchPhraseFromPageContent(document, baseURL) ??
         undefined
       return { phrase, isSearchEngine: false }
@@ -136,7 +137,7 @@ export function SuggestedRelatives({
       lodash.debounce(
         async (phrase: string) => {
           setSuggestionsSearchIsActive(true)
-          log.debug(`Look for the following phrase in Mazed ${phrase}`)
+          log.debug('Look for the following phrase in Mazed ->', phrase)
           try {
             const response = await retryIfStillLoading(
               async () =>
@@ -153,10 +154,7 @@ export function SuggestedRelatives({
             )
             setSuggestedNodes(
               response.suggested.map((item) => {
-                return {
-                  node: NodeUtil.fromJson(item.node),
-                  matchedPiece: item.matchedPiece,
-                }
+                return { ...item, node: NodeUtil.fromJson(item.node) }
               })
             )
             analytics?.capture('Search suggested associations', {
@@ -205,7 +203,7 @@ export function SuggestedRelatives({
   )
   React.useEffect(() => {
     const phrase = pageSimilaritySearchInput.phrase
-    if (phrase != null && phrase.length > 3) {
+    if (phrase != null && phrase.length > 8) {
       requestSuggestedAssociations(phrase)
     }
   }, [
@@ -227,7 +225,7 @@ export function SuggestedRelatives({
       defaultRevelaed={pageSimilaritySearchInput.isSearchEngine}
       reloadSuggestions={() => {
         const phrase = pageSimilaritySearchInput.phrase
-        if (phrase != null && phrase.length > 3) {
+        if (phrase != null && phrase.length > 8) {
           requestSuggestedAssociations(phrase)?.catch((reason) => {
             log.error(
               `Failed to manually reload suggestions: ${
