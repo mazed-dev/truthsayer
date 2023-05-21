@@ -18,15 +18,11 @@ import {
   isProbablyReaderable,
 } from '@mozilla/readability'
 import lodash from 'lodash'
-import DOMPurify from 'dompurify'
-
+import { MimeType, log, stabiliseUrlForOriginId, unicodeText } from 'armoury'
 import {
-  MimeType,
-  log,
-  stabiliseUrlForOriginId,
-  unicodeText,
-  sortOutSpacesAroundPunctuation,
-} from 'armoury'
+  extractTextContentBlocksFromHtml,
+  TextContentBlock,
+} from './webPageTextFromHtml'
 
 async function fetchImagePreviewAsBase64(
   url: string,
@@ -92,21 +88,23 @@ export interface WebPageContent {
   lang: string | null
   author: string[]
   publisher: string[]
-  text: string | null
   previewImageUrls: string[]
+  textContentBlocks: TextContentBlock[]
 }
 
 export function extractPageUrl(document_: Document): string {
   return document_.URL || document_.documentURI
 }
 
-export function extractReadableTextFromPage(document_: Document): string {
+export function extractReadableTextFromPage(
+  document_: Document
+): TextContentBlock[] {
   const url = stabiliseUrlForOriginId(document_.URL || document_.documentURI)
   const useCustomExtractors = shouldUseCustomExtractorsFor(url)
-  const { textContent } = useCustomExtractors
+  const { textContentBlocks } = useCustomExtractors
     ? _extractPageContentCustom(document_, url, url)
-    : _extractPageContentMozila(document_, url)
-  return textContent ?? ''
+    : _extractPageContentMozilla(document_, url)
+  return textContentBlocks
 }
 
 /**
@@ -125,10 +123,10 @@ export function extractPageContent(
     author,
     publisher,
     thumbnailUrls,
-    textContent,
+    textContentBlocks,
   } = useCustomExtractors
     ? _extractPageContentCustom(document_, baseURL, url)
-    : _extractPageContentMozila(document_, baseURL)
+    : _extractPageContentMozilla(document_, baseURL)
   return {
     url,
     title: _cureTitle(title, url) ?? null,
@@ -136,7 +134,7 @@ export function extractPageContent(
     publisher,
     description: description || null,
     lang: lang || null,
-    text: textContent ? _cureTextContent(textContent, url) : null,
+    textContentBlocks: _cureTextContent(textContentBlocks, url),
     previewImageUrls: thumbnailUrls,
   }
 }
@@ -227,7 +225,7 @@ function selectTextFromDomElement(
 export function extractPageTextCustom(
   document_: Document,
   url: string
-): string {
+): TextContentBlock[] {
   if (url.match(/https:\/\/docs\.google\.com\/document\/d\//i)) {
     return _extractGoogleDocsText(document_)
   }
@@ -237,9 +235,9 @@ export function extractPageTextCustom(
 export function _extractPageTextCustomGeneric(
   document_: Document,
   url: string
-): string {
+): TextContentBlock[] {
   const body = document_.body
-  const ret: string[] = []
+  const blocks: TextContentBlock[] = []
   const addedElements: Element[] = []
   let selectors: DomSelector[] = [
     { type: 'tagName', tagName: 'article' },
@@ -251,7 +249,7 @@ export function _extractPageTextCustomGeneric(
       continue
     }
     let { textContent, element } = got
-    textContent = _extractPlainTextFromContentHtml(
+    const textContentBlocks = extractTextContentBlocksFromHtml(
       element.innerHTML,
       textContent
     )
@@ -263,11 +261,11 @@ export function _extractPageTextCustomGeneric(
     if (isAdded) {
       continue
     }
-    ret.push(unicodeText.trimWhitespace(textContent))
+    blocks.push(...textContentBlocks)
     addedElements.push(element)
   }
-  if (ret.length > 0) {
-    return lodash.unescape(ret.join(' '))
+  if (blocks.length > 0) {
+    return blocks
   }
   if (url.match(/https:\/\/notion\.so\//i)) {
     selectors = [
@@ -289,7 +287,7 @@ export function _extractPageTextCustomGeneric(
       continue
     }
     let { textContent, element } = got
-    textContent = _extractPlainTextFromContentHtml(
+    const textContentBlocks = extractTextContentBlocksFromHtml(
       element.innerHTML,
       textContent
     )
@@ -299,10 +297,10 @@ export function _extractPageTextCustomGeneric(
     if (isAdded) {
       continue
     }
-    ret.push(unicodeText.trimWhitespace(textContent))
+    blocks.push(...textContentBlocks)
     addedElements.push(element)
   }
-  return lodash.unescape(ret.join(' '))
+  return blocks
 }
 
 /**
@@ -471,20 +469,36 @@ export function _cureTitle(
   return title
 }
 
-export function _cureTextContent(textContent: string, url: string): string {
-  // Cut string by length 10KiB to avoid blowing up backend with huge JSON.
+/**
+ * Post processing of the extracted text blocks from web page.
+ *
+ * That includes:
+ * - Removing certain elements of the text on certain URLs.
+ * - Limiting the size of the extracted text to avoid blowing up local storage
+ *   and similiarity search.
+ */
+export function _cureTextContent(
+  textContentBlocks: TextContentBlock[],
+  url: string
+): TextContentBlock[] {
+  const blocks: TextContentBlock[] = []
+  // Cut string by length 25KiB to avoid blowing up backend with huge JSON.
   // We cut the text here avoiding splitting words, by using kTruncateSeparatorSpace separator.
   // Later on we can and perhaps should reconsider this limit.
-  textContent = lodash.truncate(textContent, {
-    length: 10240,
-    separator: unicodeText.kTruncateSeparatorSpace,
-    omission: '',
-  })
-
-  if (url.search(/\.wikipedia\.org\//i) !== -1) {
-    textContent = textContent.replace(/\[\d+\]/g, '')
+  let textSizeBytes = 0
+  for (let { text, type } of textContentBlocks) {
+    if (textSizeBytes > 25600) {
+      break
+    }
+    if (url.search(/\.wikipedia\.org\//i) !== -1) {
+      // For wikipedia pages - removing references [1] and [edit] buttons which
+      // are omnipresent in an average wiki page.
+      text = text.replace(/\[\d+\]/g, '').replace(/\[\s*edit\s*\]/g, '')
+    }
+    textSizeBytes += text.length
+    blocks.push({ text, type })
   }
-  return textContent
+  return blocks
 }
 
 export function _extractYouTubeVideoObjectSchema(
@@ -576,8 +590,10 @@ type GoogleDocModelChunk =
  * Test it on a real Google Document please, I couldn't come up with good enough
  * UT - script tags doesn't work with JSON in jest.
  */
-export function _extractGoogleDocsText(document_: Document): string {
-  const chunks: string[] = []
+export function _extractGoogleDocsText(
+  document_: Document
+): TextContentBlock[] {
+  const blocks: TextContentBlock[] = []
   const elements = document_.getElementsByTagName('script')
   for (const el of elements) {
     if (!el.innerText) {
@@ -589,7 +605,12 @@ export function _extractGoogleDocsText(document_: Document): string {
           const gchunks: GoogleDocModelChunk[] = JSON.parse(line.split('=')[1])
           for (const gch of gchunks) {
             if (gch.ty === 'is' && typeof gch.s === 'string' && gch) {
-              chunks.push(gch.s)
+              const raw = gch.s
+              for (const text of raw.split('\n')) {
+                if (text) {
+                  blocks.push({ text, type: 'P' })
+                }
+              }
             }
           }
         } catch (err) {
@@ -598,7 +619,7 @@ export function _extractGoogleDocsText(document_: Document): string {
       }
     }
   }
-  return chunks.join('')
+  return blocks
 }
 
 function ensureAbsRef(ref: string, baseURL: string): string {
@@ -655,48 +676,10 @@ export function _extractPageThumbnailUrls(
   })
 }
 
-export function _extractPageTextSpecialPages(
-  document_: Document,
-  url: string
-): string | null {
-  if (url.match(/https:\/\/docs\.google\.com\/document\/d\//i)) {
-    return _extractGoogleDocsText(document_)
-  }
-  return null
-}
-
-/**
- * Bunch of hacks to make plaintext representation looks readable
- */
-export function _extractPlainTextFromContentHtml(
-  html: string,
-  textContent: string
-): string {
-  // We don't trust MozillaReadability with plaintext extraction - it drops
-  // spaces a lot in random places, text without spaces between words
-  // affects similarity search quality. Instead we deal with dropping HTML
-  // tags ourselves from HTML version of content from MozillaReadability.
-  let clean = DOMPurify.sanitize(html, {
-    USE_PROFILES: { html: true },
-  })
-  const doc = new DOMParser().parseFromString(
-    clean
-      .replace(/<\/(h\d|tr)>/gi, '.')
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/(\.\s+){2,}/g, '. '), // Because we insert shedload of dots above, let's remove excesive ones
-    'text/html'
-  )
-  return unicodeText.trimWhitespace(
-    sortOutSpacesAroundPunctuation(
-      doc.documentElement?.textContent ?? textContent
-    )
-  )
-}
-
-export function _extractPageContentMozila(
+export function _extractPageContentMozilla(
   document_: Document,
   baseURL: string
-): ExtractedPageAttributes & { textContent?: string } {
+): ExtractedPageAttributes & { textContentBlocks: TextContentBlock[] } {
   // The parse() method of @mozilla/readability works by modifying the DOM. This
   // removes some elements in the web page. We avoid this by passing the clone
   // of the document object to the Readability constructor.
@@ -711,6 +694,7 @@ export function _extractPageContentMozila(
       author: [],
       publisher: [],
       thumbnailUrls: [],
+      textContentBlocks: [],
     }
   }
   // Do a best effort with what @mozilla/readability gives us here
@@ -722,10 +706,13 @@ export function _extractPageContentMozila(
     siteName,
     content,
   } = article
-  textContent = _extractPlainTextFromContentHtml(content, textContent)
+  const textContentBlocks = extractTextContentBlocksFromHtml(
+    content,
+    textContent
+  )
   let description: string | undefined = undefined
   if (textContent.indexOf(excerpt) < 0) {
-    // MozillaReadability takes first paragraph as a description, if it
+    // '@mozilla/readability' takes first paragraph as a description, if it
     // hasn't found description in the article's metadata. Such description
     // is quite bad, it's better without description at all then.
     description = excerpt
@@ -739,7 +726,7 @@ export function _extractPageContentMozila(
     author: !!byline ? [unicodeText.trimWhitespace(byline)] : [],
     publisher: [siteName],
     thumbnailUrls,
-    textContent,
+    textContentBlocks,
   }
 }
 
@@ -747,10 +734,10 @@ export function _extractPageContentCustom(
   document_: Document,
   baseURL: string,
   url: string
-): ExtractedPageAttributes & { textContent?: string } {
+): ExtractedPageAttributes & { textContentBlocks: TextContentBlock[] } {
   const { title, description, lang, author, publisher, thumbnailUrls } =
     _extractPageAttributes(document_, baseURL)
-  const textContent = extractPageTextCustom(document_, url)
+  const textContentBlocks = extractPageTextCustom(document_, url)
   return {
     title,
     description,
@@ -758,7 +745,7 @@ export function _extractPageContentCustom(
     author,
     publisher,
     thumbnailUrls,
-    textContent,
+    textContentBlocks,
   }
 }
 /**
@@ -785,13 +772,12 @@ export function isPageTextWorthReading(
   document_: Document,
   url: string
 ): boolean {
-  // Minimal length of content in characters. Experimental value, selected based
-  // on results for very small pages. Feel free to adjust if needed.
-  const minContentLength = 300
   if (shouldUseCustomExtractorsFor(url)) {
-    const text = extractPageTextCustom(document_, url)
-    return text.length >= minContentLength
+    return true
   } else {
+    // Minimal length of content in characters. Experimental value, selected
+    // based on results for very small pages. Feel free to adjust if needed.
+    const minContentLength = 300
     return isProbablyReaderable(document_, { minContentLength })
   }
 }

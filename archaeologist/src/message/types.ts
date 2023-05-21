@@ -1,4 +1,5 @@
 import { AccountInfo, PreviewImageSmall, SessionCreateArgs } from 'smuggler-api'
+import type { TextContentBlock } from 'smuggler-api'
 import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 import browser from 'webextension-polyfill'
 import type {
@@ -80,8 +81,8 @@ export interface WebPageContent {
   lang: string | null
   author: string[]
   publisher: string[]
-  text: string | null
   image: PreviewImageSmall | null
+  textContentBlocks: TextContentBlock[]
 }
 
 export type RelevantNodeSuggestion = {

@@ -288,14 +288,18 @@ function findRelevantQuote(
 function getNodePatchAsString(patch: NodeEventPatch): string {
   const ret: string[] = [
     patch.extattrs?.title ?? '',
-    patch.index_text?.plaintext ?? '',
     patch.extattrs?.web_quote?.text ?? '',
     patch.extattrs?.author ?? '',
+    patch.index_text?.plaintext ?? '',
   ]
   const text = patch.text
   if (text) {
     const coment = TDoc.fromNodeTextData(text)
     ret.push(coment.genPlainText())
+  }
+  const webPageText = patch.extattrs?.web?.text?.blocks
+  if (webPageText != null) {
+    ret.push(...webPageText.map(({ text }) => text))
   }
   return ret.join('\n')
 }

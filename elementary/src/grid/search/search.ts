@@ -47,6 +47,10 @@ export class Beagle {
         web_quote?.url,
         web_quote?.text
       )
+      const webPageText = web?.text?.blocks
+      if (webPageText != null) {
+        fields.push(...webPageText.map(({ text }) => text))
+      }
     }
     if (index_text != null) {
       const { labels, brands, plaintext } = index_text
@@ -54,7 +58,7 @@ export class Beagle {
     }
     const fieldsToSearchIn: string[] = []
     for (const field of fields) {
-      if (field != null) {
+      if (field) {
         fieldsToSearchIn.push(field)
       }
     }
