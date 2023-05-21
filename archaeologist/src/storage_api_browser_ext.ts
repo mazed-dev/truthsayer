@@ -66,7 +66,6 @@ import {
   NodeEvent,
 } from 'smuggler-api'
 import { v4 as uuidv4 } from 'uuid'
-import base58 from 'bs58'
 
 import browser from 'webextension-polyfill'
 import { MimeType, log, unixtime } from 'armoury'
@@ -488,22 +487,17 @@ class YekLavStore {
   }
 }
 
-function hexStringToUint8Array(hexString: string) {
-  const textEncoder = new TextEncoder()
-  const bytes = textEncoder.encode(hexString)
-  const uint8Array = new Uint8Array(bytes)
-  return uint8Array
-}
-
 function generateNid(): Nid {
   /**
-   * The implementation tries to produce a @see Nid that's structurally similar
-   * to the output of smuggler's NodeId::gen(). No attempts are made to mimic
-   * its behaviour however.
+   * Generate UUID v4 and repack it from HEX to base36, rejoining back without
+   * '-' separator. All of this to reduce the length of the end result string,
+   * to reduce size of similarity search indexes.
+   * Before: `cgtp8s9h64wpabb1chh30b9m6wwp2bb175h30b9m6rw3ae9qcdk3ecb46r`
+   * Now:    `h294fu4gocpuy7y1twv41aawh`
    */
   return uuidv4()
     .split('-')
-    .map((hexString: string) => base58.encode(hexStringToUint8Array(hexString)))
+    .map((hexString: string) => parseInt(hexString, 16).toString(36))
     .join('')
 }
 
