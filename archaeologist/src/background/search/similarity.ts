@@ -131,16 +131,10 @@ async function findRelevantNodesUsingSimilaritySearch(
     const nodeSimSearchInfo = await storage.node.similarity.getIndex({
       nid,
     })
-    if (
-      nodeSimSearchInfo == null ||
-      !tfUse.isPerDocIndexUpToDate(
-        nodeSimSearchInfo?.signature.algorithm,
-        nodeSimSearchInfo?.signature.version
-      )
-    ) {
+    if (nodeSimSearchInfo?.signature !== tfUse.getExpectedSignature()) {
       // Skip nodes with invalid index
       log.warning(
-        `Similarity index for node ${nid} is invalid "${nodeSimSearchInfo?.signature.algorithm}:${nodeSimSearchInfo?.signature.version}"`
+        `Similarity index for node ${nid} is invalid "${nodeSimSearchInfo?.signature}}"`
       )
       continue
     }
@@ -357,12 +351,7 @@ async function ensurePerNodeSimSearchIndexIntegrity(
       const nodeSimSearchInfo = await storage.node.similarity.getIndex({
         nid,
       })
-      if (
-        !tfUse.isPerDocIndexUpToDate(
-          nodeSimSearchInfo?.signature.algorithm,
-          nodeSimSearchInfo?.signature.version
-        )
-      ) {
+      if (nodeSimSearchInfo?.signature !== tfUse.getExpectedSignature()) {
         log.info(
           `Update node similarity index [${ind + 1}/${nids.length}] ${nid}`
         )

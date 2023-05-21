@@ -431,13 +431,20 @@ export type TfEmbeddingJson = {
   shape: [number, number]
 }
 
-export type NodeSimilaritySearchInfo = null | {
-  signature: {
-    algorithm: 'tf-embed'
-    version: 1 // TensorFlow with universal sentense encoder
-  }
-  embeddingJson: TfEmbeddingJson
-}
+export type NodeSimilaritySearchInfo =
+  | null
+  | {
+      // Deprecated
+      signature: {
+        algorithm: 'tf-embed'
+        version: 1 // TensorFlow with universal sentense encoder
+      }
+      embeddingJson: TfEmbeddingJson
+    }
+  | {
+      signature: 'tf-embed-1'
+      embeddingJson: TfEmbeddingJson
+    }
 
 export type TextContentBlockType =
   | 'P' // Paragraph
