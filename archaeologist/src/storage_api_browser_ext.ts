@@ -66,7 +66,7 @@ import {
   NodeEvent,
 } from 'smuggler-api'
 import { v4 as uuidv4 } from 'uuid'
-import base32Encode from 'base32-encode'
+import base58 from 'bs58'
 
 import browser from 'webextension-polyfill'
 import { MimeType, log, unixtime } from 'armoury'
@@ -488,15 +488,23 @@ class YekLavStore {
   }
 }
 
+function hexStringToUint8Array(hexString: string) {
+  const textEncoder = new TextEncoder()
+  const bytes = textEncoder.encode(hexString)
+  const uint8Array = new Uint8Array(bytes)
+  return uint8Array
+}
+
 function generateNid(): Nid {
   /**
    * The implementation tries to produce a @see Nid that's structurally similar
    * to the output of smuggler's NodeId::gen(). No attempts are made to mimic
    * its behaviour however.
    */
-  const uuid = uuidv4()
-  const array: Uint8Array = new TextEncoder().encode(uuid)
-  return base32Encode(array, 'Crockford').toLowerCase()
+  return uuidv4()
+    .split('-')
+    .map((hexString: string) => base58.encode(hexStringToUint8Array(hexString)))
+    .join('')
 }
 
 function generateEid(): Eid {
