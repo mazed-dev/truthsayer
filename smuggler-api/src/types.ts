@@ -442,7 +442,7 @@ export type NodeSimilaritySearchInfo =
       embeddingJson: TfEmbeddingJson
     }
   | {
-      signature: 'tf-enmbed-1'
+      signature: 'tf-embed-1'
       embeddingJson: TfEmbeddingJson
     }
 
