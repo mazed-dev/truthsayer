@@ -446,6 +446,93 @@ export type NodeSimilaritySearchInfo =
       embeddingJson: TfEmbeddingJson
     }
 
+export type NodeBlockKey =
+  | {
+      field: 'web-text' // Text from `TNode.extattrs.web.text`
+      index: number
+    }
+  | {
+      field: 'text' // comment, see `TNode.text`
+    }
+  | {
+      // Index web quote separatelly from the rest of extattrs for better quality
+      // suggestions
+      field: 'web-quote'
+    }
+  | {
+      // To index the entire plain text representation of a node
+      field: '*'
+    }
+
+export function getNextBlockKey(
+  key: NodeBlockKey,
+  node: TNode
+): NodeBlockKey | undefined {
+  switch (key.field) {
+    case 'web-text':
+      const len = node.extattrs?.web?.text?.blocks?.length
+      let { index } = key
+      if (len != null) {
+        index += 1
+        if (index < len) {
+          return { ...key, index }
+        }
+      }
+      return undefined
+    case '*':
+    case 'text':
+    case 'web-quote':
+      return undefined
+  }
+}
+
+export function getPrevBlockKey(
+  key: NodeBlockKey,
+  _node: TNode
+): NodeBlockKey | undefined {
+  switch (key.field) {
+    case 'web-text':
+      let { index } = key
+      index -= 1
+      if (index > 0) {
+        return { ...key, index }
+      }
+      return undefined
+    case '*':
+    case 'text':
+    case 'web-quote':
+      return undefined
+  }
+}
+
+export type NodeBlockKeyStr = string
+
+export function nodeBlockKeyToString(key: NodeBlockKey): string {
+  switch (key.field) {
+    case 'web-text':
+      return `${key.field}/${key.index}`
+    case '*':
+    case 'text':
+    case 'web-quote':
+      return key.field
+  }
+}
+
+export function nodeBlockKeyFromString(key: string): NodeBlockKey {
+  const components = key.split('/')
+  if (components.length < 1 || components.length > 2) {
+    throw new Error('Error 445 - TODO(Alexander)')
+  }
+  if (components.length > 1) {
+    return {
+      field: components[0],
+      index: parseInt(components[1]),
+    } as NodeBlockKey
+  } else {
+    return { field: components[0] } as NodeBlockKey
+  }
+}
+
 export type TextContentBlockType =
   | 'P' // Paragraph
   | 'H' // Header
