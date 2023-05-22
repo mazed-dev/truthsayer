@@ -419,7 +419,7 @@ class Background {
     this.ctor()
   }
 
-  async ctor() {
+  private async ctor() {
     log.debug(`Background one-time pre-init started`)
 
     const analyticsIdentity = await backgroundpa.getIdentity(
