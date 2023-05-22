@@ -70,8 +70,7 @@ async function getFastIndex(
     return _fastIndex
   }
   const timer = new Timer()
-  const dimensions = tf.sampleDimensions(sampleVector, 42)
-  // const projections: BlockEmbeddingProjection[] = []
+  const dimensions = tf.sampleDimensions(sampleVector, 49)
   const knn = new tf.KNNClassifier()
   const allNids = await storage.node.getAllNids({})
   for (const nid of allNids) {
