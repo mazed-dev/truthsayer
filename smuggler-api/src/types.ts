@@ -92,6 +92,14 @@ export type NodeExtattrsWeb = {
   // Store here any conditions or credentials to access that resource,
   // for example the resource is availiable only from certain contries
   url: string
+
+  // Full text of the web page stored in as a flat array of paragraphs.
+  // In readability web pages structure is not flat, but for simplicity reasons
+  // we convert it to a flat structure to store here.
+  text?: {
+    blocks: TextContentBlock[]
+    truncated?: boolean
+  }
 }
 
 // / Represents textual quotation on a web page
@@ -423,10 +431,45 @@ export type TfEmbeddingJson = {
   shape: [number, number]
 }
 
-export type NodeSimilaritySearchInfo = null | {
-  signature: {
-    algorithm: 'tf-embed'
-    version: 1 // TensorFlow with universal sentense encoder
-  }
-  embeddingJson: TfEmbeddingJson
-}
+export type NodeSimilaritySearchInfo =
+  | null
+  | {
+      // Deprecated
+      signature: {
+        algorithm: 'tf-embed'
+        version: 1 // TensorFlow with universal sentense encoder
+      }
+      embeddingJson: TfEmbeddingJson
+    }
+  | {
+      signature: 'tf-embed-1'
+      embeddingJson: TfEmbeddingJson
+    }
+
+export type TextContentBlockType =
+  | 'P' // Paragraph
+  | 'H' // Header
+  | 'LI' // List Item
+
+/**
+ * This is an object to represent text of the original web page as an array of
+ * small blocks -- paragraphs. Each paragraph is a subject of individual
+ * similarity search indexing and rendering as a direct quote.
+ * The idea is to support more types of paragraphs here, such as lists,
+ * blockquotes, codeblocks etc. As for now we support only the set of basic ones.
+ */
+export type TextContentBlock =
+  | {
+      type: 'P'
+      text: string
+    }
+  | {
+      type: 'H'
+      text: string
+      level?: number // To deal with headers of different levels
+    }
+  | {
+      type: 'LI'
+      text: string
+      level?: number // To deal with nested lists
+    }

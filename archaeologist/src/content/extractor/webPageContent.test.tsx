@@ -17,7 +17,6 @@ import {
   _extractYouTubeVideoObjectSchema,
   _extractPageAttributes,
   _extractPageThumbnailUrls,
-  _extractPlainTextFromContentHtml,
   extractPageContent,
 } from './webPageContent'
 
@@ -42,7 +41,9 @@ test('extractPageTextCustom - main', () => {
 </html>
 `)
   const text = extractPageTextCustom(dom.window.document, '')
-  expect(text).toStrictEqual('First and second Third and forth')
+  expect(text).toStrictEqual([
+    { text: 'First and second Third and forth', type: 'P' },
+  ])
 })
 
 test('extractPageTextCustom - article', () => {
@@ -62,7 +63,10 @@ test('extractPageTextCustom - article', () => {
 </html>
 `)
   const text = extractPageTextCustom(dom.window.document, '')
-  expect(text).toStrictEqual('First and second Third and forth')
+  expect(text).toStrictEqual([
+    { text: 'First and second', type: 'P' },
+    { text: 'Third and forth', type: 'P' },
+  ])
 })
 
 test('extractPageTextCustom - <div role="main">', () => {
@@ -82,7 +86,10 @@ test('extractPageTextCustom - <div role="main">', () => {
 </html>
 `)
   const text = extractPageTextCustom(dom.window.document, '')
-  expect(text).toStrictEqual('First and second Third and forth')
+  expect(text).toStrictEqual([
+    { text: 'First and second', type: 'P' },
+    { text: 'Third and forth', type: 'P' },
+  ])
 })
 
 test('extractPageTextCustom - nested elements', () => {
@@ -102,7 +109,10 @@ test('extractPageTextCustom - nested elements', () => {
 </html>
 `)
   const text = extractPageTextCustom(dom.window.document, '')
-  expect(text).toStrictEqual('First and second Third and forth')
+  expect(text).toStrictEqual([
+    { text: 'First and second', type: 'P' },
+    { text: 'Third and forth', type: 'P' },
+  ])
 })
 
 test('_extractPageTitle - <title>', () => {
@@ -207,7 +217,9 @@ test('extractPageContent - custom', async () => {
   )
 
   const content = extractPageContent(dom.window.document, origin)
-  expect(content.text).toStrictEqual('First and second Third and forth')
+  expect(content.textContentBlocks).toStrictEqual([
+    { type: 'P', text: 'First and second Third and forth' },
+  ])
   expect(content.url).toStrictEqual(originalUrl)
   expect(content.title).toStrictEqual('Some title')
   expect(content.author).toStrictEqual(['Correct Author'])
@@ -304,35 +316,27 @@ test('_cureTitle', () => {
   ).toStrictEqual('☕ Checkmate - x926453253@gmail.com')
 })
 
-test('_extractPlainTextFromContentHtml - put extra dot after header and table rows', () => {
-  expect(
-    _extractPlainTextFromContentHtml(
-      '<div><h2>From the Crew</h2><h3> </h3><h3></h3><p>Just one extra message</p></div>',
-      ''
-    )
-  ).toStrictEqual('From the Crew. Just one extra message')
-  expect(
-    _extractPlainTextFromContentHtml(
-      `<table><tbody>
-        <tr><td>Born</td><td>15 March 1813</td></tr>
-        <tr></tr>
-        <tr><td>Alma mater</td><td>	University of London (MD)</td></tr>
-      </tbody></table>
-      `,
-      ''
-    )
-  ).toStrictEqual('Born 15 March 1813. Alma mater University of London (MD).')
-})
 test('_cureTextContent', () => {
   expect(
-    _cureTextContent('New Guinea, to Hainan.[2]', 'https://en.example.com')
-  ).toStrictEqual('New Guinea, to Hainan.[2]')
+    _cureTextContent(
+      [{ type: 'P', text: 'New Guinea, to Hainan.[2]' }],
+      'https://en.example.com'
+    )
+  ).toStrictEqual([{ type: 'P', text: 'New Guinea, to Hainan.[2]' }])
   expect(
     _cureTextContent(
-      '[edit] the former Australian territory of New Guinea, to Hainan.[2] The sinking',
+      [
+        {
+          type: 'P',
+          text: 'the former Australian territory of New Guinea, to Hainan.[2] The sinking',
+        },
+      ],
       'https://en.wikipedia.org/wiki/Montevideo'
     )
-  ).toStrictEqual(
-    '[edit] the former Australian territory of New Guinea, to Hainan. The sinking'
-  )
+  ).toStrictEqual([
+    {
+      type: 'P',
+      text: 'the former Australian territory of New Guinea, to Hainan. The sinking',
+    },
+  ])
 })
