@@ -4,14 +4,21 @@ import React from 'react'
 
 import { Launch } from '@emotion-icons/material'
 
-import type { NodeBlockKey, PreviewImageSmall, TNode } from 'smuggler-api'
+import type { TNode, PreviewImageSmall, NodeBlockKey } from 'smuggler-api'
+import {
+  nodeBlockKeyToString,
+  getNextBlockKey,
+  getPrevBlockKey,
+  TextContentBlock,
+} from 'smuggler-api'
 import type { Optional } from 'armoury'
+import { getNodeBlock } from '../editor/types'
 import {
   productanalytics,
   splitStringByWord,
   padNonEmptyStringWithSpaceHead,
 } from 'armoury'
-import { log } from 'armoury'
+import { log, truncatePretty } from 'armoury'
 import styled from '@emotion/styled'
 
 import { CopyFieldHandle } from '../CopyFieldHandle'
@@ -214,6 +221,16 @@ const Description = styled.blockquote`
   }
 `
 
+const DirectQuote = styled.div`
+  font-size: 1em;
+  line-height: 142%;
+  overflow-wrap: break-word;
+  word-break: normal;
+  padding: 10px 10px 0 10px;
+  margin: 0;
+  color: inherit;
+`
+
 export type WebBookmarkDescriptionConfig =
   | {
       type: 'original' // default
@@ -229,24 +246,150 @@ export type WebBookmarkDescriptionConfig =
       blocks: NodeBlockKey[]
     }
 
-const MatchDescriptionSpan = styled.span`
+const ContextBlockBase = styled.div`
+  font-size: 1em;
+  margin: 0 0 4px 0;
+  quotes: '“' '”' '‘' '’';
+  &:first-child {
+    &:before {
+      content: open-quote;
+      color: #478ac0;
+      display: inline-block;
+      vertical-align: bottom;
+      font-size: 2em;
+      top: 0.1em;
+      position: relative;
+      padding-right: 1px;
+    }
+  }
+  &:last-child {
+    margin: 0;
+    &:after {
+      content: close-quote;
+      color: #478ac0;
+      display: inline-block;
+      vertical-align: bottom;
+      font-size: 2em;
+      top: 0.1em;
+      position: relative;
+      padding-left: 1px;
+    }
+  }
+`
+const ContextBlockParagraphBox = ContextBlockBase.withComponent('p')
+const ContextBlockHeaderBox = styled(ContextBlockBase.withComponent('h3'))`
+  font-weight: 600;
+`
+const ContextBlockListItemBox = ContextBlockBase.withComponent('div')
+
+const ContextBlock = ({
+  block,
+  className,
+}: {
+  block?: TextContentBlock
+  className?: string
+}) => {
+  if (block == null) {
+    return null
+  }
+  switch (block.type) {
+    case 'P':
+      return (
+        <ContextBlockParagraphBox className={className}>
+          {block.text}
+        </ContextBlockParagraphBox>
+      )
+    case 'H':
+      return (
+        <ContextBlockHeaderBox className={className}>
+          {block.text}
+        </ContextBlockHeaderBox>
+      )
+    case 'LI':
+      return (
+        <ContextBlockListItemBox className={className}>
+          {block.text}
+        </ContextBlockListItemBox>
+      )
+  }
+}
+const MatchedContentBlock = styled(ContextBlock)`
   text-decoration-line: underline;
-  text-decoration-color: rgba(0, 110, 237, 0.64);
+  text-decoration-color: rgba(0, 110, 237, 0.2);
   text-decoration-style: solid;
   text-decoration-thickness: 2px;
   &:hover {
-    text-decoration-color: rgba(0, 110, 237, 0.92);
+    text-decoration-color: rgba(0, 110, 237, 0.5);
   }
 `
 const MatchDescriptionContextSpan = styled.span``
+
+const DirectQuoteSeeMoreToolbar = styled.div`
+  display: flex;
+  justify-content: flex-end;
+`
 const MatchDescriptionSeeMoreBtn = styled.span`
   cursor: pointer;
-  font-weight: 600;
   text-decoration: none;
   &:hover {
     text-decoration: underline;
   }
 `
+
+const BookmarkMatchDescription = ({
+  node,
+  block,
+}: {
+  node: TNode
+  block: NodeBlockKey
+}) => {
+  const matchedBlock = getNodeBlock(node, block)
+  if (matchedBlock == null) {
+    return null
+  }
+  const [seeMore, setSeeMore] = React.useState<boolean>(false)
+  if (!seeMore) {
+    // https://www.portent.com/blog/seo/featured-snippet-display-lengths-study-portent.htm
+    const truncated: TextContentBlock = {
+      ...matchedBlock,
+      text: truncatePretty(matchedBlock.text, 280),
+    }
+    return (
+      <DirectQuote className={productanalytics.classExclude()}>
+        <div>
+          <ContextBlock block={truncated} />
+        </div>
+        <DirectQuoteSeeMoreToolbar>
+          <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore(true)}>
+            See&nbsp;more
+          </MatchDescriptionSeeMoreBtn>
+        </DirectQuoteSeeMoreToolbar>
+      </DirectQuote>
+    )
+  } else {
+    const prefixKey = getPrevBlockKey(block, node)
+    const prefix = prefixKey ? getNodeBlock(node, prefixKey) : undefined
+    const suffixKey = getNextBlockKey(block, node)
+    let suffix = suffixKey ? getNodeBlock(node, suffixKey) : undefined
+    if (suffix?.type === 'H') {
+      suffix = undefined
+    }
+    return (
+      <DirectQuote className={productanalytics.classExclude()}>
+        <div>
+          <ContextBlock block={prefix} />
+          <MatchedContentBlock block={matchedBlock} />
+          <ContextBlock block={suffix} />
+        </div>
+        <DirectQuoteSeeMoreToolbar>
+          <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore(false)}>
+            See&nbsp;less
+          </MatchDescriptionSeeMoreBtn>
+        </DirectQuoteSeeMoreToolbar>
+      </DirectQuote>
+    )
+  }
+}
 
 const BookmarkOriginalDescription = ({
   ctx,
@@ -322,7 +465,28 @@ const BookmarkDescription = ({
         />
       )
     case 'direct-quotes': {
-      return null // TODO(Alexander): To implemented in a separate PR
+      const blocks = webBookmarkDescriptionConfig.blocks
+      // Sort in order of occurrences in the document to make sure quotes from
+      // the top of the document comes first.
+      blocks
+        .filter((block) => block.field === 'web-text')
+        .sort((a, b) => {
+          if (a.field === 'web-text' && b.field === 'web-text') {
+            return a.index - b.index
+          }
+          return 0
+        })
+      return (
+        <>
+          {webBookmarkDescriptionConfig.blocks.map((block) => (
+            <BookmarkMatchDescription
+              node={node}
+              block={block}
+              key={nodeBlockKeyToString(block)}
+            />
+          ))}
+        </>
+      )
     }
   }
 }
