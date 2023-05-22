@@ -4,19 +4,12 @@ import React from 'react'
 
 import { Launch } from '@emotion-icons/material'
 
-import type { TNode, PreviewImageSmall, NodeBlockKey } from 'smuggler-api'
-import {
-  nodeBlockKeyToString,
-  getNextBlockKey,
-  getPrevBlockKey,
-  TextContentBlock,
-} from 'smuggler-api'
+import type { NodeBlockKey, PreviewImageSmall, TNode } from 'smuggler-api'
 import type { Optional } from 'armoury'
 import {
   productanalytics,
   splitStringByWord,
   padNonEmptyStringWithSpaceHead,
-  padNonEmptyStringWithSpaceTail,
 } from 'armoury'
 import { log } from 'armoury'
 import styled from '@emotion/styled'
@@ -255,48 +248,6 @@ const MatchDescriptionSeeMoreBtn = styled.span`
   }
 `
 
-const BookmarkMatchDescription = ({
-  ctx,
-  url,
-  match,
-  prefix,
-  suffix,
-}: {
-  ctx: ElementaryContext
-  url: string
-  match: string
-  prefix: string
-  suffix: string
-}) => {
-  const [seeMore, setSeeMore] = React.useState<boolean>(false)
-  return (
-    <Description cite={url} className={productanalytics.classExclude()}>
-      {!seeMore ? (
-        <MatchDescriptionContextSpan>{match}</MatchDescriptionContextSpan>
-      ) : (
-        <>
-          <MatchDescriptionContextSpan>
-            {padNonEmptyStringWithSpaceTail(prefix)}
-          </MatchDescriptionContextSpan>
-          <MatchDescriptionSpan>{match}</MatchDescriptionSpan>
-          <MatchDescriptionContextSpan>
-            {padNonEmptyStringWithSpaceHead(suffix)}
-          </MatchDescriptionContextSpan>
-        </>
-      )}
-      &nbsp;
-      <MatchDescriptionSeeMoreBtn
-        onClick={() => {
-          ctx.analytics?.capture('Button:See More', { more: !seeMore })
-          setSeeMore((more) => !more)
-        }}
-      >
-        see&nbsp;{seeMore ? 'less' : 'more'}
-      </MatchDescriptionSeeMoreBtn>
-    </Description>
-  )
-}
-
 const BookmarkOriginalDescription = ({
   ctx,
   url,
@@ -372,6 +323,7 @@ const BookmarkDescription = ({
       )
     case 'direct-quotes': {
       return null // TODO(Alexander): To implemented in a separate PR
+    }
   }
 }
 

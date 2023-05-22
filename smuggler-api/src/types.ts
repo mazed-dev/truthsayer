@@ -431,6 +431,22 @@ export type TfEmbeddingJson = {
   shape: [number, number]
 }
 
+export type NodeSimilaritySearchInfoLatest = {
+  signature: 'tf-embed-3'
+  forBlocks: Record<string, TfEmbeddingJson>
+}
+
+export function createNodeSimilaritySearchInfoLatest({
+  forBlocks,
+}: {
+  forBlocks: Record<string, TfEmbeddingJson>
+}): NodeSimilaritySearchInfoLatest {
+  return {
+    forBlocks,
+    signature: 'tf-embed-3',
+  }
+}
+
 export type NodeSimilaritySearchInfo =
   | null
   | {
@@ -442,9 +458,19 @@ export type NodeSimilaritySearchInfo =
       embeddingJson: TfEmbeddingJson
     }
   | {
-      signature: 'tf-embed-1'
+      signature: 'tf-embed-2'
       embeddingJson: TfEmbeddingJson
     }
+  | NodeSimilaritySearchInfoLatest
+
+export function verifySimilaritySearchInfoVersion(
+  simsearch: NodeSimilaritySearchInfo
+): NodeSimilaritySearchInfoLatest | null {
+  if (simsearch?.signature === 'tf-embed-3') {
+    return simsearch
+  }
+  return null
+}
 
 export type NodeBlockKey =
   | {
@@ -463,6 +489,10 @@ export type NodeBlockKey =
       // To index the entire plain text representation of a node
       field: '*'
     }
+  | {
+      // Node or page meta information such as URL, title, author etc.
+      field: 'attrs'
+    }
 
 export function getNextBlockKey(
   key: NodeBlockKey,
@@ -480,6 +510,7 @@ export function getNextBlockKey(
       }
       return undefined
     case '*':
+    case 'attrs':
     case 'text':
     case 'web-quote':
       return undefined
@@ -499,6 +530,7 @@ export function getPrevBlockKey(
       }
       return undefined
     case '*':
+    case 'attrs':
     case 'text':
     case 'web-quote':
       return undefined
@@ -512,6 +544,7 @@ export function nodeBlockKeyToString(key: NodeBlockKey): string {
     case 'web-text':
       return `${key.field}/${key.index}`
     case '*':
+    case 'attrs':
     case 'text':
     case 'web-quote':
       return key.field
@@ -523,11 +556,17 @@ export function nodeBlockKeyFromString(key: string): NodeBlockKey {
   if (components.length < 1 || components.length > 2) {
     throw new Error('Error 445 - TODO(Alexander)')
   }
-  if (components.length > 1) {
-    return {
-      field: components[0],
-      index: parseInt(components[1]),
-    } as NodeBlockKey
+  if (components[0] === 'web-text') {
+    if (components.length > 1) {
+      return {
+        field: components[0],
+        index: parseInt(components[1], 10),
+      } as NodeBlockKey
+    } else {
+      throw new Error(
+        'Failed to unpack NodeBlock key of type "web-text" - missing index'
+      )
+    }
   } else {
     return { field: components[0] } as NodeBlockKey
   }

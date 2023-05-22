@@ -1,28 +1,29 @@
 import lodash from 'lodash'
-import { tfUse as tf, loadWinkModel, bm25 } from 'text-information-retrieval'
+import { tf, wink } from 'text-information-retrieval'
 import type {
-  NodeEventType,
-  NodeEventPatch,
-  TfEmbeddingJson,
-  NodeEventListener,
   Nid,
-  TNode,
   NodeBlockKey,
+  NodeEventListener,
+  NodeEventPatch,
+  NodeEventType,
+  NodeSimilaritySearchInfoLatest,
   StorageApi,
+  TNode,
   TextContentBlock,
-  NodeSimilaritySearchInfoLatestVerstion,
+  TfEmbeddingJson,
 } from 'smuggler-api'
 import {
   verifySimilaritySearchInfoVersion,
   nodeBlockKeyToString,
   nodeBlockKeyFromString,
+  createNodeSimilaritySearchInfoLatest,
 } from 'smuggler-api'
 import { TDoc, Beagle } from 'elementary'
 import CancellationToken from 'cancellationtoken'
 import { log, errorise, AbortError, Timer } from 'armoury'
 import type { BackgroundPosthog } from '../productanalytics'
 
-const wink_ = loadWinkModel()
+const wink_ = wink.loadModel()
 
 let _tfState: tf.TfState | undefined = undefined
 
@@ -100,7 +101,7 @@ async function getFastIndex(
 
 async function updateNodeFastIndex(
   nid: Nid,
-  nodeSimSearchInfo: NodeSimilaritySearchInfoLatestVerstion,
+  nodeSimSearchInfo: NodeSimilaritySearchInfoLatest,
   updateType: 'created' | 'updated'
 ): Promise<void> {
   if (_fastIndex == null) {
@@ -173,7 +174,7 @@ export async function findRelevantNodes(
   }
   let searchEngineName: string
   let relevantNodes: RelevantNode[]
-  if (phraseLen < 6) {
+  if (phraseLen < 9) {
     searchEngineName = 'Beagle'
     relevantNodes = await findRelevantNodesUsingPlainTextSearch(
       phraseDoc,
@@ -306,7 +307,7 @@ async function findRelevantNodesUsingSimilaritySearch(
         let blockKey: NodeBlockKey | undefined = undefined
         try {
           blockKey = nodeBlockKeyFromString(blockKeyStr)
-          if (blockKey.field !== 'index-txt') {
+          if (blockKey.field !== 'web-text') {
             // We don't need any other types of blocks for direct quote
             blockKey = undefined
           }
@@ -330,7 +331,7 @@ async function findRelevantNodesUsingSimilaritySearch(
 }
 
 async function findRelevantNodesUsingPlainTextSearch(
-  phraseDoc: bm25.WinkDocument,
+  phraseDoc: wink.WinkDocument,
   storage: StorageApi,
   excludedNids: Set<Nid>,
   cancellationToken: CancellationToken
@@ -375,13 +376,20 @@ function getNodePatchAsString(patch: NodeEventPatch): {
   textContentBlocks: TextContentBlock[]
   coment?: string
   extQuote?: string
+  attrs?: string
 } {
   let coment: string | undefined = undefined
   const textContentBlocks: TextContentBlock[] = []
-  let lines: string[] = [
-    patch.extattrs?.title ?? '',
-    patch.extattrs?.author ?? '',
+  let attrs: (string | undefined)[] = [
+    patch.extattrs?.title,
+    patch.extattrs?.author,
+    patch.extattrs?.description,
+    patch.index_text?.labels?.join(', '),
+    patch.index_text?.brands?.join(', '),
+    patch.extattrs?.web?.url,
+    patch.extattrs?.web_quote?.url,
   ]
+  let lines: (string | undefined)[] = [...attrs]
   if (patch.extattrs?.web?.text) {
     textContentBlocks.push(...patch.extattrs?.web?.text.blocks)
     lines.push(...textContentBlocks.map(({ text }) => text))
@@ -400,11 +408,25 @@ function getNodePatchAsString(patch: NodeEventPatch): {
   if (extQuote) {
     lines.push(extQuote)
   }
-  let plaintext = lines.join('.\n').trim()
+  let plaintext = lines
+    .filter((v) => v != null)
+    .join('.\n')
+    .trim()
   if (!plaintext) {
     // Hack: Embedding fails on completely empty string
     plaintext = 'empty'
   }
+  return {
+    plaintext,
+    textContentBlocks,
+    coment,
+    extQuote,
+    attrs: attrs
+      .filter((v) => v != null)
+      .join('. ')
+      .trim(),
+  }
+}
 
 async function updateNodeIndex(
   storage: StorageApi,
@@ -413,7 +435,7 @@ async function updateNodeIndex(
   tfState: tf.TfState,
   updateType: 'created' | 'updated'
 ): Promise<void> {
-  const { plaintext, textContentBlocks, coment, extQuote } =
+  const { plaintext, textContentBlocks, coment, extQuote, attrs } =
     getNodePatchAsString(patch)
   const forBlocks: Record<string, TfEmbeddingJson> = {}
   {
@@ -431,6 +453,11 @@ async function updateNodeIndex(
     forBlocks[nodeBlockKeyToString({ field: 'web-quote' })] =
       tf.tensor2dToJson(embedding)
   }
+  if (attrs) {
+    const embedding = await tfState.encoder.embed(attrs)
+    forBlocks[nodeBlockKeyToString({ field: 'attrs' })] =
+      tf.tensor2dToJson(embedding)
+  }
   for (let index = 0; index < textContentBlocks.length; ++index) {
     const { type, text } = textContentBlocks[index]
     if (type === 'H') {
@@ -439,13 +466,10 @@ async function updateNodeIndex(
     }
     const embedding = await tfState.encoder.embed(text)
     const embeddingJson = tf.tensor2dToJson(embedding)
-    const blockKeyStr = nodeBlockKeyToString({ field: 'index-txt', index })
+    const blockKeyStr = nodeBlockKeyToString({ field: 'web-text', index })
     forBlocks[blockKeyStr] = embeddingJson
   }
-  const simsearch: NodeSimilaritySearchInfoLatestVerstion = {
-    signature: 'tf-embed-3',
-    forBlocks,
-  }
+  const simsearch = createNodeSimilaritySearchInfoLatest({ forBlocks })
   updateNodeFastIndex(nid, simsearch, updateType)
   await storage.node.similarity.setIndex({ nid, simsearch })
 }
@@ -476,10 +500,12 @@ async function ensurePerNodeSimSearchIndexIntegrity(
     const nid = nids[ind]
     try {
       // Failure to update one index should not interfere with others
-      const nodeSimSearchInfo = await storage.node.similarity.getIndex({
-        nid,
-      })
-      if (nodeSimSearchInfo?.signature !== 'tf-embed-2') {
+      const nodeSimSearchInfo = verifySimilaritySearchInfoVersion(
+        await storage.node.similarity.getIndex({
+          nid,
+        })
+      )
+      if (nodeSimSearchInfo !== null) {
         log.info(
           `Update node similarity index [${ind + 1}/${nids.length}] ${nid}`
         )

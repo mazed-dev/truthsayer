@@ -19,7 +19,7 @@
       "ESNext",
       "ES2020"
     ],
-    "module": "ES2020",
+    "module": "CommonJS",
     "alwaysStrict": true,
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
