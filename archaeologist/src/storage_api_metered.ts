@@ -1,6 +1,7 @@
 import type {
   NodeCreateArgs,
   NodeExtattrs,
+  NodeExtattrsWeb,
   NodeIndexText,
   NodeTextData,
   SetNodeSimilaritySearchInfoArgs,
@@ -171,12 +172,19 @@ const Approx = {
       ApproxPod.str(data?.title) +
       ApproxPod.str(data?.description) +
       ApproxPod.str(data?.preview_image?.data) +
-      ApproxPod.str(data?.web?.url) +
+      Approx.NodeExtattrsWeb(data?.web) +
       ApproxPod.empty(data?.blob) +
       ApproxPod.str(data?.web_quote?.url) +
       ApproxPod.strArray(data?.web_quote?.path) +
       ApproxPod.str(data?.web_quote?.text)
     )
+  },
+  NodeExtattrsWeb: (data?: NodeExtattrsWeb): number => {
+    let ret = ApproxPod.str(data?.url)
+    for (const block of data?.text?.blocks ?? []) {
+      ret += ApproxPod.str(block?.text)
+    }
+    return ret
   },
 }
 
