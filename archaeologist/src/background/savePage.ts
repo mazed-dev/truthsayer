@@ -81,7 +81,8 @@ async function showDisappearingNotification(
       type: 'SHOW_DISAPPEARING_NOTIFICATION',
       ...notification,
     })
-  } catch (err) {
+  } catch (e) {
+    const err = errorise(e)
     if (isAbortError(err)) {
       return
     }
@@ -145,7 +146,6 @@ export async function saveWebPage(
   }
   const text = makeEmptyNodeTextData()
   const index_text: NodeIndexText = {
-    plaintext: content.text || undefined,
     labels: [],
     brands: [],
     dominant_colors: [],
@@ -159,6 +159,9 @@ export async function saveWebPage(
     author: content.author.join(', '),
     web: {
       url: url,
+      text: {
+        blocks: content.textContentBlocks,
+      },
     },
     blob: undefined,
   }

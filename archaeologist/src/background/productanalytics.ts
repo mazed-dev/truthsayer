@@ -19,6 +19,11 @@ const kLogCategory = '[productanalytics/archaeologist/background]'
 type EventMessageV1 = Parameters<NodePostHog['capture']>[0]
 
 /**
+ * Properties that can be associated with a captured analytics event
+ */
+export type EventProperties = NonNullable<EventMessageV1['properties']>
+
+/**
  * All the properties of @see EventMessageV1 except the ones that in
  * case of @see PostHog.capture from 'posthog-js'
  *  - either get passed in as their own arguments dedicated arguments (like 'event')
@@ -35,7 +40,7 @@ type CaptureOptions = Omit<
 export type BackgroundPosthog = {
   capture: (
     event_name: string,
-    properties?: EventMessageV1['properties'],
+    properties?: EventProperties,
     options?: CaptureOptions
   ) => void
   isFeatureEnabled: (key: string) => Promise<boolean | undefined>
@@ -46,10 +51,9 @@ async function make(
 ): Promise<BackgroundPosthog | null> {
   // PostHog token and API host URL can be found at https://eu.posthog.com/project/settings
   const posthogToken = 'phc_p8GUvTa63ZKNpa05iuGI7qUvXYyyz3JG3UWe88KT7yj'
-  const posthogApiHost = 'https://eu.posthog.com'
   try {
     const ret = new NodePostHog(posthogToken, {
-      host: posthogApiHost,
+      host: productanalytics.apiHost(),
       bootstrap: {
         distinctId: identity.analyticsIdentity,
         isIdentifiedId: true,

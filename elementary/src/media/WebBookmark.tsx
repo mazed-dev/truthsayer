@@ -252,11 +252,13 @@ const MatchDescriptionSeeMoreBtn = styled.span`
 `
 
 const BookmarkMatchDescription = ({
+  ctx,
   url,
   match,
   prefix,
   suffix,
 }: {
+  ctx: ElementaryContext
   url: string
   match: string
   prefix: string
@@ -279,7 +281,12 @@ const BookmarkMatchDescription = ({
         </>
       )}
       &nbsp;
-      <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore((more) => !more)}>
+      <MatchDescriptionSeeMoreBtn
+        onClick={() => {
+          ctx.analytics?.capture('Button:See More', { more: !seeMore })
+          setSeeMore((more) => !more)
+        }}
+      >
         see&nbsp;{seeMore ? 'less' : 'more'}
       </MatchDescriptionSeeMoreBtn>
     </Description>
@@ -287,9 +294,11 @@ const BookmarkMatchDescription = ({
 }
 
 const BookmarkOriginalDescription = ({
+  ctx,
   url,
   description,
 }: {
+  ctx: ElementaryContext
   url: string
   description: string
 }) => {
@@ -310,7 +319,10 @@ const BookmarkOriginalDescription = ({
           </MatchDescriptionContextSpan>
           {!seeMore ? '… ' : ' '}
           <MatchDescriptionSeeMoreBtn
-            onClick={() => setSeeMore((more) => !more)}
+            onClick={() => {
+              ctx.analytics?.capture('Button:See More', { more: !seeMore })
+              setSeeMore((more) => !more)
+            }}
           >
             see&nbsp;{seeMore ? 'less' : 'more'}
           </MatchDescriptionSeeMoreBtn>
@@ -321,10 +333,12 @@ const BookmarkOriginalDescription = ({
 }
 
 const BookmarkDescription = ({
+  ctx,
   url,
   description,
   webBookmarkDescriptionConfig,
 }: {
+  ctx: ElementaryContext
   url: string
   description?: string
   webBookmarkDescriptionConfig: WebBookmarkDescriptionConfig
@@ -345,11 +359,18 @@ const BookmarkDescription = ({
       if (!description) {
         return null
       }
-      return <BookmarkOriginalDescription url={url} description={description} />
+      return (
+        <BookmarkOriginalDescription
+          ctx={ctx}
+          url={url}
+          description={description}
+        />
+      )
     case 'match':
       const { match, prefix, suffix } = webBookmarkDescriptionConfig
       return (
         <BookmarkMatchDescription
+          ctx={ctx}
           url={url}
           match={match}
           prefix={prefix}
@@ -415,6 +436,7 @@ export const WebBookmark = ({
         </TitleBox>
       </BadgeBox>
       <BookmarkDescription
+        ctx={ctx}
         url={url}
         description={description}
         webBookmarkDescriptionConfig={

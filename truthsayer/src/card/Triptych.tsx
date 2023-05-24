@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
 import React, { useContext } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { Row, Col } from 'react-bootstrap'
 
@@ -15,7 +15,7 @@ import { ChainActionBar } from './ChainActionBar'
 import { DynamicGrid } from 'elementary'
 
 import { MzdGlobalContext } from '../lib/global'
-import { Optional, isAbortError, log } from 'armoury'
+import { Optional, isAbortError, log, errorise } from 'armoury'
 import { styleMobileTouchOnly } from 'elementary'
 
 import { TNode, NodeTextData, TEdge, NodeUtil } from 'smuggler-api'
@@ -44,7 +44,7 @@ function RefNodeCard({
   cutOffRef: any
   className?: string
 }) {
-  const history = useHistory()
+  const navigate = useNavigate()
   const ctx = useContext(MzdGlobalContext)
   return (
     <SmallCard
@@ -58,7 +58,7 @@ function RefNodeCard({
           margin-bottom: 12px;
           cursor: pointer;
         `}
-        onClick={() => history.push({ pathname: `/n/${nid}` })}
+        onClick={() => navigate({ pathname: `/n/${nid}` })}
       >
         <NodeCardReadOnlyFetching
           ctx={ctx}
@@ -206,7 +206,8 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
           .concat(to_edges)
           .filter((edge) => !edge.is_sticky),
       })
-    } catch (err) {
+    } catch (e) {
+      const err = errorise(e)
       if (!isAbortError(err)) {
         log.exception(err)
       }
@@ -224,7 +225,8 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
         this.fetchNodeAbortController.signal
       )
       this.setState({ node })
-    } catch (err) {
+    } catch (e) {
+      const err = errorise(e)
       if (!isAbortError(err)) {
         log.exception(err)
       }

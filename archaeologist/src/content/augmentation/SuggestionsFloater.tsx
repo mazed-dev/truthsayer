@@ -10,6 +10,7 @@ import {
   NodeCardReadOnly,
   Spinner,
   WebBookmarkDescriptionConfig,
+  ScopedTimedAction,
 } from 'elementary'
 import type { TNode } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
@@ -23,6 +24,7 @@ import { Minimize, Refresh } from '@emotion-icons/material'
 import { DragHandle } from '@emotion-icons/material-rounded'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
 import { errorise, productanalytics, log } from 'armoury'
+import moment from 'moment'
 
 const SuggestedCardsBox = styled.div`
   width: 320px;
@@ -173,7 +175,7 @@ const SuggestedCards = ({
   React.useEffect(() => {
     analytics?.capture('Show suggested associations', {
       'Event type': 'show',
-      length: nodes.length,
+      count: nodes.length,
     })
   }, [nodes, analytics])
   const suggestedCards = nodes.map((RelevantNodeSuggestion) => {
@@ -308,6 +310,7 @@ export const SuggestionsFloater = ({
     },
     [analytics]
   )
+
   useAsyncEffect(async () => {
     let settings: ContentAugmentationSettings | null = null
     try {
@@ -369,12 +372,23 @@ export const SuggestionsFloater = ({
         >
           <DraggableElement ref={nodeRef}>
             {isRevealed ? (
-              <SuggestedCards
-                onClose={() => saveRevealed(false)}
-                nodes={nodes}
-                isLoading={isLoading}
-                reloadSuggestions={reloadSuggestions}
-              />
+              <>
+                <SuggestedCards
+                  onClose={() => saveRevealed(false)}
+                  nodes={nodes}
+                  isLoading={isLoading}
+                  reloadSuggestions={reloadSuggestions}
+                />
+                <ScopedTimedAction
+                  action={() =>
+                    analytics?.capture(
+                      'SuggestionsFloater: kept open longer than threshold',
+                      { thresholdSec: 15 }
+                    )
+                  }
+                  after={moment.duration(15, 'seconds')}
+                />
+              </>
             ) : (
               <MiniFloaterBox >
                 <MazedMiniFloater onClick={() => saveRevealed(true)}>

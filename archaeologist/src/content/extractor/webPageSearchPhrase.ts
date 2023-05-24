@@ -1,5 +1,5 @@
 import { extractPageContent } from './webPageContent'
-import { log, ensureSentenceEndPunctuation } from 'armoury'
+import { log } from 'armoury'
 
 export function extractSimilaritySearchPhraseFromPageContent(
   document_: Document,
@@ -7,17 +7,15 @@ export function extractSimilaritySearchPhraseFromPageContent(
 ): string | null {
   const pageContent = extractPageContent(document_, baseURL)
   log.debug('Page content', pageContent)
+  const { title, textContentBlocks } = pageContent
   let author = pageContent.author.join(', ')
   if (!!author) {
     author = `By ${author}`
   }
-  const phrase = [pageContent.title, author, pageContent.text]
-    .map((v) => {
-      if (v) {
-        return ensureSentenceEndPunctuation(v, '.')
-      }
-      return ''
-    })
-    .join('\n')
-  return phrase
+  const lines = [
+    title ?? '',
+    author,
+    ...textContentBlocks.map(({ text }) => text),
+  ].filter((v) => !!v)
+  return lines.join('\n')
 }

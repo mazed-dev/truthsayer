@@ -5,22 +5,23 @@ import React from 'react'
 import styled from '@emotion/styled'
 
 import { css } from '@emotion/react'
-import type { RouteComponentProps } from 'react-router-dom'
-import { useHistory } from 'react-router-dom'
+import type { NavigateFunction } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
-import { SmallCard } from '../SmallCard'
-import { ShrinkCard } from '../ShrinkCard'
-import { NodeTimeBadge } from '../NodeTimeBadge'
-
-import type { TNode, INodeIterator, StorageApi } from 'smuggler-api'
+import type { TNode, INodeIterator } from 'smuggler-api'
 
 import { log, isAbortError, errorise } from 'armoury'
+import MzdGlobalContext, { MzdGlobalContextProps } from '../lib/global'
 
-import { DynamicGrid } from './DynamicGrid'
-import { NodeCardReadOnly } from '../NodeCardReadOnly'
-import { Beagle } from './search/search'
-import { styleMobileTouchOnly } from '../util/xstyle'
-import { ElementaryContext } from '../context'
+import {
+  DynamicGrid,
+  NodeCardReadOnly,
+  Beagle,
+  styleMobileTouchOnly,
+  SmallCard,
+  ShrinkCard,
+  NodeTimeBadge,
+} from 'elementary'
 
 const BoxPortable = styled.div`
   overflow-y: scroll;
@@ -57,7 +58,6 @@ export const GridCard = ({
 const Mutex = require('async-mutex').Mutex
 
 type SearchGridProps = React.PropsWithChildren<{
-  ctx: ElementaryContext
   q: string | null
   onCardClick?: (arg0: TNode) => void
   portable?: boolean
@@ -65,7 +65,8 @@ type SearchGridProps = React.PropsWithChildren<{
   className?: string
 }>
 type SearchGridWithHistProps = SearchGridProps & {
-  history: RouteComponentProps['history']
+  navigate: NavigateFunction
+  ctx: MzdGlobalContextProps
 }
 type SearchGridState = {
   iter?: INodeIterator
@@ -179,7 +180,7 @@ class SearchGridWithHist extends React.Component<
       portable,
       className,
       children,
-      history,
+      navigate,
     } = this.props
     const { nodes } = this.state
     if (q == null && !defaultSearch) {
@@ -190,7 +191,7 @@ class SearchGridWithHist extends React.Component<
         if (onCardClick) {
           onCardClick(node)
         } else {
-          history.push({
+          navigate({
             pathname: `/n/${node.nid}`,
           })
         }
@@ -252,6 +253,7 @@ class SearchGridWithHist extends React.Component<
 }
 
 export const SearchGrid = (props: SearchGridProps) => {
-  const history = useHistory()
-  return <SearchGridWithHist history={history} {...props} />
+  const navigate = useNavigate()
+  const ctx = React.useContext(MzdGlobalContext)
+  return <SearchGridWithHist navigate={navigate} ctx={ctx} {...props} />
 }

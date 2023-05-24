@@ -10,6 +10,7 @@
 **/node_modules/**
 /.pnp
 .pnp.js
+package-lock.json
 
 # testing
 /coverage
@@ -43,3 +44,6 @@ yarn-error.log*
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# ide-specific
+.vscode/*

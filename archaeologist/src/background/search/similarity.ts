@@ -70,11 +70,13 @@ export async function findRelevantNodes(
       'Similarity search failed because search phrase is empty string'
     )
   }
+  let searchEngineName: string
   if (phraseLen < 4) {
     log.debug(
       'Use Beagle to find relevant nodes, because search phrase is short',
       phraseLen
     )
+    searchEngineName = 'Beagle'
     nodesWithScore = await findRelevantNodesUsingPlainTextSearch(
       phraseDoc,
       storage,
@@ -82,7 +84,7 @@ export async function findRelevantNodes(
       cancellationToken
     )
   } else {
-    log.debug('Use tfjs based similarity search to find relevant nodes')
+    searchEngineName = 'TFJS'
     nodesWithScore = await findRelevantNodesUsingSimilaritySearch(
       phraseDoc,
       storage,
@@ -98,7 +100,7 @@ export async function findRelevantNodes(
       matchedPiece: findRelevantQuote(phraseDoc, node),
     })
   }
-  log.debug('Similarity search results', relevantNodes)
+  log.debug(`Similarity search results [${searchEngineName}]`, relevantNodes)
   return relevantNodes
 }
 
@@ -129,16 +131,10 @@ async function findRelevantNodesUsingSimilaritySearch(
     const nodeSimSearchInfo = await storage.node.similarity.getIndex({
       nid,
     })
-    if (
-      nodeSimSearchInfo == null ||
-      !tfUse.isPerDocIndexUpToDate(
-        nodeSimSearchInfo?.signature.algorithm,
-        nodeSimSearchInfo?.signature.version
-      )
-    ) {
+    if (nodeSimSearchInfo?.signature !== tfUse.getExpectedSignature()) {
       // Skip nodes with invalid index
       log.warning(
-        `Similarity index for node ${nid} is invalid "${nodeSimSearchInfo?.signature.algorithm}:${nodeSimSearchInfo?.signature.version}"`
+        `Similarity index for node ${nid} is invalid "${nodeSimSearchInfo?.signature}}"`
       )
       continue
     }
@@ -286,14 +282,18 @@ function findRelevantQuote(
 function getNodePatchAsString(patch: NodeEventPatch): string {
   const ret: string[] = [
     patch.extattrs?.title ?? '',
-    patch.index_text?.plaintext ?? '',
     patch.extattrs?.web_quote?.text ?? '',
     patch.extattrs?.author ?? '',
+    patch.index_text?.plaintext ?? '',
   ]
   const text = patch.text
   if (text) {
     const coment = TDoc.fromNodeTextData(text)
     ret.push(coment.genPlainText())
+  }
+  const webPageText = patch.extattrs?.web?.text?.blocks
+  if (webPageText != null) {
+    ret.push(...webPageText.map(({ text }) => text))
   }
   return ret.join('\n')
 }
@@ -351,12 +351,7 @@ async function ensurePerNodeSimSearchIndexIntegrity(
       const nodeSimSearchInfo = await storage.node.similarity.getIndex({
         nid,
       })
-      if (
-        !tfUse.isPerDocIndexUpToDate(
-          nodeSimSearchInfo?.signature.algorithm,
-          nodeSimSearchInfo?.signature.version
-        )
-      ) {
+      if (nodeSimSearchInfo?.signature !== tfUse.getExpectedSignature()) {
         log.info(
           `Update node similarity index [${ind + 1}/${nids.length}] ${nid}`
         )
@@ -399,7 +394,7 @@ export async function register(
 
   const nodeEventListener = createNodeEventListener(storage)
   storage.node.addListener(nodeEventListener)
-  log.debug('Similarity search module is loaded', timer.elapsed())
+  log.debug('Similarity search module is loaded', timer.elapsedSecondsPretty())
   return () => {
     storage.node.removeListener(nodeEventListener)
     tfState = undefined
