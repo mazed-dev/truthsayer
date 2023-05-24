@@ -6,16 +6,18 @@ import styled from '@emotion/styled'
 import LogoImage from '../../../public/logo-strip.svg'
 import { ContentContext } from '../context'
 import { StyleButtonCreate } from 'elementary'
-import { log } from 'armoury'
 
-const Box = styled.div`
+const Box = styled.div<{ notify: boolean }>`
   position: relative;
-  height: 32px;
-  width: 32px;
+  height: 28px;
+  width: 28px;
   border-radius: 50%;
 
   border: 1px solid #ececec;
-  background-image: linear-gradient(#54a3ff, #006eed);
+  background-image: ${({ notify }) =>
+    notify
+      ? 'linear-gradient(#54a3ff, #006eed)'
+      : 'linear-gradient(#d7d7d7, #bbbbbb)'};
   box-shadow: 2px 2px 4px #8c8c8ceb;
 
   margin-right: 4px;
@@ -29,10 +31,10 @@ const Box = styled.div`
 
 const Logo = styled.div`
   position: absolute;
-  top: calc(50% - 10px);
-  left: calc(50% - 10.5px);
-  width: 20px;
-  height: 20px;
+  top: calc(50% - 8px);
+  left: calc(50% - 8.5px);
+  width: 16px;
+  height: 16px;
 
   margin: 0;
   padding: 0;
@@ -43,8 +45,12 @@ const Logo = styled.div`
 `
 
 const BadgeBubble = styled.div`
-  width: 28px;
-  height: 28px;
+  position: absolute;
+  bottom: -3px;
+  left: -3px;
+
+  width: 14px;
+  height: 14px;
 
   border-radius: 16px;
 
@@ -61,17 +67,18 @@ const BadgeBubble = styled.div`
 `
 
 const BadgeText = styled.span`
-  font-size: 14px;
+  font-size: 11px;
   letter-spacing: 0;
   color: white;
 `
 
 export const MazedMiniFloater = ({
   onClick,
-  children,
-}: React.PropsWithChildren<{
+  text,
+}: {
   onClick: (event: React.MouseEvent) => void
-}>) => {
+  text?: string
+}) => {
   const ctx = React.useContext(ContentContext)
   const onMeteredClick = React.useCallback(
     (event: React.MouseEvent) => {
@@ -84,12 +91,13 @@ export const MazedMiniFloater = ({
     [onClick, ctx]
   )
   return (
-     <Box onClick={onMeteredClick}>
+    <Box onClick={onMeteredClick} notify={text != null}>
       <Logo />
-      <BadgeBubble>
-        <BadgeText>{children}</BadgeText>
-      </BadgeBubble>
+      {text == null ? null : (
+        <BadgeBubble>
+          <BadgeText>{text}</BadgeText>
+        </BadgeBubble>
+      )}
     </Box>
-
   )
 }
