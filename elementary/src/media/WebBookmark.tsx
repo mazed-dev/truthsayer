@@ -104,9 +104,9 @@ const IconDefault = ({ hostname }: { hostname: string }) => {
  */
 const PreviewImage = ({
   icon,
-  url,
+  // url,
   hostname,
-  onLaunch,
+  // onLaunch,
 }: {
   icon: Optional<PreviewImageSmall>
   url?: string
@@ -119,14 +119,14 @@ const PreviewImage = ({
     ) : (
       <IconImg src={icon.data} />
     )
+      // {url != null ? (
+      //   <IconLaunch href={url} onClick={onLaunch}>
+      //     <Launch size={20} />
+      //   </IconLaunch>
+      // ) : null}
   return (
     <PreviewImageBox className={productanalytics.classExclude()}>
       {img}
-      {url != null ? (
-        <IconLaunch href={url} onClick={onLaunch}>
-          <Launch size={20} />
-        </IconLaunch>
-      ) : null}
     </PreviewImageBox>
   )
 }
@@ -247,9 +247,13 @@ export type WebBookmarkDescriptionConfig =
     }
 
 const ContextBlockBase = styled.div`
-  font-size: 1em;
+  font-size: 12px;
   margin: 0 0 4px 0;
   quotes: '“' '”' '‘' '’';
+  &:not(:first-child) {
+    text-indent: 12px;
+  }
+  text-indent: 0;
   &:first-child {
     &:before {
       content: open-quote;
@@ -259,7 +263,8 @@ const ContextBlockBase = styled.div`
       font-size: 2em;
       top: 0.1em;
       position: relative;
-      padding-right: 1px;
+      width: 12px;
+      text-indent: 0;
     }
   }
   &:last-child {
@@ -272,11 +277,14 @@ const ContextBlockBase = styled.div`
       font-size: 2em;
       top: 0.1em;
       position: relative;
-      padding-left: 1px;
+      width: 12px;
+      text-indent: 0;
     }
   }
 `
-const ContextBlockParagraphBox = ContextBlockBase.withComponent('p')
+const ContextBlockParagraphBox = styled(ContextBlockBase.withComponent('p'))`
+  text-align: justify;
+`
 const ContextBlockHeaderBox = styled(ContextBlockBase.withComponent('h3'))`
   font-weight: 600;
 `
