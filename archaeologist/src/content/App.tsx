@@ -501,7 +501,6 @@ const App = () => {
                 state.toNodes,
                 state.bookmark
               )}
-              tabActivationCounter={state.tabStatus.activationCounter}
               tabTitleUpdateCounter={state.tabStatus.titleUpdateCounter}
             />
           </>
