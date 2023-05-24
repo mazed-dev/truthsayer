@@ -9,8 +9,8 @@ import { StyleButtonCreate } from 'elementary'
 
 const Box = styled.div<{ notify: boolean }>`
   position: relative;
-  height: 28px;
-  width: 28px;
+  height: 26px;
+  width: 26px;
   border-radius: 50%;
 
   border: 1px solid #ececec;
