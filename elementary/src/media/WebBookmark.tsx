@@ -18,6 +18,7 @@ import {
 } from 'armoury'
 import { log, truncatePretty } from 'armoury'
 import styled from '@emotion/styled'
+import { css } from '@emotion/react'
 
 import { CopyFieldHandle } from '../CopyFieldHandle'
 import type { ElementaryContext } from '../context'
@@ -219,38 +220,34 @@ export type WebBookmarkDescriptionConfig =
 
 const ContextBlockBase = styled.div`
   font-size: 12px;
+  text-indent: 12px;
   margin: 0 0 4px 0;
-  quotes: '“' '”' '‘' '’';
-  &:not(:first-child) {
-    text-indent: 12px;
+`
+const ContextBlockFirstStyles = css`
+  text-indent: 0px;
+  &:before {
+    content: '“';
+    color: #478ac0;
+    display: inline-block;
+    vertical-align: bottom;
+    font-size: 2em;
+    top: 0.1em;
+    position: relative;
+    width: 12px;
+    text-indent: 0;
   }
-  text-indent: 0;
-  &:first-child {
-    &:before {
-      content: open-quote;
-      color: #478ac0;
-      display: inline-block;
-      vertical-align: bottom;
-      font-size: 2em;
-      top: 0.1em;
-      position: relative;
-      width: 12px;
-      text-indent: 0;
-    }
-  }
-  &:last-child {
-    margin: 0;
-    &:after {
-      content: close-quote;
-      color: #478ac0;
-      display: inline-block;
-      vertical-align: bottom;
-      font-size: 2em;
-      top: 0.1em;
-      position: relative;
-      width: 12px;
-      text-indent: 0;
-    }
+`
+const ContextBlockLastStyles = css`
+  &:after {
+    content: '”';
+    color: #478ac0;
+    display: inline-block;
+    vertical-align: bottom;
+    font-size: 2em;
+    top: 0.1em;
+    position: relative;
+    width: 12px;
+    text-indent: 0;
   }
 `
 const ContextBlockParagraphBox = styled(ContextBlockBase.withComponent('p'))`
@@ -336,7 +333,10 @@ const BookmarkMatchDescription = ({
     return (
       <DirectQuote className={productanalytics.classExclude()}>
         <div>
-          <ContextBlock block={truncated} />
+          <ContextBlock
+            block={truncated}
+            css={[ContextBlockFirstStyles, ContextBlockLastStyles]}
+          />
         </div>
         <DirectQuoteSeeMoreToolbar>
           <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore(true)}>
@@ -356,9 +356,9 @@ const BookmarkMatchDescription = ({
     return (
       <DirectQuote className={productanalytics.classExclude()}>
         <div>
-          <ContextBlock block={prefix} />
+          <ContextBlock block={prefix} css={ContextBlockFirstStyles} />
           <MatchedContentBlock block={matchedBlock} />
-          <ContextBlock block={suffix} />
+          <ContextBlock block={suffix} css={ContextBlockLastStyles} />
         </div>
         <DirectQuoteSeeMoreToolbar>
           <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore(false)}>
