@@ -84,9 +84,12 @@ export const MazedMiniFloater = ({
     [onClick, ctx]
   )
   return (
-    <BadgeBubble onClick={onMeteredClick}
-    >
-      <BadgeText>{children}</BadgeText>
-    </BadgeBubble>
+     <Box onClick={onMeteredClick}>
+      <Logo />
+      <BadgeBubble>
+        <BadgeText>{children}</BadgeText>
+      </BadgeBubble>
+    </Box>
+
   )
 }
