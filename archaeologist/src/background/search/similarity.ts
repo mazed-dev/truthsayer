@@ -458,15 +458,16 @@ async function updateNodeIndex(
       tf.tensor2dToJson(embedding)
   }
   for (let index = 0; index < textContentBlocks.length; ++index) {
-    const { type, text } = textContentBlocks[index]
-    if (type === 'H') {
-      // FIXME(Alexander)
+    const { text } = textContentBlocks[index]
+    if (text.length < 50) {
+      // Embeddings-based similarity search perform extremely poorly with short
+      // sentences, basically short texts never appear in the results. Hence
+      // there is no reason to waiste time on calculating embeddings for those.
       continue
     }
     const embedding = await tfState.encoder.embed(text)
-    const embeddingJson = tf.tensor2dToJson(embedding)
     const blockKeyStr = nodeBlockKeyToString({ field: 'web-text', index })
-    forBlocks[blockKeyStr] = embeddingJson
+    forBlocks[blockKeyStr] = tf.tensor2dToJson(embedding)
   }
   const simsearch = createNodeSimilaritySearchInfoLatest({ forBlocks })
   updateNodeFastIndex(nid, simsearch, updateType)
@@ -494,9 +495,9 @@ async function ensurePerNodeSimSearchIndexIntegrity(
   analytics?: BackgroundPosthog | null
 ): Promise<void> {
   const tfState = await createTfState()
-  const nids = await storage.node.getAllNids({})
-  for (let ind = 0; ind < nids.length; ++ind) {
-    const nid = nids[ind]
+  const allNids = await storage.node.getAllNids({})
+  for (let ind = 0; ind < allNids.length; ++ind) {
+    const nid = allNids[ind]
     try {
       // Failure to update one index should not interfere with others
       const nodeSimSearchInfo = verifySimilaritySearchInfoVersion(
@@ -504,9 +505,9 @@ async function ensurePerNodeSimSearchIndexIntegrity(
           nid,
         })
       )
-      if (nodeSimSearchInfo !== null) {
+      if (nodeSimSearchInfo == null) {
         log.info(
-          `Update node similarity index [${ind + 1}/${nids.length}] ${nid}`
+          `Update node similarity index [${ind + 1}/${allNids.length}] ${nid}`
         )
         const node = await storage.node.get({ nid })
         await updateNodeIndex(storage, nid, { ...node }, tfState, 'updated')
