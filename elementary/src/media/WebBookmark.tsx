@@ -2,8 +2,6 @@
 
 import React from 'react'
 
-import { Launch } from '@emotion-icons/material'
-
 import type { TNode, PreviewImageSmall, NodeBlockKey } from 'smuggler-api'
 import {
   nodeBlockKeyToString,
@@ -48,24 +46,6 @@ const PreviewImageBox = styled.div`
   border-top-left-radius: inherit;
   border-bottom-left-radius: inherit;
 `
-
-const IconLaunch = styled.a`
-  color: inherit;
-  cursor: pointer;
-
-  position: absolute;
-  bottom: 0;
-
-  font-size: 1em;
-  left: 26px;
-
-  opacity: 50%;
-
-  &:hover {
-    color: inherit;
-    opacity: 100%;
-  }
-`
 const IconDefaultBox = styled.div`
   height: inherit;
   width: inherit;
@@ -87,9 +67,9 @@ const IconDefaultLetter = styled.span`
 
 const IconDefault = ({ hostname }: { hostname: string }) => {
   if (hostname.startsWith('www.')) {
-    hostname = hostname.substr(4)
+    hostname = hostname.slice(4)
   }
-  const letter = hostname.substr(0, 1).toUpperCase()
+  const letter = hostname.slice(0, 1).toUpperCase()
   return (
     <IconDefaultBox>
       <IconDefaultLetter>{letter}</IconDefaultLetter>
@@ -104,14 +84,10 @@ const IconDefault = ({ hostname }: { hostname: string }) => {
  */
 const PreviewImage = ({
   icon,
-  // url,
   hostname,
-  // onLaunch,
 }: {
   icon: Optional<PreviewImageSmall>
-  url?: string
   hostname: string
-  onLaunch?: () => void
 }) => {
   const img =
     icon == null ? (
@@ -119,11 +95,6 @@ const PreviewImage = ({
     ) : (
       <IconImg src={icon.data} />
     )
-      // {url != null ? (
-      //   <IconLaunch href={url} onClick={onLaunch}>
-      //     <Launch size={20} />
-      //   </IconLaunch>
-      // ) : null}
   return (
     <PreviewImageBox className={productanalytics.classExclude()}>
       {img}
@@ -504,7 +475,6 @@ type WebBookmarkProps = {
   node: TNode
   className?: string
   strippedRefs?: boolean
-  onLaunch?: () => void
   webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
 }
 
@@ -513,7 +483,6 @@ export const WebBookmark = ({
   node,
   className,
   strippedRefs,
-  onLaunch,
   webBookmarkDescriptionConfig,
 }: WebBookmarkProps) => {
   if (node.extattrs?.web == null) {
@@ -531,12 +500,7 @@ export const WebBookmark = ({
   return (
     <Box className={className}>
       <BadgeBox>
-        <PreviewImage
-          icon={preview_image || null}
-          url={strippedRefs ? undefined : url}
-          hostname={hostname}
-          onLaunch={onLaunch}
-        />
+        <PreviewImage icon={preview_image || null} hostname={hostname} />
         <TitleBox>
           <Title className={productanalytics.classExclude()}>{title}</Title>
           <CopyFieldHandle
