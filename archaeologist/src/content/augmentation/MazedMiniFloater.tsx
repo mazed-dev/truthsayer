@@ -5,7 +5,7 @@ import styled from '@emotion/styled'
 
 import LogoImage from '../../../public/logo-strip.svg'
 import { ContentContext } from '../context'
-import { StyleButtonCreate } from 'elementary'
+import { HoverTooltip } from 'elementary'
 
 const Box = styled.div<{ notify: boolean }>`
   position: relative;
@@ -20,56 +20,41 @@ const Box = styled.div<{ notify: boolean }>`
       : 'linear-gradient(#d7d7d7, #bbbbbb)'};
   box-shadow: 2px 2px 4px #8c8c8ceb;
 
-  margin-right: 4px;
-
   user-select: none;
   cursor: pointer;
   pointer-events: all;
 
   z-index: 1024;
+
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 `
 
 const Logo = styled.div`
   position: absolute;
-  top: calc(50% - 8px);
-  left: calc(50% - 8.5px);
-  width: 16px;
-  height: 16px;
+  top: calc(50% - 7.3px);
+  left: calc(50% - 7.5px);
+  width: 15px;
+  height: 15px;
 
   margin: 0;
   padding: 0;
 
   background-color: #ffffffeb;
   mask: url(${LogoImage}) no-repeat center;
-}
-`
-
-const BadgeBubble = styled.div`
-  position: absolute;
-  bottom: -3px;
-  left: -3px;
-
-  width: 14px;
-  height: 14px;
-
-  border-radius: 16px;
-
-  ${StyleButtonCreate}
-
-  text-align: center;
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  font-weight: bold;
-  text-decoration: none;
 `
 
 const BadgeText = styled.span`
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0;
   color: white;
+
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
 `
 
 export const MazedMiniFloater = ({
@@ -90,14 +75,24 @@ export const MazedMiniFloater = ({
     },
     [onClick, ctx]
   )
-  return (
-    <Box onClick={onMeteredClick} notify={text != null}>
-      <Logo />
-      {text == null ? null : (
-        <BadgeBubble>
+  if (text == null) {
+    return (
+      <HoverTooltip tooltip="Mazed" placement="bottom-left">
+        <Box onClick={onMeteredClick} notify={false}>
+          <Logo />
+        </Box>
+      </HoverTooltip>
+    )
+  } else {
+    return (
+      <HoverTooltip
+        tooltip="Relavant memories from Mazed"
+        placement="bottom-left"
+      >
+        <Box onClick={onMeteredClick} notify={true}>
           <BadgeText>{text}</BadgeText>
-        </BadgeBubble>
-      )}
-    </Box>
-  )
+        </Box>
+      </HoverTooltip>
+    )
+  }
 }
