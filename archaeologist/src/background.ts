@@ -27,6 +27,7 @@ import {
   errorise,
   ErrorViaMessage,
   Timer,
+  AnalyticsIdentity,
 } from 'armoury'
 import {
   NodeUtil,
@@ -52,6 +53,7 @@ import * as contentState from './background/contentState'
 import * as similarity from './background/search/similarity'
 import * as auth from './background/auth'
 import CancellationToken from 'cancellationtoken'
+import { meteredStorageApi } from './storage_api_metered'
 
 const BADGE_MARKER_PAGE_SAVED = '✓'
 
@@ -377,12 +379,16 @@ async function handleMessageFromPopup(
   )
 }
 
-function makeStorageApi(storageType: StorageType): StorageApi {
+function makeStorageApi(
+  storageType: StorageType,
+  analytics: BackgroundPosthog | null
+): StorageApi {
   switch (storageType) {
     case 'datacenter':
       return makeDatacenterStorageApi()
     case 'browser_ext':
-      return makeBrowserExtStorageApi(browser.storage.local)
+      const impl = makeBrowserExtStorageApi(browser.storage.local)
+      return analytics != null ? meteredStorageApi(impl, analytics) : impl
   }
 }
 
@@ -412,8 +418,20 @@ class Background {
   private deinitialisers: (() => void | Promise<void>)[] = []
 
   constructor() {
+    this.ctor()
+  }
+
+  private async ctor() {
     log.debug(`Background one-time pre-init started`)
-    const storage = makeStorageApi('browser_ext')
+
+    const analyticsIdentity = await backgroundpa.getIdentity(
+      browser.storage.local
+    )
+    // Product analytics should be initialised ASAP because
+    // other initialisation stages may require access to feature flags
+    const analytics = await backgroundpa.make(analyticsIdentity)
+
+    const storage = makeStorageApi('browser_ext', analytics)
     auth.observe({
       onLogin: async (account: UserAccount) => {
         const timer = new Timer()
@@ -426,7 +444,13 @@ class Background {
         this.state = { phase: 'loading' }
         try {
           log.debug(`Background init started`)
-          const context = await this.init(storage, account)
+          const ctx: BackgroundContext = {
+            storage,
+            analytics,
+            similarity: {},
+            account,
+          }
+          const context = await this.init(ctx, analyticsIdentity)
           this.state = { phase: 'init-done', context }
           log.debug('Background init done', timer.elapsedSecondsPretty())
         } catch (initFailureReason) {
@@ -470,23 +494,9 @@ class Background {
   }
 
   private async init(
-    storage: StorageApi,
-    account: UserAccount
+    ctx: BackgroundContext,
+    analyticsIdentity: AnalyticsIdentity
   ): Promise<BackgroundContext> {
-    const analyticsIdentity = await backgroundpa.getIdentity(
-      browser.storage.local
-    )
-    // Product analytics should be initialised ASAP because
-    // other initialisation stages may require access to feature flags
-    const analytics = await backgroundpa.make(analyticsIdentity)
-
-    const ctx: BackgroundContext = {
-      storage,
-      analytics,
-      similarity: {},
-      account,
-    }
-
     // Init content once tab is fully loaded
     {
       const onComplete = async (tab: Tabs.Tab) => {
@@ -495,7 +505,7 @@ class Background {
         }
         const request = await contentState.calculateInitialContentState(
           ctx.storage,
-          account,
+          ctx.account,
           tab.url,
           { type: 'active-mode-content-app', analyticsIdentity }
         )
