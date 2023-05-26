@@ -14,7 +14,6 @@ import {
   Timer,
 } from 'armoury'
 import type { AnalyticsIdentity } from 'armoury'
-import moment from 'moment'
 
 const kLogCategory = '[productanalytics/archaeologist/background]'
 
