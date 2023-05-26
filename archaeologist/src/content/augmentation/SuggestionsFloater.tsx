@@ -272,7 +272,7 @@ export const SuggestionsFloater = ({
   const nodeRef = React.useRef(null)
   const [controlledPosition, setControlledPosition] =
     React.useState<Position2D | null>(null) // getStartDragPosition(false))
-  const [isRevealed, setRevealed] = React.useState<boolean>(defaultRevelaed)
+  const [isRevealed, setRevealed] = React.useState<boolean>(defaultRevelaed && nodes.length)
 
   const analytics = React.useContext(ContentContext).analytics
   const saveRevealed = React.useCallback(
