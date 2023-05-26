@@ -136,7 +136,6 @@ export function SuggestedRelatives({
       lodash.debounce(
         async (phrase: string) => {
           setSuggestionsSearchIsActive(true)
-          // setSuggestedNodes(null)
           log.debug(`Look for the following phrase in Mazed ${phrase}`)
           try {
             const response = await retryIfStillLoading(
