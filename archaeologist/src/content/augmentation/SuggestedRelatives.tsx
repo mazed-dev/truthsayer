@@ -235,15 +235,7 @@ export function SuggestedRelatives({
       nodes={suggestedNodes.suggestions}
       isLoading={suggestionsSearchIsActive}
       defaultRevelaed={pageSimilaritySearchInput?.isSearchEngine ?? false}
-      reloadSuggestions={() => {
-        try {
-          requestSuggestedAssociations()
-        } catch (reason) {
-          log.error(
-            `Failed to manually reload suggestions: ${errorise(reason).message}`
-          )
-        }
-      }}
+      reloadSuggestions={requestSuggestedAssociations}
     />
   )
 }
