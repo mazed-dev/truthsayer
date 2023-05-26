@@ -4,7 +4,6 @@ import React from 'react'
 import styled from '@emotion/styled'
 
 import LogoImage from '../../../public/logo-strip.svg'
-import { ContentContext } from '../context'
 import { StyleButtonCreate } from 'elementary'
 
 const Box = styled.div`
@@ -75,19 +74,8 @@ export const MazedMiniFloater = ({
 }: React.PropsWithChildren<{
   onClick: (event: React.MouseEvent) => void
 }>) => {
-  const ctx = React.useContext(ContentContext)
-  const onMeteredClick = React.useCallback(
-    (event: React.MouseEvent) => {
-      const target = event.target as HTMLDivElement
-      ctx.analytics?.capture('MazedMiniFloater:Click', {
-        targetTagName: target?.tagName.toLowerCase(),
-      })
-      onClick(event)
-    },
-    [onClick, ctx]
-  )
   return (
-    <Box onClick={onMeteredClick}>
+    <Box onClick={onClick}>
       <Logo />
       <BadgeBubble>
         <BadgeText>{children}</BadgeText>
