@@ -40,7 +40,7 @@ export const HoverTooltipBox = styled.div<Props>`
   height: 100%;
   width: 100%;
   z-index: 2000;
-  span {
+  span.MazedHoverTooltipOverlay {
     position: absolute;
 
     border-radius: 4px;
@@ -90,12 +90,18 @@ export const HoverTooltip = ({
   transitionDelaySec,
 }: HoverTooltipProps) => {
   placement = placement ?? 'bottom'
+  const tooltipClassName = ['MazedHoverTooltipOverlay']
+  if (className != null) {
+    tooltipClassName.push(className)
+  }
   return (
     <HoverTooltipBox
       placement={placement}
       transitionDelaySec={transitionDelaySec}
     >
-      <HoverTooltipOverlay className={className}>{tooltip}</HoverTooltipOverlay>
+      <HoverTooltipOverlay className={tooltipClassName.join(' ')}>
+        {tooltip}
+      </HoverTooltipOverlay>
       {children}
     </HoverTooltipBox>
   )
