@@ -6,11 +6,12 @@ import styled from '@emotion/styled'
 import LogoImage from '../../../public/logo-strip.svg'
 import { ContentContext } from '../context'
 import { HoverTooltip } from 'elementary'
+import { InsertLink } from '@emotion-icons/material'
 
 const Box = styled.div<{ notify: boolean }>`
   position: relative;
-  height: 26px;
-  width: 26px;
+  height: 28px;
+  width: 28px;
   border-radius: 50%;
 
   border: 1px solid #ececec;
@@ -35,7 +36,7 @@ const Box = styled.div<{ notify: boolean }>`
 const Logo = styled.div`
   position: absolute;
   top: calc(50% - 7.3px);
-  left: calc(50% - 7.5px);
+  left: calc(50% - 7.3px);
   width: 15px;
   height: 15px;
 
@@ -55,6 +56,10 @@ const BadgeText = styled.span`
   color: white;
   font-weight: bold;
   text-decoration: none;
+`
+
+const LinkIcon = styled(InsertLink)`
+  padding-right: 1px;
 `
 
 export const MazedMiniFloater = ({
@@ -90,7 +95,10 @@ export const MazedMiniFloater = ({
         placement="bottom-left"
       >
         <Box onClick={onMeteredClick} notify={true}>
-          <BadgeText>{text}</BadgeText>
+          <BadgeText>
+            <LinkIcon size={10} />
+            {text}
+          </BadgeText>
         </Box>
       </HoverTooltip>
     )
