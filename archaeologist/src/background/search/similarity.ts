@@ -507,7 +507,7 @@ async function ensurePerNodeSimSearchIndexIntegrity(
       )
       if (nodeSimSearchInfo == null) {
         log.info(
-          `Update node similarity index [${ind + 1}/${allNids.length}] ${nid}`
+          `Update similarity index for [${ind + 1}/${allNids.length}] ${nid}`
         )
         const node = await storage.node.get({ nid })
         await updateNodeIndex(storage, nid, { ...node }, tfState, 'updated')

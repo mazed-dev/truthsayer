@@ -48,7 +48,7 @@ function updateUserInputFromKeyboardEvent(
 }
 
 type SimilaritySearchInput = {
-  phrase?: string
+  phrase: string
   isSearchEngine: boolean
 }
 
@@ -136,6 +136,9 @@ export function SuggestedRelatives({
     () =>
       lodash.debounce(
         async (phrase: string) => {
+          if (phrase.length < 4) {
+            log.debug('The phrase is too short to look for suggestions', phrase)
+          }
           setSuggestionsSearchIsActive(true)
           log.debug('Look for the following phrase in Mazed ->', phrase)
           try {
@@ -190,19 +193,17 @@ export function SuggestedRelatives({
   const requestSuggestedAssociations = () => {
     if (userInput != null) {
       const { phrase } = userInput
-      if (phrase.length > 5 && phrase !== suggestedNodes?.phrase) {
+      if (phrase !== suggestedNodes?.phrase) {
         requestSuggestedAssociationsForPhrase(phrase)
       }
       return
     }
     if (pageSimilaritySearchInput != null) {
       const { phrase } = pageSimilaritySearchInput
-      if (phrase != null && phrase.length > 5) {
-        if (phrase !== suggestedNodes?.phrase) {
-          requestSuggestedAssociationsForPhrase(phrase)
-        }
-        return
+      if (phrase !== suggestedNodes?.phrase) {
+        requestSuggestedAssociationsForPhrase(phrase)
       }
+      return
     }
     // Just hide the floater otherwise
     setSuggestedNodes(null)
