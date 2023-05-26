@@ -244,7 +244,7 @@ export function register(storage: StorageApi) {
   ) {
     browser.webNavigation.onBeforeNavigate.addListener(onBeforeNavigateListener)
   }
-  log.debug('WebNavigation module is loaded', timer.elapsed())
+  log.debug('WebNavigation module is loaded', timer.elapsedMs())
   return () => {
     browser.webNavigation.onCreatedNavigationTarget.removeListener(
       onCreatedNavigationTargetListener

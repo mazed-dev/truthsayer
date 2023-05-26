@@ -23,7 +23,6 @@ import { TDoc, Beagle } from 'elementary'
 import CancellationToken from 'cancellationtoken'
 import { log, errorise, AbortError, Timer } from 'armoury'
 import { backgroundpa, BackgroundPosthog } from '../productanalytics'
-import moment from 'moment'
 
 const wink_ = wink.loadModel()
 
@@ -33,12 +32,12 @@ async function createTfState(
   analytics: BackgroundPosthog | null
 ): Promise<tf.TfState> {
   if (_tfState == null) {
-    const startedAt = moment()
+    const timer = new Timer()
     _tfState = await tf.createTfState()
     backgroundpa.performance(
       analytics,
       { action: 'similarity: ML model initial load' },
-      startedAt,
+      timer,
       { andLog: true }
     )
   }
@@ -97,7 +96,7 @@ async function getFastIndex(
   if (_fastIndex != null) {
     return _fastIndex
   }
-  const startedAt = moment()
+  const timer = new Timer()
   const dimensions = tf.sampleDimensions(sampleVector, kProjectionSize)
   const knn = new tf.KNNClassifier()
   const allNids = await storage.node.getAllNids({})
@@ -124,7 +123,7 @@ async function getFastIndex(
   backgroundpa.performance(
     analytics,
     { action: 'similarity: create fast simsearch index' },
-    startedAt,
+    timer,
     { andLog: true }
   )
   _fastIndex = { dimensions, knn }
@@ -193,7 +192,7 @@ export async function findRelevantNodes(
   storage: StorageApi,
   analytics: BackgroundPosthog | null
 ): Promise<RelevantNode[]> {
-  const startedAt = moment()
+  const timer = new Timer()
   throwIfCancelled(cancellationToken)
   const phraseDoc = wink_.readDoc(phrase)
   // Use plaintext search for a small queries, because similarity search based
@@ -228,7 +227,7 @@ export async function findRelevantNodes(
   backgroundpa.performance(
     analytics,
     { action: 'similarity: find relevant nodes', searchEngine },
-    startedAt,
+    timer,
     { andLog: true }
   )
   return relevantNodes
@@ -242,16 +241,16 @@ async function findRelevantNodesUsingSimilaritySearch(
   analytics: BackgroundPosthog | null
 ): Promise<RelevantNode[]> {
   const tfState = await createTfState(analytics)
-  let startedAt = moment()
+  let timer = new Timer()
   const phraseEmbedding = await tfState.encoder.embed(phrase)
   backgroundpa.performance(
     analytics,
     { action: 'similarity: calculate phrase embedding' },
-    startedAt,
+    timer,
     { andLog: true }
   )
   throwIfCancelled(cancellationToken)
-  startedAt = moment()
+  timer = new Timer()
   const fastIndex = await getFastIndex(storage, analytics, phraseEmbedding)
   throwIfCancelled(cancellationToken)
   const phraseEmbeddingProjected = tf.projectVector(
@@ -287,7 +286,7 @@ async function findRelevantNodesUsingSimilaritySearch(
   backgroundpa.performance(
     analytics,
     { action: 'similarity: calculate fast results with KNN' },
-    startedAt,
+    timer,
     { andLog: true }
   )
   // Have similarity search results as a map allows us to have more than 1 quote per node.
@@ -536,13 +535,13 @@ function createNodeEventListener(
       return
     }
     try {
-      const startedAt = moment()
+      const timer = new Timer()
       const tfState = await createTfState(analytics)
       await updateNodeIndex(storage, nid, patch, tfState, type)
       backgroundpa.performance(
         analytics,
         { action: 'similarity: update node index' },
-        startedAt,
+        timer,
         { andLog: true }
       )
     } catch (e) {
@@ -579,12 +578,12 @@ async function ensurePerNodeSimSearchIndexIntegrity(
           `Update similarity index for [${ind + 1}/${allNids.length}] ${nid}`
         )
         const node = await storage.node.get({ nid })
-        const startedAt = moment()
+        const timer = new Timer()
         await updateNodeIndex(storage, nid, { ...node }, tfState, 'updated')
         backgroundpa.performance(
           analytics,
           { action: 'similarity: update node index' },
-          startedAt,
+          timer,
           { andLog: true }
         )
       }

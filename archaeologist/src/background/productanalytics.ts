@@ -6,7 +6,13 @@
 import { PostHog as NodePostHog } from 'posthog-node'
 import browser from 'webextension-polyfill'
 import { v4 as uuidv4 } from 'uuid'
-import { log, errorise, productanalytics, isAnalyticsIdentity } from 'armoury'
+import {
+  log,
+  errorise,
+  productanalytics,
+  isAnalyticsIdentity,
+  Timer,
+} from 'armoury'
 import type { AnalyticsIdentity } from 'armoury'
 import moment from 'moment'
 
@@ -169,23 +175,21 @@ function reportPerformance(
     /** Performance of what action is being reported */
     action: string
   } & EventProperties,
-  /** When did the action start */
-  startedAt: moment.Moment,
+  /** Timer which started counting when the action was started */
+  timer: Timer,
   settings?: Parameters<typeof productanalytics['error']>[2]
 ): void {
-  const duration = moment.duration(moment().diff(startedAt))
-
   analytics?.capture(`performance measurement`, {
     ...data,
     action: data.action,
-    durationMs: duration.asMilliseconds(),
+    durationMs: timer.elapsedMs(),
   })
   if (settings?.andLog) {
     const copy = { ...data }
     // @ts-ignore The operand of a 'delete' operator must be optional
     delete copy.action
     log.debug(
-      `Performance: '${data.action}' - ${duration.asSeconds()}s` +
+      `Performance: '${data.action}' - ${timer.elapsedSecondsPretty()}` +
         (Object.keys(copy).length > 1
           ? ` (props = ${JSON.stringify(copy)})`
           : '')
