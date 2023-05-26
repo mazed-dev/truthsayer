@@ -554,7 +554,7 @@ export function nodeBlockKeyToString(key: NodeBlockKey): string {
 export function nodeBlockKeyFromString(key: string): NodeBlockKey {
   const components = key.split('/')
   if (components.length < 1 || components.length > 2) {
-    throw new Error('Error 445 - TODO(Alexander)')
+    throw new Error(`Invalid format of serialized NodeBlockKey: "${key}"`)
   }
   if (components[0] === 'web-text') {
     if (components.length > 1) {

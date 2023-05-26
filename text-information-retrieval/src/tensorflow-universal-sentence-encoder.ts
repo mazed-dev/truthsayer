@@ -65,8 +65,9 @@ export function projectVector(
   // smaller dimensions, but it's not the faastest one.
   // const projectionVector = tf.randomNormal([query.shape[1], smalerSpaceSize]);
   // return tf.dot(inputVector, projectionVector)
-  // So the simpler and much quicker way is to sample the coordinates of the
-  // original vector, to have vector of
+  //
+  // So the simpler and much quicker way to have vector in a space of fewer
+  // dimensions is to sample the coordinates of the original vector.
   const dataSync = inputVector.dataSync()
   const data = dimensions.map((index: number) => dataSync[index])
   return tf.tensor2d(data, [1, data.length])
