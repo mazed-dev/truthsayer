@@ -4,7 +4,6 @@ import React from 'react'
 import styled from '@emotion/styled'
 
 import LogoImage from '../../../public/logo-strip.svg'
-import { ContentContext } from '../context'
 import { StyleButtonCreate } from 'elementary'
 
 const Box = styled.div`
