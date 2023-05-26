@@ -75,19 +75,8 @@ export const MazedMiniFloater = ({
 }: React.PropsWithChildren<{
   onClick: (event: React.MouseEvent) => void
 }>) => {
-  const ctx = React.useContext(ContentContext)
-  const onMeteredClick = React.useCallback(
-    (event: React.MouseEvent) => {
-      const target = event.target as HTMLDivElement
-      ctx.analytics?.capture('MazedMiniFloater:Click', {
-        targetTagName: target?.tagName.toLowerCase(),
-      })
-      onClick(event)
-    },
-    [onClick, ctx]
-  )
   return (
-    <Box onClick={onMeteredClick}>
+    <Box onClick={onClick}>
       <Logo />
       <BadgeBubble>
         <BadgeText>{children}</BadgeText>
