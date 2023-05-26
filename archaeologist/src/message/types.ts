@@ -62,6 +62,21 @@ export type StorageAccessResponse = {
   value: StorageApiMsgReturnValue
 }
 
+/**
+ * To store information about **showing** product updates and any sort of
+ * announcement, to avoid showing the same message twice -- a courtesy towards
+ * user. If code in repo wants to show a relase note, it should rely on this
+ * config to store information about showing it, just follow these steps:
+ * - Add code to `content/augmentation/ProductUpdateCard` to show the message.
+ * - Show the message, if signature here doesn't match the on in
+ *    `ProductUpdateCard`.
+ * - Make sure, signature of the message gets stored here when message is shown.
+ *
+ * Right now we assume that exactly 1 message needs to be shown at any time.
+ */
+export type ContentAugmentationProductUpdate = {
+  signature: 'foreward-rebranding-26-05-2023'
+}
 export type ContentAugmentationPosition = {
   x: number
   y: number
@@ -69,6 +84,7 @@ export type ContentAugmentationPosition = {
 export type ContentAugmentationSettings = {
   isRevealed?: boolean
   positionY?: number
+  productUpdate?: ContentAugmentationProductUpdate
 }
 export interface ContentAugmentationSettingsResponse {
   type: 'RESPONSE_CONTENT_AUGMENTATION_SETTINGS'
