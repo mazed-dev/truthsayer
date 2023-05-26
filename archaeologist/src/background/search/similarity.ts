@@ -21,19 +21,24 @@ import {
 import { TDoc, Beagle } from 'elementary'
 import CancellationToken from 'cancellationtoken'
 import { log, errorise, AbortError, Timer } from 'armoury'
-import type { BackgroundPosthog } from '../productanalytics'
+import { backgroundpa, BackgroundPosthog } from '../productanalytics'
+import moment from 'moment'
 
 const wink_ = wink.loadModel()
 
 let _tfState: tf.TfState | undefined = undefined
 
-async function createTfState(): Promise<tf.TfState> {
+async function createTfState(
+  analytics: BackgroundPosthog | null
+): Promise<tf.TfState> {
   if (_tfState == null) {
-    const timer = new Timer()
+    const startedAt = moment()
     _tfState = await tf.createTfState()
-    log.debug(
-      'Similarity ML models are loaded in',
-      timer.elapsedSecondsPretty()
+    backgroundpa.performance(
+      analytics,
+      { action: 'similarity: ML model initial load' },
+      startedAt,
+      { andLog: true }
     )
   }
   return _tfState
@@ -64,12 +69,13 @@ let _fastIndex: FastIndex | undefined = undefined
 
 async function getFastIndex(
   storage: StorageApi,
+  analytics: BackgroundPosthog | null,
   sampleVector: tf.Tensor2D
 ): Promise<FastIndex> {
   if (_fastIndex != null) {
     return _fastIndex
   }
-  const timer = new Timer()
+  const startedAt = moment()
   const dimensions = tf.sampleDimensions(sampleVector, 49)
   const knn = new tf.KNNClassifier()
   const allNids = await storage.node.getAllNids({})
@@ -93,7 +99,12 @@ async function getFastIndex(
       knn.addExample(projection, label)
     }
   }
-  log.debug(`Fast simsearch index created in ${timer.elapsedSecondsPretty()}`)
+  backgroundpa.performance(
+    analytics,
+    { action: 'similarity: create fast simsearch index' },
+    startedAt,
+    { andLog: true }
+  )
   _fastIndex = { dimensions, knn }
   return _fastIndex
 }
@@ -158,9 +169,9 @@ export async function findRelevantNodes(
   excludedNids: Set<Nid>,
   cancellationToken: CancellationToken,
   storage: StorageApi,
-  _analytics: BackgroundPosthog | null
+  analytics: BackgroundPosthog | null
 ): Promise<RelevantNode[]> {
-  const timer = new Timer()
+  const startedAt = moment()
   throwIfCancelled(cancellationToken)
   const phraseDoc = wink_.readDoc(phrase)
   // Use plaintext search for a small queries, because similarity search based
@@ -171,10 +182,10 @@ export async function findRelevantNodes(
       'Similarity search failed because search phrase is empty string'
     )
   }
-  let searchEngineName: string
+  let searchEngine: string
   let relevantNodes: RelevantNode[]
   if (phraseLen < 9) {
-    searchEngineName = 'Beagle'
+    searchEngine = 'Beagle'
     relevantNodes = await findRelevantNodesUsingPlainTextSearch(
       phraseDoc,
       storage,
@@ -182,17 +193,20 @@ export async function findRelevantNodes(
       cancellationToken
     )
   } else {
-    searchEngineName = 'TFJS'
+    searchEngine = 'TFJS'
     relevantNodes = await findRelevantNodesUsingSimilaritySearch(
       phrase,
       storage,
       excludedNids,
-      cancellationToken
+      cancellationToken,
+      analytics
     )
   }
-  log.debug(
-    `Similarity search results [${searchEngineName}] in ${timer.elapsedSecondsPretty()}`,
-    relevantNodes
+  backgroundpa.performance(
+    analytics,
+    { action: 'similarity: find relevant nodes', searchEngine },
+    startedAt,
+    { andLog: true }
   )
   return relevantNodes
 }
@@ -201,14 +215,21 @@ async function findRelevantNodesUsingSimilaritySearch(
   phrase: string,
   storage: StorageApi,
   excludedNids: Set<Nid>,
-  cancellationToken: CancellationToken
+  cancellationToken: CancellationToken,
+  analytics: BackgroundPosthog | null
 ): Promise<RelevantNode[]> {
-  const timer = new Timer()
-  const tfState = await createTfState()
+  const tfState = await createTfState(analytics)
+  let startedAt = moment()
   const phraseEmbedding = await tfState.encoder.embed(phrase)
-  log.debug(`Phrase embedding are calculated ${timer.elapsedSecondsPretty()}`)
+  backgroundpa.performance(
+    analytics,
+    { action: 'similarity: calculate phrase embedding' },
+    startedAt,
+    { andLog: true }
+  )
   throwIfCancelled(cancellationToken)
-  const fastIndex = await getFastIndex(storage, phraseEmbedding)
+  startedAt = moment()
+  const fastIndex = await getFastIndex(storage, analytics, phraseEmbedding)
   throwIfCancelled(cancellationToken)
   const phraseEmbeddingProjected = tf.projectVector(
     phraseEmbedding,
@@ -240,9 +261,11 @@ async function findRelevantNodesUsingSimilaritySearch(
     other.push(blockKeyStr)
     fastResultsByNid.set(nid, other)
   }
-  log.debug(
-    `Fast results are calculated with KNN in ${timer.elapsedSecondsPretty()} (${fastIndex.knn.getNumClasses()})`,
-    fastResultsByNid
+  backgroundpa.performance(
+    analytics,
+    { action: 'similarity: calculate fast results with KNN' },
+    startedAt,
+    { andLog: true }
   )
   // Have similarity search results as a map allows us to have more than 1 quote per node.
   let rawSimilarityResults: Map<Nid, { blockKeyStr: string; score: number }[]> =
@@ -474,27 +497,43 @@ async function updateNodeIndex(
   await storage.node.similarity.setIndex({ nid, simsearch })
 }
 
-function createNodeEventListener(storage: StorageApi): NodeEventListener {
-  return (type: NodeEventType, nid: Nid, patch: NodeEventPatch) => {
-    if (type === 'created' || type === 'updated') {
-      createTfState().then((tfState: tf.TfState) => {
-        updateNodeIndex(storage, nid, patch, tfState, type).catch((reason) => {
-          log.error(
-            `Failed to ensure similarity search index integrity for node ${nid}: ${
-              errorise(reason).message
-            }`
-          )
-        })
-      })
+function createNodeEventListener(
+  storage: StorageApi,
+  analytics: BackgroundPosthog | null
+): NodeEventListener {
+  return async (type: NodeEventType, nid: Nid, patch: NodeEventPatch) => {
+    if (type !== 'created' && type !== 'updated') {
+      return
+    }
+    try {
+      const startedAt = moment()
+      const tfState = await createTfState(analytics)
+      await updateNodeIndex(storage, nid, patch, tfState, type)
+      backgroundpa.performance(
+        analytics,
+        { action: 'similarity: update node index' },
+        startedAt,
+        { andLog: true }
+      )
+    } catch (e) {
+      backgroundpa.error(
+        analytics,
+        {
+          location: 'background',
+          cause: errorise(e).message,
+          failedTo: `ensure similarity search index integrity for node`,
+        },
+        { andLog: true }
+      )
     }
   }
 }
 
 async function ensurePerNodeSimSearchIndexIntegrity(
   storage: StorageApi,
-  analytics?: BackgroundPosthog | null
+  analytics: BackgroundPosthog | null
 ): Promise<void> {
-  const tfState = await createTfState()
+  const tfState = await createTfState(analytics)
   const allNids = await storage.node.getAllNids({})
   for (let ind = 0; ind < allNids.length; ++ind) {
     const nid = allNids[ind]
@@ -510,39 +549,48 @@ async function ensurePerNodeSimSearchIndexIntegrity(
           `Update node similarity index [${ind + 1}/${allNids.length}] ${nid}`
         )
         const node = await storage.node.get({ nid })
+        const startedAt = moment()
         await updateNodeIndex(storage, nid, { ...node }, tfState, 'updated')
+        backgroundpa.performance(
+          analytics,
+          { action: 'similarity: update node index' },
+          startedAt,
+          { andLog: true }
+        )
       }
     } catch (e) {
-      const err = errorise(e)
-      const failedTo = `Failed to update similarity search index for node: ${err.message}`
-      log.error(failedTo)
-      analytics?.capture('error', {
-        location: 'background',
-        cause: err.message,
-        failedTo,
-      })
+      backgroundpa.error(
+        analytics,
+        {
+          location: 'background',
+          cause: errorise(e).message,
+          failedTo: 'update similarity search index for node',
+        },
+        { andLog: true }
+      )
     }
   }
 }
 
 export async function register(
   storage: StorageApi,
-  analytics?: BackgroundPosthog | null
+  analytics: BackgroundPosthog | null
 ) {
   const timer = new Timer()
   // Run it as non-blocking async call
-  ensurePerNodeSimSearchIndexIntegrity(storage).catch((reason) => {
-    const err = errorise(reason)
-    const failedTo = `Failed to ensure similarity search index integrity: ${err.message}`
-    log.error(failedTo)
-    analytics?.capture('error', {
-      location: 'background',
-      cause: err.message,
-      failedTo,
-    })
+  ensurePerNodeSimSearchIndexIntegrity(storage, analytics).catch((reason) => {
+    backgroundpa.error(
+      analytics,
+      {
+        location: 'background',
+        cause: errorise(reason).message,
+        failedTo: 'ensure similarity search index integrity',
+      },
+      { andLog: true }
+    )
   })
 
-  const nodeEventListener = createNodeEventListener(storage)
+  const nodeEventListener = createNodeEventListener(storage, analytics)
   storage.node.addListener(nodeEventListener)
   log.debug('Similarity search module is loaded', timer.elapsedSecondsPretty())
   return () => {
