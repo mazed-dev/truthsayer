@@ -40,7 +40,7 @@ export function NodeMedia({
       return (
         <WebBookmark
           ctx={ctx}
-          extattrs={extattrs}
+          node={node}
           strippedRefs={strippedRefs}
           className={className}
           onLaunch={onLaunch}

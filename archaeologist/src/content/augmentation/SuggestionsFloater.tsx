@@ -12,9 +12,8 @@ import {
   WebBookmarkDescriptionConfig,
   ScopedTimedAction,
 } from 'elementary'
-import type { TNode } from 'smuggler-api'
+import type { TNode, NodeBlockKey } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
-import type { LongestCommonContinuousPiece } from 'text-information-retrieval'
 
 import { AugmentationElement } from './Mount'
 import { ContentContext } from '../context'
@@ -115,7 +114,8 @@ const SuggestedCardBox = styled.div`
 
 export type RelevantNodeSuggestion = {
   node: TNode
-  matchedPiece?: LongestCommonContinuousPiece
+  matchedQuotes: NodeBlockKey[]
+  score: number
 }
 
 const SuggestedCard = ({
@@ -149,13 +149,12 @@ const NoSuggestedCardsBox = styled.div`
 
 function getMatchingText({
   node,
-  matchedPiece,
+  matchedQuotes,
 }: RelevantNodeSuggestion): WebBookmarkDescriptionConfig {
-  if (!NodeUtil.isWebBookmark(node) || matchedPiece == null) {
+  if (!NodeUtil.isWebBookmark(node) || !matchedQuotes) {
     return { type: 'none' }
   }
-  const { match, prefix, suffix } = matchedPiece
-  return { type: 'match', prefix, match, suffix }
+  return { type: 'direct-quotes', blocks: matchedQuotes }
 }
 
 type SuggestedCardsProps = {
@@ -178,12 +177,12 @@ const SuggestedCards = ({
       count: nodes.length,
     })
   }, [nodes, analytics])
-  const suggestedCards = nodes.map((RelevantNodeSuggestion) => {
+  const suggestedCards = nodes.map((relevantNodeSuggestion) => {
     return (
       <SuggestedCard
-        key={RelevantNodeSuggestion.node.nid}
-        node={RelevantNodeSuggestion.node}
-        webBookmarkDescriptionConfig={getMatchingText(RelevantNodeSuggestion)}
+        key={relevantNodeSuggestion.node.nid}
+        node={relevantNodeSuggestion.node}
+        webBookmarkDescriptionConfig={getMatchingText(relevantNodeSuggestion)}
       />
     )
   })

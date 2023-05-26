@@ -431,6 +431,22 @@ export type TfEmbeddingJson = {
   shape: [number, number]
 }
 
+export type NodeSimilaritySearchInfoLatest = {
+  signature: 'tf-embed-3'
+  forBlocks: Record<string, TfEmbeddingJson>
+}
+
+export function createNodeSimilaritySearchInfoLatest({
+  forBlocks,
+}: {
+  forBlocks: Record<string, TfEmbeddingJson>
+}): NodeSimilaritySearchInfoLatest {
+  return {
+    forBlocks,
+    signature: 'tf-embed-3',
+  }
+}
+
 export type NodeSimilaritySearchInfo =
   | null
   | {
@@ -442,9 +458,119 @@ export type NodeSimilaritySearchInfo =
       embeddingJson: TfEmbeddingJson
     }
   | {
-      signature: 'tf-embed-1'
+      signature: 'tf-embed-2'
       embeddingJson: TfEmbeddingJson
     }
+  | NodeSimilaritySearchInfoLatest
+
+export function verifySimilaritySearchInfoVersion(
+  simsearch: NodeSimilaritySearchInfo
+): NodeSimilaritySearchInfoLatest | null {
+  if (simsearch?.signature === 'tf-embed-3') {
+    return simsearch
+  }
+  return null
+}
+
+export type NodeBlockKey =
+  | {
+      field: 'web-text' // Text from `TNode.extattrs.web.text`
+      index: number
+    }
+  | {
+      field: 'text' // comment, see `TNode.text`
+    }
+  | {
+      // Index web quote separatelly from the rest of extattrs for better quality
+      // suggestions
+      field: 'web-quote'
+    }
+  | {
+      // To index the entire plain text representation of a node
+      field: '*'
+    }
+  | {
+      // Node or page meta information such as URL, title, author etc.
+      field: 'attrs'
+    }
+
+export function getNextBlockKey(
+  key: NodeBlockKey,
+  node: TNode
+): NodeBlockKey | undefined {
+  switch (key.field) {
+    case 'web-text':
+      const len = node.extattrs?.web?.text?.blocks?.length
+      let { index } = key
+      if (len != null) {
+        index += 1
+        if (index < len) {
+          return { ...key, index }
+        }
+      }
+      return undefined
+    case '*':
+    case 'attrs':
+    case 'text':
+    case 'web-quote':
+      return undefined
+  }
+}
+
+export function getPrevBlockKey(
+  key: NodeBlockKey,
+  _node: TNode
+): NodeBlockKey | undefined {
+  switch (key.field) {
+    case 'web-text':
+      let { index } = key
+      index -= 1
+      if (index > 0) {
+        return { ...key, index }
+      }
+      return undefined
+    case '*':
+    case 'attrs':
+    case 'text':
+    case 'web-quote':
+      return undefined
+  }
+}
+
+export type NodeBlockKeyStr = string
+
+export function nodeBlockKeyToString(key: NodeBlockKey): string {
+  switch (key.field) {
+    case 'web-text':
+      return `${key.field}/${key.index}`
+    case '*':
+    case 'attrs':
+    case 'text':
+    case 'web-quote':
+      return key.field
+  }
+}
+
+export function nodeBlockKeyFromString(key: string): NodeBlockKey {
+  const components = key.split('/')
+  if (components.length < 1 || components.length > 2) {
+    throw new Error(`Invalid format of serialized NodeBlockKey: "${key}"`)
+  }
+  if (components[0] === 'web-text') {
+    if (components.length > 1) {
+      return {
+        field: components[0],
+        index: parseInt(components[1], 10),
+      } as NodeBlockKey
+    } else {
+      throw new Error(
+        'Failed to unpack NodeBlock key of type "web-text" - missing index'
+      )
+    }
+  } else {
+    return { field: components[0] } as NodeBlockKey
+  }
+}
 
 export type TextContentBlockType =
   | 'P' // Paragraph

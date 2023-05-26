@@ -11,7 +11,7 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "lib": [ "ES2020", "esnext" ],
-    "module": "es6",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,

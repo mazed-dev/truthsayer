@@ -4,13 +4,12 @@ import React from 'react'
 
 import { Launch } from '@emotion-icons/material'
 
-import type { NodeExtattrs, PreviewImageSmall } from 'smuggler-api'
+import type { NodeBlockKey, PreviewImageSmall, TNode } from 'smuggler-api'
 import type { Optional } from 'armoury'
 import {
   productanalytics,
   splitStringByWord,
   padNonEmptyStringWithSpaceHead,
-  padNonEmptyStringWithSpaceTail,
 } from 'armoury'
 import { log } from 'armoury'
 import styled from '@emotion/styled'
@@ -226,10 +225,8 @@ export type WebBookmarkDescriptionConfig =
       type: 'none'
     }
   | {
-      type: 'match'
-      match: string
-      prefix: string
-      suffix: string
+      type: 'direct-quotes'
+      blocks: NodeBlockKey[]
     }
 
 const MatchDescriptionSpan = styled.span`
@@ -250,48 +247,6 @@ const MatchDescriptionSeeMoreBtn = styled.span`
     text-decoration: underline;
   }
 `
-
-const BookmarkMatchDescription = ({
-  ctx,
-  url,
-  match,
-  prefix,
-  suffix,
-}: {
-  ctx: ElementaryContext
-  url: string
-  match: string
-  prefix: string
-  suffix: string
-}) => {
-  const [seeMore, setSeeMore] = React.useState<boolean>(false)
-  return (
-    <Description cite={url} className={productanalytics.classExclude()}>
-      {!seeMore ? (
-        <MatchDescriptionContextSpan>{match}</MatchDescriptionContextSpan>
-      ) : (
-        <>
-          <MatchDescriptionContextSpan>
-            {padNonEmptyStringWithSpaceTail(prefix)}
-          </MatchDescriptionContextSpan>
-          <MatchDescriptionSpan>{match}</MatchDescriptionSpan>
-          <MatchDescriptionContextSpan>
-            {padNonEmptyStringWithSpaceHead(suffix)}
-          </MatchDescriptionContextSpan>
-        </>
-      )}
-      &nbsp;
-      <MatchDescriptionSeeMoreBtn
-        onClick={() => {
-          ctx.analytics?.capture('Button:See More', { more: !seeMore })
-          setSeeMore((more) => !more)
-        }}
-      >
-        see&nbsp;{seeMore ? 'less' : 'more'}
-      </MatchDescriptionSeeMoreBtn>
-    </Description>
-  )
-}
 
 const BookmarkOriginalDescription = ({
   ctx,
@@ -335,54 +290,46 @@ const BookmarkOriginalDescription = ({
 const BookmarkDescription = ({
   ctx,
   url,
-  description,
+  node,
   webBookmarkDescriptionConfig,
 }: {
   ctx: ElementaryContext
   url: string
-  description?: string
+  node: TNode
   webBookmarkDescriptionConfig: WebBookmarkDescriptionConfig
 }) => {
   switch (webBookmarkDescriptionConfig.type) {
     case 'none':
       return null
     case 'original':
-      if (!description) {
+      if (!node.extattrs?.description) {
         return null
       }
       return (
         <Description cite={url} className={productanalytics.classExclude()}>
-          {description}
+          {node.extattrs.description}
         </Description>
       )
     case 'original-cutted':
-      if (!description) {
+      if (!node.extattrs?.description) {
         return null
       }
       return (
         <BookmarkOriginalDescription
           ctx={ctx}
           url={url}
-          description={description}
+          description={node.extattrs.description}
         />
       )
-    case 'match':
-      const { match, prefix, suffix } = webBookmarkDescriptionConfig
-      return (
-        <BookmarkMatchDescription
-          ctx={ctx}
-          url={url}
-          match={match}
-          prefix={prefix}
-          suffix={suffix}
-        />
-      )
+    case 'direct-quotes': {
+      return null // TODO(Alexander): To implemented in a separate PR
+    }
   }
 }
 
 type WebBookmarkProps = {
   ctx: ElementaryContext
-  extattrs: NodeExtattrs
+  node: TNode
   className?: string
   strippedRefs?: boolean
   onLaunch?: () => void
@@ -391,17 +338,17 @@ type WebBookmarkProps = {
 
 export const WebBookmark = ({
   ctx,
-  extattrs,
+  node,
   className,
   strippedRefs,
   onLaunch,
   webBookmarkDescriptionConfig,
 }: WebBookmarkProps) => {
-  const { web, preview_image, title, description, author } = extattrs
-  if (web == null) {
+  if (node.extattrs?.web == null) {
     log.debug('Empty web bookmark node')
     return null
   }
+  const { web, preview_image, title, author } = node.extattrs
   const url = web.url
   const hostname = new URL(url).hostname
   const authorBadge = author ? (
@@ -438,7 +385,7 @@ export const WebBookmark = ({
       <BookmarkDescription
         ctx={ctx}
         url={url}
-        description={description}
+        node={node}
         webBookmarkDescriptionConfig={
           webBookmarkDescriptionConfig ?? { type: 'original' }
         }
