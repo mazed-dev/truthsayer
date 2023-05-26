@@ -221,6 +221,17 @@ const MiniFloaterBox = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  position: absolute;
+
+  transform: translate(24px, 0);
+
+  transition-property: transform;
+  transition-duration: 0.8s;
+  transition-delay: 0.8s;
+  transition-timing-function: ease-in-out;
+  &:hover {
+    transform: translate(0, 0);
+  }
   #mazed-archaeologist-suggestions-floater-drag-handle {
     opacity: 0.6;
   }
@@ -238,7 +249,7 @@ type Position2D = { x: number; y: number }
  * because we want it to be always anchored to the rigth edge of the window.
  */
 const getStartDragPosition = (isRevealed: boolean): Position2D =>
-  isRevealed ? { x: -300, y: 72 } : { x: -32, y: 72 }
+  isRevealed ? { x: -300, y: 72 } : { x: -24, y: 72 }
 
 /**
  * Make sure that floter is visisble within a window: not too low or too high -
@@ -380,13 +391,13 @@ export const SuggestionsFloater = ({
               </>
             ) : (
               <MiniFloaterBox>
-                <MazedMiniFloater onClick={() => saveRevealed(true)}>
-                  {nodes.length === 0 ? '…' : nodes.length}
-                </MazedMiniFloater>
-                <DragIndicator
-                  id="mazed-archaeologist-suggestions-floater-drag-handle"
-                  size="22px"
+                <MazedMiniFloater
+                  onClick={() => saveRevealed(true)}
+                  text={
+                    nodes.length === 0 ? undefined : nodes.length.toString()
+                  }
                 />
+                <DragIndicator id="mazed-archaeologist-suggestions-floater-drag-handle" />
               </MiniFloaterBox>
             )}
           </DraggableElement>
