@@ -33,16 +33,18 @@ export class Timer {
     this.start = new Date().getTime()
   }
 
-  elapsed(): number {
+  elapsedMs(): number {
+    return new Date().getTime() - this.start
+  }
+  elapsedSeconds(): number {
     const duration = new Date().getTime() - this.start
-    if (this.eventName) {
-      log.debug(`Timer ${this.eventName} elapsed ${duration / 1000}s`)
-    }
-    return duration
+    return duration / 1000
   }
 
+  elapsedMsPretty(): string {
+    return `${this.elapsedMs()}ms`
+  }
   elapsedSecondsPretty(): string {
-    const duration = new Date().getTime() - this.start
-    return `${duration / 1000}s`
+    return `${this.elapsedSeconds()}s`
   }
 }
