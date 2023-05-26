@@ -6,7 +6,6 @@ import { NodeUtil } from 'smuggler-api'
 import { errorise, log, productanalytics, sleep, isAbortError } from 'armoury'
 
 import { FromBackground, FromContent } from '../../message/types'
-import { extractSimilaritySearchPhraseFromPageContent } from '../extractor/webPageSearchPhrase'
 import { ContentContext } from '../context'
 import { extractSearchEngineQuery } from '../extractor/url/searchEngineQuery'
 import {
@@ -28,20 +27,24 @@ export function getKeyPhraseFromUserInput(
 }
 
 type UserInput = {
-  target: HTMLTextAreaElement | null
-  phrase: string | null
+  target: HTMLTextAreaElement
+  phrase: string
 }
-function updateUserInputFromKeyboardEvent(keyboardEvent: KeyboardEvent) {
+function updateUserInputFromKeyboardEvent(
+  keyboardEvent: KeyboardEvent
+): UserInput | null {
   if ('altKey' in keyboardEvent) {
     const event =
       keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
     const target = event.target as HTMLTextAreaElement
     if (target.isContentEditable || target.tagName === 'TEXTAREA') {
       const phrase = getKeyPhraseFromUserInput(target)
-      return { target, phrase }
+      if (phrase != null) {
+        return { target, phrase }
+      }
     }
   }
-  return { target: null, phrase: null }
+  return null
 }
 
 type SimilaritySearchInput = {
@@ -76,25 +79,28 @@ async function retryIfStillLoading<T>(
   return await fn()
 }
 
+type ReceivedSuggestions = {
+  phrase: string
+  suggestions: RelevantNodeSuggestion[]
+}
+
 export function SuggestedRelatives({
   stableUrl,
   excludeNids,
-  tabActivationCounter,
   tabTitleUpdateCounter,
 }: {
   stableUrl?: string
   excludeNids?: Nid[]
-  // A counter to trigger new suggestions search when user gets back to the tab
-  tabActivationCounter: number
   tabTitleUpdateCounter: number
 }) {
   const analytics = React.useContext(ContentContext).analytics
-  const [suggestedNodes, setSuggestedNodes] = React.useState<
-    RelevantNodeSuggestion[]
-  >([])
+  // Empty list of suggestions is a signal to render floater with no suggestinos
+  // Null-suggestions means floater should not be rendered at all.
+  const [suggestedNodes, setSuggestedNodes] =
+    React.useState<ReceivedSuggestions | null>(null)
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
-  const pageSimilaritySearchInput = React.useMemo<SimilaritySearchInput>(
+  const pageSimilaritySearchInput = React.useMemo<SimilaritySearchInput | null>(
     () => {
       const searchEngineQuery = extractSearchEngineQuery(
         stableUrl ?? document.location.href
@@ -103,13 +109,7 @@ export function SuggestedRelatives({
       if (phrase != null) {
         return { phrase, isSearchEngine: true }
       }
-      const baseURL = stableUrl
-        ? new URL(stableUrl).origin
-        : `${document.location.protocol}//${document.location.host}`
-      phrase =
-        extractSimilaritySearchPhraseFromPageContent(document, baseURL) ??
-        undefined
-      return { phrase, isSearchEngine: false }
+      return null
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -130,7 +130,7 @@ export function SuggestedRelatives({
     ]
   )
 
-  const requestSuggestedAssociations = React.useMemo(
+  const requestSuggestedAssociationsForPhrase = React.useMemo(
     // Using `useMemo` instead of `useCallback` to avoid eslint complains
     // https://kyleshevlin.com/debounce-and-throttle-callbacks-with-react-hooks
     () =>
@@ -152,11 +152,12 @@ export function SuggestedRelatives({
                 intervalMs: 500,
               }
             )
-            setSuggestedNodes(
-              response.suggested.map((item) => {
+            setSuggestedNodes({
+              phrase,
+              suggestions: response.suggested.map((item) => {
                 return { ...item, node: NodeUtil.fromJson(item.node) }
-              })
-            )
+              }),
+            })
             analytics?.capture('Search suggested associations', {
               'Event type': 'search',
               result_length: response.suggested.length,
@@ -185,56 +186,53 @@ export function SuggestedRelatives({
       ),
     [excludeNids, analytics]
   )
-  const [userInput, setUserInput] = React.useState<UserInput>({
-    target: null,
-    phrase: null,
-  })
-  const consumeKeyboardEvent = React.useCallback(
-    (keyboardEvent: KeyboardEvent) => {
-      const newInput = updateUserInputFromKeyboardEvent(keyboardEvent)
-      const { phrase } = newInput
-      if (phrase != null && phrase.length > 3 && userInput.phrase !== phrase) {
-        requestSuggestedAssociations(phrase)
-        setUserInput(newInput)
+  const [userInput, setUserInput] = React.useState<UserInput | null>(null)
+  const requestSuggestedAssociations = () => {
+    if (userInput != null) {
+      const { phrase } = userInput
+      if (phrase.length > 5 && phrase !== suggestedNodes?.phrase) {
+        requestSuggestedAssociationsForPhrase(phrase)
       }
-      return newInput
-    },
-    [userInput, requestSuggestedAssociations]
-  )
-  React.useEffect(() => {
-    const phrase = pageSimilaritySearchInput.phrase
-    if (phrase != null && phrase.length > 8) {
-      requestSuggestedAssociations(phrase)
+      return
     }
-  }, [
+    if (pageSimilaritySearchInput != null) {
+      const { phrase } = pageSimilaritySearchInput
+      if (phrase != null && phrase.length > 5) {
+        if (phrase !== suggestedNodes?.phrase) {
+          requestSuggestedAssociationsForPhrase(phrase)
+        }
+        return
+      }
+    }
+    // Just hide the floater otherwise
+    setSuggestedNodes(null)
+  }
+  React.useEffect(requestSuggestedAssociations, [
     pageSimilaritySearchInput,
-    requestSuggestedAssociations,
-    tabActivationCounter,
+    requestSuggestedAssociationsForPhrase,
+    userInput,
+    suggestedNodes?.phrase,
   ])
   React.useEffect(() => {
+    const consumeKeyboardEvent = (keyboardEvent: KeyboardEvent) => {
+      const newInput = updateUserInputFromKeyboardEvent(keyboardEvent)
+      setUserInput(newInput)
+    }
     const opts: AddEventListenerOptions = { passive: true, capture: true }
     window.addEventListener('keyup', consumeKeyboardEvent, opts)
     return () => {
       window.removeEventListener('keyup', consumeKeyboardEvent, opts)
     }
-  }, [consumeKeyboardEvent])
+  }, [])
+  if (suggestedNodes == null) {
+    return null
+  }
   return (
     <SuggestionsFloater
-      nodes={suggestedNodes}
+      nodes={suggestedNodes.suggestions}
       isLoading={suggestionsSearchIsActive}
-      defaultRevelaed={pageSimilaritySearchInput.isSearchEngine}
-      reloadSuggestions={() => {
-        const phrase = pageSimilaritySearchInput.phrase
-        if (phrase != null && phrase.length > 8) {
-          requestSuggestedAssociations(phrase)?.catch((reason) => {
-            log.error(
-              `Failed to manually reload suggestions: ${
-                errorise(reason).message
-              }`
-            )
-          })
-        }
-      }}
+      defaultRevelaed={pageSimilaritySearchInput?.isSearchEngine ?? false}
+      reloadSuggestions={requestSuggestedAssociations}
     />
   )
 }
