@@ -7,6 +7,7 @@ import type {
   SetNodeSimilaritySearchInfoArgs,
   StorageApi,
 } from 'smuggler-api'
+import { verifySimilaritySearchInfoVersion } from 'smuggler-api'
 import { BackgroundPosthog } from './background/productanalytics'
 
 /**
@@ -201,10 +202,17 @@ const ApproximateSizeOf = {
     },
     similarity: {
       setIndex: (args: SetNodeSimilaritySearchInfoArgs) => {
-        return (
-          ApproxPod.str(args.nid) +
-          ApproxPod.numArray(args.simsearch?.embeddingJson.data)
-        )
+        let allEmbeddingSizeOf = 0
+        const simsearch = verifySimilaritySearchInfoVersion(args.simsearch)
+        if (simsearch != null) {
+          for (const [key, embeddingJson] of Object.entries(
+            simsearch.forBlocks
+          )) {
+            allEmbeddingSizeOf +=
+              ApproxPod.str(key) + ApproxPod.numArray(embeddingJson.data)
+          }
+        }
+        return ApproxPod.str(args.nid) + allEmbeddingSizeOf
       },
     },
   },

@@ -60,3 +60,10 @@ export function sortOutSpacesAroundPunctuation(str: string): string {
     .replace(/\s\s+/g, ' ')
     .trim()
 }
+
+export function truncatePretty(str: string, limit: number) {
+  if (limit < 1) {
+    return str
+  }
+  return str.length > limit ? `${str.slice(0, limit - 1)}…` : str
+}

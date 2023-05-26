@@ -1,7 +1,9 @@
+/** @jsxImportSource @emotion/react */
+
 import React from 'react'
 
 import { NodeUtil } from 'smuggler-api'
-import type { TNode, StorageApi } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 import { ImageNode } from './ImageNode'
 import { WebBookmark, WebBookmarkDescriptionConfig } from './WebBookmark'
 import { WebQuote } from './WebQuote'
@@ -40,10 +42,9 @@ export function NodeMedia({
       return (
         <WebBookmark
           ctx={ctx}
-          extattrs={extattrs}
+          node={node}
           strippedRefs={strippedRefs}
           className={className}
-          onLaunch={onLaunch}
           webBookmarkDescriptionConfig={webBookmarkDescriptionConfig}
         />
       )

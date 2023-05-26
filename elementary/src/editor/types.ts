@@ -3,10 +3,13 @@ import { Element } from 'slate'
 import { ReactEditor } from 'slate-react'
 import { HistoryEditor } from 'slate-history'
 import type {
-  NodeTextData,
   ChunkedDocDeprecated,
   DraftDocDeprecated,
+  NodeBlockKey,
+  NodeTextData,
   SlateText as RawSlateText,
+  TNode,
+  TextContentBlock,
 } from 'smuggler-api'
 
 import lodash from 'lodash'
@@ -467,5 +470,72 @@ export class TDoc {
       len += getSlateDescendantLength(item)
     })
     return len
+  }
+}
+
+export function getNodeBlock(
+  node: TNode,
+  blockKey: NodeBlockKey
+): undefined | TextContentBlock {
+  switch (blockKey.field) {
+    case 'web-text': {
+      let text: string | undefined = undefined
+      if (node.extattrs?.web?.text?.blocks != null) {
+        return node.extattrs?.web?.text?.blocks[blockKey.index]
+      } else {
+        text = node.index_text?.plaintext
+        if (text) {
+          return { type: 'P', text }
+        }
+      }
+      return undefined
+    }
+    case '*': {
+      const lines: string[] = [
+        node.extattrs?.title ?? '',
+        node.extattrs?.author ?? '',
+        node.extattrs?.web_quote?.text ?? '',
+      ]
+      if (node.extattrs?.web?.text) {
+        lines.push(...node.extattrs?.web?.text.blocks.map(({ text }) => text))
+      }
+      if (node.index_text?.plaintext) {
+        lines.push(node.index_text?.plaintext)
+      }
+      if (node.text) {
+        const doc = TDoc.fromNodeTextData(node.text)
+        const docAsPlaintext = doc.genPlainText()
+        lines.push(docAsPlaintext)
+      }
+      return { type: 'P', text: lines.join('\n').trim() }
+    }
+    case 'text':
+      if (node.text) {
+        const doc = TDoc.fromNodeTextData(node.text)
+        return { type: 'P', text: doc.genPlainText() }
+      }
+      return undefined
+    case 'web-quote':
+      const text = node.extattrs?.web_quote?.text
+      if (text) {
+        return { type: 'P', text }
+      }
+      return undefined
+    case 'attrs':
+      return {
+        type: 'P',
+        text: [
+          node.extattrs?.title,
+          node.extattrs?.author,
+          node.extattrs?.description,
+          node.index_text?.labels?.join(', '),
+          node.index_text?.brands?.join(', '),
+          node.extattrs?.web?.url,
+          node.extattrs?.web_quote?.url,
+        ]
+          .filter((v) => v != null)
+          .join('.\n')
+          .trim(),
+      }
   }
 }
