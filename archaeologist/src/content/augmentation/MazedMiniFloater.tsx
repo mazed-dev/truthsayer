@@ -4,7 +4,6 @@ import React from 'react'
 import styled from '@emotion/styled'
 
 import LogoImage from '../../../public/logo-strip.svg'
-import { ContentContext } from '../context'
 import { HoverTooltip } from 'elementary'
 import { InsertLink } from '@emotion-icons/material'
 
@@ -69,21 +68,10 @@ export const MazedMiniFloater = ({
   onClick: (event: React.MouseEvent) => void
   text?: string
 }) => {
-  const ctx = React.useContext(ContentContext)
-  const onMeteredClick = React.useCallback(
-    (event: React.MouseEvent) => {
-      const target = event.target as HTMLDivElement
-      ctx.analytics?.capture('MazedMiniFloater:Click', {
-        targetTagName: target?.tagName.toLowerCase(),
-      })
-      onClick(event)
-    },
-    [onClick, ctx]
-  )
   if (text == null) {
     return (
       <HoverTooltip tooltip="Mazed" placement="bottom-left">
-        <Box onClick={onMeteredClick} notify={false}>
+        <Box onClick={onClick} notify={false}>
           <Logo />
         </Box>
       </HoverTooltip>
@@ -94,7 +82,7 @@ export const MazedMiniFloater = ({
         tooltip="Relavant memories from Mazed"
         placement="bottom-left"
       >
-        <Box onClick={onMeteredClick} notify={true}>
+        <Box onClick={onClick} notify={true}>
           <BadgeText>
             <LinkIcon size={10} />
             {text}
