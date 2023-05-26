@@ -363,6 +363,7 @@ async function handleReadOnlyRequest(
       const baseURL = `${window.location.protocol}//${window.location.host}`
       const nidsExcludedFromSearch = genExcludeNidsForSimilaritySearch(
         state.toNodes,
+        state.fromNodes,
         state.bookmark
       )
       const phrase =
@@ -396,15 +397,16 @@ function mutatingRequestToAction(request: ToContent.MutatingRequest): Action {
 
 function genExcludeNidsForSimilaritySearch(
   toNodes: TNode[],
+  fromNodes: TNode[],
   bookmark?: TNode
 ): Nid[] {
-  return (
-    toNodes
-      // Don't show the page itself and it's quotes among suggested
-      .filter((node) => node.ntype === NodeType.WebQuote)
-      .map((node) => node.nid)
-      .concat(bookmark != null ? [bookmark.nid] : [])
-  )
+  // Don't recommend nodes that are already connected to the node
+  const excludeNids = toNodes.map((node) => node.nid)
+  excludeNids.push(...fromNodes.map((node) => node.nid))
+  if (bookmark != null) {
+    excludeNids.push(bookmark.nid)
+  }
+  return excludeNids
 }
 
 const App = () => {
@@ -499,9 +501,9 @@ const App = () => {
               stableUrl={state.originIdentity.stableUrl}
               excludeNids={genExcludeNidsForSimilaritySearch(
                 state.toNodes,
+                state.fromNodes,
                 state.bookmark
               )}
-              tabActivationCounter={state.tabStatus.activationCounter}
               tabTitleUpdateCounter={state.tabStatus.titleUpdateCounter}
             />
           </>
