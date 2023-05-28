@@ -9,9 +9,9 @@ import {
   getPrevBlockKey,
   nodeBlockKeyToString,
 } from 'smuggler-api'
+
 import type { Optional } from 'armoury'
 import { getNodeBlock } from '../editor/types'
-
 import {
   padNonEmptyStringWithSpaceHead,
   productanalytics,
