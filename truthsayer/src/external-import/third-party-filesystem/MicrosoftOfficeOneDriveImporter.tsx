@@ -151,8 +151,8 @@ export function OneDriveIntegrationManager({
       to a Microsoft account, second one if they didn't*/}
           <AuthenticatedTemplate>
             <Button
-              onClick={() => {
-                oneDriveFs.signOut()
+              onClick={async () => {
+                await oneDriveFs.signOut()
               }}
             >
               <MdiLinkOff />
@@ -183,8 +183,8 @@ export function OneDriveIntegrationManager({
           </AuthenticatedTemplate>
           <UnauthenticatedTemplate>
             <Button
-              onClick={() => {
-                oneDriveFs.signIn()
+              onClick={async () => {
+                await oneDriveFs.signIn()
               }}
             >
               <MdiInsertLink

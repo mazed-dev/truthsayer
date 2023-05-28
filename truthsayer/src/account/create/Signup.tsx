@@ -99,12 +99,11 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
         email: this.state.email,
         signal: this.abortControler.signal,
       })
-      .catch(this.handleSubmitError)
       .then((res) => {
         if (res) {
           this.onSuccessfulRegistration()
         }
-      })
+      }, this.handleSubmitError)
   }
 
   handleSubmitError = (err: any) => {

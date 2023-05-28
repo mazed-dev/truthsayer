@@ -324,7 +324,7 @@ async function handleMessageFromPopup(
       }
     }
     case 'REQUEST_APP_STATUS': {
-      badge.setActive(true)
+      await badge.setActive(true)
       return {
         type: 'APP_STATUS_RESPONSE',
         userUid: ctx.account.getUid(),
@@ -418,7 +418,11 @@ class Background {
   private deinitialisers: (() => void | Promise<void>)[] = []
 
   constructor() {
-    this.ctor()
+    this.ctor().catch((reason) =>
+      log.error(
+        `Background one-time pre-init failed: ${errorise(reason).message}`
+      )
+    )
   }
 
   private async ctor() {
@@ -489,7 +493,7 @@ class Background {
         log.debug(`Background deinit ended`)
       },
     })
-    auth.register(storage)
+    await auth.register(storage)
     log.debug(`Background one-time pre-init ended`)
   }
 
@@ -510,7 +514,7 @@ class Background {
           { type: 'active-mode-content-app', analyticsIdentity }
         )
         await ToContent.sendMessage(tab.id, request)
-        badge.setStatus(
+        await badge.setStatus(
           tab.id,
           request.bookmark != null ? BADGE_MARKER_PAGE_SAVED : undefined
         )
@@ -542,7 +546,7 @@ class Background {
           // report() gets called regardless of what happens in the other parts of
           // browser.tabs.onUpdated (e.g. something throws). Otherwise any part of
           // code that waits on a TabLoad promise will wait forever.
-          TabLoad.report(tab)
+          await TabLoad.report(tab)
         }
       }
 
@@ -585,7 +589,7 @@ class Background {
     // Add custom context menus
     {
       const kMazedContextMenuItemId = 'selection-to-mazed-context-menu-item'
-      browser.contextMenus.removeAll()
+      await browser.contextMenus.removeAll()
       browser.contextMenus.create({
         title: 'Save to Mazed',
         type: 'normal',
@@ -712,7 +716,7 @@ class Background {
           this.state.phase === 'init-done'
             ? this.state.context.account.getUid()
             : undefined
-        badge.setActive(userUid != null)
+        await badge.setActive(userUid != null)
         return {
           type: 'APP_STATUS_RESPONSE',
           userUid,
@@ -722,9 +726,17 @@ class Background {
         }
       }
       case 'REQUEST_TO_LOG_IN': {
+        let initDone = false
         const timeout = new Promise<never>((_, reject) => {
-          sleep(5000).then(() =>
-            reject(`Initialisation after successful login has timed out`)
+          sleep(5000).then(
+            () => {
+              reject(
+                initDone
+                  ? `Initialisation successful, timeout no longer needed`
+                  : `Initialisation after successful login has timed out`
+              )
+            },
+            () => {}
           )
         })
         // The goal of the promise below is to wait until Background.init()
@@ -751,6 +763,7 @@ class Background {
               reject()
             },
           })
+          initDone = true
         })
         await auth.login(message.args)
         const account = await Promise.race([timeout, waitForInit])

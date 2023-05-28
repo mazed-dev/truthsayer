@@ -10,8 +10,10 @@
     "fix:eslint": "yarn lint:eslint --fix",
     "fix:prettier": "yarn lint:prettier --write",
     "fmt": "yarn prettier --write $(find src -name '*.css' -o -name '*.js' -o -name '*.jsx')",
-    "lint": "yarn lint:eslint && yarn lint:prettier && yarn lint:typescript",
+    "lint": "yarn lint:eslint && yarn lint:prettier",
+    "lint:heavy": "yarn lint:eslint:heavy && yarn lint:prettier && yarn lint:typescript",
     "lint:eslint": "yarn eslint \"./src/**/*.{js,jsx,ts,tsx}\"",
+    "lint:eslint:heavy": "yarn lint:eslint --config .eslintrc.heavy.js",
     "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,jsx,json,ts,tsx}\"",
     "lint:typescript": "yarn tsc --build ./ --force",
     "start": "yarn react-scripts start",
@@ -65,12 +67,6 @@
     "typescript": "4.7.3",
     "universal-cookie": "^4.0",
     "use-async-effect": "^2.2.5"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   },
   "browserslist": {
     "production": [

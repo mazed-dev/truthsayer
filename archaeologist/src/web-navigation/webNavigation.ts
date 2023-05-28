@@ -104,7 +104,7 @@ const onCompletedListener = async (
       isRelationTransition(transition, details.url)
     ) {
       log.debug('Register transition (1)', transition.source.url, details.url)
-      reportAssociation(storage, transition.source.url, details.url)
+      await reportAssociation(storage, transition.source.url, details.url)
     }
     _tabTransitionState[details.tabId] = {
       source: { url: details.url },
@@ -122,7 +122,7 @@ const onHistoryStateUpdatedListener = async (
       isRelationTransition(transition, details.url)
     ) {
       log.debug('Register transition (2)', transition.source.url, details.url)
-      reportAssociation(storage, transition.source.url, details.url)
+      await reportAssociation(storage, transition.source.url, details.url)
     }
     _tabTransitionState[details.tabId] = {
       source: { url: details.url },
@@ -144,7 +144,7 @@ const onReferenceFragmentUpdatedListener = async (
         transition.source.url,
         details.url && transition?.transitionType === 'link'
       )
-      reportAssociation(storage, transition.source.url, details.url)
+      await reportAssociation(storage, transition.source.url, details.url)
     }
     _tabTransitionState[details.tabId] = {
       source: { url: details.url },

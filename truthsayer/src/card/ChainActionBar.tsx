@@ -131,12 +131,15 @@ class ChainActionHandler {
         },
         this.abortSignal
       )
-      .then((node) => {
-        if (node) {
-          const { nid } = node
-          goto.node({ navigate: this.navigate, nid })
-        }
-      })
+      .then(
+        (node) => {
+          if (node) {
+            const { nid } = node
+            goto.node({ navigate: this.navigate, nid })
+          }
+        },
+        (reason) => log.error(`Failed to create node: ${reason}`)
+      )
   }
 
   handleNextClone = (
@@ -152,12 +155,15 @@ class ChainActionHandler {
       from: side === 'right' ? this.nid : undefined,
       to: side === 'left' ? this.nid : undefined,
       abortSignal: this.abortSignal,
-    }).then((node) => {
-      if (node) {
-        const { nid } = node
-        goto.node({ navigate: this.navigate, nid })
-      }
-    })
+    }).then(
+      (node) => {
+        if (node) {
+          const { nid } = node
+          goto.node({ navigate: this.navigate, nid })
+        }
+      },
+      (reason) => log.error(`Failed to clone node: ${reason}`)
+    )
   }
 }
 

@@ -166,8 +166,12 @@ export namespace BrowserHistoryUpload {
     }
     shouldCancelBrowserHistoryUpload = false
 
-    reportProgress({ processed: items.length, total: items.length })
-    reportProgress.flush()
+    reportProgress({ processed: items.length, total: items.length })?.catch(
+      (reason) => log.error(`Failed to report progress: ${reason}`)
+    )
+    reportProgress
+      .flush()
+      ?.catch((reason) => log.error(`Failed to report progress: ${reason}`))
     await advanceIngestionProgress.flush()
   }
 

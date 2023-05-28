@@ -15,7 +15,7 @@ const _lastUpdateTime: SmugglerTokenLastUpdateCookies = { time: 0 }
 const _authKnocker = new Knocker(
   async () => {
     try {
-      _logoutHandler()
+      await _logoutHandler()
     } catch (e) {
       const err = errorise(e)
       if (!isAbortError(err)) {
@@ -166,7 +166,7 @@ export async function register(storage: StorageApi) {
   }
   if (accountInfo != null) {
     const userAccount = UserAccount.fromAccountInfo(accountInfo)
-    _loginHandler(userAccount)
+    await _loginHandler(userAccount)
   }
   log.debug('Authorisation module is registered', timer.elapsedSecondsPretty())
   return async () => {

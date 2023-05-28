@@ -127,7 +127,9 @@ class SearchGridWithHist extends React.Component<
     })
   }
   componentDidMount() {
-    this.resetSearchState()
+    this.resetSearchState().catch(() =>
+      log.error('Failed to reset search state')
+    )
     if (!this.props.portable) {
       window.addEventListener('scroll', this.fetchNextBatch, {
         passive: true,
@@ -141,7 +143,9 @@ class SearchGridWithHist extends React.Component<
   }
   componentDidUpdate(prevProps: SearchGridWithHistProps) {
     if (this.props.q !== prevProps.q) {
-      this.resetSearchState()
+      this.resetSearchState().catch((reason) =>
+        log.error(`Failed to reset search state: ${reason}`)
+      )
     }
   }
   async resetSearchState(): Promise<void> {

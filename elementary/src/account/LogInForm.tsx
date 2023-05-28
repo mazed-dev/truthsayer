@@ -37,9 +37,9 @@ export const LoginForm = ({
   const [email, setEmail] = React.useState<string>('')
   const [password, setPassword] = React.useState<string>('')
   const onSubmit_ = React.useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+    async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault()
-      onSubmit(email, password)
+      await onSubmit(email, password)
     },
     [email, password]
   )

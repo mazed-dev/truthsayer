@@ -99,7 +99,7 @@ export class Knocker {
    * during construction.
    * @see stop() for a side effect-free version.
    */
-  abort = async () => {
+  abort = () => {
     this.stop()
     if (this.#abortCallback) {
       this.#abortCallback()
@@ -120,7 +120,7 @@ export class Knocker {
       if (this.#knockingPeriodSeconds < now - lastUpdateTime) {
         log.debug('Knock-knock smuggler', now, lastUpdateTime)
         await authentication.session.update(this.#abortController.signal)
-        this.setLastUpdate({ time: now })
+        await this.setLastUpdate({ time: now })
 
         try {
           if (onKnockSuccess != null) {

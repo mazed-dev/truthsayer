@@ -255,17 +255,19 @@ const SignUp = () => {
         name: email.split('@')[0],
         email: email,
       })
-      .catch((err) => {
-        log.error('User registration failed with', err)
-      })
-      .then((res) => {
-        if (res) {
-          goto.notice.youAreInWaitingList(navigate, {
-            name: email.split('@')[0],
-            email: email,
-          })
+      .then(
+        (res) => {
+          if (res) {
+            goto.notice.youAreInWaitingList(navigate, {
+              name: email.split('@')[0],
+              email: email,
+            })
+          }
+        },
+        (err) => {
+          log.error('User registration failed with', err)
         }
-      })
+      )
   }
   return (
     <SignUpBox>
