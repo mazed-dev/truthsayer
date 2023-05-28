@@ -101,7 +101,7 @@ const SuggestedCardBox = styled.div`
   word-break: normal;
 
   margin: 2px 4px 2px 4px;
-  padding-bottom: 10px;
+  padding-bottom: 5px;
   &:last-child {
     margin: 2px 4px 0px 4px;
   }
@@ -270,7 +270,9 @@ export const SuggestionsFloater = ({
 }) => {
   const nodeRef = React.useRef(null)
   const [controlledPosition, setControlledPosition] =
-    React.useState<Position2D | null>(null) // getStartDragPosition(false))
+    React.useState<Position2D | null>(null)
+  // Floater can be open by default **only** if there is something to suggest.
+  defaultRevelaed = defaultRevelaed && nodes.length > 0
   const [isRevealed, setRevealed] = React.useState<boolean>(defaultRevelaed)
 
   const analytics = React.useContext(ContentContext).analytics

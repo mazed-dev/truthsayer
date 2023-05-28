@@ -28,6 +28,8 @@ const wink_ = wink.loadModel()
 
 let _tfState: tf.TfState | undefined = undefined
 
+const kNumberOfQuotesPerNodeLimit: number = 1
+
 async function createTfState(
   analytics: BackgroundPosthog | null
 ): Promise<tf.TfState> {
@@ -203,8 +205,8 @@ export async function findRelevantNodes(
       'Similarity search failed because search phrase is empty string'
     )
   }
-  let searchEngine: string
   let relevantNodes: RelevantNode[]
+  let searchEngine: string
   // We fall back to using plain text search, if search phrase is short.
   if (phraseLen < 9) {
     searchEngine = 'Beagle'
@@ -371,7 +373,10 @@ async function findRelevantNodesUsingSimilaritySearch(
     directQuoteBlocks.sort((ar, br) => ar.score - br.score)
     // Limit number of quotes per node and repack
     const matchedQuotes: NodeBlockKey[] = []
-    for (const { blockKey } of directQuoteBlocks.slice(0, 3)) {
+    for (const { blockKey } of directQuoteBlocks.slice(
+      0,
+      kNumberOfQuotesPerNodeLimit
+    )) {
       if (blockKey != null) {
         matchedQuotes.push(blockKey)
       }
@@ -431,7 +436,7 @@ function getNodePatchAsString(patch: NodeEventPatch): {
 } {
   let coment: string | undefined = undefined
   const textContentBlocks: TextContentBlock[] = []
-  let attrs: (string | undefined)[] = [
+  const attrs: (string | undefined)[] = [
     patch.extattrs?.title,
     patch.extattrs?.author,
     patch.extattrs?.description,
@@ -439,7 +444,7 @@ function getNodePatchAsString(patch: NodeEventPatch): {
     patch.index_text?.brands?.join(', '),
     patch.extattrs?.web?.url,
     patch.extattrs?.web_quote?.url,
-  ]
+  ].filter((v) => v != null)
   let lines: (string | undefined)[] = [...attrs]
   if (patch.extattrs?.web?.text) {
     textContentBlocks.push(...patch.extattrs?.web?.text.blocks)
@@ -472,10 +477,7 @@ function getNodePatchAsString(patch: NodeEventPatch): {
     textContentBlocks,
     coment,
     extQuote,
-    attrs: attrs
-      .filter((v) => v != null)
-      .join('. ')
-      .trim(),
+    attrs: attrs.join('.\n').trim(),
   }
 }
 
