@@ -28,6 +28,8 @@ const wink_ = wink.loadModel()
 
 let _tfState: tf.TfState | undefined = undefined
 
+const kNumberOfQuotesPerNodeLimit: number = 1
+
 async function createTfState(
   analytics: BackgroundPosthog | null
 ): Promise<tf.TfState> {
@@ -371,7 +373,7 @@ async function findRelevantNodesUsingSimilaritySearch(
     directQuoteBlocks.sort((ar, br) => ar.score - br.score)
     // Limit number of quotes per node and repack
     const matchedQuotes: NodeBlockKey[] = []
-    for (const { blockKey } of directQuoteBlocks.slice(0, 3)) {
+    for (const { blockKey } of directQuoteBlocks.slice(0, kNumberOfQuotesPerNodeLimit)) {
       if (blockKey != null) {
         matchedQuotes.push(blockKey)
       }
