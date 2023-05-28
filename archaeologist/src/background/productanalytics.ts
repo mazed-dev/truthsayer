@@ -6,7 +6,13 @@
 import { PostHog as NodePostHog } from 'posthog-node'
 import browser from 'webextension-polyfill'
 import { v4 as uuidv4 } from 'uuid'
-import { log, errorise, productanalytics, isAnalyticsIdentity } from 'armoury'
+import {
+  log,
+  errorise,
+  productanalytics,
+  isAnalyticsIdentity,
+  Timer,
+} from 'armoury'
 import type { AnalyticsIdentity } from 'armoury'
 
 const kLogCategory = '[productanalytics/archaeologist/background]'
@@ -118,7 +124,82 @@ async function identity(
   return ret
 }
 
+/**
+ * A copy-paste of armoury.productanalytics.warning(), due to divergent
+ * analytics types.
+ */
+function captureWarning(
+  analytics: BackgroundPosthog | null,
+  data: Parameters<typeof productanalytics['warning']>[1] & {
+    location: 'background'
+  },
+  settings?: Parameters<typeof productanalytics['warning']>[2]
+) {
+  analytics?.capture('warning', {
+    ...data,
+    failedTo: `Failed to ${data.failedTo}`,
+  })
+  if (settings?.andLog) {
+    log.error(
+      `${data.location}: Failed to ${data.failedTo}, cause = '${data.cause}'`
+    )
+  }
+}
+
+/**
+ * A copy-paste of armoury.productanalytics.warning(), due to divergent
+ * analytics types.
+ */
+function captureError(
+  analytics: BackgroundPosthog | null,
+  data: Parameters<typeof productanalytics['error']>[1] & {
+    location: 'background'
+  },
+  settings?: Parameters<typeof productanalytics['error']>[2]
+) {
+  analytics?.capture('error', {
+    ...data,
+    failedTo: `Failed to ${data.failedTo}`,
+  })
+  if (settings?.andLog) {
+    log.error(
+      `${data.location}: Failed to ${data.failedTo}, cause = '${data.cause}'`
+    )
+  }
+}
+
+function reportPerformance(
+  analytics: BackgroundPosthog | null,
+  data: {
+    /** Performance of what action is being reported */
+    action: string
+  } & EventProperties,
+  /** Timer which started counting when the action was started */
+  timer: Timer,
+  settings?: Parameters<typeof productanalytics['error']>[2]
+): void {
+  analytics?.capture(`performance measurement`, {
+    ...data,
+    action: data.action,
+    durationMs: timer.elapsedMs(),
+  })
+  if (settings?.andLog) {
+    const copy = { ...data }
+    // @ts-ignore The operand of a 'delete' operator must be optional
+    delete copy.action
+    log.debug(
+      `Performance: '${data.action}' - ${timer.elapsedSecondsPretty()}` +
+        (Object.keys(copy).length > 1
+          ? ` (props = ${JSON.stringify(copy)})`
+          : '')
+    )
+  }
+}
+
 export const backgroundpa = {
   make,
   getIdentity: identity,
+  warning: captureWarning,
+  error: captureError,
+  performance: reportPerformance,
 }

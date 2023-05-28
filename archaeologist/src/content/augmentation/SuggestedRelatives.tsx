@@ -191,6 +191,7 @@ export function SuggestedRelatives({
   )
   const [userInput, setUserInput] = React.useState<UserInput | null>(null)
   const requestSuggestedAssociations = () => {
+<<<<<<< HEAD
     if (userInput != null) {
       const { phrase } = userInput
       if (phrase !== suggestedNodes?.phrase) {
@@ -204,9 +205,29 @@ export function SuggestedRelatives({
         requestSuggestedAssociationsForPhrase(phrase)
       }
       return
+=======
+    const tmp = async () => {
+      if (userInput != null) {
+        const { phrase } = userInput
+        if (phrase !== suggestedNodes?.phrase) {
+          await requestSuggestedAssociationsForPhrase(phrase)
+        }
+        return
+      }
+      if (pageSimilaritySearchInput != null) {
+        const { phrase } = pageSimilaritySearchInput
+        if (phrase !== suggestedNodes?.phrase) {
+          await requestSuggestedAssociationsForPhrase(phrase)
+        }
+        return
+      }
+      // Just hide the floater otherwise
+      setSuggestedNodes(null)
+>>>>>>> main
     }
-    // Just hide the floater otherwise
-    setSuggestedNodes(null)
+    tmp().catch((reason) =>
+      log.error(`Failed to request suggestions: ${reason}`)
+    )
   }
   React.useEffect(requestSuggestedAssociations, [
     pageSimilaritySearchInput,

@@ -260,8 +260,8 @@ function BrowserHistoryImportControlForOnboarding({
           will be closed automatically.
         </Comment>
         <OnboardingButton
-          onClick={() => {
-            startUpload({
+          onClick={async () => {
+            await startUpload({
               mode: 'untracked',
               unixtime: {
                 start: moment().subtract(31, 'days').unix(),

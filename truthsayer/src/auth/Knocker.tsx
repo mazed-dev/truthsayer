@@ -1,3 +1,4 @@
+import { log } from 'armoury'
 import React from 'react'
 
 import { Knocker as KnockerEngine, authCookie } from 'smuggler-api'
@@ -7,7 +8,9 @@ export function KnockerElement() {
     const knocker = new KnockerEngine(() => {
       authCookie.veil.drop()
     })
-    knocker.start({})
+    knocker
+      .start({})
+      .catch((reason) => log.error(`Failed to start knocker: ${reason}`))
     return () => {
       knocker.stop()
     }

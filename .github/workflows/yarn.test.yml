@@ -32,7 +32,7 @@ jobs:
         run: yarn build-libs
 
       - name: Run linters
-        run: yarn lint
+        run: yarn lint:heavy
 
       - name: Build archaeologist
         run: yarn archaeologist build:chrome:public
