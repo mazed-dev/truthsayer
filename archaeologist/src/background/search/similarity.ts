@@ -373,7 +373,10 @@ async function findRelevantNodesUsingSimilaritySearch(
     directQuoteBlocks.sort((ar, br) => ar.score - br.score)
     // Limit number of quotes per node and repack
     const matchedQuotes: NodeBlockKey[] = []
-    for (const { blockKey } of directQuoteBlocks.slice(0, kNumberOfQuotesPerNodeLimit)) {
+    for (const { blockKey } of directQuoteBlocks.slice(
+      0,
+      kNumberOfQuotesPerNodeLimit
+    )) {
       if (blockKey != null) {
         matchedQuotes.push(blockKey)
       }
