@@ -2,12 +2,12 @@
 
 import React from 'react'
 
-import type { TNode, PreviewImageSmall, NodeBlockKey } from 'smuggler-api'
+import type { NodeBlockKey, PreviewImageSmall, TNode } from 'smuggler-api'
 import {
-  nodeBlockKeyToString,
+  TextContentBlock,
   getNextBlockKey,
   getPrevBlockKey,
-  TextContentBlock,
+  nodeBlockKeyToString,
 } from 'smuggler-api'
 import type { Optional } from 'armoury'
 import { getNodeBlock } from '../editor/types'
