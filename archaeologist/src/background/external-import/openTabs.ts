@@ -39,11 +39,15 @@ export namespace OpenTabs {
       index++
     ) {
       await upload(storage, tabs[index])
-      reportProgress({ processed: index, total: tabs.length })
+      reportProgress({ processed: index, total: tabs.length })?.catch(
+        (reason) => log.error(`Failed to report progress: ${reason}`)
+      )
     }
     shouldCancelOpenTabsUpload = false
 
-    reportProgress({ processed: tabs.length, total: tabs.length })
+    reportProgress({ processed: tabs.length, total: tabs.length })?.catch(
+      (reason) => log.error(`Failed to report progress: ${reason}`)
+    )
     await reportProgress.flush()
   }
 

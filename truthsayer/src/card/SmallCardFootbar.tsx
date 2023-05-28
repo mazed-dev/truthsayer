@@ -55,13 +55,16 @@ class PrivateMenu extends React.Component {
         eid: this.props.edge.eid,
         signal: this.toggleStickinessAbortController.signal,
       })
-      .then((res) => {
-        const { switchStickiness, edge } = this.props
-        if (res) {
-          this.setState({ isSticky })
-          switchStickiness(edge, isSticky)
-        }
-      })
+      .then(
+        (res) => {
+          const { switchStickiness, edge } = this.props
+          if (res) {
+            this.setState({ isSticky })
+            switchStickiness(edge, isSticky)
+          }
+        },
+        (reason) => log.error(`Failed to switch stickiness: ${reason}`)
+      )
   }
 
   handleRefCutOff = () => {
@@ -73,11 +76,14 @@ class PrivateMenu extends React.Component {
         },
         this.deleteEdgeAbortController.signal
       )
-      .then((res) => {
-        if (res) {
-          this.props.cutOffRef(eid)
-        }
-      })
+      .then(
+        (res) => {
+          if (res) {
+            this.props.cutOffRef(eid)
+          }
+        },
+        (reason) => log.error(`Failed to cut off ref: ${reason}`)
+      )
   }
 
   render() {

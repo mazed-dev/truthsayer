@@ -11,8 +11,10 @@
     "fix": "yarn fix:prettier && yarn fix:eslint",
     "fix:eslint": "yarn lint:eslint --fix",
     "fix:prettier": "yarn lint:prettier --write",
-    "lint": "yarn lint:eslint && yarn lint:prettier && yarn lint:typescript",
+    "lint": "yarn lint:eslint && yarn lint:prettier",
+    "lint:heavy": "yarn lint:eslint:heavy && yarn lint:prettier && yarn lint:typescript",
     "lint:eslint": "yarn eslint \"./src/**/*.{js,ts}\"",
+    "lint:eslint:heavy": "yarn lint:eslint --config ../.eslintrc.heavy.js",
     "lint:prettier": "yarn prettier --check \"./{src,test}/**/*.{css,md,js,json,ts}\"",
     "lint:typescript": "yarn tsc --build ./ --force",
     "test": "yarn jest"

@@ -28,9 +28,9 @@ export function NodeCard({
   // original page e.g. on a preview image click
   onMediaLaunch?: () => void
 }) {
-  const saveText = (text: SlateText) => {
+  const saveText = async (text: SlateText) => {
     const doc = new TDoc(text)
-    saveNode(doc.toNodeTextData())
+    await saveNode(doc.toNodeTextData())
   }
   return (
     <NodeCardBox className={className}>

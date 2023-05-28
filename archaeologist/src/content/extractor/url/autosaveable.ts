@@ -103,8 +103,14 @@ export function isPageAutosaveable(url: string, document_?: Document): boolean {
     return false
   }
   if (document_ == null) {
-    log.debug('There is no document - autosaving is blocked for', url)
-    return false
+    // A null document is intentionally not treated as an error -- if it was an
+    // error then we'd change the type signature from `Document | undefined` to
+    // just `Document`.
+    // Instead, an option to call this helper without a document is provided
+    // for workflows where a URL has not been opened by a user, but a preliminary
+    // 'savability' check is useful. Browser history import is an example of such
+    // a workflow.
+    return true
   }
   if (_isTitleOfNotFoundPage(document_.title)) {
     log.debug('The page is likely 404 - autosaving is blocked for', url)
