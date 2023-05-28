@@ -28,7 +28,7 @@ fi
 
 yarn
 yarn build-libs
-yarn lint
+yarn lint:heavy
 yarn test
 
 yarn archaeologist build:chrome:public

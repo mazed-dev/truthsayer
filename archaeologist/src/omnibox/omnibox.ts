@@ -82,18 +82,18 @@ function getUrlToOpen(text: string): URL {
   return truthsayer.url.makeSearch(text)
 }
 
-const inputEnteredListener = (
+const inputEnteredListener = async (
   text: string,
   disposition: browser.Omnibox.OnInputEnteredDisposition
 ) => {
   const url = getUrlToOpen(text).toString()
   if (disposition === 'newForegroundTab') {
-    browser.tabs.create({ url, active: true })
+    await browser.tabs.create({ url, active: true })
   } else if (disposition === 'newBackgroundTab') {
-    browser.tabs.create({ url, active: false })
+    await browser.tabs.create({ url, active: false })
   } else {
     // disposition === 'currentTab'
-    browser.tabs.update(undefined, { url })
+    await browser.tabs.update(undefined, { url })
   }
 }
 
@@ -129,7 +129,7 @@ function getSuggestionsLimit(): number {
   return 10
 }
 
-const inputChangedListener = (
+const inputChangedListener = async (
   storage: StorageApi,
   text: string,
   suggest: (suggestResults: browser.Omnibox.SuggestResult[]) => void
@@ -141,7 +141,7 @@ const inputChangedListener = (
   })
   // Omnibox suggestions fit in only 10 elements, no need to look for more.
   // 1 + 9: 1 default suggestion and 9 search results
-  lookUpAndSuggestFor(storage, text, getSuggestionsLimit(), suggest)
+  await lookUpAndSuggestFor(storage, text, getSuggestionsLimit(), suggest)
 }
 
 const inputStartedListener = () => {
@@ -156,11 +156,11 @@ export function register(storage: StorageApi) {
   if (!browser.omnibox.onInputEntered.hasListener(inputEnteredListener)) {
     browser.omnibox.onInputEntered.addListener(inputEnteredListener)
   }
-  const inputChangedCb = (
+  const inputChangedCb = async (
     text: string,
     suggest: (suggestResults: browser.Omnibox.SuggestResult[]) => void
   ) => {
-    inputChangedListener(storage, text, suggest)
+    await inputChangedListener(storage, text, suggest)
   }
   if (!browser.omnibox.onInputChanged.hasListener(inputChangedCb)) {
     browser.omnibox.onInputChanged.addListener(inputChangedCb)

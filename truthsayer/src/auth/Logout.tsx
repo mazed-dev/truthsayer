@@ -1,3 +1,4 @@
+import { log } from 'armoury'
 import React, { useEffect, useRef, useContext } from 'react'
 
 import { authCookie, authentication } from 'smuggler-api'
@@ -25,17 +26,22 @@ export const Logout = () => {
         .delete({
           signal: abortControllerRef.current.signal,
         })
-        .then((res) => {
-          if (res != null) {
-            authCookie.veil.drop()
-            FromTruthsayer.sendMessage({
-              type: 'CHECK_AUTHORISATION_STATUS_REQUEST',
-            })
-            goto.notice.seeYou({})
-          } else {
-            goto.notice.error({})
-          }
-        })
+        .then(
+          (res) => {
+            if (res != null) {
+              authCookie.veil.drop()
+              FromTruthsayer.sendMessage({
+                type: 'CHECK_AUTHORISATION_STATUS_REQUEST',
+              }).catch((reason) =>
+                log.error(`Failed to check auth status: ${reason}`)
+              )
+              goto.notice.seeYou({})
+            } else {
+              goto.notice.error({})
+            }
+          },
+          () => goto.notice.error({})
+        )
     }
   }, [ctx.account])
 

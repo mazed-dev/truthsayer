@@ -67,14 +67,14 @@ export const CopyFieldHandle = ({
   const [tooltipText, setTooltipText] = React.useState<string>(
     tooltip ?? 'Copy to Clipboard'
   )
-  const onClickReal = () => {
+  const onClickReal = async () => {
     ctx.analytics?.capture('Button:Copy', {
       text: analytics.subject,
       'Event type': 'click',
     })
     const textToCopy = getTextToCopy()
     if (textToCopy != null) {
-      navigator.clipboard.writeText(textToCopy)
+      await navigator.clipboard.writeText(textToCopy)
       setTooltipText('Copied')
     }
   }

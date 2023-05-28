@@ -522,7 +522,7 @@ async function updateNodeIndex(
     forBlocks[blockKeyStr] = tf.tensor2dToJson(embedding)
   }
   const simsearch = createNodeSimilaritySearchInfoLatest({ forBlocks })
-  updateNodeFastIndex(nid, simsearch, updateType)
+  await updateNodeFastIndex(nid, simsearch, updateType)
   await storage.node.similarity.setIndex({ nid, simsearch })
 }
 

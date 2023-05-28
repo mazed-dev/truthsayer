@@ -78,16 +78,18 @@ class PasswordRecoverRequestImpl extends React.Component<
         email: this.state.email,
         signal: this.abortControler.signal,
       })
-      .catch((err) => {
-        alert(`Error ${err}`)
-      })
-      .then((res) => {
-        if (res) {
-          this.setState({
-            reset_request_is_sent: true,
-          })
+      .then(
+        (res) => {
+          if (res) {
+            this.setState({
+              reset_request_is_sent: true,
+            })
+          }
+        },
+        (err) => {
+          alert(`Error ${err}`)
         }
-      })
+      )
   }
 
   onGoBackToMain = () => {

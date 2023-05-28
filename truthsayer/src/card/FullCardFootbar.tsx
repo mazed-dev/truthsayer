@@ -29,7 +29,7 @@ import {
   FootbarDropdownMenu,
   FootbarDropdownToggleMeatballs,
 } from './Footbar'
-import { Optional } from 'armoury'
+import { log, Optional } from 'armoury'
 
 function nodeToMarkdown(node: TNode, storage: StorageApi) {
   let md = ''
@@ -67,36 +67,44 @@ class PrivateFullCardFootbarImpl extends React.Component<
 
   handleCopyMarkdown = () => {
     const toaster = this.props.context.toaster
-    this.props.getMarkdown().then((md) => {
-      navigator.clipboard.writeText(md).then(
-        () => {
-          /* clipboard successfully set */
-          toaster.push(
-            <NotificationToast
-              title={'Copied'}
-              message={'Note copied to clipboard as markdown'}
-              key={this.props.nid}
-            />
-          )
-        },
-        () => {
-          /* clipboard write failed */
-          toaster.push(
-            <NotificationToast
-              title={'Error'}
-              message={'Write to system clipboard failed'}
-              key={this.props.nid}
-            />
-          )
-        }
-      )
-    })
+    this.props.getMarkdown().then(
+      (md) => {
+        navigator.clipboard.writeText(md).then(
+          () => {
+            /* clipboard successfully set */
+            toaster.push(
+              <NotificationToast
+                title={'Copied'}
+                message={'Note copied to clipboard as markdown'}
+                key={this.props.nid}
+              />
+            )
+          },
+          () => {
+            /* clipboard write failed */
+            toaster.push(
+              <NotificationToast
+                title={'Error'}
+                message={'Write to system clipboard failed'}
+                key={this.props.nid}
+              />
+            )
+          }
+        )
+      },
+      (reason) => log.error(`Failed to get markdown: ${reason}`)
+    )
   }
 
   handleDownloadMarkdown = () => {
-    this.props.getMarkdown().then((md) => {
-      downloadAsFile(`${this.props.nid}.txt`, md)
-    })
+    this.props.getMarkdown().then(
+      (md) => {
+        downloadAsFile(`${this.props.nid}.txt`, md).catch((reason) =>
+          log.error(`Failed to download markdown as file: ${reason}`)
+        )
+      },
+      (reason) => log.error(`Failed to get markdown: ${reason}`)
+    )
   }
 
   handleArchiveDoc = () => {
@@ -119,18 +127,21 @@ class PrivateFullCardFootbarImpl extends React.Component<
         },
         this.deleteAbortController.signal
       )
-      .then(() => {
-        toaster.push(
-          <NotificationToast
-            title={'Moved to bin'}
-            message={
-              'Notes that have been in the bin for more than 28 days will be deleted automatically'
-            }
-            key={this.props.nid}
-          />
-        )
-        goto.default({ navigate: this.props.navigate })
-      })
+      .then(
+        () => {
+          toaster.push(
+            <NotificationToast
+              title={'Moved to bin'}
+              message={
+                'Notes that have been in the bin for more than 28 days will be deleted automatically'
+              }
+              key={this.props.nid}
+            />
+          )
+          goto.default({ navigate: this.props.navigate })
+        },
+        (reason) => log.error(`Failed to delete node: ${reason}`)
+      )
   }
 
   render() {
