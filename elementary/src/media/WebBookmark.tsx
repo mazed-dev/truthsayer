@@ -199,7 +199,7 @@ const DirectQuote = styled.div`
   line-height: 142%;
   overflow-wrap: break-word;
   word-break: normal;
-  padding: 10px 10px 0 10px;
+  padding: 6px 10px 0 10px;
   margin: 0;
   color: inherit;
 `
