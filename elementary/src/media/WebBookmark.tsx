@@ -2,7 +2,7 @@
 
 import React from 'react'
 
-import type { NodeBlockKey, PreviewImageSmall, TNode, } from 'smuggler-api'
+import type { NodeBlockKey, PreviewImageSmall, TNode } from 'smuggler-api'
 import {
   TextContentBlock,
   getNextBlockKey,
