@@ -4,7 +4,7 @@ import { useAsyncEffect } from 'use-async-effect'
 
 import * as truthsayer_archaeologist_communication from 'truthsayer-archaeologist-communication'
 import { Spinner } from 'elementary'
-import { genOriginId } from 'armoury'
+import { genOriginId, log } from 'armoury'
 import { makeDatacenterStorageApi, StorageApi, Nid } from 'smuggler-api'
 
 import { getLogoImage } from '../util/env'
