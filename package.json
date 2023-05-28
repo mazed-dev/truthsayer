@@ -10,6 +10,7 @@
     "fix:prettier": "yarn workspaces foreach run fix:prettier",
     "librarius": "yarn workspace librarius",
     "lint": "yarn syncpack list-mismatches && yarn workspaces foreach run lint",
+    "lint:heavy": "yarn syncpack list-mismatches && yarn workspaces foreach run lint:heavy",
     "truthsayer-archaeologist-communication": "yarn workspace truthsayer-archaeologist-communication",
     "clean": "yarn cache clean && yarn workspaces foreach run clean",
     "build-libs": "yarn armoury build && yarn elementary build && yarn smuggler-api build && yarn librarius build && yarn truthsayer-archaeologist-communication build && yarn text-information-retrieval build",

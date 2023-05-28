@@ -55,14 +55,16 @@ class PasswordChangeImpl extends React.Component {
         new_password: this.state.new_password,
         signal: this.abortControler.signal,
       })
-      .catch((err) => {
-        alert(`Error ${err}`)
-      })
-      .then((res) => {
-        if (res) {
-          this.props.navigate('/login')
+      .then(
+        (res) => {
+          if (res) {
+            this.props.navigate('/login')
+          }
+        },
+        (err) => {
+          alert(`Error ${err}`)
         }
-      })
+      )
   }
 
   render() {

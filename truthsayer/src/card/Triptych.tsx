@@ -170,8 +170,9 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
   }
 
   componentDidMount() {
-    this.fetchEdges()
-    this.fetchNode()
+    Promise.all([this.fetchEdges(), this.fetchNode()]).catch((reason) =>
+      log.error(`Failed to init tryptich: ${reason}`)
+    )
   }
 
   componentWillUnmount() {
@@ -183,8 +184,9 @@ export class Triptych extends React.Component<TriptychProps, TriptychState> {
   componentDidUpdate(prevProps: TriptychProps) {
     // Don't forget to compare props!
     if (this.props.nid !== prevProps.nid) {
-      this.fetchEdges()
-      this.fetchNode()
+      Promise.all([this.fetchEdges(), this.fetchNode()]).catch((reason) =>
+        log.error(`Failed to update tryptich: ${reason}`)
+      )
     }
   }
 

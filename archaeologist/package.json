@@ -23,8 +23,10 @@
     "fix:eslint": "yarn lint:eslint --fix --max-warnings 0",
     "fix:prettier": "yarn lint:prettier --write",
     "fmt": "yarn prettier --write $(find src -name '*.css' -o -name '*.js' -o -name '*.jsx')",
-    "lint": "yarn lint:eslint && yarn lint:prettier && yarn lint:typescript",
+    "lint": "yarn lint:eslint && yarn lint:prettier",
+    "lint:heavy": "yarn lint:eslint:heavy && yarn lint:prettier && yarn lint:typescript",
     "lint:eslint": "yarn eslint \"./src/**/*.{js,jsx,ts,tsx}\" --max-warnings 0",
+    "lint:eslint:heavy": "yarn lint:eslint --config .eslintrc.heavy.js",
     "lint:prettier": "yarn prettier --check \"./src/**/*.{css,md,js,jsx,json,ts,tsx}\"",
     "lint:typescript": "yarn tsc --build ./ --force"
   },
@@ -85,12 +87,6 @@
     "webpack-cli": "^4.9.2",
     "webpack-dev-server": "4.9.1"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
   "devDependencies": {
     "@testing-library/dom": "^7.29",
     "@testing-library/jest-dom": "^5.14.1",
@@ -109,6 +105,7 @@
     "copy-webpack-plugin": "^6.2.1",
     "download": "^8.0.0",
     "eslint": "^8.16.0",
+    "eslint-config-react-app": "^7.0.1",
     "express": "^4.17.2",
     "jest": "26.6.0",
     "safe-compare": "^1.1.4",

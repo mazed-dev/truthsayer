@@ -109,6 +109,8 @@ export function DownloadUserDataFromMazedBackendControl() {
       currentStorage,
       sourceStorage,
       setLoadingState
+    ).catch((reason) =>
+      log.error(`Failed to download data from Mazed backend: ${reason}`)
     )
   }, [currentStorage])
   let buttonText

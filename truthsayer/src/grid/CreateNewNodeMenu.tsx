@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { MdiAdd, MdiFileUpload, StyleButtonCreate, TDoc } from 'elementary'
 
-import { MimeType } from 'armoury'
+import { log, MimeType } from 'armoury'
 import { goto } from './../lib/route'
 import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
 import MzdGlobalContext from '../lib/global'
@@ -91,11 +91,14 @@ export const CreateNewNodeMenu = () => {
         },
         created_via: { manualAction: null },
       })
-      .then((node) => {
-        if (node) {
-          goto.node({ navigate, nid: node.nid })
-        }
-      })
+      .then(
+        (node) => {
+          if (node) {
+            goto.node({ navigate, nid: node.nid })
+          }
+        },
+        (reason) => log.error(`Failed to create node: ${reason}`)
+      )
   }
   const uploadFileFormRef = useRef<HTMLInputElement>(null)
   const uploadNodeClick = (
