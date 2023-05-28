@@ -101,7 +101,7 @@ const SuggestedCardBox = styled.div`
   word-break: normal;
 
   margin: 2px 4px 2px 4px;
-  padding-bottom: 10px;
+  padding-bottom: 5px;
   &:last-child {
     margin: 2px 4px 0px 4px;
   }
