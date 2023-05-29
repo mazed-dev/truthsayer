@@ -1,4 +1,5 @@
 import lodash from 'lodash'
+import browser from 'webextension-polyfill'
 import { tf, wink } from 'text-information-retrieval'
 import type {
   Nid,
@@ -23,6 +24,7 @@ import { TDoc, Beagle } from 'elementary'
 import CancellationToken from 'cancellationtoken'
 import { log, errorise, AbortError, Timer } from 'armoury'
 import { backgroundpa, BackgroundPosthog } from '../productanalytics'
+import { CachedKnnClassifier } from './cachedKnnClassifier'
 
 const wink_ = wink.loadModel()
 
@@ -66,7 +68,7 @@ async function createTfState(
  */
 type FastIndex = {
   dimensions: number[]
-  knn: tf.KNNClassifier
+  knn: CachedKnnClassifier
 }
 
 // See comment for `FastIndex`
@@ -99,8 +101,11 @@ async function getFastIndex(
     return _fastIndex
   }
   const timer = new Timer()
+  // TODO[snikitin@outlook.com] Is it a problem that `dimensions` may differ
+  // between what was used for projections stored in the cache vs what
+  // got generated on a particular time getFastIndex() got called?
   const dimensions = tf.sampleDimensions(sampleVector, kProjectionSize)
-  const knn = new tf.KNNClassifier()
+  const knn = await CachedKnnClassifier.create(browser.storage.local)
   const allNids = await storage.node.getAllNids({})
   for (const nid of allNids) {
     const nodeSimSearchInfo = verifySimilaritySearchInfoVersion(
@@ -112,13 +117,17 @@ async function getFastIndex(
       continue
     }
     const forBlocks = nodeSimSearchInfo.forBlocks
+    const cachedClasses = knn.getClassifierDataset()
     for (const blockKeyStr in forBlocks) {
+      const label = serializeFastProjectionKey({ nid, blockKeyStr })
+      if (label in cachedClasses) {
+        continue
+      }
       const embeddingJson = forBlocks[blockKeyStr]
       const projection = tf.projectVector(
         tf.tensor2dFromJson(embeddingJson),
         dimensions
       )
-      const label = serializeFastProjectionKey({ nid, blockKeyStr })
       knn.addExample(projection, label)
     }
   }
