@@ -189,7 +189,7 @@ function reportPerformance(
     delete copy.action
     log.debug(
       `Performance: '${data.action}' - ${timer.elapsedSecondsPretty()}` +
-        (Object.keys(copy).length > 1
+        (Object.keys(copy).length > 0
           ? ` (props = ${JSON.stringify(copy)})`
           : '')
     )
