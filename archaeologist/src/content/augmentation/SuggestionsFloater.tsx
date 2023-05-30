@@ -398,7 +398,10 @@ export const SuggestionsFloater = ({
                     nodes.length === 0 ? undefined : nodes.length.toString()
                   }
                 />
-                <DragIndicator id="mazed-archaeologist-suggestions-floater-drag-handle" />
+                <DragIndicator
+                  size={26}
+                  id="mazed-archaeologist-suggestions-floater-drag-handle"
+                />
               </MiniFloaterBox>
             )}
           </DraggableElement>

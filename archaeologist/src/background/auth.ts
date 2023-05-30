@@ -9,6 +9,7 @@ import {
 import { Knocker } from 'smuggler-api'
 import { log, isAbortError, errorise, Timer } from 'armoury'
 import { v4 as uuidv4 } from 'uuid'
+import { backgroundpa, BackgroundPosthog } from './productanalytics'
 
 const _lastUpdateTime: SmugglerTokenLastUpdateCookies = { time: 0 }
 // Periodically renew auth token using Knocker
@@ -130,7 +131,10 @@ export function observe({
  *- Knocker role is to renew auth token after successful login periodically.
  *- It stops after a first renewal failure.
  */
-export async function register(storage: StorageApi) {
+export async function register(
+  storage: StorageApi,
+  analytics: BackgroundPosthog | null
+) {
   const timer = new Timer()
   // Additional callbacks to cache user account to local storage on every login,
   // and to reset that cache on log out.
@@ -157,10 +161,17 @@ export async function register(storage: StorageApi) {
     // to Smuggler to make sure Archaeologist is logged in as a last resort.
     try {
       accountInfo = await authentication.getAuth({})
-    } catch (err) {
-      log.debug(
-        'Failed to fetch user account information from Smuggler, assume that user is not logged in yet',
-        err
+    } catch (reason) {
+      const error = errorise(reason)
+      // To measure number of users with logged out Archaeologist
+      backgroundpa.error(
+        analytics,
+        {
+          failedTo: 'fetch user account info from Smuggler',
+          cause: error.message,
+          location: 'background',
+        },
+        { andLog: true }
       )
     }
   }

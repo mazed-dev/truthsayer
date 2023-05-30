@@ -22,30 +22,50 @@ import {
 } from 'smuggler-api'
 import { TDoc, Beagle } from 'elementary'
 import CancellationToken from 'cancellationtoken'
+import { Mutex } from 'async-mutex'
 import { log, errorise, AbortError, Timer } from 'armoury'
 import { backgroundpa, BackgroundPosthog } from '../productanalytics'
 import { CachedKnnClassifier } from './cachedKnnClassifier'
 
 const wink_ = wink.loadModel()
 
-let _tfState: tf.TfState | undefined = undefined
+type State = {
+  tfState: tf.TfState
+  fastIndex: FastIndex
+}
+
+let _state: State | null = null
+const _stateInitMutex = new Mutex()
+
+async function getState(
+  storage: StorageApi,
+  analytics: BackgroundPosthog | null
+): Promise<State> {
+  return await _stateInitMutex.runExclusive(async () => {
+    if (_state != null) {
+      return _state
+    }
+    const tfState = await createTfState(analytics)
+    const sampleVector = await tfState.encoder.embed('the void')
+    const fastIndex = await createFastIndex(storage, analytics, sampleVector)
+    return { tfState, fastIndex }
+  })
+}
 
 const kNumberOfQuotesPerNodeLimit: number = 1
 
 async function createTfState(
   analytics: BackgroundPosthog | null
 ): Promise<tf.TfState> {
-  if (_tfState == null) {
-    const timer = new Timer()
-    _tfState = await tf.createTfState()
-    backgroundpa.performance(
-      analytics,
-      { action: 'similarity: ML model initial load' },
-      timer,
-      { andLog: true }
-    )
-  }
-  return _tfState
+  const timer = new Timer()
+  const tfState = await tf.createTfState()
+  backgroundpa.performance(
+    analytics,
+    { action: 'similarity: ML model initial load' },
+    timer,
+    { andLog: true }
+  )
+  return tfState
 }
 
 /**
@@ -90,16 +110,11 @@ function deserializeFastProjectionKey(keyStr: string): FastProjectionKey {
   return { nid: keyStr.slice(0, ind), blockKeyStr: keyStr.slice(ind + 1) }
 }
 
-let _fastIndex: FastIndex | undefined = undefined
-
-async function getFastIndex(
+async function createFastIndex(
   storage: StorageApi,
   analytics: BackgroundPosthog | null,
   sampleVector: tf.Tensor2D
 ): Promise<FastIndex> {
-  if (_fastIndex != null) {
-    return _fastIndex
-  }
   const timer = new Timer()
   // TODO[snikitin@outlook.com] Is it a problem that `dimensions` may differ
   // between what was used for projections stored in the cache vs what
@@ -137,20 +152,17 @@ async function getFastIndex(
     timer,
     { andLog: true }
   )
-  _fastIndex = { dimensions, knn }
-  return _fastIndex
+  return { dimensions, knn }
 }
 
 async function updateNodeFastIndex(
+  fastIndex: FastIndex,
   nid: Nid,
   nodeSimSearchInfo: NodeSimilaritySearchInfoLatest,
   updateType: 'created' | 'updated'
 ): Promise<void> {
-  if (_fastIndex == null) {
-    return
-  }
   const forBlocks = nodeSimSearchInfo.forBlocks
-  const dimensions = _fastIndex.dimensions
+  const dimensions = fastIndex.dimensions
   for (const blockKeyStr in forBlocks) {
     const embeddingJson = forBlocks[blockKeyStr]
     const projection = tf.projectVector(
@@ -160,12 +172,12 @@ async function updateNodeFastIndex(
     const label = serializeFastProjectionKey({ nid, blockKeyStr })
     if (updateType === 'updated') {
       try {
-        _fastIndex.knn.clearClass(label)
+        fastIndex.knn.clearClass(label)
       } catch (err) {
         log.debug('Removing outdated projections from KNN failed with', err)
       }
     }
-    _fastIndex.knn.addExample(projection, label)
+    fastIndex.knn.addExample(projection, label)
   }
 }
 
@@ -179,7 +191,7 @@ async function updateNodeFastIndex(
  * related. Although, to be sure we take tighter threshold than 1.0, to avoid
  * giving somewhat irrelevant information.
  */
-const kSimilarityEuclideanDistanceThreshold = 0.91
+const kSimilarityEuclideanDistanceThreshold = 0.9
 
 function getSuggestionsNumberLimit(): number {
   return lodash.random(7, 12)
@@ -208,40 +220,90 @@ export async function findRelevantNodes(
   const phraseDoc = wink_.readDoc(phrase)
   // Use plaintext search for a small queries, because similarity search based
   // on ML embeddings has a poor quality results on a small texts.
-  const phraseLen = phraseDoc.tokens().length()
-  if (phraseLen === 0) {
+  const phraseLenWords = phraseDoc.tokens().length()
+  if (phraseLenWords === 0) {
     throw new Error(
       'Similarity search failed because search phrase is empty string'
     )
   }
   let relevantNodes: RelevantNode[]
+  let processedNodesCount: number
   let searchEngine: string
   // We fall back to using plain text search, if search phrase is short.
-  if (phraseLen < 9) {
+  if (phraseLenWords < 9) {
     searchEngine = 'Beagle'
-    relevantNodes = await findRelevantNodesUsingPlainTextSearch(
-      phraseDoc,
-      storage,
-      excludedNids,
-      cancellationToken
-    )
+    ;({ relevantNodes, processedNodesCount } =
+      await findRelevantNodesUsingPlainTextSearch(
+        phraseDoc,
+        storage,
+        excludedNids,
+        cancellationToken
+      ))
   } else {
     searchEngine = 'TFJS'
-    relevantNodes = await findRelevantNodesUsingSimilaritySearch(
-      phrase,
-      storage,
-      excludedNids,
-      cancellationToken,
-      analytics
-    )
+    ;({ relevantNodes, processedNodesCount } =
+      await findRelevantNodesUsingSimilaritySearch(
+        phrase,
+        storage,
+        excludedNids,
+        cancellationToken,
+        analytics
+      ))
   }
+  // Make sure results are sorted by score
+  relevantNodes.sort((ar, br) => ar.score - br.score)
+  const stats = getSimilaritySearchStats(relevantNodes)
   backgroundpa.performance(
     analytics,
-    { action: 'similarity: find relevant nodes', searchEngine },
+    {
+      ...stats,
+      action: 'similarity: find relevant nodes',
+      searchEngine,
+      processedNodesCount,
+      // The number of words in search phrase
+      phraseLenWords,
+    },
     timer,
     { andLog: true }
   )
   return relevantNodes
+}
+
+type SimilaritySearchStats = {
+  scoreP20?: number
+  scoreP80?: number
+  scoreMax?: number
+  scoreMin?: number
+  resultsCount: number
+}
+/**
+ * Expect `relevantNodes` argument to be sorted by score in ascending order, top
+ * results first.
+ */
+function getSimilaritySearchStats(
+  relevantNodes: RelevantNode[]
+): SimilaritySearchStats | null {
+  const resultsCount = relevantNodes.length
+  if (resultsCount === 0) {
+    return { resultsCount }
+  }
+  const scoreP20 = relevantNodes[Math.floor(resultsCount * 0.2)].score
+  const scoreP80 = relevantNodes[Math.floor(resultsCount * 0.8)].score
+  const scoreMax = relevantNodes[resultsCount - 1].score
+  const scoreMin = relevantNodes[0].score
+  return {
+    resultsCount,
+    scoreP20,
+    scoreP80,
+    scoreMax,
+    scoreMin,
+  }
+}
+
+type SimilaritySearchResultsInContext = {
+  relevantNodes: RelevantNode[]
+  // Overall number of nodes a search algorithm looked at during the search
+  processedNodesCount: number
 }
 
 async function findRelevantNodesUsingSimilaritySearch(
@@ -250,8 +312,8 @@ async function findRelevantNodesUsingSimilaritySearch(
   excludedNids: Set<Nid>,
   cancellationToken: CancellationToken,
   analytics: BackgroundPosthog | null
-): Promise<RelevantNode[]> {
-  const tfState = await createTfState(analytics)
+): Promise<SimilaritySearchResultsInContext> {
+  const { tfState, fastIndex } = await getState(storage, analytics)
   let timer = new Timer()
   const phraseEmbedding = await tfState.encoder.embed(phrase)
   backgroundpa.performance(
@@ -262,7 +324,6 @@ async function findRelevantNodesUsingSimilaritySearch(
   )
   throwIfCancelled(cancellationToken)
   timer = new Timer()
-  const fastIndex = await getFastIndex(storage, analytics, phraseEmbedding)
   throwIfCancelled(cancellationToken)
   const phraseEmbeddingProjected = tf.projectVector(
     phraseEmbedding,
@@ -275,10 +336,11 @@ async function findRelevantNodesUsingSimilaritySearch(
     // latency under 4-5 seconds.
     99
   )
+  const processedNodesCount = fastIndex.knn.getNumClasses()
   throwIfCancelled(cancellationToken)
   // Now we need to repack values, groupping them by nid, to minimise N of
   // requests to smuggler api. This is because node embeddings are stored by nid
-  const fastResultsByNid: Map<Nid, NodeBlockKeyStr[]> = new Map() // Nid -> Block keys (str)
+  const fastResultsByNid: Map<Nid, NodeBlockKeyStr[]> = new Map()
   for (const [label /*, confidence */] of Object.entries(
     fastKnnResults.confidences
   ).filter(([_label, confidence]: [string, number]) => confidence > 0)) {
@@ -392,7 +454,7 @@ async function findRelevantNodesUsingSimilaritySearch(
     }
     relevantNodes.push({ node, matchedQuotes, score: bestScore })
   }
-  return relevantNodes
+  return { relevantNodes, processedNodesCount }
 }
 
 async function findRelevantNodesUsingPlainTextSearch(
@@ -400,7 +462,7 @@ async function findRelevantNodesUsingPlainTextSearch(
   storage: StorageApi,
   excludedNids: Set<Nid>,
   cancellationToken: CancellationToken
-): Promise<RelevantNode[]> {
+): Promise<SimilaritySearchResultsInContext> {
   // Let's do a bit of a trick here, using stemmed forms of the words to search:
   // http://snowball.tartarus.org/algorithms/english/stemmer.html
   // If it proves to be working fine, I suggest we even used it for the search
@@ -414,7 +476,8 @@ async function findRelevantNodesUsingPlainTextSearch(
       return pos !== 'PUNCT' && pos !== 'SPACE'
     })
   const beagle = new Beagle(stems)
-  const nodesWithScore: RelevantNode[] = []
+  const relevantNodes: RelevantNode[] = []
+  let processedNodesCount = 0
   const iter = await storage.node.iterate()
   const expectedLimit = getSuggestionsNumberLimit()
   while (true) {
@@ -426,14 +489,15 @@ async function findRelevantNodesUsingPlainTextSearch(
     if (!!excludedNids.has(node.nid)) {
       continue
     }
+    ++processedNodesCount
     if (beagle.searchNode(node) != null) {
-      nodesWithScore.push({ node, score: 0, matchedQuotes: [] })
+      relevantNodes.push({ node, score: 0, matchedQuotes: [] })
     }
-    if (nodesWithScore.length >= expectedLimit) {
+    if (relevantNodes.length >= expectedLimit) {
       break
     }
   }
-  return nodesWithScore
+  return { relevantNodes, processedNodesCount }
 }
 
 function getNodePatchAsString(patch: NodeEventPatch): {
@@ -492,6 +556,7 @@ function getNodePatchAsString(patch: NodeEventPatch): {
 
 async function updateNodeIndex(
   storage: StorageApi,
+  fastIndex: FastIndex,
   nid: Nid,
   patch: NodeEventPatch,
   tfState: tf.TfState,
@@ -533,7 +598,7 @@ async function updateNodeIndex(
     forBlocks[blockKeyStr] = tf.tensor2dToJson(embedding)
   }
   const simsearch = createNodeSimilaritySearchInfoLatest({ forBlocks })
-  await updateNodeFastIndex(nid, simsearch, updateType)
+  await updateNodeFastIndex(fastIndex, nid, simsearch, updateType)
   await storage.node.similarity.setIndex({ nid, simsearch })
 }
 
@@ -546,9 +611,9 @@ function createNodeEventListener(
       return
     }
     try {
-      const tfState = await createTfState(analytics)
+      const { tfState, fastIndex } = await getState(storage, analytics)
       const timer = new Timer()
-      await updateNodeIndex(storage, nid, patch, tfState, type)
+      await updateNodeIndex(storage, fastIndex, nid, patch, tfState, type)
       backgroundpa.performance(
         analytics,
         { action: 'similarity: update node index' },
@@ -573,7 +638,7 @@ async function ensurePerNodeSimSearchIndexIntegrity(
   storage: StorageApi,
   analytics: BackgroundPosthog | null
 ): Promise<void> {
-  const tfState = await createTfState(analytics)
+  const { tfState, fastIndex } = await getState(storage, analytics)
   const allNids = await storage.node.getAllNids({})
   for (let ind = 0; ind < allNids.length; ++ind) {
     const nid = allNids[ind]
@@ -590,7 +655,14 @@ async function ensurePerNodeSimSearchIndexIntegrity(
         )
         const node = await storage.node.get({ nid })
         const timer = new Timer()
-        await updateNodeIndex(storage, nid, { ...node }, tfState, 'updated')
+        await updateNodeIndex(
+          storage,
+          fastIndex,
+          nid,
+          { ...node },
+          tfState,
+          'updated'
+        )
         backgroundpa.performance(
           analytics,
           { action: 'similarity: update node index' },
@@ -635,6 +707,6 @@ export async function register(
   log.debug('Similarity search module is loaded', timer.elapsedSecondsPretty())
   return () => {
     storage.node.removeListener(nodeEventListener)
-    _tfState = undefined
+    _state = null
   }
 }
