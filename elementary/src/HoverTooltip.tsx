@@ -37,8 +37,8 @@ function getPlacementStyle(placement: Placement): string {
 export const HoverTooltipBox = styled.div<Props>`
   display: flex;
   position: relative;
-  height: 100%;
-  width: 100%;
+  height: inherit;
+  width: inherit;
   z-index: 2000;
   span.MazedHoverTooltipOverlay {
     position: absolute;

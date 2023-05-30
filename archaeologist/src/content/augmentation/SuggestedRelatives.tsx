@@ -98,6 +98,7 @@ export function SuggestedRelatives({
   // Null-suggestions means floater should not be rendered at all.
   const [suggestedNodes, setSuggestedNodes] =
     React.useState<ReceivedSuggestions | null>(null)
+  const [isFloaterShown, setFloaterShown] = React.useState<boolean>(true)
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
   const pageSimilaritySearchInput = React.useMemo<SimilaritySearchInput | null>(
@@ -139,6 +140,7 @@ export function SuggestedRelatives({
           if (phrase.length < 4) {
             log.debug('The phrase is too short to look for suggestions', phrase)
           }
+          setFloaterShown(true)
           setSuggestionsSearchIsActive(true)
           log.debug('Look for the following phrase in Mazed ->', phrase)
           try {
@@ -206,8 +208,7 @@ export function SuggestedRelatives({
         }
         return
       }
-      // Just hide the floater otherwise
-      setSuggestedNodes(null)
+      setFloaterShown(false)
     }
     tmp().catch((reason) =>
       log.error(`Failed to request suggestions: ${reason}`)
@@ -230,12 +231,12 @@ export function SuggestedRelatives({
       window.removeEventListener('keyup', consumeKeyboardEvent, opts)
     }
   }, [])
-  if (suggestedNodes == null) {
+  if (!isFloaterShown) {
     return null
   }
   return (
     <SuggestionsFloater
-      nodes={suggestedNodes.suggestions}
+      nodes={suggestedNodes?.suggestions || []}
       isLoading={suggestionsSearchIsActive}
       defaultRevelaed={pageSimilaritySearchInput?.isSearchEngine ?? false}
       reloadSuggestions={requestSuggestedAssociations}
