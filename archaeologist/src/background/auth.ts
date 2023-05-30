@@ -156,14 +156,11 @@ export async function register(
   // sending request to Smuggler risking waiting for too long or even failing
   // due to unstable connection.
   let accountInfo = await storage.account.info.get({})
-  log.debug('Cached account info', accountInfo)
   if (accountInfo == null) {
     // If there is no account information in local storage let send a request
     // to Smuggler to make sure Archaeologist is logged in as a last resort.
     try {
-      log.debug('Request account info', accountInfo)
       accountInfo = await authentication.getAuth({})
-      log.debug('Got account info', accountInfo)
     } catch (reason) {
       const error = errorise(reason)
       // To measure number of users with logged out Archaeologist
