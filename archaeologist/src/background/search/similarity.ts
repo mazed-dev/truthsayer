@@ -170,7 +170,7 @@ async function updateNodeFastIndex(
  * related. Although, to be sure we take tighter threshold than 1.0, to avoid
  * giving somewhat irrelevant information.
  */
-const kSimilarityEuclideanDistanceThreshold = 0.91
+const kSimilarityEuclideanDistanceThreshold = 0.9
 
 function getSuggestionsNumberLimit(): number {
   return lodash.random(7, 12)
@@ -199,40 +199,95 @@ export async function findRelevantNodes(
   const phraseDoc = wink_.readDoc(phrase)
   // Use plaintext search for a small queries, because similarity search based
   // on ML embeddings has a poor quality results on a small texts.
-  const phraseLen = phraseDoc.tokens().length()
-  if (phraseLen === 0) {
+  const phraseLenWords = phraseDoc.tokens().length()
+  if (phraseLenWords === 0) {
     throw new Error(
       'Similarity search failed because search phrase is empty string'
     )
   }
   let relevantNodes: RelevantNode[]
+  let processedNodesCount: number
   let searchEngine: string
   // We fall back to using plain text search, if search phrase is short.
-  if (phraseLen < 9) {
+  if (phraseLenWords < 9) {
     searchEngine = 'Beagle'
-    relevantNodes = await findRelevantNodesUsingPlainTextSearch(
-      phraseDoc,
-      storage,
-      excludedNids,
-      cancellationToken
-    )
+    ;({ relevantNodes, processedNodesCount } =
+      await findRelevantNodesUsingPlainTextSearch(
+        phraseDoc,
+        storage,
+        excludedNids,
+        cancellationToken
+      ))
   } else {
     searchEngine = 'TFJS'
-    relevantNodes = await findRelevantNodesUsingSimilaritySearch(
-      phrase,
-      storage,
-      excludedNids,
-      cancellationToken,
-      analytics
-    )
+    ;({ relevantNodes, processedNodesCount } =
+      await findRelevantNodesUsingSimilaritySearch(
+        phrase,
+        storage,
+        excludedNids,
+        cancellationToken,
+        analytics
+      ))
   }
+  // Make sure results are sorted by score
+  relevantNodes.sort((ar, br) => ar.score - br.score)
+  const stats = getSimilaritySearchStats(relevantNodes)
   backgroundpa.performance(
     analytics,
-    { action: 'similarity: find relevant nodes', searchEngine },
+    {
+      ...stats,
+      action: 'similarity: find relevant nodes',
+      searchEngine,
+      processedNodesCount,
+      // The number of words in search phrase
+      phraseLenWords,
+      // The number of characters in search phrase
+      phraseLenChars: phrase.length,
+    },
     timer,
     { andLog: true }
   )
   return relevantNodes
+}
+
+type SimilaritySearchStats = {
+  scoreP20?: number
+  scoreP80?: number
+  scoreP50?: number
+  scoreMax?: number
+  scoreMin?: number
+  resultsCount: number
+}
+/**
+ * Expect `relevantNodes` argument to be sorted by score in ascending order, top
+ * results first.
+ */
+function getSimilaritySearchStats(
+  relevantNodes: RelevantNode[]
+): SimilaritySearchStats | null {
+  const resultsCount = relevantNodes.length
+  if (resultsCount === 0) {
+    return { resultsCount }
+  }
+  const scoreP20 = relevantNodes[Math.floor(resultsCount * 0.2)].score
+  const scoreP50 = relevantNodes[Math.floor(resultsCount * 0.5)].score
+  const scoreP80 = relevantNodes[Math.floor(resultsCount * 0.8)].score
+  const scoreMax = relevantNodes[resultsCount - 1].score
+  const scoreMin = relevantNodes[resultsCount - 1].score
+  return {
+    resultsCount,
+    scoreP20,
+    scoreP80,
+    scoreP50,
+    scoreMax,
+    scoreMin,
+  }
+}
+
+type SimilaritySearchResultsInContext = {
+  relevantNodes: RelevantNode[]
+  // Overall number of nodes a search algorithm looked at during the search
+  processedNodesCount: number
 }
 
 async function findRelevantNodesUsingSimilaritySearch(
@@ -241,7 +296,7 @@ async function findRelevantNodesUsingSimilaritySearch(
   excludedNids: Set<Nid>,
   cancellationToken: CancellationToken,
   analytics: BackgroundPosthog | null
-): Promise<RelevantNode[]> {
+): Promise<SimilaritySearchResultsInContext> {
   const tfState = await createTfState(analytics)
   let timer = new Timer()
   const phraseEmbedding = await tfState.encoder.embed(phrase)
@@ -266,10 +321,11 @@ async function findRelevantNodesUsingSimilaritySearch(
     // latency under 4-5 seconds.
     99
   )
+  const processedNodesCount = fastIndex.knn.getNumClasses()
   throwIfCancelled(cancellationToken)
   // Now we need to repack values, groupping them by nid, to minimise N of
   // requests to smuggler api. This is because node embeddings are stored by nid
-  const fastResultsByNid: Map<Nid, NodeBlockKeyStr[]> = new Map() // Nid -> Block keys (str)
+  const fastResultsByNid: Map<Nid, NodeBlockKeyStr[]> = new Map()
   for (const [label /*, confidence */] of Object.entries(
     fastKnnResults.confidences
   ).filter(([_label, confidence]: [string, number]) => confidence > 0)) {
@@ -383,7 +439,7 @@ async function findRelevantNodesUsingSimilaritySearch(
     }
     relevantNodes.push({ node, matchedQuotes, score: bestScore })
   }
-  return relevantNodes
+  return { relevantNodes, processedNodesCount }
 }
 
 async function findRelevantNodesUsingPlainTextSearch(
@@ -391,7 +447,7 @@ async function findRelevantNodesUsingPlainTextSearch(
   storage: StorageApi,
   excludedNids: Set<Nid>,
   cancellationToken: CancellationToken
-): Promise<RelevantNode[]> {
+): Promise<SimilaritySearchResultsInContext> {
   // Let's do a bit of a trick here, using stemmed forms of the words to search:
   // http://snowball.tartarus.org/algorithms/english/stemmer.html
   // If it proves to be working fine, I suggest we even used it for the search
@@ -405,7 +461,8 @@ async function findRelevantNodesUsingPlainTextSearch(
       return pos !== 'PUNCT' && pos !== 'SPACE'
     })
   const beagle = new Beagle(stems)
-  const nodesWithScore: RelevantNode[] = []
+  const relevantNodes: RelevantNode[] = []
+  let processedNodesCount = 0
   const iter = await storage.node.iterate()
   const expectedLimit = getSuggestionsNumberLimit()
   while (true) {
@@ -417,14 +474,15 @@ async function findRelevantNodesUsingPlainTextSearch(
     if (!!excludedNids.has(node.nid)) {
       continue
     }
+    ++processedNodesCount
     if (beagle.searchNode(node) != null) {
-      nodesWithScore.push({ node, score: 0, matchedQuotes: [] })
+      relevantNodes.push({ node, score: 0, matchedQuotes: [] })
     }
-    if (nodesWithScore.length >= expectedLimit) {
+    if (relevantNodes.length >= expectedLimit) {
       break
     }
   }
-  return nodesWithScore
+  return { relevantNodes, processedNodesCount }
 }
 
 function getNodePatchAsString(patch: NodeEventPatch): {
