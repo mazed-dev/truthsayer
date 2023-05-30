@@ -39,7 +39,6 @@ async function getState(
   storage: StorageApi,
   analytics: BackgroundPosthog | null
 ): Promise<State> {
-  await _stateInitMutex.waitForUnlock()
   return await _stateInitMutex.runExclusive(async () => {
     if (_state != null) {
       return _state
