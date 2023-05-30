@@ -493,7 +493,7 @@ class Background {
         log.debug(`Background deinit ended`)
       },
     })
-    await auth.register(storage)
+    await auth.register(storage, analytics)
     log.debug(`Background one-time pre-init ended`)
   }
 
