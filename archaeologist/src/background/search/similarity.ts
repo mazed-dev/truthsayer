@@ -241,8 +241,6 @@ export async function findRelevantNodes(
       processedNodesCount,
       // The number of words in search phrase
       phraseLenWords,
-      // The number of characters in search phrase
-      phraseLenChars: phrase.length,
     },
     timer,
     { andLog: true }
@@ -253,7 +251,6 @@ export async function findRelevantNodes(
 type SimilaritySearchStats = {
   scoreP20?: number
   scoreP80?: number
-  scoreP50?: number
   scoreMax?: number
   scoreMin?: number
   resultsCount: number
@@ -270,15 +267,13 @@ function getSimilaritySearchStats(
     return { resultsCount }
   }
   const scoreP20 = relevantNodes[Math.floor(resultsCount * 0.2)].score
-  const scoreP50 = relevantNodes[Math.floor(resultsCount * 0.5)].score
   const scoreP80 = relevantNodes[Math.floor(resultsCount * 0.8)].score
   const scoreMax = relevantNodes[resultsCount - 1].score
-  const scoreMin = relevantNodes[resultsCount - 1].score
+  const scoreMin = relevantNodes[0].score
   return {
     resultsCount,
     scoreP20,
     scoreP80,
-    scoreP50,
     scoreMax,
     scoreMin,
   }
