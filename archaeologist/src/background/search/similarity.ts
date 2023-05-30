@@ -590,8 +590,8 @@ function createNodeEventListener(
       return
     }
     try {
-      const timer = new Timer()
       const tfState = await createTfState(analytics)
+      const timer = new Timer()
       await updateNodeIndex(storage, nid, patch, tfState, type)
       backgroundpa.performance(
         analytics,
