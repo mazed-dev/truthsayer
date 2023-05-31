@@ -148,15 +148,9 @@ export function SuggestedRelatives({
     // https://kyleshevlin.com/debounce-and-throttle-callbacks-with-react-hooks
     () =>
       lodash.debounce(
-        async (
-          textContent: string,
-          previousTextContent?: string
-        ) => {
+        async (textContent: string, previousTextContent?: string) => {
           setFloaterShown(true)
-          const phrase = getLastEditedParagrph(
-            textContent,
-            previousTextContent
-          )
+          const phrase = getLastEditedParagrph(textContent, previousTextContent)
           if (phrase == null) {
             return
           }
