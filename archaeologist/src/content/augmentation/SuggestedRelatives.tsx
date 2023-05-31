@@ -41,7 +41,6 @@ function updateUserInputFromKeyboardEvent(
   if ('altKey' in keyboardEvent) {
     const event =
       keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
-    log.debug('Event', event)
     const target = event.target as HTMLTextAreaElement
     if (target.isContentEditable || target.tagName === 'TEXTAREA') {
       const textContent = getKeyPhraseFromUserInput(target)
@@ -151,20 +150,18 @@ export function SuggestedRelatives({
       lodash.debounce(
         async (
           textContent: string,
-          // previousPhrase?: string,
           previousTextContent?: string
         ) => {
           setFloaterShown(true)
           const phrase = getLastEditedParagrph(
             textContent,
-            // previousPhrase,
             previousTextContent
           )
           if (phrase == null) {
             return
           }
           setSuggestionsSearchIsActive(true)
-          log.debug('Look for the following phrase in Mazed ->', phrase)
+          log.debug('Look for suggestions using phrase:', phrase)
           try {
             const response = await retryIfStillLoading(
               async () =>
