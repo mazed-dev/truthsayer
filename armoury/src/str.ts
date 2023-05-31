@@ -67,3 +67,29 @@ export function truncatePretty(str: string, limit: number) {
   }
   return str.length > limit ? `${str.slice(0, limit - 1)}…` : str
 }
+
+export function diffStr(first: string, second: string): [number, number] {
+  let diffStartIndex: number = 0
+  const minLen = Math.min(first.length, second.length)
+  while (first[diffStartIndex] === second[diffStartIndex]) {
+    if (diffStartIndex === minLen) {
+      if (diffStartIndex === first.length) {
+        return [diffStartIndex, diffStartIndex]
+      } else {
+        return [diffStartIndex + 1, first.length]
+      }
+    }
+    ++diffStartIndex
+  }
+  let diffEndIndex = first.length - 1
+  let secondDiffEndIndex = second.length - 1
+  while (
+    diffStartIndex <= diffEndIndex &&
+    diffStartIndex <= secondDiffEndIndex &&
+    first[diffEndIndex] === second[secondDiffEndIndex]
+  ) {
+    --diffEndIndex
+    --secondDiffEndIndex
+  }
+  return [diffStartIndex, diffEndIndex + 1]
+}

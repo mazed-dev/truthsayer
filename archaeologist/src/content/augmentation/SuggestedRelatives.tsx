@@ -8,6 +8,7 @@ import { errorise, log, productanalytics, sleep, isAbortError } from 'armoury'
 import { FromBackground, FromContent } from '../../message/types'
 import { ContentContext } from '../context'
 import { extractSearchEngineQuery } from '../extractor/url/searchEngineQuery'
+import { getLastEditedParagrph } from '../extractor/getLastEditedParagraph'
 import {
   SuggestionsFloater,
   RelevantNodeSuggestion,
@@ -28,19 +29,28 @@ export function getKeyPhraseFromUserInput(
 
 type UserInput = {
   target: HTMLTextAreaElement
-  phrase: string
+  textContent: string
+  // Preserve previous text content of user input to be able to extract last
+  // edited paragraph by comparing 2 versions
+  prevTextContent?: string
 }
 function updateUserInputFromKeyboardEvent(
-  keyboardEvent: KeyboardEvent
+  keyboardEvent: KeyboardEvent,
+  prevUserInput: UserInput | null
 ): UserInput | null {
   if ('altKey' in keyboardEvent) {
     const event =
       keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
+    log.debug('Event', event)
     const target = event.target as HTMLTextAreaElement
     if (target.isContentEditable || target.tagName === 'TEXTAREA') {
-      const phrase = getKeyPhraseFromUserInput(target)
-      if (phrase != null) {
-        return { target, phrase }
+      const textContent = getKeyPhraseFromUserInput(target)
+      if (textContent != null) {
+        return {
+          target,
+          textContent,
+          prevTextContent: prevUserInput?.textContent,
+        }
       }
     }
   }
@@ -48,7 +58,7 @@ function updateUserInputFromKeyboardEvent(
 }
 
 type SimilaritySearchInput = {
-  phrase: string
+  textContent: string
   isSearchEngine: boolean
 }
 
@@ -80,7 +90,10 @@ async function retryIfStillLoading<T>(
 }
 
 type ReceivedSuggestions = {
+  // Text that was used to search for relatives
   phrase: string
+  // Full text that search phrase is extracted from, context
+  // textContent: string
   suggestions: RelevantNodeSuggestion[]
 }
 
@@ -106,9 +119,9 @@ export function SuggestedRelatives({
       const searchEngineQuery = extractSearchEngineQuery(
         stableUrl ?? document.location.href
       )
-      let phrase = searchEngineQuery?.phrase
-      if (phrase != null) {
-        return { phrase, isSearchEngine: true }
+      const textContent = searchEngineQuery?.phrase
+      if (textContent != null) {
+        return { textContent, isSearchEngine: true }
       }
       return null
     },
@@ -136,11 +149,20 @@ export function SuggestedRelatives({
     // https://kyleshevlin.com/debounce-and-throttle-callbacks-with-react-hooks
     () =>
       lodash.debounce(
-        async (phrase: string) => {
-          if (phrase.length < 4) {
-            log.debug('The phrase is too short to look for suggestions', phrase)
-          }
+        async (
+          textContent: string,
+          // previousPhrase?: string,
+          previousTextContent?: string
+        ) => {
           setFloaterShown(true)
+          const phrase = getLastEditedParagrph(
+            textContent,
+            // previousPhrase,
+            previousTextContent
+          )
+          if (phrase == null) {
+            return
+          }
           setSuggestionsSearchIsActive(true)
           log.debug('Look for the following phrase in Mazed ->', phrase)
           try {
@@ -159,14 +181,10 @@ export function SuggestedRelatives({
             )
             setSuggestedNodes({
               phrase,
+              // textContent,
               suggestions: response.suggested.map((item) => {
                 return { ...item, node: NodeUtil.fromJson(item.node) }
               }),
-            })
-            analytics?.capture('Search suggested associations', {
-              'Event type': 'search',
-              result_length: response.suggested.length,
-              phrase_size: phrase.length,
             })
           } catch (e) {
             // Don't set empty list of suggestions here, keep whateve previously
@@ -192,38 +210,40 @@ export function SuggestedRelatives({
     [excludeNids, analytics]
   )
   const [userInput, setUserInput] = React.useState<UserInput | null>(null)
-  const requestSuggestedAssociations = () => {
-    const tmp = async () => {
+  const requestSuggestedAssociations = React.useCallback(() => {
+    const callback = async () => {
+      let textContent: string | undefined = undefined
+      let prevTextContent: string | undefined = undefined
       if (userInput != null) {
-        const { phrase } = userInput
-        if (phrase !== suggestedNodes?.phrase) {
-          await requestSuggestedAssociationsForPhrase(phrase)
-        }
-        return
+        textContent = userInput.textContent
+        prevTextContent = userInput.prevTextContent
+      } else if (pageSimilaritySearchInput != null) {
+        textContent = pageSimilaritySearchInput.textContent
+      } else {
+        setFloaterShown(false)
       }
-      if (pageSimilaritySearchInput != null) {
-        const { phrase } = pageSimilaritySearchInput
-        if (phrase !== suggestedNodes?.phrase) {
-          await requestSuggestedAssociationsForPhrase(phrase)
-        }
-        return
+      if (textContent != null) {
+        await requestSuggestedAssociationsForPhrase(
+          textContent,
+          prevTextContent
+        )
       }
-      setFloaterShown(false)
     }
-    tmp().catch((reason) =>
+    callback().catch((reason) =>
       log.error(`Failed to request suggestions: ${reason}`)
     )
-  }
-  React.useEffect(requestSuggestedAssociations, [
+  }, [
     pageSimilaritySearchInput,
     requestSuggestedAssociationsForPhrase,
     userInput,
-    suggestedNodes?.phrase,
+    // suggestedNodes,
   ])
+  React.useEffect(requestSuggestedAssociations, [requestSuggestedAssociations])
   React.useEffect(() => {
     const consumeKeyboardEvent = (keyboardEvent: KeyboardEvent) => {
-      const newInput = updateUserInputFromKeyboardEvent(keyboardEvent)
-      setUserInput(newInput)
+      setUserInput((userInput) =>
+        updateUserInputFromKeyboardEvent(keyboardEvent, userInput)
+      )
     }
     const opts: AddEventListenerOptions = { passive: true, capture: true }
     window.addEventListener('keyup', consumeKeyboardEvent, opts)
