@@ -221,7 +221,7 @@ export async function findRelevantNodes(
   let processedNodesCount: number
   let searchEngine: string
   // We fall back to using plain text search, if search phrase is short.
-  if (phraseLenWords < 9) {
+  if (phraseLenWords < 6) {
     searchEngine = 'Beagle'
     ;({ relevantNodes, processedNodesCount } =
       await findRelevantNodesUsingPlainTextSearch(
