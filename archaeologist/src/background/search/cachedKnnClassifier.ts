@@ -2,6 +2,20 @@ import lodash from 'lodash'
 import { tf } from 'text-information-retrieval'
 import browser from 'webextension-polyfill'
 
+/**
+ * If you need to clear the cache for local testing, run the following
+ * in the background worker's console:
+ * ```
+ * chrome.storage.local.get().then((data)=> chrome.storage.local.remove(Object.keys(data).filter((key)=>key.startsWith("knn/"))))
+ * ```
+ *
+ * If you need to print all the cached labels:
+ * ```
+ * chrome.storage.local.get().then((data)=> console.log(Object.keys(data).filter((key)=>key.startsWith("knn/"))))
+ *
+ * ```
+ */
+
 /** @see storage_api_browser_ext.GenericYek */
 type GenericYek<Kind extends string, Key> = {
   yek: {
@@ -42,10 +56,6 @@ type Lav = AllLabelsLav | LabelToClassLav
 
 type YekLav = { yek: Yek; lav: Lav }
 
-function isOfArrayKind(lav: Lav): lav is AllLabelsLav {
-  return Array.isArray(lav.lav.value)
-}
-
 /** A copy-paste of @see storage_api_browser_ext.YekLavStore */
 class YekLavStore {
   private store: browser.Storage.StorageArea
@@ -55,7 +65,7 @@ class YekLavStore {
   }
 
   /** @see storage_api_browser_ext.YekLavStore.set */
-  set(items: YekLav[]): Promise<void> {
+  async set(items: YekLav[]): Promise<void> {
     for (const item of items) {
       if (item.yek.yek.kind !== item.lav.lav.kind) {
         throw new Error(
@@ -71,76 +81,49 @@ class YekLavStore {
       }
       records[key] = item.lav
     }
-    return this.store.set(records)
+    await this.store.set(records)
   }
 
-  get(yek: AllLabelsYek): Promise<AllLabelsLav | undefined>
-  get(yek: LabelToClassYek): Promise<LabelToClassLav | undefined>
-  get(
+  async get(yek: AllLabelsYek): Promise<AllLabelsLav | undefined>
+  async get(yek: LabelToClassYek): Promise<LabelToClassLav | undefined>
+  async get(
     yek: LabelToClassYek[]
   ): Promise<{ yek: LabelToClassYek; lav: LabelToClassLav }[]>
-  get(yek: Yek): Promise<Lav | undefined>
-  get(yek: Yek | Yek[]): Promise<Lav | YekLav[] | undefined> {
+  async get(yek: Yek): Promise<Lav | undefined>
+  async get(yek: Yek | Yek[]): Promise<Lav | YekLav[] | undefined> {
     if (Array.isArray(yek)) {
       const keyToYek = new Map<string, Yek>()
       yek.forEach((singleYek: Yek) =>
         keyToYek.set(this.stringify(singleYek), singleYek)
       )
       const keys: string[] = Array.from(keyToYek.keys())
-      const records: Promise<Record<string, any>> = this.store.get(keys)
-      return records.then((records: Record<string, any>): Promise<YekLav[]> => {
-        const yeklavs: YekLav[] = []
-        for (const [key, yek] of keyToYek) {
-          const lav = key in records ? (records[key] as Lav) : undefined
-          if (lav == null) {
-            continue
-          }
-          yeklavs.push({ yek, lav })
+      const records: Record<string, any> = await this.store.get(keys)
+      const yeklavs: YekLav[] = []
+      for (const [key, yek] of keyToYek) {
+        const lav = key in records ? (records[key] as Lav) : undefined
+        if (lav == null) {
+          continue
         }
-        return Promise.resolve(yeklavs)
-      })
+        yeklavs.push({ yek, lav })
+      }
+      return yeklavs
     }
 
     const key = this.stringify(yek)
-    const records: Promise<Record<string, any>> = this.store.get(key)
-    return records.then(
-      (records: Record<string, any>): Promise<Lav | undefined> => {
-        const record = records[key]
-        if (record == null) {
-          return Promise.resolve(undefined)
-        }
-        return Promise.resolve(record as Lav)
-      }
-    )
+    const records: Record<string, any> = await this.store.get(key)
+    const record = records[key]
+    return record != null ? (record as Lav) : undefined
   }
 
   // TODO[snikitin@outlook.com] Explain that this method is a poor man's attempt
   // to increase atomicity of data insertion
   async prepareAppend(
     yek: AllLabelsYek,
-    lav: AllLabelsLav
-  ): Promise<{
-    yek: AllLabelsYek
-    lav: AllLabelsLav
-  }>
-  async prepareAppend(
-    yek: LabelToClassYek,
-    lav: LabelToClassLav
-  ): Promise<{
-    yek: LabelToClassYek
-    lav: LabelToClassLav
-  }>
-  async prepareAppend(yek: Yek, appended_lav: Lav): Promise<YekLav> {
-    if (yek.yek.kind !== appended_lav.lav.kind) {
-      throw new Error(
-        `Attempted to append a key/value pair of mismatching kinds: '${yek.yek.kind}' !== '${appended_lav.lav.kind}'`
-      )
-    }
+    appended_lav: AllLabelsLav
+  ): Promise<YekLav> {
     const lav = await this.get(yek)
-    if (lav != null && !isOfArrayKind(lav)) {
-      throw new Error(`prepareAppend only works/makes sense for arrays`)
-    }
     const value = lav?.lav.value ?? []
+    value.push(...appended_lav.lav.value)
     // TODO[snikitin@outlook.com] I'm sure it's possible to convince Typescript
     // that below is safe, but don't know how
     return {
@@ -151,7 +134,7 @@ class YekLavStore {
           kind: yek.yek.kind,
           // @ts-ignore Each member of the union type has signatures, but none of those
           // signatures are compatible with each other
-          value: value.concat(appended_lav.lav.value),
+          value,
         },
       },
     }
@@ -161,47 +144,20 @@ class YekLavStore {
     return this.store.remove(yeks.map(this.stringify))
   }
 
-  async prepareRemoval(
-    yek: AllLabelsYek,
-    criteria: Label[]
-  ): Promise<{
-    yek: AllLabelsYek
-    lav: AllLabelsLav
-  }>
   /**
    *
    * @param yek A yek that points to a lav from which the data should be removed
    * @param criteria Criteria (similar to a predicate) of which values should
    * be removed from a lav assosiated with the input yek
    */
-  async prepareRemoval(yek: Yek, criteria: Label[]): Promise<YekLav> {
+  async prepareRemoval(yek: AllLabelsYek, criteria: Label[]): Promise<YekLav> {
     const lav = await this.get(yek)
-    if (lav != null && !isOfArrayKind(lav)) {
-      throw new Error(`prepareRemoval only works/makes sense for arrays`)
-    }
-    const isArrayOfObjectsWithLabelField = (
-      kind: typeof yek.yek.kind,
-      _criteria: object[]
-    ): _criteria is { label: Label }[] => {
-      return kind === 'all-labels'
-    }
-
     const value = lav?.lav.value ?? []
-    switch (yek.yek.kind) {
-      case 'all-labels': {
-        if (!isArrayOfObjectsWithLabelField(yek.yek.kind, value)) {
-          throw new Error(
-            'Fallen into prepareRemoval case which works only for arrays of ' +
-              `Labels while processing a non-Label '${yek.yek.kind}' kind`
-          )
-        }
-        lodash.remove(
-          value,
-          ({ label }: { label: Label }) => criteria.indexOf(label) !== -1
-        )
-        break
-      }
-    }
+    lodash.remove(
+      value,
+      ({ label }: { label: Label }) => criteria.indexOf(label) !== -1
+    )
+
     return {
       yek,
       lav: {

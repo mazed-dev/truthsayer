@@ -138,12 +138,20 @@ async function createFastIndex(
       if (label in cachedClasses) {
         continue
       }
-      const embeddingJson = forBlocks[blockKeyStr]
-      const projection = tf.projectVector(
-        tf.tensor2dFromJson(embeddingJson),
-        dimensions
-      )
-      knn.addExample(projection, label)
+      try {
+        const embeddingJson = forBlocks[blockKeyStr]
+        const projection = tf.projectVector(
+          tf.tensor2dFromJson(embeddingJson),
+          dimensions
+        )
+        await knn.addExample(projection, label)
+      } catch (err) {
+        log.warning(
+          `Adding example to KNN failed for label ${label}, error: ${
+            errorise(err).message
+          }`
+        )
+      }
     }
   }
   backgroundpa.performance(
@@ -172,12 +180,12 @@ async function updateNodeFastIndex(
     const label = serializeFastProjectionKey({ nid, blockKeyStr })
     if (updateType === 'updated') {
       try {
-        fastIndex.knn.clearClass(label)
+        await fastIndex.knn.clearClass(label)
       } catch (err) {
         log.debug('Removing outdated projections from KNN failed with', err)
       }
     }
-    fastIndex.knn.addExample(projection, label)
+    await fastIndex.knn.addExample(projection, label)
   }
 }
 
