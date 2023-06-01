@@ -29,14 +29,18 @@ const SuggestedCardsBox = styled.div`
   width: 320px;
   display: flex;
   flex-direction: column;
+  position: relative;
 
-  background: #eeeeefdb;
   box-shadow: 0 2px 5px 2px rgba(60, 64, 68, 0.16);
+  /* background: #eeeeefdb;
   &:hover,
   &:active {
     background: #eeeeef;
     box-shadow: 0 2px 8px 2px rgba(60, 64, 68, 0.24);
   }
+  */
+  background: #00000014;
+  backdrop-filter: blur(2px);
   border-radius: 6px;
   user-select: text;
 `
@@ -64,10 +68,26 @@ const Header = styled.div`
   justify-content: space-between;
   ${DraggableCursorStyles}
 `
-const Footter = styled.div`
-  height: 8px;
-  ${DraggableCursorStyles}
+const ImmersionPadding = styled.div`
+  height: 16px;
 `
+
+const TopImmersion = styled(ImmersionPadding)`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  ${DraggableCursorStyles}
+  position: absolute;
+  top: 0;
+  left: 0;
+`
+const BottomImmersion = styled(ImmersionPadding)`
+  height: 16px;
+  ${DraggableCursorStyles}
+  bottom: 0;
+  left: 0;
+`
+
 
 const SuggestionsFloaterSuggestionsBox = styled.div`
   display: flex;
@@ -188,7 +208,7 @@ const SuggestedCards = ({
   })
   return (
     <SuggestedCardsBox>
-      <Header id="mazed-archaeologist-suggestions-floater-drag-handle">
+      <TopImmersion id="mazed-archaeologist-suggestions-floater-drag-handle">
         <FloateHeaderBtn onClick={reloadSuggestions}>
           <HoverTooltip tooltip="Reload suggestions" placement="bottom">
             <Refresh size="16px" />
@@ -199,12 +219,23 @@ const SuggestedCards = ({
             <Minimize size="16px" />
           </HoverTooltip>
         </FloateHeaderBtn>
-      </Header>
+      </TopImmersion>
       {isLoading ? <LineLoader /> : null}
       <SuggestionsFloaterSuggestionsBox>
+        <ImmersionPadding />
         {suggestedCards.length > 0 ? suggestedCards : <NoSuggestedCardsBox />}
+        <ImmersionPadding />
       </SuggestionsFloaterSuggestionsBox>
-      <Footter id="mazed-archaeologist-suggestions-floater-drag-handle" />
+      <BottomImmersion id="mazed-archaeologist-suggestions-floater-drag-handle" />
+      <ScopedTimedAction
+        action={() =>
+          analytics?.capture(
+            'SuggestionsFloater: kept open longer than threshold',
+            { thresholdSec: 15 }
+          )
+        }
+        after={moment.duration(15, 'seconds')}
+      />
     </SuggestedCardsBox>
   )
 }
@@ -373,23 +404,12 @@ export const SuggestionsFloater = ({
         >
           <DraggableElement ref={nodeRef}>
             {isRevealed ? (
-              <>
                 <SuggestedCards
                   onClose={() => saveRevealed(false)}
                   nodes={nodes}
                   isLoading={isLoading}
                   reloadSuggestions={reloadSuggestions}
                 />
-                <ScopedTimedAction
-                  action={() =>
-                    analytics?.capture(
-                      'SuggestionsFloater: kept open longer than threshold',
-                      { thresholdSec: 15 }
-                    )
-                  }
-                  after={moment.duration(15, 'seconds')}
-                />
-              </>
             ) : (
               <MiniFloaterBox>
                 <MazedMiniFloater
