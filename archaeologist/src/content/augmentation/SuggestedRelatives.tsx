@@ -38,9 +38,35 @@ function updateUserInputFromKeyboardEvent(
       keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
     const target = event.target as HTMLTextAreaElement
     if (target.isContentEditable || target.tagName === 'TEXTAREA') {
-      const phrase = getKeyPhraseFromUserInput(target)
+      let phrase: string | null = null
+      const selection = window.getSelection()
+      if (selection) {
+        let element = selection.anchorNode?.parentElement
+        let previousElement = element
+        while (element != null) {
+          if (element?.nodeName === 'P' || target.isSameNode(element)) {
+            break
+          }
+          if (element.innerText.indexOf('\n') >= 0) {
+            // If we are at the point where element.innerText has newline, just
+            // take the previous element, assuming it was the paragraph we are
+            // looking for.
+            element = previousElement
+            break
+          }
+          previousElement = element
+          element = element.parentElement
+        }
+        phrase = element?.innerText ?? null
+      }
+      if (phrase == null) {
+        phrase = getKeyPhraseFromUserInput(target)
+      }
       if (phrase != null) {
-        return { target, phrase }
+        return {
+          target,
+          phrase,
+        }
       }
     }
   }
@@ -80,6 +106,7 @@ async function retryIfStillLoading<T>(
 }
 
 type ReceivedSuggestions = {
+  // Text that was used to search for relatives
   phrase: string
   suggestions: RelevantNodeSuggestion[]
 }
@@ -106,7 +133,7 @@ export function SuggestedRelatives({
       const searchEngineQuery = extractSearchEngineQuery(
         stableUrl ?? document.location.href
       )
-      let phrase = searchEngineQuery?.phrase
+      const phrase = searchEngineQuery?.phrase
       if (phrase != null) {
         return { phrase, isSearchEngine: true }
       }
@@ -137,12 +164,16 @@ export function SuggestedRelatives({
     () =>
       lodash.debounce(
         async (phrase: string) => {
-          if (phrase.length < 4) {
-            log.debug('The phrase is too short to look for suggestions', phrase)
+          if (phrase == null) {
+            return
           }
           setFloaterShown(true)
+          if (phrase.length < 4) {
+            log.debug('The phrase is too short to look for suggestions', phrase)
+            return
+          }
           setSuggestionsSearchIsActive(true)
-          log.debug('Look for the following phrase in Mazed ->', phrase)
+          log.debug(`Look for suggestions using phrase: "${phrase}"`)
           try {
             const response = await retryIfStillLoading(
               async () =>
@@ -162,11 +193,6 @@ export function SuggestedRelatives({
               suggestions: response.suggested.map((item) => {
                 return { ...item, node: NodeUtil.fromJson(item.node) }
               }),
-            })
-            analytics?.capture('Search suggested associations', {
-              'Event type': 'search',
-              result_length: response.suggested.length,
-              phrase_size: phrase.length,
             })
           } catch (e) {
             // Don't set empty list of suggestions here, keep whateve previously
@@ -192,38 +218,32 @@ export function SuggestedRelatives({
     [excludeNids, analytics]
   )
   const [userInput, setUserInput] = React.useState<UserInput | null>(null)
-  const requestSuggestedAssociations = () => {
-    const tmp = async () => {
+  const requestSuggestedAssociations = React.useCallback(() => {
+    const callback = async () => {
+      let phrase: string | undefined = undefined
       if (userInput != null) {
-        const { phrase } = userInput
-        if (phrase !== suggestedNodes?.phrase) {
-          await requestSuggestedAssociationsForPhrase(phrase)
-        }
-        return
+        phrase = userInput.phrase
+      } else if (pageSimilaritySearchInput != null) {
+        phrase = pageSimilaritySearchInput.phrase
+      } else {
+        setFloaterShown(false)
       }
-      if (pageSimilaritySearchInput != null) {
-        const { phrase } = pageSimilaritySearchInput
-        if (phrase !== suggestedNodes?.phrase) {
-          await requestSuggestedAssociationsForPhrase(phrase)
-        }
-        return
+      if (phrase != null) {
+        await requestSuggestedAssociationsForPhrase(phrase)
       }
-      setFloaterShown(false)
     }
-    tmp().catch((reason) =>
+    callback().catch((reason) =>
       log.error(`Failed to request suggestions: ${reason}`)
     )
-  }
-  React.useEffect(requestSuggestedAssociations, [
+  }, [
     pageSimilaritySearchInput,
     requestSuggestedAssociationsForPhrase,
     userInput,
-    suggestedNodes?.phrase,
   ])
+  React.useEffect(requestSuggestedAssociations, [requestSuggestedAssociations])
   React.useEffect(() => {
     const consumeKeyboardEvent = (keyboardEvent: KeyboardEvent) => {
-      const newInput = updateUserInputFromKeyboardEvent(keyboardEvent)
-      setUserInput(newInput)
+      setUserInput(updateUserInputFromKeyboardEvent(keyboardEvent))
     }
     const opts: AddEventListenerOptions = { passive: true, capture: true }
     window.addEventListener('keyup', consumeKeyboardEvent, opts)
