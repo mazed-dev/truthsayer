@@ -8,7 +8,6 @@ import { errorise, log, productanalytics, sleep, isAbortError } from 'armoury'
 import { FromBackground, FromContent } from '../../message/types'
 import { ContentContext } from '../context'
 import { extractSearchEngineQuery } from '../extractor/url/searchEngineQuery'
-import { getLastEditedParagrph } from '../extractor/getLastEditedParagraph'
 import {
   SuggestionsFloater,
   RelevantNodeSuggestion,
@@ -29,26 +28,46 @@ export function getKeyPhraseFromUserInput(
 
 type UserInput = {
   target: HTMLTextAreaElement
-  textContent: string
-  // Preserve previous text content of user input to be able to extract last
-  // edited paragraph by comparing 2 versions
-  prevTextContent?: string
+  phrase: string
 }
 function updateUserInputFromKeyboardEvent(
-  keyboardEvent: KeyboardEvent,
-  prevUserInput: UserInput | null
+  keyboardEvent: KeyboardEvent
 ): UserInput | null {
   if ('altKey' in keyboardEvent) {
     const event =
       keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
     const target = event.target as HTMLTextAreaElement
     if (target.isContentEditable || target.tagName === 'TEXTAREA') {
-      const textContent = getKeyPhraseFromUserInput(target)
-      if (textContent != null) {
+      let phrase: string | null = null
+      const selection = window.getSelection()
+      if (selection) {
+        let element = selection.anchorNode?.parentElement
+        let previousElement = element
+        while (element != null) {
+          if (element?.nodeName === 'P' || target.isSameNode(element)) {
+            break
+          }
+          if (element.innerText.indexOf('\n') >= 0) {
+            // If we are at the point where element.innerText has newline, just
+            // take the previous element, assuming it was the paragraph we are
+            // looking for.
+            element = previousElement
+            break
+          }
+          previousElement = element
+          element = element.parentElement
+        }
+        phrase = element?.innerText ?? null
+      }
+      if (phrase == null) {
+        phrase = getKeyPhraseFromUserInput(target)
+      }
+      if (phrase != null) {
         return {
           target,
-          textContent,
-          prevTextContent: prevUserInput?.textContent,
+          phrase,
+          // pageSimilaritySearchInput,
+          // prevTextContent: prevUserInput?.textContent,
         }
       }
     }
@@ -57,7 +76,7 @@ function updateUserInputFromKeyboardEvent(
 }
 
 type SimilaritySearchInput = {
-  textContent: string
+  phrase: string
   isSearchEngine: boolean
 }
 
@@ -116,9 +135,9 @@ export function SuggestedRelatives({
       const searchEngineQuery = extractSearchEngineQuery(
         stableUrl ?? document.location.href
       )
-      const textContent = searchEngineQuery?.phrase
-      if (textContent != null) {
-        return { textContent, isSearchEngine: true }
+      const phrase = searchEngineQuery?.phrase
+      if (phrase != null) {
+        return { phrase, isSearchEngine: true }
       }
       return null
     },
@@ -146,10 +165,14 @@ export function SuggestedRelatives({
     // https://kyleshevlin.com/debounce-and-throttle-callbacks-with-react-hooks
     () =>
       lodash.debounce(
-        async (textContent: string, previousTextContent?: string) => {
-          setFloaterShown(true)
-          const phrase = getLastEditedParagrph(textContent, previousTextContent)
+        async (phrase: string) => {
+          // const phrase = getLastEditedParagrph(textContent, previousTextContent)
           if (phrase == null) {
+            return
+          }
+          setFloaterShown(true)
+          if (phrase.length < 4) {
+            log.debug('The phrase is too short to look for suggestions', phrase)
             return
           }
           setSuggestionsSearchIsActive(true)
@@ -200,21 +223,18 @@ export function SuggestedRelatives({
   const [userInput, setUserInput] = React.useState<UserInput | null>(null)
   const requestSuggestedAssociations = React.useCallback(() => {
     const callback = async () => {
-      let textContent: string | undefined = undefined
-      let prevTextContent: string | undefined = undefined
+      let phrase: string | undefined = undefined
+      // let prevTextContent: string | undefined = undefined
       if (userInput != null) {
-        textContent = userInput.textContent
-        prevTextContent = userInput.prevTextContent
+        phrase = userInput.phrase
+        // prevTextContent = userInput.prevTextContent
       } else if (pageSimilaritySearchInput != null) {
-        textContent = pageSimilaritySearchInput.textContent
+        phrase = pageSimilaritySearchInput.phrase
       } else {
         setFloaterShown(false)
       }
-      if (textContent != null) {
-        await requestSuggestedAssociationsForPhrase(
-          textContent,
-          prevTextContent
-        )
+      if (phrase != null) {
+        await requestSuggestedAssociationsForPhrase(phrase)
       }
     }
     callback().catch((reason) =>
@@ -228,9 +248,7 @@ export function SuggestedRelatives({
   React.useEffect(requestSuggestedAssociations, [requestSuggestedAssociations])
   React.useEffect(() => {
     const consumeKeyboardEvent = (keyboardEvent: KeyboardEvent) => {
-      setUserInput((userInput) =>
-        updateUserInputFromKeyboardEvent(keyboardEvent, userInput)
-      )
+      setUserInput(updateUserInputFromKeyboardEvent(keyboardEvent))
     }
     const opts: AddEventListenerOptions = { passive: true, capture: true }
     window.addEventListener('keyup', consumeKeyboardEvent, opts)

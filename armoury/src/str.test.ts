@@ -4,7 +4,6 @@ import {
   padNonEmptyStringWithSpaceHead,
   padNonEmptyStringWithSpaceTail,
   sortOutSpacesAroundPunctuation,
-  diffStr,
 } from './str'
 
 test('isSmartCase', () => {
@@ -62,16 +61,4 @@ test('sortOutSpacesAroundPunctuation', () => {
   ).toStrictEqual(
     `These are the colours I'm talking about: blue, red, yellow! Yan said "they all need just a few tweaks".`
   )
-})
-
-test('diffStr', () => {
-  const getDiffStr = (a: string, b: string) => a.slice(...diffStr(a, b))
-  expect(getDiffStr('', '')).toStrictEqual('')
-  expect(getDiffStr('a', '')).toStrictEqual('a')
-  expect(getDiffStr('a', 'A')).toStrictEqual('a')
-  expect(getDiffStr('a', 'a')).toStrictEqual('')
-  expect(getDiffStr('acb', 'ab')).toStrictEqual('c')
-  expect(getDiffStr('ab', 'acb')).toStrictEqual('')
-  expect(getDiffStr('abc cde', 'abc cde')).toStrictEqual('')
-  expect(getDiffStr('abc 123 cde', 'abc 321 cde')).toStrictEqual('123')
 })
