@@ -39,8 +39,8 @@ const SuggestedCardsBox = styled.div`
     box-shadow: 0 2px 8px 2px rgba(60, 64, 68, 0.24);
   }
   */
-  background: radial-gradient(#00000028, #00000007);
-  backdrop-filter: blur(2px);
+  background: radial-gradient(#00000020, #00000000);
+  backdrop-filter: blur(1px);
   border-radius: 6px;
   user-select: text;
 `
@@ -74,7 +74,7 @@ const ImmersionTopPadding = styled.div`
 `
 const ImmersionBottomPadding = styled.div`
   height: 16px;
-  min-height: 24px;
+  min-height: 16px;
 `
 
 const ImmersionTop = styled(ImmersionTopPadding)`
@@ -127,10 +127,12 @@ const SuggestedCardBox = styled.div`
   overflow-wrap: break-word;
   word-break: normal;
 
-  margin: 2px 4px 2px 4px;
-  padding-bottom: 5px;
+  box-shadow: 1px 1px 6px 2px rgba(60, 64, 68, 0.16);
+
+  margin: 4px 4px 4px 4px;
+  padding: 0;
   &:last-child {
-    margin: 2px 4px 0px 4px;
+    margin-bottom: 0;
   }
 
   background: #ffffff;
@@ -228,8 +230,8 @@ const SuggestedCards = ({
           </HoverTooltip>
         </FloateHeaderBtn>
         </Header>
+        {isLoading ? <LineLoader /> : null}
       </ImmersionTop>
-      {isLoading ? <LineLoader /> : null}
       <SuggestionsFloaterSuggestionsBox>
         <ImmersionTopPadding />
         {suggestedCards.length > 0 ? suggestedCards : <NoSuggestedCardsBox />}

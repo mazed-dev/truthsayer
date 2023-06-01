@@ -42,7 +42,32 @@ function updateUserInputFromKeyboardEvent(
     const event =
       keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
     const target = event.target as HTMLTextAreaElement
+    log.debug(event)
     if (target.isContentEditable || target.tagName === 'TEXTAREA') {
+      const selection = window.getSelection()
+      log.debug('Selection: ', selection)
+      if (selection) {
+        let element = selection.anchorNode?.parentElement
+        let prev = element
+        while (element != null) {
+          if (target.isSameNode(element)) {
+            break
+          }
+          if (element?.nodeName === 'P') {
+            break
+          }
+          const text = element.innerText ?? element.textContent ?? ''
+          log.debug('Element', element)
+          log.debug('Text', text)
+          if (text?.indexOf('\n') >= 0) {
+            element = prev
+            break
+          }
+          prev = element
+          element = element.parentElement
+        }
+        log.debug('Found', element?.innerText ?? element?.textContent, element)
+      }
       const textContent = getKeyPhraseFromUserInput(target)
       if (textContent != null) {
         return {
