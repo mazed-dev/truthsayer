@@ -190,7 +190,7 @@ export function SuggestedRelatives({
     // https://kyleshevlin.com/debounce-and-throttle-callbacks-with-react-hooks
     () =>
       lodash.debounce(
-        async (target: HTMLElement, selectionAnchorNode: Node) => {
+        (target: HTMLElement, selectionAnchorNode: Node) => {
           const phrase = getLastEditedParagraph(target, selectionAnchorNode)
           if (phrase != null) {
             requestSuggestedAssociationsForPhrase(phrase).catch((reason) =>
