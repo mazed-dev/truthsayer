@@ -84,6 +84,7 @@ class YekLavStore {
     await this.store.set(records)
   }
 
+  /** @see storage_api_browser_ext.YekLavStore.get */
   async get(yek: AllLabelsYek): Promise<AllLabelsLav | undefined>
   async get(yek: LabelToClassYek): Promise<LabelToClassLav | undefined>
   async get(
@@ -115,8 +116,7 @@ class YekLavStore {
     return record != null ? (record as Lav) : undefined
   }
 
-  // TODO[snikitin@outlook.com] Explain that this method is a poor man's attempt
-  // to increase atomicity of data insertion
+  /** @see storage_api_browser_ext.YekLavStore.prepareAppend */
   async prepareAppend(
     yek: AllLabelsYek,
     appended_lav: AllLabelsLav
@@ -217,6 +217,13 @@ type KnnClassifierInterface = Omit<
   ) => Promise<void>
 }
 
+/**
+ * @summary A wrapper around @see KNNClassifier that caches all the data in the
+ * browser's local storage. Its API mimics @see KNNClassifier API as much as possible.
+ *
+ * @description See https://github.com/tensorflow/tfjs/issues/633#issuecomment-576218643
+ * about how to properly serialize/deserialize @see KNNClassifier
+ */
 export class CachedKnnClassifier implements KnnClassifierInterface {
   private impl: tf.KNNClassifier
   private store: YekLavStore
@@ -224,8 +231,6 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
   static async create(
     storage: browser.Storage.StorageArea
   ): Promise<CachedKnnClassifier> {
-    // TODO[snikitin@outlook] add link to the issue where serialisation/deserialisation
-    // is explained
     const store = new YekLavStore(storage)
 
     const yek: AllLabelsYek = { yek: { kind: 'all-labels', key: undefined } }
@@ -256,10 +261,12 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
 
   async addExample(example: tf.Tensor, label: number | string): Promise<void> {
     this.impl.addExample(example, label)
-    // TODO[snikitin@outlook.com] Document why this transformation has to take
-    // place, and highlight why it needs to be *before* storage manipulation.
-    // Refer to https://github.com/tensorflow/tfjs-models/blob/646992fd7ab8237c0dc908f2526301414b417c95/knn-classifier/src/index.ts
-    const class_ = this.impl.getClassifierDataset()[label]
+    // NOTE: both the input parameter & `class_` below are tensors, but it's
+    // important to NOT cache the input. The input goes through a transformation
+    // inside KNNClassifier.addExample() and *that* can be safely cached.
+    // For reference, these transformations can be found here:
+    // https://github.com/tensorflow/tfjs-models/blob/646992fd7ab8237c0dc908f2526301414b417c95/knn-classifier/src/index.ts#L44-L87
+    const class_: tf.Tensor2D = this.impl.getClassifierDataset()[label]
 
     let records: YekLav[] = [
       await this.store.prepareAppend(
