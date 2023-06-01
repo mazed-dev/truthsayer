@@ -9,11 +9,13 @@ import {
   ImgButton,
   NodeCardReadOnly,
   Spinner,
-  WebBookmarkDescriptionConfig,
+  BookmarkDirectQuoteDescription,
   ScopedTimedAction,
 } from 'elementary'
 import type { TNode, NodeBlockKey } from 'smuggler-api'
-import { NodeUtil } from 'smuggler-api'
+import { NodeUtil,
+  nodeBlockKeyToString,
+} from 'smuggler-api'
 
 import { AugmentationElement } from './Mount'
 import { ContentContext } from '../context'
@@ -114,9 +116,18 @@ const FloateHeaderBtn = styled(ImgButton)`
   background-color: #f8f8ff;
   opacity: 1;
   border-radius: 12px;
+
+  box-shadow: 1px 1px 6px 2px rgba(60, 64, 68, 0.16);
 `
 
-const SuggestedCardBox = styled.div`
+const SuggestedNodeBox = styled.div`
+  padding: 0;
+  margin: 4px 4px 4px 4px;
+  &:last-child {
+    margin-bottom: 0;
+  }
+`
+const SuggestedWidgetBox = styled.div`
   color: #484848;
   font-size: 12px;
   font-family: 'Roboto', Helvetica, Arial, sans-serif;
@@ -129,8 +140,8 @@ const SuggestedCardBox = styled.div`
 
   box-shadow: 1px 1px 6px 2px rgba(60, 64, 68, 0.16);
 
-  margin: 4px 4px 4px 4px;
   padding: 0;
+  margin: 2px 0 2px 0;
   &:last-child {
     margin-bottom: 0;
   }
@@ -147,23 +158,35 @@ export type RelevantNodeSuggestion = {
   score: number
 }
 
-const SuggestedCard = ({
+const SuggestedNodeWidget = ({
   node,
-  webBookmarkDescriptionConfig,
+  matchedQuotes,
 }: {
   node: TNode
-  webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
+  matchedQuotes: NodeBlockKey[] | null
 }) => {
   const ctx = React.useContext(ContentContext)
   return (
-    <SuggestedCardBox>
-      <NodeCardReadOnly
-        ctx={ctx}
-        node={node}
-        strippedActions
-        webBookmarkDescriptionConfig={webBookmarkDescriptionConfig}
-      />
-    </SuggestedCardBox>
+    <SuggestedNodeBox>
+      <SuggestedWidgetBox>
+        <NodeCardReadOnly
+          ctx={ctx}
+          node={node}
+          strippedActions
+          webBookmarkDescriptionConfig={{ type: 'none' }}
+        />
+      </SuggestedWidgetBox>
+        <>
+          {matchedQuotes?.map((block) => (
+            <SuggestedWidgetBox key={nodeBlockKeyToString(block)} >
+            <BookmarkDirectQuoteDescription
+              node={node}
+              block={block}
+            />
+            </SuggestedWidgetBox>
+          ))}
+        </>
+    </SuggestedNodeBox>
   )
 }
 
@@ -179,11 +202,11 @@ const NoSuggestedCardsBox = styled.div`
 function getMatchingText({
   node,
   matchedQuotes,
-}: RelevantNodeSuggestion): WebBookmarkDescriptionConfig {
+}: RelevantNodeSuggestion): NodeBlockKey[] | null {
   if (!NodeUtil.isWebBookmark(node) || !matchedQuotes) {
-    return { type: 'none' }
+    return null
   }
-  return { type: 'direct-quotes', blocks: matchedQuotes }
+  return matchedQuotes
 }
 
 type SuggestedCardsProps = {
@@ -208,10 +231,10 @@ const SuggestedCards = ({
   }, [nodes, analytics])
   const suggestedCards = nodes.map((relevantNodeSuggestion) => {
     return (
-      <SuggestedCard
+      <SuggestedNodeWidget
         key={relevantNodeSuggestion.node.nid}
         node={relevantNodeSuggestion.node}
-        webBookmarkDescriptionConfig={getMatchingText(relevantNodeSuggestion)}
+        matchedQuotes={getMatchingText(relevantNodeSuggestion)}
       />
     )
   })

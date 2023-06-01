@@ -37,7 +37,6 @@ function updateUserInputFromKeyboardEvent(
     const event =
       keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
     const target = event.target as HTMLTextAreaElement
-    log.debug(event)
     if (target.isContentEditable || target.tagName === 'TEXTAREA') {
       let phrase: string | null = null
       const selection = window.getSelection()

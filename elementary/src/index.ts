@@ -19,6 +19,7 @@ export * from './truthsayer/url'
 export * from './util/reactNodeToString'
 export * from './util/xstyle'
 export * from './ScopedTimedAction'
+export * from './media/WebBookmark'
 
 export { Beagle } from './grid/search/search'
 export type { Woof } from './grid/search/search'

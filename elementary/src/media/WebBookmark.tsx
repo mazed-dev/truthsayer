@@ -313,7 +313,7 @@ const MatchDescriptionSeeMoreBtn = styled.span`
   }
 `
 
-const BookmarkMatchDescription = ({
+export const BookmarkDirectQuoteDescription = ({
   node,
   block,
 }: {
@@ -459,7 +459,7 @@ const BookmarkDescription = ({
       return (
         <>
           {webBookmarkDescriptionConfig.blocks.map((block) => (
-            <BookmarkMatchDescription
+            <BookmarkDirectQuoteDescription
               node={node}
               block={block}
               key={nodeBlockKeyToString(block)}
