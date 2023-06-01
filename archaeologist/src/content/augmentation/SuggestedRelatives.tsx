@@ -66,8 +66,6 @@ function updateUserInputFromKeyboardEvent(
         return {
           target,
           phrase,
-          // pageSimilaritySearchInput,
-          // prevTextContent: prevUserInput?.textContent,
         }
       }
     }
@@ -166,7 +164,6 @@ export function SuggestedRelatives({
     () =>
       lodash.debounce(
         async (phrase: string) => {
-          // const phrase = getLastEditedParagrph(textContent, previousTextContent)
           if (phrase == null) {
             return
           }
@@ -224,10 +221,8 @@ export function SuggestedRelatives({
   const requestSuggestedAssociations = React.useCallback(() => {
     const callback = async () => {
       let phrase: string | undefined = undefined
-      // let prevTextContent: string | undefined = undefined
       if (userInput != null) {
         phrase = userInput.phrase
-        // prevTextContent = userInput.prevTextContent
       } else if (pageSimilaritySearchInput != null) {
         phrase = pageSimilaritySearchInput.phrase
       } else {
