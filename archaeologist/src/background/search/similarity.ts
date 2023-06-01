@@ -48,7 +48,8 @@ async function getState(
     const tfState = await createTfState(analytics)
     const sampleVector = await tfState.encoder.embed('the void')
     const fastIndex = await createFastIndex(storage, analytics, sampleVector)
-    return { tfState, fastIndex }
+    _state = { tfState, fastIndex }
+    return _state
   })
 }
 
