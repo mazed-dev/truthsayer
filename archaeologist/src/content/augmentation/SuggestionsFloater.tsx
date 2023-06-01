@@ -31,15 +31,15 @@ const SuggestedCardsBox = styled.div`
   flex-direction: column;
   position: relative;
 
-  box-shadow: 0 2px 5px 2px rgba(60, 64, 68, 0.16);
   /* background: #eeeeefdb;
+  box-shadow: 0 2px 5px 2px rgba(60, 64, 68, 0.16);
   &:hover,
   &:active {
     background: #eeeeef;
     box-shadow: 0 2px 8px 2px rgba(60, 64, 68, 0.24);
   }
   */
-  background: #00000014;
+  background: radial-gradient(#00000028, #00000007);
   backdrop-filter: blur(2px);
   border-radius: 6px;
   user-select: text;
@@ -68,22 +68,28 @@ const Header = styled.div`
   justify-content: space-between;
   ${DraggableCursorStyles}
 `
-const ImmersionPadding = styled.div`
+const ImmersionTopPadding = styled.div`
+  height: 24px;
+  min-height: 24px;
+`
+const ImmersionBottomPadding = styled.div`
   height: 16px;
+  min-height: 24px;
 `
 
-const TopImmersion = styled(ImmersionPadding)`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  ${DraggableCursorStyles}
+const ImmersionTop = styled(ImmersionTopPadding)`
+  width: 320px;
+
   position: absolute;
   top: 0;
   left: 0;
+  z-index: 999;
 `
-const BottomImmersion = styled(ImmersionPadding)`
+const BottomImmersion = styled(ImmersionBottomPadding)`
   height: 16px;
   ${DraggableCursorStyles}
+
+  position: absolute;
   bottom: 0;
   left: 0;
 `
@@ -105,7 +111,8 @@ const FloateHeaderBtn = styled(ImgButton)`
   margin: 1px 5px 0 5px;
   font-size: 12px;
   vertical-align: middle;
-  background: unset;
+  background-color: #f8f8ff;
+  opacity: 1;
   border-radius: 12px;
 `
 
@@ -208,7 +215,8 @@ const SuggestedCards = ({
   })
   return (
     <SuggestedCardsBox>
-      <TopImmersion id="mazed-archaeologist-suggestions-floater-drag-handle">
+      <ImmersionTop id="mazed-archaeologist-suggestions-floater-drag-handle">
+        <Header>
         <FloateHeaderBtn onClick={reloadSuggestions}>
           <HoverTooltip tooltip="Reload suggestions" placement="bottom">
             <Refresh size="16px" />
@@ -219,12 +227,13 @@ const SuggestedCards = ({
             <Minimize size="16px" />
           </HoverTooltip>
         </FloateHeaderBtn>
-      </TopImmersion>
+        </Header>
+      </ImmersionTop>
       {isLoading ? <LineLoader /> : null}
       <SuggestionsFloaterSuggestionsBox>
-        <ImmersionPadding />
+        <ImmersionTopPadding />
         {suggestedCards.length > 0 ? suggestedCards : <NoSuggestedCardsBox />}
-        <ImmersionPadding />
+        <ImmersionBottomPadding />
       </SuggestionsFloaterSuggestionsBox>
       <BottomImmersion id="mazed-archaeologist-suggestions-floater-drag-handle" />
       <ScopedTimedAction
