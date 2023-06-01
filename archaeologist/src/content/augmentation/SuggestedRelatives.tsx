@@ -91,8 +91,6 @@ async function retryIfStillLoading<T>(
 type ReceivedSuggestions = {
   // Text that was used to search for relatives
   phrase: string
-  // Full text that search phrase is extracted from, context
-  // textContent: string
   suggestions: RelevantNodeSuggestion[]
 }
 
@@ -155,7 +153,7 @@ export function SuggestedRelatives({
             return
           }
           setSuggestionsSearchIsActive(true)
-          log.debug('Look for suggestions using phrase:', phrase)
+          log.debug(`Look for suggestions using phrase: "${phrase}"`)
           try {
             const response = await retryIfStillLoading(
               async () =>
@@ -172,7 +170,6 @@ export function SuggestedRelatives({
             )
             setSuggestedNodes({
               phrase,
-              // textContent,
               suggestions: response.suggested.map((item) => {
                 return { ...item, node: NodeUtil.fromJson(item.node) }
               }),
@@ -227,7 +224,6 @@ export function SuggestedRelatives({
     pageSimilaritySearchInput,
     requestSuggestedAssociationsForPhrase,
     userInput,
-    // suggestedNodes,
   ])
   React.useEffect(requestSuggestedAssociations, [requestSuggestedAssociations])
   React.useEffect(() => {
