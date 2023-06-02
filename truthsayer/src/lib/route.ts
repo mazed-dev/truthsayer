@@ -231,6 +231,30 @@ export const goto = {
     youAreInWaitingList: gotoWaitingListNotice,
   },
   goToInboxToConfirmEmail,
+  about: () => {
+    window.location.href = 'https://thinkforeword.com/about'
+    return null
+  },
+  terms: () => {
+    window.location.href = 'https://thinkforeword.com/foreword-termsofservice'
+    return null
+  },
+  privacy: () => {
+    window.location.href = 'https://thinkforeword.com/foreword-privacy-policy'
+    return null
+  },
+  cookiePolicy: () => {
+    window.location.href = 'https://thinkforeword.com/foreword-privacy-policy'
+    return null
+  },
+  pricing: () => {
+    window.location.href = 'https://thinkforeword.com/pricing'
+    return null
+  },
+  landing: () => {
+    window.location.href = 'https://thinkforeword.com/'
+    return null
+  },
 }
 
 export const makeRefTo = {
