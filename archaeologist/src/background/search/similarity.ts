@@ -202,6 +202,8 @@ async function updateNodeFastIndex(
  */
 const kSimilarityEuclideanDistanceThreshold = 0.9
 
+const kPhraseLenWordsMinToSearchWithTfJs = 5
+
 function getSuggestionsNumberLimit(): number {
   return lodash.random(7, 12)
 }
@@ -239,7 +241,7 @@ export async function findRelevantNodes(
   let processedNodesCount: number
   let searchEngine: string
   // We fall back to using plain text search, if search phrase is short.
-  if (phraseLenWords < 9) {
+  if (phraseLenWords < kPhraseLenWordsMinToSearchWithTfJs) {
     searchEngine = 'Beagle'
     ;({ relevantNodes, processedNodesCount } =
       await findRelevantNodesUsingPlainTextSearch(
@@ -596,11 +598,17 @@ async function updateNodeIndex(
   }
   for (let index = 0; index < textContentBlocks.length; ++index) {
     const { text } = textContentBlocks[index]
-    if (text.length < 50) {
-      // Embeddings-based similarity search perform extremely poorly with short
-      // sentences, basically short texts never appear in the results. Hence
-      // there is no reason to waiste time on calculating embeddings for those.
-      continue
+    // Quick test if paragraph text is short enough to care to check the length
+    // of it in words. Average length of a word in English is 5 characters, for
+    // a fast check I used 4.7 * 5 + some buffer = 30
+    if (text.length < 30) {
+      const wordCount = wink_.readDoc(text).tokens().length()
+      if (wordCount < kPhraseLenWordsMinToSearchWithTfJs) {
+        // Embeddings-based similarity search perform extremely poorly with short
+        // sentences, basically short texts never appear in the results. Hence
+        // there is no reason to waiste time on calculating embeddings for those.
+        continue
+      }
     }
     const embedding = await tfState.encoder.embed(text)
     const blockKeyStr = nodeBlockKeyToString({ field: 'web-text', index })
