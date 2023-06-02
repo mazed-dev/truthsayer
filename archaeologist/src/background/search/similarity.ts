@@ -624,16 +624,23 @@ function createNodeEventListener(
   analytics: BackgroundPosthog | null
 ): NodeEventListener {
   return async (type: NodeEventType, nid: Nid, patch: NodeEventPatch) => {
-    if (type !== 'created' && type !== 'updated') {
-      return
-    }
     try {
       const { tfState, fastIndex } = await getState(storage, analytics)
       const timer = new Timer()
-      await updateNodeIndex(storage, fastIndex, nid, patch, tfState, type)
+      switch (type) {
+        case 'created':
+        case 'updated': {
+          await updateNodeIndex(storage, fastIndex, nid, patch, tfState, type)
+          break
+        }
+        case 'deleted': {
+          await storage.node.similarity.removeIndex({ nid })
+          break
+        }
+      }
       backgroundpa.performance(
         analytics,
-        { action: 'similarity: update node index' },
+        { action: 'similarity: update node index', indexChangeType: type },
         timer,
         { andLog: true }
       )
@@ -682,7 +689,10 @@ async function ensurePerNodeSimSearchIndexIntegrity(
         )
         backgroundpa.performance(
           analytics,
-          { action: 'similarity: update node index' },
+          {
+            action: 'similarity: update node index',
+            indexChangeType: 'updated',
+          },
           timer,
           { andLog: true }
         )
