@@ -24,8 +24,7 @@ import {
   FromContent,
   ContentAugmentationProductUpdate,
 } from './../../message/types'
-import { Minimize, Refresh } from '@emotion-icons/material'
-import { DragHandle } from '@emotion-icons/material-rounded'
+import { DragHandle, Minimize } from '@emotion-icons/material-rounded'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
 import { errorise, productanalytics } from 'armoury'
 import moment from 'moment'
@@ -66,7 +65,7 @@ const DraggableElement = styled.div`
 const Header = styled.div`
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: flex-end;
   ${DraggableCursorStyles}
 `
 const Footter = styled.div`
@@ -122,7 +121,6 @@ function getMatchingText({
 type SuggestedCardsProps = {
   nodes: RelevantNodeSuggestion[]
   onClose: () => void
-  reloadSuggestions: () => void
   isLoading: boolean
   productUpdateConfig?: ContentAugmentationProductUpdate
   updateProductUpdateConfig: (
@@ -133,7 +131,6 @@ type SuggestedCardsProps = {
 const SuggestedCards = ({
   nodes,
   onClose,
-  reloadSuggestions,
   isLoading,
   productUpdateConfig,
   updateProductUpdateConfig,
@@ -157,11 +154,6 @@ const SuggestedCards = ({
   return (
     <SuggestedCardsBox>
       <Header id="mazed-archaeologist-suggestions-floater-drag-handle">
-        <FloateHeaderBtn onClick={reloadSuggestions}>
-          <HoverTooltip tooltip="Reload suggestions" placement="bottom">
-            <Refresh size="16px" />
-          </HoverTooltip>
-        </FloateHeaderBtn>
         <FloateHeaderBtn onClick={onClose}>
           <HoverTooltip tooltip="Minimize" placement="bottom">
             <Minimize size="16px" />
@@ -233,12 +225,10 @@ export const SuggestionsFloater = ({
   nodes,
   isLoading,
   defaultRevelaed,
-  reloadSuggestions,
 }: {
   nodes: RelevantNodeSuggestion[]
   isLoading: boolean
   defaultRevelaed: boolean
-  reloadSuggestions: () => void
 }) => {
   const nodeRef = React.useRef(null)
   const [controlledPosition, setControlledPosition] =
@@ -335,7 +325,6 @@ export const SuggestionsFloater = ({
                   onClose={() => saveRevealed(false)}
                   nodes={nodes}
                   isLoading={isLoading}
-                  reloadSuggestions={reloadSuggestions}
                   productUpdateConfig={settings?.productUpdate ?? undefined}
                   updateProductUpdateConfig={async (
                     productUpdate: ContentAugmentationProductUpdate | undefined
@@ -361,7 +350,10 @@ export const SuggestionsFloater = ({
                     nodes.length === 0 ? undefined : nodes.length.toString()
                   }
                 />
-                <DragIndicator id="mazed-archaeologist-suggestions-floater-drag-handle" />
+                <DragIndicator
+                  size={26}
+                  id="mazed-archaeologist-suggestions-floater-drag-handle"
+                />
               </MiniFloaterBox>
             )}
           </DraggableElement>
