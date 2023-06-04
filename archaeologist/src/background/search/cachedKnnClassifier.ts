@@ -1,3 +1,4 @@
+import { log } from 'armoury'
 import lodash from 'lodash'
 import { tf } from 'text-information-retrieval'
 import browser from 'webextension-polyfill'
@@ -50,9 +51,16 @@ type AllLabelsLav = GenericLav<'all-labels', { label: Label }[]>
 type LabelToClassYek = GenericYek<'label->class', Label>
 type LabelToClassLav = GenericLav<'label->class', { class: tf.Tensor2D }>
 
-type Yek = AllLabelsYek | LabelToClassYek
+type CacheSignatureYek = GenericYek<'cache-signature', undefined>
+type CacheSignatureLav = GenericLav<'cache-signature', { signature: string }>
 
-type Lav = AllLabelsLav | LabelToClassLav
+/**
+ * NOTE: When adding a new yek here, don't forget to
+ * extend @see dropCacheOnSignatureMismatch()!
+ */
+type Yek = AllLabelsYek | LabelToClassYek | CacheSignatureYek
+
+type Lav = AllLabelsLav | LabelToClassLav | CacheSignatureLav
 
 type YekLav = { yek: Yek; lav: Lav }
 
@@ -90,6 +98,7 @@ class YekLavStore {
   async get(
     yek: LabelToClassYek[]
   ): Promise<{ yek: LabelToClassYek; lav: LabelToClassLav }[]>
+  async get(yek: CacheSignatureYek): Promise<CacheSignatureLav | undefined>
   async get(yek: Yek): Promise<Lav | undefined>
   async get(yek: Yek | Yek[]): Promise<Lav | YekLav[] | undefined> {
     if (Array.isArray(yek)) {
@@ -176,8 +185,56 @@ class YekLavStore {
         return 'knn/all-labels'
       case 'label->class':
         return 'knn/label->class:' + yek.yek.key
+      case 'cache-signature':
+        return 'knn/cache-signature'
     }
   }
+}
+
+async function dropCacheOnSignatureMismatch(
+  store: YekLavStore,
+  expectedCacheSignature: string
+): Promise<void> {
+  const signatureYek: CacheSignatureYek = {
+    yek: { kind: 'cache-signature', key: undefined },
+  }
+  const signatureLav: CacheSignatureLav | undefined = await store.get(
+    signatureYek
+  )
+
+  const currentCacheSignature = signatureLav?.lav.value.signature
+  if (currentCacheSignature === expectedCacheSignature) {
+    return
+  }
+
+  log.debug(
+    `KNN classifier cache signature mismatch: ` +
+      `${currentCacheSignature} !== ${expectedCacheSignature}. Cache will be dropped.`
+  )
+
+  const toRemove: Yek[] = [
+    { yek: { kind: 'all-labels', key: undefined } },
+    { yek: { kind: 'cache-signature', key: undefined } },
+  ]
+  const yek: AllLabelsYek = { yek: { kind: 'all-labels', key: undefined } }
+  const lav: AllLabelsLav | undefined = await store.get(yek)
+
+  for (const { label } of lav?.lav.value ?? []) {
+    toRemove.push({ yek: { kind: 'label->class', key: label } })
+  }
+  await store.remove(toRemove)
+
+  await store.set([
+    {
+      yek: { yek: { kind: 'cache-signature', key: undefined } },
+      lav: {
+        lav: {
+          kind: 'cache-signature',
+          value: { signature: expectedCacheSignature },
+        },
+      },
+    },
+  ])
 }
 
 /**
@@ -228,10 +285,17 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
   private impl: tf.KNNClassifier
   private store: YekLavStore
 
+  /**
+   * @param expectedCacheSignature A string which identifies the "version"
+   * of the expected cached data. If the expected and actual signatures don't
+   * match then the cache will be dropped.
+   */
   static async create(
-    storage: browser.Storage.StorageArea
+    storage: browser.Storage.StorageArea,
+    expectedCacheSignature: string
   ): Promise<CachedKnnClassifier> {
     const store = new YekLavStore(storage)
+    dropCacheOnSignatureMismatch(store, expectedCacheSignature)
 
     const yek: AllLabelsYek = { yek: { kind: 'all-labels', key: undefined } }
     const lav: AllLabelsLav | undefined = await store.get(yek)

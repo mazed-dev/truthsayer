@@ -1,7 +1,7 @@
 import lodash from 'lodash'
 import browser from 'webextension-polyfill'
 import { tf, wink } from 'text-information-retrieval'
-import type {
+import {
   Nid,
   NodeBlockKey,
   NodeBlockKeyStr,
@@ -13,6 +13,7 @@ import type {
   TNode,
   TextContentBlock,
   TfEmbeddingJson,
+  NodeSimilaritySearchSignatureLatest,
 } from 'smuggler-api'
 import {
   verifySimilaritySearchInfoVersion,
@@ -121,7 +122,10 @@ async function createFastIndex(
   // between what was used for projections stored in the cache vs what
   // got generated on a particular time getFastIndex() got called?
   const dimensions = tf.sampleDimensions(sampleVector, kProjectionSize)
-  const knn = await CachedKnnClassifier.create(browser.storage.local)
+  const knn = await CachedKnnClassifier.create(
+    browser.storage.local,
+    NodeSimilaritySearchSignatureLatest
+  )
   const allNids = await storage.node.getAllNids({})
   for (const nid of allNids) {
     const nodeSimSearchInfo = verifySimilaritySearchInfoVersion(
