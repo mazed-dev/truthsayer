@@ -69,4 +69,19 @@ describe('CachedKnnClassifier', () => {
       await store.get({ yek: { kind: 'label->class', key: 'mylabel' } })
     ).toBeFalsy()
   })
+  test('if cache has an out of date signature then it gets dropped on creation', async () => {
+    // GIVEN
+    const storage = new TmpStorageArea()
+    {
+      const knn = await CachedKnnClassifier.create(storage, 'old-signature')
+      await knn.addExample(tensor, 'mylabel')
+    }
+    // WHEN
+    await CachedKnnClassifier.create(storage, 'new-signature')
+    // THEN
+    const store = new YekLavStore(storage)
+    expect(
+      await store.get({ yek: { kind: 'label->class', key: 'mylabel' } })
+    ).toBeFalsy()
+  })
 })
