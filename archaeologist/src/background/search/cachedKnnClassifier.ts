@@ -65,7 +65,7 @@ type Lav = AllLabelsLav | LabelToClassLav | CacheSignatureLav
 type YekLav = { yek: Yek; lav: Lav }
 
 /** A copy-paste of @see storage_api_browser_ext.YekLavStore */
-class YekLavStore {
+export class YekLavStore {
   private store: browser.Storage.StorageArea
 
   constructor(store: browser.Storage.StorageArea) {
