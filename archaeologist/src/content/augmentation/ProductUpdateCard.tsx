@@ -6,14 +6,15 @@ import { Close } from '@emotion-icons/material'
 import { ContentContext } from '../context'
 
 import { ImgButton } from 'elementary'
+import { log } from 'armoury'
 import { SuggestedCardBox } from './SuggestedCard'
 
 import { ContentAugmentationProductUpdate } from './../../message/types'
 
-const kSignatureOfProductUpdateToShow = 'foreward-rebranding-28-05-2023'
+const kSignatureOfProductUpdateToShow = 'foreward-rebranding-03-06-2023'
 
 const Box = styled(SuggestedCardBox)`
-  background-image: linear-gradient(#c0defc, #005be3);
+  background-image: linear-gradient(90deg, #e9f2fb, #f9fdfe);
   transition: height 500ms;
   padding: 0;
 `
@@ -27,28 +28,24 @@ const Header = styled.div`
 `
 const HeaderBtn = styled(ImgButton)`
   padding: 3px;
-  margin: 1px 5px 0 5px;
+  margin: 0 12px 0 0;
   font-size: 12px;
   vertical-align: middle;
   background: unset;
   border-radius: 12px;
 `
-const BodyBox = styled.div`
-  padding: 0 8px 8px 8px;
-`
-const HeaderTitle = styled.h2`
+const HeaderHref = styled.a`
   font-size: 1.2em;
   font-weight: 400;
-  margin: 0 0 0 1em;
+  margin: 0 0 0 12px;
+  text-decoration: none;
+  color: inherit;
 `
-const Message = styled.div``
-const MessageLink = styled.a``
-
 const ProductUpdateMiniCardBox = styled(Header)`
   justify-content: space-between;
   align-content: center;
   align-items: center;
-  padding: 5px;
+  padding: 8px 0 8px 0;
   &:hover {
     cursor: pointer;
   }
@@ -90,6 +87,7 @@ export const ProductUpdateCard = ({
       productUpdateSignature: kSignatureOfProductUpdateToShow,
     })
   }, [updateProductUpdateConfig, setClosed, ctx.analytics, isMiminised])
+  log.debug('ProductUpdateCard', isClosed, isMiminised, productUpdateConfig)
   if (isClosed) {
     return null
   }
@@ -105,20 +103,17 @@ export const ProductUpdateCard = ({
           })
         }}
       >
-        <HeaderTitle>Meet Foreword 🎉 </HeaderTitle>
+        <HeaderHref
+          href="https://thinkforeword.com/foreword-release-notes"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Product update and re-brand to <i>Foreword</i>
+        </HeaderHref>
         <HeaderBtn onClick={closeProductUpdate}>
           <Close size="14px" />
         </HeaderBtn>
       </ProductUpdateMiniCardBox>
-      <BodyBox css={{ display: isMiminised ? 'none' : 'block' }}>
-        <Message>
-          Here will be an outstanding text about rebrading with{' '}
-          <MessageLink href="https://thinkforeword.com">
-            link to a release notes page
-          </MessageLink>
-          .
-        </Message>
-      </BodyBox>
     </Box>
   )
 }
