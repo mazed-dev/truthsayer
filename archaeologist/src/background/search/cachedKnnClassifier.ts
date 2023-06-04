@@ -295,7 +295,7 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
     expectedCacheSignature: string
   ): Promise<CachedKnnClassifier> {
     const store = new YekLavStore(storage)
-    dropCacheOnSignatureMismatch(store, expectedCacheSignature)
+    await dropCacheOnSignatureMismatch(store, expectedCacheSignature)
 
     const yek: AllLabelsYek = { yek: { kind: 'all-labels', key: undefined } }
     const lav: AllLabelsLav | undefined = await store.get(yek)
