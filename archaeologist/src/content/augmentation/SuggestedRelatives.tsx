@@ -256,6 +256,17 @@ export function SuggestedRelatives({
       }
     }
     const opts: AddEventListenerOptions = { passive: true, capture: true }
+    // We use 'keypress' and not 'keyup' or 'keydown' here specifically to avoid
+    // receiving events on hotkeys such as Cmd+a. The goal is to receive only
+    // events that might indicate text editing.
+    // There is a specific reason why we don't want Cmd+a events here. When user
+    // selects all on a page with Cmd+a and we run similarity search against that
+    // and then re-render floater text selection gets dropped. The reason, we
+    // believe, that is behind it re-rendering the following elements in
+    // SuggestionsFloater:
+    // <Draggable><DraggableEvent/></Draggable>
+    // See more details in SEV thread:
+    // https://mazed-dev.slack.com/archives/C056JTRQ15E/p1685650173458069
     window.addEventListener('keypress', consumeKeyboardEvent, opts)
     return () => {
       window.removeEventListener('keypress', consumeKeyboardEvent, opts)
