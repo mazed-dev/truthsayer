@@ -852,6 +852,17 @@ async function setNodeSimilaritySearchInfo(
   return { ack: true }
 }
 
+async function deleteNodeSimilaritySearchInfo(
+  store: YekLavStore,
+  { nid }: NodeDeleteArgs
+): Promise<Ack> {
+  const yek: NidToNodeSimilaritySearchInfoYek = {
+    yek: { kind: 'nid->sim-search-node', key: nid },
+  }
+  await store.remove([yek])
+  return { ack: true }
+}
+
 class Iterator implements INodeIterator {
   private store: YekLavStore
   private nids: Nid[]
@@ -1247,6 +1258,8 @@ export function makeBrowserExtStorageApi(
           getNodeSimilaritySearchInfo(store, args),
         setIndex: (args: SetNodeSimilaritySearchInfoArgs) =>
           setNodeSimilaritySearchInfo(store, args),
+        removeIndex: (args: NodeDeleteArgs) =>
+          deleteNodeSimilaritySearchInfo(store, args),
       },
     },
     // TODO[snikitin@outlook.com] At the time of this writing blob.upload and

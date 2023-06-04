@@ -163,6 +163,7 @@ export type StorageApi = {
         args: SetNodeSimilaritySearchInfoArgs,
         signal?: AbortSignal
       ) => Promise<Ack>
+      removeIndex: (args: NodeDeleteArgs, signal?: AbortSignal) => Promise<Ack>
     }
   }
   blob: {
