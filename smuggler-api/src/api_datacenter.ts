@@ -826,6 +826,7 @@ export function makeDatacenterStorageApi(): StorageApi {
       similarity: {
         getIndex: throwUnimplementedError('node.similarity.getIndex'),
         setIndex: throwUnimplementedError('node.similarity.setIndex'),
+        removeIndex: throwUnimplementedError('node.similarity.removeIndex'),
       },
     },
     blob: {

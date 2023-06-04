@@ -57,6 +57,8 @@ export function meteredStorageApi(
           })
           return impl.node.similarity.setIndex(args, signal)
         },
+        removeIndex: (args, signal) =>
+          impl.node.similarity.removeIndex(args, signal),
       },
     },
     blob: {
