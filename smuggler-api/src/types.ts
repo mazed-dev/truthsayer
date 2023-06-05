@@ -431,8 +431,10 @@ export type TfEmbeddingJson = {
   shape: [number, number]
 }
 
+export const NodeSimilaritySearchSignatureLatest = 'tf-embed-3'
+
 export type NodeSimilaritySearchInfoLatest = {
-  signature: 'tf-embed-3'
+  signature: typeof NodeSimilaritySearchSignatureLatest
   forBlocks: Record<string, TfEmbeddingJson>
 }
 
@@ -443,7 +445,7 @@ export function createNodeSimilaritySearchInfoLatest({
 }): NodeSimilaritySearchInfoLatest {
   return {
     forBlocks,
-    signature: 'tf-embed-3',
+    signature: NodeSimilaritySearchSignatureLatest,
   }
 }
 
@@ -466,7 +468,7 @@ export type NodeSimilaritySearchInfo =
 export function verifySimilaritySearchInfoVersion(
   simsearch: NodeSimilaritySearchInfo
 ): NodeSimilaritySearchInfoLatest | null {
-  if (simsearch?.signature === 'tf-embed-3') {
+  if (simsearch?.signature === NodeSimilaritySearchSignatureLatest) {
     return simsearch
   }
   return null

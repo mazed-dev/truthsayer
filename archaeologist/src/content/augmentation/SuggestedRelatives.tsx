@@ -28,9 +28,10 @@ export function getKeyPhraseFromUserInput(
 
 function getLastEditedParagraph(
   target: HTMLElement,
-  selectionAnchorNode: Node
+  selectionAnchorElement: HTMLElement | null,
+  selectionNodeValue: null | string
 ): string | null {
-  let element = selectionAnchorNode.parentElement
+  let element = selectionAnchorElement
   let previousElement = element
   while (element != null) {
     if (element?.nodeName === 'P' || target.isSameNode(element)) {
@@ -46,7 +47,16 @@ function getLastEditedParagraph(
     previousElement = element
     element = element.parentElement
   }
-  return element?.innerText ?? null
+  const innerText = element?.innerText ?? null
+  if (innerText && innerText.indexOf('\n') < 0) {
+    return innerText
+  }
+  // In rare cases all paragraphs of the edited text are all belongs to the same
+  // HTML element, e.g DIV. Then innerText of such element would contain newline
+  // characters. To extract edited paragraph we rely on bare text that we get
+  // from window selection.
+  // Editor example: Google Keep.
+  return selectionNodeValue
 }
 
 type SimilaritySearchInput = {
@@ -190,8 +200,16 @@ export function SuggestedRelatives({
     // https://kyleshevlin.com/debounce-and-throttle-callbacks-with-react-hooks
     () =>
       lodash.debounce(
-        (target: HTMLElement, selectionAnchorNode: Node) => {
-          const phrase = getLastEditedParagraph(target, selectionAnchorNode)
+        (
+          target: HTMLElement,
+          selectionAnchorElement: HTMLElement | null,
+          selectionNodeValue: null | string
+        ) => {
+          const phrase = getLastEditedParagraph(
+            target,
+            selectionAnchorElement,
+            selectionNodeValue
+          )
           if (phrase != null) {
             requestSuggestedAssociationsForPhrase(phrase).catch((reason) =>
               log.error(`Failed to request suggestions: ${reason}`)
@@ -228,12 +246,27 @@ export function SuggestedRelatives({
         if (target.isContentEditable || target.tagName === 'TEXTAREA') {
           const selection = window.getSelection()
           if (selection?.anchorNode != null) {
-            requestSuggestedForKeyboardEvent(target, selection.anchorNode)
+            requestSuggestedForKeyboardEvent(
+              target,
+              selection.anchorNode.parentElement,
+              selection.anchorNode.nodeValue
+            )
           }
         }
       }
     }
     const opts: AddEventListenerOptions = { passive: true, capture: true }
+    // We use 'keypress' and not 'keyup' or 'keydown' here specifically to avoid
+    // receiving events on hotkeys such as Cmd+a. The goal is to receive only
+    // events that might indicate text editing.
+    // There is a specific reason why we don't want Cmd+a events here. When user
+    // selects all on a page with Cmd+a and we run similarity search against that
+    // and then re-render floater text selection gets dropped. The reason, we
+    // believe, that is behind it re-rendering the following elements in
+    // SuggestionsFloater:
+    // <Draggable><DraggableEvent/></Draggable>
+    // See more details in SEV thread:
+    // https://mazed-dev.slack.com/archives/C056JTRQ15E/p1685650173458069
     window.addEventListener('keypress', consumeKeyboardEvent, opts)
     return () => {
       window.removeEventListener('keypress', consumeKeyboardEvent, opts)
