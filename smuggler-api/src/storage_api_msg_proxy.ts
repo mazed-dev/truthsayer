@@ -74,6 +74,10 @@ export type StorageApiMsgPayload =
       apiName: 'node.similarity.setIndex'
       args: SetNodeSimilaritySearchInfoArgs
     }
+  | {
+      apiName: 'node.similarity.removeIndex'
+      args: NodeDeleteArgs
+    }
   | { apiName: 'account.info.get'; args: AccountInfoGetArgs }
   | { apiName: 'account.info.set'; args: AccountInfoSetArgs }
 
@@ -116,6 +120,7 @@ export type StorageApiMsgReturnValue =
       ret: NodeSimilaritySearchInfo
     }
   | { apiName: 'node.similarity.setIndex'; ret: Ack }
+  | { apiName: 'node.similarity.removeIndex'; ret: Ack }
   | { apiName: 'account.info.get'; ret: AccountInfo | null }
   | { apiName: 'account.info.set'; ret: Ack }
 
@@ -268,6 +273,14 @@ export function makeMsgProxyStorageApi(forward: ForwardToRealImpl): StorageApi {
         },
         setIndex: async (args: SetNodeSimilaritySearchInfoArgs) => {
           const apiName = 'node.similarity.setIndex'
+          const resp = await forward({ apiName, args })
+          if (apiName !== resp.apiName)
+            throw mismatchError(apiName, resp.apiName)
+          const ret: Ack = resp.ret
+          return ret
+        },
+        removeIndex: async (args: NodeDeleteArgs) => {
+          const apiName = 'node.similarity.removeIndex'
           const resp = await forward({ apiName, args })
           if (apiName !== resp.apiName)
             throw mismatchError(apiName, resp.apiName)
@@ -470,6 +483,11 @@ export async function processMsgFromMsgProxyStorageApi(
       return {
         apiName: payload.apiName,
         ret: await storage.node.similarity.setIndex(payload.args),
+      }
+    case 'node.similarity.removeIndex':
+      return {
+        apiName: payload.apiName,
+        ret: await storage.node.similarity.removeIndex(payload.args),
       }
     case 'node.batch.get': {
       const ret = await storage.node.batch.get(payload.args)

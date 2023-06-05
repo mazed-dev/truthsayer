@@ -5751,6 +5751,7 @@ __metadata:
     "@emotion/styled": ^11.8.1
     "@mozilla/readability": ^0.4.4
     "@popperjs/core": ^2.10.2
+    "@tensorflow/tfjs-node": ^4.5.0
     "@testing-library/dom": ^7.29
     "@testing-library/jest-dom": ^5.14.1
     "@testing-library/react": ^12.1.0

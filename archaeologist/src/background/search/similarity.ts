@@ -1,6 +1,7 @@
 import lodash from 'lodash'
+import browser from 'webextension-polyfill'
 import { tf, wink } from 'text-information-retrieval'
-import type {
+import {
   Nid,
   NodeBlockKey,
   NodeBlockKeyStr,
@@ -12,6 +13,7 @@ import type {
   TNode,
   TextContentBlock,
   TfEmbeddingJson,
+  NodeSimilaritySearchSignatureLatest,
 } from 'smuggler-api'
 import {
   verifySimilaritySearchInfoVersion,
@@ -24,6 +26,7 @@ import CancellationToken from 'cancellationtoken'
 import { Mutex } from 'async-mutex'
 import { log, errorise, AbortError, Timer } from 'armoury'
 import { backgroundpa, BackgroundPosthog } from '../productanalytics'
+import { CachedKnnClassifier } from './cachedKnnClassifier'
 
 const wink_ = wink.loadModel()
 
@@ -87,7 +90,7 @@ async function createTfState(
  */
 type FastIndex = {
   dimensions: number[]
-  knn: tf.KNNClassifier
+  knn: CachedKnnClassifier
 }
 
 // See comment for `FastIndex`
@@ -115,8 +118,14 @@ async function createFastIndex(
   sampleVector: tf.Tensor2D
 ): Promise<FastIndex> {
   const timer = new Timer()
+  // TODO[snikitin@outlook.com] Is it a problem that `dimensions` may differ
+  // between what was used for projections stored in the cache vs what
+  // got generated on a particular time getFastIndex() got called?
   const dimensions = tf.sampleDimensions(sampleVector, kProjectionSize)
-  const knn = new tf.KNNClassifier()
+  const knn = await CachedKnnClassifier.create(
+    browser.storage.local,
+    NodeSimilaritySearchSignatureLatest
+  )
   const allNids = await storage.node.getAllNids({})
   for (const nid of allNids) {
     const nodeSimSearchInfo = verifySimilaritySearchInfoVersion(
@@ -128,14 +137,26 @@ async function createFastIndex(
       continue
     }
     const forBlocks = nodeSimSearchInfo.forBlocks
+    const cachedClasses = knn.getClassifierDataset()
     for (const blockKeyStr in forBlocks) {
-      const embeddingJson = forBlocks[blockKeyStr]
-      const projection = tf.projectVector(
-        tf.tensor2dFromJson(embeddingJson),
-        dimensions
-      )
       const label = serializeFastProjectionKey({ nid, blockKeyStr })
-      knn.addExample(projection, label)
+      if (label in cachedClasses) {
+        continue
+      }
+      try {
+        const embeddingJson = forBlocks[blockKeyStr]
+        const projection = tf.projectVector(
+          tf.tensor2dFromJson(embeddingJson),
+          dimensions
+        )
+        await knn.addExample(projection, label)
+      } catch (err) {
+        log.warning(
+          `Adding example to KNN failed for label ${label}, error: ${
+            errorise(err).message
+          }`
+        )
+      }
     }
   }
   backgroundpa.performance(
@@ -164,12 +185,12 @@ async function updateNodeFastIndex(
     const label = serializeFastProjectionKey({ nid, blockKeyStr })
     if (updateType === 'updated') {
       try {
-        fastIndex.knn.clearClass(label)
+        await fastIndex.knn.clearClass(label)
       } catch (err) {
         log.debug('Removing outdated projections from KNN failed with', err)
       }
     }
-    fastIndex.knn.addExample(projection, label)
+    await fastIndex.knn.addExample(projection, label)
   }
 }
 
@@ -607,16 +628,23 @@ function createNodeEventListener(
   analytics: BackgroundPosthog | null
 ): NodeEventListener {
   return async (type: NodeEventType, nid: Nid, patch: NodeEventPatch) => {
-    if (type !== 'created' && type !== 'updated') {
-      return
-    }
     try {
       const { tfState, fastIndex } = await getState(storage, analytics)
       const timer = new Timer()
-      await updateNodeIndex(storage, fastIndex, nid, patch, tfState, type)
+      switch (type) {
+        case 'created':
+        case 'updated': {
+          await updateNodeIndex(storage, fastIndex, nid, patch, tfState, type)
+          break
+        }
+        case 'deleted': {
+          await storage.node.similarity.removeIndex({ nid })
+          break
+        }
+      }
       backgroundpa.performance(
         analytics,
-        { action: 'similarity: update node index' },
+        { action: 'similarity: update node index', indexChangeType: type },
         timer,
         { andLog: true }
       )
@@ -665,7 +693,10 @@ async function ensurePerNodeSimSearchIndexIntegrity(
         )
         backgroundpa.performance(
           analytics,
-          { action: 'similarity: update node index' },
+          {
+            action: 'similarity: update node index',
+            indexChangeType: 'updated',
+          },
           timer,
           { andLog: true }
         )

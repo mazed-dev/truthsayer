@@ -1,5 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
-import type { Tensor2D } from '@tensorflow/tfjs'
+import type { Tensor, Tensor2D } from '@tensorflow/tfjs'
 
 import * as use from '@tensorflow-models/universal-sentence-encoder'
 
@@ -9,7 +9,7 @@ import lodash from 'lodash'
 
 export { KNNClassifier } from '@tensorflow-models/knn-classifier'
 
-export type { Tensor2D }
+export type { Tensor, Tensor2D }
 
 export type TfState = {
   encoder: use.UniversalSentenceEncoder
