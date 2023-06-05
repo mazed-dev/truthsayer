@@ -6,7 +6,6 @@ import { Close } from '@emotion-icons/material'
 import { ContentContext } from '../context'
 
 import { ImgButton } from 'elementary'
-import { log } from 'armoury'
 import { SuggestedCardBox } from './SuggestedCard'
 
 import { ContentAugmentationProductUpdate } from './../../message/types'
@@ -85,12 +84,11 @@ export const ProductUpdateCard = ({
     })
     // To measure how many people saw the update and closed it.
     ctx.analytics?.capture('Click product update close', {
-      'Event type': 'change',
+      'Event type': 'click',
       isRevealed: !isMiminised,
       productUpdateSignature: kSignatureOfProductUpdateToShow,
     })
   }, [updateProductUpdateConfig, setClosed, ctx.analytics, isMiminised])
-  log.debug('ProductUpdateCard', isClosed, isMiminised, productUpdateConfig)
   if (isClosed) {
     return null
   }
@@ -100,8 +98,8 @@ export const ProductUpdateCard = ({
         onClick={() => {
           setMiminised((value) => !value)
           // To measure how many people opened product update
-          ctx.analytics?.capture('Click product update visibility toggle', {
-            'Event type': 'change',
+          ctx.analytics?.capture('Click product update link', {
+            'Event type': 'click',
             productUpdateSignature: kSignatureOfProductUpdateToShow,
           })
         }}
