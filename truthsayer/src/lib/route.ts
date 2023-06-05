@@ -244,7 +244,7 @@ export const goto = {
     return null
   },
   cookiePolicy: () => {
-    window.location.href = 'https://thinkforeword.com/foreword-privacy-policy'
+    window.location.href = 'https://thinkforeword.com/foreword-cookies-policy'
     return null
   },
   pricing: () => {
