@@ -40,6 +40,9 @@ const HeaderHref = styled.a`
   margin: 0 0 0 12px;
   text-decoration: none;
   color: inherit;
+  &:hover {
+    box-shadow: inset 0 -1px 0 0 #000000;
+  }
 `
 const ProductUpdateMiniCardBox = styled(Header)`
   justify-content: space-between;
