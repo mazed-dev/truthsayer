@@ -5,6 +5,7 @@ import styled from '@emotion/styled'
 import { Close } from '@emotion-icons/material'
 import { ContentContext } from '../context'
 
+import { productanalytics, errorise } from 'armoury'
 import { ImgButton } from 'elementary'
 import { SuggestedCardBox } from './SuggestedCard'
 
@@ -62,16 +63,27 @@ export const ProductUpdateCard = ({
     update: ContentAugmentationProductUpdate | undefined
   ) => Promise<void>
 }) => {
-  const ctx = React.useContext(ContentContext)
+  const analytics = React.useContext(ContentContext).analytics
   React.useEffect(() => {
     if (
       productUpdateConfig?.signature != null &&
       kSignatureOfProductUpdateToShow == null
     ) {
       // Clean up
-      updateProductUpdateConfig(undefined)
+      updateProductUpdateConfig(undefined).catch((reason) => {
+        const error = errorise(reason)
+        productanalytics.error(
+          analytics ?? null,
+          {
+            failedTo: 'save product update config',
+            location: 'floater',
+            cause: error.message,
+          },
+          { andLog: true }
+        )
+      })
     }
-  }, [productUpdateConfig?.signature, updateProductUpdateConfig])
+  }, [productUpdateConfig?.signature, updateProductUpdateConfig, analytics])
   const [isClosed, setClosed] = React.useState<boolean>(
     productUpdateConfig?.signature === kSignatureOfProductUpdateToShow
   )
@@ -79,16 +91,29 @@ export const ProductUpdateCard = ({
   const closeProductUpdate = React.useCallback(() => {
     updateProductUpdateConfig({
       signature: kSignatureOfProductUpdateToShow,
-    }).then(() => {
-      setClosed(true)
     })
+      .then(() => {
+        setClosed(true)
+      })
+      .catch((reason) => {
+        const error = errorise(reason)
+        productanalytics.error(
+          analytics ?? null,
+          {
+            failedTo: 'save product update config',
+            location: 'floater',
+            cause: error.message,
+          },
+          { andLog: true }
+        )
+      })
     // To measure how many people saw the update and closed it.
-    ctx.analytics?.capture('Click product update close', {
+    analytics?.capture('Click product update close', {
       'Event type': 'click',
       isRevealed: !isMiminised,
       productUpdateSignature: kSignatureOfProductUpdateToShow,
     })
-  }, [updateProductUpdateConfig, setClosed, ctx.analytics, isMiminised])
+  }, [updateProductUpdateConfig, setClosed, analytics, isMiminised])
   if (isClosed) {
     return null
   }
@@ -98,7 +123,7 @@ export const ProductUpdateCard = ({
         onClick={() => {
           setMiminised((value) => !value)
           // To measure how many people opened product update
-          ctx.analytics?.capture('Click product update link', {
+          analytics?.capture('Click product update link', {
             'Event type': 'click',
             productUpdateSignature: kSignatureOfProductUpdateToShow,
           })

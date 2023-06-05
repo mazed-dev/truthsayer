@@ -301,7 +301,10 @@ export const SuggestionsFloater = ({
   }, [])
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
     const positionY = frameYPosition(data.y)
-    saveContentAugmentationSettings({ positionY })
+    saveContentAugmentationSettings({ positionY }).catch(() => {
+      // All exception are caught and recorded inside
+      // saveContentAugmentationSettings, so just ignore the promise here
+    })
     analytics?.capture('Drag SuggestionsFloater', {
       'Event type': 'drag',
       positionY,
@@ -329,7 +332,7 @@ export const SuggestionsFloater = ({
                   updateProductUpdateConfig={async (
                     productUpdate: ContentAugmentationProductUpdate | undefined
                   ) => {
-                    saveContentAugmentationSettings({ productUpdate })
+                    await saveContentAugmentationSettings({ productUpdate })
                   }}
                 />
                 <ScopedTimedAction
