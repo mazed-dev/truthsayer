@@ -7,7 +7,6 @@ import { useAsyncEffect } from 'use-async-effect'
 import {
   HoverTooltip,
   ImgButton,
-  NodeCardReadOnly,
   Spinner,
   WebBookmarkDescriptionConfig,
   ScopedTimedAction,
@@ -18,9 +17,14 @@ import { NodeUtil } from 'smuggler-api'
 import { AugmentationElement } from './Mount'
 import { ContentContext } from '../context'
 import { MazedMiniFloater } from './MazedMiniFloater'
-import { ContentAugmentationSettings, FromContent } from './../../message/types'
-import { Minimize } from '@emotion-icons/material'
-import { DragHandle } from '@emotion-icons/material-rounded'
+import { SuggestedCard } from './SuggestedCard'
+import { ProductUpdateCard } from './ProductUpdateCard'
+import {
+  ContentAugmentationSettings,
+  FromContent,
+  ContentAugmentationProductUpdate,
+} from './../../message/types'
+import { DragHandle, Minimize } from '@emotion-icons/material-rounded'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
 import { errorise, productanalytics } from 'armoury'
 import moment from 'moment'
@@ -89,53 +93,10 @@ const FloateHeaderBtn = styled(ImgButton)`
   border-radius: 12px;
 `
 
-const SuggestedCardBox = styled.div`
-  color: #484848;
-  font-size: 12px;
-  font-family: 'Roboto', Helvetica, Arial, sans-serif;
-  letter-spacing: -0.01em;
-  line-height: 142%;
-  text-align: left;
-
-  overflow-wrap: break-word;
-  word-break: normal;
-
-  margin: 2px 4px 2px 4px;
-  padding-bottom: 5px;
-  &:last-child {
-    margin: 2px 4px 0px 4px;
-  }
-
-  background: #ffffff;
-  border-radius: 6px;
-
-  user-select: auto;
-`
-
 export type RelevantNodeSuggestion = {
   node: TNode
   matchedQuotes: NodeBlockKey[]
   score: number
-}
-
-const SuggestedCard = ({
-  node,
-  webBookmarkDescriptionConfig,
-}: {
-  node: TNode
-  webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
-}) => {
-  const ctx = React.useContext(ContentContext)
-  return (
-    <SuggestedCardBox>
-      <NodeCardReadOnly
-        ctx={ctx}
-        node={node}
-        strippedActions
-        webBookmarkDescriptionConfig={webBookmarkDescriptionConfig}
-      />
-    </SuggestedCardBox>
-  )
 }
 
 const NoSuggestedCardsBox = styled.div`
@@ -161,9 +122,19 @@ type SuggestedCardsProps = {
   nodes: RelevantNodeSuggestion[]
   onClose: () => void
   isLoading: boolean
+  productUpdateConfig?: ContentAugmentationProductUpdate
+  updateProductUpdateConfig: (
+    update: ContentAugmentationProductUpdate | undefined
+  ) => Promise<void>
 }
 
-const SuggestedCards = ({ nodes, onClose, isLoading }: SuggestedCardsProps) => {
+const SuggestedCards = ({
+  nodes,
+  onClose,
+  isLoading,
+  productUpdateConfig,
+  updateProductUpdateConfig,
+}: SuggestedCardsProps) => {
   const analytics = React.useContext(ContentContext).analytics
   React.useEffect(() => {
     analytics?.capture('Show suggested associations', {
@@ -191,6 +162,10 @@ const SuggestedCards = ({ nodes, onClose, isLoading }: SuggestedCardsProps) => {
       </Header>
       {isLoading ? <LineLoader /> : null}
       <SuggestionsFloaterSuggestionsBox>
+        <ProductUpdateCard
+          productUpdateConfig={productUpdateConfig}
+          updateProductUpdateConfig={updateProductUpdateConfig}
+        />
         {suggestedCards.length > 0 ? suggestedCards : <NoSuggestedCardsBox />}
       </SuggestionsFloaterSuggestionsBox>
       <Footter id="mazed-archaeologist-suggestions-floater-drag-handle" />
@@ -261,15 +236,20 @@ export const SuggestionsFloater = ({
   // Floater can be open by default **only** if there is something to suggest.
   defaultRevelaed = defaultRevelaed && nodes.length > 0
   const [isRevealed, setRevealed] = React.useState<boolean>(defaultRevelaed)
+  const [settings, setSettings] =
+    React.useState<ContentAugmentationSettings | null>(null)
 
   const analytics = React.useContext(ContentContext).analytics
-  const saveRevealed = React.useCallback(
-    async (revealed: boolean) => {
+
+  const saveContentAugmentationSettings = React.useCallback(
+    async (settingsUpdate?: ContentAugmentationSettings) => {
+      let settings: ContentAugmentationSettings | null = null
       try {
-        await FromContent.sendMessage({
+        const response = await FromContent.sendMessage({
           type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
-          settings: { isRevealed: revealed },
+          settings: settingsUpdate,
         })
+        settings = response.state
       } catch (e) {
         productanalytics.warning(
           analytics ?? null,
@@ -281,6 +261,13 @@ export const SuggestionsFloater = ({
           { andLog: true }
         )
       }
+      return settings
+    },
+    [analytics]
+  )
+  const saveRevealed = React.useCallback(
+    async (revealed: boolean) => {
+      await saveContentAugmentationSettings({ isRevealed: revealed })
       setRevealed(revealed)
       // Reset floater position to adjust horisontal position (X), it has only
       // 2 values for revealed/hidden floater. Y position must remain the same.
@@ -296,27 +283,13 @@ export const SuggestionsFloater = ({
         isRevealed: revealed,
       })
     },
-    [analytics]
+    [analytics, saveContentAugmentationSettings]
   )
 
   useAsyncEffect(async () => {
-    let settings: ContentAugmentationSettings | null = null
-    try {
-      const response = await FromContent.sendMessage({
-        type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
-      })
-      settings = response.state
-    } catch (e) {
-      productanalytics.warning(
-        analytics ?? null,
-        {
-          failedTo: 'get user settings',
-          location: 'floater',
-          cause: errorise(e).message,
-        },
-        { andLog: true }
-      )
-    }
+    let settings: ContentAugmentationSettings | null =
+      await saveContentAugmentationSettings()
+    setSettings(settings)
     const revealed = (settings?.isRevealed ?? false) || defaultRevelaed
     const defaultPosition = getStartDragPosition(revealed)
 
@@ -328,19 +301,9 @@ export const SuggestionsFloater = ({
   }, [])
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
     const positionY = frameYPosition(data.y)
-    FromContent.sendMessage({
-      type: 'REQUEST_CONTENT_AUGMENTATION_SETTINGS',
-      settings: { positionY },
-    }).catch((e) => {
-      productanalytics.warning(
-        analytics ?? null,
-        {
-          failedTo: 'update user settings',
-          location: 'floater',
-          cause: errorise(e).message,
-        },
-        { andLog: true }
-      )
+    saveContentAugmentationSettings({ positionY }).catch(() => {
+      // All exception are caught and recorded inside
+      // saveContentAugmentationSettings, so just ignore the promise here
     })
     analytics?.capture('Drag SuggestionsFloater', {
       'Event type': 'drag',
@@ -365,6 +328,12 @@ export const SuggestionsFloater = ({
                   onClose={() => saveRevealed(false)}
                   nodes={nodes}
                   isLoading={isLoading}
+                  productUpdateConfig={settings?.productUpdate ?? undefined}
+                  updateProductUpdateConfig={async (
+                    productUpdate: ContentAugmentationProductUpdate | undefined
+                  ) => {
+                    await saveContentAugmentationSettings({ productUpdate })
+                  }}
                 />
                 <ScopedTimedAction
                   action={() =>
