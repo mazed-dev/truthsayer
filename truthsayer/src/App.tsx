@@ -29,12 +29,12 @@ import { PasswordRecoverForm } from './auth/PasswordRecoverForm'
 import { PasswordRecoverRequest } from './auth/PasswordRecoverRequest'
 import { Notice } from './notice/Notice.js'
 import { GoToInboxToConfirmEmail } from './account/create/GoToInboxToConfirmEmail'
-import { LandingPage } from './landing-page/LandingPage'
 import { Onboarding } from './account/onboard/Onboarding'
 import {
   PasswordRecoverFormUrlParams,
   TriptychUrlParams,
   truthsayerPath,
+  goto,
 } from './lib/route'
 import { Loader } from './lib/loader'
 import {
@@ -46,14 +46,7 @@ import { AppsList } from './apps-list/AppsList'
 import { AppHead } from './AppHead'
 
 import { MzdGlobal } from './lib/global'
-import {
-  AboutMazed,
-  ContactUs,
-  CookiePolicy,
-  CookiePolicyPopUp,
-  PrivacyPolicy,
-  TermsOfService,
-} from './public-page/legal/Index'
+import { ContactUs, CookiePolicyPopUp } from './public-page/legal/Index'
 import { PublicPage } from './public-page/PublicPage'
 import {
   AnalyticsIdentity,
@@ -247,11 +240,7 @@ function AppRouter() {
               />
               <Route
                 path={truthsayerPath('/about')}
-                element={
-                  <PublicPage>
-                    <AboutMazed />
-                  </PublicPage>
-                }
+                Component={() => goto.about()}
               />
               <Route
                 path={truthsayerPath('/contacts')}
@@ -271,27 +260,15 @@ function AppRouter() {
               />
               <Route
                 path={truthsayerPath('/cookie-policy')}
-                element={
-                  <PublicPage>
-                    <CookiePolicy />
-                  </PublicPage>
-                }
+                Component={() => goto.cookiePolicy()}
               />
               <Route
                 path={truthsayerPath('/privacy-policy')}
-                element={
-                  <PublicPage>
-                    <PrivacyPolicy />
-                  </PublicPage>
-                }
+                Component={() => goto.privacy()}
               />
               <Route
                 path={truthsayerPath('/terms-of-service')}
-                element={
-                  <PublicPage>
-                    <TermsOfService />
-                  </PublicPage>
-                }
+                Component={() => goto.terms()}
               />
               <Route
                 path={truthsayerPath('/login')}
@@ -542,7 +519,7 @@ function LandingPageView({
   if (isLikelyAuthorised) {
     return <Navigate to="/search" />
   }
-  return <LandingPage />
+  return goto.landing()
 }
 
 // Based on https://www.sheshbabu.com/posts/automatic-pageview-tracking-using-react-router/
