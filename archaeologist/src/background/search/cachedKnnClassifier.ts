@@ -49,10 +49,30 @@ type AllLabelsYek = GenericYek<'all-labels', undefined>
 type AllLabelsLav = GenericLav<'all-labels', { label: Label }[]>
 
 type LabelToClassYek = GenericYek<'label->class', Label>
-type LabelToClassLav = GenericLav<'label->class', { class: tf.Tensor2D }>
+type LabelToClassLav = GenericLav<
+  'label->class',
+  // See https://github.com/tensorflow/tfjs/issues/633#issuecomment-576218643
+  // about how to properly serialize/deserialize @see KNNClassifier
+  { data: number[]; shape: tf.Tensor2D['shape'] }
+>
 
 type CacheSignatureYek = GenericYek<'cache-signature', undefined>
-type CacheSignatureLav = GenericLav<'cache-signature', { signature: string }>
+type CacheSignatureLav = GenericLav<
+  'cache-signature',
+  {
+    /**
+     * 'signature' is expected to change when the code which *uses* @see CachedKnnClassifier
+     * changes such that the shape or contents of the cached data is no longer valid
+     */
+    signature: string
+    /**
+     * 'internalVersion' is expected to be incremented when the code of the
+     * @see CachedKnnClassifier itself changes such that the older cache would
+     * no longer be valid
+     */
+    internalVersion?: number
+  }
+>
 
 /**
  * NOTE: When adding a new yek here, don't forget to
@@ -193,7 +213,7 @@ export class YekLavStore {
 
 async function dropCacheOnSignatureMismatch(
   store: YekLavStore,
-  expectedCacheSignature: string
+  expected: { signature: string; internalVersion: number }
 ): Promise<void> {
   const signatureYek: CacheSignatureYek = {
     yek: { kind: 'cache-signature', key: undefined },
@@ -202,14 +222,16 @@ async function dropCacheOnSignatureMismatch(
     signatureYek
   )
 
-  const currentCacheSignature = signatureLav?.lav.value.signature
-  if (currentCacheSignature === expectedCacheSignature) {
+  const value = signatureLav?.lav.value
+  if (lodash.isEqual(value, expected)) {
     return
   }
 
   log.debug(
     `KNN classifier cache signature mismatch: ` +
-      `${currentCacheSignature} !== ${expectedCacheSignature}. Cache will be dropped.`
+      `got ${JSON.stringify(value)}, expected ${JSON.stringify(
+        expected
+      )}. Cache will be dropped.`
   )
 
   const toRemove: Yek[] = [
@@ -230,7 +252,7 @@ async function dropCacheOnSignatureMismatch(
       lav: {
         lav: {
           kind: 'cache-signature',
-          value: { signature: expectedCacheSignature },
+          value: expected,
         },
       },
     },
@@ -284,6 +306,7 @@ type KnnClassifierInterface = Omit<
 export class CachedKnnClassifier implements KnnClassifierInterface {
   private impl: tf.KNNClassifier
   private store: YekLavStore
+  private static readonly INTERNAL_VERSION: number = 1
 
   /**
    * @param expectedCacheSignature A string which identifies the "version"
@@ -295,7 +318,10 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
     expectedCacheSignature: string
   ): Promise<CachedKnnClassifier> {
     const store = new YekLavStore(storage)
-    await dropCacheOnSignatureMismatch(store, expectedCacheSignature)
+    await dropCacheOnSignatureMismatch(store, {
+      signature: expectedCacheSignature,
+      internalVersion: this.INTERNAL_VERSION,
+    })
 
     const yek: AllLabelsYek = { yek: { kind: 'all-labels', key: undefined } }
     const lav: AllLabelsLav | undefined = await store.get(yek)
@@ -305,9 +331,11 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
     const yeks: LabelToClassYek[] = lav.lav.value.map(({ label }) => {
       return { yek: { kind: 'label->class', key: label } }
     })
+
     const classes: Parameters<tf.KNNClassifier['setClassifierDataset']>[0] = {}
     for (const { yek, lav } of await store.get(yeks)) {
-      classes[yek.yek.key] = lav.lav.value.class
+      const { data, shape } = lav.lav.value
+      classes[yek.yek.key] = tf.tensor(data, shape)
     }
 
     const impl = new tf.KNNClassifier()
@@ -340,7 +368,10 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
       {
         yek: { yek: { kind: 'label->class', key: label } },
         lav: {
-          lav: { kind: 'label->class', value: { class: class_ } },
+          lav: {
+            kind: 'label->class',
+            value: { data: Array.from(class_.dataSync()), shape: class_.shape },
+          },
         },
       },
     ]
