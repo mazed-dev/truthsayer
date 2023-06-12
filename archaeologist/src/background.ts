@@ -417,14 +417,28 @@ class Background {
 
   private deinitialisers: (() => void | Promise<void>)[] = []
 
-  constructor() {
-    this.ctor().catch((reason) =>
-      log.error(
-        `Background one-time pre-init failed: ${errorise(reason).message}`
-      )
-    )
+  static async create(): Promise<Background> {
+    const ret = new Background()
+    await ret.ctor()
+    return ret
   }
 
+  private constructor() {}
+
+  /**
+   * @summary Performs the job of a constructor (once it's done, the object is
+   * *at least* minimally valid), but can't be within a regular `constructor()`
+   * since "minimally valid" requires certain actions which can only be performed
+   * asynchronously.
+   *
+   * @description Depending on what user did earlier, the end @see Background.state
+   * may vary (hence the "at least" wording above). For example, at the time of
+   * writing user's login state may be stored in local storage which can be
+   * interpreted as an *immediate* full initialisation. Access to local storage
+   * however is asyncronous, so to be *immediate* the constructor has to ensure
+   * nothing tries to use the object before these async operations complete. In
+   * turn this means the constructor has to become async itself.
+   */
   private async ctor() {
     log.debug(`Background one-time pre-init started`)
 
@@ -888,7 +902,11 @@ class Background {
   }
 }
 
-const bg = new Background()
+// NOTE: as long as Background init has mandatory async operations within
+// its most basic init sequence, it is important to store its instance as a
+// Promise. If another part of the extension sends a message to background
+// before creation completes, this allows the message to gracefully wait.
+const background: Promise<Background> = Background.create()
 
 // NOTE: it is important that there is exactly one listener for browser.runtime.onMessage
 // at all times (including the very first stages of background initialisation).
@@ -902,6 +920,7 @@ browser.runtime.onMessage.addListener(
       sender: browser.Runtime.MessageSender
     ): Promise<FromBackground.Response> => {
       try {
+        const bg: Background = await background
         return await bg.onMessageFromOtherPartsOfArchaeologist(message, sender)
       } catch (reason) {
         const error = errorise(reason)
@@ -929,6 +948,7 @@ browser.runtime.onMessageExternal.addListener(
       sender: browser.Runtime.MessageSender
     ): Promise<ToTruthsayer.Response> => {
       try {
+        const bg: Background = await background
         return bg.onMessageFromTruthsayer(message, sender)
       } catch (reason) {
         const error = errorise(reason)
