@@ -37,7 +37,7 @@ cd archaeologist/target
 
 mkdir -p packed/
 
-_OUT=${OUTPUT_FILENAME:-"packed/mazed-for-chrome-$(git rev-parse HEAD).zip"}
+_OUT=${OUTPUT_FILENAME:-"packed/foreword-for-chrome-$(git rev-parse HEAD).zip"}
 
 zip -r $_OUT unpacked
 

@@ -8,7 +8,7 @@
 import { renderPageAugmentationApp } from './content/App'
 
 /**
- * Single mount point in a page DOM for Mazed content state.
+ * Single mount point in a page DOM for Foreword content state.
  */
 const mount = document.createElement('div')
 mount.id = 'mazed-archaeologist-content-mount'

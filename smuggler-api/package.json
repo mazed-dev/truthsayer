@@ -1,7 +1,7 @@
 {
   "name": "smuggler-api",
   "description": "Smuggler API artefacts in typescript",
-  "author": "Mazed",
+  "author": "Foreword",
   "version": "0.0.1",
   "license": "no",
   "private": true,

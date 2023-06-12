@@ -231,8 +231,8 @@ print s`,
   })
 })
 
-test('Markdown to Slate state - Table (not supported by Mazed yet)', () => {
-  // Tables simply are not supported by Mazed yet
+test('Markdown to Slate state - Table (not supported by Foreword yet)', () => {
+  // Tables simply are not supported by Foreword yet
   const md = `| First H  | Second H |
 | -------- | -------- |
 | Cell 1-1 | Cell 1-2 |

@@ -1,6 +1,6 @@
 /**
- * Extract phrase from text of a textarea to search for relevant nodes in Mazed
- * for write augmentation. I named it "keyphrase" for short.
+ * Extract phrase from text of a textarea to search for relevant nodes in
+ * Foreword for write augmentation. I named it "keyphrase" for short.
  *
  * It extracts the last sentense from the text OR whatever text follows magic
  * code "//". The trick with "//" is needed to adjust keyphrase manually to

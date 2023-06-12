@@ -14,6 +14,8 @@ const kUnmemorable: RegExp[] = [
   /https?:\/\/(www\.)?facebook\.com/,
   /https?:\/\/(www\.)?instagram\.com/,
   /https:\/\/mazed\.\w+/,
+  /https:\/\/thinkforeword\.\w+/,
+  /https:\/\/foreword\.\w+/,
   /localhost:3000/,
   // Block internal "service" pages for all browsers (used
   // for things like extension management, settings etc):

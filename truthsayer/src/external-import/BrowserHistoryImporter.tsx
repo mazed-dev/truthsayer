@@ -173,9 +173,9 @@ function BrowserHistoryImportControl({
     return (
       <Box>
         <Message>
-          Mazed will be opening and closing pages from your {browserName}{' '}
-          history to save them exactly as you saw them. All tabs opened by Mazed
-          will be closed automatically.
+          Foreword will be opening and closing pages from your {browserName}{' '}
+          history to save them exactly as you saw them. All tabs opened by
+          Foreword will be closed automatically.
         </Message>
         <Button onClick={() => startUpload(state.chosenMode)}>Continue</Button>
         <Button
@@ -255,9 +255,9 @@ function BrowserHistoryImportControlForOnboarding({
     return (
       <Box>
         <Comment>
-          Mazed will be opening and closing pages from your {browserName}{' '}
-          history to save them exactly as you saw them. All tabs opened by Mazed
-          will be closed automatically.
+          Foreword will be opening and closing pages from your {browserName}{' '}
+          history to save them exactly as you saw them. All tabs opened by{' '}
+          Foreword will be closed automatically.
         </Comment>
         <OnboardingButton
           onClick={async () => {

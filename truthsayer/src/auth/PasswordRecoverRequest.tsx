@@ -110,7 +110,7 @@ class PasswordRecoverRequestImpl extends React.Component<
             of how to reset your password.
           </Card.Text>
           <Card.Text>
-            Sincerely yours, Mazed team &nbsp;
+            Sincerely yours, Foreword team &nbsp;
             <Emoji symbol="🤓" label=":D" />
           </Card.Text>
           <ButtonGroup>
@@ -126,8 +126,8 @@ class PasswordRecoverRequestImpl extends React.Component<
           <Card.Text>
             Please provide us a primary email &nbsp;
             <Emoji symbol="📨" label="email" />
-            &nbsp; associated with your Mazed account so we can contact you and
-            provide a password reset instruction
+            &nbsp; associated with your Foreword account so we can contact you
+            and provide a password reset instruction
           </Card.Text>
           <Form className="m-4" onSubmit={this.onSubmit}>
             <Form.Group as={Row} controlId="formLoginEmail">

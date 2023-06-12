@@ -44,10 +44,10 @@ function isImage(mime: MimeType): mime is ImageMimeType {
 /**
  * Ensure an input raw string is one of the supported Mime types
  *
- * Mime types described as raw strings can be encountered at a variaty of
- * outer boundaries of Mazed, e.g. 3rd-party APIs. Inside the codebase itself
- * however there is a finite number of types recognised by the system, enumerated
- * by MimeType.
+ * Mime types described as raw strings can be encountered at a variaty of outer
+ * boundaries of Foreword, e.g. 3rd-party APIs. Inside the codebase itself
+ * however there is a finite number of types recognised by the system,
+ * enumerated by MimeType.
  * This function may be useful to sanitise raw strings and ensure that only
  * supported types propagate through the system.
  */

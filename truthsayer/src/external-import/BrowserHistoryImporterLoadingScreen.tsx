@@ -33,9 +33,9 @@ export function BrowserHistoryImporterLoadingScreen({
     <>
       <BigBox>🧘</BigBox>
       <Box>
-        This temporary browser window is used by Mazed to save your browser
-        history to your personal Mazed account. To do so, it will open & close
-        tabs with the pages you visited in the past.
+        This temporary browser window is used by Foreword to save your browser
+        history to your personal Foreword account. To do so, it will open &
+        close tabs with the pages you visited in the past.
       </Box>
       <Box>
         <span>

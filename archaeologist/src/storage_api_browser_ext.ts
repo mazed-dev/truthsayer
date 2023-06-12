@@ -1265,7 +1265,7 @@ export function makeBrowserExtStorageApi(
     // TODO[snikitin@outlook.com] At the time of this writing blob.upload and
     // blob_index.build are used together to create a single searchable blob node.
     // blob.upload is easy to implement for local storage while blob_index.build
-    // is more difficult. Given how important search is for Mazed goals at the
+    // is more difficult. Given how important search is for Foreword goals at the
     // time of writing, it makes little sense to implement any of them until
     // blob_index.build is usable.
     blob: {

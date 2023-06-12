@@ -117,18 +117,18 @@ const StepWelcomePleaseInstall = ({
   return (
     <StepBox>
       <Header>
-        Welcome to Mazed!
+        Welcome to Foreword!
         <br />
         Let's set up your second brain.
       </Header>
       <DescriptionBox>
         <DescriptionList>
           <AppDescriptionListItem>
-            <b>Instant.</b> Mazed allows you reference anything you've read,
+            <b>Instant.</b> Foreword allows you reference anything you've read,
             without searching for it.
           </AppDescriptionListItem>
           <AppDescriptionListItem>
-            <b>Automatic.</b> Mazed helps you remember everything you read,
+            <b>Automatic.</b> Foreword helps you remember everything you read,
             automatically.
           </AppDescriptionListItem>
           <AppDescriptionListItem>
@@ -139,7 +139,7 @@ const StepWelcomePleaseInstall = ({
       </DescriptionBox>
       <InstallAppsStep archaeologist={archaeologistState} />
       <FootNote>
-        By continuing, you agree to Mazed's{' '}
+        By continuing, you agree to Foreword's{' '}
         <RefBtn href={routes.terms} target="_blank" rel="noopener noreferrer">
           Terms of Service
         </RefBtn>{' '}
@@ -200,13 +200,13 @@ const StepYouAreReadyToGo = ({
       <DescriptionBox>
         <DescriptionList>
           <ReadyToGoDescriptionListItem>
-            Browse the internet as you normally do. Mazed saves everything you
-            read, automatically, in your own private, local storage.
+            Browse the internet as you normally do. Foreword saves everything
+            you read, automatically, in your own private, local storage.
           </ReadyToGoDescriptionListItem>
           <ReadyToGoDescriptionListItem>
-            Use anything you've read, without searching for it. Mazed overlays
-            your existing workflows and serves you your relevant information,
-            exactly when you need it.
+            Use anything you've read, without searching for it. Foreword
+            overlays your existing workflows and serves you your relevant
+            information, exactly when you need it.
           </ReadyToGoDescriptionListItem>
           <ReadyToGoDescriptionListItem>
             Book a call with our founders, to provide feedback and make special

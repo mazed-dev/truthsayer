@@ -11,8 +11,8 @@ import { MsProductionEnv } from './MicrosoftEnv'
 export function makeInstance(): PublicClientApplication {
   // MSAL & Microsoft Graph support a variaty of different authentication &
   // authorisation flows, each applicable to a different kind of application.
-  // For single-page web applications like Mazed, the "Authorization Code Grant"
-  // flow is applicable. See for more details:
+  // For single-page web applications like Foreword, the "Authorization Code
+  // Grant" flow is applicable. See for more details:
   // https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow
 
   const msalConfig: Configuration = {
@@ -39,7 +39,7 @@ export function makeInstance(): PublicClientApplication {
       // The default value is 'sessionStorage' which doesn't allow the login
       // session to be shared between tabs.
       //
-      // If Mazed is used in a browser (as opposed to a dedicated app),
+      // If Foreword is used in a browser (as opposed to a dedicated app),
       // 'localStorage' is more convenient as it allows to reuse cached tokens
       // across multiple tabs (note that closing a tab & then opening it again
       // also falls into this category).

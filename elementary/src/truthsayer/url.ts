@@ -34,8 +34,8 @@ export namespace truthsayer.url {
   }
 
   export const belongs = (url: string): boolean => {
-    const mazedUrl = getTruthsayerUrl()
+    const forewordUrl = getTruthsayerUrl()
     const urlObj = new URL(url)
-    return mazedUrl.host === urlObj.host
+    return forewordUrl.host === urlObj.host
   }
 }
