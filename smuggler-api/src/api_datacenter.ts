@@ -1,6 +1,6 @@
 /**
  * Implementation of smuggler APIs like @see StorageApi which,  to perform their job,
- * interact with an infrastructure hosted in Mazed's datacenter.
+ * interact with an infrastructure hosted in Foreword's datacenter.
  */
 
 import {

@@ -11,7 +11,7 @@ import {
 /**
  * A filesystem-agnostic shallow version of a file stored in user's file storage
  * that has all the attributes (regardless of which file system it came from)
- * required for Mazed to process it.
+ * required for Foreword to process it.
  *
  * "Shallow" in this context means that it intentionally doesn't fetch the
  * contents of the file. This is expected to be important as queues of

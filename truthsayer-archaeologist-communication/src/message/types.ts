@@ -38,11 +38,11 @@ export type BackgroundActionProgress = {
  * Mode of operation for @see BrowserHistoryUpload
  */
 export type BrowserHistoryUploadMode =
-  /** Mode in which the progress will be tracked by Mazed and, if the process is
+  /** Mode in which the progress will be tracked by Foreword and, if the process is
    * interrupted, then on restart the upload will start from the beginning.
    */
   | { mode: 'untracked'; unixtime: { start: number; end: number } }
-  /** Mode in which the progress will be tracked by Mazed and, if the process is
+  /** Mode in which the progress will be tracked by Foreword and, if the process is
    * interrupted, then on restart the upload will resume where it previously ended.
    */
   | { mode: 'resumable' }
@@ -73,7 +73,7 @@ export namespace FromTruthsayer {
     type: 'GET_ARCHAEOLOGIST_STATE_REQUEST'
   }
   /**
-   * Get/set settings that the user set up for Mazed
+   * Get/set settings that the user set up for Foreword
    */
   export type GetAppSettingsRequest = {
     type: 'GET_APP_SETTINGS_REQUEST'

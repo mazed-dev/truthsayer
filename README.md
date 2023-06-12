@@ -1,4 +1,4 @@
-# Web app for Mazed
+# Web app for Foreword
 
 ## Workspaces
 

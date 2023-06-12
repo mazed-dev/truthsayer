@@ -10,6 +10,11 @@ import { Link } from 'react-router-dom'
 import { getLogoImage } from './../util/env'
 import { TruthsayerPath } from './../lib/route'
 
+import { ForewordName } from 'elementary'
+
+const NavbarBrandName = styled(ForewordName)`
+  margin: 0 8px 0 10px;
+`
 const ItemBox = styled(Link)`
   display: flex;
   color: black;
@@ -39,20 +44,20 @@ function Logo() {
     <Item
       to="/"
       css={css`
-        font-family: 'Comfortaa';
-        font-size: 20px;
         margin: auto 12px auto 2px;
+        padding-right: 8px;
       `}
     >
       <img
         src={getLogoImage()}
-        alt={'Mazed'}
+        alt={'Foreword'}
         css={css`
-          width: 1.2em;
-          margin-right: 8px;
+          width: 30px;
+          height: 30px;
+          margin-right: 12px;
         `}
       />
-      Mazed
+      <NavbarBrandName />
     </Item>
   )
 }

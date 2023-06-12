@@ -45,12 +45,12 @@ export function GoToInboxToConfirmEmail() {
         <Card.Body className="p-3">
           <Card.Title>Please confirm your email address</Card.Title>
           <Card.Text>
-            Dear {name}, to use your account on Mazed, you need to confirm the
-            email address.
+            Dear {name}, to use your account on Foreword, you need to confirm
+            the email address.
           </Card.Text>
           <Card.Text>
             Check your {inboxRefEl} and locate the confirmation email (subject:
-            "Reset your Mazed password"). Follow the steps in the email to
+            "Reset your Foreword password"). Follow the steps in the email to
             confirm your email address.
           </Card.Text>
         </Card.Body>

@@ -8,10 +8,10 @@ import { ArchaeologistState } from './archaeologistState'
 import { Button } from 'react-bootstrap'
 import { productanalytics } from 'armoury'
 
-type MazedAppLinks =
+type AppLinks =
   | 'https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc'
 
-const kGoogleChromeStoreLink: MazedAppLinks =
+const kGoogleChromeStoreLink: AppLinks =
   'https://chrome.google.com/webstore/detail/mazed/hkfjmbjendcoblcoackpapfphijagddc'
 
 const Name = styled.div`
@@ -76,7 +76,7 @@ export function AppsList({
       <AppsBox>
         <AppItem>
           <Logo src={GoogleChromeLogo} />
-          <Name>Mazed for Chrome &mdash; {describe(archaeologist)}</Name>
+          <Name>Foreword for Chrome &mdash; {describe(archaeologist)}</Name>
         </AppItem>
       </AppsBox>
     </Box>

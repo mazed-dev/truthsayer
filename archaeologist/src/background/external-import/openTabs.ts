@@ -9,7 +9,7 @@ import { truthsayer } from 'elementary'
 import type { BackgroundActionProgress } from 'truthsayer-archaeologist-communication'
 import { TabLoad } from '../../tabLoad'
 
-/** Tools to import to Mazed the content of currently open tabs */
+/** Tools to import to Foreword the content of currently open tabs */
 export namespace OpenTabs {
   // TODO[snikitin@outlook.com] This boolean is an extremely naive tool to cancel
   // an asyncronous task. See `shouldCancelBrowserHistoryUpload` for more information.
@@ -23,7 +23,7 @@ export namespace OpenTabs {
     Required<Pick<browser.Tabs.Tab, 'id' | 'url'>>
 
   /**
-   * @summary Upload the content of all the tabs user has currently open to Mazed.
+   * @summary Upload the content of all the tabs user has currently open to Foreword.
    * @description WARNING: may refresh the tabs, a user-visible effect.
    */
   export async function uploadAll(

@@ -136,7 +136,7 @@ const inputChangedListener = async (
 ) => {
   browser.omnibox.setDefaultSuggestion({
     description: formatDescription(
-      `Search Mazed for "${text === '' ? '…' : text}"`
+      `Search Foreword for "${text === '' ? '…' : text}"`
     ),
   })
   // Omnibox suggestions fit in only 10 elements, no need to look for more.

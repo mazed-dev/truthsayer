@@ -22,7 +22,7 @@ export function NotImplementedMessage() {
   )
 }
 
-async function downloadUserDataFromMazedBackend(
+async function downloadUserDataFromForewordBackend(
   dstStorage: StorageApi,
   srcStorage: StorageApi,
   setLoadingState: (value: LoadingState) => void
@@ -105,12 +105,12 @@ export function DownloadUserDataFromMazedBackendControl() {
   const sync = React.useCallback(() => {
     setLoadingState({ type: 'loading', progress: '...' })
     const sourceStorage = makeDatacenterStorageApi()
-    downloadUserDataFromMazedBackend(
+    downloadUserDataFromForewordBackend(
       currentStorage,
       sourceStorage,
       setLoadingState
     ).catch((reason) =>
-      log.error(`Failed to download data from Mazed backend: ${reason}`)
+      log.error(`Failed to download data from Foreword backend: ${reason}`)
     )
   }, [currentStorage])
   let buttonText
@@ -132,7 +132,8 @@ export function DownloadUserDataFromMazedBackendControl() {
   return (
     <ControlBox>
       <Title>
-        Download fragments from <b>Mazed datacenter</b> to <b>local storage</b>
+        Download fragments from <b>Foreword datacenter</b> to{' '}
+        <b>local storage</b>
       </Title>
       <BoxButtons>
         <Button onClick={sync} disabled={loadingState.type !== 'standby'}>

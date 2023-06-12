@@ -74,8 +74,8 @@ function toProxy(
     }
     if (!msItem.webUrl) {
       log.debug(
-        `File ${path} unexpedly does not have a web URL, without it a Mazed` +
-          'clicking on a Mazed card that represents it will not be able to open the file'
+        `File ${path} unexpedly does not have a web URL, without it a Foreword` +
+          'clicking on a Foreword card that represents it will not be able to open the file'
       )
       return null
     }

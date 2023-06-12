@@ -5,5 +5,5 @@ export type UserFacingError = {
 
 /** Turn a UserFacingError into a string that can be shown to the user. */
 export function renderUserFacingError({ failedTo, tryTo }: UserFacingError) {
-  return `😞 Mazed couldn't ${failedTo}. Try to ${tryTo}, and if it doesn't help - let us know!`
+  return `😞 Foreword couldn't ${failedTo}. Try to ${tryTo}, and if it doesn't help - let us know!`
 }

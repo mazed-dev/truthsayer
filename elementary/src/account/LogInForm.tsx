@@ -6,6 +6,8 @@ import { truthsayer } from '../truthsayer/url'
 
 import { isSmugglerError } from 'smuggler-api'
 
+import { ForewordName } from './../Brand'
+
 const LoginFormBox = styled(Form)`
   display: flex;
   align-content: flex-start;
@@ -20,11 +22,6 @@ const LoginFormRow = styled.div`
   flex-direction: column;
 `
 const LoginFormLabel = styled.div``
-const Title = styled.h1`
-  font-family: 'Comfortaa';
-  font-size: 24px;
-  margin-bottom: 20px;
-`
 export const LoginForm = ({
   onSubmit,
   className,
@@ -45,7 +42,7 @@ export const LoginForm = ({
   )
   return (
     <LoginFormBox onSubmit={onSubmit_} className={className}>
-      <Title>Mazed</Title>
+      <ForewordName />
       <Form.Group as={LoginFormRow} controlId="formLoginEmail">
         <LoginFormLabel>Email</LoginFormLabel>
         <Form.Control

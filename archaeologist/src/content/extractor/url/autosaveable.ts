@@ -32,7 +32,7 @@ const kBlocklist: RegExp[] = [
 ]
 const kAllowlist: RegExp[] = []
 /**
- * Urls blocked by Mazed dev team, this is a hack to hardcode usage of activity
+ * Urls blocked by Foreword dev team, this is a hack to hardcode usage of activity
  * tracker on certain pages. Later one we can replace it with better auto
  * detectors of readability, by improving of `isProbablyReaderable` or
  * developing some ML powered classifiers.

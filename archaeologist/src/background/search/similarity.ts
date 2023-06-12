@@ -429,7 +429,7 @@ async function findRelevantNodesUsingSimilaritySearch(
     const node = nodeMap.get(nid)
     if (node == null) {
       log.error(
-        `Mazed can't extract node for nid ${nid}, can't use it in similarity search`
+        `Foreword can't extract node for nid ${nid}, can't use it in similarity search`
       )
       continue
     }

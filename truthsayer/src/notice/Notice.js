@@ -41,7 +41,7 @@ function LogInToContinue() {
       <Card.Body>
         <Card.Title>Please log in 🚀 </Card.Title>
         <Card.Text>
-          Please <MzdLink to={routes.login}>log in to Mazed</MzdLink> or{' '}
+          Please <MzdLink to={routes.login}>log in to Foreword</MzdLink> or{' '}
           <MzdLink to={routes.signup}>create a new account</MzdLink> to
           continue.
         </Card.Text>

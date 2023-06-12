@@ -15,5 +15,5 @@ export function ContactUs() {
 const _md = `
 # Contact
 
-For any questions get in touch with us at [inquiries@mazed.dev](inquiries@mazed.dev).
+For any questions get in touch with us at [inquiries@thinkforeword.com](inquiries@thinkforeword.com).
 `

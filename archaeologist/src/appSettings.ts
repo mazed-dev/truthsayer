@@ -1,5 +1,5 @@
 /**
- * Module to work with settings that a user set up for Mazed
+ * Module to work with settings that a user set up for Foreword
  */
 
 import type { AppSettings } from 'truthsayer-archaeologist-communication'
