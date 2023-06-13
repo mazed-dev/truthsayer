@@ -230,7 +230,6 @@ export function SuggestedRelatives({
             selectionAnchorElement,
             selectionNodeValue
           )
-          log.debug('phrase', phrase)
           if (phrase != null) {
             requestSuggestedAssociationsForPhrase(phrase).catch((reason) =>
               log.error(`Failed to request suggestions: ${reason}`)
@@ -260,21 +259,13 @@ export function SuggestedRelatives({
   }, [pageSimilaritySearchInput, requestSuggestedAssociationsForPhrase])
   React.useEffect(() => {
     const consumeKeyboardEvent = (keyboardEvent: KeyboardEvent) => {
-      log.debug('KeyboardEvent', keyboardEvent)
       if ('altKey' in keyboardEvent) {
         const event =
           keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
         const target = event.target as HTMLElement
-        log.debug('target', target)
         if (target.isContentEditable || target.tagName === 'TEXTAREA') {
-          log.debug(
-            'isContentEditable',
-            target.isContentEditable,
-            target.tagName
-          )
           const selection = window.getSelection()
           if (selection?.anchorNode != null) {
-            log.debug('selection?.anchorNode', selection?.anchorNode)
             requestSuggestedForKeyboardEvent(
               target,
               selection.anchorNode.parentElement,
