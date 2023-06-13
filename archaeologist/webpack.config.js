@@ -1,9 +1,14 @@
 const webpack = require("webpack")
 const path = require("path")
 var fs = require('fs')
+const fetch = require("node-fetch")
+const crypto = require("crypto");
 const util = require('util')
 const CopyPlugin = require("copy-webpack-plugin")
 const TerserPlugin = require('terser-webpack-plugin')
+
+// Folder where ML models are stored
+const MODELS_FOLDER_NAME = "models"
 
 const _getTruthsayerUrl = (mode) => {
   return mode === 'development' ? 'http://localhost:3000' : 'https://mazed.se/'
@@ -22,10 +27,19 @@ const _getSmugglerApiUrl = (mode) => {
 }
 
 const _readVersionFromFile = async () => {
-  filePath = path.join(__dirname, 'public/version.txt')
+  const filePath = path.join(__dirname, 'public/version.txt')
   const readFile = util.promisify(fs.readFile)
 
   return (await readFile(filePath, {encoding: 'ascii'})).trim()
+}
+
+const _saveFetchResponseToDisk = async (response, destination) => {
+  const fileStream = fs.createWriteStream(destination);
+  return await new Promise((resolve, reject) => {
+      response.body.pipe(fileStream);
+      response.body.on("error", reject);
+      fileStream.on("finish", resolve);
+  });
 }
 
 const _manifestTransformDowngradeToV2 = (manifest) => {
@@ -68,6 +82,10 @@ const _manifestTransform = (buffer, mode, env, archaeologistVersion) => {
   // See https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/externally_connectable
   // for more details.
   manifest.externally_connectable.matches.push(_getTruthsayerUrlMask(mode))
+  manifest.web_accessible_resources.push({
+    resources: [`${MODELS_FOLDER_NAME}/*`],
+    matches: [],
+  })
   if (firefox) {
     manifest = _manifestTransformDowngradeToV2(manifest)
   }
@@ -91,7 +109,21 @@ const _manifestTransform = (buffer, mode, env, archaeologistVersion) => {
 }
 
 const config = async (env, argv) => {
-  archeologistVersion = await _readVersionFromFile()
+  const archeologistVersion = await _readVersionFromFile()
+
+  const dateStr =new Date().toDateString().replaceAll(' ', "-") 
+  const rnd = crypto.randomBytes(16).toString("hex")
+  const tmpFolderPath = `webpack-tmp/${dateStr}-${rnd}`
+  const tmpModelsFolderPath = `${tmpFolderPath}/${MODELS_FOLDER_NAME}/universal-sentence-encoder-lite-2`
+  fs.mkdirSync(tmpModelsFolderPath, { recursive: true })
+  // URL composed by combining:
+  //  - https://github.com/tensorflow/tfjs-models/blob/646992fd7ab8237c0dc908f2526301414b417c95/universal-sentence-encoder/src/index.ts#L53
+  //  - https://github.com/tensorflow/tfjs/blob/680101d878b0d2dcc63a230180804e6cb1c668ba/tfjs-converter/src/executor/graph_model.ts#L679-L684
+  const model = await fetch("https://tfhub.dev/tensorflow/tfjs-model/universal-sentence-encoder-lite/1/default/1/model.json?tfjs-format=file")
+  // URL taken from https://github.com/tensorflow/tfjs-models/blob/646992fd7ab8237c0dc908f2526301414b417c95/universal-sentence-encoder/src/index.ts#LL60C55-L60C65
+  const vocab = await fetch("https://storage.googleapis.com/tfjs-models/savedmodel/universal_sentence_encoder/vocab.json")
+  await _saveFetchResponseToDisk(model, `${tmpModelsFolderPath}/model.json`)
+  await _saveFetchResponseToDisk(vocab, `${tmpModelsFolderPath}/vocab.json`)
   return {
     entry: {
       popup: path.join(__dirname, "src/popup.tsx"),
@@ -171,6 +203,8 @@ const config = async (env, argv) => {
             }
             return context
           },
+        }, {
+          from: tmpModelsFolderPath, to: MODELS_FOLDER_NAME,
         }],
       }),
       new webpack.ProvidePlugin({

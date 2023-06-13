@@ -183,7 +183,7 @@ export function SuggestedRelatives({
           productanalytics.error(
             analytics ?? null,
             {
-              failedTo: 'get content suggestions',
+              failedTo: 'get suggestions',
               location: 'floater',
               cause: error.message,
             },

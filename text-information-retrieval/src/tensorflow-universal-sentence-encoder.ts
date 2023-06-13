@@ -18,7 +18,42 @@ export type TfState = {
 }
 
 export async function createTfState(): Promise<TfState> {
-  const encoder = await use.load()
+  const modelFilePath = chrome.runtime.getURL(
+    'models/universal-sentence-encoder-lite-2/model.json'
+  )
+  tf.io.http(modelFilePath, {
+    fetchFunc: ([input, init]: Parameters<typeof fetch>): ReturnType<
+      typeof fetch
+    > => {
+      const request = new Request(input, init)
+      return new Promise((resolve, reject) => {
+        const readStream = fs.createReadStream(input)
+        readStream.on('error', reject)
+        readStream.on('open', () => {
+          resolve(
+            new Response(readStream, {
+              headers: {
+                // url: request.url,
+                // size: fs.statSync(input).size,
+                // timeout: request.timeout
+              },
+              status: 200,
+              statusText: 'OK',
+            })
+          )
+        })
+      })
+    },
+  })
+
+  const encoder = await use.load({
+    modelUrl: chrome.runtime.getURL(
+      'models/universal-sentence-encoder-lite-2/model.json'
+    ),
+    vocabUrl: chrome.runtime.getURL(
+      'models/universal-sentence-encoder-lite-2/vocab.json'
+    ),
+  })
   return { encoder }
 }
 
