@@ -33,7 +33,8 @@ const _readVersionFromFile = async () => {
   return (await readFile(filePath, {encoding: 'ascii'})).trim()
 }
 
-const _saveFetchResponseToDisk = async (response, destination) => {
+const _downloadToDisk = async (url, destination) => {
+  const response = await fetch(url)
   const fileStream = fs.createWriteStream(destination);
   return await new Promise((resolve, reject) => {
       response.body.pipe(fileStream);
@@ -108,22 +109,52 @@ const _manifestTransform = (buffer, mode, env, archaeologistVersion) => {
   return JSON.stringify(manifest, null, 2)
 }
 
+/**
+ * Download ML models so they can be packed inside the archaeologist itself.
+ * Some users seem to have browser extensions that block network downloads
+ * during archaeologist's runtime so reading models avoids potential issues.
+ */
+const _downloadModelsTo = async (destination) => {
+  fs.mkdirSync(destination, { recursive: true })
+  const makeUrlForModelPart = (fileNameOfPart) =>
+    // URL composed by combining:
+    //  - https://github.com/tensorflow/tfjs-models/blob/646992fd7ab8237c0dc908f2526301414b417c95/universal-sentence-encoder/src/index.ts#L53
+    //  - https://github.com/tensorflow/tfjs/blob/680101d878b0d2dcc63a230180804e6cb1c668ba/tfjs-converter/src/executor/graph_model.ts#L679-L684
+    `https://tfhub.dev/tensorflow/tfjs-model/universal-sentence-encoder-lite/1/default/1/${fileNameOfPart}?tfjs-format=file`
+  await _downloadToDisk(makeUrlForModelPart('model.json'), `${destination}/use-model.json`)
+
+  // Names of these files can be found in model.json, field "weightsManifest".
+  // tfjs will try to read them from the same folder where model.json is located.
+  const weightFilenames = [
+    'group1-shard1of7',
+    'group1-shard2of7',
+    'group1-shard3of7',
+    'group1-shard4of7',
+    'group1-shard5of7',
+    'group1-shard6of7',
+    'group1-shard7of7',
+  ]
+  for (const weightsFilename of weightFilenames) {
+    await _downloadToDisk(
+      makeUrlForModelPart(weightsFilename),
+      `${destination}/${weightsFilename}`
+    )
+  }
+  await _downloadToDisk(
+    // URL taken from https://github.com/tensorflow/tfjs-models/blob/646992fd7ab8237c0dc908f2526301414b417c95/universal-sentence-encoder/src/index.ts#LL60C55-L60C65
+    'https://storage.googleapis.com/tfjs-models/savedmodel/universal_sentence_encoder/vocab.json', 
+    `${destination}/use-vocab.json`
+  )
+}
+
 const config = async (env, argv) => {
   const archeologistVersion = await _readVersionFromFile()
 
-  const dateStr =new Date().toDateString().replaceAll(' ', "-") 
+  const dateStr = new Date().toDateString().replaceAll(' ', "-")
   const rnd = crypto.randomBytes(16).toString("hex")
   const tmpFolderPath = `webpack-tmp/${dateStr}-${rnd}`
-  const tmpModelsFolderPath = `${tmpFolderPath}/${MODELS_FOLDER_NAME}/universal-sentence-encoder-lite-2`
-  fs.mkdirSync(tmpModelsFolderPath, { recursive: true })
-  // URL composed by combining:
-  //  - https://github.com/tensorflow/tfjs-models/blob/646992fd7ab8237c0dc908f2526301414b417c95/universal-sentence-encoder/src/index.ts#L53
-  //  - https://github.com/tensorflow/tfjs/blob/680101d878b0d2dcc63a230180804e6cb1c668ba/tfjs-converter/src/executor/graph_model.ts#L679-L684
-  const model = await fetch("https://tfhub.dev/tensorflow/tfjs-model/universal-sentence-encoder-lite/1/default/1/model.json?tfjs-format=file")
-  // URL taken from https://github.com/tensorflow/tfjs-models/blob/646992fd7ab8237c0dc908f2526301414b417c95/universal-sentence-encoder/src/index.ts#LL60C55-L60C65
-  const vocab = await fetch("https://storage.googleapis.com/tfjs-models/savedmodel/universal_sentence_encoder/vocab.json")
-  await _saveFetchResponseToDisk(model, `${tmpModelsFolderPath}/model.json`)
-  await _saveFetchResponseToDisk(vocab, `${tmpModelsFolderPath}/vocab.json`)
+  const tmpModelsFolderPath = `${tmpFolderPath}/${MODELS_FOLDER_NAME}`
+  await _downloadModelsTo(tmpModelsFolderPath)
   return {
     entry: {
       popup: path.join(__dirname, "src/popup.tsx"),

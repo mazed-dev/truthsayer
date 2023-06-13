@@ -18,41 +18,16 @@ export type TfState = {
 }
 
 export async function createTfState(): Promise<TfState> {
-  const modelFilePath = chrome.runtime.getURL(
-    'models/universal-sentence-encoder-lite-2/model.json'
-  )
-  tf.io.http(modelFilePath, {
-    fetchFunc: ([input, init]: Parameters<typeof fetch>): ReturnType<
-      typeof fetch
-    > => {
-      const request = new Request(input, init)
-      return new Promise((resolve, reject) => {
-        const readStream = fs.createReadStream(input)
-        readStream.on('error', reject)
-        readStream.on('open', () => {
-          resolve(
-            new Response(readStream, {
-              headers: {
-                // url: request.url,
-                // size: fs.statSync(input).size,
-                // timeout: request.timeout
-              },
-              status: 200,
-              statusText: 'OK',
-            })
-          )
-        })
-      })
-    },
-  })
+  // NOTE: model & vocab json files are not the only ones universal-sentence-encoder
+  // will try to load, but paths to remaining files get determined implicitely,
+  // inside tfjs code. See note on 'weightsManifest' in webpack.config.js for more
+  // about the implicit files.
+  const modelFilePath = chrome.runtime.getURL('models/use-model.json')
+  const vocabFilePath = chrome.runtime.getURL('models/use-vocab.json')
 
   const encoder = await use.load({
-    modelUrl: chrome.runtime.getURL(
-      'models/universal-sentence-encoder-lite-2/model.json'
-    ),
-    vocabUrl: chrome.runtime.getURL(
-      'models/universal-sentence-encoder-lite-2/vocab.json'
-    ),
+    modelUrl: modelFilePath,
+    vocabUrl: vocabFilePath,
   })
   return { encoder }
 }
