@@ -2,7 +2,6 @@ const webpack = require("webpack")
 const path = require("path")
 var fs = require('fs')
 const fetch = require("node-fetch")
-const crypto = require("crypto");
 const util = require('util')
 const CopyPlugin = require("copy-webpack-plugin")
 const TerserPlugin = require('terser-webpack-plugin')
