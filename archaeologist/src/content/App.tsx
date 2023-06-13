@@ -234,7 +234,7 @@ function updateState(state: State, action: Action): State {
             // content script has been loaded is intentionally not reported
             // for privacy reasons. However it is anticipated that it'll be
             // useful to be able to link together user's interactions with
-            // Mazed within that single specific web-page, so an anonymous
+            // Foreword within that single specific web-page, so an anonymous
             // GUID is published instead.
             augmented_url_guid: uuidv4(),
           })

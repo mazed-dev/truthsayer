@@ -2,7 +2,7 @@ import { ThirdpartyFs, FileProxy, FolderProxy } from './3rdPartyFilesystem'
 
 /**
  * This module implements the algorithm for consuming files and processing
- * them into Mazed, described in https://github.com/Thread-knowledge/truthsayer/issues/148
+ * them into Foreword, described in https://github.com/Thread-knowledge/truthsayer/issues/148
  */
 
 /** Largest integer timestamp that Javascript's native Date
@@ -21,7 +21,7 @@ type ModificationSearchRange = {
   start: number
   // TODO[snikitin@outlook.com] Currently the algorithm has no way to narrow the
   // search range from the right side. It means it will greedily look for
-  // everything in [start, infinity). If a filesystem gets processed by Mazed
+  // everything in [start, infinity). If a filesystem gets processed by Foreword
   // periodically then this should not cause big problems, unless a giant number
   // of files get added/modified at the same time, diffused throughout giant
   // number of folders.

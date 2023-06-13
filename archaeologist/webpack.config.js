@@ -80,7 +80,7 @@ const _manifestTransform = (buffer, mode, env, archaeologistVersion) => {
 
   const { firefox = false } = env
 
-  // Add Mazed URL to externally_connectable to allow to send messages
+  // Add Foreword URL to externally_connectable to allow to send messages
   // from truthsayer to archaeologist.
   // See https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/externally_connectable
   // for more details.

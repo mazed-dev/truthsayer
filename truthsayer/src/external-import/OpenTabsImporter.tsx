@@ -58,7 +58,7 @@ export function OpenTabsImporter({
 
   return (
     <Box>
-      <Comment>Add your current tabs to your Mazed memory:</Comment>
+      <Comment>Add your current tabs to your Foreword memory:</Comment>
       <ButtonBox>
         {progress.processed === progress.total ? (
           <>

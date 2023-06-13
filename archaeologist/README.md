@@ -1,4 +1,4 @@
-# Mazed browser extension
+# Foreword browser extension
 
 ## Dev
 

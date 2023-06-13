@@ -46,10 +46,10 @@ export type CreateNodeFromLocalBinaryArgs = {
 }
 
 /**
- * Upload a local binary file as a *fully featured* Mazed node
+ * Upload a local binary file as a *fully featured* Foreword node
  * (as opposed to, for example, @see StorageApi.blob.upload that
  * at the time of this writing creates a node that *doesn't support some
- * Mazed features* like search index).
+ * Foreword features* like search index).
  */
 export async function createNodeFromLocalBinary({
   storage,

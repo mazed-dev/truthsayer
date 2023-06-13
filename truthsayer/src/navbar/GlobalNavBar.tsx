@@ -6,7 +6,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { ButtonGroup, Dropdown, Navbar } from 'react-bootstrap'
 
 import { compass } from './../lib/route'
-import { jcss, MdiAccountCircle, kCardBorder } from 'elementary'
+import { jcss, MdiAccountCircle, kCardBorder, ForewordName } from 'elementary'
 import { getLogoImage } from './../util/env'
 import { SearchForm } from './SearchForm'
 import { TruthsayerPath } from './../lib/route'
@@ -97,7 +97,14 @@ const NavbarBrand = styled(Navbar.Brand)`
   display: flex;
   justify-content: space-between;
   margin-right: 0.5rem;
-  font-family: 'Comfortaa';
+`
+const NavbarBrandName = styled(ForewordName)`
+  margin: 0 8px 0 10px;
+`
+const NavbarBrandLogo = styled.img`
+  width: 30px;
+  height: 30px;
+  margin-right: 12px;
 `
 
 export function GlobalNavBar() {
@@ -105,12 +112,12 @@ export function GlobalNavBar() {
     <>
       <CustomNavbar fixed="top" className={styles.navbar}>
         <NavbarBrand as={Link} to="/">
-          <img
+          <NavbarBrandLogo
             src={getLogoImage()}
-            alt={'Mazed logo'}
+            alt={'Foreword logo'}
             className={styles.logo_image}
           />
-          <div className="d-none d-sm-none d-md-block">Mazed</div>
+          <NavbarBrandName />
         </NavbarBrand>
         <PrivateNavButtons />
       </CustomNavbar>

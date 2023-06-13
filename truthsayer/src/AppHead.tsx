@@ -3,8 +3,8 @@ import { Helmet } from 'react-helmet'
 import { getLogoImage } from './util/env'
 import { MimeType } from 'armoury'
 
-export const kMazedDescription =
-  'Quick access to everything you encounter online'
+export const kDescription =
+  "AI-powered second brain enabling you to retain everything you read, automatically, and to link anything you've seen, without searching for it."
 
 /**
  *
@@ -12,12 +12,12 @@ export const kMazedDescription =
 export function AppHead() {
   return (
     <Helmet defer>
-      <title>Mazed</title>
-      <meta name="description" content={kMazedDescription} />
+      <title>Foreword</title>
+      <meta name="description" content={kDescription} />
 
-      <meta property="og:title" content="Mazed" />
+      <meta property="og:title" content="Foreword" />
       <meta property="og:type" content="website" />
-      <meta property="og:description" content={kMazedDescription} />
+      <meta property="og:description" content={kDescription} />
 
       <link
         rel="icon"
@@ -38,19 +38,30 @@ export function AppHead() {
         type="image/png"
         href={getLogoImage(MimeType.IMAGE_PNG, '16')}
       />
+      {/* For all google fonts */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
       {/*
-        Font to style Mazed logo and promo materials, such as landing page.
+        Font to style Foreword logo and promo materials, such as landing page.
         Add following CSS property to use the font:
           font-family: 'Comfortaa';font-size: 22px;
         See https://fonts.google.com/specimen/Comfortaa for more info
       */}
       <link
-        href="https://fonts.googleapis.com/css?family=Comfortaa"
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif"
         rel="stylesheet"
       />
       {/* Font to style all other texts */}
       <link
         href="https://fonts.googleapis.com/css?family=Roboto"
+        rel="stylesheet"
+      />
+      {/*
+          Font for imporovised preview images for bookmarks where we failed to
+          extract some real image from the page.
+      */}
+      <link
+        href="https://fonts.googleapis.com/css?family=Comfortaa"
         rel="stylesheet"
       />
       {/*

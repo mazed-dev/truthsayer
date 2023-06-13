@@ -108,7 +108,7 @@ async function uploadFilesFromFolder(
 
 /**
  * Implements UI widgets that user can use to manage integration between
- * their Mazed & Microsoft OneDrive.
+ * their Foreword & Microsoft OneDrive.
  *
  * On a high level integration with OneDrive consists of two major parts:
  *    1. authentication & authorization (@see setupMsalInstance() )
@@ -210,7 +210,7 @@ export function MicrosoftOfficeOneDriveImporter({
   const account = ctx.account
   if (!account) {
     throw Error(
-      'Microsoft Office OneDrive integration requires a valid Mazed account available'
+      'Microsoft Office OneDrive integration requires a valid Foreword account available'
     )
   }
   return <OneDriveIntegrationManager className={className} />

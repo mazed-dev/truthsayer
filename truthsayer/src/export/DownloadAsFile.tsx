@@ -38,7 +38,7 @@ const DownloadIcon = styled(MdiDownload)`
 `
 
 function createFileName(email: string, extension: string): string {
-  return `MazedMemoryDump-${email}-${moment().valueOf()}.${extension}`
+  return `ForewordMemoryDump-${email}-${moment().valueOf()}.${extension}`
 }
 
 export function DownloadAsFile({ className }: { className?: string }) {

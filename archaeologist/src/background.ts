@@ -602,12 +602,12 @@ class Background {
 
     // Add custom context menus
     {
-      const kMazedContextMenuItemId = 'selection-to-mazed-context-menu-item'
+      const kContextMenuItemId = 'foreword-save-selection-context-menu-item'
       await browser.contextMenus.removeAll()
       browser.contextMenus.create({
-        title: 'Save to Mazed',
+        title: 'Save to Foreword',
         type: 'normal',
-        id: kMazedContextMenuItemId,
+        id: kContextMenuItemId,
         contexts: ['selection', 'editable'],
       })
       this.deinitialisers.push(() => browser.contextMenus.removeAll())
@@ -616,7 +616,7 @@ class Background {
         info: browser.Menus.OnClickData,
         tab: browser.Tabs.Tab | undefined
       ) => {
-        if (info.menuItemId === kMazedContextMenuItemId) {
+        if (info.menuItemId === kContextMenuItemId) {
           if (tab?.id == null) {
             return
           }
