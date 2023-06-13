@@ -34,9 +34,12 @@ const _readVersionFromFile = async () => {
 }
 
 const _downloadToDisk = async (url, destination) => {
+  if (fs.existsSync(destination)) {
+    return
+  }
   const response = await fetch(url)
   const fileStream = fs.createWriteStream(destination);
-  return await new Promise((resolve, reject) => {
+  await new Promise((resolve, reject) => {
       response.body.pipe(fileStream);
       response.body.on("error", reject);
       fileStream.on("finish", resolve);
@@ -150,10 +153,7 @@ const _downloadModelsTo = async (destination) => {
 const config = async (env, argv) => {
   const archeologistVersion = await _readVersionFromFile()
 
-  const dateStr = new Date().toDateString().replaceAll(' ', "-")
-  const rnd = crypto.randomBytes(16).toString("hex")
-  const tmpFolderPath = `webpack-tmp/${dateStr}-${rnd}`
-  const tmpModelsFolderPath = `${tmpFolderPath}/${MODELS_FOLDER_NAME}`
+  const tmpModelsFolderPath = `webpack-tmp/${MODELS_FOLDER_NAME}`
   await _downloadModelsTo(tmpModelsFolderPath)
   return {
     entry: {
