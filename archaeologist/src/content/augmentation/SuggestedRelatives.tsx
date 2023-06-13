@@ -31,10 +31,23 @@ function getLastEditedParagraph(
   selectionAnchorElement: HTMLElement | null,
   selectionNodeValue: null | string
 ): string | null {
-  let element = selectionAnchorElement
+  let element
+  if (
+    selectionAnchorElement != null &&
+    target.contains(selectionAnchorElement)
+  ) {
+    element = selectionAnchorElement
+  } else {
+    element = target
+  }
   let previousElement = element
   while (element != null) {
-    if (element?.nodeName === 'P' || target.isSameNode(element)) {
+    if (
+      element?.nodeName === 'P' ||
+      target.isSameNode(element) ||
+      element?.nodeName === 'TEXTAREA' ||
+      element?.nodeName === 'INPUT'
+    ) {
       break
     }
     if (element.innerText.indexOf('\n') >= 0) {
@@ -47,7 +60,14 @@ function getLastEditedParagraph(
     previousElement = element
     element = element.parentElement
   }
-  const innerText = element?.innerText ?? null
+  let innerText: string | null = null
+  if (element != null && element.nodeName === 'TEXTAREA') {
+    innerText = (element as HTMLTextAreaElement).value
+  } else if (element != null && element.nodeName === 'INPUT') {
+    innerText = (element as HTMLInputElement).value
+  } else if (element?.innerHTML != null) {
+    innerText = element?.innerText
+  }
   if (innerText && innerText.indexOf('\n') < 0) {
     return innerText
   }
@@ -210,6 +230,7 @@ export function SuggestedRelatives({
             selectionAnchorElement,
             selectionNodeValue
           )
+          log.debug('phrase', phrase)
           if (phrase != null) {
             requestSuggestedAssociationsForPhrase(phrase).catch((reason) =>
               log.error(`Failed to request suggestions: ${reason}`)
@@ -239,13 +260,21 @@ export function SuggestedRelatives({
   }, [pageSimilaritySearchInput, requestSuggestedAssociationsForPhrase])
   React.useEffect(() => {
     const consumeKeyboardEvent = (keyboardEvent: KeyboardEvent) => {
+      log.debug('KeyboardEvent', keyboardEvent)
       if ('altKey' in keyboardEvent) {
         const event =
           keyboardEvent as unknown as React.KeyboardEvent<HTMLTextAreaElement>
         const target = event.target as HTMLElement
+        log.debug('target', target)
         if (target.isContentEditable || target.tagName === 'TEXTAREA') {
+          log.debug(
+            'isContentEditable',
+            target.isContentEditable,
+            target.tagName
+          )
           const selection = window.getSelection()
           if (selection?.anchorNode != null) {
+            log.debug('selection?.anchorNode', selection?.anchorNode)
             requestSuggestedForKeyboardEvent(
               target,
               selection.anchorNode.parentElement,
