@@ -115,6 +115,11 @@ const _manifestTransform = (buffer, mode, env, archaeologistVersion) => {
  * Download ML models so they can be packed inside the archaeologist itself.
  * Some users seem to have browser extensions that block network downloads
  * during archaeologist's runtime so reading models avoids potential issues.
+ * 
+ * A universal-sentence-encoder-lite model consists of 3 parts:
+ * - a model.json file
+ * - 1 or more weight files that are referenced from model.json
+ * - a vocab.json file
  */
 const _downloadModelsTo = async (destination) => {
   fs.mkdirSync(destination, { recursive: true })
