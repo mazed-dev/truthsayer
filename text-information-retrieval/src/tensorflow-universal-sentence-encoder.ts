@@ -7,7 +7,6 @@ import * as use from '@tensorflow-models/universal-sentence-encoder'
 import type { TfEmbeddingJson } from 'smuggler-api'
 import { range } from 'armoury'
 import lodash from 'lodash'
-import browser from 'webextension-polyfill'
 
 export { KNNClassifier } from '@tensorflow-models/knn-classifier'
 
@@ -18,17 +17,22 @@ export type TfState = {
   encoder: use.UniversalSentenceEncoder
 }
 
-export async function createTfState(): Promise<TfState> {
+export type TfInitialisationConfig = {
   // NOTE: model & vocab json files are not the only ones universal-sentence-encoder
   // will try to load, but paths to remaining files get determined implicitely,
   // inside tfjs code. See note on 'weightsManifest' in webpack.config.js for more
   // about the implicit files.
-  const modelFilePath = browser.runtime.getURL('models/use-model.json')
-  const vocabFilePath = browser.runtime.getURL('models/use-vocab.json')
+  modelUrl: string
+  vocabUrl: string
+}
 
+export async function createTfState({
+  modelUrl,
+  vocabUrl,
+}: TfInitialisationConfig): Promise<TfState> {
   const encoder = await use.load({
-    modelUrl: modelFilePath,
-    vocabUrl: vocabFilePath,
+    modelUrl,
+    vocabUrl,
   })
   return { encoder }
 }
