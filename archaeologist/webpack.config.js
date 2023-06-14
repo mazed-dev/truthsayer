@@ -1,9 +1,13 @@
 const webpack = require("webpack")
 const path = require("path")
 var fs = require('fs')
+const fetch = require("node-fetch")
 const util = require('util')
 const CopyPlugin = require("copy-webpack-plugin")
 const TerserPlugin = require('terser-webpack-plugin')
+
+// Folder where ML models are stored
+const MODELS_FOLDER_NAME = "models"
 
 const _getTruthsayerUrl = (mode) => {
   return mode === 'development' ? 'http://localhost:3000' : 'https://mazed.se/'
@@ -22,10 +26,23 @@ const _getSmugglerApiUrl = (mode) => {
 }
 
 const _readVersionFromFile = async () => {
-  filePath = path.join(__dirname, 'public/version.txt')
+  const filePath = path.join(__dirname, 'public/version.txt')
   const readFile = util.promisify(fs.readFile)
 
   return (await readFile(filePath, {encoding: 'ascii'})).trim()
+}
+
+const _downloadToDisk = async (url, destination) => {
+  if (fs.existsSync(destination)) {
+    return
+  }
+  const response = await fetch(url)
+  const fileStream = fs.createWriteStream(destination);
+  await new Promise((resolve, reject) => {
+      response.body.pipe(fileStream);
+      response.body.on("error", reject);
+      fileStream.on("finish", resolve);
+  });
 }
 
 const _manifestTransformDowngradeToV2 = (manifest) => {
@@ -68,6 +85,10 @@ const _manifestTransform = (buffer, mode, env, archaeologistVersion) => {
   // See https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/externally_connectable
   // for more details.
   manifest.externally_connectable.matches.push(_getTruthsayerUrlMask(mode))
+  manifest.web_accessible_resources.push({
+    resources: [`${MODELS_FOLDER_NAME}/*`],
+    matches: [],
+  })
   if (firefox) {
     manifest = _manifestTransformDowngradeToV2(manifest)
   }
@@ -90,8 +111,54 @@ const _manifestTransform = (buffer, mode, env, archaeologistVersion) => {
   return JSON.stringify(manifest, null, 2)
 }
 
+/**
+ * Download ML models so they can be packed inside the archaeologist itself.
+ * Some users seem to have browser extensions that block network downloads
+ * during archaeologist's runtime so reading models avoids potential issues.
+ * 
+ * A universal-sentence-encoder-lite model consists of 3 parts:
+ * - a model.json file
+ * - 1 or more weight files that are referenced from model.json
+ * - a vocab.json file
+ */
+const _downloadModelsTo = async (destination) => {
+  fs.mkdirSync(destination, { recursive: true })
+  const makeUrlForModelPart = (fileNameOfPart) =>
+    // URL composed by combining:
+    //  - https://github.com/tensorflow/tfjs-models/blob/646992fd7ab8237c0dc908f2526301414b417c95/universal-sentence-encoder/src/index.ts#L53
+    //  - https://github.com/tensorflow/tfjs/blob/680101d878b0d2dcc63a230180804e6cb1c668ba/tfjs-converter/src/executor/graph_model.ts#L679-L684
+    `https://tfhub.dev/tensorflow/tfjs-model/universal-sentence-encoder-lite/1/default/1/${fileNameOfPart}?tfjs-format=file`
+  await _downloadToDisk(makeUrlForModelPart('model.json'), `${destination}/use-model.json`)
+
+  // Names of these files can be found in model.json, field "weightsManifest".
+  // tfjs will try to read them from the same folder where model.json is located.
+  const weightFilenames = [
+    'group1-shard1of7',
+    'group1-shard2of7',
+    'group1-shard3of7',
+    'group1-shard4of7',
+    'group1-shard5of7',
+    'group1-shard6of7',
+    'group1-shard7of7',
+  ]
+  for (const weightsFilename of weightFilenames) {
+    await _downloadToDisk(
+      makeUrlForModelPart(weightsFilename),
+      `${destination}/${weightsFilename}`
+    )
+  }
+  await _downloadToDisk(
+    // URL taken from https://github.com/tensorflow/tfjs-models/blob/646992fd7ab8237c0dc908f2526301414b417c95/universal-sentence-encoder/src/index.ts#LL60C55-L60C65
+    'https://storage.googleapis.com/tfjs-models/savedmodel/universal_sentence_encoder/vocab.json', 
+    `${destination}/use-vocab.json`
+  )
+}
+
 const config = async (env, argv) => {
-  archeologistVersion = await _readVersionFromFile()
+  const archeologistVersion = await _readVersionFromFile()
+
+  const tmpModelsFolderPath = `webpack-tmp/${MODELS_FOLDER_NAME}`
+  await _downloadModelsTo(tmpModelsFolderPath)
   return {
     entry: {
       popup: path.join(__dirname, "src/popup.tsx"),
@@ -171,6 +238,8 @@ const config = async (env, argv) => {
             }
             return context
           },
+        }, {
+          from: tmpModelsFolderPath, to: MODELS_FOLDER_NAME,
         }],
       }),
       new webpack.ProvidePlugin({

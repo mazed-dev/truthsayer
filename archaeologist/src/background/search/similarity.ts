@@ -60,7 +60,10 @@ async function createTfState(
   analytics: BackgroundPosthog | null
 ): Promise<tf.TfState> {
   const timer = new Timer()
-  const tfState = await tf.createTfState()
+  const tfState = await tf.createTfState({
+    modelUrl: browser.runtime.getURL('models/use-model.json'),
+    vocabUrl: browser.runtime.getURL('models/use-vocab.json'),
+  })
   backgroundpa.performance(
     analytics,
     { action: 'similarity: ML model initial load' },

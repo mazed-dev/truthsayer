@@ -57,5 +57,6 @@
   "externally_connectable": {
     "ids": [],
     "matches": []
-  }
+  },
+  "web_accessible_resources": []
 }

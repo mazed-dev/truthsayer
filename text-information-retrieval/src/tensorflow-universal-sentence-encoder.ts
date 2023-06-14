@@ -17,8 +17,23 @@ export type TfState = {
   encoder: use.UniversalSentenceEncoder
 }
 
-export async function createTfState(): Promise<TfState> {
-  const encoder = await use.load()
+export type TfInitialisationConfig = {
+  // NOTE: model & vocab json files are not the only ones universal-sentence-encoder
+  // will try to load, but paths to remaining files get determined implicitely,
+  // inside tfjs code. See note on 'weightsManifest' in webpack.config.js for more
+  // about the implicit files.
+  modelUrl: string
+  vocabUrl: string
+}
+
+export async function createTfState({
+  modelUrl,
+  vocabUrl,
+}: TfInitialisationConfig): Promise<TfState> {
+  const encoder = await use.load({
+    modelUrl,
+    vocabUrl,
+  })
   return { encoder }
 }
 

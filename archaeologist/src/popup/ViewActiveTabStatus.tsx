@@ -215,7 +215,7 @@ export const ViewActiveTabStatus = () => {
       productanalytics.error(
         analytics ?? null,
         {
-          failedTo: 'load suggestions',
+          failedTo: 'get suggestions',
           location: 'popup',
           cause: errorise(e).message,
         },
