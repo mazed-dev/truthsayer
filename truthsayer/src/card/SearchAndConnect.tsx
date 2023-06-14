@@ -1,9 +1,10 @@
 import React from 'react'
 import { Modal, Form } from 'react-bootstrap'
 
-import { SearchGrid } from 'elementary'
+import { SearchGrid } from '../grid/SearchGrid'
 
 import lodash from 'lodash'
+import { MzdGlobalContext } from '../lib/global'
 
 type SearchAndConnectJinnModalProps = {
   nid: string
@@ -32,6 +33,9 @@ class SearchAndConnectJinnModal extends React.Component<
   SearchAndConnectJinnModalProps,
   SearchAndConnectJinnModalState
 > {
+  static contextType = MzdGlobalContext
+  context!: React.ContextType<typeof MzdGlobalContext>
+
   inputRef: React.RefObject<HTMLInputElement>
 
   constructor(props: SearchAndConnectJinnModalProps) {

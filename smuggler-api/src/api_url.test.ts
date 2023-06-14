@@ -16,7 +16,7 @@ describe('test suite for makeUrl', () => {
   })
 
   test('API_URL is absolute url', () => {
-    const apiUrl = 'https://abc.mazed.dev'
+    const apiUrl = 'https://abc.mazed.se'
     process.env.REACT_APP_SMUGGLER_API_URL = apiUrl
     expect(makeUrl()).toStrictEqual(`${apiUrl}/`)
     expect(makeUrl('node')).toStrictEqual(`${apiUrl}/node`)
@@ -33,5 +33,18 @@ describe('test suite for makeUrl', () => {
     process.env.REACT_APP_SMUGGLER_API_URL = apiUrl
     expect(makeUrl()).toStrictEqual(`${apiUrl}/`)
     expect(makeUrl('node')).toStrictEqual(`${apiUrl}/node`)
+  })
+
+  test('Multikeys in query', () => {
+    const apiUrl = 'https://mazed.se'
+    process.env.REACT_APP_SMUGGLER_API_URL = apiUrl
+    expect(
+      makeUrl('/abc', {
+        from: ['0fd5', '5fcb'],
+        to: ['0542', '4ac4', 'a720'],
+      })
+    ).toStrictEqual(
+      'https://mazed.se/abc?from=0fd5&from=5fcb&to=0542&to=4ac4&to=a720'
+    )
   })
 })

@@ -1,26 +1,60 @@
 import React from 'react'
 import styled from '@emotion/styled'
 
-const Box = styled.div`
+type Placement =
+  | 'top'
+  | 'bottom'
+  | 'top-left'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-right'
+type Props = {
+  placement: Placement
+  transitionDelaySec?: number
+}
+
+function getPlacementStyle(placement: Placement): string {
+  // FIXME(Alexander): I did not test placements other than 'bottom' very well,
+  // feel free to adjust numbers
+  switch (placement) {
+    case 'top':
+      return 'top: 0; transform: translate(-50%, 0);'
+    case 'top-left':
+      return 'top: -200%; right: 0;'
+    case 'top-right':
+      return 'top: -200%; left: 0;'
+    case 'bottom':
+      return 'bottom: 0; transform: translate(-50%, 150%);'
+    case 'bottom-left':
+      return 'bottom: -200%; right: 0;'
+    case 'bottom-right':
+      return 'bottom: -200%; left: 0;'
+    default:
+      return 'unset'
+  }
+}
+
+export const HoverTooltipBox = styled.div<Props>`
+  display: flex;
   position: relative;
-  height: 100%;
-  width: 100%;
-  z-index: 1000;
-  span {
+  height: inherit;
+  width: inherit;
+  z-index: 2000;
+  span.MazedHoverTooltipOverlay {
     position: absolute;
 
     border-radius: 4px;
-    max-width: 164px;
+    width: max-content;
+    max-width: 10em;
     padding: 4px 8px 4px 8px;
 
     /* Position */
-    right: -100%;
-    top: 150%;
+    ${(props) => getPlacementStyle(props.placement)}
 
     /* Text */
+    font-size: 12px;
     text-align: center;
-    line-height: 1rem;
-    font-size: small;
+    line-height: 1em;
 
     background-color: #494949;
     color: #ffffff;
@@ -28,16 +62,23 @@ const Box = styled.div`
     opacity: 1;
 
     visibility: hidden;
+    transition: 0s visibility;
   }
 
-  &:hover span {
+  &:hover:not(:disabled) span,
+  &:focus:not(:disabled) span,
+  &:active:not(:disabled) span {
     visibility: visible;
+    transition-delay: ${(props) => props.transitionDelaySec ?? 0.72}s;
   }
 `
+export const HoverTooltipOverlay = styled.span``
 
 type HoverTooltipProps = React.PropsWithChildren<{
   tooltip: string
   className?: string
+  placement?: Placement
+  transitionDelaySec?: number
 }>
 
 // https://www.w3schools.com/css/css_tooltip.asp
@@ -45,11 +86,23 @@ export const HoverTooltip = ({
   tooltip,
   children,
   className,
+  placement,
+  transitionDelaySec,
 }: HoverTooltipProps) => {
+  placement = placement ?? 'bottom'
+  const tooltipClassName = ['MazedHoverTooltipOverlay']
+  if (className != null) {
+    tooltipClassName.push(className)
+  }
   return (
-    <Box className={className}>
-      <span>{tooltip}</span>
+    <HoverTooltipBox
+      placement={placement}
+      transitionDelaySec={transitionDelaySec}
+    >
+      <HoverTooltipOverlay className={tooltipClassName.join(' ')}>
+        {tooltip}
+      </HoverTooltipOverlay>
       {children}
-    </Box>
+    </HoverTooltipBox>
   )
 }

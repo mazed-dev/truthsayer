@@ -3,6 +3,7 @@ import React from 'react'
 import styled from '@emotion/styled'
 
 import moment from 'moment'
+import { productanalytics } from 'armoury'
 
 import { HoverTooltip } from './HoverTooltip'
 
@@ -56,7 +57,7 @@ export const NodeTimeBadge = ({
     tooltip += `, updated ${formatFullDate(updated_at)}`
   }
   return (
-    <Badge className={className}>
+    <Badge className={productanalytics.classExclude(className)}>
       <Column>
         <HoverTooltip tooltip={tooltip}>
           <CreatedAt>{formatDate(created_at)}</CreatedAt>

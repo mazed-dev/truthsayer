@@ -1,56 +1,29 @@
-import { _matchesPattern, _extattrsMatchesPattern } from './search'
+import { _searchFieldsFor, _exactPatternsFromString } from './search'
 
-test('_matchesPattern', () => {
-  expect(_matchesPattern(/.*/, null)).toStrictEqual(false)
-  expect(_matchesPattern(/.*/, undefined)).toStrictEqual(false)
-
-  expect(_matchesPattern(/.*/, '')).toStrictEqual(true)
-
-  expect(_matchesPattern(/abc/, '--abc--')).toStrictEqual(true)
-  expect(_matchesPattern(/aBc/, 'aBc--')).toStrictEqual(true)
-  expect(_matchesPattern(/aBc/, '--aBc')).toStrictEqual(true)
+test('Beagle.fromString simple', () => {
+  const allOf = _exactPatternsFromString('Oxygen font family')
+  expect(allOf).toStrictEqual(['oxygen', 'font', 'family'])
 })
 
-test('_extattrsMatchesPattern', () => {
-  expect(
-    _extattrsMatchesPattern(/png/, {
-      content_type: 'image/jpg',
-    })
-  ).toStrictEqual(false)
+test('Beagle.fromString exact string', () => {
+  const allOf = _exactPatternsFromString('Oxygen "Font Family"')
+  expect(allOf).toStrictEqual(['font family', 'oxygen'])
+})
+
+test('searchFieldsFor allOf', () => {
+  const fields = [
+    'Glass can form naturally from volcanic magma.',
+    'Obsidian is a common volcanic glass with high silica (SiO2) content formed when felsic lava extruded from a volcano cools rapidly.',
+  ]
+  expect(_searchFieldsFor(fields, ['obsidian'])).toStrictEqual(true)
 
   expect(
-    _extattrsMatchesPattern(/en/, {
-      content_type: 'image/jpg',
-      lang: 'en',
-    })
+    _searchFieldsFor(fields, ['obsidian', 'common volcanic glass', 'magma'])
   ).toStrictEqual(true)
 
-  expect(
-    _extattrsMatchesPattern(/Dickens/, {
-      content_type: 'image/jpg',
-      author: 'by Charles Dickens',
-    })
-  ).toStrictEqual(true)
+  expect(_searchFieldsFor(fields, ['magma obsidian', 'silica'])).toStrictEqual(
+    false
+  )
 
-  expect(
-    _extattrsMatchesPattern(/twist/i, {
-      content_type: 'image/jpg',
-      title: 'Oliver Twist',
-    })
-  ).toStrictEqual(true)
-
-  expect(
-    _extattrsMatchesPattern(/orphan/i, {
-      content_type: 'image/jpg',
-      title: 'Oliver Twist',
-      description: '...Born in a workhouse, the orphan...',
-    })
-  ).toStrictEqual(true)
-
-  // Search by mime type
-  expect(
-    _extattrsMatchesPattern(/image/, {
-      content_type: 'image/jpg',
-    })
-  ).toStrictEqual(true)
+  expect(_searchFieldsFor(fields, ['silica sio2'])).toStrictEqual(false)
 })

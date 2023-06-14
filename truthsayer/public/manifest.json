@@ -1,14 +1,28 @@
 {
-  "short_name": "Mazed",
-  "name": "Mazed - knit your ideas",
+  "name": "Foreword",
+  "short_name": "Foreword",
+  "author": "ASG Mazed Inc",
+  "description": "Foreword is your AI-powered second brain, serving you information you've read before.",
+  "version": "0.0.1",
+  "manifest_version": 2,
   "icons": [
     {
-      "src": "logo.png",
-      "sizes": "64x64 32x32 24x24 16x16 128x128 512x512",
+      "src": "logo-128x128.png",
+      "sizes": "128x128",
       "type": "image/png"
     },
     {
-      "src": "logo.svg",
+      "src": "logo-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "logo-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "logo-strip.svg",
       "type": "image/svg+xml"
     }
   ],

@@ -24,4 +24,4 @@ Once you have key and secret, you can submit a new version with following comman
 yarn archaeologist web-ext sign --source-dir target/unpacked --artifacts-dir target/packed --api-key '<>' --api-secret '<>' --channel listed
 ```
 
-You can find latest published version of Mazed for Firefox in [Mozilla web store](https://addons.mozilla.org/en-GB/firefox/addon/mazed/).
+You can find latest published version of Foreword for Firefox in [Mozilla web store](https://addons.mozilla.org/en-GB/firefox/addon/mazed/).

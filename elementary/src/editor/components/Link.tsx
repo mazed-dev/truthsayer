@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { InlineLinkExt, InlineLinkNode } from './components'
+import { InlineLink } from './components'
 
 type LinkProps = React.PropsWithChildren<{
   attributes: any
@@ -10,20 +10,14 @@ type LinkProps = React.PropsWithChildren<{
 export const Link = React.forwardRef<HTMLLinkElement, LinkProps>(
   ({ attributes, children, element }, ref) => {
     let { link, url, page } = element
-    url = url || link
-
+    url = url ?? link
     if (page) {
       url = `/n/${url}`
-      return (
-        <InlineLinkNode to={url} ref={ref} {...attributes}>
-          {children}
-        </InlineLinkNode>
-      )
     }
     return (
-      <InlineLinkExt ref={ref} href={url} {...attributes}>
+      <InlineLink ref={ref} href={url} {...attributes} spellCheck={false}>
         {children}
-      </InlineLinkExt>
+      </InlineLink>
     )
   }
 )

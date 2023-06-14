@@ -4,8 +4,6 @@
 name: Yarn lint, build, test
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
@@ -30,25 +28,19 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      - name: Build libs
+        run: yarn build-libs
+
       - name: Run linters
-        run: yarn lint
-
-      - name: Build armoury
-        run: yarn armoury build
-
-      - name: Build smuggler-api
-        run: yarn smuggler-api build
-
-      - name: Build elementary
-        run: yarn elementary build
+        run: yarn lint:heavy
 
       - name: Build archaeologist
         run: yarn archaeologist build:chrome:public
 
       - name: Build truthsayer
-        # This is a little absurd, but CI=ture force react build script treat
-        # all warning as errors. Let's turn it off to unblock the change. Once
-        # we get rid of all the warning we cad enable CI back.
+        # This is a little absurd, but CI=true forces React build script to treat
+        # all warnings as errors. Let's turn it off to unblock the change. Once
+        # we get rid of all the warnings we can enable CI back.
         # https://github.com/facebook/create-react-app/issues/3657
         env:
           CI: false

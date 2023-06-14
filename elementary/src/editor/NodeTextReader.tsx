@@ -1,22 +1,21 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react'
-import { css } from '@emotion/react'
-import { Editable, Slate, withReact } from 'slate-react'
-import type { Descendant } from 'slate'
+import React, { useCallback, useMemo } from 'react'
+import { Slate, withReact } from 'slate-react'
+import { EditableStyled } from './SlateStyled'
 import { createEditor } from 'slate'
 
 import { withTypography } from './plugins/typography'
 import { withLinks } from './plugins/link'
-import { withDateTime } from './plugins/datetime'
 import { withImages } from './plugins/image'
 
 import { Leaf } from './components/Leaf'
 
 import { TDoc } from './types'
-import { TNode } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 
 import { makeElementRender } from './ElementRender'
+import { productanalytics } from 'armoury'
 
 export const NodeTextReader = ({
   className,
@@ -25,10 +24,9 @@ export const NodeTextReader = ({
   node: TNode
   className?: string
 }) => {
-  const [value, setValue] = useState<Descendant[]>([])
-  useEffect(() => {
+  const initialValue = useMemo(() => {
     const doc = TDoc.fromNodeTextData(node.text)
-    setValue(doc.slate)
+    return doc
   }, [node])
   const renderElement = useCallback(
     (props) => <ReadOnlyElement nid={node.nid} {...props} />,
@@ -36,28 +34,21 @@ export const NodeTextReader = ({
   )
   const renderLeaf = useCallback((props) => <Leaf {...props} />, [node])
   const editor = useMemo(
-    () =>
-      withTypography(
-        withLinks(withDateTime(withImages(withReact(createEditor()))))
-      ),
+    () => withTypography(withLinks(withImages(withReact(createEditor())))),
     []
   )
   return (
     <div className={className}>
-      <Slate
-        editor={editor}
-        value={value}
-        onChange={(value) => setValue(value)}
-      >
-        <Editable
-          renderElement={renderElement}
-          renderLeaf={renderLeaf}
-          readOnly
-          css={css`
-            padding: 1em;
-          `}
-        />
-      </Slate>
+      {initialValue.getTextLength() === 0 ? null : (
+        <Slate editor={editor} value={initialValue.slate}>
+          <EditableStyled
+            renderElement={renderElement}
+            renderLeaf={renderLeaf}
+            readOnly
+            className={productanalytics.classExclude()}
+          />
+        </Slate>
+      )}
     </div>
   )
 }

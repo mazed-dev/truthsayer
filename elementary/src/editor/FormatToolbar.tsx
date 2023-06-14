@@ -29,6 +29,8 @@ import {
   MdiFormatListBulleted,
 } from '../MaterialIcons'
 
+import { kCardBorderColour } from '../colour'
+
 const ToolbarButtonInactive = styled.span`
   padding: 1px 10px 0px;
   border-radius: 50px;
@@ -46,9 +48,9 @@ const ToolbarButtonActive = styled(ToolbarButtonInactive)`
 `
 
 const ToolbarBox = styled(ButtonGroup)`
-  border-bottom: 1px solid #eee;
-  padding: 6px 0 6px 0px;
-  margin: 0;
+  border-bottom: 1px solid ${kCardBorderColour};
+  padding: 6px 0 6px 0;
+  margin-top: 8px;
   display: flex;
   /* To make usable on narrow screens */
   /* https://www.w3schools.com/howto/howto_css_menu_horizontal_scroll.asp */
@@ -58,7 +60,7 @@ const ToolbarBox = styled(ButtonGroup)`
 
 type ReactiveButtonProps = {
   active: boolean
-  onMouseDown: (event: React.MouseEvent) => void
+  onClick: (event: React.MouseEvent) => void
 } & React.HTMLProps<HTMLButtonElement>
 
 // Button that flips between two different visual styles depending on
@@ -66,23 +68,17 @@ type ReactiveButtonProps = {
 const ReactiveButton = ({
   active,
   children,
-  onMouseDown,
+  onClick,
 }: React.PropsWithChildren<ReactiveButtonProps>) => {
   if (active) {
     return (
-      <ToolbarButtonActive
-        onMouseDown={onMouseDown}
-        className={'material-icons'}
-      >
+      <ToolbarButtonActive onClick={onClick} className={'material-icons'}>
         {children}
       </ToolbarButtonActive>
     )
   } else {
     return (
-      <ToolbarButtonInactive
-        onMouseDown={onMouseDown}
-        className={'material-icons'}
-      >
+      <ToolbarButtonInactive onClick={onClick} className={'material-icons'}>
         {children}
       </ToolbarButtonInactive>
     )
@@ -97,7 +93,7 @@ const MarkButton = ({
   return (
     <ReactiveButton
       active={isMarkActive(editor, mark)}
-      onMouseDown={(event: React.MouseEvent) => {
+      onClick={(event: React.MouseEvent) => {
         event.preventDefault()
         toggleMark(editor, mark)
       }}
@@ -132,7 +128,7 @@ const BlockButton = ({
   return (
     <ReactiveButton
       active={isBlockActive(editor, format)}
-      onMouseDown={(event: React.MouseEvent) => {
+      onClick={(event: React.MouseEvent) => {
         event.preventDefault()
         toggleBlock(editor, format)
       }}
@@ -170,7 +166,7 @@ const toggleBlock = (editor: CustomEditor, format: CustomElementType) => {
   const newProperties: Partial<SlateElement> = {
     type: isActive ? 'paragraph' : isList ? 'list-item' : format,
   }
-  Transforms.setNodes(editor, newProperties)
+  Transforms.setNodes<SlateElement>(editor, newProperties)
 
   if (!isActive && isList) {
     // @ts-ignore: Type '{ type: CustomElementType; children: never[]; }' is not assignable

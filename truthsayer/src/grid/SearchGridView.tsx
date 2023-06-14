@@ -1,11 +1,13 @@
 /** @jsxImportSource @emotion/react */
-
+import React from 'react'
 import styled from '@emotion/styled'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { parse } from 'query-string'
 
-import { SearchGrid } from 'elementary'
+import { SearchGrid } from './SearchGrid'
 import { CreateNewNodeMenu } from './CreateNewNodeMenu'
+import { ArchaeologistState } from '../apps-list/archaeologistState'
+import { goto } from '../lib/route'
 
 import lodash from 'lodash'
 
@@ -14,9 +16,14 @@ const Box = styled.div`
   max-width: 100%;
 `
 
-export const SearchGridView = ({}: {}) => {
-  const location = useLocation()
-  const params = parse(location.search)
+export const SearchGridView = ({
+  archaeologistState,
+}: {
+  archaeologistState: ArchaeologistState
+}) => {
+  const loc = useLocation()
+  const navigate = useNavigate()
+  const params = parse(loc.search)
   let { q } = params
   let queryStr: null | string = null
   if (lodash.isArray(q)) {
@@ -24,6 +31,11 @@ export const SearchGridView = ({}: {}) => {
   } else {
     queryStr = q
   }
+  React.useEffect(() => {
+    if (archaeologistState.state === 'not-installed') {
+      goto.onboarding({ navigate })
+    }
+  }, [archaeologistState, navigate])
   return (
     <Box>
       <SearchGrid q={queryStr} defaultSearch />

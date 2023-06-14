@@ -11,17 +11,14 @@ const kUpdatedAt = moment()
 const kCrypto = { success: true, secret_id: null }
 
 function makeNode(nid: string): TNode {
-  return new TNode(
+  return {
     nid,
-    kNtype,
-    kText,
-    kCreatedAt,
-    kUpdatedAt,
-    undefined,
-    undefined,
-    undefined,
-    kCrypto
-  )
+    ntype: kNtype,
+    text: kText,
+    created_at: kCreatedAt,
+    updated_at: kUpdatedAt,
+    crypto: kCrypto,
+  }
 }
 
 function ensureEndTime(end_time: Optional<number>): number {
@@ -223,7 +220,7 @@ test('TNodeSliceIterator next() -> [>1] with offset', async () => {
   }
 })
 
-test.only('TNodeSliceIterator next() -> until exhausted', async () => {
+test('TNodeSliceIterator next() -> until exhausted', async () => {
   // Once exhausted it should always return null
   // Also it have not to fall into infinite loop there!
   let total = 0

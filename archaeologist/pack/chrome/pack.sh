@@ -26,17 +26,18 @@ if [[ ! -f "archaeologist/public/manifest.json" ]]; then
   exit 1
 fi
 
-cd archaeologist
+yarn
+yarn build-libs
+yarn lint:heavy
+yarn test
 
-yarn build:chrome:public
+yarn archaeologist build:chrome:public
 
-_REV="$(git rev-parse HEAD)"
-
-cd target
+cd archaeologist/target
 
 mkdir -p packed/
 
-_OUT="packed/chrome-mazed-$_REV.zip"
+_OUT=${OUTPUT_FILENAME:-"packed/foreword-for-chrome-$(git rev-parse HEAD).zip"}
 
 zip -r $_OUT unpacked
 

@@ -6,14 +6,14 @@ import styled from '@emotion/styled'
 import { css } from '@emotion/react'
 
 import { Dropdown } from 'react-bootstrap'
-import { useHistory } from 'react-router-dom'
+import { useNavigate, NavigateFunction } from 'react-router-dom'
 
 import { MzdGlobalContext, MzdGlobalContextProps } from '../lib/global'
-import { goto, History } from '../lib/route'
+import { goto } from '../lib/route'
 
-import { smuggler, NewNodeResponse } from 'smuggler-api'
-import { TDoc } from 'elementary'
-import { TNode } from 'smuggler-api'
+import { StorageApi } from 'smuggler-api'
+import type { TNode, NewNodeResponse, NodeExtattrs } from 'smuggler-api'
+import { TDoc, kCardBorderColour } from 'elementary'
 
 import { UploadFileAsNodeForm } from '../upload/UploadNodeButton'
 import {
@@ -24,20 +24,20 @@ import {
   StyleButtonWhite,
   SmallCard,
 } from 'elementary'
-import { Optional } from 'armoury'
-import { log } from 'armoury'
-import { isAbortError } from 'armoury'
+import { Optional, errorise, log, isAbortError } from 'armoury'
 
 import { SearchAndConnectJinn } from './SearchAndConnect'
 
 export type ChainActionBarSide = 'left' | 'right'
 
 async function cloneNode({
+  storage,
   from,
   to,
   abortSignal,
   isBlank = false,
 }: {
+  storage: StorageApi
   from?: string
   to?: string
   abortSignal?: AbortSignal
@@ -47,11 +47,13 @@ async function cloneNode({
   if (!nid) {
     return null
   }
-  const node: Optional<TNode> = await smuggler.node
-    .get({
-      nid,
-      signal: abortSignal,
-    })
+  const node: Optional<TNode> = await storage.node
+    .get(
+      {
+        nid,
+      },
+      abortSignal
+    )
     .catch((err) => {
       if (isAbortError(err)) {
         return null
@@ -62,20 +64,28 @@ async function cloneNode({
   if (!node) {
     return null
   }
-  let doc = TDoc.fromNodeTextData(node.getText())
-  doc = doc.makeACopy(node.getNid(), isBlank || false)
+  let doc = TDoc.fromNodeTextData(node.text)
+  doc = doc.makeACopy(node.nid, isBlank || false)
+  const extattrs: NodeExtattrs | undefined = node.extattrs
+    ? { ...node.extattrs }
+    : undefined
   try {
-    return await smuggler.node.create({
-      text: doc.toNodeTextData(),
-      signal: abortSignal,
-      from_nid: from,
-      to_nid: to,
-    })
+    return await storage.node.create(
+      {
+        text: doc.toNodeTextData(),
+        from_nid: from ? [from] : undefined,
+        to_nid: to ? [to] : undefined,
+        extattrs,
+        created_via: { manualAction: null },
+      },
+      abortSignal
+    )
   } catch (err) {
-    if (isAbortError(err)) {
+    const error = errorise(err)
+    if (isAbortError(error)) {
       return null
     }
-    log.exception(err)
+    log.exception(error)
   }
   return null
 }
@@ -84,23 +94,23 @@ class ChainActionHandler {
   nid: string
   nidIsPrivate: boolean
   abortSignal?: AbortSignal
-  history: History
+  navigate: NavigateFunction
 
   constructor({
     nid,
     nidIsPrivate,
-    history,
+    navigate,
     abortSignal,
   }: {
     nid: string
     nidIsPrivate: boolean
     abortSignal?: AbortSignal
-    history: History
+    navigate: NavigateFunction
   }) {
     this.nid = nid
     this.nidIsPrivate = nidIsPrivate
     this.abortSignal = abortSignal
-    this.history = history
+    this.navigate = navigate
   }
 
   logInNeeded = (context: MzdGlobalContextProps): boolean => {
@@ -109,22 +119,27 @@ class ChainActionHandler {
 
   handleNext = (context: MzdGlobalContextProps, side: ChainActionBarSide) => {
     if (this.logInNeeded(context)) {
-      goto.notice.logInToContinue({ history: this.history })
+      goto.notice.logInToContinue({ navigate: this.navigate })
       return
     }
-    smuggler.node
-      .create({
-        text: TDoc.makeEmpty().toNodeTextData(),
-        signal: this.abortSignal,
-        from_nid: side === 'right' ? this.nid : undefined,
-        to_nid: side === 'left' ? this.nid : undefined,
-      })
-      .then((node) => {
-        if (node) {
-          const { nid } = node
-          goto.node({ history: this.history, nid })
-        }
-      })
+    context.storage.node
+      .create(
+        {
+          text: TDoc.makeEmpty().toNodeTextData(),
+          from_nid: side === 'right' ? [this.nid] : undefined,
+          to_nid: side === 'left' ? [this.nid] : undefined,
+        },
+        this.abortSignal
+      )
+      .then(
+        (node) => {
+          if (node) {
+            const { nid } = node
+            goto.node({ navigate: this.navigate, nid })
+          }
+        },
+        (reason) => log.error(`Failed to create node: ${reason}`)
+      )
   }
 
   handleNextClone = (
@@ -132,19 +147,23 @@ class ChainActionHandler {
     side: ChainActionBarSide
   ) => {
     if (this.logInNeeded(context)) {
-      goto.notice.logInToContinue({ history: this.history })
+      goto.notice.logInToContinue({ navigate: this.navigate })
       return
     }
     cloneNode({
+      storage: context.storage,
       from: side === 'right' ? this.nid : undefined,
       to: side === 'left' ? this.nid : undefined,
       abortSignal: this.abortSignal,
-    }).then((node) => {
-      if (node) {
-        const { nid } = node
-        goto.node({ history: this.history, nid })
-      }
-    })
+    }).then(
+      (node) => {
+        if (node) {
+          const { nid } = node
+          goto.node({ navigate: this.navigate, nid })
+        }
+      },
+      (reason) => log.error(`Failed to clone node: ${reason}`)
+    )
   }
 }
 
@@ -210,13 +229,13 @@ export const ChainActionBar = ({
   addRef: ({ from, to }: { from: string; to: string }) => void
   className?: string
 }) => {
-  const history = useHistory()
+  const navigate = useNavigate()
   const [showSearchModal, setShowSearchModal] = useState(false)
   const handler = new ChainActionHandler({
     nid,
     nidIsPrivate,
     abortSignal,
-    history,
+    navigate,
   })
   const uploadFileFormRef = useRef<HTMLInputElement>(null)
   const ctx = useContext(MzdGlobalContext)
@@ -224,9 +243,7 @@ export const ChainActionBar = ({
     <SmallCard
       className={className}
       css={css`
-        border-width: 1px;
-        border-color: rgba(0, 0, 0, 0.28);
-        border-style: dashed;
+        border: 1px dashed ${kCardBorderColour};
         box-shadow: none;
         padding: 0;
       `}

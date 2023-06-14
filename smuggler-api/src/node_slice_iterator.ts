@@ -1,10 +1,13 @@
-import { TNode, NodeOrigin } from './types'
+import { TNode, OriginId } from './types'
 import type { Optional } from 'armoury'
 
 export interface INodeIterator {
+  /**
+   * @summary Iterate from most recently created nodes to the oldest
+   */
   next: () => Promise<Optional<TNode>>
   total: () => number
-  exhausted: () => boolean
+  abort: () => void
 }
 
 export type GetNodesSliceFn = ({
@@ -19,7 +22,7 @@ export type GetNodesSliceFn = ({
   start_time: Optional<number>
   offset: Optional<number>
   limit: Optional<number>
-  origin?: NodeOrigin
+  origin?: OriginId
   signal?: AbortSignal
 }) => Promise<{
   nodes: TNode[]
@@ -83,9 +86,9 @@ export class TNodeSliceIterator implements INodeIterator {
   // Index of a next node in batch_nodes to emit
   next_index_in_batch: number
 
-  origin?: NodeOrigin
+  origin?: OriginId
 
-  signal?: AbortSignal
+  abortControler?: AbortController
   fetcher: GetNodesSliceFn
 
   // Limits total number of nodes emitted
@@ -96,12 +99,11 @@ export class TNodeSliceIterator implements INodeIterator {
 
   constructor(
     fetcher: GetNodesSliceFn,
-    signal?: AbortSignal,
     start_time?: number,
     end_time?: number,
     bucket_time_size?: number,
     limit?: number,
-    origin?: NodeOrigin
+    origin?: OriginId
   ) {
     this.slice_start_time = start_time || _kEarliestCreationTime
     this.bucket_time_size = bucket_time_size || _kBucketTimeSizeDefault
@@ -117,7 +119,6 @@ export class TNodeSliceIterator implements INodeIterator {
     this.next_index_in_batch = 0
 
     this.total_counter = 0
-    this.signal = signal
     this.fetcher = fetcher
     this.limit = limit
     this.origin = origin
@@ -135,13 +136,18 @@ export class TNodeSliceIterator implements INodeIterator {
     )
   }
 
+  abort(): void {
+    this.abortControler?.abort()
+    this.limit = -1
+  }
+
   async _fetch(): Promise<boolean> {
     const {
       bucket_end_time,
       batch_offset,
       bucket_full_size,
       fetcher,
-      signal,
+      abortControler,
       limit,
       origin,
       total_counter,
@@ -165,8 +171,8 @@ export class TNodeSliceIterator implements INodeIterator {
     const resp = await fetcher({
       ...range,
       limit: limit ? limit - total_counter : null,
+      signal: abortControler?.signal,
       origin,
-      signal,
     })
     return this._acceptNextBatch(resp)
   }

@@ -1,131 +1,70 @@
-import {
-  GenerateBlobIndexResponse,
-  NodeIndexText,
-  smuggler,
-  UploadMultipartResponse,
-} from 'smuggler-api'
-import { log } from 'armoury'
-import { isAbortError } from 'armoury'
+import { NodeCreatedVia, steroid, StorageApi } from 'smuggler-api'
+import { MimeType, isAbortError, errorise, log } from 'armoury'
 
-import { markdownToSlate, TDoc } from 'elementary'
+import { TDoc, SlateText } from 'elementary'
+import { markdownToSlate } from 'librarius'
 import { Mime } from 'armoury'
 import { Optional } from 'armoury'
 
 import { FileUploadStatusState } from './UploadNodeButton'
 
 export function uploadLocalFile(
+  storage: StorageApi,
   file: File,
   from_nid: Optional<string>,
   to_nid: Optional<string>,
   updateStatus: (upd: FileUploadStatusState) => void,
   abortSignal: AbortSignal
 ): void {
-  if (Mime.isText(file.type)) {
-    uploadLocalTextFile(file, from_nid, to_nid, updateStatus, abortSignal)
+  const mime = Mime.fromString(file.type)
+  if (mime == null) {
+    throw new Error(
+      `Attempted to upload local file ${file.name} of unsupported type ${file.type}`
+    )
+  }
+  const createdVia: NodeCreatedVia = { manualAction: null }
+  if (Mime.isText(mime)) {
+    uploadLocalTextFile(
+      storage,
+      file,
+      from_nid,
+      to_nid,
+      createdVia,
+      updateStatus,
+      abortSignal
+    )
   } else {
-    uploadLocalBinaryFile(file, from_nid, to_nid, updateStatus, abortSignal)
-  }
-}
-
-async function uploadLocalBinaryFile(
-  file: File,
-  from_nid: Optional<string>,
-  to_nid: Optional<string>,
-  updateStatus: (upd: FileUploadStatusState) => void,
-  abortSignal: AbortSignal
-): Promise<void> {
-  if (file.size > 8000000) {
-    updateStatus({
-      progress: 1,
-      error: `reading failed: file is too big ( ${file.size} > 2MiB)`,
-    })
-  }
-
-  // Launch both upload & index *generation* at the same time, wait until all
-  // promises are settled.
-  const [uploadResult, indexResult] = await Promise.allSettled([
-    smuggler.blob.upload([file], from_nid, to_nid, abortSignal),
-    smuggler.blob_index.build([file], abortSignal),
-  ])
-
-  // If upload fails then what happens with index is not important as there is no
-  // node to update with one
-  if (uploadResult.status === 'rejected') {
-    if (!isAbortError(uploadResult.reason)) {
-      log.exception(uploadResult.reason)
-      updateStatus({
-        progress: 1,
-        error: `Submission failed: ${uploadResult.reason}`,
+    steroid(storage)
+      .node.createFromLocalBinary({
+        file,
+        from_nid,
+        to_nid,
+        createdVia,
+        abortSignal,
       })
-    }
-    return
+      .then((result) => {
+        updateStatus({ progress: 1, nid: result.nid, error: result.warning })
+      })
+      .catch((error) => {
+        if (isAbortError(error)) {
+          return
+        }
+        updateStatus({ progress: 1, error: errorise(error).message })
+      })
   }
-
-  const upload: UploadMultipartResponse = uploadResult.value
-  const nid = upload.nids.length !== 0 ? upload.nids[0] : undefined
-
-  const updateStatusOnIndexError = (error: Error) => {
-    if (isAbortError(error)) {
-      return
-    }
-    log.exception(error)
-    updateStatus({
-      nid,
-      progress: 1,
-      error:
-        `Submission succeeded, but failed to generate search index ` +
-        `(node will be accessible, but not searchable): ${error}`,
-    })
-  }
-
-  // When upload succeeds, but index generation fails it's not a critical
-  // error as user data is not lost & if index generation is attempted in the
-  // future it may still succeed. There is however nothing to update on the
-  // successfully created node
-  if (indexResult.status === 'rejected') {
-    updateStatusOnIndexError(indexResult.reason)
-    return
-  }
-
-  const index: GenerateBlobIndexResponse = indexResult.value
-
-  // If both upload & index generation have succeeded then resulting node
-  // needs to be updated with generated index to make it searchable
-
-  if (upload.nids.length !== 1 || index.indexes.length !== 1) {
-    updateStatusOnIndexError({
-      name: 'logical-error',
-      message:
-        `Can't resolve which blob index is associated with which file` +
-        ` (got ${index.indexes.length} indexes, ${upload.nids.length} upload results)`,
-    })
-    return
-  }
-
-  const index_text: NodeIndexText = index.indexes[0].index
-  smuggler.node
-    .update({
-      nid: upload.nids[0],
-      index_text,
-      signal: abortSignal,
-    })
-    .then((resp) => {
-      if (resp.ok) {
-        updateStatus({ nid, progress: 1.0 })
-      } else {
-        updateStatusOnIndexError({
-          name: 'http-error',
-          message: `(${resp.status}) ${resp.statusText}`,
-        })
-      }
-    })
-    .catch(updateStatusOnIndexError)
 }
 
+// TODO[snikitin@outlook.com] See if this can be moved into steroid.node
+// and merged with createFromLocalBinary into a more general
+// steroid.node.createFromLocal.
+// At the time of this writing it is mostly prevented by the usage of markdownToSlate()
+// which is not available at 'steroid' level
 function uploadLocalTextFile(
+  storage: StorageApi,
   file: File,
   from_nid: Optional<string>,
   to_nid: Optional<string>,
+  createdVia: NodeCreatedVia,
   updateStatus: (upd: FileUploadStatusState) => void,
   abortSignal: AbortSignal
 ): void {
@@ -137,34 +76,39 @@ function uploadLocalTextFile(
   }
   const reader = new FileReader()
   reader.onload = (event) => {
-    const appendix = `\n---\n*From file - "${file.name}" (\`${
+    const appendix = `\n---\n*From file - "${file.name}" (${
       Math.round((file.size * 100) / 1024) * 100
-    }KiB\`)*\n`
+    }KiB)*\n`
     const text = (event.target?.result || '') + appendix
-    markdownToSlate(text).then((slate) => {
-      const doc = new TDoc(slate)
-      smuggler.node
-        .create({
+    const slate = markdownToSlate(text)
+    const doc = new TDoc(slate as SlateText)
+    storage.node
+      .create(
+        {
           text: doc.toNodeTextData(),
-          from_nid: from_nid || undefined,
-          to_nid: to_nid || undefined,
-          signal: abortSignal,
+          from_nid: from_nid ? [from_nid] : undefined,
+          to_nid: to_nid ? [to_nid] : undefined,
+          extattrs: {
+            content_type: MimeType.TEXT_PLAIN,
+          },
+          created_via: createdVia,
+        },
+        abortSignal
+      )
+      .then((node) => {
+        const { nid } = node
+        updateStatus({ nid, progress: 1.0 })
+      })
+      .catch((err) => {
+        if (isAbortError(err)) {
+          return
+        }
+        log.exception(err)
+        updateStatus({
+          progress: 1,
+          error: `Submission failed: ${err}`,
         })
-        .then((node) => {
-          const { nid } = node
-          updateStatus({ nid, progress: 1.0 })
-        })
-        .catch((err) => {
-          if (isAbortError(err)) {
-            return
-          }
-          log.exception(err)
-          updateStatus({
-            progress: 1,
-            error: `Submission failed: ${err}`,
-          })
-        })
-    })
+      })
   }
 
   reader.onerror = () => {

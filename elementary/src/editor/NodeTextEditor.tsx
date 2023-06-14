@@ -1,84 +1,87 @@
 /** @jsxImportSource @emotion/react */
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 
-import { css } from '@emotion/react'
-import { Editable, Slate, withReact } from 'slate-react'
+import { Slate, withReact } from 'slate-react'
+import { EditableStyled } from './SlateStyled'
 import { createEditor } from 'slate'
 
 import { withHistory } from 'slate-history'
 
-import { withJinn, Jinn } from './plugins/jinn'
 import { withTypography } from './plugins/typography'
 import { withShortcuts } from './plugins/shortcuts'
 import { withLinks } from './plugins/link'
-import { withDateTime } from './plugins/datetime'
 import { withImages } from './plugins/image'
 
 import { Leaf } from './components/Leaf'
 
 import { FormatToolbar } from './FormatToolbar'
 import { TDoc, SlateText } from './types'
-import { TNode } from 'smuggler-api'
+import type { TNode } from 'smuggler-api'
 
 import { makeElementRender } from './ElementRender'
+import { productanalytics } from 'armoury'
+import { ElementaryContext } from '../context'
 
 export const NodeTextEditor = ({
   className,
   node,
   saveText,
+  strippedFormatToolbar,
 }: {
+  ctx: ElementaryContext
   node: TNode
   saveText: (text: SlateText) => void
   className?: string
+  strippedFormatToolbar?: boolean
 }) => {
-  const [value, setValue] = useState<SlateText>([])
-  const [showJinn, setShowJinn] = useState<boolean>(false)
   const nid = node.nid
-  useEffect(() => {
-    const doc = TDoc.fromNodeTextData(node.getText())
-    setValue(doc.slate)
-  }, [nid])
   const renderElement = useCallback(
-    (props) => <EditableElement nid={nid} {...props} />,
+    (props) => {
+      return <EditableElement nid={nid} {...props} />
+    },
     [nid]
   )
-  const renderLeaf = useCallback((props) => <Leaf {...props} />, [nid])
-  const editor = useMemo(
-    () =>
-      withJinn(
-        setShowJinn,
-        withTypography(
-          withLinks(
-            withDateTime(
-              withImages(withShortcuts(withReact(withHistory(createEditor()))))
-            )
-          )
+  const renderLeaf = useCallback((props) => {
+    return <Leaf {...props} />
+  }, [])
+  const editor = useMemo(() => {
+    return withHistory(
+      withTypography(
+        withLinks(
+          withImages(withShortcuts(withReact(withHistory(createEditor()))))
         )
-      ),
-    []
-  )
+      )
+    )
+  }, [])
+  const initialValue = useMemo(() => {
+    const doc = TDoc.fromNodeTextData(node.text)
+    // TODO(akindyakov): Verify that result slate tree is valid, otherwise the
+    // whole app would crash. Slate doesn't really like invalid docs.
+    return doc.slate
+  }, [nid])
   return (
     <div className={className}>
-      <Jinn nid={nid} show={showJinn} setShow={setShowJinn} editor={editor} />
       <Slate
         editor={editor}
-        value={value}
+        value={initialValue}
         onChange={(value) => {
-          setValue(value)
-          // Save the value to remote
-          saveText(value)
+          const isAstChange = editor.operations.some(
+            (op) => op.type !== 'set_selection'
+          )
+          if (isAstChange) {
+            // Save the value to remote
+            saveText(value)
+          }
         }}
       >
-        <FormatToolbar />
-        <Editable
+        {strippedFormatToolbar ? null : <FormatToolbar />}
+        <EditableStyled
+          className={productanalytics.classExclude()}
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           spellCheck
           autoFocus
-          css={css`
-            padding: 1em;
-          `}
         />
       </Slate>
     </div>

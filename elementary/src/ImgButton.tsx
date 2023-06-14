@@ -4,8 +4,9 @@ import { Button } from 'react-bootstrap'
 
 import styled from '@emotion/styled'
 
-const Box = styled(Button)`
+const StyledButton = styled(Button)`
   background-color: #ffffff;
+  color: #000000;
 
   border-style: solid;
   border-width: 0;
@@ -15,6 +16,9 @@ const Box = styled(Button)`
 
   padding: 0.5em;
 
+  cursor: pointer;
+  text-decoration: none;
+
   &:hover {
     opacity: 1;
     background-color: #d0d1d2;
@@ -22,14 +26,15 @@ const Box = styled(Button)`
 `
 
 type ImgButtonProps = React.PropsWithChildren<{
-  onClick: React.MouseEventHandler
+  onClick?: React.MouseEventHandler
   className?: string
   is_disabled?: boolean
+  href?: string
 }>
 
 export const ImgButton = React.forwardRef<HTMLButtonElement, ImgButtonProps>(
   ({ children, onClick, className, is_disabled, ...kwargs }, ref) => (
-    <Box
+    <StyledButton
       variant="light"
       className={className}
       ref={ref}
@@ -43,6 +48,6 @@ export const ImgButton = React.forwardRef<HTMLButtonElement, ImgButtonProps>(
       {...kwargs}
     >
       {children}
-    </Box>
+    </StyledButton>
   )
 )

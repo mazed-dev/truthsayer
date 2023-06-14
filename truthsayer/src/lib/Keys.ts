@@ -1,9 +1,5 @@
 import keycode from 'keycode'
 
-const UserAgent = require('fbjs/lib/UserAgent')
-
-const isOSX = UserAgent.isPlatform('Mac OS X')
-
 export const Keys: Map<string, number> = new Map([
   ['A', 65],
   ['ALT', 18],

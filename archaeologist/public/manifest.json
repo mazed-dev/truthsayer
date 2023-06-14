@@ -1,23 +1,23 @@
 {
   "manifest_version": 3,
-  "name": "Mazed",
-  "author": "Thread knowledge",
-  "version": "0.0.3",
-  "description": "Bookmark web pages to Mazed",
-  "homepage_url": "https://mazed.dev",
+  "name": "Foreword",
+  "author": "ASG Mazed Inc",
+  "version": "comes-from-version.txt",
+  "description": "Reference anything you've read, without looking for it. Foreword is your second brain, serving you information you've read before.",
+  "homepage_url": "https://thinkforeword.com",
   "action": {
     "default_icon": {
       "16": "logo-16x16.png",
-      "48": "logo-48x48.png",
+      "24": "logo-24x24.png",
       "72": "logo-72x72.png",
       "128": "logo-128x128.png"
     },
-    "default_title": "Mazed",
+    "default_title": "Foreword",
     "default_popup": "popup.html"
   },
   "icons": {
       "16": "logo-16x16.png",
-      "48": "logo-48x48.png",
+      "24": "logo-24x24.png",
       "72": "logo-72x72.png",
       "128": "logo-128x128.png"
   },
@@ -26,9 +26,13 @@
   },
   "chrome_url_overrides": {},
   "permissions": [
-    "activeTab",
+    "bookmarks",
+    "contextMenus",
+    "history",
     "tabs",
-    "cookies"
+    "webNavigation",
+    "storage",
+    "unlimitedStorage"
   ],
   "cross_origin_embedder_policy": {
     "value": "require-corp"
@@ -36,8 +40,6 @@
   "cross_origin_opener_policy": {
     "value": "same-origin"
   },
-  "host_permissions": [
-  ],
   "content_scripts": [
     {
       "matches": [
@@ -48,7 +50,13 @@
       ],
       "js": [
         "content.js"
-      ]
+      ],
+      "run_at": "document_end"
     }
-  ]
+  ],
+  "externally_connectable": {
+    "ids": [],
+    "matches": []
+  },
+  "web_accessible_resources": []
 }

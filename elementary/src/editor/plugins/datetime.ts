@@ -8,7 +8,7 @@ import {
   CustomEditor,
 } from '../types'
 
-const tryParseDate = (text: string): Moment | null => {
+const tryParseDate = (_text: string): Moment | null => {
   return null
 }
 
@@ -47,6 +47,7 @@ export const withDateTime = (editor: CustomEditor) => {
   return editor
 }
 
+// ts-ignore: will use it later
 const insertDateTime = (editor: CustomEditor, text?: string) => {
   if (editor.selection && text != null) {
     const date = tryParseDate(text)

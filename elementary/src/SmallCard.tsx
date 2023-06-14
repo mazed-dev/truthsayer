@@ -3,6 +3,8 @@
 import React from 'react'
 import styled from '@emotion/styled'
 
+import { kCardBorder } from './colour'
+
 const _smallCardShadow0 = {}
 
 const _smallCardShadow1 = {
@@ -88,17 +90,15 @@ function getShadowStyle(n: number) {
   return _smallCardShadow5
 }
 
-export const kSmallCardWidth = 232
+export const kSmallCardWidth = 280
 
 const SmallCardBox = styled.div`
   width: ${kSmallCardWidth}px;
-
-  border-radius: 5px;
-  box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.2);
-
   margin: 0;
   padding: 0;
   font-size: 12px;
+  border-radius: 5px;
+  ${kCardBorder};
 `
 
 type SmallCardProps = React.PropsWithChildren<{

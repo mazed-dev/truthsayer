@@ -10,20 +10,27 @@ import { jcss } from './jcss'
  * https://google.github.io/material-design-icons/ font
  */
 export type MaterialIconType =
+  | 'account_circle'
   | 'add'
   | 'bookmark_add'
+  | 'cancel'
+  | 'close'
+  | 'cloud_sync'
+  | 'cloud_upload'
   | 'code'
   | 'content_copy'
   | 'content_cut'
+  | 'delete'
+  | 'download'
   | 'expand_less'
   | 'expand_more'
   | 'file_upload'
+  | 'fit_screen'
   | 'format_bold'
   | 'format_italic'
   | 'format_list_bulleted'
   | 'format_list_numbered'
   | 'format_quote'
-  | 'fit_screen'
   | 'format_underlined'
   | 'fullscreen'
   | 'insert_link'
@@ -33,7 +40,12 @@ export type MaterialIconType =
   | 'looks_two'
   | 'more_horiz'
   | 'open_in_full'
+  | 'public'
+  | 'save'
   | 'search'
+  | 'sync'
+  | 'travel_explore'
+  | 'youtube_searched_for'
   | 'zoom_in'
   | 'zoom_out'
 
@@ -60,11 +72,18 @@ const _makeMaterialIcon = (type: MaterialIconType) => {
   )
 }
 
+export const MdiAccountCircle = _makeMaterialIcon('account_circle')
 export const MdiAdd = _makeMaterialIcon('add')
 export const MdiBookmarkAdd = _makeMaterialIcon('bookmark_add')
+export const MdiCancel = _makeMaterialIcon('cancel')
+export const MdiClose = _makeMaterialIcon('close')
+export const MdiCloudSync = _makeMaterialIcon('cloud_sync')
+export const MdiCloudUpload = _makeMaterialIcon('cloud_upload')
 export const MdiCode = _makeMaterialIcon('code')
 export const MdiContentCopy = _makeMaterialIcon('content_copy')
 export const MdiContentCut = _makeMaterialIcon('content_cut')
+export const MdiDelete = _makeMaterialIcon('delete')
+export const MdiDownload = _makeMaterialIcon('download')
 export const MdiExpandLess = _makeMaterialIcon('expand_less')
 export const MdiExpandMore = _makeMaterialIcon('expand_more')
 export const MdiFileUpload = _makeMaterialIcon('file_upload')
@@ -83,6 +102,11 @@ export const MdiLooksOne = _makeMaterialIcon('looks_one')
 export const MdiLooksTwo = _makeMaterialIcon('looks_two')
 export const MdiMoreHoriz = _makeMaterialIcon('more_horiz')
 export const MdiOpenInFull = _makeMaterialIcon('open_in_full')
+export const MdiPublic = _makeMaterialIcon('public')
+export const MdiSave = _makeMaterialIcon('save')
 export const MdiSearch = _makeMaterialIcon('search')
+export const MdiSync = _makeMaterialIcon('sync')
+export const MdiTravelExplore = _makeMaterialIcon('travel_explore')
+export const MdiYoutubeSearchedFor = _makeMaterialIcon('youtube_searched_for')
 export const MdiZoomIn = _makeMaterialIcon('zoom_in')
 export const MdiZoomOut = _makeMaterialIcon('zoom_out')

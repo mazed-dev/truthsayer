@@ -1,29 +1,102 @@
 import { stringify, parse } from 'query-string'
-import { RouteComponentProps } from 'react-router-dom'
+import { NavigateFunction, Location } from 'react-router-dom'
 import { Optional } from 'armoury'
 
-const kLogInPath = '/login'
-const kSignUpPath = '/signup'
-const kLogOutPath = '/logout'
-const kSearchPath = '/search'
-const kEmptyPath = '/empty'
-const kNodePathPrefix = '/n/'
-const kWaitingForApproval = '/waiting-for-approval'
+export type TruthsayerPath =
+  | '/'
+  | '/external-import'
+  | '/export'
+  | '/about'
+  | '/account'
+  | '/api'
+  | '/apps-to-install'
+  | '/contacts'
+  | '/cookie-policy'
+  | '/empty'
+  | '/faq'
+  | '/help'
+  | '/login'
+  | '/logout'
+  | '/n/:nid' // See TriptychUrlParams
+  | '/notice/'
+  | '/notice/:page' // See NoticeUrlParams
+  | '/password-recover-change'
+  | '/password-recover-request'
+  | '/password-recover-reset/:token' // See PasswordRecoverFormUrlParams
+  | '/privacy-policy'
+  | '/search'
+  | '/settings'
+  | '/signup'
+  | '/terms-of-service'
+  | '/user-encryption'
+  | '/user-preferences'
+  | '/account/create/go-to-inbox-to-confirm-email'
+  | '/onboarding'
+  | '/browser-history-import-loading-screen'
 
-const kNoticePathPrefix = '/notice/'
+const kLogInPath: TruthsayerPath = '/login'
+const kSignUpPath: TruthsayerPath = '/signup'
+const kLogOutPath: TruthsayerPath = '/logout'
+const kSearchPath: TruthsayerPath = '/search'
+const kEmptyPath: TruthsayerPath = '/empty'
+const kNodePathPrefix = '/n/'
+
+const kNoticePathPrefix: TruthsayerPath = '/notice/'
 
 const kNoticeErrorPage = 'error'
 const kNoticeSeeYouPage = 'miss-you'
 const kNoticeLogInToContinue = 'log-in-to-continue'
+const kNoticeYouAreInWaitingList = 'waiting-list'
 
-export type History = RouteComponentProps['history']
-export type Location = RouteComponentProps['location']
+const kSettings: TruthsayerPath = '/user-preferences'
+const kApps = '/apps-to-install'
+const kIntegrations: TruthsayerPath = '/external-import'
+const kFaq: TruthsayerPath = '/faq'
+const kApi: TruthsayerPath = '/api'
+const kAbout: TruthsayerPath = '/about'
+const kContacts: TruthsayerPath = '/contacts'
+const kPrivacyPolicy: TruthsayerPath = '/privacy-policy'
+const kTermsOfService: TruthsayerPath = '/terms-of-service'
+const kCookiePolicy: TruthsayerPath = '/cookie-policy'
+const kOnboarding: TruthsayerPath = '/onboarding'
+const kBrowserHistoryImportLoadingScreen: TruthsayerPath =
+  '/browser-history-import-loading-screen'
 
-function gotoSearch({ history, query }: { history: History; query: string }) {
-  history.push({
-    pathname: kSearchPath,
-    search: stringify({ q: query }),
-  })
+export type PasswordRecoverFormUrlParams = { token: string }
+export type TriptychUrlParams = { nid: string }
+export type NoticeUrlParams = { page: string }
+
+export type { Location }
+
+function gotoSearch({
+  navigate,
+  query,
+}: {
+  navigate?: NavigateFunction
+  query: string
+}) {
+  if (navigate) {
+    navigate({
+      pathname: kSearchPath,
+      search: stringify({ q: query }),
+    })
+  } else {
+    window.location.assign(`${kSearchPath}?${stringify({ q: query })}`)
+  }
+}
+
+function gotoOnboarding({
+  navigate,
+  step,
+}: {
+  navigate?: NavigateFunction
+  step?: number
+}) {
+  if (navigate) {
+    navigate({ pathname: kOnboarding, search: stringify({ step }) })
+  } else {
+    window.location.pathname = kOnboarding
+  }
 }
 
 function getSearchAnchor({ location }: { location: Location }) {
@@ -33,59 +106,92 @@ function getSearchAnchor({ location }: { location: Location }) {
   return { query: params.q || '' }
 }
 
-function gotoPath(history: Optional<History>, path: string, state?: any) {
-  if (history) {
-    // *dbg*/ console.log('History push', path)
-    history.push(path, state)
+function gotoPath(
+  navigate: Optional<NavigateFunction>,
+  path: string,
+  state?: any
+) {
+  if (navigate) {
+    // *dbg*/ console.log('NavigateFunction push', path)
+    navigate(path, state)
   } else {
     // *dbg*/ console.log('Window location href', path)
     window.location.href = path
   }
 }
 
-type HistoryObj = { history: Optional<History> }
-
-function gotoLogIn({ history }: HistoryObj) {
-  gotoPath(history, kLogInPath)
+function goToTruthsayerPath(
+  path: TruthsayerPath,
+  params?: {
+    navigate?: NavigateFunction
+    state?: any
+  }
+) {
+  gotoPath(params?.navigate ?? null, path, params?.state ?? null)
 }
 
-function gotoSignUp({ history }: HistoryObj) {
-  gotoPath(history, kSignUpPath)
+export interface GoToInboxToConfirmEmailLocationState {
+  name?: string
+  email?: string
 }
 
-function gotoLogOut({ history }: HistoryObj) {
-  gotoPath(history, kLogOutPath)
+function goToInboxToConfirmEmail({
+  navigate,
+  state,
+}: {
+  navigate?: NavigateFunction
+  state: GoToInboxToConfirmEmailLocationState
+}) {
+  goToTruthsayerPath('/account/create/go-to-inbox-to-confirm-email', {
+    state,
+    navigate,
+  })
 }
 
-function gotoNode({ history, nid }: { history: History; nid: string }) {
-  gotoPath(history, kNodePathPrefix + nid)
+type HavigateObj = { navigate?: Optional<NavigateFunction> }
+
+function gotoLogIn({ navigate }: HavigateObj) {
+  gotoPath(navigate ?? null, kLogInPath)
 }
 
-function gotoMain({ history }: HistoryObj) {
+function gotoSignUp({ navigate }: HavigateObj) {
+  gotoPath(navigate ?? null, kSignUpPath)
+}
+
+function gotoLogOut({ navigate }: HavigateObj) {
+  gotoPath(navigate ?? null, kLogOutPath)
+}
+
+function gotoNode({
+  navigate,
+  nid,
+}: {
+  navigate: NavigateFunction
+  nid: string
+}) {
+  gotoPath(navigate ?? null, kNodePathPrefix + nid)
+}
+
+function gotoMain({ navigate }: HavigateObj) {
   // *dbg*/ console.log('Go to main')
-  gotoPath(history, '/')
+  gotoPath(navigate ?? null, '/')
 }
 
-function gotoError({ history }: HistoryObj) {
+function gotoError({ navigate }: HavigateObj) {
   // *dbg*/ console.log('Go to error')
-  gotoPath(history, kNoticePathPrefix + kNoticeErrorPage)
+  gotoPath(navigate ?? null, kNoticePathPrefix + kNoticeErrorPage)
 }
 
-function gotoSeeYou({ history }: HistoryObj) {
-  gotoPath(history, kNoticePathPrefix + kNoticeSeeYouPage)
+function gotoSeeYou({ navigate }: HavigateObj) {
+  gotoPath(navigate ?? null, kNoticePathPrefix + kNoticeSeeYouPage)
 }
 
-function gotoLogInToContinue({ history }: HistoryObj) {
-  gotoPath(history, kNoticePathPrefix + kNoticeLogInToContinue)
+function gotoLogInToContinue({ navigate }: HavigateObj) {
+  gotoPath(navigate ?? null, kNoticePathPrefix + kNoticeLogInToContinue)
 }
 
-function gotoWaitingForApproval(history?: History, state?: any) {
-  gotoPath(history || null, kWaitingForApproval, state)
-}
-
-function reload_(history: History) {
-  history.push({ pathname: kEmptyPath })
-  history.goBack()
+function gotoWaitingListNotice(navigate: NavigateFunction, state?: any) {
+  gotoPath(navigate, kNoticePathPrefix + kNoticeYouAreInWaitingList, state)
 }
 
 export const routes = {
@@ -96,6 +202,18 @@ export const routes = {
   node: `${kNodePathPrefix}:nid`,
   notice: `${kNoticePathPrefix}:page`,
   empty: kEmptyPath,
+  settings: kSettings,
+  apps: kApps,
+  integrations: kIntegrations,
+  faq: kFaq,
+  api: kApi,
+  about: kAbout,
+  contacts: kContacts,
+  privacy: kPrivacyPolicy,
+  terms: kTermsOfService,
+  cookiePolicy: kCookiePolicy,
+  onboarding: kOnboarding,
+  browserHistoryImportLoadingScreen: kBrowserHistoryImportLoadingScreen,
 }
 
 export const goto = {
@@ -105,13 +223,38 @@ export const goto = {
   logout: gotoLogOut,
   node: gotoNode,
   search: gotoSearch,
+  onboarding: gotoOnboarding,
   notice: {
     error: gotoError,
     seeYou: gotoSeeYou,
     logInToContinue: gotoLogInToContinue,
+    youAreInWaitingList: gotoWaitingListNotice,
   },
-  waitingForApproval: gotoWaitingForApproval,
-  reload: reload_,
+  goToInboxToConfirmEmail,
+  about: () => {
+    window.location.href = 'https://thinkforeword.com/about'
+    return null
+  },
+  terms: () => {
+    window.location.href = 'https://thinkforeword.com/foreword-termsofservice'
+    return null
+  },
+  privacy: () => {
+    window.location.href = 'https://thinkforeword.com/foreword-privacy-policy'
+    return null
+  },
+  cookiePolicy: () => {
+    window.location.href = 'https://thinkforeword.com/foreword-cookies-policy'
+    return null
+  },
+  pricing: () => {
+    window.location.href = 'https://thinkforeword.com/pricing'
+    return null
+  },
+  landing: () => {
+    window.location.href = 'https://thinkforeword.com/'
+    return null
+  },
 }
 
 export const makeRefTo = {
@@ -128,4 +271,9 @@ export const notice = {
   error: kNoticeErrorPage,
   seeYou: kNoticeSeeYouPage,
   logInToContinue: kNoticeLogInToContinue,
+  youAreInWaitingList: kNoticeYouAreInWaitingList,
+}
+
+export function truthsayerPath(path: TruthsayerPath): TruthsayerPath {
+  return path
 }

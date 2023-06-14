@@ -3,14 +3,11 @@
 
 import React, { useContext } from 'react'
 import { css } from '@emotion/react'
-import { Link } from 'react-router-dom'
-import { Button } from 'react-bootstrap'
 
-import { smuggler, TEdge } from 'smuggler-api'
+import { EdgeUtil } from 'smuggler-api'
+import type { TEdge } from 'smuggler-api'
 
 import styles from './Footbar.module.css'
-
-import { makeRefTo } from './../lib/route'
 
 import { MzdGlobalContext } from '../lib/global'
 import {
@@ -23,14 +20,15 @@ import {
 import {
   jcss,
   CheckBox,
-  MaterialIcon,
-  MdiLaunch,
   MdiMoreHoriz,
   HoverTooltip,
   MdiContentCut,
 } from 'elementary'
 
 class PrivateMenu extends React.Component {
+  static contextType = MzdGlobalContext
+  context!: React.ContextType<typeof MzdGlobalContext>
+
   constructor(props) {
     super(props)
     this.state = {
@@ -51,33 +49,41 @@ class PrivateMenu extends React.Component {
   switchStickiness = () => {
     let { isSticky } = this.state
     isSticky = !isSticky
-    smuggler.edge
+    this.context.storage.edge
       .sticky({
         on: isSticky,
         eid: this.props.edge.eid,
         signal: this.toggleStickinessAbortController.signal,
       })
-      .then((res) => {
-        const { switchStickiness, edge } = this.props
-        if (res) {
-          this.setState({ isSticky })
-          switchStickiness(edge, isSticky)
-        }
-      })
+      .then(
+        (res) => {
+          const { switchStickiness, edge } = this.props
+          if (res) {
+            this.setState({ isSticky })
+            switchStickiness(edge, isSticky)
+          }
+        },
+        (reason) => log.error(`Failed to switch stickiness: ${reason}`)
+      )
   }
 
   handleRefCutOff = () => {
     const eid = this.props.edge.eid
-    smuggler.edge
-      .delete({
-        eid,
-        signal: this.deleteEdgeAbortController.signal,
-      })
-      .then((res) => {
-        if (res) {
-          this.props.cutOffRef(eid)
-        }
-      })
+    this.context.storage.edge
+      .delete(
+        {
+          eid,
+        },
+        this.deleteEdgeAbortController.signal
+      )
+      .then(
+        (res) => {
+          if (res) {
+            this.props.cutOffRef(eid)
+          }
+        },
+        (reason) => log.error(`Failed to cut off ref: ${reason}`)
+      )
   }
 
   render() {
@@ -88,13 +94,19 @@ class PrivateMenu extends React.Component {
       : 'Magnetise the link'
     const { className, children } = this.props
     return (
-      <FootbarDropdown className={this.props.className}>
+      <FootbarDropdown className={className}>
         <FootbarDropdownToggle id={'more-options-for-fullsize-card'}>
           {children}
         </FootbarDropdownToggle>
         <FootbarDropdownMenu>
           <FootbarDropdownItem onClick={this.handleRefCutOff}>
-            <MdiContentCut css={{ fontSize: '20px' }} />
+            <MdiContentCut
+              css={{
+                fontSize: '20px',
+                verticalAlign: 'middle',
+                marginRight: '5px',
+              }}
+            />
             {cutTooltip}
           </FootbarDropdownItem>
           <FootbarDropdownItem onClick={this.switchStickiness}>
@@ -147,41 +159,20 @@ const Menu = ({
   }
 }
 
-const SeeMoreButton = React.forwardRef(
-  ({ children, onClick, className, disabled }, ref) => {
-    return (
-      <div
-        className={jcss(styles.a_see_more, className)}
-        ref={ref}
-        onClick={onClick}
-        disabled={disabled}
-      >
-        {children}
-      </div>
-    )
-  }
-)
-
 export function SmallCardFootbar({
-  nid,
   edge,
-  showMore,
-  toggleMore,
   switchStickiness,
   cutOffRef,
   className,
 }: {
-  nid: string
   edge: TEdge
-  showMore: boolean
-  toggleMore: () => void
   switchStickiness: (edge: TEdge, on: boolean) => void
   cutOffRef: (eid: string) => void
   className?: string
 }) {
   const ctx = useContext(MzdGlobalContext)
   const account = ctx.account
-  const isOwned = edge.isOwnedBy(account)
+  const isOwned = EdgeUtil.isOwnedBy(edge, account)
   return (
     <div
       css={css`
@@ -191,23 +182,6 @@ export function SmallCardFootbar({
       `}
       className={className}
     >
-      <Button
-        as={SeeMoreButton}
-        onClick={toggleMore}
-        className={jcss(styles.tool_button)}
-      >
-        <MaterialIcon
-          css={{ fontSize: '20px' }}
-          type={showMore ? 'expand_less' : 'expand_more'}
-        />
-      </Button>
-      <Button
-        as={Link}
-        to={makeRefTo.node(nid)}
-        className={jcss(styles.tool_button)}
-      >
-        <MdiLaunch css={{ fontSize: '20px' }} />
-      </Button>
       <Menu
         edge={edge}
         switchStickiness={switchStickiness}

@@ -1,17 +1,48 @@
-const webpack = require("webpack");
-const path = require("path");
-const CopyPlugin = require("copy-webpack-plugin");
+const webpack = require("webpack")
+const path = require("path")
+var fs = require('fs')
+const fetch = require("node-fetch")
+const util = require('util')
+const CopyPlugin = require("copy-webpack-plugin")
+const TerserPlugin = require('terser-webpack-plugin')
+
+// Folder where ML models are stored
+const MODELS_FOLDER_NAME = "models"
+
+const _getTruthsayerUrl = (mode) => {
+  return mode === 'development' ? 'http://localhost:3000' : 'https://mazed.se/'
+}
+
+const _getTruthsayerUrlMask = (mode) => {
+  const url = new URL(_getTruthsayerUrl(mode))
+  url.pathname = '*'
+  return url.toString()
+}
 
 const _getSmugglerApiUrl = (mode) => {
   return mode === 'development'
     ? "http://localhost:3000"
-    : "https://mazed.dev/smuggler"
+    : "https://mazed.se/smuggler"
 }
 
-const _getSmugglerApiUrlMask = (mode) => {
-  const url = new URL(_getSmugglerApiUrl(mode))
-  url.pathname = '*'
-  return url.toString().replace(/:\d+/, '')
+const _readVersionFromFile = async () => {
+  const filePath = path.join(__dirname, 'public/version.txt')
+  const readFile = util.promisify(fs.readFile)
+
+  return (await readFile(filePath, {encoding: 'ascii'})).trim()
+}
+
+const _downloadToDisk = async (url, destination) => {
+  if (fs.existsSync(destination)) {
+    return
+  }
+  const response = await fetch(url)
+  const fileStream = fs.createWriteStream(destination);
+  await new Promise((resolve, reject) => {
+      response.body.pipe(fileStream);
+      response.body.on("error", reject);
+      fileStream.on("finish", resolve);
+  });
 }
 
 const _manifestTransformDowngradeToV2 = (manifest) => {
@@ -19,7 +50,7 @@ const _manifestTransformDowngradeToV2 = (manifest) => {
   manifest.manifest_version = 2
   // background scripts are declared differently in v2
   const { service_worker } = manifest.background
-  manifest.background.scripts = [ service_worker ]
+  manifest.background.scripts = [service_worker]
   delete manifest.background.service_worker
   // host_permissions are not supported in v2
   manifest.permissions.push(
@@ -35,95 +66,163 @@ const _manifestTransformDowngradeToV2 = (manifest) => {
   // Manifest V3 new features
   delete manifest.cross_origin_embedder_policy
   delete manifest.cross_origin_opener_policy
+  delete manifest.externally_connectable
   return manifest
 }
 
-const _manifestTransform = (buffer, mode, env) => {
+const _isChromium = (env) => {
+  return env.chrome || env.edge || false
+}
+
+const _manifestTransform = (buffer, mode, env, archaeologistVersion) => {
   let manifest = JSON.parse(buffer.toString())
+  manifest.version = archaeologistVersion
 
-  const {firefox=false} = env
+  const { firefox = false } = env
 
-  // Add Mazed URL to host_permissions to grant access to mazed cookies
-  const smugglerApiUrlMask = _getSmugglerApiUrlMask(mode)
-  manifest.host_permissions.push(smugglerApiUrlMask)
-  // Exclude Mazed from list of URLs where content.js is injected to
-  manifest.content_scripts.forEach((item, index, theArray) => {
-    const { exclude_matches = [] } = item
-    exclude_matches.push(
-      smugglerApiUrlMask,
-    )
-    theArray[index] = {
-      ...item,
-      exclude_matches,
-    }
-  });
+  // Add Foreword URL to externally_connectable to allow to send messages
+  // from truthsayer to archaeologist.
+  // See https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/externally_connectable
+  // for more details.
+  manifest.externally_connectable.matches.push(_getTruthsayerUrlMask(mode))
+  manifest.web_accessible_resources.push({
+    resources: [`${MODELS_FOLDER_NAME}/*`],
+    matches: [],
+  })
   if (firefox) {
     manifest = _manifestTransformDowngradeToV2(manifest)
   }
-  return JSON.stringify(manifest, null, 2);
+  if (mode === "development" && _isChromium(env)) {
+    // Below "pins" the ID that gets assigned to the extension.
+    // The ID value which gets assigned to the extension as a result is
+    // 'dnjclfepefgpljnecekakpimfjaikgfd'.
+    // Knowing the precise extension ID is necessary for certain interactions
+    // between truthsayer and archaeologist. For builds that get released to
+    // production (as in - get published to the actual extension store) the store
+    // ensures they use the same ID on its side. But during development builds
+    // on different dev machines are random unless the 'key' manifest property
+    // is pinned.
+    //
+    // The key value has been obtained via the steps explain at
+    // https://developer.chrome.com/docs/extensions/mv3/manifest/key/
+    manifest.key =
+      'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlcUBTiNA5dfNL88e5juZzzi0lmQNBox3tHo14gAnd6RaOT/XC8q6wh9ju8VhzTmUtNiApLnVDTzlU1QPw6wALrxaly8rTsmt7wdqZmOGmKTr+Qebp3uEzxNVdK6jzHQxrjSqaOk5huGXHqaOA7/LfFAhMPO7uimpUSv2uRLIOYSrewRnaQPw7JGdl4Py29+mmEmkcyjQUDK2+UHDRyskaT923VUA6XBxdTZEhv4aLFJZX1vxQrRYPTHDpFsP67Y7+Ta7qaP/GMj/bPDFPlBY4n0r+A/D2n7pS61hl7AVqSFKe/Jv/RjNG2TFEja6FY57zuwreL9zVXi2+u2KzXl6SwIDAQAB'
+  }
+  return JSON.stringify(manifest, null, 2)
 }
 
-const config = (env, argv) => {
+/**
+ * Download ML models so they can be packed inside the archaeologist itself.
+ * Some users seem to have browser extensions that block network downloads
+ * during archaeologist's runtime so reading models avoids potential issues.
+ * 
+ * A universal-sentence-encoder-lite model consists of 3 parts:
+ * - a model.json file
+ * - 1 or more weight files that are referenced from model.json
+ * - a vocab.json file
+ */
+const _downloadModelsTo = async (destination) => {
+  fs.mkdirSync(destination, { recursive: true })
+  const makeUrlForModelPart = (fileNameOfPart) =>
+    // URL composed by combining:
+    //  - https://github.com/tensorflow/tfjs-models/blob/646992fd7ab8237c0dc908f2526301414b417c95/universal-sentence-encoder/src/index.ts#L53
+    //  - https://github.com/tensorflow/tfjs/blob/680101d878b0d2dcc63a230180804e6cb1c668ba/tfjs-converter/src/executor/graph_model.ts#L679-L684
+    `https://tfhub.dev/tensorflow/tfjs-model/universal-sentence-encoder-lite/1/default/1/${fileNameOfPart}?tfjs-format=file`
+  await _downloadToDisk(makeUrlForModelPart('model.json'), `${destination}/use-model.json`)
+
+  // Names of these files can be found in model.json, field "weightsManifest".
+  // tfjs will try to read them from the same folder where model.json is located.
+  const weightFilenames = [
+    'group1-shard1of7',
+    'group1-shard2of7',
+    'group1-shard3of7',
+    'group1-shard4of7',
+    'group1-shard5of7',
+    'group1-shard6of7',
+    'group1-shard7of7',
+  ]
+  for (const weightsFilename of weightFilenames) {
+    await _downloadToDisk(
+      makeUrlForModelPart(weightsFilename),
+      `${destination}/${weightsFilename}`
+    )
+  }
+  await _downloadToDisk(
+    // URL taken from https://github.com/tensorflow/tfjs-models/blob/646992fd7ab8237c0dc908f2526301414b417c95/universal-sentence-encoder/src/index.ts#LL60C55-L60C65
+    'https://storage.googleapis.com/tfjs-models/savedmodel/universal_sentence_encoder/vocab.json', 
+    `${destination}/use-vocab.json`
+  )
+}
+
+const config = async (env, argv) => {
+  const archeologistVersion = await _readVersionFromFile()
+
+  const tmpModelsFolderPath = `webpack-tmp/${MODELS_FOLDER_NAME}`
+  await _downloadModelsTo(tmpModelsFolderPath)
   return {
     entry: {
       popup: path.join(__dirname, "src/popup.tsx"),
       content: path.join(__dirname, "src/content.ts"),
       background: path.join(__dirname, "src/background.ts"),
     },
-    output: {path: path.join(__dirname, "target/unpacked"), filename: "[name].js"},
+    output: { path: path.join(__dirname, "target/unpacked"), filename: "[name].js" },
     module: {
       rules: [
-        {
-          test: /\.css$/,
-          use: ["style-loader", "css-loader"],
-          exclude: /\.module\.css$/,
-        },
         {
           test: /\.ts(x)?$/,
           loader: "ts-loader",
           exclude: /node_modules/,
         },
         {
-          test: /\.css$/,
-          use: [
-            "style-loader",
-            {
-              loader: "css-loader",
-              options: {
-                importLoaders: 1,
-                modules: true,
-              },
-            },
-          ],
-          include: /\.module\.css$/,
+          // https://github.com/microsoft/PowerBI-visuals-tools/issues/365#issuecomment-1099716186
+          test: /\.m?js/,
+          resolve: {
+            fullySpecified: false
+          }
         },
         {
           test: /\.svg$/,
-          use: "file-loader",
+          type: "asset/inline",
         },
         {
-          test: /\.png$/,
-          use: [
-            {
-              loader: "url-loader",
-              options: {
-                mimetype: "image/png",
-              },
-            },
-          ],
+          test: /\.(png|jpg|gif)$/i,
+          type: "asset/inline",
         },
       ],
     },
     resolve: {
       extensions: [".js", ".jsx", ".tsx", ".ts"],
-      alias: {
-        "react-dom": "@hot-loader/react-dom",
-      },
     },
     performance: {
       hints: false,
       maxEntrypointSize: 512000,
       maxAssetSize: 512000
+    },
+    optimization: {
+      minimize: false,
+      minimizer: [
+        new TerserPlugin({
+          terserOptions: {
+            compress: {
+              defaults: true,
+              arguments: true,
+              toplevel: true,
+              ecma: 6,
+            },
+            output: {
+              // Always insert braces in if, for, do, while or with statements,
+              // even if their body is a single statement
+              braces: true,
+              // Preserve JSDoc-style comments that contain "@license" or "@preserve"
+              comments: "some",
+              // Escape Unicode characters in strings and regexps. Chrome does
+              // not accept minified files with UTF8 encodding for some reason.
+              ascii_only: true,
+            }
+          },
+          // Extract some legal comments into a separate file
+          extractComments: true,
+        })],
     },
     stats: {
       errorDetails: true,
@@ -135,10 +234,12 @@ const config = (env, argv) => {
           from: "public", to: ".",
           transform: (context, absoluteFrom) => {
             if (absoluteFrom.endsWith("/manifest.json")) {
-              return _manifestTransform(context, argv.mode, env)
+              return _manifestTransform(context, argv.mode, env, archeologistVersion)
             }
             return context
           },
+        }, {
+          from: tmpModelsFolderPath, to: MODELS_FOLDER_NAME,
         }],
       }),
       new webpack.ProvidePlugin({
@@ -146,19 +247,25 @@ const config = (env, argv) => {
       }),
       new webpack.DefinePlugin({
         'process.env.CHROME': JSON.stringify(env.chrome || false),
+        'process.env.EDGE': JSON.stringify(env.edge || false),
+        'process.env.CHROMIUM': JSON.stringify(_isChromium(env)),
         'process.env.FIREFOX': JSON.stringify(env.firefox || false),
         'process.env.SAFARI': JSON.stringify(env.safari || false),
         'process.env.BROWSER': JSON.stringify(
           (env.chrome) ? "chrome"
             : (env.firefox) ? "firefox"
-              : (env.safari) ? "safari" : ""
+              : (env.safari) ? "safari"
+                : (env.edge) ? "edge" : ""
         ),
         'process.env.REACT_APP_SMUGGLER_API_URL': JSON.stringify(
           _getSmugglerApiUrl(argv.mode)
         ),
+        'process.env.REACT_APP_TRUTHSAYER_URL': JSON.stringify(
+          _getTruthsayerUrl(argv.mode)
+        ),
       }),
     ],
   }
-};
+}
 
-module.exports = config;
+module.exports = config

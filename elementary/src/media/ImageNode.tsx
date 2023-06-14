@@ -4,10 +4,11 @@ import React, { useState, useRef } from 'react'
 import { Image, ButtonGroup, Modal } from 'react-bootstrap'
 import styled from '@emotion/styled'
 
-import { TNode } from 'smuggler-api'
+import type { TNode, StorageApi } from 'smuggler-api'
 import { MdiFitScreen, MdiZoomIn, MdiZoomOut } from '../MaterialIcons'
 
 import { ImgButton } from '../ImgButton'
+import { productanalytics } from 'armoury'
 
 const ImageBase = styled(Image)`
   height: auto;
@@ -16,6 +17,13 @@ const ImageBase = styled(Image)`
 `
 
 const ImageInCard = styled(ImageBase)`
+  max-width: 100%;
+  border-style: none;
+  border-top-right-radius: inherit;
+  border-top-left-radius: inherit;
+`
+
+const ImageInCardZoom = styled(ImageInCard)`
   max-width: 100%;
   border-style: none;
   border-top-right-radius: inherit;
@@ -49,15 +57,26 @@ const ImageFullHelper = styled.span`
 `
 
 export const ImageNode = ({
-  className,
   node,
+  className,
+  strippedActions,
+  storage,
+  onLaunch,
 }: {
-  className?: string
   node: TNode
+  className?: string
+  strippedActions?: boolean
+  storage: StorageApi
+  onLaunch?: () => void
 }) => {
-  const source = node.getBlobSource()
+  const source = storage.blob.sourceUrl(node.nid)
+  if (source == null) {
+    return null
+  }
+  if (strippedActions) {
+    return <ImageInCard src={source} className={className} />
+  }
   const [show, setShow] = useState(false)
-
   const imageRef = useRef<HTMLImageElement>(null)
   const handleZoomIn = () => {
     const current = imageRef?.current
@@ -66,7 +85,6 @@ export const ImageNode = ({
       current.style.maxWidth = `${newMaxWidth}px`
     }
   }
-
   const handleZoomOut = () => {
     const current = imageRef?.current
     if (current != null) {
@@ -74,23 +92,18 @@ export const ImageNode = ({
       current.style.maxWidth = `${newMaxWidth}px`
     }
   }
-
   const handleZoomReset = () => {
     const current = imageRef?.current
     if (current != null) {
       current.style.maxWidth = '100%'
     }
   }
-
-  if (source == null) {
-    return null
-  }
   return (
     <>
-      <ImageInCard
+      <ImageInCardZoom
         src={source}
-        className={className}
-        onClick={() => setShow(true)}
+        className={productanalytics.classExclude(className)}
+        onClick={() => (onLaunch == null ? setShow(true) : onLaunch())}
       />
       <Modal show={show} fullscreen scrollable onHide={() => setShow(false)}>
         <Modal.Header closeButton>
@@ -116,7 +129,11 @@ export const ImageNode = ({
         </Modal.Header>
         <ImageFullModalBody>
           <ImageFullHelper />
-          <ImageFull src={source} ref={imageRef} />
+          <ImageFull
+            src={source}
+            className={productanalytics.classExclude()}
+            ref={imageRef}
+          />
         </ImageFullModalBody>
       </Modal>
     </>

@@ -1,33 +1,19 @@
+import { log } from 'armoury'
 import React from 'react'
 
 import { Knocker as KnockerEngine, authCookie } from 'smuggler-api'
 
-type KnockerProps = {}
-type KnockerState = {}
-
-export class Knocker extends React.Component<KnockerProps, KnockerState> {
-  _knocker: KnockerEngine
-
-  constructor(props: {}) {
-    super(props)
-    this._knocker = new KnockerEngine(374321, this.logout)
-  }
-
-  componentDidMount() {
-    if (authCookie.check()) {
-      this._knocker.start()
+export function KnockerElement() {
+  React.useEffect(() => {
+    const knocker = new KnockerEngine(() => {
+      authCookie.veil.drop()
+    })
+    knocker
+      .start({})
+      .catch((reason) => log.error(`Failed to start knocker: ${reason}`))
+    return () => {
+      knocker.stop()
     }
-  }
-
-  componentWillUnmount() {
-    this._knocker.abort()
-  }
-
-  logout = () => {
-    authCookie.drop()
-  }
-
-  render() {
-    return <></>
-  }
+  }, [])
+  return <></>
 }

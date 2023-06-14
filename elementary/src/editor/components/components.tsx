@@ -1,58 +1,44 @@
 import styled from '@emotion/styled'
-import { css } from '@emotion/react'
 
-import { Link as ReactRouterLink } from 'react-router-dom'
-
-const InlineLink = css`
+const kParagraphMarginStyles = `
+  margin-top: 0;
+  margin-bottom: 0.8em;
+  &:last-child {
+    margin-bottom: 0;
+  }
+`
+export const InlineLink = styled.a`
   font-weight: 500;
-  color: #38b000;
   text-decoration-line: none;
 
   &:hover {
-    color: #70e000;
     text-decoration-line: underline;
     cursor: pointer;
   }
 `
 
-export const InlineLinkExt = styled.a`
-  ${InlineLink};
-  &:before {
-    content: '🌍 ';
-    opacity: 0.7;
-  }
-`
+export const BlockQuoteBox = styled.div`
+  padding: 6px 0 6px 0;
+  ${kParagraphMarginStyles}
 
-export const InlineLinkNode = styled(ReactRouterLink)`
-  ${InlineLink};
-  &:before {
-    content: '📄 ';
-    opacity: 0.7;
-  }
-`
-
-export const BlockquoteBox = styled.blockquote`
-  padding: 5px;
-  background: #eeeeeea5;
   border-radius: 5px;
   font-style: italic;
+`
 
-  &:after {
-    content: '\\201D';
-  }
-  &:before {
-    content: '\\201C';
-  }
+export const BlockQuotePad = styled.blockquote`
+  padding: 0 8px 0 8px;
+  margin: 0 0 0 8px;
+  border-left: 1px solid rgba(0, 110, 237, 0.42);
+  color: rgb(92, 92, 92);
+  line-height: 142%;
 `
 
 export const CodeBlockBox = styled.code`
-  margin: 0;
-  padding: 6px 12px 0 12px;
+  padding: 4px 12px 4px 12px;
 
-  background-color: rgb(246, 248, 250);
+  background-color: rgb(246, 248, 248);
   color: black;
 
-  font-family: 'SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace';
   direction: ltr;
   font-weight: 400;
   display: block;
@@ -63,9 +49,9 @@ export const CodeBlockBox = styled.code`
 
   &:last-of-type {
     border-radius: 0 0 6px 6px;
-    margin-top: 0;
-    margin-bottom: 1em;
   }
+
+  ${kParagraphMarginStyles}
 `
 
 export const DateTimePill = styled.span`
@@ -111,8 +97,7 @@ export const HorizontalRule = styled.div`
     rgba(0, 0, 0, 0.312),
     rgba(0, 0, 0, 0)
   );
-  margin-top: 0;
-  margin-bottom: 1em;
+  ${kParagraphMarginStyles}
 `
 
 export const Header1Box = styled.h6`
@@ -123,8 +108,7 @@ export const Header1Box = styled.h6`
   /* color: #1a4301; */
   color: #004b23;
 
-  margin-top: 0;
-  margin-bottom: 0.68em;
+  ${kParagraphMarginStyles}
 `
 
 export const Header2Box = styled.h6`
@@ -134,8 +118,7 @@ export const Header2Box = styled.h6`
   color: #006400;
   display: block;
 
-  margin-top: 0;
-  margin-bottom: 0.64em;
+  ${kParagraphMarginStyles}
 `
 
 export const Header3Box = styled.h6`
@@ -145,8 +128,7 @@ export const Header3Box = styled.h6`
   color: #007200;
   display: block;
 
-  margin-top: 0;
-  margin-bottom: 0.56em;
+  ${kParagraphMarginStyles}
 `
 
 export const Header4Box = styled.h6`
@@ -156,8 +138,7 @@ export const Header4Box = styled.h6`
   color: #008000;
   display: block;
 
-  margin-top: 0;
-  margin-bottom: 0.56em;
+  ${kParagraphMarginStyles}
 `
 
 export const Header5Box = styled.h6`
@@ -167,8 +148,7 @@ export const Header5Box = styled.h6`
   color: #38b000;
   display: block;
 
-  margin-top: 0;
-  margin-bottom: 0.48em;
+  ${kParagraphMarginStyles}
 `
 
 export const Header6Box = styled.h6`
@@ -178,8 +158,7 @@ export const Header6Box = styled.h6`
   color: #70e000;
   display: block;
 
-  margin-top: 0;
-  margin-bottom: 0.42em;
+  ${kParagraphMarginStyles}
 `
 
 const kColourCodeBg = 'rgba(27, 31, 35, 0.05)'
@@ -234,6 +213,7 @@ export const ListItemBox = styled.li`
 
 export const ParagraphBox = styled.p`
   white-space: pre-wrap;
-  margin: 0 0 14px 0;
   display: block;
+
+  ${kParagraphMarginStyles}
 `

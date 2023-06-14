@@ -21,6 +21,8 @@ import { css } from '@emotion/react'
 type ShrinkCardProps = React.PropsWithChildren<{
   showMore?: boolean
   className?: string
+  onClick?: (event: React.MouseEvent<Element, MouseEvent>) => void
+  height?: string
 }>
 
 const Fade = styled.div`
@@ -28,7 +30,7 @@ const Fade = styled.div`
   bottom: 0px;
   display: block;
   width: 100%;
-  height: 32px;
+  height: 12px;
   background-image: linear-gradient(
     to bottom,
     rgba(255, 255, 255, 0),
@@ -39,7 +41,7 @@ const Fade = styled.div`
 `
 
 const Shrinkable = styled.div`
-  overflow: hidden;
+  overflow-y: hidden;
   position: relative;
   border-top-right-radius: inherit;
   border-top-left-radius: inherit;
@@ -49,16 +51,42 @@ export const ShrinkCard = ({
   children,
   showMore,
   className,
+  onClick,
+  height,
 }: ShrinkCardProps) => {
+  height = height ?? '156px'
   const shrinkStyle = showMore
     ? css`
-        min-height: 160px;
+        min-height: ${height};
       `
     : css`
-        height: 160px;
+        height: ${height};
       `
   return (
-    <Shrinkable css={shrinkStyle} className={className}>
+    <Shrinkable onClick={onClick} css={shrinkStyle} className={className}>
+      {children}
+      <Fade />
+    </Shrinkable>
+  )
+}
+
+export const ShrinkMinimalCard = ({
+  children,
+  showMore,
+  className,
+  onClick,
+  height,
+}: ShrinkCardProps) => {
+  height = height ?? '156px'
+  const shrinkStyle = showMore
+    ? css`
+        min-height: ${height};
+      `
+    : css`
+        max-height: ${height};
+      `
+  return (
+    <Shrinkable onClick={onClick} css={shrinkStyle} className={className}>
       {children}
       <Fade />
     </Shrinkable>

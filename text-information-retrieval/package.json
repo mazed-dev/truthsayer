@@ -1,0 +1,53 @@
+{
+  "name": "text-information-retrieval",
+  "description": "Text information retrieval",
+  "author": "Foreword",
+  "version": "0.0.1",
+  "license": "no",
+  "private": true,
+  "scripts": {
+    "build": "yarn tsc --build --pretty",
+    "clean": "rm -r dist tsconfig.tsbuildinfo",
+    "fix": "yarn fix:prettier && yarn fix:eslint",
+    "fix:eslint": "yarn lint:eslint --fix",
+    "fix:prettier": "yarn lint:prettier --write",
+    "lint": "yarn lint:eslint && yarn lint:prettier",
+    "lint:heavy": "yarn lint:eslint:heavy && yarn lint:prettier && yarn lint:typescript",
+    "lint:eslint": "yarn eslint \"./src/**/*.{js,ts}\"",
+    "lint:eslint:heavy": "yarn lint:eslint --config ../.eslintrc.heavy.js",
+    "lint:prettier": "yarn prettier --check \"./{src,test}/**/*.{css,md,js,json,ts}\"",
+    "lint:typescript": "yarn tsc --build ./ --force",
+    "test": "yarn jest"
+  },
+  "dependencies": {
+    "@tensorflow-models/universal-sentence-encoder": "^1.3.3",
+    "@tensorflow/tfjs": "^4.5.0",
+    "armoury": "0.0.1",
+    "lodash": "^4.17.21",
+    "smuggler-api": "0.0.1",
+    "wink-eng-lite-web-model": "^1.4.3",
+    "wink-nlp": "^1.13.0"
+  },
+  "devDependencies": {
+    "@fast-csv/parse": "^4.3.6",
+    "@tensorflow-models/knn-classifier": "^1.2.4",
+    "@tensorflow/tfjs-backend-cpu": "^4.5.0",
+    "@tensorflow/tfjs-node": "^4.5.0",
+    "@tensorflow/tfjs-node-gpu": "^4.5.0",
+    "@typescript-eslint/eslint-plugin": "^5.26.0",
+    "@typescript-eslint/parser": "^5.26.0",
+    "eslint": "^8.16.0",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-prettier": "^3.1.1",
+    "jest": "26.6.0",
+    "prettier": "^2.2",
+    "ts-jest": "^26.4.2",
+    "typescript": "4.7.3"
+  },
+  "files": [
+    "/dist"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts"
+}

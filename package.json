@@ -4,29 +4,38 @@
   "private": true,
   "scripts": {
     "archaeologist": "yarn workspace archaeologist",
-    "elementary": "yarn workspace elementary",
     "armoury": "yarn workspace armoury",
+    "elementary": "yarn workspace elementary",
     "fix": "yarn syncpack fix-mismatches && yarn workspaces foreach run fix",
     "fix:prettier": "yarn workspaces foreach run fix:prettier",
+    "librarius": "yarn workspace librarius",
     "lint": "yarn syncpack list-mismatches && yarn workspaces foreach run lint",
+    "lint:heavy": "yarn syncpack list-mismatches && yarn workspaces foreach run lint:heavy",
+    "truthsayer-archaeologist-communication": "yarn workspace truthsayer-archaeologist-communication",
+    "clean": "yarn cache clean && yarn workspaces foreach run clean",
+    "build-libs": "yarn armoury build && yarn elementary build && yarn smuggler-api build && yarn librarius build && yarn truthsayer-archaeologist-communication build && yarn text-information-retrieval build",
     "smuggler-api": "yarn workspace smuggler-api",
     "test": "yarn workspaces foreach run test --all --watchAll=false --no-watchman",
+    "text-information-retrieval": "yarn workspace text-information-retrieval",
     "truthsayer": "yarn workspace truthsayer"
   },
   "workspaces": [
     "archaeologist",
     "armoury",
     "elementary",
+    "librarius",
     "smuggler-api",
-    "truthsayer"
+    "text-information-retrieval",
+    "truthsayer",
+    "truthsayer-archaeologist-communication"
   ],
   "dependencies": {
-    "eslint": "^7.11.0",
+    "eslint": "^8.16.0",
     "jest": "26.6.0",
     "lodash": "^4.17.21",
     "prettier": "^2.2",
     "ts-jest": "^26.4.2",
-    "typescript": "4.1.3"
+    "typescript": "4.7.3"
   },
   "devDependencies": {
     "syncpack": "^5.8.15"
