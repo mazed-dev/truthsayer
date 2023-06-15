@@ -789,7 +789,10 @@ function _makeResponseError(response: Response, message?: string): Error {
     authCookie.veil.drop()
   }
   return new SmugglerError({
-    message: message ?? response.statusText,
+    message:
+      message != null
+        ? `${message} (${response.status}, "${response.statusText}")`
+        : `${response.status}, "${response.statusText}"`,
     statusText: response.statusText,
     status: response.status,
   })
