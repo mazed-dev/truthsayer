@@ -1,6 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
-import { tensor } from '@tensorflow/tfjs'
-import type { Tensor, Tensor2D } from '@tensorflow/tfjs'
+import type { Tensor2D } from '@tensorflow/tfjs'
 
 import * as use from '@tensorflow-models/universal-sentence-encoder'
 
@@ -8,12 +7,7 @@ import type { TfEmbeddingJson } from 'smuggler-api'
 import { range } from 'armoury'
 import lodash from 'lodash'
 
-export { KNNClassifier } from '@tensorflow-models/knn-classifier'
-
-export { tensor }
-export type { Tensor, Tensor2D }
-
-export type TfState = {
+export type State = {
   encoder: use.UniversalSentenceEncoder
 }
 
@@ -26,10 +20,10 @@ export type TfInitialisationConfig = {
   vocabUrl: string
 }
 
-export async function createTfState({
+export async function createState({
   modelUrl,
   vocabUrl,
-}: TfInitialisationConfig): Promise<TfState> {
+}: TfInitialisationConfig): Promise<State> {
   const encoder = await use.load({
     modelUrl,
     vocabUrl,

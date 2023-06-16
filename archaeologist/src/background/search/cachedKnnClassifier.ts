@@ -1,6 +1,6 @@
 import { log } from 'armoury'
 import lodash from 'lodash'
-import { tf } from 'text-information-retrieval'
+import { KNNClassifier, tf } from 'text-information-retrieval'
 import browser from 'webextension-polyfill'
 
 /**
@@ -285,14 +285,14 @@ type InterfaceOf<T> = Pick<T, KeysOfMethods<T>>
  * KNNClassifier is fully syncronous, but cache storage is not).
  */
 type KnnClassifierInterface = Omit<
-  InterfaceOf<tf.KNNClassifier>,
+  InterfaceOf<KNNClassifier>,
   'addExample' | 'clearClass'
 > & {
   addExample: (
-    ...args: Parameters<tf.KNNClassifier['addExample']>
+    ...args: Parameters<KNNClassifier['addExample']>
   ) => Promise<void>
   clearClass: (
-    ...args: Parameters<tf.KNNClassifier['clearClass']>
+    ...args: Parameters<KNNClassifier['clearClass']>
   ) => Promise<void>
 }
 
@@ -304,7 +304,7 @@ type KnnClassifierInterface = Omit<
  * about how to properly serialize/deserialize @see KNNClassifier
  */
 export class CachedKnnClassifier implements KnnClassifierInterface {
-  private impl: tf.KNNClassifier
+  private impl: KNNClassifier
   private store: YekLavStore
   private static readonly INTERNAL_VERSION: number = 1
 
@@ -326,27 +326,24 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
     const yek: AllLabelsYek = { yek: { kind: 'all-labels', key: undefined } }
     const lav: AllLabelsLav | undefined = await store.get(yek)
     if (lav == null) {
-      return new CachedKnnClassifier(new tf.KNNClassifier(), storage)
+      return new CachedKnnClassifier(new KNNClassifier(), storage)
     }
     const yeks: LabelToClassYek[] = lav.lav.value.map(({ label }) => {
       return { yek: { kind: 'label->class', key: label } }
     })
 
-    const classes: Parameters<tf.KNNClassifier['setClassifierDataset']>[0] = {}
+    const classes: Parameters<KNNClassifier['setClassifierDataset']>[0] = {}
     for (const { yek, lav } of await store.get(yeks)) {
       const { data, shape } = lav.lav.value
       classes[yek.yek.key] = tf.tensor(data, shape)
     }
 
-    const impl = new tf.KNNClassifier()
+    const impl = new KNNClassifier()
     impl.setClassifierDataset(classes)
     return new CachedKnnClassifier(impl, storage)
   }
 
-  private constructor(
-    impl: tf.KNNClassifier,
-    store: browser.Storage.StorageArea
-  ) {
+  private constructor(impl: KNNClassifier, store: browser.Storage.StorageArea) {
     this.impl = impl
     this.store = new YekLavStore(store)
   }
