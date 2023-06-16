@@ -6,20 +6,16 @@ import { parse } from 'query-string'
 import { useNavigate, useLocation } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { Button, Container } from 'react-bootstrap'
-import lodash from 'lodash'
 import {
   FromTruthsayer,
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
 import { AppsList } from '../../apps-list/AppsList'
-import {
-  ExternalImportProgress,
-  ExternalImportForOnboarding,
-} from '../../external-import/ExternalImport'
+import { ExternalImportProgress } from '../../external-import/ExternalImport'
 import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
 import { sleep, isAbortError, productanalytics, errorise } from 'armoury'
-import { Spinner, MdiClose } from 'elementary'
+import { MdiClose } from 'elementary'
 
 const Header = styled.h1`
   margin-bottom: 24px;
@@ -71,10 +67,6 @@ const StepFotbarButton = styled(Button)`
   margin: 0.25rem;
 `
 const InstallAppsStep = styled(AppsList)`
-  padding: 0;
-`
-
-const ExternalImportStep = styled(ExternalImportForOnboarding)`
   padding: 0;
 `
 
@@ -149,37 +141,6 @@ const StepWelcomePleaseInstall = ({
         </RefBtn>
         .
       </FootNote>
-    </StepBox>
-  )
-}
-
-const StepBootstrapMemory = ({
-  archaeologistState,
-  progress,
-  nextStep,
-}: {
-  nextStep: () => void
-  progress: ExternalImportProgress
-  archaeologistState: ArchaeologistState
-}) => {
-  const [isBootstrapStarted, setBootstrapStarted] =
-    React.useState<boolean>(false)
-  const onStart = React.useCallback(() => {
-    setBootstrapStarted(true)
-    lodash.delay(nextStep, 500, {})
-  }, [nextStep])
-  return (
-    <StepBox>
-      <Header>
-        Great! Now, let's begin filling your second brain with useful
-        information.
-      </Header>
-      <ExternalImportStep
-        archaeologistState={archaeologistState}
-        progress={progress}
-        onStart={onStart}
-      />
-      {isBootstrapStarted ? <Spinner.Wheel /> : null}
     </StepBox>
   )
 }
@@ -299,7 +260,7 @@ function OnboardingSteps({
   archaeologistState: ArchaeologistState
   progress: ExternalImportProgress
 }) {
-  const kStepsNumber = 4
+  const kStepsNumber = 3
   const nextStepChecked = () => {
     step = step + 1
     if (step >= kStepsNumber) {
@@ -326,16 +287,6 @@ function OnboardingSteps({
         </Box>
       )
     case 1:
-      return (
-        <Box>
-          <StepBootstrapMemory
-            archaeologistState={archaeologistState}
-            progress={progress}
-            nextStep={nextStepChecked}
-          />
-        </Box>
-      )
-    case 2:
       return (
         <Box>
           <StepYouAreReadyToGo
