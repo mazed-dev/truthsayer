@@ -23,10 +23,6 @@
  * ┌───────────┐
  * │ From node │
  * └───────────┘▶
- * Likely related (1)
- *     ▶┌──────────────┐
- *      │ Related node │
- *      └──────────────┘
  */
 import React from 'react'
 import styled from '@emotion/styled'
@@ -35,9 +31,7 @@ import { css } from '@emotion/react'
 import type { NodeTextData, TNode } from 'smuggler-api'
 import { NodeType } from 'smuggler-api'
 import { NodeReadOnly, NodeEditor } from './NodeCard'
-import { ErrorBox, Spinner } from 'elementary'
 import { FromPopUp } from './../message/types'
-import { renderUserFacingError } from './userFacingError'
 import type { UserFacingError } from './userFacingError'
 
 const Box = styled.div`
@@ -46,11 +40,7 @@ const Box = styled.div`
   margin: 0;
   background-color: white;
 `
-const Centered = styled.div`
-  margin: 0 auto 0 auto;
-  display: flex;
-  justify-content: center;
-`
+
 const PopUpBookmarkCard = styled(NodeEditor)`
   width: 300px;
 `
@@ -194,33 +184,6 @@ const FromNodesCards = ({ fromNodes }: { fromNodes: TNode[] }) => {
   )
 }
 
-const SuggestedHeader = styled.div`
-  position: relative;
-  margin-top: 16px;
-  margin-bottom: 10px;
-  width: 100%;
-`
-const SuggestedTitle = styled.span`
-  font-style: italic;
-  color: #9f9f9f;
-`
-
-const SuggestedAkinNodes = ({
-  suggestedAkinNodes,
-}: {
-  suggestedAkinNodes: TNode[]
-}) => {
-  return (
-    <>
-      {suggestedAkinNodes.map((node: TNode) => (
-        <RightCardRow key={node.nid}>
-          <PopUpToNodeCard node={node} />
-        </RightCardRow>
-      ))}
-    </>
-  )
-}
-
 export const CardsConnectedToPage = ({
   bookmark,
   fromNodes,
@@ -249,58 +212,3 @@ export type CardsSuggestedForPageProps =
       status: 'error'
       error: UserFacingError
     }
-
-function makeSuggestionCountHint(props: CardsSuggestedForPageProps) {
-  switch (props.status) {
-    case 'loading': {
-      return '...'
-    }
-    case 'loaded': {
-      return props.suggestedAkinNodes.length
-    }
-    case 'error': {
-      return '🤷'
-    }
-  }
-}
-
-export const CardsSuggestedForPage = (props: CardsSuggestedForPageProps) => {
-  const header = (
-    <SuggestedHeader>
-      <SuggestedTitle>
-        🪄 Likely related ({makeSuggestionCountHint(props)})
-      </SuggestedTitle>
-    </SuggestedHeader>
-  )
-
-  let body
-  switch (props.status) {
-    case 'loading': {
-      body = (
-        <Centered>
-          <Spinner.Wheel />
-        </Centered>
-      )
-      break
-    }
-    case 'loaded': {
-      body = (
-        <Box>
-          <SuggestedAkinNodes suggestedAkinNodes={props.suggestedAkinNodes} />
-        </Box>
-      )
-      break
-    }
-    case 'error': {
-      body = <ErrorBox>{renderUserFacingError(props.error)}</ErrorBox>
-      break
-    }
-  }
-
-  return (
-    <>
-      {header}
-      {body}
-    </>
-  )
-}
