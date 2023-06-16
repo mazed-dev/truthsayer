@@ -121,9 +121,6 @@ export namespace FromPopUp {
   export interface PageInActiveTabStatusRequest {
     type: 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS'
   }
-  export interface GetSuggestionsToPageInActiveTabRequest {
-    type: 'REQUEST_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB'
-  }
   /**
    * Save page command chain
    * [ User -> popup -> REQUEST_PAGE_TO_SAVE -> background
@@ -142,7 +139,6 @@ export namespace FromPopUp {
     | AppStatusRequest
     | LogInRequest
     | StorageAccessRequest
-    | GetSuggestionsToPageInActiveTabRequest
     | UpdateNodeRequest
 
   export function sendMessage(
@@ -157,9 +153,6 @@ export namespace FromPopUp {
   export function sendMessage(
     message: PageInActiveTabStatusRequest
   ): Promise<ToPopUp.ActiveTabStatusResponse>
-  export function sendMessage(
-    message: GetSuggestionsToPageInActiveTabRequest
-  ): Promise<ToPopUp.GetSuggestionsToPageInActiveTabResponse>
   export function sendMessage(
     message: StorageAccessRequest
   ): Promise<StorageAccessResponse>

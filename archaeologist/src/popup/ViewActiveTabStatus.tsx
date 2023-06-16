@@ -11,11 +11,7 @@ import { ErrorBox, MdiBookmarkAdd, Spinner } from 'elementary'
 import { ButtonCreate } from './Button'
 
 import { FromPopUp } from './../message/types'
-import {
-  CardsConnectedToPage,
-  CardsSuggestedForPage,
-  CardsSuggestedForPageProps,
-} from './PageRelatedCards'
+import { CardsConnectedToPage } from './PageRelatedCards'
 import { errorise, productanalytics } from 'armoury'
 import { PopUpContext } from './context'
 import { renderUserFacingError } from './userFacingError'
@@ -182,55 +178,6 @@ export const ViewActiveTabStatus = () => {
     }
   }, [])
 
-  const [suggestions, setSuggestions] =
-    React.useState<CardsSuggestedForPageProps>({
-      status: 'loading',
-    })
-  useAsyncEffect(async () => {
-    try {
-      const { suggestedAkinNodes } = await FromPopUp.sendMessage({
-        type: 'REQUEST_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB',
-      })
-      setSuggestions({
-        status: 'loaded',
-        suggestedAkinNodes: suggestedAkinNodes.map(({ node }) =>
-          NodeUtil.fromJson(node)
-        ),
-      })
-    } catch (e) {
-      const message = errorise(e).message
-      let tryTo: string
-      if (
-        /Receiving end does not exist/.test(message) &&
-        /to content/.test(message)
-      ) {
-        // Let's try to be a bit smarter here and suggest better problem
-        // resolution, if message contains words about content not responding
-        // there is high chance it's not there yet. Reloading the browser tab
-        // should help to load content script.
-        tryTo = 'reload the tab'
-      } else {
-        tryTo = 're-open this popup'
-      }
-      productanalytics.error(
-        analytics ?? null,
-        {
-          failedTo: 'get suggestions',
-          location: 'popup',
-          cause: errorise(e).message,
-        },
-        { andLog: true }
-      )
-      setSuggestions({
-        status: 'error',
-        error: {
-          failedTo: 'get suggestions for this tab',
-          tryTo,
-        },
-      })
-    }
-  }, [])
-
   if (tabState.status === 'loading') {
     // If no tab information is known yet, show a single spinner and nothing else
     return (
@@ -278,7 +225,6 @@ export const ViewActiveTabStatus = () => {
         fromNodes={tabState.fromNodes}
         toNodes={tabState.toNodes}
       />
-      <CardsSuggestedForPage {...suggestions} />
     </Container>
   )
 }
