@@ -26,7 +26,7 @@ import {
 } from './../../message/types'
 import { DragHandle, Minimize } from '@emotion-icons/material-rounded'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
-import { errorise, productanalytics } from 'armoury'
+import { errorise, productanalytics, log } from 'armoury'
 import moment from 'moment'
 
 const SuggestedCardsBox = styled.div`
@@ -184,8 +184,9 @@ const MiniFloaterBox = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  position: absolute;
 
+  /*
+  position: absolute;
   transform: translate(24px, 0);
 
   transition-property: transform;
@@ -195,6 +196,7 @@ const MiniFloaterBox = styled.div`
   &:hover {
     transform: translate(0, 0);
   }
+  */
   #mazed-archaeologist-suggestions-floater-drag-handle {
     opacity: 0.6;
   }
@@ -207,12 +209,17 @@ const MiniFloaterBox = styled.div`
 
 type Position2D = { x: number; y: number }
 
+export type ControlledPosition = {
+  offset: Position2D
+  parentElement: Element | null
+}
+
 /**
  * Position of the floater on veritcal line depends on the width of a floater,
  * because we want it to be always anchored to the rigth edge of the window.
  */
 const getStartDragPosition = (isRevealed: boolean): Position2D =>
-  isRevealed ? { x: -300, y: 72 } : { x: -24, y: 72 }
+  isRevealed ? { x: window.innerWidth - 328, y: 72 } : { x: window.innerWidth - 32, y: 72 }
 
 /**
  * Make sure that floter is visisble within a window: not too low or too high -
@@ -225,14 +232,13 @@ export const SuggestionsFloater = ({
   nodes,
   isLoading,
   defaultRevelaed,
-}: {
+  controlledPosition, }: {
   nodes: RelevantNodeSuggestion[]
   isLoading: boolean
   defaultRevelaed: boolean
+  controlledPosition: ControlledPosition | null,
 }) => {
   const nodeRef = React.useRef(null)
-  const [controlledPosition, setControlledPosition] =
-    React.useState<Position2D | null>(null)
   // Floater can be open by default **only** if there is something to suggest.
   defaultRevelaed = defaultRevelaed && nodes.length > 0
   const [isRevealed, setRevealed] = React.useState<boolean>(defaultRevelaed)
@@ -269,15 +275,6 @@ export const SuggestionsFloater = ({
     async (revealed: boolean) => {
       await saveContentAugmentationSettings({ isRevealed: revealed })
       setRevealed(revealed)
-      // Reset floater position to adjust horisontal position (X), it has only
-      // 2 values for revealed/hidden floater. Y position must remain the same.
-      setControlledPosition((prev) => {
-        const defaultPosition = getStartDragPosition(revealed)
-        return {
-          x: defaultPosition.x,
-          y: frameYPosition(prev?.y ?? defaultPosition.y),
-        }
-      })
       analytics?.capture('Click SuggestionsFloater visibility toggle', {
         'Event type': 'change',
         isRevealed: revealed,
@@ -286,19 +283,15 @@ export const SuggestionsFloater = ({
     [analytics, saveContentAugmentationSettings]
   )
 
-  useAsyncEffect(async () => {
-    let settings: ContentAugmentationSettings | null =
-      await saveContentAugmentationSettings()
-    setSettings(settings)
-    const revealed = (settings?.isRevealed ?? false) || defaultRevelaed
-    const defaultPosition = getStartDragPosition(revealed)
+  // useAsyncEffect(async () => {
+  //   let settings: ContentAugmentationSettings | null =
+  //     await saveContentAugmentationSettings()
+  //   setSettings(settings)
+  //   const revealed = (settings?.isRevealed ?? false) || defaultRevelaed
+  //   // const defaultPosition = getStartDragPosition(revealed)
 
-    setRevealed(revealed)
-    setControlledPosition({
-      x: defaultPosition.x,
-      y: frameYPosition(settings?.positionY ?? defaultPosition.y),
-    })
-  }, [])
+  //   setRevealed(revealed)
+  // }, [])
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
     const positionY = frameYPosition(data.y)
     saveContentAugmentationSettings({ positionY }).catch(() => {
@@ -311,14 +304,13 @@ export const SuggestionsFloater = ({
       isRevealed,
     })
   }
+  log.debug('SuggestionsFloater render', controlledPosition?.offset ?? getStartDragPosition(isRevealed))
   return (
     <AugmentationElement disableInFullscreenMode>
-      {controlledPosition != null ? (
         <Draggable
           onStop={onDragStop}
           handle="#mazed-archaeologist-suggestions-floater-drag-handle"
-          axis="y"
-          defaultPosition={controlledPosition}
+          defaultPosition={controlledPosition?.offset ?? getStartDragPosition(isRevealed)}
           nodeRef={nodeRef}
         >
           <DraggableElement ref={nodeRef}>
@@ -353,15 +345,10 @@ export const SuggestionsFloater = ({
                     nodes.length === 0 ? undefined : nodes.length.toString()
                   }
                 />
-                <DragIndicator
-                  size={26}
-                  id="mazed-archaeologist-suggestions-floater-drag-handle"
-                />
               </MiniFloaterBox>
             )}
           </DraggableElement>
         </Draggable>
-      ) : null}
     </AugmentationElement>
   )
 }

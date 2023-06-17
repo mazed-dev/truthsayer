@@ -11,6 +11,7 @@ import { extractSearchEngineQuery } from '../extractor/url/searchEngineQuery'
 import {
   SuggestionsFloater,
   RelevantNodeSuggestion,
+  ControlledPosition,
 } from './SuggestionsFloater'
 
 export function getKeyPhraseFromUserInput(
@@ -24,6 +25,32 @@ export function getKeyPhraseFromUserInput(
     target.innerText ??
     target.textContent
   return value ?? null
+}
+
+/**
+ * Find offset of given element ralative to "BODY" or other root of the document
+ */
+function getDocumentBodyOffset(element: HTMLElement): ControlledPosition {
+  let offsetTop: number = 0
+  let offsetHeight: number = element.offsetHeight
+  let offsetLeft: number = 0
+  let offsetWidth: number = element.offsetWidth
+  let offsetParent: HTMLElement | null = element
+  while (offsetParent != null ) {
+    offsetTop += offsetParent.offsetTop
+    offsetLeft += offsetParent.offsetLeft
+    offsetParent = offsetParent.offsetParent as HTMLElement
+    if (offsetParent == null || offsetParent.tagName === 'BODY' || offsetParent.tagName === 'HTML') {
+      break
+    }
+  }
+  return {
+    parentElement: offsetParent,
+    offset: {
+      y: offsetTop + offsetHeight + 2,  // px
+      x: offsetLeft + offsetWidth + 8,  // px
+    }
+  }
 }
 
 function getLastEditedParagraph(
@@ -134,6 +161,7 @@ export function SuggestedRelatives({
   const [isFloaterShown, setFloaterShown] = React.useState<boolean>(true)
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
+  const [controlledPosition, setControlledPosition] = React.useState<ControlledPosition|null>(null)
   const pageSimilaritySearchInput = React.useMemo<SimilaritySearchInput | null>(
     () => {
       const searchEngineQuery = extractSearchEngineQuery(
@@ -225,6 +253,9 @@ export function SuggestedRelatives({
           selectionAnchorElement: HTMLElement | null,
           selectionNodeValue: null | string
         ) => {
+          setControlledPosition(
+            getDocumentBodyOffset(selectionAnchorElement ?? target)
+          )
           const phrase = getLastEditedParagraph(
             target,
             selectionAnchorElement,
@@ -300,6 +331,7 @@ export function SuggestedRelatives({
       nodes={suggestedNodes?.suggestions || []}
       isLoading={suggestionsSearchIsActive}
       defaultRevelaed={pageSimilaritySearchInput?.isSearchEngine ?? false}
+      controlledPosition={controlledPosition}
     />
   )
 }
