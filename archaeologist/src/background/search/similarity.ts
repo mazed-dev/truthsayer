@@ -148,7 +148,7 @@ async function createFastIndex(
       }
       try {
         const embeddingJson = forBlocks[blockKeyStr]
-        const projection = tf.projectVector(
+        const projection = await tf.projectVector(
           tf.tensor2dFromJson(embeddingJson),
           dimensions
         )
@@ -181,7 +181,7 @@ async function updateNodeFastIndex(
   const dimensions = fastIndex.dimensions
   for (const blockKeyStr in forBlocks) {
     const embeddingJson = forBlocks[blockKeyStr]
-    const projection = tf.projectVector(
+    const projection = await tf.projectVector(
       tf.tensor2dFromJson(embeddingJson),
       dimensions
     )
@@ -343,7 +343,7 @@ async function findRelevantNodesUsingSimilaritySearch(
   throwIfCancelled(cancellationToken)
   timer = new Timer()
   throwIfCancelled(cancellationToken)
-  const phraseEmbeddingProjected = tf.projectVector(
+  const phraseEmbeddingProjected = await tf.projectVector(
     phraseEmbedding,
     fastIndex.dimensions
   )
@@ -407,7 +407,7 @@ async function findRelevantNodesUsingSimilaritySearch(
         log.error(`No such embedding for a node ${nid} and key ${blockKeyStr}`)
       }
       const embedding = tf.tensor2dFromJson(embeddingJson)
-      const score = tf.euclideanDistance(embedding, phraseEmbedding)
+      const score = await tf.euclideanDistance(embedding, phraseEmbedding)
       if (score < kSimilarityEuclideanDistanceThreshold) {
         let other = rawSimilarityResults.get(nid)
         if (other == null) {
@@ -585,23 +585,24 @@ async function updateNodeIndex(
   const forBlocks: Record<string, TfEmbeddingJson> = {}
   {
     const embedding = await tfState.encoder.embed(plaintext)
-    forBlocks[nodeBlockKeyToString({ field: '*' })] =
-      tf.tensor2dToJson(embedding)
+    forBlocks[nodeBlockKeyToString({ field: '*' })] = await tf.tensor2dToJson(
+      embedding
+    )
   }
   if (coment) {
     const embedding = await tfState.encoder.embed(coment)
     forBlocks[nodeBlockKeyToString({ field: 'text' })] =
-      tf.tensor2dToJson(embedding)
+      await tf.tensor2dToJson(embedding)
   }
   if (extQuote) {
     const embedding = await tfState.encoder.embed(extQuote)
     forBlocks[nodeBlockKeyToString({ field: 'web-quote' })] =
-      tf.tensor2dToJson(embedding)
+      await tf.tensor2dToJson(embedding)
   }
   if (attrs) {
     const embedding = await tfState.encoder.embed(attrs)
     forBlocks[nodeBlockKeyToString({ field: 'attrs' })] =
-      tf.tensor2dToJson(embedding)
+      await tf.tensor2dToJson(embedding)
   }
   for (let index = 0; index < textContentBlocks.length; ++index) {
     const { text } = textContentBlocks[index]
@@ -619,7 +620,7 @@ async function updateNodeIndex(
     }
     const embedding = await tfState.encoder.embed(text)
     const blockKeyStr = nodeBlockKeyToString({ field: 'web-text', index })
-    forBlocks[blockKeyStr] = tf.tensor2dToJson(embedding)
+    forBlocks[blockKeyStr] = await tf.tensor2dToJson(embedding)
   }
   const simsearch = createNodeSimilaritySearchInfoLatest({ forBlocks })
   await updateNodeFastIndex(fastIndex, nid, simsearch, updateType)

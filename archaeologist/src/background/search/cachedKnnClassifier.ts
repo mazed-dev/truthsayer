@@ -370,7 +370,10 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
         lav: {
           lav: {
             kind: 'label->class',
-            value: { data: Array.from(class_.dataSync()), shape: class_.shape },
+            value: {
+              data: Array.from(await class_.data()),
+              shape: class_.shape,
+            },
           },
         },
       },
