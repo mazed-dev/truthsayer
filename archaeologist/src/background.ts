@@ -38,7 +38,6 @@ import {
   processMsgFromMsgProxyStorageApi,
   UserAccount,
 } from 'smuggler-api'
-import { tf } from 'text-information-retrieval'
 
 import { makeBrowserExtStorageApi } from './storage_api_browser_ext'
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
