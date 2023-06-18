@@ -1,4 +1,4 @@
-import { log } from 'armoury'
+import { InterfaceOf, log } from 'armoury'
 import lodash from 'lodash'
 import { KNNClassifier, tf } from 'text-information-retrieval'
 import browser from 'webextension-polyfill'
@@ -53,7 +53,7 @@ type LabelToClassLav = GenericLav<
   'label->class',
   // See https://github.com/tensorflow/tfjs/issues/633#issuecomment-576218643
   // about how to properly serialize/deserialize @see KNNClassifier
-  { data: number[]; shape: tf.Tensor2D['shape'] }
+  { data: number[]; shape: tf.Tensor['shape'] }
 >
 
 type CacheSignatureYek = GenericYek<'cache-signature', undefined>
@@ -260,25 +260,6 @@ async function dropCacheOnSignatureMismatch(
 }
 
 /**
- * @summary Given a `class` type T, combine all names (or "keys") of methods into a
- * TypeScript 'union'. Discard all data fields.
- */
-type KeysOfMethods<T> = {
-  // Iterate over each property.
-  [K in keyof T]: T[K] extends (...args: any[]) => any // If the property is a function...
-    ? K // Function, not data - set the value of this property to its own key.
-    : never // Data is not allowed, use never to exclude it.
-
-  // Get the union of all method keys (which are now the keys that have not been set to `never`)
-}[keyof T]
-
-/**
- * @summary Given a `class` type T, make a new type that is a public interface of T.
- * @description Implementation is mostly taken from https://stackoverflow.com/a/61376012/3375765
- */
-type InterfaceOf<T> = Pick<T, KeysOfMethods<T>>
-
-/**
  * NOTE: @see KNNClassifier is a class with private fields,
  * so it can be `extend`ed, but not `implement`ed. @see InterfaceOf enables
  * to use either & allows to selectively promise-ifying some methods (
@@ -286,15 +267,26 @@ type InterfaceOf<T> = Pick<T, KeysOfMethods<T>>
  */
 type KnnClassifierInterface = Omit<
   InterfaceOf<KNNClassifier>,
-  'addExample' | 'clearClass'
+  'addExample' | 'clearClass' | 'predictClass'
 > & {
   addExample: (
-    ...args: Parameters<KNNClassifier['addExample']>
+    // This parameter's type is set manually rather than inferred,
+    // see 'conflicting-tensor2d-versions' note for more details
+    example: tf.Tensor,
+    label: number | string
   ) => Promise<void>
+  predictClass: (
+    // This parameter's type is set manually rather than inferred,
+    // see 'conflicting-tensor2d-versions' note for more details
+    input: tf.Tensor,
+    k?: number
+    ) => ReturnType<KNNClassifier['predictClass']>
   clearClass: (
     ...args: Parameters<KNNClassifier['clearClass']>
   ) => Promise<void>
 }
+
+type KnnTensor = Parameters<KNNClassifier['addExample']>[0]
 
 /**
  * @summary A wrapper around @see KNNClassifier that caches all the data in the
@@ -335,6 +327,7 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
     const classes: Parameters<KNNClassifier['setClassifierDataset']>[0] = {}
     for (const { yek, lav } of await store.get(yeks)) {
       const { data, shape } = lav.lav.value
+      // @ts-ignore, see 'conflicting-tensor2d-versions' note
       classes[yek.yek.key] = tf.tensor(data, shape)
     }
 
@@ -349,13 +342,14 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
   }
 
   async addExample(example: tf.Tensor, label: number | string): Promise<void> {
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
     this.impl.addExample(example, label)
     // NOTE: both the input parameter & `class_` below are tensors, but it's
     // important to NOT cache the input. The input goes through a transformation
     // inside KNNClassifier.addExample() and *that* can be safely cached.
     // For reference, these transformations can be found here:
     // https://github.com/tensorflow/tfjs-models/blob/646992fd7ab8237c0dc908f2526301414b417c95/knn-classifier/src/index.ts#L44-L87
-    const class_: tf.Tensor2D = this.impl.getClassifierDataset()[label]
+    const class_: KnnTensor = this.impl.getClassifierDataset()[label]
 
     let records: YekLav[] = [
       await this.store.prepareAppend(
@@ -375,6 +369,7 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
     await this.store.set(records)
   }
   predictClass(input: tf.Tensor, k?: number) {
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
     return this.impl.predictClass(input, k)
   }
   async clearClass(label: number | string): Promise<void> {
@@ -402,7 +397,7 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
   getNumClasses() {
     return this.impl.getNumClasses()
   }
-  setClassifierDataset(_: { [label: string]: tf.Tensor2D }): never {
+  setClassifierDataset(_: { [label: string]: KnnTensor }): never {
     throw new Error(`CachedKnnClassifier.setClassifierDataset() has not been implemented ' +
     'because it's not expected to be needed`)
   }

@@ -1,6 +1,6 @@
 import lodash from 'lodash'
 import browser from 'webextension-polyfill'
-import { tf, use, wink } from 'text-information-retrieval'
+import { tf , use, wink } from 'text-information-retrieval'
 import {
   Nid,
   NodeBlockKey,
@@ -28,6 +28,30 @@ import { log, errorise, AbortError, Timer } from 'armoury'
 import { backgroundpa, BackgroundPosthog } from '../productanalytics'
 import { CachedKnnClassifier } from './cachedKnnClassifier'
 
+// NOTE (label: 'conflicting-tensor2d-versions'):
+// Some locations in this file and others interact with different tfjs-related
+// packages, for example
+//    - '@tensorflow-models/knn-classifier'
+//    - '@tensorflow-models/universal-sentence-encoder'
+// They all tend to depend on '@tensorflow/tfjs' which contains the "core" of tfjs.
+// At the time of this writing they tend to use very different versions of the core
+// package though and when results of one package are passed to another, it can
+// result in errors like:
+//    Type 'import("@tensorflow/tfjs-core/dist/tensor").Tensor2D' is
+//    not assignable to type 'import("@tensorflow/tfjs-core/dist/tensor").Tensor2D'.
+//    Two different types with this name exist, but they are unrelated.
+//
+// At the time of writing, latest versions of packages in question:
+//    '@tensorflow-models/knn-classifier' uses '@tensorflow/tfjs-core' version 3.0.0
+//    '@tensorflow-models/universal-sentence-encoder' uses '@tensorflow/tfjs-core' version 3.6.0
+// while the rest of the code tries to use '@tensorflow/tfjs-core' 4.7.0
+//
+// Types are structuraly identical in all the versions, so there seems to be
+// no harm in suppressing the errors. A more robust solution would be welcome
+// though.
+//
+// END OF NOTE (label: 'conflicting-tensor2d-versions')
+
 const wink_ = wink.loadModel()
 
 type State = {
@@ -47,7 +71,8 @@ async function getState(
       return _state
     }
     const useState = await createUseState(analytics)
-    const sampleVector = await useState.encoder.embed('the void')
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
+    const sampleVector: tf.Tensor2D = await useState.encoder.embed('the void')
     const fastIndex = await createFastIndex(storage, analytics, sampleVector)
     _state = { useState, fastIndex }
     return _state
@@ -333,7 +358,8 @@ async function findRelevantNodesUsingSimilaritySearch(
 ): Promise<SimilaritySearchResultsInContext> {
   const { useState, fastIndex } = await getState(storage, analytics)
   let timer = new Timer()
-  const phraseEmbedding = await useState.encoder.embed(phrase)
+  // @ts-ignore, see 'conflicting-tensor2d-versions' note
+  const phraseEmbedding: tf.Tensor2D = await useState.encoder.embed(phrase)
   backgroundpa.performance(
     analytics,
     { action: 'similarity: calculate phrase embedding' },
@@ -584,22 +610,26 @@ async function updateNodeIndex(
     getNodePatchAsString(patch)
   const forBlocks: Record<string, TfEmbeddingJson> = {}
   {
-    const embedding = await useState.encoder.embed(plaintext)
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
+    const embedding: tf.Tensor2D = await useState.encoder.embed(plaintext)
     forBlocks[nodeBlockKeyToString({ field: '*' })] =
       use.tensor2dToJson(embedding)
   }
   if (coment) {
-    const embedding = await useState.encoder.embed(coment)
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
+    const embedding: tf.Tensor2D = await useState.encoder.embed(coment)
     forBlocks[nodeBlockKeyToString({ field: 'text' })] =
       use.tensor2dToJson(embedding)
   }
   if (extQuote) {
-    const embedding = await useState.encoder.embed(extQuote)
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
+    const embedding: tf.Tensor2D = await useState.encoder.embed(extQuote)
     forBlocks[nodeBlockKeyToString({ field: 'web-quote' })] =
       use.tensor2dToJson(embedding)
   }
   if (attrs) {
-    const embedding = await useState.encoder.embed(attrs)
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
+    const embedding: tf.Tensor2D = await useState.encoder.embed(attrs)
     forBlocks[nodeBlockKeyToString({ field: 'attrs' })] =
       use.tensor2dToJson(embedding)
   }
@@ -617,7 +647,8 @@ async function updateNodeIndex(
         continue
       }
     }
-    const embedding = await useState.encoder.embed(text)
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
+    const embedding: tf.Tensor2D = await useState.encoder.embed(text)
     const blockKeyStr = nodeBlockKeyToString({ field: 'web-text', index })
     forBlocks[blockKeyStr] = use.tensor2dToJson(embedding)
   }

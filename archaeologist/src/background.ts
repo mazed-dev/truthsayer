@@ -38,6 +38,7 @@ import {
   processMsgFromMsgProxyStorageApi,
   UserAccount,
 } from 'smuggler-api'
+import { tf } from 'text-information-retrieval'
 
 import { makeBrowserExtStorageApi } from './storage_api_browser_ext'
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
@@ -657,6 +658,16 @@ class Background {
 
     this.deinitialisers.push(browserBookmarks.register(ctx.storage))
     this.deinitialisers.push(webNavigation.register(ctx.storage))
+    try {
+      await tf.setBackend('webgpu')
+    }
+    catch (error) {
+      backgroundpa.warning(ctx.analytics, {
+        failedTo: 'set tf backend to webgpu',
+        cause: errorise(error).message,
+        location: 'background',
+      })
+    }
     this.deinitialisers.push(
       await similarity.register(ctx.storage, ctx.analytics)
     )

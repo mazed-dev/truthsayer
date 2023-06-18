@@ -89,7 +89,7 @@
     "webpack-dev-server": "4.9.1"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-node": "^4.5.0",
+    "@tensorflow/tfjs-node": "^4.7.0",
     "@testing-library/dom": "^7.29",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.1.0",
