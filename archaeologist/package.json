@@ -54,6 +54,7 @@
     "@emotion/styled": "^11.8.1",
     "@mozilla/readability": "^0.4.4",
     "@popperjs/core": "^2.10.2",
+    "@tensorflow/tfjs-backend-webgpu": "^4.7.0",
     "@types/dompurify": "^3.0.2",
     "armoury": "0.0.1",
     "async-mutex": "^0.4.0",

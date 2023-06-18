@@ -3897,6 +3897,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tensorflow/tfjs-backend-webgpu@npm:^4.7.0":
+  version: 4.7.0
+  resolution: "@tensorflow/tfjs-backend-webgpu@npm:4.7.0"
+  dependencies:
+    "@tensorflow/tfjs-backend-cpu": 4.7.0
+  peerDependencies:
+    "@tensorflow/tfjs-core": 4.7.0
+  checksum: 5fcb883e4cb37e6d386bfb93f74c9f8a1b0dab92b4f1e3f7c57e3190828e52365d2ff7e36e5f3c1e924b1ed5d35536c979365dbee320a31a955c519c21c848f3
+  languageName: node
+  linkType: hard
+
 "@tensorflow/tfjs-converter@npm:4.7.0":
   version: 4.7.0
   resolution: "@tensorflow/tfjs-converter@npm:4.7.0"
@@ -5751,6 +5762,7 @@ __metadata:
     "@emotion/styled": ^11.8.1
     "@mozilla/readability": ^0.4.4
     "@popperjs/core": ^2.10.2
+    "@tensorflow/tfjs-backend-webgpu": ^4.7.0
     "@tensorflow/tfjs-node": ^4.7.0
     "@testing-library/dom": ^7.29
     "@testing-library/jest-dom": ^5.14.1
