@@ -1,5 +1,3 @@
-import '@tensorflow/tfjs-backend-webgpu'
-
 export * as use from './tensorflow-universal-sentence-encoder'
 export * as wink from './wink'
 
