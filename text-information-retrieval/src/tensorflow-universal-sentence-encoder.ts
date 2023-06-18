@@ -56,7 +56,10 @@ export function tensor2dToJson(tensor: tf.Tensor2D): TfEmbeddingJson {
   return { data, shape }
 }
 
-export function tensor2dFromJson({ data, shape }: TfEmbeddingJson): tf.Tensor2D {
+export function tensor2dFromJson({
+  data,
+  shape,
+}: TfEmbeddingJson): tf.Tensor2D {
   return tf.tensor2d(data, shape)
 }
 
