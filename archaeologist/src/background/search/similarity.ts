@@ -585,8 +585,9 @@ async function updateNodeIndex(
   const forBlocks: Record<string, TfEmbeddingJson> = {}
   {
     const embedding = await tfState.encoder.embed(plaintext)
-    forBlocks[nodeBlockKeyToString({ field: '*' })] =
-      await tf.tensor2dToJson(embedding)
+    forBlocks[nodeBlockKeyToString({ field: '*' })] = await tf.tensor2dToJson(
+      embedding
+    )
   }
   if (coment) {
     const embedding = await tfState.encoder.embed(coment)
