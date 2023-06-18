@@ -659,9 +659,8 @@ class Background {
     this.deinitialisers.push(browserBookmarks.register(ctx.storage))
     this.deinitialisers.push(webNavigation.register(ctx.storage))
     try {
-      await tf.setBackend('webgpu')
-    }
-    catch (error) {
+      // await tf.setBackend('webgpu')
+    } catch (error) {
       backgroundpa.warning(ctx.analytics, {
         failedTo: 'set tf backend to webgpu',
         cause: errorise(error).message,

@@ -1,6 +1,6 @@
 import lodash from 'lodash'
 import browser from 'webextension-polyfill'
-import { tf , use, wink } from 'text-information-retrieval'
+import { tf, use, wink } from 'text-information-retrieval'
 import {
   Nid,
   NodeBlockKey,

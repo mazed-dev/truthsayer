@@ -280,7 +280,7 @@ type KnnClassifierInterface = Omit<
     // see 'conflicting-tensor2d-versions' note for more details
     input: tf.Tensor,
     k?: number
-    ) => ReturnType<KNNClassifier['predictClass']>
+  ) => ReturnType<KNNClassifier['predictClass']>
   clearClass: (
     ...args: Parameters<KNNClassifier['clearClass']>
   ) => Promise<void>
