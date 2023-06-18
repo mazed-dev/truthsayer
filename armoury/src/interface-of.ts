@@ -3,12 +3,12 @@
  * TypeScript 'union'. Discard all data fields.
  */
 type KeysOfMethods<T> = {
-    // Iterate over each property.
-    [K in keyof T]: T[K] extends (...args: any[]) => any // If the property is a function...
-        ? K // Function, not data - set the value of this property to its own key.
-        : never // Data is not allowed, use never to exclude it.
+  // Iterate over each property.
+  [K in keyof T]: T[K] extends (...args: any[]) => any // If the property is a function...
+    ? K // Function, not data - set the value of this property to its own key.
+    : never // Data is not allowed, use never to exclude it.
 
-    // Get the union of all method keys (which are now the keys that have not been set to `never`)
+  // Get the union of all method keys (which are now the keys that have not been set to `never`)
 }[keyof T]
 
 /**
