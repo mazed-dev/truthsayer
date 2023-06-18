@@ -154,30 +154,6 @@ async function registerAttentionTime(
   }
 }
 
-async function lookupForSuggestionsToPageInActiveTab(
-  ctx: BackgroundContext,
-  tabId: number
-): Promise<similarity.RelevantNode[]> {
-  // Request page content first
-  const response = await ToContent.sendMessage(tabId, {
-    type: 'REQUEST_PAGE_CONTENT_SEARCH_PHRASE',
-  })
-  const { phrase, nidsExcludedFromSearch } = response
-  if (!phrase) {
-    return []
-  }
-  ctx.similarity.cancelPreviousSearch?.()
-  const { cancel, token } = CancellationToken.create()
-  ctx.similarity.cancelPreviousSearch = cancel
-  return await similarity.findRelevantNodes(
-    phrase,
-    new Set(nidsExcludedFromSearch),
-    token,
-    ctx.storage,
-    ctx.analytics
-  )
-}
-
 async function handleMessageFromContent(
   ctx: BackgroundContext,
   message: FromContent.Request,
@@ -336,27 +312,6 @@ async function handleMessageFromPopup(
     }
     case 'REQUEST_TO_LOG_IN': {
       throw new Error(`Authentication has already been successfully completed`)
-    }
-    case 'REQUEST_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB': {
-      const tabId = activeTab?.id
-      if (tabId == null) {
-        return {
-          type: 'RESPONSE_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB',
-          suggestedAkinNodes: [],
-        }
-      }
-      const relevantNodes = await lookupForSuggestionsToPageInActiveTab(
-        ctx,
-        tabId
-      )
-      return {
-        type: 'RESPONSE_SUGGESTIONS_TO_PAGE_IN_ACTIVE_TAB',
-        suggestedAkinNodes: relevantNodes.map(
-          ({ node, matchedQuotes, score }) => {
-            return { node: NodeUtil.toJson(node), matchedQuotes, score }
-          }
-        ),
-      }
     }
     case 'MSG_PROXY_STORAGE_ACCESS_REQUEST': {
       return {
