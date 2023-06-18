@@ -12,7 +12,6 @@ import { truthsayer } from 'elementary'
 import * as badge from './badge/badge'
 
 import browser, { Tabs } from 'webextension-polyfill'
-import '@tensorflow/tfjs-backend-webgpu'
 import {
   BackgroundAction,
   BackgroundActionProgress,
@@ -39,6 +38,8 @@ import {
   processMsgFromMsgProxyStorageApi,
   UserAccount,
 } from 'smuggler-api'
+import '@tensorflow/tfjs-backend-webgpu'
+import { tf } from 'text-information-retrieval'
 
 import { makeBrowserExtStorageApi } from './storage_api_browser_ext'
 import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
