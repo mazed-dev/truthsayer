@@ -621,6 +621,8 @@ class Background {
         failedTo: 'set tf backend to webgpu',
         cause: errorise(error).message,
         location: 'background',
+      }, {
+        andLog: true
       })
     }
     this.deinitialisers.push(
