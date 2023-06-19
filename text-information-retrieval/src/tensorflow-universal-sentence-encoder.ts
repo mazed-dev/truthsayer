@@ -42,23 +42,33 @@ export type RelevanceResult<DocIdType> = {
   score: number
 }
 
-export function euclideanDistance(a: tf.Tensor, b: tf.Tensor): number {
+export async function euclideanDistance(
+  a: tf.Tensor,
+  b: tf.Tensor
+): Promise<number> {
   const squaredDifference = tf.pow(tf.sub(a, b), 2)
   const sum = tf.sum(squaredDifference)
-  return Math.sqrt(sum.dataSync()[0])
+  const data = await sum.data()
+  return Math.sqrt(data[0])
 }
 
-export function cosineDistance(a: Tensor2D, b: Tensor2D): number {
+export async function cosineDistance(
+  a: Tensor2D,
+  b: Tensor2D
+): Promise<number> {
   const aNorm = tf.norm(a)
   const bNorm = tf.norm(b)
   const dotProduct = tf.matMul(a, b, false, true)
   const cosSimilarity = dotProduct.div(aNorm.mul(bNorm))
-  const distance = 1 - cosSimilarity.dataSync()[0]
+  const data = await cosSimilarity.data()
+  const distance = 1 - data[0]
   return distance
 }
 
-export function tensor2dToJson(tensor: Tensor2D): TfEmbeddingJson {
-  const data = Array.from(tensor.dataSync())
+export async function tensor2dToJson(
+  tensor: Tensor2D
+): Promise<TfEmbeddingJson> {
+  const data = Array.from(await tensor.data())
   const shape = tensor.shape
   return { data, shape }
 }
@@ -74,10 +84,10 @@ export function sampleDimensions(
   return lodash.sampleSize(range(0, inputVector.shape[1]), targetSize)
 }
 
-export function projectVector(
+export async function projectVector(
   inputVector: tf.Tensor2D,
   dimensions: number[]
-): tf.Tensor2D {
+): Promise<tf.Tensor2D> {
   // This is the "right" way to do a projection to a surface in the space of
   // smaller dimensions, but it's not the faastest one.
   // const projectionVector = tf.randomNormal([query.shape[1], smalerSpaceSize]);
@@ -85,7 +95,7 @@ export function projectVector(
   //
   // So the simpler and much quicker way to have vector in a space of fewer
   // dimensions is to sample the coordinates of the original vector.
-  const dataSync = inputVector.dataSync()
+  const dataSync = await inputVector.data()
   const data = dimensions.map((index: number) => dataSync[index])
   return tf.tensor2d(data, [1, data.length])
 }
