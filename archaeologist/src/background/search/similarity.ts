@@ -612,8 +612,9 @@ async function updateNodeIndex(
   {
     // @ts-ignore, see 'conflicting-tensor2d-versions' note
     const embedding: tf.Tensor2D = await useState.encoder.embed(plaintext)
-    forBlocks[nodeBlockKeyToString({ field: '*' })] =
-      await use.tensor2dToJson(embedding)
+    forBlocks[nodeBlockKeyToString({ field: '*' })] = await use.tensor2dToJson(
+      embedding
+    )
   }
   if (coment) {
     // @ts-ignore, see 'conflicting-tensor2d-versions' note
