@@ -21,6 +21,7 @@ import lodash from 'lodash'
 import { MimeType, log, stabiliseUrlForOriginId, unicodeText } from 'armoury'
 import {
   extractTextContentBlocksFromHtml,
+  extractTextContentBlocksFromSanitizedHtmlElement,
   TextContentBlock,
 } from './webPageTextFromHtml'
 
@@ -114,6 +115,7 @@ export function extractPageContent(
   document_: Document,
   baseURL: string
 ): WebPageContent {
+  log.debug('extractPageContent', baseURL)
   const url = stabiliseUrlForOriginId(document_.URL || document_.documentURI)
   const useCustomExtractors = shouldUseCustomExtractorsFor(url)
   const {
@@ -248,11 +250,9 @@ export function _extractPageTextCustomGeneric(
     if (got == null) {
       continue
     }
-    let { textContent, element } = got
-    const textContentBlocks = extractTextContentBlocksFromHtml(
-      element.innerHTML,
-      textContent
-    )
+    let { element } = got
+    const textContentBlocks =
+      extractTextContentBlocksFromSanitizedHtmlElement(element)
     // If any of found elements is a child to one of added - skip it,
     // because we already added text from it with parent textContent
     const isAdded = addedElements.find((addedEl) => {
@@ -286,11 +286,9 @@ export function _extractPageTextCustomGeneric(
     if (got == null) {
       continue
     }
-    let { textContent, element } = got
-    const textContentBlocks = extractTextContentBlocksFromHtml(
-      element.innerHTML,
-      textContent
-    )
+    let { element } = got
+    const textContentBlocks =
+      extractTextContentBlocksFromSanitizedHtmlElement(element)
     const isAdded = addedElements.find((addedEl) => {
       return isSameOrDescendant(addedEl, element)
     })
@@ -706,6 +704,7 @@ export function _extractPageContentMozilla(
     siteName,
     content,
   } = article
+  log.debug('Content', content)
   const textContentBlocks = extractTextContentBlocksFromHtml(
     content,
     textContent
@@ -762,7 +761,7 @@ export async function fetchAnyPagePreviewImage(
       const icon = await fetchImagePreviewAsBase64(url, document_, 240)
       return icon
     } catch (err) {
-      log.debug('Mazed: preview image extraction failed with', err)
+      log.debug('Preview image extraction failed with', err)
     }
   }
   return null

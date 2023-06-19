@@ -20,12 +20,38 @@ export function extractTextContentBlocksFromHtml(
   let clean = DOMPurify.sanitize(html, {
     USE_PROFILES: { html: true },
   })
+  clean = clean
+    .replace(/<\/t[dh]>/gi, ' |$&') // Insert separate between table cells
+    .replace(/<t[dh]>/gi, ' $& ')
+    .replace(/<\/t[hd]><\/tr>/gi, '\n$&')
+    .replace(/<li>/gi, '$&- ')
   const doc = new DOMParser().parseFromString(clean, 'text/html')
-  const contentBlocks = _extractPlainTextFromSanitizedContentHtml(doc)
+  const contentBlocks = extractTextContentBlocksFromSanitizedHtmlElement(
+    doc.body
+  )
   if (contentBlocks.length > 0) {
     return contentBlocks
   } else {
     return [{ type: 'P', text: textContent }]
+  }
+}
+
+export function extractTextContentBlocksFromSanitizedHtmlElement(
+  element: Element | HTMLElement
+): TextContentBlock[] {
+  if (element instanceof HTMLElement && element.innerText != null) {
+    // When we get access to innteText, we rely on document styles to split text
+    // by paragraphs
+    const contentBlocks: TextContentBlock[] = []
+    for (const line of element.innerText.split('\n')) {
+      const text = line.trim()
+      if (text) {
+        contentBlocks.push({ type: 'P', text })
+      }
+    }
+    return contentBlocks
+  } else {
+    return _extractPlainTextFromSanitizedContentHtml(element)
   }
 }
 
@@ -69,7 +95,7 @@ function getExtraText(node: Node): string {
 }
 
 function _extractPlainTextFromSanitizedContentHtml(
-  doc: Document
+  doc: HTMLElement
 ): TextContentBlock[] {
   const walker = doc.createTreeWalker(
     doc,
@@ -115,4 +141,21 @@ function _extractPlainTextFromSanitizedContentHtml(
     contentBlocks.push({ type: currentChunkType, text })
   }
   return contentBlocks
+}
+
+function iterateHTMLElementChildren(element: HTMLElement) {
+  const childNodes = element.childNodes;
+  const length = childNodes.length;
+
+  for (let i = 0; i < length; i++) {
+    const childNode = childNodes[i];
+
+    if (childNode instanceof HTMLElement) {
+      // Process the child element
+      console.log(childNode);
+
+      // Recursively iterate over the child element's children
+      iterateHTMLElementChildren(childNode);
+    }
+  }
 }
