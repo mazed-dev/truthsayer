@@ -32,8 +32,8 @@ test('extractPageTextCustom - main', () => {
   <div>
     <div>
       <main id="content" class="social social-popover">
-        <div id="1" class="eng export 1">First and second</div>
-        <div id="2" class="eng export 2">Third and forth</div>
+        <div id="1" class="eng export 1">First and second.</div>
+        <div id="2" class="eng export 2">Third and forth.</div>
       </main>
     </div>
   </div>
@@ -42,7 +42,8 @@ test('extractPageTextCustom - main', () => {
 `)
   const text = extractPageTextCustom(dom.window.document, '')
   expect(text).toStrictEqual([
-    { text: 'First and second Third and forth', type: 'P' },
+    { text: 'First and second.', type: 'P' },
+    { text: 'Third and forth.', type: 'P' },
   ])
 })
 
@@ -205,8 +206,8 @@ test('extractPageContent - custom', async () => {
   <div>
     <div>
       <main id="content" class="social social-popover">
-        <div id="1" class="eng export 1">First and second</div>
-        <div id="2" class="eng export 2">Third and forth</div>
+        <div id="1" class="eng export 1">First and second.</div>
+        <div id="2" class="eng export 2">Third and forth.</div>
       </main>
     </div>
   </div>
@@ -218,7 +219,8 @@ test('extractPageContent - custom', async () => {
 
   const content = extractPageContent(dom.window.document, origin)
   expect(content.textContentBlocks).toStrictEqual([
-    { type: 'P', text: 'First and second Third and forth' },
+    { type: 'P', text: 'First and second.' },
+    { type: 'P', text: 'Third and forth.' },
   ])
   expect(content.url).toStrictEqual(originalUrl)
   expect(content.title).toStrictEqual('Some title')

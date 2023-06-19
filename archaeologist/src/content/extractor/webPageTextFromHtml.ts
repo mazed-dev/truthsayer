@@ -5,7 +5,7 @@
  */
 
 import DOMPurify from 'dompurify'
-import { unicodeText, sortOutSpacesAroundPunctuation } from 'armoury'
+import { sortOutSpacesAroundPunctuation } from 'armoury'
 import type { TextContentBlockType, TextContentBlock } from 'smuggler-api'
 
 export type { TextContentBlockType, TextContentBlock }
@@ -20,11 +20,6 @@ export function extractTextContentBlocksFromHtml(
   let clean = DOMPurify.sanitize(html, {
     USE_PROFILES: { html: true },
   })
-  clean = clean
-    .replace(/<\/t[dh]>/gi, ' |$&') // Insert separate between table cells
-    .replace(/<t[dh]>/gi, ' $& ')
-    .replace(/<\/t[hd]><\/tr>/gi, '\n$&')
-    .replace(/<li>/gi, '$&- ')
   const doc = new DOMParser().parseFromString(clean, 'text/html')
   const contentBlocks = extractTextContentBlocksFromSanitizedHtmlElement(
     doc.body
@@ -50,9 +45,19 @@ export function extractTextContentBlocksFromSanitizedHtmlElement(
       }
     }
     return contentBlocks
-  } else {
-    return _extractPlainTextFromSanitizedContentHtml(element)
+  } else if (element instanceof HTMLElement) {
+    return _extractPlainTextFromSanitizedContentHtml(element as HTMLElement)
   }
+  const contentBlocks: TextContentBlock[] = []
+  if (element.textContent != null) {
+    for (const line of element.textContent.split('\n')) {
+      const text = line.trim()
+      if (text) {
+        contentBlocks.push({ type: 'P', text })
+      }
+    }
+  }
+  return contentBlocks
 }
 
 function getChunkTypeFromNode(node: Node): TextContentBlockType | null {
@@ -84,78 +89,69 @@ function getChunkTypeFromNode(node: Node): TextContentBlockType | null {
 const kNodeNamesOfTableCellToEnforceSpacing: Set<string> = new Set(['TD', 'TH'])
 const kNodeNamesToEnforcePunctuation: Set<string> = new Set(['TR'])
 
-function getExtraText(node: Node): string {
-  if (kNodeNamesOfTableCellToEnforceSpacing.has(node.nodeName)) {
-    return '| '
+function getExtraPrefix(element: HTMLElement): string | null {
+  if (kNodeNamesOfTableCellToEnforceSpacing.has(element.nodeName)) {
+    return ' | '
   }
-  if (kNodeNamesToEnforcePunctuation.has(node.nodeName)) {
-    return '|'
+  return null
+}
+
+function getExtraSuffix(element: HTMLElement): string | null {
+  if (kNodeNamesToEnforcePunctuation.has(element.nodeName)) {
+    return ' |\n'
   }
-  return ''
+  return null
 }
 
 function _extractPlainTextFromSanitizedContentHtml(
-  doc: HTMLElement
+  element: HTMLElement
 ): TextContentBlock[] {
-  const walker = doc.createTreeWalker(
-    doc,
-    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT | Node.ATTRIBUTE_NODE,
-    {
-      acceptNode(node: Node) {
-        if (['BODY', 'HEAD', 'HTML'].includes(node.nodeName)) {
-          return NodeFilter.FILTER_SKIP
-        } else {
-          return NodeFilter.FILTER_ACCEPT
-        }
-      },
-    }
-  )
-  const contentBlocks: TextContentBlock[] = []
-  let currentChunkText: string[] = []
-  let currentChunkType: TextContentBlockType = 'P'
-  while (walker.nextNode()) {
-    const node = walker.currentNode
-    const chunkType = getChunkTypeFromNode(node)
-    if (chunkType != null) {
-      const text = unicodeText.trimWhitespace(
-        sortOutSpacesAroundPunctuation(currentChunkText.join('').trim())
-      )
-      if (text.length > 1) {
-        contentBlocks.push({ type: currentChunkType, text })
+  const blocks: TextContentBlock[] = []
+  const last = iterateHTMLElementChildren(element, null, blocks)
+  last.text = sortOutSpacesAroundPunctuation(last.text.trim())
+  if (last.text.length > 1) {
+    blocks.push(last)
+  }
+  return blocks
+}
+
+function iterateHTMLElementChildren(
+  element: HTMLElement,
+  current: TextContentBlock | null,
+  blocks: TextContentBlock[]
+): TextContentBlock {
+  const blockType = getChunkTypeFromNode(element)
+  if (blockType != null) {
+    if (current != null) {
+      current.text = sortOutSpacesAroundPunctuation(current.text.trim())
+      if (current.text.length > 1) {
+        blocks.push(current)
       }
-      currentChunkText = []
-      currentChunkType = chunkType
+      current = { type: blockType, text: '' }
     }
-    currentChunkText.push(getExtraText(node))
+  }
+  if (current == null) {
+    current = { type: 'P', text: '' }
+  }
+  const prefix = getExtraPrefix(element)
+  if (prefix != null) {
+    current.text += prefix
+  }
+  for (const node of element.childNodes) {
     if (node.nodeType === Node.TEXT_NODE) {
       const textContent = node.textContent
       if (textContent) {
-        currentChunkText.push(textContent)
+        current.text += textContent
       }
     }
-  }
-  const text = unicodeText.trimWhitespace(
-    sortOutSpacesAroundPunctuation(currentChunkText.join('').trim())
-  )
-  if (text.length > 1) {
-    contentBlocks.push({ type: currentChunkType, text })
-  }
-  return contentBlocks
-}
-
-function iterateHTMLElementChildren(element: HTMLElement) {
-  const childNodes = element.childNodes;
-  const length = childNodes.length;
-
-  for (let i = 0; i < length; i++) {
-    const childNode = childNodes[i];
-
-    if (childNode instanceof HTMLElement) {
-      // Process the child element
-      console.log(childNode);
-
+    if (node instanceof HTMLElement) {
       // Recursively iterate over the child element's children
-      iterateHTMLElementChildren(childNode);
+      current = iterateHTMLElementChildren(node, current, blocks)
     }
   }
+  const suffix = getExtraSuffix(element)
+  if (suffix != null) {
+    current.text += suffix
+  }
+  return current
 }

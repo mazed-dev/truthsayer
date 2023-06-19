@@ -115,7 +115,6 @@ export function extractPageContent(
   document_: Document,
   baseURL: string
 ): WebPageContent {
-  log.debug('extractPageContent', baseURL)
   const url = stabiliseUrlForOriginId(document_.URL || document_.documentURI)
   const useCustomExtractors = shouldUseCustomExtractorsFor(url)
   const {
@@ -704,7 +703,6 @@ export function _extractPageContentMozilla(
     siteName,
     content,
   } = article
-  log.debug('Content', content)
   const textContentBlocks = extractTextContentBlocksFromHtml(
     content,
     textContent

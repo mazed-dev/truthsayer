@@ -120,7 +120,7 @@ test('HTML table -', () => {
       type: 'H',
     },
     {
-      text: '| | Company | Contact | Country | | Alfreds Futterkiste | Maria Anders | Germany | | Centro comercial Moctezuma | Francisco Chang | Mexico | | Ernst Handel | Roland Mendel | Austria | | Island Trading | Helen Bennett | UK | | Laughing Bacchus Winecellars | Yoshi Tannamuri | Canada | | Magazzini Alimentari Riuniti | Giovanni Rovelli | Italy',
+      text: '| Company | Contact | Country | | Alfreds Futterkiste | Maria Anders | Germany | | Centro comercial Moctezuma | Francisco Chang | Mexico | | Ernst Handel | Roland Mendel | Austria | | Island Trading | Helen Bennett | UK | | Laughing Bacchus Winecellars | Yoshi Tannamuri | Canada | | Magazzini Alimentari Riuniti | Giovanni Rovelli | Italy |',
 
       type: 'P',
     },
@@ -262,7 +262,7 @@ test('extractTextContentBlocksFromHtml - put extra dot after header and table ro
     )
   ).toStrictEqual([
     {
-      text: '|| Born| 15 March 1813 | || Alma mater| University of London (MD)',
+      text: '| Born | 15 March 1813 | | | Alma mater | University of London (MD) |',
       type: 'P',
     },
   ])
