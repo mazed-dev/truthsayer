@@ -32,10 +32,6 @@ const contentAugmentationSettings: ContentAugmentationSettings = {}
 export function updateAugmentationSettings(
   settings: ContentAugmentationSettings
 ): ContentAugmentationSettings {
-  contentAugmentationSettings.isRevealed =
-    settings.isRevealed ?? contentAugmentationSettings.isRevealed
-  contentAugmentationSettings.positionY =
-    settings.positionY ?? contentAugmentationSettings.positionY
   contentAugmentationSettings.productUpdate =
     settings.productUpdate ?? contentAugmentationSettings.productUpdate
   return contentAugmentationSettings

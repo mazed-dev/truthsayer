@@ -9,8 +9,8 @@ import { InsertLink } from '@emotion-icons/material'
 
 const Box = styled.div<{ notify: boolean }>`
   position: relative;
-  height: 28px;
-  width: 28px;
+  height: 24px;
+  width: 24px;
   border-radius: 50%;
 
   border: 1px solid #ececec;
@@ -34,10 +34,10 @@ const Box = styled.div<{ notify: boolean }>`
 
 const Logo = styled.div`
   position: absolute;
-  top: calc(50% - 7.3px);
-  left: calc(50% - 7.3px);
-  width: 15px;
-  height: 15px;
+  top: calc(50% - 6.25px);
+  left: calc(50% - 6.25px);
+  width: 12.5px;
+  height: 12.5px;
 
   margin: 0;
   padding: 0;

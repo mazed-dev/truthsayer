@@ -82,8 +82,6 @@ export type ContentAugmentationPosition = {
   y: number
 }
 export type ContentAugmentationSettings = {
-  isRevealed?: boolean
-  positionY?: number
   productUpdate?: ContentAugmentationProductUpdate
 }
 export interface ContentAugmentationSettingsResponse {

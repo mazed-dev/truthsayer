@@ -36,20 +36,24 @@ function getDocumentBodyOffset(element: HTMLElement): ControlledPosition {
   let offsetLeft: number = 0
   let offsetWidth: number = element.offsetWidth
   let offsetParent: HTMLElement | null = element
-  while (offsetParent != null ) {
+  while (offsetParent != null) {
     offsetTop += offsetParent.offsetTop
     offsetLeft += offsetParent.offsetLeft
     offsetParent = offsetParent.offsetParent as HTMLElement
-    if (offsetParent == null || offsetParent.tagName === 'BODY' || offsetParent.tagName === 'HTML') {
+    if (
+      offsetParent == null ||
+      offsetParent.tagName === 'BODY' ||
+      offsetParent.tagName === 'HTML'
+    ) {
       break
     }
   }
   return {
     parentElement: offsetParent,
     offset: {
-      y: offsetTop + offsetHeight + 2,  // px
-      x: offsetLeft + offsetWidth + 8,  // px
-    }
+      y: offsetTop + offsetHeight,
+      x: offsetLeft + offsetWidth,
+    },
   }
 }
 
@@ -161,7 +165,8 @@ export function SuggestedRelatives({
   const [isFloaterShown, setFloaterShown] = React.useState<boolean>(true)
   const [suggestionsSearchIsActive, setSuggestionsSearchIsActive] =
     React.useState<boolean>(true)
-  const [controlledPosition, setControlledPosition] = React.useState<ControlledPosition|null>(null)
+  const [controlledPosition, setControlledPosition] =
+    React.useState<ControlledPosition | null>(null)
   const pageSimilaritySearchInput = React.useMemo<SimilaritySearchInput | null>(
     () => {
       const searchEngineQuery = extractSearchEngineQuery(

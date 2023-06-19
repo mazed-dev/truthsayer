@@ -24,9 +24,9 @@ import {
   FromContent,
   ContentAugmentationProductUpdate,
 } from './../../message/types'
-import { DragHandle, Minimize } from '@emotion-icons/material-rounded'
+import { Minimize } from '@emotion-icons/material-rounded'
 import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'
-import { errorise, productanalytics, log } from 'armoury'
+import { errorise, productanalytics } from 'armoury'
 import moment from 'moment'
 
 const SuggestedCardsBox = styled.div`
@@ -173,41 +173,32 @@ const SuggestedCards = ({
   )
 }
 
-const DragIndicator = styled(DragHandle)`
-  ${DraggableCursorStyles}
-  border-radius: 50%;
-  fill: #a3c7f3;
-`
-
 const MiniFloaterBox = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-
-  /*
-  position: absolute;
-  transform: translate(24px, 0);
-
-  transition-property: transform;
-  transition-duration: 0.8s;
-  transition-delay: 0.8s;
-  transition-timing-function: ease-in-out;
-  &:hover {
-    transform: translate(0, 0);
-  }
-  */
-  #mazed-archaeologist-suggestions-floater-drag-handle {
-    opacity: 0.6;
-  }
-  &:hover &:active {
-    #mazed-archaeologist-suggestions-floater-drag-handle {
-      opacity: 1;
-    }
-  }
 `
 
 type Position2D = { x: number; y: number }
+
+function MiniFloater({
+  onClick,
+  text,
+  position,
+}: {
+  onClick: () => void
+  text?: string
+  position: Position2D
+}) {
+  return (
+    <MiniFloaterBox
+      css={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+    >
+      <MazedMiniFloater onClick={onClick} text={text} />
+    </MiniFloaterBox>
+  )
+}
 
 export type ControlledPosition = {
   offset: Position2D
@@ -215,28 +206,37 @@ export type ControlledPosition = {
 }
 
 /**
- * Position of the floater on veritcal line depends on the width of a floater,
- * because we want it to be always anchored to the rigth edge of the window.
+ * Make sure that opened floter is visisble within a window viewframe.
  */
-const getStartDragPosition = (isRevealed: boolean): Position2D =>
-  isRevealed ? { x: window.innerWidth - 328, y: 72 } : { x: window.innerWidth - 32, y: 72 }
+const frameOpenFloaterPosition = (pos?: Position2D) => {
+  const { x, y } = pos ?? { x: window.innerWidth - 328, y: 72 }
+  return {
+    x: Math.max(0, Math.min(x - 150, window.innerWidth - 328)),
+    y: Math.max(0, Math.min(y, window.innerHeight / 2)),
+  }
+}
 
 /**
- * Make sure that floter is visisble within a window: not too low or too high -
- * right within view frame.
+ * Make sure that min-floter is visisble within a window viewframe.
  */
-const frameYPosition = (y: number) =>
-  Math.max(0, Math.min(y, window.innerHeight - 76))
+const frameMinFloaterPosition = (pos?: Position2D) => {
+  const { x, y } = pos ?? { x: window.innerWidth - 32, y: 72 }
+  return {
+    x: Math.max(0, Math.min(x, window.innerWidth - 24)),
+    y: Math.max(0, Math.min(y, window.innerHeight - 24)),
+  }
+}
 
 export const SuggestionsFloater = ({
   nodes,
   isLoading,
   defaultRevelaed,
-  controlledPosition, }: {
+  controlledPosition,
+}: {
   nodes: RelevantNodeSuggestion[]
   isLoading: boolean
   defaultRevelaed: boolean
-  controlledPosition: ControlledPosition | null,
+  controlledPosition: ControlledPosition | null
 }) => {
   const nodeRef = React.useRef(null)
   // Floater can be open by default **only** if there is something to suggest.
@@ -273,82 +273,69 @@ export const SuggestionsFloater = ({
   )
   const saveRevealed = React.useCallback(
     async (revealed: boolean) => {
-      await saveContentAugmentationSettings({ isRevealed: revealed })
       setRevealed(revealed)
       analytics?.capture('Click SuggestionsFloater visibility toggle', {
         'Event type': 'change',
         isRevealed: revealed,
       })
     },
-    [analytics, saveContentAugmentationSettings]
+    [analytics]
   )
 
-  // useAsyncEffect(async () => {
-  //   let settings: ContentAugmentationSettings | null =
-  //     await saveContentAugmentationSettings()
-  //   setSettings(settings)
-  //   const revealed = (settings?.isRevealed ?? false) || defaultRevelaed
-  //   // const defaultPosition = getStartDragPosition(revealed)
-
-  //   setRevealed(revealed)
-  // }, [])
+  useAsyncEffect(async () => {
+    let settings: ContentAugmentationSettings | null =
+      await saveContentAugmentationSettings()
+    setSettings(settings)
+  }, [])
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
-    const positionY = frameYPosition(data.y)
-    saveContentAugmentationSettings({ positionY }).catch(() => {
-      // All exception are caught and recorded inside
-      // saveContentAugmentationSettings, so just ignore the promise here
-    })
+    // Ideally, opened floate shoul neve be dragged, if we calculated it's
+    // possition good enough in `frameOpenFloaterPosition`, measure it to test
+    // the theory.
     analytics?.capture('Drag SuggestionsFloater', {
       'Event type': 'drag',
-      positionY,
+      positionY: data.y,
       isRevealed,
     })
   }
-  log.debug('SuggestionsFloater render', controlledPosition?.offset ?? getStartDragPosition(isRevealed))
   return (
     <AugmentationElement disableInFullscreenMode>
+      {isRevealed ? (
         <Draggable
           onStop={onDragStop}
           handle="#mazed-archaeologist-suggestions-floater-drag-handle"
-          defaultPosition={controlledPosition?.offset ?? getStartDragPosition(isRevealed)}
+          defaultPosition={frameOpenFloaterPosition(controlledPosition?.offset)}
           nodeRef={nodeRef}
         >
           <DraggableElement ref={nodeRef}>
-            {isRevealed ? (
-              <>
-                <SuggestedCards
-                  onClose={() => saveRevealed(false)}
-                  nodes={nodes}
-                  isLoading={isLoading}
-                  productUpdateConfig={settings?.productUpdate ?? undefined}
-                  updateProductUpdateConfig={async (
-                    productUpdate: ContentAugmentationProductUpdate | undefined
-                  ) => {
-                    await saveContentAugmentationSettings({ productUpdate })
-                  }}
-                />
-                <ScopedTimedAction
-                  action={() =>
-                    analytics?.capture(
-                      'SuggestionsFloater: kept open longer than threshold',
-                      { thresholdSec: 15 }
-                    )
-                  }
-                  after={moment.duration(15, 'seconds')}
-                />
-              </>
-            ) : (
-              <MiniFloaterBox>
-                <MazedMiniFloater
-                  onClick={() => saveRevealed(true)}
-                  text={
-                    nodes.length === 0 ? undefined : nodes.length.toString()
-                  }
-                />
-              </MiniFloaterBox>
-            )}
+            <SuggestedCards
+              onClose={() => saveRevealed(false)}
+              nodes={nodes}
+              isLoading={isLoading}
+              productUpdateConfig={settings?.productUpdate ?? undefined}
+              updateProductUpdateConfig={async (
+                productUpdate: ContentAugmentationProductUpdate | undefined
+              ) => {
+                await saveContentAugmentationSettings({ productUpdate })
+              }}
+            />
+            <ScopedTimedAction
+              action={() =>
+                analytics?.capture(
+                  'SuggestionsFloater: kept open longer than threshold',
+                  { thresholdSec: 15 }
+                )
+              }
+              after={moment.duration(15, 'seconds')}
+            />
           </DraggableElement>
         </Draggable>
+      ) : (
+        <MiniFloater
+          onClick={() => saveRevealed(true)}
+          text={nodes.length === 0 ? undefined : nodes.length.toString()}
+          position={frameMinFloaterPosition(controlledPosition?.offset)}
+        />
+      )}
     </AugmentationElement>
   )
 }

@@ -85,7 +85,8 @@ export const ProductUpdateCard = ({
     }
   }, [productUpdateConfig?.signature, updateProductUpdateConfig, analytics])
   const [isClosed, setClosed] = React.useState<boolean>(
-    kSignatureOfProductUpdateToShow == null || productUpdateConfig?.signature === kSignatureOfProductUpdateToShow
+    kSignatureOfProductUpdateToShow == null ||
+      productUpdateConfig?.signature === kSignatureOfProductUpdateToShow
   )
   const [isMiminised, setMiminised] = React.useState<boolean>(true)
   const closeProductUpdate = React.useCallback(() => {

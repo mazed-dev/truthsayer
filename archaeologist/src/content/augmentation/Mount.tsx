@@ -40,6 +40,12 @@ export const AugmentationMountPoint = ({
   )
 }
 
+// To avoid conflicts with host page defaul styles for DIV
+const Root = styled(root.div)`
+  height: 0 !important;
+  width: 0 !important;
+`
+
 export const AugmentationElement = ({
   children,
   disableInFullscreenMode,
@@ -80,9 +86,7 @@ export const AugmentationElement = ({
      */
   )
   return ReactDOM.createPortal(
-    <root.div id={'mazed-archaeologist-augmentation-element'}>
-      {children}
-    </root.div>,
+    <Root id={'mazed-archaeologist-augmentation-element'}>{children}</Root>,
     box
   )
 }
