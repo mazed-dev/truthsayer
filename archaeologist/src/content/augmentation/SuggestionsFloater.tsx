@@ -211,7 +211,7 @@ export type ControlledPosition = {
 const frameOpenFloaterPosition = (pos?: Position2D) => {
   const { x, y } = pos ?? { x: window.innerWidth - 328, y: 72 }
   return {
-    x: Math.max(0, Math.min(x - 150, window.innerWidth - 328)),
+    x: Math.max(0, Math.min(x - 304, window.innerWidth - 328)),
     y: Math.max(0, Math.min(y, window.innerHeight / 2)),
   }
 }
