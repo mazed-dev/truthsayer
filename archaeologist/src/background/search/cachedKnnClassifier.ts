@@ -1,6 +1,6 @@
-import { log } from 'armoury'
+import { InterfaceOf, log } from 'armoury'
 import lodash from 'lodash'
-import { tf } from 'text-information-retrieval'
+import { KNNClassifier, tf } from 'text-information-retrieval'
 import browser from 'webextension-polyfill'
 
 /**
@@ -53,7 +53,7 @@ type LabelToClassLav = GenericLav<
   'label->class',
   // See https://github.com/tensorflow/tfjs/issues/633#issuecomment-576218643
   // about how to properly serialize/deserialize @see KNNClassifier
-  { data: number[]; shape: tf.Tensor2D['shape'] }
+  { data: number[]; shape: tf.Tensor['shape'] }
 >
 
 type CacheSignatureYek = GenericYek<'cache-signature', undefined>
@@ -260,41 +260,33 @@ async function dropCacheOnSignatureMismatch(
 }
 
 /**
- * @summary Given a `class` type T, combine all names (or "keys") of methods into a
- * TypeScript 'union'. Discard all data fields.
- */
-type KeysOfMethods<T> = {
-  // Iterate over each property.
-  [K in keyof T]: T[K] extends (...args: any[]) => any // If the property is a function...
-    ? K // Function, not data - set the value of this property to its own key.
-    : never // Data is not allowed, use never to exclude it.
-
-  // Get the union of all method keys (which are now the keys that have not been set to `never`)
-}[keyof T]
-
-/**
- * @summary Given a `class` type T, make a new type that is a public interface of T.
- * @description Implementation is mostly taken from https://stackoverflow.com/a/61376012/3375765
- */
-type InterfaceOf<T> = Pick<T, KeysOfMethods<T>>
-
-/**
  * NOTE: @see KNNClassifier is a class with private fields,
  * so it can be `extend`ed, but not `implement`ed. @see InterfaceOf enables
  * to use either & allows to selectively promise-ifying some methods (
  * KNNClassifier is fully syncronous, but cache storage is not).
  */
 type KnnClassifierInterface = Omit<
-  InterfaceOf<tf.KNNClassifier>,
-  'addExample' | 'clearClass'
+  InterfaceOf<KNNClassifier>,
+  'addExample' | 'clearClass' | 'predictClass'
 > & {
   addExample: (
-    ...args: Parameters<tf.KNNClassifier['addExample']>
+    // This parameter's type is set manually rather than inferred,
+    // see 'conflicting-tensor2d-versions' note for more details
+    example: tf.Tensor,
+    label: number | string
   ) => Promise<void>
+  predictClass: (
+    // This parameter's type is set manually rather than inferred,
+    // see 'conflicting-tensor2d-versions' note for more details
+    input: tf.Tensor,
+    k?: number
+  ) => ReturnType<KNNClassifier['predictClass']>
   clearClass: (
-    ...args: Parameters<tf.KNNClassifier['clearClass']>
+    ...args: Parameters<KNNClassifier['clearClass']>
   ) => Promise<void>
 }
+
+type KnnTensor = Parameters<KNNClassifier['addExample']>[0]
 
 /**
  * @summary A wrapper around @see KNNClassifier that caches all the data in the
@@ -304,7 +296,7 @@ type KnnClassifierInterface = Omit<
  * about how to properly serialize/deserialize @see KNNClassifier
  */
 export class CachedKnnClassifier implements KnnClassifierInterface {
-  private impl: tf.KNNClassifier
+  private impl: KNNClassifier
   private store: YekLavStore
   private static readonly INTERNAL_VERSION: number = 1
 
@@ -326,39 +318,38 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
     const yek: AllLabelsYek = { yek: { kind: 'all-labels', key: undefined } }
     const lav: AllLabelsLav | undefined = await store.get(yek)
     if (lav == null) {
-      return new CachedKnnClassifier(new tf.KNNClassifier(), storage)
+      return new CachedKnnClassifier(new KNNClassifier(), storage)
     }
     const yeks: LabelToClassYek[] = lav.lav.value.map(({ label }) => {
       return { yek: { kind: 'label->class', key: label } }
     })
 
-    const classes: Parameters<tf.KNNClassifier['setClassifierDataset']>[0] = {}
+    const classes: Parameters<KNNClassifier['setClassifierDataset']>[0] = {}
     for (const { yek, lav } of await store.get(yeks)) {
       const { data, shape } = lav.lav.value
+      // @ts-ignore, see 'conflicting-tensor2d-versions' note
       classes[yek.yek.key] = tf.tensor(data, shape)
     }
 
-    const impl = new tf.KNNClassifier()
+    const impl = new KNNClassifier()
     impl.setClassifierDataset(classes)
     return new CachedKnnClassifier(impl, storage)
   }
 
-  private constructor(
-    impl: tf.KNNClassifier,
-    store: browser.Storage.StorageArea
-  ) {
+  private constructor(impl: KNNClassifier, store: browser.Storage.StorageArea) {
     this.impl = impl
     this.store = new YekLavStore(store)
   }
 
   async addExample(example: tf.Tensor, label: number | string): Promise<void> {
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
     this.impl.addExample(example, label)
     // NOTE: both the input parameter & `class_` below are tensors, but it's
     // important to NOT cache the input. The input goes through a transformation
     // inside KNNClassifier.addExample() and *that* can be safely cached.
     // For reference, these transformations can be found here:
     // https://github.com/tensorflow/tfjs-models/blob/646992fd7ab8237c0dc908f2526301414b417c95/knn-classifier/src/index.ts#L44-L87
-    const class_: tf.Tensor2D = this.impl.getClassifierDataset()[label]
+    const class_: KnnTensor = this.impl.getClassifierDataset()[label]
 
     let records: YekLav[] = [
       await this.store.prepareAppend(
@@ -381,6 +372,7 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
     await this.store.set(records)
   }
   predictClass(input: tf.Tensor, k?: number) {
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
     return this.impl.predictClass(input, k)
   }
   async clearClass(label: number | string): Promise<void> {
@@ -408,7 +400,7 @@ export class CachedKnnClassifier implements KnnClassifierInterface {
   getNumClasses() {
     return this.impl.getNumClasses()
   }
-  setClassifierDataset(_: { [label: string]: tf.Tensor2D }): never {
+  setClassifierDataset(_: { [label: string]: KnnTensor }): never {
     throw new Error(`CachedKnnClassifier.setClassifierDataset() has not been implemented ' +
     'because it's not expected to be needed`)
   }
