@@ -11,7 +11,7 @@ import { SuggestedCardBox } from './SuggestedCard'
 
 import { ContentAugmentationProductUpdate } from './../../message/types'
 
-const kSignatureOfProductUpdateToShow = 'foreward-rebranding-03-06-2023'
+const kSignatureOfProductUpdateToShow = null
 
 const Box = styled(SuggestedCardBox)`
   background-image: linear-gradient(90deg, #e9f2fb, #f9fdfe);
@@ -85,7 +85,8 @@ export const ProductUpdateCard = ({
     }
   }, [productUpdateConfig?.signature, updateProductUpdateConfig, analytics])
   const [isClosed, setClosed] = React.useState<boolean>(
-    productUpdateConfig?.signature === kSignatureOfProductUpdateToShow
+    kSignatureOfProductUpdateToShow == null ||
+      productUpdateConfig?.signature === kSignatureOfProductUpdateToShow
   )
   const [isMiminised, setMiminised] = React.useState<boolean>(true)
   const closeProductUpdate = React.useCallback(() => {
