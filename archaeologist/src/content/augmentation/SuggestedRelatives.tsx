@@ -94,7 +94,7 @@ function getLastEditedParagraph(
   ) {
     return {
       textContent: selectionAnchorNode.nodeValue,
-      element: selectionAnchorElement ?? target,
+      element, // FIXME(Alexander): selectionAnchorElement ?? target,
     }
   }
   return { textContent: element.textContent ?? element.innerText, element }
