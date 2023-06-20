@@ -79,37 +79,13 @@ function getLastEditedParagraph(
     element.nodeName in kSubParagraphTagNames &&
     element.parentElement != null
   ) {
-    log.debug(
-      'Value',
-      element.nodeName,
-      element.nodeName in kSubParagraphTagNames,
-      element
-    )
     element = element.parentElement
-    // if (!(node.nodeName in kSubParagraphTagNames)) {
-    //   const text = node.nodeValue ?? node.textContent
-    //   if(text && text.indexOf('\n') >= 0) {
-    //     // If we are at the point where element.innerText has newline, just take
-    //     // the previous element, assuming it was the paragraph we are looking for.
-    //     node = previousNode
-    //     break
-    //   }
-    // }
-    // if (node.nodeName in kParagraphTagNames || target.isSameNode(node)) {
-    //   break
-    // }
-    // if (node.parentNode == null) {
-    //   break
-    // }
-    // previousNode = node
-    // node = node.parentNode
   }
   if (
     element instanceof HTMLInputElement ||
     element instanceof HTMLTextAreaElement
   ) {
     log.debug('Paragraph 1', element)
-    // const element = node as HTMLTextAreaElement
     return { textContent: element.value, element }
   }
   if (
@@ -122,29 +98,6 @@ function getLastEditedParagraph(
     }
   }
   return { textContent: element.textContent ?? element.innerText, element }
-  // if (node instanceof HTMLElement) {
-  //   if (node.nodeName === 'TEXTAREA') {
-  //     log.debug('Paragraph 1', node)
-  //     const element = node as HTMLTextAreaElement
-  //     return { textContent: element.value, element }
-  //   }
-  //   if (node.nodeName === 'INPUT') {
-  //     log.debug('Paragraph 2', node)
-  //     const element = node as HTMLInputElement
-  //     return { textContent: element.value, element }
-  //   }
-  //   if (node.textContent != null) {
-  //     log.debug('Paragraph 3', node)
-  //     return { textContent: node.textContent, element: node as HTMLElement }
-  //   } else if (node.nodeValue != null) {
-  //     log.debug('Paragraph 4', node)
-  //     return { textContent: node.nodeValue, element: node as HTMLElement }
-  //   }
-  // } else if (node.nodeValue != null) {
-  //   log.debug('Paragraph 5', node)
-  //   return { textContent: node.nodeValue, element: node.parentElement ?? target }
-  // }
-  // return null
 }
 
 type SimilaritySearchInput = {
