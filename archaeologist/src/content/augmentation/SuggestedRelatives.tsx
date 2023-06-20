@@ -27,7 +27,7 @@ export function getKeyPhraseFromUserInput(
   return value ?? null
 }
 
-const kFormatTagNames = {
+const kSubParagraphTagNames = {
   B: true,
   DEL: true,
   EM: true,
@@ -47,12 +47,6 @@ const kFormatTagNames = {
  * Find offset of given element ralative to "BODY" or other root of the document
  */
 function calculateFloaterPosition(element: HTMLElement): ControlledPosition {
-  while (element.tagName in kFormatTagNames && element.parentElement != null) {
-    // Our goal is to rander floater near the paragraph that user is currenly
-    // editing. Formatting elements are very likely just a formatting elements
-    // inside the paragraph, so ignore them all.
-    element = element.parentElement
-  }
   const rect = element.getBoundingClientRect()
   const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop
@@ -65,11 +59,14 @@ function calculateFloaterPosition(element: HTMLElement): ControlledPosition {
 }
 
 function getLastEditedParagraph(
-  target: HTMLElement,
+  selectionAnchorNode: Node,
   selectionAnchorElement: HTMLElement | null,
-  selectionNodeValue: null | string
-): { textContent: string; element: HTMLElement } | null {
-  let element
+  target: HTMLElement
+): {
+  textContent: string
+  element: HTMLElement
+} {
+  let element: HTMLElement
   if (
     selectionAnchorElement != null &&
     target.contains(selectionAnchorElement)
@@ -78,49 +75,76 @@ function getLastEditedParagraph(
   } else {
     element = target
   }
-  let previousElement = element
-  while (element != null) {
-    if (
-      element?.nodeName === 'P' ||
-      target.isSameNode(element) ||
-      element?.nodeName === 'TEXTAREA' ||
-      element?.nodeName === 'INPUT'
-    ) {
-      break
-    }
-    if (element.innerText.indexOf('\n') >= 0) {
-      // If we are at the point where element.innerText has newline, just
-      // take the previous element, assuming it was the paragraph we are
-      // looking for.
-      element = previousElement
-      break
-    }
-    previousElement = element
+  while (
+    element.nodeName in kSubParagraphTagNames &&
+    element.parentElement != null
+  ) {
+    log.debug(
+      'Value',
+      element.nodeName,
+      element.nodeName in kSubParagraphTagNames,
+      element
+    )
     element = element.parentElement
+    // if (!(node.nodeName in kSubParagraphTagNames)) {
+    //   const text = node.nodeValue ?? node.textContent
+    //   if(text && text.indexOf('\n') >= 0) {
+    //     // If we are at the point where element.innerText has newline, just take
+    //     // the previous element, assuming it was the paragraph we are looking for.
+    //     node = previousNode
+    //     break
+    //   }
+    // }
+    // if (node.nodeName in kParagraphTagNames || target.isSameNode(node)) {
+    //   break
+    // }
+    // if (node.parentNode == null) {
+    //   break
+    // }
+    // previousNode = node
+    // node = node.parentNode
   }
-  let innerText: string | null = null
-  if (element != null && element.nodeName === 'TEXTAREA') {
-    innerText = (element as HTMLTextAreaElement).value
-  } else if (element != null && element.nodeName === 'INPUT') {
-    innerText = (element as HTMLInputElement).value
-  } else if (element?.innerHTML != null) {
-    innerText = element?.innerText
+  if (
+    element instanceof HTMLInputElement ||
+    element instanceof HTMLTextAreaElement
+  ) {
+    log.debug('Paragraph 1', element)
+    // const element = node as HTMLTextAreaElement
+    return { textContent: element.value, element }
   }
-  if (innerText && innerText.indexOf('\n') < 0 && element != null) {
-    return { textContent: innerText, element }
-  }
-  // In rare cases all paragraphs of the edited text are all belongs to the same
-  // HTML element, e.g DIV. Then innerText of such element would contain newline
-  // characters. To extract edited paragraph we rely on bare text that we get
-  // from window selection.
-  // Editor example: Google Keep.
-  if (selectionNodeValue) {
+  if (
+    element.innerText.indexOf('\n') >= 0 &&
+    selectionAnchorNode.nodeValue != null
+  ) {
     return {
-      textContent: selectionNodeValue,
+      textContent: selectionAnchorNode.nodeValue,
       element: selectionAnchorElement ?? target,
     }
   }
-  return null
+  return { textContent: element.textContent ?? element.innerText, element }
+  // if (node instanceof HTMLElement) {
+  //   if (node.nodeName === 'TEXTAREA') {
+  //     log.debug('Paragraph 1', node)
+  //     const element = node as HTMLTextAreaElement
+  //     return { textContent: element.value, element }
+  //   }
+  //   if (node.nodeName === 'INPUT') {
+  //     log.debug('Paragraph 2', node)
+  //     const element = node as HTMLInputElement
+  //     return { textContent: element.value, element }
+  //   }
+  //   if (node.textContent != null) {
+  //     log.debug('Paragraph 3', node)
+  //     return { textContent: node.textContent, element: node as HTMLElement }
+  //   } else if (node.nodeValue != null) {
+  //     log.debug('Paragraph 4', node)
+  //     return { textContent: node.nodeValue, element: node as HTMLElement }
+  //   }
+  // } else if (node.nodeValue != null) {
+  //   log.debug('Paragraph 5', node)
+  //   return { textContent: node.nodeValue, element: node.parentElement ?? target }
+  // }
+  // return null
 }
 
 type SimilaritySearchInput = {
@@ -267,24 +291,20 @@ export function SuggestedRelatives({
     () =>
       lodash.debounce(
         (
-          target: HTMLElement,
+          selectionAnchorNode: Node,
           selectionAnchorElement: HTMLElement | null,
-          selectionNodeValue: null | string
+          target: HTMLElement
         ) => {
-          const paragraph = getLastEditedParagraph(
-            target,
+          const { textContent, element } = getLastEditedParagraph(
+            selectionAnchorNode,
             selectionAnchorElement,
-            selectionNodeValue
+            target
           )
-          if (paragraph != null) {
-            const { textContent, element } = paragraph
-            setControlledPosition(calculateFloaterPosition(element))
-            if (textContent != null) {
-              requestSuggestedAssociationsForPhrase(textContent).catch(
-                (reason) =>
-                  log.error(`Failed to request suggestions: ${reason}`)
-              )
-            }
+          setControlledPosition(calculateFloaterPosition(element))
+          if (textContent != null) {
+            requestSuggestedAssociationsForPhrase(textContent).catch((reason) =>
+              log.error(`Failed to request suggestions: ${reason}`)
+            )
           }
         },
         997,
@@ -317,10 +337,16 @@ export function SuggestedRelatives({
         if (target.isContentEditable || target.tagName === 'TEXTAREA') {
           const selection = window.getSelection()
           if (selection?.anchorNode != null) {
+            log.debug(
+              'Anchor',
+              selection.anchorNode,
+              selection.anchorNode.parentNode,
+              selection.anchorNode.parentElement
+            )
             requestSuggestedForKeyboardEvent(
-              target,
+              selection.anchorNode,
               selection.anchorNode.parentElement,
-              selection.anchorNode.nodeValue
+              target
             )
           }
         }
