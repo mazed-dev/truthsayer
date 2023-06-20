@@ -202,7 +202,6 @@ function MiniFloater({
 
 export type ControlledPosition = {
   offset: Position2D
-  parentElement: Element | null
 }
 
 /**
@@ -212,7 +211,7 @@ const frameOpenFloaterPosition = (pos?: Position2D) => {
   const { x, y } = pos ?? { x: window.innerWidth - 328, y: 72 }
   return {
     x: Math.max(0, Math.min(x - 304, window.innerWidth - 328)),
-    y: Math.max(0, Math.min(y, window.innerHeight / 2)),
+    y: Math.max(42, Math.min(y, window.innerHeight / 5)),
   }
 }
 
@@ -223,7 +222,7 @@ const frameMinFloaterPosition = (pos?: Position2D) => {
   const { x, y } = pos ?? { x: window.innerWidth - 32, y: 72 }
   return {
     x: Math.max(0, Math.min(x, window.innerWidth - 24)),
-    y: Math.max(0, Math.min(y, window.innerHeight - 24)),
+    y: Math.max(72, Math.min(y, window.innerHeight - 32)),
   }
 }
 

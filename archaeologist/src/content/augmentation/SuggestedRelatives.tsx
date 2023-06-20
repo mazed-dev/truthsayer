@@ -31,28 +31,13 @@ export function getKeyPhraseFromUserInput(
  * Find offset of given element ralative to "BODY" or other root of the document
  */
 function getDocumentBodyOffset(element: HTMLElement): ControlledPosition {
-  let offsetTop: number = 0
-  let offsetHeight: number = element.offsetHeight
-  let offsetLeft: number = 0
-  let offsetWidth: number = element.offsetWidth
-  let offsetParent: HTMLElement | null = element
-  while (offsetParent != null) {
-    offsetTop += offsetParent.offsetTop
-    offsetLeft += offsetParent.offsetLeft
-    offsetParent = offsetParent.offsetParent as HTMLElement
-    if (
-      offsetParent == null ||
-      offsetParent.tagName === 'BODY' ||
-      offsetParent.tagName === 'HTML'
-    ) {
-      break
-    }
-  }
+  const rect = element.getBoundingClientRect()
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop
   return {
-    parentElement: offsetParent,
     offset: {
-      y: offsetTop + offsetHeight,
-      x: offsetLeft + offsetWidth,
+      x: rect.left + scrollLeft + element.offsetWidth,
+      y: rect.top + scrollTop + element.offsetHeight / 2,
     },
   }
 }
