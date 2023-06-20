@@ -288,7 +288,7 @@ export const SuggestionsFloater = ({
     setSettings(settings)
   }, [])
   const onDragStop = (_e: DraggableEvent, data: DraggableData) => {
-    // Ideally, opened floate shoul neve be dragged, if we calculated it's
+    // Ideally, opened floater should never be dragged, if we calculated it's
     // possition good enough in `frameOpenFloaterPosition`, measure it to test
     // the theory.
     analytics?.capture('Drag SuggestionsFloater', {
