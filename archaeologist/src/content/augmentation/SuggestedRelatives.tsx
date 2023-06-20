@@ -27,17 +27,39 @@ export function getKeyPhraseFromUserInput(
   return value ?? null
 }
 
+const kFormatTagNames = {
+  B: true,
+  DEL: true,
+  EM: true,
+  FONT: true,
+  I: true,
+  INS: true,
+  MARK: true,
+  SMALL: true,
+  SPAN: true,
+  STRONG: true,
+  SUB: true,
+  SUP: true,
+  A: true,
+}
+
 /**
  * Find offset of given element ralative to "BODY" or other root of the document
  */
-function getDocumentBodyOffset(element: HTMLElement): ControlledPosition {
+function calculateFloaterPosition(element: HTMLElement): ControlledPosition {
+  while (element.tagName in kFormatTagNames && element.parentElement != null) {
+    // Our goal is to rander floater near the paragraph that user is currenly
+    // editing. Formatting elements are very likely just a formatting elements
+    // inside the paragraph, so ignore them all.
+    element = element.parentElement
+  }
   const rect = element.getBoundingClientRect()
   const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop
   return {
     offset: {
       x: rect.left + scrollLeft + element.offsetWidth,
-      y: rect.top + scrollTop + element.offsetHeight / 2,
+      y: rect.top + scrollTop + element.offsetHeight - 10,
     },
   }
 }
@@ -46,7 +68,7 @@ function getLastEditedParagraph(
   target: HTMLElement,
   selectionAnchorElement: HTMLElement | null,
   selectionNodeValue: null | string
-): string | null {
+): { textContent: string; element: HTMLElement } | null {
   let element
   if (
     selectionAnchorElement != null &&
@@ -84,15 +106,21 @@ function getLastEditedParagraph(
   } else if (element?.innerHTML != null) {
     innerText = element?.innerText
   }
-  if (innerText && innerText.indexOf('\n') < 0) {
-    return innerText
+  if (innerText && innerText.indexOf('\n') < 0 && element != null) {
+    return { textContent: innerText, element }
   }
   // In rare cases all paragraphs of the edited text are all belongs to the same
   // HTML element, e.g DIV. Then innerText of such element would contain newline
   // characters. To extract edited paragraph we rely on bare text that we get
   // from window selection.
   // Editor example: Google Keep.
-  return selectionNodeValue
+  if (selectionNodeValue) {
+    return {
+      textContent: selectionNodeValue,
+      element: selectionAnchorElement ?? target,
+    }
+  }
+  return null
 }
 
 type SimilaritySearchInput = {
@@ -243,18 +271,20 @@ export function SuggestedRelatives({
           selectionAnchorElement: HTMLElement | null,
           selectionNodeValue: null | string
         ) => {
-          setControlledPosition(
-            getDocumentBodyOffset(selectionAnchorElement ?? target)
-          )
-          const phrase = getLastEditedParagraph(
+          const paragraph = getLastEditedParagraph(
             target,
             selectionAnchorElement,
             selectionNodeValue
           )
-          if (phrase != null) {
-            requestSuggestedAssociationsForPhrase(phrase).catch((reason) =>
-              log.error(`Failed to request suggestions: ${reason}`)
-            )
+          if (paragraph != null) {
+            const { textContent, element } = paragraph
+            setControlledPosition(calculateFloaterPosition(element))
+            if (textContent != null) {
+              requestSuggestedAssociationsForPhrase(textContent).catch(
+                (reason) =>
+                  log.error(`Failed to request suggestions: ${reason}`)
+              )
+            }
           }
         },
         997,
