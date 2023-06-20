@@ -1,20 +1,13 @@
 import * as tf from '@tensorflow/tfjs'
-import { tensor } from '@tensorflow/tfjs'
-import type { Tensor, Tensor2D } from '@tensorflow/tfjs'
 
-import * as use from '@tensorflow-models/universal-sentence-encoder'
+import * as tfuse from '@tensorflow-models/universal-sentence-encoder'
 
 import type { TfEmbeddingJson } from 'smuggler-api'
 import { range } from 'armoury'
 import lodash from 'lodash'
 
-export { KNNClassifier } from '@tensorflow-models/knn-classifier'
-
-export { tensor }
-export type { Tensor, Tensor2D }
-
-export type TfState = {
-  encoder: use.UniversalSentenceEncoder
+export type State = {
+  encoder: tfuse.UniversalSentenceEncoder
 }
 
 export type TfInitialisationConfig = {
@@ -26,11 +19,11 @@ export type TfInitialisationConfig = {
   vocabUrl: string
 }
 
-export async function createTfState({
+export async function createState({
   modelUrl,
   vocabUrl,
-}: TfInitialisationConfig): Promise<TfState> {
-  const encoder = await use.load({
+}: TfInitialisationConfig): Promise<State> {
+  const encoder = await tfuse.load({
     modelUrl,
     vocabUrl,
   })
@@ -53,8 +46,8 @@ export async function euclideanDistance(
 }
 
 export async function cosineDistance(
-  a: Tensor2D,
-  b: Tensor2D
+  a: tf.Tensor2D,
+  b: tf.Tensor2D
 ): Promise<number> {
   const aNorm = tf.norm(a)
   const bNorm = tf.norm(b)
@@ -66,14 +59,17 @@ export async function cosineDistance(
 }
 
 export async function tensor2dToJson(
-  tensor: Tensor2D
+  tensor: tf.Tensor2D
 ): Promise<TfEmbeddingJson> {
   const data = Array.from(await tensor.data())
   const shape = tensor.shape
   return { data, shape }
 }
 
-export function tensor2dFromJson({ data, shape }: TfEmbeddingJson): Tensor2D {
+export function tensor2dFromJson({
+  data,
+  shape,
+}: TfEmbeddingJson): tf.Tensor2D {
   return tf.tensor2d(data, shape)
 }
 

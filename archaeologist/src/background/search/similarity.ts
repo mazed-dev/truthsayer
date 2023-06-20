@@ -1,6 +1,6 @@
 import lodash from 'lodash'
 import browser from 'webextension-polyfill'
-import { tf, wink } from 'text-information-retrieval'
+import { tf, use, wink } from 'text-information-retrieval'
 import {
   Nid,
   NodeBlockKey,
@@ -28,10 +28,34 @@ import { log, errorise, AbortError, Timer } from 'armoury'
 import { backgroundpa, BackgroundPosthog } from '../productanalytics'
 import { CachedKnnClassifier } from './cachedKnnClassifier'
 
+// NOTE (label: 'conflicting-tensor2d-versions'):
+// Some locations in this file and others interact with different tfjs-related
+// packages, for example
+//    - '@tensorflow-models/knn-classifier'
+//    - '@tensorflow-models/universal-sentence-encoder'
+// They all tend to depend on '@tensorflow/tfjs' which contains the "core" of tfjs.
+// At the time of this writing they tend to use very different versions of the core
+// package though and when results of one package are passed to another, it can
+// result in errors like:
+//    Type 'import("@tensorflow/tfjs-core/dist/tensor").Tensor2D' is
+//    not assignable to type 'import("@tensorflow/tfjs-core/dist/tensor").Tensor2D'.
+//    Two different types with this name exist, but they are unrelated.
+//
+// At the time of writing, latest versions of packages in question:
+//    '@tensorflow-models/knn-classifier' uses '@tensorflow/tfjs-core' version 3.0.0
+//    '@tensorflow-models/universal-sentence-encoder' uses '@tensorflow/tfjs-core' version 3.6.0
+// while the rest of the code tries to use '@tensorflow/tfjs-core' 4.7.0
+//
+// Types are structuraly identical in all the versions, so there seems to be
+// no harm in suppressing the errors. A more robust solution would be welcome
+// though.
+//
+// END OF NOTE (label: 'conflicting-tensor2d-versions')
+
 const wink_ = wink.loadModel()
 
 type State = {
-  tfState: tf.TfState
+  useState: use.State
   fastIndex: FastIndex
 }
 
@@ -46,21 +70,22 @@ async function getState(
     if (_state != null) {
       return _state
     }
-    const tfState = await createTfState(analytics)
-    const sampleVector = await tfState.encoder.embed('the void')
+    const useState = await createUseState(analytics)
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
+    const sampleVector: tf.Tensor2D = await useState.encoder.embed('the void')
     const fastIndex = await createFastIndex(storage, analytics, sampleVector)
-    _state = { tfState, fastIndex }
+    _state = { useState, fastIndex }
     return _state
   })
 }
 
 const kNumberOfQuotesPerNodeLimit: number = 1
 
-async function createTfState(
+async function createUseState(
   analytics: BackgroundPosthog | null
-): Promise<tf.TfState> {
+): Promise<use.State> {
   const timer = new Timer()
-  const tfState = await tf.createTfState({
+  const ret = await use.createState({
     modelUrl: browser.runtime.getURL('models/use-model.json'),
     vocabUrl: browser.runtime.getURL('models/use-vocab.json'),
   })
@@ -70,7 +95,7 @@ async function createTfState(
     timer,
     { andLog: true }
   )
-  return tfState
+  return ret
 }
 
 /**
@@ -124,7 +149,7 @@ async function createFastIndex(
   // TODO[snikitin@outlook.com] Is it a problem that `dimensions` may differ
   // between what was used for projections stored in the cache vs what
   // got generated on a particular time getFastIndex() got called?
-  const dimensions = tf.sampleDimensions(sampleVector, kProjectionSize)
+  const dimensions = use.sampleDimensions(sampleVector, kProjectionSize)
   const knn = await CachedKnnClassifier.create(
     browser.storage.local,
     NodeSimilaritySearchSignatureLatest
@@ -148,8 +173,8 @@ async function createFastIndex(
       }
       try {
         const embeddingJson = forBlocks[blockKeyStr]
-        const projection = await tf.projectVector(
-          tf.tensor2dFromJson(embeddingJson),
+        const projection = await use.projectVector(
+          use.tensor2dFromJson(embeddingJson),
           dimensions
         )
         await knn.addExample(projection, label)
@@ -181,8 +206,8 @@ async function updateNodeFastIndex(
   const dimensions = fastIndex.dimensions
   for (const blockKeyStr in forBlocks) {
     const embeddingJson = forBlocks[blockKeyStr]
-    const projection = await tf.projectVector(
-      tf.tensor2dFromJson(embeddingJson),
+    const projection = await use.projectVector(
+      use.tensor2dFromJson(embeddingJson),
       dimensions
     )
     const label = serializeFastProjectionKey({ nid, blockKeyStr })
@@ -331,9 +356,10 @@ async function findRelevantNodesUsingSimilaritySearch(
   cancellationToken: CancellationToken,
   analytics: BackgroundPosthog | null
 ): Promise<SimilaritySearchResultsInContext> {
-  const { tfState, fastIndex } = await getState(storage, analytics)
+  const { useState, fastIndex } = await getState(storage, analytics)
   let timer = new Timer()
-  const phraseEmbedding = await tfState.encoder.embed(phrase)
+  // @ts-ignore, see 'conflicting-tensor2d-versions' note
+  const phraseEmbedding: tf.Tensor2D = await useState.encoder.embed(phrase)
   backgroundpa.performance(
     analytics,
     { action: 'similarity: calculate phrase embedding' },
@@ -343,7 +369,7 @@ async function findRelevantNodesUsingSimilaritySearch(
   throwIfCancelled(cancellationToken)
   timer = new Timer()
   throwIfCancelled(cancellationToken)
-  const phraseEmbeddingProjected = await tf.projectVector(
+  const phraseEmbeddingProjected = await use.projectVector(
     phraseEmbedding,
     fastIndex.dimensions
   )
@@ -406,8 +432,8 @@ async function findRelevantNodesUsingSimilaritySearch(
       if (embeddingJson == null) {
         log.error(`No such embedding for a node ${nid} and key ${blockKeyStr}`)
       }
-      const embedding = tf.tensor2dFromJson(embeddingJson)
-      const score = await tf.euclideanDistance(embedding, phraseEmbedding)
+      const embedding = use.tensor2dFromJson(embeddingJson)
+      const score = await use.euclideanDistance(embedding, phraseEmbedding)
       if (score < kSimilarityEuclideanDistanceThreshold) {
         let other = rawSimilarityResults.get(nid)
         if (other == null) {
@@ -577,32 +603,36 @@ async function updateNodeIndex(
   fastIndex: FastIndex,
   nid: Nid,
   patch: NodeEventPatch,
-  tfState: tf.TfState,
+  useState: use.State,
   updateType: 'created' | 'updated'
 ): Promise<void> {
   const { plaintext, textContentBlocks, coment, extQuote, attrs } =
     getNodePatchAsString(patch)
   const forBlocks: Record<string, TfEmbeddingJson> = {}
   {
-    const embedding = await tfState.encoder.embed(plaintext)
-    forBlocks[nodeBlockKeyToString({ field: '*' })] = await tf.tensor2dToJson(
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
+    const embedding: tf.Tensor2D = await useState.encoder.embed(plaintext)
+    forBlocks[nodeBlockKeyToString({ field: '*' })] = await use.tensor2dToJson(
       embedding
     )
   }
   if (coment) {
-    const embedding = await tfState.encoder.embed(coment)
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
+    const embedding: tf.Tensor2D = await useState.encoder.embed(coment)
     forBlocks[nodeBlockKeyToString({ field: 'text' })] =
-      await tf.tensor2dToJson(embedding)
+      await use.tensor2dToJson(embedding)
   }
   if (extQuote) {
-    const embedding = await tfState.encoder.embed(extQuote)
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
+    const embedding: tf.Tensor2D = await useState.encoder.embed(extQuote)
     forBlocks[nodeBlockKeyToString({ field: 'web-quote' })] =
-      await tf.tensor2dToJson(embedding)
+      await use.tensor2dToJson(embedding)
   }
   if (attrs) {
-    const embedding = await tfState.encoder.embed(attrs)
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
+    const embedding: tf.Tensor2D = await useState.encoder.embed(attrs)
     forBlocks[nodeBlockKeyToString({ field: 'attrs' })] =
-      await tf.tensor2dToJson(embedding)
+      await use.tensor2dToJson(embedding)
   }
   for (let index = 0; index < textContentBlocks.length; ++index) {
     const { text } = textContentBlocks[index]
@@ -618,9 +648,10 @@ async function updateNodeIndex(
         continue
       }
     }
-    const embedding = await tfState.encoder.embed(text)
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
+    const embedding: tf.Tensor2D = await useState.encoder.embed(text)
     const blockKeyStr = nodeBlockKeyToString({ field: 'web-text', index })
-    forBlocks[blockKeyStr] = await tf.tensor2dToJson(embedding)
+    forBlocks[blockKeyStr] = await use.tensor2dToJson(embedding)
   }
   const simsearch = createNodeSimilaritySearchInfoLatest({ forBlocks })
   await updateNodeFastIndex(fastIndex, nid, simsearch, updateType)
@@ -633,12 +664,12 @@ function createNodeEventListener(
 ): NodeEventListener {
   return async (type: NodeEventType, nid: Nid, patch: NodeEventPatch) => {
     try {
-      const { tfState, fastIndex } = await getState(storage, analytics)
+      const { useState, fastIndex } = await getState(storage, analytics)
       const timer = new Timer()
       switch (type) {
         case 'created':
         case 'updated': {
-          await updateNodeIndex(storage, fastIndex, nid, patch, tfState, type)
+          await updateNodeIndex(storage, fastIndex, nid, patch, useState, type)
           break
         }
         case 'deleted': {
@@ -670,7 +701,7 @@ async function ensurePerNodeSimSearchIndexIntegrity(
   storage: StorageApi,
   analytics: BackgroundPosthog | null
 ): Promise<void> {
-  const { tfState, fastIndex } = await getState(storage, analytics)
+  const { useState, fastIndex } = await getState(storage, analytics)
   const allNids = await storage.node.getAllNids({})
   for (let ind = 0; ind < allNids.length; ++ind) {
     const nid = allNids[ind]
@@ -692,7 +723,7 @@ async function ensurePerNodeSimSearchIndexIntegrity(
           fastIndex,
           nid,
           { ...node },
-          tfState,
+          useState,
           'updated'
         )
         backgroundpa.performance(
