@@ -303,7 +303,7 @@ async function handleMessageFromPopup(
       await badge.setActive(true)
       return {
         type: 'APP_STATUS_RESPONSE',
-        userUid: ctx.account.getUid(),
+        userUid: ctx.account?.getUid(),
         analyticsIdentity: await backgroundpa.getIdentity(
           browser.storage.local
         ),
@@ -353,7 +353,7 @@ type BackgroundContext = {
   similarity: {
     cancelPreviousSearch?: (reason?: string) => void
   }
-  account: UserAccount
+  account?: UserAccount
 }
 
 /**
@@ -395,75 +395,65 @@ class Background {
    * turn this means the constructor has to become async itself.
    */
   private async ctor() {
-    log.debug(`Background one-time pre-init started`)
+    log.debug(`Background init started`)
+    this.state = { phase: 'loading' }
+    const timer = new Timer()
+    try {
+      const analyticsIdentity = await backgroundpa.getIdentity(
+        browser.storage.local
+      )
+      // Product analytics should be initialised ASAP because
+      // other initialisation stages may require access to feature flags
+      const analytics = await backgroundpa.make(analyticsIdentity)
 
-    const analyticsIdentity = await backgroundpa.getIdentity(
-      browser.storage.local
-    )
-    // Product analytics should be initialised ASAP because
-    // other initialisation stages may require access to feature flags
-    const analytics = await backgroundpa.make(analyticsIdentity)
+      const storage = makeStorageApi('browser_ext', analytics)
 
-    const storage = makeStorageApi('browser_ext', analytics)
-    auth.observe({
-      onLogin: async (account: UserAccount) => {
-        const timer = new Timer()
-        if (this.state.phase !== 'not-init') {
-          throw new FromBackground.IncompatibleInitPhase({
-            expected: 'not-init',
-            actual: this.state.phase,
-          })
-        }
-        this.state = { phase: 'loading' }
-        try {
-          log.debug(`Background init started`)
-          const ctx: BackgroundContext = {
-            storage,
-            analytics,
-            similarity: {},
-            account,
+      const ctx: BackgroundContext = {
+        storage,
+        analytics,
+        similarity: {},
+      }
+      const context = await this.init(ctx, analyticsIdentity)
+      auth.observe({
+        onLogin: async (account: UserAccount) => {
+          if (this.state.phase !== 'init-done') {
+            throw new FromBackground.IncompatibleInitPhase({
+              expected: 'init-done',
+              actual: this.state.phase,
+            })
           }
-          const context = await this.init(ctx, analyticsIdentity)
-          this.state = { phase: 'init-done', context }
-          log.debug('Background init done', timer.elapsedSecondsPretty())
-        } catch (initFailureReason) {
-          log.error(
-            `Background init failed: ${errorise(initFailureReason).message}`
-          )
-          try {
-            await this.deinit()
-          } catch (deinitFailureReason) {
-            log.error(
-              `Background init failed: ${
-                errorise(initFailureReason).message
-              }\n` +
-                `Also failed to revert the partially complete init: ${
-                  errorise(deinitFailureReason).message
-                }`
+          this.state.context.account = account
+        },
+        onLogout: async () => {
+          if (this.state.phase !== 'init-done') {
+            log.debug(
+              `Attempted to deinit background, but its state is already '${this.state.phase}'`
             )
+            return
           }
-          this.state = { phase: 'not-init' }
-        }
-      },
-      onLogout: async () => {
-        if (
-          this.state.phase === 'not-init' ||
-          this.state.phase === 'unloading'
-        ) {
-          log.debug(
-            `Attempted to deinit background, but its state is already '${this.state.phase}'`
-          )
-          return
-        }
-        log.debug(`Background deinit started`)
-        this.state = { phase: 'unloading' }
+          log.debug(`Background deinit started`)
+          this.state.context.account = undefined
+        },
+      })
+      await auth.register(storage, analytics)
+      this.state = { phase: 'init-done', context }
+      log.debug('Background init done', timer.elapsedSecondsPretty())
+    } catch (initFailureReason) {
+      log.error(
+        `Background init failed: ${errorise(initFailureReason).message}`
+      )
+      try {
         await this.deinit()
-        this.state = { phase: 'not-init' }
-        log.debug(`Background deinit ended`)
-      },
-    })
-    await auth.register(storage, analytics)
-    log.debug(`Background one-time pre-init ended`)
+      } catch (deinitFailureReason) {
+        log.error(
+          `Background init failed: ${errorise(initFailureReason).message}\n` +
+            `Also failed to revert the partially complete init: ${
+              errorise(deinitFailureReason).message
+            }`
+        )
+      }
+      this.state = { phase: 'not-init' }
+    }
   }
 
   private async init(
@@ -683,7 +673,7 @@ class Background {
       case 'REQUEST_APP_STATUS': {
         const userUid =
           this.state.phase === 'init-done'
-            ? this.state.context.account.getUid()
+            ? this.state.context.account?.getUid()
             : undefined
         await badge.setActive(userUid != null)
         return {

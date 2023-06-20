@@ -1,12 +1,13 @@
 import React from 'react'
 import styled from '@emotion/styled'
 
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import { ButtonGroup, Dropdown, Navbar } from 'react-bootstrap'
 
-import { compass } from './../lib/route'
-import { jcss, MdiAccountCircle, kCardBorder, ForewordName } from 'elementary'
+import { UserAccount } from 'smuggler-api'
+
+import { MdiAccountCircle, kCardBorder, ForewordName } from 'elementary'
 import { getLogoImage } from './../util/env'
 import { SearchForm } from './SearchForm'
 import { TruthsayerPath } from './../lib/route'
@@ -42,44 +43,70 @@ const DropdownItemLink = ({
   )
 }
 
-const PrivateNavButtons = () => {
-  const location = useLocation()
-  let { query } = compass.search.get({ location })
-  if (Array.isArray(query)) {
-    query = query.join(' ')
+const AccountDropdownToggle = styled(Dropdown.Toggle)`
+  background-color: #ffffff;
+
+  border-style: solid;
+  border-width: 0px;
+  border-radius: 56px;
+
+  padding-top: 8px;
+  padding-right: 4px;
+  padding-left: 4px;
+  padding-bottom: 4px;
+
+  margin-right: 0.2rem;
+
+  &:hover {
+    opacity: 1;
+    background-color: #d0d1d2;
   }
+  &:after {
+    display: none !important;
+  }
+  &:before {
+    display: none !important;
+  }
+`
+
+const NavButtons = ({
+  isLikelyAuthorised,
+  account,
+}: {
+  isLikelyAuthorised: boolean
+  account?: UserAccount
+}) => {
+  const username = account?.getName()
   const userpic = <UserBadge />
   return (
-    <>
-      <SearchForm from={query} className={styles.search_form} />
+    <Dropdown as={ButtonGroup} navbar drop="start">
+      <AccountDropdownToggle variant="light">
+        {username}
+        {userpic}
+      </AccountDropdownToggle>
 
-      <Dropdown as={ButtonGroup} navbar drop="start">
-        <Dropdown.Toggle
-          variant="light"
-          className={jcss(styles.account_dropdown_toggle)}
-        >
-          {userpic}
-        </Dropdown.Toggle>
-
-        <Dropdown.Menu>
-          <DropdownItemLink to={'/settings'}>Settings</DropdownItemLink>
-          <DropdownItemLink to={'/apps-to-install'}>Apps</DropdownItemLink>
-          <DropdownItemLink to={'/external-import'}>Import</DropdownItemLink>
-          <DropdownItemLink to={'/export'}>Export</DropdownItemLink>
-          <Dropdown.Divider />
-          <DropdownItemLink to={'/faq'}>FAQs</DropdownItemLink>
-          <DropdownItemLink to={'/about'}>About</DropdownItemLink>
-          <DropdownItemLink to={'/privacy-policy'}>
-            Privacy Policy
-          </DropdownItemLink>
-          <DropdownItemLink to={'/terms-of-service'}>
-            Terms of Service
-          </DropdownItemLink>
-          <Dropdown.Divider />
+      <Dropdown.Menu>
+        <DropdownItemLink to={'/settings'}>Settings</DropdownItemLink>
+        <DropdownItemLink to={'/apps-to-install'}>Apps</DropdownItemLink>
+        <DropdownItemLink to={'/external-import'}>Import</DropdownItemLink>
+        <DropdownItemLink to={'/export'}>Export</DropdownItemLink>
+        <Dropdown.Divider />
+        <DropdownItemLink to={'/faq'}>FAQs</DropdownItemLink>
+        <DropdownItemLink to={'/about'}>About</DropdownItemLink>
+        <DropdownItemLink to={'/privacy-policy'}>
+          Privacy Policy
+        </DropdownItemLink>
+        <DropdownItemLink to={'/terms-of-service'}>
+          Terms of Service
+        </DropdownItemLink>
+        <Dropdown.Divider />
+        {isLikelyAuthorised ? (
           <DropdownItemLink to={'/logout'}>Log out</DropdownItemLink>
-        </Dropdown.Menu>
-      </Dropdown>
-    </>
+        ) : (
+          <DropdownItemLink to={'/login'}>Log In</DropdownItemLink>
+        )}
+      </Dropdown.Menu>
+    </Dropdown>
   )
 }
 
@@ -102,26 +129,42 @@ const NavbarBrandName = styled(ForewordName)`
   margin: 0 8px 0 10px;
 `
 const NavbarBrandLogo = styled.img`
+  margin-top: auto;
+  margin-bottom: auto;
+  margin-left: 2px;
+  margin-right: 6px;
+
   width: 30px;
   height: 30px;
   margin-right: 12px;
 `
 
-export function GlobalNavBar() {
+const NavbarFiller = styled.div`
+  margin-bottom: 3.4rem;
+  width: 100%;
+`
+
+export function GlobalNavBar({
+  isLikelyAuthorised,
+  account,
+}: {
+  isLikelyAuthorised: boolean
+  account?: UserAccount
+}) {
   return (
     <>
-      <CustomNavbar fixed="top" className={styles.navbar}>
+      <CustomNavbar fixed="top">
         <NavbarBrand as={Link} to="/">
           <NavbarBrandLogo
             src={getLogoImage()}
             alt={'Foreword logo'}
-            className={styles.logo_image}
           />
           <NavbarBrandName />
         </NavbarBrand>
-        <PrivateNavButtons />
+        <SearchForm />
+        <NavButtons isLikelyAuthorised={isLikelyAuthorised} account={account} />
       </CustomNavbar>
-      <div className={styles.navbar_filler} />
+      <NavbarFiller />
     </>
   )
 }

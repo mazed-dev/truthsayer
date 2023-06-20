@@ -259,7 +259,7 @@ export namespace ToContent {
     type: 'INIT_CONTENT_AUGMENTATION_REQUEST'
     mode: ContentAppOperationMode
     nodeEnv: NodeEnv
-    userUid: string
+    userUid?: string
     fromNodes: TNodeJson[]
     toNodes: TNodeJson[]
     bookmark?: TNodeJson

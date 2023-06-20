@@ -3,9 +3,6 @@
 import React from 'react'
 
 import styled from '@emotion/styled'
-import { authCookie } from 'smuggler-api'
-
-import { PublicPageNavbar } from './PublicPageNavbar'
 
 const Box = styled.div`
   height: 100vh;
@@ -16,11 +13,5 @@ const Box = styled.div`
 `
 
 export function PublicPage({ children }: React.PropsWithChildren<{}>) {
-  const authorisationLikelyComplete = authCookie.veil.check()
-  return (
-    <Box>
-      {authorisationLikelyComplete ? null : <PublicPageNavbar />}
-      {children}
-    </Box>
-  )
+  return <Box>{children}</Box>
 }

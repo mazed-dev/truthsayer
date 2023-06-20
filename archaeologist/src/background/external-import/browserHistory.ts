@@ -62,7 +62,7 @@ export namespace BrowserHistoryUpload {
 
   export async function upload(
     storage: StorageApi,
-    account: UserAccount,
+    account: UserAccount | undefined,
     mode: BrowserHistoryUploadMode,
     onProgress: (progress: BackgroundActionProgress) => Promise<void>
   ) {
@@ -276,7 +276,7 @@ export namespace BrowserHistoryUpload {
 
   async function getPageContentViaTemporaryTab(
     storage: StorageApi,
-    account: UserAccount,
+    account: UserAccount | undefined,
     windowId: number,
     url: string
   ): Promise<
