@@ -298,7 +298,7 @@ type KnnTensor = Parameters<KNNClassifier['addExample']>[0]
 export class CachedKnnClassifier implements KnnClassifierInterface {
   private impl: KNNClassifier
   private store: YekLavStore
-  private static readonly INTERNAL_VERSION: number = 1
+  private static readonly INTERNAL_VERSION: number = 2
 
   /**
    * @param expectedCacheSignature A string which identifies the "version"
