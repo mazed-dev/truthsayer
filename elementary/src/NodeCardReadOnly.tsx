@@ -3,7 +3,7 @@ import { useAsyncEffect } from 'use-async-effect'
 import styled from '@emotion/styled'
 
 import type { TNode } from 'smuggler-api'
-import { log, productanalytics } from 'armoury'
+import { productanalytics } from 'armoury'
 import { NodeTextReader } from './editor/NodeTextReader'
 import { Spinner } from './spinner/mod'
 import { NodeMedia } from './media/NodeMedia'
