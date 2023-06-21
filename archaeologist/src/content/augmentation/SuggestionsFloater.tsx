@@ -65,7 +65,7 @@ const DraggableElement = styled.div`
 const Header = styled.div`
   display: flex;
   flex-direction: row;
-  justify-content: flex-end;
+  justify-content: flex-start;
   ${DraggableCursorStyles}
 `
 const Footter = styled.div`
@@ -202,7 +202,6 @@ function MiniFloater({
 
 export type ControlledPosition = {
   offset: Position2D
-  parentElement: Element | null
 }
 
 /**
@@ -211,8 +210,8 @@ export type ControlledPosition = {
 const frameOpenFloaterPosition = (pos?: Position2D) => {
   const { x, y } = pos ?? { x: window.innerWidth - 328, y: 72 }
   return {
-    x: Math.max(0, Math.min(x - 304, window.innerWidth - 328)),
-    y: Math.max(0, Math.min(y, window.innerHeight / 2)),
+    x: Math.max(0, Math.min(x, window.innerWidth - 328)),
+    y: Math.max(42, Math.min(y, window.innerHeight / 6)),
   }
 }
 
@@ -223,7 +222,7 @@ const frameMinFloaterPosition = (pos?: Position2D) => {
   const { x, y } = pos ?? { x: window.innerWidth - 32, y: 72 }
   return {
     x: Math.max(0, Math.min(x, window.innerWidth - 24)),
-    y: Math.max(0, Math.min(y, window.innerHeight - 24)),
+    y: Math.max(72, Math.min(y, window.innerHeight - 32)),
   }
 }
 
