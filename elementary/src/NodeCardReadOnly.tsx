@@ -30,8 +30,7 @@ export function NodeCardReadOnly({
   webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
 }) {
   return (
-    <NodeCardBox className={productanalytics.classExclude(className)}
-    >
+    <NodeCardBox className={productanalytics.classExclude(className)}>
       <NodeMedia
         ctx={ctx}
         className={''}
