@@ -150,8 +150,8 @@ async function createFastIndex(
   // TODO[snikitin@outlook.com] Is it a problem that `dimensions` may differ
   // between what was used for projections stored in the cache vs what
   // got generated on a particular time getFastIndex() got called?
-  // TODO[Alexander]: Yes, it's a problem, dimensions of all vectors are meant
-  // to excactly the same. To hot fix it right now, I use a fixed vectors of
+  // TODO[Alexander]: It's a problem, dimensions of all vectors are meant to be
+  // excactly the same. To hot fix it right now, I use a fixed vectors of
   // dimensions, but some time later we'd need to select them randomly for every
   // user with `use.sampleDimensions` function.
   const dimensions = kProjectionDimensions

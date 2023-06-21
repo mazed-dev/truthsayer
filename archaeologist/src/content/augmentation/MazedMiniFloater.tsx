@@ -70,7 +70,7 @@ export const MazedMiniFloater = ({
 }) => {
   if (text == null) {
     return (
-      <HoverTooltip tooltip="Foreword" placement="bottom-left">
+      <HoverTooltip tooltip="Foreword" placement="top-left">
         <Box onClick={onClick} notify={false}>
           <Logo />
         </Box>
@@ -80,7 +80,7 @@ export const MazedMiniFloater = ({
     return (
       <HoverTooltip
         tooltip="Relavant memories from Foreword"
-        placement="bottom-left"
+        placement="top-left"
       >
         <Box onClick={onClick} notify={true}>
           <BadgeText>

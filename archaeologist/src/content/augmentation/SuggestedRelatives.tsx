@@ -27,42 +27,46 @@ export function getKeyPhraseFromUserInput(
   return value ?? null
 }
 
+const kSubParagraphTagNames = {
+  B: true,
+  DEL: true,
+  EM: true,
+  FONT: true,
+  I: true,
+  INS: true,
+  MARK: true,
+  SMALL: true,
+  SPAN: true,
+  STRONG: true,
+  SUB: true,
+  SUP: true,
+  A: true,
+}
+
 /**
  * Find offset of given element ralative to "BODY" or other root of the document
  */
-function getDocumentBodyOffset(element: HTMLElement): ControlledPosition {
-  let offsetTop: number = 0
-  let offsetHeight: number = element.offsetHeight
-  let offsetLeft: number = 0
-  let offsetWidth: number = element.offsetWidth
-  let offsetParent: HTMLElement | null = element
-  while (offsetParent != null) {
-    offsetTop += offsetParent.offsetTop
-    offsetLeft += offsetParent.offsetLeft
-    offsetParent = offsetParent.offsetParent as HTMLElement
-    if (
-      offsetParent == null ||
-      offsetParent.tagName === 'BODY' ||
-      offsetParent.tagName === 'HTML'
-    ) {
-      break
-    }
-  }
+function calculateFloaterPosition(element: HTMLElement): ControlledPosition {
+  const rect = element.getBoundingClientRect()
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop
   return {
-    parentElement: offsetParent,
     offset: {
-      y: offsetTop + offsetHeight,
-      x: offsetLeft + offsetWidth,
+      x: rect.left + scrollLeft + element.offsetWidth,
+      y: rect.top + scrollTop + element.offsetHeight - 10,
     },
   }
 }
 
 function getLastEditedParagraph(
-  target: HTMLElement,
+  selectionAnchorNode: Node,
   selectionAnchorElement: HTMLElement | null,
-  selectionNodeValue: null | string
-): string | null {
-  let element
+  target: HTMLElement
+): {
+  textContent: string
+  element: HTMLElement
+} {
+  let element: HTMLElement
   if (
     selectionAnchorElement != null &&
     target.contains(selectionAnchorElement)
@@ -71,43 +75,29 @@ function getLastEditedParagraph(
   } else {
     element = target
   }
-  let previousElement = element
-  while (element != null) {
-    if (
-      element?.nodeName === 'P' ||
-      target.isSameNode(element) ||
-      element?.nodeName === 'TEXTAREA' ||
-      element?.nodeName === 'INPUT'
-    ) {
-      break
-    }
-    if (element.innerText.indexOf('\n') >= 0) {
-      // If we are at the point where element.innerText has newline, just
-      // take the previous element, assuming it was the paragraph we are
-      // looking for.
-      element = previousElement
-      break
-    }
-    previousElement = element
+  while (
+    element.nodeName in kSubParagraphTagNames &&
+    element.parentElement != null
+  ) {
     element = element.parentElement
   }
-  let innerText: string | null = null
-  if (element != null && element.nodeName === 'TEXTAREA') {
-    innerText = (element as HTMLTextAreaElement).value
-  } else if (element != null && element.nodeName === 'INPUT') {
-    innerText = (element as HTMLInputElement).value
-  } else if (element?.innerHTML != null) {
-    innerText = element?.innerText
+  if (
+    element instanceof HTMLInputElement ||
+    element instanceof HTMLTextAreaElement
+  ) {
+    log.debug('Paragraph 1', element)
+    return { textContent: element.value, element }
   }
-  if (innerText && innerText.indexOf('\n') < 0) {
-    return innerText
+  if (
+    element.innerText.indexOf('\n') >= 0 &&
+    selectionAnchorNode.nodeValue != null
+  ) {
+    return {
+      textContent: selectionAnchorNode.nodeValue,
+      element, // FIXME(Alexander): selectionAnchorElement ?? target,
+    }
   }
-  // In rare cases all paragraphs of the edited text are all belongs to the same
-  // HTML element, e.g DIV. Then innerText of such element would contain newline
-  // characters. To extract edited paragraph we rely on bare text that we get
-  // from window selection.
-  // Editor example: Google Keep.
-  return selectionNodeValue
+  return { textContent: element.textContent ?? element.innerText, element }
 }
 
 type SimilaritySearchInput = {
@@ -254,20 +244,18 @@ export function SuggestedRelatives({
     () =>
       lodash.debounce(
         (
-          target: HTMLElement,
+          selectionAnchorNode: Node,
           selectionAnchorElement: HTMLElement | null,
-          selectionNodeValue: null | string
+          target: HTMLElement
         ) => {
-          setControlledPosition(
-            getDocumentBodyOffset(selectionAnchorElement ?? target)
-          )
-          const phrase = getLastEditedParagraph(
-            target,
+          const { textContent, element } = getLastEditedParagraph(
+            selectionAnchorNode,
             selectionAnchorElement,
-            selectionNodeValue
+            target
           )
-          if (phrase != null) {
-            requestSuggestedAssociationsForPhrase(phrase).catch((reason) =>
+          setControlledPosition(calculateFloaterPosition(element))
+          if (textContent != null) {
+            requestSuggestedAssociationsForPhrase(textContent).catch((reason) =>
               log.error(`Failed to request suggestions: ${reason}`)
             )
           }
@@ -302,10 +290,16 @@ export function SuggestedRelatives({
         if (target.isContentEditable || target.tagName === 'TEXTAREA') {
           const selection = window.getSelection()
           if (selection?.anchorNode != null) {
+            log.debug(
+              'Anchor',
+              selection.anchorNode,
+              selection.anchorNode.parentNode,
+              selection.anchorNode.parentElement
+            )
             requestSuggestedForKeyboardEvent(
-              target,
+              selection.anchorNode,
               selection.anchorNode.parentElement,
-              selection.anchorNode.nodeValue
+              target
             )
           }
         }
