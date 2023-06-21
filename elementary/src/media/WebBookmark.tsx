@@ -272,19 +272,46 @@ const ContextBlock = ({
   switch (block.type) {
     case 'P':
       return (
-        <ContextBlockParagraphBox className={className}>
+        <ContextBlockParagraphBox className={className} 
+          onCopy={(event: React.ClipboardEvent) => {
+            const selection = document.getSelection();
+            log.debug(event, selection)
+            if (selection != null) {
+              event.clipboardData.setData("text/plain", selection.toString());
+              event.preventDefault();
+            }
+          }}
+        >
           {block.text}
         </ContextBlockParagraphBox>
       )
     case 'H':
       return (
-        <ContextBlockHeaderBox className={className}>
+        <ContextBlockHeaderBox className={className}
+          onCopy={(event: React.ClipboardEvent) => {
+            const selection = document.getSelection();
+            log.debug(event, selection)
+            if (selection != null) {
+              event.clipboardData.setData("text/plain", selection.toString());
+              event.preventDefault();
+            }
+          }}
+        >
           {block.text}
         </ContextBlockHeaderBox>
       )
     case 'LI':
       return (
-        <ContextBlockListItemBox className={className}>
+        <ContextBlockListItemBox className={className}
+          onCopy={(event: React.ClipboardEvent) => {
+            const selection = document.getSelection();
+            log.debug(event, selection)
+            if (selection != null) {
+              event.clipboardData.setData("text/plain", selection.toString());
+              event.preventDefault();
+            }
+          }}
+        >
           {block.text}
         </ContextBlockListItemBox>
       )
@@ -332,7 +359,8 @@ const BookmarkMatchDescription = ({
       text: truncatePretty(matchedBlock.text, 280),
     }
     return (
-      <DirectQuote className={productanalytics.classExclude()}>
+      <DirectQuote className={productanalytics.classExclude()}
+      >
         <div>
           <ContextBlock
             block={truncated}
@@ -355,7 +383,8 @@ const BookmarkMatchDescription = ({
       suffix = undefined
     }
     return (
-      <DirectQuote className={productanalytics.classExclude()}>
+      <DirectQuote className={productanalytics.classExclude()}
+      >
         <div>
           <ContextBlock block={prefix} css={ContextBlockFirstStyles} />
           <MatchedContentBlock block={matchedBlock} />

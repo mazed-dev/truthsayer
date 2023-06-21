@@ -3,7 +3,7 @@ import { useAsyncEffect } from 'use-async-effect'
 import styled from '@emotion/styled'
 
 import type { TNode } from 'smuggler-api'
-import { productanalytics } from 'armoury'
+import { log, productanalytics } from 'armoury'
 import { NodeTextReader } from './editor/NodeTextReader'
 import { Spinner } from './spinner/mod'
 import { NodeMedia } from './media/NodeMedia'
@@ -30,7 +30,8 @@ export function NodeCardReadOnly({
   webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
 }) {
   return (
-    <NodeCardBox className={productanalytics.classExclude(className)}>
+    <NodeCardBox className={productanalytics.classExclude(className)}
+    >
       <NodeMedia
         ctx={ctx}
         className={''}
