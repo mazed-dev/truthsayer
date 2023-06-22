@@ -329,9 +329,9 @@ const BookmarkMatchDescription = ({
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
   const onCopyHandler = React.useCallback(
     (event: React.ClipboardEvent) => {
-      ctx.analytics?.capture('Copy from floater', {
+      ctx.analytics?.capture('DirectQuote:copy', {
         'Event type': 'copy',
-        copyFrom: 'direct-quote',
+        text: 'direct-quote',
         seeMore,
         defaultPrevented: event.defaultPrevented,
         cancelable: event.cancelable,
