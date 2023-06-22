@@ -27,6 +27,7 @@ import { Mutex } from 'async-mutex'
 import { log, errorise, AbortError, Timer } from 'armoury'
 import { backgroundpa, BackgroundPosthog } from '../productanalytics'
 import { CachedKnnClassifier } from './cachedKnnClassifier'
+import { AsyncKnnClassifier } from './asyncKnnClassifier'
 
 // NOTE (label: 'conflicting-tensor2d-versions'):
 // Some locations in this file and others interact with different tfjs-related
@@ -178,11 +179,8 @@ async function createFastIndex(
       }
       try {
         const embeddingJson = forBlocks[blockKeyStr]
-        const projection = await use.projectVector(
-          use.tensor2dFromJson(embeddingJson),
-          dimensions
-        )
-        await knn.addExample(projection, label)
+        const projection = await use.projectVector(embeddingJson, dimensions)
+        await knn.addExample(use.tensor2dFromJson(projection), label)
       } catch (err) {
         log.warning(
           `Adding example to KNN failed for label ${label}, error: ${
@@ -211,10 +209,7 @@ async function updateNodeFastIndex(
   const dimensions = fastIndex.dimensions
   for (const blockKeyStr in forBlocks) {
     const embeddingJson = forBlocks[blockKeyStr]
-    const projection = await use.projectVector(
-      use.tensor2dFromJson(embeddingJson),
-      dimensions
-    )
+    const projection = await use.projectVector(embeddingJson, dimensions)
     const label = serializeFastProjectionKey({ nid, blockKeyStr })
     if (updateType === 'updated') {
       try {
@@ -223,7 +218,7 @@ async function updateNodeFastIndex(
         log.debug('Removing outdated projections from KNN failed with', err)
       }
     }
-    await fastIndex.knn.addExample(projection, label)
+    await fastIndex.knn.addExample(use.tensor2dFromJson(projection), label)
   }
 }
 
@@ -362,65 +357,140 @@ async function findRelevantNodesUsingSimilaritySearch(
   analytics: BackgroundPosthog | null
 ): Promise<SimilaritySearchResultsInContext> {
   const { useState, fastIndex } = await getState(storage, analytics)
-  let timer = new Timer()
-  // @ts-ignore, see 'conflicting-tensor2d-versions' note
-  const phraseEmbedding: tf.Tensor2D = await useState.encoder.embed(phrase)
-  backgroundpa.performance(
-    analytics,
-    { action: 'similarity: calculate phrase embedding' },
-    timer,
-    { andLog: true }
-  )
-  throwIfCancelled(cancellationToken)
-  timer = new Timer()
-  throwIfCancelled(cancellationToken)
-  const phraseEmbeddingProjected = await use.projectVector(
-    phraseEmbedding,
-    fastIndex.dimensions
-  )
-  const fastKnnResults = await fastIndex.knn.predictClass(
+  const timer = new Timer()
+
+  let phraseEmbedding: tf.Tensor2D | null = null
+  let phraseEmbeddingProjected: tf.Tensor2D | null = null
+  try {
+    // @ts-ignore, see 'conflicting-tensor2d-versions' note
+    phraseEmbedding = await useState.encoder.embed(phrase)
+    phraseEmbeddingProjected = use.tensor2dFromJson(
+      await use.projectVector(
+        await use.tensor2dToJson(phraseEmbedding),
+        fastIndex.dimensions
+      )
+    )
+    throwIfCancelled(cancellationToken)
+    backgroundpa.performance(
+      analytics,
+      { action: 'similarity: calculate phrase embedding' },
+      timer,
+      { andLog: true }
+    )
+
+    const relevantNodes = await findRelevantNodesBasedOnEmbeddingDistance(
+      storage,
+      fastIndex,
+      phraseEmbedding,
+      phraseEmbeddingProjected,
+      excludedNids,
+      cancellationToken,
+      analytics
+    )
+    return {
+      relevantNodes,
+      processedNodesCount: fastIndex.knn.getNumClasses(),
+    }
+  } finally {
+    phraseEmbedding?.dispose()
+    phraseEmbeddingProjected?.dispose()
+  }
+}
+
+async function findRelevantNodesBasedOnEmbeddingDistance(
+  storage: StorageApi,
+  fastIndex: FastIndex,
+  phraseEmbedding: tf.Tensor2D,
+  phraseEmbeddingProjected: tf.Tensor2D,
+  excludedNids: Set<Nid>,
+  cancellationToken: CancellationToken,
+  analytics: BackgroundPosthog | null
+): Promise<RelevantNode[]> {
+  const timer = new Timer()
+  const predictions = await fastIndex.knn.predictClass(
     phraseEmbeddingProjected,
     // TODO(Alexander): Select this number depending on how fast user machine
     // is, trying not to overload user's machine and keeping similarity search
     // latency under 4-5 seconds.
     99
   )
-  const processedNodesCount = fastIndex.knn.getNumClasses()
-  throwIfCancelled(cancellationToken)
-  // Now we need to repack values, groupping them by nid, to minimise N of
-  // requests to smuggler api. This is because node embeddings are stored by nid
-  const fastResultsByNid: Map<Nid, NodeBlockKeyStr[]> = new Map()
-  for (const [label /*, confidence */] of Object.entries(
-    fastKnnResults.confidences
-  ).filter(([_label, confidence]: [string, number]) => confidence > 0)) {
-    const { nid, blockKeyStr } = deserializeFastProjectionKey(label)
-    throwIfCancelled(cancellationToken)
-    if (excludedNids.has(nid)) {
-      continue
-    }
-    let other = fastResultsByNid.get(nid)
-    if (other == null) {
-      other = []
-    }
-    other.push(blockKeyStr)
-    fastResultsByNid.set(nid, other)
-  }
   backgroundpa.performance(
     analytics,
     { action: 'similarity: calculate fast results with KNN' },
     timer,
     { andLog: true }
   )
+  throwIfCancelled(cancellationToken)
+
   // Have similarity search results as a map allows us to have more than 1 quote per node.
-  let rawSimilarityResults: Map<
+  const predictionsByNid: Map<Nid, NodeBlockKeyStr[]> = excludeByNid(
+    groupByNid(predictions),
+    excludedNids
+  )
+
+  const scoredBlocks = await calculateEuclideanDistances(
+    phraseEmbedding,
+    await enrichWithIndexes(storage, predictionsByNid, cancellationToken),
+    cancellationToken
+  )
+  throwIfCancelled(cancellationToken)
+  const bestMatches = takeNBestScoring(
+    getBlocksOfSpecificField(
+      filterBadlyScoringBlocks(
+        scoredBlocks,
+        kSimilarityEuclideanDistanceThreshold
+      ),
+      'web-text'
+    ),
+    kNumberOfQuotesPerNodeLimit
+  )
+  return await enrichWithNodes(storage, bestMatches)
+}
+
+/**
+ * Grouping prediction results by nid minimises N of
+ * requests to smuggler api. This is because node embeddings are stored by nid.
+ */
+function groupByNid(
+  prediction: Awaited<ReturnType<AsyncKnnClassifier['predictClass']>>
+): Map<Nid, NodeBlockKeyStr[]> {
+  const ret: Map<Nid, NodeBlockKeyStr[]> = new Map()
+
+  for (const [label /*, confidence */] of Object.entries(
+    prediction.confidences
+  ).filter(([_label, confidence]: [string, number]) => confidence > 0)) {
+    const { nid, blockKeyStr } = deserializeFastProjectionKey(label)
+    let other = ret.get(nid)
+    if (other == null) {
+      other = []
+    }
+    other.push(blockKeyStr)
+    ret.set(nid, other)
+  }
+
+  return ret
+}
+
+async function enrichWithIndexes(
+  storage: StorageApi,
+  input: Map<Nid, NodeBlockKeyStr[]>,
+  cancellationToken: CancellationToken
+): Promise<
+  Map<
     Nid,
-    { blockKeyStr: NodeBlockKeyStr; score: number }[]
+    { blockKeys: NodeBlockKeyStr[]; index: NodeSimilaritySearchInfoLatest }
+  >
+> {
+  const ret: Map<
+    Nid,
+    { blockKeys: NodeBlockKeyStr[]; index: NodeSimilaritySearchInfoLatest }
   > = new Map()
-  for (const [nid, blockKeyStrs] of fastResultsByNid.entries()) {
+  for (const [nid, blockKeyStrs] of input.entries()) {
     throwIfCancelled(cancellationToken)
     const nodeSimSearchInfo = verifySimilaritySearchInfoVersion(
       await storage.node.similarity.getIndex({ nid })
     )
+
     if (nodeSimSearchInfo == null) {
       // Skip nodes with invalid index.
       //
@@ -431,79 +501,135 @@ async function findRelevantNodesUsingSimilaritySearch(
       log.warning(`Similarity index for node ${nid} is outdated`)
       continue
     }
-    for (const blockKeyStr of blockKeyStrs) {
+
+    ret.set(nid, {
+      blockKeys: blockKeyStrs,
+      index: nodeSimSearchInfo,
+    })
+  }
+  return ret
+}
+
+async function calculateEuclideanDistances(
+  phraseEmbedding: tf.Tensor2D,
+  input: Map<
+    Nid,
+    { blockKeys: NodeBlockKeyStr[]; index: NodeSimilaritySearchInfoLatest }
+  >,
+  cancellationToken: CancellationToken
+) {
+  const ret: Map<Nid, { blockKeyStr: NodeBlockKeyStr; score: number }[]> =
+    new Map()
+  for (const [nid, { blockKeys, index }] of input.entries()) {
+    throwIfCancelled(cancellationToken)
+    for (const blockKeyStr of blockKeys) {
       throwIfCancelled(cancellationToken)
-      const embeddingJson = nodeSimSearchInfo.forBlocks[blockKeyStr]
+      const embeddingJson = index.forBlocks[blockKeyStr]
       if (embeddingJson == null) {
         log.error(`No such embedding for a node ${nid} and key ${blockKeyStr}`)
       }
-      const embedding = use.tensor2dFromJson(embeddingJson)
-      const score = await use.euclideanDistance(embedding, phraseEmbedding)
-      if (score < kSimilarityEuclideanDistanceThreshold) {
-        let other = rawSimilarityResults.get(nid)
-        if (other == null) {
-          other = []
-        }
+      const score = await use.euclideanDistanceJson(
+        embeddingJson,
+        phraseEmbedding
+      )
+      const other = ret.get(nid) ?? []
+      other.push({ blockKeyStr, score })
+      ret.set(nid, other)
+    }
+  }
+  return ret
+}
+
+function filterBadlyScoringBlocks(
+  input: Map<Nid, { blockKeyStr: NodeBlockKeyStr; score: number }[]>,
+  euclideanDistanceThreshold: number
+) {
+  const ret: Map<Nid, { blockKeyStr: NodeBlockKeyStr; score: number }[]> =
+    new Map()
+  for (const [nid, blocks] of input.entries()) {
+    for (const { blockKeyStr, score } of blocks) {
+      if (score < euclideanDistanceThreshold) {
+        const other = ret.get(nid) ?? []
         other.push({ blockKeyStr, score })
-        rawSimilarityResults.set(nid, other)
+        ret.set(nid, other)
       }
     }
-    throwIfCancelled(cancellationToken)
   }
+  return ret
+}
+
+function takeNBestScoring(
+  input: Map<Nid, { blockKey: NodeBlockKey; score: number }[]>,
+  numberToTake: number
+): Map<Nid, { bestScore: number; blockKeys: NodeBlockKey[] }> {
+  const ret: ReturnType<typeof takeNBestScoring> = new Map()
+  for (const [nid, blocks] of input.entries()) {
+    blocks.sort((ar, br) => ar.score - br.score)
+    // Limit number of quotes per node and repack
+    const topN = blocks.slice(0, numberToTake)
+    ret.set(nid, {
+      blockKeys: topN.map(({ blockKey }) => blockKey),
+      bestScore: topN.length > 0 ? topN[0].score : 0,
+    })
+  }
+  return ret
+}
+
+function getBlocksOfSpecificField(
+  input: Map<Nid, { blockKeyStr: NodeBlockKeyStr; score: number }[]>,
+  field: NodeBlockKey['field']
+): Map<Nid, { blockKey: NodeBlockKey; score: number }[]> {
+  const ret: ReturnType<typeof getBlocksOfSpecificField> = new Map()
+  for (const [nid, blockKeyStrs] of input.entries()) {
+    const blockKeys: { blockKey: NodeBlockKey; score: number }[] = []
+    for (const { blockKeyStr, score } of blockKeyStrs) {
+      try {
+        const blockKey = nodeBlockKeyFromString(blockKeyStr)
+        if (blockKey.field !== field) {
+          blockKeys.push({ blockKey, score })
+        }
+      } catch (err) {
+        log.error('Failed to extrect block key from string', err)
+      }
+    }
+    ret.set(nid, blockKeys)
+  }
+  return ret
+}
+
+async function enrichWithNodes(
+  storage: StorageApi,
+  input: Map<Nid, { bestScore: number; blockKeys: NodeBlockKey[] }>
+): Promise<RelevantNode[]> {
   const nodeMap: Map<Nid, TNode> = new Map()
   {
-    const nids = Array.from(rawSimilarityResults.keys())
+    const nids: Nid[] = []
+    input.forEach((_, nid) => nids.push(nid))
     const resp = await storage.node.batch.get({ nids })
     for (const node of resp.nodes) {
       nodeMap.set(node.nid, node)
     }
   }
-  const relevantNodes: RelevantNode[] = []
-  for (const [nid, blocks] of rawSimilarityResults.entries()) {
+
+  const ret: RelevantNode[] = []
+  for (const [nid, { blockKeys, bestScore }] of input.entries()) {
     const node = nodeMap.get(nid)
     if (node == null) {
       log.error(
-        `Foreword can't extract node for nid ${nid}, can't use it in similarity search`
+        `Foreword can't find node for nid ${nid}, can't use it in similarity search`
       )
       continue
     }
-    let bestScore = 1
-    let directQuoteBlocks = blocks.map(
-      ({
-        blockKeyStr,
-        score,
-      }): {
-        blockKey?: NodeBlockKey
-        score: number
-      } => {
-        bestScore = Math.min(score, bestScore)
-        let blockKey: NodeBlockKey | undefined = undefined
-        try {
-          blockKey = nodeBlockKeyFromString(blockKeyStr)
-          if (blockKey.field !== 'web-text') {
-            // We don't need any other types of blocks for direct quote
-            blockKey = undefined
-          }
-        } catch (err) {
-          log.error('Direct quote extraction failed', err)
-        }
-        return { blockKey, score }
-      }
-    )
-    directQuoteBlocks.sort((ar, br) => ar.score - br.score)
-    // Limit number of quotes per node and repack
-    const matchedQuotes: NodeBlockKey[] = []
-    for (const { blockKey } of directQuoteBlocks.slice(
-      0,
-      kNumberOfQuotesPerNodeLimit
-    )) {
-      if (blockKey != null) {
-        matchedQuotes.push(blockKey)
-      }
-    }
-    relevantNodes.push({ node, matchedQuotes, score: bestScore })
+    ret.push({ node, matchedQuotes: blockKeys, score: bestScore })
   }
-  return { relevantNodes, processedNodesCount }
+  return ret
+}
+
+function excludeByNid(input: Map<Nid, NodeBlockKeyStr[]>, excluded: Set<Nid>) {
+  for (const nid in excluded) {
+    input.delete(nid)
+  }
+  return input
 }
 
 async function findRelevantNodesUsingPlainTextSearch(
@@ -615,29 +741,48 @@ async function updateNodeIndex(
     getNodePatchAsString(patch)
   const forBlocks: Record<string, TfEmbeddingJson> = {}
   {
-    // @ts-ignore, see 'conflicting-tensor2d-versions' note
-    const embedding: tf.Tensor2D = await useState.encoder.embed(plaintext)
-    forBlocks[nodeBlockKeyToString({ field: '*' })] = await use.tensor2dToJson(
-      embedding
-    )
+    let embedding: tf.Tensor2D | null = null
+    try {
+      // @ts-ignore, see 'conflicting-tensor2d-versions' note
+      embedding = await useState.encoder.embed(plaintext)
+      forBlocks[nodeBlockKeyToString({ field: '*' })] =
+        await use.tensor2dToJson(embedding)
+    } finally {
+      embedding?.dispose()
+    }
   }
   if (coment) {
-    // @ts-ignore, see 'conflicting-tensor2d-versions' note
-    const embedding: tf.Tensor2D = await useState.encoder.embed(coment)
-    forBlocks[nodeBlockKeyToString({ field: 'text' })] =
-      await use.tensor2dToJson(embedding)
+    let embedding: tf.Tensor2D | null = null
+    try {
+      // @ts-ignore, see 'conflicting-tensor2d-versions' note
+      embedding = await useState.encoder.embed(coment)
+      forBlocks[nodeBlockKeyToString({ field: 'text' })] =
+        await use.tensor2dToJson(embedding)
+    } finally {
+      embedding?.dispose()
+    }
   }
   if (extQuote) {
-    // @ts-ignore, see 'conflicting-tensor2d-versions' note
-    const embedding: tf.Tensor2D = await useState.encoder.embed(extQuote)
-    forBlocks[nodeBlockKeyToString({ field: 'web-quote' })] =
-      await use.tensor2dToJson(embedding)
+    let embedding: tf.Tensor2D | null = null
+    try {
+      // @ts-ignore, see 'conflicting-tensor2d-versions' note
+      embedding = await useState.encoder.embed(extQuote)
+      forBlocks[nodeBlockKeyToString({ field: 'web-quote' })] =
+        await use.tensor2dToJson(embedding)
+    } finally {
+      embedding?.dispose()
+    }
   }
   if (attrs) {
-    // @ts-ignore, see 'conflicting-tensor2d-versions' note
-    const embedding: tf.Tensor2D = await useState.encoder.embed(attrs)
-    forBlocks[nodeBlockKeyToString({ field: 'attrs' })] =
-      await use.tensor2dToJson(embedding)
+    let embedding: tf.Tensor2D | null = null
+    try {
+      // @ts-ignore, see 'conflicting-tensor2d-versions' note
+      embedding = await useState.encoder.embed(attrs)
+      forBlocks[nodeBlockKeyToString({ field: 'attrs' })] =
+        await use.tensor2dToJson(embedding)
+    } finally {
+      embedding?.dispose()
+    }
   }
   for (let index = 0; index < textContentBlocks.length; ++index) {
     const { text } = textContentBlocks[index]
@@ -653,10 +798,15 @@ async function updateNodeIndex(
         continue
       }
     }
-    // @ts-ignore, see 'conflicting-tensor2d-versions' note
-    const embedding: tf.Tensor2D = await useState.encoder.embed(text)
-    const blockKeyStr = nodeBlockKeyToString({ field: 'web-text', index })
-    forBlocks[blockKeyStr] = await use.tensor2dToJson(embedding)
+    let embedding: tf.Tensor2D | null = null
+    try {
+      // @ts-ignore, see 'conflicting-tensor2d-versions' note
+      embedding = await useState.encoder.embed(text)
+      const blockKeyStr = nodeBlockKeyToString({ field: 'web-text', index })
+      forBlocks[blockKeyStr] = await use.tensor2dToJson(embedding)
+    } finally {
+      embedding?.dispose()
+    }
   }
   const simsearch = createNodeSimilaritySearchInfoLatest({ forBlocks })
   await updateNodeFastIndex(fastIndex, nid, simsearch, updateType)

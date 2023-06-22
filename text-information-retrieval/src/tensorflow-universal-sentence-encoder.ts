@@ -39,23 +39,48 @@ export async function euclideanDistance(
   a: tf.Tensor,
   b: tf.Tensor
 ): Promise<number> {
-  const squaredDifference = tf.pow(tf.sub(a, b), 2)
-  const sum = tf.sum(squaredDifference)
-  const data = await sum.data()
-  return Math.sqrt(data[0])
+  const sum = tf.tidy(() => {
+    const squaredDifference = tf.pow(tf.sub(a, b), 2)
+    return tf.sum(squaredDifference)
+  })
+  try {
+    const data = await sum.data()
+    return Math.sqrt(data[0])
+  } finally {
+    sum.dispose()
+  }
+}
+
+export async function euclideanDistanceJson(
+  a: TfEmbeddingJson,
+  b: tf.Tensor
+): Promise<number> {
+  let tensorA: tf.Tensor2D | null = null
+  try {
+    tensorA = tensor2dFromJson(a)
+    return await euclideanDistance(tensorA, b)
+  } finally {
+    tensorA?.dispose()
+  }
 }
 
 export async function cosineDistance(
   a: tf.Tensor2D,
   b: tf.Tensor2D
 ): Promise<number> {
-  const aNorm = tf.norm(a)
-  const bNorm = tf.norm(b)
-  const dotProduct = tf.matMul(a, b, false, true)
-  const cosSimilarity = dotProduct.div(aNorm.mul(bNorm))
-  const data = await cosSimilarity.data()
-  const distance = 1 - data[0]
-  return distance
+  const cosSimilarity = tf.tidy(() => {
+    const aNorm = tf.norm(a)
+    const bNorm = tf.norm(b)
+    const dotProduct = tf.matMul(a, b, false, true)
+    return dotProduct.div(aNorm.mul(bNorm))
+  })
+  try {
+    const data = await cosSimilarity.data()
+    const distance = 1 - data[0]
+    return distance
+  } finally {
+    cosSimilarity.dispose()
+  }
 }
 
 export async function tensor2dToJson(
@@ -74,16 +99,16 @@ export function tensor2dFromJson({
 }
 
 export function sampleDimensions(
-  inputVector: tf.Tensor2D,
+  inputVector: TfEmbeddingJson,
   targetSize: number
 ): number[] {
   return lodash.sampleSize(range(0, inputVector.shape[1]), targetSize)
 }
 
 export async function projectVector(
-  inputVector: tf.Tensor2D,
+  inputVector: TfEmbeddingJson,
   dimensions: number[]
-): Promise<tf.Tensor2D> {
+): Promise<TfEmbeddingJson> {
   // This is the "right" way to do a projection to a surface in the space of
   // smaller dimensions, but it's not the faastest one.
   // const projectionVector = tf.randomNormal([query.shape[1], smalerSpaceSize]);
@@ -91,7 +116,6 @@ export async function projectVector(
   //
   // So the simpler and much quicker way to have vector in a space of fewer
   // dimensions is to sample the coordinates of the original vector.
-  const dataSync = await inputVector.data()
-  const data = dimensions.map((index: number) => dataSync[index])
-  return tf.tensor2d(data, [1, data.length])
+  const data = dimensions.map((index: number) => inputVector.data[index])
+  return { data, shape: [1, data.length] }
 }
