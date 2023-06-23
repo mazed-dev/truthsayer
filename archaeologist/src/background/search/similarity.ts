@@ -177,16 +177,23 @@ async function createFastIndex(
       if (label in cachedClasses) {
         continue
       }
+      const embeddingJson = forBlocks[blockKeyStr]
+      let projection: tf.Tensor2D | null = null
       try {
-        const embeddingJson = forBlocks[blockKeyStr]
-        const projection = await use.projectVector(embeddingJson, dimensions)
-        await knn.addExample(use.tensor2dFromJson(projection), label)
+        const projectionJson = await use.projectVector(
+          embeddingJson,
+          dimensions
+        )
+        projection = use.tensor2dFromJson(projectionJson)
+        await knn.addExample(projection, label)
       } catch (err) {
         log.warning(
           `Adding example to KNN failed for label ${label}, error: ${
             errorise(err).message
           }`
         )
+      } finally {
+        projection?.dispose()
       }
     }
   }
@@ -209,7 +216,7 @@ async function updateNodeFastIndex(
   const dimensions = fastIndex.dimensions
   for (const blockKeyStr in forBlocks) {
     const embeddingJson = forBlocks[blockKeyStr]
-    const projection = await use.projectVector(embeddingJson, dimensions)
+    const projectionJson = await use.projectVector(embeddingJson, dimensions)
     const label = serializeFastProjectionKey({ nid, blockKeyStr })
     if (updateType === 'updated') {
       try {
@@ -218,7 +225,13 @@ async function updateNodeFastIndex(
         log.debug('Removing outdated projections from KNN failed with', err)
       }
     }
-    await fastIndex.knn.addExample(use.tensor2dFromJson(projection), label)
+    let projection: tf.Tensor2D | null = null
+    try {
+      projection = use.tensor2dFromJson(projectionJson)
+      await fastIndex.knn.addExample(projection, label)
+    } finally {
+      projection?.dispose()
+    }
   }
 }
 
@@ -854,9 +867,14 @@ function createNodeEventListener(
 
 async function ensurePerNodeSimSearchIndexIntegrity(
   storage: StorageApi,
+  statePromise: Promise<State | undefined>,
   analytics: BackgroundPosthog | null
 ): Promise<void> {
-  const { useState, fastIndex } = await getState(storage, analytics)
+  const state = await statePromise
+  if (state == null) {
+    throw new Error('Similarity state was not initialized')
+  }
+  const { useState, fastIndex } = state
   const allNids = await storage.node.getAllNids({})
   for (let ind = 0; ind < allNids.length; ++ind) {
     const nid = allNids[ind]
@@ -911,23 +929,40 @@ export async function register(
 ) {
   const timer = new Timer()
   // Run it as non-blocking async call
-  ensurePerNodeSimSearchIndexIntegrity(storage, analytics).catch((reason) => {
-    backgroundpa.error(
-      analytics,
-      {
-        location: 'background',
-        cause: errorise(reason).message,
-        failedTo: 'ensure similarity search index integrity',
-      },
-      { andLog: true }
-    )
-  })
+  const state: Promise<State | undefined> = getState(storage, analytics).catch(
+    (reason) => {
+      backgroundpa.error(
+        analytics,
+        {
+          location: 'background',
+          cause: errorise(reason).message,
+          failedTo: 'create similarity state',
+        },
+        { andLog: true }
+      )
+      return undefined
+    }
+  )
+  ensurePerNodeSimSearchIndexIntegrity(storage, state, analytics).catch(
+    (reason) => {
+      backgroundpa.error(
+        analytics,
+        {
+          location: 'background',
+          cause: errorise(reason).message,
+          failedTo: 'ensure similarity search index integrity',
+        },
+        { andLog: true }
+      )
+    }
+  )
 
   const nodeEventListener = createNodeEventListener(storage, analytics)
   storage.node.addListener(nodeEventListener)
   log.debug('Similarity search module is loaded', timer.elapsedSecondsPretty())
-  return () => {
+  return async () => {
     storage.node.removeListener(nodeEventListener)
+    ;(await state)?.fastIndex.knn.dispose()
     _state = null
   }
 }
