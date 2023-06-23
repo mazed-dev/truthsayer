@@ -330,7 +330,7 @@ const BookmarkMatchDescription = ({
   const onCopyHandler = React.useCallback(
     (event: React.ClipboardEvent) => {
       ctx.analytics?.capture('DirectQuote:copy', {
-        'Event type': 'copy',
+        'Event type': 'copy via browser API',
         text: 'direct-quote',
         seeMore,
         defaultPrevented: event.defaultPrevented,
