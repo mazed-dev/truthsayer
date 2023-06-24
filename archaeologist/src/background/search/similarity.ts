@@ -598,7 +598,7 @@ function getBlocksOfSpecificField(
     for (const { blockKeyStr, score } of blockKeyStrs) {
       try {
         const blockKey = nodeBlockKeyFromString(blockKeyStr)
-        if (blockKey.field !== field) {
+        if (blockKey.field === field) {
           blockKeys.push({ blockKey, score })
         }
       } catch (err) {
