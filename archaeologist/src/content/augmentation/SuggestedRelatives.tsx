@@ -85,7 +85,6 @@ function getLastEditedParagraph(
     element instanceof HTMLInputElement ||
     element instanceof HTMLTextAreaElement
   ) {
-    log.debug('Paragraph 1', element)
     return { textContent: element.value, element }
   }
   if (
@@ -290,12 +289,6 @@ export function SuggestedRelatives({
         if (target.isContentEditable || target.tagName === 'TEXTAREA') {
           const selection = window.getSelection()
           if (selection?.anchorNode != null) {
-            log.debug(
-              'Anchor',
-              selection.anchorNode,
-              selection.anchorNode.parentNode,
-              selection.anchorNode.parentElement
-            )
             requestSuggestedForKeyboardEvent(
               selection.anchorNode,
               selection.anchorNode.parentElement,
