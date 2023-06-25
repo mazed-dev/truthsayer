@@ -356,6 +356,7 @@ function AppRouter() {
                 element={
                   <ApplicationSettings
                     archaeologistState={archaeologistState}
+                    isLikelyAuthorised={isLikelyAuthorised}
                   />
                 }
               />
