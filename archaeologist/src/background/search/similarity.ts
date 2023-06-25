@@ -540,10 +540,15 @@ async function calculateEuclideanDistances(
       if (embeddingJson == null) {
         log.error(`No such embedding for a node ${nid} and key ${blockKeyStr}`)
       }
-      const score = await use.euclideanDistanceJson(
-        embeddingJson,
-        phraseEmbedding
-      )
+      let embedding: tf.Tensor2D | null = null
+      let score: number | null = null
+      try {
+        embedding = use.tensor2dFromJson(embeddingJson)
+        score = await use.euclideanDistance(embedding, phraseEmbedding)
+      } finally {
+        embedding?.dispose()
+        embedding = null
+      }
       const other = ret.get(nid) ?? []
       other.push({ blockKeyStr, score })
       ret.set(nid, other)

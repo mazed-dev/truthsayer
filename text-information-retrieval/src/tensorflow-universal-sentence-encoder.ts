@@ -51,19 +51,6 @@ export async function euclideanDistance(
   }
 }
 
-export async function euclideanDistanceJson(
-  a: TfEmbeddingJson,
-  b: tf.Tensor
-): Promise<number> {
-  let tensorA: tf.Tensor2D | null = null
-  try {
-    tensorA = tensor2dFromJson(a)
-    return await euclideanDistance(tensorA, b)
-  } finally {
-    tensorA?.dispose()
-  }
-}
-
 export async function cosineDistance(
   a: tf.Tensor2D,
   b: tf.Tensor2D
