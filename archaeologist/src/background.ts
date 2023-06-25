@@ -733,6 +733,9 @@ class Background {
             uid: account.getUid(),
             name: account.getName(),
           },
+          analyticsIdentity: await backgroundpa.getIdentity(
+            browser.storage.local
+          ),
         }
       }
     }

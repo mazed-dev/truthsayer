@@ -6,29 +6,35 @@ import { Link } from 'react-router-dom'
 import { ButtonGroup, Dropdown, Navbar } from 'react-bootstrap'
 
 import { UserAccount } from 'smuggler-api'
+import lodash from 'lodash'
 
 import { MdiAccountCircle, kCardBorder, ForewordName } from 'elementary'
 import { getLogoImage } from './../util/env'
 import { SearchForm } from './SearchForm'
 import { TruthsayerPath } from './../lib/route'
 
-import styles from './GlobalNavBar.module.css'
-import { productanalytics } from 'armoury'
-
 const UserPic = styled(MdiAccountCircle)`
   vertical-align: middle;
   font-size: 24px;
 `
 
-const UserBadge = () => {
+const UserBadgeBox = styled.div`
+  display: flex;
+`
+const UserNameBox = styled.span`
+  padding: 0 8px 0 5px;
+  @media (max-width: 450px) {
+    display: none;
+  }
+`
+
+const UserBadge = ({ username }: { username?: string }) => {
   // TODO: use custom user uploaded picture for userpic here
   return (
-    <div className={'d-inline-flex'}>
+    <UserBadgeBox>
+      <UserNameBox>{lodash.upperFirst(username)}</UserNameBox>
       <UserPic />
-      <div
-        className={productanalytics.classExclude('d-none d-sm-none d-md-block')}
-      ></div>
-    </div>
+    </UserBadgeBox>
   )
 }
 
@@ -50,10 +56,7 @@ const AccountDropdownToggle = styled(Dropdown.Toggle)`
   border-width: 0px;
   border-radius: 56px;
 
-  padding-top: 8px;
-  padding-right: 4px;
-  padding-left: 4px;
-  padding-bottom: 4px;
+  padding: 5px;
 
   margin-right: 0.2rem;
 
@@ -77,12 +80,10 @@ const NavButtons = ({
   account?: UserAccount
 }) => {
   const username = account?.getName()
-  const userpic = <UserBadge />
   return (
     <Dropdown as={ButtonGroup} navbar drop="start">
       <AccountDropdownToggle variant="light">
-        {username}
-        {userpic}
+        <UserBadge username={username} />
       </AccountDropdownToggle>
 
       <Dropdown.Menu>
@@ -101,7 +102,7 @@ const NavButtons = ({
         </DropdownItemLink>
         <Dropdown.Divider />
         {isLikelyAuthorised ? (
-          <DropdownItemLink to={'/logout'}>Log out</DropdownItemLink>
+          <DropdownItemLink to={'/logout'}>Log Out</DropdownItemLink>
         ) : (
           <DropdownItemLink to={'/login'}>Log In</DropdownItemLink>
         )}
@@ -155,10 +156,7 @@ export function GlobalNavBar({
     <>
       <CustomNavbar fixed="top">
         <NavbarBrand as={Link} to="/">
-          <NavbarBrandLogo
-            src={getLogoImage()}
-            alt={'Foreword logo'}
-          />
+          <NavbarBrandLogo src={getLogoImage()} alt={'Foreword logo'} />
           <NavbarBrandName />
         </NavbarBrand>
         <SearchForm />

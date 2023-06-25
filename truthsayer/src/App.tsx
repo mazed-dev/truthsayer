@@ -211,12 +211,7 @@ function AppRouter() {
         >
           <Routes>
             <Route path="/">
-              <Route
-                index
-                element={
-                  <Navigate to="/search" />
-                }
-              />
+              <Route index element={<Navigate to="/search" />} />
               <Route
                 path={truthsayerPath(
                   '/account/create/go-to-inbox-to-confirm-email'

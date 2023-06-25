@@ -197,6 +197,7 @@ export namespace ToPopUp {
   export type LogInResponse = {
     type: 'RESPONSE_LOG_IN'
     user: AccountInfo
+    analyticsIdentity: AnalyticsIdentity
   }
 
   export type Response =
