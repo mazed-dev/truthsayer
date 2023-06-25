@@ -48,13 +48,12 @@ const kSubParagraphTagNames = {
  */
 function calculateFloaterPosition(element: HTMLElement): ControlledPosition {
   const rect = element.getBoundingClientRect()
-  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop
   return {
     offset: {
-      x: rect.left + scrollLeft + element.offsetWidth,
-      y: rect.top + scrollTop + element.offsetHeight - 10,
+      x: rect.left + rect.width,
+      y: rect.top + rect.height - 10,
     },
+    element,
   }
 }
 
@@ -315,6 +314,22 @@ export function SuggestedRelatives({
       window.removeEventListener('keypress', consumeKeyboardEvent, opts)
     }
   }, [requestSuggestedForKeyboardEvent])
+  React.useEffect(() => {
+    // To make sure floater stay at the bottom of last edited paragraph when
+    // user scroll the page we add a lightweight listener for a scroll event to
+    // recalculate floter position every time user scroll the page.
+    const recalculateControlledPosition = () => {
+      const element = controlledPosition?.element
+      if (element) {
+        setControlledPosition(calculateFloaterPosition(element))
+      }
+    }
+    const opts: AddEventListenerOptions = { passive: true, capture: true }
+    window.addEventListener('scroll', recalculateControlledPosition, opts)
+    return () => {
+      window.removeEventListener('scroll', recalculateControlledPosition, opts)
+    }
+  }, [controlledPosition])
   if (!isFloaterShown) {
     return null
   }
