@@ -172,12 +172,11 @@ async function createFastIndex(
     }
     const forBlocks = nodeSimSearchInfo.forBlocks
     const cachedClasses = knn.getClassifierDataset()
-    for (const blockKeyStr in forBlocks) {
+    for (const [blockKeyStr, embeddingJson] of Object.entries(forBlocks)) {
       const label = serializeFastProjectionKey({ nid, blockKeyStr })
       if (label in cachedClasses) {
         continue
       }
-      const embeddingJson = forBlocks[blockKeyStr]
       let projection: tf.Tensor2D | null = null
       try {
         const projectionJson = await use.projectVector(
