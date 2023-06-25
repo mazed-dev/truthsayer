@@ -318,12 +318,20 @@ export function SuggestedRelatives({
     // To make sure floater stay at the bottom of last edited paragraph when
     // user scroll the page we add a lightweight listener for a scroll event to
     // recalculate floter position every time user scroll the page.
-    const recalculateControlledPosition = () => {
-      const element = controlledPosition?.element
-      if (element) {
-        setControlledPosition(calculateFloaterPosition(element))
-      }
-    }
+    //
+    // There is no real theory behind the numbers for the debounce arguments,
+    // please feel free to change them accordignly to increase responsiveness or
+    // reduce jumpiness of the floater.
+    const recalculateControlledPosition = lodash.debounce(
+      () => {
+        const element = controlledPosition?.element
+        if (element) {
+          setControlledPosition(calculateFloaterPosition(element))
+        }
+      },
+      400,
+      { maxWait: 600 }
+    )
     const opts: AddEventListenerOptions = { passive: true, capture: true }
     window.addEventListener('scroll', recalculateControlledPosition, opts)
     return () => {
