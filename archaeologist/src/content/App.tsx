@@ -47,7 +47,7 @@ import {
 } from './toaster/Toaster'
 import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
-import { SuggestedRelatives } from './augmentation/SuggestedRelatives'
+import { Augmentation } from './augmentation/Augmentation'
 import { AugmentationMountPoint } from './augmentation/Mount'
 import { ContentContext } from './context'
 import { FromArchaeologistContent } from 'truthsayer-archaeologist-communication'
@@ -497,7 +497,7 @@ const App = () => {
                 tabTitleUpdateCounter={state.tabStatus.titleUpdateCounter}
               />
             ) : null}
-            <SuggestedRelatives
+            <Augmentation
               stableUrl={state.originIdentity.stableUrl}
               excludeNids={genExcludeNidsForSimilaritySearch(
                 state.toNodes,

@@ -316,15 +316,31 @@ const MatchDescriptionSeeMoreBtn = styled.span`
 const BookmarkMatchDescription = ({
   node,
   block,
+  ctx,
 }: {
   node: TNode
   block: NodeBlockKey
+  ctx: ElementaryContext
 }) => {
   const matchedBlock = getNodeBlock(node, block)
   if (matchedBlock == null) {
     return null
   }
   const [seeMore, setSeeMore] = React.useState<boolean>(false)
+  const onCopyHandler = React.useCallback(
+    (event: React.ClipboardEvent) => {
+      ctx.analytics?.capture('DirectQuote:copy', {
+        'Event type': 'copy via browser API',
+        text: 'direct-quote',
+        seeMore,
+        defaultPrevented: event.defaultPrevented,
+        cancelable: event.cancelable,
+        isDefaultPrevented: event.isDefaultPrevented(),
+        isPropagationStopped: event.isPropagationStopped(),
+      })
+    },
+    [ctx.analytics, seeMore]
+  )
   if (!seeMore) {
     // https://www.portent.com/blog/seo/featured-snippet-display-lengths-study-portent.htm
     const truncated: TextContentBlock = {
@@ -332,7 +348,10 @@ const BookmarkMatchDescription = ({
       text: truncatePretty(matchedBlock.text, 280),
     }
     return (
-      <DirectQuote className={productanalytics.classExclude()}>
+      <DirectQuote
+        className={productanalytics.classExclude()}
+        onCopy={onCopyHandler}
+      >
         <div>
           <ContextBlock
             block={truncated}
@@ -355,7 +374,10 @@ const BookmarkMatchDescription = ({
       suffix = undefined
     }
     return (
-      <DirectQuote className={productanalytics.classExclude()}>
+      <DirectQuote
+        className={productanalytics.classExclude()}
+        onCopy={onCopyHandler}
+      >
         <div>
           <ContextBlock block={prefix} css={ContextBlockFirstStyles} />
           <MatchedContentBlock block={matchedBlock} />
@@ -398,7 +420,10 @@ const BookmarkOriginalDescription = ({
           {!seeMore ? '… ' : ' '}
           <MatchDescriptionSeeMoreBtn
             onClick={() => {
-              ctx.analytics?.capture('Button:See More', { more: !seeMore })
+              ctx.analytics?.capture('Button:See More', {
+                'Event type': 'click',
+                more: !seeMore,
+              })
               setSeeMore((more) => !more)
             }}
           >
@@ -463,6 +488,7 @@ const BookmarkDescription = ({
               node={node}
               block={block}
               key={nodeBlockKeyToString(block)}
+              ctx={ctx}
             />
           ))}
         </>

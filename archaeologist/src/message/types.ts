@@ -75,15 +75,13 @@ export type StorageAccessResponse = {
  * Right now we assume that exactly 1 message needs to be shown at any time.
  */
 export type ContentAugmentationProductUpdate = {
-  signature: 'foreward-rebranding-03-06-2023'
+  signature: 'foreward-rebranding-03-06-2023' | null
 }
 export type ContentAugmentationPosition = {
   x: number
   y: number
 }
 export type ContentAugmentationSettings = {
-  isRevealed?: boolean
-  positionY?: number
   productUpdate?: ContentAugmentationProductUpdate
 }
 export interface ContentAugmentationSettingsResponse {

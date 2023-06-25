@@ -7,8 +7,8 @@ const kMountBoxElementId = 'mazed-archaeologist-augmentation-mount-point-id'
 const ToasterBox = styled.div`
   z-index: 2147483647;
   position: fixed !important;
-  top: 24px !important;
-  right: 32px !important;
+  top: 0 !important;
+  left: 0 !important;
 `
 export const AugmentationMountPoint = ({
   children,
@@ -40,11 +40,19 @@ export const AugmentationMountPoint = ({
   )
 }
 
+// To avoid conflicts with host page defaul styles for DIV
+const Root = styled(root.div)`
+  height: 0 !important;
+  width: 0 !important;
+`
+
 export const AugmentationElement = ({
   children,
   disableInFullscreenMode,
+  mount,
 }: React.PropsWithChildren<{
   disableInFullscreenMode?: boolean
+  mount?: Element
 }>) => {
   const [isFullscreenModeEnabled, setFullscreenModeEnabled] =
     React.useState<boolean>(false)
@@ -60,7 +68,7 @@ export const AugmentationElement = ({
   const box = document.createElement('mazed-archaeologist-toast')
   React.useEffect(
     () => {
-      const target = document.getElementById(kMountBoxElementId)
+      const target = mount ?? document.getElementById(kMountBoxElementId)
       let inserted: boolean = false
       if (!(disableInFullscreenMode && isFullscreenModeEnabled)) {
         target?.appendChild(box)
@@ -78,9 +86,7 @@ export const AugmentationElement = ({
      */
   )
   return ReactDOM.createPortal(
-    <root.div id={'mazed-archaeologist-augmentation-element'}>
-      {children}
-    </root.div>,
+    <Root id={'mazed-archaeologist-augmentation-element'}>{children}</Root>,
     box
   )
 }
