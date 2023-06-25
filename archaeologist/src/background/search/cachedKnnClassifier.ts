@@ -1,7 +1,8 @@
-import { InterfaceOf, log } from 'armoury'
+import { log } from 'armoury'
 import lodash from 'lodash'
 import { KNNClassifier, tf } from 'text-information-retrieval'
 import browser from 'webextension-polyfill'
+import { AsyncKnnClassifier } from './asyncKnnClassifier'
 
 /**
  * If you need to clear the cache for local testing, run the following
@@ -259,33 +260,6 @@ async function dropCacheOnSignatureMismatch(
   ])
 }
 
-/**
- * NOTE: @see KNNClassifier is a class with private fields,
- * so it can be `extend`ed, but not `implement`ed. @see InterfaceOf enables
- * to use either & allows to selectively promise-ifying some methods (
- * KNNClassifier is fully syncronous, but cache storage is not).
- */
-type KnnClassifierInterface = Omit<
-  InterfaceOf<KNNClassifier>,
-  'addExample' | 'clearClass' | 'predictClass'
-> & {
-  addExample: (
-    // This parameter's type is set manually rather than inferred,
-    // see 'conflicting-tensor2d-versions' note for more details
-    example: tf.Tensor,
-    label: number | string
-  ) => Promise<void>
-  predictClass: (
-    // This parameter's type is set manually rather than inferred,
-    // see 'conflicting-tensor2d-versions' note for more details
-    input: tf.Tensor,
-    k?: number
-  ) => ReturnType<KNNClassifier['predictClass']>
-  clearClass: (
-    ...args: Parameters<KNNClassifier['clearClass']>
-  ) => Promise<void>
-}
-
 type KnnTensor = Parameters<KNNClassifier['addExample']>[0]
 
 /**
@@ -295,7 +269,7 @@ type KnnTensor = Parameters<KNNClassifier['addExample']>[0]
  * @description See https://github.com/tensorflow/tfjs/issues/633#issuecomment-576218643
  * about how to properly serialize/deserialize @see KNNClassifier
  */
-export class CachedKnnClassifier implements KnnClassifierInterface {
+export class CachedKnnClassifier implements AsyncKnnClassifier {
   private impl: KNNClassifier
   private store: YekLavStore
   private static readonly INTERNAL_VERSION: number = 2
