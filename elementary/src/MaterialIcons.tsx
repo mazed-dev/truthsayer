@@ -12,6 +12,7 @@ import { jcss } from './jcss'
 export type MaterialIconType =
   | 'account_circle'
   | 'add'
+  | 'archive'
   | 'bookmark_add'
   | 'cancel'
   | 'close'
@@ -74,6 +75,7 @@ const _makeMaterialIcon = (type: MaterialIconType) => {
 
 export const MdiAccountCircle = _makeMaterialIcon('account_circle')
 export const MdiAdd = _makeMaterialIcon('add')
+export const MdiArchive = _makeMaterialIcon('archive')
 export const MdiBookmarkAdd = _makeMaterialIcon('bookmark_add')
 export const MdiCancel = _makeMaterialIcon('cancel')
 export const MdiClose = _makeMaterialIcon('close')
