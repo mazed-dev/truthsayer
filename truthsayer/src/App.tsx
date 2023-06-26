@@ -36,7 +36,6 @@ import {
   truthsayerPath,
   goto,
 } from './lib/route'
-import { Loader } from './lib/loader'
 import {
   ExternalImport,
   ExternalImportProgress,
@@ -180,7 +179,10 @@ function AppRouter() {
         <PageviewEventTracker analytics={analytics} />
       ) : null}
       <CookiePolicyPopUp />
-      {account != null ? <GlobalNavBar /> : null}
+      <GlobalNavBar
+        isLikelyAuthorised={isLikelyAuthorised}
+        account={account ?? undefined}
+      />
       <Container
         fluid
         className="app_content"
@@ -203,19 +205,13 @@ function AppRouter() {
           }
         `}
       >
-        <PrivatePageContext
-          isLikelyAuthorised={isLikelyAuthorised}
+        <MzdGlobal
           account={account ?? undefined}
           analytics={analytics ?? undefined}
         >
           <Routes>
             <Route path="/">
-              <Route
-                index
-                element={
-                  <LandingPageView isLikelyAuthorised={isLikelyAuthorised} />
-                }
-              />
+              <Route index element={<Navigate to="/search" />} />
               <Route
                 path={truthsayerPath(
                   '/account/create/go-to-inbox-to-confirm-email'
@@ -312,18 +308,12 @@ function AppRouter() {
               />
               <Route
                 path={truthsayerPath('/')}
-                element={
-                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
-                    <Navigate to={{ pathname: '/search' }} />
-                  </PrivateOnlyPage>
-                }
+                element={<Navigate to={{ pathname: '/search' }} />}
               />
               <Route
                 path={truthsayerPath('/search')}
                 element={
-                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
-                    <SearchGridView archaeologistState={archaeologistState} />
-                  </PrivateOnlyPage>
+                  <SearchGridView archaeologistState={archaeologistState} />
                 }
               />
               <Route
@@ -348,14 +338,7 @@ function AppRouter() {
                   </PrivateOnlyPage>
                 }
               />
-              <Route
-                path={truthsayerPath('/export')}
-                element={
-                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
-                    <Export />
-                  </PrivateOnlyPage>
-                }
-              />
+              <Route path={truthsayerPath('/export')} element={<Export />} />
               <Route
                 path={truthsayerPath('/password-recover-change')}
                 element={
@@ -366,20 +349,15 @@ function AppRouter() {
               />
               <Route
                 path={truthsayerPath('/n/:nid')}
-                element={
-                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
-                    <TriptychView />
-                  </PrivateOnlyPage>
-                }
+                element={<TriptychView />}
               />
               <Route
                 path={truthsayerPath('/settings')}
                 element={
-                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
-                    <ApplicationSettings
-                      archaeologistState={archaeologistState}
-                    />
-                  </PrivateOnlyPage>
+                  <ApplicationSettings
+                    archaeologistState={archaeologistState}
+                    isLikelyAuthorised={isLikelyAuthorised}
+                  />
                 }
               />
               <Route
@@ -393,28 +371,24 @@ function AppRouter() {
               <Route
                 path={truthsayerPath('/onboarding')}
                 element={
-                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
-                    <Onboarding
-                      archaeologistState={archaeologistState}
-                      progress={externalImportProgress}
-                    />
-                  </PrivateOnlyPage>
+                  <Onboarding
+                    archaeologistState={archaeologistState}
+                    progress={externalImportProgress}
+                  />
                 }
               />
               <Route
                 path={truthsayerPath('/browser-history-import-loading-screen')}
                 element={
-                  <PrivateOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
-                    <BrowserHistoryImporterLoadingScreen
-                      progress={historyImportProgress}
-                    />
-                  </PrivateOnlyPage>
+                  <BrowserHistoryImporterLoadingScreen
+                    progress={historyImportProgress}
+                  />
                 }
               />
               <Route path="*" element={<Navigate to={{ pathname: '/' }} />} />
             </Route>
           </Routes>
-        </PrivatePageContext>
+        </MzdGlobal>
       </Container>
     </Router>
   )
@@ -438,35 +412,6 @@ function PrivateOnlyPage({
 }>) {
   if (!isLikelyAuthorised) {
     return <Navigate to="/" />
-  }
-  return <>{children}</>
-}
-
-function PrivatePageContext({
-  isLikelyAuthorised,
-  children,
-  account,
-  analytics,
-}: React.PropsWithChildren<{
-  isLikelyAuthorised: boolean
-  account?: UserAccount
-  analytics?: PostHog
-}>) {
-  if (isLikelyAuthorised) {
-    if (account == null) {
-      return (
-        <>
-          <Loader size={'small'} />
-          {children}
-        </>
-      )
-    } else {
-      return (
-        <MzdGlobal analytics={analytics} account={account}>
-          {children}
-        </MzdGlobal>
-      )
-    }
   }
   return <>{children}</>
 }
@@ -509,17 +454,6 @@ function TriptychView() {
     return <Navigate to="/" />
   }
   return <Triptych nid={nid} />
-}
-
-function LandingPageView({
-  isLikelyAuthorised,
-}: {
-  isLikelyAuthorised: boolean
-}) {
-  if (isLikelyAuthorised) {
-    return <Navigate to="/search" />
-  }
-  return goto.landing()
 }
 
 // Based on https://www.sheshbabu.com/posts/automatic-pageview-tracking-using-react-router/

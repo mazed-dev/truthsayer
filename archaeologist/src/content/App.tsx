@@ -51,6 +51,7 @@ import { Augmentation } from './augmentation/Augmentation'
 import { AugmentationMountPoint } from './augmentation/Mount'
 import { ContentContext } from './context'
 import { FromArchaeologistContent } from 'truthsayer-archaeologist-communication'
+import type { AppSettings } from 'truthsayer-archaeologist-communication'
 
 async function contentOfThisDocument(origin: OriginIdentity) {
   const baseURL = `${window.location.protocol}//${window.location.host}`
@@ -124,6 +125,9 @@ type InitializedState = {
   notification?: DisappearingToastProps
 
   analytics: PostHog | null
+
+  userUid?: string
+  appSettings: AppSettings
 
   tabStatus: {
     // A counter that gets bumped each time when the tab is re-activated, which
@@ -248,6 +252,8 @@ function updateState(state: State, action: Action): State {
         toNodes,
         fromNodes,
         analytics,
+        userUid: action.data.userUid,
+        appSettings: action.data.appSettings,
         tabStatus: {
           activationCounter: 0,
           titleUpdateCounter: 0,
@@ -505,6 +511,10 @@ const App = () => {
                 state.bookmark
               )}
               tabTitleUpdateCounter={state.tabStatus.titleUpdateCounter}
+              enableTypingSuggestions={
+                state.appSettings?.suggestions?.typing?.enabled ??
+                state.userUid != null
+              }
             />
           </>
         )}

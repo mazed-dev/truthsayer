@@ -21,8 +21,14 @@ export type StorageType =
   | 'datacenter' /** Stores user data in @file storage_api_datacenter.ts */
   | 'browser_ext' /** Stores user data in @file storage_api_browser_ext.ts */
 
+export type AppSuggestionsSettings = {
+  typing: {
+    enabled: boolean
+  }
+}
 export type AppSettings = {
   storageType: StorageType
+  suggestions?: AppSuggestionsSettings
 }
 
 /** Name of a long-running action performed by archaeologist's background script */

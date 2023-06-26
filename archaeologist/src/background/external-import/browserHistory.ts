@@ -19,6 +19,7 @@ import { saveWebPage } from '../savePage'
 import { isPageAutosaveable } from '../../content/extractor/url/autosaveable'
 import { TabLoad } from '../../tabLoad'
 import { calculateInitialContentState } from '../contentState'
+import { getAppSettings } from '../../appSettings'
 import type {
   BackgroundActionProgress,
   BrowserHistoryUploadMode,
@@ -62,7 +63,7 @@ export namespace BrowserHistoryUpload {
 
   export async function upload(
     storage: StorageApi,
-    account: UserAccount,
+    account: UserAccount | undefined,
     mode: BrowserHistoryUploadMode,
     onProgress: (progress: BackgroundActionProgress) => Promise<void>
   ) {
@@ -276,7 +277,7 @@ export namespace BrowserHistoryUpload {
 
   async function getPageContentViaTemporaryTab(
     storage: StorageApi,
-    account: UserAccount,
+    account: UserAccount | undefined,
     windowId: number,
     url: string
   ): Promise<
@@ -318,7 +319,8 @@ export namespace BrowserHistoryUpload {
         tab.url,
         {
           type: 'passive-mode-content-app',
-        }
+        },
+        await getAppSettings(browser.storage.local)
       )
       await ToContent.sendMessage(tabId, request)
       return await ToContent.sendMessage(tabId, {

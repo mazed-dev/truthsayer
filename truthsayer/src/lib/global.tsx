@@ -71,7 +71,7 @@ export const MzdGlobalContext = React.createContext<MzdGlobalContextProps>({
 
 type MzdGlobalProps = {
   analytics?: PostHog
-  account: UserAccount
+  account?: UserAccount
 }
 type MzdGlobalState = {
   toaster: Toaster
@@ -115,7 +115,7 @@ export function MzdGlobal(props: React.PropsWithChildren<MzdGlobalProps>) {
 
   return (
     <MzdGlobalContext.Provider
-      value={{ ...state, account: props.account, storage }}
+      value={{ ...state, account: props.account ?? null, storage }}
     >
       <div
         aria-live="polite"

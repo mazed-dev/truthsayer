@@ -14,6 +14,7 @@ import { AnalyticsIdentity, ErrorViaMessage, OriginIdentity } from 'armoury'
 import type {
   BackgroundAction,
   BackgroundActionProgress,
+  AppSettings,
 } from 'truthsayer-archaeologist-communication'
 
 /**
@@ -76,10 +77,6 @@ export type StorageAccessResponse = {
  */
 export type ContentAugmentationProductUpdate = {
   signature: 'foreward-rebranding-03-06-2023' | null
-}
-export type ContentAugmentationPosition = {
-  x: number
-  y: number
 }
 export type ContentAugmentationSettings = {
   productUpdate?: ContentAugmentationProductUpdate
@@ -257,10 +254,11 @@ export namespace ToContent {
     type: 'INIT_CONTENT_AUGMENTATION_REQUEST'
     mode: ContentAppOperationMode
     nodeEnv: NodeEnv
-    userUid: string
+    userUid?: string
     fromNodes: TNodeJson[]
     toNodes: TNodeJson[]
     bookmark?: TNodeJson
+    appSettings: AppSettings
   }
   export interface GetSelectedQuoteRequest {
     type: 'REQUEST_SELECTED_WEB_QUOTE'
