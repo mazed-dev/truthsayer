@@ -435,8 +435,8 @@ class Background {
           this.state.context.account = undefined
         },
       })
-      await auth.register(storage, analytics)
       this.state = { phase: 'init-done', context }
+      await auth.register(storage, analytics)
       log.debug('Background init done', timer.elapsedSecondsPretty())
     } catch (initFailureReason) {
       log.error(
