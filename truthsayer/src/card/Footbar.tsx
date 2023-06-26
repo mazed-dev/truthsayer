@@ -10,7 +10,7 @@ import { jcss } from 'elementary'
 
 export const FootbarDropdown = React.forwardRef<
   any,
-  PropsWithChildren<{ className: string }>
+  PropsWithChildren<{ className?: string }>
 >(({ children, className }, ref) => (
   <Dropdown
     as={ButtonGroup}
@@ -23,7 +23,7 @@ export const FootbarDropdown = React.forwardRef<
 
 export const FootbarDropdownToggle = React.forwardRef<
   any,
-  { className: string }
+  { className?: string }
 >(({ children, className }, _ref) => (
   <Dropdown.Toggle
     variant="light"
@@ -54,7 +54,7 @@ export const FootbarDropdownItem = ({
   className,
   onClick,
 }: PropsWithChildren<{
-  className: string
+  className?: string
   onClick: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void
 }>) => (
   <Dropdown.Item
