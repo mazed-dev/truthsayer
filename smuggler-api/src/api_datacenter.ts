@@ -179,12 +179,12 @@ async function deleteNode(
   signal?: AbortSignal
 ): Promise<Ack> {
   verifyIsNotNull(nid)
+  NodeEvent.registerEvent('will-delete', nid, {})
   const resp = await fetch(makeUrl(`/node/${nid}`), {
     method: 'DELETE',
     signal,
   })
   if (resp.ok) {
-    NodeEvent.registerEvent('deleted', nid, {})
     return await resp.json()
   }
   throw _makeResponseError(resp)

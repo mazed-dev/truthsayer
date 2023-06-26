@@ -534,6 +534,7 @@ async function calculateEuclideanDistances(
     new Map()
   for (const [nid, { blockKeys, index }] of input.entries()) {
     throwIfCancelled(cancellationToken)
+    const forNode: { blockKeyStr: NodeBlockKeyStr; score: number }[] = []
     for (const blockKeyStr of blockKeys) {
       throwIfCancelled(cancellationToken)
       const embeddingJson = index.forBlocks[blockKeyStr]
@@ -549,10 +550,9 @@ async function calculateEuclideanDistances(
         embedding?.dispose()
         embedding = null
       }
-      const other = ret.get(nid) ?? []
-      other.push({ blockKeyStr, score })
-      ret.set(nid, other)
+      forNode.push({ blockKeyStr, score })
     }
+    ret.set(nid, forNode)
   }
   return ret
 }
@@ -564,13 +564,13 @@ function filterBadlyScoringBlocks(
   const ret: Map<Nid, { blockKeyStr: NodeBlockKeyStr; score: number }[]> =
     new Map()
   for (const [nid, blocks] of input.entries()) {
+    const forNode: { blockKeyStr: NodeBlockKeyStr; score: number }[] = []
     for (const { blockKeyStr, score } of blocks) {
       if (score < euclideanDistanceThreshold) {
-        const other = ret.get(nid) ?? []
-        other.push({ blockKeyStr, score })
-        ret.set(nid, other)
+        forNode.push({ blockKeyStr, score })
       }
     }
+    ret.set(nid, forNode)
   }
   return ret
 }
@@ -844,8 +844,20 @@ function createNodeEventListener(
           await updateNodeIndex(storage, fastIndex, nid, patch, useState, type)
           break
         }
-        case 'deleted': {
-          await storage.node.similarity.removeIndex({ nid })
+        case 'will-delete': {
+          // Storage API will delete all node embeddings from storage by nid, so
+          // we don't need to worry about it here. But, we need to clean up
+          // projections from fast index, for that we subscribe for the event
+          // 'will-delete' that precede node deletion.
+          const nodeSimSearchInfo = verifySimilaritySearchInfoVersion(
+            await storage.node.similarity.getIndex({ nid })
+          )
+          if (nodeSimSearchInfo != null) {
+            for (const blockKeyStr in nodeSimSearchInfo.forBlocks) {
+              const label = serializeFastProjectionKey({ nid, blockKeyStr })
+              fastIndex.knn.clearClass(label)
+            }
+          }
           break
         }
       }

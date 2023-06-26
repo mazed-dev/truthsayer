@@ -1,4 +1,4 @@
-import { MimeType, unixtime } from 'armoury'
+import { MimeType, unixtime, log } from 'armoury'
 import moment from 'moment'
 
 export type SlateText = object[]
