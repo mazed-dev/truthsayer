@@ -32,7 +32,7 @@ import {
 import { kCardBorderColour } from '../colour'
 
 const ToolbarButtonInactive = styled.span`
-  padding: 1px 10px 0px;
+  padding: 5px;
   border-radius: 50px;
   font-size: 24px;
   color: rgba(0, 0, 0, 0.3);
@@ -49,11 +49,10 @@ const ToolbarButtonActive = styled(ToolbarButtonInactive)`
 
 const ToolbarBox = styled(ButtonGroup)`
   border-bottom: 1px solid ${kCardBorderColour};
-  padding: 6px 0 6px 0;
+  padding: 5px;
   margin-top: 8px;
   display: flex;
-  /* To make usable on narrow screens */
-  /* https://www.w3schools.com/howto/howto_css_menu_horizontal_scroll.asp */
+  justify-content: space-evenly;
   overflow-x: auto;
   white-space: nowrap;
 `
