@@ -202,6 +202,7 @@ function MiniFloater({
 
 export type ControlledPosition = {
   offset: Position2D
+  element: HTMLElement
 }
 
 /**

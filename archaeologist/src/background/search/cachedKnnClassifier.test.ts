@@ -48,6 +48,8 @@ async function create(): Promise<{
 describe('CachedKnnClassifier', () => {
   const tensor = tf.tensor([1, 2, 3, 4])
 
+  afterAll(() => tensor.dispose())
+
   test('addExample caches input label', async () => {
     // GIVEN
     const { store, knn } = await create()
