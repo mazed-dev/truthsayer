@@ -103,12 +103,6 @@ export function ApplicationSettings({
       storageType: checked ? 'browser_ext' : 'datacenter',
     })
   }
-  const toggleAutosavingEnabled = async (enabled: boolean) => {
-    await saveAppSettings({
-      ...(appSettings ?? defaultSettings()),
-      autosaving: { enabled },
-    })
-  }
   const toggleTypingSuggestionsEnabled = async (enabled: boolean) => {
     await saveAppSettings({
       ...(appSettings ?? defaultSettings()),
@@ -139,18 +133,8 @@ export function ApplicationSettings({
   return (
     <Box className={className}>
       <PageTitle>Settings</PageTitle>
-      <Section key="autosaving">
-        <SectionLabel>Retain everything you read</SectionLabel>
-        <FeatureRow>
-          <FeatureLabel>Save pages automatically</FeatureLabel>
-          <Switch
-            onChange={toggleAutosavingEnabled}
-            checked={appSettings?.autosaving?.enabled ?? true}
-          />
-        </FeatureRow>
-      </Section>
       <Section key="augmentation">
-        <SectionLabel>Suggestions</SectionLabel>
+        <SectionLabel>Suggest relevant memories</SectionLabel>
         <FeatureRow>
           <FeatureLabel>Suggest when typing</FeatureLabel>
           <Switch

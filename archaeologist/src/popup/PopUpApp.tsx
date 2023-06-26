@@ -32,11 +32,11 @@ const Centered = styled.div`
   justify-content: center;
 `
 
-type State = null | {
-  userUid?: string
-  analytics?: PostHog
-  error?: string
-}
+type State =
+  | { type: 'not-init' }
+  | { type: 'error'; error: string }
+  | { type: 'not-logged-in'; analytics?: PostHog }
+  | { type: 'logged-in'; userUid: string; analytics?: PostHog }
 
 type Action =
   | ToPopUp.AppStatusResponse
@@ -47,20 +47,33 @@ function updateState(state: State, action: Action): State {
   switch (action.type) {
     case 'APP_STATUS_RESPONSE': {
       const analytics = makeAnalytics(action.analyticsIdentity)
-      return { userUid: action.userUid ?? undefined, analytics }
+      if (action.userUid == null) {
+        return { type: 'not-logged-in', analytics }
+      } else {
+        return { type: 'logged-in', userUid: action.userUid, analytics }
+      }
     }
     case 'RESPONSE_LOG_IN': {
-      const analytics = makeAnalytics(action.analyticsIdentity)
+      if (state.type !== 'not-logged-in') {
+        throw new Error(
+          `Tried to log in, but popup app is in state '${state.type}'`
+        )
+      }
       return {
+        type: 'logged-in',
+        analytics: state.analytics,
         userUid: action.user.uid,
-        analytics,
       }
     }
     case 'mark-as-errored': {
+      if (state.type !== 'not-init') {
+        throw new Error(
+          `Tried to do mark popup app init as failed, but it has unexpected state '${state.type}'`
+        )
+      }
       return {
+        type: 'error',
         error: action.error,
-        userUid: state?.userUid,
-        analytics: state?.analytics,
       }
     }
   }
@@ -80,7 +93,8 @@ function makeAnalytics(
 }
 
 export const PopUpApp = () => {
-  const [state, dispatch] = React.useReducer(updateState, null)
+  const initialState: State = { type: 'not-init' }
+  const [state, dispatch] = React.useReducer(updateState, initialState)
 
   useAsyncEffect(async () => {
     try {
@@ -113,7 +127,7 @@ export const PopUpApp = () => {
       <PopUpContext.Provider
         value={{
           storage: makeMsgProxyStorageApi(forwardToBackground),
-          analytics: state?.analytics,
+          analytics: analyticsFrom(state),
         }}
       >
         {determineWidget(state, dispatch)}
@@ -123,17 +137,34 @@ export const PopUpApp = () => {
 }
 
 function determineWidget(state: State, _dispatch: React.Dispatch<Action>) {
-  if (state == null) {
-    return (
-      <Centered>
-        <Spinner.Wheel />
-      </Centered>
-    )
+  switch (state.type) {
+    case 'not-init': {
+      return (
+        <Centered>
+          <Spinner.Wheel />
+        </Centered>
+      )
+    }
+    case 'error': {
+      return <ErrorBox>{state.error}</ErrorBox>
+    }
+    case 'logged-in':
+    case 'not-logged-in':
+      return <ViewActiveTabStatus />
   }
-  if (state.error != null) {
-    return <ErrorBox>{state.error}</ErrorBox>
+}
+
+function analyticsFrom(state: State): PostHog | undefined {
+  switch (state.type) {
+    case 'not-init':
+    case 'error': {
+      return undefined
+    }
+    case 'not-logged-in':
+    case 'logged-in': {
+      return state.analytics
+    }
   }
-  return <ViewActiveTabStatus />
 }
 
 export default PopUpApp

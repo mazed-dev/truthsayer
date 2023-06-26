@@ -138,10 +138,6 @@ async function registerAttentionTime(
       `+${deltaSeconds} sec (total = ${total.seconds_of_attention}, full read = ${totalSecondsEstimation})`
   )
   if (isReadyToBeAutoSaved(total, totalSecondsEstimation)) {
-    const settings = await getAppSettings(browser.storage.local)
-    if (!(settings.autosaving?.enabled ?? true)) {
-      return
-    }
     const response:
       | FromContent.SavePageResponse
       | FromContent.PageAlreadySavedResponse
@@ -738,9 +734,6 @@ class Background {
             uid: account.getUid(),
             name: account.getName(),
           },
-          analyticsIdentity: await backgroundpa.getIdentity(
-            browser.storage.local
-          ),
         }
       }
     }

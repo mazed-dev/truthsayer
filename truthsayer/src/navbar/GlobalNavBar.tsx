@@ -1,3 +1,4 @@
+/** @jsxImportSource @emotion/react */
 import React from 'react'
 import styled from '@emotion/styled'
 
@@ -32,7 +33,9 @@ const UserBadge = ({ username }: { username?: string }) => {
   // TODO: use custom user uploaded picture for userpic here
   return (
     <UserBadgeBox>
-      <UserNameBox>{lodash.upperFirst(username)}</UserNameBox>
+      {username ? (
+        <UserNameBox>{lodash.upperFirst(username)}</UserNameBox>
+      ) : null}
       <UserPic />
     </UserBadgeBox>
   )
@@ -41,9 +44,10 @@ const UserBadge = ({ username }: { username?: string }) => {
 const DropdownItemLink = ({
   to,
   children,
-}: React.PropsWithChildren<{ to: TruthsayerPath }>) => {
+  className,
+}: React.PropsWithChildren<{ to: TruthsayerPath; className?: string }>) => {
   return (
-    <Dropdown.Item as={Link} to={to}>
+    <Dropdown.Item as={Link} to={to} className={className}>
       {children}
     </Dropdown.Item>
   )
@@ -104,7 +108,14 @@ const NavButtons = ({
         {isLikelyAuthorised ? (
           <DropdownItemLink to={'/logout'}>Log Out</DropdownItemLink>
         ) : (
-          <DropdownItemLink to={'/login'}>Log In</DropdownItemLink>
+          <DropdownItemLink
+            to={'/login'}
+            css={{
+              backgroundColor: '#ffe7e7',
+            }}
+          >
+            Log In
+          </DropdownItemLink>
         )}
       </Dropdown.Menu>
     </Dropdown>

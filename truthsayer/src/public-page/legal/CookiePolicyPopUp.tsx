@@ -46,7 +46,7 @@ function CookiePolicyToast({ onAccept }: { onAccept: () => void }) {
         position: fixed;
         top: 12px;
         right: 12px;
-        z-index: 5;
+        z-index: 20000;
       `}
     >
       <Toast.Body>

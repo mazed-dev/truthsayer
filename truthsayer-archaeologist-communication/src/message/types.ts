@@ -26,12 +26,8 @@ export type AppSuggestionsSettings = {
     enabled: boolean
   }
 }
-export type AppAutosavingSettings = {
-  enabled: boolean
-}
 export type AppSettings = {
   storageType: StorageType
-  autosaving?: AppAutosavingSettings
   suggestions?: AppSuggestionsSettings
 }
 
