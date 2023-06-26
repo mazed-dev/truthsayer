@@ -61,8 +61,8 @@ function updateState(state: State, action: Action): State {
       }
       return {
         type: 'logged-in',
-        analytics: state.analytics,
         userUid: action.user.uid,
+        analytics: state.analytics,
       }
     }
     case 'mark-as-errored': {
