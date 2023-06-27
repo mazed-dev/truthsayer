@@ -855,7 +855,11 @@ function createNodeEventListener(
           if (nodeSimSearchInfo != null) {
             for (const blockKeyStr in nodeSimSearchInfo.forBlocks) {
               const label = serializeFastProjectionKey({ nid, blockKeyStr })
-              await fastIndex.knn.clearClass(label)
+              try {
+                await fastIndex.knn.clearClass(label)
+              } catch (err) {
+                log.debug('Removing outdated projections from KNN failed with', err)
+              }
             }
           }
           break
