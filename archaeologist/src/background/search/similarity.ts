@@ -855,7 +855,7 @@ function createNodeEventListener(
           if (nodeSimSearchInfo != null) {
             for (const blockKeyStr in nodeSimSearchInfo.forBlocks) {
               const label = serializeFastProjectionKey({ nid, blockKeyStr })
-              fastIndex.knn.clearClass(label)
+              await fastIndex.knn.clearClass(label)
             }
           }
           break
