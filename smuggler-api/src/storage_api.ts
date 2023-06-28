@@ -102,7 +102,7 @@ export type AccountInfoSetArgs = {
   accountInfo?: AccountInfo
 }
 
-export type NodeEventType = 'created' | 'deleted' | 'updated'
+export type NodeEventType = 'created' | 'will-delete' | 'updated'
 /**
  * Only fields of TNode that has been updated
  *

@@ -783,6 +783,7 @@ async function deleteNode(
   store: YekLavStore,
   args: NodeDeleteArgs
 ): Promise<Ack> {
+  NodeEvent.registerEvent('will-delete', args.nid, {})
   const { toRemove, toSet } = await prepareNodeRemoval(store, [args.nid])
   await store.remove(toRemove)
   await store.set(toSet)

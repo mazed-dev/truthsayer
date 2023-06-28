@@ -272,7 +272,7 @@ type KnnTensor = Parameters<KNNClassifier['addExample']>[0]
 export class CachedKnnClassifier implements AsyncKnnClassifier {
   private impl: KNNClassifier
   private store: YekLavStore
-  private static readonly INTERNAL_VERSION: number = 2
+  private static readonly INTERNAL_VERSION: number = 3
 
   /**
    * @param expectedCacheSignature A string which identifies the "version"
