@@ -552,7 +552,9 @@ async function calculateEuclideanDistances(
       }
       forNode.push({ blockKeyStr, score })
     }
-    ret.set(nid, forNode)
+    if (forNode.length > 0) {
+      ret.set(nid, forNode)
+    }
   }
   return ret
 }
@@ -570,7 +572,9 @@ function filterBadlyScoringBlocks(
         forNode.push({ blockKeyStr, score })
       }
     }
-    ret.set(nid, forNode)
+    if (forNode.length > 0) {
+      ret.set(nid, forNode)
+    }
   }
   return ret
 }
@@ -584,10 +588,12 @@ function takeNBestScoring(
     blocks.sort((ar, br) => ar.score - br.score)
     // Limit number of quotes per node and repack
     const topN = blocks.slice(0, numberToTake)
-    ret.set(nid, {
-      blockKeys: topN.map(({ blockKey }) => blockKey),
-      bestScore: topN.length > 0 ? topN[0].score : 0,
-    })
+    if (topN.length > 0) {
+      ret.set(nid, {
+        blockKeys: topN.map(({ blockKey }) => blockKey),
+        bestScore: topN[0].score,
+      })
+    }
   }
   return ret
 }
