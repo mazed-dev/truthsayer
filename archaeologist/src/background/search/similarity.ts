@@ -858,7 +858,10 @@ function createNodeEventListener(
               try {
                 await fastIndex.knn.clearClass(label)
               } catch (err) {
-                log.debug('Removing outdated projections from KNN failed with', err)
+                log.debug(
+                  'Removing outdated projections from KNN failed with',
+                  err
+                )
               }
             }
           }
