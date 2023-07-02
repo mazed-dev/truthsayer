@@ -213,7 +213,7 @@ function OnboardingSteps({
   archaeologistState: ArchaeologistState
   progress: ExternalImportProgress
 }) {
-  const kStepsNumber = 4
+  const kStepsNumber = 3
   const nextStepChecked = () => {
     step = step + 1
     if (step >= kStepsNumber) {

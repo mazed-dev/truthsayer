@@ -145,6 +145,9 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
             >
               Create account
             </Card.Title>
+            <a href={truthsayer.url.make({ pathname: '/login' }).href}>
+              Or sign in to your Foreword account
+            </a>
             <Form
               onSubmit={this.onSubmit}
               css={css`
