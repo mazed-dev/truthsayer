@@ -17,6 +17,9 @@ import { ArchaeologistState } from '../../apps-list/archaeologistState'
 import { sleep, isAbortError, productanalytics, errorise } from 'armoury'
 import { MdiClose } from 'elementary'
 import MzdGlobalContext from '../../lib/global'
+import { accountConfig } from '../config'
+
+const ONBOARDING_VERSION = 0
 
 const Header = styled.h1`
   margin-bottom: 24px;
@@ -343,12 +346,36 @@ function OnboardingSteps({
   }
 }
 
-function parseStepFromSearchString(search: string): number {
+function parseStepFromSearchString(search: string): number | undefined {
   const step = parseInt(parse(search)['step'] as string)
   if (Number.isNaN(step)) {
     return 0
   }
   return step
+}
+
+function nextStepSinceLastTime(
+  prevStatus: accountConfig.local.onboarding.OnboardingStatus
+): number {
+  if (prevStatus.version !== ONBOARDING_VERSION) {
+    return 0
+  }
+  if (prevStatus.progress !== 'in-progress') {
+    // NOTE: it may be unintuitive that the function returns step 0 in case
+    // the previous status is 'completed'. However if it didn't then it would not
+    // be possible to re-run the onboarding process which may be needed to, for
+    // example:
+    //    - guide a user to re-install archaeologist
+    //    - show user a tutorial again
+    //    - register a new account for demo purposes
+    //    - etc
+    //
+    // This behaviour implies the code which redirects to '/onboarding'
+    // will make a decision what to do if onboarding was already completed and,
+    // if appropriate, not open '/onboarding' at all.
+    return 0
+  }
+  return prevStatus.nextStep
 }
 
 export function Onboarding({
@@ -360,8 +387,17 @@ export function Onboarding({
 }) {
   const loc = useLocation()
   const navigate = useNavigate()
-  const onboardingStep = parseStepFromSearchString(loc.search)
+  const [onboardingStep] = React.useState((): number => {
+    return (
+      parseStepFromSearchString(loc.search) ??
+      nextStepSinceLastTime(accountConfig.local.onboarding.get())
+    )
+  })
   const onClose = () => {
+    accountConfig.local.onboarding.set({
+      version: ONBOARDING_VERSION,
+      progress: 'completed',
+    })
     // Navigate to /search without react-route history object to fully reload
     // Truthsayer web app, otherwise bootstraped cards not always show up
     goto.search({ query: '' })
@@ -370,7 +406,14 @@ export function Onboarding({
     <OnboardingSteps
       onClose={onClose}
       step={onboardingStep}
-      nextStep={(step: number) => navigate({ search: `step=${step}` })}
+      nextStep={(step: number) => {
+        accountConfig.local.onboarding.set({
+          version: ONBOARDING_VERSION,
+          progress: 'in-progress',
+          nextStep: step,
+        })
+        navigate({ search: `step=${step}` })
+      }}
       archaeologistState={archaeologistState}
       progress={progress}
     />

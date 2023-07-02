@@ -11,6 +11,7 @@ import { goto } from '../lib/route'
 
 import lodash from 'lodash'
 import MzdGlobalContext from '../lib/global'
+import { accountConfig } from '../account/config'
 
 const Box = styled.div`
   width: 100%;
@@ -37,6 +38,11 @@ export const SearchGridView = ({
     if (ctx.account == null) {
       goto.signup({ navigate })
     } else if (archaeologistState.state === 'not-installed') {
+      // If archaeologist is not installed, always redirect to
+      // the page that'll guide the user to install it, regardless of how
+      // far they've progressed in the onboarding process prior.
+      goto.onboarding({ navigate, step: 0 })
+    } else if (accountConfig.local.onboarding.get().progress !== 'completed') {
       goto.onboarding({ navigate })
     }
   }, [archaeologistState, navigate, ctx])

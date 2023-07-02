@@ -37,9 +37,29 @@ export namespace accountConfig {
       const key: LocalStorageKeys =
         'mazed.account-config.local.onboarding-status'
       export type OnboardingStatus = {
-        invoked: boolean
-      }
-      export const get = makeGetter<OnboardingStatus>(key, { invoked: false })
+        /**
+         * Version of the onboarding process, expected to be incremented when
+         * the number of the nature of onboarding steps changes. This allows to
+         * invalidate the onboarding status and force the user to go through
+         * it again if needed.
+         */
+        version: number
+      } & (
+        | {
+            progress: 'in-progress'
+            /**
+             * Index of the next onboarding step to show to the user
+             */
+            nextStep: number
+          }
+        | { progress: 'completed' }
+      )
+
+      export const get = makeGetter<OnboardingStatus>(key, {
+        version: 0,
+        progress: 'in-progress',
+        nextStep: 0,
+      })
       export const set = makeSetter<OnboardingStatus>(key)
     }
   }

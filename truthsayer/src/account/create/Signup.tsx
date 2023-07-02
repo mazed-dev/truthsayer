@@ -80,7 +80,7 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
   }
 
   onSuccessfulRegistration = () => {
-    goto.onboarding({ navigate: this.props.navigate })
+    goto.onboarding({ navigate: this.props.navigate, step: 0 })
   }
 
   onSubmit = (event: React.ChangeEvent<HTMLFormElement>) => {
