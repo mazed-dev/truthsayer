@@ -34,9 +34,7 @@ export const SearchGridView = ({
     queryStr = q
   }
   React.useEffect(() => {
-    if (ctx.account == null) {
-      goto.signup({ navigate })
-    } else if (archaeologistState.state === 'not-installed') {
+    if (archaeologistState.state === 'not-installed') {
       goto.onboarding({ navigate })
     }
   }, [archaeologistState, navigate, ctx])

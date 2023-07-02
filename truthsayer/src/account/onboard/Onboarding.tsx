@@ -294,7 +294,7 @@ function OnboardingSteps({
   archaeologistState: ArchaeologistState
   progress: ExternalImportProgress
 }) {
-  const kStepsNumber = 3
+  const kStepsNumber = 4
   const nextStepChecked = () => {
     step = step + 1
     if (step >= kStepsNumber) {
@@ -364,7 +364,7 @@ export function Onboarding({
   const onClose = () => {
     // Navigate to /search without react-route history object to fully reload
     // Truthsayer web app, otherwise bootstraped cards not always show up
-    goto.search({ query: '' })
+    goto.search({ navigate, query: '' })
   }
   return (
     <OnboardingSteps
