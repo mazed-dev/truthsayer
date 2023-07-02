@@ -143,8 +143,11 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
                 font-family: 'Comfortaa';
               `}
             >
-              Sign up
+              Create a Foreword account
             </Card.Title>
+            <a href={truthsayer.url.make({ pathname: '/login' }).href}>
+              Or sign in to your Foreword account
+            </a>
             <Form
               onSubmit={this.onSubmit}
               css={css`
@@ -220,10 +223,6 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
                 Register
               </Button>
             </Form>
-            Already have an account?{' '}
-            <a href={truthsayer.url.make({ pathname: '/login' }).href}>
-              Log in
-            </a>
           </Card.Body>
         </Card>
       </Container>
