@@ -251,6 +251,9 @@ const ContextBlockLastStyles = css`
     text-indent: 0;
   }
 `
+const ContextBlockFirstFade = css`
+  opacity: 0.72;
+`
 const ContextBlockParagraphBox = styled(ContextBlockBase.withComponent('p'))`
   text-align: justify;
 `
@@ -291,11 +294,10 @@ const ContextBlock = ({
   }
 }
 const MatchedContentBlock = styled(ContextBlock)`
-  text-decoration-line: underline;
-  text-decoration-color: rgba(0, 110, 237, 0.2);
-  text-decoration-style: solid;
-  text-decoration-thickness: 2px;
   &:hover {
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-thickness: 1px;
     text-decoration-color: rgba(0, 110, 237, 0.5);
   }
 `
@@ -379,9 +381,9 @@ const BookmarkMatchDescription = ({
         onCopy={onCopyHandler}
       >
         <div>
-          <ContextBlock block={prefix} css={ContextBlockFirstStyles} />
-          <MatchedContentBlock block={matchedBlock} />
-          <ContextBlock block={suffix} css={ContextBlockLastStyles} />
+          <ContextBlock block={prefix} css={[ContextBlockFirstStyles, ContextBlockFirstFade]} />
+          <ContextBlock block={matchedBlock} />
+          <ContextBlock block={suffix} css={[ContextBlockLastStyles, ContextBlockFirstFade]} />
         </div>
         <DirectQuoteSeeMoreToolbar>
           <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore(false)}>
