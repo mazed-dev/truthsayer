@@ -190,6 +190,33 @@ const StepYouAreReadyToGo = ({
   )
 }
 
+const StepSetYourAccountPassword = ({
+  nextStep,
+  prevStep,
+}: {
+  nextStep: () => void
+  prevStep: () => void
+}) => {
+  return (
+    <StepBox>
+      <Header>Set your account password.</Header>
+      <DescriptionBox>
+        If this is your first time using Foreword, check your inbox and locate
+        the confirmation email (subject: "Reset your Foreword password"). Follow
+        the steps in the email to confirm your email address and come back here.
+      </DescriptionBox>
+      <StepFotbar>
+        <StepFotbarButton variant="outline-secondary" onClick={prevStep}>
+          Previous
+        </StepFotbarButton>
+        <StepFotbarButton variant="primary" onClick={nextStep}>
+          Next
+        </StepFotbarButton>
+      </StepFotbar>
+    </StepBox>
+  )
+}
+
 const StepTangoShowAroundBox = styled(StepBox)`
   margin: 0 auto 0 auto;
   padding-top: calc(100vh - 1200px);
@@ -287,6 +314,15 @@ function OnboardingSteps({
         </Box>
       )
     case 1:
+      return (
+        <Box>
+          <StepSetYourAccountPassword
+            prevStep={prevStepChecked}
+            nextStep={nextStepChecked}
+          />
+        </Box>
+      )
+    case 2:
       return (
         <Box>
           <StepYouAreReadyToGo
