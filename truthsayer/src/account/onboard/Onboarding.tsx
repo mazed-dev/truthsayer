@@ -16,6 +16,7 @@ import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
 import { sleep, isAbortError, productanalytics, errorise } from 'armoury'
 import { MdiClose } from 'elementary'
+import MzdGlobalContext from '../../lib/global'
 
 const Header = styled.h1`
   margin-bottom: 24px;
@@ -197,6 +198,12 @@ const StepSetYourAccountPassword = ({
   nextStep: () => void
   prevStep: () => void
 }) => {
+  const ctx = React.useContext(MzdGlobalContext)
+  React.useEffect(() => {
+    if (ctx.account != null) {
+      nextStep()
+    }
+  }, [ctx, nextStep])
   return (
     <StepBox>
       <Header>Set your account password.</Header>
