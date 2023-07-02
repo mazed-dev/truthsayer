@@ -139,11 +139,11 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
           <Card.Body className="p-3">
             <Card.Title
               css={css`
-                font-size: 48px;
+                font-size: 36px;
                 font-family: 'Comfortaa';
               `}
             >
-              Create a Foreword account
+              Create account
             </Card.Title>
             <a href={truthsayer.url.make({ pathname: '/login' }).href}>
               Or sign in to your Foreword account
@@ -154,30 +154,6 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
                 margin: 4vw auto auto auto;
               `}
             >
-              <Row
-                css={css`
-                  margin-bottom: 24px;
-                `}
-              >
-                By continuing, you agree to our
-                <Link
-                  to={routes.terms}
-                  css={css`
-                    width: auto;
-                  `}
-                >
-                  Terms Of Service
-                </Link>
-                and
-                <Link
-                  to={routes.privacy}
-                  css={css`
-                    width: auto;
-                  `}
-                >
-                  Privacy Policy
-                </Link>
-              </Row>
               <Form.Group
                 as={Row}
                 controlId="formLoginName"
@@ -211,18 +187,54 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
                   />
                 </Col>
               </Form.Group>
+              <Row
+                css={css`
+                  margin-top: 24px;
+                  margin-bottom: 24px;
+                `}
+              >
+                By continuing, you agree to our
+                <Link
+                  to={routes.terms}
+                  css={css`
+                    width: auto;
+                  `}
+                >
+                  Terms Of Service
+                </Link>
+                and
+                <Link
+                  to={routes.privacy}
+                  css={css`
+                    width: auto;
+                  `}
+                >
+                  Privacy Policy
+                </Link>
+              </Row>
               {remoteErrorElement}
               <Button
                 variant="secondary"
                 type="submit"
                 disabled={!this.isReadyToSubmit()}
                 css={css`
-                  margin: 1rem auto auto auto;
+                  margin: 0 auto auto auto;
                 `}
               >
                 Register
               </Button>
             </Form>
+            <div
+              css={css`
+                margin-top: 24px;
+              `}
+            >
+              or{' '}
+              <a href={truthsayer.url.make({ pathname: '/login' }).href}>
+                sign in
+              </a>{' '}
+              to your Foreword account
+            </div>
           </Card.Body>
         </Card>
       </Container>

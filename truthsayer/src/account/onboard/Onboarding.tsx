@@ -3,9 +3,10 @@
 import React from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 import { parse } from 'query-string'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { Navigate, useNavigate, useLocation } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { Button, Container } from 'react-bootstrap'
+import { Helmet } from 'react-helmet'
 import {
   FromTruthsayer,
   ToTruthsayer,
@@ -16,7 +17,6 @@ import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
 import { sleep, isAbortError, productanalytics, errorise } from 'armoury'
 import { MdiClose } from 'elementary'
-import MzdGlobalContext from '../../lib/global'
 
 const Header = styled.h1`
   margin-bottom: 24px;
@@ -34,21 +34,9 @@ const DescriptionBox = styled.div`
   margin-bottom: 24px;
 `
 const DescriptionList = styled.ul``
-const ReadyToGoDescriptionListItem = styled.li`
-  list-style-type: '🚀';
-  padding-left: 12px;
-`
 const AppDescriptionListItem = styled.li`
   list-style-type: '✅';
   padding-left: 12px;
-`
-const StepFotbar = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0.5rem;
 `
 const FootNote = styled.div`
   margin-top: 24px;
@@ -63,9 +51,6 @@ const RefBtn = styled.a`
     color: inherit;
     font-weight: 600;
   }
-`
-const StepFotbarButton = styled(Button)`
-  margin: 0.25rem;
 `
 const InstallAppsStep = styled(AppsList)`
   padding: 0;
@@ -146,118 +131,26 @@ const StepWelcomePleaseInstall = ({
   )
 }
 
-const StepYouAreReadyToGo = ({
-  nextStep,
-  prevStep,
-}: {
-  nextStep: () => void
-  prevStep: () => void
-}) => {
+const IncludeTypeformScript = () => {
   return (
-    <StepBox>
-      <Header>
-        You're ready to go! You're on your way to a smarter, more productive
-        life.
-      </Header>
-      <DescriptionBox>
-        <DescriptionList>
-          <ReadyToGoDescriptionListItem>
-            Browse the internet as you normally do. Foreword saves everything
-            you read, automatically, in your own private, local storage.
-          </ReadyToGoDescriptionListItem>
-          <ReadyToGoDescriptionListItem>
-            Use anything you've read, without searching for it. Foreword
-            overlays your existing workflows and serves you your relevant
-            information, exactly when you need it.
-          </ReadyToGoDescriptionListItem>
-          <ReadyToGoDescriptionListItem>
-            Book a call with our founders, to provide feedback and make special
-            requests{' '}
-            <a href="https://calendly.com/grahamgrieve/30min">
-              https://calendly.com/grahamgrieve
-            </a>
-          </ReadyToGoDescriptionListItem>
-        </DescriptionList>
-      </DescriptionBox>
-      <StepFotbar>
-        <StepFotbarButton variant="outline-secondary" onClick={prevStep}>
-          Previous
-        </StepFotbarButton>
-        <StepFotbarButton variant="primary" onClick={nextStep}>
-          Next
-        </StepFotbarButton>
-      </StepFotbar>
-    </StepBox>
+    <Helmet defer>
+      <script src="//embed.typeform.com/next/embed.js"></script>
+    </Helmet>
   )
 }
 
-const StepSetYourAccountPassword = ({
-  nextStep,
-  prevStep,
-}: {
-  nextStep: () => void
-  prevStep: () => void
-}) => {
-  const ctx = React.useContext(MzdGlobalContext)
-  React.useEffect(() => {
-    if (ctx.account != null) {
-      nextStep()
-    }
-  }, [ctx, nextStep])
-  return (
-    <StepBox>
-      <Header>Set your account password.</Header>
-      <DescriptionBox>
-        If this is your first time using Foreword, check your inbox and locate
-        the confirmation email (subject: "Reset your Foreword password"). Follow
-        the steps in the email to confirm your email address and come back here.
-      </DescriptionBox>
-      <StepFotbar>
-        <StepFotbarButton variant="outline-secondary" onClick={prevStep}>
-          Previous
-        </StepFotbarButton>
-        <StepFotbarButton variant="primary" onClick={nextStep}>
-          Next
-        </StepFotbarButton>
-      </StepFotbar>
-    </StepBox>
-  )
-}
-
-const StepTangoShowAroundBox = styled(StepBox)`
+const StepTypeformBox = styled(StepBox)`
   margin: 0 auto 0 auto;
-  padding-top: calc(100vh - 1200px);
-  height: calc(100vh - 40px); /* leave some space for bottom bar */
+  height: calc(100vh - 90px); /* leave some space for bottom bar */
   width: 100%;
-  @media (min-width: 740px) {
-    width: 740px;
-  }
 `
-
-const StepArcadeIframeBox = styled.div`
-  position: relative;
-  padding-bottom: calc(56.25% + 41px);
-  height: 0;
-`
-const StepArcadeIframe = styled.iframe`
-  position: absolute;
-  top: 0;
-  left: 0;
+const TypeformEmbed = styled.div`
   width: 100%;
   height: 100%;
-  color-scheme: light;
 `
-const StepArcadeBar = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0;
-`
-const StepTangoShowAround = ({ onClose }: { onClose: () => void }) => {
+const StepCalendlyTypeform = ({ onClose }: { onClose: () => void }) => {
   return (
-    <StepTangoShowAroundBox>
+    <StepTypeformBox>
       <StepArcadeBar>
         <Button
           variant="outline-default"
@@ -268,18 +161,44 @@ const StepTangoShowAround = ({ onClose }: { onClose: () => void }) => {
           <MdiClose />
         </Button>
       </StepArcadeBar>
-      <StepArcadeIframeBox>
-        <StepArcadeIframe
-          src="https://demo.arcade.software/SE7RpzZGj6eq5F0TUNm5?embed"
-          frameBorder="0"
-          loading="lazy"
-          allowFullScreen
-          title="Let's get you started"
-        ></StepArcadeIframe>
-      </StepArcadeIframeBox>
-    </StepTangoShowAroundBox>
+      <TypeformEmbed
+        data-tf-widget="eNXMCoQN"
+        data-tf-opacity="100"
+        data-tf-inline-on-mobile
+        data-tf-iframe-props="title=Book a calendar"
+        data-tf-transitive-search-params
+        data-tf-medium="snippet"
+      />
+      <IncludeTypeformScript />
+    </StepTypeformBox>
   )
 }
+
+const StepLearnAboutUserTypeform = () => {
+  return (
+    <StepTypeformBox>
+      <TypeformEmbed
+        data-tf-widget="yUrEEDLX"
+        data-tf-opacity="100"
+        data-tf-inline-on-mobile
+        data-tf-iframe-props="title=Foreword Onboarding"
+        data-tf-transitive-search-params
+        data-tf-auto-focus
+        data-tf-medium="snippet"
+      />
+      <IncludeTypeformScript />
+    </StepTypeformBox>
+  )
+}
+
+const StepArcadeBar = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0;
+`
 
 function OnboardingSteps({
   archaeologistState,
@@ -294,18 +213,12 @@ function OnboardingSteps({
   archaeologistState: ArchaeologistState
   progress: ExternalImportProgress
 }) {
-  const kStepsNumber = 4
+  const kStepsNumber = 3
   const nextStepChecked = () => {
     step = step + 1
     if (step >= kStepsNumber) {
       onClose()
     }
-    if (step >= 0) {
-      nextStep(step)
-    }
-  }
-  const prevStepChecked = () => {
-    step = step - 1
     if (step >= 0) {
       nextStep(step)
     }
@@ -321,25 +234,11 @@ function OnboardingSteps({
         </Box>
       )
     case 1:
-      return (
-        <Box>
-          <StepSetYourAccountPassword
-            prevStep={prevStepChecked}
-            nextStep={nextStepChecked}
-          />
-        </Box>
-      )
+      return <StepLearnAboutUserTypeform />
     case 2:
-      return (
-        <Box>
-          <StepYouAreReadyToGo
-            prevStep={prevStepChecked}
-            nextStep={nextStepChecked}
-          />
-        </Box>
-      )
+      return <StepCalendlyTypeform onClose={onClose} />
     default:
-      return <StepTangoShowAround onClose={onClose} />
+      return <Navigate to={routes.search} />
   }
 }
 
