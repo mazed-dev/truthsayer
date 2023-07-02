@@ -21,7 +21,11 @@ export * from './util/xstyle'
 export * from './ScopedTimedAction'
 export * from './Brand'
 
-export { Beagle } from './grid/search/search'
+export {
+  Beagle,
+  getNodeSearchableFields,
+  getNodeSearchableIndex,
+} from './grid/search/search'
 export type { Woof } from './grid/search/search'
 export type {
   BlockQuoteElement,

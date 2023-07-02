@@ -1,11 +1,19 @@
-import type { TNode } from 'smuggler-api'
+import type {
+  TNode,
+  NodeBlockKey,
+  NodeEventPatch,
+  TextContentBlock,
+} from 'smuggler-api'
 import type { Optional } from 'armoury'
+import { log } from 'armoury'
 
 import { TDoc } from '../../editor/types'
 
 import lodash from 'lodash'
 
-export type Woof = {}
+export type Woof = {
+  matchedQuote?: NodeBlockKey
+}
 
 export class Beagle {
   allOf: string[]
@@ -30,48 +38,27 @@ export class Beagle {
       // Empty search fall back to show everything
       return {}
     }
-    const doc = TDoc.fromNodeTextData(node.text)
-    const plaintext = doc.genPlainText()
-    const { extattrs, index_text } = node
-    const fields: (string | undefined)[] = [plaintext]
-    if (extattrs != null) {
-      const { title, description, lang, author, content_type, web, web_quote } =
-        extattrs
-      fields.push(
-        title,
-        description,
-        lang,
-        author,
-        content_type,
-        web?.url,
-        web_quote?.url,
-        web_quote?.text
-      )
-      const webPageText = web?.text?.blocks
-      if (webPageText != null) {
-        fields.push(...webPageText.map(({ text }) => text))
+    const fields = getNodeSearchableIndex(node)
+    for (const { key, text } of fields) {
+      if (key.field === '*') {
+        // `*` field just includes all known fields of a node, no need to search
+        // in it again
+        continue
+      }
+      if (_searchFieldFor(text, this.allOf)) {
+        return { matchedQuote: key }
       }
     }
-    if (index_text != null) {
-      const { labels, brands, plaintext } = index_text
-      fields.push(plaintext, ...labels, ...brands)
-    }
-    const fieldsToSearchIn: string[] = []
-    for (const field of fields) {
-      if (field) {
-        fieldsToSearchIn.push(field)
-      }
-    }
-    return _searchFieldsFor(fieldsToSearchIn, this.allOf) ? {} : null
+    return null
   }
 }
 
-export function _searchFieldsFor(
-  fields: string[],
+export function _searchFieldFor(
+  text: string[],
   allOfPatterns: string[]
 ): boolean {
   const allOf = lodash.clone(allOfPatterns)
-  fields.forEach((text: string) => {
+  text.forEach((text: string) => {
     // To see a pattern once in node fields is enough, it could be excluded
     // from patterns set after that
     const lower = text.toLowerCase()
@@ -99,4 +86,81 @@ export function _exactPatternsFromString(q: string): string[] {
     }
   }
   return allOf
+}
+
+export function getNodeSearchableFields({
+  text,
+  index_text,
+  extattrs,
+}: NodeEventPatch | TNode): {
+  plaintext: string[]
+  textContentBlocks: TextContentBlock[]
+  attrs: string[]
+  coment?: string
+  extQuote?: string
+} {
+  let coment: string | undefined = undefined
+  const textContentBlocks: TextContentBlock[] = []
+  const attrs: string[] = [
+    extattrs?.title ?? '',
+    extattrs?.author ?? '',
+    extattrs?.web?.url ?? '',
+    extattrs?.web_quote?.url ?? '',
+  ].filter((v) => !!v)
+  const plaintext: string[] = [...attrs]
+  if (extattrs?.web?.text) {
+    textContentBlocks.push(...extattrs?.web?.text.blocks)
+    plaintext.push(...textContentBlocks.map(({ text }) => text))
+  }
+  if (index_text?.plaintext) {
+    // textContentBlocks.push({ text: index_text?.plaintext, type: 'P' })
+    const indexPlaintext = index_text?.plaintext
+    if (indexPlaintext) {
+      plaintext.push(indexPlaintext)
+    }
+  }
+  if (text) {
+    const doc = TDoc.fromNodeTextData(text)
+    const docAsPlaintext = doc.genPlainText()
+    plaintext.push(docAsPlaintext)
+    coment = docAsPlaintext
+  }
+  const extQuote = extattrs?.web_quote?.text ?? undefined
+  if (extQuote) {
+    plaintext.push(extQuote)
+  }
+  return {
+    plaintext,
+    textContentBlocks,
+    attrs,
+    coment,
+    extQuote,
+  }
+}
+
+export function getNodeSearchableIndex(node: NodeEventPatch | TNode): {
+  key: NodeBlockKey
+  text: string[]
+}[] {
+  const { textContentBlocks, plaintext, attrs, coment, extQuote } =
+    getNodeSearchableFields(node)
+  const ret = textContentBlocks.map(({ text }, index) => {
+    return {
+      key: { field: 'web-text', index } as NodeBlockKey,
+      text: [text],
+    }
+  })
+  if (plaintext) {
+    ret.push({ key: { field: '*' }, text: plaintext })
+  }
+  if (attrs) {
+    ret.push({ key: { field: 'attrs' }, text: attrs })
+  }
+  if (coment) {
+    ret.push({ key: { field: 'text' }, text: [coment] })
+  }
+  if (extQuote) {
+    ret.push({ key: { field: 'web-quote' }, text: [extQuote] })
+  }
+  return ret
 }

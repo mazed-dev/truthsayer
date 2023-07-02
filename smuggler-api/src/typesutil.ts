@@ -2,11 +2,13 @@ import {
   NodeType,
   NodeTextData,
   SlateText,
-  TNode,
-  TNodeJson,
   TEdge,
   TEdgeJson,
+  TNode,
+  TNodeJson,
+  TextContentBlock,
 } from './types'
+import type { NodeEventPatch } from './storage_api'
 import { AccountInterface } from './auth/account_interface'
 
 import { Mime, MimeType } from 'armoury'

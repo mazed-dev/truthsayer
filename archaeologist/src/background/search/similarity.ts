@@ -11,7 +11,6 @@ import {
   NodeSimilaritySearchInfoLatest,
   StorageApi,
   TNode,
-  TextContentBlock,
   TfEmbeddingJson,
   NodeSimilaritySearchSignatureLatest,
 } from 'smuggler-api'
@@ -21,7 +20,7 @@ import {
   nodeBlockKeyFromString,
   createNodeSimilaritySearchInfoLatest,
 } from 'smuggler-api'
-import { TDoc, Beagle } from 'elementary'
+import { Beagle, getNodeSearchableIndex } from 'elementary'
 import CancellationToken from 'cancellationtoken'
 import { Mutex } from 'async-mutex'
 import { log, errorise, AbortError, Timer } from 'armoury'
@@ -244,9 +243,9 @@ async function updateNodeFastIndex(
  * related. Although, to be sure we take tighter threshold than 1.0, to avoid
  * giving somewhat irrelevant information.
  */
-const kSimilarityEuclideanDistanceThreshold = 0.9
+const kSimilarityEuclideanDistanceThreshold = 0.8
 
-const kPhraseLenWordsMinToSearchWithTfJs = 5
+const kPhraseLenWordsMinToSearchWithTfJs = 7
 
 function getSuggestionsNumberLimit(): number {
   return lodash.random(7, 12)
@@ -688,8 +687,14 @@ async function findRelevantNodesUsingPlainTextSearch(
       continue
     }
     ++processedNodesCount
-    if (beagle.searchNode(node) != null) {
-      relevantNodes.push({ node, score: 0, matchedQuotes: [] })
+    const woof = beagle.searchNode(node)
+    if (woof != null) {
+      relevantNodes.push({
+        node,
+        score: 0,
+        matchedQuotes:
+          woof.matchedQuote?.field === 'web-text' ? [woof.matchedQuote] : [],
+      })
     }
     if (relevantNodes.length >= expectedLimit) {
       break
@@ -697,61 +702,6 @@ async function findRelevantNodesUsingPlainTextSearch(
   }
   return { relevantNodes, processedNodesCount }
 }
-
-function getNodePatchAsString(patch: NodeEventPatch): {
-  plaintext: string
-  textContentBlocks: TextContentBlock[]
-  coment?: string
-  extQuote?: string
-  attrs?: string
-} {
-  let coment: string | undefined = undefined
-  const textContentBlocks: TextContentBlock[] = []
-  const attrs: (string | undefined)[] = [
-    patch.extattrs?.title,
-    patch.extattrs?.author,
-    patch.extattrs?.description,
-    patch.index_text?.labels?.join(', '),
-    patch.index_text?.brands?.join(', '),
-    patch.extattrs?.web?.url,
-    patch.extattrs?.web_quote?.url,
-  ].filter((v) => v != null)
-  let lines: (string | undefined)[] = [...attrs]
-  if (patch.extattrs?.web?.text) {
-    textContentBlocks.push(...patch.extattrs?.web?.text.blocks)
-    lines.push(...textContentBlocks.map(({ text }) => text))
-  }
-  if (patch.index_text?.plaintext) {
-    textContentBlocks.push({ text: patch.index_text?.plaintext, type: 'P' })
-    lines.push(patch.index_text?.plaintext)
-  }
-  if (patch.text) {
-    const doc = TDoc.fromNodeTextData(patch.text)
-    const docAsPlaintext = doc.genPlainText()
-    lines.push(docAsPlaintext)
-    coment = docAsPlaintext
-  }
-  const extQuote = patch.extattrs?.web_quote?.text ?? undefined
-  if (extQuote) {
-    lines.push(extQuote)
-  }
-  let plaintext = lines
-    .filter((v) => v != null)
-    .join('.\n')
-    .trim()
-  if (!plaintext) {
-    // Hack: Embedding fails on completely empty string
-    plaintext = 'empty'
-  }
-  return {
-    plaintext,
-    textContentBlocks,
-    coment,
-    extQuote,
-    attrs: attrs.join('.\n').trim(),
-  }
-}
-
 async function updateNodeIndex(
   storage: StorageApi,
   fastIndex: FastIndex,
@@ -760,60 +710,18 @@ async function updateNodeIndex(
   useState: use.State,
   updateType: 'created' | 'updated'
 ): Promise<void> {
-  const { plaintext, textContentBlocks, coment, extQuote, attrs } =
-    getNodePatchAsString(patch)
+  const blocks = getNodeSearchableIndex(patch)
   const forBlocks: Record<string, TfEmbeddingJson> = {}
-  {
-    let embedding: tf.Tensor2D | null = null
-    try {
-      // @ts-ignore, see 'conflicting-tensor2d-versions' note
-      embedding = await useState.encoder.embed(plaintext)
-      forBlocks[nodeBlockKeyToString({ field: '*' })] =
-        await use.tensor2dToJson(embedding)
-    } finally {
-      embedding?.dispose()
-    }
-  }
-  if (coment) {
-    let embedding: tf.Tensor2D | null = null
-    try {
-      // @ts-ignore, see 'conflicting-tensor2d-versions' note
-      embedding = await useState.encoder.embed(coment)
-      forBlocks[nodeBlockKeyToString({ field: 'text' })] =
-        await use.tensor2dToJson(embedding)
-    } finally {
-      embedding?.dispose()
-    }
-  }
-  if (extQuote) {
-    let embedding: tf.Tensor2D | null = null
-    try {
-      // @ts-ignore, see 'conflicting-tensor2d-versions' note
-      embedding = await useState.encoder.embed(extQuote)
-      forBlocks[nodeBlockKeyToString({ field: 'web-quote' })] =
-        await use.tensor2dToJson(embedding)
-    } finally {
-      embedding?.dispose()
-    }
-  }
-  if (attrs) {
-    let embedding: tf.Tensor2D | null = null
-    try {
-      // @ts-ignore, see 'conflicting-tensor2d-versions' note
-      embedding = await useState.encoder.embed(attrs)
-      forBlocks[nodeBlockKeyToString({ field: 'attrs' })] =
-        await use.tensor2dToJson(embedding)
-    } finally {
-      embedding?.dispose()
-    }
-  }
-  for (let index = 0; index < textContentBlocks.length; ++index) {
-    const { text } = textContentBlocks[index]
+  for (const { key, text } of blocks) {
     // Quick test if paragraph text is short enough to care to check the length
     // of it in words. Average length of a word in English is 5 characters, for
     // a fast check I used 4.7 * 5 + some buffer = 30
-    if (text.length < 30) {
-      const wordCount = wink_.readDoc(text).tokens().length()
+    const plaintext = text
+      .filter((v) => !!v)
+      .join('\n')
+      .trim()
+    if (plaintext.length < 30) {
+      const wordCount = wink_.readDoc(plaintext).tokens().length()
       if (wordCount < kPhraseLenWordsMinToSearchWithTfJs) {
         // Embeddings-based similarity search perform extremely poorly with short
         // sentences, basically short texts never appear in the results. Hence
@@ -825,7 +733,7 @@ async function updateNodeIndex(
     try {
       // @ts-ignore, see 'conflicting-tensor2d-versions' note
       embedding = await useState.encoder.embed(text)
-      const blockKeyStr = nodeBlockKeyToString({ field: 'web-text', index })
+      const blockKeyStr = nodeBlockKeyToString(key)
       forBlocks[blockKeyStr] = await use.tensor2dToJson(embedding)
     } finally {
       embedding?.dispose()
