@@ -16,6 +16,7 @@ import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
 import { sleep, isAbortError, productanalytics, errorise } from 'armoury'
 import { MdiClose } from 'elementary'
+import MzdGlobalContext from '../../lib/global'
 
 const Header = styled.h1`
   margin-bottom: 24px;
@@ -190,6 +191,39 @@ const StepYouAreReadyToGo = ({
   )
 }
 
+const StepSetYourAccountPassword = ({
+  nextStep,
+  prevStep,
+}: {
+  nextStep: () => void
+  prevStep: () => void
+}) => {
+  const ctx = React.useContext(MzdGlobalContext)
+  React.useEffect(() => {
+    if (ctx.account != null) {
+      nextStep()
+    }
+  }, [ctx, nextStep])
+  return (
+    <StepBox>
+      <Header>Set your account password.</Header>
+      <DescriptionBox>
+        If this is your first time using Foreword, check your inbox and locate
+        the confirmation email (subject: "Reset your Foreword password"). Follow
+        the steps in the email to confirm your email address and come back here.
+      </DescriptionBox>
+      <StepFotbar>
+        <StepFotbarButton variant="outline-secondary" onClick={prevStep}>
+          Previous
+        </StepFotbarButton>
+        <StepFotbarButton variant="primary" onClick={nextStep}>
+          Next
+        </StepFotbarButton>
+      </StepFotbar>
+    </StepBox>
+  )
+}
+
 const StepTangoShowAroundBox = styled(StepBox)`
   margin: 0 auto 0 auto;
   padding-top: calc(100vh - 1200px);
@@ -260,7 +294,7 @@ function OnboardingSteps({
   archaeologistState: ArchaeologistState
   progress: ExternalImportProgress
 }) {
-  const kStepsNumber = 3
+  const kStepsNumber = 4
   const nextStepChecked = () => {
     step = step + 1
     if (step >= kStepsNumber) {
@@ -287,6 +321,15 @@ function OnboardingSteps({
         </Box>
       )
     case 1:
+      return (
+        <Box>
+          <StepSetYourAccountPassword
+            prevStep={prevStepChecked}
+            nextStep={nextStepChecked}
+          />
+        </Box>
+      )
+    case 2:
       return (
         <Box>
           <StepYouAreReadyToGo
@@ -319,9 +362,7 @@ export function Onboarding({
   const navigate = useNavigate()
   const onboardingStep = parseStepFromSearchString(loc.search)
   const onClose = () => {
-    // Navigate to /search without react-route history object to fully reload
-    // Truthsayer web app, otherwise bootstraped cards not always show up
-    goto.search({ query: '' })
+    goto.search({ navigate, query: '' })
   }
   return (
     <OnboardingSteps

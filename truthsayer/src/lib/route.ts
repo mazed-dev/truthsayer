@@ -30,7 +30,6 @@ export type TruthsayerPath =
   | '/terms-of-service'
   | '/user-encryption'
   | '/user-preferences'
-  | '/account/create/go-to-inbox-to-confirm-email'
   | '/onboarding'
   | '/browser-history-import-loading-screen'
 
@@ -120,34 +119,6 @@ function gotoPath(
   }
 }
 
-function goToTruthsayerPath(
-  path: TruthsayerPath,
-  params?: {
-    navigate?: NavigateFunction
-    state?: any
-  }
-) {
-  gotoPath(params?.navigate ?? null, path, params?.state ?? null)
-}
-
-export interface GoToInboxToConfirmEmailLocationState {
-  name?: string
-  email?: string
-}
-
-function goToInboxToConfirmEmail({
-  navigate,
-  state,
-}: {
-  navigate?: NavigateFunction
-  state: GoToInboxToConfirmEmailLocationState
-}) {
-  goToTruthsayerPath('/account/create/go-to-inbox-to-confirm-email', {
-    state,
-    navigate,
-  })
-}
-
 type HavigateObj = { navigate?: Optional<NavigateFunction> }
 
 function gotoLogIn({ navigate }: HavigateObj) {
@@ -230,7 +201,6 @@ export const goto = {
     logInToContinue: gotoLogInToContinue,
     youAreInWaitingList: gotoWaitingListNotice,
   },
-  goToInboxToConfirmEmail,
   about: () => {
     window.location.href = 'https://thinkforeword.com/about'
     return null
