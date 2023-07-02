@@ -14,6 +14,7 @@ import { log } from 'armoury'
 
 import { authentication } from 'smuggler-api'
 import { Link } from 'react-router-dom'
+import { truthsayer } from 'elementary'
 
 type SignupProps = {
   navigate: NavigateFunction
@@ -79,13 +80,7 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
   }
 
   onSuccessfulRegistration = () => {
-    goto.goToInboxToConfirmEmail({
-      navigate: this.props.navigate,
-      state: {
-        name: this.state.name,
-        email: this.state.email,
-      },
-    })
+    goto.onboarding({ navigate: this.props.navigate })
   }
 
   onSubmit = (event: React.ChangeEvent<HTMLFormElement>) => {
@@ -225,6 +220,10 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
                 Register
               </Button>
             </Form>
+            Already have an account?{' '}
+            <a href={truthsayer.url.make({ pathname: '/login' }).href}>
+              Log in
+            </a>
           </Card.Body>
         </Card>
       </Container>
