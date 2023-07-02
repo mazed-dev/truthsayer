@@ -14,6 +14,7 @@ import { log } from 'armoury'
 
 import { authentication } from 'smuggler-api'
 import { Link } from 'react-router-dom'
+import { truthsayer } from 'elementary'
 
 type SignupProps = {
   navigate: NavigateFunction
@@ -79,13 +80,7 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
   }
 
   onSuccessfulRegistration = () => {
-    goto.goToInboxToConfirmEmail({
-      navigate: this.props.navigate,
-      state: {
-        name: this.state.name,
-        email: this.state.email,
-      },
-    })
+    goto.onboarding({ navigate: this.props.navigate })
   }
 
   onSubmit = (event: React.ChangeEvent<HTMLFormElement>) => {
@@ -144,42 +139,21 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
           <Card.Body className="p-3">
             <Card.Title
               css={css`
-                font-size: 48px;
+                font-size: 36px;
                 font-family: 'Comfortaa';
               `}
             >
-              Sign up
+              Create account
             </Card.Title>
+            <a href={truthsayer.url.make({ pathname: '/login' }).href}>
+              Or sign in to your Foreword account
+            </a>
             <Form
               onSubmit={this.onSubmit}
               css={css`
                 margin: 4vw auto auto auto;
               `}
             >
-              <Row
-                css={css`
-                  margin-bottom: 24px;
-                `}
-              >
-                By continuing, you agree to our
-                <Link
-                  to={routes.terms}
-                  css={css`
-                    width: auto;
-                  `}
-                >
-                  Terms Of Service
-                </Link>
-                and
-                <Link
-                  to={routes.privacy}
-                  css={css`
-                    width: auto;
-                  `}
-                >
-                  Privacy Policy
-                </Link>
-              </Row>
               <Form.Group
                 as={Row}
                 controlId="formLoginName"
@@ -213,18 +187,54 @@ class SignupImpl extends React.Component<SignupProps, SignupState> {
                   />
                 </Col>
               </Form.Group>
+              <Row
+                css={css`
+                  margin-top: 24px;
+                  margin-bottom: 24px;
+                `}
+              >
+                By continuing, you agree to our
+                <Link
+                  to={routes.terms}
+                  css={css`
+                    width: auto;
+                  `}
+                >
+                  Terms Of Service
+                </Link>
+                and
+                <Link
+                  to={routes.privacy}
+                  css={css`
+                    width: auto;
+                  `}
+                >
+                  Privacy Policy
+                </Link>
+              </Row>
               {remoteErrorElement}
               <Button
                 variant="secondary"
                 type="submit"
                 disabled={!this.isReadyToSubmit()}
                 css={css`
-                  margin: 1rem auto auto auto;
+                  margin: 0 auto auto auto;
                 `}
               >
                 Register
               </Button>
             </Form>
+            <div
+              css={css`
+                margin-top: 24px;
+              `}
+            >
+              or{' '}
+              <a href={truthsayer.url.make({ pathname: '/login' }).href}>
+                sign in
+              </a>{' '}
+              to your Foreword account
+            </div>
           </Card.Body>
         </Card>
       </Container>
