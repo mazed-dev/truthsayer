@@ -363,12 +363,7 @@ function AppRouter() {
               />
               <Route
                 path={truthsayerPath('/onboarding')}
-                element={
-                  <Onboarding
-                    archaeologistState={archaeologistState}
-                    progress={externalImportProgress}
-                  />
-                }
+                element={<Onboarding archaeologistState={archaeologistState} />}
               />
               <Route
                 path={truthsayerPath('/browser-history-import-loading-screen')}

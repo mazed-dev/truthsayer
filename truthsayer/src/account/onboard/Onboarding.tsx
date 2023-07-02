@@ -3,7 +3,7 @@
 import React from 'react'
 import { useAsyncEffect } from 'use-async-effect'
 import { parse } from 'query-string'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { Button, Container } from 'react-bootstrap'
 import {
@@ -11,7 +11,6 @@ import {
   ToTruthsayer,
 } from 'truthsayer-archaeologist-communication'
 import { AppsList } from '../../apps-list/AppsList'
-import { ExternalImportProgress } from '../../external-import/ExternalImport'
 import { routes, goto } from '../../lib/route'
 import { ArchaeologistState } from '../../apps-list/archaeologistState'
 import { sleep, isAbortError, productanalytics, errorise } from 'armoury'
@@ -19,6 +18,12 @@ import { MdiClose } from 'elementary'
 import MzdGlobalContext from '../../lib/global'
 import { accountConfig } from '../config'
 
+/**
+ * Current version of the onboarding process.
+ *
+ * Increment it if you want to make users go through the onboarding process again,
+ * for example, if there are new steps.
+ */
 const ONBOARDING_VERSION = 0
 
 const Header = styled.h1`
@@ -76,14 +81,18 @@ const InstallAppsStep = styled(AppsList)`
 
 const StepWelcomePleaseInstall = ({
   archaeologistState,
-  nextStep,
+  navigation,
+  skipIfAlreadyDone,
 }: {
   archaeologistState: ArchaeologistState
-  nextStep: () => void
+  navigation: OnboardingNavigation
+  skipIfAlreadyDone: boolean
 }) => {
+  const { nextStep } = navigation
   useAsyncEffect(async () => {
-    if (archaeologistState.state === 'installed') {
+    if (archaeologistState.state === 'installed' && skipIfAlreadyDone) {
       nextStep()
+      return
     }
     if (archaeologistState.state === 'not-installed') {
       let version: ToTruthsayer.ArchaeologistVersion | null = null
@@ -150,12 +159,11 @@ const StepWelcomePleaseInstall = ({
 }
 
 const StepYouAreReadyToGo = ({
-  nextStep,
-  prevStep,
+  navigation,
 }: {
-  nextStep: () => void
-  prevStep: () => void
+  navigation: OnboardingNavigation
 }) => {
+  const { nextStep, prevStep } = navigation
   return (
     <StepBox>
       <Header>
@@ -195,18 +203,19 @@ const StepYouAreReadyToGo = ({
 }
 
 const StepSetYourAccountPassword = ({
-  nextStep,
-  prevStep,
+  navigation,
+  skipIfAlreadyDone,
 }: {
-  nextStep: () => void
-  prevStep: () => void
+  navigation: OnboardingNavigation
+  skipIfAlreadyDone: boolean
 }) => {
+  const { nextStep, prevStep } = navigation
   const ctx = React.useContext(MzdGlobalContext)
   React.useEffect(() => {
-    if (ctx.account != null) {
+    if (ctx.account != null && skipIfAlreadyDone) {
       nextStep()
     }
-  }, [ctx, nextStep])
+  }, [ctx, nextStep, skipIfAlreadyDone])
   return (
     <StepBox>
       <Header>Set your account password.</Header>
@@ -287,39 +296,20 @@ const StepTangoShowAround = ({ onClose }: { onClose: () => void }) => {
 function OnboardingSteps({
   archaeologistState,
   progress,
-  step,
-  nextStep,
-  onClose,
+  navigation,
 }: {
-  step: number
-  nextStep: (step: number) => void
-  onClose: () => void
   archaeologistState: ArchaeologistState
-  progress: ExternalImportProgress
+  progress: OnboardingProgress
+  navigation: OnboardingNavigation
 }) {
-  const kStepsNumber = 3
-  const nextStepChecked = () => {
-    step = step + 1
-    if (step >= kStepsNumber) {
-      onClose()
-    }
-    if (step >= 0) {
-      nextStep(step)
-    }
-  }
-  const prevStepChecked = () => {
-    step = step - 1
-    if (step >= 0) {
-      nextStep(step)
-    }
-  }
-  switch (step) {
+  switch (progress.currentStep) {
     case 0:
       return (
         <Box>
           <StepWelcomePleaseInstall
             archaeologistState={archaeologistState}
-            nextStep={nextStepChecked}
+            navigation={navigation}
+            skipIfAlreadyDone={!progress.manuallyWentBack}
           />
         </Box>
       )
@@ -327,22 +317,19 @@ function OnboardingSteps({
       return (
         <Box>
           <StepSetYourAccountPassword
-            prevStep={prevStepChecked}
-            nextStep={nextStepChecked}
+            navigation={navigation}
+            skipIfAlreadyDone={!progress.manuallyWentBack}
           />
         </Box>
       )
     case 2:
       return (
         <Box>
-          <StepYouAreReadyToGo
-            prevStep={prevStepChecked}
-            nextStep={nextStepChecked}
-          />
+          <StepYouAreReadyToGo navigation={navigation} />
         </Box>
       )
     default:
-      return <StepTangoShowAround onClose={onClose} />
+      return <StepTangoShowAround onClose={navigation.finish} />
   }
 }
 
@@ -358,6 +345,7 @@ function nextStepSinceLastTime(
   prevStatus: accountConfig.local.onboarding.OnboardingStatus
 ): number {
   if (prevStatus.version !== ONBOARDING_VERSION) {
+    // If the onboarding process changed since last time, start from scratch
     return 0
   }
   if (prevStatus.progress !== 'in-progress') {
@@ -378,44 +366,58 @@ function nextStepSinceLastTime(
   return prevStatus.nextStep
 }
 
+type OnboardingNavigation = {
+  nextStep: () => void
+  prevStep: () => void
+  finish: () => void
+}
+
+type OnboardingProgress = {
+  currentStep: number
+  manuallyWentBack: boolean
+}
+
 export function Onboarding({
   archaeologistState,
-  progress,
 }: {
   archaeologistState: ArchaeologistState
-  progress: ExternalImportProgress
 }) {
   const loc = useLocation()
-  const navigate = useNavigate()
-  const [onboardingStep] = React.useState((): number => {
-    return (
-      parseStepFromSearchString(loc.search) ??
-      nextStepSinceLastTime(accountConfig.local.onboarding.get())
-    )
+  const [progress, setProgress] = React.useState<OnboardingProgress>(() => {
+    return {
+      currentStep:
+        parseStepFromSearchString(loc.search) ??
+        nextStepSinceLastTime(accountConfig.local.onboarding.get()),
+      manuallyWentBack: false,
+    }
   })
-  const onClose = () => {
-    accountConfig.local.onboarding.set({
-      version: ONBOARDING_VERSION,
-      progress: 'completed',
-    })
-    // Navigate to /search without react-route history object to fully reload
-    // Truthsayer web app, otherwise bootstraped cards not always show up
-    goto.search({ query: '' })
+  const navigation: OnboardingNavigation = {
+    nextStep: React.useCallback(() => {
+      const next = progress.currentStep + 1
+      accountConfig.local.onboarding.set({
+        version: ONBOARDING_VERSION,
+        progress: 'in-progress',
+        nextStep: next,
+      })
+      setProgress({ currentStep: next, manuallyWentBack: false })
+    }, [progress, setProgress]),
+    prevStep: React.useCallback(() => {
+      const next = progress.currentStep - 1
+      setProgress({ currentStep: next >= 0 ? next : 0, manuallyWentBack: true })
+    }, [progress, setProgress]),
+    finish: () => {
+      accountConfig.local.onboarding.set({
+        version: ONBOARDING_VERSION,
+        progress: 'completed',
+      })
+      goto.search({ query: '' })
+    },
   }
   return (
     <OnboardingSteps
-      onClose={onClose}
-      step={onboardingStep}
-      nextStep={(step: number) => {
-        accountConfig.local.onboarding.set({
-          version: ONBOARDING_VERSION,
-          progress: 'in-progress',
-          nextStep: step,
-        })
-        navigate({ search: `step=${step}` })
-      }}
-      archaeologistState={archaeologistState}
       progress={progress}
+      navigation={navigation}
+      archaeologistState={archaeologistState}
     />
   )
 }
