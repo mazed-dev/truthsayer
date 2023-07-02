@@ -362,8 +362,6 @@ export function Onboarding({
   const navigate = useNavigate()
   const onboardingStep = parseStepFromSearchString(loc.search)
   const onClose = () => {
-    // Navigate to /search without react-route history object to fully reload
-    // Truthsayer web app, otherwise bootstraped cards not always show up
     goto.search({ navigate, query: '' })
   }
   return (
