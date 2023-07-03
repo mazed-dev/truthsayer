@@ -28,7 +28,6 @@ import { PasswordChange } from './auth/PasswordChange'
 import { PasswordRecoverForm } from './auth/PasswordRecoverForm'
 import { PasswordRecoverRequest } from './auth/PasswordRecoverRequest'
 import { Notice } from './notice/Notice.js'
-import { GoToInboxToConfirmEmail } from './account/create/GoToInboxToConfirmEmail'
 import { Onboarding } from './account/onboard/Onboarding'
 import {
   PasswordRecoverFormUrlParams,
@@ -212,12 +211,6 @@ function AppRouter() {
           <Routes>
             <Route path="/">
               <Route index element={<Navigate to="/search" />} />
-              <Route
-                path={truthsayerPath(
-                  '/account/create/go-to-inbox-to-confirm-email'
-                )}
-                element={<GoToInboxToConfirmEmail />}
-              />
               <Route
                 path={truthsayerPath('/apps-to-install')}
                 element={
