@@ -2,13 +2,13 @@
 
 import React from 'react'
 
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { css } from '@emotion/react'
+import styled from '@emotion/styled'
 
-import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
+import { Card, Button, Form, Container } from 'react-bootstrap'
 
 import { goto, routes } from '../../lib/route'
-import { NavigateFunction } from 'react-router-dom'
 
 import { log } from 'armoury'
 
@@ -16,235 +16,182 @@ import { authentication } from 'smuggler-api'
 import { Link } from 'react-router-dom'
 import { truthsayer } from 'elementary'
 
-type SignupProps = {
-  navigate: NavigateFunction
-  email?: string
-}
+const Box = styled(Container)`
+  margin: 10vw auto auto auto;
+  font-family: 'Noto Serif';
+`
 
-type SignupState = {
-  name: string
-  email: string
-  consent: boolean
-  errorMsg?: string
-}
+const FormLabel = styled.div`
+  text-wrap: nowrap;
+  margin: 0 1em 0 1em;
+`
+const FormRow = styled.div`
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 1em;
+  @media (max-width: 500px) {
+    flex-wrap: wrap;
+  }
+`
+const Subtitle = styled.div`
+  margin-top: 24px;
+`
+const TermsAndConditionsComment = styled.div`
+  margin: 0 0 1em 0;
+`
+const FormInput = styled(Form.Control)`
+  max-width: 600px;
+`
+const ErrorMessage = styled.div`
+  color: red;
+`
 
-class SignupImpl extends React.Component<SignupProps, SignupState> {
-  consentRef: React.RefObject<HTMLInputElement>
-  emailInputRef: React.RefObject<HTMLInputElement>
-  nameInputRef: React.RefObject<HTMLInputElement>
-  abortControler: AbortController
+export function Signup() {
+  const navigate = useNavigate()
 
-  constructor(props: SignupProps) {
-    super(props)
-    const email = props?.email || ''
-    this.state = {
-      name: '',
-      email,
-      consent: false,
-      errorMsg: undefined,
+  const [name, setName] = React.useState<string>('')
+  const [email, setEmail] = React.useState<string>('')
+  const [errorMsg, setErrorMsg] = React.useState<string | null>(null)
+
+  const emailInputRef = React.useRef<HTMLInputElement>(null)
+  const nameInputRef = React.useRef<HTMLInputElement>(null)
+  const abortControllerRef = React.useRef(new AbortController())
+  React.useEffect(() => {
+    const ref = abortControllerRef
+    return () => {
+      ref.current.abort()
     }
-    this.consentRef = React.createRef()
-    this.emailInputRef = React.createRef()
-    this.nameInputRef = React.createRef()
+  }, [])
 
-    this.abortControler = new AbortController()
+  const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setName(event.target.value)
   }
 
-  componentDidMount() {
-    this.nameInputRef.current?.focus()
+  const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(event.target.value)
   }
 
-  componentWillUnmount() {
-    this.abortControler.abort()
+  const isReadyToSubmit = () => {
+    return name.length > 1 && emailInputRef.current?.validity.valid
   }
 
-  handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ name: event.target.value })
+  const onSuccessfulRegistration = () => {
+    goto.onboarding({ navigate })
   }
 
-  handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ email: event.target.value })
-  }
-
-  toggleConsent = (_event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ consent: this.consentRef.current?.checked || false })
-  }
-
-  isReadyToSubmit = () => {
-    const isReady =
-      (this.state.consent &&
-        this.state.name.length > 1 &&
-        this.emailInputRef.current?.validity.valid) ||
-      true
-    return isReady
-  }
-
-  onSuccessfulRegistration = () => {
-    goto.onboarding({ navigate: this.props.navigate })
-  }
-
-  onSubmit = (event: React.ChangeEvent<HTMLFormElement>) => {
+  const onSubmit = (event: React.ChangeEvent<HTMLFormElement>) => {
     event.preventDefault()
-    this.setState({
-      errorMsg: undefined,
-    })
+    setErrorMsg(null)
     authentication.user
       .register({
-        name: this.state.name,
-        email: this.state.email,
-        signal: this.abortControler.signal,
+        name,
+        email,
+        signal: abortControllerRef.current.signal,
       })
       .then((res) => {
         if (res) {
-          this.onSuccessfulRegistration()
+          onSuccessfulRegistration()
         }
-      }, this.handleSubmitError)
+      }, handleSubmitError)
   }
 
-  handleSubmitError = (err: any) => {
+  const handleSubmitError = (err: any) => {
     log.exception(err)
-    this.setState({
-      errorMsg: 'Account with such email already exists',
-    })
+    setErrorMsg('Account with such email already exists. ')
   }
 
-  render() {
-    let remoteErrorElement
-    if (this.state.errorMsg) {
-      remoteErrorElement = (
-        <Row className="my-2">
-          <Col />
-          <Col
-            css={{
-              color: 'red',
-            }}
+  let remoteErrorElement
+  if (errorMsg != null) {
+    remoteErrorElement = (
+      <FormRow>
+        <ErrorMessage>{errorMsg}</ErrorMessage>&nbsp;
+        <Link to={{ pathname: '/password-recover-request' }}>
+          Forgot your password?
+        </Link>
+      </FormRow>
+    )
+  }
+  return (
+    <Box>
+      <Card className="border-0">
+        <Card.Body className="p-3">
+          <Card.Title
+            css={css`
+              font-size: 36px;
+            `}
           >
-            {this.state.errorMsg}
-          </Col>
-          <Col>
-            <Link to={{ pathname: '/password-recover-request' }}>
-              Forgot your password?
-            </Link>
-          </Col>
-        </Row>
-      )
-    }
-    return (
-      <Container
-        css={css`
-          margin: 10vw auto auto auto;
-        `}
-      >
-        <Card className="border-0">
-          <Card.Body className="p-3">
-            <Card.Title
-              css={css`
-                font-size: 36px;
-                font-family: 'Comfortaa';
-              `}
-            >
-              Create account
-            </Card.Title>
+            Create account
+          </Card.Title>
+          <Subtitle>
+            or{' '}
             <a href={truthsayer.url.make({ pathname: '/login' }).href}>
-              Or sign in to your Foreword account
-            </a>
-            <Form
-              onSubmit={this.onSubmit}
-              css={css`
-                margin: 4vw auto auto auto;
-              `}
-            >
-              <Form.Group
-                as={Row}
-                controlId="formLoginName"
-                css={css`
-                  margin-bottom: 1em;
-                `}
-              >
-                <Form.Label column sm="1">
-                  Name
-                </Form.Label>
-                <Col>
-                  <Form.Control
-                    type="name"
-                    placeholder="Gaius Julius Caesar"
-                    value={this.state.name}
-                    onChange={this.handleNameChange}
-                    ref={this.nameInputRef}
-                  />
-                </Col>
-              </Form.Group>
-              <Form.Group as={Row} controlId="formLoginEmail">
-                <Form.Label column sm="1">
-                  Email
-                </Form.Label>
-                <Col>
-                  <Form.Control
-                    type="email"
-                    value={this.state.email}
-                    onChange={this.handleEmailChange}
-                    ref={this.emailInputRef}
-                  />
-                </Col>
-              </Form.Group>
-              <Row
-                css={css`
-                  margin-top: 24px;
-                  margin-bottom: 24px;
-                `}
-              >
-                By continuing, you agree to our
-                <Link
-                  to={routes.terms}
-                  css={css`
-                    width: auto;
-                  `}
-                >
-                  Terms Of Service
-                </Link>
-                and
-                <Link
-                  to={routes.privacy}
-                  css={css`
-                    width: auto;
-                  `}
-                >
-                  Privacy Policy
-                </Link>
-              </Row>
-              {remoteErrorElement}
+              sign in
+            </a>{' '}
+            to your Foreword account
+          </Subtitle>
+          <Form
+            onSubmit={onSubmit}
+            css={css`
+              margin: 4vw auto auto auto;
+            `}
+          >
+            <Form.Group as={FormRow} controlId="formLoginName">
+              <FormLabel>Name</FormLabel>
+              <FormInput
+                type="name"
+                placeholder="Gaius Julius Caesar"
+                value={name}
+                onChange={handleNameChange}
+                ref={nameInputRef}
+              />
+            </Form.Group>
+            <Form.Group as={FormRow} controlId="formLoginEmail">
+              <FormLabel>Email</FormLabel>
+              <FormInput
+                type="email"
+                value={email}
+                onChange={handleEmailChange}
+                ref={emailInputRef}
+              />
+            </Form.Group>
+            {remoteErrorElement}
+            <FormRow>
               <Button
                 variant="secondary"
                 type="submit"
-                disabled={!this.isReadyToSubmit()}
+                disabled={!isReadyToSubmit()}
                 css={css`
-                  margin: 0 auto auto auto;
+                  margin: 0 0 0 1em;
                 `}
               >
                 Register
               </Button>
-            </Form>
-            <div
-              css={css`
-                margin-top: 24px;
-              `}
-            >
-              or{' '}
-              <a href={truthsayer.url.make({ pathname: '/login' }).href}>
-                sign in
-              </a>{' '}
-              to your Foreword account
-            </div>
-          </Card.Body>
-        </Card>
-      </Container>
-    )
-  }
-}
-
-export const Signup = () => {
-  const navigate = useNavigate()
-  const _location = useLocation()
-  const email = _location.state?.email
-  return <SignupImpl navigate={navigate} email={email} />
+            </FormRow>
+            <TermsAndConditionsComment>
+              By continuing, you agree to our{' '}
+              <Link
+                to={routes.terms}
+                css={css`
+                  width: auto;
+                `}
+              >
+                Terms&nbsp;Of&nbsp;Service
+              </Link>
+              {' and '}
+              <Link
+                to={routes.privacy}
+                css={css`
+                  width: auto;
+                `}
+              >
+                Privacy&nbsp;Policy
+              </Link>
+            </TermsAndConditionsComment>
+          </Form>
+        </Card.Body>
+      </Card>
+    </Box>
+  )
 }
