@@ -333,10 +333,10 @@ function OnboardingSteps({
   }
 }
 
-function parseStepFromSearchString(search: string): number | undefined {
+function parseStepFromSearchString(search: string): number | null {
   const step = parseInt(parse(search)['step'] as string)
   if (Number.isNaN(step)) {
-    return 0
+    return null
   }
   return step
 }
