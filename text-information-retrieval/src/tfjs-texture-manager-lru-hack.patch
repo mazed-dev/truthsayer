@@ -1,0 +1,179 @@
+diff --git a/dist/texture_manager.js b/dist/texture_manager.js
+index 2280030da6d38328d2c683e375315b147477507a..f8b5329ab12f3095ee87af0a2bd26a94a140eeab 100755
+--- a/dist/texture_manager.js
++++ b/dist/texture_manager.js
+@@ -17,8 +17,57 @@
+ import { env } from '@tensorflow/tfjs-core';
+ import { getInternalFormatForFloat16MatrixTexture, getInternalFormatForFloat16PackedMatrixTexture, getInternalFormatForFloat32MatrixTexture, getInternalFormatForPackedMatrixTexture, getInternalFormatForUnsignedBytesMatrixTexture } from './gpgpu_util';
+ import { getPackedMatrixTextureShapeWidthHeight, getUnpackedMatrixTextureShapeWidthHeight, PhysicalTextureType, TextureUsage } from './tex_util';
++
++// This diff gets injected into 'texture_manager.js' of
++// '@tensorflow/tfjs-backend-webgl' through `yarn patch`.
++// It's done  because stock version of 'texture_manager.js' supports
++// only two methods of GPU memory deallocation:
++//      - either it NEVER deallocates GPU memory (default)
++//      - or it deallocates GPU memory IMMEDIATELY after `Tensor.dispose()` gets called (needs to be enabled via `WEBGL_DELETE_TEXTURE_THRESHOLD` env var)
++// The first option leads is essentially a memory leak which
++// allocates ~20MB of memory for each webpage Foreword indexes.
++// The second option tanks performance completely.
++//
++// So this diff aims to implement a third option - a hybrid that
++// tries to keep the "hot" GPU memory cached and deallocate the
++// "cold" GPU memory. It does via a bare bones LRU cache algorithm.
++
++
++
++// Return true if input shape key identifies a "secondary" shape, false
++// if a "primary" shape.
++//
++// "Primary" shapes are shapes which are expected to be used many times,
++// so they are exempt from eviction from the cache of free textures.
++// All the other shapes are "secondary" - they should be cached for
++// as long as sensible, but if the cache is full, they can be evicted.
++//
++// Determining which shapes are primary is difficult because
++// the size of lot of shapes '@tensorflow-models/universal-sentence-encoder'
++// and '@tensorflow-models/knn-classifier' have to allocate depends on
++// the size of the text being encoded/classified. Since Foreword
++// indexes anything it sees on the web, text sizes all differ and it's
++// hard to predict which shapes will be used most often. So LRU
++// algorithm is just best effort.
++//
++// The only shapes that are predictibly used a lot are the ones
++// Foreword chooses to generate itself, because they have a known size.
++// At the time of writing there is only one such shape - a Tensor2D
++// with 48 dimensions that represents a search index embedding. See
++// `kProjectionDimensions` for more details.
++function isKeyOfSecondaryShape(shapeKey) {
++    return !shapeKey.startsWith("2_48_")
++}
++
++// See `isKeyOfSecondaryShape` for details on what "secondary" means.
++const MAX_SECONDARY_BYTES = 200 * 1024 * 1024
++
+ export class TextureManager {
+     constructor(gpgpu) {
++        // --- Hack chunk start: (added by Foreword)
++        this.hack = { actions: 0, new: {alloc: 0, dealloc: 0}, lru: new Map(), numSecondaryBytesFree: 0 }
++        // --- Hack chunk end: (added by Foreword)
++
+         this.gpgpu = gpgpu;
+         this.numUsedTextures = 0;
+         this.numFreeTextures = 0;
+@@ -32,6 +81,7 @@ export class TextureManager {
+     acquireTexture(shapeRC, usage, isPacked) {
+         const physicalTexType = getPhysicalFromLogicalTextureType(usage, isPacked);
+         const shapeKey = getKeyFromTextureShape(shapeRC, physicalTexType, isPacked);
++
+         if (!(shapeKey in this.freeTextures)) {
+             this.freeTextures[shapeKey] = [];
+         }
+@@ -39,15 +89,63 @@ export class TextureManager {
+             this.usedTextures[shapeKey] = [];
+         }
+         const texBytes = computeBytes(shapeRC, physicalTexType, this.gpgpu.gl, this.gpgpu.textureConfig, isPacked);
++
++        // --- Hack chunk start: (added by Foreword)
++        this.hack.actions++;
++        if (isKeyOfSecondaryShape(shapeKey)) {
++            let usageStats = this.hack.lru.get(shapeKey)
++            if (usageStats == null) {
++                usageStats = { used: 0, lastUsed: new Date(), bytes: texBytes }
++                this.hack.lru.set(shapeKey, usageStats)
++            }
++            usageStats.used++;
++            usageStats.lastUsed = new Date();
++        }
++
++        if (isKeyOfSecondaryShape(shapeKey) && this.hack.numSecondaryBytesFree > MAX_SECONDARY_BYTES) {
++            const arr = []
++            this.hack.lru.forEach((used, key) => arr.push([key, used]))
++            arr.sort((lhs, rhs) => {
++                if (lhs[1].used !== rhs[1].used) {
++                    return rhs[1].used - lhs[1].used
++                }
++                return rhs[1].lastUsed - lhs[1].lastUsed
++            })
++            while (arr.length > 0 && this.hack.numSecondaryBytesFree > MAX_SECONDARY_BYTES) {
++                const [leastUsedKey, usage] = arr.pop()
++                while (this.freeTextures[leastUsedKey].length > 0) {
++                    this.hack.new.dealloc++;
++                    this.hack.numSecondaryBytesFree -= usage.bytes;
++
++                    const texture = this.freeTextures[leastUsedKey].pop();
++                    this.gpgpu.deleteMatrixTexture(texture.texture);
++                    this._numBytesAllocated -= usage.bytes;
++                    this._numBytesFree -= usage.bytes;
++                    this.numFreeTextures--;
++                }
++            }
++        }
++
++        if (this.hack.new.alloc + this.hack.new.dealloc > 100) {
++            // console.log(`${this.hack.actions}: `, this.hack.new)
++            this.hack.new.alloc = 0
++            this.hack.new.dealloc = 0
++        }
++        // --- Hack chunk end: (added by Foreword)
++
+         if (this.freeTextures[shapeKey].length > 0) {
+             this.numFreeTextures--;
+             this.numUsedTextures++;
+             this._numBytesFree -= texBytes;
++            // --- Hack chunk start: (added by Foreword)
++            this.hack.numSecondaryBytesFree -= isKeyOfSecondaryShape(shapeKey) ? texBytes : 0;
++            // --- Hack chunk end: (added by Foreword)
+             this.log();
+             const newTexture = this.freeTextures[shapeKey].pop();
+             this.usedTextures[shapeKey].push(newTexture);
+             return newTexture;
+         }
++
+         let newTexture;
+         if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT32) {
+             newTexture = this.gpgpu.createPackedMatrixTexture(shapeRC[0], shapeRC[1]);
+@@ -71,10 +169,18 @@ export class TextureManager {
+         this.usedTextures[shapeKey].push(newTexture);
+         this.numUsedTextures++;
+         this._numBytesAllocated += texBytes;
++
++        // --- Hack chunk start: (added by Foreword)
++        this.hack.new.alloc++;
++        // --- Hack chunk end: (added by Foreword)
++
+         this.log();
+         return newTexture;
+     }
+     releaseTexture(texture, shape, logicalTexType, isPacked) {
++        // --- Hack chunk start: (added by Foreword)
++        this.hack.actions++;
++        // --- Hack chunk end: (added by Foreword)
+         if (this.freeTextures == null) {
+             // Already disposed.
+             return;
+@@ -85,17 +191,14 @@ export class TextureManager {
+             this.freeTextures[shapeKey] = [];
+         }
+         const texBytes = computeBytes(shape, physicalTexType, this.gpgpu.gl, this.gpgpu.textureConfig, isPacked);
+-        const deleteTexThreshold = env().get('WEBGL_DELETE_TEXTURE_THRESHOLD');
+-        if (deleteTexThreshold !== -1 &&
+-            this._numBytesAllocated > deleteTexThreshold) {
+-            this.gpgpu.deleteMatrixTexture(texture.texture);
+-            this._numBytesAllocated -= texBytes;
+-        }
+-        else {
+-            this.freeTextures[shapeKey].push(texture);
+-            this.numFreeTextures++;
+-            this._numBytesFree += texBytes;
+-        }
++
++        // --- Hack chunk start: (added by Foreword)
++        this.freeTextures[shapeKey].push(texture);
++        this.numFreeTextures++;
++        this._numBytesFree += texBytes;
++        this.hack.numSecondaryBytesFree += isKeyOfSecondaryShape(shapeKey) ? texBytes : 0;
++        // --- Hack chunk end: (added by Foreword)
++
+         this.numUsedTextures--;
+         const texList = this.usedTextures[shapeKey];
+         const texIndex = texList && texList.indexOf(texture);
