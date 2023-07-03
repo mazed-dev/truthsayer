@@ -664,15 +664,26 @@ async function findRelevantNodesUsingPlainTextSearch(
   // http://snowball.tartarus.org/algorithms/english/stemmer.html
   // If it proves to be working fine, I suggest we even used it for the search
   // in Truthsayer.
-  const poses = phraseDoc.tokens().out(wink_.its.pos)
-  const stems = phraseDoc
-    .tokens()
-    .out(wink_.its.stem)
-    .filter((_stem: string, index: number) => {
-      const pos = poses[index]
-      return pos !== 'PUNCT' && pos !== 'SPACE'
-    })
-  const beagle = new Beagle(stems)
+  const partsOfSpeach = phraseDoc.tokens().out(wink_.its.pos)
+  const normals = phraseDoc.tokens().out(wink_.its.normal)
+  const stems = phraseDoc.tokens().out(wink_.its.stem)
+  const patterns: string[] = []
+  for (let index = 0; index < partsOfSpeach.length; ++index) {
+    const pos = partsOfSpeach[index]
+    if (pos === 'PUNCT' || pos === 'SPACE' || pos === 'PART') {
+      // Drop punctuation, spaces and particles ('s, not, n't)
+      continue
+    }
+    if (pos === 'PROPN') {
+      // Don't mess with Proper Nouns, use them "as-is"
+      patterns.push(normals[index])
+    } else {
+      // For everything else use just stem
+      patterns.push(stems[index])
+    }
+  }
+  log.debug('Beagle search pattern', patterns)
+  const beagle = new Beagle(patterns)
   const relevantNodes: RelevantNode[] = []
   let processedNodesCount = 0
   const iter = await storage.node.iterate()
