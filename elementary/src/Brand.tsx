@@ -9,5 +9,5 @@ const ForewordBrandBox = styled.h1`
 `
 
 export const ForewordName = ({ className }: { className?: string }) => {
-  return <ForewordBrandBox className={className}>foreword</ForewordBrandBox>
+  return <ForewordBrandBox className={className}>fore·word</ForewordBrandBox>
 }

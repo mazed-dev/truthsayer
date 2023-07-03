@@ -10,7 +10,6 @@ import { UserAccount } from 'smuggler-api'
 import lodash from 'lodash'
 
 import { MdiAccountCircle, kCardBorder, ForewordName } from 'elementary'
-import { getLogoImage } from './../util/env'
 import { SearchForm } from './SearchForm'
 import { TruthsayerPath } from './../lib/route'
 
@@ -138,17 +137,7 @@ const NavbarBrand = styled(Navbar.Brand)`
   margin-right: 0.5rem;
 `
 const NavbarBrandName = styled(ForewordName)`
-  margin: 0 8px 0 10px;
-`
-const NavbarBrandLogo = styled.img`
-  margin-top: auto;
-  margin-bottom: auto;
-  margin-left: 2px;
-  margin-right: 6px;
-
-  width: 30px;
-  height: 30px;
-  margin-right: 12px;
+  margin: 0 8px 0 8px;
 `
 
 const NavbarFiller = styled.div`
@@ -167,7 +156,6 @@ export function GlobalNavBar({
     <>
       <CustomNavbar fixed="top">
         <NavbarBrand as={Link} to="/">
-          <NavbarBrandLogo src={getLogoImage()} alt={'Foreword logo'} />
           <NavbarBrandName />
         </NavbarBrand>
         <SearchForm />
