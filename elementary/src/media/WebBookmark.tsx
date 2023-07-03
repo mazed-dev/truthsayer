@@ -224,35 +224,14 @@ const ContextBlockBase = styled.div`
   text-indent: 12px;
   margin: 0 0 4px 0;
 `
-const ContextBlockFirstStyles = css`
-  text-indent: 0px;
-  &:before {
-    content: '“';
-    color: #478ac0;
-    display: inline-block;
-    vertical-align: bottom;
-    font-size: 2em;
-    top: 0.1em;
-    position: relative;
-    width: 12px;
-    text-indent: 0;
-  }
-`
-const ContextBlockLastStyles = css`
-  &:after {
-    content: '”';
-    color: #478ac0;
-    display: inline-block;
-    vertical-align: bottom;
-    font-size: 2em;
-    top: 0.1em;
-    position: relative;
-    width: 12px;
-    text-indent: 0;
-  }
-`
 const ContextBlockFirstFade = css`
-  opacity: 0.72;
+  opacity: 0.64;
+  transition-duration: 0.8s;
+  transition-property: opacity;
+  transition-timing-function: ease-in;
+  &:hover {
+    opacity: 1;
+  }
 `
 const ContextBlockParagraphBox = styled(ContextBlockBase.withComponent('p'))`
   text-align: justify;
@@ -294,11 +273,28 @@ const ContextBlock = ({
   }
 }
 const MatchedContentBlock = styled(ContextBlock)`
-  &:hover {
-    text-decoration-line: underline;
-    text-decoration-style: solid;
-    text-decoration-thickness: 1px;
-    text-decoration-color: rgba(0, 110, 237, 0.5);
+  text-indent: 0px;
+  &:before {
+    content: '“';
+    color: #478ac0;
+    display: inline-block;
+    vertical-align: bottom;
+    font-size: 2em;
+    top: 0.1em;
+    position: relative;
+    width: 12px;
+    text-indent: 0;
+  }
+  &:after {
+    content: '”';
+    color: #478ac0;
+    display: inline-block;
+    vertical-align: bottom;
+    font-size: 2em;
+    top: 0.1em;
+    position: relative;
+    width: 12px;
+    text-indent: 0;
   }
 `
 const MatchDescriptionContextSpan = styled.span``
@@ -355,10 +351,7 @@ const BookmarkMatchDescription = ({
         onCopy={onCopyHandler}
       >
         <div>
-          <ContextBlock
-            block={truncated}
-            css={[ContextBlockFirstStyles, ContextBlockLastStyles]}
-          />
+          <MatchedContentBlock block={truncated} />
         </div>
         <DirectQuoteSeeMoreToolbar>
           <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore(true)}>
@@ -381,9 +374,9 @@ const BookmarkMatchDescription = ({
         onCopy={onCopyHandler}
       >
         <div>
-          <ContextBlock block={prefix} css={[ContextBlockFirstStyles, ContextBlockFirstFade]} />
-          <ContextBlock block={matchedBlock} />
-          <ContextBlock block={suffix} css={[ContextBlockLastStyles, ContextBlockFirstFade]} />
+          <ContextBlock block={prefix} css={[ContextBlockFirstFade]} />
+          <MatchedContentBlock block={matchedBlock} />
+          <ContextBlock block={suffix} css={[ContextBlockFirstFade]} />
         </div>
         <DirectQuoteSeeMoreToolbar>
           <MatchDescriptionSeeMoreBtn onClick={() => setSeeMore(false)}>
