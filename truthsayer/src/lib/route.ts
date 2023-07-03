@@ -23,6 +23,7 @@ export type TruthsayerPath =
   | '/password-recover-change'
   | '/password-recover-request'
   | '/password-recover-reset/:token' // See PasswordRecoverFormUrlParams
+  | '/passwd/set/:token' // Set a password for a new account
   | '/privacy-policy'
   | '/search'
   | '/settings'

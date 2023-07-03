@@ -300,6 +300,17 @@ function AppRouter() {
                 }
               />
               <Route
+                path={truthsayerPath('/passwd/set/:token')}
+                element={
+                  <PublicOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
+                    <PublicPage>
+                      {/* Set password for a new user */}
+                      <PasswordRecoverFormView onboarding={true} />
+                    </PublicPage>
+                  </PublicOnlyPage>
+                }
+              />
+              <Route
                 path={truthsayerPath('/')}
                 element={<Navigate to={{ pathname: '/search' }} />}
               />
@@ -431,12 +442,12 @@ function AccountView() {
   )
 }
 
-function PasswordRecoverFormView() {
+function PasswordRecoverFormView({ onboarding }: { onboarding?: boolean }) {
   const { token } = useParams<PasswordRecoverFormUrlParams>()
   if (token == null) {
     return <Navigate to="/" />
   }
-  return <PasswordRecoverForm token={token} />
+  return <PasswordRecoverForm token={token} onboarding={onboarding} />
 }
 
 function TriptychView() {
