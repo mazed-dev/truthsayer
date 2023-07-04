@@ -1,8 +1,8 @@
 import React from 'react'
 import { isPageWriteAugmentable } from './augmentable'
 import type { Nid } from 'smuggler-api'
-import { SuggestedRelatives } from './SuggestedRelatives'
 import { log } from 'armoury'
+import { SuggestedRelatives } from './SuggestedRelatives'
 
 export function Augmentation({
   stableUrl,

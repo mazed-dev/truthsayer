@@ -85,6 +85,10 @@ export interface ContentAugmentationSettingsResponse {
   type: 'RESPONSE_CONTENT_AUGMENTATION_SETTINGS'
   state: ContentAugmentationSettings
 }
+export interface PageNodeByUrlResponse {
+  type: 'RESPONSE_PAGE_NODE_BY_URL'
+  bookmark?: TNodeJson
+}
 export interface WebPageContent {
   url: string
   title: string | null
@@ -312,6 +316,7 @@ export namespace ToContent {
     | SuggestedAssociationsResponse
     | StorageAccessResponse
     | ContentAugmentationSettingsResponse
+    | PageNodeByUrlResponse
 
   export function sendMessage(
     tabId: number,
@@ -432,12 +437,17 @@ export namespace FromContent {
     // saved settings
     settings?: ContentAugmentationSettings
   }
+  export interface PageNodeByUrlRequest {
+    type: 'REQUEST_PAGE_NODE_BY_URL'
+    url: string
+  }
 
   export type Request =
     | AttentionTimeChunk
     | SuggestedAssociationsRequest
     | StorageAccessRequest
     | ContentAugmentationSettingsRequest
+    | PageNodeByUrlRequest
 
   export type Response =
     | GetSelectedQuoteResponse
@@ -462,6 +472,9 @@ export namespace FromContent {
   export function sendMessage(
     message: ContentAugmentationSettingsRequest
   ): Promise<ContentAugmentationSettingsResponse>
+  export function sendMessage(
+    message: PageNodeByUrlRequest
+  ): Promise<PageNodeByUrlResponse>
   export function sendMessage(message: Request): Promise<ToContent.Response> {
     const msg: ToBackground.Request = { direction: 'from-content', ...message }
     return browser.runtime.sendMessage(msg).catch((error) => {

@@ -49,6 +49,7 @@ import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
 import { Augmentation } from './augmentation/Augmentation'
 import { AugmentationMountPoint } from './augmentation/Mount'
+import { LinkHoverCard } from './augmentation/LinkHoverCard'
 import { ContentContext } from './context'
 import { FromArchaeologistContent } from 'truthsayer-archaeologist-communication'
 import type { AppSettings } from 'truthsayer-archaeologist-communication'
@@ -516,6 +517,7 @@ const App = () => {
                 state.userUid != null
               }
             />
+            <LinkHoverCard />
           </>
         )}
       </ContentContext.Provider>

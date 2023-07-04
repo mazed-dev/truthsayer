@@ -44,7 +44,10 @@ import { isReadyToBeAutoSaved } from './background/pageAutoSaving'
 import { getAppSettings, setAppSettings } from './appSettings'
 import { TabLoad } from './tabLoad'
 import { BrowserHistoryUpload } from './background/external-import/browserHistory'
-import { requestPageSavedStatus } from './background/pageStatus'
+import {
+  requestPageSavedStatus,
+  requestPageSavedStatusWithConnections,
+} from './background/pageStatus'
 import { saveWebPage, savePageQuote } from './background/savePage'
 import { backgroundpa } from './background/productanalytics'
 import type { BackgroundPosthog } from './background/productanalytics'
@@ -209,6 +212,16 @@ async function handleMessageFromContent(
         ),
       }
     }
+    case 'REQUEST_PAGE_NODE_BY_URL': {
+      const { bookmark } = await requestPageSavedStatus(
+        ctx.storage,
+        message?.url
+      )
+      return {
+        type: 'RESPONSE_PAGE_NODE_BY_URL',
+        bookmark: bookmark ? NodeUtil.toJson(bookmark) : undefined,
+      }
+    }
   }
   throw new Error(
     `background received msg from content of unknown type, message: ${JSON.stringify(
@@ -285,7 +298,7 @@ async function handleMessageFromPopup(
       }
     case 'REQUEST_PAGE_IN_ACTIVE_TAB_STATUS': {
       const { bookmark, unmemorable, fromNodes, toNodes } =
-        await requestPageSavedStatus(ctx.storage, activeTab?.url)
+        await requestPageSavedStatusWithConnections(ctx.storage, activeTab?.url)
       await badge.setStatus(
         activeTab?.id,
         bookmark != null ? BADGE_MARKER_PAGE_SAVED : undefined
