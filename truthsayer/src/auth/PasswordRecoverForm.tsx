@@ -64,7 +64,7 @@ export const PasswordRecoverForm = ({
               </Col>
             </Form.Group>
             <Button variant="secondary" type="submit" disabled={!isReady}>
-              Change password
+              Set password
             </Button>
           </Form>
         </Card.Body>
