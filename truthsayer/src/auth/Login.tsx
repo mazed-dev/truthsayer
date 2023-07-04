@@ -4,7 +4,7 @@ import React from 'react'
 
 import styled from '@emotion/styled'
 import { parse } from 'query-string'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 
 import { authentication } from 'smuggler-api'
 import { goto } from '../lib/route'
@@ -32,7 +32,6 @@ const TruthsayerLoginForm = styled(LoginForm)`
 `
 
 export const Login = () => {
-  const navigate = useNavigate()
   const loc = useLocation()
   const onboarding = 'onboarding' in parse(loc.search)
   const [error, setError] = React.useState<string | null>(null)
@@ -63,12 +62,12 @@ export const Login = () => {
       setLoading(false)
       if (onboarding) {
         // Redirect a new user to the last steps of onboarding process
-        goto.onboarding({ navigate, step: 2 })
+        goto.onboarding({ step: 2 })
       } else {
-        goto.default({ navigate })
+        goto.default({})
       }
     },
-    [navigate, onboarding]
+    [onboarding]
   )
 
   return (

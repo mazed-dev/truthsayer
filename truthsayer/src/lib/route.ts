@@ -112,7 +112,9 @@ function gotoPath(
   search?: string,
   state?: any
 ) {
-  if (search != null && !search.startsWith('?')) {
+  if (search == null) {
+    search = ''
+  } else if (!search.startsWith('?')) {
     search = `?${search}`
   }
   if (navigate) {
