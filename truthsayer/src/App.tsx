@@ -16,6 +16,7 @@ import { css } from '@emotion/react'
 import { Card, Container } from 'react-bootstrap'
 import { PostHog } from 'posthog-js'
 import { useAsyncEffect } from 'use-async-effect'
+import { parse } from 'query-string'
 
 import { Triptych } from './card/Triptych'
 import { SearchGridView } from './grid/SearchGridView'
@@ -433,10 +434,12 @@ function AccountView() {
 
 function PasswordRecoverFormView() {
   const { token } = useParams<PasswordRecoverFormUrlParams>()
+  const loc = useLocation()
   if (token == null) {
     return <Navigate to="/" />
   }
-  return <PasswordRecoverForm token={token} />
+  const onboarding = 'onboarding' in parse(loc.search)
+  return <PasswordRecoverForm token={token} onboarding={onboarding} />
 }
 
 function TriptychView() {

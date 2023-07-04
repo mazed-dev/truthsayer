@@ -680,7 +680,7 @@ async function findRelevantNodesUsingPlainTextSearch(
     }
     if (pos === 'PROPN') {
       // Don't mess with Proper Nouns, use them "as-is"
-      patterns.push(normals[index])
+      patterns.push(normals[index].toLowerCase())
     } else {
       // For everything else use just stem
       patterns.push(stems[index])

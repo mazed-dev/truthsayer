@@ -2,12 +2,17 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Card, Button, Form, Container, Row, Col } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import { authentication } from 'smuggler-api'
+import { goto } from '../lib/route'
 
 interface PasswordRecoverFormProps {
   token: string
+  onboarding?: boolean
 }
 
-export const PasswordRecoverForm = ({ token }: PasswordRecoverFormProps) => {
+export const PasswordRecoverForm = ({
+  token,
+  onboarding,
+}: PasswordRecoverFormProps) => {
   const navigate = useNavigate()
   const [password, setPassword] = useState('')
   const [isReady, setIsReady] = useState(false)
@@ -34,10 +39,10 @@ export const PasswordRecoverForm = ({ token }: PasswordRecoverFormProps) => {
         new_password: password,
         signal: abortControllerRef.current.signal,
       })
-      navigate('/login')
     } catch (err) {
       alert(`Error ${err}`)
     }
+    goto.login({ navigate, onboarding })
   }
 
   return (
@@ -59,7 +64,7 @@ export const PasswordRecoverForm = ({ token }: PasswordRecoverFormProps) => {
               </Col>
             </Form.Group>
             <Button variant="secondary" type="submit" disabled={!isReady}>
-              Change password
+              Set password
             </Button>
           </Form>
         </Card.Body>

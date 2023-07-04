@@ -23,6 +23,7 @@ export type TruthsayerPath =
   | '/password-recover-change'
   | '/password-recover-request'
   | '/password-recover-reset/:token' // See PasswordRecoverFormUrlParams
+  | '/passwd/set/:token' // Set a password for a new account
   | '/privacy-policy'
   | '/search'
   | '/settings'
@@ -94,7 +95,7 @@ function gotoOnboarding({
   if (navigate) {
     navigate({ pathname: kOnboarding, search: stringify({ step }) })
   } else {
-    window.location.pathname = kOnboarding
+    window.location.href = `${kOnboarding}?${stringify({ step })}`
   }
 }
 
@@ -108,21 +109,27 @@ function getSearchAnchor({ location }: { location: Location }) {
 function gotoPath(
   navigate: Optional<NavigateFunction>,
   path: string,
+  search?: string,
   state?: any
 ) {
+  if (search == null) {
+    search = ''
+  } else if (!search.startsWith('?')) {
+    search = `?${search}`
+  }
   if (navigate) {
-    // *dbg*/ console.log('NavigateFunction push', path)
-    navigate(path, state)
+    navigate({ pathname: path, search }, { state })
   } else {
-    // *dbg*/ console.log('Window location href', path)
-    window.location.href = path
+    window.location.href = `${path}${search}`
   }
 }
 
 type HavigateObj = { navigate?: Optional<NavigateFunction> }
 
-function gotoLogIn({ navigate }: HavigateObj) {
-  gotoPath(navigate ?? null, kLogInPath)
+type OnboardingOpts = { onboarding?: boolean }
+
+function gotoLogIn({ navigate, onboarding }: HavigateObj & OnboardingOpts) {
+  gotoPath(navigate ?? null, kLogInPath, stringify({ onboarding }))
 }
 
 function gotoSignUp({ navigate }: HavigateObj) {
@@ -162,7 +169,12 @@ function gotoLogInToContinue({ navigate }: HavigateObj) {
 }
 
 function gotoWaitingListNotice(navigate: NavigateFunction, state?: any) {
-  gotoPath(navigate, kNoticePathPrefix + kNoticeYouAreInWaitingList, state)
+  gotoPath(
+    navigate,
+    kNoticePathPrefix + kNoticeYouAreInWaitingList,
+    undefined,
+    state
+  )
 }
 
 export const routes = {
