@@ -16,6 +16,7 @@ import { css } from '@emotion/react'
 import { Card, Container } from 'react-bootstrap'
 import { PostHog } from 'posthog-js'
 import { useAsyncEffect } from 'use-async-effect'
+import { parse } from 'query-string'
 
 import { Triptych } from './card/Triptych'
 import { SearchGridView } from './grid/SearchGridView'
@@ -300,17 +301,6 @@ function AppRouter() {
                 }
               />
               <Route
-                path={truthsayerPath('/passwd/set/:token')}
-                element={
-                  <PublicOnlyPage isLikelyAuthorised={isLikelyAuthorised}>
-                    <PublicPage>
-                      {/* Set password for a new user */}
-                      <PasswordRecoverFormView onboarding={true} />
-                    </PublicPage>
-                  </PublicOnlyPage>
-                }
-              />
-              <Route
                 path={truthsayerPath('/')}
                 element={<Navigate to={{ pathname: '/search' }} />}
               />
@@ -442,11 +432,13 @@ function AccountView() {
   )
 }
 
-function PasswordRecoverFormView({ onboarding }: { onboarding?: boolean }) {
+function PasswordRecoverFormView() {
   const { token } = useParams<PasswordRecoverFormUrlParams>()
+  const loc = useLocation()
   if (token == null) {
     return <Navigate to="/" />
   }
+  const onboarding = 'onboarding' in parse(loc.search)
   return <PasswordRecoverForm token={token} onboarding={onboarding} />
 }
 

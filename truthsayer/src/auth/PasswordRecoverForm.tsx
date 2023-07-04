@@ -42,11 +42,7 @@ export const PasswordRecoverForm = ({
     } catch (err) {
       alert(`Error ${err}`)
     }
-    if (onboarding) {
-      goto.onboarding({ navigate, step: 2 })
-    } else {
-      goto.login({ navigate })
-    }
+    goto.login({ navigate, onboarding })
   }
 
   return (

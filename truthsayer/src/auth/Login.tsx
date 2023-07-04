@@ -3,6 +3,8 @@
 import React from 'react'
 
 import styled from '@emotion/styled'
+import { parse } from 'query-string'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { authentication } from 'smuggler-api'
 import { goto } from '../lib/route'
@@ -30,6 +32,9 @@ const TruthsayerLoginForm = styled(LoginForm)`
 `
 
 export const Login = () => {
+  const navigate = useNavigate()
+  const loc = useLocation()
+  const onboarding = 'onboarding' in parse(loc.search)
   const [error, setError] = React.useState<string | null>(null)
   const [isLoading, setLoading] = React.useState<boolean>(false)
   const onSubmit = React.useCallback(
@@ -56,11 +61,14 @@ export const Login = () => {
         log.debug('Sending message to Archaeologist failed', err)
       }
       setLoading(false)
-      // Redirect to default on success and failure, because Archaeologist
-      // might be not yet installed
-      goto.default({})
+      if (onboarding) {
+        // Redirect a new user to the last steps of onboarding process
+        goto.onboarding({ navigate, step: 2 })
+      } else {
+        goto.default({ navigate })
+      }
     },
-    []
+    [navigate, onboarding]
   )
 
   return (
