@@ -65,9 +65,17 @@ async function _onLogout() {
 // Internal actions to do on login event
 async function _loginHandler(account: UserAccount) {
   if (!_authKnocker.isActive()) {
-    await _authKnocker.start({
-      /* onKnockFailure */
-    })
+    // NOTE: `Knocker.start()` is intentionally executed without an `await`
+    // because under certain circumstances (e.g. network issues) it can hang
+    // indefinitely. Since knocker's result is not critical to the extension's
+    // lifecycle, it can be done as a non-blocking operation.
+    _authKnocker
+      .start({
+        /* onKnockFailure */
+      })
+      .catch((reason) => {
+        log.error(`Knock failure: ${errorise(reason).message}`)
+      })
   }
   await _onLogin(account)
   await badge.setActive(true)
