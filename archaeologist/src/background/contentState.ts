@@ -1,7 +1,7 @@
 import { AccountInterface, NodeUtil, StorageApi } from 'smuggler-api'
 import type { ContentAppOperationMode } from '../message/types'
 import { ToContent, ContentAugmentationSettings } from '../message/types'
-import { requestPageSavedStatus } from './pageStatus'
+import { requestPageSavedStatusWithConnections } from './pageStatus'
 import { log, Timer } from 'armoury'
 import type { AppSettings } from 'truthsayer-archaeologist-communication'
 
@@ -13,10 +13,8 @@ export async function calculateInitialContentState(
   mode: ContentAppOperationMode,
   appSettings: AppSettings
 ): Promise<ToContent.InitContentAugmentationRequest> {
-  const { bookmark, fromNodes, toNodes } = await requestPageSavedStatus(
-    storage,
-    tabUrl
-  )
+  const { bookmark, fromNodes, toNodes } =
+    await requestPageSavedStatusWithConnections(storage, tabUrl)
   return {
     type: 'INIT_CONTENT_AUGMENTATION_REQUEST',
     nodeEnv: process.env.NODE_ENV,
