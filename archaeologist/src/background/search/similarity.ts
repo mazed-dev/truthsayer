@@ -120,6 +120,10 @@ type FastIndex = {
 }
 
 // See comment for `FastIndex`
+//
+// NOTE: if the number of dimensions changes, it is crucial to also update the
+// number of dimensions in `isKeyOfSecondaryShape()` which at the time of writing
+// gets injected into 'texture_manager.js' of '@tensorflow/tfjs-backend-webgl'
 const kProjectionDimensions = [
   6, 10, 24, 46, 50, 53, 56, 60, 65, 85, 136, 139, 140, 142, 147, 183, 189, 190,
   198, 212, 221, 229, 233, 247, 259, 281, 285, 288, 291, 310, 312, 313, 318,
@@ -676,7 +680,7 @@ async function findRelevantNodesUsingPlainTextSearch(
     }
     if (pos === 'PROPN') {
       // Don't mess with Proper Nouns, use them "as-is"
-      patterns.push(normals[index])
+      patterns.push(normals[index].toLowerCase())
     } else {
       // For everything else use just stem
       patterns.push(stems[index])
