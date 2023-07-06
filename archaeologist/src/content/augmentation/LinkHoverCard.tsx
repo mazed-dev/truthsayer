@@ -12,6 +12,12 @@ import { FromContent } from '../../message/types'
 
 import { AugmentationElement, kAugmentationElementId } from './Mount'
 
+const BookmarkCardToolbarBox = styled.div`
+`
+const BookmarkCardToolbar = () => {
+  return <BookmarkCardToolbarBox></BookmarkCardToolbarBox>
+}
+
 const BookmarkCardBox = styled.div`
   background: #ffffff;
   color: #484848;
