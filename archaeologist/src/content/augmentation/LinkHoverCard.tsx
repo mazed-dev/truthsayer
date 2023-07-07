@@ -5,15 +5,14 @@ import styled from '@emotion/styled'
 import { log } from 'armoury'
 import type { TNode, NodeTextData } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
-import { NodeCard } from 'elementary'
+import { NodeCard, NodeTimeBadge } from 'elementary'
 
 import { ContentContext } from '../context'
 import { FromContent } from '../../message/types'
 
 import { AugmentationElement, kAugmentationElementId } from './Mount'
 
-const BookmarkCardToolbarBox = styled.div`
-`
+const BookmarkCardToolbarBox = styled.div``
 const BookmarkCardToolbar = () => {
   return <BookmarkCardToolbarBox></BookmarkCardToolbarBox>
 }
@@ -30,7 +29,7 @@ const BookmarkCardBox = styled.div`
   overflow-wrap: break-word;
   word-break: normal;
 
-  padding-bottom: 12px;
+  padding-bottom: 2px;
   border-radius: 5px;
   box-shadow: 0 2px 8px 2px rgba(60, 64, 68, 0.24);
   user-select: auto;
@@ -50,9 +49,17 @@ export const BookmarkCard = ({
         ctx={ctx}
         node={node}
         strippedFormatToolbar={true}
-        saveNode={async (_text: NodeTextData) => {
+        saveNode={async (text: NodeTextData) => {
+          await FromContent.sendMessage({
+            type: 'REQUEST_UPDATE_NODE',
+            args: { nid: node.nid, text },
+          })
           return { ack: true }
         }}
+      />
+      <NodeTimeBadge
+        created_at={node.created_at}
+        updated_at={node.updated_at}
       />
     </BookmarkCardBox>
   )
@@ -66,10 +73,16 @@ const Box = styled.div<{ position: Position }>`
   top: ${(props) => props.position.y}px;
 `
 function calculateCardPosition(rect: DOMRect): Position {
-  return {
-    x: rect.left /* + rect.width */,
-    y: rect.top + rect.height + 8,
+  const cardWidth = 328
+  const x: number = Math.min(
+    rect.left /* + rect.width */,
+    window.innerWidth - cardWidth - 12
+  )
+  let y: number = rect.top + rect.height + 8
+  if (y > window.innerHeight - 180) {
+    y = rect.top - 180
   }
+  return { x, y }
 }
 
 type State = {
@@ -105,9 +118,6 @@ export function LinkHoverCard() {
         if (element.parentElement?.tagName === 'A') {
           refElement = element.parentElement as HTMLLinkElement
         }
-        if (refElement != null) {
-          log.debug('Mouse hover element', refElement.href)
-        }
         if (!refElement?.href) {
           setState(null)
           return
@@ -122,8 +132,10 @@ export function LinkHoverCard() {
           const position = calculateCardPosition(
             element.getBoundingClientRect()
           )
-          log.debug('Positino', position)
+          log.debug('Position', position)
           setState({ node, position })
+        } else {
+          setState(null)
         }
       }, 701),
     [rootRef]
@@ -146,10 +158,8 @@ export function LinkHoverCard() {
   }
   return (
     <AugmentationElement disableInFullscreenMode>
-      <Box position={state.position} ref={rootRef} >
-        <BookmarkCard
-          node={state.node}
-        />
+      <Box position={state.position} ref={rootRef}>
+        <BookmarkCard node={state.node} />
       </Box>
     </AugmentationElement>
   )

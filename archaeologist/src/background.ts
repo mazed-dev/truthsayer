@@ -222,6 +222,11 @@ async function handleMessageFromContent(
         bookmark: bookmark ? NodeUtil.toJson(bookmark) : undefined,
       }
     }
+    case 'REQUEST_UPDATE_NODE': {
+      const { args } = message
+      await ctx.storage.node.update(args)
+      return { type: 'VOID_RESPONSE' }
+    }
   }
   throw new Error(
     `background received msg from content of unknown type, message: ${JSON.stringify(

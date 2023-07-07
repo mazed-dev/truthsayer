@@ -441,6 +441,10 @@ export namespace FromContent {
     type: 'REQUEST_PAGE_NODE_BY_URL'
     url: string
   }
+  export interface UpdateNodeRequest {
+    type: 'REQUEST_UPDATE_NODE'
+    args: NodeUpdateArgs
+  }
 
   export type Request =
     | AttentionTimeChunk
@@ -448,6 +452,7 @@ export namespace FromContent {
     | StorageAccessRequest
     | ContentAugmentationSettingsRequest
     | PageNodeByUrlRequest
+    | UpdateNodeRequest
 
   export type Response =
     | GetSelectedQuoteResponse
@@ -475,6 +480,7 @@ export namespace FromContent {
   export function sendMessage(
     message: PageNodeByUrlRequest
   ): Promise<PageNodeByUrlResponse>
+  export function sendMessage(message: UpdateNodeRequest): Promise<VoidResponse>
   export function sendMessage(message: Request): Promise<ToContent.Response> {
     const msg: ToBackground.Request = { direction: 'from-content', ...message }
     return browser.runtime.sendMessage(msg).catch((error) => {
