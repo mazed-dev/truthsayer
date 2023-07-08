@@ -1,26 +1,59 @@
 import React from 'react'
 import lodash from 'lodash'
 import styled from '@emotion/styled'
+import { Settings } from '@emotion-icons/material'
 
 import { log } from 'armoury'
 import type { TNode, NodeTextData } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
 import { NodeCard, NodeTimeBadge } from 'elementary'
+import { truthsayer } from 'elementary'
 
 import { ContentContext } from '../context'
 import { FromContent } from '../../message/types'
 
 import { AugmentationElement, kAugmentationElementId } from './Mount'
 
-const BookmarkCardToolbarBox = styled.div``
-const BookmarkCardToolbar = () => {
-  return <BookmarkCardToolbarBox></BookmarkCardToolbarBox>
+const BookmarkCardToolbarSavedStatus = styled.div`
+  width: 30px;
+`
+
+const SettingsBtn = styled.a`
+  padding: 4px;
+  margin: 0;
+  font-size: 12px;
+  vertical-align: middle;
+  background: unset;
+  border-radius: 12px;
+`
+const BookmarkCardToolbarSettings = () => {
+  return (
+    <SettingsBtn
+      href={truthsayer.url.getSettings().toString()}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <Settings size="14" />
+    </SettingsBtn>
+  )
+}
+const BookmarkCardToolbarBox = styled.div`
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: row;
+  justify-content: space-between;
+`
+const NodeTimeBadgeStyled = styled(NodeTimeBadge)`
+  padding: 4px 10px 4px 0;
+`
+const BookmarkCardToolbar = ({ children }: React.PropsWithChildren<{}>) => {
+  return <BookmarkCardToolbarBox>{children}</BookmarkCardToolbarBox>
 }
 
 const BookmarkCardBox = styled.div`
   background: #ffffff;
   color: #484848;
-  font-size: 14px;
+  font-size: 12px;
   font-family: 'Roboto', Helvetica, Arial, sans-serif;
   letter-spacing: -0.01em;
   line-height: 142%;
@@ -29,7 +62,6 @@ const BookmarkCardBox = styled.div`
   overflow-wrap: break-word;
   word-break: normal;
 
-  padding-bottom: 2px;
   border-radius: 5px;
   box-shadow: 0 2px 8px 2px rgba(60, 64, 68, 0.24);
   user-select: auto;
@@ -57,10 +89,14 @@ export const BookmarkCard = ({
           return { ack: true }
         }}
       />
-      <NodeTimeBadge
-        created_at={node.created_at}
-        updated_at={node.updated_at}
-      />
+      <BookmarkCardToolbar>
+        <BookmarkCardToolbarSavedStatus />
+        <BookmarkCardToolbarSettings />
+        <NodeTimeBadgeStyled
+          created_at={node.created_at}
+          updated_at={node.updated_at}
+        />
+      </BookmarkCardToolbar>
     </BookmarkCardBox>
   )
 }
@@ -78,7 +114,7 @@ function calculateCardPosition(rect: DOMRect): Position {
     rect.left /* + rect.width */,
     window.innerWidth - cardWidth - 12
   )
-  let y: number = rect.top + rect.height + 8
+  let y: number = rect.top + rect.height + 16
   if (y > window.innerHeight - 180) {
     y = rect.top - 180
   }
@@ -91,7 +127,6 @@ type State = {
 }
 
 export function LinkHoverCard() {
-  const rootRef = React.useRef<HTMLDivElement>(null)
   const [state, setState] = React.useState<State | null>(null)
   const requestSavedPageNode = React.useMemo(
     // Using `useMemo` instead of `useCallback` to avoid eslint complains
@@ -107,8 +142,7 @@ export function LinkHoverCard() {
           // augmentation using traditional methods. But with shadow element, we
           // receive only top shadow element, so we can just check it's id.
           //
-          // If you still don't understand how it works, just come and talk to
-          // me please. Cheers, Alexander.
+          // If you still don't understand how it works, just talk to me please.
           return
         }
         let refElement: HTMLLinkElement | undefined = undefined
@@ -137,8 +171,8 @@ export function LinkHoverCard() {
         } else {
           setState(null)
         }
-      }, 701),
-    [rootRef]
+      }, 919),
+    []
   )
   React.useEffect(() => {
     const callback = (event: MouseEvent) => {
@@ -158,7 +192,7 @@ export function LinkHoverCard() {
   }
   return (
     <AugmentationElement disableInFullscreenMode>
-      <Box position={state.position} ref={rootRef}>
+      <Box position={state.position}>
         <BookmarkCard node={state.node} />
       </Box>
     </AugmentationElement>
