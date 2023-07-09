@@ -39,18 +39,21 @@ type State =
   | { type: 'logged-in'; userUid: string; analytics?: PostHog }
 
 type Action =
-  | ToPopUp.AppStatusResponse
+  | { type: 'init'; data: ToPopUp.AppStatusResponse; analytics?: PostHog }
   | ToPopUp.LogInResponse
   | { type: 'mark-as-errored'; error: string }
 
 function updateState(state: State, action: Action): State {
   switch (action.type) {
-    case 'APP_STATUS_RESPONSE': {
-      const analytics = makeAnalytics(action.analyticsIdentity)
-      if (action.userUid == null) {
-        return { type: 'not-logged-in', analytics }
+    case 'init': {
+      if (action.data.userUid == null) {
+        return { type: 'not-logged-in', analytics: action.analytics }
       } else {
-        return { type: 'logged-in', userUid: action.userUid, analytics }
+        return {
+          type: 'logged-in',
+          userUid: action.data.userUid,
+          analytics: action.analytics,
+        }
       }
     }
     case 'RESPONSE_LOG_IN': {
@@ -79,17 +82,21 @@ function updateState(state: State, action: Action): State {
   }
 }
 
-function makeAnalytics(
+async function makeAnalytics(
   analyticsIdentity: AnalyticsIdentity
-): PostHog | undefined {
-  return (
-    productanalytics.make('archaeologist/popup', process.env.NODE_ENV, {
+): Promise<PostHog | undefined> {
+  const { analytics, waitForFeatureFlags } = await productanalytics.make(
+    'archaeologist/popup',
+    process.env.NODE_ENV,
+    {
       bootstrap: {
         distinctID: analyticsIdentity.analyticsIdentity,
         isIdentifiedID: true,
       },
-    }) ?? undefined
+    }
   )
+  await waitForFeatureFlags
+  return analytics ?? undefined
 }
 
 export const PopUpApp = () => {
@@ -101,7 +108,11 @@ export const PopUpApp = () => {
       const response = await FromPopUp.sendMessage({
         type: 'REQUEST_APP_STATUS',
       })
-      dispatch(response)
+      dispatch({
+        type: 'init',
+        data: response,
+        analytics: await makeAnalytics(response.analyticsIdentity),
+      })
     } catch (e) {
       dispatch({
         type: 'mark-as-errored',

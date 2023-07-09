@@ -10,6 +10,7 @@ import type { PostHogConfig } from 'posthog-js'
 
 import { errorise } from './exception'
 import { log } from './log'
+import { sleep } from './time'
 
 const kLogCategory = '[productanalytics]'
 
@@ -43,7 +44,10 @@ function makeAnalytics(
   analyticsSourceName: string,
   nodeEnv: NodeEnv,
   config?: Partial<PostHogConfig>
-): PostHog | null {
+): {
+  analytics: PostHog | null
+  waitForFeatureFlags: Promise<void>
+} {
   const logPrefix = `${kLogCategory} '${analyticsSourceName}'`
   const previouslyCreatedInstance: PostHog | undefined =
     // @ts-ignore: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'PostHog'
@@ -55,7 +59,10 @@ function makeAnalytics(
     if (config?.loaded != null) {
       config.loaded(previouslyCreatedInstance)
     }
-    return previouslyCreatedInstance
+    return {
+      analytics: previouslyCreatedInstance,
+      waitForFeatureFlags: Promise.resolve(),
+    }
   }
 
   try {
@@ -91,11 +98,33 @@ function makeAnalytics(
     }
 
     ret.register({ source: analyticsSourceName, environment: nodeEnv })
-    return ret
+
+    let waitForFeatureFlags = false
+    const timeout = new Promise<void>(async (resolve) => {
+      await sleep(5000)
+      if (!waitForFeatureFlags) {
+        log.warning(
+          'Initialisation of product analytics feature flags has timed out' +
+            ', application may use wrong flag values'
+        )
+      }
+      resolve()
+    })
+
+    const analytics = new Promise<void>((resolve) => {
+      ret.onFeatureFlags(() => {
+        waitForFeatureFlags = true
+        resolve()
+      })
+    })
+    return {
+      analytics: ret,
+      waitForFeatureFlags: Promise.race([timeout, analytics]),
+    }
   } catch (e) {
     log.warning(`${logPrefix} Failed to init, error = ${errorise(e)}`)
   }
-  return null
+  return { analytics: null, waitForFeatureFlags: Promise.resolve() }
 }
 
 /**

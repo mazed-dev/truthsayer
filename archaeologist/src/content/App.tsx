@@ -143,7 +143,11 @@ type InitializedState = {
 type State = UninitializedState | InitializedState
 
 type Action =
-  | { type: 'init-app'; data: ToContent.InitContentAugmentationRequest }
+  | {
+      type: 'init-app'
+      data: ToContent.InitContentAugmentationRequest
+      analytics: PostHog | null
+    }
   | { type: 'update-nodes'; data: ToContent.UpdateContentAugmentationRequest }
   | {
       type: 'show-notification'
@@ -180,7 +184,6 @@ function updateState(state: State, action: Action): State {
 
       const {
         mode,
-        nodeEnv,
         bookmark: bookmarkJson,
         toNodes: toNodesJson,
         fromNodes: fromNodesJson,
@@ -194,64 +197,13 @@ function updateState(state: State, action: Action): State {
         NodeUtil.fromJson(json)
       )
 
-      let analytics: PostHog | null = null
-      if (mode.type !== 'passive-mode-content-app') {
-        analytics = productanalytics.make('archaeologist/content', nodeEnv, {
-          // Opening every web page that gets augmented with a content scripts
-          // gets counted as a '$pageview' event, doesn't matter if a user actually
-          // interacted with the augmentation or not. This produces noisy data,
-          // so pageviews are explicitely disabled.
-          capture_pageview: false,
-          autocapture: false,
-          // Block as many properties as possible that could leak user's
-          // browsing history to PostHog
-          property_blacklist: [
-            '$current_url',
-            '$host',
-            '$referrer',
-            '$pathname',
-            '$referring_domain',
-            '$initial_pathname',
-            '$initial_referring_domain',
-          ],
-          save_referrer: false,
-          bootstrap: {
-            // NOTE: in content script analytics it is important to identify
-            // a user at the moment of analytics instance creation, not via deferred
-            // call to identify() because identify() generates a separate "$identify"
-            // event to PostHog. Every web page user opens then produces such
-            // an event which (as believed at the time of this writing) produces
-            // no value and just makes the data in PostHog difficult to navigate.
-            distinctID: mode.analyticsIdentity.analyticsIdentity,
-            isIdentifiedID: true,
-          },
-          // Unlike product analytics tracked for truthsayer, persist data
-          // about a single augmented web page in memory of the page itself.
-          // This means that different "instances" of product analytics
-          // won't interfere with each other accidentally, which is of
-          // particular importance for analytics properties like 'augmenter-url-guid'
-          persistence: 'memory',
-        })
-        if (analytics != null) {
-          analytics.register({
-            // At the time of this writing the URL of a web-page where
-            // content script has been loaded is intentionally not reported
-            // for privacy reasons. However it is anticipated that it'll be
-            // useful to be able to link together user's interactions with
-            // Foreword within that single specific web-page, so an anonymous
-            // GUID is published instead.
-            augmented_url_guid: uuidv4(),
-          })
-        }
-      }
-
       return {
         mode,
         originIdentity,
         bookmark,
         toNodes,
         fromNodes,
-        analytics,
+        analytics: action.analytics,
         userUid: action.data.userUid,
         appSettings: action.data.appSettings,
         tabStatus: {
@@ -384,10 +336,16 @@ async function handleReadOnlyRequest(
   }
 }
 
-function mutatingRequestToAction(request: ToContent.MutatingRequest): Action {
+async function mutatingRequestToAction(
+  request: ToContent.MutatingRequest
+): Promise<Action> {
   switch (request.type) {
     case 'INIT_CONTENT_AUGMENTATION_REQUEST': {
-      return { type: 'init-app', data: request }
+      return {
+        type: 'init-app',
+        data: request,
+        analytics: await makeAnalytics(request),
+      }
     }
     case 'REQUEST_UPDATE_CONTENT_AUGMENTATION': {
       return { type: 'update-nodes', data: request }
@@ -399,6 +357,67 @@ function mutatingRequestToAction(request: ToContent.MutatingRequest): Action {
       return { type: 'notify-tab-status-update', data: request }
     }
   }
+}
+
+async function makeAnalytics(
+  request: ToContent.InitContentAugmentationRequest
+) {
+  if (request.mode.type !== 'passive-mode-content-app') {
+    const { analytics, waitForFeatureFlags } = productanalytics.make(
+      'archaeologist/content',
+      request.nodeEnv,
+      {
+        // Opening every web page that gets augmented with a content scripts
+        // gets counted as a '$pageview' event, doesn't matter if a user actually
+        // interacted with the augmentation or not. This produces noisy data,
+        // so pageviews are explicitely disabled.
+        capture_pageview: false,
+        autocapture: false,
+        // Block as many properties as possible that could leak user's
+        // browsing history to PostHog
+        property_blacklist: [
+          '$current_url',
+          '$host',
+          '$referrer',
+          '$pathname',
+          '$referring_domain',
+          '$initial_pathname',
+          '$initial_referring_domain',
+        ],
+        save_referrer: false,
+        bootstrap: {
+          // NOTE: in content script analytics it is important to identify
+          // a user at the moment of analytics instance creation, not via deferred
+          // call to identify() because identify() generates a separate "$identify"
+          // event to PostHog. Every web page user opens then produces such
+          // an event which (as believed at the time of this writing) produces
+          // no value and just makes the data in PostHog difficult to navigate.
+          distinctID: request.mode.analyticsIdentity.analyticsIdentity,
+          isIdentifiedID: true,
+        },
+        // Unlike product analytics tracked for truthsayer, persist data
+        // about a single augmented web page in memory of the page itself.
+        // This means that different "instances" of product analytics
+        // won't interfere with each other accidentally, which is of
+        // particular importance for analytics properties like 'augmenter-url-guid'
+        persistence: 'memory',
+      }
+    )
+    if (analytics != null) {
+      analytics.register({
+        // At the time of this writing the URL of a web-page where
+        // content script has been loaded is intentionally not reported
+        // for privacy reasons. However it is anticipated that it'll be
+        // useful to be able to link together user's interactions with
+        // Foreword within that single specific web-page, so an anonymous
+        // GUID is published instead.
+        augmented_url_guid: uuidv4(),
+      })
+      await waitForFeatureFlags
+    }
+    return analytics
+  }
+  return null
 }
 
 function genExcludeNidsForSimilaritySearch(
@@ -437,7 +456,7 @@ const App = () => {
         case 'REQUEST_UPDATE_CONTENT_AUGMENTATION':
         case 'REQUEST_UPDATE_TAB_STATUS':
         case 'SHOW_DISAPPEARING_NOTIFICATION': {
-          dispatch(mutatingRequestToAction(message))
+          dispatch(await mutatingRequestToAction(message))
           return { type: 'VOID_RESPONSE' }
         }
         case 'REPORT_BACKGROUND_OPERATION_PROGRESS': {

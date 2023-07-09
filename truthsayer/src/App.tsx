@@ -86,10 +86,13 @@ export function App() {
 }
 
 function AppRouter() {
-  const analytics = React.useMemo<PostHog | null>(
-    () => productanalytics.make('truthsayer', process.env.NODE_ENV),
-    []
-  )
+  const analytics = React.useMemo<PostHog | null>(() => {
+    const { analytics } = productanalytics.make(
+      'truthsayer',
+      process.env.NODE_ENV
+    )
+    return analytics
+  }, [])
 
   const [account, setAccount] = React.useState<UserAccount | null>(null)
   useAsyncEffect(async () => {
