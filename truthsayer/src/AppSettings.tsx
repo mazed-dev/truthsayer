@@ -40,10 +40,10 @@ const FeatureRow = styled.div`
   flex-direction: row;
   flex-wrap: nowrap;
   align-content: flex-end;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
 
-  max-width: 320px;
+  max-width: 360px;
   padding: 10px 14px 10px 14px;
   border-radius: 14px;
   &:hover {
@@ -53,6 +53,7 @@ const FeatureRow = styled.div`
 const FeatureLabel = styled.div`
   font-size: 16px;
   cursor: default;
+  margin-left: 16px;
 `
 
 export function ApplicationSettings({
@@ -104,9 +105,23 @@ export function ApplicationSettings({
     })
   }
   const toggleTypingSuggestionsEnabled = async (enabled: boolean) => {
+    const prev = appSettings ?? defaultSettings()
     await saveAppSettings({
-      ...(appSettings ?? defaultSettings()),
-      suggestions: { typing: { enabled } },
+      ...prev,
+      suggestions: {
+        ...prev.suggestions,
+        typing: { enabled },
+      },
+    })
+  }
+  const toggleMouseoverSuggestionsEnabled = async (enabled: boolean) => {
+    const prev = appSettings ?? defaultSettings()
+    await saveAppSettings({
+      ...prev,
+      suggestions: {
+        ...prev.suggestions,
+        mouseover: { enabled },
+      },
     })
   }
   const ctx = React.useContext(MzdGlobalContext)
@@ -120,12 +135,12 @@ export function ApplicationSettings({
       <Section key="storage_type">
         <SectionLabel>Storage type</SectionLabel>
         <FeatureRow>
-          <FeatureLabel>Store data locally</FeatureLabel>
           <Switch
             disabled={!storageToggleIsEnabled}
             onChange={toggleStorageType}
             checked={appSettings.storageType === 'browser_ext'}
           />
+          <FeatureLabel>Store data locally</FeatureLabel>
         </FeatureRow>
       </Section>
     ) : null
@@ -136,13 +151,22 @@ export function ApplicationSettings({
       <Section key="augmentation">
         <SectionLabel>Suggest relevant memories</SectionLabel>
         <FeatureRow>
-          <FeatureLabel>Suggest when typing</FeatureLabel>
           <Switch
             onChange={toggleTypingSuggestionsEnabled}
             checked={
-              appSettings?.suggestions?.typing.enabled ?? isLikelyAuthorised
+              appSettings?.suggestions?.typing?.enabled ?? isLikelyAuthorised
             }
           />
+          <FeatureLabel>Suggest when typing</FeatureLabel>
+        </FeatureRow>
+        <FeatureRow>
+          <Switch
+            onChange={toggleMouseoverSuggestionsEnabled}
+            checked={
+              appSettings?.suggestions?.mouseover?.enabled ?? isLikelyAuthorised
+            }
+          />
+          <FeatureLabel>Suggest on hover over known link</FeatureLabel>
         </FeatureRow>
       </Section>
       {storageTypeToggle}

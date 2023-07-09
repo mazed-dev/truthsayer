@@ -46,6 +46,8 @@ const Root = styled(root.div)`
   width: 0 !important;
 `
 
+export const kAugmentationElementId = 'mazed-archaeologist-augmentation-element'
+
 export const AugmentationElement = ({
   children,
   disableInFullscreenMode,
@@ -86,7 +88,7 @@ export const AugmentationElement = ({
      */
   )
   return ReactDOM.createPortal(
-    <Root id={'mazed-archaeologist-augmentation-element'}>{children}</Root>,
+    <Root id={kAugmentationElementId}>{children}</Root>,
     box
   )
 }

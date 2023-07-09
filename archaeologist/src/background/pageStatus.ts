@@ -8,8 +8,6 @@ export async function requestPageSavedStatus(
   url: string | undefined
 ): Promise<{
   bookmark?: TNode
-  fromNodes?: TNode[]
-  toNodes?: TNode[]
   unmemorable?: boolean
 }> {
   if (url == null) {
@@ -31,6 +29,22 @@ export async function requestPageSavedStatus(
       bookmark = node
       break
     }
+  }
+  return { bookmark }
+}
+
+export async function requestPageSavedStatusWithConnections(
+  storage: StorageApi,
+  url: string | undefined
+): Promise<{
+  bookmark?: TNode
+  fromNodes?: TNode[]
+  toNodes?: TNode[]
+  unmemorable?: boolean
+}> {
+  const { bookmark, unmemorable } = await requestPageSavedStatus(storage, url)
+  if (unmemorable) {
+    return { unmemorable }
   }
   const { fromNodes, toNodes } = await requestPageConnections(storage, bookmark)
   return { bookmark, fromNodes, toNodes }

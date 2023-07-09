@@ -34,13 +34,16 @@ export const SuggestedCardBox = styled.div`
 export const SuggestedCard = ({
   node,
   webBookmarkDescriptionConfig,
+  className,
 }: {
   node: TNode
   webBookmarkDescriptionConfig?: WebBookmarkDescriptionConfig
+
+  className?: string
 }) => {
   const ctx = React.useContext(ContentContext)
   return (
-    <SuggestedCardBox>
+    <SuggestedCardBox className={className}>
       <NodeCardReadOnly
         ctx={ctx}
         node={node}
