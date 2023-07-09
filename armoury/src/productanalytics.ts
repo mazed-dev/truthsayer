@@ -46,6 +46,11 @@ function makeAnalytics(
   config?: Partial<PostHogConfig>
 ): {
   analytics: PostHog | null
+  /**
+   * `await` this Promise to wait until PostHog's feature flags have been fully
+   * initialised. If the caller tries to access feature flags before the Promise
+   * is resolved, flags are likely to report unexpected values.
+   */
   waitForFeatureFlags: Promise<void>
 } {
   const logPrefix = `${kLogCategory} '${analyticsSourceName}'`
