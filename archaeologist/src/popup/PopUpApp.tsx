@@ -85,7 +85,7 @@ function updateState(state: State, action: Action): State {
 async function makeAnalytics(
   analyticsIdentity: AnalyticsIdentity
 ): Promise<PostHog | undefined> {
-  const { analytics, waitForFeatureFlags } = await productanalytics.make(
+  const { analytics, waitForFeatureFlags } = productanalytics.make(
     'archaeologist/popup',
     process.env.NODE_ENV,
     {
