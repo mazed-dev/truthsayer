@@ -33,6 +33,10 @@ export namespace truthsayer.url {
     return make({ pathname: '/search', query: { q: text } })
   }
 
+  export const getSettings = (): URL => {
+    return make({ pathname: '/settings' })
+  }
+
   export const belongs = (url: string): boolean => {
     const forewordUrl = getTruthsayerUrl()
     const urlObj = new URL(url)
