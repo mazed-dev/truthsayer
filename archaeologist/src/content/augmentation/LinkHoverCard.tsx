@@ -1,13 +1,18 @@
 import React from 'react'
 import lodash from 'lodash'
 import styled from '@emotion/styled'
+import moment from 'moment'
 import { Settings } from '@emotion-icons/material'
 
-import { log } from 'armoury'
+import { errorise, log, productanalytics } from 'armoury'
 import type { TNode, NodeTextData } from 'smuggler-api'
 import { NodeUtil } from 'smuggler-api'
-import { NodeCard, NodeTimeBadge } from 'elementary'
-import { truthsayer } from 'elementary'
+import {
+  NodeCard,
+  NodeTimeBadge,
+  ScopedTimedAction,
+  truthsayer,
+} from 'elementary'
 
 import { ContentContext } from '../context'
 import { FromContent } from '../../message/types'
@@ -20,11 +25,28 @@ const BookmarkCardToolbarSavedStatus = styled.div`
 
 const SettingsBtn = styled.a`
   padding: 4px;
-  margin: 0;
-  font-size: 12px;
+  margin: 2px;
+  cursor: pointer;
+
+  display: flex;
+  text-decoration: none;
   vertical-align: middle;
+  align-items: baseline;
+  justify-content: center;
+
   background: unset;
-  border-radius: 12px;
+  background-color: #ffffff;
+  color: #000000;
+
+  border-radius: 14px;
+  border-style: solid;
+  border-width: 0;
+
+  opacity: 0.5;
+  &:hover {
+    opacity: 1;
+    background-color: #d0d1d2;
+  }
 `
 const BookmarkCardToolbarSettings = () => {
   return (
@@ -127,6 +149,7 @@ type State = {
 }
 
 export function LinkHoverCard() {
+  const ctx = React.useContext(ContentContext)
   const [state, setState] = React.useState<State | null>(null)
   const requestSavedPageNode = React.useMemo(
     // Using `useMemo` instead of `useCallback` to avoid eslint complains
@@ -168,17 +191,30 @@ export function LinkHoverCard() {
           )
           log.debug('Position', position)
           setState({ node, position })
+          ctx.analytics?.capture('LinkHoverCard: show card', {
+            nid: node.nid,
+          })
         } else {
           setState(null)
         }
-      }, 919),
-    []
+      }, 1013),
+    [ctx.analytics]
   )
   React.useEffect(() => {
     const callback = (event: MouseEvent) => {
       if (event.target) {
         const element = event.target as HTMLElement
-        requestSavedPageNode(element)
+        requestSavedPageNode(element)?.catch((err) => {
+          productanalytics.warning(
+            ctx.analytics ?? null,
+            {
+              failedTo: 'show LinkHoverCard',
+              location: 'floater',
+              cause: errorise(err).message,
+            },
+            { andLog: true }
+          )
+        })
       }
     }
     const opts: AddEventListenerOptions = { passive: true, capture: true }
@@ -186,7 +222,7 @@ export function LinkHoverCard() {
     return () => {
       window.removeEventListener('mouseover', callback, opts)
     }
-  }, [requestSavedPageNode])
+  }, [requestSavedPageNode, ctx.analytics])
   if (state == null) {
     return null
   }
@@ -195,6 +231,18 @@ export function LinkHoverCard() {
       <Box position={state.position}>
         <BookmarkCard node={state.node} />
       </Box>
+      <ScopedTimedAction
+        action={() =>
+          ctx.analytics?.capture(
+            'LinkHoverCard: card kept open longer than threshold',
+            {
+              thresholdSec: 3,
+              nid: state.node.nid,
+            }
+          )
+        }
+        after={moment.duration(3, 'seconds')}
+      />
     </AugmentationElement>
   )
 }

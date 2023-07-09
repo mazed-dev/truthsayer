@@ -22,7 +22,10 @@ export type StorageType =
   | 'browser_ext' /** Stores user data in @file storage_api_browser_ext.ts */
 
 export type AppSuggestionsSettings = {
-  typing: {
+  typing?: {
+    enabled: boolean
+  }
+  mouseover?: {
     enabled: boolean
   }
 }

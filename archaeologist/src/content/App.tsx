@@ -49,7 +49,6 @@ import { AppErrorBoundary } from './AppErrorBoundary'
 import { isPageAutosaveable } from './extractor/url/autosaveable'
 import { Augmentation } from './augmentation/Augmentation'
 import { AugmentationMountPoint } from './augmentation/Mount'
-import { LinkHoverCard } from './augmentation/LinkHoverCard'
 import { ContentContext } from './context'
 import { FromArchaeologistContent } from 'truthsayer-archaeologist-communication'
 import type { AppSettings } from 'truthsayer-archaeologist-communication'
@@ -516,8 +515,11 @@ const App = () => {
                 state.appSettings?.suggestions?.typing?.enabled ??
                 state.userUid != null
               }
+              enableMouseoverSuggestions={
+                state.appSettings?.suggestions?.mouseover?.enabled ??
+                state.userUid != null
+              }
             />
-            <LinkHoverCard />
           </>
         )}
       </ContentContext.Provider>
