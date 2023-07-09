@@ -516,8 +516,12 @@ const App = () => {
                 state.userUid != null
               }
               enableMouseoverSuggestions={
-                state.appSettings?.suggestions?.mouseover?.enabled ??
-                state.userUid != null
+                (state.analytics?.isFeatureEnabled(
+                  'augmentation-mouseover-link'
+                ) ??
+                  false) &&
+                (state.appSettings?.suggestions?.mouseover?.enabled ??
+                  state.userUid != null)
               }
             />
           </>
