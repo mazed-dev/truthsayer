@@ -29,6 +29,13 @@ const kBlocklist: RegExp[] = [
   /\/(login|signin|signup|auth)\/?/i,
   // Block pages seen during PR creation where two branches are compared
   /github\.com\/.*\/compare\/.*/,
+  // Block saving from web email, because common email all the infinite replies
+  // and forwards generate enormous number of embedding per single email. Until
+  // we fix it, disabling autosaving from Gmail/Outlook.
+  /mail\.google\.com\/mail\//,
+  /outlook\.live\.com\/mail\//,
+  // Block autosaving from Amazon shops
+  /\/(www\.)?amazon\.[\w.]+\//,
 ]
 const kAllowlist: RegExp[] = []
 /**
