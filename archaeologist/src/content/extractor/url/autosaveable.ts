@@ -34,6 +34,8 @@ const kBlocklist: RegExp[] = [
   // we fix it, disabling autosaving from Gmail/Outlook.
   /mail\.google\.com\/mail\//,
   /outlook\.live\.com\/mail\//,
+  // Block autosaving from Amazon shops
+  /\/(www\.)?amazon\.[\w.]+\//,
 ]
 const kAllowlist: RegExp[] = []
 /**

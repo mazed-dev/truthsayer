@@ -43,6 +43,9 @@ test('Autosaveable.manually-blocked', () => {
     'https://github.com/Thread-knowledge/smuggler/compare/add-meta-node-idx-for-slice-search?expand=1',
     'https://outlook.live.com/mail/0/inbox/id/AQQkADAwATMwMAItM2JmMy01NQBlMC0wMAI',
     'https://mail.google.com/mail/u/0/#drafts',
+    'https://www.amazon.co.uk/h/mobile/mission',
+    'https://amazon.co.uk/h/mobile',
+    'https://www.amazon.com/Laura-Mercier-Pencil/dp/B07X',
   ].forEach((url) => {
     expect(_isManuallyBlocked(url)).toStrictEqual(true)
   })
