@@ -27,6 +27,8 @@ test('Autosaveable.manually-blocked', () => {
   ;[
     'https://docs.google.com/document/d/45W',
     'https://github.com/Thread-knowledge/truthsayer/pull/241/commits',
+    'https://github.com/mazed-dev/truthsayer/pull/179/files',
+    'https://github.com/mazed_dev/truthsayer_/pull/1/files',
     'https://abc.com/forgot/signin',
     'https://abc.com/SIGNUP',
     'https://abc.com/forgot/signup/',
@@ -39,6 +41,8 @@ test('Autosaveable.manually-blocked', () => {
     'https://zoom.us/oauth/signin/?_rnd=166',
     'https://residentportal.com/auth',
     'https://github.com/Thread-knowledge/smuggler/compare/add-meta-node-idx-for-slice-search?expand=1',
+    'https://outlook.live.com/mail/0/inbox/id/AQQkADAwATMwMAItM2JmMy01NQBlMC0wMAI',
+    'https://mail.google.com/mail/u/0/#drafts',
   ].forEach((url) => {
     expect(_isManuallyBlocked(url)).toStrictEqual(true)
   })
