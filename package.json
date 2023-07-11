@@ -37,9 +37,6 @@
     "ts-jest": "^26.4.2",
     "typescript": "4.7.3"
   },
-  "resolutions": {
-    "@tensorflow/tfjs-backend-webgl": "patch:@tensorflow/tfjs-backend-webgl@npm:4.8.0#./text-information-retrieval/src/tfjs-texture-manager-lru-hack.patch"
-  },
   "devDependencies": {
     "syncpack": "^5.8.15"
   },
