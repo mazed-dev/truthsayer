@@ -3897,21 +3897,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tensorflow/tfjs-backend-webgl@patch:@tensorflow/tfjs-backend-webgl@npm:4.8.0#./text-information-retrieval/src/tfjs-texture-manager-lru-hack.patch::locator=thread-knowledge%40workspace%3A.":
-  version: 4.8.0
-  resolution: "@tensorflow/tfjs-backend-webgl@patch:@tensorflow/tfjs-backend-webgl@npm%3A4.8.0#./text-information-retrieval/src/tfjs-texture-manager-lru-hack.patch::version=4.8.0&hash=7236db&locator=thread-knowledge%40workspace%3A."
-  dependencies:
-    "@tensorflow/tfjs-backend-cpu": 4.8.0
-    "@types/offscreencanvas": ~2019.3.0
-    "@types/seedrandom": ^2.4.28
-    "@types/webgl-ext": 0.0.30
-    seedrandom: ^3.0.5
-  peerDependencies:
-    "@tensorflow/tfjs-core": 4.8.0
-  checksum: 62ca9a2c782c9aaec813c6e9fb5256f98b435591fcd1a4a5b5569ff2b5f21ac6c290e751d65e8c797b0e6641645900a11fb8e1f443b4668814fd0794975e4fba
-  languageName: node
-  linkType: hard
-
 "@tensorflow/tfjs-converter@npm:4.8.0":
   version: 4.8.0
   resolution: "@tensorflow/tfjs-converter@npm:4.8.0"
